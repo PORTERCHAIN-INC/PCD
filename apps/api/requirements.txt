@@ -1,0 +1,21 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+python-multipart>=0.0.18
+sqlalchemy>=2.0.36
+alembic>=1.14.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+httpx>=0.28.0
+python-jose[cryptography]>=3.3.0
+stripe>=11.0.0
+psycopg[binary]>=3.2.0
+redis>=5.2.0
+
+# Platform packages (editable — install from repo root or use PYTHONPATH)
+-e ../../shared/python
+-e ../../services/python
+-e ../../services/fleetbase-adapter
+-e ../../services/fleetbase
+-e ../../services/pricing-engine
+-e ../../services/event-bus
+-e ../../services/driver-platform

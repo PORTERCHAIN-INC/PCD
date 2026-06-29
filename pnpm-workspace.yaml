@@ -1,0 +1,6 @@
+packages:
+  - "website"
+  - "apps/merchant-portal"
+  - "apps/driver-portal"
+  - "apps/admin"
+  - "packages/*"

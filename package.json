@@ -1,0 +1,35 @@
+{
+  "name": "porterchain",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:api": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/fleetbase:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python run.py",
+    "dev:website": "pnpm --filter @porterchain/website dev",
+    "dev:merchant": "pnpm --filter @porterchain/merchant-portal dev",
+    "dev:driver": "pnpm --filter @porterchain/driver-portal dev",
+    "dev:admin": "pnpm --filter @porterchain/admin dev",
+    "dev:worker": "cd apps/worker && source ../api/.venv/bin/activate && PYTHONPATH=../api/src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/fleetbase:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python run.py",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "docker:up": "docker compose -f infrastructure/docker/docker-compose.yml --profile core up -d",
+    "docker:up:routing": "docker compose -f infrastructure/docker/docker-compose.yml --profile core --profile routing up -d",
+    "docker:down": "docker compose -f infrastructure/docker/docker-compose.yml --profile core --profile routing --profile fleetbase down",
+    "docker:fleetbase:install": "bash infrastructure/docker/scripts/fleetbase-install.sh",
+    "docker:fleetbase:up": "cd apps/fleetbase && docker compose -f docker-compose.yml -f docker-compose.override.yml -f ../../infrastructure/docker/fleetbase.porterchain.override.yml up -d",
+    "docker:fleetbase:down": "cd apps/fleetbase && docker compose -f docker-compose.yml -f docker-compose.override.yml -f ../../infrastructure/docker/fleetbase.porterchain.override.yml down",
+    "docker:fleetbase:verify": "bash infrastructure/docker/scripts/fleetbase-verify.sh",
+    "docker:fleetbase:logs": "cd apps/fleetbase && docker compose -f docker-compose.yml -f docker-compose.override.yml -f ../../infrastructure/docker/fleetbase.porterchain.override.yml logs -f",
+    "docker:logs": "docker compose -f infrastructure/docker/docker-compose.yml logs -f",
+    "ports": "bash scripts/ports-local.sh"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3"
+  }
+}

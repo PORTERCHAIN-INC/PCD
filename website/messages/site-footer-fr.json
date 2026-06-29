@@ -1,0 +1,48 @@
+{
+  "tagline": "Partenaire logistique commercial pour les entreprises locales du RGT.",
+  "corporateTagline": "Livraison commerciale professionnelle pour les entreprises qui exigent la fiabilité.",
+  "businessTagline": "Logistique d'entreprise pour les entreprises en croissance.",
+  "address": "100 King Street West, Toronto, ON M5X 1A9",
+  "copyright": "© {year} Porterchain Inc. Tous droits réservés.",
+  "contactLine": "peter@porterchain.com · +1 (647) 619-7951",
+  "driverPortal": "Portail chauffeur",
+  "merchantPortal": "Portail marchand",
+  "support": "Support client",
+  "status": "État du service",
+  "sections": {
+    "products": {
+      "title": "Services",
+      "links": {
+        "book": "Réserver une livraison",
+        "business": "Entreprise"
+      }
+    },
+    "company": {
+      "title": "Entreprise",
+      "links": {
+        "about": "À propos",
+        "careers": "Carrières",
+        "blog": "Blogue",
+        "contact": "Contact"
+      }
+    },
+    "resources": {
+      "title": "Ressources",
+      "links": {
+        "blogHome": "Accueil blogue",
+        "logistics": "Logistique",
+        "routeOptimization": "Optimisation d'itinéraires",
+        "supplyChain": "Chaîne d'approvisionnement",
+        "sameDay": "Livraison le jour même"
+      }
+    },
+    "legal": {
+      "title": "Mentions légales",
+      "links": {
+        "privacy": "Confidentialité",
+        "terms": "Conditions d'utilisation",
+        "cookies": "Politique de cookies"
+      }
+    }
+  }
+}

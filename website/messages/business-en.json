@@ -1,0 +1,354 @@
+{
+  "metadata": {
+    "title": "Porterchain Business | Enterprise Logistics for Growing Companies",
+    "description": "Request a business consultation for recurring logistics, same-day delivery, LTL freight, and wholesale distribution across the GTA. Simple inquiry — no long forms.",
+    "ogTitle": "Porterchain Enterprise Logistics",
+    "ogDescription": "Modern logistics for growing businesses. Request a consultation with our team."
+  },
+  "nav": {
+    "solutions": "Solutions",
+    "industries": "Industries",
+    "technology": "Technology",
+    "pricing": "Pricing",
+    "resources": "Resources",
+    "about": "About",
+    "contact": "Contact",
+    "bookDelivery": "Book Delivery",
+    "requestConsultation": "Request Consultation",
+    "toggleMenu": "Toggle menu",
+    "solutionItems": {
+      "recurring": "Recurring Delivery",
+      "sameDay": "Same-Day Delivery",
+      "ltl": "LTL Freight",
+      "wholesale": "Wholesale Distribution"
+    }
+  },
+  "hero": {
+    "badge": "Enterprise Logistics",
+    "titleLine1": "Enterprise Logistics",
+    "titleLine2": "Built for Growing Businesses.",
+    "subtitle": "Same-day delivery, scheduled routes, wholesale distribution, LTL freight, recurring logistics and custom transportation solutions across the Greater Toronto Area.",
+    "ctaPrimary": "Request Consultation",
+    "ctaSecondary": "Schedule Meeting"
+  },
+  "inquiry": {
+    "title": "Let's Talk About Your Logistics",
+    "subtitle": "Tell us how to reach you. A Porterchain logistics consultant will contact you within one business day.",
+    "workEmail": "Work Email",
+    "workEmailPlaceholder": "you@company.com",
+    "phone": "Phone Number",
+    "phonePlaceholder": "(416) 555-0100",
+    "countryCode": "Country code",
+    "extension": "Extension",
+    "extensionPlaceholder": "e.g. 204",
+    "optional": "Optional",
+    "consent": "I agree to be contacted by Porterchain regarding business logistics services.",
+    "submit": "Request Business Consultation",
+    "submitting": "Submitting...",
+    "successTitle": "Inquiry Received",
+    "successMessage": "Thank you. A Porterchain logistics consultant will reach out within one business day.",
+    "assurances": {
+      "noObligation": "No obligation",
+      "noLongForms": "No long forms",
+      "responseTime": "Response within 1 business day"
+    }
+  },
+  "stickyCta": {
+    "message": "Ready to streamline your logistics?",
+    "button": "Request Consultation"
+  },
+  "trustedBy": {
+    "label": "Trusted by businesses across the GTA",
+    "items": {
+      "coffee": "Coffee",
+      "medical": "Medical",
+      "manufacturing": "Manufacturing",
+      "retail": "Retail",
+      "construction": "Construction",
+      "restaurant": "Restaurant",
+      "wholesale": "Wholesale",
+      "autoParts": "Auto Parts",
+      "laboratories": "Laboratories",
+      "foodDistribution": "Food Distribution"
+    }
+  },
+  "challenges": {
+    "title": "Your Logistics Shouldn't Slow Your Business Down.",
+    "subtitle": "Growing companies face the same logistics challenges. Porterchain is built to solve them.",
+    "items": {
+      "highCosts": { "title": "High delivery costs", "description": "Unpredictable pricing and hidden fees erode margins on every shipment." },
+      "lateDeliveries": { "title": "Late deliveries", "description": "Missed windows damage customer relationships and increase support costs." },
+      "manualScheduling": { "title": "Manual scheduling", "description": "Spreadsheets and phone calls waste hours your team could spend growing." },
+      "noVisibility": { "title": "No visibility", "description": "Without real-time tracking, you're always answering 'where's my order?'" },
+      "multipleVendors": { "title": "Multiple vendors", "description": "Juggling couriers creates inconsistency and operational overhead." },
+      "noTracking": { "title": "No tracking", "description": "Customers expect live updates. Legacy couriers often can't deliver." },
+      "invoiceManagement": { "title": "Invoice management", "description": "Reconciling dozens of invoices monthly drains finance teams." },
+      "scalingProblems": { "title": "Scaling problems", "description": "What worked at 50 deliveries breaks at 500 without the right partner." }
+    }
+  },
+  "solutions": {
+    "label": "Solutions",
+    "title": "Our Business Solutions",
+    "subtitle": "End-to-end logistics designed for companies that need reliability, visibility, and scale.",
+    "items": {
+      "recurringDelivery": "Recurring Delivery",
+      "dedicatedRoutes": "Dedicated Routes",
+      "sameDay": "Same-Day Delivery",
+      "multiStop": "Multi-stop Distribution",
+      "wholesale": "Wholesale Delivery",
+      "ltlFreight": "LTL Freight",
+      "ftlFreight": "FTL Freight",
+      "furniture": "Furniture Delivery",
+      "construction": "Construction Material Delivery",
+      "medical": "Medical Logistics",
+      "retail": "Retail Distribution",
+      "reverse": "Reverse Logistics"
+    },
+    "descriptions": {
+      "recurringDelivery": "Automated pickups and deliveries on your schedule.",
+      "dedicatedRoutes": "Consistent drivers and routes for your operations.",
+      "sameDay": "Urgent deliveries across the GTA, same day.",
+      "multiStop": "Efficient distribution to multiple locations per run.",
+      "wholesale": "B2B deliveries to retailers and distributors.",
+      "ltlFreight": "Palletized freight without full truckload commitment.",
+      "ftlFreight": "Full truckload capacity for large shipments.",
+      "furniture": "Careful handling for furniture and bulky items.",
+      "construction": "Jobsite deliveries for materials and supplies.",
+      "medical": "Compliant handling for healthcare logistics.",
+      "retail": "Store replenishment and last-mile distribution.",
+      "reverse": "Returns, exchanges, and reverse supply chain."
+    }
+  },
+  "industries": {
+    "label": "Industries",
+    "title": "Built for Your Industry",
+    "subtitle": "Specialized logistics expertise across the sectors that power the GTA economy.",
+    "items": {
+      "coffee": "Coffee Roasters",
+      "foodBeverage": "Food & Beverage",
+      "restaurantSuppliers": "Restaurant Suppliers",
+      "grocery": "Grocery Distribution",
+      "medical": "Medical & Pharmacy",
+      "construction": "Construction",
+      "electrical": "Electrical",
+      "hvac": "HVAC",
+      "manufacturing": "Manufacturing",
+      "automotive": "Automotive Parts",
+      "retail": "Retail",
+      "furniture": "Furniture",
+      "laboratories": "Laboratories",
+      "ecommerce": "E-commerce",
+      "printShops": "Print Shops",
+      "industrial": "Industrial Equipment"
+    }
+  },
+  "whyChoose": {
+    "title": "Why Businesses Choose Porterchain",
+    "subtitle": "Enterprise-grade capabilities with the simplicity your team deserves.",
+    "items": {
+      "realTimeTracking": "Real-Time Tracking",
+      "proofOfDelivery": "Proof of Delivery",
+      "photoConfirmation": "Photo Confirmation",
+      "digitalSignature": "Digital Signature",
+      "apiIntegration": "API Integration",
+      "csvUpload": "CSV Upload",
+      "merchantDashboard": "Merchant Dashboard",
+      "accountManager": "Dedicated Account Manager",
+      "flexibleBilling": "Flexible Billing",
+      "routeOptimization": "Route Optimization",
+      "instantQuotes": "Instant Quotes",
+      "businessReports": "Business Reports"
+    },
+    "descriptions": {
+      "realTimeTracking": "Live GPS tracking on every delivery.",
+      "proofOfDelivery": "Documented confirmation for every drop-off.",
+      "photoConfirmation": "Visual proof captured at delivery.",
+      "digitalSignature": "Recipient signatures stored securely.",
+      "apiIntegration": "Connect your systems via REST API.",
+      "csvUpload": "Bulk order upload in seconds.",
+      "merchantDashboard": "Full visibility into your operations.",
+      "accountManager": "A dedicated partner for your account.",
+      "flexibleBilling": "Pay as you go or monthly invoicing.",
+      "routeOptimization": "AI-powered routing for efficiency.",
+      "instantQuotes": "Transparent pricing before you commit.",
+      "businessReports": "Analytics and exportable reports."
+    }
+  },
+  "fleet": {
+    "label": "Fleet",
+    "title": "Vehicle Fleet",
+    "subtitle": "The right vehicle for every shipment — from documents to full truckloads.",
+    "payload": "Payload",
+    "cargoSpace": "Cargo Space",
+    "licenceNote": "Porterchain currently operates vehicles that can be driven with a standard Ontario G Licence. We do not currently provide DZ or AZ truck services.",
+    "items": {
+      "sedan": { "name": "Sedan", "payload": "Up to 50 lbs", "cargo": "Trunk space", "useCase": "Documents, small parcels, urgent items" },
+      "suv": { "name": "SUV", "payload": "Up to 150 lbs", "cargo": "Rear cargo area", "useCase": "Medium parcels, medical supplies" },
+      "pickup": { "name": "Pickup Truck", "payload": "Up to 1,500 lbs", "cargo": "6 ft bed", "useCase": "Furniture, construction materials" },
+      "cargoVan": { "name": "Cargo Van", "payload": "Up to 3,000 lbs", "cargo": "200 cu ft", "useCase": "Bulky items, multi-piece deliveries" },
+      "highRoof": { "name": "High Roof Van", "payload": "Up to 3,500 lbs", "cargo": "350 cu ft", "useCase": "Tall items, high-volume runs" },
+      "box16": { "name": "16 ft Box Truck", "payload": "Up to 6,000 lbs", "cargo": "800 cu ft", "useCase": "LTL pallets, wholesale distribution" },
+      "box20": { "name": "20 ft Box Truck", "payload": "Up to 10,000 lbs", "cargo": "1,000 cu ft", "useCase": "FTL loads, large freight" }
+    }
+  },
+  "onboarding": {
+    "label": "Onboarding",
+    "title": "How Enterprise Onboarding Works",
+    "subtitle": "From first conversation to first delivery — a streamlined path designed for busy teams.",
+    "cta": "Start with a consultation",
+    "steps": {
+      "submit": { "title": "Submit Inquiry", "description": "Share your work email and phone. That's all we need to start." },
+      "consultation": { "title": "Business Consultation", "description": "A logistics consultant learns about your operations and goals." },
+      "requirements": { "title": "Requirements Review", "description": "We map your routes, volumes, and service requirements." },
+      "pricing": { "title": "Custom Pricing Proposal", "description": "Transparent pricing tailored to your business." },
+      "agreement": { "title": "Agreement & Onboarding", "description": "Account setup, training, and system integration." },
+      "delivering": { "title": "Start Delivering", "description": "Go live with full tracking, reporting, and support." }
+    }
+  },
+  "dashboard": {
+    "label": "Platform",
+    "title": "Business Dashboard Preview",
+    "subtitle": "Manage orders, track deliveries, and analyze performance from one powerful portal.",
+    "overview": "Dashboard Overview",
+    "today": "Today",
+    "items": {
+      "orders": "Orders",
+      "tracking": "Tracking",
+      "invoices": "Invoices",
+      "drivers": "Drivers",
+      "analytics": "Analytics",
+      "recurring": "Recurring Deliveries",
+      "csv": "CSV Upload",
+      "reports": "Reports",
+      "payments": "Payments",
+      "settings": "Merchant Settings"
+    },
+    "stats": {
+      "deliveries": { "value": "247", "label": "Deliveries Today" },
+      "onTime": { "value": "98%", "label": "On-Time Rate" },
+      "revenue": { "value": "$12.4k", "label": "This Week" },
+      "active": { "value": "18", "label": "Active Drivers" }
+    }
+  },
+  "technology": {
+    "label": "Technology",
+    "title": "Integrations & Technology",
+    "subtitle": "Connect Porterchain to the tools your business already uses.",
+    "items": {
+      "shopify": { "abbr": "S", "name": "Shopify" },
+      "woocommerce": { "abbr": "W", "name": "WooCommerce" },
+      "csv": { "abbr": "CSV", "name": "CSV Upload" },
+      "api": { "abbr": "API", "name": "REST API" },
+      "erp": { "abbr": "ERP", "name": "ERP Systems" },
+      "inventory": { "abbr": "INV", "name": "Inventory Systems" },
+      "barcode": { "abbr": "BC", "name": "Barcode Scanner" },
+      "stripe": { "abbr": "St", "name": "Stripe" },
+      "email": { "abbr": "@", "name": "Email Notifications" },
+      "sms": { "abbr": "SMS", "name": "SMS Alerts" }
+    }
+  },
+  "billing": {
+    "label": "Pricing",
+    "title": "Billing Options",
+    "subtitle": "Flexible payment models that grow with your business.",
+    "recommended": "Recommended",
+    "cta": "Request Consultation",
+    "plans": {
+      "payAsYouGo": {
+        "name": "Pay As You Go",
+        "description": "Perfect for growing businesses.",
+        "features": ["No monthly minimum", "Instant quotes", "Credit card payments", "Full platform access"]
+      },
+      "creditAccount": {
+        "name": "Business Credit Account",
+        "description": "Streamlined billing for regular shippers.",
+        "features": ["Net 15 terms", "Net 30 terms", "Consolidated invoicing", "Volume discounts"]
+      },
+      "enterprise": {
+        "name": "Enterprise Agreement",
+        "description": "Custom solutions for high-volume operations.",
+        "features": ["Custom pricing", "Dedicated account manager", "Monthly invoicing", "Priority support", "SLA guarantees"]
+      }
+    }
+  },
+  "success": {
+    "label": "Customer Success",
+    "title": "What Our Business Partners Say",
+    "items": {
+      "coffee": {
+        "quote": "Porterchain transformed our wholesale distribution. Recurring routes and real-time tracking gave us visibility we never had before.",
+        "author": "Sarah Chen",
+        "role": "Operations Director, GTA Coffee Roaster",
+        "initials": "SC"
+      },
+      "restaurant": {
+        "quote": "We went from juggling three couriers to one partner. CSV upload alone saves our team 10 hours a week.",
+        "author": "Marco Di Luca",
+        "role": "Owner, Restaurant Supply Co.",
+        "initials": "MD"
+      },
+      "medical": {
+        "quote": "Proof of delivery and chain-of-custody documentation are non-negotiable for us. Porterchain delivers on both.",
+        "author": "Dr. Anita Patel",
+        "role": "Director, Medical Distributor",
+        "initials": "AP"
+      },
+      "construction": {
+        "quote": "Same-day material runs to jobsites used to be a nightmare. Now it's one click in the dashboard.",
+        "author": "James O'Brien",
+        "role": "Project Manager, Construction Firm",
+        "initials": "JO"
+      }
+    }
+  },
+  "faq": {
+    "label": "FAQ",
+    "title": "Business FAQ",
+    "subtitle": "Common questions from companies evaluating Porterchain.",
+    "items": {
+      "contract": { "question": "Do I need a contract?", "answer": "No long-term contract is required to get started. Enterprise agreements with custom terms are available for high-volume accounts." },
+      "recurring": { "question": "Can I schedule recurring pickups?", "answer": "Yes. Recurring routes can be configured daily, weekly, or on custom schedules through your merchant dashboard or with your account manager." },
+      "csv": { "question": "Can I upload CSV files?", "answer": "Yes. Bulk order upload via CSV is available on all business accounts. Templates and API documentation are provided during onboarding." },
+      "erp": { "question": "Do you integrate with ERP systems?", "answer": "We integrate with major ERP and inventory platforms via REST API. Our team assists with custom integrations during enterprise onboarding." },
+      "api": { "question": "Can I use the API?", "answer": "Yes. Full REST API access is available for order creation, tracking, and reporting. Documentation is provided to all business accounts." },
+      "vehicles": { "question": "What vehicles are available?", "answer": "Sedan, SUV, Pickup, Cargo Van, High Roof Van, 16 ft Box Truck, and 20 ft Box Truck. All require a standard Ontario G Licence." },
+      "pricing": { "question": "Can I negotiate pricing?", "answer": "Volume-based pricing and custom rates are available through enterprise agreements. Contact us for a tailored proposal." },
+      "monthly": { "question": "Can I pay monthly?", "answer": "Yes. Business credit accounts offer Net 15 and Net 30 terms with consolidated monthly invoicing." },
+      "pod": { "question": "Do you provide proof of delivery?", "answer": "Every delivery includes photo proof, digital signatures, and barcode confirmation — all accessible in your dashboard." },
+      "sameDay": { "question": "Do you offer same-day delivery?", "answer": "Yes. Same-day delivery is available across the GTA for most vehicle types, subject to availability and cutoff times." },
+      "multiStop": { "question": "Can you handle multi-stop routes?", "answer": "Yes. Multi-stop distribution is a core capability, optimized through our route planning engine." },
+      "accountManager": { "question": "Will I have a dedicated account manager?", "answer": "Enterprise accounts include a dedicated account manager. Growing business accounts can upgrade to dedicated support." },
+      "insurance": { "question": "Are shipments insured?", "answer": "Standard coverage is included. Additional cargo insurance options are available for high-value shipments." },
+      "gta": { "question": "What areas do you serve?", "answer": "We operate across the Greater Toronto Area including Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, and surrounding areas." },
+      "onboarding": { "question": "How long does onboarding take?", "answer": "Most business accounts are operational within 3–5 business days after the initial consultation and agreement." },
+      "integrations": { "question": "What e-commerce platforms do you support?", "answer": "Native integrations for Shopify and WooCommerce, plus CSV upload and REST API for any platform." },
+      "billing": { "question": "How does billing work?", "answer": "Choose pay-as-you-go with credit card, business credit terms (Net 15/30), or custom enterprise invoicing." },
+      "tracking": { "question": "Is real-time tracking included?", "answer": "Yes. Live GPS tracking, ETA updates, and shareable tracking links are included on every delivery at no extra cost." },
+      "volume": { "question": "Is there a minimum volume requirement?", "answer": "No minimum volume for pay-as-you-go accounts. Enterprise agreements may have negotiated minimums with corresponding rate benefits." },
+      "support": { "question": "What support is available?", "answer": "Email, phone, and in-app support. Enterprise accounts receive priority response times and a dedicated account manager." },
+      "custom": { "question": "Can you build custom logistics solutions?", "answer": "Yes. Our team designs custom routing, handling, and integration solutions for complex operational requirements." },
+      "security": { "question": "How is my data protected?", "answer": "We use industry-standard encryption, secure cloud infrastructure, and comply with Canadian privacy regulations." }
+    }
+  },
+  "finalCta": {
+    "title": "Ready to Modernize Your Logistics?",
+    "subtitle": "Tell us how to reach you and we'll prepare a logistics solution tailored to your business."
+  },
+  "footer": {
+    "tagline": "Enterprise logistics for growing businesses.",
+    "merchantPortal": "Merchant Portal",
+    "driverPortal": "Driver Portal",
+    "support": "Customer Support",
+    "copyright": "© {year} Porterchain Inc. All rights reserved.",
+    "iconAttribution": "Vehicle icons by Rooman12 on Flaticon",
+    "madeIn": "Built in Canada 🇨🇦",
+    "sections": {
+      "solutions": { "title": "Solutions", "links": ["Recurring Delivery", "Same-Day", "LTL Freight", "Wholesale", "Multi-stop"] },
+      "industries": { "title": "Industries", "links": ["Medical", "Restaurant", "Construction", "Retail", "Manufacturing"] },
+      "technology": { "title": "Technology", "links": ["API", "CSV Upload", "Shopify", "Integrations", "Dashboard"] },
+      "company": { "title": "Company", "links": ["About", "Careers", "Press", "Contact", "Partners"] },
+      "resources": { "title": "Resources", "links": ["Help Center", "API Docs", "Case Studies", "Blog", "FAQ"] },
+      "legal": { "title": "Legal", "links": ["Privacy Policy", "Terms of Service", "Cookie Policy", "Insurance"] }
+    }
+  }
+}

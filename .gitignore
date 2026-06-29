@@ -1,0 +1,42 @@
+# Local environment — never commit secrets
+.env
+.env.*
+!.env.example
+!env/*.env.example
+env/.env
+
+# Docker local secrets
+infrastructure/docker/.env
+
+# Python
+.venv/
+**/.venv/
+*.db
+
+# Legacy secret dump
+details.md.local
+
+# Dependencies
+node_modules/
+
+# Build outputs
+.next
+out
+dist
+build
+coverage
+.turbo
+
+# OS / IDE
+.DS_Store
+*.pem
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Fleetbase OSS — clone via `pnpm docker:fleetbase:install` (do not commit upstream tree)
+apps/fleetbase/

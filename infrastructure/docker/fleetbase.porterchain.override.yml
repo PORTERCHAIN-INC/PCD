@@ -1,0 +1,79 @@
+# Porterchain overlay for Fleetbase Docker Compose (v0.7.40)
+# Does NOT modify upstream docker-compose.yml — merged via:
+#   docker compose -f apps/fleetbase/docker-compose.yml -f infrastructure/docker/fleetbase.porterchain.override.yml
+#
+# See FLEETBASE_INSTALL.md and DOCKER_SETUP.md
+
+name: porterchain-fleetbase
+
+services:
+  database:
+    container_name: porterchain-fleetbase-mysql
+    ports: !override
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - fleetbase-mysql-data:/var/lib/mysql
+      - ../../apps/fleetbase/docker/database/:/docker-entrypoint-initdb.d/:ro
+    networks:
+      - fleetbase-internal
+
+  cache:
+    container_name: porterchain-fleetbase-redis
+    volumes:
+      - fleetbase-redis-data:/data
+    networks:
+      - fleetbase-internal
+
+  socket:
+    container_name: porterchain-fleetbase-socketcluster
+    networks:
+      - fleetbase-internal
+
+  scheduler:
+    container_name: porterchain-fleetbase-scheduler
+    networks:
+      - fleetbase-internal
+
+  queue:
+    container_name: porterchain-fleetbase-queue
+    networks:
+      - fleetbase-internal
+
+  console:
+    container_name: porterchain-fleetbase-console
+    networks:
+      - fleetbase-internal
+
+  application:
+    container_name: porterchain-fleetbase-application
+    volumes:
+      - fleetbase-api-storage:/fleetbase/api/storage/app
+    environment:
+      APP_NAME: "Porterchain Fleetbase"
+      OSRM_HOST: https://router.project-osrm.org
+      # Optional: Porterchain Valhalla (profile routing) on host :8002
+      VALHALLA_BASE_URL: http://host.docker.internal:8002
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - fleetbase-internal
+
+  httpd:
+    container_name: porterchain-fleetbase-httpd
+    networks:
+      - fleetbase-internal
+
+networks:
+  fleetbase-internal:
+    driver: bridge
+  porterchain-bridge:
+    external: true
+    name: porterchain_porterchain-internal
+
+volumes:
+  fleetbase-mysql-data:
+    name: porterchain-fleetbase-mysql-data
+  fleetbase-redis-data:
+    name: porterchain-fleetbase-redis-data
+  fleetbase-api-storage:
+    name: porterchain-fleetbase-api-storage

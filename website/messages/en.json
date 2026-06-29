@@ -1,0 +1,383 @@
+{
+  "metadata": {
+    "title": "Porterchain | Commercial Logistics — GTA Delivery",
+    "description": "Book same-day deliveries across the GTA. Loose parcels, LTL freight, FTL loads, furniture, medical, food distribution & more. Instant quotes, real-time tracking, proof of delivery.",
+    "ogTitle": "Porterchain | Commercial Logistics Partner",
+    "ogDescription": "Deliver anything, anywhere in the GTA. Book deliveries in minutes for businesses or individuals."
+  },
+  "nav": {
+    "solutions": "Solutions",
+    "industries": "Industries",
+    "pricing": "Pricing",
+    "business": "Business",
+    "resources": "Resources",
+    "about": "About",
+    "contact": "Contact",
+    "login": "Login",
+    "bookNow": "Book Now",
+    "toggleMenu": "Toggle menu",
+    "solutionItems": {
+      "sameDay": "Same-Day Delivery",
+      "ltl": "LTL Freight",
+      "ftl": "FTL Loads",
+      "recurring": "Recurring Routes"
+    }
+  },
+  "hero": {
+    "badge": "Commercial Logistics Partner",
+    "titleLine1": "Deliver Anything.",
+    "titleLine2": "Anywhere in the GTA.",
+    "subtitle": "Book personal deliveries in minutes across the GTA.",
+    "tags": {
+      "looseParcels": "Loose Parcels",
+      "ltlFreight": "LTL Freight",
+      "ftlLoads": "FTL Loads",
+      "furniture": "Furniture",
+      "construction": "Construction Materials",
+      "medical": "Medical Deliveries",
+      "food": "Food Distribution",
+      "wholesale": "Wholesale Deliveries"
+    },
+    "bookNow": "Book Now",
+    "businessAccount": "Business Account",
+    "watchDemo": "Watch Demo"
+  },
+  "booking": {
+    "title": "Book your delivery",
+    "subtitle": "Fill in the details below — get an instant quote in seconds.",
+    "tabs": {
+      "oneTime": "One Time",
+      "business": "Business",
+      "recurring": "Recurring"
+    },
+    "pickupAddress": "Pickup Address",
+    "dropoffAddress": "Dropoff Address",
+    "pickupPlaceholder": "Enter pickup location",
+    "dropoffPlaceholder": "Enter dropoff location",
+    "deliveryType": "Delivery Type",
+    "vehicleType": "Vehicle Type",
+    "schedule": "Schedule",
+    "packageDetails": "Package Details",
+    "weight": "Weight",
+    "dimensions": "L × W × H (inches)",
+    "instantQuote": "Get Instant Quote",
+    "deliverNow": "Deliver now",
+    "scheduleLater": "Schedule",
+    "swapAddresses": "Swap addresses",
+    "quoteNote": "No payment required for quote",
+    "schedulePicker": {
+      "pickDate": "Pick delivery date",
+      "pickTime": "Pick delivery time",
+      "timezoneNote": "Times shown in Eastern Time (Toronto)"
+    },
+    "deliveryOptions": {
+      "looseParcel": "Loose Parcel",
+      "documents": "Documents",
+      "medical": "Medical",
+      "furniture": "Furniture",
+      "foodBeverage": "Food & Beverage",
+      "construction": "Construction",
+      "ltlPallet": "LTL Pallet",
+      "ftlLoad": "FTL Load"
+    },
+    "vehicleOptions": {
+      "sedan": "Sedan",
+      "suv": "SUV",
+      "pickup": "Pickup Truck",
+      "cargoVan": "Cargo Van",
+      "highRoof": "High Roof Van",
+      "box16": "16 ft Box Truck",
+      "box20": "20 ft Box Truck"
+    },
+    "quoteResult": "Estimated total: {amount}",
+    "quoteExpires": "Quote valid until {time}",
+    "continueBooking": "Continue Booking",
+    "quoteError": "Could not calculate quote. Check addresses and try again.",
+    "quoteLoading": "Calculating…",
+    "checkout": {
+      "title": "Complete your booking",
+      "subtitle": "Enter your contact details to continue to payment.",
+      "email": "Email",
+      "phone": "Phone",
+      "continuePayment": "Continue to payment",
+      "processing": "Processing…",
+      "missingFields": "Email and phone are required.",
+      "error": "Something went wrong. Please try again.",
+      "noQuote": "No quote found. Start from the homepage booking form.",
+      "clerkNote": "You will sign in or create an account before payment (Clerk).",
+      "signInPrompt": "Sign in or create an account to continue to payment."
+    },
+    "success": {
+      "title": "Booking confirmed",
+      "subtitle": "Your delivery has been scheduled. Save your reference numbers below.",
+      "track": "Track shipment",
+      "dashboard": "Customer dashboard",
+      "home": "Back to home",
+      "trackingLabel": "Tracking",
+      "orderLabel": "Order",
+      "bookingLabel": "Booking",
+      "invoiceLabel": "Invoice"
+    },
+    "track": {
+      "title": "Track your shipment",
+      "status": "Status",
+      "pickup": "Pickup",
+      "dropoff": "Dropoff",
+      "notFound": "Shipment not found."
+    }
+  },
+  "portal": {
+    "customer": {
+      "title": "Your deliveries",
+      "subtitle": "Track shipments, view invoices, and rebook.",
+      "activeShipment": "Active shipment",
+      "status": "Status",
+      "track": "Track live",
+      "history": "Order history",
+      "invoices": "Invoices",
+      "noOrders": "No orders yet.",
+      "noInvoices": "No invoices yet.",
+      "rebook": "Book again",
+      "support": "Contact support",
+      "signInRequired": "Sign in to view your dashboard.",
+      "loadError": "Could not load your dashboard."
+    }
+  },
+  "deliveryTypes": {
+    "label": "Delivery Types",
+    "title": "What are you shipping?",
+    "subtitle": "From a single document to a full truckload — we've got the right solution for every delivery.",
+    "items": {
+      "loose-parcel": "Loose Parcel",
+      "documents": "Documents",
+      "medical": "Medical",
+      "coffee": "Coffee",
+      "food-beverage": "Food & Beverage",
+      "wholesale": "Wholesale",
+      "construction": "Construction Materials",
+      "electrical": "Electrical",
+      "plumbing": "Plumbing",
+      "furniture": "Furniture",
+      "pallet-ltl": "Pallet (LTL)",
+      "full-truck-ftl": "Full Truck (FTL)",
+      "fragile": "Fragile",
+      "temperature": "Temperature Sensitive"
+    }
+  },
+  "vehicles": {
+    "label": "Fleet",
+    "title": "Choose your vehicle",
+    "subtitle": "From sedans to 20 ft box trucks — matched to your cargo.",
+    "capacity": "Capacity",
+    "weight": "Weight",
+    "bestFor": "Best For",
+    "selectVehicle": "Select Vehicle",
+    "vehicleSelected": "Selected",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
+    "swipeHint": "Swipe to browse vehicles →",
+    "licenceNote": "G Licence vehicles only.",
+    "licenceDetail": "We do not currently operate DZ or AZ trucks. All fleet vehicles are operated by drivers with a valid Ontario G Licence.",
+    "items": {
+      "sedan": { "name": "Sedan", "capacity": "2–3 boxes", "weight": "Up to 50 lbs", "bestFor": "Documents, small parcels, urgent items" },
+      "suv": { "name": "SUV", "capacity": "4–6 boxes", "weight": "Up to 150 lbs", "bestFor": "Medium parcels, retail pickups" },
+      "pickup": { "name": "Pickup Truck", "capacity": "8–10 boxes", "weight": "Up to 500 lbs", "bestFor": "Furniture, construction supplies" },
+      "cargo-van": { "name": "Cargo Van", "capacity": "12–15 boxes", "weight": "Up to 1,000 lbs", "bestFor": "Wholesale, restaurant distribution" },
+      "high-roof": { "name": "High Roof Van", "capacity": "20+ boxes", "weight": "Up to 2,000 lbs", "bestFor": "Palletized LTL, bulk retail" },
+      "box-16": { "name": "16 ft Box Truck", "capacity": "10 pallets", "weight": "Up to 5,000 lbs", "bestFor": "LTL freight, warehouse runs" },
+      "box-20": { "name": "20 ft Box Truck", "capacity": "12 pallets", "weight": "Up to 8,000 lbs", "bestFor": "FTL loads, large construction" }
+    }
+  },
+  "whoCanUse": {
+    "label": "Who We Serve",
+    "title": "Built for personal deliveries",
+    "subtitle": "Send packages, furniture, documents, and more — without the hassle.",
+    "individuals": {
+      "title": "For Individuals",
+      "subtitle": "Personal deliveries made simple",
+      "items": ["Urgent laptop delivery", "Furniture moving", "Marketplace pickup", "Airport parcel", "Home delivery", "Gift delivery", "Forgot documents", "Emergency package"]
+    },
+    "businessCta": {
+      "title": "Shipping for your business?",
+      "subtitle": "Enterprise logistics, simplified",
+      "description": "Recurring routes, wholesale distribution, merchant dashboard, API integration, and dedicated account support — all on our business page.",
+      "cta": "Explore Business Solutions"
+    }
+  },
+  "howItWorks": {
+    "label": "How It Works",
+    "title": "From booking to delivery in 6 steps",
+    "subtitle": "A seamless experience designed for speed, transparency, and reliability.",
+    "steps": {
+      "book": { "title": "Book", "description": "Enter pickup, dropoff, and package details. Get an instant quote." },
+      "assigned": { "title": "Driver Assigned", "description": "A verified driver is matched and dispatched to your location." },
+      "pickup": { "title": "Pickup", "description": "Your driver arrives on time and collects your shipment." },
+      "tracking": { "title": "Live Tracking", "description": "Track your delivery in real-time with ETA updates." },
+      "proof": { "title": "Proof of Delivery", "description": "Photo, signature, and barcode confirmation on delivery." },
+      "invoice": { "title": "Invoice", "description": "Digital invoice sent instantly. Pay securely online." }
+    }
+  },
+  "liveMap": {
+    "label": "Live Tracking",
+    "title": "Watch your delivery in real-time",
+    "subtitle": "Every shipment is GPS-tracked with live ETA, driver details, and status updates.",
+    "liveTracking": "Live Tracking",
+    "inTransit": "In Transit",
+    "eta": "ETA",
+    "driver": "Driver",
+    "vehicle": "Vehicle",
+    "etaValue": "12 min",
+    "driverName": "Alex M.",
+    "vehicleType": "Cargo Van",
+    "orderLabel": "Order #PC-48291",
+    "orderRoute": "Medical Supplies → Downtown Toronto"
+  },
+  "whyPorterchain": {
+    "label": "Why Porterchain",
+    "title": "Logistics reimagined for Canada",
+    "subtitle": "Everything you need to move goods faster, smarter, and with complete visibility.",
+    "features": {
+      "simplicity": { "title": "Uber Simplicity", "description": "Book in under 60 seconds" },
+      "tracking": { "title": "Real-time Tracking", "description": "Live GPS on every delivery" },
+      "proof": { "title": "Proof of Delivery", "description": "Photo, signature & barcode" },
+      "dashboard": { "title": "Business Dashboard", "description": "Full merchant portal" },
+      "recurring": { "title": "Recurring Deliveries", "description": "Automated route scheduling" },
+      "api": { "title": "API Integration", "description": "REST API for your systems" },
+      "csv": { "title": "CSV Upload", "description": "Bulk order import" },
+      "fleet": { "title": "Fleet Optimization", "description": "Smart route planning" },
+      "pricing": { "title": "Transparent Pricing", "description": "No hidden fees ever" },
+      "sameDay": { "title": "Same-day Delivery", "description": "GTA-wide same-day service" },
+      "notifications": { "title": "Instant Notifications", "description": "SMS & push alerts" },
+      "invoices": { "title": "Digital Invoices", "description": "Automated billing" }
+    }
+  },
+  "industries": {
+    "label": "Industries",
+    "title": "Trusted across every sector",
+    "subtitle": "Purpose-built logistics for the industries that keep Canada moving.",
+    "items": {
+      "coffee": { "name": "Coffee", "description": "Roaster to café, same-day freshness" },
+      "medical": { "name": "Medical", "description": "HIPAA-aware courier services" },
+      "pharmacy": { "name": "Pharmacy", "description": "Prescription & OTC delivery" },
+      "restaurant": { "name": "Restaurant", "description": "Supplier to kitchen, on time" },
+      "food-distribution": { "name": "Food Distribution", "description": "Cold chain & bulk distribution" },
+      "wholesale": { "name": "Wholesale", "description": "B2B wholesale fulfillment" },
+      "construction": { "name": "Construction", "description": "Materials to job site" },
+      "electrical": { "name": "Electrical", "description": "Parts & equipment delivery" },
+      "hvac": { "name": "HVAC", "description": "Units, ducts & components" },
+      "auto-parts": { "name": "Auto Parts", "description": "Dealership & shop supply" },
+      "retail": { "name": "Retail", "description": "Store replenishment & transfers" },
+      "ecommerce": { "name": "E-commerce", "description": "Last-mile fulfillment" },
+      "manufacturing": { "name": "Manufacturing", "description": "Raw materials & finished goods" },
+      "laboratories": { "name": "Laboratories", "description": "Specimens & lab supplies" },
+      "print-shops": { "name": "Print Shops", "description": "Print runs & marketing materials" }
+    }
+  },
+  "businessPlatform": {
+    "label": "Business Platform",
+    "title": "Your command center for logistics",
+    "subtitle": "Manage orders, track drivers, analyze performance, and scale your delivery operations — all from one dashboard.",
+    "dashboardOverview": "Dashboard Overview",
+    "today": "Today",
+    "active": "Active",
+    "delivered": "Delivered",
+    "drivers": "Drivers",
+    "weeklyDeliveries": "Weekly Deliveries",
+    "onTime": "98% On Time",
+    "orderStatuses": {
+      "medical": "Medical → Downtown",
+      "coffee": "Coffee → Mississauga",
+      "parts": "Parts → Brampton",
+      "delivered": "Delivered"
+    },
+    "features": {
+      "merchantPortal": "Merchant Portal",
+      "orderManagement": "Order Management",
+      "invoices": "Invoices",
+      "analytics": "Analytics",
+      "routeOptimization": "Route Optimization",
+      "driverTracking": "Driver Tracking",
+      "csvUpload": "CSV Upload",
+      "api": "API",
+      "paymentTerms": "Payment Terms"
+    },
+    "cta": "Start Business Account"
+  },
+  "mobileApp": {
+    "label": "Mobile Apps",
+    "title": "Logistics in your pocket",
+    "subtitle": "Book, track, and manage deliveries — wherever you are. Available on iOS and Android.",
+    "apps": {
+      "customer": { "name": "Customer App", "description": "Book deliveries, track in real-time, manage addresses" },
+      "driver": { "name": "Driver App", "description": "Accept jobs, navigate routes, capture proof of delivery" },
+      "merchant": { "name": "Merchant App", "description": "Manage orders, view analytics, dispatch on the go" }
+    },
+    "appStore": "App Store",
+    "googlePlay": "Google Play"
+  },
+  "features": {
+    "label": "Features",
+    "title": "Everything you need, nothing you don't",
+    "subtitle": "A complete logistics toolkit designed for speed, reliability, and ease of use.",
+    "items": ["Instant Quotes", "Scheduling", "Saved Addresses", "Favorites", "Proof of Delivery", "Photo Upload", "Signature", "Barcode Scan", "Push Notifications", "Stripe Payments"]
+  },
+  "trust": {
+    "customers": "Customers",
+    "deliveries": "Deliveries",
+    "onTime": "On Time",
+    "support": "Support"
+  },
+  "testimonials": {
+    "label": "Testimonials",
+    "title": "Trusted by businesses across the GTA",
+    "subtitle": "Real stories from real companies who rely on Porterchain every day.",
+    "items": {
+      "coffee": { "quote": "Porterchain transformed our morning roast runs. Same-day delivery to 40+ cafés across the GTA — our beans arrive fresher than ever.", "author": "Sarah Chen", "role": "Operations Director", "company": "Lakeview Coffee Roasters", "industry": "Coffee Roaster" },
+      "medical": { "quote": "Chain-of-custody documentation and temperature tracking give us complete confidence. Porterchain is our go-to medical courier.", "author": "Dr. James Okonkwo", "role": "Supply Chain Manager", "company": "MedCore Supplies", "industry": "Medical Supplier" },
+      "restaurant": { "quote": "Recurring routes to our suppliers cut our logistics costs by 30%. The merchant portal makes reordering effortless.", "author": "Marco Di Luca", "role": "Owner", "company": "Trattoria Bella", "industry": "Restaurant" },
+      "electrical": { "quote": "When a contractor needs parts on site by noon, Porterchain delivers. Their box trucks handle our palletized inventory perfectly.", "author": "Priya Sharma", "role": "Distribution Manager", "company": "VoltLine Electrical", "industry": "Electrical Distributor" }
+    }
+  },
+  "faq": {
+    "label": "FAQ",
+    "title": "Frequently asked questions",
+    "subtitle": "Everything you need to know about Porterchain logistics.",
+    "items": [
+      { "question": "What areas does Porterchain serve?", "answer": "Porterchain operates across the Greater Toronto Area (GTA), including Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, and surrounding municipalities. We offer same-day and scheduled delivery throughout the region." },
+      { "question": "How quickly can I get a delivery?", "answer": "Most same-day deliveries can be booked within minutes. Once confirmed, a driver is typically assigned within 15–30 minutes depending on demand and location." },
+      { "question": "What types of items can I ship?", "answer": "We handle loose parcels, documents, furniture, marketplace purchases, gifts, and more. Hazardous materials and illegal items are not permitted." },
+      { "question": "What vehicle types are available?", "answer": "We offer Sedan, SUV, Pickup Truck, Cargo Van, High Roof Van, 16 ft Box Truck, and 20 ft Box Truck. All vehicles require a G Licence." },
+      { "question": "How does pricing work?", "answer": "Pricing is transparent and based on distance, vehicle type, weight, and urgency. Use our instant quote tool on the homepage for an estimate before booking." },
+      { "question": "Is real-time tracking available?", "answer": "Yes. Every delivery includes live GPS tracking, ETA updates, and push notifications. You can share tracking links with recipients." },
+      { "question": "What proof of delivery do you provide?", "answer": "We capture photo proof, digital signatures, and barcode scans at delivery. All proof is stored in your account." },
+      { "question": "Can I schedule a delivery for later?", "answer": "Yes. Choose a specific date and time window when booking. Same-day, next-day, and future scheduled deliveries are all supported." },
+      { "question": "What payment methods do you accept?", "answer": "We accept all major credit cards via Stripe for personal deliveries." },
+      { "question": "Is there a mobile app?", "answer": "Yes. The Porterchain Customer App is available on iOS and Android for booking, tracking, and managing deliveries on the go." },
+      { "question": "Do you offer furniture delivery?", "answer": "Yes. Our pickup trucks and cargo vans are ideal for furniture moves, marketplace pickups, and home deliveries." },
+      { "question": "How do I become a Porterchain driver?", "answer": "Visit our Driver page to apply. You'll need a valid G Licence, a qualifying vehicle, insurance, and a clean driving record." },
+      { "question": "Is customer support available 24/7?", "answer": "Yes. Our support team is available around the clock via phone, email, and in-app chat." },
+      { "question": "How is Porterchain different from other couriers?", "answer": "Porterchain combines Uber-like simplicity with reliable logistics — instant quotes, real-time tracking, and proof of delivery in one platform." },
+      { "question": "I need business or recurring logistics. Where do I go?", "answer": "Visit our Business page at porterchain.com/business to request a consultation. We offer recurring routes, wholesale distribution, merchant dashboards, API integration, and dedicated account support." }
+    ]
+  },
+  "footer": {
+    "newsletterTitle": "Stay in the loop",
+    "newsletterSubtitle": "Get logistics insights and product updates delivered to your inbox.",
+    "emailPlaceholder": "Enter your email",
+    "subscribe": "Subscribe",
+    "tagline": "Commercial logistics partner for local businesses across the GTA.",
+    "socialLink": "Social link",
+    "copyright": "Porterchain Inc. All rights reserved.",
+    "iconAttribution": "Vehicle icons by Rooman12 on Flaticon",
+    "driverPortal": "Driver Portal",
+    "merchantPortal": "Merchant Portal",
+    "status": "Status",
+    "sections": {
+      "solutions": { "title": "Solutions", "links": ["Same-Day Delivery", "LTL Freight", "FTL Loads", "Recurring Routes", "Instant Quotes"] },
+      "industries": { "title": "Industries", "links": ["Medical", "Restaurant", "Construction", "Wholesale", "E-commerce", "Coffee"] },
+      "company": { "title": "Company", "links": ["About", "Careers", "Press", "Blog", "Contact"] },
+      "resources": { "title": "Resources", "links": ["Help Center", "API Docs", "Driver Guide", "Merchant Guide", "Status"] },
+      "legal": { "title": "Legal", "links": ["Privacy Policy", "Terms of Service", "Cookie Policy", "Insurance"] }
+    }
+  }
+}
