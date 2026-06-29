@@ -76,14 +76,38 @@
     "title": "Your Logistics Shouldn't Slow Your Business Down.",
     "subtitle": "Growing companies face the same logistics challenges. Porterchain is built to solve them.",
     "items": {
-      "highCosts": { "title": "High delivery costs", "description": "Unpredictable pricing and hidden fees erode margins on every shipment." },
-      "lateDeliveries": { "title": "Late deliveries", "description": "Missed windows damage customer relationships and increase support costs." },
-      "manualScheduling": { "title": "Manual scheduling", "description": "Spreadsheets and phone calls waste hours your team could spend growing." },
-      "noVisibility": { "title": "No visibility", "description": "Without real-time tracking, you're always answering 'where's my order?'" },
-      "multipleVendors": { "title": "Multiple vendors", "description": "Juggling couriers creates inconsistency and operational overhead." },
-      "noTracking": { "title": "No tracking", "description": "Customers expect live updates. Legacy couriers often can't deliver." },
-      "invoiceManagement": { "title": "Invoice management", "description": "Reconciling dozens of invoices monthly drains finance teams." },
-      "scalingProblems": { "title": "Scaling problems", "description": "What worked at 50 deliveries breaks at 500 without the right partner." }
+      "highCosts": {
+        "title": "High delivery costs",
+        "description": "Unpredictable pricing and hidden fees erode margins on every shipment."
+      },
+      "lateDeliveries": {
+        "title": "Late deliveries",
+        "description": "Missed windows damage customer relationships and increase support costs."
+      },
+      "manualScheduling": {
+        "title": "Manual scheduling",
+        "description": "Spreadsheets and phone calls waste hours your team could spend growing."
+      },
+      "noVisibility": {
+        "title": "No visibility",
+        "description": "Without real-time tracking, you're always answering 'where's my order?'"
+      },
+      "multipleVendors": {
+        "title": "Multiple vendors",
+        "description": "Juggling couriers creates inconsistency and operational overhead."
+      },
+      "noTracking": {
+        "title": "No tracking",
+        "description": "Customers expect live updates. Legacy couriers often can't deliver."
+      },
+      "invoiceManagement": {
+        "title": "Invoice management",
+        "description": "Reconciling dozens of invoices monthly drains finance teams."
+      },
+      "scalingProblems": {
+        "title": "Scaling problems",
+        "description": "What worked at 50 deliveries breaks at 500 without the right partner."
+      }
     }
   },
   "solutions": {
@@ -182,13 +206,48 @@
     "cargoSpace": "Cargo Space",
     "licenceNote": "Porterchain currently operates vehicles that can be driven with a standard Ontario G Licence. We do not currently provide DZ or AZ truck services.",
     "items": {
-      "sedan": { "name": "Sedan", "payload": "Up to 50 lbs", "cargo": "Trunk space", "useCase": "Documents, small parcels, urgent items" },
-      "suv": { "name": "SUV", "payload": "Up to 150 lbs", "cargo": "Rear cargo area", "useCase": "Medium parcels, medical supplies" },
-      "pickup": { "name": "Pickup Truck", "payload": "Up to 1,500 lbs", "cargo": "6 ft bed", "useCase": "Furniture, construction materials" },
-      "cargoVan": { "name": "Cargo Van", "payload": "Up to 3,000 lbs", "cargo": "200 cu ft", "useCase": "Bulky items, multi-piece deliveries" },
-      "highRoof": { "name": "High Roof Van", "payload": "Up to 3,500 lbs", "cargo": "350 cu ft", "useCase": "Tall items, high-volume runs" },
-      "box16": { "name": "16 ft Box Truck", "payload": "Up to 6,000 lbs", "cargo": "800 cu ft", "useCase": "LTL pallets, wholesale distribution" },
-      "box20": { "name": "20 ft Box Truck", "payload": "Up to 10,000 lbs", "cargo": "1,000 cu ft", "useCase": "FTL loads, large freight" }
+      "sedan": {
+        "name": "Sedan",
+        "payload": "Up to 50 lbs",
+        "cargo": "Trunk space",
+        "useCase": "Documents, small parcels, urgent items"
+      },
+      "suv": {
+        "name": "SUV",
+        "payload": "Up to 150 lbs",
+        "cargo": "Rear cargo area",
+        "useCase": "Medium parcels, medical supplies"
+      },
+      "pickup": {
+        "name": "Pickup Truck",
+        "payload": "Up to 1,500 lbs",
+        "cargo": "6 ft bed",
+        "useCase": "Furniture, construction materials"
+      },
+      "cargoVan": {
+        "name": "Cargo Van",
+        "payload": "Up to 3,000 lbs",
+        "cargo": "200 cu ft",
+        "useCase": "Bulky items, multi-piece deliveries"
+      },
+      "highRoof": {
+        "name": "High Roof Van",
+        "payload": "Up to 3,500 lbs",
+        "cargo": "350 cu ft",
+        "useCase": "Tall items, high-volume runs"
+      },
+      "box16": {
+        "name": "16 ft Box Truck",
+        "payload": "Up to 6,000 lbs",
+        "cargo": "800 cu ft",
+        "useCase": "LTL pallets, wholesale distribution"
+      },
+      "box20": {
+        "name": "20 ft Box Truck",
+        "payload": "Up to 10,000 lbs",
+        "cargo": "1,000 cu ft",
+        "useCase": "FTL loads, large freight"
+      }
     }
   },
   "onboarding": {
@@ -197,12 +256,30 @@
     "subtitle": "From first conversation to first delivery — a streamlined path designed for busy teams.",
     "cta": "Start with a consultation",
     "steps": {
-      "submit": { "title": "Submit Inquiry", "description": "Share your work email and phone. That's all we need to start." },
-      "consultation": { "title": "Business Consultation", "description": "A logistics consultant learns about your operations and goals." },
-      "requirements": { "title": "Requirements Review", "description": "We map your routes, volumes, and service requirements." },
-      "pricing": { "title": "Custom Pricing Proposal", "description": "Transparent pricing tailored to your business." },
-      "agreement": { "title": "Agreement & Onboarding", "description": "Account setup, training, and system integration." },
-      "delivering": { "title": "Start Delivering", "description": "Go live with full tracking, reporting, and support." }
+      "submit": {
+        "title": "Submit Inquiry",
+        "description": "Share your work email and phone. That's all we need to start."
+      },
+      "consultation": {
+        "title": "Business Consultation",
+        "description": "A logistics consultant learns about your operations and goals."
+      },
+      "requirements": {
+        "title": "Requirements Review",
+        "description": "We map your routes, volumes, and service requirements."
+      },
+      "pricing": {
+        "title": "Custom Pricing Proposal",
+        "description": "Transparent pricing tailored to your business."
+      },
+      "agreement": {
+        "title": "Agreement & Onboarding",
+        "description": "Account setup, training, and system integration."
+      },
+      "delivering": {
+        "title": "Start Delivering",
+        "description": "Go live with full tracking, reporting, and support."
+      }
     }
   },
   "dashboard": {
@@ -257,7 +334,12 @@
       "payAsYouGo": {
         "name": "Pay As You Go",
         "description": "Perfect for growing businesses.",
-        "features": ["No monthly minimum", "Instant quotes", "Credit card payments", "Full platform access"]
+        "features": [
+          "No monthly minimum",
+          "Instant quotes",
+          "Credit card payments",
+          "Full platform access"
+        ]
       },
       "creditAccount": {
         "name": "Business Credit Account",
@@ -267,7 +349,13 @@
       "enterprise": {
         "name": "Enterprise Agreement",
         "description": "Custom solutions for high-volume operations.",
-        "features": ["Custom pricing", "Dedicated account manager", "Monthly invoicing", "Priority support", "SLA guarantees"]
+        "features": [
+          "Custom pricing",
+          "Dedicated account manager",
+          "Monthly invoicing",
+          "Priority support",
+          "SLA guarantees"
+        ]
       }
     }
   },
@@ -306,28 +394,94 @@
     "title": "Business FAQ",
     "subtitle": "Common questions from companies evaluating Porterchain.",
     "items": {
-      "contract": { "question": "Do I need a contract?", "answer": "No long-term contract is required to get started. Enterprise agreements with custom terms are available for high-volume accounts." },
-      "recurring": { "question": "Can I schedule recurring pickups?", "answer": "Yes. Recurring routes can be configured daily, weekly, or on custom schedules through your merchant dashboard or with your account manager." },
-      "csv": { "question": "Can I upload CSV files?", "answer": "Yes. Bulk order upload via CSV is available on all business accounts. Templates and API documentation are provided during onboarding." },
-      "erp": { "question": "Do you integrate with ERP systems?", "answer": "We integrate with major ERP and inventory platforms via REST API. Our team assists with custom integrations during enterprise onboarding." },
-      "api": { "question": "Can I use the API?", "answer": "Yes. Full REST API access is available for order creation, tracking, and reporting. Documentation is provided to all business accounts." },
-      "vehicles": { "question": "What vehicles are available?", "answer": "Sedan, SUV, Pickup, Cargo Van, High Roof Van, 16 ft Box Truck, and 20 ft Box Truck. All require a standard Ontario G Licence." },
-      "pricing": { "question": "Can I negotiate pricing?", "answer": "Volume-based pricing and custom rates are available through enterprise agreements. Contact us for a tailored proposal." },
-      "monthly": { "question": "Can I pay monthly?", "answer": "Yes. Business credit accounts offer Net 15 and Net 30 terms with consolidated monthly invoicing." },
-      "pod": { "question": "Do you provide proof of delivery?", "answer": "Every delivery includes photo proof, digital signatures, and barcode confirmation — all accessible in your dashboard." },
-      "sameDay": { "question": "Do you offer same-day delivery?", "answer": "Yes. Same-day delivery is available across the GTA for most vehicle types, subject to availability and cutoff times." },
-      "multiStop": { "question": "Can you handle multi-stop routes?", "answer": "Yes. Multi-stop distribution is a core capability, optimized through our route planning engine." },
-      "accountManager": { "question": "Will I have a dedicated account manager?", "answer": "Enterprise accounts include a dedicated account manager. Growing business accounts can upgrade to dedicated support." },
-      "insurance": { "question": "Are shipments insured?", "answer": "Standard coverage is included. Additional cargo insurance options are available for high-value shipments." },
-      "gta": { "question": "What areas do you serve?", "answer": "We operate across the Greater Toronto Area including Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, and surrounding areas." },
-      "onboarding": { "question": "How long does onboarding take?", "answer": "Most business accounts are operational within 3–5 business days after the initial consultation and agreement." },
-      "integrations": { "question": "What e-commerce platforms do you support?", "answer": "Native integrations for Shopify and WooCommerce, plus CSV upload and REST API for any platform." },
-      "billing": { "question": "How does billing work?", "answer": "Choose pay-as-you-go with credit card, business credit terms (Net 15/30), or custom enterprise invoicing." },
-      "tracking": { "question": "Is real-time tracking included?", "answer": "Yes. Live GPS tracking, ETA updates, and shareable tracking links are included on every delivery at no extra cost." },
-      "volume": { "question": "Is there a minimum volume requirement?", "answer": "No minimum volume for pay-as-you-go accounts. Enterprise agreements may have negotiated minimums with corresponding rate benefits." },
-      "support": { "question": "What support is available?", "answer": "Email, phone, and in-app support. Enterprise accounts receive priority response times and a dedicated account manager." },
-      "custom": { "question": "Can you build custom logistics solutions?", "answer": "Yes. Our team designs custom routing, handling, and integration solutions for complex operational requirements." },
-      "security": { "question": "How is my data protected?", "answer": "We use industry-standard encryption, secure cloud infrastructure, and comply with Canadian privacy regulations." }
+      "contract": {
+        "question": "Do I need a contract?",
+        "answer": "No long-term contract is required to get started. Enterprise agreements with custom terms are available for high-volume accounts."
+      },
+      "recurring": {
+        "question": "Can I schedule recurring pickups?",
+        "answer": "Yes. Recurring routes can be configured daily, weekly, or on custom schedules through your merchant dashboard or with your account manager."
+      },
+      "csv": {
+        "question": "Can I upload CSV files?",
+        "answer": "Yes. Bulk order upload via CSV is available on all business accounts. Templates and API documentation are provided during onboarding."
+      },
+      "erp": {
+        "question": "Do you integrate with ERP systems?",
+        "answer": "We integrate with major ERP and inventory platforms via REST API. Our team assists with custom integrations during enterprise onboarding."
+      },
+      "api": {
+        "question": "Can I use the API?",
+        "answer": "Yes. Full REST API access is available for order creation, tracking, and reporting. Documentation is provided to all business accounts."
+      },
+      "vehicles": {
+        "question": "What vehicles are available?",
+        "answer": "Sedan, SUV, Pickup, Cargo Van, High Roof Van, 16 ft Box Truck, and 20 ft Box Truck. All require a standard Ontario G Licence."
+      },
+      "pricing": {
+        "question": "Can I negotiate pricing?",
+        "answer": "Volume-based pricing and custom rates are available through enterprise agreements. Contact us for a tailored proposal."
+      },
+      "monthly": {
+        "question": "Can I pay monthly?",
+        "answer": "Yes. Business credit accounts offer Net 15 and Net 30 terms with consolidated monthly invoicing."
+      },
+      "pod": {
+        "question": "Do you provide proof of delivery?",
+        "answer": "Every delivery includes photo proof, digital signatures, and barcode confirmation — all accessible in your dashboard."
+      },
+      "sameDay": {
+        "question": "Do you offer same-day delivery?",
+        "answer": "Yes. Same-day delivery is available across the GTA for most vehicle types, subject to availability and cutoff times."
+      },
+      "multiStop": {
+        "question": "Can you handle multi-stop routes?",
+        "answer": "Yes. Multi-stop distribution is a core capability, optimized through our route planning engine."
+      },
+      "accountManager": {
+        "question": "Will I have a dedicated account manager?",
+        "answer": "Enterprise accounts include a dedicated account manager. Growing business accounts can upgrade to dedicated support."
+      },
+      "insurance": {
+        "question": "Are shipments insured?",
+        "answer": "Standard coverage is included. Additional cargo insurance options are available for high-value shipments."
+      },
+      "gta": {
+        "question": "What areas do you serve?",
+        "answer": "We operate across the Greater Toronto Area including Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, and surrounding areas."
+      },
+      "onboarding": {
+        "question": "How long does onboarding take?",
+        "answer": "Most business accounts are operational within 3–5 business days after the initial consultation and agreement."
+      },
+      "integrations": {
+        "question": "What e-commerce platforms do you support?",
+        "answer": "Native integrations for Shopify and WooCommerce, plus CSV upload and REST API for any platform."
+      },
+      "billing": {
+        "question": "How does billing work?",
+        "answer": "Choose pay-as-you-go with credit card, business credit terms (Net 15/30), or custom enterprise invoicing."
+      },
+      "tracking": {
+        "question": "Is real-time tracking included?",
+        "answer": "Yes. Live GPS tracking, ETA updates, and shareable tracking links are included on every delivery at no extra cost."
+      },
+      "volume": {
+        "question": "Is there a minimum volume requirement?",
+        "answer": "No minimum volume for pay-as-you-go accounts. Enterprise agreements may have negotiated minimums with corresponding rate benefits."
+      },
+      "support": {
+        "question": "What support is available?",
+        "answer": "Email, phone, and in-app support. Enterprise accounts receive priority response times and a dedicated account manager."
+      },
+      "custom": {
+        "question": "Can you build custom logistics solutions?",
+        "answer": "Yes. Our team designs custom routing, handling, and integration solutions for complex operational requirements."
+      },
+      "security": {
+        "question": "How is my data protected?",
+        "answer": "We use industry-standard encryption, secure cloud infrastructure, and comply with Canadian privacy regulations."
+      }
     }
   },
   "finalCta": {
@@ -343,12 +497,30 @@
     "iconAttribution": "Vehicle icons by Rooman12 on Flaticon",
     "madeIn": "Built in Canada 🇨🇦",
     "sections": {
-      "solutions": { "title": "Solutions", "links": ["Recurring Delivery", "Same-Day", "LTL Freight", "Wholesale", "Multi-stop"] },
-      "industries": { "title": "Industries", "links": ["Medical", "Restaurant", "Construction", "Retail", "Manufacturing"] },
-      "technology": { "title": "Technology", "links": ["API", "CSV Upload", "Shopify", "Integrations", "Dashboard"] },
-      "company": { "title": "Company", "links": ["About", "Careers", "Press", "Contact", "Partners"] },
-      "resources": { "title": "Resources", "links": ["Help Center", "API Docs", "Case Studies", "Blog", "FAQ"] },
-      "legal": { "title": "Legal", "links": ["Privacy Policy", "Terms of Service", "Cookie Policy", "Insurance"] }
+      "solutions": {
+        "title": "Solutions",
+        "links": ["Recurring Delivery", "Same-Day", "LTL Freight", "Wholesale", "Multi-stop"]
+      },
+      "industries": {
+        "title": "Industries",
+        "links": ["Medical", "Restaurant", "Construction", "Retail", "Manufacturing"]
+      },
+      "technology": {
+        "title": "Technology",
+        "links": ["API", "CSV Upload", "Shopify", "Integrations", "Dashboard"]
+      },
+      "company": {
+        "title": "Company",
+        "links": ["About", "Careers", "Press", "Contact", "Partners"]
+      },
+      "resources": {
+        "title": "Resources",
+        "links": ["Help Center", "API Docs", "Case Studies", "Blog", "FAQ"]
+      },
+      "legal": {
+        "title": "Legal",
+        "links": ["Privacy Policy", "Terms of Service", "Cookie Policy", "Insurance"]
+      }
     }
   }
 }

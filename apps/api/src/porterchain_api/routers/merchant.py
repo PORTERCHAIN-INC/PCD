@@ -229,13 +229,14 @@ def cancel_order(
     order_id: str,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
     db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> MerchantOrderResponse:
     try:
         require_module(ctx, "orders_write")
         order = _orders.get_order(db, ctx, order_id)
         if not order:
             raise HTTPException(status_code=404, detail="order_not_found")
-        order = _booking.cancel_order(db, ctx, order)
+        order = _booking.cancel_order(db, ctx, order, settings)
         return _order_response(order)
     except PermissionError as exc:
         _handle_permission(exc)

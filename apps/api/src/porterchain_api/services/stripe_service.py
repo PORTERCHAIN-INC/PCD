@@ -34,7 +34,6 @@ def create_checkout_session(
             "customer_id": customer.id,
             "payment_id": payment_id or "",
         },
-        automatic_payment_methods={"enabled": True},
     )
     if not session.url:
         raise RuntimeError("stripe_session_missing_url")

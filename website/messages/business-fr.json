@@ -76,14 +76,38 @@
     "title": "Votre logistique ne devrait pas ralentir votre entreprise.",
     "subtitle": "Les entreprises en croissance font face aux mêmes défis logistiques. Porterchain est conçu pour les résoudre.",
     "items": {
-      "highCosts": { "title": "Coûts de livraison élevés", "description": "Des tarifs imprévisibles et des frais cachés érodent vos marges." },
-      "lateDeliveries": { "title": "Livraisons en retard", "description": "Les fenêtres manquées nuisent à la relation client." },
-      "manualScheduling": { "title": "Planification manuelle", "description": "Les feuilles de calcul et les appels gaspillent des heures précieuses." },
-      "noVisibility": { "title": "Aucune visibilité", "description": "Sans suivi en temps réel, vous répondez toujours à « où est ma commande? »" },
-      "multipleVendors": { "title": "Plusieurs fournisseurs", "description": "Gérer plusieurs coursiers crée de l'incohérence." },
-      "noTracking": { "title": "Pas de suivi", "description": "Les clients attendent des mises à jour en direct." },
-      "invoiceManagement": { "title": "Gestion des factures", "description": "Réconcilier des dizaines de factures chaque mois est épuisant." },
-      "scalingProblems": { "title": "Problèmes de croissance", "description": "Ce qui fonctionnait à 50 livraisons échoue à 500 sans le bon partenaire." }
+      "highCosts": {
+        "title": "Coûts de livraison élevés",
+        "description": "Des tarifs imprévisibles et des frais cachés érodent vos marges."
+      },
+      "lateDeliveries": {
+        "title": "Livraisons en retard",
+        "description": "Les fenêtres manquées nuisent à la relation client."
+      },
+      "manualScheduling": {
+        "title": "Planification manuelle",
+        "description": "Les feuilles de calcul et les appels gaspillent des heures précieuses."
+      },
+      "noVisibility": {
+        "title": "Aucune visibilité",
+        "description": "Sans suivi en temps réel, vous répondez toujours à « où est ma commande? »"
+      },
+      "multipleVendors": {
+        "title": "Plusieurs fournisseurs",
+        "description": "Gérer plusieurs coursiers crée de l'incohérence."
+      },
+      "noTracking": {
+        "title": "Pas de suivi",
+        "description": "Les clients attendent des mises à jour en direct."
+      },
+      "invoiceManagement": {
+        "title": "Gestion des factures",
+        "description": "Réconcilier des dizaines de factures chaque mois est épuisant."
+      },
+      "scalingProblems": {
+        "title": "Problèmes de croissance",
+        "description": "Ce qui fonctionnait à 50 livraisons échoue à 500 sans le bon partenaire."
+      }
     }
   },
   "solutions": {
@@ -182,13 +206,48 @@
     "cargoSpace": "Espace cargo",
     "licenceNote": "Porterchain exploite actuellement des véhicules pouvant être conduits avec un permis G standard de l'Ontario. Nous ne fournissons pas actuellement de services de camions DZ ou AZ.",
     "items": {
-      "sedan": { "name": "Berline", "payload": "Jusqu'à 50 lb", "cargo": "Espace coffre", "useCase": "Documents, petits colis, articles urgents" },
-      "suv": { "name": "VUS", "payload": "Jusqu'à 150 lb", "cargo": "Espace arrière", "useCase": "Colis moyens, fournitures médicales" },
-      "pickup": { "name": "Camionnette", "payload": "Jusqu'à 1 500 lb", "cargo": "Caisse 6 pi", "useCase": "Meubles, matériaux de construction" },
-      "cargoVan": { "name": "Fourgonnette", "payload": "Jusqu'à 3 000 lb", "cargo": "200 pi³", "useCase": "Articles volumineux, livraisons multiples" },
-      "highRoof": { "name": "Fourgon toit élevé", "payload": "Jusqu'à 3 500 lb", "cargo": "350 pi³", "useCase": "Articles hauts, courses à grand volume" },
-      "box16": { "name": "Camion 16 pi", "payload": "Jusqu'à 6 000 lb", "cargo": "800 pi³", "useCase": "Palettes LTL, distribution en gros" },
-      "box20": { "name": "Camion 20 pi", "payload": "Jusqu'à 10 000 lb", "cargo": "1 000 pi³", "useCase": "Chargements FTL, fret volumineux" }
+      "sedan": {
+        "name": "Berline",
+        "payload": "Jusqu'à 50 lb",
+        "cargo": "Espace coffre",
+        "useCase": "Documents, petits colis, articles urgents"
+      },
+      "suv": {
+        "name": "VUS",
+        "payload": "Jusqu'à 150 lb",
+        "cargo": "Espace arrière",
+        "useCase": "Colis moyens, fournitures médicales"
+      },
+      "pickup": {
+        "name": "Camionnette",
+        "payload": "Jusqu'à 1 500 lb",
+        "cargo": "Caisse 6 pi",
+        "useCase": "Meubles, matériaux de construction"
+      },
+      "cargoVan": {
+        "name": "Fourgonnette",
+        "payload": "Jusqu'à 3 000 lb",
+        "cargo": "200 pi³",
+        "useCase": "Articles volumineux, livraisons multiples"
+      },
+      "highRoof": {
+        "name": "Fourgon toit élevé",
+        "payload": "Jusqu'à 3 500 lb",
+        "cargo": "350 pi³",
+        "useCase": "Articles hauts, courses à grand volume"
+      },
+      "box16": {
+        "name": "Camion 16 pi",
+        "payload": "Jusqu'à 6 000 lb",
+        "cargo": "800 pi³",
+        "useCase": "Palettes LTL, distribution en gros"
+      },
+      "box20": {
+        "name": "Camion 20 pi",
+        "payload": "Jusqu'à 10 000 lb",
+        "cargo": "1 000 pi³",
+        "useCase": "Chargements FTL, fret volumineux"
+      }
     }
   },
   "onboarding": {
@@ -197,12 +256,30 @@
     "subtitle": "De la première conversation à la première livraison — un parcours simplifié pour les équipes occupées.",
     "cta": "Commencer par une consultation",
     "steps": {
-      "submit": { "title": "Soumettre une demande", "description": "Partagez votre courriel et téléphone professionnels. C'est tout ce dont nous avons besoin." },
-      "consultation": { "title": "Consultation d'affaires", "description": "Un consultant apprend vos opérations et objectifs." },
-      "requirements": { "title": "Examen des besoins", "description": "Nous cartographions vos routes, volumes et exigences." },
-      "pricing": { "title": "Proposition tarifaire", "description": "Tarification transparente adaptée à votre entreprise." },
-      "agreement": { "title": "Entente et intégration", "description": "Configuration du compte, formation et intégration." },
-      "delivering": { "title": "Commencer à livrer", "description": "Mise en service avec suivi, rapports et soutien complets." }
+      "submit": {
+        "title": "Soumettre une demande",
+        "description": "Partagez votre courriel et téléphone professionnels. C'est tout ce dont nous avons besoin."
+      },
+      "consultation": {
+        "title": "Consultation d'affaires",
+        "description": "Un consultant apprend vos opérations et objectifs."
+      },
+      "requirements": {
+        "title": "Examen des besoins",
+        "description": "Nous cartographions vos routes, volumes et exigences."
+      },
+      "pricing": {
+        "title": "Proposition tarifaire",
+        "description": "Tarification transparente adaptée à votre entreprise."
+      },
+      "agreement": {
+        "title": "Entente et intégration",
+        "description": "Configuration du compte, formation et intégration."
+      },
+      "delivering": {
+        "title": "Commencer à livrer",
+        "description": "Mise en service avec suivi, rapports et soutien complets."
+      }
     }
   },
   "dashboard": {
@@ -257,17 +334,33 @@
       "payAsYouGo": {
         "name": "Paiement à l'utilisation",
         "description": "Parfait pour les entreprises en croissance.",
-        "features": ["Pas de minimum mensuel", "Devis instantanés", "Paiement par carte", "Accès complet à la plateforme"]
+        "features": [
+          "Pas de minimum mensuel",
+          "Devis instantanés",
+          "Paiement par carte",
+          "Accès complet à la plateforme"
+        ]
       },
       "creditAccount": {
         "name": "Compte de crédit d'affaires",
         "description": "Facturation simplifiée pour expéditeurs réguliers.",
-        "features": ["Conditions Net 15", "Conditions Net 30", "Facturation consolidée", "Rabais de volume"]
+        "features": [
+          "Conditions Net 15",
+          "Conditions Net 30",
+          "Facturation consolidée",
+          "Rabais de volume"
+        ]
       },
       "enterprise": {
         "name": "Entente entreprise",
         "description": "Solutions personnalisées pour opérations à grand volume.",
-        "features": ["Tarification personnalisée", "Gestionnaire de compte dédié", "Facturation mensuelle", "Soutien prioritaire", "Garanties SLA"]
+        "features": [
+          "Tarification personnalisée",
+          "Gestionnaire de compte dédié",
+          "Facturation mensuelle",
+          "Soutien prioritaire",
+          "Garanties SLA"
+        ]
       }
     }
   },
@@ -306,28 +399,94 @@
     "title": "FAQ entreprise",
     "subtitle": "Questions fréquentes des entreprises qui évaluent Porterchain.",
     "items": {
-      "contract": { "question": "Ai-je besoin d'un contrat?", "answer": "Aucun contrat à long terme n'est requis pour commencer. Des ententes entreprise avec conditions personnalisées sont disponibles." },
-      "recurring": { "question": "Puis-je planifier des collectes récurrentes?", "answer": "Oui. Les routes récurrentes peuvent être configurées quotidiennement, hebdomadairement ou selon un horaire personnalisé." },
-      "csv": { "question": "Puis-je téléverser des fichiers CSV?", "answer": "Oui. Le téléversement de commandes en masse via CSV est disponible sur tous les comptes d'affaires." },
-      "erp": { "question": "Intégrez-vous les systèmes ERP?", "answer": "Nous intégrons les principales plateformes ERP et d'inventaire via API REST." },
-      "api": { "question": "Puis-je utiliser l'API?", "answer": "Oui. Accès API REST complet pour création de commandes, suivi et rapports." },
-      "vehicles": { "question": "Quels véhicules sont disponibles?", "answer": "Berline, VUS, Camionnette, Fourgonnette, Fourgon toit élevé, Camion 16 pi et 20 pi. Tous requièrent un permis G." },
-      "pricing": { "question": "Puis-je négocier les tarifs?", "answer": "Des tarifs basés sur le volume et des taux personnalisés sont disponibles via les ententes entreprise." },
-      "monthly": { "question": "Puis-je payer mensuellement?", "answer": "Oui. Les comptes de crédit offrent des conditions Net 15 et Net 30 avec facturation mensuelle consolidée." },
-      "pod": { "question": "Fournissez-vous une preuve de livraison?", "answer": "Chaque livraison inclut preuve photo, signatures numériques et confirmation par code-barres." },
-      "sameDay": { "question": "Offrez-vous la livraison le jour même?", "answer": "Oui. La livraison le jour même est disponible dans le RGT pour la plupart des véhicules." },
-      "multiStop": { "question": "Gérez-vous les routes multi-arrêts?", "answer": "Oui. La distribution multi-arrêts est une capacité centrale, optimisée par notre moteur de routage." },
-      "accountManager": { "question": "Aurais-je un gestionnaire de compte dédié?", "answer": "Les comptes entreprise incluent un gestionnaire dédié. Les comptes en croissance peuvent passer au soutien dédié." },
-      "insurance": { "question": "Les envois sont-ils assurés?", "answer": "Une couverture standard est incluse. Des options d'assurance cargo supplémentaires sont disponibles." },
-      "gta": { "question": "Quelles régions servez-vous?", "answer": "Nous opérons dans le RGT incluant Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville et environs." },
-      "onboarding": { "question": "Combien de temps prend l'intégration?", "answer": "La plupart des comptes sont opérationnels en 3 à 5 jours ouvrables après la consultation initiale." },
-      "integrations": { "question": "Quelles plateformes e-commerce supportez-vous?", "answer": "Intégrations natives Shopify et WooCommerce, plus CSV et API REST pour toute plateforme." },
-      "billing": { "question": "Comment fonctionne la facturation?", "answer": "Choisissez paiement à l'utilisation, conditions de crédit (Net 15/30) ou facturation entreprise personnalisée." },
-      "tracking": { "question": "Le suivi en temps réel est-il inclus?", "answer": "Oui. Suivi GPS en direct, mises à jour ETA et liens partageables inclus sur chaque livraison." },
-      "volume": { "question": "Y a-t-il un volume minimum requis?", "answer": "Aucun minimum pour les comptes à l'utilisation. Les ententes entreprise peuvent avoir des minimums négociés." },
-      "support": { "question": "Quel soutien est disponible?", "answer": "Courriel, téléphone et soutien dans l'application. Les comptes entreprise reçoivent des délais de réponse prioritaires." },
-      "custom": { "question": "Pouvez-vous créer des solutions logistiques personnalisées?", "answer": "Oui. Notre équipe conçoit des solutions de routage, manutention et intégration sur mesure." },
-      "security": { "question": "Comment mes données sont-elles protégées?", "answer": "Nous utilisons le chiffrement standard, une infrastructure cloud sécurisée et respectons les réglementations canadiennes." }
+      "contract": {
+        "question": "Ai-je besoin d'un contrat?",
+        "answer": "Aucun contrat à long terme n'est requis pour commencer. Des ententes entreprise avec conditions personnalisées sont disponibles."
+      },
+      "recurring": {
+        "question": "Puis-je planifier des collectes récurrentes?",
+        "answer": "Oui. Les routes récurrentes peuvent être configurées quotidiennement, hebdomadairement ou selon un horaire personnalisé."
+      },
+      "csv": {
+        "question": "Puis-je téléverser des fichiers CSV?",
+        "answer": "Oui. Le téléversement de commandes en masse via CSV est disponible sur tous les comptes d'affaires."
+      },
+      "erp": {
+        "question": "Intégrez-vous les systèmes ERP?",
+        "answer": "Nous intégrons les principales plateformes ERP et d'inventaire via API REST."
+      },
+      "api": {
+        "question": "Puis-je utiliser l'API?",
+        "answer": "Oui. Accès API REST complet pour création de commandes, suivi et rapports."
+      },
+      "vehicles": {
+        "question": "Quels véhicules sont disponibles?",
+        "answer": "Berline, VUS, Camionnette, Fourgonnette, Fourgon toit élevé, Camion 16 pi et 20 pi. Tous requièrent un permis G."
+      },
+      "pricing": {
+        "question": "Puis-je négocier les tarifs?",
+        "answer": "Des tarifs basés sur le volume et des taux personnalisés sont disponibles via les ententes entreprise."
+      },
+      "monthly": {
+        "question": "Puis-je payer mensuellement?",
+        "answer": "Oui. Les comptes de crédit offrent des conditions Net 15 et Net 30 avec facturation mensuelle consolidée."
+      },
+      "pod": {
+        "question": "Fournissez-vous une preuve de livraison?",
+        "answer": "Chaque livraison inclut preuve photo, signatures numériques et confirmation par code-barres."
+      },
+      "sameDay": {
+        "question": "Offrez-vous la livraison le jour même?",
+        "answer": "Oui. La livraison le jour même est disponible dans le RGT pour la plupart des véhicules."
+      },
+      "multiStop": {
+        "question": "Gérez-vous les routes multi-arrêts?",
+        "answer": "Oui. La distribution multi-arrêts est une capacité centrale, optimisée par notre moteur de routage."
+      },
+      "accountManager": {
+        "question": "Aurais-je un gestionnaire de compte dédié?",
+        "answer": "Les comptes entreprise incluent un gestionnaire dédié. Les comptes en croissance peuvent passer au soutien dédié."
+      },
+      "insurance": {
+        "question": "Les envois sont-ils assurés?",
+        "answer": "Une couverture standard est incluse. Des options d'assurance cargo supplémentaires sont disponibles."
+      },
+      "gta": {
+        "question": "Quelles régions servez-vous?",
+        "answer": "Nous opérons dans le RGT incluant Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville et environs."
+      },
+      "onboarding": {
+        "question": "Combien de temps prend l'intégration?",
+        "answer": "La plupart des comptes sont opérationnels en 3 à 5 jours ouvrables après la consultation initiale."
+      },
+      "integrations": {
+        "question": "Quelles plateformes e-commerce supportez-vous?",
+        "answer": "Intégrations natives Shopify et WooCommerce, plus CSV et API REST pour toute plateforme."
+      },
+      "billing": {
+        "question": "Comment fonctionne la facturation?",
+        "answer": "Choisissez paiement à l'utilisation, conditions de crédit (Net 15/30) ou facturation entreprise personnalisée."
+      },
+      "tracking": {
+        "question": "Le suivi en temps réel est-il inclus?",
+        "answer": "Oui. Suivi GPS en direct, mises à jour ETA et liens partageables inclus sur chaque livraison."
+      },
+      "volume": {
+        "question": "Y a-t-il un volume minimum requis?",
+        "answer": "Aucun minimum pour les comptes à l'utilisation. Les ententes entreprise peuvent avoir des minimums négociés."
+      },
+      "support": {
+        "question": "Quel soutien est disponible?",
+        "answer": "Courriel, téléphone et soutien dans l'application. Les comptes entreprise reçoivent des délais de réponse prioritaires."
+      },
+      "custom": {
+        "question": "Pouvez-vous créer des solutions logistiques personnalisées?",
+        "answer": "Oui. Notre équipe conçoit des solutions de routage, manutention et intégration sur mesure."
+      },
+      "security": {
+        "question": "Comment mes données sont-elles protégées?",
+        "answer": "Nous utilisons le chiffrement standard, une infrastructure cloud sécurisée et respectons les réglementations canadiennes."
+      }
     }
   },
   "finalCta": {
@@ -343,12 +502,35 @@
     "iconAttribution": "Icônes de véhicules par Rooman12 sur Flaticon",
     "madeIn": "Conçu au Canada 🇨🇦",
     "sections": {
-      "solutions": { "title": "Solutions", "links": ["Livraison récurrente", "Jour même", "Fret LTL", "Gros", "Multi-arrêts"] },
-      "industries": { "title": "Industries", "links": ["Médical", "Restauration", "Construction", "Détail", "Fabrication"] },
-      "technology": { "title": "Technologie", "links": ["API", "CSV", "Shopify", "Intégrations", "Tableau de bord"] },
-      "company": { "title": "Entreprise", "links": ["À propos", "Carrières", "Presse", "Contact", "Partenaires"] },
-      "resources": { "title": "Ressources", "links": ["Centre d'aide", "Docs API", "Études de cas", "Blogue", "FAQ"] },
-      "legal": { "title": "Légal", "links": ["Politique de confidentialité", "Conditions d'utilisation", "Politique de cookies", "Assurance"] }
+      "solutions": {
+        "title": "Solutions",
+        "links": ["Livraison récurrente", "Jour même", "Fret LTL", "Gros", "Multi-arrêts"]
+      },
+      "industries": {
+        "title": "Industries",
+        "links": ["Médical", "Restauration", "Construction", "Détail", "Fabrication"]
+      },
+      "technology": {
+        "title": "Technologie",
+        "links": ["API", "CSV", "Shopify", "Intégrations", "Tableau de bord"]
+      },
+      "company": {
+        "title": "Entreprise",
+        "links": ["À propos", "Carrières", "Presse", "Contact", "Partenaires"]
+      },
+      "resources": {
+        "title": "Ressources",
+        "links": ["Centre d'aide", "Docs API", "Études de cas", "Blogue", "FAQ"]
+      },
+      "legal": {
+        "title": "Légal",
+        "links": [
+          "Politique de confidentialité",
+          "Conditions d'utilisation",
+          "Politique de cookies",
+          "Assurance"
+        ]
+      }
     }
   }
 }

@@ -44,7 +44,12 @@ export default function ArticleCard({
             {post.title}
           </h3>
           <p className="mt-2 text-sm text-muted leading-relaxed line-clamp-2">{post.description}</p>
-          <CardMeta date={post.date} minutes={post.readingMinutes} readLabel={readLabel} locale={locale} />
+          <CardMeta
+            date={post.date}
+            minutes={post.readingMinutes}
+            readLabel={readLabel}
+            locale={locale}
+          />
         </div>
         <ArrowUpRight className="w-5 h-5 text-secondary opacity-0 group-hover:opacity-100 transition-opacity shrink-0 hidden sm:block" />
       </Link>
@@ -141,7 +146,10 @@ export function FeaturedArticleCard({
       <div className="grid lg:grid-cols-2">
         <div className="relative bg-primary p-8 sm:p-10 lg:p-12 flex flex-col justify-end min-h-[280px] lg:min-h-[360px]">
           <div className="absolute inset-0 grid-pattern opacity-20" aria-hidden />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/20 rounded-full blur-3xl" aria-hidden />
+          <div
+            className="absolute top-0 right-0 w-64 h-64 bg-secondary/20 rounded-full blur-3xl"
+            aria-hidden
+          />
           <div className="relative">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-secondary">
               {featuredLabel}
@@ -171,9 +179,6 @@ export function FeaturedArticleCard({
   );
 }
 
-export function categoryLabelFor(
-  t: (key: string) => string,
-  category: BlogCategory
-): string {
+export function categoryLabelFor(t: (key: string) => string, category: BlogCategory): string {
   return t(`categories.${category}`);
 }

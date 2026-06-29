@@ -1,4 +1,4 @@
-export type FooterSectionId = "products" | "company" | "resources";
+export type FooterSectionId = "products" | "company" | "resources" | "legal";
 
 export interface FooterLink {
   id: string;
@@ -23,10 +23,11 @@ export const footerNavigation: Record<FooterSectionId, FooterLink[]> = {
     { id: "supplyChain", href: "/blog/category/supply-chain" },
     { id: "sameDay", href: "/blog/category/same-day-delivery" },
   ],
+  legal: [
+    { id: "privacy", href: "/privacy" },
+    { id: "terms", href: "/terms" },
+    { id: "cookies", href: "/cookies" },
+  ],
 };
 
-export const footerSectionOrder: FooterSectionId[] = [
-  "products",
-  "company",
-  "resources",
-];
+export const footerSectionOrder: FooterSectionId[] = ["products", "company", "resources", "legal"];

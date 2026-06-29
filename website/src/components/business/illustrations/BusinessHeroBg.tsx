@@ -34,10 +34,26 @@ export default function BusinessHeroBg({ className = "" }: BusinessHeroBgProps) 
 
       {/* Stars */}
       {[
-        [120, 80], [340, 120], [580, 60], [820, 100], [1050, 70], [1280, 90],
-        [200, 180], [450, 140], [700, 160], [950, 130], [1150, 150],
+        [120, 80],
+        [340, 120],
+        [580, 60],
+        [820, 100],
+        [1050, 70],
+        [1280, 90],
+        [200, 180],
+        [450, 140],
+        [700, 160],
+        [950, 130],
+        [1150, 150],
       ].map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 1.5 : 1} fill="white" fillOpacity={0.3 + (i % 4) * 0.15} />
+        <circle
+          key={i}
+          cx={x}
+          cy={y}
+          r={i % 3 === 0 ? 1.5 : 1}
+          fill="white"
+          fillOpacity={0.3 + (i % 4) * 0.15}
+        />
       ))}
 
       {/* Toronto skyline silhouette */}
@@ -89,7 +105,15 @@ export default function BusinessHeroBg({ className = "" }: BusinessHeroBgProps) 
 
       {/* Warehouse / loading dock */}
       <rect x="0" y="580" width="500" height="220" fill="#0a1e1f" />
-      <rect x="40" y="620" width="180" height="140" fill="#0d2526" stroke="#1a4244" strokeWidth="2" />
+      <rect
+        x="40"
+        y="620"
+        width="180"
+        height="140"
+        fill="#0d2526"
+        stroke="#1a4244"
+        strokeWidth="2"
+      />
       <rect x="60" y="700" width="140" height="60" fill="#061213" />
       <rect x="250" y="640" width="200" height="120" fill="#0d2526" rx="4" />
       <rect x="270" y="720" width="50" height="40" fill="#ff7a00" fillOpacity="0.3" />

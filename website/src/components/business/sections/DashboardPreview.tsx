@@ -44,9 +44,7 @@ export default function DashboardPreview() {
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff7a00]">
             {t("label")}
           </span>
-          <h2 className="mt-3 biz-heading text-white tracking-tight">
-            {t("title")}
-          </h2>
+          <h2 className="mt-3 biz-heading text-white tracking-tight">{t("title")}</h2>
           <p className="mt-4 text-white/60 leading-relaxed">{t("subtitle")}</p>
         </motion.div>
 
@@ -87,9 +85,7 @@ export default function DashboardPreview() {
                     <div
                       key={key}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs ${
-                        i === 0
-                          ? "bg-[#ff7a00]/15 text-[#ff7a00] font-medium"
-                          : "text-white/50"
+                        i === 0 ? "bg-[#ff7a00]/15 text-[#ff7a00] font-medium" : "text-white/50"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -108,7 +104,9 @@ export default function DashboardPreview() {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
                   {(["deliveries", "onTime", "revenue", "active"] as const).map((stat) => (
                     <div key={stat} className="p-4 rounded-xl bg-white border border-[#091b1c]/6">
-                      <p className="text-2xl font-bold text-[#091b1c]">{t(`stats.${stat}.value`)}</p>
+                      <p className="text-2xl font-bold text-[#091b1c]">
+                        {t(`stats.${stat}.value`)}
+                      </p>
                       <p className="text-xs text-[#5c6b6c] mt-1">{t(`stats.${stat}.label`)}</p>
                     </div>
                   ))}

@@ -1,11 +1,4 @@
-import {
-  MapPin,
-  Phone,
-  Mail,
-  MessageCircle,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
+import { MapPin, Phone, Mail, MessageCircle, Clock, AlertCircle } from "lucide-react";
 import FadeIn from "@/components/corporate/motion/FadeIn";
 import ContactMap from "@/components/corporate/sections/ContactMap";
 
@@ -88,7 +81,9 @@ export default function ContactInfoPanel({ info }: ContactInfoPanelProps) {
                 <item.icon className="w-[18px] h-[18px] text-secondary" aria-hidden />
               </div>
               <div className="min-w-0 pt-0.5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted">{item.label}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+                  {item.label}
+                </p>
                 {item.href ? (
                   <a
                     href={item.href}
@@ -99,11 +94,11 @@ export default function ContactInfoPanel({ info }: ContactInfoPanelProps) {
                     {item.value}
                   </a>
                 ) : (
-                  <p className="mt-1 text-sm font-medium text-primary leading-relaxed">{item.value}</p>
+                  <p className="mt-1 text-sm font-medium text-primary leading-relaxed">
+                    {item.value}
+                  </p>
                 )}
-                {item.detail && (
-                  <p className="mt-0.5 text-xs text-muted">{item.detail}</p>
-                )}
+                {item.detail && <p className="mt-0.5 text-xs text-muted">{item.detail}</p>}
               </div>
             </div>
           </FadeIn>

@@ -50,13 +50,13 @@ Review `infrastructure/docker/fleetbase.porterchain.override.yml` for port/env c
 
 Check these adapter endpoints still work:
 
-| Endpoint | Service |
-|----------|---------|
-| `POST /v1/orders` | `OrderService` |
-| `GET /v1/orders/{id}/tracker` | `TrackingService` |
+| Endpoint                         | Service           |
+| -------------------------------- | ----------------- |
+| `POST /v1/orders`                | `OrderService`    |
+| `GET /v1/orders/{id}/tracker`    | `TrackingService` |
 | `PATCH /v1/orders/{id}/dispatch` | `DispatchService` |
-| `GET /v1/orders/{id}/proofs` | `PodService` |
-| Webhook HMAC format | `WebhookService` |
+| `GET /v1/orders/{id}/proofs`     | `PodService`      |
+| Webhook HMAC format              | `WebhookService`  |
 
 ```bash
 # With Fleetbase running and API key configured:
@@ -70,13 +70,13 @@ print('enabled:', a.is_enabled)
 
 ### 4. Update adapter if needed
 
-| Change type | Files to update |
-|-------------|-----------------|
-| New order fields | `mappers.py` → `build_order_payload` |
+| Change type            | Files to update                               |
+| ---------------------- | --------------------------------------------- |
+| New order fields       | `mappers.py` → `build_order_payload`          |
 | Renamed webhook events | `events/__init__.py` → `FLEETBASE_EVENT_TO_*` |
-| New API paths | Relevant service module in adapter |
-| Auth header changes | `client/__init__.py` |
-| Version header | `config.py` → `api_version` |
+| New API paths          | Relevant service module in adapter            |
+| Auth header changes    | `client/__init__.py`                          |
+| Version header         | `config.py` → `api_version`                   |
 
 ### 5. Update bridge extension (if deployed)
 
@@ -106,10 +106,10 @@ Document supported Fleetbase versions in `services/fleetbase-adapter/README.md` 
 
 ## Composer lock reference (v0.7.40)
 
-| Package | Version |
-|---------|---------|
-| `fleetbase/core-api` | 1.6.47 |
-| `fleetbase/fleetops-api` | 0.6.48 |
+| Package                  | Version |
+| ------------------------ | ------- |
+| `fleetbase/core-api`     | 1.6.47  |
+| `fleetbase/fleetops-api` | 0.6.48  |
 
 After upgrade, diff `composer.lock` and check FleetOps release notes for order/driver API changes.
 
@@ -130,12 +130,12 @@ Restore MySQL snapshot if schema migrations ran.
 
 ## What NOT to do during upgrade
 
-| Action | Why |
-|--------|-----|
-| Patch files in `apps/fleetbase/api/` | Lost on next upstream pull |
-| Add Porterchain routes to Fleetbase core | Use extension package |
-| Change Fleetbase console for merchants | Merchants use Porterchain portals |
-| Skip adapter testing | Silent payload/event mapping breaks |
+| Action                                   | Why                                 |
+| ---------------------------------------- | ----------------------------------- |
+| Patch files in `apps/fleetbase/api/`     | Lost on next upstream pull          |
+| Add Porterchain routes to Fleetbase core | Use extension package               |
+| Change Fleetbase console for merchants   | Merchants use Porterchain portals   |
+| Skip adapter testing                     | Silent payload/event mapping breaks |
 
 ---
 

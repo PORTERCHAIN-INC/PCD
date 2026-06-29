@@ -52,7 +52,9 @@ export default function PortalShell({ children }: { children: React.ReactNode })
                 href={href}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                  active ? "bg-secondary/10 text-secondary" : "text-primary/70 hover:bg-gray-bg hover:text-primary"
+                  active
+                    ? "bg-secondary/10 text-secondary"
+                    : "text-primary/70 hover:bg-gray-bg hover:text-primary"
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" />

@@ -22,6 +22,7 @@ MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
             AdminRole.SUPER_ADMIN,
             AdminRole.ADMIN,
             AdminRole.SALES,
+            AdminRole.SALES_MANAGER,
             AdminRole.SUPPORT,
             AdminRole.SUPPORT_LEAD,
             AdminRole.MARKETING,

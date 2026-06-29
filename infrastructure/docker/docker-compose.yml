@@ -31,7 +31,17 @@ services:
       - porterchain-data
       - porterchain-internal
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-change-me-root}"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p${MYSQL_ROOT_PASSWORD:-change-me-root}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

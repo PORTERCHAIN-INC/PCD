@@ -13,7 +13,14 @@ export default function LogisticsPattern({ className = "" }: LogisticsPatternPro
       aria-hidden
     >
       <defs>
-        <pattern id="logisticsGrid" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+        <pattern
+          id="logisticsGrid"
+          x="0"
+          y="0"
+          width="80"
+          height="80"
+          patternUnits="userSpaceOnUse"
+        >
           <circle cx="40" cy="40" r="1.5" fill="#2563eb" opacity="0.15" />
           <path d="M40 40 L80 40 M40 40 L40 80" stroke="#2563eb" strokeWidth="0.5" opacity="0.08" />
         </pattern>

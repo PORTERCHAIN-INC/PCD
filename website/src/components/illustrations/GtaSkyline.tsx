@@ -72,13 +72,19 @@ export default function GtaSkyline({ className = "" }: GtaSkylineProps) {
         <rect x="668" y="60" width="14" height="380" fill="url(#towerGlow)" />
         <rect x="664" y="55" width="22" height="8" rx="2" fill="#38bdf8" opacity="0.6" />
         {/* Observation pod */}
-        <ellipse cx="675" cy="200" rx="28" ry="12" fill="#1e3354" stroke="#2563eb" strokeWidth="1" opacity="0.9" />
+        <ellipse
+          cx="675"
+          cy="200"
+          rx="28"
+          ry="12"
+          fill="#1e3354"
+          stroke="#2563eb"
+          strokeWidth="1"
+          opacity="0.9"
+        />
         <rect x="647" y="195" width="56" height="10" rx="3" fill="#2563eb" opacity="0.35" />
         {/* Main shaft */}
-        <path
-          d="M671 68 L679 68 L677 440 L673 440 Z"
-          fill="#2a4068"
-        />
+        <path d="M671 68 L679 68 L677 440 L673 440 Z" fill="#2a4068" />
         <line x1="675" y1="80" x2="675" y2="430" stroke="#38bdf8" strokeWidth="0.5" opacity="0.4" />
         {/* Antenna */}
         <line x1="675" y1="55" x2="675" y2="20" stroke="#60a5fa" strokeWidth="2" />
@@ -112,12 +118,7 @@ export default function GtaSkyline({ className = "" }: GtaSkylineProps) {
       <rect x="1415" y="340" width="25" height="180" fill="#1e3354" />
 
       {/* Highway / Gardiner hint */}
-      <path
-        d="M0 455 L1440 455"
-        stroke="url(#accentLine)"
-        strokeWidth="1"
-        opacity="0.5"
-      />
+      <path d="M0 455 L1440 455" stroke="url(#accentLine)" strokeWidth="1" opacity="0.5" />
 
       {/* Delivery route dots */}
       <circle cx="200" cy="448" r="3" fill="#38bdf8" opacity="0.6" />

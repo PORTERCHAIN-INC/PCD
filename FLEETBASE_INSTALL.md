@@ -8,11 +8,11 @@
 
 ## License verification
 
-| Item | Value |
-|------|--------|
-| License | **GNU Affero General Public License v3.0 (AGPL-3.0)** |
-| License file | `apps/fleetbase/LICENSE.md` |
-| Commercial use | Permitted for self-hosting; network copyleft applies to modifications |
+| Item               | Value                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------- |
+| License            | **GNU Affero General Public License v3.0 (AGPL-3.0)**                                                 |
+| License file       | `apps/fleetbase/LICENSE.md`                                                                           |
+| Commercial use     | Permitted for self-hosting; network copyleft applies to modifications                                 |
 | Porterchain stance | Fleetbase runs as a **separate application**; Porterchain API bridges to it — no Fleetbase code forks |
 
 Review `LICENSE.md` before production deployment. A commercial license is available from Fleetbase if AGPL obligations are not suitable.
@@ -21,14 +21,14 @@ Review `LICENSE.md` before production deployment. A commercial license is availa
 
 ## Prerequisites
 
-| Requirement | Version |
-|-------------|---------|
-| Docker Desktop | 20.10+ |
-| Docker Compose | v2 (`docker compose`) |
-| Git | any recent |
-| RAM for Docker | ≥ 4 GB (8 GB recommended) |
-| Disk | ≥ 10 GB free |
-| Ports (host) | `8000`, `4200`, `38000`, `3307` (MySQL host bind) |
+| Requirement    | Version                                           |
+| -------------- | ------------------------------------------------- |
+| Docker Desktop | 20.10+                                            |
+| Docker Compose | v2 (`docker compose`)                             |
+| Git            | any recent                                        |
+| RAM for Docker | ≥ 4 GB (8 GB recommended)                         |
+| Disk           | ≥ 10 GB free                                      |
+| Ports (host)   | `8000`, `4200`, `38000`, `3307` (MySQL host bind) |
 
 **Port note:** Porterchain core MySQL uses `127.0.0.1:3306`. Fleetbase MySQL is bound to **`127.0.0.1:3307`** to avoid conflict.
 
@@ -100,12 +100,12 @@ pnpm docker:fleetbase:verify
 
 ## Post-install
 
-| Service | URL |
-|---------|-----|
-| **API** | http://localhost:8000 |
-| **Console (Dispatcher)** | http://localhost:4200 |
-| **SocketCluster (WebSockets)** | ws://localhost:38000 |
-| **MySQL (host)** | `127.0.0.1:3307` |
+| Service                        | URL                   |
+| ------------------------------ | --------------------- |
+| **API**                        | http://localhost:8000 |
+| **Console (Dispatcher)**       | http://localhost:4200 |
+| **SocketCluster (WebSockets)** | ws://localhost:38000  |
+| **MySQL (host)**               | `127.0.0.1:3307`      |
 
 1. Open **Console** → complete onboarding wizard (organization + admin user).
 2. Copy organization/company UUID into Porterchain API env: `FLEETBASE_DEFAULT_COMPANY_UUID` / `PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID`.
@@ -153,12 +153,12 @@ Always run `./deploy.sh` after upgrading per [Fleetbase docs](https://fleetbase.
 
 ## Troubleshooting
 
-| Issue | Fix |
-|-------|-----|
-| Port 3306 in use | Porterchain overlay binds Fleetbase MySQL to **3307** |
-| Port 8000/4200/38000 in use | Stop other Fleetbase stacks: `docker compose -p pc down` (legacy `PC/` repo) |
-| `deploy.sh` sandbox DB error | Re-run install script (includes MySQL grant) or see RUNBOOK.md |
-| Docker daemon not running | Start Docker Desktop, retry `pnpm docker:fleetbase:install` |
+| Issue                        | Fix                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| Port 3306 in use             | Porterchain overlay binds Fleetbase MySQL to **3307**                        |
+| Port 8000/4200/38000 in use  | Stop other Fleetbase stacks: `docker compose -p pc down` (legacy `PC/` repo) |
+| `deploy.sh` sandbox DB error | Re-run install script (includes MySQL grant) or see RUNBOOK.md               |
+| Docker daemon not running    | Start Docker Desktop, retry `pnpm docker:fleetbase:install`                  |
 
 ---
 

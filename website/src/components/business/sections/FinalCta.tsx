@@ -18,9 +18,7 @@ export default function FinalCta() {
           viewport={{ once: true }}
           className="text-center max-w-2xl mx-auto mb-12"
         >
-          <h2 className="biz-heading lg:text-5xl text-white tracking-tight">
-            {t("title")}
-          </h2>
+          <h2 className="biz-heading lg:text-5xl text-white tracking-tight">{t("title")}</h2>
           <p className="mt-5 text-lg text-white/60 leading-relaxed">{t("subtitle")}</p>
         </motion.div>
 

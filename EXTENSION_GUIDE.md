@@ -42,14 +42,14 @@ This guide explains how to extend Porterchain's Fleetbase integration **without 
 
 Extend `services/fleetbase-adapter/` when you need to:
 
-| Need | Where |
-|------|-------|
-| New Fleetbase resource sync (e.g. facilities) | New module + service class |
-| Additional order meta fields | `mappers.py` |
-| New webhook event mapping | `events/__init__.py` |
-| New Fleetbase API endpoint wrapper | Existing service module or new one |
-| Custom retry / error handling | `retry.py`, `errors.py` |
-| POD normalization changes | `pod/__init__.py` |
+| Need                                          | Where                              |
+| --------------------------------------------- | ---------------------------------- |
+| New Fleetbase resource sync (e.g. facilities) | New module + service class         |
+| Additional order meta fields                  | `mappers.py`                       |
+| New webhook event mapping                     | `events/__init__.py`               |
+| New Fleetbase API endpoint wrapper            | Existing service module or new one |
+| Custom retry / error handling                 | `retry.py`, `errors.py`            |
+| POD normalization changes                     | `pod/__init__.py`                  |
 
 ### Example: add a new webhook event
 
@@ -83,12 +83,12 @@ Expose via `FleetbaseAdapter` in `integration.py` if needed by the API.
 
 Create a **separate Composer extension package** when you need:
 
-| Need | Example endpoint |
-|------|------------------|
-| Porterchain SSO token exchange | `POST /int/v1/porterchain/sso/exchange` |
-| Permission sync from Porterchain RBAC | `POST /int/v1/porterchain/sso/users/{uuid}/permissions` |
-| Bulk order import with Porterchain IDs | `POST /int/v1/porterchain/orders/bulk` |
-| Custom webhook signing scheme | Bridge middleware |
+| Need                                   | Example endpoint                                        |
+| -------------------------------------- | ------------------------------------------------------- |
+| Porterchain SSO token exchange         | `POST /int/v1/porterchain/sso/exchange`                 |
+| Permission sync from Porterchain RBAC  | `POST /int/v1/porterchain/sso/users/{uuid}/permissions` |
+| Bulk order import with Porterchain IDs | `POST /int/v1/porterchain/orders/bulk`                  |
+| Custom webhook signing scheme          | Bridge middleware                                       |
 
 Install the extension into the Fleetbase Docker image — never patch `apps/fleetbase/api/routes/`.
 
@@ -98,12 +98,12 @@ Adapter client calls for bridge routes go in `auth/__init__.py` or a new `bridge
 
 ## When to extend Porterchain API (Layer 1)
 
-| Need | Location |
-|------|----------|
-| When to sync orders (after Stripe payment) | `booking_engine/` |
-| Merchant-specific dispatch rules | `admin_engine/` |
-| Public tracking response shape | `routers/orders.py` |
-| Outbound merchant webhooks | `routers/webhooks.py` |
+| Need                                       | Location              |
+| ------------------------------------------ | --------------------- |
+| When to sync orders (after Stripe payment) | `booking_engine/`     |
+| Merchant-specific dispatch rules           | `admin_engine/`       |
+| Public tracking response shape             | `routers/orders.py`   |
+| Outbound merchant webhooks                 | `routers/webhooks.py` |
 
 The API calls adapter methods — it does not construct Fleetbase payloads directly.
 
@@ -165,13 +165,13 @@ pnpm dev:api
 
 ## Anti-patterns
 
-| Anti-pattern | Correct approach |
-|--------------|------------------|
-| `httpx.post('http://fleetbase:8000/v1/orders')` in API | Use `OrderService` |
-| Edit `apps/fleetbase/api/app/Http/` | Fleetbase bridge extension |
-| Store merchant pricing in Fleetbase meta | Keep in Porterchain DB |
-| Fork `fleetops-api` | Use adapter mappers + bridge routes |
-| Import adapter from `website/` | Website → API only |
+| Anti-pattern                                           | Correct approach                    |
+| ------------------------------------------------------ | ----------------------------------- |
+| `httpx.post('http://fleetbase:8000/v1/orders')` in API | Use `OrderService`                  |
+| Edit `apps/fleetbase/api/app/Http/`                    | Fleetbase bridge extension          |
+| Store merchant pricing in Fleetbase meta               | Keep in Porterchain DB              |
+| Fork `fleetops-api`                                    | Use adapter mappers + bridge routes |
+| Import adapter from `website/`                         | Website → API only                  |
 
 ---
 

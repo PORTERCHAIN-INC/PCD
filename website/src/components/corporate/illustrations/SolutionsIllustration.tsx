@@ -13,10 +13,7 @@ export default function SolutionsIllustration() {
         >
           <p className="text-xs font-semibold text-primary">{item.label}</p>
           <div className="mt-3 h-1.5 rounded-full bg-gray-bg overflow-hidden">
-            <div
-              className="h-full rounded-full bg-secondary"
-              style={{ width: `${item.pct}%` }}
-            />
+            <div className="h-full rounded-full bg-secondary" style={{ width: `${item.pct}%` }} />
           </div>
           <p className="mt-2 text-[10px] text-muted">SLA {item.pct}%</p>
         </div>

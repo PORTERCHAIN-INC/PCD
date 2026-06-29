@@ -106,15 +106,25 @@ export default function OrdersPage() {
                 <td className="max-w-xs truncate px-4 py-3 text-muted">
                   {o.pickup?.formatted} → {o.dropoff?.formatted}
                 </td>
-                <td className="px-4 py-3">{formatCents(o.amount_cents, o.currency.toUpperCase())}</td>
+                <td className="px-4 py-3">
+                  {formatCents(o.amount_cents, o.currency.toUpperCase())}
+                </td>
                 <td className="px-4 py-3">{formatDate(o.scheduled_at)}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button type="button" className="text-xs text-secondary" onClick={() => onDuplicate(o.order_id)}>
+                    <button
+                      type="button"
+                      className="text-xs text-secondary"
+                      onClick={() => onDuplicate(o.order_id)}
+                    >
                       Duplicate
                     </button>
                     {o.state !== "CANCELLED" && (
-                      <button type="button" className="text-xs text-red-600" onClick={() => onCancel(o.order_id)}>
+                      <button
+                        type="button"
+                        className="text-xs text-red-600"
+                        onClick={() => onCancel(o.order_id)}
+                      >
                         Cancel
                       </button>
                     )}
@@ -124,7 +134,9 @@ export default function OrdersPage() {
             ))}
           </tbody>
         </table>
-        {orders.length === 0 && <p className="p-6 text-center text-sm text-muted">No orders found</p>}
+        {orders.length === 0 && (
+          <p className="p-6 text-center text-sm text-muted">No orders found</p>
+        )}
       </div>
     </div>
   );

@@ -42,11 +42,26 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold text-primary">Business Profile</h1>
-      <form onSubmit={onSave} className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6">
-        <Field label="Company name" value={profile.company_name} onChange={(v) => setProfile({ ...profile, company_name: v })} />
+      <form
+        onSubmit={onSave}
+        className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6"
+      >
+        <Field
+          label="Company name"
+          value={profile.company_name}
+          onChange={(v) => setProfile({ ...profile, company_name: v })}
+        />
         <Field label="Email" value={profile.email} onChange={() => {}} disabled />
-        <Field label="Phone" value={profile.phone || ""} onChange={(v) => setProfile({ ...profile, phone: v })} />
-        <Field label="HST number" value={profile.hst_number || ""} onChange={(v) => setProfile({ ...profile, hst_number: v })} />
+        <Field
+          label="Phone"
+          value={profile.phone || ""}
+          onChange={(v) => setProfile({ ...profile, phone: v })}
+        />
+        <Field
+          label="HST number"
+          value={profile.hst_number || ""}
+          onChange={(v) => setProfile({ ...profile, hst_number: v })}
+        />
         <Field
           label="Business number"
           value={profile.business_number || ""}

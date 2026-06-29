@@ -30,9 +30,7 @@ export default function OpenPositionsSection({
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const filtered =
-    activeDept === "all"
-      ? positions
-      : positions.filter((p) => p.department === activeDept);
+    activeDept === "all" ? positions : positions.filter((p) => p.department === activeDept);
 
   const deptCounts = careerDepartments.reduce(
     (acc, dept) => {

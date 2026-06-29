@@ -9,18 +9,18 @@
 
 ## 1. Company identity
 
-| Field | Value |
-|-------|-------|
-| **Legal name** | PORTERCHAIN INC. |
-| **Brand / short name** | Porterchain |
-| **Tagline** | Commercial logistics partner for local businesses |
-| **Website** | https://porterchain.com |
-| **Primary email** | peter@porterchain.com |
-| **Operations email** | ops@porterchain.com |
-| **Phone** | +1 (647) 619-7951 |
-| **WhatsApp** | +1 (647) 619-7951 |
-| **Head office** | 100 King Street West, Toronto, ON M5X 1A9, Canada |
-| **Locale** | en-CA |
+| Field                  | Value                                             |
+| ---------------------- | ------------------------------------------------- |
+| **Legal name**         | PORTERCHAIN INC.                                  |
+| **Brand / short name** | Porterchain                                       |
+| **Tagline**            | Commercial logistics partner for local businesses |
+| **Website**            | https://porterchain.com                           |
+| **Primary email**      | peter@porterchain.com                             |
+| **Operations email**   | ops@porterchain.com                               |
+| **Phone**              | +1 (647) 619-7951                                 |
+| **WhatsApp**           | +1 (647) 619-7951                                 |
+| **Head office**        | 100 King Street West, Toronto, ON M5X 1A9, Canada |
+| **Locale**             | en-CA                                             |
 
 ### What Porterchain does
 
@@ -38,13 +38,13 @@ Porterchain is **not** an ad-hoc local driver marketplace. It is a structured lo
 
 ## 2. Social media links
 
-| Platform | URL | Label |
-|----------|-----|-------|
-| **LinkedIn** | https://www.linkedin.com/company/porterchain | Porterchain Inc. on LinkedIn |
-| **Instagram** | https://www.instagram.com/porterchain/ | Porterchain on Instagram |
-| **Facebook** | https://www.facebook.com/profile.php?id=61568324733884 | Porterchain on Facebook |
-| **YouTube** | https://www.youtube.com/@porterchain | Porterchain on YouTube |
-| **WhatsApp** | https://wa.me/16476197951 | Porterchain on WhatsApp |
+| Platform      | URL                                                    | Label                        |
+| ------------- | ------------------------------------------------------ | ---------------------------- |
+| **LinkedIn**  | https://www.linkedin.com/company/porterchain           | Porterchain Inc. on LinkedIn |
+| **Instagram** | https://www.instagram.com/porterchain/                 | Porterchain on Instagram     |
+| **Facebook**  | https://www.facebook.com/profile.php?id=61568324733884 | Porterchain on Facebook      |
+| **YouTube**   | https://www.youtube.com/@porterchain                   | Porterchain on YouTube       |
+| **WhatsApp**  | https://wa.me/16476197951                              | Porterchain on WhatsApp      |
 
 Social links appear in the site footer and in structured data (`sameAs` in Organization schema).
 
@@ -94,12 +94,12 @@ Drivers are business partners in the network. Porterchain focuses on predictable
 
 ### Operational benchmarks (vs. ad-hoc delivery)
 
-| KPI | Before | After | Impact |
-|-----|--------|-------|--------|
-| On-time delivery | Manual dispatch with frequent delays | Managed dispatch with SLA-based execution | Improved delivery reliability |
-| Exception handling | Reactive issue resolution | Pre-dispatch checks and controlled escalations | Fewer avoidable exceptions |
-| Fuel & route efficiency | Unoptimized routing and empty miles | Route and load optimization on each lane | Lower fuel use and emissions |
-| Proof & billing readiness | Incomplete handoff documentation | Photo, signature, GPS, and reference audit trail | Faster reconciliation and fewer disputes |
+| KPI                       | Before                               | After                                            | Impact                                   |
+| ------------------------- | ------------------------------------ | ------------------------------------------------ | ---------------------------------------- |
+| On-time delivery          | Manual dispatch with frequent delays | Managed dispatch with SLA-based execution        | Improved delivery reliability            |
+| Exception handling        | Reactive issue resolution            | Pre-dispatch checks and controlled escalations   | Fewer avoidable exceptions               |
+| Fuel & route efficiency   | Unoptimized routing and empty miles  | Route and load optimization on each lane         | Lower fuel use and emissions             |
+| Proof & billing readiness | Incomplete handoff documentation     | Photo, signature, GPS, and reference audit trail | Faster reconciliation and fewer disputes |
 
 **Website pages:** `/standards`, `/about`, `/for-business`, `/driver-partner`
 
@@ -132,12 +132,12 @@ Acceptance records:
 
 ### Payment terms (merchant billing)
 
-| Term ID | Label |
-|---------|-------|
-| `stripe` | Stripe |
-| `credit_card` | Credit Card |
-| `net_30` | Net 30 (default) |
-| `net_45` | Net 45 |
+| Term ID       | Label            |
+| ------------- | ---------------- |
+| `stripe`      | Stripe           |
+| `credit_card` | Credit Card      |
+| `net_30`      | Net 30 (default) |
+| `net_45`      | Net 45           |
 
 Additional merchant payment constants in the API: `immediate`, `net_7`, `net_14`, `custom`.
 
@@ -165,13 +165,13 @@ The website does not have a `/knowledge-center` page. The following published pa
 
 **Topics:**
 
-| Topic | Path |
-|-------|------|
-| Track a shipment | `/track` |
-| Request a quote | `/contact` |
-| FAQ | `/faq` |
-| Live chat | Zoho SalesIQ widget (see Section 8) |
-| For Business programs | `/for-business` |
+| Topic                 | Path                                |
+| --------------------- | ----------------------------------- |
+| Track a shipment      | `/track`                            |
+| Request a quote       | `/contact`                          |
+| FAQ                   | `/faq`                              |
+| Live chat             | Zoho SalesIQ widget (see Section 8) |
+| For Business programs | `/for-business`                     |
 
 ### FAQ — `/faq`
 
@@ -201,10 +201,10 @@ Drivers are business partners in our network. We focus on fair payout structure,
 
 ### Blog / articles — `/blog`
 
-| Slug | Title | Published |
-|------|-------|-----------|
-| `gta-commercial-logistics-guide` | Professional Logistics vs Ad-Hoc Delivery in the GTA | 2026-06-01 |
-| `same-day-vs-scheduled-freight-gta` | Same Day vs Scheduled Freight in the GTA | 2026-05-15 |
+| Slug                                     | Title                                                  | Published  |
+| ---------------------------------------- | ------------------------------------------------------ | ---------- |
+| `gta-commercial-logistics-guide`         | Professional Logistics vs Ad-Hoc Delivery in the GTA   | 2026-06-01 |
+| `same-day-vs-scheduled-freight-gta`      | Same Day vs Scheduled Freight in the GTA               | 2026-05-15 |
 | `proof-of-delivery-commercial-shipments` | Why Proof of Delivery Matters for Commercial Shipments | 2026-04-28 |
 
 ### API integrations — `/api-integrations`
@@ -240,11 +240,11 @@ Sedan, SUV, Minivan, Cargo Van, Sprinter, 16ft Box Truck, 20ft Box Truck
 
 ### Careers — `/careers`
 
-| Role | Department | Location | Type |
-|------|------------|----------|------|
-| Commercial Dispatcher — Toronto | Operations | Toronto, ON (GTA) | Full-time |
-| Box Truck Driver — GTA | Driver Network | Greater Toronto Area | Full-time / Contract |
-| Merchant Success Manager | Commercial | Toronto, ON | Full-time |
+| Role                            | Department     | Location             | Type                 |
+| ------------------------------- | -------------- | -------------------- | -------------------- |
+| Commercial Dispatcher — Toronto | Operations     | Toronto, ON (GTA)    | Full-time            |
+| Box Truck Driver — GTA          | Driver Network | Greater Toronto Area | Full-time / Contract |
+| Merchant Success Manager        | Commercial     | Toronto, ON          | Full-time            |
 
 Apply via `/contact`.
 
@@ -270,16 +270,16 @@ The following binding references exist today:
 
 ### Data collected (based on platform behavior)
 
-| Data type | Purpose | Systems |
-|-----------|---------|---------|
-| Name, email, phone | Account creation, booking OTP, shipment contact | Clerk, Supabase Auth, Porterchain API |
-| Company profile & tax/insurance details | Merchant onboarding & compliance | Porterchain API |
-| Pickup/delivery addresses | Routing, dispatch, tracking | Porterchain API, Google Maps / OSRM / Valhalla |
-| Shipment details (weight, dimensions, photos) | Quoting, capacity matching, POD | Porterchain API |
-| Payment information | Invoicing and checkout | Stripe (card data handled by Stripe) |
-| Location/GPS | Proof of delivery, driver tracking | Porterchain API, Fleetbase |
-| Chat messages | Customer support | Zoho SalesIQ |
-| Auth session cookies | Login state | Clerk, Supabase, Fleetbase session (control tower) |
+| Data type                                     | Purpose                                         | Systems                                            |
+| --------------------------------------------- | ----------------------------------------------- | -------------------------------------------------- |
+| Name, email, phone                            | Account creation, booking OTP, shipment contact | Clerk, Supabase Auth, Porterchain API              |
+| Company profile & tax/insurance details       | Merchant onboarding & compliance                | Porterchain API                                    |
+| Pickup/delivery addresses                     | Routing, dispatch, tracking                     | Porterchain API, Google Maps / OSRM / Valhalla     |
+| Shipment details (weight, dimensions, photos) | Quoting, capacity matching, POD                 | Porterchain API                                    |
+| Payment information                           | Invoicing and checkout                          | Stripe (card data handled by Stripe)               |
+| Location/GPS                                  | Proof of delivery, driver tracking              | Porterchain API, Fleetbase                         |
+| Chat messages                                 | Customer support                                | Zoho SalesIQ                                       |
+| Auth session cookies                          | Login state                                     | Clerk, Supabase, Fleetbase session (control tower) |
 
 ### Authentication providers
 
@@ -302,13 +302,13 @@ The following binding references exist today:
 
 ### Third-party scripts and services loaded by the website
 
-| Service | Purpose | Domain / provider |
-|---------|---------|-------------------|
-| **Zoho SalesIQ** | Live chat widget | `salesiq.zohopublic.ca` |
-| **Clerk** | Authentication (merchant/driver sign-in) | Clerk hosted |
-| **Supabase** | Booking OTP auth | `*.supabase.co` |
-| **Google Maps** | Address autocomplete, maps | `maps.googleapis.com` |
-| **Stripe** | Payment checkout (tracking/retail pay) | `stripe.com` |
+| Service          | Purpose                                  | Domain / provider       |
+| ---------------- | ---------------------------------------- | ----------------------- |
+| **Zoho SalesIQ** | Live chat widget                         | `salesiq.zohopublic.ca` |
+| **Clerk**        | Authentication (merchant/driver sign-in) | Clerk hosted            |
+| **Supabase**     | Booking OTP auth                         | `*.supabase.co`         |
+| **Google Maps**  | Address autocomplete, maps               | `maps.googleapis.com`   |
+| **Stripe**       | Payment checkout (tracking/retail pay)   | `stripe.com`            |
 
 ### Cookies likely set
 
@@ -333,27 +333,27 @@ Social links can be overridden via:
 
 ## 9. Important website pages index
 
-| Page | URL | Purpose |
-|------|-----|---------|
-| Home | `/` | Main marketing & booking entry |
-| Quote engine | `/quote` | Instant commercial quotes |
-| Track shipment | `/track` | Public tracking & retail payment |
-| About | `/about` | Company overview |
-| Standards | `/standards` | Mission, compliance, sustainability |
-| FAQ | `/faq` | Common questions |
-| Support | `/support` | Help hub & contact hours |
-| Contact | `/contact` | Quote requests |
-| For Business | `/for-business` | B2B logistics programs |
-| Driver Partner | `/driver-partner` | Driver program info |
-| API Integrations | `/api-integrations` | Developer/integration info |
-| Services | `/services` | Service overview |
-| Industries | `/industries` | Industry-specific pages |
-| Service Areas | `/service-areas` | Geographic coverage |
-| Blog | `/blog` | Articles |
-| Careers | `/careers` | Open positions |
-| Merchant portal | `/portal/merchant` | Business account dashboard |
-| Merchant onboarding | `/portal/merchant/onboarding` | Profile, documents, contract |
-| Sign in / Sign up | `/sign-in`, `/sign-up` | Account access |
+| Page                | URL                           | Purpose                             |
+| ------------------- | ----------------------------- | ----------------------------------- |
+| Home                | `/`                           | Main marketing & booking entry      |
+| Quote engine        | `/quote`                      | Instant commercial quotes           |
+| Track shipment      | `/track`                      | Public tracking & retail payment    |
+| About               | `/about`                      | Company overview                    |
+| Standards           | `/standards`                  | Mission, compliance, sustainability |
+| FAQ                 | `/faq`                        | Common questions                    |
+| Support             | `/support`                    | Help hub & contact hours            |
+| Contact             | `/contact`                    | Quote requests                      |
+| For Business        | `/for-business`               | B2B logistics programs              |
+| Driver Partner      | `/driver-partner`             | Driver program info                 |
+| API Integrations    | `/api-integrations`           | Developer/integration info          |
+| Services            | `/services`                   | Service overview                    |
+| Industries          | `/industries`                 | Industry-specific pages             |
+| Service Areas       | `/service-areas`              | Geographic coverage                 |
+| Blog                | `/blog`                       | Articles                            |
+| Careers             | `/careers`                    | Open positions                      |
+| Merchant portal     | `/portal/merchant`            | Business account dashboard          |
+| Merchant onboarding | `/portal/merchant/onboarding` | Profile, documents, contract        |
+| Sign in / Sign up   | `/sign-in`, `/sign-up`        | Account access                      |
 
 **SEO / technical:** `/sitemap.xml`, `/robots.txt`, `/manifest.json`
 
@@ -371,30 +371,30 @@ Social links can be overridden via:
 
 ## 11. Gaps & recommended legal pages
 
-| Item | Current state | Recommended action |
-|------|---------------|-------------------|
-| Terms & Conditions | Referenced in merchant onboarding only | Create `/terms` page; link in footer |
-| Privacy Policy | Not published | Create `/privacy` page; link in footer |
-| Cookie Policy | Not published | Create `/cookies` page + consent banner |
-| Knowledge Center | FAQ + Support + Blog serve this role | Optionally unify at `/knowledge-center` or `/help` |
-| GDPR page | Exists in PC-CRM admin only | Not applicable to public site unless EU traffic targeted |
+| Item               | Current state                          | Recommended action                                       |
+| ------------------ | -------------------------------------- | -------------------------------------------------------- |
+| Terms & Conditions | Referenced in merchant onboarding only | Create `/terms` page; link in footer                     |
+| Privacy Policy     | Not published                          | Create `/privacy` page; link in footer                   |
+| Cookie Policy      | Not published                          | Create `/cookies` page + consent banner                  |
+| Knowledge Center   | FAQ + Support + Blog serve this role   | Optionally unify at `/knowledge-center` or `/help`       |
+| GDPR page          | Exists in PC-CRM admin only            | Not applicable to public site unless EU traffic targeted |
 
 ---
 
 ## 12. Source files (for maintainers)
 
-| Content | Source |
-|---------|--------|
-| Company info, social links, nav | `apps/website/src/lib/site.ts` |
-| FAQ, blog, careers | `apps/website/src/lib/content.ts` |
-| Footer & social icons | `apps/website/src/components/layout/Footer.tsx` |
-| Merchant agreement text | `apps/website/src/components/merchant-onboarding/MerchantOnboardingWizard.tsx` |
-| Support hours & topics | `apps/website/src/app/support/page.tsx` |
-| Standards page | `apps/website/src/app/standards/page.tsx` |
-| Billing payment terms | `api/app/Models/Porterchain/BillingRecord.php` |
-| Contract acceptance logic | `api/app/Services/Porterchain/MerchantOnboardingService.php` |
-| Zoho chat widget | `apps/website/src/components/support/ZohoSalesIQ.tsx` |
+| Content                         | Source                                                                         |
+| ------------------------------- | ------------------------------------------------------------------------------ |
+| Company info, social links, nav | `apps/website/src/lib/site.ts`                                                 |
+| FAQ, blog, careers              | `apps/website/src/lib/content.ts`                                              |
+| Footer & social icons           | `apps/website/src/components/layout/Footer.tsx`                                |
+| Merchant agreement text         | `apps/website/src/components/merchant-onboarding/MerchantOnboardingWizard.tsx` |
+| Support hours & topics          | `apps/website/src/app/support/page.tsx`                                        |
+| Standards page                  | `apps/website/src/app/standards/page.tsx`                                      |
+| Billing payment terms           | `api/app/Models/Porterchain/BillingRecord.php`                                 |
+| Contract acceptance logic       | `api/app/Services/Porterchain/MerchantOnboardingService.php`                   |
+| Zoho chat widget                | `apps/website/src/components/support/ZohoSalesIQ.tsx`                          |
 
 ---
 
-*This document is an internal compilation for reference. It is not legal advice. Formal Terms, Privacy, and Cookie policies should be reviewed by qualified counsel before publication.*
+_This document is an internal compilation for reference. It is not legal advice. Formal Terms, Privacy, and Cookie policies should be reviewed by qualified counsel before publication._

@@ -44,20 +44,33 @@ export default function ApiPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-primary">API Integration</h1>
-        <p className="text-sm text-muted">Generate keys, manage webhooks, sandbox and production modes</p>
+        <p className="text-sm text-muted">
+          Generate keys, manage webhooks, sandbox and production modes
+        </p>
       </div>
 
       {newSecret && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm">
-          <p className="font-semibold text-amber-900">Copy your API key now — it won&apos;t be shown again</p>
-          <code className="mt-2 block break-all rounded bg-white p-2 font-mono text-xs">{newSecret}</code>
-          <button type="button" className="mt-2 text-xs text-muted underline" onClick={() => setNewSecret(null)}>
+          <p className="font-semibold text-amber-900">
+            Copy your API key now — it won&apos;t be shown again
+          </p>
+          <code className="mt-2 block break-all rounded bg-white p-2 font-mono text-xs">
+            {newSecret}
+          </code>
+          <button
+            type="button"
+            className="mt-2 text-xs text-muted underline"
+            onClick={() => setNewSecret(null)}
+          >
             Dismiss
           </button>
         </div>
       )}
 
-      <form onSubmit={onCreate} className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/10 bg-white p-6">
+      <form
+        onSubmit={onCreate}
+        className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/10 bg-white p-6"
+      >
         <div>
           <label className="text-sm font-medium">Key name</label>
           <input
@@ -86,7 +99,10 @@ export default function ApiPage() {
         <p className="mt-1 text-xs text-muted">Rate limit: 60 requests/minute per key (default)</p>
         <ul className="mt-4 divide-y divide-primary/5">
           {keys.map((k) => (
-            <li key={k.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+            <li
+              key={k.id}
+              className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
+            >
               <div>
                 <p className="font-medium">{k.name}</p>
                 <p className="font-mono text-xs text-muted">
@@ -105,9 +121,15 @@ export default function ApiPage() {
       <section className="rounded-2xl border border-primary/10 bg-white p-6 text-sm text-muted">
         <h2 className="font-semibold text-primary">API documentation</h2>
         <p className="mt-2">
-          Merchant API base: <code className="rounded bg-gray-bg px-1">{process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL || "http://localhost:8001"}/v1/merchant</code>
+          Merchant API base:{" "}
+          <code className="rounded bg-gray-bg px-1">
+            {process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL || "http://localhost:8001"}/v1/merchant
+          </code>
         </p>
-        <p className="mt-2">Authenticate with <code className="rounded bg-gray-bg px-1">Authorization: Bearer &lt;api_key&gt;</code></p>
+        <p className="mt-2">
+          Authenticate with{" "}
+          <code className="rounded bg-gray-bg px-1">Authorization: Bearer &lt;api_key&gt;</code>
+        </p>
       </section>
     </div>
   );

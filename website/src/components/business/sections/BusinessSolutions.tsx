@@ -49,9 +49,7 @@ export default function BusinessSolutions() {
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff7a00]">
             {t("label")}
           </span>
-          <h2 className="mt-3 biz-heading text-white tracking-tight">
-            {t("title")}
-          </h2>
+          <h2 className="mt-3 biz-heading text-white tracking-tight">{t("title")}</h2>
           <p className="mt-4 text-white/60 leading-relaxed">{t("subtitle")}</p>
         </motion.div>
 
@@ -72,9 +70,7 @@ export default function BusinessSolutions() {
                   <Icon className="w-5 h-5" />
                 </div>
                 <h3 className="font-semibold text-white mb-2">{t(`items.${key}`)}</h3>
-                <p className="text-sm text-white/50 leading-relaxed">
-                  {t(`descriptions.${key}`)}
-                </p>
+                <p className="text-sm text-white/50 leading-relaxed">{t(`descriptions.${key}`)}</p>
               </motion.div>
             );
           })}

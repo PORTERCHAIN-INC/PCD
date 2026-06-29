@@ -22,23 +22,23 @@ infrastructure/docker/docker-compose.yml
 
 ### Service catalog
 
-| Service | Image | Container name | Host port | Internal port |
-|---------|-------|----------------|-----------|---------------|
-| `database` | `mysql:8.0` | `porterchain-mysql` | 3306 | 3306 |
-| `cache` | `redis:7.2-alpine` | `porterchain-redis` | 6379 | 6379 |
-| `valhalla` | `ghcr.io/gis-ops/docker-valhalla/valhalla:latest` | `porterchain-valhalla` | 8002 | 8002 |
-| `fleetbase-api` | `fleetbase/api:latest` (or custom build) | `porterchain-fleetbase-api` | 8000 | 8000 |
-| `fleetbase-console` | `fleetbase/console:latest` | `porterchain-console` | 4200 | 4200 |
-| `porterchain-api` | Custom FastAPI Dockerfile | `porterchain-api` | 8001 | 8000 |
-| `nginx` | `nginx:1.27-alpine` | `porterchain-proxy` | 80, 443 | 80 |
+| Service             | Image                                             | Container name              | Host port | Internal port |
+| ------------------- | ------------------------------------------------- | --------------------------- | --------- | ------------- |
+| `database`          | `mysql:8.0`                                       | `porterchain-mysql`         | 3306      | 3306          |
+| `cache`             | `redis:7.2-alpine`                                | `porterchain-redis`         | 6379      | 6379          |
+| `valhalla`          | `ghcr.io/gis-ops/docker-valhalla/valhalla:latest` | `porterchain-valhalla`      | 8002      | 8002          |
+| `fleetbase-api`     | `fleetbase/api:latest` (or custom build)          | `porterchain-fleetbase-api` | 8000      | 8000          |
+| `fleetbase-console` | `fleetbase/console:latest`                        | `porterchain-console`       | 4200      | 4200          |
+| `porterchain-api`   | Custom FastAPI Dockerfile                         | `porterchain-api`           | 8001      | 8000          |
+| `nginx`             | `nginx:1.27-alpine`                               | `porterchain-proxy`         | 80, 443   | 80            |
 
 ### Optional services
 
-| Service | Image | Purpose |
-|---------|-------|---------|
-| `mailhog` | `mailhog/mailhog` | Local SMTP capture (dev) |
-| `minio` | `minio/minio` | S3-compatible local storage |
-| `osrm` | `osrm/osrm-backend` | Self-hosted OSRM (if not using public) |
+| Service   | Image               | Purpose                                |
+| --------- | ------------------- | -------------------------------------- |
+| `mailhog` | `mailhog/mailhog`   | Local SMTP capture (dev)               |
+| `minio`   | `minio/minio`       | S3-compatible local storage            |
+| `osrm`    | `osrm/osrm-backend` | Self-hosted OSRM (if not using public) |
 
 ---
 
@@ -48,17 +48,17 @@ infrastructure/docker/docker-compose.yml
 networks:
   porterchain-internal:
     driver: bridge
-    internal: false  # valhalla needs tile downloads on first run
+    internal: false # valhalla needs tile downloads on first run
 
   porterchain-data:
     driver: bridge
-    internal: true   # database + redis only
+    internal: true # database + redis only
 ```
 
-| Network | Members |
-|---------|---------|
+| Network                | Members                    |
+| ---------------------- | -------------------------- |
 | `porterchain-internal` | All application containers |
-| `porterchain-data` | `database`, `cache` only |
+| `porterchain-data`     | `database`, `cache` only   |
 
 **Rule:** Frontend apps (website, merchant portal) run on host via `pnpm dev` in development, not in Docker — unless using a `website` dev container.
 
@@ -66,13 +66,13 @@ networks:
 
 ## Volumes
 
-| Volume name | Mount point | Service | Purpose |
-|-------------|-------------|---------|---------|
-| `mysql-data` | `/var/lib/mysql` | `database` | Persistent Fleetbase DB |
-| `redis-data` | `/data` | `cache` | Redis AOF persistence |
-| `valhalla-tiles` | `/custom_files` | `valhalla` | OSM tiles (large; ~GB for Ontario) |
-| `fleetbase-storage` | `/fleetbase/api/storage` | `fleetbase-api` | Uploads, Firebase creds |
-| `api-storage` | `/app/storage` | `porterchain-api` | Porterchain uploads |
+| Volume name         | Mount point              | Service           | Purpose                            |
+| ------------------- | ------------------------ | ----------------- | ---------------------------------- |
+| `mysql-data`        | `/var/lib/mysql`         | `database`        | Persistent Fleetbase DB            |
+| `redis-data`        | `/data`                  | `cache`           | Redis AOF persistence              |
+| `valhalla-tiles`    | `/custom_files`          | `valhalla`        | OSM tiles (large; ~GB for Ontario) |
+| `fleetbase-storage` | `/fleetbase/api/storage` | `fleetbase-api`   | Uploads, Firebase creds            |
+| `api-storage`       | `/app/storage`           | `porterchain-api` | Porterchain uploads                |
 
 ```yaml
 volumes:
@@ -108,16 +108,16 @@ environment:
 
 ## Restart policies
 
-| Service | Policy | Reason |
-|---------|--------|--------|
-| `database` | `unless-stopped` | Data persistence |
-| `cache` | `unless-stopped` | Queue dependency |
-| `valhalla` | `unless-stopped` | Routing dependency |
-| `fleetbase-api` | `unless-stopped` | Core dispatch |
-| `fleetbase-console` | `unless-stopped` | Admin UI |
-| `porterchain-api` | `unless-stopped` | Core API |
-| `nginx` | `unless-stopped` | Entry point |
-| `mailhog` | `no` | Dev only |
+| Service             | Policy           | Reason             |
+| ------------------- | ---------------- | ------------------ |
+| `database`          | `unless-stopped` | Data persistence   |
+| `cache`             | `unless-stopped` | Queue dependency   |
+| `valhalla`          | `unless-stopped` | Routing dependency |
+| `fleetbase-api`     | `unless-stopped` | Core dispatch      |
+| `fleetbase-console` | `unless-stopped` | Admin UI           |
+| `porterchain-api`   | `unless-stopped` | Core API           |
+| `nginx`             | `unless-stopped` | Entry point        |
+| `mailhog`           | `no`             | Dev only           |
 
 ---
 
@@ -153,10 +153,11 @@ healthcheck:
   interval: 30s
   timeout: 10s
   retries: 5
-  start_period: 120s  # tile build is slow on first run
+  start_period: 120s # tile build is slow on first run
 ```
 
 **Dependency order:**
+
 1. `database` + `cache` (healthy)
 2. `fleetbase-api` (depends on database, cache)
 3. `porterchain-api` (depends on database, cache, fleetbase-api)
@@ -168,15 +169,15 @@ healthcheck:
 
 ## Scaling (production)
 
-| Service | Scaling strategy |
-|---------|------------------|
-| `porterchain-api` | Horizontal — stateless; scale on CPU/latency |
-| `fleetbase-api` | Horizontal with shared MySQL + Redis |
-| `fleetbase-console` | Static assets; CDN or single instance |
-| `database` | Vertical + read replicas (MySQL) |
-| `cache` | Redis Sentinel or managed Redis |
-| `valhalla` | Single instance per region (tile-local) |
-| `nginx` / Traefik | Multiple instances behind LB |
+| Service             | Scaling strategy                             |
+| ------------------- | -------------------------------------------- |
+| `porterchain-api`   | Horizontal — stateless; scale on CPU/latency |
+| `fleetbase-api`     | Horizontal with shared MySQL + Redis         |
+| `fleetbase-console` | Static assets; CDN or single instance        |
+| `database`          | Vertical + read replicas (MySQL)             |
+| `cache`             | Redis Sentinel or managed Redis              |
+| `valhalla`          | Single instance per region (tile-local)      |
+| `nginx` / Traefik   | Multiple instances behind LB                 |
 
 ### Worker processes
 
@@ -199,12 +200,12 @@ fleetbase-worker:
 
 ## Dockerfile targets (to create)
 
-| Path | Base image | Output |
-|------|------------|--------|
-| `apps/api/Dockerfile` | `python:3.12-slim` | Porterchain FastAPI |
-| `apps/website/Dockerfile` | `node:20-alpine` | Next.js standalone |
-| `apps/merchant-portal/Dockerfile` | `node:20-alpine` | Next.js standalone |
-| `infrastructure/docker/fleetbase/Dockerfile` | Fleetbase upstream | Custom branding |
+| Path                                         | Base image         | Output              |
+| -------------------------------------------- | ------------------ | ------------------- |
+| `apps/api/Dockerfile`                        | `python:3.12-slim` | Porterchain FastAPI |
+| `apps/website/Dockerfile`                    | `node:20-alpine`   | Next.js standalone  |
+| `apps/merchant-portal/Dockerfile`            | `node:20-alpine`   | Next.js standalone  |
+| `infrastructure/docker/fleetbase/Dockerfile` | Fleetbase upstream | Custom branding     |
 
 ### Next.js standalone pattern
 
@@ -237,12 +238,12 @@ labels:
   - "traefik.http.services.api.loadbalancer.server.port=8000"
 ```
 
-| Host | Backend |
-|------|---------|
-| `localhost` | website :3000 (host) |
-| `portal.localhost` | merchant :3001 |
-| `console.localhost` | fleetbase-console :4200 |
-| `api.localhost` | nginx → porterchain-api + fleetbase |
+| Host                | Backend                             |
+| ------------------- | ----------------------------------- |
+| `localhost`         | website :3000 (host)                |
+| `portal.localhost`  | merchant :3001                      |
+| `console.localhost` | fleetbase-console :4200             |
+| `api.localhost`     | nginx → porterchain-api + fleetbase |
 
 ---
 
@@ -265,15 +266,15 @@ docker compose -f infrastructure/docker/docker-compose.yml up -d
 
 ## Current gap in PCD repo
 
-| Item | Status |
-|------|--------|
+| Item                 | Status      |
+| -------------------- | ----------- |
 | `docker-compose.yml` | **Missing** |
-| `Dockerfile` | **Missing** |
-| `.dockerignore` | **Missing** |
-| CI image build | **Missing** |
+| `Dockerfile`         | **Missing** |
+| `.dockerignore`      | **Missing** |
+| CI image build       | **Missing** |
 
 **Next step:** Create `infrastructure/docker/` per this specification when monorepo is consolidated.
 
 ---
 
-*This is a target architecture document. No containers are defined in the PCD repository as of June 2026.*
+_This is a target architecture document. No containers are defined in the PCD repository as of June 2026._

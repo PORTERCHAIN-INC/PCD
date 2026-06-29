@@ -6,11 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.claims_service import AdminClaimsService
-from porterchain_api.admin_engine.crm_service import AdminCrmService
 from porterchain_api.admin_engine.dashboard_service import AdminDashboardService
-from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.admin_engine.finance_service import AdminFinanceService
-from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.admin_engine.operations_service import AdminOperationsService
 from porterchain_api.admin_engine.orders_service import AdminOrdersService
 from porterchain_api.admin_engine.pricing_service import AdminPricingService
@@ -27,15 +24,9 @@ from porterchain_api.schemas_admin import (
     AssignDriverRequest,
     ClaimCreateRequest,
     ClaimItem,
-    CrmNoteCreateRequest,
-    CrmSummaryResponse,
-    CrmTaskCreateRequest,
-    DriverItem,
-    DriverVerifyRequest,
-    LeadItem,
-    MerchantAdminItem,
-    MerchantUpdateRequest,
     OrderAdminItem,
+    OrderDetailResponse,
+    PaymentAdminItem,
     ReportsSummaryResponse,
     StaffItem,
     StaffRoleUpdateRequest,
@@ -58,9 +49,6 @@ from porterchain_api.schemas_admin import (
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
 
 _dashboard = AdminDashboardService()
-_crm = AdminCrmService()
-_merchants = AdminMerchantService()
-_drivers = AdminDriverService()
 _ops = AdminOperationsService()
 _orders = AdminOrdersService()
 _claims = AdminClaimsService()
@@ -92,6 +80,63 @@ def _order_item(o: Order) -> OrderAdminItem:
     )
 
 
+def _order_detail(detail: dict) -> OrderDetailResponse:
+    order: Order = detail["order"]
+    quote = detail.get("quote")
+    booking = detail.get("booking")
+    invoice = detail.get("invoice")
+    customer = detail.get("customer")
+    payments = detail.get("payments") or []
+
+    return OrderDetailResponse(
+        order_id=order.id,
+        order_number=order.order_number,
+        tracking_number=order.tracking_number,
+        state=order.state,
+        amount_cents=order.amount_cents,
+        currency=order.currency,
+        scheduled_at=order.scheduled_at,
+        created_at=order.created_at,
+        pickup=order.pickup,
+        dropoff=order.dropoff,
+        special_instructions=order.special_instructions,
+        fleetbase_order_id=order.fleetbase_order_id,
+        assigned_driver_id=order.assigned_driver_id,
+        customer_id=order.customer_id,
+        customer_email=customer.email if customer else None,
+        customer_phone=customer.phone if customer else None,
+        booking_number=booking.booking_number if booking else None,
+        quote_id=quote.id if quote else None,
+        vehicle_class=quote.vehicle_class if quote else None,
+        package_type=quote.package_type if quote else None,
+        weight_kg=quote.weight_kg if quote else None,
+        dimensions=quote.dimensions if quote else None,
+        declared_value_cents=quote.declared_value_cents if quote else None,
+        distance_meters=quote.distance_meters if quote else None,
+        quote_amount_cents=quote.amount_cents if quote else None,
+        pricing_breakdown=quote.pricing_breakdown if quote else None,
+        payments=[
+            PaymentAdminItem(
+                payment_id=p.id,
+                status=p.status,
+                amount_cents=p.amount_cents,
+                currency=p.currency,
+                stripe_payment_intent_id=p.stripe_payment_intent_id,
+                stripe_checkout_session_id=p.stripe_checkout_session_id,
+                receipt_url=p.receipt_url,
+                failure_reason=p.failure_reason,
+                retry_count=p.retry_count,
+                created_at=p.created_at,
+            )
+            for p in payments
+        ],
+        invoice_number=invoice.invoice_number if invoice else None,
+        invoice_amount_cents=invoice.amount_cents if invoice else None,
+        invoice_receipt_url=invoice.stripe_receipt_url if invoice else None,
+        invoice_pdf_url=invoice.pdf_url if invoice else None,
+    )
+
+
 @router.get("/dashboard", response_model=AdminDashboardResponse)
 def admin_dashboard(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
@@ -99,181 +144,6 @@ def admin_dashboard(
 ) -> AdminDashboardResponse:
     require_module(ctx, "dashboard")
     return AdminDashboardResponse(**_dashboard.get_dashboard(db))
-
-
-@router.get("/crm/summary", response_model=CrmSummaryResponse)
-def crm_summary(
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-) -> CrmSummaryResponse:
-    try:
-        require_module(ctx, "crm_read")
-        return CrmSummaryResponse(**_crm.pipeline_summary(db))
-    except PermissionError as e:
-        _perm(e)
-
-
-@router.get("/crm/leads", response_model=list[LeadItem])
-def crm_leads(
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-) -> list[LeadItem]:
-    require_module(ctx, "crm_read")
-    return [
-        LeadItem(
-            id=l.id, source=l.source, email=l.email, phone=l.phone, stage=l.stage,
-            quote_id=l.quote_id, created_at=l.created_at,
-        )
-        for l in _crm.list_leads(db)
-    ]
-
-
-@router.post("/crm/tasks")
-def crm_create_task(
-    body: CrmTaskCreateRequest,
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-):
-    require_module(ctx, "crm")
-    return _crm.create_task(db, ctx, title=body.title, lead_id=body.lead_id, merchant_id=body.merchant_id)
-
-
-@router.post("/crm/notes")
-def crm_create_note(
-    body: CrmNoteCreateRequest,
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-):
-    require_module(ctx, "crm")
-    return _crm.add_note(db, ctx, entity_type=body.entity_type, entity_id=body.entity_id, body=body.body)
-
-
-@router.get("/merchants", response_model=list[MerchantAdminItem])
-def list_merchants(
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-    status: str | None = None,
-) -> list[MerchantAdminItem]:
-    require_module(ctx, "merchants_read")
-    rows = _merchants.list_merchants(db, status=status)
-    return [
-        MerchantAdminItem(
-            id=m.id, status=m.status, company_name=m.company_name, email=m.email,
-            payment_terms=m.payment_terms, created_at=m.created_at,
-        )
-        for m in rows
-    ]
-
-
-@router.post("/merchants/{merchant_id}/approve", response_model=MerchantAdminItem)
-def approve_merchant(
-    merchant_id: str,
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-) -> MerchantAdminItem:
-    try:
-        require_module(ctx, "merchants")
-        m = _merchants.approve_merchant(db, ctx, merchant_id)
-        return MerchantAdminItem(
-            id=m.id, status=m.status, company_name=m.company_name, email=m.email,
-            payment_terms=m.payment_terms, created_at=m.created_at,
-        )
-    except LookupError:
-        raise HTTPException(status_code=404, detail="merchant_not_found") from None
-    except PermissionError as e:
-        _perm(e)
-
-
-@router.post("/merchants/{merchant_id}/suspend", response_model=MerchantAdminItem)
-def suspend_merchant(
-    merchant_id: str,
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-) -> MerchantAdminItem:
-    try:
-        require_module(ctx, "merchants")
-        m = _merchants.suspend_merchant(db, ctx, merchant_id)
-        return MerchantAdminItem(
-            id=m.id, status=m.status, company_name=m.company_name, email=m.email,
-            payment_terms=m.payment_terms, created_at=m.created_at,
-        )
-    except LookupError:
-        raise HTTPException(status_code=404, detail="merchant_not_found") from None
-
-
-@router.patch("/merchants/{merchant_id}", response_model=MerchantAdminItem)
-def update_merchant(
-    merchant_id: str,
-    body: MerchantUpdateRequest,
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-) -> MerchantAdminItem:
-    require_module(ctx, "merchants")
-    m = _merchants.update_merchant_terms(
-        db, ctx, merchant_id,
-        payment_terms=body.payment_terms,
-        pricing_config=body.pricing_config,
-        credit_limit_cents=body.credit_limit_cents,
-    )
-    return MerchantAdminItem(
-        id=m.id, status=m.status, company_name=m.company_name, email=m.email,
-        payment_terms=m.payment_terms, created_at=m.created_at,
-    )
-
-
-@router.get("/drivers", response_model=list[DriverItem])
-def list_drivers(
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-    status: str | None = None,
-) -> list[DriverItem]:
-    require_module(ctx, "drivers_read")
-    return [
-        DriverItem(
-            id=d.id, status=d.status, full_name=d.full_name, email=d.email, phone=d.phone,
-            license_verified=d.license_verified, insurance_verified=d.insurance_verified,
-            vehicle_verified=d.vehicle_verified, background_check_status=d.background_check_status,
-            rating=d.rating, is_online=d.is_online, wallet_balance_cents=d.wallet_balance_cents,
-            created_at=d.created_at,
-        )
-        for d in _drivers.list_drivers(db, status=status)
-    ]
-
-
-@router.post("/drivers/{driver_id}/approve", response_model=DriverItem)
-def approve_driver(
-    driver_id: str,
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    require_module(ctx, "drivers")
-    d = _drivers.approve_driver(db, ctx, driver_id, settings)
-    return DriverItem(
-        id=d.id, status=d.status, full_name=d.full_name, email=d.email, phone=d.phone,
-        license_verified=d.license_verified, insurance_verified=d.insurance_verified,
-        vehicle_verified=d.vehicle_verified, background_check_status=d.background_check_status,
-        rating=d.rating, is_online=d.is_online, wallet_balance_cents=d.wallet_balance_cents,
-        created_at=d.created_at,
-    )
-
-
-@router.patch("/drivers/{driver_id}/verification", response_model=DriverItem)
-def verify_driver(
-    driver_id: str,
-    body: DriverVerifyRequest,
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-):
-    require_module(ctx, "drivers")
-    d = _drivers.update_verification(db, ctx, driver_id, **body.model_dump(exclude_unset=True))
-    return DriverItem(
-        id=d.id, status=d.status, full_name=d.full_name, email=d.email, phone=d.phone,
-        license_verified=d.license_verified, insurance_verified=d.insurance_verified,
-        vehicle_verified=d.vehicle_verified, background_check_status=d.background_check_status,
-        rating=d.rating, is_online=d.is_online, wallet_balance_cents=d.wallet_balance_cents,
-        created_at=d.created_at,
-    )
 
 
 @router.get("/dispatch/queue", response_model=list[OrderAdminItem])
@@ -313,6 +183,19 @@ def list_orders(
 ) -> list[OrderAdminItem]:
     require_module(ctx, "orders_read")
     return [_order_item(o) for o in _orders.list_orders(db, state=state, search=search)]
+
+
+@router.get("/orders/{order_id}", response_model=OrderDetailResponse)
+def get_order_detail(
+    order_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> OrderDetailResponse:
+    require_module(ctx, "orders_read")
+    detail = _orders.order_full_detail(db, order_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="order_not_found")
+    return _order_detail(detail)
 
 
 @router.get("/orders/{order_id}/timeline")

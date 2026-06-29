@@ -49,20 +49,20 @@ sequenceDiagram
 
 ### Event chain (B2C)
 
-| Step | Event | Publisher |
-|------|-------|-----------|
-| 1 | `quote.created` | Quote service |
-| 2 | `quote.accepted` | Quote service |
-| 3 | `checkout.started` | Booking service |
-| 4 | `webhook.received` | Webhooks router (Stripe) |
-| 5 | `payment.succeeded` | Payment service |
-| 6 | `booking.confirmed` | Confirmation service |
-| 7 | `order.created` | Confirmation service |
-| 8 | `order.booked` | Confirmation service |
-| 9 | `order.dispatch_ready` | Order transitions |
-| 10 | `fleetbase.order_created` | Fleetbase sync handler |
-| 11 | `notification.queued` | Notification handler |
-| 12 | `notification.sent` | Notification worker |
+| Step | Event                     | Publisher                |
+| ---- | ------------------------- | ------------------------ |
+| 1    | `quote.created`           | Quote service            |
+| 2    | `quote.accepted`          | Quote service            |
+| 3    | `checkout.started`        | Booking service          |
+| 4    | `webhook.received`        | Webhooks router (Stripe) |
+| 5    | `payment.succeeded`       | Payment service          |
+| 6    | `booking.confirmed`       | Confirmation service     |
+| 7    | `order.created`           | Confirmation service     |
+| 8    | `order.booked`            | Confirmation service     |
+| 9    | `order.dispatch_ready`    | Order transitions        |
+| 10   | `fleetbase.order_created` | Fleetbase sync handler   |
+| 11   | `notification.queued`     | Notification handler     |
+| 12   | `notification.sent`       | Notification worker      |
 
 ---
 
@@ -128,23 +128,23 @@ Webhook ingress **only validates and emits**. State transitions happen in the ha
 
 ## Payment & billing
 
-| Event | Trigger | Downstream |
-|-------|---------|------------|
-| `payment.succeeded` | Stripe webhook / mark succeeded | Billing queue → settlement |
-| `order.invoiced` | Billing job | Email invoice, merchant webhook |
-| `merchant.billed` | Net-terms cycle | AR system, dunning |
-| `driver.payout_created` | Payout batch | Stripe Connect / payroll |
-| `refund.requested` | Customer/ops | Finance review queue |
-| `refund.issued` | Finance approval | Stripe refund API |
+| Event                   | Trigger                         | Downstream                      |
+| ----------------------- | ------------------------------- | ------------------------------- |
+| `payment.succeeded`     | Stripe webhook / mark succeeded | Billing queue → settlement      |
+| `order.invoiced`        | Billing job                     | Email invoice, merchant webhook |
+| `merchant.billed`       | Net-terms cycle                 | AR system, dunning              |
+| `driver.payout_created` | Payout batch                    | Stripe Connect / payroll        |
+| `refund.requested`      | Customer/ops                    | Finance review queue            |
+| `refund.issued`         | Finance approval                | Stripe refund API               |
 
 ---
 
 ## Claims & exceptions
 
-| Event | Trigger | Downstream |
-|-------|---------|------------|
-| `claim.opened` | Customer/merchant report | Compliance, finance hold |
-| `claim.resolved` | Ops resolution | Customer notify, billing adjustment |
+| Event            | Trigger                  | Downstream                          |
+| ---------------- | ------------------------ | ----------------------------------- |
+| `claim.opened`   | Customer/merchant report | Compliance, finance hold            |
+| `claim.resolved` | Ops resolution           | Customer notify, billing adjustment |
 
 ---
 
@@ -173,12 +173,12 @@ order.delivered → webhook queue → POST merchant URL
 
 ## Correlation IDs
 
-| Flow | correlation_id |
-|------|----------------|
-| Quote → order | `quote_id` |
-| Order → invoice | `order_id` |
-| Order → payment | `quote_id` or `order_id` |
-| Booking confirmation | `order_id` |
+| Flow                 | correlation_id           |
+| -------------------- | ------------------------ |
+| Quote → order        | `quote_id`               |
+| Order → invoice      | `order_id`               |
+| Order → payment      | `quote_id` or `order_id` |
+| Booking confirmation | `order_id`               |
 
 Use `event_id` for idempotency; use `correlation_id` for distributed tracing.
 
@@ -204,13 +204,13 @@ event_id already in idempotency store → skip handler
 
 ## Module decoupling checklist
 
-| Before (coupled) | After (event-driven) |
-|------------------|----------------------|
-| `confirmation_service` → `FleetbaseSyncService.sync_order` | `order.dispatch_ready` → handler |
-| `confirmation_service` → `NotificationService.send_*` | `booking.confirmed` → handler |
-| `merchant booking` → `FleetbaseSyncService.sync_order` | `order.dispatch_ready` → handler |
-| `admin assign_driver` → `FleetbaseSyncService` | `order.driver_assigned` → handler |
-| `webhooks/fleetbase` → `apply_webhook_update` | `webhook.received` → handler |
+| Before (coupled)                                           | After (event-driven)              |
+| ---------------------------------------------------------- | --------------------------------- |
+| `confirmation_service` → `FleetbaseSyncService.sync_order` | `order.dispatch_ready` → handler  |
+| `confirmation_service` → `NotificationService.send_*`      | `booking.confirmed` → handler     |
+| `merchant booking` → `FleetbaseSyncService.sync_order`     | `order.dispatch_ready` → handler  |
+| `admin assign_driver` → `FleetbaseSyncService`             | `order.driver_assigned` → handler |
+| `webhooks/fleetbase` → `apply_webhook_update`              | `webhook.received` → handler      |
 
 ---
 

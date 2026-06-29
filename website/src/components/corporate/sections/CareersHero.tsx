@@ -40,7 +40,9 @@ export default function CareersHero({
             <h1 className="mt-6 text-4xl sm:text-5xl lg:text-[3.75rem] font-semibold text-white tracking-tight text-balance leading-[1.05]">
               {title}
             </h1>
-            <p className="mt-5 text-lg sm:text-xl text-white/65 leading-relaxed max-w-xl">{subtitle}</p>
+            <p className="mt-5 text-lg sm:text-xl text-white/65 leading-relaxed max-w-xl">
+              {subtitle}
+            </p>
             <div className="mt-9 flex flex-col sm:flex-row gap-3">
               <a
                 href="#positions"

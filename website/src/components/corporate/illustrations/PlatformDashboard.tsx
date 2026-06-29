@@ -21,7 +21,10 @@ export default function PlatformDashboardIllustration() {
             { label: "On-time", value: "99%" },
             { label: "Routes", value: "18" },
           ].map((stat) => (
-            <div key={stat.label} className="rounded-xl bg-white/[0.06] border border-white/[0.08] p-3">
+            <div
+              key={stat.label}
+              className="rounded-xl bg-white/[0.06] border border-white/[0.08] p-3"
+            >
               <p className="text-lg font-semibold text-white">{stat.value}</p>
               <p className="text-[10px] text-white/45 mt-0.5">{stat.label}</p>
             </div>

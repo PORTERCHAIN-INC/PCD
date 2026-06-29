@@ -10,9 +10,7 @@ function generateId(): string {
 
 export function getAnonymousSessionId(): string {
   if (typeof document === "undefined") return "";
-  const match = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(`${COOKIE_NAME}=`));
+  const match = document.cookie.split("; ").find((row) => row.startsWith(`${COOKIE_NAME}=`));
   if (match) return decodeURIComponent(match.split("=")[1]);
   const id = generateId();
   const maxAge = MAX_AGE_DAYS * 24 * 60 * 60;

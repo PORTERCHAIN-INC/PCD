@@ -17,7 +17,9 @@ export default function BlogNewsletter() {
 
   return (
     <div className="rounded-2xl border border-primary/[0.06] bg-white p-5">
-      <h3 className="text-base font-semibold text-primary tracking-tight">{t("newsletterTitle")}</h3>
+      <h3 className="text-base font-semibold text-primary tracking-tight">
+        {t("newsletterTitle")}
+      </h3>
       <p className="mt-2 text-sm text-muted leading-relaxed">{t("newsletterSubtitle")}</p>
       {done ? (
         <div className="mt-4 flex items-center gap-2 text-sm text-secondary font-medium">

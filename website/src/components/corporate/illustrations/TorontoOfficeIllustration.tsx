@@ -32,7 +32,17 @@ export default function TorontoOfficeIllustration() {
           <circle cx="300" cy="72" r="4" fill="#60a5fa" fillOpacity="0.6" />
 
           {/* Main office tower */}
-          <rect x="95" y="60" width="120" height="180" rx="4" fill="url(#tower-fill)" stroke="#2563eb" strokeWidth="1.2" strokeOpacity="0.5" />
+          <rect
+            x="95"
+            y="60"
+            width="120"
+            height="180"
+            rx="4"
+            fill="url(#tower-fill)"
+            stroke="#2563eb"
+            strokeWidth="1.2"
+            strokeOpacity="0.5"
+          />
           {Array.from({ length: 12 }).map((_, row) =>
             Array.from({ length: 4 }).map((_, col) => (
               <rect
@@ -49,8 +59,27 @@ export default function TorontoOfficeIllustration() {
           )}
 
           {/* King St label */}
-          <rect x="40" y="228" width="280" height="28" rx="6" fill="#0a1628" fillOpacity="0.6" stroke="#2563eb" strokeWidth="0.75" strokeOpacity="0.3" />
-          <text x="180" y="246" textAnchor="middle" fill="#ffffff" fontSize="9" fontWeight="600" opacity="0.75">
+          <rect
+            x="40"
+            y="228"
+            width="280"
+            height="28"
+            rx="6"
+            fill="#0a1628"
+            fillOpacity="0.6"
+            stroke="#2563eb"
+            strokeWidth="0.75"
+            strokeOpacity="0.3"
+          />
+          <text
+            x="180"
+            y="246"
+            textAnchor="middle"
+            fill="#ffffff"
+            fontSize="9"
+            fontWeight="600"
+            opacity="0.75"
+          >
             100 King Street West · Toronto
           </text>
 

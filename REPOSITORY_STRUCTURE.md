@@ -53,31 +53,31 @@ porterchain/
 
 ## Current vs target paths
 
-| Target | Current canonical path | Status |
-|--------|---------------------|--------|
-| `apps/website/` | `website/` (repo root) | README placeholder at `apps/website/` |
-| `apps/merchant/` | `apps/merchant-portal/` | README placeholder at `apps/merchant/` |
-| `apps/customer/` | — | Planned |
-| `apps/admin/` | `apps/admin/` | Active |
-| `apps/api/` | `apps/api/` | Active |
-| `apps/driver/` | — | Planned (`apps/mobile-driver` TBD) |
-| `vendor/fleetbase/` | `apps/fleetbase/` | Source stays at `apps/fleetbase/` |
-| `services/fleetbase-adapter/` | `services/fleetbase-adapter/` | **Active** |
-| `packages/shared/` | `shared/python/` | README pointer |
+| Target                        | Current canonical path        | Status                                 |
+| ----------------------------- | ----------------------------- | -------------------------------------- |
+| `apps/website/`               | `website/` (repo root)        | README placeholder at `apps/website/`  |
+| `apps/merchant/`              | `apps/merchant-portal/`       | README placeholder at `apps/merchant/` |
+| `apps/customer/`              | —                             | Planned                                |
+| `apps/admin/`                 | `apps/admin/`                 | Active                                 |
+| `apps/api/`                   | `apps/api/`                   | Active                                 |
+| `apps/driver/`                | —                             | Planned (`apps/mobile-driver` TBD)     |
+| `vendor/fleetbase/`           | `apps/fleetbase/`             | Source stays at `apps/fleetbase/`      |
+| `services/fleetbase-adapter/` | `services/fleetbase-adapter/` | **Active**                             |
+| `packages/shared/`            | `shared/python/`              | README pointer                         |
 
 ---
 
 ## Application boundaries
 
-| App | Port | Talks to Fleetbase? | Notes |
-|-----|------|---------------------|-------|
-| Website | 3000 | **No** | Booking UI → Porterchain API only |
-| Merchant | 3001 | **No** | B2B portal → Porterchain API |
-| Customer | TBD | **No** | Retail dashboard (planned) |
-| Admin | 3002 | **SSO only** | Opens Fleetbase console via Porterchain SSO |
-| API | 8001 | **Via adapter** | Sole bridge to Fleetbase |
-| Driver | TBD | **No** | Execution API via Porterchain |
-| Fleetbase | 8000 / 4200 | N/A | Internal ops engine |
+| App       | Port        | Talks to Fleetbase? | Notes                                       |
+| --------- | ----------- | ------------------- | ------------------------------------------- |
+| Website   | 3000        | **No**              | Booking UI → Porterchain API only           |
+| Merchant  | 3001        | **No**              | B2B portal → Porterchain API                |
+| Customer  | TBD         | **No**              | Retail dashboard (planned)                  |
+| Admin     | 3002        | **SSO only**        | Opens Fleetbase console via Porterchain SSO |
+| API       | 8001        | **Via adapter**     | Sole bridge to Fleetbase                    |
+| Driver    | TBD         | **No**              | Execution API via Porterchain               |
+| Fleetbase | 8000 / 4200 | N/A                 | Internal ops engine                         |
 
 ---
 
@@ -107,23 +107,23 @@ services/
 
 ## Packages layer
 
-| Package | Language | Purpose |
-|---------|----------|---------|
-| `packages/ui` | TypeScript | Shared UI primitives |
-| `packages/types` | TypeScript | Shared types |
-| `packages/auth` | TypeScript | Clerk client helpers |
-| `packages/events` | TypeScript | Event envelope types |
-| `packages/queue` | TypeScript | Queue name constants |
-| `shared/python` | Python | Settings, events, queue names |
+| Package           | Language   | Purpose                       |
+| ----------------- | ---------- | ----------------------------- |
+| `packages/ui`     | TypeScript | Shared UI primitives          |
+| `packages/types`  | TypeScript | Shared types                  |
+| `packages/auth`   | TypeScript | Clerk client helpers          |
+| `packages/events` | TypeScript | Event envelope types          |
+| `packages/queue`  | TypeScript | Queue name constants          |
+| `shared/python`   | Python     | Settings, events, queue names |
 
 ---
 
 ## Vendor: Fleetbase
 
-| Path | Role |
-|------|------|
-| `apps/fleetbase/` | **Actual upstream clone** — Docker, console, API |
-| `vendor/fleetbase/` | Documentation anchor only |
+| Path                | Role                                             |
+| ------------------- | ------------------------------------------------ |
+| `apps/fleetbase/`   | **Actual upstream clone** — Docker, console, API |
+| `vendor/fleetbase/` | Documentation anchor only                        |
 
 ### Never modify
 
@@ -181,16 +181,16 @@ packages:
 
 ## Where customizations belong
 
-| Customization | Location |
-|---------------|----------|
-| Order → Fleetbase payload mapping | `services/fleetbase-adapter/.../mappers.py` |
-| Webhook event → Porterchain state | `services/fleetbase-adapter/.../events/` |
-| SSO bridge client | `services/fleetbase-adapter/.../auth/` |
-| Fleetbase bridge API routes | Separate Fleetbase extension package (future) |
-| Merchant pricing rules | `apps/api/booking_engine/` |
-| Public tracking UX | `website/` |
-| Ops dashboard widgets | `apps/admin/` |
-| Docker port overrides | `infrastructure/docker/` |
+| Customization                     | Location                                      |
+| --------------------------------- | --------------------------------------------- |
+| Order → Fleetbase payload mapping | `services/fleetbase-adapter/.../mappers.py`   |
+| Webhook event → Porterchain state | `services/fleetbase-adapter/.../events/`      |
+| SSO bridge client                 | `services/fleetbase-adapter/.../auth/`        |
+| Fleetbase bridge API routes       | Separate Fleetbase extension package (future) |
+| Merchant pricing rules            | `apps/api/booking_engine/`                    |
+| Public tracking UX                | `website/`                                    |
+| Ops dashboard widgets             | `apps/admin/`                                 |
+| Docker port overrides             | `infrastructure/docker/`                      |
 
 ---
 

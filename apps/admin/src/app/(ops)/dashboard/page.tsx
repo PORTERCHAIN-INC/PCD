@@ -29,7 +29,10 @@ export default function DashboardPage() {
         <StatCard label="Completed Today" value={String(data.completed_today)} />
         <StatCard label="Failed Deliveries" value={String(data.failed_deliveries)} />
         <StatCard label="Open Claims" value={String(data.open_claims)} />
-        <StatCard label="Outstanding Invoices" value={formatCents(data.outstanding_invoices_cents)} />
+        <StatCard
+          label="Outstanding Invoices"
+          value={formatCents(data.outstanding_invoices_cents)}
+        />
         <StatCard label="Support Tickets" value={String(data.open_support_tickets)} />
         <StatCard label="Fleet Health" value={`${data.fleet_health_percent}%`} />
       </div>

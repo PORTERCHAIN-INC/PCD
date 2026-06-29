@@ -121,7 +121,11 @@ export default async function BlogArticlePage({ params }: Props) {
                   </span>
                 </div>
                 <div className="mt-6">
-                  <AuthorCard authorId={post.authorId} writtenByLabel={t("writtenBy")} variant="compact" />
+                  <AuthorCard
+                    authorId={post.authorId}
+                    writtenByLabel={t("writtenBy")}
+                    variant="compact"
+                  />
                 </div>
                 <div className="mt-6">
                   <ShareButtons title={post.title} url={articleUrl} />

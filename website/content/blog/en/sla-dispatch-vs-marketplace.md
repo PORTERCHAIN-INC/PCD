@@ -10,7 +10,7 @@ tags: ["dispatch", "sla", "operations"]
 
 When a shipment matters — a medical restock, a wholesale cut-off, a construction site waiting on materials — **reliability beats availability.**
 
-Marketplace delivery optimizes for finding *a* driver quickly. SLA-based dispatch optimizes for finding the *right* execution path every time.
+Marketplace delivery optimizes for finding _a_ driver quickly. SLA-based dispatch optimizes for finding the _right_ execution path every time.
 
 ## The marketplace gap
 
@@ -27,13 +27,13 @@ For personal errands, that tradeoff can work. For commercial operations, it crea
 
 Porterchain's dispatch controls enforce standards before and during execution:
 
-| Control | Purpose |
-|---------|---------|
-| Address validation | Prevent failed first attempts |
-| Vehicle-class checks | Match load to capacity |
-| Pre-departure verification | Catch issues before departure |
-| Live monitoring | Surface delays early |
-| Proof workflow | Close the loop for billing and compliance |
+| Control                    | Purpose                                   |
+| -------------------------- | ----------------------------------------- |
+| Address validation         | Prevent failed first attempts             |
+| Vehicle-class checks       | Match load to capacity                    |
+| Pre-departure verification | Catch issues before departure             |
+| Live monitoring            | Surface delays early                      |
+| Proof workflow             | Close the loop for billing and compliance |
 
 ## SLA as an operating contract
 

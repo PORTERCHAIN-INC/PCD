@@ -35,7 +35,10 @@ export default function LoginPage() {
           className="mt-6 w-full rounded-xl border px-4 py-3"
         />
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-        <button type="submit" className="mt-4 w-full rounded-xl bg-[var(--secondary)] py-3 font-semibold text-white">
+        <button
+          type="submit"
+          className="mt-4 w-full rounded-xl bg-[var(--secondary)] py-3 font-semibold text-white"
+        >
           Sign in
         </button>
       </form>

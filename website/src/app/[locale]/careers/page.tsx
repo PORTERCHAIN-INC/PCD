@@ -69,10 +69,18 @@ export default async function CareersPage({ params }: Props) {
   }));
 
   const valueItems = [
-    { title: t("values.items.0.title"), description: t("values.items.0.description"), icon: Shield },
+    {
+      title: t("values.items.0.title"),
+      description: t("values.items.0.description"),
+      icon: Shield,
+    },
     { title: t("values.items.1.title"), description: t("values.items.1.description"), icon: Scale },
     { title: t("values.items.2.title"), description: t("values.items.2.description"), icon: Leaf },
-    { title: t("values.items.3.title"), description: t("values.items.3.description"), icon: Handshake },
+    {
+      title: t("values.items.3.title"),
+      description: t("values.items.3.description"),
+      icon: Handshake,
+    },
   ];
 
   const testimonials = [0, 1, 2].map((i) => ({
@@ -121,11 +129,16 @@ export default async function CareersPage({ params }: Props) {
                 <h3 className="relative mt-3 text-xl font-semibold text-white tracking-tight">
                   {t("why.title")}
                 </h3>
-                <p className="relative mt-3 text-sm text-white/60 leading-relaxed">{t("why.description")}</p>
+                <p className="relative mt-3 text-sm text-white/60 leading-relaxed">
+                  {t("why.description")}
+                </p>
                 <ul className="relative mt-6 space-y-3">
                   {whyPoints.map((point, i) => (
                     <li key={i} className="flex gap-3 text-sm text-white/80">
-                      <CheckCircle2 className="w-4 h-4 text-secondary shrink-0 mt-0.5" aria-hidden />
+                      <CheckCircle2
+                        className="w-4 h-4 text-secondary shrink-0 mt-0.5"
+                        aria-hidden
+                      />
                       {point}
                     </li>
                   ))}

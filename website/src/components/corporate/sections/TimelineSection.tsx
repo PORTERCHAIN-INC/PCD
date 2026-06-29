@@ -40,7 +40,9 @@ export default function TimelineSection({
                       {i + 1}
                     </div>
                     <div className="pt-1">
-                      <h3 className="text-lg font-semibold text-primary tracking-tight">{step.title}</h3>
+                      <h3 className="text-lg font-semibold text-primary tracking-tight">
+                        {step.title}
+                      </h3>
                       <p className="mt-2 text-sm text-muted leading-relaxed">{step.description}</p>
                     </div>
                   </div>
@@ -71,7 +73,9 @@ export default function TimelineSection({
                     <span className="text-xs font-semibold text-secondary uppercase tracking-wider">
                       Step {i + 1}
                     </span>
-                    <h3 className="mt-2 text-2xl font-semibold text-primary tracking-tight">{step.title}</h3>
+                    <h3 className="mt-2 text-2xl font-semibold text-primary tracking-tight">
+                      {step.title}
+                    </h3>
                     <p className="mt-3 text-muted leading-relaxed">{step.description}</p>
                   </div>
                   <div className="h-48 md:h-56 rounded-2xl bg-white border border-primary/[0.06] grid-pattern flex items-center justify-center">
@@ -101,7 +105,9 @@ export default function TimelineSection({
                   <div className="w-10 h-10 rounded-full bg-secondary text-white text-sm font-semibold flex items-center justify-center mb-5 shadow-md shadow-secondary/20 relative z-10">
                     {i + 1}
                   </div>
-                  <h3 className="text-base font-semibold text-primary tracking-tight">{step.title}</h3>
+                  <h3 className="text-base font-semibold text-primary tracking-tight">
+                    {step.title}
+                  </h3>
                   <p className="mt-2 text-sm text-muted leading-relaxed">{step.description}</p>
                 </div>
               </FadeIn>

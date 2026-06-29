@@ -47,19 +47,19 @@ Fleetbase remains the internal logistics engine. The Fleetbase adapter reacts to
 
 ## Package layout
 
-| Path | Responsibility |
-|------|----------------|
-| `porterchain_event_bus/bus.py` | `EventBus` — publish, subscribe, dispatch, Redis consumer |
-| `porterchain_event_bus/registry.py` | `HandlerRegistry` — pattern matching (`order.*`) |
-| `porterchain_event_bus/envelope.py` | `build_envelope()` — canonical event shape |
-| `porterchain_event_bus/idempotency.py` | Processed-event deduplication (Redis / in-memory) |
-| `porterchain_event_bus/retry.py` | Exponential backoff retry policy |
-| `porterchain_event_bus/dlq.py` | Dead letter queue (`porterchain:events:dlq`) |
-| `porterchain_event_bus/versioning.py` | Per-event schema version registry |
-| `porterchain_event_bus/handlers/` | Default cross-module reaction wiring |
-| `shared/python/porterchain_shared/events/catalog.py` | Canonical `DomainEventType` enum |
-| `apps/api/.../platform/bus.py` | API bridge: DB audit + bus publish |
-| `apps/api/.../booking_engine/_core.py` | `emit_event()` — single publish entry point |
+| Path                                                 | Responsibility                                            |
+| ---------------------------------------------------- | --------------------------------------------------------- |
+| `porterchain_event_bus/bus.py`                       | `EventBus` — publish, subscribe, dispatch, Redis consumer |
+| `porterchain_event_bus/registry.py`                  | `HandlerRegistry` — pattern matching (`order.*`)          |
+| `porterchain_event_bus/envelope.py`                  | `build_envelope()` — canonical event shape                |
+| `porterchain_event_bus/idempotency.py`               | Processed-event deduplication (Redis / in-memory)         |
+| `porterchain_event_bus/retry.py`                     | Exponential backoff retry policy                          |
+| `porterchain_event_bus/dlq.py`                       | Dead letter queue (`porterchain:events:dlq`)              |
+| `porterchain_event_bus/versioning.py`                | Per-event schema version registry                         |
+| `porterchain_event_bus/handlers/`                    | Default cross-module reaction wiring                      |
+| `shared/python/porterchain_shared/events/catalog.py` | Canonical `DomainEventType` enum                          |
+| `apps/api/.../platform/bus.py`                       | API bridge: DB audit + bus publish                        |
+| `apps/api/.../booking_engine/_core.py`               | `emit_event()` — single publish entry point               |
 
 ---
 
@@ -152,11 +152,11 @@ pnpm dev:worker
 
 `RetryPolicy` (default: 3 attempts, exponential backoff):
 
-| Attempt | Delay |
-|---------|-------|
-| 1 | immediate |
-| 2 | 1s |
-| 3 | 2s |
+| Attempt | Delay     |
+| ------- | --------- |
+| 1       | immediate |
+| 2       | 1s        |
+| 3       | 2s        |
 
 On final failure, the event is sent to the DLQ with error metadata.
 
@@ -206,12 +206,12 @@ Handlers that enqueue side effects (email, billing) are safe under at-least-once
 
 Structured log lines at each stage:
 
-| Level | Message |
-|-------|---------|
-| INFO | `event published: {event_id} ({event_type})` |
-| DEBUG | `skipping duplicate event {event_id}` |
-| WARNING | `handler failed for {event_type} attempt N/M` |
-| ERROR | `event dead-lettered: {event_id} ({event_type})` |
+| Level   | Message                                          |
+| ------- | ------------------------------------------------ |
+| INFO    | `event published: {event_id} ({event_type})`     |
+| DEBUG   | `skipping duplicate event {event_id}`            |
+| WARNING | `handler failed for {event_type} attempt N/M`    |
+| ERROR   | `event dead-lettered: {event_id} ({event_type})` |
 
 ---
 
@@ -232,10 +232,10 @@ is_compatible("order.booked", 1)    # → True
 
 ## Redis keys
 
-| Key | Purpose |
-|-----|---------|
-| `porterchain:events` | Main event stream |
-| `porterchain:events:dlq` | Dead letter stream |
+| Key                                 | Purpose             |
+| ----------------------------------- | ------------------- |
+| `porterchain:events`                | Main event stream   |
+| `porterchain:events:dlq`            | Dead letter stream  |
 | `porterchain:events:processed:{id}` | Idempotency markers |
 
 ---

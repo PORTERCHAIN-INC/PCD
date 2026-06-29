@@ -40,7 +40,19 @@ export default function InquiryForm({
     if (!email || !phone || !agreed) return;
 
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1200));
+
+    const subject = encodeURIComponent("Business inquiry — Porterchain");
+    const body = encodeURIComponent(
+      [
+        "Business inquiry from porterchain.com/business",
+        "",
+        `Email: ${email}`,
+        `Phone: ${countryCode} ${phone}${extension ? ` ext. ${extension}` : ""}`,
+      ].join("\n")
+    );
+
+    window.location.href = `mailto:peter@porterchain.com?subject=${subject}&body=${body}`;
+    await new Promise((r) => setTimeout(r, 400));
     setSubmitting(false);
     setSubmitted(true);
   };
@@ -50,10 +62,7 @@ export default function InquiryForm({
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className={cn(
-          "rounded-2xl bg-white p-8 sm:p-10 text-center biz-shadow-lg",
-          className
-        )}
+        className={cn("rounded-2xl bg-white p-8 sm:p-10 text-center biz-shadow-lg", className)}
       >
         <div className="w-14 h-14 rounded-full bg-[#ff7a00]/10 flex items-center justify-center mx-auto mb-5">
           <Check className="w-7 h-7 text-[#ff7a00]" />
@@ -91,7 +100,10 @@ export default function InquiryForm({
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div>
-          <label htmlFor={`${id}-email`} className="block text-sm font-medium text-[#091b1c] mb-1.5">
+          <label
+            htmlFor={`${id}-email`}
+            className="block text-sm font-medium text-[#091b1c] mb-1.5"
+          >
             {t("workEmail")} <span className="text-[#ff7a00]">*</span>
           </label>
           <input
@@ -107,7 +119,10 @@ export default function InquiryForm({
         </div>
 
         <div>
-          <label htmlFor={`${id}-phone`} className="block text-sm font-medium text-[#091b1c] mb-1.5">
+          <label
+            htmlFor={`${id}-phone`}
+            className="block text-sm font-medium text-[#091b1c] mb-1.5"
+          >
             {t("phone")} <span className="text-[#ff7a00]">*</span>
           </label>
           <div className="flex gap-2">
@@ -138,8 +153,7 @@ export default function InquiryForm({
 
         <div>
           <label htmlFor={`${id}-ext`} className="block text-sm font-medium text-[#091b1c] mb-1.5">
-            {t("extension")}{" "}
-            <span className="text-[#5c6b6c] font-normal">({t("optional")})</span>
+            {t("extension")} <span className="text-[#5c6b6c] font-normal">({t("optional")})</span>
           </label>
           <input
             id={`${id}-ext`}

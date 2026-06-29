@@ -34,9 +34,7 @@ export default function Trust() {
               <p className="type-stat text-white">
                 <AnimatedCounter value={stat.value} suffix={stat.suffix} />
               </p>
-              <p className="mt-2 text-accent/80 type-caption font-bold">
-                {t(stat.labelKey)}
-              </p>
+              <p className="mt-2 text-accent/80 type-caption font-bold">{t(stat.labelKey)}</p>
             </motion.div>
           ))}
         </div>

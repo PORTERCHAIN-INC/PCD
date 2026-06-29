@@ -5,13 +5,12 @@ import { useTranslations } from "next-intl";
 import { Smartphone, Truck } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Container from "@/components/ui/Container";
+import { publicEnv } from "@/lib/env";
+import { driverPortalUrl } from "@/data/portal-links";
 
 const APP_KEYS = ["customer", "driver"] as const;
 const APP_ICONS = [Smartphone, Truck];
-const APP_GRADIENTS = [
-  "from-secondary to-blue-700",
-  "from-primary to-[#152238]",
-];
+const APP_GRADIENTS = ["from-secondary to-blue-700", "from-primary to-[#152238]"];
 
 function PhoneMockup({ children, gradient }: { children: React.ReactNode; gradient: string }) {
   return (
@@ -29,6 +28,8 @@ function PhoneMockup({ children, gradient }: { children: React.ReactNode; gradie
 
 export default function MobileApp() {
   const t = useTranslations("mobileApp");
+  const { driverAppIosUrl, driverAppAndroidUrl } = publicEnv;
+  const driverStoresAvailable = driverAppIosUrl.length > 0 || driverAppAndroidUrl.length > 0;
 
   return (
     <section className="site-section bg-gray-bg">
@@ -38,6 +39,8 @@ export default function MobileApp() {
         <div className="grid sm:grid-cols-2 gap-8 lg:gap-12 max-w-3xl mx-auto">
           {APP_KEYS.map((key, i) => {
             const Icon = APP_ICONS[i];
+            const isDriver = key === "driver";
+
             return (
               <motion.div
                 key={key}
@@ -64,19 +67,42 @@ export default function MobileApp() {
                   {t(`apps.${key}.description`)}
                 </p>
 
-                <div className="mt-4 flex justify-center gap-2">
-                  <a
-                    href="#"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-white type-caption normal-case tracking-normal hover:bg-primary/90 transition-colors"
-                  >
-                    {t("appStore")}
-                  </a>
-                  <a
-                    href="#"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-gray-300 text-primary type-caption normal-case tracking-normal hover:bg-white transition-colors"
-                  >
-                    {t("googlePlay")}
-                  </a>
+                <div className="mt-4 flex justify-center gap-2 flex-wrap">
+                  {isDriver && driverStoresAvailable ? (
+                    <>
+                      {driverAppIosUrl && (
+                        <a
+                          href={driverAppIosUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-white type-caption normal-case tracking-normal hover:bg-primary/90 transition-colors"
+                        >
+                          {t("appStore")}
+                        </a>
+                      )}
+                      {driverAppAndroidUrl && (
+                        <a
+                          href={driverAppAndroidUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-gray-300 text-primary type-caption normal-case tracking-normal hover:bg-white transition-colors"
+                        >
+                          {t("googlePlay")}
+                        </a>
+                      )}
+                    </>
+                  ) : isDriver ? (
+                    <a
+                      href={driverPortalUrl}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-white type-caption normal-case tracking-normal hover:bg-primary/90 transition-colors"
+                    >
+                      {t("driverPortal")}
+                    </a>
+                  ) : (
+                    <span className="inline-flex items-center px-4 py-2 rounded-full bg-gray-200 text-muted type-caption normal-case tracking-normal">
+                      {t("comingSoon")}
+                    </span>
+                  )}
                 </div>
               </motion.div>
             );

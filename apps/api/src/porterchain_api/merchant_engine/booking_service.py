@@ -6,6 +6,7 @@ from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_engine.order_transitions import transition_order_state
 from porterchain_api.config import Settings
+from porterchain_api.fleetbase_engine import BookingSyncService, MerchantSyncService
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine import events as E
 from porterchain_api.merchant_engine.rbac import MerchantContext
@@ -49,6 +50,10 @@ class MerchantBookingService:
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
         amount_cents = breakdown.final_cents
 
+        # WORKFLOW: validate merchant → pricing → contract → payment terms
+        # before an order is generated. A merchant never reaches Fleetbase directly.
+        validated = MerchantSyncService().validate_booking(db, ctx.merchant, amount_cents=amount_cents)
+
         order = Order(
             order_number=generate_order_number(),
             tracking_number=generate_tracking_number(),
@@ -79,10 +84,14 @@ class MerchantBookingService:
             payload={
                 "tracking_number": order.tracking_number,
                 "purchase_order_number": body.purchase_order_number,
+                "contract_id": validated.contract_id,
+                "validation_warnings": list(validated.warnings),
             },
         )
         db.commit()
 
+        # Publish dispatch-ready → the registered event handler pushes the order
+        # to Fleetbase via the adapter (event-driven; no direct call here).
         transition_order_state(
             db,
             order,
@@ -94,10 +103,10 @@ class MerchantBookingService:
         db.refresh(order)
         return order
 
-    def cancel_order(self, db: Session, ctx: MerchantContext, order: Order) -> Order:
+    def cancel_order(self, db: Session, ctx: MerchantContext, order: Order, settings: Settings | None = None) -> Order:
         if order.merchant_id != ctx.merchant.id:
             raise PermissionError("order_not_owned")
-        return transition_order_state(
+        result = transition_order_state(
             db,
             order,
             OrderState.CANCELLED,
@@ -105,6 +114,10 @@ class MerchantBookingService:
             actor_type="merchant",
             actor_id=ctx.user.id,
         )
+        # Propagate cancellation to Fleetbase (best-effort + durable retry).
+        if settings is not None:
+            BookingSyncService().sync_cancellation(db, settings, order)
+        return result
 
     def duplicate_order(self, db: Session, settings: Settings, ctx: MerchantContext, order: Order) -> Order:
         body = MerchantBookDeliveryRequest(

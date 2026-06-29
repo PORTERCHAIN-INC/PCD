@@ -34,7 +34,12 @@ export default function SocialLinks({
 
         if (link.internal) {
           return (
-            <Link key={link.platform} href={link.href} aria-label={link.label} className={classNames}>
+            <Link
+              key={link.platform}
+              href={link.href}
+              aria-label={link.label}
+              className={classNames}
+            >
               <Icon className={iconClass} aria-hidden />
             </Link>
           );

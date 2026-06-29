@@ -5,15 +5,15 @@
 
 ## Modules
 
-| Module | Class | Responsibility |
-|--------|-------|----------------|
-| `pricing_service.py` | `PricingService` | Main facade for B2C + B2B |
-| `contract/` | `ContractService` | Merchant contracts, lanes, zones, flat rates |
-| `promotion/` | `PromotionService` | Promo codes, credits, coupons |
-| `tax/` | `TaxService` | HST / tax calculation |
-| `zone/` | `ZoneService` | Geographic zone resolution |
-| `engine/` | `PricingEngine` | Core calculation pipeline |
-| `simulator.py` | `PricingSimulator` | Admin preview with overrides |
+| Module               | Class              | Responsibility                               |
+| -------------------- | ------------------ | -------------------------------------------- |
+| `pricing_service.py` | `PricingService`   | Main facade for B2C + B2B                    |
+| `contract/`          | `ContractService`  | Merchant contracts, lanes, zones, flat rates |
+| `promotion/`         | `PromotionService` | Promo codes, credits, coupons                |
+| `tax/`               | `TaxService`       | HST / tax calculation                        |
+| `zone/`              | `ZoneService`      | Geographic zone resolution                   |
+| `engine/`            | `PricingEngine`    | Core calculation pipeline                    |
+| `simulator.py`       | `PricingSimulator` | Admin preview with overrides                 |
 
 ## Usage
 

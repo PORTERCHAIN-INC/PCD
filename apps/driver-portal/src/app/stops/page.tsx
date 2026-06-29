@@ -20,7 +20,14 @@ export default function StopsPage() {
       {!route && <p className="mt-4 text-[var(--muted)]">No assigned route</p>}
       {route && (
         <ul className="mt-6 space-y-3">
-          {(route.stops as { stop_id: string; stop_type: string; address: { formatted?: string }; status: string }[]).map((s) => (
+          {(
+            route.stops as {
+              stop_id: string;
+              stop_type: string;
+              address: { formatted?: string };
+              status: string;
+            }[]
+          ).map((s) => (
             <li key={s.stop_id} className="rounded-2xl bg-white p-4">
               <p className="text-xs uppercase text-[var(--muted)]">{s.stop_type}</p>
               <p className="font-medium">{s.address?.formatted || "Address"}</p>

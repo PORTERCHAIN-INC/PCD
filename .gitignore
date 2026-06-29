@@ -12,6 +12,9 @@ infrastructure/docker/.env
 .venv/
 **/.venv/
 *.db
+__pycache__/
+**/__pycache__/
+*.py[cod]
 
 # Legacy secret dump
 details.md.local

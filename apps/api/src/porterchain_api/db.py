@@ -28,6 +28,8 @@ def init_db() -> None:
     from porterchain_api import models  # noqa: F401
     from porterchain_api import merchant_models  # noqa: F401
     from porterchain_api import admin_models  # noqa: F401
+    from porterchain_api import crm_models  # noqa: F401
+    from porterchain_api import fleetbase_models  # noqa: F401
     from porterchain_api import identity_models  # noqa: F401
     from porterchain_api import driver_models  # noqa: F401
 
@@ -56,6 +58,7 @@ def _migrate_sqlite_schema() -> None:
         ("promotions", "promotion_type", "VARCHAR(32)"),
         ("promotions", "merchant_id", "VARCHAR(36)"),
         ("promotions", "config", "TEXT"),
+        ("crm_leads", "custom_fields", "TEXT"),
     ]
     with engine.connect() as conn:
         for table, column, col_type in migrations:
@@ -64,6 +67,14 @@ def _migrate_sqlite_schema() -> None:
             if column not in existing:
                 conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
         conn.commit()
+
+    with engine.connect() as conn:
+        rows = conn.exec_driver_sql("PRAGMA table_info(crm_leads)").fetchall()
+        if any(row[1] == "custom_fields" for row in rows):
+            conn.exec_driver_sql(
+                "UPDATE crm_leads SET custom_fields = '{}' WHERE custom_fields IS NULL"
+            )
+            conn.commit()
 
     with engine.connect() as conn:
         conn.exec_driver_sql(

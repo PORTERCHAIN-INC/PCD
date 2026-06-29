@@ -24,14 +24,23 @@ export default function ArchitectureIllustration() {
                 ))}
               </div>
               {i < 3 && (
-                <div className="hidden md:block absolute top-1/2 -right-2 w-4 h-px bg-secondary/30" aria-hidden />
+                <div
+                  className="hidden md:block absolute top-1/2 -right-2 w-4 h-px bg-secondary/30"
+                  aria-hidden
+                />
               )}
             </div>
           ))}
         </div>
         <div className="mt-6 h-24 rounded-xl bg-primary/[0.03] border border-primary/[0.04] grid-pattern flex items-center justify-center">
           <svg viewBox="0 0 300 60" className="w-4/5 max-w-md" aria-hidden>
-            <path d="M10 30 H290" stroke="#2563eb" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5" />
+            <path
+              d="M10 30 H290"
+              stroke="#2563eb"
+              strokeWidth="1.5"
+              strokeDasharray="4 3"
+              opacity="0.5"
+            />
             <circle cx="75" cy="30" r="4" fill="#2563eb" />
             <circle cx="150" cy="30" r="4" fill="#2563eb" />
             <circle cx="225" cy="30" r="4" fill="#2563eb" />

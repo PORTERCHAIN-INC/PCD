@@ -27,49 +27,49 @@ This document describes the modular enterprise foundation added to the Portercha
 
 ## Directory map
 
-| Path | Responsibility |
-|------|----------------|
-| `apps/website/` | Public site (unchanged UX) |
-| `apps/api/` | Porterchain FastAPI — customer-facing API |
-| `apps/worker/` | Async queue processor |
-| `packages/types/` | `@porterchain/types` — roles, events, ownership |
-| `packages/auth/` | `@porterchain/auth` — RBAC, Clerk metadata mapping |
-| `packages/events/` | `@porterchain/events` — domain event catalog |
-| `packages/queue/` | `@porterchain/queue` — queue names and messages |
-| `packages/config/` | `@porterchain/config` — ESLint, Prettier, TS base |
-| `shared/python/porterchain_shared/` | Python auth, events, queues, config |
-| `services/python/porterchain_services/` | Fleetbase, Stripe, Maps, Notifications, … |
-| `services/fleetbase/` | Fleetbase deployment config (engine only) |
+| Path                                    | Responsibility                                     |
+| --------------------------------------- | -------------------------------------------------- |
+| `apps/website/`                         | Public site (unchanged UX)                         |
+| `apps/api/`                             | Porterchain FastAPI — customer-facing API          |
+| `apps/worker/`                          | Async queue processor                              |
+| `packages/types/`                       | `@porterchain/types` — roles, events, ownership    |
+| `packages/auth/`                        | `@porterchain/auth` — RBAC, Clerk metadata mapping |
+| `packages/events/`                      | `@porterchain/events` — domain event catalog       |
+| `packages/queue/`                       | `@porterchain/queue` — queue names and messages    |
+| `packages/config/`                      | `@porterchain/config` — ESLint, Prettier, TS base  |
+| `shared/python/porterchain_shared/`     | Python auth, events, queues, config                |
+| `services/python/porterchain_services/` | Fleetbase, Stripe, Maps, Notifications, …          |
+| `services/fleetbase/`                   | Fleetbase deployment config (engine only)          |
 
 ---
 
 ## Authentication (Clerk only)
 
-| Role | Purpose |
-|------|---------|
-| `visitor` | Anonymous quote |
-| `customer` | Retail dashboard |
-| `merchant` | B2B portal |
-| `driver` | Mobile execution (Porterchain JWT for sessions) |
-| `dispatcher` | Dispatch operations |
-| `support` | Tickets, exceptions |
-| `sales` | CRM, leads |
-| `fleet_manager` | Fleet utilization |
-| `admin` | Operations |
-| `super_admin` | Full system |
+| Role            | Purpose                                         |
+| --------------- | ----------------------------------------------- |
+| `visitor`       | Anonymous quote                                 |
+| `customer`      | Retail dashboard                                |
+| `merchant`      | B2B portal                                      |
+| `driver`        | Mobile execution (Porterchain JWT for sessions) |
+| `dispatcher`    | Dispatch operations                             |
+| `support`       | Tickets, exceptions                             |
+| `sales`         | CRM, leads                                      |
+| `fleet_manager` | Fleet utilization                               |
+| `admin`         | Operations                                      |
+| `super_admin`   | Full system                                     |
 
-- **RBAC:** Multiple roles per user via Clerk public metadata  
-- **JWT:** Clerk JWKS verification on API; refresh tokens for driver API (stub)  
+- **RBAC:** Multiple roles per user via Clerk public metadata
+- **JWT:** Clerk JWKS verification on API; refresh tokens for driver API (stub)
 - **Implementation:** `shared/python/porterchain_shared/auth/`, `packages/auth/`
 
 ---
 
 ## Database ownership
 
-| Owner | Data |
-|-------|------|
+| Owner                        | Data                                                                                                     |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------- |
 | **Porterchain (PostgreSQL)** | Users, merchants, visitors, quotes, contracts, pricing, invoices, billing, CRM, notifications, analytics |
-| **Fleetbase (MySQL)** | Vehicles, drivers, orders, dispatch, routes, GPS, waypoints, tracking, POD |
+| **Fleetbase (MySQL)**        | Vehicles, drivers, orders, dispatch, routes, GPS, waypoints, tracking, POD                               |
 
 Merchants and customers **never** authenticate against Fleetbase directly.
 
@@ -77,19 +77,19 @@ Merchants and customers **never** authenticate against Fleetbase directly.
 
 ## Internal services
 
-| Service | Module | Notes |
-|---------|--------|-------|
-| API Gateway | `porterchain_services.gateway` | Service registry, `/internal/services` health |
-| Fleetbase | `porterchain_services.fleetbase` | All Fleetbase HTTP via Porterchain API |
-| Stripe | `porterchain_services.stripe` | Checkout + webhooks |
-| Maps | `porterchain_services.maps` | Valhalla / OSRM routing |
-| Notifications | `porterchain_services.notifications` | Email, SMS, push queues |
-| Pricing | `porterchain_services.pricing` | Calculator protocol (API registers impl) |
-| Merchant | `porterchain_services.merchant` | B2B lifecycle events |
-| Driver | `porterchain_services.driver` | Execution boundary |
-| Dispatch | `porterchain_services.dispatch` | Assignment queue |
-| Customer | `porterchain_services.customer` | Retail lifecycle |
-| Visitor | `porterchain_services.visitor` | Anonymous session, leads, abandoned checkout |
+| Service       | Module                               | Notes                                         |
+| ------------- | ------------------------------------ | --------------------------------------------- |
+| API Gateway   | `porterchain_services.gateway`       | Service registry, `/internal/services` health |
+| Fleetbase     | `porterchain_services.fleetbase`     | All Fleetbase HTTP via Porterchain API        |
+| Stripe        | `porterchain_services.stripe`        | Checkout + webhooks                           |
+| Maps          | `porterchain_services.maps`          | Valhalla / OSRM routing                       |
+| Notifications | `porterchain_services.notifications` | Email, SMS, push queues                       |
+| Pricing       | `porterchain_services.pricing`       | Calculator protocol (API registers impl)      |
+| Merchant      | `porterchain_services.merchant`      | B2B lifecycle events                          |
+| Driver        | `porterchain_services.driver`        | Execution boundary                            |
+| Dispatch      | `porterchain_services.dispatch`      | Assignment queue                              |
+| Customer      | `porterchain_services.customer`      | Retail lifecycle                              |
+| Visitor       | `porterchain_services.visitor`       | Anonymous session, leads, abandoned checkout  |
 
 ---
 
@@ -107,14 +107,14 @@ Examples: `quote.created`, `payment.succeeded`, `order.booked`, `fleetbase.order
 
 ## Queue system
 
-| Queue | Worker consumer |
-|-------|-----------------|
-| `emails` | SMTP delivery |
-| `sms` | Twilio |
-| `push` | Firebase |
-| `dispatch` | Fleetbase sync |
-| `billing` | Stripe reconciliation |
-| `reports` | Report generation |
+| Queue      | Worker consumer            |
+| ---------- | -------------------------- |
+| `emails`   | SMTP delivery              |
+| `sms`      | Twilio                     |
+| `push`     | Firebase                   |
+| `dispatch` | Fleetbase sync             |
+| `billing`  | Stripe reconciliation      |
+| `reports`  | Report generation          |
 | `webhooks` | Merchant outbound webhooks |
 
 Run worker: `pnpm dev:worker`
@@ -142,10 +142,10 @@ pnpm --filter @porterchain/website dev
 
 ### Health endpoints
 
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /health` | API liveness |
-| `GET /internal/health` | Gateway liveness |
+| Endpoint                 | Purpose                 |
+| ------------------------ | ----------------------- |
+| `GET /health`            | API liveness            |
+| `GET /internal/health`   | Gateway liveness        |
 | `GET /internal/services` | Service registry status |
 
 ---

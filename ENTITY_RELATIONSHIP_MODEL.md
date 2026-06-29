@@ -8,14 +8,14 @@
 
 ## Data ownership
 
-| Store | Owner | Entities |
-|-------|-------|----------|
-| **Porterchain PostgreSQL** | Porterchain API | All entities below except Fleetbase refs |
-| **Fleetbase MySQL** | Fleetbase (read-only to Porterchain) | Operational orders, drivers, routes, GPS |
-| **Redis** | Infrastructure | Queues, cache, rate limits |
-| **Object storage** | Porterchain | POD images, invoice PDFs, documents |
-| **Clerk** | Clerk | Credentials, org memberships |
-| **Stripe** | Stripe | Payment intents, refunds, invoices |
+| Store                      | Owner                                | Entities                                 |
+| -------------------------- | ------------------------------------ | ---------------------------------------- |
+| **Porterchain PostgreSQL** | Porterchain API                      | All entities below except Fleetbase refs |
+| **Fleetbase MySQL**        | Fleetbase (read-only to Porterchain) | Operational orders, drivers, routes, GPS |
+| **Redis**                  | Infrastructure                       | Queues, cache, rate limits               |
+| **Object storage**         | Porterchain                          | POD images, invoice PDFs, documents      |
+| **Clerk**                  | Clerk                                | Credentials, org memberships             |
+| **Stripe**                 | Stripe                               | Payment intents, refunds, invoices       |
 
 **Golden rule:** `order.id` and `tracking_number` are customer-facing. `fleetbase_order_id` is an operational foreign key — never exposed as primary identity.
 
@@ -641,15 +641,15 @@ erDiagram
 
 ## Fleetbase external references
 
-| Porterchain entity | Fleetbase entity | FK field |
-|--------------------|------------------|----------|
-| Order | order | `fleetbase_order_id` |
-| Driver | driver | `fleetbase_driver_id` |
-| Vehicle | vehicle | `fleetbase_vehicle_id` |
-| Route | route / tracker | `fleetbase_route_id` |
-| ProofOfDelivery | proof | `fleetbase_proof_id` |
-| Fleet | company | `company_uuid` |
-| Shipment | order payload | `fleetbase_payload_id` |
+| Porterchain entity | Fleetbase entity | FK field               |
+| ------------------ | ---------------- | ---------------------- |
+| Order              | order            | `fleetbase_order_id`   |
+| Driver             | driver           | `fleetbase_driver_id`  |
+| Vehicle            | vehicle          | `fleetbase_vehicle_id` |
+| Route              | route / tracker  | `fleetbase_route_id`   |
+| ProofOfDelivery    | proof            | `fleetbase_proof_id`   |
+| Fleet              | company          | `company_uuid`         |
+| Shipment           | order payload    | `fleetbase_payload_id` |
 
 **No Porterchain business entity is stored only in Fleetbase.**
 
@@ -657,90 +657,90 @@ erDiagram
 
 ## Cardinality summary
 
-| Relationship | Cardinality | Notes |
-|--------------|-------------|-------|
-| Visitor → Quote | 1:N | Session may generate multiple quotes |
-| Quote → Booking | 1:1 | Retail conversion |
-| Booking → Order | 1:1 | Post-payment |
-| Order → Shipment | 1:1 | MVP; future 1:N |
-| Shipment → Stop | 1:N | Min 2 (pickup + delivery) |
-| Shipment → Parcel | 1:N | MVP often 1 |
-| Order → Payment | 1:N | Retries, partial (future) |
-| Order → Invoice | 1:N | Adjustments, merchant statements |
-| Merchant → Contract | 1:N | Historical versions |
-| Merchant → Order | 1:N | B2B volume |
-| Driver → Vehicle | 1:N | Partner may have multiple |
-| Driver → Dispatch | 1:N | Over time |
-| Order → Dispatch | 1:1 | Active assignment |
-| Promotion → Quote | N:1 | One code per quote |
-| Zone → Lane | N:M | Via origin/destination codes |
+| Relationship        | Cardinality | Notes                                |
+| ------------------- | ----------- | ------------------------------------ |
+| Visitor → Quote     | 1:N         | Session may generate multiple quotes |
+| Quote → Booking     | 1:1         | Retail conversion                    |
+| Booking → Order     | 1:1         | Post-payment                         |
+| Order → Shipment    | 1:1         | MVP; future 1:N                      |
+| Shipment → Stop     | 1:N         | Min 2 (pickup + delivery)            |
+| Shipment → Parcel   | 1:N         | MVP often 1                          |
+| Order → Payment     | 1:N         | Retries, partial (future)            |
+| Order → Invoice     | 1:N         | Adjustments, merchant statements     |
+| Merchant → Contract | 1:N         | Historical versions                  |
+| Merchant → Order    | 1:N         | B2B volume                           |
+| Driver → Vehicle    | 1:N         | Partner may have multiple            |
+| Driver → Dispatch   | 1:N         | Over time                            |
+| Order → Dispatch    | 1:1         | Active assignment                    |
+| Promotion → Quote   | N:1         | One code per quote                   |
+| Zone → Lane         | N:M         | Via origin/destination codes         |
 
 ---
 
 ## Persistence mapping (current implementation)
 
-| Logical entity | Physical table | Status |
-|----------------|----------------|--------|
-| Visitor | `visitor_sessions` | Live |
-| Customer | `customers` | Live |
-| Quote | `quotes` | Live |
-| Booking | `bookings` | Live |
-| Order | `orders` | Live |
-| Payment | `payments` | Live |
-| Invoice | `invoices` | Live |
-| OrderEvent | `order_events` | Live |
-| DomainEvent | `domain_events` | Live |
-| OrderException | `order_exceptions` | Live |
-| Lead | `leads` | Live |
-| AbandonedCheckout | `abandoned_checkouts` | Live |
-| Merchant | `merchants` | Live |
-| MerchantUser | `merchant_users` | Live |
-| MerchantContract | `merchant_contracts` | Live |
-| ApiKey | `merchant_api_keys` | Live |
-| Webhook | `merchant_webhooks` | Live |
-| Driver | `drivers` | Live |
-| Vehicle | `vehicles` | Live |
-| DriverPayout | `driver_payouts` | Live |
-| Promotion | `promotions` | Live |
-| PricingRule | `pricing_tariffs` | Live |
-| Zone | `pricing_zones` | Live |
-| TaxRule | `system_config` (key=`pricing_tax`) | Live |
-| Claim | `claims` | Live |
-| SupportTicket | `support_tickets` | Live |
-| AuditLog | `admin_audit_logs` | Live |
-| Shipment | — | Target (`shipments`) |
-| Parcel | — | Target (`parcels`) |
-| Stop | — | Target (`stops`) |
-| Dispatch | — | Target (`dispatches`) |
-| TrackingEvent | — | Target (extend `order_events`) |
-| ProofOfDelivery | — | Target (`proof_of_delivery`) |
-| Refund | — | Target (`refunds`) |
-| Wallet | — | Target (`wallets`) |
-| Incident | — | Target (`incidents`) |
-| Notification | — | Target (`notifications`) |
-| Route | — | Target (`routes`) |
-| Fleet | — | Target (`fleets`) |
-| ServiceArea | — | Target (`service_areas`) |
-| Lane | — | Embedded in contract/rules JSON |
+| Logical entity    | Physical table                      | Status                          |
+| ----------------- | ----------------------------------- | ------------------------------- |
+| Visitor           | `visitor_sessions`                  | Live                            |
+| Customer          | `customers`                         | Live                            |
+| Quote             | `quotes`                            | Live                            |
+| Booking           | `bookings`                          | Live                            |
+| Order             | `orders`                            | Live                            |
+| Payment           | `payments`                          | Live                            |
+| Invoice           | `invoices`                          | Live                            |
+| OrderEvent        | `order_events`                      | Live                            |
+| DomainEvent       | `domain_events`                     | Live                            |
+| OrderException    | `order_exceptions`                  | Live                            |
+| Lead              | `leads`                             | Live                            |
+| AbandonedCheckout | `abandoned_checkouts`               | Live                            |
+| Merchant          | `merchants`                         | Live                            |
+| MerchantUser      | `merchant_users`                    | Live                            |
+| MerchantContract  | `merchant_contracts`                | Live                            |
+| ApiKey            | `merchant_api_keys`                 | Live                            |
+| Webhook           | `merchant_webhooks`                 | Live                            |
+| Driver            | `drivers`                           | Live                            |
+| Vehicle           | `vehicles`                          | Live                            |
+| DriverPayout      | `driver_payouts`                    | Live                            |
+| Promotion         | `promotions`                        | Live                            |
+| PricingRule       | `pricing_tariffs`                   | Live                            |
+| Zone              | `pricing_zones`                     | Live                            |
+| TaxRule           | `system_config` (key=`pricing_tax`) | Live                            |
+| Claim             | `claims`                            | Live                            |
+| SupportTicket     | `support_tickets`                   | Live                            |
+| AuditLog          | `admin_audit_logs`                  | Live                            |
+| Shipment          | —                                   | Target (`shipments`)            |
+| Parcel            | —                                   | Target (`parcels`)              |
+| Stop              | —                                   | Target (`stops`)                |
+| Dispatch          | —                                   | Target (`dispatches`)           |
+| TrackingEvent     | —                                   | Target (extend `order_events`)  |
+| ProofOfDelivery   | —                                   | Target (`proof_of_delivery`)    |
+| Refund            | —                                   | Target (`refunds`)              |
+| Wallet            | —                                   | Target (`wallets`)              |
+| Incident          | —                                   | Target (`incidents`)            |
+| Notification      | —                                   | Target (`notifications`)        |
+| Route             | —                                   | Target (`routes`)               |
+| Fleet             | —                                   | Target (`fleets`)               |
+| ServiceArea       | —                                   | Target (`service_areas`)        |
+| Lane              | —                                   | Embedded in contract/rules JSON |
 
 ---
 
 ## Recommended indexes
 
-| Table | Index | Purpose |
-|-------|-------|---------|
-| `orders` | `(state, scheduled_at)` | Dispatch queue |
-| `orders` | `(tracking_number)` UNIQUE | Public tracking |
-| `orders` | `(merchant_id, created_at)` | Merchant list |
-| `orders` | `(customer_id, created_at)` | Customer history |
-| `orders` | `(fleetbase_order_id)` | Webhook lookup |
-| `quotes` | `(visitor_session_id)` | Session merge |
-| `quotes` | `(expires_at) WHERE state='QUOTE'` | Expiry job |
-| `dispatches` | `(driver_id, status)` | Driver app |
-| `tracking_events` | `(order_id, occurred_at)` | Timeline |
-| `domain_events` | `(aggregate_type, aggregate_id)` | Event replay |
-| `promotions` | `(code)` UNIQUE | Redemption |
-| `pricing_zones` | `(code)` UNIQUE | Zone lookup |
+| Table             | Index                              | Purpose          |
+| ----------------- | ---------------------------------- | ---------------- |
+| `orders`          | `(state, scheduled_at)`            | Dispatch queue   |
+| `orders`          | `(tracking_number)` UNIQUE         | Public tracking  |
+| `orders`          | `(merchant_id, created_at)`        | Merchant list    |
+| `orders`          | `(customer_id, created_at)`        | Customer history |
+| `orders`          | `(fleetbase_order_id)`             | Webhook lookup   |
+| `quotes`          | `(visitor_session_id)`             | Session merge    |
+| `quotes`          | `(expires_at) WHERE state='QUOTE'` | Expiry job       |
+| `dispatches`      | `(driver_id, status)`              | Driver app       |
+| `tracking_events` | `(order_id, occurred_at)`          | Timeline         |
+| `domain_events`   | `(aggregate_type, aggregate_id)`   | Event replay     |
+| `promotions`      | `(code)` UNIQUE                    | Redemption       |
+| `pricing_zones`   | `(code)` UNIQUE                    | Zone lookup      |
 
 ---
 
@@ -766,4 +766,4 @@ visitor_sessions.id (cookie)
 
 ---
 
-*Logical ER model for Porterchain-owned data. Fleetbase schema governed by upstream.*
+_Logical ER model for Porterchain-owned data. Fleetbase schema governed by upstream._

@@ -48,7 +48,9 @@ export default function DriverShell({
           </Link>
           <p className="mt-1 text-xs text-[var(--muted)]">Driver Platform</p>
           {walletCents !== undefined && (
-            <p className="mt-2 text-sm font-semibold text-[var(--secondary)]">{formatCents(walletCents)}</p>
+            <p className="mt-2 text-sm font-semibold text-[var(--secondary)]">
+              {formatCents(walletCents)}
+            </p>
           )}
         </div>
         <nav className="flex-1 space-y-1 p-4">
@@ -60,7 +62,9 @@ export default function DriverShell({
                 href={href}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                  active ? "bg-[var(--secondary)]/10 text-[var(--secondary)]" : "text-[var(--primary)]/70 hover:bg-[var(--gray-bg)]"
+                  active
+                    ? "bg-[var(--secondary)]/10 text-[var(--secondary)]"
+                    : "text-[var(--primary)]/70 hover:bg-[var(--gray-bg)]"
                 )}
               >
                 <Icon className="h-4 w-4" />

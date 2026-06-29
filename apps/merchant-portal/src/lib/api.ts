@@ -140,7 +140,11 @@ export function getDashboard(token: string, orgId?: string) {
   return merchantFetch<MerchantDashboard>("/v1/merchant/dashboard", token, { orgId });
 }
 
-export function listOrders(token: string, orgId?: string, params?: { state?: string; search?: string }) {
+export function listOrders(
+  token: string,
+  orgId?: string,
+  params?: { state?: string; search?: string }
+) {
   const qs = new URLSearchParams();
   if (params?.state) qs.set("state", params.state);
   if (params?.search) qs.set("search", params.search);
@@ -198,10 +202,14 @@ export function uploadBulkCsv(token: string, file: File, orgId?: string) {
 }
 
 export function confirmBulk(token: string, jobId: string, orgId?: string) {
-  return merchantFetch<{ job_id: string; status: string }>(`/v1/merchant/bulk/${jobId}/confirm`, token, {
-    method: "POST",
-    orgId,
-  });
+  return merchantFetch<{ job_id: string; status: string }>(
+    `/v1/merchant/bulk/${jobId}/confirm`,
+    token,
+    {
+      method: "POST",
+      orgId,
+    }
+  );
 }
 
 export function getProfile(token: string, orgId?: string) {

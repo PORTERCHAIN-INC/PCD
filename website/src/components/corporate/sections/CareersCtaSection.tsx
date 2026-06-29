@@ -29,7 +29,9 @@ export default function CareersCtaSection({
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white tracking-tight text-balance leading-[1.1]">
               {title}
             </h2>
-            <p className="mt-5 text-lg text-white/65 leading-relaxed max-w-xl mx-auto">{subtitle}</p>
+            <p className="mt-5 text-lg text-white/65 leading-relaxed max-w-xl mx-auto">
+              {subtitle}
+            </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
                 href={`mailto:${CAREERS_APPLY_EMAIL}?subject=General%20Application`}

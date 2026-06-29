@@ -8,28 +8,28 @@
 
 Fleetbase is built as installable **PHP packages** (Laravel) + **Ember engines** (console UI), discovered via:
 
-| Mechanism | Location |
-|-----------|----------|
-| Composer packages | `api/composer.json` require block |
-| Ember engines | `console/package.json` dependencies |
-| Git submodules | `apps/fleetbase/packages/*` (source mirrors) |
-| Registry | `https://registry.fleetbase.io` via `registry-bridge` |
-| CLI | `flb extension:install` |
+| Mechanism         | Location                                              |
+| ----------------- | ----------------------------------------------------- |
+| Composer packages | `api/composer.json` require block                     |
+| Ember engines     | `console/package.json` dependencies                   |
+| Git submodules    | `apps/fleetbase/packages/*` (source mirrors)          |
+| Registry          | `https://registry.fleetbase.io` via `registry-bridge` |
+| CLI               | `flb extension:install`                               |
 
 ### Submodule repos (`.gitmodules`)
 
-| Path | Repository |
-|------|------------|
-| `packages/core-api` | fleetbase/core-api |
-| `packages/fleetops` | fleetbase/fleetops |
-| `packages/fleetops-data` | fleetbase/fleetops-data |
-| `packages/storefront` | fleetbase/storefront |
-| `packages/ledger` | fleetbase/ledger |
+| Path                       | Repository                |
+| -------------------------- | ------------------------- |
+| `packages/core-api`        | fleetbase/core-api        |
+| `packages/fleetops`        | fleetbase/fleetops        |
+| `packages/fleetops-data`   | fleetbase/fleetops-data   |
+| `packages/storefront`      | fleetbase/storefront      |
+| `packages/ledger`          | fleetbase/ledger          |
 | `packages/registry-bridge` | fleetbase/registry-bridge |
-| `packages/ember-core` | fleetbase/ember-core |
-| `packages/ember-ui` | fleetbase/ember-ui |
-| `packages/iam-engine` | fleetbase/iam-engine |
-| `packages/dev-engine` | fleetbase/dev-engine |
+| `packages/ember-core`      | fleetbase/ember-core      |
+| `packages/ember-ui`        | fleetbase/ember-ui        |
+| `packages/iam-engine`      | fleetbase/iam-engine      |
+| `packages/dev-engine`      | fleetbase/dev-engine      |
 
 Initialize for local development:
 
@@ -45,12 +45,12 @@ cd apps/fleetbase && git submodule update --init --recursive
 
 **Purpose:** Implement `/int/v1/porterchain/*` routes expected by Porterchain API.
 
-| Endpoint | Handler responsibility |
-|----------|------------------------|
-| `POST porterchain/orders` | Map Porterchain payload → Fleetbase Order + Payload + Places |
-| `POST porterchain/drivers` | Upsert driver; set `meta.porterchain_driver_id` |
-| `POST porterchain/vehicles` | Upsert vehicle |
-| `GET porterchain/orders/{id}/tracking` | Aggregate tracker + positions |
+| Endpoint                               | Handler responsibility                                       |
+| -------------------------------------- | ------------------------------------------------------------ |
+| `POST porterchain/orders`              | Map Porterchain payload → Fleetbase Order + Payload + Places |
+| `POST porterchain/drivers`             | Upsert driver; set `meta.porterchain_driver_id`              |
+| `POST porterchain/vehicles`            | Upsert vehicle                                               |
+| `GET porterchain/orders/{id}/tracking` | Aggregate tracker + positions                                |
 
 **Package structure (standard Fleetbase extension):**
 
@@ -74,10 +74,10 @@ porterchain-bridge/
 **Purpose:** Receive Fleetbase outbound webhooks.
 
 | Location | `apps/api/src/porterchain_api/routers/webhooks.py` (extend) |
-|----------|---------------------------------------------------------------|
-| Route | `POST /v1/webhooks/fleetbase` |
-| Verify | HMAC from Fleetbase API secret |
-| Map | Fleetbase `order.*` → Porterchain `DomainEvents` |
+| -------- | ----------------------------------------------------------- |
+| Route    | `POST /v1/webhooks/fleetbase`                               |
+| Verify   | HMAC from Fleetbase API secret                              |
+| Map      | Fleetbase `order.*` → Porterchain `DomainEvents`            |
 
 No Fleetbase code change required — configure endpoint in Fleetbase dev console.
 
@@ -93,12 +93,12 @@ Only needed if standard FleetOps UI is insufficient. **Not required for MVP** �
 
 ### PHP service providers
 
-| Provider | Package | Registers |
-|----------|---------|-----------|
-| `CoreServiceProvider` | core-api | Core routes, models, macros |
-| `FleetOpsServiceProvider` | fleetops-api | FleetOps routes, migrations |
-| `EventServiceProvider` | both | Event ↔ listener map |
-| `SocketClusterServiceProvider` | core-api | Broadcasting |
+| Provider                       | Package      | Registers                   |
+| ------------------------------ | ------------ | --------------------------- |
+| `CoreServiceProvider`          | core-api     | Core routes, models, macros |
+| `FleetOpsServiceProvider`      | fleetops-api | FleetOps routes, migrations |
+| `EventServiceProvider`         | both         | Event ↔ listener map        |
+| `SocketClusterServiceProvider` | core-api     | Broadcasting                |
 
 **Hook pattern:** Publish a package that adds:
 
@@ -112,11 +112,11 @@ Only needed if standard FleetOps UI is insufficient. **Not required for MVP** �
 
 ### Order meta / custom fields
 
-| Approach | Use |
-|----------|-----|
-| `orders.meta` JSON | `porterchain_order_id`, `merchant_org_id` (zero migration) |
-| `fleetbase_custom_fields` | Structured Porterchain fields visible in console |
-| `order_configs` | Custom workflow activities for Porterchain order types |
+| Approach                  | Use                                                        |
+| ------------------------- | ---------------------------------------------------------- |
+| `orders.meta` JSON        | `porterchain_order_id`, `merchant_org_id` (zero migration) |
+| `fleetbase_custom_fields` | Structured Porterchain fields visible in console           |
+| `order_configs`           | Custom workflow activities for Porterchain order types     |
 
 **Recommended:** `meta` JSON for bridge IDs — simplest, no schema change.
 
@@ -134,13 +134,13 @@ Publish Ember engine only if Porterchain-specific console UI is needed.
 
 ## Integration patterns (ranked)
 
-| Pattern | Modify Fleetbase? | Upgrade risk | Best for |
-|---------|-------------------|--------------|----------|
-| **A. Consumable `v1` API only** | No | Lowest | MVP — use today |
-| **B. PHP extension package** | No (add package) | Low | Tailored bridge payloads |
-| **C. Webhooks → Porterchain** | No | Low | Status sync |
-| **D. Fork fleetops/core-api** | Yes | High | Avoid |
-| **E. Direct MySQL access** | No | Medium | Avoid — bypasses business logic |
+| Pattern                         | Modify Fleetbase? | Upgrade risk | Best for                        |
+| ------------------------------- | ----------------- | ------------ | ------------------------------- |
+| **A. Consumable `v1` API only** | No                | Lowest       | MVP — use today                 |
+| **B. PHP extension package**    | No (add package)  | Low          | Tailored bridge payloads        |
+| **C. Webhooks → Porterchain**   | No                | Low          | Status sync                     |
+| **D. Fork fleetops/core-api**   | Yes               | High         | Avoid                           |
+| **E. Direct MySQL access**      | No                | Medium       | Avoid — bypasses business logic |
 
 **Porterchain policy:** A + B + C. Never D or E.
 
@@ -200,14 +200,14 @@ Create API credential in Fleetbase console → Developer → API Keys (`@fleetba
 
 Fleetbase reads Porterchain-specific env vars (already in `env/fleetbase.env.example`):
 
-| Variable | Extension point |
-|----------|-----------------|
-| `PORTERCHAIN_API_URL` | Reverse HTTP callbacks to Porterchain |
-| `PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID` | Default tenant for bridge |
-| `PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE` | Feature flag |
-| `PORTERCHAIN_DISPATCHER_API_KEY` | Authenticate Porterchain → Fleetbase calls |
-| `ROUTING_ENGINE=valhalla` | Shared routing with Porterchain Valhalla |
-| `BRANDING_*_URL` | White-label console |
+| Variable                                     | Extension point                            |
+| -------------------------------------------- | ------------------------------------------ |
+| `PORTERCHAIN_API_URL`                        | Reverse HTTP callbacks to Porterchain      |
+| `PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID` | Default tenant for bridge                  |
+| `PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE`      | Feature flag                               |
+| `PORTERCHAIN_DISPATCHER_API_KEY`             | Authenticate Porterchain → Fleetbase calls |
+| `ROUTING_ENGINE=valhalla`                    | Shared routing with Porterchain Valhalla   |
+| `BRANDING_*_URL`                             | White-label console                        |
 
 These are **configuration extensions** — no code fork required.
 
@@ -215,10 +215,10 @@ These are **configuration extensions** — no code fork required.
 
 ## Docker extension points
 
-| File | Purpose |
-|------|---------|
-| `docker-compose.yml` | Upstream services |
-| `docker-compose.override.yml` | Secrets (gitignored) |
+| File                                                       | Purpose                           |
+| ---------------------------------------------------------- | --------------------------------- |
+| `docker-compose.yml`                                       | Upstream services                 |
+| `docker-compose.override.yml`                              | Secrets (gitignored)              |
 | `infrastructure/docker/fleetbase.porterchain.override.yml` | Porterchain ports, volumes, names |
 
 Add Porterchain bridge container only if needed — current design uses Porterchain API as client.
@@ -227,11 +227,11 @@ Add Porterchain bridge container only if needed — current design uses Porterch
 
 ## Console UI extension points
 
-| Registry key | Inject |
-|--------------|--------|
-| `@fleetbase/console` | Sidebar items, header widgets |
-| `auth:login` | Custom login branding (already branded via env) |
-| Dashboard widgets | `initialize-widgets.js` pattern |
+| Registry key         | Inject                                          |
+| -------------------- | ----------------------------------------------- |
+| `@fleetbase/console` | Sidebar items, header widgets                   |
+| `auth:login`         | Custom login branding (already branded via env) |
+| Dashboard widgets    | `initialize-widgets.js` pattern                 |
 
 FleetOps routes are mounted by `@fleetbase/fleetops-engine` — not in local `router.js`.
 
@@ -251,10 +251,10 @@ Use when Fleetbase dispatch must wait for Porterchain state gates.
 
 ## Notification extension
 
-| Layer | Extension |
-|-------|-----------|
-| FleetOps | `fleet-ops/settings/notification-settings` |
-| Core | `settings/notification-channels-config` |
+| Layer       | Extension                                                      |
+| ----------- | -------------------------------------------------------------- |
+| FleetOps    | `fleet-ops/settings/notification-settings`                     |
+| Core        | `settings/notification-channels-config`                        |
 | Porterchain | Replace customer emails; keep driver FCM in Fleetbase optional |
 
 Register Porterchain ops email in Fleetbase notifiables for dispatch failures only.
@@ -263,23 +263,23 @@ Register Porterchain ops email in Fleetbase notifiables for dispatch failures on
 
 ## Testing extensions
 
-| Test | Command |
-|------|---------|
-| Route registered | `php artisan route:list \| grep porterchain` |
-| Package discovered | `php artisan package:discover` |
-| Webhook fire | Dispatch order in console → check `webhook-request-logs` |
-| Bridge round-trip | Porterchain `ORDER_DISPATCH_READY` → verify `fleetbase_orders.meta` |
+| Test               | Command                                                             |
+| ------------------ | ------------------------------------------------------------------- |
+| Route registered   | `php artisan route:list \| grep porterchain`                        |
+| Package discovered | `php artisan package:discover`                                      |
+| Webhook fire       | Dispatch order in console → check `webhook-request-logs`            |
+| Bridge round-trip  | Porterchain `ORDER_DISPATCH_READY` → verify `fleetbase_orders.meta` |
 
 ---
 
 ## AGPL guidance
 
-| Allowed | Avoid |
-|---------|-------|
+| Allowed                                                | Avoid                                             |
+| ------------------------------------------------------ | ------------------------------------------------- |
 | Separate `porterchain-bridge` package (your copyright) | Embedding proprietary code inside forked fleetops |
-| API-only integration | Distributing modified Fleetbase without source |
-| Private extension registry | Removing AGPL notices |
-| Running Fleetbase internal-only | Exposing Fleetbase UI to merchants |
+| API-only integration                                   | Distributing modified Fleetbase without source    |
+| Private extension registry                             | Removing AGPL notices                             |
+| Running Fleetbase internal-only                        | Exposing Fleetbase UI to merchants                |
 
 If you modify Fleetbase packages, you must comply with AGPL source distribution requirements.
 
@@ -287,13 +287,13 @@ If you modify Fleetbase packages, you must comply with AGPL source distribution 
 
 ## Implementation roadmap
 
-| Phase | Deliverable |
-|-------|-------------|
-| **Now** | `v1` API bridge with `flb_live_*` key |
-| **Phase 2** | `porterchain-bridge` PHP extension |
-| **Phase 3** | Fleetbase webhook → Porterchain handler |
-| **Phase 4** | Driver/vehicle bidirectional sync |
-| **Future** | Custom order config for Porterchain retail vs B2B |
+| Phase       | Deliverable                                       |
+| ----------- | ------------------------------------------------- |
+| **Now**     | `v1` API bridge with `flb_live_*` key             |
+| **Phase 2** | `porterchain-bridge` PHP extension                |
+| **Phase 3** | Fleetbase webhook → Porterchain handler           |
+| **Phase 4** | Driver/vehicle bidirectional sync                 |
+| **Future**  | Custom order config for Porterchain retail vs B2B |
 
 ---
 

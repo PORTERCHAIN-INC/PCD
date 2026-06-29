@@ -55,13 +55,13 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml \
   -f ../../infrastructure/docker/fleetbase.porterchain.override.yml logs -f application
 ```
 
-| Service | When to tail |
-|---------|----------------|
-| `application` | API errors, Laravel exceptions |
-| `queue` | Failed jobs, dispatch delays |
-| `httpd` | 502/504, nginx |
-| `database` | Connection issues |
-| `socket` | WebSocket disconnects in console |
+| Service       | When to tail                     |
+| ------------- | -------------------------------- |
+| `application` | API errors, Laravel exceptions   |
+| `queue`       | Failed jobs, dispatch delays     |
+| `httpd`       | 502/504, nginx                   |
+| `database`    | Connection issues                |
+| `socket`      | WebSocket disconnects in console |
 
 ---
 
@@ -85,10 +85,10 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml \
 
 ## MySQL access
 
-| From | Connection |
-|------|------------|
-| Host | `127.0.0.1:3307`, user `fleetbase`, password in `apps/fleetbase/docker-compose.override.yml` |
-| Inside stack | host `database`, port `3306` |
+| From         | Connection                                                                                   |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| Host         | `127.0.0.1:3307`, user `fleetbase`, password in `apps/fleetbase/docker-compose.override.yml` |
+| Inside stack | host `database`, port `3306`                                                                 |
 
 ```bash
 cd apps/fleetbase
@@ -155,9 +155,9 @@ docker compose ... restart socket console
 
 ## Routing (OSRM / Valhalla)
 
-| Engine | When to use |
-|--------|-------------|
-| OSRM public | Default; no local setup |
+| Engine         | When to use                                         |
+| -------------- | --------------------------------------------------- |
+| OSRM public    | Default; no local setup                             |
 | Valhalla local | Start Porterchain routing: `pnpm docker:up:routing` |
 
 Application env (via override): `VALHALLA_BASE_URL=http://host.docker.internal:8002`
@@ -170,10 +170,10 @@ Test Valhalla: `curl http://127.0.0.1:8002/status`
 
 Porterchain API syncs orders to Fleetbase — **merchants never call Fleetbase directly**.
 
-| Porterchain env | Purpose |
-|-----------------|---------|
-| `FLEETBASE_API_URL` | `http://localhost:8000` |
-| `FLEETBASE_DISPATCH_BRIDGE` | `true` |
+| Porterchain env                  | Purpose                   |
+| -------------------------------- | ------------------------- |
+| `FLEETBASE_API_URL`              | `http://localhost:8000`   |
+| `FLEETBASE_DISPATCH_BRIDGE`      | `true`                    |
 | `FLEETBASE_DEFAULT_COMPANY_UUID` | From Fleetbase onboarding |
 
 Verify bridge (Porterchain API running):
@@ -187,10 +187,10 @@ curl http://localhost:8001/health
 
 ## Port conflicts
 
-| Port | Owner | Resolution |
-|------|-------|------------|
-| 3306 | Porterchain MySQL OR legacy stacks | Fleetbase uses **3307** on host |
-| 8000, 4200, 38000 | Must be Fleetbase | Stop other stacks: `docker ps` → identify → `docker compose -p <project> down` |
+| Port              | Owner                              | Resolution                                                                     |
+| ----------------- | ---------------------------------- | ------------------------------------------------------------------------------ |
+| 3306              | Porterchain MySQL OR legacy stacks | Fleetbase uses **3307** on host                                                |
+| 8000, 4200, 38000 | Must be Fleetbase                  | Stop other stacks: `docker ps` → identify → `docker compose -p <project> down` |
 
 Legacy install detected at `/Users/ravi/Documents/GitHub/PC/PC` (project `pc`) — stop before starting PCD Fleetbase.
 
@@ -216,13 +216,13 @@ docker run --rm -v porterchain-fleetbase-api-storage:/data -v $(pwd):/backup alp
 
 ## Incident response
 
-| Symptom | Action |
-|---------|--------|
-| API 502 | Check `application` + `httpd` logs; restart both |
-| Migrations failed | Grant MySQL privileges (install script step 6b); fresh volume if corrupted |
-| Queue backlog | Scale queue workers (duplicate `queue` service in override for prod) |
-| Console blank | Rebuild console: `docker compose ... up -d --build console` |
-| Dispatch not syncing | Verify Porterchain `FLEETBASE_*` env + company UUID |
+| Symptom              | Action                                                                     |
+| -------------------- | -------------------------------------------------------------------------- |
+| API 502              | Check `application` + `httpd` logs; restart both                           |
+| Migrations failed    | Grant MySQL privileges (install script step 6b); fresh volume if corrupted |
+| Queue backlog        | Scale queue workers (duplicate `queue` service in override for prod)       |
+| Console blank        | Rebuild console: `docker compose ... up -d --build console`                |
+| Dispatch not syncing | Verify Porterchain `FLEETBASE_*` env + company UUID                        |
 
 ---
 

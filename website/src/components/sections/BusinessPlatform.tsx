@@ -77,19 +77,29 @@ export default function BusinessPlatform() {
 
               <div className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-primary type-small">{t("dashboardOverview")}</h4>
+                  <h4 className="font-semibold text-primary type-small">
+                    {t("dashboardOverview")}
+                  </h4>
                   <span className="type-caption text-secondary normal-case">{t("today")}</span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { label: t("active"), value: "24", icon: Package, color: "text-secondary" },
-                    { label: t("delivered"), value: "186", icon: TrendingUp, color: "text-green-600" },
+                    {
+                      label: t("delivered"),
+                      value: "186",
+                      icon: TrendingUp,
+                      color: "text-green-600",
+                    },
                     { label: t("drivers"), value: "12", icon: Users, color: "text-blue-600" },
                   ].map((stat) => {
                     const Icon = stat.icon;
                     return (
-                      <div key={stat.label} className="bg-white rounded-xl p-3 border border-gray-100">
+                      <div
+                        key={stat.label}
+                        className="bg-white rounded-xl p-3 border border-gray-100"
+                      >
                         <Icon className={`w-4 h-4 ${stat.color} mb-1`} />
                         <p className="type-h3 text-primary">{stat.value}</p>
                         <p className="type-caption text-muted normal-case">{stat.label}</p>

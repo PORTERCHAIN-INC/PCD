@@ -16,7 +16,10 @@ export default function DashboardPage() {
       router.replace("/login");
       return;
     }
-    driverApi.dashboard().then(setData).catch((e) => setError(String(e.message)));
+    driverApi
+      .dashboard()
+      .then(setData)
+      .catch((e) => setError(String(e.message)));
   }, [router]);
 
   const toggleOnline = async () => {
@@ -34,7 +37,10 @@ export default function DashboardPage() {
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Today's Earnings", value: formatCents(data.todays_earnings_cents) },
-          { label: "Today's Stops", value: `${data.todays_stops_completed}/${data.todays_stops_total}` },
+          {
+            label: "Today's Stops",
+            value: `${data.todays_stops_completed}/${data.todays_stops_total}`,
+          },
           { label: "Wallet", value: formatCents(data.wallet_balance_cents) },
           { label: "Performance", value: `${data.performance_score}%` },
         ].map((card) => (

@@ -67,13 +67,13 @@ def apply_fleetbase_webhook_from_event(envelope: dict[str, Any]) -> None:
 
     from porterchain_api.config import get_settings
     from porterchain_api.db import SessionLocal
-    from porterchain_api.booking_engine.fleetbase_sync_service import FleetbaseSyncService
+    from porterchain_api.fleetbase_engine import WebhookProcessor
 
     db = SessionLocal()
     try:
         update = payload.get("update")
         if not update:
             return
-        FleetbaseSyncService().apply_webhook_update(db, get_settings(), update)
+        WebhookProcessor().process(db, get_settings(), update, payload.get("raw"))
     finally:
         db.close()

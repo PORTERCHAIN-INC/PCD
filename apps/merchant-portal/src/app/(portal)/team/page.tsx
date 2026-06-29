@@ -50,7 +50,10 @@ export default function TeamPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-bold text-primary">Team Management</h1>
 
-      <form onSubmit={onInvite} className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/10 bg-white p-6">
+      <form
+        onSubmit={onInvite}
+        className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/10 bg-white p-6"
+      >
         <div>
           <label className="text-sm font-medium">Email</label>
           <input
@@ -84,7 +87,8 @@ export default function TeamPage() {
             <div>
               <p className="font-medium">{m.email}</p>
               <p className="text-xs text-muted">
-                {ROLES.find((r) => r.value === m.role)?.label || m.role} · joined {formatDate(m.created_at)}
+                {ROLES.find((r) => r.value === m.role)?.label || m.role} · joined{" "}
+                {formatDate(m.created_at)}
               </p>
             </div>
             <button type="button" className="text-xs text-red-600" onClick={() => onRemove(m.id)}>
@@ -92,7 +96,9 @@ export default function TeamPage() {
             </button>
           </li>
         ))}
-        {members.length === 0 && <li className="px-6 py-8 text-center text-muted">No team members</li>}
+        {members.length === 0 && (
+          <li className="px-6 py-8 text-center text-muted">No team members</li>
+        )}
       </ul>
     </div>
   );

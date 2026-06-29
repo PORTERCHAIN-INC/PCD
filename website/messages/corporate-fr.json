@@ -90,22 +90,52 @@
       "label": "Plateforme",
       "title": "Tout ce dont votre opération logistique a besoin",
       "subtitle": "Une pile connectée de la planification de répartition à la confirmation de livraison.",
-      "dispatch": { "title": "Système de répartition", "description": "Contrôle centralisé pour les planificateurs avec gestion de capacité et SLA." },
-      "routing": { "title": "Moteur de routage", "description": "Optimisation intelligente réduisant les kilomètres à vide et la consommation." },
-      "visibility": { "title": "Visibilité en direct", "description": "Statut en temps réel, ETA et alertes d'exception pour votre équipe." },
-      "compliance": { "title": "Couche de conformité", "description": "Photo, signature, GPS et historique de statut prêt pour audit." },
-      "integrations": { "title": "Intégrations ouvertes", "description": "Connectez Porterchain à votre ERP, WMS et outils de facturation." },
-      "analytics": { "title": "Analytique opérationnelle", "description": "Tableaux de bord pour ponctualité, efficacité et tendances d'exceptions." }
+      "dispatch": {
+        "title": "Système de répartition",
+        "description": "Contrôle centralisé pour les planificateurs avec gestion de capacité et SLA."
+      },
+      "routing": {
+        "title": "Moteur de routage",
+        "description": "Optimisation intelligente réduisant les kilomètres à vide et la consommation."
+      },
+      "visibility": {
+        "title": "Visibilité en direct",
+        "description": "Statut en temps réel, ETA et alertes d'exception pour votre équipe."
+      },
+      "compliance": {
+        "title": "Couche de conformité",
+        "description": "Photo, signature, GPS et historique de statut prêt pour audit."
+      },
+      "integrations": {
+        "title": "Intégrations ouvertes",
+        "description": "Connectez Porterchain à votre ERP, WMS et outils de facturation."
+      },
+      "analytics": {
+        "title": "Analytique opérationnelle",
+        "description": "Tableaux de bord pour ponctualité, efficacité et tendances d'exceptions."
+      }
     },
     "timeline": {
       "label": "Comment ça fonctionne",
       "title": "De la commande à la preuve en quatre étapes",
       "subtitle": "Des flux structurés remplacent la coordination ad hoc par une exécution reproductible.",
       "steps": {
-        "0": { "title": "Réception et validation", "description": "Les commandes entrent avec validation d'adresse et vérification de capacité." },
-        "1": { "title": "Planification", "description": "Itinéraires optimisés avec correspondance de classe de véhicule." },
-        "2": { "title": "Exécution", "description": "Instructions claires et suivi en direct des exceptions." },
-        "3": { "title": "Confirmation", "description": "Preuve de livraison liée aux dossiers pour facturation et conformité." }
+        "0": {
+          "title": "Réception et validation",
+          "description": "Les commandes entrent avec validation d'adresse et vérification de capacité."
+        },
+        "1": {
+          "title": "Planification",
+          "description": "Itinéraires optimisés avec correspondance de classe de véhicule."
+        },
+        "2": {
+          "title": "Exécution",
+          "description": "Instructions claires et suivi en direct des exceptions."
+        },
+        "3": {
+          "title": "Confirmation",
+          "description": "Preuve de livraison liée aux dossiers pour facturation et conformité."
+        }
       }
     },
     "features": {
@@ -113,12 +143,30 @@
       "title": "Conçu pour des opérations qui évoluent",
       "subtitle": "Technologie logistique de calibre entreprise sans la complexité.",
       "items": {
-        "0": { "title": "Exécution basée sur SLA", "description": "Répartition gérée avec niveaux de service définis." },
-        "1": { "title": "Vérifications pré-départ", "description": "Validation d'adresse et de capacité avant le départ." },
-        "2": { "title": "Contrôle des exceptions", "description": "Escalades contrôlées au lieu de réactions en urgence." },
-        "3": { "title": "Réseau de partenaires", "description": "Partenaires chauffeurs vérifiés avec flux prévisibles." },
-        "4": { "title": "Métriques durabilité", "description": "Optimisation réduisant carburant, émissions et kilomètres à vide." },
-        "5": { "title": "Routage multi-arrêts", "description": "Itinéraires récurrents et séquences complexes en un plan." }
+        "0": {
+          "title": "Exécution basée sur SLA",
+          "description": "Répartition gérée avec niveaux de service définis."
+        },
+        "1": {
+          "title": "Vérifications pré-départ",
+          "description": "Validation d'adresse et de capacité avant le départ."
+        },
+        "2": {
+          "title": "Contrôle des exceptions",
+          "description": "Escalades contrôlées au lieu de réactions en urgence."
+        },
+        "3": {
+          "title": "Réseau de partenaires",
+          "description": "Partenaires chauffeurs vérifiés avec flux prévisibles."
+        },
+        "4": {
+          "title": "Métriques durabilité",
+          "description": "Optimisation réduisant carburant, émissions et kilomètres à vide."
+        },
+        "5": {
+          "title": "Routage multi-arrêts",
+          "description": "Itinéraires récurrents et séquences complexes en un plan."
+        }
       }
     },
     "cta": {
@@ -131,19 +179,43 @@
       "label": "FAQ",
       "title": "Questions fréquentes",
       "items": {
-        "0": { "q": "Porterchain est-il une application de messagerie?", "a": "Non. Porterchain est une plateforme technologique logistique avec répartition structurée et flux reproductibles." },
-        "1": { "q": "Pour qui est Porterchain?", "a": "Entreprises en Ontario qui déplacent régulièrement des marchandises et ont besoin de visibilité opérationnelle." },
-        "2": { "q": "Quelle preuve pour chaque expédition?", "a": "Photo, signature, GPS, références et historique de statut prêt pour audit." },
-        "3": { "q": "Intégration avec nos systèmes?", "a": "Oui. APIs et webhooks pour ERP, WMS et facturation." }
+        "0": {
+          "q": "Porterchain est-il une application de messagerie?",
+          "a": "Non. Porterchain est une plateforme technologique logistique avec répartition structurée et flux reproductibles."
+        },
+        "1": {
+          "q": "Pour qui est Porterchain?",
+          "a": "Entreprises en Ontario qui déplacent régulièrement des marchandises et ont besoin de visibilité opérationnelle."
+        },
+        "2": {
+          "q": "Quelle preuve pour chaque expédition?",
+          "a": "Photo, signature, GPS, références et historique de statut prêt pour audit."
+        },
+        "3": {
+          "q": "Intégration avec nos systèmes?",
+          "a": "Oui. APIs et webhooks pour ERP, WMS et facturation."
+        }
       }
     },
     "resources": {
       "label": "Ressources",
       "title": "Continuer l'exploration",
       "items": {
-        "0": { "title": "Programmes entreprise", "description": "Routes récurrentes et livraison entreprise.", "href": "/business" },
-        "1": { "title": "Blogue", "description": "Conseils logistique commerciale.", "href": "/blog" },
-        "2": { "title": "Parler à notre équipe", "description": "Demandez une visite personnalisée.", "href": "/contact" }
+        "0": {
+          "title": "Programmes entreprise",
+          "description": "Routes récurrentes et livraison entreprise.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "Blogue",
+          "description": "Conseils logistique commerciale.",
+          "href": "/blog"
+        },
+        "2": {
+          "title": "Parler à notre équipe",
+          "description": "Demandez une visite personnalisée.",
+          "href": "/contact"
+        }
       }
     }
   },
@@ -160,20 +232,44 @@
       "title": "Comment les couches se connectent",
       "subtitle": "De l'ingestion de données aux dossiers de livraison prêts pour audit.",
       "steps": {
-        "0": { "title": "Couche données", "description": "Commandes et contraintes via APIs et portails." },
-        "1": { "title": "Couche planification", "description": "Moteur de routage avec séquençage et capacité." },
-        "2": { "title": "Couche exécution", "description": "Répartition, suivi et gestion d'exceptions en direct." },
-        "3": { "title": "Couche preuve", "description": "Confirmation, capture média et historique de statut." }
+        "0": {
+          "title": "Couche données",
+          "description": "Commandes et contraintes via APIs et portails."
+        },
+        "1": {
+          "title": "Couche planification",
+          "description": "Moteur de routage avec séquençage et capacité."
+        },
+        "2": {
+          "title": "Couche exécution",
+          "description": "Répartition, suivi et gestion d'exceptions en direct."
+        },
+        "3": {
+          "title": "Couche preuve",
+          "description": "Confirmation, capture média et historique de statut."
+        }
       }
     },
     "features": {
       "label": "Modules",
       "title": "Conçu pour les opérateurs logistiques",
       "items": {
-        "0": { "title": "Centre de commande", "description": "Vue unique pour assigner routes et SLA." },
-        "1": { "title": "Routage intelligent", "description": "Optimisation Valhalla avec multi-arrêts et fenêtres horaires." },
-        "2": { "title": "Portail de visibilité", "description": "Suivi en marque blanche avec ETA en direct." },
-        "3": { "title": "App partenaire chauffeur", "description": "Instructions, navigation et preuve de livraison." }
+        "0": {
+          "title": "Centre de commande",
+          "description": "Vue unique pour assigner routes et SLA."
+        },
+        "1": {
+          "title": "Routage intelligent",
+          "description": "Optimisation Valhalla avec multi-arrêts et fenêtres horaires."
+        },
+        "2": {
+          "title": "Portail de visibilité",
+          "description": "Suivi en marque blanche avec ETA en direct."
+        },
+        "3": {
+          "title": "App partenaire chauffeur",
+          "description": "Instructions, navigation et preuve de livraison."
+        }
       }
     },
     "cards": {
@@ -181,10 +277,19 @@
       "title": "Se connecte à votre pile existante",
       "subtitle": "Porterchain s'intègre à votre flux de travail.",
       "items": {
-        "0": { "title": "APIs REST", "description": "Accès programmatique aux commandes et événements." },
+        "0": {
+          "title": "APIs REST",
+          "description": "Accès programmatique aux commandes et événements."
+        },
         "1": { "title": "Webhooks", "description": "Flux d'événements en temps réel." },
-        "2": { "title": "Sync facturation", "description": "Facturation Stripe liée aux livraisons." },
-        "3": { "title": "Cartes et géocodage", "description": "Google Maps pour validation et localisation." }
+        "2": {
+          "title": "Sync facturation",
+          "description": "Facturation Stripe liée aux livraisons."
+        },
+        "3": {
+          "title": "Cartes et géocodage",
+          "description": "Google Maps pour validation et localisation."
+        }
       }
     },
     "cta": {
@@ -197,17 +302,33 @@
       "label": "FAQ",
       "title": "Questions plateforme",
       "items": {
-        "0": { "q": "Plateforme infonuagique?", "a": "Oui. Accès sécurisé pour répartiteurs, chauffeurs et clients." },
-        "1": { "q": "Quel moteur de routage?", "a": "Valhalla avec repli OSRM, multi-arrêts et fenêtres horaires." },
-        "2": { "q": "Suivi en marque blanche?", "a": "Le suivi client peut refléter votre marque." },
-        "3": { "q": "Sécurité des données?", "a": "Accès par rôle, transport chiffré et pistes d'audit." }
+        "0": {
+          "q": "Plateforme infonuagique?",
+          "a": "Oui. Accès sécurisé pour répartiteurs, chauffeurs et clients."
+        },
+        "1": {
+          "q": "Quel moteur de routage?",
+          "a": "Valhalla avec repli OSRM, multi-arrêts et fenêtres horaires."
+        },
+        "2": {
+          "q": "Suivi en marque blanche?",
+          "a": "Le suivi client peut refléter votre marque."
+        },
+        "3": {
+          "q": "Sécurité des données?",
+          "a": "Accès par rôle, transport chiffré et pistes d'audit."
+        }
       }
     },
     "resources": {
       "label": "Ressources",
       "title": "Connexes",
       "items": {
-        "0": { "title": "Programmes entreprise", "description": "Services par secteur.", "href": "/business" },
+        "0": {
+          "title": "Programmes entreprise",
+          "description": "Services par secteur.",
+          "href": "/business"
+        },
         "1": { "title": "À propos", "description": "Mission et vision.", "href": "/company" },
         "2": { "title": "Commencer", "description": "Parler à notre équipe.", "href": "/contact" }
       }
@@ -225,10 +346,22 @@
       "label": "Secteurs",
       "title": "Conçu pour la livraison critique",
       "items": {
-        "0": { "title": "Distribution en gros", "description": "Routes récurrentes et visibilité B2B dans le RGT." },
-        "1": { "title": "Médical et santé", "description": "Chaîne de custody et preuve pour expéditions réglementées." },
-        "2": { "title": "Alimentation", "description": "Fenêtres serrées et alertes pour produits périssables." },
-        "3": { "title": "Construction", "description": "Correspondance de capacité et preuve pour matériaux." }
+        "0": {
+          "title": "Distribution en gros",
+          "description": "Routes récurrentes et visibilité B2B dans le RGT."
+        },
+        "1": {
+          "title": "Médical et santé",
+          "description": "Chaîne de custody et preuve pour expéditions réglementées."
+        },
+        "2": {
+          "title": "Alimentation",
+          "description": "Fenêtres serrées et alertes pour produits périssables."
+        },
+        "3": {
+          "title": "Construction",
+          "description": "Correspondance de capacité et preuve pour matériaux."
+        }
       }
     },
     "timeline": {
@@ -236,8 +369,14 @@
       "title": "Comment les équipes adoptent Porterchain",
       "subtitle": "De la découverte au déploiement opérationnel complet.",
       "steps": {
-        "0": { "title": "Découverte", "description": "Cartographie de routes, volumes et intégrations." },
-        "1": { "title": "Configuration", "description": "Règles de répartition et standards de preuve." },
+        "0": {
+          "title": "Découverte",
+          "description": "Cartographie de routes, volumes et intégrations."
+        },
+        "1": {
+          "title": "Configuration",
+          "description": "Règles de répartition et standards de preuve."
+        },
         "2": { "title": "Pilote", "description": "Pilote contrôlé sur routes sélectionnées." },
         "3": { "title": "Échelle", "description": "Expansion avec analytique et intégrations API." }
       }
@@ -247,9 +386,15 @@
       "title": "Ce qui change",
       "items": {
         "0": { "title": "SLA fiables", "description": "Répartition gérée avec standards définis." },
-        "1": { "title": "Moins d'exceptions", "description": "Validation pré-départ avant problèmes clients." },
+        "1": {
+          "title": "Moins d'exceptions",
+          "description": "Validation pré-départ avant problèmes clients."
+        },
         "2": { "title": "Visibilité complète", "description": "Même statut en direct pour tous." },
-        "3": { "title": "Confiance audit", "description": "Chaînes de preuve pour conformité et facturation." }
+        "3": {
+          "title": "Confiance audit",
+          "description": "Chaînes de preuve pour conformité et facturation."
+        }
       }
     },
     "cta": {
@@ -262,18 +407,38 @@
       "label": "FAQ",
       "title": "FAQ solutions",
       "items": {
-        "0": { "q": "Routes récurrentes?", "a": "Oui. Modèles récurrents et séquences multi-arrêts." },
-        "1": { "q": "Commencer par un pilote?", "a": "La plupart des clients entreprise commencent par un pilote ciblé." },
-        "2": { "q": "Régions desservies?", "a": "RGT et Ontario avec optimisation pour réseaux canadiens." },
-        "3": { "q": "Tarification?", "a": "Basée sur volume, exigences de service et intégrations." }
+        "0": {
+          "q": "Routes récurrentes?",
+          "a": "Oui. Modèles récurrents et séquences multi-arrêts."
+        },
+        "1": {
+          "q": "Commencer par un pilote?",
+          "a": "La plupart des clients entreprise commencent par un pilote ciblé."
+        },
+        "2": {
+          "q": "Régions desservies?",
+          "a": "RGT et Ontario avec optimisation pour réseaux canadiens."
+        },
+        "3": {
+          "q": "Tarification?",
+          "a": "Basée sur volume, exigences de service et intégrations."
+        }
       }
     },
     "resources": {
       "label": "Ressources",
       "title": "Aller plus loin",
       "items": {
-        "0": { "title": "Programmes entreprise", "description": "Routes récurrentes et livraison entreprise.", "href": "/business" },
-        "1": { "title": "À propos", "description": "L'équipe derrière Porterchain.", "href": "/company" },
+        "0": {
+          "title": "Programmes entreprise",
+          "description": "Routes récurrentes et livraison entreprise.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "À propos",
+          "description": "L'équipe derrière Porterchain.",
+          "href": "/company"
+        },
         "2": { "title": "Contact", "description": "Démarrer une conversation.", "href": "/contact" }
       }
     }
@@ -290,9 +455,18 @@
       "label": "Mission",
       "title": "Pourquoi nous existons",
       "items": {
-        "0": { "title": "Mission", "description": "Aider les entreprises locales à croître sans département logistique interne." },
-        "1": { "title": "Vision", "description": "Devenir le partenaire logistique le plus fiable pour les entreprises locales au Canada." },
-        "2": { "title": "Objectif", "description": "Livrer chaque expédition en sécurité, à temps, avec visibilité complète." }
+        "0": {
+          "title": "Mission",
+          "description": "Aider les entreprises locales à croître sans département logistique interne."
+        },
+        "1": {
+          "title": "Vision",
+          "description": "Devenir le partenaire logistique le plus fiable pour les entreprises locales au Canada."
+        },
+        "2": {
+          "title": "Objectif",
+          "description": "Livrer chaque expédition en sécurité, à temps, avec visibilité complète."
+        }
       }
     },
     "timeline": {
@@ -300,20 +474,44 @@
       "title": "L'évolution de Porterchain",
       "subtitle": "De l'excellence opérationnelle à une entreprise logistique commerciale à service complet.",
       "steps": {
-        "0": { "title": "Opérations d'abord", "description": "Expérience réelle avec WSIB, assurance et conformité." },
-        "1": { "title": "Répartition gérée", "description": "Planification d'itinéraires, suivi en direct et preuve de livraison." },
-        "2": { "title": "Réseau partenaires", "description": "Chauffeurs vérifiés avec flux prévisibles." },
-        "3": { "title": "Programmes entreprise", "description": "Routes récurrentes et intégration marchands en Ontario." }
+        "0": {
+          "title": "Opérations d'abord",
+          "description": "Expérience réelle avec WSIB, assurance et conformité."
+        },
+        "1": {
+          "title": "Répartition gérée",
+          "description": "Planification d'itinéraires, suivi en direct et preuve de livraison."
+        },
+        "2": {
+          "title": "Réseau partenaires",
+          "description": "Chauffeurs vérifiés avec flux prévisibles."
+        },
+        "3": {
+          "title": "Programmes entreprise",
+          "description": "Routes récurrentes et intégration marchands en Ontario."
+        }
       }
     },
     "values": {
       "label": "Principes",
       "title": "Comment nous opérons",
       "items": {
-        "0": { "title": "Conformité d'abord", "description": "Processus documentés et flux prêts pour audit." },
-        "1": { "title": "Responsabilité", "description": "Propriété claire de la répartition à la preuve." },
-        "2": { "title": "Durabilité", "description": "Optimisation réduisant carburant et émissions." },
-        "3": { "title": "Succès partenaires", "description": "Rémunération équitable et support opérationnel." }
+        "0": {
+          "title": "Conformité d'abord",
+          "description": "Processus documentés et flux prêts pour audit."
+        },
+        "1": {
+          "title": "Responsabilité",
+          "description": "Propriété claire de la répartition à la preuve."
+        },
+        "2": {
+          "title": "Durabilité",
+          "description": "Optimisation réduisant carburant et émissions."
+        },
+        "3": {
+          "title": "Succès partenaires",
+          "description": "Rémunération équitable et support opérationnel."
+        }
       }
     },
     "cta": {
@@ -327,17 +525,34 @@
       "title": "FAQ entreprise",
       "items": {
         "0": { "q": "Siège social?", "a": "100 King Street West, Toronto, ON M5X 1A9, Canada." },
-        "1": { "q": "Recrutement?", "a": "Nous grandissons nos équipes technologie et opérations." },
-        "2": { "q": "Rejoindre comme chauffeur?", "a": "Programme réseau avec travail prévisible et support." },
-        "3": { "q": "Qu'est-ce qui nous distingue?", "a": "Entreprise logistique structurée — pas une place de marché." }
+        "1": {
+          "q": "Recrutement?",
+          "a": "Nous grandissons nos équipes technologie et opérations."
+        },
+        "2": {
+          "q": "Rejoindre comme chauffeur?",
+          "a": "Programme réseau avec travail prévisible et support."
+        },
+        "3": {
+          "q": "Qu'est-ce qui nous distingue?",
+          "a": "Entreprise logistique structurée — pas une place de marché."
+        }
       }
     },
     "resources": {
       "label": "Ressources",
       "title": "En savoir plus",
       "items": {
-        "0": { "title": "Programmes entreprise", "description": "Routes récurrentes et livraison pour équipes en croissance.", "href": "/business" },
-        "1": { "title": "Blogue", "description": "Conseils logistique commerciale et opérations.", "href": "/blog" },
+        "0": {
+          "title": "Programmes entreprise",
+          "description": "Routes récurrentes et livraison pour équipes en croissance.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "Blogue",
+          "description": "Conseils logistique commerciale et opérations.",
+          "href": "/blog"
+        },
         "2": { "title": "Contact", "description": "Joindre notre équipe.", "href": "/contact" }
       }
     }
@@ -394,11 +609,31 @@
       "label": "Lignes directes",
       "title": "Joindre la bonne équipe",
       "items": {
-        "0": { "title": "Ventes", "description": "Démos, tarification et intégration entreprise.", "contact": "peter@porterchain.com" },
-        "1": { "title": "Support", "description": "Expéditions actives, suivi et assistance opérationnelle.", "contact": "ops@porterchain.com" },
-        "2": { "title": "Comptes entreprise", "description": "Configuration, facturation et routes récurrentes.", "contact": "peter@porterchain.com" },
-        "3": { "title": "Support chauffeurs", "description": "Intégration partenaires et aide terrain.", "contact": "ops@porterchain.com" },
-        "4": { "title": "Support développeurs", "description": "API, webhooks et intégrations techniques.", "contact": "peter@porterchain.com" }
+        "0": {
+          "title": "Ventes",
+          "description": "Démos, tarification et intégration entreprise.",
+          "contact": "peter@porterchain.com"
+        },
+        "1": {
+          "title": "Support",
+          "description": "Expéditions actives, suivi et assistance opérationnelle.",
+          "contact": "ops@porterchain.com"
+        },
+        "2": {
+          "title": "Comptes entreprise",
+          "description": "Configuration, facturation et routes récurrentes.",
+          "contact": "peter@porterchain.com"
+        },
+        "3": {
+          "title": "Support chauffeurs",
+          "description": "Intégration partenaires et aide terrain.",
+          "contact": "ops@porterchain.com"
+        },
+        "4": {
+          "title": "Support développeurs",
+          "description": "API, webhooks et intégrations techniques.",
+          "contact": "peter@porterchain.com"
+        }
       }
     },
     "social": {
@@ -409,11 +644,26 @@
       "label": "FAQ",
       "title": "Questions fréquentes",
       "items": {
-        "0": { "q": "Délai de réponse?", "a": "Sous un jour ouvrable. La ligne d'urgence est surveillée pendant les opérations actives." },
-        "1": { "q": "Visite au bureau Toronto?", "a": "Oui. Rendez-vous au siège ou virtuellement — selon votre préférence." },
-        "2": { "q": "Accès API?", "a": "Sélectionnez API comme type ou écrivez à peter@porterchain.com avec vos besoins d'intégration." },
-        "3": { "q": "Problème d'expédition active?", "a": "Appelez la ligne d'urgence ou écrivez à ops@porterchain.com avec votre référence." },
-        "4": { "q": "Comment demander un devis entreprise?", "a": "Sélectionnez Ventes et notre équipe vous contactera avec tarification et options d'intégration pour votre programme de livraison." }
+        "0": {
+          "q": "Délai de réponse?",
+          "a": "Sous un jour ouvrable. La ligne d'urgence est surveillée pendant les opérations actives."
+        },
+        "1": {
+          "q": "Visite au bureau Toronto?",
+          "a": "Oui. Rendez-vous au siège ou virtuellement — selon votre préférence."
+        },
+        "2": {
+          "q": "Accès API?",
+          "a": "Sélectionnez API comme type ou écrivez à peter@porterchain.com avec vos besoins d'intégration."
+        },
+        "3": {
+          "q": "Problème d'expédition active?",
+          "a": "Appelez la ligne d'urgence ou écrivez à ops@porterchain.com avec votre référence."
+        },
+        "4": {
+          "q": "Comment demander un devis entreprise?",
+          "a": "Sélectionnez Ventes et notre équipe vous contactera avec tarification et options d'intégration pour votre programme de livraison."
+        }
       }
     }
   },
@@ -445,19 +695,40 @@
       "title": "Conçu pour les bâtisseurs et opérateurs",
       "description": "Nous avançons avec urgence et soin. Standards élevés, propriété claire et respect pour ceux qui roulent et codent.",
       "traits": {
-        "0": { "title": "Propriété", "description": "Vous possédez les résultats de l'idée au terrain." },
-        "1": { "title": "Clarté", "description": "Communication directe et décisions documentées." },
-        "2": { "title": "Artisanat", "description": "Nous soignons les détails en répartition, code et expérience client." }
+        "0": {
+          "title": "Propriété",
+          "description": "Vous possédez les résultats de l'idée au terrain."
+        },
+        "1": {
+          "title": "Clarté",
+          "description": "Communication directe et décisions documentées."
+        },
+        "2": {
+          "title": "Artisanat",
+          "description": "Nous soignons les détails en répartition, code et expérience client."
+        }
       }
     },
     "values": {
       "label": "Valeurs",
       "title": "Ce qui nous guide",
       "items": {
-        "0": { "title": "Conformité d'abord", "description": "Confiance par processus documentés et flux prêts pour audit." },
-        "1": { "title": "Responsabilité", "description": "Propriétaire clair de la répartition à la preuve de livraison." },
-        "2": { "title": "Durabilité", "description": "Optimisation réduisant carburant, émissions et kilomètres à vide." },
-        "3": { "title": "Succès partenaires", "description": "Travail équitable et support opérationnel pour les chauffeurs." }
+        "0": {
+          "title": "Conformité d'abord",
+          "description": "Confiance par processus documentés et flux prêts pour audit."
+        },
+        "1": {
+          "title": "Responsabilité",
+          "description": "Propriétaire clair de la répartition à la preuve de livraison."
+        },
+        "2": {
+          "title": "Durabilité",
+          "description": "Optimisation réduisant carburant, émissions et kilomètres à vide."
+        },
+        "3": {
+          "title": "Succès partenaires",
+          "description": "Travail équitable et support opérationnel pour les chauffeurs."
+        }
       }
     },
     "benefits": {
@@ -465,12 +736,30 @@
       "title": "Comment nous soutenons votre croissance",
       "subtitle": "Forfaits compétitifs avec flexibilité et bons outils.",
       "items": {
-        "0": { "title": "Télétravail", "description": "Travaillez de partout au Canada avec rencontres périodiques à Toronto." },
-        "1": { "title": "Horaires flexibles", "description": "Fenêtres de collaboration avec autonomie sur votre journée." },
-        "2": { "title": "Budget formation", "description": "Allocation annuelle pour cours, conférences et certifications." },
-        "3": { "title": "Équipement moderne", "description": "Ordinateur, écrans et logiciels récents." },
-        "4": { "title": "Croissance de carrière", "description": "Parcours clairs, mentorat et portée croissante." },
-        "5": { "title": "Santé et bien-être", "description": "Avantages santé complets pour vous et votre famille." }
+        "0": {
+          "title": "Télétravail",
+          "description": "Travaillez de partout au Canada avec rencontres périodiques à Toronto."
+        },
+        "1": {
+          "title": "Horaires flexibles",
+          "description": "Fenêtres de collaboration avec autonomie sur votre journée."
+        },
+        "2": {
+          "title": "Budget formation",
+          "description": "Allocation annuelle pour cours, conférences et certifications."
+        },
+        "3": {
+          "title": "Équipement moderne",
+          "description": "Ordinateur, écrans et logiciels récents."
+        },
+        "4": {
+          "title": "Croissance de carrière",
+          "description": "Parcours clairs, mentorat et portée croissante."
+        },
+        "5": {
+          "title": "Santé et bien-être",
+          "description": "Avantages santé complets pour vous et votre famille."
+        }
       }
     },
     "positions": {
@@ -550,11 +839,26 @@
       "title": "À quoi s'attendre",
       "subtitle": "Processus respectueux et transparent — typiquement deux à trois semaines.",
       "steps": {
-        "0": { "title": "Candidature", "description": "Soumettez CV et courte note sur Porterchain." },
-        "1": { "title": "Examen", "description": "Évaluation de l'adéquation au rôle et à la mission." },
-        "2": { "title": "Entrevue", "description": "Conversations avec le gestionnaire et l'équipe." },
-        "3": { "title": "Offre", "description": "Forfait compétitif avec portée claire et date de début." },
-        "4": { "title": "Intégration", "description": "Premiers 30 jours structurés avec mentors et victoires rapides." }
+        "0": {
+          "title": "Candidature",
+          "description": "Soumettez CV et courte note sur Porterchain."
+        },
+        "1": {
+          "title": "Examen",
+          "description": "Évaluation de l'adéquation au rôle et à la mission."
+        },
+        "2": {
+          "title": "Entrevue",
+          "description": "Conversations avec le gestionnaire et l'équipe."
+        },
+        "3": {
+          "title": "Offre",
+          "description": "Forfait compétitif avec portée claire et date de début."
+        },
+        "4": {
+          "title": "Intégration",
+          "description": "Premiers 30 jours structurés avec mentors et victoires rapides."
+        }
       }
     },
     "testimonials": {
@@ -582,11 +886,26 @@
       "label": "FAQ",
       "title": "FAQ carrières",
       "items": {
-        "0": { "q": "Recrutez-vous à distance?", "a": "Oui. Beaucoup de rôles sont télétravail au Canada. Certains rôles terrain exigent le RGT." },
-        "1": { "q": "Processus d'entrevue?", "a": "Filtrage, gestionnaire et entrevue d'équipe. Rôles techniques incluent un exercice pratique." },
-        "2": { "q": "Parrainage de permis?", "a": "Étudié au cas par cas pour candidats exceptionnels." },
-        "3": { "q": "Plusieurs candidatures?", "a": "Oui. Postulez à chaque rôle pertinent ou envoyez une candidature générale." },
-        "4": { "q": "Délai de réponse?", "a": "Nous visons cinq jours ouvrables pour toutes les candidatures." }
+        "0": {
+          "q": "Recrutez-vous à distance?",
+          "a": "Oui. Beaucoup de rôles sont télétravail au Canada. Certains rôles terrain exigent le RGT."
+        },
+        "1": {
+          "q": "Processus d'entrevue?",
+          "a": "Filtrage, gestionnaire et entrevue d'équipe. Rôles techniques incluent un exercice pratique."
+        },
+        "2": {
+          "q": "Parrainage de permis?",
+          "a": "Étudié au cas par cas pour candidats exceptionnels."
+        },
+        "3": {
+          "q": "Plusieurs candidatures?",
+          "a": "Oui. Postulez à chaque rôle pertinent ou envoyez une candidature générale."
+        },
+        "4": {
+          "q": "Délai de réponse?",
+          "a": "Nous visons cinq jours ouvrables pour toutes les candidatures."
+        }
       }
     },
     "cta": {

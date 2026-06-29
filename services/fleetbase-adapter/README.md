@@ -10,22 +10,22 @@ All Fleetbase communication **must** go through this adapter. Porterchain apps (
 
 ## Modules
 
-| Module | Class | Responsibility |
-|--------|-------|----------------|
-| `client/` | `FleetbaseClient` | HTTP transport, auth headers, retries |
-| `auth/` | `FleetbaseSsoClient` | SSO token exchange, permission sync |
-| `orders/` | `OrderService` | Order create/update/cancel |
-| `drivers/` | `DriverService` | Driver sync |
-| `vehicles/` | `VehicleService` | Vehicle sync |
-| `dispatch/` | `DispatchService` | Dispatch, schedule, start, complete |
-| `tracking/` | `TrackingService` | Tracker, ETA snapshots |
-| `routes/` | `RouteService` | Route geometry, orchestrator |
-| `webhooks/` | `WebhookService` | Signature validation, event parsing |
-| `events/` | `EventTranslator` | Fleetbase event → Porterchain state |
-| `pod/` | `PodService` | Proof of delivery fetch/normalize |
-| `errors.py` | `ErrorHandler` | Structured error logging |
-| `retry.py` | `RetryPolicy` | Transient failure retries |
-| `integration.py` | `FleetbaseAdapter` | Facade for Porterchain API |
+| Module           | Class                | Responsibility                        |
+| ---------------- | -------------------- | ------------------------------------- |
+| `client/`        | `FleetbaseClient`    | HTTP transport, auth headers, retries |
+| `auth/`          | `FleetbaseSsoClient` | SSO token exchange, permission sync   |
+| `orders/`        | `OrderService`       | Order create/update/cancel            |
+| `drivers/`       | `DriverService`      | Driver sync                           |
+| `vehicles/`      | `VehicleService`     | Vehicle sync                          |
+| `dispatch/`      | `DispatchService`    | Dispatch, schedule, start, complete   |
+| `tracking/`      | `TrackingService`    | Tracker, ETA snapshots                |
+| `routes/`        | `RouteService`       | Route geometry, orchestrator          |
+| `webhooks/`      | `WebhookService`     | Signature validation, event parsing   |
+| `events/`        | `EventTranslator`    | Fleetbase event → Porterchain state   |
+| `pod/`           | `PodService`         | Proof of delivery fetch/normalize     |
+| `errors.py`      | `ErrorHandler`       | Structured error logging              |
+| `retry.py`       | `RetryPolicy`        | Transient failure retries             |
+| `integration.py` | `FleetbaseAdapter`   | Facade for Porterchain API            |
 
 ## Usage
 

@@ -60,8 +60,7 @@ export async function placeDetailsToBookingAddress(
     fields: ["formattedAddress", "displayName", "location", "id"],
   });
 
-  const formatted =
-    place.formattedAddress?.trim() || place.displayName?.trim() || "";
+  const formatted = place.formattedAddress?.trim() || place.displayName?.trim() || "";
 
   if (!formatted) return null;
 

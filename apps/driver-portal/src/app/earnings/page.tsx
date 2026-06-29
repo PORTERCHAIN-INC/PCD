@@ -20,8 +20,14 @@ export default function EarningsPage() {
       <h1 className="text-2xl font-bold">Earnings</h1>
       {data && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl bg-white p-5"><p className="text-sm text-[var(--muted)]">Today</p><p className="text-2xl font-bold">{formatCents(data.today_cents)}</p></div>
-          <div className="rounded-2xl bg-white p-5"><p className="text-sm text-[var(--muted)]">This week</p><p className="text-2xl font-bold">{formatCents(data.week_cents)}</p></div>
+          <div className="rounded-2xl bg-white p-5">
+            <p className="text-sm text-[var(--muted)]">Today</p>
+            <p className="text-2xl font-bold">{formatCents(data.today_cents)}</p>
+          </div>
+          <div className="rounded-2xl bg-white p-5">
+            <p className="text-sm text-[var(--muted)]">This week</p>
+            <p className="text-2xl font-bold">{formatCents(data.week_cents)}</p>
+          </div>
         </div>
       )}
     </DriverShell>

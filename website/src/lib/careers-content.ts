@@ -11,9 +11,7 @@ export interface PositionData {
   applyLabel: string;
 }
 
-export function buildPositionsFromTranslations(
-  t: (key: string) => string
-): PositionData[] {
+export function buildPositionsFromTranslations(t: (key: string) => string): PositionData[] {
   return careerPositions.map(({ id, department }) => ({
     id,
     department,

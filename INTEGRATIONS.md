@@ -1,26 +1,26 @@
 # Porterchain — Integrations
 
 **Document version:** 1.0  
-**Date:** June 29, 2026  
+**Date:** June 29, 2026
 
 ---
 
 ## Integration map
 
-| Integration | Status in PCD repo | Used by | Purpose |
-|-------------|-------------------|---------|---------|
-| **Fleetbase** | Documented | API, Admin | Dispatch, fleet ops, routing |
-| **Google Maps** | **Implemented** (website) | Website, Driver app, API | Autocomplete, maps, geocoding |
-| **OSRM** | Documented | Fleetbase/API | Route polyline encoding (fallback) |
-| **Valhalla** | Documented | Fleetbase | Primary routing engine |
-| **Stripe** | Documented | API, Merchant portal, Website | Payments, invoicing |
-| **Clerk** | Documented | Merchant portal, API | Identity, JWT |
-| **Firebase** | Documented (FCM only) | API | Driver push notifications |
-| **Supabase** | Documented | Website | Booking OTP |
-| **Twilio** | Documented | API | SMS OTP |
-| **Zoho SMTP** | Documented | API | Transactional email |
-| **Zoho SalesIQ** | Documented | Website | Live chat |
-| **Mapbox** | Driver app only | Driver app | Polyline decode (`@mapbox/polyline`) |
+| Integration      | Status in PCD repo        | Used by                       | Purpose                              |
+| ---------------- | ------------------------- | ----------------------------- | ------------------------------------ |
+| **Fleetbase**    | Documented                | API, Admin                    | Dispatch, fleet ops, routing         |
+| **Google Maps**  | **Implemented** (website) | Website, Driver app, API      | Autocomplete, maps, geocoding        |
+| **OSRM**         | Documented                | Fleetbase/API                 | Route polyline encoding (fallback)   |
+| **Valhalla**     | Documented                | Fleetbase                     | Primary routing engine               |
+| **Stripe**       | Documented                | API, Merchant portal, Website | Payments, invoicing                  |
+| **Clerk**        | Documented                | Merchant portal, API          | Identity, JWT                        |
+| **Firebase**     | Documented (FCM only)     | API                           | Driver push notifications            |
+| **Supabase**     | Documented                | Website                       | Booking OTP                          |
+| **Twilio**       | Documented                | API                           | SMS OTP                              |
+| **Zoho SMTP**    | Documented                | API                           | Transactional email                  |
+| **Zoho SalesIQ** | Documented                | Website                       | Live chat                            |
+| **Mapbox**       | Driver app only           | Driver app                    | Polyline decode (`@mapbox/polyline`) |
 
 ---
 
@@ -32,16 +32,16 @@ Open-source logistics and dispatch platform. Porterchain uses Fleetbase as the *
 
 ### Configuration
 
-| Variable | Value |
-|----------|-------|
-| `FLEETBASE_API_URL` | API endpoint |
-| `REGISTRY_HOST` | `https://registry.fleetbase.io` |
-| `CONSOLE_HOST` | Admin UI (`:4200`) |
-| `PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID` | Default org |
-| `PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE` | Enable dispatch sync |
-| `PORTERCHAIN_FLEETBASE_DRIVER_JOB_BRIDGE` | Enable driver job sync |
-| `PORTERCHAIN_FLEETBASE_ASSIGNMENT_REQUIRED` | Prod assignment gate |
-| `PORTERCHAIN_DISPATCHER_API_KEY` | Bridge authentication |
+| Variable                                     | Value                           |
+| -------------------------------------------- | ------------------------------- |
+| `FLEETBASE_API_URL`                          | API endpoint                    |
+| `REGISTRY_HOST`                              | `https://registry.fleetbase.io` |
+| `CONSOLE_HOST`                               | Admin UI (`:4200`)              |
+| `PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID` | Default org                     |
+| `PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE`      | Enable dispatch sync            |
+| `PORTERCHAIN_FLEETBASE_DRIVER_JOB_BRIDGE`    | Enable driver job sync          |
+| `PORTERCHAIN_FLEETBASE_ASSIGNMENT_REQUIRED`  | Prod assignment gate            |
+| `PORTERCHAIN_DISPATCHER_API_KEY`             | Bridge authentication           |
 
 ### Data flow
 
@@ -65,28 +65,28 @@ Driver app ← Porterchain API ← Fleetbase route data
 
 ### Implementation status
 
-| Surface | Package | Status |
-|---------|---------|--------|
-| Website | `@vis.gl/react-google-maps` 1.8.3 | **Live** — Places API (New) |
-| Driver app | `react-native-maps` + `PROVIDER_GOOGLE` | External repo |
-| API | Server key for geocoding / distance | Documented |
+| Surface    | Package                                 | Status                      |
+| ---------- | --------------------------------------- | --------------------------- |
+| Website    | `@vis.gl/react-google-maps` 1.8.3       | **Live** — Places API (New) |
+| Driver app | `react-native-maps` + `PROVIDER_GOOGLE` | External repo               |
+| API        | Server key for geocoding / distance     | Documented                  |
 
 ### Website files
 
-| File | Role |
-|------|------|
-| `website/src/lib/maps.ts` | API key, GTA bounds, address normalization |
-| `website/src/components/maps/GoogleMapsProvider.tsx` | Maps JS API loader |
-| `website/src/components/maps/AddressAutocompleteInput.tsx` | `PlaceAutocompleteElement` |
-| `website/env.example` | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` |
+| File                                                       | Role                                       |
+| ---------------------------------------------------------- | ------------------------------------------ |
+| `website/src/lib/maps.ts`                                  | API key, GTA bounds, address normalization |
+| `website/src/components/maps/GoogleMapsProvider.tsx`       | Maps JS API loader                         |
+| `website/src/components/maps/AddressAutocompleteInput.tsx` | `PlaceAutocompleteElement`                 |
+| `website/env.example`                                      | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`          |
 
 ### API keys (three keys required)
 
-| Key | Restriction | Used for |
-|-----|-------------|----------|
-| Browser | HTTP referrer | Website autocomplete |
-| Server (IP) | Server IP | Geocoding, Distance Matrix |
-| Mobile (iOS/Android) | Bundle ID `com.porterchain.PCD` | Driver map tiles |
+| Key                  | Restriction                     | Used for                   |
+| -------------------- | ------------------------------- | -------------------------- |
+| Browser              | HTTP referrer                   | Website autocomplete       |
+| Server (IP)          | Server IP                       | Geocoding, Distance Matrix |
+| Mobile (iOS/Android) | Bundle ID `com.porterchain.PCD` | Driver map tiles           |
 
 ### Required GCP APIs
 
@@ -146,10 +146,10 @@ Ops optimizes route (Fleetbase/Valhalla)
 
 ### Configuration
 
-| Variable | Docker | Host |
-|----------|--------|------|
-| `VALHALLA_BASE_URI` | `http://valhalla:8002` | — |
-| `VALHALLA_BASE_URL` | — | `http://localhost:8002` |
+| Variable            | Docker                 | Host                    |
+| ------------------- | ---------------------- | ----------------------- |
+| `VALHALLA_BASE_URI` | `http://valhalla:8002` | —                       |
+| `VALHALLA_BASE_URL` | —                      | `http://localhost:8002` |
 
 ### Deployment
 
@@ -169,21 +169,21 @@ Ops optimizes route (Fleetbase/Valhalla)
 
 ### Use cases
 
-| Flow | URL pattern |
-|------|-------------|
+| Flow                     | URL pattern                                                    |
+| ------------------------ | -------------------------------------------------------------- |
 | Merchant invoice payment | Redirect to Stripe Checkout → `localhost:3001/invoices?paid=1` |
-| Retail post-delivery pay | `/track/{tracking_number}` → Stripe |
+| Retail post-delivery pay | `/track/{tracking_number}` → Stripe                            |
 
 ### Configuration (server-only)
 
-| Variable | Purpose |
-|----------|---------|
-| `STRIPE_KEY` | Publishable (`pk_*`) |
-| `STRIPE_SECRET` | Secret (`sk_*`) |
-| `STRIPE_WEBHOOK_SECRET` | Webhook verification |
-| `PORTERCHAIN_STRIPE_SUCCESS_URL` | Merchant success |
-| `PORTERCHAIN_STRIPE_CANCEL_URL` | Merchant cancel |
-| `PORTERCHAIN_RETAIL_PAY_URL_BASE` | Retail pay base |
+| Variable                          | Purpose              |
+| --------------------------------- | -------------------- |
+| `STRIPE_KEY`                      | Publishable (`pk_*`) |
+| `STRIPE_SECRET`                   | Secret (`sk_*`)      |
+| `STRIPE_WEBHOOK_SECRET`           | Webhook verification |
+| `PORTERCHAIN_STRIPE_SUCCESS_URL`  | Merchant success     |
+| `PORTERCHAIN_STRIPE_CANCEL_URL`   | Merchant cancel      |
+| `PORTERCHAIN_RETAIL_PAY_URL_BASE` | Retail pay base      |
 
 ### Webhook events (expected)
 
@@ -229,12 +229,12 @@ Ops optimizes route (Fleetbase/Valhalla)
 
 **FCM push notifications only** — NOT used for authentication.
 
-| Variable | Purpose |
-|----------|---------|
-| `FIREBASE_PROJECT_ID` | GCP project |
-| `FIREBASE_CREDENTIALS_PATH` | Service account JSON |
-| `PORTERCHAIN_DRIVER_PUSH_ENABLED` | Master toggle |
-| `PORTERCHAIN_DRIVER_PUSH_SEND` | Send toggle |
+| Variable                          | Purpose              |
+| --------------------------------- | -------------------- |
+| `FIREBASE_PROJECT_ID`             | GCP project          |
+| `FIREBASE_CREDENTIALS_PATH`       | Service account JSON |
+| `PORTERCHAIN_DRIVER_PUSH_ENABLED` | Master toggle        |
+| `PORTERCHAIN_DRIVER_PUSH_SEND`    | Send toggle          |
 
 ### Important distinction
 
@@ -252,9 +252,9 @@ Ops optimizes route (Fleetbase/Valhalla)
 
 ### Channels
 
-| Channel | Config |
-|---------|--------|
-| Platform mail | `MAIL_*` vars |
+| Channel           | Config                    |
+| ----------------- | ------------------------- |
+| Platform mail     | `MAIL_*` vars             |
 | Booking OTP email | `BOOKING_OTP_SMTP_*` vars |
 
 ### Provider
@@ -277,10 +277,10 @@ Ops optimizes route (Fleetbase/Valhalla)
 
 Personal booking OTP via Supabase Auth SMS channel.
 
-| Variable | Purpose |
-|----------|---------|
-| `TWILIO_ACCOUNT_SID` | Account |
-| `TWILIO_AUTH_TOKEN` | Secret |
+| Variable             | Purpose      |
+| -------------------- | ------------ |
+| `TWILIO_ACCOUNT_SID` | Account      |
+| `TWILIO_AUTH_TOKEN`  | Secret       |
 | `TWILIO_FROM_NUMBER` | E.164 sender |
 
 ### Verification checklist
@@ -293,12 +293,12 @@ Personal booking OTP via Supabase Auth SMS channel.
 
 ## Push notifications
 
-| Layer | Status |
-|-------|--------|
-| API (FCM) | Configured in docs |
-| Driver app | **Not implemented** |
-| Merchant portal | Not required |
-| Website | Not required |
+| Layer           | Status              |
+| --------------- | ------------------- |
+| API (FCM)       | Configured in docs  |
+| Driver app      | **Not implemented** |
+| Merchant portal | Not required        |
+| Website         | Not required        |
 
 **Future:** `expo-notifications` + APNs/FCM in driver app.
 
@@ -308,15 +308,16 @@ Personal booking OTP via Supabase Auth SMS channel.
 
 ### Inbound (Porterchain receives)
 
-| Source | Endpoint | Secret |
-|--------|----------|--------|
-| Stripe | `/webhooks/stripe` | `STRIPE_WEBHOOK_SECRET` |
-| Clerk | `/webhooks/clerk` | Clerk signing secret (add) |
-| Fleetbase | `/webhooks/fleetbase` | Shared secret (add) |
+| Source    | Endpoint              | Secret                     |
+| --------- | --------------------- | -------------------------- |
+| Stripe    | `/webhooks/stripe`    | `STRIPE_WEBHOOK_SECRET`    |
+| Clerk     | `/webhooks/clerk`     | Clerk signing secret (add) |
+| Fleetbase | `/webhooks/fleetbase` | Shared secret (add)        |
 
 ### Outbound (Porterchain sends to merchants)
 
 Documented on `/api-integrations` page:
+
 - Shipment created
 - Dispatch assigned
 - Delivery completed
@@ -334,12 +335,12 @@ Documented on `/api-integrations` page:
 
 ## Zoho SalesIQ (live chat)
 
-| Variable | Purpose |
-|----------|---------|
+| Variable                               | Purpose     |
+| -------------------------------------- | ----------- |
 | `NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE` | Widget hash |
-| `NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED` | Toggle |
+| `NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED`     | Toggle      |
 
-**Status:** Documented in legal doc; component `ZohoSalesIQ.tsx` not in PCD repo.
+**Status:** Implemented at `website/src/components/integrations/ZohoSalesIQ.tsx`, loaded from `website/src/app/[locale]/layout.tsx`. Set `NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED=true` and `NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE` in `website/.env.local`. Widget script: `https://salesiq.zohopublic.ca/widget?wc={code}` (Canadian endpoint; same widget as legacy `PORTERCHAIN/apps/web`).
 
 ---
 
@@ -347,17 +348,17 @@ Documented on `/api-integrations` page:
 
 Monitor these endpoints in staging/production:
 
-| Service | Health check |
-|---------|--------------|
-| Porterchain API | `GET /health` |
-| Fleetbase API | Fleetbase health endpoint |
-| Valhalla | `GET /status` |
-| Redis | `PING` |
-| MySQL | Connection pool check |
-| Stripe | Webhook delivery success rate |
-| Clerk | JWKS fetch latency |
-| Google Maps | Places autocomplete smoke test |
+| Service         | Health check                   |
+| --------------- | ------------------------------ |
+| Porterchain API | `GET /health`                  |
+| Fleetbase API   | Fleetbase health endpoint      |
+| Valhalla        | `GET /status`                  |
+| Redis           | `PING`                         |
+| MySQL           | Connection pool check          |
+| Stripe          | Webhook delivery success rate  |
+| Clerk           | JWKS fetch latency             |
+| Google Maps     | Places autocomplete smoke test |
 
 ---
 
-*Re-verify each integration when monorepo services are consolidated into PCD.*
+_Re-verify each integration when monorepo services are consolidated into PCD._

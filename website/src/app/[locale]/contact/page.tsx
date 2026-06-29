@@ -11,13 +11,7 @@ import FaqSection from "@/components/corporate/sections/FaqSection";
 import Container from "@/components/ui/Container";
 import FadeIn from "@/components/corporate/motion/FadeIn";
 import { collectFaqItems } from "@/lib/corporate-content";
-import {
-  TrendingUp,
-  Headphones,
-  Building2,
-  Truck,
-  Code2,
-} from "lucide-react";
+import { TrendingUp, Headphones, Building2, Truck, Code2 } from "lucide-react";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -73,11 +67,7 @@ export default async function ContactPage({ params }: Props) {
 
   return (
     <CorporateShell>
-      <ContactHero
-        badge={t("hero.badge")}
-        title={t("hero.title")}
-        subtitle={t("hero.subtitle")}
-      />
+      <ContactHero badge={t("hero.badge")} title={t("hero.title")} subtitle={t("hero.subtitle")} />
 
       <section className="site-section bg-white -mt-2 relative z-10">
         <Container>

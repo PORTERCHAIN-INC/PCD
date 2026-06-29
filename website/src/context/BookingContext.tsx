@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import type { BookingAddress } from "@/lib/maps";
 import {
   BOOKING_TO_CATALOG,
@@ -32,19 +26,15 @@ const BookingContext = createContext<BookingContextValue | null>(null);
 function scrollToBooking() {
   const el = document.getElementById("book");
   if (!el) return;
-  const navOffset = parseFloat(
-    getComputedStyle(document.documentElement).getPropertyValue("--nav-height")
-  ) || 64;
+  const navOffset =
+    parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-height")) || 64;
   const top = el.getBoundingClientRect().top + window.scrollY - navOffset - 16;
   window.scrollTo({ top, behavior: "smooth" });
 }
 
 export function BookingProvider({ children }: { children: ReactNode }) {
-  const [selectedVehicle, setSelectedVehicleState] =
-    useState<BookingVehicleKey>("cargoVan");
-  const [catalogSelectedId, setCatalogSelectedId] = useState<string | null>(
-    null
-  );
+  const [selectedVehicle, setSelectedVehicleState] = useState<BookingVehicleKey>("cargoVan");
+  const [catalogSelectedId, setCatalogSelectedId] = useState<string | null>(null);
   const [bookingHighlight, setBookingHighlight] = useState(false);
   const [pickup, setPickup] = useState<BookingAddress | null>(null);
   const [dropoff, setDropoff] = useState<BookingAddress | null>(null);

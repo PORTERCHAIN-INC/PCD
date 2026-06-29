@@ -19,7 +19,7 @@ Porterchain links every delivery confirmation to a **structured proof chain**:
 - **Shipment references** tying proof to order and billing records
 - **Status history** — immutable event log from ingest to complete
 
-Each element reinforces the others. Together they answer: *who delivered what, where, when, and under which service level.*
+Each element reinforces the others. Together they answer: _who delivered what, where, when, and under which service level._
 
 ## Why audit-ready matters
 

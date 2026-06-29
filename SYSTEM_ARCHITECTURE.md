@@ -13,15 +13,15 @@ Porterchain is a commercial logistics platform comprising a public website, merc
 
 ### Repository scope (important)
 
-| Layer | In PCD repo today | Documented / external |
-|-------|-------------------|------------------------|
-| Public website (`website/`) | **Yes** — Next.js 16 marketing + booking UI | — |
-| Merchant portal | No | `portal.porterchain.com`, port 3001 |
-| Admin / control tower | No | Fleetbase console, port 4200 |
-| Driver app | No | `apps/mobile-driver` (Expo 52) |
-| Porterchain API | No | `apps/api` (FastAPI), port 8000 |
-| Fleetbase API | No | Laravel stack, port 8000 (shared or aliased) |
-| Docker / infra | No | Referenced in `details.md` |
+| Layer                       | In PCD repo today                           | Documented / external                        |
+| --------------------------- | ------------------------------------------- | -------------------------------------------- |
+| Public website (`website/`) | **Yes** — Next.js 16 marketing + booking UI | —                                            |
+| Merchant portal             | No                                          | `portal.porterchain.com`, port 3001          |
+| Admin / control tower       | No                                          | Fleetbase console, port 4200                 |
+| Driver app                  | No                                          | `apps/mobile-driver` (Expo 52)               |
+| Porterchain API             | No                                          | `apps/api` (FastAPI), port 8000              |
+| Fleetbase API               | No                                          | Laravel stack, port 8000 (shared or aliased) |
+| Docker / infra              | No                                          | Referenced in `details.md`                   |
 
 The PCD workspace is the **website slice** of a larger platform. Architecture below describes the **full Porterchain system** with clear boundaries for consolidation into a monorepo.
 
@@ -66,14 +66,14 @@ The PCD workspace is the **website slice** of a larger platform. Architecture be
 
 ### Application boundaries
 
-| Application | Responsibility | Must NOT do |
-|-------------|----------------|-------------|
-| **Website** | Marketing, booking UI, blog, contact, retail tracking entry | Dispatch, billing settlement, driver assignment |
-| **Merchant portal** | Onboarding, invoices, shipment management, Stripe checkout | Direct Fleetbase schema writes |
-| **Admin / Fleetbase console** | Dispatch, route optimization, driver assignment, control tower | Merchant contract logic |
-| **Driver app** | Route execution, POD capture, location pings | Pricing, merchant billing |
-| **Porterchain API** | Auth, bookings, merchant lifecycle, driver execution API, webhooks, Stripe | Replace Fleetbase dispatch engine |
-| **Fleetbase** | Fleet ops, orders, drivers (Fleetbase model), routing orchestration | Merchant legal agreements |
+| Application                   | Responsibility                                                             | Must NOT do                                     |
+| ----------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------- |
+| **Website**                   | Marketing, booking UI, blog, contact, retail tracking entry                | Dispatch, billing settlement, driver assignment |
+| **Merchant portal**           | Onboarding, invoices, shipment management, Stripe checkout                 | Direct Fleetbase schema writes                  |
+| **Admin / Fleetbase console** | Dispatch, route optimization, driver assignment, control tower             | Merchant contract logic                         |
+| **Driver app**                | Route execution, POD capture, location pings                               | Pricing, merchant billing                       |
+| **Porterchain API**           | Auth, bookings, merchant lifecycle, driver execution API, webhooks, Stripe | Replace Fleetbase dispatch engine               |
+| **Fleetbase**                 | Fleet ops, orders, drivers (Fleetbase model), routing orchestration        | Merchant legal agreements                       |
 
 ---
 
@@ -128,22 +128,22 @@ Ops creates / optimizes route (Fleetbase console)
 
 ### Billing flow
 
-| Segment | Trigger | Payment rail | Redirect URLs |
-|---------|---------|--------------|---------------|
-| Merchant invoice | Monthly / on-demand | Stripe Checkout | `localhost:3001/invoices?paid=1` |
-| Retail tracking | Post-delivery | Stripe on `/track/{id}` | `localhost:3000/track/{id}?paid=1` |
+| Segment          | Trigger             | Payment rail            | Redirect URLs                      |
+| ---------------- | ------------------- | ----------------------- | ---------------------------------- |
+| Merchant invoice | Monthly / on-demand | Stripe Checkout         | `localhost:3001/invoices?paid=1`   |
+| Retail tracking  | Post-delivery       | Stripe on `/track/{id}` | `localhost:3000/track/{id}?paid=1` |
 
 Webhook: `STRIPE_WEBHOOK_SECRET` validates events server-side (API only).
 
 ### Notification flow
 
-| Channel | Provider | Use case |
-|---------|----------|----------|
-| Email (transactional) | Zoho SMTP (`smtp.zohocloud.ca:465`) | Ops, booking OTP, invoices |
-| Email (booking OTP) | Dedicated SMTP vars `BOOKING_OTP_SMTP_*` | Business booking verification |
-| SMS | Twilio | Personal booking OTP |
-| Push (driver) | Firebase FCM via Fleetbase path | Driver job alerts (API-side; not in driver app today) |
-| Live chat | Zoho SalesIQ | Website support widget |
+| Channel               | Provider                                 | Use case                                              |
+| --------------------- | ---------------------------------------- | ----------------------------------------------------- |
+| Email (transactional) | Zoho SMTP (`smtp.zohocloud.ca:465`)      | Ops, booking OTP, invoices                            |
+| Email (booking OTP)   | Dedicated SMTP vars `BOOKING_OTP_SMTP_*` | Business booking verification                         |
+| SMS                   | Twilio                                   | Personal booking OTP                                  |
+| Push (driver)         | Firebase FCM via Fleetbase path          | Driver job alerts (API-side; not in driver app today) |
+| Live chat             | Zoho SalesIQ                             | Website support widget                                |
 
 ---
 
@@ -181,12 +181,12 @@ See [AUTHENTICATION.md](./AUTHENTICATION.md) for roles and permissions.
 
 ### Porterchain API (FastAPI) — documented paths
 
-| Domain | Base path | Auth |
-|--------|-----------|------|
-| Auth | `/auth/*` | Public (login) / refresh token |
-| Driver execution | `/driver-api/v1/*` | Bearer JWT + `X-Driver-Id` |
-| Legacy driver | `/driver/*` | Bearer JWT |
-| Routes / earnings | `/routes/{id}/*` | Bearer JWT |
+| Domain            | Base path          | Auth                           |
+| ----------------- | ------------------ | ------------------------------ |
+| Auth              | `/auth/*`          | Public (login) / refresh token |
+| Driver execution  | `/driver-api/v1/*` | Bearer JWT + `X-Driver-Id`     |
+| Legacy driver     | `/driver/*`        | Bearer JWT                     |
+| Routes / earnings | `/routes/{id}/*`   | Bearer JWT                     |
 
 Production: `https://api.porterchain.com`  
 Local: `http://localhost:8000`
@@ -210,16 +210,16 @@ Today the website booking widget is **client-side only** (no API submit). Target
 
 Fleetbase is the **dispatch and fleet operations backbone**.
 
-| Integration point | Configuration |
-|-------------------|---------------|
-| Default company | `PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID` |
-| Assignment enforcement | `PORTERCHAIN_FLEETBASE_ASSIGNMENT_REQUIRED` |
-| Dispatch bridge | `PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE` |
-| Driver job bridge | `PORTERCHAIN_FLEETBASE_DRIVER_JOB_BRIDGE` |
-| Dispatcher auth | `PORTERCHAIN_DISPATCHER_API_KEY` |
-| Console UI | `CONSOLE_HOST` (port 4200) |
-| Database | MySQL database `fleetbase` |
-| Push credentials | `FIREBASE_CREDENTIALS_PATH` under Fleetbase storage |
+| Integration point      | Configuration                                       |
+| ---------------------- | --------------------------------------------------- |
+| Default company        | `PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID`        |
+| Assignment enforcement | `PORTERCHAIN_FLEETBASE_ASSIGNMENT_REQUIRED`         |
+| Dispatch bridge        | `PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE`             |
+| Driver job bridge      | `PORTERCHAIN_FLEETBASE_DRIVER_JOB_BRIDGE`           |
+| Dispatcher auth        | `PORTERCHAIN_DISPATCHER_API_KEY`                    |
+| Console UI             | `CONSOLE_HOST` (port 4200)                          |
+| Database               | MySQL database `fleetbase`                          |
+| Push credentials       | `FIREBASE_CREDENTIALS_PATH` under Fleetbase storage |
 
 Porterchain-owned domain logic (merchant contracts, billing terms, retail pay URLs) lives in **Porterchain API / Laravel extensions** (`api/app/Models/Porterchain/*`), not in Fleetbase core tables.
 
@@ -263,29 +263,29 @@ Driver API: https://api.porterchain.com
 
 ## Cross-cutting concerns
 
-| Concern | Approach |
-|---------|----------|
-| i18n | `next-intl` — `en`, `fr` on website |
-| Observability | Sentry recommended — not installed |
-| Secrets | Never in client bundles; rotate `details.md` if exposed |
-| API docs | OpenAPI on Porterchain API — not in PCD repo |
+| Concern       | Approach                                                |
+| ------------- | ------------------------------------------------------- |
+| i18n          | `next-intl` — `en`, `fr` on website                     |
+| Observability | Sentry recommended — not installed                      |
+| Secrets       | Never in client bundles; rotate `details.md` if exposed |
+| API docs      | OpenAPI on Porterchain API — not in PCD repo            |
 
 ---
 
 ## Related documents
 
-| Document | Purpose |
-|----------|---------|
-| [TECH_STACK.md](./TECH_STACK.md) | Versions and technology choices |
-| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) | Full env var catalog |
-| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md) | Port allocation |
-| [DOCKER_ARCHITECTURE.md](./DOCKER_ARCHITECTURE.md) | Container design |
-| [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md) | Data stores |
-| [AUTHENTICATION.md](./AUTHENTICATION.md) | Identity and RBAC |
-| [INTEGRATIONS.md](./INTEGRATIONS.md) | Third-party services |
-| [SECURITY.md](./SECURITY.md) | Security controls |
-| [FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md) | Monorepo layout target |
-| [DEPENDENCY_REPORT.md](./DEPENDENCY_REPORT.md) | Package audit |
+| Document                                               | Purpose                         |
+| ------------------------------------------------------ | ------------------------------- |
+| [TECH_STACK.md](./TECH_STACK.md)                       | Versions and technology choices |
+| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) | Full env var catalog            |
+| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)       | Port allocation                 |
+| [DOCKER_ARCHITECTURE.md](./DOCKER_ARCHITECTURE.md)     | Container design                |
+| [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md) | Data stores                     |
+| [AUTHENTICATION.md](./AUTHENTICATION.md)               | Identity and RBAC               |
+| [INTEGRATIONS.md](./INTEGRATIONS.md)                   | Third-party services            |
+| [SECURITY.md](./SECURITY.md)                           | Security controls               |
+| [FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md)           | Monorepo layout target          |
+| [DEPENDENCY_REPORT.md](./DEPENDENCY_REPORT.md)         | Package audit                   |
 
 ---
 
@@ -300,4 +300,4 @@ Driver API: https://api.porterchain.com
 
 ---
 
-*This document describes architecture intent. It does not modify business logic, UI, or booking flow behavior.*
+_This document describes architecture intent. It does not modify business logic, UI, or booking flow behavior._

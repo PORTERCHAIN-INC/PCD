@@ -1,13 +1,7 @@
 import Image from "next/image";
 
 export type VehicleIllustrationType =
-  | "sedan"
-  | "suv"
-  | "pickup"
-  | "cargo-van"
-  | "high-roof"
-  | "box-16"
-  | "box-20";
+  "sedan" | "suv" | "pickup" | "cargo-van" | "high-roof" | "box-16" | "box-20";
 
 type VehicleVariant = "light" | "dark";
 
@@ -50,10 +44,7 @@ export default function VehicleIllustration({
   className = "",
   variant = "light",
 }: VehicleIllustrationProps) {
-  const filter =
-    variant === "light"
-      ? "brightness(0) invert(1)"
-      : "brightness(0) saturate(100%)";
+  const filter = variant === "light" ? "brightness(0) invert(1)" : "brightness(0) saturate(100%)";
 
   return (
     <Image

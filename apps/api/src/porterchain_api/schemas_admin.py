@@ -92,6 +92,58 @@ class OrderAdminItem(BaseModel):
     created_at: datetime
 
 
+class PaymentAdminItem(BaseModel):
+    payment_id: str
+    status: str
+    amount_cents: int
+    currency: str
+    stripe_payment_intent_id: str | None = None
+    stripe_checkout_session_id: str | None = None
+    receipt_url: str | None = None
+    failure_reason: str | None = None
+    retry_count: int = 0
+    created_at: datetime
+
+
+class OrderDetailResponse(BaseModel):
+    # Order
+    order_id: str
+    order_number: str
+    tracking_number: str
+    state: str
+    amount_cents: int
+    currency: str
+    scheduled_at: datetime
+    created_at: datetime
+    pickup: dict[str, Any]
+    dropoff: dict[str, Any]
+    special_instructions: str | None = None
+    fleetbase_order_id: str | None = None
+    assigned_driver_id: str | None = None
+    # Customer
+    customer_id: str | None = None
+    customer_email: str | None = None
+    customer_phone: str | None = None
+    # Booking
+    booking_number: str | None = None
+    # Quote / pricing snapshot captured at booking time
+    quote_id: str | None = None
+    vehicle_class: str | None = None
+    package_type: str | None = None
+    weight_kg: float | None = None
+    dimensions: str | None = None
+    declared_value_cents: int | None = None
+    distance_meters: int | None = None
+    quote_amount_cents: int | None = None
+    pricing_breakdown: dict[str, Any] | None = None
+    # Payments + invoice
+    payments: list[PaymentAdminItem] = Field(default_factory=list)
+    invoice_number: str | None = None
+    invoice_amount_cents: int | None = None
+    invoice_receipt_url: str | None = None
+    invoice_pdf_url: str | None = None
+
+
 class AssignDriverRequest(BaseModel):
     driver_id: str
 

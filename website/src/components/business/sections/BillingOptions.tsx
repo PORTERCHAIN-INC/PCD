@@ -22,9 +22,7 @@ export default function BillingOptions() {
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff7a00]">
             {t("label")}
           </span>
-          <h2 className="mt-3 biz-heading text-[#091b1c] tracking-tight">
-            {t("title")}
-          </h2>
+          <h2 className="mt-3 biz-heading text-[#091b1c] tracking-tight">{t("title")}</h2>
           <p className="mt-4 text-[#5c6b6c] leading-relaxed">{t("subtitle")}</p>
         </motion.div>
 
@@ -54,10 +52,7 @@ export default function BillingOptions() {
                   </div>
                 )}
                 <h3
-                  className={cn(
-                    "text-xl font-bold",
-                    isFeatured ? "text-white" : "text-[#091b1c]"
-                  )}
+                  className={cn("text-xl font-bold", isFeatured ? "text-white" : "text-[#091b1c]")}
                 >
                   {t(`plans.${key}.name`)}
                 </h3>

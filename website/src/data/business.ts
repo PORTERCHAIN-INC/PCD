@@ -92,12 +92,7 @@ export const BUSINESS_TECH_KEYS = [
 
 export const BUSINESS_BILLING_KEYS = ["payAsYouGo", "creditAccount", "enterprise"] as const;
 
-export const BUSINESS_SUCCESS_KEYS = [
-  "coffee",
-  "restaurant",
-  "medical",
-  "construction",
-] as const;
+export const BUSINESS_SUCCESS_KEYS = ["coffee", "restaurant", "medical", "construction"] as const;
 
 export const BUSINESS_FAQ_KEYS = [
   "contract",

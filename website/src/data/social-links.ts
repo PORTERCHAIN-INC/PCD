@@ -1,21 +1,10 @@
 import type { ComponentType } from "react";
-import {
-  FaFacebook,
-  FaInstagram,
-  FaLinkedinIn,
-  FaWhatsapp,
-  FaYoutube,
-} from "react-icons/fa6";
+import { FaFacebook, FaInstagram, FaLinkedinIn, FaWhatsapp, FaYoutube } from "react-icons/fa6";
 import { Rss } from "lucide-react";
 import { publicEnv } from "@/lib/env";
 
 export type SocialPlatform =
-  | "linkedin"
-  | "instagram"
-  | "facebook"
-  | "youtube"
-  | "whatsapp"
-  | "blog";
+  "linkedin" | "instagram" | "facebook" | "youtube" | "whatsapp" | "blog";
 
 export interface SocialLinkItem {
   platform: SocialPlatform;

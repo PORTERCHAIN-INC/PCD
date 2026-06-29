@@ -20,9 +20,7 @@ export default function Technology() {
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff7a00]">
             {t("label")}
           </span>
-          <h2 className="mt-3 biz-heading text-[#091b1c] tracking-tight">
-            {t("title")}
-          </h2>
+          <h2 className="mt-3 biz-heading text-[#091b1c] tracking-tight">{t("title")}</h2>
           <p className="mt-4 text-[#5c6b6c] leading-relaxed">{t("subtitle")}</p>
         </motion.div>
 

@@ -15,16 +15,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 
-const ICONS = [
-  DollarSign,
-  Clock,
-  CalendarX,
-  EyeOff,
-  Users,
-  MapPinOff,
-  FileText,
-  TrendingDown,
-];
+const ICONS = [DollarSign, Clock, CalendarX, EyeOff, Users, MapPinOff, FileText, TrendingDown];
 
 export default function BusinessChallenges() {
   const t = useTranslations("businessPage.challenges");
@@ -38,9 +29,7 @@ export default function BusinessChallenges() {
           viewport={{ once: true }}
           className="text-center max-w-2xl mx-auto mb-14"
         >
-          <h2 className="biz-heading text-[#091b1c] tracking-tight">
-            {t("title")}
-          </h2>
+          <h2 className="biz-heading text-[#091b1c] tracking-tight">{t("title")}</h2>
           <p className="mt-4 text-[#5c6b6c] leading-relaxed">{t("subtitle")}</p>
         </motion.div>
 

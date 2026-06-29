@@ -1,0 +1,205 @@
+{
+  "privacy": {
+    "metadata": {
+      "title": "Politique de confidentialité | Porterchain",
+      "description": "Comment Porterchain collecte, utilise et protège vos renseignements personnels. Pratiques conformes à la LPRPDE pour les clients canadiens.",
+      "ogTitle": "Politique de confidentialité Porterchain",
+      "ogDescription": "Votre vie privée compte. Découvrez comment Porterchain traite les données personnelles pour les réservations, comptes marchands et livraisons."
+    },
+    "title": "Politique de confidentialité",
+    "updated": "Dernière mise à jour : 29 juin 2026",
+    "intro": "Porterchain Inc. (« Porterchain », « nous ») est une entreprise de logistique commerciale basée à Toronto, Ontario. Cette politique explique comment nous collectons, utilisons, divulguons et protégeons les renseignements personnels lorsque vous utilisez notre site, réservez des livraisons, exploitez un compte marchand ou communiquez avec notre support.",
+    "sections": [
+      {
+        "title": "Renseignements collectés",
+        "paragraphs": [
+          "Nous collectons les renseignements nécessaires pour établir des devis, expédier, suivre et compléter les livraisons, et pour gérer les comptes marchands et partenaires chauffeurs."
+        ],
+        "list": [
+          "Coordonnées : nom, courriel, téléphone et informations d'entreprise",
+          "Adresses : lieux de ramassage et de livraison pour le routage et la preuve de livraison",
+          "Détails d'expédition : poids, dimensions, photos, références et instructions spéciales",
+          "Paiement : informations de facturation traitées par Stripe (les données de carte sont gérées par Stripe)",
+          "Compte et conformité : documents d'intégration marchand, identifiants fiscaux et assurances",
+          "Localisation : coordonnées GPS pour le suivi des chauffeurs et la preuve de livraison",
+          "Communications : demandes de support, messages via Zoho SalesIQ et courriels",
+          "Données techniques : témoins et identifiants de session des services d'authentification"
+        ]
+      },
+      {
+        "title": "Utilisation des renseignements",
+        "paragraphs": [
+          "Nous utilisons les renseignements personnels pour exploiter nos services logistiques, respecter nos obligations légales et améliorer l'expérience client."
+        ],
+        "list": [
+          "Fournir devis, réservations, expédition, suivi et preuve de livraison",
+          "Traiter paiements, factures et facturation marchande",
+          "Vérifier les comptes marchands et maintenir les dossiers de conformité",
+          "Répondre aux demandes de support et aux urgences opérationnelles",
+          "Envoyer des notifications liées au service (confirmations, mises à jour, facturation)",
+          "Améliorer le routage, la planification de capacité et la fiabilité de la plateforme",
+          "Détecter la fraude, les abus et les incidents de sécurité"
+        ]
+      },
+      {
+        "title": "Fournisseurs tiers",
+        "paragraphs": [
+          "Nous partageons des renseignements avec des processeurs de confiance uniquement lorsque nécessaire. Ces fournisseurs sont tenus contractuellement de protéger vos données."
+        ],
+        "list": [
+          "Clerk — authentification marchands et clients",
+          "Stripe — traitement des paiements",
+          "Google Maps — autocomplétion d'adresses et cartographie",
+          "Zoho SalesIQ — clavardage en direct",
+          "Zoho Mail — courriels transactionnels",
+          "Fleetbase et API Porterchain — expédition, routage et opérations"
+        ]
+      },
+      {
+        "title": "Conservation et sécurité",
+        "paragraphs": [
+          "Nous conservons les renseignements personnels aussi longtemps que nécessaire pour exécuter les livraisons, respecter les exigences légales et fiscales, résoudre les litiges et faire respecter les ententes.",
+          "Nous mettons en œuvre des mesures administratives, techniques et opérationnelles incluant des contrôles d'accès, des connexions chiffrées et des procédures de conformité documentées."
+        ]
+      },
+      {
+        "title": "Vos droits (Canada)",
+        "paragraphs": [
+          "En vertu de la Loi sur la protection des renseignements personnels et les documents électroniques (LPRPDE), vous pouvez demander l'accès, la correction ou la suppression de vos renseignements personnels, sous réserve des exceptions légales.",
+          "Pour exercer vos droits, contactez-nous aux coordonnées ci-dessous. Nous répondrons dans un délai raisonnable."
+        ]
+      },
+      {
+        "title": "Nous joindre",
+        "paragraphs": [
+          "Confidentialité : peter@porterchain.com",
+          "Opérations : ops@porterchain.com",
+          "Téléphone : +1 (647) 619-7951",
+          "Adresse : 100 King Street West, Toronto, ON M5X 1A9, Canada"
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "metadata": {
+      "title": "Conditions d'utilisation | Porterchain",
+      "description": "Conditions régissant les réservations, comptes marchands, livraisons et utilisation des services logistiques commerciaux Porterchain en Ontario et au Canada.",
+      "ogTitle": "Conditions d'utilisation Porterchain",
+      "ogDescription": "Conditions d'expédition commerciale, attentes de service et responsabilités des clients Porterchain."
+    },
+    "title": "Conditions d'utilisation",
+    "updated": "Dernière mise à jour : 29 juin 2026",
+    "intro": "Ces conditions (« Conditions ») régissent votre utilisation du site Porterchain Inc., des outils de réservation, du portail marchand et des services de livraison commerciale. En demandant un devis, en effectuant une réservation ou en exploitant un compte marchand, vous acceptez ces Conditions.",
+    "sections": [
+      {
+        "title": "Services",
+        "paragraphs": [
+          "Porterchain fournit des services de logistique commerciale incluant la livraison le jour même et planifiée, l'optimisation d'itinéraires, le suivi en direct et la preuve de livraison dans le RGT et en Ontario.",
+          "Porterchain est un opérateur logistique structuré — pas une place de marché de chauffeurs ad hoc. Les services dépendent de la disponibilité des véhicules, de la capacité opérationnelle, de la météo, du trafic et des exigences de conformité."
+        ]
+      },
+      {
+        "title": "Réservations et devis",
+        "paragraphs": [
+          "Les devis affichés sur le site sont des estimations basées sur les informations fournies. Le prix final peut changer si les détails d'expédition, les exigences d'accès, les temps d'attente ou les conditions de route diffèrent du devis initial.",
+          "Vous êtes responsable de fournir des adresses, coordonnées, dimensions, poids et instructions de manutention exacts. Des informations incorrectes peuvent entraîner des retards, des frais supplémentaires ou un refus de service."
+        ]
+      },
+      {
+        "title": "Comptes marchands",
+        "paragraphs": [
+          "Les clients entreprise peuvent devoir compléter l'intégration marchande incluant le profil d'entreprise, les documents de conformité et l'acceptation des conditions d'expédition commerciale avant l'accès au tableau de bord.",
+          "Les conditions de facturation marchande (Net 30/45 ou carte) sont établies lors de l'intégration et reflétées sur les factures. Les comptes en souffrance peuvent être suspendus jusqu'au paiement."
+        ]
+      },
+      {
+        "title": "Marchandises interdites et conduite",
+        "paragraphs": [
+          "Vous ne pouvez pas utiliser Porterchain pour transporter des marchandises illégales, des matières dangereuses sans approbation écrite préalable, des articles violant les conditions d'assurance du transporteur, ou des expéditions mettant en danger les chauffeurs ou le public.",
+          "Nous nous réservons le droit de refuser, retenir ou retourner toute expédition violant ces Conditions ou la loi applicable."
+        ]
+      },
+      {
+        "title": "Responsabilité et réclamations",
+        "paragraphs": [
+          "Porterchain maintient une assurance commerciale et une inscription à la CNESST pour ses opérations. La responsabilité en cas de perte ou de dommage est limitée selon votre devis, entente marchande ou tarif applicable, sauf interdiction légale.",
+          "Les réclamations doivent être signalées rapidement avec les références d'expédition et la documentation à l'appui. Contactez ops@porterchain.com pour assistance."
+        ]
+      },
+      {
+        "title": "Annulations et remboursements",
+        "paragraphs": [
+          "Les annulations avant l'expédition peuvent donner droit à un remboursement total ou partiel selon le moment et les coûts opérationnels engagés. Les annulations après l'envoi d'un chauffeur peuvent entraîner des frais.",
+          "Les paiements au détail via Stripe sur la page de suivi sont soumis aux politiques de remboursement communiquées à la caisse."
+        ]
+      },
+      {
+        "title": "Droit applicable",
+        "paragraphs": [
+          "Ces Conditions sont régies par les lois de la province de l'Ontario et les lois fédérales du Canada applicables. Les litiges seront tranchés devant les tribunaux de l'Ontario, sauf entente contraire dans une entente marchande.",
+          "Questions : peter@porterchain.com · +1 (647) 619-7951"
+        ]
+      }
+    ]
+  },
+  "cookies": {
+    "metadata": {
+      "title": "Politique de témoins | Porterchain",
+      "description": "Comment Porterchain utilise les témoins (cookies) et technologies similaires sur porterchain.com, incluant les services tiers pour cartes, clavardage, authentification et paiements.",
+      "ogTitle": "Politique de témoins Porterchain",
+      "ogDescription": "Découvrez les témoins utilisés par Porterchain et nos partenaires tiers."
+    },
+    "title": "Politique de témoins",
+    "updated": "Dernière mise à jour : 29 juin 2026",
+    "intro": "Cette politique explique comment Porterchain Inc. utilise les témoins (cookies) et technologies similaires sur porterchain.com et les applications web connexes. Elle doit être lue conjointement avec notre politique de confidentialité.",
+    "sections": [
+      {
+        "title": "Que sont les témoins?",
+        "paragraphs": [
+          "Les témoins sont de petits fichiers texte stockés sur votre appareil lorsque vous visitez un site. Ils aident à mémoriser les préférences, à maintenir votre connexion et à comprendre l'utilisation des services."
+        ]
+      },
+      {
+        "title": "Témoins que nous utilisons",
+        "paragraphs": [
+          "Porterchain et nos partenaires intégrés peuvent définir les types de témoins suivants :"
+        ],
+        "list": [
+          "Témoins essentiels — nécessaires au fonctionnement, à la sécurité et à la gestion de session",
+          "Témoins d'authentification — définis par Clerk et Supabase lors de la connexion ou vérification OTP",
+          "Témoins de préférence — comme la sélection de langue (anglais / français)",
+          "Témoins d'analyse et de clavardage — définis par Zoho SalesIQ lorsque le widget est activé",
+          "Témoins de paiement — définis par Stripe lors du paiement",
+          "Témoins de cartes — définis par Google Maps pour l'autocomplétion et les cartes"
+        ]
+      },
+      {
+        "title": "Services tiers",
+        "paragraphs": [
+          "Les services tiers suivants peuvent charger des scripts ou définir des témoins lorsque vous utilisez notre site :"
+        ],
+        "list": [
+          "Zoho SalesIQ (salesiq.zohopublic.com) — clavardage en direct",
+          "Clerk — authentification marchands et clients",
+          "Google Maps (maps.googleapis.com) — autocomplétion et cartes",
+          "Stripe (stripe.com) — traitement des paiements",
+          "Supabase — authentification OTP de réservation lorsque activée"
+        ]
+      },
+      {
+        "title": "Gestion des témoins",
+        "paragraphs": [
+          "Vous pouvez contrôler les témoins via les paramètres de votre navigateur. Bloquer les témoins essentiels ou d'authentification peut empêcher les réservations, la connexion ou les paiements.",
+          "Pour désactiver le widget Zoho SalesIQ, n'initiez pas de session de clavardage ou utilisez des extensions bloquant les scripts tiers. Vous pouvez toujours nous joindre par courriel ou téléphone."
+        ]
+      },
+      {
+        "title": "Mises à jour et contact",
+        "paragraphs": [
+          "Nous pouvons mettre à jour cette politique de temps à autre. La date « Dernière mise à jour » en haut reflète la révision la plus récente.",
+          "Questions : peter@porterchain.com · ops@porterchain.com · +1 (647) 619-7951"
+        ]
+      }
+    ]
+  }
+}

@@ -40,34 +40,34 @@ services/fleetbase/
 
 ## Sync operations
 
-| Operation | Trigger | Fleetbase API |
-|-----------|---------|---------------|
-| **Order sync** | `DISPATCH_READY`, booking confirm, merchant book | `POST /v1/orders` |
-| **Driver sync** | Admin approves driver | `POST /v1/drivers` |
-| **Vehicle sync** | Admin approves driver (active vehicle) | `POST /v1/vehicles` |
-| **Dispatch sync** | Admin assigns driver | `PATCH /v1/orders/{id}/dispatch` |
-| **Tracking sync** | `GET /v1/orders/{tracking}/tracking` | `GET /v1/orders/{id}/tracker` |
-| **Status sync** | `POST /webhooks/fleetbase` | Webhook events |
-| **Proof sync** | On `order.completed` webhook | `GET /v1/orders/{id}/proofs` |
+| Operation         | Trigger                                          | Fleetbase API                    |
+| ----------------- | ------------------------------------------------ | -------------------------------- |
+| **Order sync**    | `DISPATCH_READY`, booking confirm, merchant book | `POST /v1/orders`                |
+| **Driver sync**   | Admin approves driver                            | `POST /v1/drivers`               |
+| **Vehicle sync**  | Admin approves driver (active vehicle)           | `POST /v1/vehicles`              |
+| **Dispatch sync** | Admin assigns driver                             | `PATCH /v1/orders/{id}/dispatch` |
+| **Tracking sync** | `GET /v1/orders/{tracking}/tracking`             | `GET /v1/orders/{id}/tracker`    |
+| **Status sync**   | `POST /webhooks/fleetbase`                       | Webhook events                   |
+| **Proof sync**    | On `order.completed` webhook                     | `GET /v1/orders/{id}/proofs`     |
 
 ## Porterchain API wiring
 
-| File | Role |
-|------|------|
-| `apps/api/.../services/fleetbase_integration.py` | Settings factory |
-| `apps/api/.../booking_engine/fleetbase_sync_service.py` | DB-aware sync orchestration |
-| `apps/api/.../routers/webhooks.py` | `POST /webhooks/fleetbase` |
-| `apps/api/.../routers/orders.py` | `GET /v1/orders/{tracking}/tracking` |
+| File                                                    | Role                                 |
+| ------------------------------------------------------- | ------------------------------------ |
+| `apps/api/.../services/fleetbase_integration.py`        | Settings factory                     |
+| `apps/api/.../booking_engine/fleetbase_sync_service.py` | DB-aware sync orchestration          |
+| `apps/api/.../routers/webhooks.py`                      | `POST /webhooks/fleetbase`           |
+| `apps/api/.../routers/orders.py`                        | `GET /v1/orders/{tracking}/tracking` |
 
 ## Environment variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `FLEETBASE_API_URL` | Yes | `http://localhost:8000` |
-| `FLEETBASE_API_KEY` | Yes | `flb_live_*` from Fleetbase dev console |
-| `FLEETBASE_DEFAULT_COMPANY_UUID` | Yes | Company UUID from onboarding |
-| `FLEETBASE_DISPATCH_BRIDGE` | Yes | `true` to enable sync |
-| `FLEETBASE_WEBHOOK_SECRET` | Recommended | API credential secret for webhook HMAC |
+| Variable                         | Required    | Description                             |
+| -------------------------------- | ----------- | --------------------------------------- |
+| `FLEETBASE_API_URL`              | Yes         | `http://localhost:8000`                 |
+| `FLEETBASE_API_KEY`              | Yes         | `flb_live_*` from Fleetbase dev console |
+| `FLEETBASE_DEFAULT_COMPANY_UUID` | Yes         | Company UUID from onboarding            |
+| `FLEETBASE_DISPATCH_BRIDGE`      | Yes         | `true` to enable sync                   |
+| `FLEETBASE_WEBHOOK_SECRET`       | Recommended | API credential secret for webhook HMAC  |
 
 ## Fleetbase webhook setup
 

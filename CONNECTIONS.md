@@ -7,15 +7,15 @@ App path: `apps/mobile-driver` · Stack: **Expo SDK 52** · **React Native 0.76*
 
 ## Summary
 
-| Integration | Used? | Notes |
-|-------------|-------|-------|
-| **Porterchain API** (`EXPO_PUBLIC_API_URL`) | Yes | Auth, routes, stops, POD uploads, location |
-| **Google Maps SDK** (`EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`) | Yes | Route map tiles via `react-native-maps` |
-| **Firebase** | **No** | Not in dependencies, config, or native projects |
-| **Push notifications (FCM / APNs)** | **No** | Not implemented |
-| **Expo / EAS** | Yes | Cloud builds, project linking, optional OTA config (updates disabled) |
-| **App Store Connect** | Yes | iOS distribution via EAS Submit |
-| **Apple Developer Program** | Yes | Signing, bundle ID, TestFlight / App Store |
+| Integration                                             | Used?  | Notes                                                                 |
+| ------------------------------------------------------- | ------ | --------------------------------------------------------------------- |
+| **Porterchain API** (`EXPO_PUBLIC_API_URL`)             | Yes    | Auth, routes, stops, POD uploads, location                            |
+| **Google Maps SDK** (`EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`) | Yes    | Route map tiles via `react-native-maps`                               |
+| **Firebase**                                            | **No** | Not in dependencies, config, or native projects                       |
+| **Push notifications (FCM / APNs)**                     | **No** | Not implemented                                                       |
+| **Expo / EAS**                                          | Yes    | Cloud builds, project linking, optional OTA config (updates disabled) |
+| **App Store Connect**                                   | Yes    | iOS distribution via EAS Submit                                       |
+| **Apple Developer Program**                             | Yes    | Signing, bundle ID, TestFlight / App Store                            |
 
 ---
 
@@ -25,43 +25,43 @@ App path: `apps/mobile-driver` · Stack: **Expo SDK 52** · **React Native 0.76*
 
 Copy from `.env.example`. **Never commit** `.env`, `credentials/`, or `*.p8`.
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `EXPO_PUBLIC_API_URL` | Yes (prod) | API base URL, **no trailing slash**. Inlined at build time by Metro/EAS. |
-| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` | Yes (maps) | Google Maps SDK for iOS/Android. Restrict in Google Cloud Console. |
-| `APPLE_ASC_KEY_PATH` | Submit only | Path to App Store Connect API private key, e.g. `./credentials/AuthKey.p8` |
-| `APPLE_ASC_KEY_ID` | Submit only | Key ID from App Store Connect → Integrations → App Store Connect API |
-| `APPLE_ASC_ISSUER_ID` | Submit only | Issuer ID from same page |
-| `EXPO_TOKEN` | Optional | Expo access token for non-interactive EAS (`expo.dev` → Account → Access Tokens) |
-| `VERIFY_ASC_KEY` | Optional | Set to `0` to skip ASC key preflight in deploy script (default `1`) |
+| Variable                          | Required    | Description                                                                      |
+| --------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_API_URL`             | Yes (prod)  | API base URL, **no trailing slash**. Inlined at build time by Metro/EAS.         |
+| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` | Yes (maps)  | Google Maps SDK for iOS/Android. Restrict in Google Cloud Console.               |
+| `APPLE_ASC_KEY_PATH`              | Submit only | Path to App Store Connect API private key, e.g. `./credentials/AuthKey.p8`       |
+| `APPLE_ASC_KEY_ID`                | Submit only | Key ID from App Store Connect → Integrations → App Store Connect API             |
+| `APPLE_ASC_ISSUER_ID`             | Submit only | Issuer ID from same page                                                         |
+| `EXPO_TOKEN`                      | Optional    | Expo access token for non-interactive EAS (`expo.dev` → Account → Access Tokens) |
+| `VERIFY_ASC_KEY`                  | Optional    | Set to `0` to skip ASC key preflight in deploy script (default `1`)              |
 
 **Code:** `src/config/env.ts` — only **static** `process.env.EXPO_PUBLIC_*` access (required for EAS production inlining).
 
 ### API base URL by environment
 
-| Context | `EXPO_PUBLIC_API_URL` | Set in |
-|---------|------------------------|--------|
-| Local dev (simulator) | `http://localhost:8001` or `http://127.0.0.1:8001` | `.env` |
-| Local dev (physical device) | `http://<YOUR_LAN_IP>:8001` | `.env` |
-| Android emulator → host API | `http://10.0.2.2:8001` | `.env` |
-| EAS development | `http://127.0.0.1:8001` | `eas.json` → `build.development.env` |
-| EAS preview / production | `https://api.porterchain.com` | `eas.json` → `build.preview` / `build.production` |
+| Context                     | `EXPO_PUBLIC_API_URL`                              | Set in                                            |
+| --------------------------- | -------------------------------------------------- | ------------------------------------------------- |
+| Local dev (simulator)       | `http://localhost:8001` or `http://127.0.0.1:8001` | `.env`                                            |
+| Local dev (physical device) | `http://<YOUR_LAN_IP>:8001`                        | `.env`                                            |
+| Android emulator → host API | `http://10.0.2.2:8001`                             | `.env`                                            |
+| EAS development             | `http://127.0.0.1:8001`                            | `eas.json` → `build.development.env`              |
+| EAS preview / production    | `https://api.porterchain.com`                      | `eas.json` → `build.preview` / `build.production` |
 
 Default if unset: `http://localhost:8001`.
 
-### API server (root `.env`) — links *to* the driver app
+### API server (root `.env`) — links _to_ the driver app
 
 These are **not** read by the mobile app; they configure invite emails and the public drive page.
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `DRIVER_PORTAL_BASE_URL` | `http://localhost:3003` | Base URL for password-setup links in emails: `{base}/auth/driver-invite?token=...` |
-| `DRIVER_APP_DOWNLOAD_URL` | (empty) | Marketing drive page in approval emails |
-| `DRIVER_APP_IOS_URL` | (empty) | Direct App Store URL in emails |
-| `DRIVER_APP_ANDROID_URL` | (empty) | Direct Play Store URL in emails |
-| `DRIVER_INVITE_TOKEN_EXPIRE_SECONDS` | `604800` (7 days) | Invite token TTL |
-| `AUTH_DRIVER_INVITE_VALIDATE_MAX_ATTEMPTS_PER_MINUTE` | `30` | Rate limit |
-| `AUTH_DRIVER_INVITE_ACCEPT_MAX_ATTEMPTS_PER_MINUTE` | `15` | Rate limit |
+| Variable                                              | Default                 | Purpose                                                                            |
+| ----------------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------- |
+| `DRIVER_PORTAL_BASE_URL`                              | `http://localhost:3003` | Base URL for password-setup links in emails: `{base}/auth/driver-invite?token=...` |
+| `DRIVER_APP_DOWNLOAD_URL`                             | (empty)                 | Marketing drive page in approval emails                                            |
+| `DRIVER_APP_IOS_URL`                                  | (empty)                 | Direct App Store URL in emails                                                     |
+| `DRIVER_APP_ANDROID_URL`                              | (empty)                 | Direct Play Store URL in emails                                                    |
+| `DRIVER_INVITE_TOKEN_EXPIRE_SECONDS`                  | `604800` (7 days)       | Invite token TTL                                                                   |
+| `AUTH_DRIVER_INVITE_VALIDATE_MAX_ATTEMPTS_PER_MINUTE` | `30`                    | Rate limit                                                                         |
+| `AUTH_DRIVER_INVITE_ACCEPT_MAX_ATTEMPTS_PER_MINUTE`   | `15`                    | Rate limit                                                                         |
 
 **Public website** (optional): `NEXT_PUBLIC_DRIVER_APP_IOS_URL`, `NEXT_PUBLIC_DRIVER_APP_ANDROID_URL` on `apps/web` for the drive page.
 
@@ -73,56 +73,56 @@ These are **not** read by the mobile app; they configure invite emails and the p
 
 All requests use `{EXPO_PUBLIC_API_URL}` as origin. Authenticated calls send:
 
-| Header | Value |
-|--------|--------|
-| `Authorization` | `Bearer <access_token>` |
-| `X-User-Id` | User id (string) |
-| `X-Roles` | `driver` |
-| `X-Driver-Id` | Driver id (required for driver-scoped routes) |
+| Header          | Value                                         |
+| --------------- | --------------------------------------------- |
+| `Authorization` | `Bearer <access_token>`                       |
+| `X-User-Id`     | User id (string)                              |
+| `X-Roles`       | `driver`                                      |
+| `X-Driver-Id`   | Driver id (required for driver-scoped routes) |
 
 **Client:** `src/services/apiClient.ts` · **Services:** `src/services/driverService.ts`, `src/services/driverInviteService.ts`
 
 ### Auth endpoints (no driver headers)
 
-| Method | Path | Used by |
-|--------|------|---------|
-| `POST` | `/auth/login` | Login screen |
-| `POST` | `/auth/refresh` | `src/auth/refresh.ts` (if refresh token stored) |
-| `POST` | `/auth/driver-invite/validate` | Invite flow |
-| `POST` | `/auth/driver-invite/accept` | Invite password setup |
+| Method | Path                           | Used by                                         |
+| ------ | ------------------------------ | ----------------------------------------------- |
+| `POST` | `/auth/login`                  | Login screen                                    |
+| `POST` | `/auth/refresh`                | `src/auth/refresh.ts` (if refresh token stored) |
+| `POST` | `/auth/driver-invite/validate` | Invite flow                                     |
+| `POST` | `/auth/driver-invite/accept`   | Invite password setup                           |
 
 Login body: `{ email, password }`. Response must include `access_token` and `driver_id`.
 
 ### Driver execution API (`/driver-api/v1`)
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `GET` | `/driver-api/v1/routes/assigned` | Today’s assigned route |
-| `POST` | `/driver-api/v1/routes/{id}/start` | Start route |
-| `GET` | `/driver-api/v1/routes/{id}/stops` | Ordered stops + `route_polyline` |
-| `GET` | `/driver-api/v1/me` | Driver profile + document status |
-| `POST` | `/driver-api/v1/documents` | Upload compliance docs (multipart) |
-| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/arrive` | Mark arrived |
-| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/deliver` | Mark delivered |
-| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/exception` | Report exception |
-| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/pod-photo` | POD photo upload |
-| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/pod-signature` | POD signature upload |
-| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/pop-photo` | Proof-of-pickup photo |
+| Method | Path                                                      | Purpose                            |
+| ------ | --------------------------------------------------------- | ---------------------------------- |
+| `GET`  | `/driver-api/v1/routes/assigned`                          | Today’s assigned route             |
+| `POST` | `/driver-api/v1/routes/{id}/start`                        | Start route                        |
+| `GET`  | `/driver-api/v1/routes/{id}/stops`                        | Ordered stops + `route_polyline`   |
+| `GET`  | `/driver-api/v1/me`                                       | Driver profile + document status   |
+| `POST` | `/driver-api/v1/documents`                                | Upload compliance docs (multipart) |
+| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/arrive`        | Mark arrived                       |
+| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/deliver`       | Mark delivered                     |
+| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/exception`     | Report exception                   |
+| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/pod-photo`     | POD photo upload                   |
+| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/pod-signature` | POD signature upload               |
+| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/pop-photo`     | Proof-of-pickup photo              |
 
 ### Legacy / companion driver routes (`/driver`)
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `GET` | `/driver/stops/{stopId}` | Stop detail |
-| `POST` | `/driver/stops/{stopId}/update` | Update stop status |
-| `POST` | `/driver/location` | Background location pings |
+| Method | Path                            | Purpose                   |
+| ------ | ------------------------------- | ------------------------- |
+| `GET`  | `/driver/stops/{stopId}`        | Stop detail               |
+| `POST` | `/driver/stops/{stopId}/update` | Update stop status        |
+| `POST` | `/driver/location`              | Background location pings |
 
 ### Other API paths used by the app
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `GET` | `/routes/{routeId}/driver-earnings` | Earnings tab |
-| `PATCH` | `/routes/{routeId}` | Route status updates |
+| Method  | Path                                | Purpose              |
+| ------- | ----------------------------------- | -------------------- |
+| `GET`   | `/routes/{routeId}/driver-earnings` | Earnings tab         |
+| `PATCH` | `/routes/{routeId}`                 | Route status updates |
 
 ### Route polyline (maps)
 
@@ -135,13 +135,13 @@ Login body: `{ email, password }`. Response must include `access_token` and `dri
 
 ## Authentication & local storage
 
-| Concern | Implementation |
-|---------|----------------|
-| Token storage | `expo-secure-store` (`src/auth/storage.ts`) |
-| Keys | `porterchain_driver_access_token`, `porterchain_driver_refresh_token`, `porterchain_driver_driver_id`, etc. |
-| Session restore | `AuthContext` loads secure store on launch |
-| Logout | Clears secure store + stops background location |
-| Driver invite deep link | App route `/auth/driver-invite?token=...` (`app/auth/driver-invite.tsx`) |
+| Concern                 | Implementation                                                                                              |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Token storage           | `expo-secure-store` (`src/auth/storage.ts`)                                                                 |
+| Keys                    | `porterchain_driver_access_token`, `porterchain_driver_refresh_token`, `porterchain_driver_driver_id`, etc. |
+| Session restore         | `AuthContext` loads secure store on launch                                                                  |
+| Logout                  | Clears secure store + stops background location                                                             |
+| Driver invite deep link | App route `/auth/driver-invite?token=...` (`app/auth/driver-invite.tsx`)                                    |
 
 **Invite link format (from API emails):**  
 `{DRIVER_PORTAL_BASE_URL}/auth/driver-invite?token=<opaque>`
@@ -152,12 +152,12 @@ For native builds, `DRIVER_PORTAL_BASE_URL` must point at a URL that opens the a
 
 ## Google Maps
 
-| Item | Value |
-|------|--------|
-| Library | `react-native-maps` with `PROVIDER_GOOGLE` |
-| Env var | `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` |
+| Item        | Value                                                                               |
+| ----------- | ----------------------------------------------------------------------------------- |
+| Library     | `react-native-maps` with `PROVIDER_GOOGLE`                                          |
+| Env var     | `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`                                                   |
 | Expo config | `app.config.ts` → `ios.config.googleMapsApiKey`, `android.config.googleMaps.apiKey` |
-| iOS native | `GMSApiKey` in `ios/PorterchainDriver/Info.plist` (set at prebuild from env) |
+| iOS native  | `GMSApiKey` in `ios/PorterchainDriver/Info.plist` (set at prebuild from env)        |
 
 **Google Cloud restrictions (recommended):**
 
@@ -183,21 +183,21 @@ If push notifications are added later, that would be a new integration (likely `
 
 ## Expo & EAS
 
-| Item | Value |
-|------|--------|
-| Expo slug | `porterchain-driver` |
-| Expo owner | `porterchains-organization` |
-| EAS project ID | `4beda39e-2c2c-4cda-b994-262e646438ca` (`app.config.ts` → `extra.eas.projectId`) |
-| URL scheme | `porterchain-driver` |
-| OTA updates | Disabled (`ios/PorterchainDriver/Supporting/Expo.plist` → `EXUpdatesEnabled: false`) |
+| Item           | Value                                                                                |
+| -------------- | ------------------------------------------------------------------------------------ |
+| Expo slug      | `porterchain-driver`                                                                 |
+| Expo owner     | `porterchains-organization`                                                          |
+| EAS project ID | `4beda39e-2c2c-4cda-b994-262e646438ca` (`app.config.ts` → `extra.eas.projectId`)     |
+| URL scheme     | `porterchain-driver`                                                                 |
+| OTA updates    | Disabled (`ios/PorterchainDriver/Supporting/Expo.plist` → `EXUpdatesEnabled: false`) |
 
 ### `eas.json` build profiles
 
-| Profile | Distribution | API URL | Notes |
-|---------|--------------|---------|-------|
-| `development` | internal | `http://127.0.0.1:8000` | Dev client, iOS simulator |
-| `preview` | internal | `https://api.porterchain.com` | Device testing |
-| `production` | store | `https://api.porterchain.com` | App Store; Node 22.14, Xcode 26.2 image |
+| Profile       | Distribution | API URL                       | Notes                                   |
+| ------------- | ------------ | ----------------------------- | --------------------------------------- |
+| `development` | internal     | `http://127.0.0.1:8000`       | Dev client, iOS simulator               |
+| `preview`     | internal     | `https://api.porterchain.com` | Device testing                          |
+| `production`  | store        | `https://api.porterchain.com` | App Store; Node 22.14, Xcode 26.2 image |
 
 **Production Google Maps key:** set as EAS secret (not only local `.env`):
 
@@ -208,13 +208,13 @@ npx eas-cli secret:create --scope project --name EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
 
 ### NPM scripts (`package.json`)
 
-| Script | Command |
-|--------|---------|
-| `pnpm dev` | `expo start` |
-| `pnpm ios` / `pnpm android` | Native run |
-| `pnpm build:ios:production` | `eas build --platform ios --profile production` |
-| `pnpm build:ios:preview` | EAS preview build |
-| `pnpm submit:ios` | `eas submit --platform ios --profile production --latest` |
+| Script                      | Command                                                   |
+| --------------------------- | --------------------------------------------------------- |
+| `pnpm dev`                  | `expo start`                                              |
+| `pnpm ios` / `pnpm android` | Native run                                                |
+| `pnpm build:ios:production` | `eas build --platform ios --profile production`           |
+| `pnpm build:ios:preview`    | EAS preview build                                         |
+| `pnpm submit:ios`           | `eas submit --platform ios --profile production --latest` |
 
 **Monorepo (repo root):** `pnpm dev:mobile-driver`, `pnpm build:mobile-driver`
 
@@ -236,20 +236,20 @@ Requires: `apps/mobile-driver/.env` (ASC vars), `credentials/AuthKey.p8`, Expo l
 
 Configured in `eas.json` → `submit.production.ios`:
 
-| Field | Value |
-|-------|--------|
-| `appleTeamId` | `4XWFT5A8C3` |
-| `ascAppId` | `6781880626` |
-| `appleId` | Apple ID used for submit (see `eas.json`) |
+| Field         | Value                                     |
+| ------------- | ----------------------------------------- |
+| `appleTeamId` | `4XWFT5A8C3`                              |
+| `ascAppId`    | `6781880626`                              |
+| `appleId`     | Apple ID used for submit (see `eas.json`) |
 
 ### App identifiers (`app.config.ts`)
 
-| Platform | Identifier |
-|----------|------------|
-| iOS bundle ID | `com.porterchain.PCD` |
-| Android package | `com.porterchain.PCD` |
-| Display name | Porterchain Driver |
-| Version | `1.0.0` (iOS `buildNumber` / Android `versionCode`: `1`) |
+| Platform        | Identifier                                               |
+| --------------- | -------------------------------------------------------- |
+| iOS bundle ID   | `com.porterchain.PCD`                                    |
+| Android package | `com.porterchain.PCD`                                    |
+| Display name    | Porterchain Driver                                       |
+| Version         | `1.0.0` (iOS `buildNumber` / Android `versionCode`: `1`) |
 
 > Note: `.env.example` comments mention `com.porterchain.driver` for Maps restrictions; the **actual** bundle ID in the project is `com.porterchain.PCD`.
 
@@ -267,11 +267,11 @@ Deploy script maps these to `EXPO_ASC_*` for EAS CLI.
 
 ### iOS capabilities & permissions
 
-| Capability | Config |
-|------------|--------|
+| Capability          | Config                                                           |
+| ------------------- | ---------------------------------------------------------------- |
 | Background location | `UIBackgroundModes`: `location`, `fetch`; `expo-location` plugin |
-| Camera / photos | POD photos, barcode scan, document upload |
-| ATS | Local networking allowed (`NSAllowsLocalNetworking`) for dev |
+| Camera / photos     | POD photos, barcode scan, document upload                        |
+| ATS                 | Local networking allowed (`NSAllowsLocalNetworking`) for dev     |
 
 Entitlements file: `ios/PorterchainDriver/PorterchainDriver.entitlements` (currently empty dict — add capabilities in Apple Developer / EAS as needed).
 
@@ -279,12 +279,12 @@ Entitlements file: `ios/PorterchainDriver/PorterchainDriver.entitlements` (curre
 
 ## Device features (on-device only)
 
-| Feature | Package | Backend |
-|---------|---------|---------|
-| Background GPS | `expo-location`, `expo-task-manager` | `POST /driver/location` every ~20s / 80m |
-| Barcode scan | `expo-camera` | Local UI |
+| Feature               | Package                                              | Backend                                   |
+| --------------------- | ---------------------------------------------------- | ----------------------------------------- |
+| Background GPS        | `expo-location`, `expo-task-manager`                 | `POST /driver/location` every ~20s / 80m  |
+| Barcode scan          | `expo-camera`                                        | Local UI                                  |
 | POD photo / signature | `expo-image-picker`, `react-native-signature-canvas` | Multipart uploads to `/driver-api/v1/...` |
-| Secure auth | `expo-secure-store` | — |
+| Secure auth           | `expo-secure-store`                                  | —                                         |
 
 Location tracking does **not** work in Expo Go; use `npx expo run:ios` or an EAS build.
 
@@ -303,27 +303,27 @@ Location tracking does **not** work in Expo Go; use `npx expo run:ios` or an EAS
 
 ## Files to keep secret (gitignored)
 
-| Path | Contents |
-|------|----------|
-| `apps/mobile-driver/.env` | API URL, Maps key, ASC IDs |
-| `apps/mobile-driver/credentials/` | App Store Connect `.p8` key |
-| `AuthKey_*.p8` (repo root) | Do not commit; use `credentials/AuthKey.p8` inside mobile-driver |
+| Path                              | Contents                                                         |
+| --------------------------------- | ---------------------------------------------------------------- |
+| `apps/mobile-driver/.env`         | API URL, Maps key, ASC IDs                                       |
+| `apps/mobile-driver/credentials/` | App Store Connect `.p8` key                                      |
+| `AuthKey_*.p8` (repo root)        | Do not commit; use `credentials/AuthKey.p8` inside mobile-driver |
 
 ---
 
 ## Related docs & code
 
-| Resource | Location |
-|----------|----------|
-| App README | `apps/mobile-driver/README.md` |
-| Env loader | `src/config/env.ts` |
-| Expo config | `app.config.ts` |
-| EAS config | `eas.json` |
-| Deploy script | `scripts/deploy-driver-appstore.sh` |
-| API driver routers | `apps/api/src/domains/drivers/route_execution_router.py`, `today_route_router.py` |
-| API auth / invites | `apps/api/src/domains/auth/router.py`, `driver_invite_service.py` |
-| Driver onboarding ops | `DRIVER-ONBOARDING-ARCHITECTURE.md`, `DRIVER-ONBOARDING-OPERATIONS.md` |
+| Resource              | Location                                                                          |
+| --------------------- | --------------------------------------------------------------------------------- |
+| App README            | `apps/mobile-driver/README.md`                                                    |
+| Env loader            | `src/config/env.ts`                                                               |
+| Expo config           | `app.config.ts`                                                                   |
+| EAS config            | `eas.json`                                                                        |
+| Deploy script         | `scripts/deploy-driver-appstore.sh`                                               |
+| API driver routers    | `apps/api/src/domains/drivers/route_execution_router.py`, `today_route_router.py` |
+| API auth / invites    | `apps/api/src/domains/auth/router.py`, `driver_invite_service.py`                 |
+| Driver onboarding ops | `DRIVER-ONBOARDING-ARCHITECTURE.md`, `DRIVER-ONBOARDING-OPERATIONS.md`            |
 
 ---
 
-*Last updated from repo scan. Firebase is not part of this app; all live data flows through the Porterchain API and Google Maps SDK only.*
+_Last updated from repo scan. Firebase is not part of this app; all live data flows through the Porterchain API and Google Maps SDK only._

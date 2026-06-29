@@ -4,14 +4,14 @@ Commercial logistics platform monorepo foundation.
 
 ## What's in this repo
 
-| Path | Description |
-|------|-------------|
-| [`website/`](website/) | Public Next.js site (port **3000**) — **only runnable app today** |
-| [`env/`](env/README.md) | Environment variable templates per service |
-| [`apps/`](apps/) | Placeholders for API, merchant portal, driver app |
-| [`services/fleetbase/`](services/fleetbase/) | Fleetbase stack reference |
-| [`infrastructure/docker/`](infrastructure/docker/docker-compose.yml) | Local MySQL, Redis, Mailhog, Valhalla |
-| Architecture specs | See `SYSTEM_ARCHITECTURE.md` and related docs at repo root |
+| Path                                                                 | Description                                                       |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [`website/`](website/)                                               | Public Next.js site (port **3000**) — **only runnable app today** |
+| [`env/`](env/README.md)                                              | Environment variable templates per service                        |
+| [`apps/`](apps/)                                                     | Placeholders for API, merchant portal, driver app                 |
+| [`services/fleetbase/`](services/fleetbase/)                         | Fleetbase stack reference                                         |
+| [`infrastructure/docker/`](infrastructure/docker/docker-compose.yml) | Local MySQL, Redis, Mailhog, Valhalla                             |
+| Architecture specs                                                   | See `SYSTEM_ARCHITECTURE.md` and related docs at repo root        |
 
 ## Quick start
 
@@ -50,27 +50,27 @@ pnpm docker:up:routing   # adds Valhalla :8002
 
 ## Monorepo scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start all workspace dev servers (website) |
-| `pnpm build` | Production build |
-| `pnpm lint` | ESLint across workspace |
-| `pnpm format` | Prettier write |
-| `pnpm format:check` | Prettier check (CI) |
-| `pnpm docker:up` | Core Docker services |
-| `pnpm docker:down` | Stop Docker services |
+| Command             | Description                               |
+| ------------------- | ----------------------------------------- |
+| `pnpm dev`          | Start all workspace dev servers (website) |
+| `pnpm build`        | Production build                          |
+| `pnpm lint`         | ESLint across workspace                   |
+| `pnpm format`       | Prettier write                            |
+| `pnpm format:check` | Prettier check (CI)                       |
+| `pnpm docker:up`    | Core Docker services                      |
+| `pnpm docker:down`  | Stop Docker services                      |
 
 ## Ports
 
-| Port | Service |
-|------|---------|
-| 3000 | Website |
-| 3001 | Merchant portal (future) |
-| 8000 | Fleetbase API (future) |
+| Port | Service                       |
+| ---- | ----------------------------- |
+| 3000 | Website                       |
+| 3001 | Merchant portal (future)      |
+| 8000 | Fleetbase API (future)        |
 | 8001 | Porterchain API (recommended) |
-| 8002 | Valhalla |
-| 3306 | MySQL |
-| 6379 | Redis |
+| 8002 | Valhalla                      |
+| 3306 | MySQL                         |
+| 6379 | Redis                         |
 
 See [PORT_CONFIGURATION.md](PORT_CONFIGURATION.md).
 

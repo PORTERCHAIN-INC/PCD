@@ -2,10 +2,10 @@
 
 Web dashboard and mobile API for vetted driver partners.
 
-| App | Path | Port |
-|-----|------|------|
+| App                     | Path                  | Port |
+| ----------------------- | --------------------- | ---- |
 | **Driver portal (web)** | `apps/driver-portal/` | 3003 |
-| **Mobile (planned)** | `apps/mobile-driver/` | Expo |
+| **Mobile (planned)**    | `apps/mobile-driver/` | Expo |
 
 ## API
 

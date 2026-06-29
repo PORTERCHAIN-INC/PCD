@@ -21,6 +21,18 @@ class VisitorTrackingInput(BaseModel):
     location: dict[str, Any] | None = None
 
 
+class WebsitePricingSnapshot(BaseModel):
+    customer_price_cad: float
+    driver_payout_cad: float
+    platform_margin_cad: float
+    distance_km: float
+    duration_minutes: float
+    engine_vehicle_id: str
+    breakdown: dict[str, Any]
+    traffic: dict[str, Any] | None = None
+    quote_engine: str = "website_v1"
+
+
 class CreateQuoteRequest(BaseModel):
     anonymous_session_id: str | None = None
     visitor_session_id: str | None = None
@@ -38,6 +50,7 @@ class CreateQuoteRequest(BaseModel):
     tracking: VisitorTrackingInput | None = None
     promo_code: str | None = None
     service_type: str | None = None
+    website_pricing: WebsitePricingSnapshot | None = None
 
 
 class PricingLineItem(BaseModel):

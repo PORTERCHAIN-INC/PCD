@@ -82,7 +82,9 @@ export default function HeroSection({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-xs font-semibold text-secondary uppercase tracking-wider">{badge}</span>
+            <span className="text-xs font-semibold text-secondary uppercase tracking-wider">
+              {badge}
+            </span>
             <h1 className="mt-4 text-4xl sm:text-5xl font-semibold text-primary tracking-tight text-balance leading-[1.1]">
               {title}
             </h1>
@@ -111,7 +113,9 @@ export default function HeroSection({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <span className="text-xs font-semibold text-secondary uppercase tracking-wider">{badge}</span>
+              <span className="text-xs font-semibold text-secondary uppercase tracking-wider">
+                {badge}
+              </span>
               <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-semibold text-primary tracking-tight text-balance leading-[1.1]">
                 {title}
               </h1>
@@ -150,7 +154,10 @@ export default function HeroSection({
       )}
     >
       <div className="absolute inset-0 dot-pattern opacity-30 pointer-events-none" aria-hidden />
-      <div className="absolute top-1/4 -right-32 w-[500px] h-[500px] rounded-full bg-secondary/10 blur-3xl pointer-events-none" aria-hidden />
+      <div
+        className="absolute top-1/4 -right-32 w-[500px] h-[500px] rounded-full bg-secondary/10 blur-3xl pointer-events-none"
+        aria-hidden
+      />
       <Container className="relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <motion.div
@@ -170,7 +177,12 @@ export default function HeroSection({
                 {primaryCta}
               </LinkButton>
               {secondaryCta && secondaryHref && (
-                <LinkButton href={secondaryHref} variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10">
+                <LinkButton
+                  href={secondaryHref}
+                  variant="outline"
+                  size="lg"
+                  className="border-white/30 text-white hover:bg-white/10"
+                >
                   {secondaryCta}
                 </LinkButton>
               )}

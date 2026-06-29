@@ -46,9 +46,7 @@ export default function WhyChooseBusiness() {
           viewport={{ once: true }}
           className="text-center max-w-2xl mx-auto mb-14"
         >
-          <h2 className="biz-heading text-[#091b1c] tracking-tight">
-            {t("title")}
-          </h2>
+          <h2 className="biz-heading text-[#091b1c] tracking-tight">{t("title")}</h2>
           <p className="mt-4 text-[#5c6b6c] leading-relaxed">{t("subtitle")}</p>
         </motion.div>
 

@@ -88,18 +88,11 @@ export function getTrendingPosts(locale: Locale, limit = 5): BlogPostMeta[] {
   return [...trending, ...posts.filter((p) => !p.trending)].slice(0, limit);
 }
 
-export function getPostsByCategory(
-  locale: Locale,
-  category: BlogCategory
-): BlogPostMeta[] {
+export function getPostsByCategory(locale: Locale, category: BlogCategory): BlogPostMeta[] {
   return getAllPosts(locale).filter((p) => p.category === category);
 }
 
-export function getRelatedPosts(
-  locale: Locale,
-  post: BlogPostMeta,
-  limit = 3
-): BlogPostMeta[] {
+export function getRelatedPosts(locale: Locale, post: BlogPostMeta, limit = 3): BlogPostMeta[] {
   return getAllPosts(locale)
     .filter((p) => p.slug !== post.slug)
     .sort((a, b) => {

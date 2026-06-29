@@ -46,10 +46,18 @@ export default async function CompanyPage({ params }: Props) {
   ];
 
   const valueItems = [
-    { title: t("values.items.0.title"), description: t("values.items.0.description"), icon: Shield },
+    {
+      title: t("values.items.0.title"),
+      description: t("values.items.0.description"),
+      icon: Shield,
+    },
     { title: t("values.items.1.title"), description: t("values.items.1.description"), icon: Scale },
     { title: t("values.items.2.title"), description: t("values.items.2.description"), icon: Leaf },
-    { title: t("values.items.3.title"), description: t("values.items.3.description"), icon: Handshake },
+    {
+      title: t("values.items.3.title"),
+      description: t("values.items.3.description"),
+      icon: Handshake,
+    },
   ];
 
   return (
@@ -60,8 +68,8 @@ export default async function CompanyPage({ params }: Props) {
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
         primaryHref="/contact"
-      secondaryCta={t("hero.secondaryCta")}
-      secondaryHref="/careers"
+        secondaryCta={t("hero.secondaryCta")}
+        secondaryHref="/careers"
         variant="minimal"
       />
       <section className="site-section bg-gray-bg">

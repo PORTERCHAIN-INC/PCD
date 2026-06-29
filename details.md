@@ -4,14 +4,14 @@
 
 ## Templates (copy → fill secrets)
 
-| Service | Template | Local file |
-|---------|----------|------------|
-| Website | [env/website.env.example](env/website.env.example) | `website/.env.local` |
-| Porterchain API | [env/api.env.example](env/api.env.example) | `apps/api/.env` |
-| Fleetbase | [env/fleetbase.env.example](env/fleetbase.env.example) | `services/fleetbase/.env` |
+| Service         | Template                                                           | Local file                        |
+| --------------- | ------------------------------------------------------------------ | --------------------------------- |
+| Website         | [env/website.env.example](env/website.env.example)                 | `website/.env.local`              |
+| Porterchain API | [env/api.env.example](env/api.env.example)                         | `apps/api/.env`                   |
+| Fleetbase       | [env/fleetbase.env.example](env/fleetbase.env.example)             | `services/fleetbase/.env`         |
 | Merchant portal | [env/merchant-portal.env.example](env/merchant-portal.env.example) | `apps/merchant-portal/.env.local` |
-| Driver app | [env/mobile-driver.env.example](env/mobile-driver.env.example) | `apps/mobile-driver/.env` |
-| Docker Compose | [env/compose.env.example](env/compose.env.example) | `.env` (repo root) |
+| Driver app      | [env/mobile-driver.env.example](env/mobile-driver.env.example)     | `apps/mobile-driver/.env`         |
+| Docker Compose  | [env/compose.env.example](env/compose.env.example)                 | `.env` (repo root)                |
 
 Quick start for this repo:
 
@@ -28,15 +28,15 @@ cp env/website.env.example website/.env.local
 
 ## Local ports
 
-| Port | Service |
-|------|---------|
-| 3000 | Website |
-| 3001 | Merchant portal |
-| 3003 | Driver invite web portal |
-| 4200 | Fleetbase console |
-| 8000 | Fleetbase API |
+| Port | Service                       |
+| ---- | ----------------------------- |
+| 3000 | Website                       |
+| 3001 | Merchant portal               |
+| 3003 | Driver invite web portal      |
+| 4200 | Fleetbase console             |
+| 8000 | Fleetbase API                 |
 | 8001 | Porterchain API (recommended) |
-| 8002 | Valhalla |
+| 8002 | Valhalla                      |
 
 ## Security
 

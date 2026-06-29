@@ -10,12 +10,7 @@ export default function GoogleMapsProvider({ children }: { children: ReactNode }
   }
 
   return (
-    <APIProvider
-      apiKey={getGoogleMapsApiKey()}
-      libraries={["places"]}
-      language="en"
-      region="CA"
-    >
+    <APIProvider apiKey={getGoogleMapsApiKey()} libraries={["places"]} language="en" region="CA">
       {children}
     </APIProvider>
   );

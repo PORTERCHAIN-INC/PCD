@@ -20,29 +20,29 @@
 
 See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the full map.
 
-| Area | You may edit | You must not edit |
-|------|--------------|-------------------|
-| `website/` | Booking UX, marketing | Fleetbase API calls |
-| `apps/merchant-portal/` | B2B portal | Fleetbase schema |
-| `apps/admin/` | Ops dashboard | Fleetbase console source |
-| `apps/api/` | All Porterchain domains | Direct Fleetbase HTTP |
-| `services/fleetbase-adapter/` | Integration logic | Porterchain pricing rules |
-| `apps/fleetbase/` | **Nothing** (read-only) | Core packages, console |
-| `infrastructure/docker/` | Compose overlays | — |
+| Area                          | You may edit            | You must not edit         |
+| ----------------------------- | ----------------------- | ------------------------- |
+| `website/`                    | Booking UX, marketing   | Fleetbase API calls       |
+| `apps/merchant-portal/`       | B2B portal              | Fleetbase schema          |
+| `apps/admin/`                 | Ops dashboard           | Fleetbase console source  |
+| `apps/api/`                   | All Porterchain domains | Direct Fleetbase HTTP     |
+| `services/fleetbase-adapter/` | Integration logic       | Porterchain pricing rules |
+| `apps/fleetbase/`             | **Nothing** (read-only) | Core packages, console    |
+| `infrastructure/docker/`      | Compose overlays        | —                         |
 
 ---
 
 ## Where to put changes
 
-| Change type | Location |
-|-------------|----------|
-| New Fleetbase API wrapper | `services/fleetbase-adapter/` |
-| Order status webhook handling | Adapter `events/` + API `fleetbase_sync_service.py` |
-| SSO / RBAC | `apps/api/auth/` + adapter `auth/` |
-| Public tracking page | `website/` |
-| Merchant invoice logic | `apps/api/` billing domains |
+| Change type                     | Location                                                   |
+| ------------------------------- | ---------------------------------------------------------- |
+| New Fleetbase API wrapper       | `services/fleetbase-adapter/`                              |
+| Order status webhook handling   | Adapter `events/` + API `fleetbase_sync_service.py`        |
+| SSO / RBAC                      | `apps/api/auth/` + adapter `auth/`                         |
+| Public tracking page            | `website/`                                                 |
+| Merchant invoice logic          | `apps/api/` billing domains                                |
 | Docker port for Fleetbase MySQL | `infrastructure/docker/fleetbase.porterchain.override.yml` |
-| Fleetbase custom routes | Separate bridge extension (not `apps/fleetbase/api/`) |
+| Fleetbase custom routes         | Separate bridge extension (not `apps/fleetbase/api/`)      |
 
 ---
 
@@ -137,12 +137,12 @@ from porterchain_fleetbase import FleetbaseIntegrationService
 
 ## Testing
 
-| Layer | How to test |
-|-------|-------------|
-| Adapter unit | Import tests, mapper assertions |
-| API integration | `pnpm dev:api` + Fleetbase Docker stack |
-| Webhooks | `POST /webhooks/fleetbase` with signed payload |
-| SSO | Admin portal "Open Fleetbase Console" button |
+| Layer           | How to test                                    |
+| --------------- | ---------------------------------------------- |
+| Adapter unit    | Import tests, mapper assertions                |
+| API integration | `pnpm dev:api` + Fleetbase Docker stack        |
+| Webhooks        | `POST /webhooks/fleetbase` with signed payload |
+| SSO             | Admin portal "Open Fleetbase Console" button   |
 
 ---
 
@@ -168,13 +168,13 @@ When making architectural changes, update:
 
 ## Getting help
 
-| Topic | Document |
-|-------|----------|
-| System design | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) |
-| Product scope | [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md) |
-| Fleetbase internals | [FLEETBASE_ANALYSIS.md](./FLEETBASE_ANALYSIS.md) |
-| Adapter design | [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) |
-| Upgrading Fleetbase | [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md) |
+| Topic               | Document                                                                 |
+| ------------------- | ------------------------------------------------------------------------ |
+| System design       | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)                       |
+| Product scope       | [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md)                     |
+| Fleetbase internals | [FLEETBASE_ANALYSIS.md](./FLEETBASE_ANALYSIS.md)                         |
+| Adapter design      | [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) |
+| Upgrading Fleetbase | [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md)                                   |
 
 ---
 

@@ -19,6 +19,24 @@ export interface VisitorTrackingPayload {
   location?: { city?: string; region?: string; country?: string };
 }
 
+export interface PricingLineItem {
+  code: string;
+  label: string;
+  amount_cents: number;
+}
+
+export interface WebsitePricingSnapshot {
+  customer_price_cad: number;
+  driver_payout_cad: number;
+  platform_margin_cad: number;
+  distance_km: number;
+  duration_minutes: number;
+  engine_vehicle_id: string;
+  breakdown: Record<string, number>;
+  traffic?: Record<string, unknown>;
+  quote_engine?: string;
+}
+
 export interface QuoteResult {
   quote_id: string;
   state: string;
@@ -28,6 +46,7 @@ export interface QuoteResult {
   distance_km?: number;
   vehicle_class: string;
   scheduled_at: string;
+  pricing_breakdown?: PricingLineItem[];
 }
 
 export interface CreateQuotePayload {
@@ -45,6 +64,7 @@ export interface CreateQuotePayload {
   scheduled_at: string;
   schedule_mode: "now" | "later";
   tracking?: VisitorTrackingPayload;
+  website_pricing?: WebsitePricingSnapshot;
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {

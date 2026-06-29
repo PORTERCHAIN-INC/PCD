@@ -53,7 +53,14 @@ export default function CareersHeroIllustration() {
             ].map((node, i) => (
               <g key={i}>
                 <circle cx={node.cx} cy={node.cy} r={node.r} fill="#2563eb" fillOpacity="0.15" />
-                <circle cx={node.cx} cy={node.cy} r={node.r - 6} fill="#0a1628" stroke="#2563eb" strokeWidth="1.5" />
+                <circle
+                  cx={node.cx}
+                  cy={node.cy}
+                  r={node.r - 6}
+                  fill="#0a1628"
+                  stroke="#2563eb"
+                  strokeWidth="1.5"
+                />
                 <text
                   x={node.cx}
                   y={node.cy + 4}
@@ -80,7 +87,9 @@ export default function CareersHeroIllustration() {
                 className="rounded-xl bg-white/[0.06] border border-white/[0.08] px-3 py-2.5 text-center"
               >
                 <p className="text-sm font-semibold text-white">{stat.value}</p>
-                <p className="text-[9px] text-white/45 uppercase tracking-wider mt-0.5">{stat.label}</p>
+                <p className="text-[9px] text-white/45 uppercase tracking-wider mt-0.5">
+                  {stat.label}
+                </p>
               </div>
             ))}
           </div>

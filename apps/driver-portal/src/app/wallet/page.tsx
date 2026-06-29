@@ -20,7 +20,9 @@ export default function WalletPage() {
       <h1 className="text-2xl font-bold">Wallet</h1>
       {data && (
         <>
-          <p className="mt-2 text-3xl font-bold text-[var(--secondary)]">{formatCents(data.balance_cents)}</p>
+          <p className="mt-2 text-3xl font-bold text-[var(--secondary)]">
+            {formatCents(data.balance_cents)}
+          </p>
           <h2 className="mt-8 font-semibold">Recent transactions</h2>
           <ul className="mt-3 space-y-2">
             {(data.transactions as { description: string; amount_cents: number }[]).map((t, i) => (

@@ -103,10 +103,7 @@ export default function SiteNavbar() {
                 {link.label}
               </Link>
             ))}
-            <a
-              href={merchantSignInUrl}
-              className={linkClass("login")}
-            >
+            <a href={merchantSignInUrl} className={linkClass("login")}>
               {t("login")}
             </a>
             {isHome ? (

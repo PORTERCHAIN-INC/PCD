@@ -8,7 +8,5 @@ export default function AppClerkProvider({ children }: { children: React.ReactNo
     return <>{children}</>;
   }
 
-  return (
-    <ClerkProvider publishableKey={publicEnv.clerkPublishableKey}>{children}</ClerkProvider>
-  );
+  return <ClerkProvider publishableKey={publicEnv.clerkPublishableKey}>{children}</ClerkProvider>;
 }

@@ -4,10 +4,7 @@
  */
 export const publicEnv = {
   googleMapsApiKey: (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "").trim(),
-  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://porterchain.com").replace(
-    /\/$/,
-    ""
-  ),
+  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://porterchain.com").replace(/\/$/, ""),
   merchantPortalUrl: (
     process.env.NEXT_PUBLIC_MERCHANT_PORTAL_URL ??
     (process.env.NODE_ENV === "development"
@@ -20,27 +17,31 @@ export const publicEnv = {
       ? "http://localhost:3003"
       : "https://portal.porterchain.com")
   ).replace(/\/$/, ""),
-  porterchainApiUrl: (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
-    /\/$/,
-    ""
-  ),
+  porterchainApiUrl: (
+    process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001"
+  ).replace(/\/$/, ""),
   clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
   supabaseUrl: (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim(),
   supabaseAnonKey: (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim(),
   bookingOtpSkipVerify: process.env.NEXT_PUBLIC_BOOKING_OTP_SKIP_VERIFY === "true",
   zohoSalesIqEnabled: process.env.NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED === "true",
   zohoSalesIqWidgetCode: (process.env.NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE ?? "").trim(),
-  socialLinkedIn:
-    (process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN ?? "https://www.linkedin.com/company/porterchain").trim(),
-  socialInstagram:
-    (process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM ?? "https://www.instagram.com/porterchain/").trim(),
-  socialFacebook:
-    (
-      process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK ??
-      "https://www.facebook.com/profile.php?id=61568324733884"
-    ).trim(),
-  socialYouTube: (process.env.NEXT_PUBLIC_SOCIAL_YOUTUBE ?? "https://www.youtube.com/@porterchain").trim(),
+  socialLinkedIn: (
+    process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN ?? "https://www.linkedin.com/company/porterchain"
+  ).trim(),
+  socialInstagram: (
+    process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM ?? "https://www.instagram.com/porterchain/"
+  ).trim(),
+  socialFacebook: (
+    process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK ??
+    "https://www.facebook.com/profile.php?id=61568324733884"
+  ).trim(),
+  socialYouTube: (
+    process.env.NEXT_PUBLIC_SOCIAL_YOUTUBE ?? "https://www.youtube.com/@porterchain"
+  ).trim(),
   socialWhatsApp: (process.env.NEXT_PUBLIC_SOCIAL_WHATSAPP ?? "https://wa.me/16476197951").trim(),
+  driverAppIosUrl: (process.env.NEXT_PUBLIC_DRIVER_APP_IOS_URL ?? "").trim(),
+  driverAppAndroidUrl: (process.env.NEXT_PUBLIC_DRIVER_APP_ANDROID_URL ?? "").trim(),
 } as const;
 
 export function isGoogleMapsConfigured(): boolean {
@@ -61,4 +62,8 @@ export function isSupabaseConfigured(): boolean {
 
 export function isZohoSalesIqConfigured(): boolean {
   return publicEnv.zohoSalesIqEnabled && publicEnv.zohoSalesIqWidgetCode.length > 0;
+}
+
+export function isDriverAppConfigured(): boolean {
+  return publicEnv.driverAppIosUrl.length > 0 || publicEnv.driverAppAndroidUrl.length > 0;
 }

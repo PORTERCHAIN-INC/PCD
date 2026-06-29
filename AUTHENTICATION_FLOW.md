@@ -10,26 +10,26 @@
 
 **Authenticate once with Clerk.** Porterchain API validates every request. Fleetbase trusts Porterchain-issued SSO tokens — Porterchain users never use the Fleetbase login screen.
 
-| Rule | Implementation |
-|------|----------------|
-| No duplicate users | `identity_links.clerk_user_id` maps to one platform record |
+| Rule                   | Implementation                                                       |
+| ---------------------- | -------------------------------------------------------------------- |
+| No duplicate users     | `identity_links.clerk_user_id` maps to one platform record           |
 | No duplicate passwords | Clerk holds credentials; Fleetbase has no Porterchain user passwords |
-| JWT passed securely | HTTPS only; short-lived Porterchain SSO JWT (default 5 min) |
-| RBAC server-side | Permissions enforced in Porterchain API, synced to Fleetbase |
+| JWT passed securely    | HTTPS only; short-lived Porterchain SSO JWT (default 5 min)          |
+| RBAC server-side       | Permissions enforced in Porterchain API, synced to Fleetbase         |
 
 ---
 
 ## User types
 
-| User | Portal | Clerk | Fleetbase console |
-|------|--------|-------|-------------------|
-| **Merchant** | Merchant portal :3001 | Organization membership | No access |
-| **Customer** | Website / retail dashboard | User account | No access |
-| **Driver** | Mobile app (Clerk or Porterchain JWT) | Optional `clerk_user_id` on driver record | No access |
-| **Dispatcher** | Admin portal :3002 | Admin user role `dispatcher` | SSO only |
-| **Admin** | Admin portal | Admin user role `admin` | SSO only |
-| **Support** | Admin portal | `support` / `support_lead` | SSO read-only |
-| **Sales** | Admin portal | `sales` / `sales_manager` | No Fleetbase console |
+| User           | Portal                                | Clerk                                     | Fleetbase console    |
+| -------------- | ------------------------------------- | ----------------------------------------- | -------------------- |
+| **Merchant**   | Merchant portal :3001                 | Organization membership                   | No access            |
+| **Customer**   | Website / retail dashboard            | User account                              | No access            |
+| **Driver**     | Mobile app (Clerk or Porterchain JWT) | Optional `clerk_user_id` on driver record | No access            |
+| **Dispatcher** | Admin portal :3002                    | Admin user role `dispatcher`              | SSO only             |
+| **Admin**      | Admin portal                          | Admin user role `admin`                   | SSO only             |
+| **Support**    | Admin portal                          | `support` / `support_lead`                | SSO read-only        |
+| **Sales**      | Admin portal                          | `sales` / `sales_manager`                 | No Fleetbase console |
 
 ---
 
@@ -111,10 +111,10 @@ Admin portal **Operations** page: **Open Fleetbase Console (SSO)** opens `consol
 
 ### 4. Driver authentication
 
-| Mode | Flow |
-|------|------|
-| **Clerk (target)** | Driver record linked via `drivers.clerk_user_id`; same Clerk JWT flow |
-| **Porterchain JWT (legacy)** | `/auth/login` issues Porterchain JWT for mobile app |
+| Mode                         | Flow                                                                  |
+| ---------------------------- | --------------------------------------------------------------------- |
+| **Clerk (target)**           | Driver record linked via `drivers.clerk_user_id`; same Clerk JWT flow |
+| **Porterchain JWT (legacy)** | `/auth/login` issues Porterchain JWT for mobile app                   |
 
 Drivers never receive Fleetbase console access.
 
@@ -129,56 +129,56 @@ Drivers never receive Fleetbase console access.
 
 ## Token types
 
-| Token | Issuer | Lifetime | Audience | Use |
-|-------|--------|----------|----------|-----|
-| Clerk session JWT | Clerk | Session | Porterchain API | All portal API calls |
-| Porterchain SSO JWT | Porterchain API | 300s default | `fleetbase` | Fleetbase console SSO |
-| Fleetbase Sanctum | Fleetbase | Session | Fleetbase API | Issued by SSO exchange (bridge) |
-| Porterchain driver JWT | Porterchain API | 15–60 min | Driver API | Mobile execution |
+| Token                  | Issuer          | Lifetime     | Audience        | Use                             |
+| ---------------------- | --------------- | ------------ | --------------- | ------------------------------- |
+| Clerk session JWT      | Clerk           | Session      | Porterchain API | All portal API calls            |
+| Porterchain SSO JWT    | Porterchain API | 300s default | `fleetbase`     | Fleetbase console SSO           |
+| Fleetbase Sanctum      | Fleetbase       | Session      | Fleetbase API   | Issued by SSO exchange (bridge) |
+| Porterchain driver JWT | Porterchain API | 15–60 min    | Driver API      | Mobile execution                |
 
 ---
 
 ## Security controls
 
-| Control | Detail |
-|---------|--------|
-| HTTPS | Required in production for all token transport |
-| JWKS rotation | Clerk keys fetched from `CLERK_JWKS_URL`; cached in API |
-| SSO secret | `SSO_JWT_SECRET` shared only between Porterchain API and Fleetbase SSO bridge |
-| Short TTL | SSO tokens expire in 5 minutes |
-| No Fleetbase passwords | Porterchain users provisioned in Fleetbase without password auth |
-| Server-side RBAC | Client displays UI; API rejects unauthorized actions |
+| Control                | Detail                                                                        |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| HTTPS                  | Required in production for all token transport                                |
+| JWKS rotation          | Clerk keys fetched from `CLERK_JWKS_URL`; cached in API                       |
+| SSO secret             | `SSO_JWT_SECRET` shared only between Porterchain API and Fleetbase SSO bridge |
+| Short TTL              | SSO tokens expire in 5 minutes                                                |
+| No Fleetbase passwords | Porterchain users provisioned in Fleetbase without password auth              |
+| Server-side RBAC       | Client displays UI; API rejects unauthorized actions                          |
 
 ---
 
 ## Environment variables
 
-| Variable | Purpose |
-|----------|---------|
-| `CLERK_PUBLISHABLE_KEY` | Frontend Clerk SDK |
-| `CLERK_SECRET_KEY` | Server Clerk API |
-| `CLERK_JWKS_URL` | JWT verification |
-| `CLERK_DEV_BYPASS` | Local dev without Clerk |
-| `SSO_JWT_SECRET` | Sign Porterchain → Fleetbase SSO JWT |
-| `JWT_SECRET` | Fallback signing secret |
-| `SSO_TOKEN_TTL_SECONDS` | SSO token lifetime (default 300) |
-| `FLEETBASE_CONSOLE_URL` | Console base URL for SSO redirect |
-| `FLEETBASE_SSO_ENABLED` | Enable/disable SSO exchange |
+| Variable                | Purpose                              |
+| ----------------------- | ------------------------------------ |
+| `CLERK_PUBLISHABLE_KEY` | Frontend Clerk SDK                   |
+| `CLERK_SECRET_KEY`      | Server Clerk API                     |
+| `CLERK_JWKS_URL`        | JWT verification                     |
+| `CLERK_DEV_BYPASS`      | Local dev without Clerk              |
+| `SSO_JWT_SECRET`        | Sign Porterchain → Fleetbase SSO JWT |
+| `JWT_SECRET`            | Fallback signing secret              |
+| `SSO_TOKEN_TTL_SECONDS` | SSO token lifetime (default 300)     |
+| `FLEETBASE_CONSOLE_URL` | Console base URL for SSO redirect    |
+| `FLEETBASE_SSO_ENABLED` | Enable/disable SSO exchange          |
 
 ---
 
 ## Code map
 
-| Component | Path |
-|-----------|------|
-| Clerk verification | `apps/api/.../auth/clerk.py` |
-| Principal resolution | `apps/api/.../auth/principal_resolver.py` |
-| SSO service | `apps/api/.../auth/sso_service.py` |
-| Identity links | `apps/api/.../identity_models.py` |
-| Auth routes | `apps/api/.../routers/auth.py` |
+| Component            | Path                                            |
+| -------------------- | ----------------------------------------------- |
+| Clerk verification   | `apps/api/.../auth/clerk.py`                    |
+| Principal resolution | `apps/api/.../auth/principal_resolver.py`       |
+| SSO service          | `apps/api/.../auth/sso_service.py`              |
+| Identity links       | `apps/api/.../identity_models.py`               |
+| Auth routes          | `apps/api/.../routers/auth.py`                  |
 | Fleetbase SSO client | `services/fleetbase/porterchain_fleetbase/sso/` |
-| Admin RBAC | `apps/api/.../admin_engine/rbac.py` |
-| Merchant RBAC | `apps/api/.../merchant_engine/rbac.py` |
+| Admin RBAC           | `apps/api/.../admin_engine/rbac.py`             |
+| Merchant RBAC        | `apps/api/.../merchant_engine/rbac.py`          |
 
 ---
 

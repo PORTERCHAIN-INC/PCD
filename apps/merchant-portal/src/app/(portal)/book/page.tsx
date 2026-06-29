@@ -64,16 +64,29 @@ export default function BookPage() {
             <Link href={`/track?q=${result}`} className="text-sm text-secondary hover:underline">
               Track shipment
             </Link>
-            <button type="button" className="text-sm text-muted hover:underline" onClick={() => setResult(null)}>
+            <button
+              type="button"
+              className="text-sm text-muted hover:underline"
+              onClick={() => setResult(null)}
+            >
               Book another
             </button>
           </div>
         </div>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6">
+        <form
+          onSubmit={onSubmit}
+          className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6"
+        >
           <Field label="Pickup address" value={pickup} onChange={setPickup} required />
           <Field label="Dropoff address" value={dropoff} onChange={setDropoff} required />
-          <Field label="Scheduled at" type="datetime-local" value={scheduledAt} onChange={setScheduledAt} required />
+          <Field
+            label="Scheduled at"
+            type="datetime-local"
+            value={scheduledAt}
+            onChange={setScheduledAt}
+            required
+          />
           <Field label="Internal reference" value={internalRef} onChange={setInternalRef} />
           <Field label="Purchase order number" value={poNumber} onChange={setPoNumber} />
           <Field label="Cost centre" value={costCentre} onChange={setCostCentre} />

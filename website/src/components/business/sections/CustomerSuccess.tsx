@@ -21,9 +21,7 @@ export default function CustomerSuccess() {
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff7a00]">
             {t("label")}
           </span>
-          <h2 className="mt-3 biz-heading text-[#091b1c] tracking-tight">
-            {t("title")}
-          </h2>
+          <h2 className="mt-3 biz-heading text-[#091b1c] tracking-tight">{t("title")}</h2>
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
@@ -45,9 +43,7 @@ export default function CustomerSuccess() {
                   {t(`items.${key}.initials`)}
                 </div>
                 <div>
-                  <p className="font-semibold text-[#091b1c] text-sm">
-                    {t(`items.${key}.author`)}
-                  </p>
+                  <p className="font-semibold text-[#091b1c] text-sm">{t(`items.${key}.author`)}</p>
                   <p className="text-xs text-[#5c6b6c]">{t(`items.${key}.role`)}</p>
                 </div>
               </footer>

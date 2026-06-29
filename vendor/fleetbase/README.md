@@ -7,10 +7,10 @@ This directory is the **logical vendor reference** for Fleetbase in the Porterch
 
 ## Why two paths?
 
-| Path | Purpose |
-|------|---------|
+| Path                | Purpose                                                                   |
+| ------------------- | ------------------------------------------------------------------------- |
 | `vendor/fleetbase/` | Documentation anchor — marks Fleetbase as an external upstream dependency |
-| `apps/fleetbase/` | Actual clone used by Docker Compose and local development |
+| `apps/fleetbase/`   | Actual clone used by Docker Compose and local development                 |
 
 ## Rules
 
@@ -21,21 +21,21 @@ This directory is the **logical vendor reference** for Fleetbase in the Porterch
 
 ## Do not modify
 
-| Directory | Reason |
-|-----------|--------|
-| `apps/fleetbase/api/` | Laravel shell — logic in Composer packages |
-| `apps/fleetbase/console/` | Ember console — logic in npm packages |
-| `apps/fleetbase/packages/` | Upstream git submodules |
-| `apps/fleetbase/docker/` | Upstream Docker build |
-| `apps/fleetbase/infra/` | Upstream Helm chart |
+| Directory                  | Reason                                     |
+| -------------------------- | ------------------------------------------ |
+| `apps/fleetbase/api/`      | Laravel shell — logic in Composer packages |
+| `apps/fleetbase/console/`  | Ember console — logic in npm packages      |
+| `apps/fleetbase/packages/` | Upstream git submodules                    |
+| `apps/fleetbase/docker/`   | Upstream Docker build                      |
+| `apps/fleetbase/infra/`    | Upstream Helm chart                        |
 
 ## Safe Porterchain touchpoints
 
-| Location | Allowed change |
-|----------|----------------|
-| `infrastructure/docker/fleetbase.porterchain.override.yml` | Port mappings, env overrides |
-| `env/fleetbase.env.example` | Porterchain env template |
-| Fleetbase extension (future) | `porterchain-bridge` Composer package |
+| Location                                                   | Allowed change                        |
+| ---------------------------------------------------------- | ------------------------------------- |
+| `infrastructure/docker/fleetbase.porterchain.override.yml` | Port mappings, env overrides          |
+| `env/fleetbase.env.example`                                | Porterchain env template              |
+| Fleetbase extension (future)                               | `porterchain-bridge` Composer package |
 
 ## Operations
 

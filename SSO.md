@@ -8,14 +8,14 @@
 
 ## Summary
 
-| Aspect | Approach |
-|--------|----------|
-| Identity provider | **Clerk** (merchants, admin, support, sales, dispatchers) |
-| Trust broker | **Porterchain API** |
-| Fleetbase auth | Trusts **Porterchain-signed SSO JWT** |
-| User duplication | **None** — one Clerk ID → one `identity_links` row → one Fleetbase user |
-| Password duplication | **None** — Fleetbase users provisioned without Porterchain passwords |
-| Permission sync | Porterchain RBAC → Fleetbase IAM on each SSO exchange |
+| Aspect               | Approach                                                                |
+| -------------------- | ----------------------------------------------------------------------- |
+| Identity provider    | **Clerk** (merchants, admin, support, sales, dispatchers)               |
+| Trust broker         | **Porterchain API**                                                     |
+| Fleetbase auth       | Trusts **Porterchain-signed SSO JWT**                                   |
+| User duplication     | **None** — one Clerk ID → one `identity_links` row → one Fleetbase user |
+| Password duplication | **None** — Fleetbase users provisioned without Porterchain passwords    |
+| Permission sync      | Porterchain RBAC → Fleetbase IAM on each SSO exchange                   |
 
 ---
 
@@ -120,10 +120,10 @@ Authorization: Bearer <clerk_jwt>
 
 Porterchain calls these Fleetbase internal endpoints (implemented via `porterchain-bridge` extension):
 
-| Endpoint | Purpose |
-|----------|---------|
-| `POST /int/v1/porterchain/sso/exchange` | Validate SSO JWT, provision/find user, return session |
-| `POST /int/v1/porterchain/sso/users/{uuid}/permissions` | Sync IAM permissions |
+| Endpoint                                                | Purpose                                               |
+| ------------------------------------------------------- | ----------------------------------------------------- |
+| `POST /int/v1/porterchain/sso/exchange`                 | Validate SSO JWT, provision/find user, return session |
+| `POST /int/v1/porterchain/sso/users/{uuid}/permissions` | Sync IAM permissions                                  |
 
 ### Exchange request
 
@@ -154,13 +154,13 @@ Porterchain calls these Fleetbase internal endpoints (implemented via `portercha
 
 ## User provisioning (no duplicates)
 
-| Step | Action |
-|------|--------|
-| 1 | Clerk user signs into Porterchain admin |
-| 2 | `PrincipalResolver` finds `admin_users` row by `clerk_user_id` |
-| 3 | `IdentityLink` created/updated with `clerk_user_id` as canonical key |
-| 4 | SSO exchange finds or creates Fleetbase user by `clerk_user_id` + `email` |
-| 5 | `admin_users.fleetbase_user_uuid` and `identity_links.fleetbase_user_uuid` updated |
+| Step | Action                                                                             |
+| ---- | ---------------------------------------------------------------------------------- |
+| 1    | Clerk user signs into Porterchain admin                                            |
+| 2    | `PrincipalResolver` finds `admin_users` row by `clerk_user_id`                     |
+| 3    | `IdentityLink` created/updated with `clerk_user_id` as canonical key               |
+| 4    | SSO exchange finds or creates Fleetbase user by `clerk_user_id` + `email`          |
+| 5    | `admin_users.fleetbase_user_uuid` and `identity_links.fleetbase_user_uuid` updated |
 
 Fleetbase user is linked — not a second login account with a separate password.
 
@@ -175,11 +175,11 @@ On each `POST /v1/auth/sso/fleetbase`:
 3. Store on `identity_links`
 4. Push to Fleetbase via `/sso/users/{uuid}/permissions`
 
-| Porterchain role | Fleetbase sync |
-|------------------|----------------|
-| Role change in Porterchain | Next SSO exchange updates Fleetbase |
-| User suspended in Porterchain | SSO returns 403 before exchange |
-| Merchant/driver/customer | SSO endpoint returns 403 |
+| Porterchain role              | Fleetbase sync                      |
+| ----------------------------- | ----------------------------------- |
+| Role change in Porterchain    | Next SSO exchange updates Fleetbase |
+| User suspended in Porterchain | SSO returns 403 before exchange     |
+| Merchant/driver/customer      | SSO endpoint returns 403            |
 
 ---
 
@@ -222,40 +222,40 @@ PORTERCHAIN_API_URL=http://localhost:8001
 
 ## Security checklist
 
-| Item | Status |
-|------|--------|
-| HTTPS in production | Required |
-| Short SSO token TTL (5 min) | Implemented |
-| Clerk JWKS verification | Implemented |
-| Fleetbase SSO signature verification | Extension required |
-| Merchants blocked from console SSO | Implemented |
-| No Fleetbase password for Porterchain users | By design |
-| Permission sync on SSO | Implemented |
+| Item                                        | Status             |
+| ------------------------------------------- | ------------------ |
+| HTTPS in production                         | Required           |
+| Short SSO token TTL (5 min)                 | Implemented        |
+| Clerk JWKS verification                     | Implemented        |
+| Fleetbase SSO signature verification        | Extension required |
+| Merchants blocked from console SSO          | Implemented        |
+| No Fleetbase password for Porterchain users | By design          |
+| Permission sync on SSO                      | Implemented        |
 
 ---
 
 ## Failure modes
 
-| Scenario | Behavior |
-|----------|----------|
-| Fleetbase bridge unavailable | Returns `sso_token` + `console_url`; `fleetbase_session` null |
-| User not in `admin_users` | 403 `user_not_provisioned` |
-| Role lacks console access | 403 `fleetbase_console_forbidden` |
-| `SSO_JWT_SECRET` missing | 503 `sso_jwt_secret_not_configured` |
-| `FLEETBASE_SSO_ENABLED=false` | 503 `fleetbase_sso_disabled` |
+| Scenario                      | Behavior                                                      |
+| ----------------------------- | ------------------------------------------------------------- |
+| Fleetbase bridge unavailable  | Returns `sso_token` + `console_url`; `fleetbase_session` null |
+| User not in `admin_users`     | 403 `user_not_provisioned`                                    |
+| Role lacks console access     | 403 `fleetbase_console_forbidden`                             |
+| `SSO_JWT_SECRET` missing      | 503 `sso_jwt_secret_not_configured`                           |
+| `FLEETBASE_SSO_ENABLED=false` | 503 `fleetbase_sso_disabled`                                  |
 
 ---
 
 ## Code references
 
-| Component | Path |
-|-----------|------|
-| SSO service | `apps/api/src/porterchain_api/auth/sso_service.py` |
-| Auth router | `apps/api/src/porterchain_api/routers/auth.py` |
-| Identity links | `apps/api/src/porterchain_api/identity_models.py` |
-| Fleetbase role map | `apps/api/src/porterchain_api/auth/fleetbase_roles.py` |
+| Component            | Path                                                       |
+| -------------------- | ---------------------------------------------------------- |
+| SSO service          | `apps/api/src/porterchain_api/auth/sso_service.py`         |
+| Auth router          | `apps/api/src/porterchain_api/routers/auth.py`             |
+| Identity links       | `apps/api/src/porterchain_api/identity_models.py`          |
+| Fleetbase role map   | `apps/api/src/porterchain_api/auth/fleetbase_roles.py`     |
 | Fleetbase SSO client | `services/fleetbase/porterchain_fleetbase/sso/__init__.py` |
-| Admin SSO button | `apps/admin/src/app/(ops)/operations/page.tsx` |
+| Admin SSO button     | `apps/admin/src/app/(ops)/operations/page.tsx`             |
 
 ---
 

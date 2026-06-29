@@ -14,7 +14,9 @@ export default function ContactSocialBar({ label, title }: ContactSocialBarProps
         <FadeIn>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-secondary">{label}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+                {label}
+              </p>
               <h2 className="mt-2 text-xl font-semibold text-primary tracking-tight">{title}</h2>
             </div>
             <SocialLinks variant="contact" />

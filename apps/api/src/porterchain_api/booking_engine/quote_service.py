@@ -1,6 +1,7 @@
 """Quote service — anonymous public quote per PRODUCT_REQUIREMENTS.md Phase A."""
 
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -11,9 +12,74 @@ from porterchain_api.config import Settings
 from porterchain_api.domain.states import QuoteState
 from porterchain_api.models import Quote
 from porterchain_api.pricing_engine import get_pricing_service
-from porterchain_api.schemas import CreateQuoteRequest, PricingLineItem
+from porterchain_api.schemas import CreateQuoteRequest, PricingLineItem, WebsitePricingSnapshot
 from porterchain_api.services.pricing import _request_from_quote_body, expire_quote_if_needed
 from porterchain_pricing import GeoPoint, total_route_meters
+
+
+def _website_breakdown_to_line_items(
+    snapshot: WebsitePricingSnapshot,
+) -> list[PricingLineItem]:
+    breakdown = snapshot.breakdown
+    customer_price = snapshot.customer_price_cad
+    subtotal = float(breakdown.get("subtotal", 0))
+    adjusted_cost = float(breakdown.get("adjustedCost", subtotal))
+    traffic_multiplier = float(breakdown.get("trafficMultiplier", 1))
+    margin_multiplier = float(breakdown.get("marginMultiplier", 1.18))
+
+    def cents(key_camel: str, key_snake: str, label: str, code: str) -> PricingLineItem | None:
+        amount = float(breakdown.get(key_camel, breakdown.get(key_snake, 0)))
+        if amount == 0:
+            return None
+        return PricingLineItem(code=code, label=label, amount_cents=int(round(amount * 100)))
+
+    items: list[PricingLineItem] = []
+    for item in (
+        cents("baseFee", "base_fee", "Base fee", "base"),
+        cents("distanceFee", "distance_fee", "Distance", "distance"),
+        cents("timeFee", "time_fee", "Time", "time"),
+        cents("weightFee", "weight_fee", "Weight", "weight"),
+        cents("fuelFee", "fuel_fee", "Fuel surcharge", "fuel"),
+        cents("stopFee", "stop_fee", "Additional stops", "stops"),
+        cents("helperFee", "helper_fee", "Helper", "helper"),
+    ):
+        if item:
+            items.append(item)
+
+    traffic_delta = adjusted_cost - subtotal
+    if traffic_delta != 0:
+        items.append(
+            PricingLineItem(
+                code="traffic",
+                label=f"Traffic adjustment (×{traffic_multiplier:.2f})",
+                amount_cents=int(round(traffic_delta * 100)),
+            )
+        )
+
+    margin_delta = customer_price - adjusted_cost
+    if margin_delta != 0:
+        items.append(
+            PricingLineItem(
+                code="margin",
+                label=f"Service fee (×{margin_multiplier:.2f})",
+                amount_cents=int(round(margin_delta * 100)),
+            )
+        )
+
+    return items
+
+
+def _website_pricing_summary(snapshot: WebsitePricingSnapshot) -> dict[str, Any]:
+    return {
+        "engine": snapshot.quote_engine,
+        "customer_price_cad": snapshot.customer_price_cad,
+        "driver_payout_cad": snapshot.driver_payout_cad,
+        "platform_margin_cad": snapshot.platform_margin_cad,
+        "engine_vehicle_id": snapshot.engine_vehicle_id,
+        "duration_minutes": snapshot.duration_minutes,
+        "breakdown": snapshot.breakdown,
+        "traffic": snapshot.traffic,
+    }
 
 
 class QuoteService:
@@ -50,12 +116,21 @@ class QuoteService:
             distance = total_route_meters(request.pickup, request.dropoff, stops)
             request = PricingRequest_replace(request, distance_meters=distance)
 
-        pricing = get_pricing_service(db)
-        breakdown = pricing.calculate_retail(request)
-        distance_meters = breakdown.metadata.get("distance_meters")
-        breakdown_items = [
-            PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items
-        ]
+        if body.website_pricing:
+            wp = body.website_pricing
+            breakdown_items = _website_breakdown_to_line_items(wp)
+            amount_cents = int(round(wp.customer_price_cad * 100))
+            distance_meters = int(round(wp.distance_km * 1000))
+            pricing_summary = _website_pricing_summary(wp)
+        else:
+            pricing = get_pricing_service(db)
+            breakdown = pricing.calculate_retail(request)
+            distance_meters = breakdown.metadata.get("distance_meters")
+            breakdown_items = [
+                PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items
+            ]
+            amount_cents = breakdown.final_cents
+            pricing_summary = pricing.to_api_breakdown(breakdown)
 
         expires_at = datetime.now(UTC) + timedelta(minutes=settings.quote_ttl_minutes)
         quote = Quote(
@@ -73,10 +148,10 @@ class QuoteService:
             special_instructions=body.special_instructions,
             scheduled_at=body.scheduled_at,
             schedule_mode=body.schedule_mode,
-            amount_cents=breakdown.final_cents,
+            amount_cents=amount_cents,
             pricing_breakdown={
                 "items": [i.model_dump() for i in breakdown_items],
-                "summary": pricing.to_api_breakdown(breakdown),
+                "summary": pricing_summary,
             },
             distance_meters=distance_meters,
             expires_at=expires_at,
@@ -90,7 +165,7 @@ class QuoteService:
             aggregate_type="quote",
             aggregate_id=quote.id,
             correlation_id=session_id,
-            payload={"amount_cents": breakdown.final_cents},
+            payload={"amount_cents": amount_cents},
         )
         db.commit()
         db.refresh(quote)

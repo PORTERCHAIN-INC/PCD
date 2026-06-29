@@ -55,8 +55,8 @@ export default function BulkPage() {
       <div>
         <h1 className="text-2xl font-bold text-primary">Bulk Bookings</h1>
         <p className="text-sm text-muted">
-          Upload CSV with columns: pickup, dropoff, scheduled_at (optional: internal_reference, purchase_order_number,
-          cost_centre)
+          Upload CSV with columns: pickup, dropoff, scheduled_at (optional: internal_reference,
+          purchase_order_number, cost_centre)
         </p>
       </div>
 
@@ -68,7 +68,8 @@ export default function BulkPage() {
       {preview && (
         <div className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6">
           <p className="text-sm">
-            Valid: {preview.valid_rows} · Errors: {preview.error_rows} · Duplicates: {preview.duplicate_rows}
+            Valid: {preview.valid_rows} · Errors: {preview.error_rows} · Duplicates:{" "}
+            {preview.duplicate_rows}
           </p>
           {preview.errors.length > 0 && (
             <div>
@@ -91,7 +92,9 @@ export default function BulkPage() {
               Confirm bulk import
             </Button>
           ) : (
-            <p className="text-sm font-medium text-green-700">Bulk bookings confirmed and dispatched.</p>
+            <p className="text-sm font-medium text-green-700">
+              Bulk bookings confirmed and dispatched.
+            </p>
           )}
         </div>
       )}

@@ -84,15 +84,15 @@ services/fleetbase-adapter/
 
 ### Domain services
 
-| Service | Fleetbase endpoints | Porterchain use |
-|---------|---------------------|-----------------|
-| `OrderService` | `POST/PUT /v1/orders` | Sync commercial orders after payment |
-| `DriverService` | `POST/PUT /v1/drivers` | Sync vetted driver partners |
-| `VehicleService` | `POST/PUT /v1/vehicles` | Sync fleet vehicles |
-| `DispatchService` | `PATCH /v1/orders/{id}/dispatch` | Trigger dispatch, assign driver |
-| `TrackingService` | `GET /v1/orders/{id}/tracker`, `/eta` | Public tracking API |
-| `RouteService` | `/distance-and-time`, `/orchestrator/*` | Route geometry, batch optimization |
-| `PodService` | `GET /v1/orders/{id}/proofs` | Proof of delivery artifacts |
+| Service           | Fleetbase endpoints                     | Porterchain use                      |
+| ----------------- | --------------------------------------- | ------------------------------------ |
+| `OrderService`    | `POST/PUT /v1/orders`                   | Sync commercial orders after payment |
+| `DriverService`   | `POST/PUT /v1/drivers`                  | Sync vetted driver partners          |
+| `VehicleService`  | `POST/PUT /v1/vehicles`                 | Sync fleet vehicles                  |
+| `DispatchService` | `PATCH /v1/orders/{id}/dispatch`        | Trigger dispatch, assign driver      |
+| `TrackingService` | `GET /v1/orders/{id}/tracker`, `/eta`   | Public tracking API                  |
+| `RouteService`    | `/distance-and-time`, `/orchestrator/*` | Route geometry, batch optimization   |
+| `PodService`      | `GET /v1/orders/{id}/proofs`            | Proof of delivery artifacts          |
 
 ### WebhookService
 
@@ -105,13 +105,13 @@ services/fleetbase-adapter/
 
 Maps Fleetbase webhook events to Porterchain order states:
 
-| Fleetbase event | Porterchain state |
-|-----------------|-------------------|
+| Fleetbase event    | Porterchain state |
+| ------------------ | ----------------- |
 | `order.dispatched` | `DRIVER_ASSIGNED` |
-| `order.started` | `PICKED_UP` |
-| `order.completed` | `DELIVERED` |
-| `order.canceled` | `CANCELLED` |
-| `order.failed` | `FAILED` |
+| `order.started`    | `PICKED_UP`       |
+| `order.completed`  | `DELIVERED`       |
+| `order.canceled`   | `CANCELLED`       |
+| `order.failed`     | `FAILED`          |
 
 ### ErrorHandler
 
@@ -164,11 +164,11 @@ Porterchain order fields map to Fleetbase via `mappers.py`:
 
 ## Authentication
 
-| Flow | Mechanism |
-|------|-----------|
-| Server-to-server | Fleetbase API key (`flb_live_*`) in adapter client |
-| Ops console SSO | `FleetbaseSsoClient` → `/int/v1/porterchain/sso/exchange` (bridge extension) |
-| Webhooks inbound | HMAC signature verified by `WebhookService` |
+| Flow             | Mechanism                                                                    |
+| ---------------- | ---------------------------------------------------------------------------- |
+| Server-to-server | Fleetbase API key (`flb_live_*`) in adapter client                           |
+| Ops console SSO  | `FleetbaseSsoClient` → `/int/v1/porterchain/sso/exchange` (bridge extension) |
+| Webhooks inbound | HMAC signature verified by `WebhookService`                                  |
 
 Porterchain users never authenticate directly against Fleetbase. Clerk is the IdP.
 
@@ -176,14 +176,14 @@ Porterchain users never authenticate directly against Fleetbase. Clerk is the Id
 
 ## Configuration
 
-| Setting | Env variable | Default |
-|---------|--------------|---------|
-| `api_url` | `FLEETBASE_API_URL` | `http://localhost:8000` |
-| `api_key` | `FLEETBASE_API_KEY` | — |
-| `company_uuid` | `FLEETBASE_DEFAULT_COMPANY_UUID` | — |
-| `dispatch_bridge` | `FLEETBASE_DISPATCH_BRIDGE` | `true` |
-| `webhook_secret` | `FLEETBASE_WEBHOOK_SECRET` | — |
-| `max_retries` | — | `3` |
+| Setting           | Env variable                     | Default                 |
+| ----------------- | -------------------------------- | ----------------------- |
+| `api_url`         | `FLEETBASE_API_URL`              | `http://localhost:8000` |
+| `api_key`         | `FLEETBASE_API_KEY`              | —                       |
+| `company_uuid`    | `FLEETBASE_DEFAULT_COMPANY_UUID` | —                       |
+| `dispatch_bridge` | `FLEETBASE_DISPATCH_BRIDGE`      | `true`                  |
+| `webhook_secret`  | `FLEETBASE_WEBHOOK_SECRET`       | —                       |
+| `max_retries`     | —                                | `3`                     |
 
 Factory: `apps/api/src/porterchain_api/services/fleetbase_integration.py`
 
@@ -191,13 +191,13 @@ Factory: `apps/api/src/porterchain_api/services/fleetbase_integration.py`
 
 ## API wiring
 
-| Porterchain module | Adapter method |
-|--------------------|----------------|
-| `booking_engine/fleetbase_sync_service.py` | `sync_order`, `sync_driver`, `process_webhook` |
-| `routers/webhooks.py` | `POST /webhooks/fleetbase` → `process_webhook` |
-| `routers/orders.py` | `GET /v1/orders/{tracking}/tracking` → `fetch_tracking` |
-| `auth/sso_service.py` | `FleetbaseSsoClient.exchange_sso_token` |
-| `services/python/.../fleetbase/service.py` | Worker delegate via `FleetbaseAdapter` |
+| Porterchain module                         | Adapter method                                          |
+| ------------------------------------------ | ------------------------------------------------------- |
+| `booking_engine/fleetbase_sync_service.py` | `sync_order`, `sync_driver`, `process_webhook`          |
+| `routers/webhooks.py`                      | `POST /webhooks/fleetbase` → `process_webhook`          |
+| `routers/orders.py`                        | `GET /v1/orders/{tracking}/tracking` → `fetch_tracking` |
+| `auth/sso_service.py`                      | `FleetbaseSsoClient.exchange_sso_token`                 |
+| `services/python/.../fleetbase/service.py` | Worker delegate via `FleetbaseAdapter`                  |
 
 ---
 
@@ -209,13 +209,13 @@ Factory: `apps/api/src/porterchain_api/services/fleetbase_integration.py`
 
 ## What does NOT belong in the adapter
 
-| Concern | Correct location |
-|---------|------------------|
-| Order pricing / Stripe | `apps/api/booking_engine/` |
-| Merchant CRM / contracts | `apps/api/` merchant domains |
-| Clerk auth / RBAC | `apps/api/auth/` |
-| Public tracking UI | `website/` |
-| Fleetbase console UI | `apps/fleetbase/console/` (upstream, read-only) |
+| Concern                  | Correct location                                |
+| ------------------------ | ----------------------------------------------- |
+| Order pricing / Stripe   | `apps/api/booking_engine/`                      |
+| Merchant CRM / contracts | `apps/api/` merchant domains                    |
+| Clerk auth / RBAC        | `apps/api/auth/`                                |
+| Public tracking UI       | `website/`                                      |
+| Fleetbase console UI     | `apps/fleetbase/console/` (upstream, read-only) |
 
 ---
 

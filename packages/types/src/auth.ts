@@ -11,14 +11,7 @@ export type PlatformRole =
   | "super_admin";
 
 export type UserType =
-  | "visitor"
-  | "customer"
-  | "merchant"
-  | "driver"
-  | "admin"
-  | "dispatcher"
-  | "support"
-  | "sales";
+  "visitor" | "customer" | "merchant" | "driver" | "admin" | "dispatcher" | "support" | "sales";
 
 export type Permission =
   | "quote:read"

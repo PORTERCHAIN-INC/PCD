@@ -42,16 +42,18 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
           {results.length === 0 ? (
             <p className="px-4 py-6 text-sm text-muted text-center">{t("noResults")}</p>
           ) : (
-            results.slice(0, 6).map((post) => (
-              <ArticleCard
-                key={post.slug}
-                post={post}
-                categoryLabel={categoryLabelFor(tCat, post.category)}
-                readLabel={t("minRead", { minutes: post.readingMinutes })}
-                variant="horizontal"
-                className="border-0 shadow-none hover:shadow-none mb-1"
-              />
-            ))
+            results
+              .slice(0, 6)
+              .map((post) => (
+                <ArticleCard
+                  key={post.slug}
+                  post={post}
+                  categoryLabel={categoryLabelFor(tCat, post.category)}
+                  readLabel={t("minRead", { minutes: post.readingMinutes })}
+                  variant="horizontal"
+                  className="border-0 shadow-none hover:shadow-none mb-1"
+                />
+              ))
           )}
         </div>
       )}

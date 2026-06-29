@@ -59,7 +59,10 @@ export default function DashboardPage() {
         <StatCard label="In Transit" value={String(data.in_transit)} />
         <StatCard label="Delivered Today" value={String(data.delivered_today)} />
         <StatCard label="Pending Dispatch" value={String(data.pending_dispatch)} />
-        <StatCard label="Outstanding Invoices" value={formatCents(data.outstanding_invoices_cents)} />
+        <StatCard
+          label="Outstanding Invoices"
+          value={formatCents(data.outstanding_invoices_cents)}
+        />
         <StatCard label="Account Balance" value={formatCents(data.account_balance_cents)} />
         <StatCard label="Monthly Spend" value={formatCents(data.monthly_spend_cents)} />
         <StatCard label="On-Time Delivery" value={`${data.on_time_percent}%`} />

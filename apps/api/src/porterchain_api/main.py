@@ -6,7 +6,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from porterchain_api.config import get_settings
 from porterchain_api.db import init_db
 from porterchain_api.gateway.router import router as gateway_router
-from porterchain_api.routers import admin, auth, driver, merchant, orders, payments, quotes, webhooks
+from porterchain_api.routers import (
+    admin,
+    auth,
+    crm,
+    driver,
+    drivers_admin,
+    merchant,
+    merchants,
+    operations,
+    orders,
+    payments,
+    quotes,
+    webhooks,
+)
 
 
 @asynccontextmanager
@@ -40,8 +53,21 @@ def create_app() -> FastAPI:
     app.include_router(webhooks.router)
     app.include_router(merchant.router)
     app.include_router(admin.router)
+    app.include_router(crm.router)
+    app.include_router(merchants.router)
+    app.include_router(drivers_admin.router)
+    app.include_router(operations.router)
     app.include_router(driver.router)
     app.include_router(driver.legacy_router)
+
+    from fastapi import Request
+    from fastapi.responses import JSONResponse
+
+    from porterchain_api.fleetbase_engine import BookingValidationError
+
+    @app.exception_handler(BookingValidationError)
+    async def _booking_validation_handler(_request: Request, exc: BookingValidationError) -> JSONResponse:
+        return JSONResponse(status_code=422, content={"detail": exc.message, "code": exc.code})
 
     @app.get("/health")
     def health() -> dict[str, str]:

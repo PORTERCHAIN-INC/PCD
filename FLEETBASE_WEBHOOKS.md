@@ -9,10 +9,10 @@
 
 Fleetbase has **two webhook directions**:
 
-| Direction | Purpose | Porterchain role |
-|-----------|---------|------------------|
+| Direction    | Purpose                  | Porterchain role                                         |
+| ------------ | ------------------------ | -------------------------------------------------------- |
 | **Outbound** | Fleetbase → your systems | **Primary integration** — status sync to Porterchain API |
-| **Inbound** | External → Fleetbase | Telematics only (not Porterchain-critical today) |
+| **Inbound**  | External → Fleetbase     | Telematics only (not Porterchain-critical today)         |
 
 ---
 
@@ -31,46 +31,46 @@ Fleetbase has **two webhook directions**:
 
 **`fleetbase_webhook_endpoints`**
 
-| Column | Purpose |
-|--------|---------|
-| `uuid` | Endpoint ID |
-| `company_uuid` | Tenant |
-| `url` | Destination HTTPS URL |
-| `events` | JSON array of subscribed event names |
-| `api_credential_uuid` | Linked credential (for signing) |
-| `status` | `enabled` / `disabled` |
-| `mode` | `live` / `test` |
+| Column                | Purpose                              |
+| --------------------- | ------------------------------------ |
+| `uuid`                | Endpoint ID                          |
+| `company_uuid`        | Tenant                               |
+| `url`                 | Destination HTTPS URL                |
+| `events`              | JSON array of subscribed event names |
+| `api_credential_uuid` | Linked credential (for signing)      |
+| `status`              | `enabled` / `disabled`               |
+| `mode`                | `live` / `test`                      |
 
 **`fleetbase_webhook_request_logs`**
 
-| Column | Purpose |
-|--------|---------|
-| `webhook_uuid` | Endpoint reference |
-| `api_event_uuid` | Triggering event |
-| `status_code`, `duration` | HTTP result |
-| `response`, `headers` | Debug payload |
-| `attempt` | Retry count |
-| `status` | `success` / `failed` |
+| Column                    | Purpose              |
+| ------------------------- | -------------------- |
+| `webhook_uuid`            | Endpoint reference   |
+| `api_event_uuid`          | Triggering event     |
+| `status_code`, `duration` | HTTP result          |
+| `response`, `headers`     | Debug payload        |
+| `attempt`                 | Retry count          |
+| `status`                  | `success` / `failed` |
 
 **`fleetbase_api_events`**
 
-| Column | Purpose |
-|--------|---------|
-| `event` | e.g. `order.dispatched` |
-| `data` | Full webhook JSON payload |
-| `source` | `api` or `console` |
+| Column        | Purpose                   |
+| ------------- | ------------------------- |
+| `event`       | e.g. `order.dispatched`   |
+| `data`        | Full webhook JSON payload |
+| `source`      | `api` or `console`        |
 | `description` | Human-readable audit text |
 
 ### Admin API
 
-| Method | Path | Action |
-|--------|------|--------|
-| CRUD | `int/v1/webhook-endpoints` | Manage endpoints |
-| PATCH | `int/v1/webhook-endpoints/enable/{id}` | Enable |
-| PATCH | `int/v1/webhook-endpoints/disable/{id}` | Disable |
-| GET | `int/v1/webhook-endpoints/events` | List available events |
-| GET | `int/v1/webhook-endpoints/versions` | API versions |
-| CRUD | `int/v1/webhook-request-logs` | View delivery logs |
+| Method | Path                                    | Action                |
+| ------ | --------------------------------------- | --------------------- |
+| CRUD   | `int/v1/webhook-endpoints`              | Manage endpoints      |
+| PATCH  | `int/v1/webhook-endpoints/enable/{id}`  | Enable                |
+| PATCH  | `int/v1/webhook-endpoints/disable/{id}` | Disable               |
+| GET    | `int/v1/webhook-endpoints/events`       | List available events |
+| GET    | `int/v1/webhook-endpoints/versions`     | API versions          |
+| CRUD   | `int/v1/webhook-request-logs`           | View delivery logs    |
 
 ### Payload format
 
@@ -84,7 +84,7 @@ Fleetbase has **two webhook directions**:
     "id": "order_xyz",
     "status": "dispatched",
     "driver_assigned_uuid": "...",
-    "payload": { },
+    "payload": {},
     "meta": { "porterchain_order_id": "..." }
   }
 }
@@ -94,10 +94,10 @@ Signing uses the API credential **secret** associated with the webhook (`useSecr
 
 ### Retry behavior
 
-| Event | Listener |
-|-------|----------|
-| Success | `WebhookCallSucceededEvent` → `LogSuccessfulWebhook` |
-| Failure | `WebhookCallFailedEvent` → `LogFailedWebhook` |
+| Event         | Listener                                                 |
+| ------------- | -------------------------------------------------------- |
+| Success       | `WebhookCallSucceededEvent` → `LogSuccessfulWebhook`     |
+| Failure       | `WebhookCallFailedEvent` → `LogFailedWebhook`            |
 | Final failure | `FinalWebhookCallFailedEvent` → `LogFinalWebhookAttempt` |
 
 Delivery is **queued** via Laravel queue (Redis) — requires `queue` container healthy.
@@ -108,17 +108,17 @@ Delivery is **queued** via Laravel queue (Redis) — requires `queue` container 
 
 Register endpoint: `https://api.porterchain.com/v1/webhooks/fleetbase` (handler to implement)
 
-| Event | Porterchain action |
-|-------|-------------------|
-| `order.created` | Confirm mirror exists; link IDs |
-| `order.dispatched` | Update status; notify ops |
-| `order.driver_assigned` | `DRIVER_ASSIGNED`; push to driver app |
-| `order.completed` | `PARCEL_DELIVERED`; trigger invoice if needed |
-| `order.canceled` | `ORDER_CANCELLED`; refund workflow |
-| `order.dispatch_failed` | Ops alert |
-| `order.failed` | Claim/support workflow |
-| `driver.updated` | Refresh admin map cache |
-| `driver.created` | Confirm sync from Porterchain |
+| Event                   | Porterchain action                            |
+| ----------------------- | --------------------------------------------- |
+| `order.created`         | Confirm mirror exists; link IDs               |
+| `order.dispatched`      | Update status; notify ops                     |
+| `order.driver_assigned` | `DRIVER_ASSIGNED`; push to driver app         |
+| `order.completed`       | `PARCEL_DELIVERED`; trigger invoice if needed |
+| `order.canceled`        | `ORDER_CANCELLED`; refund workflow            |
+| `order.dispatch_failed` | Ops alert                                     |
+| `order.failed`          | Claim/support workflow                        |
+| `driver.updated`        | Refresh admin map cache                       |
+| `driver.created`        | Confirm sync from Porterchain                 |
 
 Store `porterchain_order_id` in Fleetbase order `meta` during bridge sync for correlation.
 
@@ -126,10 +126,10 @@ Store `porterchain_order_id` in Fleetbase order `meta` during bridge sync for co
 
 ## Inbound webhooks (external → Fleetbase)
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| ANY | `/webhooks/telematics/{providerKey}` | Telematics vendor callback |
-| ANY | `/webhooks/telematics/ingest/{id}` | Raw device ingest |
+| Method | Path                                 | Purpose                    |
+| ------ | ------------------------------------ | -------------------------- |
+| ANY    | `/webhooks/telematics/{providerKey}` | Telematics vendor callback |
+| ANY    | `/webhooks/telematics/ingest/{id}`   | Raw device ingest          |
 
 Used for GPS hardware, sensors, and third-party fleet telematics — not required for Porterchain MVP.
 
@@ -139,11 +139,11 @@ Used for GPS hardware, sensors, and third-party fleet telematics — not require
 
 Porterchain uses **HTTP API calls** (not webhooks) to push data into Fleetbase:
 
-| Call | Direction |
-|------|-----------|
-| `POST /int/v1/porterchain/orders` | Porterchain → Fleetbase |
-| `POST /int/v1/porterchain/drivers` | Porterchain → Fleetbase |
-| `POST /int/v1/porterchain/vehicles` | Porterchain → Fleetbase |
+| Call                                           | Direction               |
+| ---------------------------------------------- | ----------------------- |
+| `POST /int/v1/porterchain/orders`              | Porterchain → Fleetbase |
+| `POST /int/v1/porterchain/drivers`             | Porterchain → Fleetbase |
+| `POST /int/v1/porterchain/vehicles`            | Porterchain → Fleetbase |
 | `GET /int/v1/porterchain/orders/{id}/tracking` | Porterchain ← Fleetbase |
 
 These are synchronous REST calls from `FleetbaseService` / `fleetbase_sync_service.py`.
@@ -154,25 +154,25 @@ These are synchronous REST calls from `FleetbaseService` / `fleetbase_sync_servi
 
 ## Environment variables
 
-| Variable | Side | Purpose |
-|----------|------|---------|
-| `FLEETBASE_API_URL` | Porterchain | Fleetbase base URL |
-| `FLEETBASE_API_KEY` | Porterchain | Outbound auth to Fleetbase |
-| `PORTERCHAIN_DISPATCHER_API_KEY` | Fleetbase | Inbound auth from Fleetbase to Porterchain (if reverse calls added) |
-| `PORTERCHAIN_API_URL` | Fleetbase | Porterchain base for callbacks |
+| Variable                         | Side        | Purpose                                                             |
+| -------------------------------- | ----------- | ------------------------------------------------------------------- |
+| `FLEETBASE_API_URL`              | Porterchain | Fleetbase base URL                                                  |
+| `FLEETBASE_API_KEY`              | Porterchain | Outbound auth to Fleetbase                                          |
+| `PORTERCHAIN_DISPATCHER_API_KEY` | Fleetbase   | Inbound auth from Fleetbase to Porterchain (if reverse calls added) |
+| `PORTERCHAIN_API_URL`            | Fleetbase   | Porterchain base for callbacks                                      |
 
 ---
 
 ## Security checklist
 
-| Control | Implementation |
-|---------|----------------|
-| HTTPS only | Production webhook URLs must be TLS |
+| Control                | Implementation                                 |
+| ---------------------- | ---------------------------------------------- |
+| HTTPS only             | Production webhook URLs must be TLS            |
 | Signature verification | Validate Fleetbase HMAC on Porterchain handler |
-| Idempotency | Dedupe on `event.id` |
-| IP allowlist | Optional at reverse proxy |
-| Secret rotation | `api-credentials/roll/{id}` in Fleetbase |
-| Sandbox isolation | Use `flb_test_*` keys in staging |
+| Idempotency            | Dedupe on `event.id`                           |
+| IP allowlist           | Optional at reverse proxy                      |
+| Secret rotation        | `api-credentials/roll/{id}` in Fleetbase       |
+| Sandbox isolation      | Use `flb_test_*` keys in staging               |
 
 ---
 
@@ -188,12 +188,12 @@ These are synchronous REST calls from `FleetbaseService` / `fleetbase_sync_servi
 
 ## Comparison: webhooks vs polling
 
-| Approach | When to use |
-|----------|-------------|
-| **Webhooks** | Production status sync (recommended) |
-| **Polling** | `GET /v1/orders/{id}/tracker` for customer tracking page |
-| **SocketCluster** | Fleetbase console live map only |
-| **Porterchain events** | Commercial domain (quotes, payments) — separate bus |
+| Approach               | When to use                                              |
+| ---------------------- | -------------------------------------------------------- |
+| **Webhooks**           | Production status sync (recommended)                     |
+| **Polling**            | `GET /v1/orders/{id}/tracker` for customer tracking page |
+| **SocketCluster**      | Fleetbase console live map only                          |
+| **Porterchain events** | Commercial domain (quotes, payments) — separate bus      |
 
 ---
 

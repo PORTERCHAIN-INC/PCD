@@ -18,7 +18,32 @@ export default function ContactInquiryForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 900));
+
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    const name = String(data.get("name") ?? "");
+    const businessName = String(data.get("businessName") ?? "");
+    const email = String(data.get("email") ?? "");
+    const phone = String(data.get("phone") ?? "");
+    const message = String(data.get("message") ?? "");
+
+    const subject = encodeURIComponent(`[${inquiryType}] Porterchain inquiry from ${name}`);
+    const body = encodeURIComponent(
+      [
+        `Name: ${name}`,
+        businessName ? `Business: ${businessName}` : null,
+        `Email: ${email}`,
+        phone ? `Phone: ${phone}` : null,
+        `Inquiry type: ${inquiryType}`,
+        "",
+        message,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    );
+
+    window.location.href = `mailto:peter@porterchain.com?subject=${subject}&body=${body}`;
+    await new Promise((r) => setTimeout(r, 400));
     setLoading(false);
     setSubmitted(true);
   }
@@ -68,7 +93,9 @@ export default function ContactInquiryForm() {
         </div>
 
         <fieldset>
-          <legend className="block text-sm font-medium text-primary mb-2.5">{t("inquiryType")}</legend>
+          <legend className="block text-sm font-medium text-primary mb-2.5">
+            {t("inquiryType")}
+          </legend>
           <div className="flex flex-wrap gap-2">
             {INQUIRY_TYPES.map((type) => (
               <button

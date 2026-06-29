@@ -1,7 +1,7 @@
 # Porterchain — Authentication Architecture
 
 **Document version:** 2.0  
-**Date:** June 29, 2026  
+**Date:** June 29, 2026
 
 > **Updated:** Clerk is now the single identity provider for Porterchain users. See [AUTHENTICATION_FLOW.md](./AUTHENTICATION_FLOW.md), [SSO.md](./SSO.md), and [RBAC.md](./RBAC.md).
 
@@ -28,13 +28,13 @@ Porterchain uses a **multi-provider authentication model**. There is no single S
 
 ## Single Sign-On strategy (target)
 
-| Goal | Approach |
-|------|----------|
-| Unified merchant identity | Clerk as IdP for merchant portal |
-| Retail anonymous booking | Supabase OTP — no persistent account required |
-| Driver identity | Porterchain-issued JWT after `/auth/login` or invite flow |
-| Ops / dispatch | Fleetbase session + `PORTERCHAIN_DISPATCHER_API_KEY` |
-| Future SSO | Evaluate Clerk Organizations for multi-tenant merchant teams |
+| Goal                      | Approach                                                     |
+| ------------------------- | ------------------------------------------------------------ |
+| Unified merchant identity | Clerk as IdP for merchant portal                             |
+| Retail anonymous booking  | Supabase OTP — no persistent account required                |
+| Driver identity           | Porterchain-issued JWT after `/auth/login` or invite flow    |
+| Ops / dispatch            | Fleetbase session + `PORTERCHAIN_DISPATCHER_API_KEY`         |
+| Future SSO                | Evaluate Clerk Organizations for multi-tenant merchant teams |
 
 **True SSO across merchant + driver + admin is not implemented today.** Clerk handles web portal users; drivers use Porterchain credentials.
 
@@ -44,11 +44,11 @@ Porterchain uses a **multi-provider authentication model**. There is no single S
 
 ### Configuration
 
-| Variable | Purpose |
-|----------|---------|
-| `CLERK_PUBLISHABLE_KEY` | Frontend SDK |
-| `CLERK_SECRET_KEY` | Server-side verification |
-| `CLERK_JWKS_URL` | JWT public key rotation |
+| Variable                | Purpose                  |
+| ----------------------- | ------------------------ |
+| `CLERK_PUBLISHABLE_KEY` | Frontend SDK             |
+| `CLERK_SECRET_KEY`      | Server-side verification |
+| `CLERK_JWKS_URL`        | JWT public key rotation  |
 
 ### Used by
 
@@ -69,11 +69,11 @@ Client → Clerk session → JWT in Authorization header
 
 ### JWT claims (expected)
 
-| Claim | Use |
-|-------|-----|
-| `sub` | Clerk user ID |
-| `org_id` | Merchant organization |
-| `email` | Contact email |
+| Claim           | Use                          |
+| --------------- | ---------------------------- |
+| `sub`           | Clerk user ID                |
+| `org_id`        | Merchant organization        |
+| `email`         | Contact email                |
 | Custom metadata | Merchant status, driver link |
 
 ---
@@ -82,11 +82,11 @@ Client → Clerk session → JWT in Authorization header
 
 ### Issuance
 
-| Endpoint | Method | Body |
-|----------|--------|------|
-| `/auth/login` | POST | `{ email, password }` |
-| `/auth/refresh` | POST | Refresh token |
-| `/auth/driver-invite/accept` | POST | Invite token + password |
+| Endpoint                     | Method | Body                    |
+| ---------------------------- | ------ | ----------------------- |
+| `/auth/login`                | POST   | `{ email, password }`   |
+| `/auth/refresh`              | POST   | Refresh token           |
+| `/auth/driver-invite/accept` | POST   | Invite token + password |
 
 ### Response (required fields)
 
@@ -100,12 +100,12 @@ Client → Clerk session → JWT in Authorization header
 
 ### Request headers (authenticated)
 
-| Header | Value | Required |
-|--------|-------|----------|
-| `Authorization` | `Bearer <access_token>` | Yes |
-| `X-User-Id` | User ID string | Yes |
-| `X-Roles` | `driver` | Yes |
-| `X-Driver-Id` | Driver UUID | Driver-scoped routes |
+| Header          | Value                   | Required             |
+| --------------- | ----------------------- | -------------------- |
+| `Authorization` | `Bearer <access_token>` | Yes                  |
+| `X-User-Id`     | User ID string          | Yes                  |
+| `X-Roles`       | `driver`                | Yes                  |
+| `X-Driver-Id`   | Driver UUID             | Driver-scoped routes |
 
 ### Token storage (mobile)
 
@@ -118,19 +118,19 @@ Client → Clerk session → JWT in Authorization header
 
 ### Flow
 
-| Booking type | OTP channel |
-|--------------|-------------|
-| Business | Email OTP via Zoho SMTP (`BOOKING_OTP_SMTP_*`) |
-| Personal | SMS OTP via Twilio |
+| Booking type | OTP channel                                    |
+| ------------ | ---------------------------------------------- |
+| Business     | Email OTP via Zoho SMTP (`BOOKING_OTP_SMTP_*`) |
+| Personal     | SMS OTP via Twilio                             |
 
 ### Configuration
 
-| Variable | Purpose |
-|----------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client SDK |
-| `PORTERCHAIN_WEBSITE_OTP_KEY` | Server HMAC bridge |
-| `BOOKING_OTP_SKIP_VERIFY` | Dev bypass (server) |
+| Variable                              | Purpose             |
+| ------------------------------------- | ------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`            | Supabase project    |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`       | Client SDK          |
+| `PORTERCHAIN_WEBSITE_OTP_KEY`         | Server HMAC bridge  |
+| `BOOKING_OTP_SKIP_VERIFY`             | Dev bypass (server) |
 | `NEXT_PUBLIC_BOOKING_OTP_SKIP_VERIFY` | Dev bypass (client) |
 
 ### Status in PCD repo
@@ -143,10 +143,10 @@ Client → Clerk session → JWT in Authorization header
 
 ### Dispatcher / control tower
 
-| Method | Header |
-|--------|--------|
-| Sanctum bearer token | `Authorization: Bearer <token>` |
-| API key | `X-Dispatcher-Api-Key: <PORTERCHAIN_DISPATCHER_API_KEY>` |
+| Method               | Header                                                   |
+| -------------------- | -------------------------------------------------------- |
+| Sanctum bearer token | `Authorization: Bearer <token>`                          |
+| API key              | `X-Dispatcher-Api-Key: <PORTERCHAIN_DISPATCHER_API_KEY>` |
 
 Used for dispatch bridge operations between Porterchain API and Fleetbase.
 
@@ -156,15 +156,15 @@ Used for dispatch bridge operations between Porterchain API and Fleetbase.
 
 ### Role matrix
 
-| Role | Surface | Provider | Permissions |
-|------|---------|----------|-------------|
-| **Merchant (owner)** | Merchant portal | Clerk | Full account, billing, shipments, API keys |
-| **Merchant (user)** | Merchant portal | Clerk | Scoped by org role (future) |
-| **Driver** | Mobile app | Porterchain JWT | Assigned routes, POD upload, location |
-| **Dispatcher** | Fleetbase console | Fleetbase session | Route creation, assignment, optimization |
-| **Admin** | Fleetbase / internal | Clerk + Fleetbase | Merchant approval, compliance review |
-| **Support** | Internal tools | Clerk | Read-only shipment access (target) |
-| **Sales** | CRM (PC-CRM) | Clerk | Lead management (external module) |
+| Role                 | Surface              | Provider          | Permissions                                |
+| -------------------- | -------------------- | ----------------- | ------------------------------------------ |
+| **Merchant (owner)** | Merchant portal      | Clerk             | Full account, billing, shipments, API keys |
+| **Merchant (user)**  | Merchant portal      | Clerk             | Scoped by org role (future)                |
+| **Driver**           | Mobile app           | Porterchain JWT   | Assigned routes, POD upload, location      |
+| **Dispatcher**       | Fleetbase console    | Fleetbase session | Route creation, assignment, optimization   |
+| **Admin**            | Fleetbase / internal | Clerk + Fleetbase | Merchant approval, compliance review       |
+| **Support**          | Internal tools       | Clerk             | Read-only shipment access (target)         |
+| **Sales**            | CRM (PC-CRM)         | Clerk             | Lead management (external module)          |
 
 ### Merchant lifecycle states
 
@@ -172,12 +172,12 @@ Used for dispatch bridge operations between Porterchain API and Fleetbase.
 SIGN_UP → ONBOARDING → PENDING_REVIEW → ACTIVE | REJECTED
 ```
 
-| State | Portal access |
-|-------|---------------|
-| ONBOARDING | Wizard only |
+| State          | Portal access          |
+| -------------- | ---------------------- |
+| ONBOARDING     | Wizard only            |
 | PENDING_REVIEW | Limited — no shipments |
-| ACTIVE | Full dashboard |
-| REJECTED | Contact support |
+| ACTIVE         | Full dashboard         |
+| REJECTED       | Contact support        |
 
 ### Driver lifecycle
 
@@ -211,11 +211,11 @@ Current middleware (`website/src/middleware.ts`) handles **locale routing only**
 
 ## Rate limiting (auth endpoints)
 
-| Endpoint | Limit | Variable |
-|----------|-------|----------|
-| `/auth/driver-invite/validate` | 30/min | `AUTH_DRIVER_INVITE_VALIDATE_MAX_ATTEMPTS_PER_MINUTE` |
-| `/auth/driver-invite/accept` | 15/min | `AUTH_DRIVER_INVITE_ACCEPT_MAX_ATTEMPTS_PER_MINUTE` |
-| `/auth/login` | 10/min per IP | Recommended — not yet documented |
+| Endpoint                       | Limit         | Variable                                              |
+| ------------------------------ | ------------- | ----------------------------------------------------- |
+| `/auth/driver-invite/validate` | 30/min        | `AUTH_DRIVER_INVITE_VALIDATE_MAX_ATTEMPTS_PER_MINUTE` |
+| `/auth/driver-invite/accept`   | 15/min        | `AUTH_DRIVER_INVITE_ACCEPT_MAX_ATTEMPTS_PER_MINUTE`   |
+| `/auth/login`                  | 10/min per IP | Recommended — not yet documented                      |
 
 Implement via Redis sliding window.
 
@@ -223,38 +223,38 @@ Implement via Redis sliding window.
 
 ## Session vs token
 
-| Surface | Model |
-|---------|-------|
-| Merchant portal | Clerk session cookies + JWT |
-| Website booking | Stateless OTP → short-lived session token |
-| Driver app | Bearer JWT + secure store |
-| Fleetbase console | Laravel session + Sanctum |
-| API integrations | API key or OAuth (future) |
+| Surface           | Model                                     |
+| ----------------- | ----------------------------------------- |
+| Merchant portal   | Clerk session cookies + JWT               |
+| Website booking   | Stateless OTP → short-lived session token |
+| Driver app        | Bearer JWT + secure store                 |
+| Fleetbase console | Laravel session + Sanctum                 |
+| API integrations  | API key or OAuth (future)                 |
 
 ---
 
 ## Security requirements
 
-| Requirement | Implementation |
-|-------------|----------------|
-| HTTPS everywhere | Production TLS 1.2+ |
-| JWT expiry | Access: 15–60 min; refresh: 7–30 days |
+| Requirement         | Implementation                                       |
+| ------------------- | ---------------------------------------------------- |
+| HTTPS everywhere    | Production TLS 1.2+                                  |
+| JWT expiry          | Access: 15–60 min; refresh: 7–30 days                |
 | Invite token expiry | `DRIVER_INVITE_TOKEN_EXPIRE_SECONDS=604800` (7 days) |
-| Password policy | Min 12 chars, complexity (enforce in API) |
-| MFA | Clerk MFA for merchant admins (recommended) |
-| Secret rotation | Clerk, Stripe, Twilio keys quarterly |
+| Password policy     | Min 12 chars, complexity (enforce in API)            |
+| MFA                 | Clerk MFA for merchant admins (recommended)          |
+| Secret rotation     | Clerk, Stripe, Twilio keys quarterly                 |
 
 ---
 
 ## Authentication gaps (current)
 
-| Gap | Risk | Remediation |
-|-----|------|-------------|
-| Website has no auth middleware | Low (marketing only) | Add when portal routes merge |
-| `details.md` contains live Clerk secrets | **Critical** | Rotate + remove from git |
-| No unified role RBAC in API repo | Medium | Implement in `apps/api` |
-| Driver push uses FCM but app has no push | Low | Document as API-only for now |
-| Support/Sales roles undefined in code | Medium | Define in Clerk metadata + API |
+| Gap                                      | Risk                 | Remediation                    |
+| ---------------------------------------- | -------------------- | ------------------------------ |
+| Website has no auth middleware           | Low (marketing only) | Add when portal routes merge   |
+| `details.md` contains live Clerk secrets | **Critical**         | Rotate + remove from git       |
+| No unified role RBAC in API repo         | Medium               | Implement in `apps/api`        |
+| Driver push uses FCM but app has no push | Low                  | Document as API-only for now   |
+| Support/Sales roles undefined in code    | Medium               | Define in Clerk metadata + API |
 
 ---
 
@@ -266,4 +266,4 @@ Implement via Redis sliding window.
 
 ---
 
-*Source: CONNECTIONS.md, details.md, PORTERCHAIN-LEGAL-AND-IMPORTANT-INFO.md, website/src/middleware.ts*
+_Source: CONNECTIONS.md, details.md, PORTERCHAIN-LEGAL-AND-IMPORTANT-INFO.md, website/src/middleware.ts_

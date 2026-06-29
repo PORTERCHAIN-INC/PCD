@@ -1,7 +1,7 @@
 # Porterchain — Folder Structure
 
 **Document version:** 1.0  
-**Date:** June 29, 2026  
+**Date:** June 29, 2026
 
 ---
 
@@ -161,69 +161,69 @@ porterchain/                              # Root monorepo
 
 ### `apps/website`
 
-| Responsibility | Must NOT contain |
-|----------------|------------------|
+| Responsibility                    | Must NOT contain                          |
+| --------------------------------- | ----------------------------------------- |
 | Marketing pages, blog, booking UI | Business logic, DB access, Stripe secrets |
-| Google Maps client integration | Direct Fleetbase calls |
-| i18n (en/fr) | Merchant portal routes |
+| Google Maps client integration    | Direct Fleetbase calls                    |
+| i18n (en/fr)                      | Merchant portal routes                    |
 
 ### `apps/merchant-portal`
 
-| Responsibility | Must NOT contain |
-|----------------|------------------|
-| Merchant dashboard, onboarding wizard | Dispatch logic |
-| Clerk-authenticated routes | Driver execution |
-| Invoice UI (Stripe redirect) | Raw payment processing |
+| Responsibility                        | Must NOT contain       |
+| ------------------------------------- | ---------------------- |
+| Merchant dashboard, onboarding wizard | Dispatch logic         |
+| Clerk-authenticated routes            | Driver execution       |
+| Invoice UI (Stripe redirect)          | Raw payment processing |
 
 ### `apps/api`
 
-| Responsibility | Must NOT contain |
-|----------------|------------------|
-| All business logic, auth, webhooks | UI components |
-| Driver execution endpoints | Fleetbase schema migrations |
-| Stripe webhook handler | Frontend assets |
+| Responsibility                     | Must NOT contain            |
+| ---------------------------------- | --------------------------- |
+| All business logic, auth, webhooks | UI components               |
+| Driver execution endpoints         | Fleetbase schema migrations |
+| Stripe webhook handler             | Frontend assets             |
 
 ### `apps/mobile-driver`
 
-| Responsibility | Must NOT contain |
-|----------------|------------------|
-| Route execution, POD capture | Pricing, billing |
-| Location tracking | Merchant data |
-| Google Maps display | Direct OSRM/Valhalla calls |
+| Responsibility               | Must NOT contain           |
+| ---------------------------- | -------------------------- |
+| Route execution, POD capture | Pricing, billing           |
+| Location tracking            | Merchant data              |
+| Google Maps display          | Direct OSRM/Valhalla calls |
 
 ### `services/fleetbase`
 
-| Responsibility | Must NOT contain |
-|----------------|------------------|
-| Dispatch, routing, fleet ops | Merchant contracts |
-| Fleetbase core schema | Porterchain retail booking logic |
-| Control tower console | Website content |
+| Responsibility               | Must NOT contain                 |
+| ---------------------------- | -------------------------------- |
+| Dispatch, routing, fleet ops | Merchant contracts               |
+| Fleetbase core schema        | Porterchain retail booking logic |
+| Control tower console        | Website content                  |
 
 ### `packages/ui`
 
-| Responsibility | Must NOT contain |
-|----------------|------------------|
+| Responsibility                   | Must NOT contain      |
+| -------------------------------- | --------------------- |
 | Shared Button, Container, tokens | Page-specific layouts |
-| Design system primitives | API clients |
+| Design system primitives         | API clients           |
 
 ### `packages/api-client`
 
-| Responsibility | Must NOT contain |
-|----------------|------------------|
+| Responsibility                        | Must NOT contain            |
+| ------------------------------------- | --------------------------- |
 | Type-safe API calls from OpenAPI spec | Hand-written fetch wrappers |
-| Shared request/response types | Business logic |
+| Shared request/response types         | Business logic              |
 
 ### `infrastructure/`
 
-| Responsibility | Must NOT contain |
-|----------------|------------------|
+| Responsibility                    | Must NOT contain        |
+| --------------------------------- | ----------------------- |
 | Docker, Terraform, deploy scripts | Application source code |
-| Nginx/Traefik config | Secrets (use `.env`) |
+| Nginx/Traefik config              | Secrets (use `.env`)    |
 
 ### `docs/`
 
-| Responsibility | Must NOT contain |
-|----------------|------------------|
+| Responsibility               | Must NOT contain |
+| ---------------------------- | ---------------- |
 | Architecture, runbooks, ADRs | Live credentials |
 
 ---
@@ -250,13 +250,13 @@ website/src/components/
 
 ### Naming conventions
 
-| Pattern | Example |
-|---------|---------|
+| Pattern       | Example                                    |
+| ------------- | ------------------------------------------ |
 | Page sections | `*Section.tsx` or descriptive (`Hero.tsx`) |
-| Layout shells | `*Shell.tsx` |
-| Data files | `data/*.ts` — static, no API calls |
-| Lib utilities | `lib/*.ts` — pure functions |
-| i18n messages | `messages/{namespace}-{locale}.json` |
+| Layout shells | `*Shell.tsx`                               |
+| Data files    | `data/*.ts` — static, no API calls         |
+| Lib utilities | `lib/*.ts` — pure functions                |
+| i18n messages | `messages/{namespace}-{locale}.json`       |
 
 ---
 
@@ -273,16 +273,16 @@ website/src/components/
 
 ## Migration path from current PCD
 
-| Step | Action |
-|------|--------|
-| 1 | Move `website/` → `apps/website/` |
-| 2 | Add root `pnpm-workspace.yaml` + `turbo.json` |
-| 3 | Create `packages/config` with shared ESLint/TS/Tailwind |
-| 4 | Clone `apps/api`, `apps/mobile-driver` into monorepo |
-| 5 | Move architecture docs to `docs/` |
-| 6 | Delete `details.md`; replace with `docs/ENVIRONMENT_VARIABLES.md` |
-| 7 | Add `infrastructure/docker/docker-compose.yml` |
+| Step | Action                                                            |
+| ---- | ----------------------------------------------------------------- |
+| 1    | Move `website/` → `apps/website/`                                 |
+| 2    | Add root `pnpm-workspace.yaml` + `turbo.json`                     |
+| 3    | Create `packages/config` with shared ESLint/TS/Tailwind           |
+| 4    | Clone `apps/api`, `apps/mobile-driver` into monorepo              |
+| 5    | Move architecture docs to `docs/`                                 |
+| 6    | Delete `details.md`; replace with `docs/ENVIRONMENT_VARIABLES.md` |
+| 7    | Add `infrastructure/docker/docker-compose.yml`                    |
 
 ---
 
-*This structure supports independent deployability per app while sharing types, UI, and tooling.*
+_This structure supports independent deployability per app while sharing types, UI, and tooling._

@@ -32,13 +32,13 @@ Fleetbase Console :4200 — ops dispatch only (unchanged)
 
 ## Ownership matrix
 
-| Domain | Owner |
-|--------|-------|
-| Authentication (Clerk) | Porterchain |
-| Website, merchant portal, admin portal UX | Porterchain |
+| Domain                                           | Owner       |
+| ------------------------------------------------ | ----------- |
+| Authentication (Clerk)                           | Porterchain |
+| Website, merchant portal, admin portal UX        | Porterchain |
 | Business rules, pricing, billing, CRM, analytics | Porterchain |
-| Drivers, vehicles, ops orders, dispatch | Fleetbase |
-| GPS tracking, routes, POD capture | Fleetbase |
+| Drivers, vehicles, ops orders, dispatch          | Fleetbase   |
+| GPS tracking, routes, POD capture                | Fleetbase   |
 
 ---
 
@@ -48,18 +48,18 @@ Fleetbase Console :4200 — ops dispatch only (unchanged)
 
 ### Modules
 
-| Module | Class | Responsibility |
-|--------|-------|----------------|
-| `client` | `FleetbaseClient` | HTTP transport, auth headers, error handling |
-| `orders` | `OrderSyncService` | Create/update Fleetbase orders |
-| `drivers` | `DriverSyncService` | Sync approved Porterchain drivers |
-| `vehicles` | `VehicleSyncService` | Sync Porterchain vehicles |
-| `dispatch` | `DispatchSyncService` | Dispatch, schedule, start, complete |
-| `tracking` | `TrackingSyncService` | Tracker, ETA, proof aggregation |
-| `routes` | `RouteSyncService` | Route polyline, orchestrator |
-| `webhooks` | verify/parse | HMAC validation, envelope normalization |
-| `events` | mappers | Fleetbase event → Porterchain state |
-| `integration` | `FleetbaseIntegrationService` | Unified facade |
+| Module        | Class                         | Responsibility                               |
+| ------------- | ----------------------------- | -------------------------------------------- |
+| `client`      | `FleetbaseClient`             | HTTP transport, auth headers, error handling |
+| `orders`      | `OrderSyncService`            | Create/update Fleetbase orders               |
+| `drivers`     | `DriverSyncService`           | Sync approved Porterchain drivers            |
+| `vehicles`    | `VehicleSyncService`          | Sync Porterchain vehicles                    |
+| `dispatch`    | `DispatchSyncService`         | Dispatch, schedule, start, complete          |
+| `tracking`    | `TrackingSyncService`         | Tracker, ETA, proof aggregation              |
+| `routes`      | `RouteSyncService`            | Route polyline, orchestrator                 |
+| `webhooks`    | verify/parse                  | HMAC validation, envelope normalization      |
+| `events`      | mappers                       | Fleetbase event → Porterchain state          |
+| `integration` | `FleetbaseIntegrationService` | Unified facade                               |
 
 ### Usage (Python)
 
@@ -96,6 +96,7 @@ tracking = svc.fetch_tracking(fleetbase_order_id)
 **When:** Retail booking confirmed, merchant creates shipment, order reaches `DISPATCH_READY`
 
 **Path:**
+
 ```
 BookingConfirmationService / MerchantBookingService
   → FleetbaseSyncService.sync_order()
@@ -111,6 +112,7 @@ BookingConfirmationService / MerchantBookingService
 **When:** Admin approves driver (`POST /v1/admin/drivers/{id}/approve`)
 
 **Path:**
+
 ```
 AdminDriverService.approve_driver()
   → sync active vehicles first
@@ -129,6 +131,7 @@ AdminDriverService.approve_driver()
 **When:** Admin assigns driver to order
 
 **Path:**
+
 ```
 AdminOperationsService.assign_driver()
   → sync_order (ensure Fleetbase order exists)
@@ -143,6 +146,7 @@ AdminOperationsService.assign_driver()
 **API:** `GET /v1/orders/{tracking_number}/tracking`
 
 **Path:**
+
 ```
 TrackingService.get_live_tracking()
   → GET /v1/orders/{id}/tracker
@@ -160,16 +164,17 @@ Returns Porterchain order state + `live_tracking` blob from Fleetbase.
 
 **Subscribed events:**
 
-| Fleetbase event | Porterchain state |
-|-----------------|-------------------|
-| `order.dispatched` | `DRIVER_ASSIGNED` |
-| `order.driver_assigned` | `DRIVER_ASSIGNED` |
-| `order.started` | `PICKED_UP` |
-| `order.completed` | `DELIVERED` → `POD_COMPLETED` |
-| `order.canceled` | `CANCELLED` |
-| `order.failed` | `FAILED` |
+| Fleetbase event         | Porterchain state             |
+| ----------------------- | ----------------------------- |
+| `order.dispatched`      | `DRIVER_ASSIGNED`             |
+| `order.driver_assigned` | `DRIVER_ASSIGNED`             |
+| `order.started`         | `PICKED_UP`                   |
+| `order.completed`       | `DELIVERED` → `POD_COMPLETED` |
+| `order.canceled`        | `CANCELLED`                   |
+| `order.failed`          | `FAILED`                      |
 
 **Path:**
+
 ```
 Fleetbase webhook
   → verify HMAC signature
@@ -188,11 +193,11 @@ Fleetbase webhook
 
 ## API endpoints (Porterchain)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/v1/orders/{tracking_number}` | Order summary (Porterchain DB) |
-| GET | `/v1/orders/{tracking_number}/tracking` | Order + live Fleetbase tracking |
-| POST | `/webhooks/fleetbase` | Fleetbase status webhooks |
+| Method | Path                                    | Description                     |
+| ------ | --------------------------------------- | ------------------------------- |
+| GET    | `/v1/orders/{tracking_number}`          | Order summary (Porterchain DB)  |
+| GET    | `/v1/orders/{tracking_number}/tracking` | Order + live Fleetbase tracking |
+| POST   | `/webhooks/fleetbase`                   | Fleetbase status webhooks       |
 
 Merchant and admin endpoints trigger sync internally — no Fleetbase URLs exposed to clients.
 
@@ -241,25 +246,25 @@ Complete Fleetbase onboarding at http://localhost:4200 and copy company UUID.
 
 ## Error handling
 
-| Scenario | Behavior |
-|----------|----------|
-| Bridge disabled | Sync skipped, logged |
-| Fleetbase unreachable | Order stays in Porterchain; `fleetbase.sync_failed` event |
-| Webhook signature invalid | 200 ignored (logged) |
-| Order not found for webhook | `order_not_found` response |
-| Invalid state transition | Logged, no crash |
+| Scenario                    | Behavior                                                  |
+| --------------------------- | --------------------------------------------------------- |
+| Bridge disabled             | Sync skipped, logged                                      |
+| Fleetbase unreachable       | Order stays in Porterchain; `fleetbase.sync_failed` event |
+| Webhook signature invalid   | 200 ignored (logged)                                      |
+| Order not found for webhook | `order_not_found` response                                |
+| Invalid state transition    | Logged, no crash                                          |
 
 ---
 
 ## File index
 
-| Path | Purpose |
-|------|---------|
-| `services/fleetbase/porterchain_fleetbase/` | Integration package |
-| `apps/api/.../fleetbase_sync_service.py` | DB orchestration |
-| `apps/api/.../fleetbase_integration.py` | Settings factory |
+| Path                                                        | Purpose                 |
+| ----------------------------------------------------------- | ----------------------- |
+| `services/fleetbase/porterchain_fleetbase/`                 | Integration package     |
+| `apps/api/.../fleetbase_sync_service.py`                    | DB orchestration        |
+| `apps/api/.../fleetbase_integration.py`                     | Settings factory        |
 | `services/python/porterchain_services/fleetbase/service.py` | Worker/gateway delegate |
-| `apps/api/.../routers/webhooks.py` | Webhook receiver |
+| `apps/api/.../routers/webhooks.py`                          | Webhook receiver        |
 
 ---
 

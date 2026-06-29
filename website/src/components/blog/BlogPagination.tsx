@@ -28,9 +28,7 @@ export default function BlogPagination({
       className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-10 border-t border-primary/[0.06]"
       aria-label="Pagination"
     >
-      <p className="text-sm text-muted order-2 sm:order-1">
-        {pageLabel}
-      </p>
+      <p className="text-sm text-muted order-2 sm:order-1">{pageLabel}</p>
       <div className="flex items-center gap-2 order-1 sm:order-2">
         {currentPage > 1 ? (
           <Link

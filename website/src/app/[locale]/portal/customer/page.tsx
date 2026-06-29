@@ -13,13 +13,7 @@ export default function CustomerPortalPage() {
   if (isClerkConfigured()) {
     return <CustomerPortalClerk />;
   }
-  return (
-    <CustomerPortalContent
-      isLoaded
-      isSignedIn
-      getToken={async () => "dev"}
-    />
-  );
+  return <CustomerPortalContent isLoaded isSignedIn getToken={async () => "dev"} />;
 }
 
 function CustomerPortalClerk() {

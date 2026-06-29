@@ -73,12 +73,12 @@ This document describes how Porterchain operates as a **logistics technology com
 
 ### 1.3 Abandoned checkout
 
-| Checkpoint abandoned | Stored data | Action |
-|---------------------|-------------|--------|
-| After quote, before continue | `quote_id`, session | Retargeting pixel / email if captured later |
-| After email/phone, before Clerk | quote + contact | Abandoned checkout record |
-| After Clerk, before Stripe | customer_id + quote | Remarketing email with resume link |
-| Stripe started, not completed | payment_intent id | Stripe recovery + internal follow-up |
+| Checkpoint abandoned            | Stored data         | Action                                      |
+| ------------------------------- | ------------------- | ------------------------------------------- |
+| After quote, before continue    | `quote_id`, session | Retargeting pixel / email if captured later |
+| After email/phone, before Clerk | quote + contact     | Abandoned checkout record                   |
+| After Clerk, before Stripe      | customer_id + quote | Remarketing email with resume link          |
+| Stripe started, not completed   | payment_intent id   | Stripe recovery + internal follow-up        |
 
 ### 1.4 Post-booking customer workflow
 
@@ -121,12 +121,12 @@ This document describes how Porterchain operates as a **logistics technology com
 
 ### 2.4 Merchant billing workflow
 
-| Term | Flow |
-|------|------|
-| Net 30/45 | Order → delivered → line on monthly invoice → due date → payment |
-| Credit card on file | Optional auto-charge on invoice |
-| Per-order Stripe | Checkout link per shipment (merchant setting) |
-| Immediate | Stripe at order creation |
+| Term                | Flow                                                             |
+| ------------------- | ---------------------------------------------------------------- |
+| Net 30/45           | Order → delivered → line on monthly invoice → due date → payment |
+| Credit card on file | Optional auto-charge on invoice                                  |
+| Per-order Stripe    | Checkout link per shipment (merchant setting)                    |
+| Immediate           | Stripe at order creation                                         |
 
 ---
 
@@ -191,14 +191,14 @@ This document describes how Porterchain operates as a **logistics technology com
 
 ## 5. Fleetbase bridge workflow
 
-| Porterchain event | Fleetbase action |
-|-------------------|------------------|
-| `order.booked` | Create order/payload |
-| `order.dispatch_ready` | Available in dispatch queue |
-| `order.driver_assigned` | Assign driver to order/route |
+| Porterchain event       | Fleetbase action                              |
+| ----------------------- | --------------------------------------------- |
+| `order.booked`          | Create order/payload                          |
+| `order.dispatch_ready`  | Available in dispatch queue                   |
+| `order.driver_assigned` | Assign driver to order/route                  |
 | Fleetbase status update | Webhook/poll → update Porterchain order state |
-| `pod.completed` | Sync POD artifacts to Porterchain storage |
-| `order.cancelled` | Cancel Fleetbase order |
+| `pod.completed`         | Sync POD artifacts to Porterchain storage     |
+| `order.cancelled`       | Cancel Fleetbase order                        |
 
 **Rule:** Porterchain order ID is canonical; Fleetbase ID stored as `fleetbase_order_id`.
 
@@ -206,15 +206,15 @@ This document describes how Porterchain operates as a **logistics technology com
 
 ## 6. Notification workflow
 
-| Event | Retail customer | Merchant | Driver | Ops |
-|-------|-----------------|----------|--------|-----|
-| Booking confirmed | Email, SMS | — | — | — |
-| Driver assigned | Email, SMS | Email (if configured) | Push | — |
-| Out for delivery | SMS | — | — | — |
-| Delivered | Email | Email | — | — |
-| Exception | Email, SMS | Email | Push | Email |
-| Invoice due | — | Email | — | — |
-| Payout sent | — | — | Email | — |
+| Event             | Retail customer | Merchant              | Driver | Ops   |
+| ----------------- | --------------- | --------------------- | ------ | ----- |
+| Booking confirmed | Email, SMS      | —                     | —      | —     |
+| Driver assigned   | Email, SMS      | Email (if configured) | Push   | —     |
+| Out for delivery  | SMS             | —                     | —      | —     |
+| Delivered         | Email           | Email                 | —      | —     |
+| Exception         | Email, SMS      | Email                 | Push   | Email |
+| Invoice due       | —               | Email                 | —      | —     |
+| Payout sent       | —               | —                     | Email  | —     |
 
 ---
 
@@ -237,4 +237,4 @@ This document describes how Porterchain operates as a **logistics technology com
 
 ---
 
-*Operational design only. Existing website UI and booking widget behavior unchanged.*
+_Operational design only. Existing website UI and booking widget behavior unchanged._

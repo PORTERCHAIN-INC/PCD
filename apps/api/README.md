@@ -29,11 +29,11 @@ Default port: **8001**. Health: `GET /health`.
 
 ## Key endpoints
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| POST | `/v1/quotes` | Anonymous instant quote |
-| GET | `/v1/quotes/{id}` | Fetch quote |
-| POST | `/v1/bookings` | Start booking (Clerk auth) |
-| POST | `/v1/bookings/mock-complete` | Dev payment completion |
-| GET | `/v1/orders/{tracking}` | Public tracking |
-| POST | `/webhooks/stripe` | Stripe `checkout.session.completed` |
+| Method | Path                         | Purpose                             |
+| ------ | ---------------------------- | ----------------------------------- |
+| POST   | `/v1/quotes`                 | Anonymous instant quote             |
+| GET    | `/v1/quotes/{id}`            | Fetch quote                         |
+| POST   | `/v1/bookings`               | Start booking (Clerk auth)          |
+| POST   | `/v1/bookings/mock-complete` | Dev payment completion              |
+| GET    | `/v1/orders/{tracking}`      | Public tracking                     |
+| POST   | `/webhooks/stripe`           | Stripe `checkout.session.completed` |

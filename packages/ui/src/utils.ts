@@ -7,5 +7,7 @@ export function formatCents(cents: number, currency = "CAD"): string {
 }
 
 export function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeStyle: "short" }).format(
+    new Date(iso)
+  );
 }

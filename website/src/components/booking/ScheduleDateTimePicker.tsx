@@ -2,14 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
-import {
-  format,
-  setHours,
-  setMinutes,
-  startOfDay,
-  isToday,
-  isBefore,
-} from "date-fns";
+import { format, setHours, setMinutes, startOfDay, isToday, isBefore } from "date-fns";
 import { enCA, frCA } from "date-fns/locale";
 import { Calendar, Clock } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -23,9 +16,7 @@ function buildTimeSlots(intervalMinutes: number, startHour: number, endHour: num
   for (let hour = startHour; hour <= endHour; hour++) {
     for (let minute = 0; minute < 60; minute += intervalMinutes) {
       if (hour === endHour && minute > 0) break;
-      slots.push(
-        `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
-      );
+      slots.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
     }
   }
   return slots;
@@ -57,11 +48,13 @@ function getNextAvailableSlot(date: Date, slots: string[]) {
 interface ScheduleDateTimePickerProps {
   value: Date;
   onChange: (value: Date) => void;
+  compact?: boolean;
 }
 
 export default function ScheduleDateTimePicker({
   value,
   onChange,
+  compact = false,
 }: ScheduleDateTimePickerProps) {
   const t = useTranslations("booking.schedulePicker");
   const locale = useLocale();
@@ -122,7 +115,7 @@ export default function ScheduleDateTimePicker({
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
-      className="space-y-2"
+      className={cn(compact ? "space-y-1" : "space-y-2")}
     >
       <div className="grid grid-cols-1 sm:grid-cols-[1.2fr_1fr] gap-2">
         <div className="relative">
@@ -133,7 +126,10 @@ export default function ScheduleDateTimePicker({
             aria-expanded={calendarOpen}
             aria-label={t("pickDate")}
             onClick={() => setCalendarOpen((open) => !open)}
-            className="booking-schedule-field w-full"
+            className={cn(
+              "booking-schedule-field w-full",
+              compact && "booking-schedule-field-compact"
+            )}
           >
             <Calendar className="w-4 h-4 text-secondary shrink-0" />
             <span className="truncate">
@@ -186,13 +182,21 @@ export default function ScheduleDateTimePicker({
           )}
         </div>
 
-        <label className="booking-schedule-field cursor-pointer">
+        <label
+          className={cn(
+            "booking-schedule-field cursor-pointer",
+            compact && "booking-schedule-field-compact"
+          )}
+        >
           <Clock className="w-4 h-4 text-secondary shrink-0" />
           <select
             value={displayTime}
             onChange={(e) => handleTimeChange(e.target.value)}
             aria-label={t("pickTime")}
-            className="w-full min-w-0 bg-transparent text-base text-primary outline-none cursor-pointer appearance-none"
+            className={cn(
+              "w-full min-w-0 bg-transparent text-primary outline-none cursor-pointer appearance-none",
+              compact ? "text-sm" : "text-base"
+            )}
           >
             {availableTimeSlots.map((slot) => (
               <option key={slot} value={slot}>
@@ -205,9 +209,11 @@ export default function ScheduleDateTimePicker({
         </label>
       </div>
 
-      <p className="type-caption normal-case tracking-normal text-muted px-1">
-        {t("timezoneNote")}
-      </p>
+      {!compact && (
+        <p className="type-caption normal-case tracking-normal text-muted px-1">
+          {t("timezoneNote")}
+        </p>
+      )}
     </motion.div>
   );
 }

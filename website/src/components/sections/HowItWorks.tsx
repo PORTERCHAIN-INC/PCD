@@ -2,14 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import {
-  ClipboardList,
-  UserCheck,
-  PackageCheck,
-  MapPin,
-  FileCheck,
-  Receipt,
-} from "lucide-react";
+import { ClipboardList, UserCheck, PackageCheck, MapPin, FileCheck, Receipt } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Container from "@/components/ui/Container";
 import LogisticsPattern from "@/components/illustrations/LogisticsPattern";
@@ -52,9 +45,7 @@ export default function HowItWorks() {
                   <h3 className="mt-5 type-body font-semibold text-primary">
                     {t(`steps.${key}.title`)}
                   </h3>
-                  <p className="mt-2 type-small text-muted px-2">
-                    {t(`steps.${key}.description`)}
-                  </p>
+                  <p className="mt-2 type-small text-muted px-2">{t(`steps.${key}.description`)}</p>
                 </motion.div>
               );
             })}

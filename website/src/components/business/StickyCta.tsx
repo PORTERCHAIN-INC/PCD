@@ -31,7 +31,9 @@ export default function StickyCta() {
         >
           <div className="max-w-lg mx-auto pointer-events-auto">
             <div className="biz-glass-dark rounded-2xl px-4 sm:px-5 py-3 sm:py-3.5 flex items-center justify-between gap-3 sm:gap-4 biz-shadow-lg">
-              <p className="text-white text-sm font-medium hidden sm:block min-w-0">{t("message")}</p>
+              <p className="text-white text-sm font-medium hidden sm:block min-w-0">
+                {t("message")}
+              </p>
               <button
                 onClick={scrollToInquiry}
                 className="flex items-center justify-center gap-2 w-full sm:w-auto min-h-[2.75rem] px-5 py-2.5 rounded-xl bg-[#ff7a00] text-white text-sm font-semibold hover:bg-[#e66e00] transition-colors whitespace-nowrap sm:ml-auto"

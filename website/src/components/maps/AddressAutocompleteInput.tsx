@@ -27,9 +27,7 @@ export default function AddressAutocompleteInput({
 }: AddressAutocompleteInputProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const places = useMapsLibrary("places");
-  const autocompleteRef = useRef<google.maps.places.PlaceAutocompleteElement | null>(
-    null
-  );
+  const autocompleteRef = useRef<google.maps.places.PlaceAutocompleteElement | null>(null);
   const onPlaceSelectRef = useRef(onPlaceSelect);
   const onChangeRef = useRef(onChange);
 
@@ -61,9 +59,7 @@ export default function AddressAutocompleteInput({
     const handleSelect = (event: Event) => {
       const selectEvent = event as google.maps.places.PlacePredictionSelectEvent;
       void (async () => {
-        const address = await placeDetailsToBookingAddress(
-          selectEvent.placePrediction.toPlace()
-        );
+        const address = await placeDetailsToBookingAddress(selectEvent.placePrediction.toPlace());
         if (!address) return;
         onChangeRef.current(address.formatted);
         onPlaceSelectRef.current(address);

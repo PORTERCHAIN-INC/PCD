@@ -15,53 +15,53 @@ Porterchain owns the **canonical order state**. Fleetbase operational status map
 
 ### Pre-order (quote & booking)
 
-| State | Description | Entry trigger | Exit triggers |
-|-------|-------------|---------------|---------------|
-| `QUOTE` | Anonymous or identified estimate valid | Pricing engine success | TTL expiry, continue booking, cancel |
-| `QUOTE_EXPIRED` | Quote TTL elapsed | Cron / TTL job | New quote created |
-| `BOOKING_PENDING` | User continued; contact captured | Continue booking + Clerk session start | Payment started, abandon, cancel |
-| `PAYMENT_PENDING` | Stripe session created | Checkout created | Paid, failed, abandoned, cancel |
+| State             | Description                            | Entry trigger                          | Exit triggers                        |
+| ----------------- | -------------------------------------- | -------------------------------------- | ------------------------------------ |
+| `QUOTE`           | Anonymous or identified estimate valid | Pricing engine success                 | TTL expiry, continue booking, cancel |
+| `QUOTE_EXPIRED`   | Quote TTL elapsed                      | Cron / TTL job                         | New quote created                    |
+| `BOOKING_PENDING` | User continued; contact captured       | Continue booking + Clerk session start | Payment started, abandon, cancel     |
+| `PAYMENT_PENDING` | Stripe session created                 | Checkout created                       | Paid, failed, abandoned, cancel      |
 
 ### Confirmed & dispatch
 
-| State | Description | Entry trigger | Exit triggers |
-|-------|-------------|---------------|---------------|
-| `BOOKED` | Payment confirmed (retail) or merchant order accepted | Stripe webhook / merchant submit | Dispatch queue, cancel |
-| `DISPATCH_READY` | Ready for assignment | Ops rules / auto after BOOKED | Driver assigned, cancel |
-| `DRIVER_ASSIGNED` | Driver + vehicle linked | Dispatcher / auto-assign | Accept, reject, timeout, cancel |
-| `DRIVER_ACCEPTED` | Driver confirmed job | Driver accept in app | En route, reject (late), cancel |
-| `DRIVER_REJECTED` | Driver declined (transient — may re-assign) | Driver reject | Re-assign → `DRIVER_ASSIGNED` |
+| State             | Description                                           | Entry trigger                    | Exit triggers                   |
+| ----------------- | ----------------------------------------------------- | -------------------------------- | ------------------------------- |
+| `BOOKED`          | Payment confirmed (retail) or merchant order accepted | Stripe webhook / merchant submit | Dispatch queue, cancel          |
+| `DISPATCH_READY`  | Ready for assignment                                  | Ops rules / auto after BOOKED    | Driver assigned, cancel         |
+| `DRIVER_ASSIGNED` | Driver + vehicle linked                               | Dispatcher / auto-assign         | Accept, reject, timeout, cancel |
+| `DRIVER_ACCEPTED` | Driver confirmed job                                  | Driver accept in app             | En route, reject (late), cancel |
+| `DRIVER_REJECTED` | Driver declined (transient — may re-assign)           | Driver reject                    | Re-assign → `DRIVER_ASSIGNED`   |
 
 ### Execution
 
-| State | Description | Entry trigger | Exit triggers |
-|-------|-------------|---------------|---------------|
-| `DRIVER_EN_ROUTE` | Heading to pickup | Driver start / GPS | At pickup, exception |
-| `AT_PICKUP` | Arrived at pickup | Geofence / manual arrive | Picked up, exception |
-| `PICKED_UP` | Goods in vehicle | Pickup confirm | In transit, exception |
-| `IN_TRANSIT` | En route to destination | Depart pickup | At destination, exception |
-| `AT_DESTINATION` | Arrived at dropoff | Geofence / manual arrive | Delivered, exception |
-| `DELIVERED` | Handoff complete (pre-POD verify) | Driver deliver tap | POD completed, exception |
-| `POD_COMPLETED` | Photo/signature/GPS verified | POD validation pass | Invoiced |
+| State             | Description                       | Entry trigger            | Exit triggers             |
+| ----------------- | --------------------------------- | ------------------------ | ------------------------- |
+| `DRIVER_EN_ROUTE` | Heading to pickup                 | Driver start / GPS       | At pickup, exception      |
+| `AT_PICKUP`       | Arrived at pickup                 | Geofence / manual arrive | Picked up, exception      |
+| `PICKED_UP`       | Goods in vehicle                  | Pickup confirm           | In transit, exception     |
+| `IN_TRANSIT`      | En route to destination           | Depart pickup            | At destination, exception |
+| `AT_DESTINATION`  | Arrived at dropoff                | Geofence / manual arrive | Delivered, exception      |
+| `DELIVERED`       | Handoff complete (pre-POD verify) | Driver deliver tap       | POD completed, exception  |
+| `POD_COMPLETED`   | Photo/signature/GPS verified      | POD validation pass      | Invoiced                  |
 
 ### Financial close
 
-| State | Description | Entry trigger | Exit triggers |
-|-------|-------------|---------------|---------------|
-| `INVOICED` | Invoice/receipt issued | Billing job | Paid (merchant) / closed (retail prepaid) |
-| `CLOSED` | Terminal success | Settlement complete | — |
+| State      | Description            | Entry trigger       | Exit triggers                             |
+| ---------- | ---------------------- | ------------------- | ----------------------------------------- |
+| `INVOICED` | Invoice/receipt issued | Billing job         | Paid (merchant) / closed (retail prepaid) |
+| `CLOSED`   | Terminal success       | Settlement complete | —                                         |
 
 ### Terminal / exception states
 
-| State | Description | Recoverable? |
-|-------|-------------|--------------|
-| `CANCELLED` | Cancelled before or during execution | No |
-| `FAILED` | Delivery attempt failed | Maybe → re-dispatch |
-| `RETURN_TO_SENDER` | RTS initiated | Ends in CLOSED or CLAIM |
-| `DAMAGED` | Damage recorded | Claim path |
-| `LOST` | Loss recorded | Claim path |
-| `CLAIM_OPEN` | Insurance claim active | Yes → REFUNDED or CLOSED |
-| `REFUNDED` | Money returned | Terminal |
+| State              | Description                          | Recoverable?             |
+| ------------------ | ------------------------------------ | ------------------------ |
+| `CANCELLED`        | Cancelled before or during execution | No                       |
+| `FAILED`           | Delivery attempt failed              | Maybe → re-dispatch      |
+| `RETURN_TO_SENDER` | RTS initiated                        | Ends in CLOSED or CLAIM  |
+| `DAMAGED`          | Damage recorded                      | Claim path               |
+| `LOST`             | Loss recorded                        | Claim path               |
+| `CLAIM_OPEN`       | Insurance claim active               | Yes → REFUNDED or CLOSED |
+| `REFUNDED`         | Money returned                       | Terminal                 |
 
 ---
 
@@ -111,16 +111,16 @@ Merchant submit → PAYMENT_PENDING → BOOKED → ...
 
 ### Who can trigger transitions
 
-| Transition | Retail | Merchant | Driver | Dispatcher | System |
-|------------|--------|----------|--------|------------|--------|
-| → `QUOTE` | ✓ | ✓ | — | — | ✓ |
-| → `BOOKED` | Stripe | ✓ | — | — | ✓ |
-| → `DRIVER_ASSIGNED` | — | — | — | ✓ | ✓ auto |
-| → `DRIVER_ACCEPTED` | — | — | ✓ | — | — |
-| → `PICKED_UP` … `DELIVERED` | — | — | ✓ | — | — |
-| → `POD_COMPLETED` | — | — | ✓ | — | ✓ validate |
-| → `CANCELLED` | ✓* | ✓* | — | ✓ | ✓ |
-| → `FAILED` / exceptions | — | — | ✓ | ✓ | ✓ |
+| Transition                  | Retail | Merchant | Driver | Dispatcher | System     |
+| --------------------------- | ------ | -------- | ------ | ---------- | ---------- |
+| → `QUOTE`                   | ✓      | ✓        | —      | —          | ✓          |
+| → `BOOKED`                  | Stripe | ✓        | —      | —          | ✓          |
+| → `DRIVER_ASSIGNED`         | —      | —        | —      | ✓          | ✓ auto     |
+| → `DRIVER_ACCEPTED`         | —      | —        | ✓      | —          | —          |
+| → `PICKED_UP` … `DELIVERED` | —      | —        | ✓      | —          | —          |
+| → `POD_COMPLETED`           | —      | —        | ✓      | —          | ✓ validate |
+| → `CANCELLED`               | ✓*     | ✓*       | —      | ✓          | ✓          |
+| → `FAILED` / exceptions     | —      | —        | ✓      | ✓          | ✓          |
 
 \* Subject to cancellation policy window.
 
@@ -134,12 +134,12 @@ Merchant submit → PAYMENT_PENDING → BOOKED → ...
 
 ## Fleetbase mapping
 
-| Porterchain state | Fleetbase operational equivalent |
-|-------------------|----------------------------------|
-| `DISPATCH_READY` | Order created, unassigned |
-| `DRIVER_ASSIGNED` | Driver linked to order |
-| `DRIVER_EN_ROUTE` … `DELIVERED` | Stop status progression |
-| `POD_COMPLETED` | POD entities attached |
+| Porterchain state               | Fleetbase operational equivalent |
+| ------------------------------- | -------------------------------- |
+| `DISPATCH_READY`                | Order created, unassigned        |
+| `DRIVER_ASSIGNED`               | Driver linked to order           |
+| `DRIVER_EN_ROUTE` … `DELIVERED` | Stop status progression          |
+| `POD_COMPLETED`                 | POD entities attached            |
 
 Sync: **bidirectional** with Porterchain as source of truth for customer-facing status.
 
@@ -147,13 +147,13 @@ Sync: **bidirectional** with Porterchain as source of truth for customer-facing 
 
 ## Timers & SLAs
 
-| State | Timer | Action on expiry |
-|-------|-------|------------------|
-| `QUOTE` | 30 min (config) | → `QUOTE_EXPIRED` |
-| `PAYMENT_PENDING` | 24 h (config) | Abandon + remarketing |
-| `DRIVER_ASSIGNED` | 5 min (config) | → reject timeout → re-assign |
-| `AT_PICKUP` | Policy max wait | Surge / cancel fee |
-| `IN_TRANSIT` | SLA deadline | Ops alert |
+| State             | Timer           | Action on expiry             |
+| ----------------- | --------------- | ---------------------------- |
+| `QUOTE`           | 30 min (config) | → `QUOTE_EXPIRED`            |
+| `PAYMENT_PENDING` | 24 h (config)   | Abandon + remarketing        |
+| `DRIVER_ASSIGNED` | 5 min (config)  | → reject timeout → re-assign |
+| `AT_PICKUP`       | Policy max wait | Surge / cancel fee           |
+| `IN_TRANSIT`      | SLA deadline    | Ops alert                    |
 
 ---
 

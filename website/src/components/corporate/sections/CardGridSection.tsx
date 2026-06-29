@@ -82,9 +82,7 @@ export default function CardGridSection({
                     {item.title}
                   </h3>
                   <p className="text-base font-semibold text-primary">{item.description}</p>
-                  {item.detail && (
-                    <p className="mt-1 text-sm text-muted">{item.detail}</p>
-                  )}
+                  {item.detail && <p className="mt-1 text-sm text-muted">{item.detail}</p>}
                 </div>
               </FadeIn>
             ))}
@@ -102,7 +100,9 @@ export default function CardGridSection({
           {items.map((item, i) => (
             <FadeIn key={i} delay={i * 0.06}>
               <article id={item.id} className="card-surface card-surface-hover p-6 h-full">
-                <h3 className="text-base font-semibold text-primary tracking-tight">{item.title}</h3>
+                <h3 className="text-base font-semibold text-primary tracking-tight">
+                  {item.title}
+                </h3>
                 <p className="mt-2 text-sm text-muted leading-relaxed">{item.description}</p>
               </article>
             </FadeIn>

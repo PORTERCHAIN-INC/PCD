@@ -33,18 +33,9 @@ export default function SectionHeader({
       )}
     >
       {label && (
-        <span className="inline-block type-caption font-bold text-secondary mb-3">
-          {label}
-        </span>
+        <span className="inline-block type-caption font-bold text-secondary mb-3">{label}</span>
       )}
-      <h2
-        className={cn(
-          "type-h2 text-balance",
-          dark ? "text-white" : "text-primary"
-        )}
-      >
-        {title}
-      </h2>
+      <h2 className={cn("type-h2 text-balance", dark ? "text-white" : "text-primary")}>{title}</h2>
       {subtitle && (
         <p
           className={cn(

@@ -33,12 +33,20 @@ export default function FeatureSection({
     return (
       <section id={id} className={cn("site-section bg-white", className)}>
         <Container>
-          <SectionHeader label={label} title={title} subtitle={subtitle} align="left" className="max-w-2xl" />
+          <SectionHeader
+            label={label}
+            title={title}
+            subtitle={subtitle}
+            align="left"
+            className="max-w-2xl"
+          />
           <div className="space-y-6 mt-12">
             {items.map((item, i) => (
               <FadeIn key={i} delay={i * 0.06}>
                 <div className="grid md:grid-cols-[1fr_2fr] gap-4 md:gap-12 py-8 border-b border-primary/[0.06] last:border-0">
-                  <h3 className="text-lg font-semibold text-primary tracking-tight">{item.title}</h3>
+                  <h3 className="text-lg font-semibold text-primary tracking-tight">
+                    {item.title}
+                  </h3>
                   <p className="text-muted leading-relaxed">{item.description}</p>
                 </div>
               </FadeIn>
@@ -58,9 +66,7 @@ export default function FeatureSection({
             {items.map((item, i) => (
               <FadeIn key={i} delay={i * 0.08}>
                 <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/[0.08] h-full">
-                  {item.icon && (
-                    <item.icon className="w-5 h-5 text-secondary mb-4" aria-hidden />
-                  )}
+                  {item.icon && <item.icon className="w-5 h-5 text-secondary mb-4" aria-hidden />}
                   <h3 className="text-base font-semibold tracking-tight">{item.title}</h3>
                   <p className="mt-2 text-sm text-white/60 leading-relaxed">{item.description}</p>
                 </div>
@@ -85,7 +91,9 @@ export default function FeatureSection({
                     <item.icon className="w-5 h-5 text-secondary" aria-hidden />
                   </div>
                 )}
-                <h3 className="text-base font-semibold text-primary tracking-tight">{item.title}</h3>
+                <h3 className="text-base font-semibold text-primary tracking-tight">
+                  {item.title}
+                </h3>
                 <p className="mt-2 text-sm text-muted leading-relaxed">{item.description}</p>
               </div>
             </FadeIn>

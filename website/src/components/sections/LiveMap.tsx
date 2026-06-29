@@ -12,12 +12,7 @@ export default function LiveMap() {
   return (
     <section className="site-section bg-primary overflow-hidden">
       <Container>
-        <SectionHeader
-          label={t("label")}
-          title={t("title")}
-          subtitle={t("subtitle")}
-          dark
-        />
+        <SectionHeader label={t("label")} title={t("title")} subtitle={t("subtitle")} dark />
 
         <div className="rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
           <div className="relative h-[min(65vw,280px)] sm:h-[min(55vw,400px)] lg:h-[min(50vw,500px)] min-h-[240px] sm:min-h-[320px] bg-[#0f2744]">
@@ -30,7 +25,11 @@ export default function LiveMap() {
               <rect width="100%" height="100%" fill="url(#grid)" />
             </svg>
 
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 800 500"
+              preserveAspectRatio="xMidYMid slice"
+            >
               <path
                 d="M 50 250 Q 200 200, 350 280 T 650 220 T 750 300"
                 stroke="var(--secondary)"
@@ -40,8 +39,18 @@ export default function LiveMap() {
                 opacity="0.6"
                 className="animate-[route-dash_2s_linear_infinite]"
               />
-              <path d="M 100 350 L 400 150 L 700 350" stroke="rgba(255,255,255,0.1)" strokeWidth="2" fill="none" />
-              <path d="M 200 100 L 200 400 M 400 80 L 400 420 M 600 120 L 600 380" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" fill="none" />
+              <path
+                d="M 100 350 L 400 150 L 700 350"
+                stroke="rgba(255,255,255,0.1)"
+                strokeWidth="2"
+                fill="none"
+              />
+              <path
+                d="M 200 100 L 200 400 M 400 80 L 400 420 M 600 120 L 600 380"
+                stroke="rgba(255,255,255,0.06)"
+                strokeWidth="1.5"
+                fill="none"
+              />
             </svg>
 
             <svg

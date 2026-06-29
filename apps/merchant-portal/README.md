@@ -18,20 +18,21 @@ pnpm --filter @porterchain/merchant-portal dev
 All portal data flows through `GET/POST /v1/merchant/*` on the Porterchain API (`localhost:8001`).
 
 Development uses `CLERK_DEV_BYPASS=true` on the API with headers:
+
 - `Authorization: Bearer dev`
 - `X-Merchant-Org-Id: dev_merchant_org`
 
 ## Modules
 
-| Route | Feature |
-|-------|---------|
-| `/dashboard` | Overview, KPIs, quick actions |
-| `/book` | Single delivery booking (Net terms) |
-| `/bulk` | CSV upload, validate, confirm |
-| `/orders` | Search, filter, cancel, duplicate |
-| `/track` | Live tracking timeline |
-| `/billing` | Statements, invoices, balance |
-| `/reports` | Monthly analytics |
-| `/api` | API keys, webhooks |
-| `/team` | RBAC team management |
-| `/settings` | Business profile |
+| Route        | Feature                             |
+| ------------ | ----------------------------------- |
+| `/dashboard` | Overview, KPIs, quick actions       |
+| `/book`      | Single delivery booking (Net terms) |
+| `/bulk`      | CSV upload, validate, confirm       |
+| `/orders`    | Search, filter, cancel, duplicate   |
+| `/track`     | Live tracking timeline              |
+| `/billing`   | Statements, invoices, balance       |
+| `/reports`   | Monthly analytics                   |
+| `/api`       | API keys, webhooks                  |
+| `/team`      | RBAC team management                |
+| `/settings`  | Business profile                    |

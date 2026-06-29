@@ -67,8 +67,12 @@ export default async function BlogCategoryPage({ params, searchParams }: Props) 
     <CorporateShell>
       <section className="pt-28 pb-8 md:pt-32 bg-white border-b border-primary/[0.04]">
         <Container>
-          <p className="text-xs font-semibold uppercase tracking-wider text-secondary">{t("articlesIn")}</p>
-          <h1 className="mt-2 text-3xl sm:text-4xl font-semibold text-primary tracking-tight">{name}</h1>
+          <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+            {t("articlesIn")}
+          </p>
+          <h1 className="mt-2 text-3xl sm:text-4xl font-semibold text-primary tracking-tight">
+            {name}
+          </h1>
           <p className="mt-2 text-muted">{t("articleCount", { count: posts.length })}</p>
         </Container>
       </section>

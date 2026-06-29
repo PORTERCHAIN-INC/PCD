@@ -53,12 +53,14 @@ export default async function BlogHomePage({ params, searchParams }: Props) {
   const trending = getTrendingPosts(loc);
   const categoryCounts = getCategoryPostCounts(loc);
 
-  const latestPool = featured
-    ? allPosts.filter((p) => p.slug !== featured.slug)
-    : allPosts;
+  const latestPool = featured ? allPosts.filter((p) => p.slug !== featured.slug) : allPosts;
 
   const page = Number(pageParam) || 1;
-  const { items: latest, currentPage, totalPages } = paginatePosts(latestPool, page, POSTS_PER_PAGE);
+  const {
+    items: latest,
+    currentPage,
+    totalPages,
+  } = paginatePosts(latestPool, page, POSTS_PER_PAGE);
 
   const categoryLabel = (cat: BlogCategory) => tBlog(`categories.${cat}`);
   const readLabel = (minutes: number) => t("minRead", { minutes });
@@ -106,7 +108,9 @@ export default async function BlogHomePage({ params, searchParams }: Props) {
 
           <div className="grid lg:grid-cols-[1fr_320px] gap-10 lg:gap-12 items-start">
             <div>
-              <h2 className="text-xl font-semibold text-primary tracking-tight mb-6">{t("latest")}</h2>
+              <h2 className="text-xl font-semibold text-primary tracking-tight mb-6">
+                {t("latest")}
+              </h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {latest.map((post) => (
                   <ArticleCard

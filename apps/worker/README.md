@@ -4,15 +4,15 @@ Async job processor for platform queues.
 
 ## Queues
 
-| Queue | Purpose |
-|-------|---------|
-| `emails` | Transactional email delivery |
-| `sms` | SMS notifications |
-| `push` | Firebase push notifications |
-| `dispatch` | Fleetbase dispatch sync |
-| `billing` | Stripe reconciliation |
-| `reports` | Scheduled report generation |
-| `webhooks` | Outbound merchant webhooks |
+| Queue      | Purpose                      |
+| ---------- | ---------------------------- |
+| `emails`   | Transactional email delivery |
+| `sms`      | SMS notifications            |
+| `push`     | Firebase push notifications  |
+| `dispatch` | Fleetbase dispatch sync      |
+| `billing`  | Stripe reconciliation        |
+| `reports`  | Scheduled report generation  |
+| `webhooks` | Outbound merchant webhooks   |
 
 ## Run
 
