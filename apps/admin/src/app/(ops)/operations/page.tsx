@@ -77,8 +77,8 @@ export default function OperationsPage() {
       };
     }
   }, [auto]);
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- stamp last-refresh time whenever the polling tick advances
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- stamp last-refresh time whenever the polling tick advances
     setUpdatedAt(new Date());
   }, [tick]);
 

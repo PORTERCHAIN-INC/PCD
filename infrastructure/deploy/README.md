@@ -2,9 +2,9 @@
 
 Porterchain uses two GitHub Actions workflows:
 
-| Workflow | File | Trigger | Purpose |
-|----------|------|---------|---------|
-| **CI** | `.github/workflows/ci.yml` | push / PR to `main` | Lint, format check, build (quality gate) |
+| Workflow   | File                           | Trigger                                | Purpose                                                |
+| ---------- | ------------------------------ | -------------------------------------- | ------------------------------------------------------ |
+| **CI**     | `.github/workflows/ci.yml`     | push / PR to `main`                    | Lint, format check, build (quality gate)               |
 | **Deploy** | `.github/workflows/deploy.yml` | after CI succeeds on `main`, or manual | Build website image → push to GHCR → deploy to droplet |
 
 The Deploy workflow only runs once CI passes on `main`, so broken code never ships.
@@ -42,18 +42,18 @@ Then ensure the deploy user can log in with the SSH key referenced by
 
 Set these under **Settings → Secrets and variables → Actions → Secrets**:
 
-| Secret | Description |
-|--------|-------------|
-| `DEPLOY_HOST` | Droplet IP, e.g. `68.183.103.49` |
-| `DEPLOY_USER` | SSH user (e.g. `root` or a `deploy` user) |
-| `DEPLOY_SSH_KEY` | **Private** SSH key (PEM) authorized on the droplet |
-| `DEPLOY_PORT` | *(optional)* SSH port, defaults to `22` |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps key baked into the build |
+| Secret                            | Description                                         |
+| --------------------------------- | --------------------------------------------------- |
+| `DEPLOY_HOST`                     | Droplet IP, e.g. `68.183.103.49`                    |
+| `DEPLOY_USER`                     | SSH user (e.g. `root` or a `deploy` user)           |
+| `DEPLOY_SSH_KEY`                  | **Private** SSH key (PEM) authorized on the droplet |
+| `DEPLOY_PORT`                     | _(optional)_ SSH port, defaults to `22`             |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps key baked into the build                |
 
 Optional **Variables** (Settings → Variables):
 
-| Variable | Default |
-|----------|---------|
+| Variable               | Default                   |
+| ---------------------- | ------------------------- |
 | `NEXT_PUBLIC_SITE_URL` | `https://porterchain.com` |
 
 GHCR authentication uses the built-in `GITHUB_TOKEN` (no extra secret needed).
@@ -69,7 +69,7 @@ gh secret set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY -b "<your-key>"
 
 ## Manual deploy / rollback
 
-- **Manual deploy:** Actions → *Deploy* → *Run workflow*.
+- **Manual deploy:** Actions → _Deploy_ → _Run workflow_.
 - **Rollback:** SSH to the droplet and run a previous image tag:
   ```bash
   docker run -d --name pcd-website --restart unless-stopped -p 80:3000 \
