@@ -14,6 +14,8 @@ services:
     container_name: pcd-website
     restart: unless-stopped
     pull_policy: missing
+    depends_on:
+      - api
     environment:
       NODE_ENV: production
       PORT: "3000"
@@ -22,6 +24,29 @@ services:
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
     expose:
       - "3000"
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  api:
+    image: ${API_IMAGE:-ghcr.io/porterchain/pcd-api:latest}
+    container_name: pcd-api
+    restart: unless-stopped
+    pull_policy: missing
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DATABASE_URL: sqlite:////data/porterchain.db
+      PORTERCHAIN_API_URL: https://porterchain.com
+      CORS_ORIGINS: https://porterchain.com,https://www.porterchain.com
+      # Mock external integrations until real keys are provisioned.
+      STRIPE_MOCK: "true"
+      CLERK_DEV_BYPASS: "true"
+    volumes:
+      - api-data:/data
+    expose:
+      - "8001"
     networks:
       - edge
     security_opt:
@@ -53,3 +78,4 @@ networks:
 volumes:
   caddy-data:
   caddy-config:
+  api-data:

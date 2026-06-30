@@ -31,7 +31,22 @@
 
 porterchain.com {
 	import common
-	reverse_proxy web:3000
+
+	# Porterchain backend API (same-origin) — FastAPI on :8001.
+	handle /v1/* {
+		reverse_proxy api:8001
+	}
+	handle /health {
+		reverse_proxy api:8001
+	}
+	handle /internal/* {
+		reverse_proxy api:8001
+	}
+
+	# Everything else → Next.js website (includes its own /api/* routes).
+	handle {
+		reverse_proxy web:3000
+	}
 }
 
 # Redirect www to the apex domain over HTTPS.

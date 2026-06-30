@@ -16,11 +16,12 @@ concurrency:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-website
+  API_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-api
   CONTAINER_NAME: pcd-website
 
 jobs:
   deploy:
-    name: Build & deploy website
+    name: Build & deploy website + API
     runs-on: ubuntu-latest
     # Skip when triggered by a failed CI run (manual dispatch always runs).
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
@@ -68,7 +69,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push image
+      - name: Build and push website image
         if: steps.check.outputs.ready == 'true'
         uses: docker/build-push-action@v6
         with:
@@ -81,8 +82,22 @@ jobs:
           build-args: |
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
+            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ vars.NEXT_PUBLIC_PORTERCHAIN_API_URL || 'https://porterchain.com' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Build and push API image
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.API_IMAGE_NAME }}:latest
+            ${{ env.API_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
 
       - name: Copy deploy manifests to droplet
         if: steps.check.outputs.ready == 'true'
@@ -104,22 +119,26 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          envs: IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_MAPS_SERVER_API_KEY
+          envs: IMAGE_NAME,API_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_MAPS_SERVER_API_KEY
           script_stop: true
           script: |
             set -e
             cd /opt/porterchain
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
+            export API_IMAGE="$API_IMAGE_NAME:$IMAGE_TAG"
             # Runtime secrets for compose (server-side Google key for /api/quote geocoding).
             umask 077
             printf 'GOOGLE_MAPS_SERVER_API_KEY=%s\n' "$GOOGLE_MAPS_SERVER_API_KEY" > .env
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            # Reload Caddy so routing/Caddyfile changes take effect (bind-mounted file).
+            docker exec pcd-caddy caddy reload --config /etc/caddy/Caddyfile 2>/dev/null || docker restart pcd-caddy
             docker image prune -f
-            echo "Waiting for proxy to come up..."
-            sleep 6
-            curl -fsS -o /dev/null http://localhost:80 && echo "Caddy is responding on port 80 (HTTP->HTTPS)" || (docker compose -f docker-compose.prod.yml logs --tail 50; exit 1)
+            echo "Waiting for services to come up..."
+            sleep 8
+            curl -fsS -o /dev/null http://localhost:80 && echo "Caddy responding (HTTP->HTTPS)" || (docker compose -f docker-compose.prod.yml logs --tail 50; exit 1)
+            docker exec pcd-api curl -fsS http://localhost:8001/health && echo " <- API healthy" || (docker logs --tail 50 pcd-api; exit 1)
         env:
           IMAGE_TAG: ${{ steps.sha.outputs.value }}
           GHCR_USER: ${{ github.actor }}
