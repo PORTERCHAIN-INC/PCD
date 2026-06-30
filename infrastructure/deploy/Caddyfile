@@ -1,0 +1,41 @@
+# Porterchain production reverse proxy.
+# Caddy automatically obtains & renews Let's Encrypt certificates and
+# redirects all HTTP traffic to HTTPS.
+
+{
+	email admin@porterchain.com
+	# Uncomment to test against the Let's Encrypt staging CA (avoids rate limits):
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# Shared security headers + compression applied to every site.
+(common) {
+	encode zstd gzip
+
+	header {
+		# HSTS — force HTTPS for 1 year, include subdomains, allow preload.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		# Disallow MIME-type sniffing.
+		X-Content-Type-Options "nosniff"
+		# Clickjacking protection.
+		X-Frame-Options "SAMEORIGIN"
+		# Limit referrer leakage.
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Lock down powerful browser features by default.
+		Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+		# Hide upstream server fingerprint.
+		-Server
+		-X-Powered-By
+	}
+}
+
+porterchain.com {
+	import common
+	reverse_proxy web:3000
+}
+
+# Redirect www to the apex domain over HTTPS.
+www.porterchain.com {
+	import common
+	redir https://porterchain.com{uri} permanent
+}

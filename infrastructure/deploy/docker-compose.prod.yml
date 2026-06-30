@@ -1,0 +1,52 @@
+# Production stack for the Porterchain droplet.
+# Caddy terminates TLS (auto Let's Encrypt) and reverse-proxies to the website.
+# The website is NOT published to the host directly — only Caddy is exposed.
+#
+# Usage on the droplet (also driven by the Deploy workflow):
+#   export WEB_IMAGE=ghcr.io/<owner>/pcd-website:<tag>
+#   docker compose -f docker-compose.prod.yml up -d
+
+name: porterchain-prod
+
+services:
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/porterchain/pcd-website:latest}
+    container_name: pcd-website
+    restart: unless-stopped
+    pull_policy: missing
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+    expose:
+      - "3000"
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: pcd-caddy
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  edge:
+    driver: bridge
+
+volumes:
+  caddy-data:
+  caddy-config:
