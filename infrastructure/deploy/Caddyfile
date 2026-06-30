@@ -1,7 +1,6 @@
 # Porterchain production reverse proxy.
 # Caddy automatically obtains & renews Let's Encrypt certificates and
 # redirects all HTTP traffic to HTTPS.
-
 {
 	email admin@porterchain.com
 	# Uncomment to test against the Let's Encrypt staging CA (avoids rate limits):

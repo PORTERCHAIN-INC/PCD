@@ -132,8 +132,9 @@ jobs:
             printf 'GOOGLE_MAPS_SERVER_API_KEY=%s\n' "$GOOGLE_MAPS_SERVER_API_KEY" > .env
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            # Reload Caddy so routing/Caddyfile changes take effect (bind-mounted file).
-            docker exec pcd-caddy caddy reload --config /etc/caddy/Caddyfile 2>/dev/null || docker restart pcd-caddy
+            # Restart Caddy so routing/Caddyfile changes take effect reliably
+            # (the file is bind-mounted; an in-place reload is not always applied).
+            docker restart pcd-caddy
             docker image prune -f
             echo "Waiting for services to come up..."
             sleep 8
