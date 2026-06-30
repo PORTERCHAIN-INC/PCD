@@ -104,15 +104,16 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          envs: IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+          envs: IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_MAPS_SERVER_API_KEY
           script_stop: true
           script: |
             set -e
             cd /opt/porterchain
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
-            # Remove any legacy standalone container that may still hold port 80.
-            docker rm -f pcd-website 2>/dev/null || true
+            # Runtime secrets for compose (server-side Google key for /api/quote geocoding).
+            umask 077
+            printf 'GOOGLE_MAPS_SERVER_API_KEY=%s\n' "$GOOGLE_MAPS_SERVER_API_KEY" > .env
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             docker image prune -f
@@ -123,3 +124,4 @@ jobs:
           IMAGE_TAG: ${{ steps.sha.outputs.value }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_MAPS_SERVER_API_KEY: ${{ secrets.GOOGLE_MAPS_SERVER_API_KEY }}

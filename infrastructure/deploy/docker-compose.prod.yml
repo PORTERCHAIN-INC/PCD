@@ -17,6 +17,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
+      # Server-side Google key (no referrer restriction) for the /api/quote
+      # geocoding calls. The browser key cannot be used for server requests.
+      GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
     expose:
       - "3000"
     networks:

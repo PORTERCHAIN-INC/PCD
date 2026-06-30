@@ -62,13 +62,14 @@ Then ensure the deploy user can log in with the SSH key referenced by
 
 Set these under **Settings → Secrets and variables → Actions → Secrets**:
 
-| Secret                            | Description                                         |
-| --------------------------------- | --------------------------------------------------- |
-| `DEPLOY_HOST`                     | Droplet IP, e.g. `68.183.103.49`                    |
-| `DEPLOY_USER`                     | SSH user (e.g. `root` or a `deploy` user)           |
-| `DEPLOY_SSH_KEY`                  | **Private** SSH key (PEM) authorized on the droplet |
-| `DEPLOY_PORT`                     | _(optional)_ SSH port, defaults to `22`             |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps key baked into the build                |
+| Secret                            | Description                                                                              |
+| --------------------------------- | ---------------------------------------------------------------------------------------- |
+| `DEPLOY_HOST`                     | Droplet IP, e.g. `68.183.103.49`                                                         |
+| `DEPLOY_USER`                     | SSH user (e.g. `root` or a `deploy` user)                                                |
+| `DEPLOY_SSH_KEY`                  | **Private** SSH key (PEM) authorized on the droplet                                      |
+| `DEPLOY_PORT`                     | _(optional)_ SSH port, defaults to `22`                                                  |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser Maps key baked into the build (referrer-restricted)                              |
+| `GOOGLE_MAPS_SERVER_API_KEY`      | **Server-side** Maps key (no referrer restriction) for `/api/quote` geocoding at runtime |
 
 Optional **Variables** (Settings → Variables):
 
