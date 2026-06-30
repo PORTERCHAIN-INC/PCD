@@ -1,14 +1,35 @@
 # Production stack for the Porterchain droplet.
-# Caddy terminates TLS (auto Let's Encrypt) and reverse-proxies to the website.
-# The website is NOT published to the host directly — only Caddy is exposed.
+# Caddy terminates TLS (auto Let's Encrypt) and reverse-proxies to the website + API.
 #
 # Usage on the droplet (also driven by the Deploy workflow):
 #   export WEB_IMAGE=ghcr.io/<owner>/pcd-website:<tag>
+#   export API_IMAGE=ghcr.io/<owner>/pcd-api:<tag>
 #   docker compose -f docker-compose.prod.yml up -d
 
 name: porterchain-prod
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pcd-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: porterchain
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: porterchain
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U porterchain -d porterchain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+
   web:
     image: ${WEB_IMAGE:-ghcr.io/porterchain/pcd-website:latest}
     container_name: pcd-website
@@ -19,9 +40,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
-      # Server-side Google key (no referrer restriction) for the /api/quote
-      # geocoding calls. The browser key cannot be used for server requests.
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
+      # Clerk middleware (server-side) — publishable key is baked into the image at build.
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY is required}
     expose:
       - "3000"
     networks:
@@ -34,17 +55,26 @@ services:
     container_name: pcd-api
     restart: unless-stopped
     pull_policy: missing
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
-      DATABASE_URL: sqlite:////data/porterchain.db
+      DATABASE_URL: postgresql+psycopg://porterchain:${POSTGRES_PASSWORD}@postgres:5432/porterchain
       PORTERCHAIN_API_URL: https://porterchain.com
       CORS_ORIGINS: https://porterchain.com,https://www.porterchain.com
-      # Mock external integrations until real keys are provisioned.
-      STRIPE_MOCK: "true"
-      CLERK_DEV_BYPASS: "true"
-    volumes:
-      - api-data:/data
+      # Real integrations (keys from /opt/porterchain/.env via deploy workflow).
+      STRIPE_MOCK: "false"
+      CLERK_DEV_BYPASS: "false"
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
+      CLERK_JWKS_URL: ${CLERK_JWKS_URL}
+      STRIPE_SECRET: ${STRIPE_SECRET}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      RETAIL_CHECKOUT_SUCCESS_URL: https://porterchain.com/en/book/success
+      RETAIL_CHECKOUT_CANCEL_URL: https://porterchain.com/en/book/continue
     expose:
       - "8001"
     networks:
@@ -58,6 +88,7 @@ services:
     restart: unless-stopped
     depends_on:
       - web
+      - api
     ports:
       - "80:80"
       - "443:443"
@@ -78,4 +109,4 @@ networks:
 volumes:
   caddy-data:
   caddy-config:
-  api-data:
+  postgres-data:

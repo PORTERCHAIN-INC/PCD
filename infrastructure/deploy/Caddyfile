@@ -41,6 +41,9 @@ porterchain.com {
 	handle /internal/* {
 		reverse_proxy api:8001
 	}
+	handle /webhooks/* {
+		reverse_proxy api:8001
+	}
 
 	# Everything else → Next.js website (includes its own /api/* routes).
 	handle {

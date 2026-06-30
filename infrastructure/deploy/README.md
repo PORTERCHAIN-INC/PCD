@@ -70,6 +70,17 @@ Set these under **Settings → Secrets and variables → Actions → Secrets**:
 | `DEPLOY_PORT`                     | _(optional)_ SSH port, defaults to `22`                                                  |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser Maps key baked into the build (referrer-restricted)                              |
 | `GOOGLE_MAPS_SERVER_API_KEY`      | **Server-side** Maps key (no referrer restriction) for `/api/quote` geocoding at runtime |
+| `POSTGRES_PASSWORD`               | PostgreSQL password for the `porterchain` database on the droplet                        |
+| `CLERK_PUBLISHABLE_KEY`           | Clerk publishable key (baked into website build + API config)                            |
+| `CLERK_SECRET_KEY`                | Clerk secret key (website middleware + API JWT verification)                             |
+| `CLERK_JWKS_URL`                  | Clerk JWKS endpoint, e.g. `https://<instance>.clerk.accounts.dev/.well-known/jwks.json`  |
+| `STRIPE_SECRET`                   | Stripe secret key (`sk_test_...` or `sk_live_...`)                                       |
+| `STRIPE_WEBHOOK_SECRET`           | Stripe webhook signing secret (`whsec_...`)                                              |
+| `JWT_SECRET`                      | Random secret for SSO tokens (generate with `openssl rand -hex 32`)                      |
+
+**Stripe webhook URL** (configure in Stripe Dashboard): `https://porterchain.com/webhooks/stripe`
+
+**Clerk allowed origins** (Clerk Dashboard): `https://porterchain.com`, `https://www.porterchain.com`
 
 Optional **Variables** (Settings → Variables):
 
@@ -102,6 +113,9 @@ gh secret set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY -b "<your-key>"
 
 - **Firewall (UFW):** default-deny inbound; only `22/80/443` open.
 - **TLS:** Let's Encrypt via Caddy, auto-renewed; HSTS with `preload`.
+- **Database:** PostgreSQL 16 in Docker (`postgres-data` volume); API uses `postgresql+psycopg`.
+- **Payments:** Real Stripe Checkout (`STRIPE_MOCK=false`); webhook at `/webhooks/stripe`.
+- **Auth:** Real Clerk JWT verification (`CLERK_DEV_BYPASS=false`).
 - **SSH:** key-only (`PasswordAuthentication no`, root login key-only).
 - **fail2ban:** bans IPs after repeated failed SSH logins.
 - **unattended-upgrades:** automatic security patches.

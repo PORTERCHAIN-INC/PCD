@@ -83,6 +83,7 @@ jobs:
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ vars.NEXT_PUBLIC_PORTERCHAIN_API_URL || 'https://porterchain.com' }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -119,7 +120,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          envs: IMAGE_NAME,API_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_MAPS_SERVER_API_KEY
+          envs: IMAGE_NAME,API_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_MAPS_SERVER_API_KEY,POSTGRES_PASSWORD,CLERK_SECRET_KEY,CLERK_PUBLISHABLE_KEY,CLERK_JWKS_URL,STRIPE_SECRET,STRIPE_WEBHOOK_SECRET,JWT_SECRET
           script_stop: true
           script: |
             set -e
@@ -127,21 +128,35 @@ jobs:
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
             export API_IMAGE="$API_IMAGE_NAME:$IMAGE_TAG"
-            # Runtime secrets for compose (server-side Google key for /api/quote geocoding).
             umask 077
-            printf 'GOOGLE_MAPS_SERVER_API_KEY=%s\n' "$GOOGLE_MAPS_SERVER_API_KEY" > .env
+            cat > .env <<EOF
+            GOOGLE_MAPS_SERVER_API_KEY=$GOOGLE_MAPS_SERVER_API_KEY
+            POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+            CLERK_SECRET_KEY=$CLERK_SECRET_KEY
+            CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY
+            CLERK_JWKS_URL=$CLERK_JWKS_URL
+            STRIPE_SECRET=$STRIPE_SECRET
+            STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET
+            JWT_SECRET=$JWT_SECRET
+            EOF
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            # Restart Caddy so routing/Caddyfile changes take effect reliably
-            # (the file is bind-mounted; an in-place reload is not always applied).
             docker restart pcd-caddy
             docker image prune -f
             echo "Waiting for services to come up..."
-            sleep 8
+            sleep 12
             curl -fsS -o /dev/null http://localhost:80 && echo "Caddy responding (HTTP->HTTPS)" || (docker compose -f docker-compose.prod.yml logs --tail 50; exit 1)
             docker exec pcd-api curl -fsS http://localhost:8001/health && echo " <- API healthy" || (docker logs --tail 50 pcd-api; exit 1)
+            docker exec pcd-postgres pg_isready -U porterchain -d porterchain && echo " <- Postgres ready" || (docker logs --tail 50 pcd-postgres; exit 1)
         env:
           IMAGE_TAG: ${{ steps.sha.outputs.value }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOOGLE_MAPS_SERVER_API_KEY: ${{ secrets.GOOGLE_MAPS_SERVER_API_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          CLERK_JWKS_URL: ${{ secrets.CLERK_JWKS_URL }}
+          STRIPE_SECRET: ${{ secrets.STRIPE_SECRET }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
