@@ -26,12 +26,7 @@ import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { api } from "@/lib/api";
-import {
-  ops,
-  SLA_TONE,
-  type AssignableDriver,
-  type OpsOrder,
-} from "@/lib/operations";
+import { ops, SLA_TONE, type AssignableDriver, type OpsOrder } from "@/lib/operations";
 import { DispatchBoard } from "@/components/operations/DispatchBoard";
 import { DispatchQueuePanel } from "@/components/operations/DispatchQueuePanel";
 import { OperationsLiveMapPanel } from "@/components/operations/OperationsLiveMapPanel";
@@ -208,14 +203,14 @@ export default function OperationsPage() {
 
       {tab === "board" && <BoardTab tick={tick} onMoved={() => setTick((x) => x + 1)} />}
       {tab === "orders" && <OrdersTab tick={tick} />}
-      {tab === "queue" && <DispatchQueuePanel tick={tick} onAssigned={() => setTick((x) => x + 1)} />}
+      {tab === "queue" && (
+        <DispatchQueuePanel tick={tick} onAssigned={() => setTick((x) => x + 1)} />
+      )}
       {tab === "exceptions" && <ExceptionsTab tick={tick} />}
       {tab === "sla" && <SlaTab tick={tick} />}
       {tab === "ai" && <AiTab tick={tick} />}
       {tab === "activity" && <ActivityTab tick={tick} />}
-      {tab === "map" && (
-        <OperationsLiveMapPanel tick={tick} onFleetbase={openFleetbase} />
-      )}
+      {tab === "map" && <OperationsLiveMapPanel tick={tick} onFleetbase={openFleetbase} />}
     </div>
   );
 }

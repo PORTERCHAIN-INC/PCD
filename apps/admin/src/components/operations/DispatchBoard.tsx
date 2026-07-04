@@ -27,9 +27,7 @@ import { titleCase } from "@/lib/crmFormat";
 const STATE_TONE = (sla: string) => SLA_TONE[sla] ?? "slate";
 
 function SlaBadge({ sla }: { sla: string }) {
-  return (
-    <Badge tone={STATE_TONE(sla)}>{sla === "at_risk" ? "At risk" : titleCase(sla)}</Badge>
-  );
+  return <Badge tone={STATE_TONE(sla)}>{sla === "at_risk" ? "At risk" : titleCase(sla)}</Badge>;
 }
 
 function OrderCard({ o, dragging }: { o: OpsOrder; dragging?: boolean }) {
@@ -138,9 +136,7 @@ export function DispatchBoard({
     local.find((col) => col.orders.some((o) => o.id === order.id))?.key ?? null;
 
   function handleStart(event: DragStartEvent) {
-    setActive(
-      (event.active.data.current?.order as OpsOrder) ?? findOrder(String(event.active.id))
-    );
+    setActive((event.active.data.current?.order as OpsOrder) ?? findOrder(String(event.active.id)));
   }
 
   async function handleEnd(event: DragEndEvent) {

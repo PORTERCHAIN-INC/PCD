@@ -32,7 +32,11 @@ export function InvoicesScreen() {
           estimatedItemSize={LIST_ITEM_SIZES.standard}
           keyExtractor={(invoice) => invoice.invoice_id}
           contentContainerStyle={{ padding: theme.spacing.lg }}
-          ListEmptyComponent={<Body muted style={{ padding: theme.spacing.lg }}>No invoices yet.</Body>}
+          ListEmptyComponent={
+            <Body muted style={{ padding: theme.spacing.lg }}>
+              No invoices yet.
+            </Body>
+          }
           renderItem={({ item: invoice }) => (
             <ListItem
               title={invoice.invoice_number}
@@ -40,7 +44,12 @@ export function InvoicesScreen() {
               meta={invoice.created_at?.slice(0, 10)}
               trailing={
                 invoice.pdf_url ? (
-                  <Button label="PDF" size="sm" variant="ghost" onPress={() => void Linking.openURL(invoice.pdf_url!)} />
+                  <Button
+                    label="PDF"
+                    size="sm"
+                    variant="ghost"
+                    onPress={() => void Linking.openURL(invoice.pdf_url!)}
+                  />
                 ) : undefined
               }
             />

@@ -58,7 +58,14 @@ export function MapFrame({
         </View>
       ) : null}
       {overlay ? (
-        <View style={{ position: "absolute", top: theme.spacing.md, left: theme.spacing.md, right: theme.spacing.md }}>
+        <View
+          style={{
+            position: "absolute",
+            top: theme.spacing.md,
+            left: theme.spacing.md,
+            right: theme.spacing.md,
+          }}
+        >
           {overlay}
         </View>
       ) : null}

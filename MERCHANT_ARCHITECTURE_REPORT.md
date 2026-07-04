@@ -41,28 +41,28 @@ Event Bus (`platform/bus.py` → `porterchain_event_bus`)
 
 ## Portal structure
 
-| Route | Client | Primary service |
-|-------|--------|-----------------|
-| `/dashboard` | `DashboardClient` | `MerchantDashboardService` |
-| `/book` | `BookDeliveryClient` | `MerchantBookingFlowService` |
-| `/bulk` | `bulk/page` | `MerchantBulkService` |
-| `/orders` | `orders/page` | `MerchantOrdersService` |
-| `/orders/[id]` | `Order360View` | `MerchantOrdersService` + `MerchantTrackingService` |
-| `/track` | `track/page` | `MerchantTrackingService` |
-| `/billing` | `BillingClient` | `MerchantBillingService` |
-| `/reports` | `ReportsClient` | `MerchantReportsService` |
-| `/api` | `IntegrationsClient` | `MerchantIntegrationsService` + `gateway_engine` |
-| `/team` | `TeamClient` | `MerchantTeamService` |
-| `/settings` | `SettingsClient` | `MerchantSettingsService` + `MerchantSupportBridgeService` |
+| Route          | Client               | Primary service                                            |
+| -------------- | -------------------- | ---------------------------------------------------------- |
+| `/dashboard`   | `DashboardClient`    | `MerchantDashboardService`                                 |
+| `/book`        | `BookDeliveryClient` | `MerchantBookingFlowService`                               |
+| `/bulk`        | `bulk/page`          | `MerchantBulkService`                                      |
+| `/orders`      | `orders/page`        | `MerchantOrdersService`                                    |
+| `/orders/[id]` | `Order360View`       | `MerchantOrdersService` + `MerchantTrackingService`        |
+| `/track`       | `track/page`         | `MerchantTrackingService`                                  |
+| `/billing`     | `BillingClient`      | `MerchantBillingService`                                   |
+| `/reports`     | `ReportsClient`      | `MerchantReportsService`                                   |
+| `/api`         | `IntegrationsClient` | `MerchantIntegrationsService` + `gateway_engine`           |
+| `/team`        | `TeamClient`         | `MerchantTeamService`                                      |
+| `/settings`    | `SettingsClient`     | `MerchantSettingsService` + `MerchantSupportBridgeService` |
 
 ---
 
 ## Authentication & RBAC
 
-| Surface | Auth | Authorization |
-|---------|------|---------------|
-| Portal | Clerk Bearer + org header | `MerchantContext` + `require_module()` |
-| Programmatic API | `X-Api-Key` | Scopes + `MerchantApiGatewayMiddleware` rate limits |
+| Surface          | Auth                      | Authorization                                       |
+| ---------------- | ------------------------- | --------------------------------------------------- |
+| Portal           | Clerk Bearer + org header | `MerchantContext` + `require_module()`              |
+| Programmatic API | `X-Api-Key`               | Scopes + `MerchantApiGatewayMiddleware` rate limits |
 
 **Single RBAC source:** `merchant_engine/rbac.py` → `MODULE_PERMISSIONS`, `permissions_catalog()`.
 
@@ -161,25 +161,25 @@ useMerchantRealtime
 
 ## Data ownership
 
-| Entity | Model | Merchant scope |
-|--------|-------|----------------|
-| Merchant | `merchants` | `clerk_org_id` |
-| Orders | `orders` | `merchant_id` |
-| API keys | `merchant_api_keys` | per merchant |
-| Webhooks | `merchant_webhooks` | per merchant |
-| Usage logs | `merchant_api_usage_logs` | per merchant |
-| Team | `merchant_users` | per merchant |
-| Settings extensions | `merchants.profile` JSON | per merchant |
+| Entity              | Model                     | Merchant scope |
+| ------------------- | ------------------------- | -------------- |
+| Merchant            | `merchants`               | `clerk_org_id` |
+| Orders              | `orders`                  | `merchant_id`  |
+| API keys            | `merchant_api_keys`       | per merchant   |
+| Webhooks            | `merchant_webhooks`       | per merchant   |
+| Usage logs          | `merchant_api_usage_logs` | per merchant   |
+| Team                | `merchant_users`          | per merchant   |
+| Settings extensions | `merchants.profile` JSON  | per merchant   |
 
 ---
 
 ## masterrule compliance
 
-| Rule | Status |
-|------|--------|
-| UI → API only | ✅ |
-| Logic in `*_engine` services | ✅ |
-| Fleetbase via adapter only | ✅ Verified (grep: no direct HTTP in merchant_engine) |
-| Pricing via pricing_engine | ✅ |
-| No duplicate RBAC | ✅ |
-| Event bus for side effects | ✅ |
+| Rule                         | Status                                                |
+| ---------------------------- | ----------------------------------------------------- |
+| UI → API only                | ✅                                                    |
+| Logic in `*_engine` services | ✅                                                    |
+| Fleetbase via adapter only   | ✅ Verified (grep: no direct HTTP in merchant_engine) |
+| Pricing via pricing_engine   | ✅                                                    |
+| No duplicate RBAC            | ✅                                                    |
+| Event bus for side effects   | ✅                                                    |

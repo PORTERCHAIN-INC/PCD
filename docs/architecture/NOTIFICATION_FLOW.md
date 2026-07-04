@@ -18,13 +18,13 @@ Notifications are **async** — domain events trigger handlers that enqueue deli
 
 ## Templates (Implemented)
 
-| Template | Channel | Trigger |
-|----------|---------|---------|
-| `booking_confirmed` | email, sms | `booking.confirmed` |
-| `order_booked` | email | `order.booked` |
-| `checkout_recovery` | email | abandoned checkout |
-| `claim_opened` | email | `claim.opened` |
-| `support_ticket_created` | email | `support.ticket_created` |
+| Template                 | Channel    | Trigger                  |
+| ------------------------ | ---------- | ------------------------ |
+| `booking_confirmed`      | email, sms | `booking.confirmed`      |
+| `order_booked`           | email      | `order.booked`           |
+| `checkout_recovery`      | email      | abandoned checkout       |
+| `claim_opened`           | email      | `claim.opened`           |
+| `support_ticket_created` | email      | `support.ticket_created` |
 
 ## Diagram
 

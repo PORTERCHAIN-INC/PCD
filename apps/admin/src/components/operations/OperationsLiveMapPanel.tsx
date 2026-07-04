@@ -18,11 +18,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useLiveMapData } from "@/hooks/useLiveMapData";
 import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
 import MapCanvas from "@/components/live-map/MapCanvas";
-import {
-  liveMapApi,
-  parseLiveMapEntityId,
-  type MapLayers,
-} from "@/lib/live-map";
+import { liveMapApi, parseLiveMapEntityId, type MapLayers } from "@/lib/live-map";
 import { isGoogleMapsConfigured } from "@/lib/maps";
 import { money, relativeTime, titleCase } from "@/lib/crmFormat";
 import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
@@ -99,7 +95,12 @@ export function OperationsLiveMapPanel({ tick = 0, onFleetbase }: Props) {
             { label: "In flight", value: data?.orders.length ?? 0, icon: Truck },
             { label: "Drivers online", value: cc.drivers_online, icon: Users },
             { label: "Waiting", value: cc.orders_waiting, icon: MapPin },
-            { label: "Late", value: cc.late_orders, icon: AlertTriangle, alert: cc.late_orders > 0 },
+            {
+              label: "Late",
+              value: cc.late_orders,
+              icon: AlertTriangle,
+              alert: cc.late_orders > 0,
+            },
           ]
         : [],
     [cc, data?.orders.length]
@@ -126,7 +127,9 @@ export function OperationsLiveMapPanel({ tick = 0, onFleetbase }: Props) {
     <GoogleMapsProvider>
       <div className="space-y-4">
         {error && (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+            {error}
+          </p>
         )}
 
         {stats.length > 0 && (
@@ -143,7 +146,11 @@ export function OperationsLiveMapPanel({ tick = 0, onFleetbase }: Props) {
                   <Icon className="h-4 w-4" />
                   <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
                 </div>
-                <p className={cn("mt-1 text-2xl font-bold", alert ? "text-red-700" : "text-primary")}>{value}</p>
+                <p
+                  className={cn("mt-1 text-2xl font-bold", alert ? "text-red-700" : "text-primary")}
+                >
+                  {value}
+                </p>
               </div>
             ))}
           </div>
@@ -160,7 +167,11 @@ export function OperationsLiveMapPanel({ tick = 0, onFleetbase }: Props) {
                     Updated {relativeTime(data.generated_at)}
                   </span>
                 )}
-                <Button variant="outline" className="gap-1.5 px-2 py-1 text-xs" onClick={() => void refresh()}>
+                <Button
+                  variant="outline"
+                  className="gap-1.5 px-2 py-1 text-xs"
+                  onClick={() => void refresh()}
+                >
                   <RefreshCw className="h-3.5 w-3.5" />
                   Refresh
                 </Button>
@@ -207,13 +218,17 @@ export function OperationsLiveMapPanel({ tick = 0, onFleetbase }: Props) {
                   drawMode="none"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center text-sm text-muted">No map data</div>
+                <div className="flex h-full items-center justify-center text-sm text-muted">
+                  No map data
+                </div>
               )}
 
               {selected && (
                 <div className="absolute bottom-3 left-3 right-3 z-10 max-h-[40%] overflow-y-auto rounded-xl border border-primary/10 bg-white/95 p-4 shadow-lg backdrop-blur-sm">
                   <div className="mb-2 flex items-start justify-between gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">Selected</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                      Selected
+                    </p>
                     <button
                       type="button"
                       onClick={() => {
@@ -227,7 +242,9 @@ export function OperationsLiveMapPanel({ tick = 0, onFleetbase }: Props) {
                     </button>
                   </div>
                   {detailLoading && <Spinner label="Loading…" />}
-                  {!detailLoading && detailError && <p className="text-sm text-red-600">{detailError}</p>}
+                  {!detailLoading && detailError && (
+                    <p className="text-sm text-red-600">{detailError}</p>
+                  )}
                   {!detailLoading && detail && <MapDetailCard detail={detail} />}
                 </div>
               )}
@@ -235,8 +252,8 @@ export function OperationsLiveMapPanel({ tick = 0, onFleetbase }: Props) {
 
             {!isGoogleMapsConfigured() && (
               <p className="border-t border-primary/10 px-4 py-3 text-xs text-muted">
-                Add <code className="rounded bg-gray-bg px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to enable the
-                interactive map. Driver and order lists remain available on the right.
+                Add <code className="rounded bg-gray-bg px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code>{" "}
+                to enable the interactive map. Driver and order lists remain available on the right.
               </p>
             )}
           </SectionCard>
@@ -281,7 +298,9 @@ export function OperationsLiveMapPanel({ tick = 0, onFleetbase }: Props) {
                       onClick={() => void loadDetail("order", `${o.order_id}-${o.stop_type}`)}
                     >
                       <div className="min-w-0">
-                        <p className="font-mono text-xs font-semibold text-primary">{o.tracking_number}</p>
+                        <p className="font-mono text-xs font-semibold text-primary">
+                          {o.tracking_number}
+                        </p>
                         <p className="truncate text-xs text-muted">
                           {titleCase(o.stop_type)} · {titleCase(o.state)}
                           {o.merchant ? ` · ${o.merchant}` : ""}
@@ -321,7 +340,11 @@ export function OperationsLiveMapPanel({ tick = 0, onFleetbase }: Props) {
             <>
               {" "}
               or{" "}
-              <button type="button" onClick={onFleetbase} className="font-medium text-secondary underline">
+              <button
+                type="button"
+                onClick={onFleetbase}
+                className="font-medium text-secondary underline"
+              >
                 Fleetbase console
               </button>
             </>
@@ -342,9 +365,7 @@ function MapDetailCard({ detail }: { detail: Record<string, unknown> }) {
       <div>
         <p className="font-semibold text-primary">{String(detail.title ?? "")}</p>
         {detail.subtitle ? <p className="text-sm text-muted">{String(detail.subtitle)}</p> : null}
-        {detail.status ? (
-          <Badge className="mt-1">{String(detail.status)}</Badge>
-        ) : null}
+        {detail.status ? <Badge className="mt-1">{String(detail.status)}</Badge> : null}
       </div>
 
       {detail.eta ? (

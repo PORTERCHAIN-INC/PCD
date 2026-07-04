@@ -7,11 +7,16 @@ import { useOfflineSync } from "../provider/OfflineSyncProvider";
 
 export function OfflineSyncBar() {
   const { theme } = useTheme();
-  const { online, syncing, localPending, localFailed, gpsPending, uploadPending, syncNow } = useOfflineSync();
+  const { online, syncing, localPending, localFailed, gpsPending, uploadPending, syncNow } =
+    useOfflineSync();
 
   if (online && localPending === 0 && localFailed === 0 && !syncing) return null;
 
-  const tone = !online ? theme.colors.warning : localFailed > 0 ? theme.colors.danger : theme.colors.secondary;
+  const tone = !online
+    ? theme.colors.warning
+    : localFailed > 0
+      ? theme.colors.danger
+      : theme.colors.secondary;
 
   return (
     <Pressable

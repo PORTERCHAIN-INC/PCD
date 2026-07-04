@@ -29,7 +29,11 @@ export function MoreScreen() {
             <ListItem
               key={link.screen}
               title={link.label}
-              meta={link.screen === "OfflineSync" && localPending + localFailed > 0 ? `${localPending + localFailed}` : undefined}
+              meta={
+                link.screen === "OfflineSync" && localPending + localFailed > 0
+                  ? `${localPending + localFailed}`
+                  : undefined
+              }
               onPress={() => navigation.navigate(link.screen)}
             />
           ))}

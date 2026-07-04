@@ -33,7 +33,11 @@ export default function PricingPage() {
     queryFn: async () => pricingApi.dashboard(await getApiToken()),
   });
 
-  const { data: tariffs = [], isLoading, refetch } = useQuery({
+  const {
+    data: tariffs = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["pricing-tariffs", JSON.stringify(filters)],
     enabled: enabled && tab === "rules",
     queryFn: async () => pricingApi.tariffs(await getApiToken(), filters),
@@ -119,7 +123,9 @@ export default function PricingPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-primary">Pricing Engine</h1>
-          <p className="text-sm text-muted">Manage rules, contracts, zones, and simulate quotes — server authoritative</p>
+          <p className="text-sm text-muted">
+            Manage rules, contracts, zones, and simulate quotes — server authoritative
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => void refetch()}>
@@ -145,14 +151,21 @@ export default function PricingPage() {
           <Kpi label="HST %" value={`${dashboard.tax_hst_percent}%`} />
           <Kpi label="Coupons" value={dashboard.active_coupons} />
           <Kpi label="Forecast" value={formatCents(dashboard.revenue_forecast_cents)} />
-          <Kpi label="Conflicts" value={dashboard.conflict_count} alert={dashboard.conflict_count > 0} />
+          <Kpi
+            label="Conflicts"
+            value={dashboard.conflict_count}
+            alert={dashboard.conflict_count > 0}
+          />
         </div>
       )}
 
-      {(conflicts.length > 0 || dashboard?.conflict_count) ? (
+      {conflicts.length > 0 || dashboard?.conflict_count ? (
         <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{conflicts.length || dashboard?.conflict_count} pricing rule conflict(s) detected — review duplicate vehicle/zone/merchant combinations.</span>
+          <span>
+            {conflicts.length || dashboard?.conflict_count} pricing rule conflict(s) detected —
+            review duplicate vehicle/zone/merchant combinations.
+          </span>
         </div>
       ) : null}
 
@@ -177,7 +190,9 @@ export default function PricingPage() {
             onClick={() => setTab(t.id)}
             className={cn(
               "shrink-0 rounded-t-lg px-3 py-2 text-sm font-medium",
-              tab === t.id ? "border border-b-0 border-primary/10 bg-white text-secondary" : "text-muted"
+              tab === t.id
+                ? "border border-b-0 border-primary/10 bg-white text-secondary"
+                : "text-muted"
             )}
           >
             {t.label}
@@ -197,19 +212,31 @@ export default function PricingPage() {
               />
               <select
                 value={filters.tariff_type ?? ""}
-                onChange={(e) => setFilters((f) => ({ ...f, tariff_type: e.target.value || undefined }))}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, tariff_type: e.target.value || undefined }))
+                }
                 className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
               >
                 <option value="">All types</option>
-                {TARIFF_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                {TARIFF_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
               </select>
               <select
                 value={filters.vehicle_class ?? ""}
-                onChange={(e) => setFilters((f) => ({ ...f, vehicle_class: e.target.value || undefined }))}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, vehicle_class: e.target.value || undefined }))
+                }
                 className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
               >
                 <option value="">All vehicles</option>
-                {VEHICLE_CLASSES.map((v) => <option key={v} value={v}>{v}</option>)}
+                {VEHICLE_CLASSES.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
               </select>
               <select
                 value={filters.status ?? ""}
@@ -217,10 +244,18 @@ export default function PricingPage() {
                 className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
               >
                 <option value="">All statuses</option>
-                {RULE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                {RULE_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
               </select>
             </div>
-            {isLoading ? <div className="flex justify-center py-12"><Spinner /></div> : (
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <Spinner />
+              </div>
+            ) : (
               <PricingTariffsGrid rows={tariffs} onPublish={(id) => void publishRule(id)} />
             )}
           </>
@@ -228,7 +263,14 @@ export default function PricingPage() {
 
         {tab === "zones" && (
           <table className="w-full text-sm">
-            <thead><tr className="border-b text-left text-muted"><th className="py-2">Code</th><th>Name</th><th>Multiplier</th><th>Active</th></tr></thead>
+            <thead>
+              <tr className="border-b text-left text-muted">
+                <th className="py-2">Code</th>
+                <th>Name</th>
+                <th>Multiplier</th>
+                <th>Active</th>
+              </tr>
+            </thead>
             <tbody>
               {zones.map((z) => (
                 <tr key={z.id} className="border-b border-primary/5">
@@ -244,7 +286,14 @@ export default function PricingPage() {
 
         {tab === "contracts" && (
           <table className="w-full text-sm">
-            <thead><tr className="border-b text-left text-muted"><th className="py-2">Merchant</th><th>Contract</th><th>Min commitment</th><th>Active</th></tr></thead>
+            <thead>
+              <tr className="border-b text-left text-muted">
+                <th className="py-2">Merchant</th>
+                <th>Contract</th>
+                <th>Min commitment</th>
+                <th>Active</th>
+              </tr>
+            </thead>
             <tbody>
               {contracts.map((c) => (
                 <tr key={c.id} className="border-b border-primary/5">
@@ -260,13 +309,26 @@ export default function PricingPage() {
 
         {tab === "promotions" && (
           <table className="w-full text-sm">
-            <thead><tr className="border-b text-left text-muted"><th className="py-2">Code</th><th>Type</th><th>Discount</th><th>Status</th></tr></thead>
+            <thead>
+              <tr className="border-b text-left text-muted">
+                <th className="py-2">Code</th>
+                <th>Type</th>
+                <th>Discount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
             <tbody>
               {promotions.map((p) => (
                 <tr key={p.id} className="border-b border-primary/5">
                   <td className="py-2 font-mono font-semibold">{p.code}</td>
                   <td>{p.promotion_type}</td>
-                  <td>{p.discount_percent ? `${p.discount_percent}%` : p.discount_cents ? formatCents(p.discount_cents) : "—"}</td>
+                  <td>
+                    {p.discount_percent
+                      ? `${p.discount_percent}%`
+                      : p.discount_cents
+                        ? formatCents(p.discount_cents)
+                        : "—"}
+                  </td>
                   <td className="capitalize">{p.status}</td>
                 </tr>
               ))}
@@ -278,25 +340,39 @@ export default function PricingPage() {
           <div className="grid gap-6 md:grid-cols-2">
             <div>
               <h3 className="mb-3 font-semibold">Tax (HST/GST/PST)</h3>
-              <p className="text-sm">HST: {String(tax.hst_percent)}% · Tax included: {tax.tax_included ? "Yes" : "No"}</p>
-              <Button variant="outline" className="mt-3" onClick={async () => {
-                const hst = prompt("HST %", String(tax.hst_percent));
-                if (!hst) return;
-                const token = await getApiToken();
-                await pricingApi.updateTax(token, { ...tax, hst_percent: Number(hst) });
-                await qc.invalidateQueries({ queryKey: ["pricing-tax"] });
-              }}>Update tax</Button>
+              <p className="text-sm">
+                HST: {String(tax.hst_percent)}% · Tax included: {tax.tax_included ? "Yes" : "No"}
+              </p>
+              <Button
+                variant="outline"
+                className="mt-3"
+                onClick={async () => {
+                  const hst = prompt("HST %", String(tax.hst_percent));
+                  if (!hst) return;
+                  const token = await getApiToken();
+                  await pricingApi.updateTax(token, { ...tax, hst_percent: Number(hst) });
+                  await qc.invalidateQueries({ queryKey: ["pricing-tax"] });
+                }}
+              >
+                Update tax
+              </Button>
             </div>
             <div>
               <h3 className="mb-3 font-semibold">Fuel surcharge</h3>
               <p className="text-sm">Surcharge: {String(fuel.surcharge_percent)}%</p>
-              <Button variant="outline" className="mt-3" onClick={async () => {
-                const pct = prompt("Fuel surcharge %", String(fuel.surcharge_percent));
-                if (!pct) return;
-                const token = await getApiToken();
-                await pricingApi.updateFuel(token, { ...fuel, surcharge_percent: Number(pct) });
-                await qc.invalidateQueries({ queryKey: ["pricing-fuel"] });
-              }}>Update fuel</Button>
+              <Button
+                variant="outline"
+                className="mt-3"
+                onClick={async () => {
+                  const pct = prompt("Fuel surcharge %", String(fuel.surcharge_percent));
+                  if (!pct) return;
+                  const token = await getApiToken();
+                  await pricingApi.updateFuel(token, { ...fuel, surcharge_percent: Number(pct) });
+                  await qc.invalidateQueries({ queryKey: ["pricing-fuel"] });
+                }}
+              >
+                Update fuel
+              </Button>
             </div>
           </div>
         )}
@@ -319,7 +395,9 @@ export default function PricingPage() {
             {Array.isArray(reports.rules_by_type) && (
               <ul className="mt-2 space-y-1">
                 {(reports.rules_by_type as [string, number][]).map(([type, count]) => (
-                  <li key={type}>{type}: {count} rules</li>
+                  <li key={type}>
+                    {type}: {count} rules
+                  </li>
                 ))}
               </ul>
             )}
@@ -332,7 +410,12 @@ export default function PricingPage() {
 
 function Kpi({ label, value, alert }: { label: string; value: string | number; alert?: boolean }) {
   return (
-    <div className={cn("rounded-xl border border-primary/10 bg-white px-3 py-2 shadow-sm", alert && "border-amber-200 bg-amber-50")}>
+    <div
+      className={cn(
+        "rounded-xl border border-primary/10 bg-white px-3 py-2 shadow-sm",
+        alert && "border-amber-200 bg-amber-50"
+      )}
+    >
       <p className="text-xs text-muted">{label}</p>
       <p className="text-lg font-bold text-primary">{value}</p>
     </div>

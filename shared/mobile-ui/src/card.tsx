@@ -11,7 +11,14 @@ export type CardProps = ViewProps & {
   padded?: boolean;
 };
 
-export function Card({ children, style, onPress, elevated = true, padded = true, ...props }: CardProps) {
+export function Card({
+  children,
+  style,
+  onPress,
+  elevated = true,
+  padded = true,
+  ...props
+}: CardProps) {
   const { theme } = useTheme();
   const shell = {
     backgroundColor: theme.colors.surface,

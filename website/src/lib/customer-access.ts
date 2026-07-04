@@ -1,4 +1,7 @@
-const API = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(/\/$/, "");
+const API = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
+  /\/$/,
+  ""
+);
 
 export type CustomerAccessProfile = {
   customer_id: string;

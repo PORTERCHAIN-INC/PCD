@@ -32,7 +32,10 @@ export default function BookingSelectField({
 }: BookingSelectFieldProps) {
   return (
     <div className={cn("min-w-0", className)}>
-      <label htmlFor={id} className="type-caption font-bold text-muted mb-1 flex items-center gap-1.5">
+      <label
+        htmlFor={id}
+        className="type-caption font-bold text-muted mb-1 flex items-center gap-1.5"
+      >
         {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
         {label}
       </label>

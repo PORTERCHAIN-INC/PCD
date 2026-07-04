@@ -91,7 +91,9 @@ export default function Route360Page() {
             onClick={() => setTab(tid)}
             className={cn(
               "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-              tab === tid ? "bg-white text-secondary shadow-sm" : "text-primary/70 hover:bg-white/70"
+              tab === tid
+                ? "bg-white text-secondary shadow-sm"
+                : "text-primary/70 hover:bg-white/70"
             )}
           >
             <Icon className="h-4 w-4" />
@@ -112,7 +114,10 @@ export default function Route360Page() {
                 ["Revenue", money(Number(sim.estimated_revenue_cents ?? 0))],
                 ["Profit", money(Number(sim.estimated_profit_cents ?? 0))],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-xl border border-primary/10 bg-gray-bg/30 px-3 py-2.5">
+                <div
+                  key={label}
+                  className="rounded-xl border border-primary/10 bg-gray-bg/30 px-3 py-2.5"
+                >
                   <dt className="text-xs text-muted">{label}</dt>
                   <dd className="mt-0.5 font-semibold text-primary">{value}</dd>
                 </div>
@@ -137,7 +142,10 @@ export default function Route360Page() {
       )}
 
       {tab === "stops" && (
-        <RouteSectionCard title="Stop Sequence" description={`${plan.stops.length} stops in delivery order.`}>
+        <RouteSectionCard
+          title="Stop Sequence"
+          description={`${plan.stops.length} stops in delivery order.`}
+        >
           <RouteStopTimeline stops={plan.stops} />
         </RouteSectionCard>
       )}
@@ -169,7 +177,10 @@ export default function Route360Page() {
           ) : (
             <div className="space-y-2">
               {plan.audit_log!.map((row) => (
-                <div key={row.id} className="rounded-xl border border-primary/10 bg-gray-bg/30 px-4 py-3 text-sm">
+                <div
+                  key={row.id}
+                  className="rounded-xl border border-primary/10 bg-gray-bg/30 px-4 py-3 text-sm"
+                >
                   <span className="font-medium text-primary">{row.action}</span>
                   <span className="text-muted"> · {row.created_at}</span>
                 </div>
@@ -182,7 +193,10 @@ export default function Route360Page() {
       {(tab === "driver" || tab === "vehicle" || tab === "analytics") && (
         <RouteSectionCard title={titleCase(tab)}>
           {tab === "driver" && plan.driver_id ? (
-            <Link href={`/drivers/${plan.driver_id}`} className="text-sm font-medium text-secondary hover:underline">
+            <Link
+              href={`/drivers/${plan.driver_id}`}
+              className="text-sm font-medium text-secondary hover:underline"
+            >
               View driver profile →
             </Link>
           ) : tab === "vehicle" && plan.vehicle_id ? (
@@ -198,7 +212,10 @@ export default function Route360Page() {
             />
           )}
           {tab === "analytics" && (
-            <Link href="/routes/analytics" className="mt-4 inline-block text-sm font-medium text-secondary hover:underline">
+            <Link
+              href="/routes/analytics"
+              className="mt-4 inline-block text-sm font-medium text-secondary hover:underline"
+            >
               Open Route Center Analytics →
             </Link>
           )}

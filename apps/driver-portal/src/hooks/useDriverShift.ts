@@ -44,24 +44,21 @@ export function useDriverShift() {
     };
   }, [refresh]);
 
-  const runAction = useCallback(
-    async (id: string, fn: () => Promise<DriverShiftSnapshot>) => {
-      setActionPending(id);
-      try {
-        const snap = await fn();
-        if (mounted.current) {
-          setData(snap);
-          setError("");
-        }
-      } catch (e) {
-        if (mounted.current) setError(e instanceof Error ? e.message : `${id}_failed`);
-        throw e;
-      } finally {
-        if (mounted.current) setActionPending(null);
+  const runAction = useCallback(async (id: string, fn: () => Promise<DriverShiftSnapshot>) => {
+    setActionPending(id);
+    try {
+      const snap = await fn();
+      if (mounted.current) {
+        setData(snap);
+        setError("");
       }
-    },
-    []
-  );
+    } catch (e) {
+      if (mounted.current) setError(e instanceof Error ? e.message : `${id}_failed`);
+      throw e;
+    } finally {
+      if (mounted.current) setActionPending(null);
+    }
+  }, []);
 
   return {
     data,
@@ -70,8 +67,7 @@ export function useDriverShift() {
     refreshing,
     actionPending,
     refresh: () => refresh(true),
-    startShift: (routeId?: string) =>
-      runAction("start", () => driverApi.shiftStart(routeId)),
+    startShift: (routeId?: string) => runAction("start", () => driverApi.shiftStart(routeId)),
     endShift: () => runAction("end", () => driverApi.shiftEnd()),
     startBreak: () => runAction("break", () => driverApi.shiftBreak()),
     resumeShift: () => runAction("resume", () => driverApi.shiftResume()),

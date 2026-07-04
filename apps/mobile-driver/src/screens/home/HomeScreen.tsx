@@ -55,9 +55,16 @@ export function HomeScreen() {
               <CardHeader
                 title="Shift status"
                 subtitle={data.is_online ? "Online" : "Offline"}
-                action={<StatusChip label={data.availability} tone={data.is_online ? "active" : "neutral"} />}
+                action={
+                  <StatusChip
+                    label={data.availability}
+                    tone={data.is_online ? "active" : "neutral"}
+                  />
+                }
               />
-              <Body muted>Performance {data.performance_score}% · Rating {data.rating ?? "—"}</Body>
+              <Body muted>
+                Performance {data.performance_score}% · Rating {data.rating ?? "—"}
+              </Body>
               <Button
                 label="Open shift"
                 style={{ marginTop: theme.spacing.lg }}
@@ -65,8 +72,17 @@ export function HomeScreen() {
                 onPress={() => tabNav?.navigate("Shift")}
               />
             </Card>
-            <Button label="Assignment queue" variant="secondary" fullWidth onPress={() => tabNav?.navigate("Jobs", { screen: "AssignmentQueue" })} />
-            <Button label="Start navigation" fullWidth onPress={() => tabNav?.navigate("Navigation")} />
+            <Button
+              label="Assignment queue"
+              variant="secondary"
+              fullWidth
+              onPress={() => tabNav?.navigate("Jobs", { screen: "AssignmentQueue" })}
+            />
+            <Button
+              label="Start navigation"
+              fullWidth
+              onPress={() => tabNav?.navigate("Navigation")}
+            />
           </>
         ) : null}
         <Button label="Refresh" variant="ghost" onPress={() => void refetch()} />

@@ -19,7 +19,8 @@ export function SettingsScreen() {
   const { theme, toggleScheme } = useTheme();
   const api = useDriverApi();
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
-  const { biometricEnabled, pinEnabled, enableBiometric, enablePin, integrity, policy } = useMobileSecurity();
+  const { biometricEnabled, pinEnabled, enableBiometric, enablePin, integrity, policy } =
+    useMobileSecurity();
   const [pinDraft, setPinDraft] = useState("");
 
   return (
@@ -28,8 +29,16 @@ export function SettingsScreen() {
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.lg }}>
         <ListSection title="App">
           <ListItem title="Dark mode" subtitle="Toggle theme" onPress={toggleScheme} />
-          <ListItem title="Register push" subtitle="Firebase Cloud Messaging" onPress={() => void registerDriverPush(api)} />
-          <ListItem title="Offline sync center" subtitle="Queue, uploads, GPS buffer" onPress={() => navigation.navigate("OfflineSync")} />
+          <ListItem
+            title="Register push"
+            subtitle="Firebase Cloud Messaging"
+            onPress={() => void registerDriverPush(api)}
+          />
+          <ListItem
+            title="Offline sync center"
+            subtitle="Queue, uploads, GPS buffer"
+            onPress={() => navigation.navigate("OfflineSync")}
+          />
         </ListSection>
 
         <ListSection title="Security">
@@ -78,12 +87,22 @@ export function SettingsScreen() {
           {integrity?.compromised ? (
             <Body muted>Device integrity warning: {integrity.reasons.join(", ")}</Body>
           ) : (
-            <Body muted>Session timeout: {policy.sessionTimeoutMinutes} minutes idle. Refresh tokens rotate via API.</Body>
+            <Body muted>
+              Session timeout: {policy.sessionTimeoutMinutes} minutes idle. Refresh tokens rotate
+              via API.
+            </Body>
           )}
         </ListSection>
 
-        <Body muted>All logistics sync through Porterchain API → Fleetbase adapter (masterrule.md).</Body>
-        <Button label="Open sync center" variant="secondary" fullWidth onPress={() => navigation.navigate("OfflineSync")} />
+        <Body muted>
+          All logistics sync through Porterchain API → Fleetbase adapter (masterrule.md).
+        </Body>
+        <Button
+          label="Open sync center"
+          variant="secondary"
+          fullWidth
+          onPress={() => navigation.navigate("OfflineSync")}
+        />
       </ScrollView>
     </Screen>
   );

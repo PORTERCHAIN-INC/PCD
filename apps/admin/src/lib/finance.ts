@@ -154,7 +154,10 @@ export const financeApi = {
   },
   ledger: (token: string) => adminFetch<Array<Record<string, unknown>>>(`${B}/ledger`, token),
   creditNote: (token: string, body: { order_id: string; amount_cents: number; reason: string }) =>
-    adminFetch<{ ledger_id: string }>(`${B}/credit-notes`, token, { method: "POST", body: JSON.stringify(body) }),
+    adminFetch<{ ledger_id: string }>(`${B}/credit-notes`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
 
 export const INVOICE_STATUS_STYLES: Record<string, string> = {
@@ -192,11 +195,13 @@ export function exportInvoicesCsv(rows: InvoiceRow[], filename = "invoices.csv")
   const lines = [
     headers.join(","),
     ...rows.map((r) =>
-      headers.map((h) => {
-        const v = r[h as keyof InvoiceRow];
-        const s = v == null ? "" : String(v);
-        return s.includes(",") ? `"${s.replace(/"/g, '""')}"` : s;
-      }).join(",")
+      headers
+        .map((h) => {
+          const v = r[h as keyof InvoiceRow];
+          const s = v == null ? "" : String(v);
+          return s.includes(",") ? `"${s.replace(/"/g, '""')}"` : s;
+        })
+        .join(",")
     ),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
@@ -209,7 +214,16 @@ export function exportInvoicesCsv(rows: InvoiceRow[], filename = "invoices.csv")
 }
 
 export function exportGlCsv(rows: Array<Record<string, unknown>>, filename = "general-ledger.csv") {
-  const headers = ["date", "type", "reference", "description", "debit_cents", "credit_cents", "tax_cents", "currency"];
+  const headers = [
+    "date",
+    "type",
+    "reference",
+    "description",
+    "debit_cents",
+    "credit_cents",
+    "tax_cents",
+    "currency",
+  ];
   const lines = [
     headers.join(","),
     ...rows.map((r) => headers.map((h) => String(r[h] ?? "")).join(",")),

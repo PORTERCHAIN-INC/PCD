@@ -27,9 +27,7 @@ export function NotificationCenter({ items, getToken, orgId, onRead }: Notificat
       try {
         const token = await getToken();
         await notificationsApi.markRead(token, item.id, orgId);
-        setLocalItems((prev) =>
-          prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n))
-        );
+        setLocalItems((prev) => prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n)));
         onRead?.();
       } catch {
         /* ignore mark-read errors */
@@ -75,9 +73,7 @@ export function NotificationCenter({ items, getToken, orgId, onRead }: Notificat
                 <p className="font-medium text-primary">{item.title}</p>
                 <p className="mt-0.5 text-muted">{item.body}</p>
                 <p className="mt-1 text-xs text-muted">{formatDate(item.created_at)}</p>
-                {item.deep_link && (
-                  <p className="mt-1 text-xs text-secondary">View details →</p>
-                )}
+                {item.deep_link && <p className="mt-1 text-xs text-secondary">View details →</p>}
               </button>
             </li>
           ))

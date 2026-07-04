@@ -1,5 +1,10 @@
 import { createHash } from "./pin-hash";
-import { deleteSecureValue, getSecureValue, securityKeys, setSecureValue } from "../storage/secure-session";
+import {
+  deleteSecureValue,
+  getSecureValue,
+  securityKeys,
+  setSecureValue,
+} from "../storage/secure-session";
 
 export async function setPin(pin: string) {
   const hash = createHash(pin);

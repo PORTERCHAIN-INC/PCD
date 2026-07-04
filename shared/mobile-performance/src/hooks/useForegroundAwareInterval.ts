@@ -1,7 +1,11 @@
 import { useEffect, useRef } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 
-export function useForegroundAwareInterval(callback: () => void, delayMs: number | null, pauseInBackground = true) {
+export function useForegroundAwareInterval(
+  callback: () => void,
+  delayMs: number | null,
+  pauseInBackground = true
+) {
   const saved = useRef(callback);
 
   useEffect(() => {

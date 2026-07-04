@@ -160,10 +160,7 @@ export const ops = {
         engine: opts?.engine ?? "valhalla",
       }),
     }),
-  assignBatch: (
-    t: string,
-    body: { plan_id: string; driver_id: string; order_ids?: string[] }
-  ) =>
+  assignBatch: (t: string, body: { plan_id: string; driver_id: string; order_ids?: string[] }) =>
     adminFetch<AssignBatchResponse>(`${B}/queue/assign-batch`, t, {
       method: "POST",
       body: JSON.stringify(body),

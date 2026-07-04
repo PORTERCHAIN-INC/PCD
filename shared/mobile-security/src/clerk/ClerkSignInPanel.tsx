@@ -98,7 +98,8 @@ export function DevEmailSignInPanel({
 }
 
 function ClerkSignInForm({ title, subtitle, onSignedIn }: ClerkSignInPanelProps) {
-  const { useSignIn, useOAuth } = require("@clerk/clerk-expo") as typeof import("@clerk/clerk-expo");
+  const { useSignIn, useOAuth } =
+    require("@clerk/clerk-expo") as typeof import("@clerk/clerk-expo");
   const { signIn, setActive, isLoaded } = useSignIn();
   const google = useOAuth({ strategy: "oauth_google" });
   const [email, setEmail] = useState("");
@@ -195,7 +196,11 @@ function ClerkSignInForm({ title, subtitle, onSignedIn }: ClerkSignInPanelProps)
           opacity: loading ? 0.7 : 1,
         }}
       >
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "600" }}>Sign in</Text>}
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={{ color: "#fff", fontWeight: "600" }}>Sign in</Text>
+        )}
       </Pressable>
       <Pressable
         onPress={() => void onGoogleSignIn()}

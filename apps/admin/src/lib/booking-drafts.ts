@@ -109,7 +109,15 @@ export const bookingDraftsApi = {
   analytics: (token: string) => adminFetch<BookingDraftAnalytics>(`${B}/analytics`, token),
   abandoned: async (token: string) => {
     const raw = await adminFetch<unknown[]>(`${B}/abandoned`, token);
-    return z.array(draftItemSchema.extend({ abandoned_minutes: z.number(), last_step: z.string(), reason: z.string() })).parse(raw);
+    return z
+      .array(
+        draftItemSchema.extend({
+          abandoned_minutes: z.number(),
+          last_step: z.string(),
+          reason: z.string(),
+        })
+      )
+      .parse(raw);
   },
   detail: async (token: string, draftId: string) => {
     const raw = await adminFetch<unknown>(`${B}/${draftId}`, token);
@@ -137,11 +145,20 @@ export const bookingDraftsApi = {
       token,
       { method: "POST" }
     ),
-  bulk: (token: string, draftIds: string[], action: string, opts?: { extra_minutes?: number; reason?: string }) =>
-    adminFetch<{ action: string; results: Array<{ draft_id: string; status: string }> }>(`${B}/bulk`, token, {
-      method: "POST",
-      body: JSON.stringify({ draft_ids: draftIds, action, ...opts }),
-    }),
+  bulk: (
+    token: string,
+    draftIds: string[],
+    action: string,
+    opts?: { extra_minutes?: number; reason?: string }
+  ) =>
+    adminFetch<{ action: string; results: Array<{ draft_id: string; status: string }> }>(
+      `${B}/bulk`,
+      token,
+      {
+        method: "POST",
+        body: JSON.stringify({ draft_ids: draftIds, action, ...opts }),
+      }
+    ),
 };
 
 export const DRAFT_STATES = [

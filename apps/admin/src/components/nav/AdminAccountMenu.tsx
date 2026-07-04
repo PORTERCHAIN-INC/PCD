@@ -72,17 +72,25 @@ function ClerkAccountMenu() {
         >
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatar} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-white" />
+            <img
+              src={avatar}
+              alt=""
+              className="h-8 w-8 rounded-full object-cover ring-2 ring-white"
+            />
           ) : (
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-bold text-white">
               {initials(name)}
             </span>
           )}
           <span className="hidden min-w-0 flex-1 text-left sm:block">
-            <span className="block truncate text-xs font-semibold text-primary">{name.split(" ")[0]}</span>
+            <span className="block truncate text-xs font-semibold text-primary">
+              {name.split(" ")[0]}
+            </span>
             <span className="block truncate text-[10px] text-muted">{roleLabel(role)}</span>
           </span>
-          <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted transition", open && "rotate-180")} />
+          <ChevronDown
+            className={cn("h-4 w-4 shrink-0 text-muted transition", open && "rotate-180")}
+          />
         </button>
       )}
     >
@@ -90,7 +98,11 @@ function ClerkAccountMenu() {
         <div className="flex items-center gap-3">
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatar} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-md" />
+            <img
+              src={avatar}
+              alt=""
+              className="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-md"
+            />
           ) : (
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-sm font-bold text-white shadow-md">
               {initials(name)}
@@ -107,9 +119,24 @@ function ClerkAccountMenu() {
       </div>
 
       <div className="p-1.5">
-        <AccountMenuLink href="/settings" icon={User} label="Profile" hint="View your staff profile" />
-        <AccountMenuLink href="/settings" icon={Shield} label="Account & security" hint="Clerk session settings" />
-        <AccountMenuLink href="/settings" icon={Settings} label="Admin settings" hint="Integrations & RBAC" />
+        <AccountMenuLink
+          href="/settings"
+          icon={User}
+          label="Profile"
+          hint="View your staff profile"
+        />
+        <AccountMenuLink
+          href="/settings"
+          icon={Shield}
+          label="Account & security"
+          hint="Clerk session settings"
+        />
+        <AccountMenuLink
+          href="/settings"
+          icon={Settings}
+          label="Admin settings"
+          hint="Integrations & RBAC"
+        />
       </div>
 
       <div className="border-t border-primary/8 bg-slate-50/80 p-2">

@@ -30,12 +30,18 @@ export function useMerchantRealtime(
         const token = await getToken();
         if (cancelled) return;
         const org = orgId ? `&org_id=${encodeURIComponent(orgId)}` : "";
-        ws = new WebSocket(`${apiWsBase()}/v1/notifications/ws?token=${encodeURIComponent(token)}${org}`);
+        ws = new WebSocket(
+          `${apiWsBase()}/v1/notifications/ws?token=${encodeURIComponent(token)}${org}`
+        );
 
         ws.onmessage = (event) => {
           try {
             const msg = JSON.parse(event.data as string) as { type?: string };
-            if (msg.type === "notification" || msg.type === "order_update" || msg.type === "dashboard_refresh") {
+            if (
+              msg.type === "notification" ||
+              msg.type === "order_update" ||
+              msg.type === "dashboard_refresh"
+            ) {
               onRefreshRef.current();
             }
           } catch {

@@ -4,8 +4,8 @@
 
 ## WebSocket (Only One)
 
-| Path | Auth | Behavior |
-|------|------|----------|
+| Path                                                    | Auth                  | Behavior                                                  |
+| ------------------------------------------------------- | --------------------- | --------------------------------------------------------- |
 | `WS /v1/admin/operations/live-map/ws?token=<clerk_jwt>` | Clerk JWT query param | Push `{"type":"snapshot","data":...}` every **5 seconds** |
 
 Implementation: `operations.py` `@router.websocket("/live-map/ws")` → `LiveMapService.snapshot()`.

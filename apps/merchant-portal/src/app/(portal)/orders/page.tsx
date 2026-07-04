@@ -63,7 +63,9 @@ export default function OrdersPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-primary">Orders</h1>
-        <p className="text-sm text-muted">Enterprise order platform — lifecycle, tracking, billing, and dispatch</p>
+        <p className="text-sm text-muted">
+          Enterprise order platform — lifecycle, tracking, billing, and dispatch
+        </p>
       </div>
 
       {dashboard && (

@@ -50,7 +50,10 @@ export function Badge({
           }}
         />
       ) : null}
-      <Text variant="caption" style={{ color: colors.text, fontWeight: "600", fontSize: theme.typography.size["2xs"] }}>
+      <Text
+        variant="caption"
+        style={{ color: colors.text, fontWeight: "600", fontSize: theme.typography.size["2xs"] }}
+      >
         {label}
       </Text>
     </View>

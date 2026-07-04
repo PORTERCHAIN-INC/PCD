@@ -19,7 +19,8 @@ export function SettingsScreen() {
   const api = useCustomerApi();
   const themePreference = useSettingsStore((s) => s.themePreference);
   const setThemePreference = useSettingsStore((s) => s.setThemePreference);
-  const { biometricEnabled, pinEnabled, enableBiometric, enablePin, integrity, policy } = useMobileSecurity();
+  const { biometricEnabled, pinEnabled, enableBiometric, enablePin, integrity, policy } =
+    useMobileSecurity();
   const [pinDraft, setPinDraft] = useState("");
 
   return (
@@ -91,13 +92,26 @@ export function SettingsScreen() {
         </ListSection>
 
         <ListSection title="Notifications">
-          <ListItem title="Register push device" subtitle="Firebase Cloud Messaging" onPress={() => void registerCustomerPush(api)} />
+          <ListItem
+            title="Register push device"
+            subtitle="Firebase Cloud Messaging"
+            onPress={() => void registerCustomerPush(api)}
+          />
         </ListSection>
 
         <View>
-          <Body muted>Tokens are stored in Secure Store. Audit events sync through Porterchain API.</Body>
+          <Body muted>
+            Tokens are stored in Secure Store. Audit events sync through Porterchain API.
+          </Body>
         </View>
-        <Button label="Use system theme" variant="ghost" onPress={() => { setThemePreference("system"); setScheme("system"); }} />
+        <Button
+          label="Use system theme"
+          variant="ghost"
+          onPress={() => {
+            setThemePreference("system");
+            setScheme("system");
+          }}
+        />
       </ScrollView>
     </Screen>
   );

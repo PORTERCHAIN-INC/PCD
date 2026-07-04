@@ -47,13 +47,13 @@ pnpm db:migrate         # alembic upgrade head
 
 **Only required if existing `porterchain.db` SQLite data must be preserved.**
 
-| Step | Action | Owner | Risk |
-|------|--------|-------|------|
-| C1 | Export SQLite to SQL/CSV | DBA | Low |
-| C2 | Map types (JSON, timestamps) | Engineering | Medium |
-| C3 | Import via `pgloader` or custom script | DBA | **High** — validate row counts |
-| C4 | Reconcile sequences / UUIDs | Engineering | Medium |
-| C5 | Run module validation (Phase 9) | QA | — |
+| Step | Action                                 | Owner       | Risk                           |
+| ---- | -------------------------------------- | ----------- | ------------------------------ |
+| C1   | Export SQLite to SQL/CSV               | DBA         | Low                            |
+| C2   | Map types (JSON, timestamps)           | Engineering | Medium                         |
+| C3   | Import via `pgloader` or custom script | DBA         | **High** — validate row counts |
+| C4   | Reconcile sequences / UUIDs            | Engineering | Medium                         |
+| C5   | Run module validation (Phase 9)        | QA          | —                              |
 
 **Stop rule:** If row count mismatch >0.1% or FK violations, **rollback** and do not cut over.
 
@@ -63,11 +63,11 @@ pnpm db:migrate         # alembic upgrade head
 
 ## Phase D — Environment cutover
 
-| Environment | `DATABASE_URL` | Migration |
-|-------------|----------------|-----------|
-| Local | `postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain` | `pnpm db:migrate` |
-| CI | PostgreSQL service container | `alembic upgrade head` in pipeline |
-| Production | Set in `docker-compose.prod.yml` | Pre-deploy migration job |
+| Environment | `DATABASE_URL`                                                            | Migration                          |
+| ----------- | ------------------------------------------------------------------------- | ---------------------------------- |
+| Local       | `postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain` | `pnpm db:migrate`                  |
+| CI          | PostgreSQL service container                                              | `alembic upgrade head` in pipeline |
+| Production  | Set in `docker-compose.prod.yml`                                          | Pre-deploy migration job           |
 
 **Files updated:**
 
@@ -96,21 +96,21 @@ Document results in `DATABASE_VALIDATION_REPORT.md`.
 
 ## Phase F — Cleanup
 
-| Item | When |
-|------|------|
-| Delete `apps/api/porterchain.db` | After Phase E pass |
-| Remove SQLite mentions from remaining docs | After Phase E pass |
-| Add CI PostgreSQL job | Before production deploy |
+| Item                                       | When                     |
+| ------------------------------------------ | ------------------------ |
+| Delete `apps/api/porterchain.db`           | After Phase E pass       |
+| Remove SQLite mentions from remaining docs | After Phase E pass       |
+| Add CI PostgreSQL job                      | Before production deploy |
 
 ---
 
 ## Rollback plan
 
-| Scenario | Action |
-|----------|--------|
-| Alembic migration fails | `alembic downgrade -1`; fix revision; retry |
-| App fails on PostgreSQL | Revert code deploy; PostgreSQL data retained |
-| Data migration corrupt | Restore PostgreSQL from pre-migration snapshot; do not use SQLite in production |
+| Scenario                | Action                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| Alembic migration fails | `alembic downgrade -1`; fix revision; retry                                     |
+| App fails on PostgreSQL | Revert code deploy; PostgreSQL data retained                                    |
+| Data migration corrupt  | Restore PostgreSQL from pre-migration snapshot; do not use SQLite in production |
 
 **SQLite rollback is NOT supported** after this standardization — PostgreSQL is the only Porterchain store going forward.
 
@@ -118,13 +118,13 @@ Document results in `DATABASE_VALIDATION_REPORT.md`.
 
 ## Timeline estimate
 
-| Phase | Duration |
-|-------|----------|
-| A–B (code + schema) | ✅ Complete |
-| C (data migration) | 1–3 days if needed |
-| D (env cutover) | 1 hour per environment |
-| E (validation) | 1–2 days |
-| F (cleanup) | 2 hours |
+| Phase               | Duration               |
+| ------------------- | ---------------------- |
+| A–B (code + schema) | ✅ Complete            |
+| C (data migration)  | 1–3 days if needed     |
+| D (env cutover)     | 1 hour per environment |
+| E (validation)      | 1–2 days               |
+| F (cleanup)         | 2 hours                |
 
 ---
 

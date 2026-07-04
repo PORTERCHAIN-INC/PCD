@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  CheckCircle2,
-  Circle,
-  Clock,
-  LogOut,
-  RefreshCw,
-  Shield,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle2, Circle, Clock, LogOut, RefreshCw, Shield, XCircle } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 import type { PortalOnboardingStatus } from "@/lib/onboarding";
 import { cn } from "@/lib/utils";

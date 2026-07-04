@@ -667,7 +667,9 @@ p {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .booking-select-field:focus {

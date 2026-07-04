@@ -9,29 +9,29 @@ Porterchain is a logistics orchestration platform. All commercial logic lives in
 
 ## Components
 
-| Layer | Path | Port | Role |
-|-------|------|------|------|
-| Website | `website/` | 3000 | Marketing, booking, tracking, embedded customer portal |
-| Merchant Portal | `apps/merchant-portal/` | 3001 | B2B bookings, bulk, billing, API keys |
-| Admin Portal | `apps/admin/` | 3002 | CRM, ops, finance, pricing, live map |
-| Driver Portal | `apps/driver-portal/` | 3003 | Driver web UI (proxied to `/driver-api/v1`) |
-| Customer Portal | `apps/customer/` | 3004 | Retail dashboard, support, rebook |
-| Mobile Driver | `apps/mobile-driver/` | — | Expo app → API |
-| Porterchain API | `apps/api/` | 8001 | FastAPI orchestrator, all `*_engine` services |
-| Worker | `apps/worker/` | — | Redis event bus + queue consumer |
-| Fleetbase Adapter | `services/fleetbase-adapter/` | — | Sole Fleetbase HTTP boundary |
-| Event Bus | `services/event-bus/` | — | `porterchain_event_bus` + handler registry |
-| Pricing Engine | `services/pricing-engine/` | — | `porterchain_pricing` library |
-| Shared Services | `services/python/porterchain_services/` | — | Stripe, maps, notifications |
-| Shared Python | `shared/python/porterchain_shared/` | — | Config, events catalog, queue names |
+| Layer             | Path                                    | Port | Role                                                   |
+| ----------------- | --------------------------------------- | ---- | ------------------------------------------------------ |
+| Website           | `website/`                              | 3000 | Marketing, booking, tracking, embedded customer portal |
+| Merchant Portal   | `apps/merchant-portal/`                 | 3001 | B2B bookings, bulk, billing, API keys                  |
+| Admin Portal      | `apps/admin/`                           | 3002 | CRM, ops, finance, pricing, live map                   |
+| Driver Portal     | `apps/driver-portal/`                   | 3003 | Driver web UI (proxied to `/driver-api/v1`)            |
+| Customer Portal   | `apps/customer/`                        | 3004 | Retail dashboard, support, rebook                      |
+| Mobile Driver     | `apps/mobile-driver/`                   | —    | Expo app → API                                         |
+| Porterchain API   | `apps/api/`                             | 8001 | FastAPI orchestrator, all `*_engine` services          |
+| Worker            | `apps/worker/`                          | —    | Redis event bus + queue consumer                       |
+| Fleetbase Adapter | `services/fleetbase-adapter/`           | —    | Sole Fleetbase HTTP boundary                           |
+| Event Bus         | `services/event-bus/`                   | —    | `porterchain_event_bus` + handler registry             |
+| Pricing Engine    | `services/pricing-engine/`              | —    | `porterchain_pricing` library                          |
+| Shared Services   | `services/python/porterchain_services/` | —    | Stripe, maps, notifications                            |
+| Shared Python     | `shared/python/porterchain_shared/`     | —    | Config, events catalog, queue names                    |
 
 ## Data Stores
 
-| Store | Usage |
-|-------|-------|
+| Store         | Usage                                            |
+| ------------- | ------------------------------------------------ |
 | PostgreSQL 16 | Primary domain DB (`porterchain_api/models*.py`) |
-| Redis | Event bus transport, task queues, idempotency |
-| Fleetbase DB | Operational drivers, dispatch, GPS (external) |
+| Redis         | Event bus transport, task queues, idempotency    |
+| Fleetbase DB  | Operational drivers, dispatch, GPS (external)    |
 
 ## Diagram
 

@@ -78,11 +78,11 @@ export const trackingApi = {
     trackingFetch<LiveTracking>(`/v1/merchant/tracking/orders/${orderId}`, token, { orgId }),
 
   byTrackingNumber: (token: string, trackingNumber: string, orgId?: string) =>
-    trackingFetch<{ order: Record<string, unknown>; timeline: Array<Record<string, unknown>>; live_tracking: LiveTracking }>(
-      `/v1/merchant/track/${encodeURIComponent(trackingNumber)}`,
-      token,
-      { orgId }
-    ),
+    trackingFetch<{
+      order: Record<string, unknown>;
+      timeline: Array<Record<string, unknown>>;
+      live_tracking: LiveTracking;
+    }>(`/v1/merchant/track/${encodeURIComponent(trackingNumber)}`, token, { orgId }),
 };
 
 export function formatEta(seconds?: number) {

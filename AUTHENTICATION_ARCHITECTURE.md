@@ -53,17 +53,17 @@ Fleetbase Sanctum is **not** a Porterchain user login path.
 
 ## Clerk scope (exclusive)
 
-| Capability | Provider |
-|------------|----------|
-| Signup | Clerk |
-| Login | Clerk |
-| Password reset | Clerk |
-| MFA | Clerk |
-| Email verification | Clerk |
-| Phone verification | Clerk |
-| OAuth (Google, Apple, etc.) | Clerk |
-| Session management | Clerk |
-| Logout | Clerk |
+| Capability                  | Provider |
+| --------------------------- | -------- |
+| Signup                      | Clerk    |
+| Login                       | Clerk    |
+| Password reset              | Clerk    |
+| MFA                         | Clerk    |
+| Email verification          | Clerk    |
+| Phone verification          | Clerk    |
+| OAuth (Google, Apple, etc.) | Clerk    |
+| Session management          | Clerk    |
+| Logout                      | Clerk    |
 
 Porterchain must **not** implement parallel verification for any of the above.
 
@@ -83,11 +83,11 @@ Used by: merchant routes, admin routes, customer routes, driver login.
 
 ### Layer 2 — RBAC (authorization, not authentication)
 
-| Package | Scope |
-|---------|-------|
-| `admin_engine/rbac.py` | Admin roles (ops, finance, sales, …) |
-| `merchant_engine/rbac.py` | Merchant org permissions |
-| `packages/auth/` | Shared TS role helpers |
+| Package                   | Scope                                |
+| ------------------------- | ------------------------------------ |
+| `admin_engine/rbac.py`    | Admin roles (ops, finance, sales, …) |
+| `merchant_engine/rbac.py` | Merchant org permissions             |
+| `packages/auth/`          | Shared TS role helpers               |
 
 ### Layer 3 — Driver session bridge
 
@@ -100,12 +100,12 @@ Driver app → Clerk sign-in → POST /auth/login { email, clerk_bearer_token }
 
 ### Layer 4 — Machine auth (not user auth)
 
-| Mechanism | Use |
-|-----------|-----|
-| Merchant API keys | B2B integrations |
+| Mechanism                        | Use                       |
+| -------------------------------- | ------------------------- |
+| Merchant API keys                | B2B integrations          |
 | `PORTERCHAIN_DISPATCHER_API_KEY` | Fleetbase dispatch bridge |
-| Stripe webhook signatures | Payment events |
-| Fleetbase webhook secret | Inbound logistics events |
+| Stripe webhook signatures        | Payment events            |
+| Fleetbase webhook secret         | Inbound logistics events  |
 
 ---
 
@@ -157,11 +157,11 @@ Recipient codes at dropoff (`otp_required`, `verify_otp` in `pod.py`) verify **d
 
 SMTP configuration (`MAIL_*`, `SMTP_*` in platform settings) supports the **notification engine** — invoices, ops alerts, driver invites. Email is not used for login verification.
 
-| Channel | Auth? | Provider |
-|---------|-------|----------|
-| Email (transactional) | No | SMTP (Zoho or other) |
-| SMS (notifications) | No | Log-only until provider selected |
-| Push | No | Firebase FCM |
+| Channel               | Auth? | Provider                         |
+| --------------------- | ----- | -------------------------------- |
+| Email (transactional) | No    | SMTP (Zoho or other)             |
+| SMS (notifications)   | No    | Log-only until provider selected |
+| Push                  | No    | Firebase FCM                     |
 
 ---
 
@@ -169,16 +169,16 @@ SMTP configuration (`MAIL_*`, `SMTP_*` in platform settings) supports the **noti
 
 ### Required — Clerk
 
-| Variable | Surface |
-|----------|---------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | All Next.js apps |
-| `CLERK_SECRET_KEY` | API + Next.js server |
-| `CLERK_JWKS_URL` | API JWT verification |
+| Variable                            | Surface              |
+| ----------------------------------- | -------------------- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | All Next.js apps     |
+| `CLERK_SECRET_KEY`                  | API + Next.js server |
+| `CLERK_JWKS_URL`                    | API JWT verification |
 
 ### Public contact (not auth)
 
-| Variable | Default |
-|----------|---------|
+| Variable                    | Default                |
+| --------------------------- | ---------------------- |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | `ravi@porterchain.com` |
 
 ### Removed (do not use)
@@ -193,14 +193,14 @@ SMTP configuration (`MAIL_*`, `SMTP_*` in platform settings) supports the **noti
 
 ## Security requirements
 
-| Requirement | Implementation |
-|-------------|----------------|
-| HTTPS everywhere | Production TLS 1.2+ |
+| Requirement      | Implementation                                |
+| ---------------- | --------------------------------------------- |
+| HTTPS everywhere | Production TLS 1.2+                           |
 | JWT verification | Clerk JWKS — no shared secret for user tokens |
-| Clerk MFA | Recommended for merchant admins |
-| Dev bypass | `CLERK_DEV_BYPASS` — local only |
-| Secret rotation | Clerk keys quarterly |
-| Audit | Booking draft transitions, admin actions |
+| Clerk MFA        | Recommended for merchant admins               |
+| Dev bypass       | `CLERK_DEV_BYPASS` — local only               |
+| Secret rotation  | Clerk keys quarterly                          |
+| Audit            | Booking draft transitions, admin actions      |
 
 ---
 
@@ -216,14 +216,14 @@ SMTP configuration (`MAIL_*`, `SMTP_*` in platform settings) supports the **noti
 
 ## Related documents
 
-| Document | Purpose |
-|----------|---------|
-| [AUTHENTICATION.md](./AUTHENTICATION.md) | Operational reference |
-| [AUTHENTICATION_AUDIT.md](./AUTHENTICATION_AUDIT.md) | Pre-cleanup inventory |
-| [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md) | Changes applied |
-| [AUTHENTICATION_FLOW.md](./AUTHENTICATION_FLOW.md) | Sequence diagrams |
-| [RBAC.md](./RBAC.md) | Role matrix |
-| [SSO.md](./SSO.md) | Fleetbase console SSO |
+| Document                                                 | Purpose               |
+| -------------------------------------------------------- | --------------------- |
+| [AUTHENTICATION.md](./AUTHENTICATION.md)                 | Operational reference |
+| [AUTHENTICATION_AUDIT.md](./AUTHENTICATION_AUDIT.md)     | Pre-cleanup inventory |
+| [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md) | Changes applied       |
+| [AUTHENTICATION_FLOW.md](./AUTHENTICATION_FLOW.md)       | Sequence diagrams     |
+| [RBAC.md](./RBAC.md)                                     | Role matrix           |
+| [SSO.md](./SSO.md)                                       | Fleetbase console SSO |
 
 ---
 

@@ -48,7 +48,12 @@ export function useDriverProfile() {
     async (
       docType: string,
       fileUrl: string,
-      metadata?: { expires_at?: string; policy_number?: string; provider?: string; plate_number?: string }
+      metadata?: {
+        expires_at?: string;
+        policy_number?: string;
+        provider?: string;
+        plate_number?: string;
+      }
     ) => {
       setUploading(docType);
       try {

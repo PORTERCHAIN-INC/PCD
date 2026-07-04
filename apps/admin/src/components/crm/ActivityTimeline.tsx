@@ -110,9 +110,7 @@ export function ActivityTimeline({
             </div>
           );
         })}
-        {activities.length === 0 && (
-          <p className="text-sm text-muted">No activity logged yet.</p>
-        )}
+        {activities.length === 0 && <p className="text-sm text-muted">No activity logged yet.</p>}
       </div>
     </div>
   );

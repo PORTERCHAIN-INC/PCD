@@ -15,15 +15,15 @@
 
 ## API Latency Expectations
 
-| Endpoint | Typical work | Notes |
-|----------|--------------|-------|
-| `GET /dashboard` | 3–5 DB aggregates | Cached client-side via `useApiData` |
-| `GET /planning-queue` | 1 queue query (limit 200) | Same cost as operations queue |
-| `GET /plans` | Indexed status filter | `ix_route_center_plans_status` |
-| `POST /optimize` | O(stops) Valhalla legs | ~15s timeout per leg; dominant cost |
-| `POST /simulate` | Same as optimize without FB | Lighter (no orchestrator) |
-| `POST /dispatch` | O(orders) assign + FB sync | Async retry on FB failure |
-| `GET /live-execution` | LiveMapService snapshot | Same as operations live-map |
+| Endpoint              | Typical work                | Notes                               |
+| --------------------- | --------------------------- | ----------------------------------- |
+| `GET /dashboard`      | 3–5 DB aggregates           | Cached client-side via `useApiData` |
+| `GET /planning-queue` | 1 queue query (limit 200)   | Same cost as operations queue       |
+| `GET /plans`          | Indexed status filter       | `ix_route_center_plans_status`      |
+| `POST /optimize`      | O(stops) Valhalla legs      | ~15s timeout per leg; dominant cost |
+| `POST /simulate`      | Same as optimize without FB | Lighter (no orchestrator)           |
+| `POST /dispatch`      | O(orders) assign + FB sync  | Async retry on FB failure           |
+| `GET /live-execution` | LiveMapService snapshot     | Same as operations live-map         |
 
 ---
 
@@ -45,12 +45,12 @@
 
 ## Frontend Performance
 
-| Page | Strategy |
-|------|----------|
-| Dashboard | Single API call; KPI tiles static until refetch |
-| Planning Queue | One `planning-queue` call; checkbox selection local state |
+| Page           | Strategy                                                   |
+| -------------- | ---------------------------------------------------------- |
+| Dashboard      | Single API call; KPI tiles static until refetch            |
+| Planning Queue | One `planning-queue` call; checkbox selection local state  |
 | Live Execution | Embeds `LiveMapApp` — uses existing WS + 15s poll fallback |
-| Route 360 | Single `getPlan` includes audit + live_map snapshot |
+| Route 360      | Single `getPlan` includes audit + live_map snapshot        |
 
 `useApiData` avoids duplicate fetches per mount; manual `refetch` after mutations.
 
@@ -72,12 +72,12 @@ ix_route_center_templates_merchant_id
 
 ## Scalability Notes
 
-| Concern | Mitigation |
-|---------|------------|
-| Large planning queue | Bucket dedup in UI; server limit 200 |
-| Concurrent optimizes | Stateless API; consider job queue for > 10 stops |
-| Live map WS fanout | Existing ops WS scaling applies |
-| Simulation storage | JSON on plan row; archive completed plans to history query |
+| Concern              | Mitigation                                                 |
+| -------------------- | ---------------------------------------------------------- |
+| Large planning queue | Bucket dedup in UI; server limit 200                       |
+| Concurrent optimizes | Stateless API; consider job queue for > 10 stops           |
+| Live map WS fanout   | Existing ops WS scaling applies                            |
+| Simulation storage   | JSON on plan row; archive completed plans to history query |
 
 ---
 

@@ -20,7 +20,12 @@ export function OptimizedImage({
       cachePolicy={cachePolicy}
       contentFit={contentFit}
       transition={transition}
-      recyclingKey={recyclingKey ?? (typeof props.source === "object" && props.source && "uri" in props.source ? props.source.uri : undefined)}
+      recyclingKey={
+        recyclingKey ??
+        (typeof props.source === "object" && props.source && "uri" in props.source
+          ? props.source.uri
+          : undefined)
+      }
       {...props}
     />
   );

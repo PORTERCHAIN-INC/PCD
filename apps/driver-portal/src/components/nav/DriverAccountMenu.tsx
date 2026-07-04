@@ -4,15 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import {
-  AlertTriangle,
-  ChevronDown,
-  FileText,
-  LogIn,
-  LogOut,
-  Truck,
-  User,
-} from "lucide-react";
+import { AlertTriangle, ChevronDown, FileText, LogIn, LogOut, Truck, User } from "lucide-react";
 import { driverApi, driverLogout, hasDriverSession } from "@/lib/api";
 import { isClerkConfigured } from "@/lib/env";
 import { cn, initials } from "@/lib/utils";
@@ -94,28 +86,57 @@ export default function DriverAccountMenu() {
         >
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatar} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-white" />
+            <img
+              src={avatar}
+              alt=""
+              className="h-8 w-8 rounded-full object-cover ring-2 ring-white"
+            />
           ) : (
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-bold text-white">
               {initials(name)}
             </span>
           )}
           <span className="hidden min-w-0 flex-1 text-left sm:block">
-            <span className="block truncate text-xs font-semibold text-primary">{name.split(" ")[0]}</span>
+            <span className="block truncate text-xs font-semibold text-primary">
+              {name.split(" ")[0]}
+            </span>
             <span className="block truncate text-[10px] text-muted">
               {isOnline ? "Online" : availability.replace(/_/g, " ")}
             </span>
           </span>
-          <ChevronDown className={cn("hidden h-3.5 w-3.5 shrink-0 text-muted sm:block", open && "rotate-180")} />
+          <ChevronDown
+            className={cn("hidden h-3.5 w-3.5 shrink-0 text-muted sm:block", open && "rotate-180")}
+          />
         </button>
       )}
     >
-      <ProfileHeader name={name} email={email} avatar={avatar} status={status} isOnline={isOnline} />
+      <ProfileHeader
+        name={name}
+        email={email}
+        avatar={avatar}
+        status={status}
+        isOnline={isOnline}
+      />
 
       <div className="p-1.5">
-        <AccountMenuLink href="/profile" icon={User} label="Driver profile" hint="License, vehicle, compliance" />
-        <AccountMenuLink href="/profile#documents" icon={FileText} label="Documents" hint="Uploads and expiry" />
-        <AccountMenuLink href="/shift" icon={Truck} label="Shift & availability" hint="Online status and route" />
+        <AccountMenuLink
+          href="/profile"
+          icon={User}
+          label="Driver profile"
+          hint="License, vehicle, compliance"
+        />
+        <AccountMenuLink
+          href="/profile#documents"
+          icon={FileText}
+          label="Documents"
+          hint="Uploads and expiry"
+        />
+        <AccountMenuLink
+          href="/shift"
+          icon={Truck}
+          label="Shift & availability"
+          hint="Online status and route"
+        />
         <AccountMenuLink
           href="/emergency"
           icon={AlertTriangle}
@@ -161,7 +182,11 @@ function ProfileHeader({
       <div className="flex items-center gap-3">
         {avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatar} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-md" />
+          <img
+            src={avatar}
+            alt=""
+            className="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-md"
+          />
         ) : (
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-sm font-bold text-white shadow-md">
             {initials(name)}
@@ -213,7 +238,9 @@ function AccountMenuLink({
     >
       <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", danger ? "text-red-600" : "text-muted")} />
       <span className="min-w-0">
-        <span className={cn("block text-sm font-medium", danger ? "text-red-700" : "text-primary")}>{label}</span>
+        <span className={cn("block text-sm font-medium", danger ? "text-red-700" : "text-primary")}>
+          {label}
+        </span>
         <span className="block text-xs text-muted">{hint}</span>
       </span>
     </Link>

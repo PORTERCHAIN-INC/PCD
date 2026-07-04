@@ -1,4 +1,9 @@
-import { ApiError, createApiClient, type ApiClient, type ApiClientConfig } from "@porterchain/mobile-api";
+import {
+  ApiError,
+  createApiClient,
+  type ApiClient,
+  type ApiClientConfig,
+} from "@porterchain/mobile-api";
 import { emitSecurityEvent } from "../audit/emitter";
 import { refreshAndPersistDriverSession } from "../session/refresh";
 
@@ -53,7 +58,8 @@ export function createSecureApiClient(config: SecureApiClientConfig): ApiClient 
   }
 
   return {
-    get: <T>(path: string, init?: RequestInit) => withUnauthorizedRetry(() => baseClient.get<T>(path, init)),
+    get: <T>(path: string, init?: RequestInit) =>
+      withUnauthorizedRetry(() => baseClient.get<T>(path, init)),
     post: <T>(path: string, body?: unknown, init?: RequestInit & { skipAuth?: boolean }) =>
       withUnauthorizedRetry(() => baseClient.post<T>(path, body, init)),
     put: <T>(path: string, body?: unknown, init?: RequestInit) =>

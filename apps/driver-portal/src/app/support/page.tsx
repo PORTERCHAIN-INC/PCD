@@ -15,12 +15,7 @@ import {
 import DriverShell from "@/components/DriverShell";
 import { useDriverSupport } from "@/hooks/useDriverSupport";
 import { hasDriverSession } from "@/lib/api";
-import {
-  formatSupportDate,
-  incidentLabel,
-  priorityStyle,
-  statusStyle,
-} from "@/lib/support";
+import { formatSupportDate, incidentLabel, priorityStyle, statusStyle } from "@/lib/support";
 import { cn } from "@/lib/utils";
 
 export default function SupportPage() {
@@ -78,9 +73,7 @@ export default function SupportPage() {
         </button>
       </header>
 
-      {error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-      )}
+      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
       <section className="mt-6 rounded-2xl border-2 border-red-200 bg-red-50 p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -153,10 +146,20 @@ export default function SupportPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-semibold">{t.subject}</p>
                   <div className="flex gap-2">
-                    <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold capitalize", statusStyle(t.status))}>
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-xs font-semibold capitalize",
+                        statusStyle(t.status)
+                      )}
+                    >
                       {t.status}
                     </span>
-                    <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold capitalize", priorityStyle(t.priority))}>
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-xs font-semibold capitalize",
+                        priorityStyle(t.priority)
+                      )}
+                    >
                       {t.priority}
                     </span>
                   </div>
@@ -175,10 +178,7 @@ export default function SupportPage() {
           <FileWarning className="h-5 w-5 text-[var(--secondary)]" />
           <h2 className="text-lg font-bold">Claims</h2>
         </div>
-        <ClaimForm
-          pending={actionPending === "claim"}
-          onSubmit={(body) => openClaim(body)}
-        />
+        <ClaimForm pending={actionPending === "claim"} onSubmit={(body) => openClaim(body)} />
         <ul className="mt-4 space-y-2">
           {snap.claims.length === 0 ? (
             <li className="text-sm text-[var(--muted)]">No claims filed</li>
@@ -187,7 +187,12 @@ export default function SupportPage() {
               <li key={c.id} className="rounded-xl bg-[var(--gray-bg)] px-4 py-3 text-sm">
                 <div className="flex justify-between gap-2">
                   <p className="font-semibold capitalize">{c.claim_type.replace(/_/g, " ")}</p>
-                  <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold capitalize", statusStyle(c.status))}>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-xs font-semibold capitalize",
+                      statusStyle(c.status)
+                    )}
+                  >
                     {c.status}
                   </span>
                 </div>
@@ -211,7 +216,9 @@ export default function SupportPage() {
           ) : (
             snap.incidents.map((i) => (
               <li key={i.id} className="rounded-xl bg-[var(--gray-bg)] px-4 py-3 text-sm">
-                <p className="font-semibold">{incidentLabel(i.incident_type, snap.incident_types)}</p>
+                <p className="font-semibold">
+                  {incidentLabel(i.incident_type, snap.incident_types)}
+                </p>
                 <p className="mt-1 text-[var(--muted)]">{i.description}</p>
                 <p className="mt-1 text-xs text-[var(--muted)]">
                   {formatSupportDate(i.created_at)}
@@ -364,7 +371,9 @@ function EmergencyContactCard({
           await onSave({ name, phone, relationship: relationship || undefined });
         }}
       >
-        <p className="text-xs font-semibold uppercase text-[var(--muted)]">Your emergency contact</p>
+        <p className="text-xs font-semibold uppercase text-[var(--muted)]">
+          Your emergency contact
+        </p>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}

@@ -24,4 +24,6 @@ function EnterpriseFlashListInner<T>({
   );
 }
 
-export const EnterpriseFlashList = memo(EnterpriseFlashListInner) as typeof EnterpriseFlashListInner;
+export const EnterpriseFlashList = memo(
+  EnterpriseFlashListInner
+) as typeof EnterpriseFlashListInner;

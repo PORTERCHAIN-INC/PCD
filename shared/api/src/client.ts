@@ -58,7 +58,8 @@ export function createApiClient(config: ApiClientConfig) {
         method: "PATCH",
         body: body === undefined ? undefined : JSON.stringify(body),
       }),
-    delete: <T>(path: string, init?: RequestInit) => request<T>(path, { ...init, method: "DELETE" }),
+    delete: <T>(path: string, init?: RequestInit) =>
+      request<T>(path, { ...init, method: "DELETE" }),
   };
 }
 

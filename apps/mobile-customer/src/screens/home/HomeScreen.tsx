@@ -37,7 +37,12 @@ export function HomeScreen() {
         {error ? (
           <Card>
             <Body>Could not load dashboard.</Body>
-            <Button label="Retry" variant="secondary" onPress={() => void refetch()} style={{ marginTop: theme.spacing.md }} />
+            <Button
+              label="Retry"
+              variant="secondary"
+              onPress={() => void refetch()}
+              style={{ marginTop: theme.spacing.md }}
+            />
           </Card>
         ) : null}
 
@@ -60,7 +65,9 @@ export function HomeScreen() {
               />
               {active ? (
                 <>
-                  <Body muted>{active.pickup?.formatted} → {active.dropoff?.formatted}</Body>
+                  <Body muted>
+                    {active.pickup?.formatted} → {active.dropoff?.formatted}
+                  </Body>
                   <Button
                     label="Track live"
                     style={{ marginTop: theme.spacing.lg }}

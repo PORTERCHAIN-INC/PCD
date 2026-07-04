@@ -127,7 +127,10 @@ export const reportsApi = {
 };
 
 export function exportReportCsv(filename: string, headers: string[], rows: string[][]) {
-  const lines = [headers.join(","), ...rows.map((r) => r.map((c) => (c.includes(",") ? `"${c}"` : c)).join(","))];
+  const lines = [
+    headers.join(","),
+    ...rows.map((r) => r.map((c) => (c.includes(",") ? `"${c}"` : c)).join(",")),
+  ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -137,7 +140,9 @@ export function exportReportCsv(filename: string, headers: string[], rows: strin
   URL.revokeObjectURL(url);
 }
 
-export function pairsToChartData(pairs: Array<[string, number]> | Array<{ label: string; value: number }>) {
+export function pairsToChartData(
+  pairs: Array<[string, number]> | Array<{ label: string; value: number }>
+) {
   if (!pairs.length) return { labels: [] as string[], values: [] as number[] };
   if (Array.isArray(pairs[0])) {
     const p = pairs as Array<[string, number]>;

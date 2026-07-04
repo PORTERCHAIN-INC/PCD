@@ -1,4 +1,11 @@
-export { palette, lightColors, darkColors, legacyPalette, type ThemeColors, type ColorScheme } from "./colors";
+export {
+  palette,
+  lightColors,
+  darkColors,
+  legacyPalette,
+  type ThemeColors,
+  type ColorScheme,
+} from "./colors";
 export { spacing, radii, typography, layout } from "./tokens";
 export { shadows, shadowForScheme } from "./shadows";
 export { motion } from "./motion";

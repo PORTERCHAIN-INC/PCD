@@ -74,7 +74,9 @@ function ProgressStepper({ state }: { state: string }) {
             className={cn(
               "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
               done && "bg-emerald-100 text-emerald-800",
-              active && !done && "bg-[var(--secondary)]/15 text-[var(--secondary)] ring-1 ring-[var(--secondary)]/30",
+              active &&
+                !done &&
+                "bg-[var(--secondary)]/15 text-[var(--secondary)] ring-1 ring-[var(--secondary)]/30",
               !done && !active && "bg-[var(--gray-bg)] text-[var(--muted)]"
             )}
           >
@@ -168,7 +170,9 @@ export default function Delivery360({
       <div className="rounded-2xl bg-[var(--primary)] p-5 text-white shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-white/70">Delivery 360</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-white/70">
+              Delivery 360
+            </p>
             <h1 className="text-2xl font-bold">{job.order_number}</h1>
             <p className="text-sm text-white/80">{job.tracking_number}</p>
           </div>
@@ -180,8 +184,10 @@ export default function Delivery360({
           <ProgressStepper state={job.state} />
         </div>
         <p className="mt-3 text-sm text-white/90">
-          {leg === "completed" ? "Job complete" : `${leg === "pickup" ? "Pickup" : "Delivery"} phase`} · Updated{" "}
-          {job.updated_at ? new Date(job.updated_at).toLocaleTimeString() : "—"}
+          {leg === "completed"
+            ? "Job complete"
+            : `${leg === "pickup" ? "Pickup" : "Delivery"} phase`}{" "}
+          · Updated {job.updated_at ? new Date(job.updated_at).toLocaleTimeString() : "—"}
         </p>
         {!completed && (
           <Link
@@ -216,7 +222,9 @@ export default function Delivery360({
 
       {!completed && primary && (
         <div className="rounded-2xl border border-[var(--secondary)]/25 bg-gradient-to-br from-[var(--secondary)]/8 to-transparent p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--secondary)]">Next action</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--secondary)]">
+            Next action
+          </p>
           <p className="mt-1 text-lg font-bold">
             {primary.key.includes("pickup") ? job.pickup_address : job.delivery_address}
           </p>
@@ -226,7 +234,9 @@ export default function Delivery360({
             onClick={() => runPrimary(primary.key)}
             className={cn(
               "mt-4 w-full rounded-xl py-3.5 text-sm font-bold text-white disabled:opacity-50",
-              primary.key.includes("delivery") ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[var(--primary)]"
+              primary.key.includes("delivery")
+                ? "bg-emerald-600 hover:bg-emerald-700"
+                : "bg-[var(--primary)]"
             )}
           >
             {pending === primary.key ? "Working…" : primary.label}
@@ -283,7 +293,9 @@ export default function Delivery360({
           <div className="flex items-center justify-center rounded-2xl border border-dashed border-[var(--primary)]/15 bg-white/60 p-8 text-center">
             <div>
               <Truck className="mx-auto h-8 w-8 text-[var(--muted)]" />
-              <p className="mt-2 text-sm font-medium text-[var(--muted)]">Delivery unlocks after pickup</p>
+              <p className="mt-2 text-sm font-medium text-[var(--muted)]">
+                Delivery unlocks after pickup
+              </p>
             </div>
           </div>
         )}
@@ -344,7 +356,9 @@ export default function Delivery360({
 
       {job.special_instructions && (
         <Section title="Special Instructions" icon={AlertTriangle}>
-          <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">{job.special_instructions}</p>
+          <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+            {job.special_instructions}
+          </p>
         </Section>
       )}
 
@@ -429,7 +443,9 @@ export default function Delivery360({
             type="button"
             disabled={pending === "pod_complete"}
             onClick={() =>
-              run("pod_complete", () => driverApi.podComplete(rid, job.delivery_stop_id, otp || undefined))
+              run("pod_complete", () =>
+                driverApi.podComplete(rid, job.delivery_stop_id, otp || undefined)
+              )
             }
             className="mt-4 w-full rounded-xl bg-[var(--secondary)] py-3 text-sm font-bold text-white disabled:opacity-50"
           >
@@ -520,7 +536,8 @@ export default function Delivery360({
             <ul className="mt-4 space-y-2">
               {job.incidents.map((inc) => (
                 <li key={inc.id} className="rounded-lg bg-[var(--gray-bg)] px-3 py-2 text-sm">
-                  <span className="font-semibold capitalize">{inc.incident_type}</span> — {inc.status}
+                  <span className="font-semibold capitalize">{inc.incident_type}</span> —{" "}
+                  {inc.status}
                   <p className="text-xs text-[var(--muted)]">{inc.description}</p>
                 </li>
               ))}

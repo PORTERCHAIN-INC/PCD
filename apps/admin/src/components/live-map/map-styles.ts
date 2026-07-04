@@ -4,8 +4,16 @@ export const DARK_MAP_STYLE: google.maps.MapTypeStyle[] = [
   { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
   { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
   { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
-  { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#4b6878" }] },
-  { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#64748b" }] },
+  {
+    featureType: "administrative.country",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#4b6878" }],
+  },
+  {
+    featureType: "administrative.land_parcel",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#64748b" }],
+  },
   { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#6f9ba5" }] },
   { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
   { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },

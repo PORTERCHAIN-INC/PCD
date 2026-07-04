@@ -49,27 +49,69 @@ export default function PricingSimulator({ onSimulate }: Props) {
           <Calculator className="h-5 w-5 text-secondary" /> Pricing sandbox
         </h3>
         <label className="block text-xs font-bold uppercase text-muted">Pickup</label>
-        <input value={pickup} onChange={(e) => setPickup(e.target.value)} className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm" />
+        <input
+          value={pickup}
+          onChange={(e) => setPickup(e.target.value)}
+          className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm"
+        />
         <label className="block text-xs font-bold uppercase text-muted">Dropoff</label>
-        <input value={dropoff} onChange={(e) => setDropoff(e.target.value)} className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm" />
+        <input
+          value={dropoff}
+          onChange={(e) => setDropoff(e.target.value)}
+          className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm"
+        />
         <label className="block text-xs font-bold uppercase text-muted">Vehicle</label>
-        <select value={vehicle} onChange={(e) => setVehicle(e.target.value)} className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm">
-          {VEHICLE_CLASSES.map((v) => <option key={v} value={v}>{v}</option>)}
+        <select
+          value={vehicle}
+          onChange={(e) => setVehicle(e.target.value)}
+          className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm"
+        >
+          {VEHICLE_CLASSES.map((v) => (
+            <option key={v} value={v}>
+              {v}
+            </option>
+          ))}
         </select>
         <div className="grid grid-cols-2 gap-2">
-          <input placeholder="Weight kg" value={weight} onChange={(e) => setWeight(e.target.value)} className="rounded-xl border border-primary/10 px-3 py-2 text-sm" />
-          <input placeholder="Distance m" value={distance} onChange={(e) => setDistance(e.target.value)} className="rounded-xl border border-primary/10 px-3 py-2 text-sm" />
+          <input
+            placeholder="Weight kg"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+          />
+          <input
+            placeholder="Distance m"
+            value={distance}
+            onChange={(e) => setDistance(e.target.value)}
+            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+          />
         </div>
-        <input placeholder="Merchant ID (optional)" value={merchantId} onChange={(e) => setMerchantId(e.target.value)} className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm" />
-        <input placeholder="Promo code" value={promo} onChange={(e) => setPromo(e.target.value)} className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm" />
+        <input
+          placeholder="Merchant ID (optional)"
+          value={merchantId}
+          onChange={(e) => setMerchantId(e.target.value)}
+          className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm"
+        />
+        <input
+          placeholder="Promo code"
+          value={promo}
+          onChange={(e) => setPromo(e.target.value)}
+          className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm"
+        />
         <Button variant="primary" disabled={loading} onClick={() => void run()}>
           {loading ? "Calculating…" : "Preview quote"}
         </Button>
       </div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-2xl border border-primary/10 bg-gray-bg/30 p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="rounded-2xl border border-primary/10 bg-gray-bg/30 p-4"
+      >
         {!result ? (
-          <p className="text-sm text-muted">Server-side quote preview — all rules applied by the Pricing Engine.</p>
+          <p className="text-sm text-muted">
+            Server-side quote preview — all rules applied by the Pricing Engine.
+          </p>
         ) : (
           <div className="space-y-2">
             <p className="text-2xl font-bold text-primary">{formatCents(result.final_cents)}</p>

@@ -148,7 +148,10 @@ export function RoutePlanRow({
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/10 bg-gray-bg/30 p-4 transition-colors hover:border-secondary/20 hover:bg-white">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <Link href={`/routes/${plan.id}`} className="font-semibold text-primary hover:text-secondary hover:underline">
+          <Link
+            href={`/routes/${plan.id}`}
+            className="font-semibold text-primary hover:text-secondary hover:underline"
+          >
             {plan.name}
           </Link>
           <RouteStatusBadge status={plan.status} />
@@ -282,21 +285,28 @@ export function Route360Header({
   );
 }
 
-export function RouteStopTimeline({
-  stops,
-}: {
-  stops: RoutePlan["stops"];
-}) {
+export function RouteStopTimeline({ stops }: { stops: RoutePlan["stops"] }) {
   if (stops.length === 0) {
-    return <RouteEmptyState title="No stops on this route" hint="Add orders in Route Builder to generate stops." />;
+    return (
+      <RouteEmptyState
+        title="No stops on this route"
+        hint="Add orders in Route Builder to generate stops."
+      />
+    );
   }
 
   return (
     <ol className="space-y-0">
       {stops.map((stop, i) => (
-        <li key={`${stop.order_id}-${stop.type}-${i}`} className="relative flex gap-4 pb-6 last:pb-0">
+        <li
+          key={`${stop.order_id}-${stop.type}-${i}`}
+          className="relative flex gap-4 pb-6 last:pb-0"
+        >
           {i < stops.length - 1 && (
-            <span className="absolute left-[15px] top-8 h-[calc(100%-1rem)] w-0.5 bg-primary/10" aria-hidden />
+            <span
+              className="absolute left-[15px] top-8 h-[calc(100%-1rem)] w-0.5 bg-primary/10"
+              aria-hidden
+            />
           )}
           <span className="relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold text-white">
             {i + 1}
@@ -304,7 +314,9 @@ export function RouteStopTimeline({
           <div className="min-w-0 flex-1 rounded-xl border border-primary/10 bg-gray-bg/30 px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="font-medium text-primary">{titleCase(stop.type)}</p>
-              <Badge tone={stop.priority === "high" ? "red" : "slate"}>{stop.status ?? "pending"}</Badge>
+              <Badge tone={stop.priority === "high" ? "red" : "slate"}>
+                {stop.status ?? "pending"}
+              </Badge>
             </div>
             <p className="mt-1 text-sm text-muted">{stop.address ?? stop.tracking_number ?? "—"}</p>
             {stop.tracking_number && stop.address ? (

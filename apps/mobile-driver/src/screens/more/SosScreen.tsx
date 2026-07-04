@@ -18,7 +18,10 @@ export function SosScreen() {
     setError(null);
     try {
       const location = await getCurrentCoords();
-      await api.emergency({ message: "SOS — driver needs immediate assistance", location: location ?? undefined });
+      await api.emergency({
+        message: "SOS — driver needs immediate assistance",
+        location: location ?? undefined,
+      });
       setSent(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "SOS failed");
@@ -30,13 +33,31 @@ export function SosScreen() {
   return (
     <Screen>
       <ScreenHeader title="SOS" subtitle="Emergency assistance" />
-      <View style={{ flex: 1, padding: theme.spacing["2xl"], justifyContent: "center", gap: theme.spacing.lg }}>
+      <View
+        style={{
+          flex: 1,
+          padding: theme.spacing["2xl"],
+          justifyContent: "center",
+          gap: theme.spacing.lg,
+        }}
+      >
         <Body muted>
-          Triggers Porterchain emergency endpoint. Operations and support are notified server-side — no direct Fleetbase call from mobile.
+          Triggers Porterchain emergency endpoint. Operations and support are notified server-side —
+          no direct Fleetbase call from mobile.
         </Body>
-        {sent ? <Body style={{ color: theme.colors.success, textAlign: "center", fontWeight: "600" }}>Emergency signal sent.</Body> : null}
+        {sent ? (
+          <Body style={{ color: theme.colors.success, textAlign: "center", fontWeight: "600" }}>
+            Emergency signal sent.
+          </Body>
+        ) : null}
         {error ? <Body style={{ color: theme.colors.danger }}>{error}</Body> : null}
-        <Button label="Send SOS" variant="danger" loading={loading} fullWidth onPress={() => void triggerSos()} />
+        <Button
+          label="Send SOS"
+          variant="danger"
+          loading={loading}
+          fullWidth
+          onPress={() => void triggerSos()}
+        />
       </View>
     </Screen>
   );

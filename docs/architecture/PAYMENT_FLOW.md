@@ -4,15 +4,15 @@
 
 ## Retail Payment Path
 
-| Step | Component |
-|------|-----------|
-| Start | `PaymentService.start_payment()` — creates `Payment` PROCESSING, Stripe session |
-| Redirect | Browser → Stripe hosted checkout (`checkout_url`) |
-| Webhook | `POST /webhooks/stripe` — **only trusted payment completion signal** |
-| Verify | `stripe.Webhook.construct_event` + idempotency `stripe:{event_id}` |
+| Step     | Component                                                                             |
+| -------- | ------------------------------------------------------------------------------------- |
+| Start    | `PaymentService.start_payment()` — creates `Payment` PROCESSING, Stripe session       |
+| Redirect | Browser → Stripe hosted checkout (`checkout_url`)                                     |
+| Webhook  | `POST /webhooks/stripe` — **only trusted payment completion signal**                  |
+| Verify   | `stripe.Webhook.construct_event` + idempotency `stripe:{event_id}`                    |
 | Complete | `mark_succeeded()` → `BookingConfirmationService.complete_payment_and_create_order()` |
-| Events | `payment.succeeded`, `receipt.generated`, `invoice.created` |
-| Billing | Worker `billing` queue → `SettlementService` ledger entry |
+| Events   | `payment.succeeded`, `receipt.generated`, `invoice.created`                           |
+| Billing  | Worker `billing` queue → `SettlementService` ledger entry                             |
 
 ## Failure Paths
 

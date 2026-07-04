@@ -36,7 +36,11 @@ export function PodScreen() {
     setMessage(null);
     try {
       const result = await runDirectOrQueue(actionType, payload, onlineExecute, localUri);
-      setMessage(result.mode === "queued" ? "Saved offline — will sync when connected." : "Synced via Porterchain API.");
+      setMessage(
+        result.mode === "queued"
+          ? "Saved offline — will sync when connected."
+          : "Synced via Porterchain API."
+      );
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -84,10 +88,8 @@ export function PodScreen() {
             label="Generate OTP"
             variant="secondary"
             onPress={() =>
-              void run(
-                DRIVER_OFFLINE_ACTIONS.GENERATE_OTP,
-                { order_id: orderId },
-                () => api.generateOtp(orderId)
+              void run(DRIVER_OFFLINE_ACTIONS.GENERATE_OTP, { order_id: orderId }, () =>
+                api.generateOtp(orderId)
               )
             }
           />
@@ -95,11 +97,14 @@ export function PodScreen() {
           <Button
             label="Verify OTP"
             variant="ghost"
-            onPress={() =>
-              void run(DRIVER_OFFLINE_ACTIONS.OTP_VERIFY, { order_id: orderId, otp })
-            }
+            onPress={() => void run(DRIVER_OFFLINE_ACTIONS.OTP_VERIFY, { order_id: orderId, otp })}
           />
-          <Input label="Signature (base64/text)" value={signature} onChangeText={setSignature} multiline />
+          <Input
+            label="Signature (base64/text)"
+            value={signature}
+            onChangeText={setSignature}
+            multiline
+          />
           <Button
             label="Upload signature"
             variant="secondary"
@@ -112,8 +117,18 @@ export function PodScreen() {
             }
           />
           <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
-            <Button label="Take photo" variant="secondary" style={{ flex: 1 }} onPress={() => void capturePhoto("camera")} />
-            <Button label="Choose photo" variant="outline" style={{ flex: 1 }} onPress={() => void capturePhoto("library")} />
+            <Button
+              label="Take photo"
+              variant="secondary"
+              style={{ flex: 1 }}
+              onPress={() => void capturePhoto("camera")}
+            />
+            <Button
+              label="Choose photo"
+              variant="outline"
+              style={{ flex: 1 }}
+              onPress={() => void capturePhoto("library")}
+            />
           </View>
           {photoUrl ? (
             <OptimizedImage
@@ -135,7 +150,12 @@ export function PodScreen() {
             }
           />
           {message ? <Body muted>{message}</Body> : null}
-          <Button label="Complete delivery" loading={loading} fullWidth onPress={() => void complete()} />
+          <Button
+            label="Complete delivery"
+            loading={loading}
+            fullWidth
+            onPress={() => void complete()}
+          />
         </ScrollView>
       )}
     </Screen>

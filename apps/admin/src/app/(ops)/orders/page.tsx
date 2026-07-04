@@ -16,7 +16,11 @@ export default function OrdersPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const filterKey = JSON.stringify(filters);
 
-  const { data: rows = [], isLoading, refetch } = useQuery({
+  const {
+    data: rows = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["orders", filterKey],
     enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
     queryFn: async () => {
@@ -39,7 +43,9 @@ export default function OrdersPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-primary">Orders Management</h1>
-          <p className="text-sm text-muted">Enterprise order platform — lifecycle, tracking, payments, and dispatch</p>
+          <p className="text-sm text-muted">
+            Enterprise order platform — lifecycle, tracking, payments, and dispatch
+          </p>
         </div>
         <Button variant="outline" onClick={() => void refetch()}>
           <RefreshCw className="h-4 w-4" /> Refresh
@@ -79,12 +85,16 @@ export default function OrdersPage() {
           >
             <option value="">All statuses</option>
             {ORDER_STATES.map((s) => (
-              <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
+              <option key={s} value={s}>
+                {s.replace(/_/g, " ")}
+              </option>
             ))}
           </select>
           <select
             value={filters.payment_status ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, payment_status: e.target.value || undefined }))}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, payment_status: e.target.value || undefined }))
+            }
             className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
           >
             <option value="">Payment</option>
@@ -137,7 +147,12 @@ export default function OrdersPage() {
 
 function Kpi({ label, value, alert }: { label: string; value: string | number; alert?: boolean }) {
   return (
-    <div className={cn("rounded-xl border border-primary/10 bg-white px-3 py-2 shadow-sm", alert && "border-amber-200 bg-amber-50")}>
+    <div
+      className={cn(
+        "rounded-xl border border-primary/10 bg-white px-3 py-2 shadow-sm",
+        alert && "border-amber-200 bg-amber-50"
+      )}
+    >
       <p className="text-xs text-muted">{label}</p>
       <p className="text-lg font-bold text-primary">{value}</p>
     </div>

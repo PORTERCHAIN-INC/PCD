@@ -40,7 +40,12 @@ export function IncidentScreen() {
     <Screen>
       <ScreenHeader title="Incident" subtitle="Report delivery issue" />
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.md }}>
-        <Input label="Type" value={type} onChangeText={setType} placeholder="damage | delay | access" />
+        <Input
+          label="Type"
+          value={type}
+          onChangeText={setType}
+          placeholder="damage | delay | access"
+        />
         <Input label="Description" value={description} onChangeText={setDescription} multiline />
         {message ? <Body muted>{message}</Body> : null}
         <Button label="Submit incident" loading={loading} fullWidth onPress={() => void submit()} />

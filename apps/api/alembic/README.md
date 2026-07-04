@@ -28,8 +28,8 @@ Must use `postgresql+psycopg://` — SQLite is not supported.
 
 ## Policy
 
-| Environment | Schema management |
-|-------------|-------------------|
+| Environment          | Schema management                                                     |
+| -------------------- | --------------------------------------------------------------------- |
 | **All environments** | **Alembic only** — run `alembic upgrade head` before API/worker start |
 
 `init_db()` verifies PostgreSQL connectivity only. It does **not** create tables.

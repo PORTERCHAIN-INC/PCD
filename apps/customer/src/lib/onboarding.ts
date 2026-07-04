@@ -20,7 +20,10 @@ export interface PortalOnboardingStatus {
 }
 
 export async function fetchCustomerOnboarding(token: string): Promise<PortalOnboardingStatus> {
-  const api = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(/\/$/, "");
+  const api = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
+    /\/$/,
+    ""
+  );
   const res = await fetch(`${api}/v1/auth/customer/onboarding`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",

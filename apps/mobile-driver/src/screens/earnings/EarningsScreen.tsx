@@ -26,13 +26,19 @@ export function EarningsScreen() {
         {data ? (
           <>
             <View style={{ flexDirection: "row", gap: theme.spacing.md }}>
-              <View style={{ flex: 1 }}><MetricCard label="Today" value={money(data.today_cents)} /></View>
-              <View style={{ flex: 1 }}><MetricCard label="Week" value={money(data.week_cents)} /></View>
+              <View style={{ flex: 1 }}>
+                <MetricCard label="Today" value={money(data.today_cents)} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <MetricCard label="Week" value={money(data.week_cents)} />
+              </View>
             </View>
             <Card>
               <Body style={{ fontWeight: "600" }}>Wallet balance</Body>
               <Body muted>{money(data.wallet_balance_cents)}</Body>
-              <Body muted style={{ marginTop: theme.spacing.sm }}>{data.completed_deliveries_today} deliveries today</Body>
+              <Body muted style={{ marginTop: theme.spacing.sm }}>
+                {data.completed_deliveries_today} deliveries today
+              </Body>
             </Card>
           </>
         ) : null}

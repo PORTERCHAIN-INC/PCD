@@ -6,7 +6,15 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { merchants, type MerchantDetail } from "@/lib/merchants";
 import { titleCase } from "@/lib/crmFormat";
-import { Badge, Button, Field, Input, SectionCard, Select, Spinner } from "@/components/crm/primitives";
+import {
+  Badge,
+  Button,
+  Field,
+  Input,
+  SectionCard,
+  Select,
+  Spinner,
+} from "@/components/crm/primitives";
 
 const MERCHANT_ROLES = [
   { value: "merchant_owner", label: "Owner" },
@@ -122,8 +130,8 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
       <SectionCard title="Portal onboarding">
         <div className="space-y-4 px-5 py-4">
           <p className="text-sm text-muted">
-            Provision the merchant owner, send a Clerk invitation, then approve the account. No need to use Settings →
-            Users for this merchant.
+            Provision the merchant owner, send a Clerk invitation, then approve the account. No need
+            to use Settings → Users for this merchant.
           </p>
 
           <ul className="space-y-2">
@@ -237,7 +245,9 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
                 <p className="text-xs text-muted">{titleCase(u.role.replace(/_/g, " "))}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge tone={u.is_active ? "green" : "slate"}>{u.is_active ? "Active" : "Inactive"}</Badge>
+                <Badge tone={u.is_active ? "green" : "slate"}>
+                  {u.is_active ? "Active" : "Inactive"}
+                </Badge>
                 <Badge tone={INVITE_TONE[u.invite_status ?? ""] ?? "slate"}>
                   {inviteLabel(u.invite_status)}
                 </Badge>

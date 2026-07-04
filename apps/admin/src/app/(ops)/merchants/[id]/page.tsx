@@ -429,11 +429,14 @@ function ContactsTab({ id }: { id: string }) {
               </p>
             </div>
             <div className="flex flex-wrap gap-1">
-              {c.roles.filter((r) => r !== "portal_team").slice(0, 3).map((r) => (
-                <Badge key={r} tone="slate">
-                  {titleCase(r.replace("merchant_", ""))}
-                </Badge>
-              ))}
+              {c.roles
+                .filter((r) => r !== "portal_team")
+                .slice(0, 3)
+                .map((r) => (
+                  <Badge key={r} tone="slate">
+                    {titleCase(r.replace("merchant_", ""))}
+                  </Badge>
+                ))}
               {(c.roles.includes("portal_team") || c.source === "team") && (
                 <Badge tone="amber">Portal team</Badge>
               )}
@@ -679,7 +682,6 @@ function ApiTab({ id }: { id: string }) {
     </div>
   );
 }
-
 
 function ReadActivities({ id }: { id: string }) {
   const { data } = useApiData((t) => merchants.activities(t, id), [id]);

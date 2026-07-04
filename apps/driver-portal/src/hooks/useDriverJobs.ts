@@ -19,10 +19,7 @@ export function useDriverJobs() {
 
   const refresh = useCallback(async (silent = false) => {
     try {
-      const [jobs, hist] = await Promise.all([
-        driverApi.jobs(),
-        driverApi.jobsHistory(),
-      ]);
+      const [jobs, hist] = await Promise.all([driverApi.jobs(), driverApi.jobsHistory()]);
       if (mounted.current) {
         setData(jobs);
         setHistory(hist.history);
@@ -48,9 +45,7 @@ export function useDriverJobs() {
         const km = result.metrics.distance_km;
         const min = result.metrics.duration_minutes;
         setOptimizeMessage(
-          km != null && min != null
-            ? `Route optimized — ${km} km · ~${min} min`
-            : "Route optimized"
+          km != null && min != null ? `Route optimized — ${km} km · ~${min} min` : "Route optimized"
         );
       }
     } catch (e) {

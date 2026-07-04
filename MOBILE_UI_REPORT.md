@@ -16,11 +16,11 @@ Both mobile apps use a **unified enterprise design system** with Porterchain Blu
 
 ## 1. Design system stack
 
-| Package | Role |
-|---------|------|
-| `@porterchain/mobile-theme` | Light/dark tokens, spacing, typography, RTL |
-| `@porterchain/mobile-ui` | 40+ components — Button, Card, ListItem, Timeline, maps frame, states |
-| `@porterchain/mobile-components` | `AppFlashList`, `OfflineBanner`, `EmptyState` |
+| Package                          | Role                                                                  |
+| -------------------------------- | --------------------------------------------------------------------- |
+| `@porterchain/mobile-theme`      | Light/dark tokens, spacing, typography, RTL                           |
+| `@porterchain/mobile-ui`         | 40+ components — Button, Card, ListItem, Timeline, maps frame, states |
+| `@porterchain/mobile-components` | `AppFlashList`, `OfflineBanner`, `EmptyState`                         |
 
 ### Theme
 
@@ -46,12 +46,12 @@ Both mobile apps use a **unified enterprise design system** with Porterchain Blu
 
 ### Loading / empty / error states
 
-| State | Component | Usage |
-|-------|-----------|-------|
+| State   | Component                                      | Usage                 |
+| ------- | ---------------------------------------------- | --------------------- |
 | Loading | `SkeletonList`, `SkeletonCard`, `LoadingState` | Lists, maps, checkout |
-| Empty | `EmptyState` | Notifications, queues |
-| Error | `Body` + danger color | Forms, checkout |
-| Success | `SuccessState` | POD complete |
+| Empty   | `EmptyState`                                   | Notifications, queues |
+| Error   | `Body` + danger color                          | Forms, checkout       |
+| Success | `SuccessState`                                 | POD complete          |
 
 ---
 
@@ -59,9 +59,9 @@ Both mobile apps use a **unified enterprise design system** with Porterchain Blu
 
 ### Tab bars
 
-| App | Tabs | Icons |
-|-----|------|-------|
-| Driver | 6 — Home, Jobs, Navigation, Earnings, Shift, More | Bottom tabs |
+| App      | Tabs                                                 | Icons       |
+| -------- | ---------------------------------------------------- | ----------- |
+| Driver   | 6 — Home, Jobs, Navigation, Earnings, Shift, More    | Bottom tabs |
 | Customer | 5 — Home, Bookings, Tracking, Notifications, Profile | Bottom tabs |
 
 ### Stacks
@@ -79,42 +79,42 @@ Both mobile apps use a **unified enterprise design system** with Porterchain Blu
 
 ### Driver app
 
-| Area | Screens | UI quality |
-|------|---------|------------|
-| Auth | SignIn | Basic — needs Clerk UI |
-| Home | Dashboard | ✅ Cards, metrics |
-| Jobs | Jobs, JobDetail, Queue, POD, Incident | ✅ Timeline, status chips |
-| Navigation | Navigation, LiveMap | ✅ EnterpriseMap |
-| Shift | Shift | ✅ Online/offline toggle |
-| Earnings | Earnings | ✅ Snapshot cards |
-| More | Profile, Notifications, Offline, Support, SOS, Settings, Performance | ✅ Full |
+| Area       | Screens                                                              | UI quality                |
+| ---------- | -------------------------------------------------------------------- | ------------------------- |
+| Auth       | SignIn                                                               | Basic — needs Clerk UI    |
+| Home       | Dashboard                                                            | ✅ Cards, metrics         |
+| Jobs       | Jobs, JobDetail, Queue, POD, Incident                                | ✅ Timeline, status chips |
+| Navigation | Navigation, LiveMap                                                  | ✅ EnterpriseMap          |
+| Shift      | Shift                                                                | ✅ Online/offline toggle  |
+| Earnings   | Earnings                                                             | ✅ Snapshot cards         |
+| More       | Profile, Notifications, Offline, Support, SOS, Settings, Performance | ✅ Full                   |
 
 ### Customer app
 
-| Area | Screens | UI quality |
-|------|---------|------------|
-| Auth | SignIn | Basic — needs Clerk UI |
-| Home | Dashboard | ✅ |
-| Bookings | Quote, Booking, Draft, Checkout, Confirmation | ✅ Multi-step flow |
-| Tracking | Tracking, LiveMap, History | ✅ Map + FlashList history |
-| Notifications | NotificationCenter | ✅ Grouped inbox |
-| Profile | Invoices, Receipts, Support, Claims, Settings, Performance | ✅ |
+| Area          | Screens                                                    | UI quality                 |
+| ------------- | ---------------------------------------------------------- | -------------------------- |
+| Auth          | SignIn                                                     | Basic — needs Clerk UI     |
+| Home          | Dashboard                                                  | ✅                         |
+| Bookings      | Quote, Booking, Draft, Checkout, Confirmation              | ✅ Multi-step flow         |
+| Tracking      | Tracking, LiveMap, History                                 | ✅ Map + FlashList history |
+| Notifications | NotificationCenter                                         | ✅ Grouped inbox           |
+| Profile       | Invoices, Receipts, Support, Claims, Settings, Performance | ✅                         |
 
 ---
 
 ## 5. Component usage audit
 
-| Component | Adoption | Gap |
-|-----------|----------|-----|
-| `ListItem` / `ListSection` | High | Some screens migrated to FlashList rows |
-| `StatusChip` | High | Consistent job/order states |
-| `Timeline` | Driver JobDetail | — |
-| `EnterpriseMap` | Both | Requires Maps API key |
-| `Button` variants | High | primary/secondary/ghost/outline/danger |
-| `Input` | Medium | Sign-in uses raw state vs react-hook-form |
-| `AppBottomSheet` | Low | Available but rarely used |
-| `Dialog` / `SheetModal` | Low | Could replace inline error text |
-| `BarChart` / `Sparkline` | Low | Earnings could use charts |
+| Component                  | Adoption         | Gap                                       |
+| -------------------------- | ---------------- | ----------------------------------------- |
+| `ListItem` / `ListSection` | High             | Some screens migrated to FlashList rows   |
+| `StatusChip`               | High             | Consistent job/order states               |
+| `Timeline`                 | Driver JobDetail | —                                         |
+| `EnterpriseMap`            | Both             | Requires Maps API key                     |
+| `Button` variants          | High             | primary/secondary/ghost/outline/danger    |
+| `Input`                    | Medium           | Sign-in uses raw state vs react-hook-form |
+| `AppBottomSheet`           | Low              | Available but rarely used                 |
+| `Dialog` / `SheetModal`    | Low              | Could replace inline error text           |
+| `BarChart` / `Sparkline`   | Low              | Earnings could use charts                 |
 
 ---
 
@@ -123,22 +123,22 @@ Both mobile apps use a **unified enterprise design system** with Porterchain Blu
 **Before audit:** ScrollView + `.map()` on all lists.  
 **After performance work:** FlashList on 7+ high-traffic screens.
 
-| Pattern | Recommendation |
-|---------|----------------|
-| Long lists | `EnterpriseFlashList` + `estimatedItemSize` |
-| Short static menus | `ListSection` in ScrollView OK (Profile links) |
+| Pattern               | Recommendation                                   |
+| --------------------- | ------------------------------------------------ |
+| Long lists            | `EnterpriseFlashList` + `estimatedItemSize`      |
+| Short static menus    | `ListSection` in ScrollView OK (Profile links)   |
 | Grouped notifications | Flattened rows with section headers in FlashList |
 
 ---
 
 ## 7. Forms & validation
 
-| Screen | Validation | Gap |
-|--------|------------|-----|
-| SignIn | None | Zod schemas exist in `forms/schemas.ts` — unused |
-| Quote/Booking | Partial | Server errors shown; client Zod not wired |
-| POD | Manual | OTP length not validated client-side |
-| Support | Basic | Subject required implicitly |
+| Screen        | Validation | Gap                                              |
+| ------------- | ---------- | ------------------------------------------------ |
+| SignIn        | None       | Zod schemas exist in `forms/schemas.ts` — unused |
+| Quote/Booking | Partial    | Server errors shown; client Zod not wired        |
+| POD           | Manual     | OTP length not validated client-side             |
+| Support       | Basic      | Subject required implicitly                      |
 
 **Recommendation:** Wire `react-hook-form` + Zod on sign-in and booking forms without changing API contracts.
 
@@ -146,24 +146,24 @@ Both mobile apps use a **unified enterprise design system** with Porterchain Blu
 
 ## 8. Accessibility & RTL
 
-| Concern | Status |
-|---------|--------|
-| Dark mode | ✅ System automatic |
-| RTL | ⚠️ `theme.isRTL` available; screens mostly LTR |
-| Touch targets | ✅ Button min heights in design system |
-| `accessibilityRole` | ⚠️ Partial — OfflineBanner has it |
-| Screen reader labels | ⚠️ Not audited per-screen |
+| Concern              | Status                                         |
+| -------------------- | ---------------------------------------------- |
+| Dark mode            | ✅ System automatic                            |
+| RTL                  | ⚠️ `theme.isRTL` available; screens mostly LTR |
+| Touch targets        | ✅ Button min heights in design system         |
+| `accessibilityRole`  | ⚠️ Partial — OfflineBanner has it              |
+| Screen reader labels | ⚠️ Not audited per-screen                      |
 
 ---
 
 ## 9. Branding & assets
 
-| Asset | Driver | Customer |
-|-------|--------|----------|
-| App icon | ✅ `assets/icon.png` | ❌ Missing |
-| Splash | ✅ | ❌ Background color only |
-| Adaptive icon (Android) | ✅ | ❌ |
-| Notification icon | ✅ | Default |
+| Asset                   | Driver               | Customer                 |
+| ----------------------- | -------------------- | ------------------------ |
+| App icon                | ✅ `assets/icon.png` | ❌ Missing               |
+| Splash                  | ✅                   | ❌ Background color only |
+| Adaptive icon (Android) | ✅                   | ❌                       |
+| Notification icon       | ✅                   | Default                  |
 
 **Customer store submission blocked** until assets added.
 
@@ -171,11 +171,11 @@ Both mobile apps use a **unified enterprise design system** with Porterchain Blu
 
 ## 10. Offline & sync UI
 
-| Component | App | Location |
-|-----------|-----|----------|
-| `OfflineSyncBar` | Both | `AppShell` top bar |
-| `OfflineSyncPanel` | Both | Offline sync screen |
-| `OfflineSyncScreen` | Both | More / Profile |
+| Component           | App  | Location            |
+| ------------------- | ---- | ------------------- |
+| `OfflineSyncBar`    | Both | `AppShell` top bar  |
+| `OfflineSyncPanel`  | Both | Offline sync screen |
+| `OfflineSyncScreen` | Both | More / Profile      |
 
 Sync status: pending count, last sync, manual sync button.
 

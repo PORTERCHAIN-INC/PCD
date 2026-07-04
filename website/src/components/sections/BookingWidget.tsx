@@ -29,7 +29,11 @@ import { useRouter } from "@/i18n/navigation";
 import Button from "@/components/ui/Button";
 import { computeAndPersistQuote, type PersistedQuoteResult } from "@/lib/quote-client";
 import { createBookingDraft, getActiveBookingDraft } from "@/lib/api";
-import { clearBookingDraftHint, hasBookingDraftHint, markBookingDraftHint } from "@/lib/booking-draft-hint";
+import {
+  clearBookingDraftHint,
+  hasBookingDraftHint,
+  markBookingDraftHint,
+} from "@/lib/booking-draft-hint";
 import { getAnonymousSessionId } from "@/lib/anonymous-session";
 import { getVisitorTracking } from "@/lib/visitor-tracking";
 import VehicleIllustration, {
@@ -128,10 +132,20 @@ export default function BookingWidget({ variant = "default", className }: Bookin
       createBookingDraft({
         session_id: sessionId,
         pickup: pickup?.formatted
-          ? { formatted: pickup.formatted, lat: pickup.lat, lng: pickup.lng, place_id: pickup.placeId }
+          ? {
+              formatted: pickup.formatted,
+              lat: pickup.lat,
+              lng: pickup.lng,
+              place_id: pickup.placeId,
+            }
           : undefined,
         dropoff: dropoff?.formatted
-          ? { formatted: dropoff.formatted, lat: dropoff.lat, lng: dropoff.lng, place_id: dropoff.placeId }
+          ? {
+              formatted: dropoff.formatted,
+              lat: dropoff.lat,
+              lng: dropoff.lng,
+              place_id: dropoff.placeId,
+            }
           : undefined,
         vehicle_class: selectedVehicle,
         package_type: delivery,

@@ -32,27 +32,58 @@ export function ShiftScreen() {
           <CardHeader
             title={data?.shift_active ? "On shift" : "Off shift"}
             subtitle={data?.availability}
-            action={<StatusChip label={data?.is_online ? "Online" : "Offline"} tone={data?.is_online ? "active" : "neutral"} />}
+            action={
+              <StatusChip
+                label={data?.is_online ? "Online" : "Offline"}
+                tone={data?.is_online ? "active" : "neutral"}
+              />
+            }
           />
-          <Body muted>{data?.mileage_km ?? 0} km · Route {data?.current_route?.route_id ?? "—"}</Body>
+          <Body muted>
+            {data?.mileage_km ?? 0} km · Route {data?.current_route?.route_id ?? "—"}
+          </Body>
         </Card>
 
-        <Button label="Go online" fullWidth onPress={() => void mutate(() => api.setAvailability("online"))} />
-        <Button label="Start shift" variant="secondary" fullWidth onPress={() => {
-          void mutate(async () => {
-            await api.shiftStart(data?.current_route?.route_id);
-            await startGpsTracking(api, { onOfflinePing: enqueueGps });
-          });
-        }} />
-        <Button label="Take break" variant="secondary" fullWidth onPress={() => void mutate(() => api.shiftBreak())} />
-        <Button label="Resume" variant="secondary" fullWidth onPress={() => void mutate(() => api.shiftResume())} />
-        <Button label="End shift" variant="outline" fullWidth onPress={() => {
-          void mutate(async () => {
-            stopGpsTracking();
-            await api.shiftEnd();
-            await api.setAvailability("offline");
-          });
-        }} />
+        <Button
+          label="Go online"
+          fullWidth
+          onPress={() => void mutate(() => api.setAvailability("online"))}
+        />
+        <Button
+          label="Start shift"
+          variant="secondary"
+          fullWidth
+          onPress={() => {
+            void mutate(async () => {
+              await api.shiftStart(data?.current_route?.route_id);
+              await startGpsTracking(api, { onOfflinePing: enqueueGps });
+            });
+          }}
+        />
+        <Button
+          label="Take break"
+          variant="secondary"
+          fullWidth
+          onPress={() => void mutate(() => api.shiftBreak())}
+        />
+        <Button
+          label="Resume"
+          variant="secondary"
+          fullWidth
+          onPress={() => void mutate(() => api.shiftResume())}
+        />
+        <Button
+          label="End shift"
+          variant="outline"
+          fullWidth
+          onPress={() => {
+            void mutate(async () => {
+              stopGpsTracking();
+              await api.shiftEnd();
+              await api.setAvailability("offline");
+            });
+          }}
+        />
         <Button label="Refresh" variant="ghost" onPress={() => void refetch()} />
       </ScrollView>
     </Screen>

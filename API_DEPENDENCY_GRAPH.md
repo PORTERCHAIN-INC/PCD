@@ -112,14 +112,14 @@ DriverFleetbaseBridge ───► FleetbaseAdapter (GPS, POD, route, online tog
 
 ## Service → External adapter dependencies
 
-| Service | Adapter | External system |
-|---------|---------|-----------------|
-| `FleetbaseIntegrationBridge` | `FleetbaseAdapter` | Fleetbase `:8000` |
-| `PaymentService` | `stripe_service` | Stripe Checkout |
-| `QuoteService` | `porterchain_pricing` | Pricing library (local) |
-| `SsoService` | `FleetbaseSsoClient` | Fleetbase SSO |
-| `NotificationOrchestrator` | worker queues | Mailhog/SMTP, SMS, FCM |
-| `TrackingService` | Fleetbase adapter | Fleetbase tracker API |
+| Service                      | Adapter               | External system         |
+| ---------------------------- | --------------------- | ----------------------- |
+| `FleetbaseIntegrationBridge` | `FleetbaseAdapter`    | Fleetbase `:8000`       |
+| `PaymentService`             | `stripe_service`      | Stripe Checkout         |
+| `QuoteService`               | `porterchain_pricing` | Pricing library (local) |
+| `SsoService`                 | `FleetbaseSsoClient`  | Fleetbase SSO           |
+| `NotificationOrchestrator`   | worker queues         | Mailhog/SMTP, SMS, FCM  |
+| `TrackingService`            | Fleetbase adapter     | Fleetbase tracker API   |
 
 ---
 
@@ -168,33 +168,33 @@ emit_event() [booking_engine/_core.py]
 
 ## Worker queue API (internal)
 
-| Queue | Producer | Consumer |
-|-------|----------|----------|
-| `BILLING` | `payment.succeeded` | `worker/processors/billing.py` |
-| `EMAILS` | `notification.queued` | `worker/processors/notifications.py` |
-| `SMS` | `notification.queued` | notifications processor |
-| `PUSH` | `notification.queued` | notifications processor |
+| Queue      | Producer                      | Consumer                                      |
+| ---------- | ----------------------------- | --------------------------------------------- |
+| `BILLING`  | `payment.succeeded`           | `worker/processors/billing.py`                |
+| `EMAILS`   | `notification.queued`         | `worker/processors/notifications.py`          |
+| `SMS`      | `notification.queued`         | notifications processor                       |
+| `PUSH`     | `notification.queued`         | notifications processor                       |
 | `WEBHOOKS` | `webhook.received`, `order.*` | `worker/processors/webhooks.py` (stub fanout) |
-| `DISPATCH` | — | `worker/processors/dispatch.py` (stub) |
+| `DISPATCH` | —                             | `worker/processors/dispatch.py` (stub)        |
 
 ---
 
 ## Health & observability endpoints
 
-| Endpoint | Depends on |
-|----------|------------|
-| `GET /health` | DB, Redis, Fleetbase adapter ping |
-| `GET /health/live` | process |
-| `GET /health/ready` | DB + Redis |
-| `GET /metrics` | queue depths, request metrics |
+| Endpoint            | Depends on                        |
+| ------------------- | --------------------------------- |
+| `GET /health`       | DB, Redis, Fleetbase adapter ping |
+| `GET /health/live`  | process                           |
+| `GET /health/ready` | DB + Redis                        |
+| `GET /metrics`      | queue depths, request metrics     |
 
 ---
 
 ## Anti-patterns checked
 
-| Pattern | Status |
-|---------|--------|
-| Duplicate order APIs | ❌ None — single `AdminOrdersService` + merchant read |
-| Parallel Fleetbase clients | ❌ None — single `get_fleetbase_integration()` |
-| Router business logic | ⚠️ Minimal — mostly thin |
-| Service → Fleetbase without adapter | ❌ None found |
+| Pattern                             | Status                                                |
+| ----------------------------------- | ----------------------------------------------------- |
+| Duplicate order APIs                | ❌ None — single `AdminOrdersService` + merchant read |
+| Parallel Fleetbase clients          | ❌ None — single `get_fleetbase_integration()`        |
+| Router business logic               | ⚠️ Minimal — mostly thin                              |
+| Service → Fleetbase without adapter | ❌ None found                                         |

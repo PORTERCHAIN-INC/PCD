@@ -43,21 +43,21 @@ Removed all Supabase, Twilio, and booking-OTP authentication scaffolding from co
 
 ## Environment template changes
 
-| File | Removed |
-|------|---------|
-| `env/api.env.example` | `PORTERCHAIN_WEBSITE_OTP_KEY`, `BOOKING_OTP_*`, `BOOKING_OTP_SMTP_*`, `SUPABASE_*`, `TWILIO_*` |
-| `apps/api/env.example` | Same |
-| `env/website.env.example` | `NEXT_PUBLIC_SUPABASE_*`, `NEXT_PUBLIC_BOOKING_OTP_SKIP_VERIFY` |
-| `website/env.example` | Same |
-| `env/worker.env.example` | `TWILIO_*` |
-| `env/fleetbase.env.example` | `PORTERCHAIN_WEBSITE_OTP_KEY`, `TWILIO_*` |
-| `services/fleetbase/env.example` | Same |
-| `env/compose.env.example` | Twilio comment reference |
+| File                             | Removed                                                                                        |
+| -------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `env/api.env.example`            | `PORTERCHAIN_WEBSITE_OTP_KEY`, `BOOKING_OTP_*`, `BOOKING_OTP_SMTP_*`, `SUPABASE_*`, `TWILIO_*` |
+| `apps/api/env.example`           | Same                                                                                           |
+| `env/website.env.example`        | `NEXT_PUBLIC_SUPABASE_*`, `NEXT_PUBLIC_BOOKING_OTP_SKIP_VERIFY`                                |
+| `website/env.example`            | Same                                                                                           |
+| `env/worker.env.example`         | `TWILIO_*`                                                                                     |
+| `env/fleetbase.env.example`      | `PORTERCHAIN_WEBSITE_OTP_KEY`, `TWILIO_*`                                                      |
+| `services/fleetbase/env.example` | Same                                                                                           |
+| `env/compose.env.example`        | Twilio comment reference                                                                       |
 
 ### Added
 
-| Variable | File | Purpose |
-|----------|------|---------|
+| Variable                    | File                                                         | Purpose              |
+| --------------------------- | ------------------------------------------------------------ | -------------------- |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | `env/website.env.example`, `website/env.example`, `env/.env` | Public contact email |
 
 ### Local `env/.env`
@@ -79,34 +79,34 @@ Removed all Supabase, Twilio, and booking-OTP authentication scaffolding from co
 
 ## Documentation updates
 
-| File | Change |
-|------|--------|
-| `AUTHENTICATION.md` | Rewritten for Clerk-only (v3.0) |
-| `AUTHENTICATION_AUDIT.md` | Created — pre-cleanup inventory |
-| `AUTHENTICATION_ARCHITECTURE.md` | Created — target architecture |
-| `AUTHENTICATION_CLEANUP.md` | This document |
+| File                             | Change                          |
+| -------------------------------- | ------------------------------- |
+| `AUTHENTICATION.md`              | Rewritten for Clerk-only (v3.0) |
+| `AUTHENTICATION_AUDIT.md`        | Created — pre-cleanup inventory |
+| `AUTHENTICATION_ARCHITECTURE.md` | Created — target architecture   |
+| `AUTHENTICATION_CLEANUP.md`      | This document                   |
 
 ### Legal / i18n
 
-| File | Change |
-|------|--------|
-| `website/messages/legal-en.json` | Clerk-only cookies; `peter@` → `ravi@` |
-| `website/messages/legal-fr.json` | Same |
-| `website/messages/corporate-*.json` | `peter@` → `ravi@` |
-| `website/messages/site-footer-*.json` | `peter@` → `ravi@` |
-| `PORTERCHAIN-LEGAL-AND-IMPORTANT-INFO.md` | `peter@` → `ravi@` |
+| File                                      | Change                                 |
+| ----------------------------------------- | -------------------------------------- |
+| `website/messages/legal-en.json`          | Clerk-only cookies; `peter@` → `ravi@` |
+| `website/messages/legal-fr.json`          | Same                                   |
+| `website/messages/corporate-*.json`       | `peter@` → `ravi@`                     |
+| `website/messages/site-footer-*.json`     | `peter@` → `ravi@`                     |
+| `PORTERCHAIN-LEGAL-AND-IMPORTANT-INFO.md` | `peter@` → `ravi@`                     |
 
 ---
 
 ## Not changed (intentional)
 
-| Item | Reason |
-|------|--------|
-| Driver POD OTP (`pod.py`, mobile `OTP_VERIFY`) | Delivery proof — not user authentication |
-| Porterchain driver session JWT | Session bridge after Clerk login |
-| Fleetbase Sanctum / dispatcher key | Execution engine integration |
-| Dev seed emails (`marco@porterchain.com`, etc.) | Test fixtures — not contact/auth |
-| `AUTHENTICATION_FLOW.md`, `RBAC.md`, `SSO.md` | Separate focused docs — update in follow-up if stale |
+| Item                                            | Reason                                               |
+| ----------------------------------------------- | ---------------------------------------------------- |
+| Driver POD OTP (`pod.py`, mobile `OTP_VERIFY`)  | Delivery proof — not user authentication             |
+| Porterchain driver session JWT                  | Session bridge after Clerk login                     |
+| Fleetbase Sanctum / dispatcher key              | Execution engine integration                         |
+| Dev seed emails (`marco@porterchain.com`, etc.) | Test fixtures — not contact/auth                     |
+| `AUTHENTICATION_FLOW.md`, `RBAC.md`, `SSO.md`   | Separate focused docs — update in follow-up if stale |
 
 ---
 

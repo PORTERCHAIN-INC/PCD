@@ -16,6 +16,7 @@
 ## Dev Bypass
 
 When Clerk not configured and `NODE_ENV=development`:
+
 - Token `"dev"` accepted
 - Admin auto-provisions dev user
 - Merchant uses `dev_merchant_org`

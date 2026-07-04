@@ -61,5 +61,9 @@ export const notificationsApi = {
   devices: (t: string) => adminFetch<NotificationDevice[]>(`${B}/devices`, t),
   retry: (t: string, id: string) =>
     adminFetch<{ ok: boolean }>(`${B}/retry/${id}`, t, { method: "POST" }),
-  inbox: (t: string) => adminFetch<{ unread_count: number; items: Array<Record<string, unknown>> }>("/v1/notifications/inbox", t),
+  inbox: (t: string) =>
+    adminFetch<{ unread_count: number; items: Array<Record<string, unknown>> }>(
+      "/v1/notifications/inbox",
+      t
+    ),
 };

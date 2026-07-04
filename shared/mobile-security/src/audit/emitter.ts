@@ -1,5 +1,9 @@
 import type { MobileAppKind, SecurityAuditEvent, SecurityAuditEventType } from "../types";
-import { getJsonEncrypted, getEncryptedMmkvStore, setJsonEncrypted } from "../storage/encrypted-mmkv";
+import {
+  getJsonEncrypted,
+  getEncryptedMmkvStore,
+  setJsonEncrypted,
+} from "../storage/encrypted-mmkv";
 
 const BUFFER_KEY = "security.audit_buffer";
 const MAX_BUFFER = 100;
@@ -7,12 +11,18 @@ const MAX_BUFFER = 100;
 let appKindRef: MobileAppKind = "customer";
 let flushHandler: ((events: SecurityAuditEvent[]) => Promise<void>) | null = null;
 
-export function configureAuditBuffer(appKind: MobileAppKind, flush?: (events: SecurityAuditEvent[]) => Promise<void>) {
+export function configureAuditBuffer(
+  appKind: MobileAppKind,
+  flush?: (events: SecurityAuditEvent[]) => Promise<void>
+) {
   appKindRef = appKind;
   flushHandler = flush ?? null;
 }
 
-export async function emitSecurityEvent(eventType: SecurityAuditEventType, metadata?: Record<string, unknown>) {
+export async function emitSecurityEvent(
+  eventType: SecurityAuditEventType,
+  metadata?: Record<string, unknown>
+) {
   const event: SecurityAuditEvent = {
     event_type: eventType,
     app_kind: appKindRef,

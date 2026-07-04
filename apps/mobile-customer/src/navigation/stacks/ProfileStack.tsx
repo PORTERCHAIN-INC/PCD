@@ -7,9 +7,18 @@ import { SupportScreen } from "../../screens/profile/SupportScreen";
 import { SettingsScreen } from "../../screens/profile/SettingsScreen";
 import type { ProfileStackParamList } from "../types";
 
-const ClaimsScreen = createLazyScreen(() => import("../../screens/profile/ClaimsScreen"), "ClaimsScreen");
-const OfflineSyncScreen = createLazyScreen(() => import("../../screens/profile/OfflineSyncScreen"), "OfflineSyncScreen");
-const PerformanceScreen = createLazyScreen(() => import("../../screens/profile/PerformanceScreen"), "PerformanceScreen");
+const ClaimsScreen = createLazyScreen(
+  () => import("../../screens/profile/ClaimsScreen"),
+  "ClaimsScreen"
+);
+const OfflineSyncScreen = createLazyScreen(
+  () => import("../../screens/profile/OfflineSyncScreen"),
+  "OfflineSyncScreen"
+);
+const PerformanceScreen = createLazyScreen(
+  () => import("../../screens/profile/PerformanceScreen"),
+  "PerformanceScreen"
+);
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
 

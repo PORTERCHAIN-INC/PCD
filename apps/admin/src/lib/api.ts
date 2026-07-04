@@ -28,7 +28,10 @@ export async function adminFetch<T>(
         typeof detail === "string"
           ? detail
           : Array.isArray(detail)
-            ? detail.map((d: { msg?: string }) => d.msg).filter(Boolean).join(", ")
+            ? detail
+                .map((d: { msg?: string }) => d.msg)
+                .filter(Boolean)
+                .join(", ")
             : `API ${res.status}`;
       throw new Error(message || `API ${res.status}`);
     }

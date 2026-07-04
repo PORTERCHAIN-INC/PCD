@@ -8,7 +8,13 @@ import { Text } from "@porterchain/mobile-ui";
 const DEFAULT_ESTIMATED_ITEM_SIZE = 72;
 const DEFAULT_DRAW_DISTANCE = 250;
 
-export function ListContainer({ style, ...props }: { style?: ViewStyle; children?: React.ReactNode }) {
+export function ListContainer({
+  style,
+  ...props
+}: {
+  style?: ViewStyle;
+  children?: React.ReactNode;
+}) {
   const { theme } = useTheme();
   return <View style={[{ flex: 1, backgroundColor: theme.colors.background }, style]} {...props} />;
 }
@@ -30,7 +36,13 @@ export function EmptyState({ title, message }: { title: string; message?: string
     <View style={{ padding: theme.spacing.xl, alignItems: "center" }}>
       <Text style={{ fontWeight: "700", fontSize: theme.typography.size.lg }}>{title}</Text>
       {message ? (
-        <Text style={{ marginTop: theme.spacing.sm, color: theme.colors.textMuted, textAlign: "center" }}>
+        <Text
+          style={{
+            marginTop: theme.spacing.sm,
+            color: theme.colors.textMuted,
+            textAlign: "center",
+          }}
+        >
           {message}
         </Text>
       ) : null}

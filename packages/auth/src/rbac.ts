@@ -3,13 +3,7 @@ import type { AuthPrincipal, EnterpriseRole, Permission, PlatformRole } from "@p
 export const ENTERPRISE_ROLE_PERMISSIONS: Record<EnterpriseRole, readonly Permission[]> = {
   customer: ["quote:read", "quote:write", "order:read"],
   merchant: ["quote:read", "quote:write", "order:read", "order:write"],
-  merchant_admin: [
-    "quote:read",
-    "quote:write",
-    "order:read",
-    "order:write",
-    "merchant:manage",
-  ],
+  merchant_admin: ["quote:read", "quote:write", "order:read", "order:write", "merchant:manage"],
   driver: ["order:read"],
   dispatcher: ["order:read", "order:write", "dispatch:manage"],
   finance: ["order:read", "billing:manage"],
@@ -36,12 +30,12 @@ export const ENTERPRISE_ROLE_PERMISSIONS: Record<EnterpriseRole, readonly Permis
   super_admin: ["system:all"],
 };
 
-export const ROLE_PERMISSIONS: Record<PlatformRole, readonly Permission[]> = {
+export const ROLE_PERMISSIONS = {
   visitor: ["quote:read", "quote:write"],
   ...ENTERPRISE_ROLE_PERMISSIONS,
   sales: ["crm:manage", "merchant:manage"],
   fleet_manager: ["dispatch:manage", "driver:manage"],
-};
+} as const satisfies Record<PlatformRole, readonly Permission[]>;
 
 export function hasRole(principal: AuthPrincipal, role: PlatformRole): boolean {
   return principal.roles.includes(role);

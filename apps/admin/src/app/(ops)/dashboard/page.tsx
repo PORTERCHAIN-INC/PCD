@@ -61,7 +61,14 @@ export default function DashboardPage() {
     return () => clearInterval(poll);
   }, []);
 
-  const { data: center, isLoading, isError, error, refetch, dataUpdatedAt } = useQuery({
+  const {
+    data: center,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    dataUpdatedAt,
+  } = useQuery({
     queryKey: ["dashboard-center", tick],
     enabled,
     queryFn: async () => dashboardApi.center(await getApiToken()),
@@ -105,7 +112,9 @@ export default function DashboardPage() {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-6 text-sm">
         <p className="font-semibold text-red-800">Failed to load command center</p>
-        <p className="mt-1 text-red-700">{error instanceof Error ? error.message : "Unknown error"}</p>
+        <p className="mt-1 text-red-700">
+          {error instanceof Error ? error.message : "Unknown error"}
+        </p>
         <Button variant="outline" className="mt-4" onClick={() => void refetch()}>
           <RefreshCw className="h-4 w-4" /> Retry
         </Button>
@@ -132,7 +141,11 @@ export default function DashboardPage() {
       />
 
       {layoutOpen && (
-        <WidgetLayoutPanel widgets={widgets} onToggle={toggleWidget} onClose={() => setLayoutOpen(false)} />
+        <WidgetLayoutPanel
+          widgets={widgets}
+          onToggle={toggleWidget}
+          onClose={() => setLayoutOpen(false)}
+        />
       )}
 
       {widgets.kpis && <KpiGrid center={center} theme={theme} />}
@@ -140,7 +153,11 @@ export default function DashboardPage() {
       <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
         <div className="space-y-5">
           {widgets.smart && center.smart && (
-            <Panel title="Executive summary" icon={<TrendingUp className="h-4 w-4" />} theme={theme}>
+            <Panel
+              title="Executive summary"
+              icon={<TrendingUp className="h-4 w-4" />}
+              theme={theme}
+            >
               <p className="text-sm leading-relaxed text-muted">
                 {(center.smart.ai_summary as string) ||
                   `Revenue growth ${center.executive.growth_percent ?? 0}% · SLA ${center.executive.delivery_sla_percent ?? 0}% · Forecast ${formatCents(Number(center.executive.forecast_revenue_cents ?? 0))}`}
@@ -158,16 +175,43 @@ export default function DashboardPage() {
           {widgets.operations && (
             <Panel title="Operations center" icon={<Zap className="h-4 w-4" />} theme={theme}>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <MiniKpi label="Dispatch queue" value={Number(center.operations.waiting_dispatch ?? 0)} />
+                <MiniKpi
+                  label="Dispatch queue"
+                  value={Number(center.operations.waiting_dispatch ?? 0)}
+                />
                 <MiniKpi label="Assigned" value={Number(center.orders.assigned ?? 0)} />
-                <MiniKpi label="Pickup queue" value={Number(center.operations.pending_pickups ?? 0)} />
-                <MiniKpi label="Delivery queue" value={Number(center.operations.pending_deliveries ?? 0)} />
-                <MiniKpi label="Delayed" value={Number(center.operations.delayed_orders ?? 0)} alert />
-                <MiniKpi label="Emergency" value={Number(center.operations.high_priority_orders ?? 0)} alert />
-                <MiniKpi label="SLA breached" value={Number(center.operations.sla_breached ?? 0)} alert />
-                <MiniKpi label="Exceptions" value={Number(center.operations.open_exceptions ?? 0)} />
+                <MiniKpi
+                  label="Pickup queue"
+                  value={Number(center.operations.pending_pickups ?? 0)}
+                />
+                <MiniKpi
+                  label="Delivery queue"
+                  value={Number(center.operations.pending_deliveries ?? 0)}
+                />
+                <MiniKpi
+                  label="Delayed"
+                  value={Number(center.operations.delayed_orders ?? 0)}
+                  alert
+                />
+                <MiniKpi
+                  label="Emergency"
+                  value={Number(center.operations.high_priority_orders ?? 0)}
+                  alert
+                />
+                <MiniKpi
+                  label="SLA breached"
+                  value={Number(center.operations.sla_breached ?? 0)}
+                  alert
+                />
+                <MiniKpi
+                  label="Exceptions"
+                  value={Number(center.operations.open_exceptions ?? 0)}
+                />
               </div>
-              <Link href="/operations" className="mt-3 inline-block text-sm text-secondary hover:underline">
+              <Link
+                href="/operations"
+                className="mt-3 inline-block text-sm text-secondary hover:underline"
+              >
                 Open control tower →
               </Link>
             </Panel>
@@ -192,9 +236,16 @@ export default function DashboardPage() {
           </div>
 
           {widgets.reports && chartOption && (
-            <Panel title="Revenue & order trends" icon={<TrendingUp className="h-4 w-4" />} theme={theme}>
+            <Panel
+              title="Revenue & order trends"
+              icon={<TrendingUp className="h-4 w-4" />}
+              theme={theme}
+            >
               <ReportChart option={chartOption} height={280} />
-              <Link href="/reports" className="mt-2 inline-block text-sm text-secondary hover:underline">
+              <Link
+                href="/reports"
+                className="mt-2 inline-block text-sm text-secondary hover:underline"
+              >
                 Reports center →
               </Link>
             </Panel>
@@ -273,7 +324,11 @@ function CommandHeader({
           <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
             <span className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
-              {now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+              {now.toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
             </span>
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
@@ -350,7 +405,10 @@ function CommandHeader({
 function KpiGrid({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
   const k = center.kpis;
   const cards = [
-    { label: "Today's revenue", value: formatCents(Number(k.revenue_today_cents ?? k.todays_revenue_cents ?? 0)) },
+    {
+      label: "Today's revenue",
+      value: formatCents(Number(k.revenue_today_cents ?? k.todays_revenue_cents ?? 0)),
+    },
     { label: "Orders today", value: String(k.orders_today ?? k.todays_bookings ?? 0) },
     { label: "In progress", value: String(k.orders_in_progress ?? 0) },
     { label: "Drivers online", value: String(k.drivers_online ?? 0) },
@@ -416,7 +474,12 @@ function Panel({
 
 function MiniKpi({ label, value, alert }: { label: string; value: number; alert?: boolean }) {
   return (
-    <div className={cn("rounded-lg border border-primary/5 px-2 py-1.5", alert && value > 0 && "border-amber-200 bg-amber-50")}>
+    <div
+      className={cn(
+        "rounded-lg border border-primary/5 px-2 py-1.5",
+        alert && value > 0 && "border-amber-200 bg-amber-50"
+      )}
+    >
       <p className="text-xs text-muted">{label}</p>
       <p className="font-semibold">{value}</p>
     </div>
@@ -456,7 +519,10 @@ function BookingPanel({ center, theme }: { center: DashboardCenter; theme: "ligh
         <Row label="Conversion %" value={Number(b.conversion_rate_percent ?? 0)} />
         <Row label="Pending quotes" value={center.kpis.pending_quotes as number} />
       </div>
-      <Link href="/booking-drafts" className="mt-2 inline-block text-sm text-secondary hover:underline">
+      <Link
+        href="/booking-drafts"
+        className="mt-2 inline-block text-sm text-secondary hover:underline"
+      >
         Booking drafts →
       </Link>
     </Panel>
@@ -472,7 +538,10 @@ function FinancePanel({ center, theme }: { center: DashboardCenter; theme: "ligh
         <Row label="Outstanding" value={formatCents(Number(f.outstanding_invoices_cents ?? 0))} />
         <Row label="Pending payments" value={Number(f.pending_payments ?? 0)} />
         <Row label="Refunds" value={Number(f.refunds_count ?? 0)} />
-        <Row label="Driver payouts" value={formatCents(Number(f.driver_payouts_pending_cents ?? 0))} />
+        <Row
+          label="Driver payouts"
+          value={formatCents(Number(f.driver_payouts_pending_cents ?? 0))}
+        />
         <Row label="Cash flow" value={formatCents(Number(f.cash_flow_cents ?? 0))} />
       </div>
       <Link href="/finance" className="mt-2 inline-block text-sm text-secondary hover:underline">
@@ -619,7 +688,10 @@ function SystemHealthPanel({
           );
         })}
       </div>
-      <Link href="/system-health" className="mt-2 inline-block text-sm text-secondary hover:underline">
+      <Link
+        href="/system-health"
+        className="mt-2 inline-block text-sm text-secondary hover:underline"
+      >
         System Health →
       </Link>
     </Panel>
@@ -631,7 +703,9 @@ function RightSidebar({ center, theme }: { center: DashboardCenter; theme: "ligh
   return (
     <>
       <Panel title="Today's schedule" icon={<Calendar className="h-4 w-4" />} theme={theme}>
-        <p className="text-sm text-muted">Follow-ups: {Number(center.crm.todays_follow_ups ?? 0)}</p>
+        <p className="text-sm text-muted">
+          Follow-ups: {Number(center.crm.todays_follow_ups ?? 0)}
+        </p>
         <p className="text-sm text-muted">Meetings: {Number(center.crm.meetings_today ?? 0)}</p>
       </Panel>
       <Panel title="Approvals & pending" icon={<Bell className="h-4 w-4" />} theme={theme}>
@@ -646,9 +720,13 @@ function RightSidebar({ center, theme }: { center: DashboardCenter; theme: "ligh
       </Panel>
       <Panel title="Notifications" icon={<Bell className="h-4 w-4" />} theme={theme}>
         <p className="text-sm text-muted">
-          Live updates via polling and live map WebSocket. Open Operations for real-time dispatch feed.
+          Live updates via polling and live map WebSocket. Open Operations for real-time dispatch
+          feed.
         </p>
-        <Link href="/operations" className="mt-2 inline-block text-sm text-secondary hover:underline">
+        <Link
+          href="/operations"
+          className="mt-2 inline-block text-sm text-secondary hover:underline"
+        >
           Operations →
         </Link>
       </Panel>
@@ -681,7 +759,9 @@ function WidgetLayoutPanel({
             onClick={() => onToggle(w.id)}
             className={cn(
               "rounded-lg border px-3 py-1.5 text-xs font-medium",
-              widgets[w.id] ? "border-secondary bg-secondary/10 text-secondary" : "border-primary/10 text-muted"
+              widgets[w.id]
+                ? "border-secondary bg-secondary/10 text-secondary"
+                : "border-primary/10 text-muted"
             )}
           >
             {w.label}

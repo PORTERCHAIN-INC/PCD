@@ -286,11 +286,15 @@ export const settingsApi = {
     }),
 
   recipients: (token: string, orgId?: string) =>
-    settingsFetch<Array<{ id: string; name: string; email?: string | null; phone?: string | null; company?: string | null }>>(
-      "/v1/merchant/recipients",
-      token,
-      { orgId }
-    ),
+    settingsFetch<
+      Array<{
+        id: string;
+        name: string;
+        email?: string | null;
+        phone?: string | null;
+        company?: string | null;
+      }>
+    >("/v1/merchant/recipients", token, { orgId }),
 
   addRecipient: (
     token: string,

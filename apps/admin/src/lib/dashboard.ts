@@ -104,12 +104,18 @@ export function healthStatus(value: unknown): "healthy" | "warning" | "critical"
   const s = String(
     typeof value === "object" && value && "status" in value
       ? (value as { status: string }).status
-      : value ?? ""
+      : (value ?? "")
   ).toLowerCase();
   if (s.includes("ok") || s.includes("configured") || s.includes("healthy") || s === "local")
     return "healthy";
-  if (s.includes("mock") || s.includes("degraded") || s.includes("bypass") || s.includes("log_only"))
+  if (
+    s.includes("mock") ||
+    s.includes("degraded") ||
+    s.includes("bypass") ||
+    s.includes("log_only")
+  )
     return "warning";
-  if (s.includes("error") || s.includes("unconfigured") || s.includes("unavailable")) return "critical";
+  if (s.includes("error") || s.includes("unconfigured") || s.includes("unavailable"))
+    return "critical";
   return "unknown";
 }

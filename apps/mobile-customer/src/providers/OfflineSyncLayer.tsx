@@ -7,7 +7,12 @@ export function OfflineSyncLayer({ children }: { children: ReactNode }) {
   const adapter = useMemo(() => createCustomerOfflineSyncAdapter(api), [api]);
 
   return (
-    <OfflineSyncProvider storeId="porterchain-customer-offline" adapter={adapter} autoSyncIntervalMs={45000} mode="customer">
+    <OfflineSyncProvider
+      storeId="porterchain-customer-offline"
+      adapter={adapter}
+      autoSyncIntervalMs={45000}
+      mode="customer"
+    >
       {children}
     </OfflineSyncProvider>
   );

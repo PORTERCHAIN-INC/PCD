@@ -29,10 +29,7 @@ export function useNotificationCenter(
   }, [inboxQuery.data?.items]);
 
   const unreadCount = inboxQuery.data?.unread_count ?? 0;
-  const filteredItems = useMemo(
-    () => filterInboxItems(liveItems, filter),
-    [liveItems, filter]
-  );
+  const filteredItems = useMemo(() => filterInboxItems(liveItems, filter), [liveItems, filter]);
   const groups = useMemo(
     () => groupInboxItems(filteredItems, inboxQuery.data?.by_group, mode),
     [filteredItems, inboxQuery.data?.by_group, mode]
@@ -42,13 +39,16 @@ export function useNotificationCenter(
     await inboxQuery.refetch();
   }, [inboxQuery]);
 
-  const pushRealtimeItem = useCallback((item: NotificationInboxItem) => {
-    setLiveItems((prev) => {
-      const without = prev.filter((row) => row.id !== item.id);
-      return [item, ...without];
-    });
-    void queryClient.invalidateQueries({ queryKey: ["notifications", mode] });
-  }, [mode, queryClient]);
+  const pushRealtimeItem = useCallback(
+    (item: NotificationInboxItem) => {
+      setLiveItems((prev) => {
+        const without = prev.filter((row) => row.id !== item.id);
+        return [item, ...without];
+      });
+      void queryClient.invalidateQueries({ queryKey: ["notifications", mode] });
+    },
+    [mode, queryClient]
+  );
 
   const markRead = useCallback(
     async (id: string) => {

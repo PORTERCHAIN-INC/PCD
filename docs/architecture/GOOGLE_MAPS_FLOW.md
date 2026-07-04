@@ -8,11 +8,11 @@ Google Maps is used for **visualization and address autocomplete only**. Distanc
 
 ## Client-Side Usage
 
-| App | File | Purpose |
-|-----|------|---------|
-| Website | `website/src/app/[locale]/book/` | Address autocomplete via `@porterchain/maps` |
-| Merchant | `apps/merchant-portal/src/app/(portal)/book/` | Same shared package |
-| Admin | `apps/admin/src/lib/maps.ts`, live-map pages | Map markers, driver positions |
+| App      | File                                          | Purpose                                      |
+| -------- | --------------------------------------------- | -------------------------------------------- |
+| Website  | `website/src/app/[locale]/book/`              | Address autocomplete via `@porterchain/maps` |
+| Merchant | `apps/merchant-portal/src/app/(portal)/book/` | Same shared package                          |
+| Admin    | `apps/admin/src/lib/maps.ts`, live-map pages  | Map markers, driver positions                |
 
 Package: `packages/maps/src/GoogleMapsProvider.tsx` wraps `@vis.gl/react-google-maps`.
 

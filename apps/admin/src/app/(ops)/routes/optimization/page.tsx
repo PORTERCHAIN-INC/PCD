@@ -30,7 +30,11 @@ export default function OptimizationPage() {
   const { getApiToken } = useAdminAuth();
   const [strategy, setStrategy] = useState("balanced");
   const [busyId, setBusyId] = useState<string | null>(null);
-  const { data: plans, error, refetch } = useApiData((t) => routeCenter.listPlans(t), [], { key: "route-plans" });
+  const {
+    data: plans,
+    error,
+    refetch,
+  } = useApiData((t) => routeCenter.listPlans(t), [], { key: "route-plans" });
 
   const optimize = async (id: string) => {
     setBusyId(id);
@@ -65,7 +69,10 @@ export default function OptimizationPage() {
         </Field>
       </RouteSectionCard>
 
-      <RouteSectionCard title="Routes to Optimize" description={`${candidates.length} routes ready for optimization.`}>
+      <RouteSectionCard
+        title="Routes to Optimize"
+        description={`${candidates.length} routes ready for optimization.`}
+      >
         <RoutePlanList
           plans={candidates}
           emptyTitle="No routes ready to optimize"
@@ -73,8 +80,8 @@ export default function OptimizationPage() {
           renderMeta={(plan: RoutePlan) =>
             plan.simulation?.distance_meters ? (
               <p className="mt-1 text-xs text-muted">
-                {Math.round(Number(plan.simulation.distance_meters) / 1000)} km · {plan.simulation.duration_minutes} min · fuel{" "}
-                {plan.simulation.fuel_liters} L
+                {Math.round(Number(plan.simulation.distance_meters) / 1000)} km ·{" "}
+                {plan.simulation.duration_minutes} min · fuel {plan.simulation.fuel_liters} L
               </p>
             ) : null
           }

@@ -68,10 +68,20 @@ export function AddDriverDocumentForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-xl border border-primary/10 bg-gray-bg/30 p-4">
+    <form
+      onSubmit={submit}
+      className="space-y-3 rounded-xl border border-primary/10 bg-gray-bg/30 p-4"
+    >
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-primary">New document</h4>
-        <Button type="button" variant="ghost" onClick={() => { reset(); setOpen(false); }}>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => {
+            reset();
+            setOpen(false);
+          }}
+        >
           Cancel
         </Button>
       </div>

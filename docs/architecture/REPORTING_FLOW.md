@@ -6,14 +6,14 @@
 
 Admin portal calls `GET /v1/admin/reports/*` → `AdminReportsService` aggregates from existing module services:
 
-| Submodule | Source Service |
-|-----------|----------------|
-| Orders | `AdminOrdersService.reports()` |
-| Finance / revenue | `AdminFinanceService.reports()` |
-| Claims | `AdminClaimsService.reports()` |
-| Support | `AdminSupportService.reports()` |
-| Pricing | `AdminPricingService.reports()` |
-| CRM | `CrmSalesService.reports()` |
+| Submodule           | Source Service                          |
+| ------------------- | --------------------------------------- |
+| Orders              | `AdminOrdersService.reports()`          |
+| Finance / revenue   | `AdminFinanceService.reports()`         |
+| Claims              | `AdminClaimsService.reports()`          |
+| Support             | `AdminSupportService.reports()`         |
+| Pricing             | `AdminPricingService.reports()`         |
+| CRM                 | `CrmSalesService.reports()`             |
 | Merchants / drivers | Faceted counts from respective services |
 
 No separate reporting database or OLAP layer — reports are **live SQL aggregates**.

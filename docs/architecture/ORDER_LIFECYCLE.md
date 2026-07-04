@@ -18,14 +18,14 @@ Exception states: `DRIVER_REJECTED`, `FAILED`, `CANCELLED`, `RETURN_TO_SENDER`, 
 
 ## Transition Sources
 
-| Source | Mechanism |
-|--------|-----------|
-| Retail confirmation | `BookingConfirmationService` → `BOOKED` → `DISPATCH_READY` |
-| Merchant booking | `MerchantBookingService` → same |
-| Admin assign | `AdminOperationsService.assign_driver()` → `DRIVER_ASSIGNED` |
-| Fleetbase webhooks | `WebhookProcessor` + `StatusTranslator` |
-| Driver app | `porterchain_driver` stop actions → events |
-| Merchant cancel | `MerchantOrdersService.cancel_order()` → `CANCELLED` + direct Fleetbase cancel |
+| Source              | Mechanism                                                                      |
+| ------------------- | ------------------------------------------------------------------------------ |
+| Retail confirmation | `BookingConfirmationService` → `BOOKED` → `DISPATCH_READY`                     |
+| Merchant booking    | `MerchantBookingService` → same                                                |
+| Admin assign        | `AdminOperationsService.assign_driver()` → `DRIVER_ASSIGNED`                   |
+| Fleetbase webhooks  | `WebhookProcessor` + `StatusTranslator`                                        |
+| Driver app          | `porterchain_driver` stop actions → events                                     |
+| Merchant cancel     | `MerchantOrdersService.cancel_order()` → `CANCELLED` + direct Fleetbase cancel |
 
 ## Metadata
 

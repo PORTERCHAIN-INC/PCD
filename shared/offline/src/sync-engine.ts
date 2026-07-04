@@ -1,4 +1,9 @@
-import type { OfflineAction, OfflineQueueAdapter, OfflineSyncAdapter, OfflineSyncResult } from "@porterchain/mobile-api";
+import type {
+  OfflineAction,
+  OfflineQueueAdapter,
+  OfflineSyncAdapter,
+  OfflineSyncResult,
+} from "@porterchain/mobile-api";
 import { DRIVER_OFFLINE_ACTIONS } from "@porterchain/mobile-api";
 import type { createGpsBuffer } from "@porterchain/mobile-storage";
 import type { createUploadQueue } from "@porterchain/mobile-storage";
@@ -27,7 +32,9 @@ export async function runOfflineSync(deps: SyncEngineDeps): Promise<OfflineSyncR
   let uploaded = 0;
   let gps_flushed = 0;
 
-  const uploads = deps.uploadQueue.list().filter((row) => row.status === "pending" || row.status === "failed");
+  const uploads = deps.uploadQueue
+    .list()
+    .filter((row) => row.status === "pending" || row.status === "failed");
   for (const item of uploads) {
     if (item.retry_count >= MAX_RETRIES) continue;
     deps.uploadQueue.update(item.id, { status: "uploading" });
@@ -131,7 +138,8 @@ export function summarizeLocalQueue(
   const pending = rows.filter((row) => row.status === "queued" || row.status === "syncing");
   const failed = rows.filter((row) => row.status === "failed");
   const uploads = rows.filter((row) => UPLOAD_ACTIONS.has(row.action_type));
-  const gps = rows.filter((row) => row.action_type === DRIVER_OFFLINE_ACTIONS.LOCATION).length + gpsCount;
+  const gps =
+    rows.filter((row) => row.action_type === DRIVER_OFFLINE_ACTIONS.LOCATION).length + gpsCount;
 
   return {
     local_pending: pending.length + uploadCount,

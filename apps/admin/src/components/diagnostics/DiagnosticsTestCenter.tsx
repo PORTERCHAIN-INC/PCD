@@ -99,7 +99,8 @@ export function DiagnosticsTestCenter() {
     [tab]
   );
   const { data: events, loading: eventsLoading } = useApiData(
-    (t) => (tab === "events" ? diagnosticsApi.events(t, eventFilter || undefined) : Promise.resolve(null)),
+    (t) =>
+      tab === "events" ? diagnosticsApi.events(t, eventFilter || undefined) : Promise.resolve(null),
     [tab, eventFilter]
   );
   const { data: fleetbase } = useApiData(
@@ -181,7 +182,11 @@ export function DiagnosticsTestCenter() {
     setBusy("e2e");
     try {
       const token = await getApiToken();
-      const result = await diagnosticsApi.runE2E(token, { writeFiles, cleanup: true, merchantOrderCount: 100 });
+      const result = await diagnosticsApi.runE2E(token, {
+        writeFiles,
+        cleanup: true,
+        merchantOrderCount: 100,
+      });
       setE2eResult(result);
       setReports(result.reports);
     } finally {
@@ -218,7 +223,9 @@ export function DiagnosticsTestCenter() {
             type="button"
             onClick={() => setTab(id)}
             className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
-              tab === id ? "bg-secondary text-white shadow-sm" : "border border-primary/10 bg-white text-muted hover:bg-gray-50"
+              tab === id
+                ? "bg-secondary text-white shadow-sm"
+                : "border border-primary/10 bg-white text-muted hover:bg-gray-50"
             }`}
           >
             <Icon className="h-4 w-4" />
@@ -235,7 +242,9 @@ export function DiagnosticsTestCenter() {
                 {busy === "all" ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
                 Run Complete Platform Validation
               </Button>
-              {catalog && <span className="text-sm text-muted">{catalog.count} tests in catalog</span>}
+              {catalog && (
+                <span className="text-sm text-muted">{catalog.count} tests in catalog</span>
+              )}
             </div>
             {platformRun && (
               <div className="mt-4 space-y-2">
@@ -245,7 +254,10 @@ export function DiagnosticsTestCenter() {
                   fail={platformRun.summary.fail}
                   total={platformRun.results.length}
                 />
-                <p className="text-xs text-muted">{platformRun.execution_ms} ms total · {new Date(platformRun.ran_at).toLocaleString()}</p>
+                <p className="text-xs text-muted">
+                  {platformRun.execution_ms} ms total ·{" "}
+                  {new Date(platformRun.ran_at).toLocaleString()}
+                </p>
               </div>
             )}
           </SectionCard>
@@ -292,8 +304,9 @@ export function DiagnosticsTestCenter() {
       {tab === "e2e" && (
         <SectionCard title="Enterprise E2E validation" icon={<Activity className="h-4 w-4" />}>
           <p className="mb-3 text-sm text-muted">
-            Automated validation across all 10 phases — system layer, forward/reverse logistics, merchant bulk,
-            failure scenarios, event bus, notifications, consistency, and observability (masterrule §16).
+            Automated validation across all 10 phases — system layer, forward/reverse logistics,
+            merchant bulk, failure scenarios, event bus, notifications, consistency, and
+            observability (masterrule §16).
           </p>
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => runE2E(false)} disabled={busy === "e2e"}>
@@ -320,7 +333,9 @@ export function DiagnosticsTestCenter() {
                 {Object.entries(e2eResult.phases).map(([key, phase]) => (
                   <li key={key} className="flex justify-between rounded-lg border px-3 py-2">
                     <span>{String((phase as Record<string, unknown>).name ?? key)}</span>
-                    <span>{statusIcon(String((phase as Record<string, unknown>).overall ?? ""))}</span>
+                    <span>
+                      {statusIcon(String((phase as Record<string, unknown>).overall ?? ""))}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -338,14 +353,17 @@ export function DiagnosticsTestCenter() {
               <p className="text-sm font-medium">
                 Overall: {statusIcon(String(architecture.overall))} {String(architecture.overall)}
               </p>
-              <ArchitectureChainView chain={(architecture.chain as Array<Record<string, unknown>>) ?? []} />
+              <ArchitectureChainView
+                chain={(architecture.chain as Array<Record<string, unknown>>) ?? []}
+              />
               {(architecture.adr_checklist as Array<Record<string, unknown>>)?.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-sm font-semibold">ADR checklist</h4>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {(architecture.adr_checklist as Array<Record<string, unknown>>).map((adr) => (
                       <div key={String(adr.id)} className="rounded-lg border px-3 py-2 text-sm">
-                        {statusIcon(String(adr.status))} <span className="font-mono text-xs">{String(adr.id)}</span>{" "}
+                        {statusIcon(String(adr.status))}{" "}
+                        <span className="font-mono text-xs">{String(adr.id)}</span>{" "}
                         {String(adr.label)}
                       </div>
                     ))}
@@ -360,7 +378,14 @@ export function DiagnosticsTestCenter() {
       {tab === "modules" && modules && (
         <SectionCard title="Module validation" icon={<Layers className="h-4 w-4" />}>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {(modules.modules as Array<{ id: string; name: string; status: string; logs?: string[] }>)?.map((m) => (
+            {(
+              modules.modules as Array<{
+                id: string;
+                name: string;
+                status: string;
+                logs?: string[];
+              }>
+            )?.map((m) => (
               <div key={m.id} className="rounded-xl border border-primary/10 px-3 py-2 text-sm">
                 {statusIcon(m.status)} <span className="font-medium">{m.name}</span>
                 {m.logs?.[0] && <p className="mt-1 text-xs text-muted">{m.logs[0]}</p>}
@@ -377,7 +402,11 @@ export function DiagnosticsTestCenter() {
               <div key={String(sc.id)} className="rounded-xl border border-primary/10 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium">{String(sc.name)}</p>
-                  <Button variant="outline" disabled={busy === sc.id} onClick={() => simulateWorkflow(String(sc.id))}>
+                  <Button
+                    variant="outline"
+                    disabled={busy === sc.id}
+                    onClick={() => simulateWorkflow(String(sc.id))}
+                  >
                     Simulate (dry run)
                   </Button>
                 </div>
@@ -385,11 +414,13 @@ export function DiagnosticsTestCenter() {
                   {statusIcon(String(sc.overall))} {String(sc.overall)}
                 </p>
                 <ol className="mt-2 grid gap-1 sm:grid-cols-2 text-sm">
-                  {(sc.step_checks as Array<{ step: string; status: string; note?: string }>)?.map((step) => (
-                    <li key={step.step} className="flex gap-1">
-                      {statusIcon(step.status)} {step.step}
-                    </li>
-                  ))}
+                  {(sc.step_checks as Array<{ step: string; status: string; note?: string }>)?.map(
+                    (step) => (
+                      <li key={step.step} className="flex gap-1">
+                        {statusIcon(step.status)} {step.step}
+                      </li>
+                    )
+                  )}
                 </ol>
               </div>
             ))}
@@ -397,7 +428,9 @@ export function DiagnosticsTestCenter() {
           {workflowSim && (
             <div className="mt-4 rounded-xl border bg-gray-50 p-4 text-sm">
               <p className="font-medium">Last simulation: {String(workflowSim.scenario_id)}</p>
-              <pre className="mt-2 max-h-40 overflow-auto text-xs">{JSON.stringify(workflowSim, null, 2)}</pre>
+              <pre className="mt-2 max-h-40 overflow-auto text-xs">
+                {JSON.stringify(workflowSim, null, 2)}
+              </pre>
             </div>
           )}
         </SectionCard>
@@ -407,7 +440,11 @@ export function DiagnosticsTestCenter() {
         <SectionCard title="Event bus inspector" icon={<Radio className="h-4 w-4" />}>
           <div className="mb-3 flex flex-wrap gap-2">
             {["order", "driver", "merchant", "customer"].map((f) => (
-              <Button key={f} variant={eventFilter === f ? "primary" : "outline"} onClick={() => setEventFilter(f)}>
+              <Button
+                key={f}
+                variant={eventFilter === f ? "primary" : "outline"}
+                onClick={() => setEventFilter(f)}
+              >
                 {f}
               </Button>
             ))}
@@ -434,7 +471,9 @@ export function DiagnosticsTestCenter() {
                       <tr key={i} className="border-b border-gray-100">
                         <td className="py-2 pr-4 font-mono text-xs">{String(e.event_name)}</td>
                         <td className="py-2 pr-4">{String(e.publisher)}</td>
-                        <td className="py-2 pr-4 text-xs">{String((e.consumers as string[])?.join(", ") ?? "—")}</td>
+                        <td className="py-2 pr-4 text-xs">
+                          {String((e.consumers as string[])?.join(", ") ?? "—")}
+                        </td>
                         <td className="py-2 pr-4 text-xs">{String(e.timestamp ?? "—")}</td>
                         <td className="py-2">{String(e.status)}</td>
                       </tr>
@@ -465,7 +504,9 @@ export function DiagnosticsTestCenter() {
           </div>
           {(fleetbase.dead_letters as unknown[])?.length > 0 && (
             <div className="mt-4 rounded-xl border border-red-200 bg-red-50/50 p-3 text-sm">
-              <p className="font-medium text-red-800">{String((fleetbase.dead_letters as unknown[]).length)} dead letter job(s)</p>
+              <p className="font-medium text-red-800">
+                {String((fleetbase.dead_letters as unknown[]).length)} dead letter job(s)
+              </p>
             </div>
           )}
         </SectionCard>
@@ -473,7 +514,9 @@ export function DiagnosticsTestCenter() {
 
       {tab === "chaos" && (
         <SectionCard title="Chaos & failure testing" icon={<AlertTriangle className="h-4 w-4" />}>
-          <p className="mb-3 text-sm text-muted">Read-only resilience verification — validates retry, fallback, and recovery paths.</p>
+          <p className="mb-3 text-sm text-muted">
+            Read-only resilience verification — validates retry, fallback, and recovery paths.
+          </p>
           <div className="flex flex-wrap gap-2">
             {CHAOS_SCENARIOS.map((s) => (
               <Button key={s} variant="outline" disabled={busy === s} onClick={() => runChaos(s)}>
@@ -501,14 +544,21 @@ export function DiagnosticsTestCenter() {
             <Button onClick={() => generateReports(false)} disabled={busy === "reports"}>
               Generate all reports
             </Button>
-            <Button variant="outline" onClick={() => generateReports(true)} disabled={busy === "reports"}>
+            <Button
+              variant="outline"
+              onClick={() => generateReports(true)}
+              disabled={busy === "reports"}
+            >
               Write to repo (local)
             </Button>
           </div>
           {reports ? (
             <ul className="mt-4 space-y-2">
               {Object.entries(reports).map(([name, content]) => (
-                <li key={name} className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm">
+                <li
+                  key={name}
+                  className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm"
+                >
                   <span>{name}</span>
                   <Button variant="outline" onClick={() => downloadReport(name, content)}>
                     Download
@@ -517,7 +567,10 @@ export function DiagnosticsTestCenter() {
               ))}
             </ul>
           ) : (
-            <EmptyState title="No reports yet" description="Generate production readiness markdown reports." />
+            <EmptyState
+              title="No reports yet"
+              hint="Generate production readiness markdown reports."
+            />
           )}
         </SectionCard>
       )}
@@ -525,7 +578,15 @@ export function DiagnosticsTestCenter() {
   );
 }
 
-function CatBtn({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+function CatBtn({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"

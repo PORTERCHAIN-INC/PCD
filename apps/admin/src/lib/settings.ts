@@ -242,10 +242,14 @@ export const settingsApi = {
       body: JSON.stringify(body),
     }),
   inviteStaff: (token: string, body: { email: string; role: string; name?: string }) =>
-    adminFetch<StaffUser & { clerk_action: string; invitation_status: string }>(`${B}/staff/invite`, token, {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
+    adminFetch<StaffUser & { clerk_action: string; invitation_status: string }>(
+      `${B}/staff/invite`,
+      token,
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+      }
+    ),
   updateStaffRole: (token: string, userId: string, role: string, reason?: string) =>
     adminFetch<StaffUser>(`${B}/staff/${userId}/role`, token, {
       method: "PATCH",
@@ -264,7 +268,10 @@ export const settingsApi = {
   permissions: (token: string) => adminFetch<Record<string, string[]>>(`${B}/permissions`, token),
   audit: (token: string) => adminFetch<AuditEntry[]>(`${B}/audit`, token),
   search: (token: string, q: string) =>
-    adminFetch<Array<{ type: string; id: string; label: string }>>(`${B}/search?q=${encodeURIComponent(q)}`, token),
+    adminFetch<Array<{ type: string; id: string; label: string }>>(
+      `${B}/search?q=${encodeURIComponent(q)}`,
+      token
+    ),
   validate: (token: string) =>
     adminFetch<{ valid: boolean; issues: string[]; warnings: string[] }>(`${B}/validate`, token),
   exportConfig: (token: string) => adminFetch<Record<string, unknown>>(`${B}/export`, token),
@@ -274,7 +281,8 @@ export const settingsApi = {
       body: JSON.stringify({ config, reason }),
     }),
   rbac: (token: string) => adminFetch<RbacMatrixResponse>(`${B}/rbac`, token),
-  vehiclesOverview: (token: string) => adminFetch<VehiclesOverview>(`${B}/vehicles/overview`, token),
+  vehiclesOverview: (token: string) =>
+    adminFetch<VehiclesOverview>(`${B}/vehicles/overview`, token),
 };
 
 export type VehicleClassConfig = {
@@ -321,15 +329,28 @@ export const ADMIN_ROLES = [
 
 export function healthTone(status: string): "green" | "amber" | "red" | "gray" {
   const s = status.toLowerCase();
-  if (s.includes("ok") || s.includes("configured") || s.includes("healthy") || s.includes("enabled"))
+  if (
+    s.includes("ok") ||
+    s.includes("configured") ||
+    s.includes("healthy") ||
+    s.includes("enabled")
+  )
     return "green";
-  if (s.includes("mock") || s.includes("degraded") || s.includes("bypass") || s.includes("disabled"))
+  if (
+    s.includes("mock") ||
+    s.includes("degraded") ||
+    s.includes("bypass") ||
+    s.includes("disabled")
+  )
     return "amber";
   if (s.includes("error") || s.includes("unconfigured") || s.includes("unavailable")) return "red";
   return "gray";
 }
 
-export function exportSettingsJson(data: Record<string, unknown>, filename = "porterchain-settings.json") {
+export function exportSettingsJson(
+  data: Record<string, unknown>,
+  filename = "porterchain-settings.json"
+) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

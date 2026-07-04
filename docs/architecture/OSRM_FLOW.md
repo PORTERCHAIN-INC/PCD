@@ -9,6 +9,7 @@ OSRM provides **distance and duration** for quote pricing and merchant bookings.
 ## Engine Selection
 
 `MapsService.engine` reads `settings.routing_engine`:
+
 - If `valhalla` and `valhalla_url` set → Valhalla preferred
 - Else if `osrm_url` set → OSRM
 - Returns `None` if unreachable (pricing may fall back)
@@ -22,12 +23,12 @@ GET {osrm_url}/route/v1/driving/{lon1},{lat1};{lon2},{lat2}
 
 ## Callers
 
-| Service | Usage |
-|---------|-------|
-| `QuoteService` | Quote distance for tariff calculation |
-| `PricingService` / `pricing.py` | Admin pricing simulation |
-| `MerchantBookingService` | B2B shipment distance |
-| `services/routing.py` | Legacy wrapper → `MapsService` |
+| Service                         | Usage                                 |
+| ------------------------------- | ------------------------------------- |
+| `QuoteService`                  | Quote distance for tariff calculation |
+| `PricingService` / `pricing.py` | Admin pricing simulation              |
+| `MerchantBookingService`        | B2B shipment distance                 |
+| `services/routing.py`           | Legacy wrapper → `MapsService`        |
 
 ## Website Preview
 

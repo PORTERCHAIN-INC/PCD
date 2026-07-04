@@ -9,7 +9,9 @@ export function TrackingDashboardPanel({ dashboard }: { dashboard: TrackingDashb
     return (
       <div className="rounded-2xl border border-primary/10 bg-white p-8 text-center">
         <p className="font-medium text-primary">No active deliveries</p>
-        <p className="mt-1 text-sm text-muted">In-transit shipments will appear here with live driver positions.</p>
+        <p className="mt-1 text-sm text-muted">
+          In-transit shipments will appear here with live driver positions.
+        </p>
       </div>
     );
   }
@@ -30,13 +32,17 @@ export function TrackingDashboardPanel({ dashboard }: { dashboard: TrackingDashb
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted">
-          {dashboard.active_count} active · updated {new Date(dashboard.updated_at).toLocaleTimeString()}
+          {dashboard.active_count} active · updated{" "}
+          {new Date(dashboard.updated_at).toLocaleTimeString()}
         </p>
       </div>
       <TrackingMap tracking={mapTracking} height="360px" />
       <ul className="divide-y divide-primary/10 rounded-2xl border border-primary/10 bg-white">
         {dashboard.orders.map((o) => (
-          <li key={String(o.order_id)} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+          <li
+            key={String(o.order_id)}
+            className="flex items-center justify-between gap-4 px-4 py-3 text-sm"
+          >
             <div>
               <p className="font-mono font-medium">{String(o.tracking_number)}</p>
               <p className="text-muted">{String(o.state).replace(/_/g, " ")}</p>
@@ -45,7 +51,10 @@ export function TrackingDashboardPanel({ dashboard }: { dashboard: TrackingDashb
               {(o.eta as { label?: string })?.label && (
                 <p className="font-medium text-sky-700">{(o.eta as { label: string }).label}</p>
               )}
-              <Link href={`/track?q=${encodeURIComponent(String(o.tracking_number))}`} className="text-secondary hover:underline">
+              <Link
+                href={`/track?q=${encodeURIComponent(String(o.tracking_number))}`}
+                className="text-secondary hover:underline"
+              >
                 Live track
               </Link>
             </div>

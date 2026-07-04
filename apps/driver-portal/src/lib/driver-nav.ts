@@ -42,10 +42,30 @@ export const DRIVER_NAV_GROUPS: DriverNavGroup[] = [
     id: "operations",
     label: "Operations",
     items: [
-      { href: "/jobs", label: "Jobs", description: "Active deliveries and history", icon: Briefcase },
-      { href: "/navigation", label: "Navigation", description: "Maps, routes, and GPS", icon: Navigation },
-      { href: "/shift", label: "Shift", description: "Start, break, and availability", icon: Clock },
-      { href: "/communications", label: "Alerts", description: "Push, inbox, and offline sync", icon: Bell },
+      {
+        href: "/jobs",
+        label: "Jobs",
+        description: "Active deliveries and history",
+        icon: Briefcase,
+      },
+      {
+        href: "/navigation",
+        label: "Navigation",
+        description: "Maps, routes, and GPS",
+        icon: Navigation,
+      },
+      {
+        href: "/shift",
+        label: "Shift",
+        description: "Start, break, and availability",
+        icon: Clock,
+      },
+      {
+        href: "/communications",
+        label: "Alerts",
+        description: "Push, inbox, and offline sync",
+        icon: Bell,
+      },
     ],
   },
   {
@@ -54,16 +74,36 @@ export const DRIVER_NAV_GROUPS: DriverNavGroup[] = [
     items: [
       { href: "/earnings", label: "Earnings", description: "Statements and payouts", icon: Award },
       { href: "/wallet", label: "Wallet", description: "Balance and transactions", icon: Wallet },
-      { href: "/performance", label: "Performance", description: "Ratings and metrics", icon: Award },
+      {
+        href: "/performance",
+        label: "Performance",
+        description: "Ratings and metrics",
+        icon: Award,
+      },
     ],
   },
   {
     id: "account",
     label: "Account",
     items: [
-      { href: "/profile", label: "Profile", description: "License, vehicle, documents", icon: User },
-      { href: "/training", label: "Training", description: "Modules and compliance", icon: GraduationCap },
-      { href: "/support", label: "Support", description: "Tickets, claims, and SOS", icon: LifeBuoy },
+      {
+        href: "/profile",
+        label: "Profile",
+        description: "License, vehicle, documents",
+        icon: User,
+      },
+      {
+        href: "/training",
+        label: "Training",
+        description: "Modules and compliance",
+        icon: GraduationCap,
+      },
+      {
+        href: "/support",
+        label: "Support",
+        description: "Tickets, claims, and SOS",
+        icon: LifeBuoy,
+      },
     ],
   },
 ];

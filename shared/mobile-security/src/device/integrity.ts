@@ -27,7 +27,13 @@ export async function checkDeviceIntegrity(): Promise<DeviceIntegrityResult> {
   }
 
   if (__DEV__) {
-    return { compromised: false, jailbroken: false, rooted: false, reasons: [], checkedAt: new Date().toISOString() };
+    return {
+      compromised: false,
+      jailbroken: false,
+      rooted: false,
+      reasons: [],
+      checkedAt: new Date().toISOString(),
+    };
   }
 
   if (Platform.OS === "ios") {
@@ -38,7 +44,8 @@ export async function checkDeviceIntegrity(): Promise<DeviceIntegrityResult> {
   }
 
   if (Platform.OS === "android") {
-    const referrer = (Application as { getInstallReferrerAsync?: () => Promise<string> }).getInstallReferrerAsync;
+    const referrer = (Application as { getInstallReferrerAsync?: () => Promise<string> })
+      .getInstallReferrerAsync;
     if (referrer) {
       const value = await referrer().catch(() => null);
       if (value === "unknown") reasons.push("unknown_install_source");

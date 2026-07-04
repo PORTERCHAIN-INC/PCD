@@ -38,7 +38,9 @@ export function HistoryScreen() {
               subtitle={order.pickup?.formatted}
               meta={order.scheduled_at?.slice(0, 10)}
               trailing={<StatusChip label={order.state} tone="completed" />}
-              onPress={() => navigation.navigate("LiveMap", { trackingNumber: order.tracking_number })}
+              onPress={() =>
+                navigation.navigate("LiveMap", { trackingNumber: order.tracking_number })
+              }
             />
           )}
         />

@@ -55,10 +55,30 @@ export function QuoteScreen() {
     <Screen>
       <ScreenHeader title="Get a quote" subtitle="Instant pricing" />
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.md }}>
-        <Input label="Pickup address" value={pickup} onChangeText={setPickup} placeholder="123 King St W, Toronto" />
-        <Input label="Dropoff address" value={dropoff} onChangeText={setDropoff} placeholder="456 Bay St, Toronto" />
-        <Input label="Vehicle" value={vehicleClass} onChangeText={setVehicleClass} placeholder="car | van | bike" />
-        <Input label="Package type" value={packageType} onChangeText={setPackageType} placeholder="parcel" />
+        <Input
+          label="Pickup address"
+          value={pickup}
+          onChangeText={setPickup}
+          placeholder="123 King St W, Toronto"
+        />
+        <Input
+          label="Dropoff address"
+          value={dropoff}
+          onChangeText={setDropoff}
+          placeholder="456 Bay St, Toronto"
+        />
+        <Input
+          label="Vehicle"
+          value={vehicleClass}
+          onChangeText={setVehicleClass}
+          placeholder="car | van | bike"
+        />
+        <Input
+          label="Package type"
+          value={packageType}
+          onChangeText={setPackageType}
+          placeholder="parcel"
+        />
         {error ? <Body style={{ color: theme.colors.danger }}>{error}</Body> : null}
         <Button label="See price" loading={loading} fullWidth onPress={() => void onSubmit()} />
         <Title style={{ marginTop: theme.spacing.md }}>Saved draft</Title>

@@ -67,16 +67,19 @@ export default function EarningsPage() {
         </button>
       </header>
 
-      {error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-      )}
+      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
       <section className="mt-6">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
           Period Summary
         </h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiCard label="Today's Earnings" value={formatCents(snap.today_cents)} icon={TrendingUp} accent />
+          <KpiCard
+            label="Today's Earnings"
+            value={formatCents(snap.today_cents)}
+            icon={TrendingUp}
+            accent
+          />
           <KpiCard label="Weekly Earnings" value={formatCents(snap.week_cents)} icon={Calendar} />
           <KpiCard label="Monthly Earnings" value={formatCents(snap.month_cents)} icon={Wallet} />
           <KpiCard
@@ -91,7 +94,10 @@ export default function EarningsPage() {
       <section className="mt-8 grid gap-4 lg:grid-cols-2">
         <LineItemsCard title="Bonuses" icon={Gift} empty="No bonuses on file">
           {snap.bonuses.map((b) => (
-            <li key={b.id} className="flex justify-between gap-4 rounded-xl bg-[var(--gray-bg)] px-3 py-2 text-sm">
+            <li
+              key={b.id}
+              className="flex justify-between gap-4 rounded-xl bg-[var(--gray-bg)] px-3 py-2 text-sm"
+            >
               <div>
                 <p className="font-medium">{b.title}</p>
                 <p className="text-xs capitalize text-[var(--muted)]">{b.status}</p>
@@ -158,7 +164,9 @@ export default function EarningsPage() {
 
       <section className="mt-8 rounded-2xl bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">Statements</h2>
-        <p className="mt-1 text-sm text-[var(--muted)]">Monthly earnings statements from Finance Engine</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Monthly earnings statements from Finance Engine
+        </p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
@@ -262,7 +270,9 @@ function KpiCard({
       </div>
       <p className="mt-2 text-2xl font-bold">{value}</p>
       {hint && (
-        <p className={cn("mt-1 text-xs", accent ? "text-white/70" : "text-[var(--muted)]")}>{hint}</p>
+        <p className={cn("mt-1 text-xs", accent ? "text-white/70" : "text-[var(--muted)]")}>
+          {hint}
+        </p>
       )}
     </div>
   );
@@ -315,7 +325,9 @@ function Row({ label, value, hint }: { label: string; value: string; hint?: stri
       <dt className="text-[var(--muted)]">{label}</dt>
       <dd className="text-right font-semibold capitalize">
         {value}
-        {hint && <span className="mt-0.5 block text-xs font-normal text-[var(--muted)]">{hint}</span>}
+        {hint && (
+          <span className="mt-0.5 block text-xs font-normal text-[var(--muted)]">{hint}</span>
+        )}
       </dd>
     </div>
   );

@@ -65,9 +65,20 @@ export default function SupportPage() {
     module: activeModule,
   };
 
-  const { data: rows = [], isLoading, refetch } = useQuery({
+  const {
+    data: rows = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["support-tickets", filterKey],
-    enabled: enabled && tab !== "dashboard" && tab !== "kb" && tab !== "macros" && tab !== "automation" && tab !== "reports" && tab !== "settings",
+    enabled:
+      enabled &&
+      tab !== "dashboard" &&
+      tab !== "kb" &&
+      tab !== "macros" &&
+      tab !== "automation" &&
+      tab !== "reports" &&
+      tab !== "settings",
     queryFn: async () => supportApi.list(await getApiToken(), listFilters),
   });
 
@@ -145,7 +156,9 @@ export default function SupportPage() {
             onClick={() => setTab(t.id)}
             className={cn(
               "shrink-0 rounded-t-lg px-3 py-2 text-sm font-medium",
-              tab === t.id ? "border border-b-0 border-primary/10 bg-white text-secondary" : "text-muted"
+              tab === t.id
+                ? "border border-b-0 border-primary/10 bg-white text-secondary"
+                : "text-muted"
             )}
           >
             {t.label}
@@ -157,8 +170,16 @@ export default function SupportPage() {
         <div className="space-y-6">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
             <Kpi label="Open tickets" value={dashboard.open_tickets} />
-            <Kpi label="Urgent" value={dashboard.urgent_tickets} alert={dashboard.urgent_tickets > 0} />
-            <Kpi label="SLA breaches" value={dashboard.sla_breaches} alert={dashboard.sla_breaches > 0} />
+            <Kpi
+              label="Urgent"
+              value={dashboard.urgent_tickets}
+              alert={dashboard.urgent_tickets > 0}
+            />
+            <Kpi
+              label="SLA breaches"
+              value={dashboard.sla_breaches}
+              alert={dashboard.sla_breaches > 0}
+            />
             <Kpi label="Pending customer" value={dashboard.pending_customer} />
             <Kpi label="Pending merchant" value={dashboard.pending_merchant} />
             <Kpi label="Pending driver" value={dashboard.pending_driver} />
@@ -167,13 +188,19 @@ export default function SupportPage() {
             <Kpi label="Orders impacted" value={dashboard.orders_impacted} />
             <Kpi label="Avg first response" value={`${dashboard.avg_first_response_hours}h`} />
             <Kpi label="Avg resolution" value={`${dashboard.avg_resolution_hours}h`} />
-            <Kpi label="CSAT" value={dashboard.customer_satisfaction ? `${dashboard.customer_satisfaction}/5` : "—"} />
+            <Kpi
+              label="CSAT"
+              value={dashboard.customer_satisfaction ? `${dashboard.customer_satisfaction}/5` : "—"}
+            />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <Panel title="Recent activity">
               <ul className="space-y-2 text-sm">
                 {dashboard.recent_activity.map((a) => (
-                  <li key={String(a.ticket_id)} className="flex justify-between gap-2 border-b border-primary/5 py-2">
+                  <li
+                    key={String(a.ticket_id)}
+                    className="flex justify-between gap-2 border-b border-primary/5 py-2"
+                  >
                     <span className="font-mono text-secondary">{String(a.ticket_number)}</span>
                     <span className="truncate text-muted">{String(a.subject)}</span>
                   </li>
@@ -183,7 +210,10 @@ export default function SupportPage() {
             <Panel title="Team workload">
               <ul className="space-y-2 text-sm">
                 {dashboard.team_workload.map((w) => (
-                  <li key={String(w.agent_id)} className="flex justify-between border-b border-primary/5 py-2">
+                  <li
+                    key={String(w.agent_id)}
+                    className="flex justify-between border-b border-primary/5 py-2"
+                  >
                     <span>{String(w.agent_name)}</span>
                     <span className="text-muted">
                       {String(w.open_tickets)} open · {String(w.urgent_tickets)} urgent
@@ -313,7 +343,10 @@ export default function SupportPage() {
             <h3 className="font-semibold">Articles</h3>
             <ul className="space-y-2">
               {(kb.articles as Array<Record<string, unknown>> | undefined)?.map((a) => (
-                <li key={String(a.id)} className="rounded-lg border border-primary/10 px-3 py-2 text-sm">
+                <li
+                  key={String(a.id)}
+                  className="rounded-lg border border-primary/10 px-3 py-2 text-sm"
+                >
                   <span className="font-medium">{String(a.title)}</span>
                   <p className="mt-1 text-muted">{String(a.body)}</p>
                 </li>
@@ -327,7 +360,10 @@ export default function SupportPage() {
         <Panel title="Saved replies & macros">
           <ul className="space-y-2">
             {macros.map((m) => (
-              <li key={String(m.id)} className="rounded-lg border border-primary/10 px-3 py-2 text-sm">
+              <li
+                key={String(m.id)}
+                className="rounded-lg border border-primary/10 px-3 py-2 text-sm"
+              >
                 <span className="font-medium">{String(m.title)}</span>
                 <p className="mt-1 text-muted">{String(m.body)}</p>
               </li>
@@ -352,7 +388,9 @@ export default function SupportPage() {
       {tab === "reports" && reports && (
         <div className="grid gap-4 lg:grid-cols-2">
           <Panel title="SLA compliance">
-            <p className="text-2xl font-bold text-primary">{String(reports.sla_compliance_percent)}%</p>
+            <p className="text-2xl font-bold text-primary">
+              {String(reports.sla_compliance_percent)}%
+            </p>
           </Panel>
           <Panel title="Top issues">
             <ul className="space-y-1 text-sm">

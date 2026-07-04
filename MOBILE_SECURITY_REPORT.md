@@ -16,19 +16,19 @@ Enterprise mobile security is **implemented** for both apps via a shared securit
 
 ## 1. Security capabilities matrix
 
-| Capability | Status | Implementation |
-|------------|--------|----------------|
-| **Clerk** | ⚠️ Partial | `ClerkBridge` + `@clerk/clerk-expo` (dep added); email-only sign-in screens |
-| **Secure Storage** | ✅ | `expo-secure-store` — tokens, PIN hash, session flags |
-| **Biometric Login** | ✅ | `BiometricGate` + `expo-local-authentication` |
-| **PIN Lock** | ✅ | `PinLockGate` + salted SHA-256 in secure store |
-| **Certificate Pinning Ready** | ⚠️ Off | `configureCertificatePinning()` — `enableCertificatePinning: false` |
-| **Jailbreak/Root Detection Ready** | ⚠️ Scaffold | `checkDeviceIntegrity()` + `registerIntegrityAdapter()` hook |
-| **Session Timeout** | ✅ | 15 min idle via `AppState` |
-| **Refresh Tokens** | ✅ Driver | `POST /driver-api/v1/auth/refresh` + auto-retry on 401 |
-| **Encrypted Local Storage** | ✅ | MMKV key in Secure Store; audit buffer encrypted |
-| **RBAC** | ✅ UI-only | `PermissionGate`, `principalFromAuthMe` — server enforces |
-| **Audit Events** | ✅ | `POST /v1/security/audit-events` with PII scrubbing |
+| Capability                         | Status      | Implementation                                                              |
+| ---------------------------------- | ----------- | --------------------------------------------------------------------------- |
+| **Clerk**                          | ⚠️ Partial  | `ClerkBridge` + `@clerk/clerk-expo` (dep added); email-only sign-in screens |
+| **Secure Storage**                 | ✅          | `expo-secure-store` — tokens, PIN hash, session flags                       |
+| **Biometric Login**                | ✅          | `BiometricGate` + `expo-local-authentication`                               |
+| **PIN Lock**                       | ✅          | `PinLockGate` + salted SHA-256 in secure store                              |
+| **Certificate Pinning Ready**      | ⚠️ Off      | `configureCertificatePinning()` — `enableCertificatePinning: false`         |
+| **Jailbreak/Root Detection Ready** | ⚠️ Scaffold | `checkDeviceIntegrity()` + `registerIntegrityAdapter()` hook                |
+| **Session Timeout**                | ✅          | 15 min idle via `AppState`                                                  |
+| **Refresh Tokens**                 | ✅ Driver   | `POST /driver-api/v1/auth/refresh` + auto-retry on 401                      |
+| **Encrypted Local Storage**        | ✅          | MMKV key in Secure Store; audit buffer encrypted                            |
+| **RBAC**                           | ✅ UI-only  | `PermissionGate`, `principalFromAuthMe` — server enforces                   |
+| **Audit Events**                   | ✅          | `POST /v1/security/audit-events` with PII scrubbing                         |
 
 ---
 
@@ -45,6 +45,7 @@ ClerkBridge (optional ClerkProvider)
 ```
 
 **Files:**
+
 - `shared/mobile-security/src/provider/MobileSecurityProvider.tsx`
 - `apps/mobile-*/src/providers/SecurityLayer.tsx`
 - `apps/mobile-*/src/navigation/RootNavigator.tsx` — `SecurityShell` wraps `MainTabs`
@@ -70,24 +71,25 @@ ClerkBridge (optional ClerkProvider)
 
 ### Production gaps
 
-| Gap | Risk | Fix |
-|-----|------|-----|
+| Gap                                  | Risk             | Fix                                                  |
+| ------------------------------------ | ---------------- | ---------------------------------------------------- |
 | Dev token `"dev"` / `dev_clerk_user` | Critical in prod | Guard with `__DEV__` or `EXPO_PUBLIC_ALLOW_DEV_AUTH` |
-| No Clerk SignIn UI | High | Wire `@clerk/clerk-expo` SignIn / OAuth |
-| Customer raw Clerk JWT | Medium | Confirm API expects Clerk vs Porterchain JWT |
+| No Clerk SignIn UI                   | High             | Wire `@clerk/clerk-expo` SignIn / OAuth              |
+| Customer raw Clerk JWT               | Medium           | Confirm API expects Clerk vs Porterchain JWT         |
 
 ---
 
 ## 4. Transport security
 
-| Control | Status |
-|---------|--------|
+| Control                   | Status                                  |
+| ------------------------- | --------------------------------------- |
 | HTTPS only (prod API URL) | ✅ `https://api.porterchain.com` in EAS |
-| Certificate pinning | ❌ Disabled |
-| 401 → refresh (driver) | ✅ `createSecureApiClient` |
-| Audit on logout | ✅ `emitSecurityEvent("sign_out")` |
+| Certificate pinning       | ❌ Disabled                             |
+| 401 → refresh (driver)    | ✅ `createSecureApiClient`              |
+| Audit on logout           | ✅ `emitSecurityEvent("sign_out")`      |
 
 **Pinning activation (when ready):**
+
 ```typescript
 // SecurityLayer policy override
 policy={{ enableCertificatePinning: true, certificatePins: ["sha256/..."] }}
@@ -97,11 +99,11 @@ policy={{ enableCertificatePinning: true, certificatePins: ["sha256/..."] }}
 
 ## 5. Device integrity
 
-| Check | Dev | Prod |
-|-------|-----|------|
-| Bundle ID allowlist | Skip | Basic check |
-| Jailbreak/root libs | Skip | Requires `registerIntegrityAdapter()` (e.g. jail-monkey) |
-| Simulator | Allowed | Configurable |
+| Check               | Dev     | Prod                                                     |
+| ------------------- | ------- | -------------------------------------------------------- |
+| Bundle ID allowlist | Skip    | Basic check                                              |
+| Jailbreak/root libs | Skip    | Requires `registerIntegrityAdapter()` (e.g. jail-monkey) |
+| Simulator           | Allowed | Configurable                                             |
 
 `IntegrityGate` blocks UI when `compromised === true`.
 
@@ -109,13 +111,13 @@ policy={{ enableCertificatePinning: true, certificatePins: ["sha256/..."] }}
 
 ## 6. Local data protection
 
-| Data | Storage | Encrypted |
-|------|---------|-----------|
-| Access / refresh tokens | Secure Store | OS keychain |
-| PIN hash | Secure Store | Yes |
-| Offline queue | MMKV | No (action metadata only) |
-| Audit event buffer | Encrypted MMKV | Yes |
-| React Query cache | Memory | N/A |
+| Data                    | Storage        | Encrypted                 |
+| ----------------------- | -------------- | ------------------------- |
+| Access / refresh tokens | Secure Store   | OS keychain               |
+| PIN hash                | Secure Store   | Yes                       |
+| Offline queue           | MMKV           | No (action metadata only) |
+| Audit event buffer      | Encrypted MMKV | Yes                       |
+| React Query cache       | Memory         | N/A                       |
 
 **Rule:** MMKV is cache/replay only — not authoritative business state (masterrule §2).
 
@@ -145,12 +147,12 @@ policy={{ enableCertificatePinning: true, certificatePins: ["sha256/..."] }}
 
 ## 9. Firebase / push security
 
-| Item | Status |
-|------|--------|
-| FCM token over HTTPS register | ✅ |
-| Permission before token | ✅ (audit fix) |
-| Push payload deep links validated | ✅ parse only; navigate in-app |
-| No secrets in mobile bundle | ✅ Firebase via native config files |
+| Item                              | Status                              |
+| --------------------------------- | ----------------------------------- |
+| FCM token over HTTPS register     | ✅                                  |
+| Permission before token           | ✅ (audit fix)                      |
+| Push payload deep links validated | ✅ parse only; navigate in-app      |
+| No secrets in mobile bundle       | ✅ Firebase via native config files |
 
 ---
 

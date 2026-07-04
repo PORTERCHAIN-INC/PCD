@@ -61,12 +61,15 @@ export function NotificationProvider({
     consumersRef.current.forEach((consumer) => consumer(item));
   }, []);
 
-  const registerRealtimeConsumer = useCallback((consumer: (item: NotificationInboxItem) => void) => {
-    consumersRef.current.add(consumer);
-    return () => {
-      consumersRef.current.delete(consumer);
-    };
-  }, []);
+  const registerRealtimeConsumer = useCallback(
+    (consumer: (item: NotificationInboxItem) => void) => {
+      consumersRef.current.add(consumer);
+      return () => {
+        consumersRef.current.delete(consumer);
+      };
+    },
+    []
+  );
 
   const syncBadge = useCallback(async () => {
     try {
@@ -154,7 +157,8 @@ export function NotificationProvider({
 
     const unsubFcm = onForegroundMessage((message) => {
       const data = (message as { data?: Record<string, unknown> }).data;
-      const notification = (message as { notification?: { title?: string; body?: string } }).notification;
+      const notification = (message as { notification?: { title?: string; body?: string } })
+        .notification;
       const item: NotificationInboxItem = {
         id: String(data?.notification_id ?? data?.id ?? Date.now()),
         title: notification?.title ?? "Porterchain",
@@ -170,7 +174,8 @@ export function NotificationProvider({
     });
 
     const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as Record<string, unknown> | undefined;
+      const data = response.notification.request.content.data as
+        Record<string, unknown> | undefined;
       const actionId = response.actionIdentifier;
       const notificationId = data?.notification_id ?? data?.id;
 

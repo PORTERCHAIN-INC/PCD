@@ -14,7 +14,12 @@ type AuthStore = {
   email: string | null;
   hydrated: boolean;
   hydrate: () => Promise<void>;
-  setSession: (session: { token: string; refreshToken: string; driverId: string; email: string }) => Promise<void>;
+  setSession: (session: {
+    token: string;
+    refreshToken: string;
+    driverId: string;
+    email: string;
+  }) => Promise<void>;
   clearSession: () => Promise<void>;
 };
 

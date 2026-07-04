@@ -6,7 +6,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, Mail, Search, Shield, Truck, UserPlus, Users, X } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { Avatar, Badge, Button, Field, Input, Modal, Select, Spinner } from "@/components/crm/primitives";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Field,
+  Input,
+  Modal,
+  Select,
+  Spinner,
+} from "@/components/crm/primitives";
 import { shortDate } from "@/lib/crmFormat";
 import {
   ACCESS_STATUS_OPTIONS,
@@ -24,6 +33,12 @@ import {
 import { SECTION_DESCRIPTIONS } from "@/lib/settings-metadata";
 import { SettingsCard, SettingsPageHeader } from "../ui/SettingsPrimitives";
 
+async function requireApiToken(getApiToken: () => Promise<string | null>): Promise<string> {
+  const token = await getApiToken();
+  if (!token) throw new Error("unauthorized");
+  return token;
+}
+
 const USER_TABS: Array<{
   id: UserDirectoryTab;
   label: string;
@@ -31,9 +46,24 @@ const USER_TABS: Array<{
   description: string;
 }> = [
   { id: "staff", label: "Staff", icon: Shield, description: "Internal ops — admin portal access" },
-  { id: "driver", label: "Drivers", icon: Truck, description: "Fleet drivers — driver portal & mobile" },
-  { id: "merchant", label: "Merchants", icon: Building2, description: "B2B portal users by organization" },
-  { id: "customer", label: "Customers", icon: Users, description: "Retail customers — website & customer portal" },
+  {
+    id: "driver",
+    label: "Drivers",
+    icon: Truck,
+    description: "Fleet drivers — driver portal & mobile",
+  },
+  {
+    id: "merchant",
+    label: "Merchants",
+    icon: Building2,
+    description: "B2B portal users by organization",
+  },
+  {
+    id: "customer",
+    label: "Customers",
+    icon: Users,
+    description: "Retail customers — website & customer portal",
+  },
 ];
 
 const EMPTY_FILTERS: UserDirectoryFilters = {};
@@ -41,7 +71,8 @@ const EMPTY_FILTERS: UserDirectoryFilters = {};
 function accessTone(s: string): "green" | "amber" | "red" | "slate" | "sky" {
   if (s === "authorized") return "green";
   if (s === "pending_review" || s === "invite_pending") return "amber";
-  if (s === "suspended" || s === "not_authorized" || s === "inactive" || s === "merchant_inactive") return "red";
+  if (s === "suspended" || s === "not_authorized" || s === "inactive" || s === "merchant_inactive")
+    return "red";
   return "slate";
 }
 
@@ -73,9 +104,10 @@ export function UsersPanel({ onRefetch }: { onRefetch: () => void }) {
       <SettingsPageHeader title="Users" description={SECTION_DESCRIPTIONS.users} />
 
       <div className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
-        <strong>Clerk manages passwords.</strong> Porterchain never stores or displays passwords. You can set a
-        password when creating a user or reset it here — Clerk holds credentials; this screen shows{" "}
-        <em>password set / not set</em> and live Clerk status (banned, locked, last sign-in).
+        <strong>Clerk manages passwords.</strong> Porterchain never stores or displays passwords.
+        You can set a password when creating a user or reset it here — Clerk holds credentials; this
+        screen shows <em>password set / not set</em> and live Clerk status (banned, locked, last
+        sign-in).
       </div>
 
       <div className="flex flex-wrap gap-2 border-b border-primary/10 pb-1">
@@ -121,16 +153,19 @@ function UserFiltersBar({
 }) {
   const accountOptions = useMemo(() => {
     const keys = Object.keys(facets?.account_status ?? {}).sort();
-    return [{ value: "", label: "All account statuses" }, ...keys.map((k) => ({ value: k, label: k.replace(/_/g, " ") }))];
+    return [
+      { value: "", label: "All account statuses" },
+      ...keys.map((k) => ({ value: k, label: k.replace(/_/g, " ") })),
+    ];
   }, [facets]);
 
   const hasFilters = Boolean(
     filters.search ||
-      filters.access_status ||
-      filters.invite_status ||
-      filters.identity_status ||
-      filters.account_status ||
-      filters.clerk_status
+    filters.access_status ||
+    filters.invite_status ||
+    filters.identity_status ||
+    filters.account_status ||
+    filters.clerk_status
   );
 
   return (
@@ -154,7 +189,9 @@ function UserFiltersBar({
           {ACCESS_STATUS_OPTIONS.map((o) => (
             <option key={o.value || "all"} value={o.value}>
               {o.label}
-              {o.value && facets?.access_status?.[o.value] != null ? ` (${facets.access_status[o.value]})` : ""}
+              {o.value && facets?.access_status?.[o.value] != null
+                ? ` (${facets.access_status[o.value]})`
+                : ""}
             </option>
           ))}
         </Select>
@@ -167,7 +204,9 @@ function UserFiltersBar({
           {INVITE_STATUS_OPTIONS.map((o) => (
             <option key={o.value || "all"} value={o.value}>
               {o.label}
-              {o.value && facets?.invite_status?.[o.value] != null ? ` (${facets.invite_status[o.value]})` : ""}
+              {o.value && facets?.invite_status?.[o.value] != null
+                ? ` (${facets.invite_status[o.value]})`
+                : ""}
             </option>
           ))}
         </Select>
@@ -180,7 +219,9 @@ function UserFiltersBar({
           {IDENTITY_STATUS_OPTIONS.map((o) => (
             <option key={o.value || "all"} value={o.value}>
               {o.label}
-              {o.value && facets?.identity_status?.[o.value] != null ? ` (${facets.identity_status[o.value]})` : ""}
+              {o.value && facets?.identity_status?.[o.value] != null
+                ? ` (${facets.identity_status[o.value]})`
+                : ""}
             </option>
           ))}
         </Select>
@@ -193,7 +234,9 @@ function UserFiltersBar({
           {CLERK_STATUS_OPTIONS.map((o) => (
             <option key={o.value || "all"} value={o.value}>
               {o.label}
-              {o.value && facets?.clerk_status?.[o.value] != null ? ` (${facets.clerk_status[o.value]})` : ""}
+              {o.value && facets?.clerk_status?.[o.value] != null
+                ? ` (${facets.clerk_status[o.value]})`
+                : ""}
             </option>
           ))}
         </Select>
@@ -230,7 +273,7 @@ function useUserDirectory(
   return useQuery({
     queryKey: ["settings-users", tab, filters],
     enabled,
-    queryFn: async () => settingsApi.users(await getApiToken(), tab, filters),
+    queryFn: async () => settingsApi.users(await requireApiToken(getApiToken), tab, filters),
   });
 }
 
@@ -276,7 +319,9 @@ function DirectoryTab({
         <>
           <p className="mb-3 text-xs text-muted">
             Showing {data?.total ?? 0} user{(data?.total ?? 0) === 1 ? "" : "s"}
-            {data?.clerk_synced ? ` · ${data.clerk_total ?? 0} in Clerk` : " · Clerk sync unavailable"}
+            {data?.clerk_synced
+              ? ` · ${data.clerk_total ?? 0} in Clerk`
+              : " · Clerk sync unavailable"}
           </p>
           <UserDirectoryTable
             users={users}
@@ -323,7 +368,7 @@ function StaffTab({
     setInviting(true);
     setInviteError(null);
     try {
-      await settingsApi.inviteStaff(await getApiToken(), {
+      await settingsApi.inviteStaff(await requireApiToken(getApiToken), {
         email: inviteForm.email.trim(),
         role: inviteForm.role,
         name: inviteForm.name.trim() || undefined,
@@ -403,10 +448,16 @@ function StaffTab({
             />
           </Field>
           <Field label="Display name">
-            <Input value={inviteForm.name} onChange={(e) => setInviteForm((f) => ({ ...f, name: e.target.value }))} />
+            <Input
+              value={inviteForm.name}
+              onChange={(e) => setInviteForm((f) => ({ ...f, name: e.target.value }))}
+            />
           </Field>
           <Field label="Role">
-            <Select value={inviteForm.role} onChange={(e) => setInviteForm((f) => ({ ...f, role: e.target.value }))}>
+            <Select
+              value={inviteForm.role}
+              onChange={(e) => setInviteForm((f) => ({ ...f, role: e.target.value }))}
+            >
               {ADMIN_ROLES.map((r) => (
                 <option key={r} value={r}>
                   {r.replace(/_/g, " ")}
@@ -479,7 +530,9 @@ function UserDirectoryTable({
                       <p className="font-medium text-primary">
                         {u.name || u.email.split("@")[0]}
                         {!u.provisioned && (
-                          <span className="ml-2 text-[10px] font-semibold uppercase text-amber-700">Clerk only</span>
+                          <span className="ml-2 text-[10px] font-semibold uppercase text-amber-700">
+                            Clerk only
+                          </span>
                         )}
                       </p>
                       <p className="flex items-center gap-1 truncate text-xs text-muted">
@@ -587,7 +640,7 @@ function CreateUserModal({
     setBusy(true);
     setError(null);
     try {
-      await settingsApi.createUser(await getApiToken(), tab, {
+      await settingsApi.createUser(await requireApiToken(getApiToken), tab, {
         email: email.trim(),
         name: name.trim() || undefined,
         role: tab === "staff" || tab === "merchant" ? role : undefined,
@@ -644,10 +697,18 @@ function CreateUserModal({
         {tab === "merchant" && (
           <>
             <Field label="Merchant ID">
-              <Input value={merchantId} onChange={(e) => setMerchantId(e.target.value)} placeholder="UUID" />
+              <Input
+                value={merchantId}
+                onChange={(e) => setMerchantId(e.target.value)}
+                placeholder="UUID"
+              />
             </Field>
             <Field label="Merchant role">
-              <Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="merchant_ops" />
+              <Input
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                placeholder="merchant_ops"
+              />
             </Field>
           </>
         )}
@@ -662,7 +723,11 @@ function CreateUserModal({
         </Field>
         {!password && (
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={sendInvite} onChange={(e) => setSendInvite(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={sendInvite}
+              onChange={(e) => setSendInvite(e.target.checked)}
+            />
             Send Clerk invitation email
           </label>
         )}
@@ -693,7 +758,7 @@ function ManageClerkUserModal({
     if (!user.clerk_user_id) return;
     setBusy(true);
     try {
-      await settingsApi.updateClerkUser(await getApiToken(), tab, {
+      await settingsApi.updateClerkUser(await requireApiToken(getApiToken), tab, {
         clerk_user_id: user.clerk_user_id,
         name: name.trim() || undefined,
         password: patch.password,
@@ -711,7 +776,7 @@ function ManageClerkUserModal({
     setBusy(true);
     try {
       const platformId = user.provisioned && !user.id.startsWith("clerk:") ? user.id : undefined;
-      await settingsApi.deleteUser(await getApiToken(), tab, {
+      await settingsApi.deleteUser(await requireApiToken(getApiToken), tab, {
         clerk_user_id: user.clerk_user_id ?? undefined,
         platform_user_id: platformId,
       });
@@ -729,7 +794,12 @@ function ManageClerkUserModal({
       title={`Manage — ${user.email}`}
       footer={
         <>
-          <Button variant="ghost" className="text-red-600" disabled={busy} onClick={() => void remove()}>
+          <Button
+            variant="ghost"
+            className="text-red-600"
+            disabled={busy}
+            onClick={() => void remove()}
+          >
             Delete
           </Button>
           <Button variant="outline" onClick={onClose}>
@@ -827,7 +897,11 @@ function ChangeRoleModal({
           </Select>
         </Field>
         <Field label="Reason (audit)">
-          <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Optional" />
+          <Input
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Optional"
+          />
         </Field>
       </div>
     </Modal>
@@ -900,8 +974,9 @@ export function RolesPanel({
           </div>
         ) : (
           <p className="text-sm text-muted">
-            {roles.length} enterprise roles mapped from admin_users.role and merchant_users.role. Full matrix
-            available via <code className="rounded bg-gray-bg px-1">GET /v1/auth/rbac</code>.
+            {roles.length} enterprise roles mapped from admin_users.role and merchant_users.role.
+            Full matrix available via{" "}
+            <code className="rounded bg-gray-bg px-1">GET /v1/auth/rbac</code>.
           </p>
         )}
       </SettingsCard>
@@ -909,8 +984,9 @@ export function RolesPanel({
       <div className="flex items-start gap-3 rounded-xl border border-secondary/20 bg-secondary/5 p-4 text-sm">
         <Shield className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
         <p className="text-primary/80">
-          Every protected API route calls <code className="rounded bg-white px-1">require_module()</code> server-side.
-          Portal UI gates are defense in depth only.
+          Every protected API route calls{" "}
+          <code className="rounded bg-white px-1">require_module()</code> server-side. Portal UI
+          gates are defense in depth only.
         </p>
       </div>
     </div>

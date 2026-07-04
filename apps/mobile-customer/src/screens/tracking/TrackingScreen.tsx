@@ -39,7 +39,14 @@ export function TrackingScreen() {
       <ScreenHeader
         title="Tracking"
         subtitle="Public order lookup"
-        right={<Button label="History" size="sm" variant="ghost" onPress={() => navigation.navigate("History")} />}
+        right={
+          <Button
+            label="History"
+            size="sm"
+            variant="ghost"
+            onPress={() => navigation.navigate("History")}
+          />
+        }
       />
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.lg }}>
         <Input
@@ -54,13 +61,21 @@ export function TrackingScreen() {
 
         {order ? (
           <Card>
-            <CardHeader title={order.tracking_number} subtitle={order.state} action={<StatusChip label={order.state} tone="active" />} />
-            <Body>{order.pickup?.formatted} → {order.dropoff?.formatted}</Body>
+            <CardHeader
+              title={order.tracking_number}
+              subtitle={order.state}
+              action={<StatusChip label={order.state} tone="active" />}
+            />
+            <Body>
+              {order.pickup?.formatted} → {order.dropoff?.formatted}
+            </Body>
             <Button
               label="Live map"
               style={{ marginTop: theme.spacing.lg }}
               fullWidth
-              onPress={() => navigation.navigate("LiveMap", { trackingNumber: order.tracking_number })}
+              onPress={() =>
+                navigation.navigate("LiveMap", { trackingNumber: order.tracking_number })
+              }
             />
           </Card>
         ) : null}

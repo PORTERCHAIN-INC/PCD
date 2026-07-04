@@ -15,7 +15,7 @@
 | **Brand / short name** | Porterchain                                       |
 | **Tagline**            | Commercial logistics partner for local businesses |
 | **Website**            | https://porterchain.com                           |
-| **Primary email**      | ravi@porterchain.com                             |
+| **Primary email**      | ravi@porterchain.com                              |
 | **Operations email**   | ops@porterchain.com                               |
 | **Phone**              | +1 (647) 619-7951                                 |
 | **WhatsApp**           | +1 (647) 619-7951                                 |
@@ -270,16 +270,16 @@ The following binding references exist today:
 
 ### Data collected (based on platform behavior)
 
-| Data type                                     | Purpose                                         | Systems                                            |
-| --------------------------------------------- | ----------------------------------------------- | -------------------------------------------------- |
-| Name, email, phone                            | Account creation, shipment contact              | Clerk, Porterchain API                             |
-| Company profile & tax/insurance details       | Merchant onboarding & compliance                | Porterchain API                                    |
-| Pickup/delivery addresses                     | Routing, dispatch, tracking                     | Porterchain API, Google Maps / OSRM / Valhalla     |
-| Shipment details (weight, dimensions, photos) | Quoting, capacity matching, POD                 | Porterchain API                                    |
-| Payment information                           | Invoicing and checkout                          | Stripe (card data handled by Stripe)               |
-| Location/GPS                                  | Proof of delivery, driver tracking              | Porterchain API, Fleetbase                         |
-| Chat messages                                 | Customer support                                | Zoho SalesIQ                                       |
-| Auth session cookies                          | Login state                                     | Clerk, Fleetbase session (control tower)           |
+| Data type                                     | Purpose                            | Systems                                        |
+| --------------------------------------------- | ---------------------------------- | ---------------------------------------------- |
+| Name, email, phone                            | Account creation, shipment contact | Clerk, Porterchain API                         |
+| Company profile & tax/insurance details       | Merchant onboarding & compliance   | Porterchain API                                |
+| Pickup/delivery addresses                     | Routing, dispatch, tracking        | Porterchain API, Google Maps / OSRM / Valhalla |
+| Shipment details (weight, dimensions, photos) | Quoting, capacity matching, POD    | Porterchain API                                |
+| Payment information                           | Invoicing and checkout             | Stripe (card data handled by Stripe)           |
+| Location/GPS                                  | Proof of delivery, driver tracking | Porterchain API, Fleetbase                     |
+| Chat messages                                 | Customer support                   | Zoho SalesIQ                                   |
+| Auth session cookies                          | Login state                        | Clerk, Fleetbase session (control tower)       |
 
 ### Authentication providers
 

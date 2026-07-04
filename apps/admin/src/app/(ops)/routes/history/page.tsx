@@ -32,9 +32,15 @@ export default function RouteHistoryPage() {
   if (!data) return <Spinner label="Loading history…" />;
 
   return (
-    <RouteSectionCard title="Route History" description={`${data.length} completed or cancelled routes.`}>
+    <RouteSectionCard
+      title="Route History"
+      description={`${data.length} completed or cancelled routes.`}
+    >
       {data.length === 0 ? (
-        <RouteEmptyState title="No route history yet" hint="Completed and cancelled routes will appear here." />
+        <RouteEmptyState
+          title="No route history yet"
+          hint="Completed and cancelled routes will appear here."
+        />
       ) : (
         <div className="space-y-3">
           {data.map((plan: RoutePlan) => (

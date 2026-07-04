@@ -190,8 +190,7 @@ function NavigationPageContent() {
               icon={Navigation}
               label="Pickup leg"
               value={
-                session.pickup_route?.eta_label ??
-                formatEta(session.pickup_route?.duration_seconds)
+                session.pickup_route?.eta_label ?? formatEta(session.pickup_route?.duration_seconds)
               }
               hint={formatDistance(session.pickup_route?.distance_meters)}
             />

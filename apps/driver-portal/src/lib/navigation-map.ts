@@ -32,7 +32,9 @@ export function decodePolyline(encoded: string): google.maps.LatLngLiteral[] {
   return points;
 }
 
-export function coordsFromAddress(addr?: Record<string, unknown> | null): google.maps.LatLngLiteral | null {
+export function coordsFromAddress(
+  addr?: Record<string, unknown> | null
+): google.maps.LatLngLiteral | null {
   if (!addr) return null;
   const lat = addr.lat;
   const lng = addr.lng;

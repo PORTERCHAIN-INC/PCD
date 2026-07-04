@@ -96,7 +96,7 @@ export default function ReportsClient() {
     }
   };
 
-  if (!isLoaded || loading && !data) {
+  if (!isLoaded || (loading && !data)) {
     return <p className="text-muted">Loading reports…</p>;
   }
 
@@ -181,20 +181,10 @@ export default function ReportsClient() {
       )}
       {tab === "claims" && <ClaimsTab data={data.claims_summary} />}
       {tab === "saved" && (
-        <SavedTab
-          saved={saved}
-          onRefresh={load}
-          getToken={getApiToken}
-          orgId={orgId}
-        />
+        <SavedTab saved={saved} onRefresh={load} getToken={getApiToken} orgId={orgId} />
       )}
       {tab === "scheduled" && (
-        <ScheduledTab
-          scheduled={scheduled}
-          onRefresh={load}
-          getToken={getApiToken}
-          orgId={orgId}
-        />
+        <ScheduledTab scheduled={scheduled} onRefresh={load} getToken={getApiToken} orgId={orgId} />
       )}
     </div>
   );
@@ -282,11 +272,7 @@ function DeliveryTab({ data }: { data: DeliveryPerformance }) {
   );
 }
 
-function OrderVolumeTab({
-  data,
-}: {
-  data: ReportsOverview["order_volume"];
-}) {
+function OrderVolumeTab({ data }: { data: ReportsOverview["order_volume"] }) {
   const monthlyOrders = data.monthly_trends.labels.map((label, i) => ({
     label,
     value: data.monthly_trends.orders[i] ?? 0,

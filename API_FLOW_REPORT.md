@@ -127,10 +127,10 @@ Driver UI
 
 ## Anti-shortcut verification
 
-| Shortcut | Allowed? |
-|----------|----------|
-| Frontend → Fleetbase | ❌ |
+| Shortcut                             | Allowed?                     |
+| ------------------------------------ | ---------------------------- |
+| Frontend → Fleetbase                 | ❌                           |
 | Frontend → Valhalla/OSRM for payment | ❌ (preview only on website) |
-| Router → Fleetbase HTTP | ❌ |
-| Service → Fleetbase without adapter | ❌ |
-| Google Maps → pricing | ❌ |
+| Router → Fleetbase HTTP              | ❌                           |
+| Service → Fleetbase without adapter  | ❌                           |
+| Google Maps → pricing                | ❌                           |

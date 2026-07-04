@@ -53,7 +53,11 @@ export function LiveTrackingView({ tracking, onRefresh, refreshing }: Props) {
         </div>
         <div className="flex flex-wrap gap-2">
           <label className="flex items-center gap-2 rounded-xl border border-primary/15 px-3 py-1.5 text-xs">
-            <input type="checkbox" checked={showTraffic} onChange={(e) => setShowTraffic(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={showTraffic}
+              onChange={(e) => setShowTraffic(e.target.checked)}
+            />
             Traffic layer
           </label>
           {replay.length > 1 && (
@@ -79,7 +83,11 @@ export function LiveTrackingView({ tracking, onRefresh, refreshing }: Props) {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-3 lg:col-span-2">
-          <TrackingMap tracking={tracking} showTraffic={showTraffic} replayIndex={replayIndex ?? undefined} />
+          <TrackingMap
+            tracking={tracking}
+            showTraffic={showTraffic}
+            replayIndex={replayIndex ?? undefined}
+          />
           <div className="flex flex-wrap gap-4 text-xs text-muted">
             <span className="flex items-center gap-1">
               <span className="inline-block h-0.5 w-4 bg-violet-600" /> Valhalla route
@@ -138,8 +146,12 @@ function StatusCard({ tracking }: { tracking: LiveTracking }) {
       {eta && (
         <div className="mt-3 rounded-xl bg-sky-50 p-3">
           <p className="text-xs font-medium text-sky-900">ETA (OSRM)</p>
-          <p className="text-xl font-bold text-sky-950">{eta.label ?? formatEta(eta.duration_seconds)}</p>
-          {eta.arrives_at && <p className="text-xs text-sky-800">Arrives ~{formatDate(eta.arrives_at)}</p>}
+          <p className="text-xl font-bold text-sky-950">
+            {eta.label ?? formatEta(eta.duration_seconds)}
+          </p>
+          {eta.arrives_at && (
+            <p className="text-xs text-sky-800">Arrives ~{formatDate(eta.arrives_at)}</p>
+          )}
           <p className="mt-1 text-xs text-sky-700">
             {(eta.distance_meters / 1000).toFixed(1)} km remaining
           </p>

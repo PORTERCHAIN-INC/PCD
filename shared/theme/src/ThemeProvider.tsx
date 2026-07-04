@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { I18nManager, useColorScheme as useSystemColorScheme } from "react-native";
 import { darkColors, lightColors, type ColorScheme, type ThemeColors } from "./colors";
 import { motion } from "./motion";
@@ -62,7 +55,10 @@ export function ThemeProvider({
       motion,
       isRTL: I18nManager.isRTL,
     };
-    return { ...base, textStyles: createTextStyles({ ...base, textStyles: {} as Theme["textStyles"] }) };
+    return {
+      ...base,
+      textStyles: createTextStyles({ ...base, textStyles: {} as Theme["textStyles"] }),
+    };
   }, [scheme]);
 
   const toggleScheme = useCallback(() => {

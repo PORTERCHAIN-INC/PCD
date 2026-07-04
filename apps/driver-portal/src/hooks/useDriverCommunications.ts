@@ -27,7 +27,8 @@ export function useDriverCommunications() {
         setError("");
       }
     } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "communications_refresh_failed");
+      if (mounted.current)
+        setError(e instanceof Error ? e.message : "communications_refresh_failed");
     } finally {
       if (mounted.current) {
         setLoading(false);

@@ -47,8 +47,13 @@ export default function SettingsClient() {
   const [data, setData] = useState<SettingsOverview | null>(null);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [claims, setClaims] = useState<ClaimRow[]>([]);
-  const [recipients, setRecipients] = useState<Array<{ id: string; name: string; email?: string | null; phone?: string | null }>>([]);
-  const [kb, setKb] = useState<{ articles: Array<{ id: string; title: string; body: string }>; faq: Array<{ question: string; answer: string }> } | null>(null);
+  const [recipients, setRecipients] = useState<
+    Array<{ id: string; name: string; email?: string | null; phone?: string | null }>
+  >([]);
+  const [kb, setKb] = useState<{
+    articles: Array<{ id: string; title: string; body: string }>;
+    faq: Array<{ question: string; answer: string }>;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -112,19 +117,39 @@ export default function SettingsClient() {
         <ProfileTab profile={data.profile} onRefresh={load} getToken={getApiToken} orgId={orgId} />
       )}
       {tab === "recipients" && (
-        <RecipientsTab recipients={recipients} onRefresh={load} getToken={getApiToken} orgId={orgId} />
+        <RecipientsTab
+          recipients={recipients}
+          onRefresh={load}
+          getToken={getApiToken}
+          orgId={orgId}
+        />
       )}
       {tab === "locations" && (
         <LocationsTab data={data} onRefresh={load} getToken={getApiToken} orgId={orgId} />
       )}
       {tab === "billing" && (
-        <BillingContactsTab contacts={data.billing_contacts} onRefresh={load} getToken={getApiToken} orgId={orgId} />
+        <BillingContactsTab
+          contacts={data.billing_contacts}
+          onRefresh={load}
+          getToken={getApiToken}
+          orgId={orgId}
+        />
       )}
       {tab === "notifications" && (
-        <NotificationsTab prefs={data.notifications} onRefresh={load} getToken={getApiToken} orgId={orgId} />
+        <NotificationsTab
+          prefs={data.notifications}
+          onRefresh={load}
+          getToken={getApiToken}
+          orgId={orgId}
+        />
       )}
       {tab === "branding" && (
-        <BrandingTab branding={data.branding} onRefresh={load} getToken={getApiToken} orgId={orgId} />
+        <BrandingTab
+          branding={data.branding}
+          onRefresh={load}
+          getToken={getApiToken}
+          orgId={orgId}
+        />
       )}
       {tab === "tax" && (
         <TaxTab tax={data.tax} onRefresh={load} getToken={getApiToken} orgId={orgId} />
@@ -134,7 +159,13 @@ export default function SettingsClient() {
       )}
       {tab === "contract" && <ContractTab contract={data.contract} />}
       {tab === "support" && (
-        <SupportTab tickets={tickets} kb={kb} onRefresh={load} getToken={getApiToken} orgId={orgId} />
+        <SupportTab
+          tickets={tickets}
+          kb={kb}
+          onRefresh={load}
+          getToken={getApiToken}
+          orgId={orgId}
+        />
       )}
       {tab === "claims" && (
         <ClaimsTab claims={claims} onRefresh={load} getToken={getApiToken} orgId={orgId} />
@@ -161,7 +192,11 @@ function RecipientsTab({
   const add = async () => {
     if (!name.trim()) return;
     const token = await getToken();
-    await settingsApi.addRecipient(token, { name, email: email || undefined, phone: phone || undefined }, orgId);
+    await settingsApi.addRecipient(
+      token,
+      { name, email: email || undefined, phone: phone || undefined },
+      orgId
+    );
     setName("");
     setEmail("");
     setPhone("");
@@ -171,7 +206,9 @@ function RecipientsTab({
   return (
     <section className="rounded-2xl border border-primary/10 bg-white p-6">
       <h2 className="font-semibold text-primary">Recipients</h2>
-      <p className="mt-1 text-sm text-muted">Saved delivery contacts for booking and bulk import.</p>
+      <p className="mt-1 text-sm text-muted">
+        Saved delivery contacts for booking and bulk import.
+      </p>
       <ul className="mt-4 space-y-2 text-sm">
         {recipients.length === 0 && <li className="text-muted">No recipients yet</li>}
         {recipients.map((r) => (
@@ -185,10 +222,27 @@ function RecipientsTab({
         ))}
       </ul>
       <div className="mt-4 flex flex-wrap gap-2">
-        <input className="rounded-lg border px-3 py-2 text-sm" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input className="rounded-lg border px-3 py-2 text-sm" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input className="rounded-lg border px-3 py-2 text-sm" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        <Button size="sm" onClick={() => void add()}>Add recipient</Button>
+        <input
+          className="rounded-lg border px-3 py-2 text-sm"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <input
+          className="rounded-lg border px-3 py-2 text-sm"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          className="rounded-lg border px-3 py-2 text-sm"
+          placeholder="Phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+        />
+        <Button size="sm" onClick={() => void add()}>
+          Add recipient
+        </Button>
       </div>
     </section>
   );
@@ -226,11 +280,26 @@ function ProfileTab({
   };
 
   return (
-    <form onSubmit={(e) => void save(e)} className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6">
-      <Field label="Company name" value={form.company_name} onChange={(v) => setForm({ ...form, company_name: v })} />
-      <Field label="Legal name" value={form.legal_name || ""} onChange={(v) => setForm({ ...form, legal_name: v })} />
+    <form
+      onSubmit={(e) => void save(e)}
+      className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6"
+    >
+      <Field
+        label="Company name"
+        value={form.company_name}
+        onChange={(v) => setForm({ ...form, company_name: v })}
+      />
+      <Field
+        label="Legal name"
+        value={form.legal_name || ""}
+        onChange={(v) => setForm({ ...form, legal_name: v })}
+      />
       <Field label="Email" value={form.email} onChange={() => {}} disabled />
-      <Field label="Phone" value={form.phone || ""} onChange={(v) => setForm({ ...form, phone: v })} />
+      <Field
+        label="Phone"
+        value={form.phone || ""}
+        onChange={(v) => setForm({ ...form, phone: v })}
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <p className="text-sm font-medium">Payment terms</p>
@@ -265,7 +334,11 @@ function LocationsTab({
 
   const addPickup = async () => {
     const token = await getToken();
-    await settingsApi.addPickup(token, { label: pickupLabel, formatted: pickupAddr, is_default: false }, orgId);
+    await settingsApi.addPickup(
+      token,
+      { label: pickupLabel, formatted: pickupAddr, is_default: false },
+      orgId
+    );
     setPickupLabel("");
     setPickupAddr("");
     await onRefresh();
@@ -294,7 +367,9 @@ function LocationsTab({
                 type="button"
                 className="text-xs text-red-600"
                 onClick={() =>
-                  void getToken().then((t) => settingsApi.deletePickup(t, p.id, orgId).then(onRefresh))
+                  void getToken().then((t) =>
+                    settingsApi.deletePickup(t, p.id, orgId).then(onRefresh)
+                  )
                 }
               >
                 Remove
@@ -303,9 +378,21 @@ function LocationsTab({
           ))}
         </ul>
         <div className="mt-4 space-y-2">
-          <input className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="Label" value={pickupLabel} onChange={(e) => setPickupLabel(e.target.value)} />
-          <input className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="Address" value={pickupAddr} onChange={(e) => setPickupAddr(e.target.value)} />
-          <Button size="sm" onClick={() => void addPickup()}>Add pickup</Button>
+          <input
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+            placeholder="Label"
+            value={pickupLabel}
+            onChange={(e) => setPickupLabel(e.target.value)}
+          />
+          <input
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+            placeholder="Address"
+            value={pickupAddr}
+            onChange={(e) => setPickupAddr(e.target.value)}
+          />
+          <Button size="sm" onClick={() => void addPickup()}>
+            Add pickup
+          </Button>
         </div>
       </section>
       <section className="rounded-2xl border border-primary/10 bg-white p-6">
@@ -321,7 +408,9 @@ function LocationsTab({
                 type="button"
                 className="text-xs text-red-600"
                 onClick={() =>
-                  void getToken().then((t) => settingsApi.deleteWarehouse(t, w.id, orgId).then(onRefresh))
+                  void getToken().then((t) =>
+                    settingsApi.deleteWarehouse(t, w.id, orgId).then(onRefresh)
+                  )
                 }
               >
                 Remove
@@ -330,9 +419,21 @@ function LocationsTab({
           ))}
         </ul>
         <div className="mt-4 space-y-2">
-          <input className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="Warehouse name" value={whName} onChange={(e) => setWhName(e.target.value)} />
-          <input className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="Address" value={whAddr} onChange={(e) => setWhAddr(e.target.value)} />
-          <Button size="sm" onClick={() => void addWarehouse()}>Add warehouse</Button>
+          <input
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+            placeholder="Warehouse name"
+            value={whName}
+            onChange={(e) => setWhName(e.target.value)}
+          />
+          <input
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+            placeholder="Address"
+            value={whAddr}
+            onChange={(e) => setWhAddr(e.target.value)}
+          />
+          <Button size="sm" onClick={() => void addWarehouse()}>
+            Add warehouse
+          </Button>
         </div>
       </section>
     </div>
@@ -367,12 +468,16 @@ function BillingContactsTab({
       <ul className="mt-4 space-y-2 text-sm">
         {contacts.map((c) => (
           <li key={c.id} className="flex justify-between">
-            <span>{c.name} · {c.email}</span>
+            <span>
+              {c.name} · {c.email}
+            </span>
             <button
               type="button"
               className="text-xs text-red-600"
               onClick={() =>
-                void getToken().then((t) => settingsApi.deleteBillingContact(t, c.id, orgId).then(onRefresh))
+                void getToken().then((t) =>
+                  settingsApi.deleteBillingContact(t, c.id, orgId).then(onRefresh)
+                )
               }
             >
               Remove
@@ -381,9 +486,21 @@ function BillingContactsTab({
         ))}
       </ul>
       <div className="mt-4 flex flex-wrap gap-2">
-        <input className="rounded-lg border px-3 py-2 text-sm" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input className="rounded-lg border px-3 py-2 text-sm" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <Button size="sm" onClick={() => void add()}>Add contact</Button>
+        <input
+          className="rounded-lg border px-3 py-2 text-sm"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <input
+          className="rounded-lg border px-3 py-2 text-sm"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Button size="sm" onClick={() => void add()}>
+          Add contact
+        </Button>
       </div>
     </section>
   );
@@ -458,11 +575,29 @@ function BrandingTab({
   return (
     <section className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6">
       <h2 className="font-semibold text-primary">Branding</h2>
-      <Field label="Logo URL" value={form.logo_url || ""} onChange={(v) => setForm({ ...form, logo_url: v })} />
-      <Field label="Primary color" value={form.primary_color} onChange={(v) => setForm({ ...form, primary_color: v })} />
-      <Field label="Accent color" value={form.accent_color} onChange={(v) => setForm({ ...form, accent_color: v })} />
-      <Field label="Tracking page message" value={form.tracking_page_message || ""} onChange={(v) => setForm({ ...form, tracking_page_message: v })} />
-      <Button size="sm" onClick={() => void save()}>Save branding</Button>
+      <Field
+        label="Logo URL"
+        value={form.logo_url || ""}
+        onChange={(v) => setForm({ ...form, logo_url: v })}
+      />
+      <Field
+        label="Primary color"
+        value={form.primary_color}
+        onChange={(v) => setForm({ ...form, primary_color: v })}
+      />
+      <Field
+        label="Accent color"
+        value={form.accent_color}
+        onChange={(v) => setForm({ ...form, accent_color: v })}
+      />
+      <Field
+        label="Tracking page message"
+        value={form.tracking_page_message || ""}
+        onChange={(v) => setForm({ ...form, tracking_page_message: v })}
+      />
+      <Button size="sm" onClick={() => void save()}>
+        Save branding
+      </Button>
     </section>
   );
 }
@@ -499,15 +634,37 @@ function TaxTab({
   return (
     <section className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6">
       <h2 className="font-semibold text-primary">Tax information</h2>
-      <Field label="HST number" value={form.hst_number || ""} onChange={(v) => setForm({ ...form, hst_number: v })} />
-      <Field label="Business number" value={form.business_number || ""} onChange={(v) => setForm({ ...form, business_number: v })} />
-      <Field label="Legal name" value={form.legal_name || ""} onChange={(v) => setForm({ ...form, legal_name: v })} />
-      <Field label="Tax region" value={form.tax_region} onChange={(v) => setForm({ ...form, tax_region: v })} />
+      <Field
+        label="HST number"
+        value={form.hst_number || ""}
+        onChange={(v) => setForm({ ...form, hst_number: v })}
+      />
+      <Field
+        label="Business number"
+        value={form.business_number || ""}
+        onChange={(v) => setForm({ ...form, business_number: v })}
+      />
+      <Field
+        label="Legal name"
+        value={form.legal_name || ""}
+        onChange={(v) => setForm({ ...form, legal_name: v })}
+      />
+      <Field
+        label="Tax region"
+        value={form.tax_region}
+        onChange={(v) => setForm({ ...form, tax_region: v })}
+      />
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={form.tax_exempt} onChange={(e) => setForm({ ...form, tax_exempt: e.target.checked })} />
+        <input
+          type="checkbox"
+          checked={form.tax_exempt}
+          onChange={(e) => setForm({ ...form, tax_exempt: e.target.checked })}
+        />
         Tax exempt
       </label>
-      <Button size="sm" onClick={() => void save()}>Save tax info</Button>
+      <Button size="sm" onClick={() => void save()}>
+        Save tax info
+      </Button>
     </section>
   );
 }
@@ -539,11 +696,17 @@ function DocumentsTab({
       <ul className="mt-4 space-y-2 text-sm">
         {docs.map((d) => (
           <li key={d.id} className="flex justify-between">
-            <span>{d.name} <span className="text-muted">({d.type})</span></span>
+            <span>
+              {d.name} <span className="text-muted">({d.type})</span>
+            </span>
             <button
               type="button"
               className="text-xs text-red-600"
-              onClick={() => void getToken().then((t) => settingsApi.deleteDocument(t, d.id, orgId).then(onRefresh))}
+              onClick={() =>
+                void getToken().then((t) =>
+                  settingsApi.deleteDocument(t, d.id, orgId).then(onRefresh)
+                )
+              }
             >
               Remove
             </button>
@@ -551,14 +714,25 @@ function DocumentsTab({
         ))}
       </ul>
       <div className="mt-4 flex flex-wrap gap-2">
-        <input className="rounded-lg border px-3 py-2 text-sm" placeholder="Document name" value={name} onChange={(e) => setName(e.target.value)} />
-        <select className="rounded-lg border px-3 py-2 text-sm" value={docType} onChange={(e) => setDocType(e.target.value)}>
+        <input
+          className="rounded-lg border px-3 py-2 text-sm"
+          placeholder="Document name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <select
+          className="rounded-lg border px-3 py-2 text-sm"
+          value={docType}
+          onChange={(e) => setDocType(e.target.value)}
+        >
           <option value="insurance">Insurance</option>
           <option value="license">License</option>
           <option value="contract">Contract</option>
           <option value="other">Other</option>
         </select>
-        <Button size="sm" onClick={() => void add()}>Register document</Button>
+        <Button size="sm" onClick={() => void add()}>
+          Register document
+        </Button>
       </div>
     </section>
   );
@@ -570,12 +744,23 @@ function ContractTab({ contract }: { contract: SettingsOverview["contract"] }) {
       <h2 className="font-semibold text-primary">Contract summary</h2>
       {contract.has_contract ? (
         <dl className="mt-4 space-y-2 text-sm">
-          <div className="flex justify-between"><dt className="text-muted">Contract</dt><dd>{contract.contract_name}</dd></div>
-          <div className="flex justify-between"><dt className="text-muted">Minimum monthly</dt><dd>{formatCents(contract.minimum_monthly_commitment_cents)}</dd></div>
-          <div className="flex justify-between"><dt className="text-muted">Effective from</dt><dd>{contract.effective_from || "—"}</dd></div>
+          <div className="flex justify-between">
+            <dt className="text-muted">Contract</dt>
+            <dd>{contract.contract_name}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-muted">Minimum monthly</dt>
+            <dd>{formatCents(contract.minimum_monthly_commitment_cents)}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-muted">Effective from</dt>
+            <dd>{contract.effective_from || "—"}</dd>
+          </div>
         </dl>
       ) : (
-        <p className="mt-4 text-sm text-muted">No active contract on file. Standard NET billing applies.</p>
+        <p className="mt-4 text-sm text-muted">
+          No active contract on file. Standard NET billing applies.
+        </p>
       )}
     </section>
   );
@@ -589,7 +774,10 @@ function SupportTab({
   orgId,
 }: {
   tickets: SupportTicket[];
-  kb: { articles: Array<{ id: string; title: string; body: string }>; faq: Array<{ question: string; answer: string }> } | null;
+  kb: {
+    articles: Array<{ id: string; title: string; body: string }>;
+    faq: Array<{ question: string; answer: string }>;
+  } | null;
   onRefresh: () => Promise<void>;
   getToken: () => Promise<string>;
   orgId?: string;
@@ -610,9 +798,22 @@ function SupportTab({
       <section className="rounded-2xl border border-primary/10 bg-white p-6">
         <h2 className="font-semibold text-primary">Open a support ticket</h2>
         <div className="mt-4 space-y-2">
-          <input className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
-          <textarea className="w-full rounded-lg border px-3 py-2 text-sm" rows={3} placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Button size="sm" onClick={() => void create()}>Submit ticket</Button>
+          <input
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+            placeholder="Subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+          />
+          <textarea
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+            rows={3}
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <Button size="sm" onClick={() => void create()}>
+            Submit ticket
+          </Button>
         </div>
       </section>
       <section className="rounded-2xl border border-primary/10 bg-white p-6">
@@ -622,7 +823,9 @@ function SupportTab({
           {tickets.map((t) => (
             <li key={t.ticket_id} className="flex justify-between border-b border-primary/5 py-2">
               <span>{t.subject}</span>
-              <span className="text-muted">{t.status} · {t.created_at ? formatDate(t.created_at) : ""}</span>
+              <span className="text-muted">
+                {t.status} · {t.created_at ? formatDate(t.created_at) : ""}
+              </span>
             </li>
           ))}
         </ul>
@@ -661,7 +864,11 @@ function ClaimsTab({
 
   const file = async () => {
     const token = await getToken();
-    await settingsApi.openClaim(token, { order_id: orderId, claim_type: claimType, description }, orgId);
+    await settingsApi.openClaim(
+      token,
+      { order_id: orderId, claim_type: claimType, description },
+      orgId
+    );
     setOrderId("");
     setDescription("");
     await onRefresh();
@@ -672,15 +879,32 @@ function ClaimsTab({
       <section className="rounded-2xl border border-primary/10 bg-white p-6">
         <h2 className="font-semibold text-primary">File a claim</h2>
         <div className="mt-4 space-y-2">
-          <input className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="Order ID" value={orderId} onChange={(e) => setOrderId(e.target.value)} />
-          <select className="w-full rounded-lg border px-3 py-2 text-sm" value={claimType} onChange={(e) => setClaimType(e.target.value)}>
+          <input
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+            placeholder="Order ID"
+            value={orderId}
+            onChange={(e) => setOrderId(e.target.value)}
+          />
+          <select
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+            value={claimType}
+            onChange={(e) => setClaimType(e.target.value)}
+          >
             <option value="merchant_complaint">Merchant complaint</option>
             <option value="damaged_parcel">Damaged parcel</option>
             <option value="lost_parcel">Lost parcel</option>
             <option value="late_delivery">Late delivery</option>
           </select>
-          <textarea className="w-full rounded-lg border px-3 py-2 text-sm" rows={3} placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Button size="sm" onClick={() => void file()}>Submit claim</Button>
+          <textarea
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+            rows={3}
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <Button size="sm" onClick={() => void file()}>
+            Submit claim
+          </Button>
         </div>
       </section>
       <section className="rounded-2xl border border-primary/10 bg-white p-6">
@@ -689,7 +913,9 @@ function ClaimsTab({
           {claims.length === 0 && <li className="text-muted">No claims</li>}
           {claims.map((c) => (
             <li key={c.claim_id} className="flex justify-between border-b border-primary/5 py-2">
-              <span>{c.claim_number} · {c.claim_type}</span>
+              <span>
+                {c.claim_number} · {c.claim_type}
+              </span>
               <span className="text-muted">{c.status}</span>
             </li>
           ))}

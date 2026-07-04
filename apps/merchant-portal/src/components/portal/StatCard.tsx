@@ -1,12 +1,4 @@
-export function StatCard({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) {
+export function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="rounded-2xl border border-primary/10 bg-white p-5">
       <p className="text-sm text-muted">{label}</p>

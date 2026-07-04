@@ -27,7 +27,9 @@ export default function PortalShell({ children }: { children: React.ReactNode })
               P
             </span>
             <span className="hidden min-w-0 sm:block">
-              <span className="block text-sm font-bold leading-tight text-primary">Porterchain</span>
+              <span className="block text-sm font-bold leading-tight text-primary">
+                Porterchain
+              </span>
               <span className="block text-[10px] leading-tight text-muted">Merchant</span>
             </span>
           </Link>

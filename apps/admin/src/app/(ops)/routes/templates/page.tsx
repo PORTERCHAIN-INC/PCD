@@ -16,7 +16,9 @@ import {
 export default function RouteTemplatesPage() {
   const { getApiToken } = useAdminAuth();
   const [busy, setBusy] = useState<string | null>(null);
-  const { data, error, refetch } = useApiData((t) => routeCenter.templates(t), [], { key: "route-templates" });
+  const { data, error, refetch } = useApiData((t) => routeCenter.templates(t), [], {
+    key: "route-templates",
+  });
 
   const createPlan = async (tpl: RouteTemplate) => {
     setBusy(tpl.id);
@@ -38,7 +40,10 @@ export default function RouteTemplatesPage() {
       description="Daily, weekly, merchant, and recurring templates. Save from Route 360 after building a plan."
     >
       {data.length === 0 ? (
-        <RouteEmptyState title="No templates yet" hint="Build a route in Route Builder and save it as a template from Route 360." />
+        <RouteEmptyState
+          title="No templates yet"
+          hint="Build a route in Route Builder and save it as a template from Route 360."
+        />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {data.map((tpl) => (

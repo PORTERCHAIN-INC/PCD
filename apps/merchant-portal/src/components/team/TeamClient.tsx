@@ -104,12 +104,7 @@ export default function TeamClient() {
       {tab === "roles" && roles && <RolesTab catalog={roles} />}
       {tab === "activity" && <ActivityTab entries={activity} />}
       {tab === "security" && twoFactor && (
-        <SecurityTab
-          status={twoFactor}
-          onRefresh={load}
-          getToken={getApiToken}
-          orgId={orgId}
-        />
+        <SecurityTab status={twoFactor} onRefresh={load} getToken={getApiToken} orgId={orgId} />
       )}
     </div>
   );
@@ -281,7 +276,10 @@ function ContactsTab({
 
       <ul className="divide-y divide-primary/5 rounded-2xl border border-primary/10 bg-white">
         {contacts.map((c) => (
-          <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 text-sm">
+          <li
+            key={c.id}
+            className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 text-sm"
+          >
             <div>
               <p className="text-sm font-medium text-primary">
                 {c.first_name} {c.last_name ?? ""}
@@ -410,7 +408,10 @@ function MembersTab({
 
       <ul className="divide-y divide-primary/5 rounded-2xl border border-primary/10 bg-white">
         {members.map((m) => (
-          <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 text-sm">
+          <li
+            key={m.id}
+            className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 text-sm"
+          >
             <div>
               <p className="font-medium">{m.email}</p>
               <p className="text-xs text-muted">Joined {formatDate(m.created_at)}</p>
@@ -427,7 +428,11 @@ function MembersTab({
                   </option>
                 ))}
               </select>
-              <button type="button" className="text-xs text-red-600" onClick={() => void remove(m.id)}>
+              <button
+                type="button"
+                className="text-xs text-red-600"
+                onClick={() => void remove(m.id)}
+              >
                 Remove
               </button>
             </div>

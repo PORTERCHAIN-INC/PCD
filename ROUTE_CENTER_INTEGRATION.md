@@ -6,15 +6,15 @@
 
 ## Integration Map
 
-| System | Role in Route Center | Access path |
-|--------|---------------------|-------------|
-| Porterchain Order mirror | Planning queue, stops, dispatch | SQLAlchemy `Order` model |
-| Valhalla | Multi-stop leg routing, sequencing | `MapsService` (routing_engine=valhalla) |
-| OSRM | Distance matrix / ETA refinement | `MapsService` + `_osrm_leg_matrix` |
-| Fleetbase Adapter | Orchestrator run/commit, dispatch sync | `get_fleetbase_integration(settings)` |
-| Google Maps | Map visualization only | Admin `MapCanvas` (client-side) |
-| Clerk | Admin authentication | `get_admin_context` |
-| Redis / Event bus | Order state events on dispatch | `emit_event` via `AdminOperationsService` |
+| System                   | Role in Route Center                   | Access path                               |
+| ------------------------ | -------------------------------------- | ----------------------------------------- |
+| Porterchain Order mirror | Planning queue, stops, dispatch        | SQLAlchemy `Order` model                  |
+| Valhalla                 | Multi-stop leg routing, sequencing     | `MapsService` (routing_engine=valhalla)   |
+| OSRM                     | Distance matrix / ETA refinement       | `MapsService` + `_osrm_leg_matrix`        |
+| Fleetbase Adapter        | Orchestrator run/commit, dispatch sync | `get_fleetbase_integration(settings)`     |
+| Google Maps              | Map visualization only                 | Admin `MapCanvas` (client-side)           |
+| Clerk                    | Admin authentication                   | `get_admin_context`                       |
+| Redis / Event bus        | Order state events on dispatch         | `emit_event` via `AdminOperationsService` |
 
 ---
 
@@ -60,12 +60,12 @@ If routing engines unreachable, optimization returns `400 insufficient_stops` or
 
 ## Reused Admin APIs (not duplicated)
 
-| Consumer | Reused endpoint / service |
-|----------|---------------------------|
-| Dispatch driver picker | `GET /v1/admin/operations/assignable-drivers` |
-| Live map | `LiveMapApp` → `/v1/admin/operations/live-map` + WS |
+| Consumer                    | Reused endpoint / service                           |
+| --------------------------- | --------------------------------------------------- |
+| Dispatch driver picker      | `GET /v1/admin/operations/assignable-drivers`       |
+| Live map                    | `LiveMapApp` → `/v1/admin/operations/live-map` + WS |
 | Order detail from Route 360 | `GET /v1/admin/orders/{id}` via `/orders/[id]` link |
-| Driver profile | `/drivers/[id]` link |
+| Driver profile              | `/drivers/[id]` link                                |
 
 ---
 
@@ -73,14 +73,14 @@ If routing engines unreachable, optimization returns `400 insufficient_stops` or
 
 See [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md):
 
-| Variable | Integration |
-|----------|-------------|
-| `VALHALLA_URL` | Route optimization |
-| `OSRM_URL` | Distance / ETA refinement |
-| `FLEETBASE_API_URL` | Adapter base |
-| `FLEETBASE_API_KEY` | Adapter auth |
-| `FLEETBASE_DISPATCH_BRIDGE` | Enable orchestrator + dispatch sync |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Admin map visualization |
+| Variable                          | Integration                         |
+| --------------------------------- | ----------------------------------- |
+| `VALHALLA_URL`                    | Route optimization                  |
+| `OSRM_URL`                        | Distance / ETA refinement           |
+| `FLEETBASE_API_URL`               | Adapter base                        |
+| `FLEETBASE_API_KEY`               | Adapter auth                        |
+| `FLEETBASE_DISPATCH_BRIDGE`       | Enable orchestrator + dispatch sync |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Admin map visualization             |
 
 ---
 
@@ -118,12 +118,12 @@ Route Center `/live-execution` REST endpoint provides initial snapshot; WS uncha
 
 ## Error Handling
 
-| Error | HTTP | Meaning |
-|-------|------|---------|
-| `route_plan_not_found` | 404 | Invalid plan ID |
-| `route_plan_locked` | 400 | Plan already dispatched/active |
-| `dispatch_approval_required` | 403 | `requires_approval` without approve |
-| `insufficient_stops` | 400 | < 2 stops for optimization |
-| `missing_coordinates` | 400 | Stops lack lat/lng |
+| Error                        | HTTP | Meaning                             |
+| ---------------------------- | ---- | ----------------------------------- |
+| `route_plan_not_found`       | 404  | Invalid plan ID                     |
+| `route_plan_locked`          | 400  | Plan already dispatched/active      |
+| `dispatch_approval_required` | 403  | `requires_approval` without approve |
+| `insufficient_stops`         | 400  | < 2 stops for optimization          |
+| `missing_coordinates`        | 400  | Stops lack lat/lng                  |
 
 Fleetbase failures enqueue via `RetryQueue` in `BookingSyncService` (existing pattern).

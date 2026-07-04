@@ -106,7 +106,8 @@ export function priorityStyle(priority: string): string {
 export function statusStyle(status: string): string {
   const s = status.toLowerCase();
   if (s === "open" || s === "new") return "bg-blue-100 text-blue-800";
-  if (s === "resolved" || s === "closed" || s === "compensated") return "bg-emerald-100 text-emerald-800";
+  if (s === "resolved" || s === "closed" || s === "compensated")
+    return "bg-emerald-100 text-emerald-800";
   if (s.includes("investigat") || s.includes("waiting")) return "bg-amber-100 text-amber-900";
   return "bg-gray-100 text-gray-700";
 }

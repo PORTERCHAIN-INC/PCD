@@ -34,8 +34,8 @@ export type PerformanceProviderProps = {
 export function PerformanceProvider({ children }: PerformanceProviderProps) {
   const queryClient = useQueryClient();
   const appState = useAppState();
-  const [metrics, setMetrics] = useState<PerformanceMetrics>(() =>
-    getPerformanceSnapshot(0, AppState.currentState) as PerformanceMetrics
+  const [metrics, setMetrics] = useState<PerformanceMetrics>(
+    () => getPerformanceSnapshot(0, AppState.currentState) as PerformanceMetrics
   );
 
   const refreshMetrics = useCallback(() => {

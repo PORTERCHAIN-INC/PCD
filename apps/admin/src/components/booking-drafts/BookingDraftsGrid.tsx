@@ -78,7 +78,10 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
         header: "Draft #",
         size: 120,
         cell: ({ row }) => (
-          <Link href={`/booking-drafts/${row.original.draft_id}`} className="font-mono text-xs font-semibold text-secondary hover:underline">
+          <Link
+            href={`/booking-drafts/${row.original.draft_id}`}
+            className="font-mono text-xs font-semibold text-secondary hover:underline"
+          >
             {row.original.draft_number}
           </Link>
         ),
@@ -91,7 +94,12 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
         cell: ({ getValue }) => {
           const v = String(getValue());
           return (
-            <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", STATE_STYLES[v] ?? "bg-gray-100")}>
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold",
+                STATE_STYLES[v] ?? "bg-gray-100"
+              )}
+            >
               {v.replace(/_/g, " ")}
             </span>
           );
@@ -101,7 +109,9 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
         accessorKey: "customer_email",
         header: "Customer",
         size: 180,
-        cell: ({ getValue }) => <span className="truncate text-sm">{String(getValue() || "—")}</span>,
+        cell: ({ getValue }) => (
+          <span className="truncate text-sm">{String(getValue() || "—")}</span>
+        ),
       },
       {
         accessorKey: "merchant_name",
@@ -136,7 +146,12 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
           const v = getValue() as string | null;
           if (!v) return "—";
           return (
-            <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", PAYMENT_STATUS_STYLES[v] ?? "bg-gray-100")}>
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold",
+                PAYMENT_STATUS_STYLES[v] ?? "bg-gray-100"
+              )}
+            >
               {v}
             </span>
           );
@@ -174,7 +189,10 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
         header: "",
         size: 60,
         cell: ({ row }) => (
-          <Link href={`/booking-drafts/${row.original.draft_id}`} className="text-secondary hover:text-secondary/80">
+          <Link
+            href={`/booking-drafts/${row.original.draft_id}`}
+            className="text-secondary hover:text-secondary/80"
+          >
             <ExternalLink className="h-4 w-4" />
           </Link>
         ),
@@ -208,13 +226,19 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
   function saveView() {
     const name = prompt("View name");
     if (!name) return;
-    const views = JSON.parse(localStorage.getItem(VIEWS_KEY) || "{}") as Record<string, VisibilityState>;
+    const views = JSON.parse(localStorage.getItem(VIEWS_KEY) || "{}") as Record<
+      string,
+      VisibilityState
+    >;
     views[name] = columnVisibility;
     localStorage.setItem(VIEWS_KEY, JSON.stringify(views));
   }
 
   function loadView() {
-    const views = JSON.parse(localStorage.getItem(VIEWS_KEY) || "{}") as Record<string, VisibilityState>;
+    const views = JSON.parse(localStorage.getItem(VIEWS_KEY) || "{}") as Record<
+      string,
+      VisibilityState
+    >;
     const names = Object.keys(views);
     if (!names.length) return alert("No saved views");
     const name = prompt(`Load view:\n${names.join("\n")}`);
@@ -240,7 +264,9 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
           <option value="booking_type">Group by type</option>
         </select>
         <details className="relative">
-          <summary className="cursor-pointer rounded-xl border border-primary/10 px-3 py-2 text-sm">Columns</summary>
+          <summary className="cursor-pointer rounded-xl border border-primary/10 px-3 py-2 text-sm">
+            Columns
+          </summary>
           <div className="absolute z-20 mt-1 max-h-64 overflow-auto rounded-xl border border-primary/10 bg-white p-3 shadow-lg">
             {table.getAllLeafColumns().map((col) => (
               <label key={col.id} className="flex items-center gap-2 py-1 text-sm">
@@ -280,7 +306,9 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
                       className="relative px-3 py-3 font-medium"
                       style={{ width: header.getSize() }}
                     >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                       {header.column.getCanResize() && (
                         <div
                           onMouseDown={header.getResizeHandler()}
@@ -297,7 +325,11 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
               {table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className="border-b border-primary/5 hover:bg-secondary/5">
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-3 py-2.5" style={{ width: cell.column.getSize() }}>
+                    <td
+                      key={cell.id}
+                      className="px-3 py-2.5"
+                      style={{ width: cell.column.getSize() }}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}

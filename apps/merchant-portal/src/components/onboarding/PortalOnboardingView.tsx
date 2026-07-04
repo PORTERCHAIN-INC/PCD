@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  CheckCircle2,
-  Circle,
-  Clock,
-  LogOut,
-  RefreshCw,
-  Shield,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle2, Circle, Clock, LogOut, RefreshCw, Shield, XCircle } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 import type { PortalOnboardingStatus } from "@/lib/onboarding";
 import { cn } from "@/lib/utils";
@@ -18,7 +10,11 @@ function stepIcon(step: PortalOnboardingStatus["steps"][number]) {
   if (step.status === "suspended" || step.status === "inactive") {
     return <XCircle className="h-5 w-5 text-red-600" />;
   }
-  if (step.status === "pending_review" || step.status === "onboarding" || step.status === "pending") {
+  if (
+    step.status === "pending_review" ||
+    step.status === "onboarding" ||
+    step.status === "pending"
+  ) {
     return <Clock className="h-5 w-5 text-amber-600" />;
   }
   return <Circle className="h-5 w-5 text-muted" />;
@@ -135,9 +131,7 @@ export default function PortalOnboardingView({
                     <span
                       className={cn(
                         "rounded-full px-2 py-0.5 text-xs font-medium",
-                        step.complete
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-gray-bg text-muted"
+                        step.complete ? "bg-emerald-50 text-emerald-700" : "bg-gray-bg text-muted"
                       )}
                     >
                       {statusLabel(step)}

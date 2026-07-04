@@ -20,19 +20,19 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <ThemeProvider initialScheme="system">
         <QueryClientProvider client={queryClient}>
           <PerformanceLayer>
-          <MapsProvider googleMapsApiKey={mobileEnv.googleMapsApiKey}>
-            <MobileUiProvider>
-              <ToastProvider>
-                <SecurityLayer>
-                  <CustomerApiProvider>
-                    <OfflineSyncLayer>
-                      <NotificationLayer>{children}</NotificationLayer>
-                    </OfflineSyncLayer>
-                  </CustomerApiProvider>
-                </SecurityLayer>
-              </ToastProvider>
-            </MobileUiProvider>
-          </MapsProvider>
+            <MapsProvider googleMapsApiKey={mobileEnv.googleMapsApiKey}>
+              <MobileUiProvider>
+                <ToastProvider>
+                  <SecurityLayer>
+                    <CustomerApiProvider>
+                      <OfflineSyncLayer>
+                        <NotificationLayer>{children}</NotificationLayer>
+                      </OfflineSyncLayer>
+                    </CustomerApiProvider>
+                  </SecurityLayer>
+                </ToastProvider>
+              </MobileUiProvider>
+            </MapsProvider>
           </PerformanceLayer>
         </QueryClientProvider>
       </ThemeProvider>

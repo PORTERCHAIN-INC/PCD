@@ -73,18 +73,24 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         })();
       },
       onDuplicate: () => {
-        window.alert("Duplicate order uses the existing booking flow — open the linked booking draft to re-create.");
+        window.alert(
+          "Duplicate order uses the existing booking flow — open the linked booking draft to re-create."
+        );
         if (detail?.booking_draft_id) router.push(`/booking-drafts/${detail.booking_draft_id}`);
       },
       onRebook: () => {
         if (detail?.booking_id) router.push(`/bookings/${detail.booking_id}`);
-        else if (detail?.booking_draft_id) router.push(`/booking-drafts/${detail.booking_draft_id}`);
+        else if (detail?.booking_draft_id)
+          router.push(`/booking-drafts/${detail.booking_draft_id}`);
         else window.alert("No booking linked to this order.");
       },
       onCreateReturn: () => router.push(`/claims?order_id=${id}`),
       onGenerateInvoice: () => {
         if (detail?.invoice_number) router.push(`/finance/invoices`);
-        else window.alert("Invoice generation is handled by the billing engine when the order reaches POD_COMPLETED.");
+        else
+          window.alert(
+            "Invoice generation is handled by the billing engine when the order reaches POD_COMPLETED."
+          );
       },
       onRefund: () => {
         window.alert("Refunds are processed through Finance — open the linked payment or invoice.");

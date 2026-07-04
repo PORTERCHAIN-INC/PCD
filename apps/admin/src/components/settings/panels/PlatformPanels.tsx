@@ -22,7 +22,10 @@ export function AuditPanel() {
   return (
     <div className="space-y-6">
       <SettingsPageHeader title="Audit log" description={SECTION_DESCRIPTIONS.audit} />
-      <SettingsCard title="Configuration changes" description="Immutable record with actor, reason, and diff">
+      <SettingsCard
+        title="Configuration changes"
+        description="Immutable record with actor, reason, and diff"
+      >
         {isLoading ? (
           <p className="text-sm text-muted">Loading…</p>
         ) : (
@@ -30,7 +33,9 @@ export function AuditPanel() {
             {logs.map((log, i) => (
               <AuditRow key={i} log={log} />
             ))}
-            {!logs.length && <p className="py-6 text-center text-sm text-muted">No settings audit entries yet</p>}
+            {!logs.length && (
+              <p className="py-6 text-center text-sm text-muted">No settings audit entries yet</p>
+            )}
           </div>
         )}
       </SettingsCard>
@@ -43,7 +48,9 @@ function AuditRow({ log }: { log: AuditEntry }) {
     <div className="rounded-xl border border-primary/10 bg-gray-bg/30 p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <p className="font-mono text-sm font-semibold text-primary">{log.action}</p>
-        <span className="text-xs text-muted">{log.created_at ? relativeTime(log.created_at) : "—"}</span>
+        <span className="text-xs text-muted">
+          {log.created_at ? relativeTime(log.created_at) : "—"}
+        </span>
       </div>
       <p className="mt-1 text-xs text-muted">
         Actor: {log.actor_user_id || "system"} · {log.resource_type}
@@ -103,12 +110,19 @@ export function PlatformPanel({
         <div className="grid gap-3 sm:grid-cols-3">
           <StatTile label="Environment" value={dash.environment} />
           <StatTile label="Version" value={dash.version} />
-          <StatTile label="Status" value={dash.system_status} tone={dash.system_status === "healthy" ? "success" : "warning"} />
+          <StatTile
+            label="Status"
+            value={dash.system_status}
+            tone={dash.system_status === "healthy" ? "success" : "warning"}
+          />
         </div>
       )}
 
       {variant === "backup" && (
-        <SettingsCard title="Configuration export" description="Exports SystemConfig rows — not database dumps">
+        <SettingsCard
+          title="Configuration export"
+          description="Exports SystemConfig rows — not database dumps"
+        >
           <ul className="space-y-2 text-sm text-primary/80">
             <li className="flex gap-2">
               <FileJson className="h-4 w-4 shrink-0 text-secondary" />
@@ -129,8 +143,9 @@ export function PlatformPanel({
       {variant === "logs" && (
         <SettingsCard title="Log retention" description="masterrule §16 — observability">
           <p className="text-sm text-primary/80">
-            Application logs, metrics, and traces are emitted by the API deployment. Configuration change history
-            is available in the Audit section. Integration health is on the Dashboard.
+            Application logs, metrics, and traces are emitted by the API deployment. Configuration
+            change history is available in the Audit section. Integration health is on the
+            Dashboard.
           </p>
         </SettingsCard>
       )}
@@ -138,10 +153,12 @@ export function PlatformPanel({
       {variant === "developer" && (
         <SettingsCard title="API & webhooks" description="Developer portal configuration">
           <p className="mb-4 text-sm text-primary/80">
-            OpenAPI documentation, webhook endpoints, and SDK references are environment-managed. Merchant API keys
-            are provisioned per merchant in the Merchant portal.
+            OpenAPI documentation, webhook endpoints, and SDK references are environment-managed.
+            Merchant API keys are provisioned per merchant in the Merchant portal.
           </p>
-          <p className="text-xs text-muted font-mono">GET /v1/admin/settings/export · POST /v1/admin/settings/import</p>
+          <p className="text-xs text-muted font-mono">
+            GET /v1/admin/settings/export · POST /v1/admin/settings/import
+          </p>
         </SettingsCard>
       )}
     </div>
@@ -183,7 +200,10 @@ export function ModuleLinkPanel({
       )}
 
       {related.length > 0 && (
-        <SettingsCard title="Module-owned settings" description="Read-only — edits happen in the owning module">
+        <SettingsCard
+          title="Module-owned settings"
+          description="Read-only — edits happen in the owning module"
+        >
           <pre className="max-h-64 overflow-auto rounded-xl bg-gray-bg p-4 text-xs">
             {JSON.stringify(Object.fromEntries(related), null, 2)}
           </pre>
@@ -191,8 +211,8 @@ export function ModuleLinkPanel({
       )}
 
       <p className="text-xs text-muted">
-        Per masterrule §3: module-specific settings are owned by their Application Service — Settings Center surfaces
-        links without duplicating write paths.
+        Per masterrule §3: module-specific settings are owned by their Application Service —
+        Settings Center surfaces links without duplicating write paths.
       </p>
     </div>
   );
@@ -202,12 +222,15 @@ export function EnvManagedPanel({ sectionId }: { sectionId: string }) {
   const title = sectionId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   return (
     <div className="space-y-6">
-      <SettingsPageHeader title={title} description={SECTION_DESCRIPTIONS[sectionId] ?? "Environment-managed."} />
+      <SettingsPageHeader
+        title={title}
+        description={SECTION_DESCRIPTIONS[sectionId] ?? "Environment-managed."}
+      />
       <SettingsCard title="Credentials policy">
         <p className="text-sm text-primary/80">
           API keys and third-party credentials are stored in your secret manager /{" "}
-          <code className="rounded bg-gray-bg px-1">env/.env</code> — never in Porterchain tables or this UI.
-          Integration status appears on the Dashboard and integration panels.
+          <code className="rounded bg-gray-bg px-1">env/.env</code> — never in Porterchain tables or
+          this UI. Integration status appears on the Dashboard and integration panels.
         </p>
       </SettingsCard>
     </div>

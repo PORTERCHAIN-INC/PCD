@@ -59,25 +59,25 @@ queued → sent → delivered → opened → clicked
       expired
 ```
 
-| Status | Meaning |
-|--------|---------|
-| `queued` | Record created, job enqueued |
-| `sent` | Provider accepted (SMTP/FCM API 200) |
-| `delivered` | FCM delivery receipt (when available) |
-| `opened` | User opened in-app / push tap |
-| `clicked` | Deep link clicked |
-| `failed` | Delivery error |
-| `expired` | Max retries exceeded |
-| `dead_letter` | Moved to DLQ |
+| Status        | Meaning                               |
+| ------------- | ------------------------------------- |
+| `queued`      | Record created, job enqueued          |
+| `sent`        | Provider accepted (SMTP/FCM API 200)  |
+| `delivered`   | FCM delivery receipt (when available) |
+| `opened`      | User opened in-app / push tap         |
+| `clicked`     | Deep link clicked                     |
+| `failed`      | Delivery error                        |
+| `expired`     | Max retries exceeded                  |
+| `dead_letter` | Moved to DLQ                          |
 
 ## Retry Policy
 
-| Setting | Default |
-|---------|---------|
-| `NOTIFICATION_MAX_RETRIES` | 5 |
-| Base delay | 30s |
-| Backoff | exponential (30s, 2m, 8m, 32m, 2h) |
-| DLQ queue | `notifications_dlq` |
+| Setting                    | Default                            |
+| -------------------------- | ---------------------------------- |
+| `NOTIFICATION_MAX_RETRIES` | 5                                  |
+| Base delay                 | 30s                                |
+| Backoff                    | exponential (30s, 2m, 8m, 32m, 2h) |
+| DLQ queue                  | `notifications_dlq`                |
 
 Retry worker runs on `notifications_retry` queue.
 

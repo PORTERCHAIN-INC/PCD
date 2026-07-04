@@ -143,7 +143,7 @@ export function listBookingTemplates(token: string, orgId?: string) {
 export function createBookingTemplate(
   token: string,
   name: string,
-  payload: Record<string, unknown>,
+  payload: BookDeliveryPayload,
   orgId?: string
 ) {
   return bookingFetch<BookingTemplate>("/v1/merchant/booking/templates", token, {
@@ -175,7 +175,12 @@ export function confirmMultiParcel(
   orgId?: string
 ) {
   return bookingFetch<{
-    orders: Array<{ parcel: number; order_id: string; tracking_number: string; amount_cents: number }>;
+    orders: Array<{
+      parcel: number;
+      order_id: string;
+      tracking_number: string;
+      amount_cents: number;
+    }>;
     errors: Array<{ parcel: number; error: string }>;
     total_amount_cents: number;
   }>("/v1/merchant/booking/multi", token, {

@@ -41,9 +41,24 @@ export const MERCHANT_NAV_GROUPS: MerchantNavGroup[] = [
     id: "operations",
     label: "Operations",
     items: [
-      { href: "/book", label: "Book Delivery", description: "Single & multi-parcel booking", icon: Truck },
-      { href: "/bulk", label: "Bulk Upload", description: "CSV import and confirm", icon: FileSpreadsheet },
-      { href: "/orders", label: "Orders", description: "Search, filter, and Order 360", icon: Package },
+      {
+        href: "/book",
+        label: "Book Delivery",
+        description: "Single & multi-parcel booking",
+        icon: Truck,
+      },
+      {
+        href: "/bulk",
+        label: "Bulk Upload",
+        description: "CSV import and confirm",
+        icon: FileSpreadsheet,
+      },
+      {
+        href: "/orders",
+        label: "Orders",
+        description: "Search, filter, and Order 360",
+        icon: Package,
+      },
       { href: "/track", label: "Track", description: "Live tracking and timeline", icon: Truck },
     ],
   },
@@ -51,7 +66,12 @@ export const MERCHANT_NAV_GROUPS: MerchantNavGroup[] = [
     id: "finance",
     label: "Finance",
     items: [
-      { href: "/billing", label: "Billing", description: "Invoices, statements, credits", icon: CreditCard },
+      {
+        href: "/billing",
+        label: "Billing",
+        description: "Invoices, statements, credits",
+        icon: CreditCard,
+      },
       { href: "/reports", label: "Reports", description: "Analytics and exports", icon: BarChart3 },
     ],
   },
@@ -60,7 +80,12 @@ export const MERCHANT_NAV_GROUPS: MerchantNavGroup[] = [
     label: "Account",
     items: [
       { href: "/api", label: "Integrations", description: "API keys, webhooks, usage", icon: Key },
-      { href: "/team", label: "Team & contacts", description: "Contacts, invites, roles", icon: Users },
+      {
+        href: "/team",
+        label: "Team & contacts",
+        description: "Contacts, invites, roles",
+        icon: Users,
+      },
       {
         href: "/settings",
         label: "Business Profile",

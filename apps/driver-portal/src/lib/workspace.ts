@@ -23,12 +23,7 @@ export interface DriverRoute {
   started_at: string | null;
 }
 
-const COMPLETED_STATUSES = new Set([
-  "delivered",
-  "completed",
-  "pod_completed",
-  "picked_up",
-]);
+const COMPLETED_STATUSES = new Set(["delivered", "completed", "pod_completed", "picked_up"]);
 
 const DELIVERY_DONE_STATUSES = new Set(["delivered", "completed", "pod_completed"]);
 
@@ -42,11 +37,7 @@ export function isDeliveryCompleted(status: string): boolean {
 
 export function formatStopAddress(stop: DriverStop): string {
   const addr = stop.address;
-  return (
-    addr.formatted ||
-    [addr.line1, addr.city].filter(Boolean).join(", ") ||
-    "Address pending"
-  );
+  return addr.formatted || [addr.line1, addr.city].filter(Boolean).join(", ") || "Address pending";
 }
 
 export function splitQueues(stops: DriverStop[]) {
@@ -55,10 +46,7 @@ export function splitQueues(stops: DriverStop[]) {
     (s) => s.stop_type === "pickup" && !isStopCompleted(s.status) && s.status !== "locked"
   );
   const deliveryQueue = sorted.filter(
-    (s) =>
-      s.stop_type === "dropoff" &&
-      s.status !== "locked" &&
-      !isDeliveryCompleted(s.status)
+    (s) => s.stop_type === "dropoff" && s.status !== "locked" && !isDeliveryCompleted(s.status)
   );
   const nextStop =
     sorted.find((s) => {
@@ -115,13 +103,10 @@ export function formatLastUpdated(date: Date): string {
   return format(date, "h:mm:ss a");
 }
 
-export function countOpenClaims(
-  incidents: { status: string; incident_type: string }[]
-): number {
+export function countOpenClaims(incidents: { status: string; incident_type: string }[]): number {
   return incidents.filter(
     (i) =>
-      i.status === "open" &&
-      ["damage", "loss", "claim"].includes(i.incident_type.toLowerCase())
+      i.status === "open" && ["damage", "loss", "claim"].includes(i.incident_type.toLowerCase())
   ).length;
 }
 

@@ -33,7 +33,11 @@ export function ScreenHeader({
     >
       <View style={{ flex: 1 }}>
         <Headline>{title}</Headline>
-        {subtitle ? <Body muted style={{ marginTop: 2 }}>{subtitle}</Body> : null}
+        {subtitle ? (
+          <Body muted style={{ marginTop: 2 }}>
+            {subtitle}
+          </Body>
+        ) : null}
       </View>
       {right}
     </View>

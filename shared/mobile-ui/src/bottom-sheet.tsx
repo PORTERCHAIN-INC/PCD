@@ -52,7 +52,11 @@ export function AppBottomSheet({
   const points = useMemo(() => snapPoints, [snapPoints]);
 
   return (
-    <BottomSheet snapPoints={points} backgroundStyle={styles.backgroundStyle} handleIndicatorStyle={styles.handleIndicatorStyle}>
+    <BottomSheet
+      snapPoints={points}
+      backgroundStyle={styles.backgroundStyle}
+      handleIndicatorStyle={styles.handleIndicatorStyle}
+    >
       {children}
     </BottomSheet>
   );

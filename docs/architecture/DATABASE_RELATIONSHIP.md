@@ -14,17 +14,17 @@ Customer ──< Quote ──1:1──> Order ──< OrderEvent
 
 ## Key Tables
 
-| Module | Tables |
-|--------|--------|
-| Core | `customers`, `quotes`, `bookings`, `orders`, `payments`, `invoices`, `order_events`, `domain_events` |
-| Drafts | `booking_drafts`, `booking_draft_audits` |
-| Merchant | `merchants`, `merchant_users`, `saved_addresses`, `merchant_recipients`, `merchant_api_keys`, `bulk_import_jobs` |
-| Admin/Ops | `admin_users`, `drivers`, `vehicles`, `support_tickets`, `claims`, `pricing_tariffs` |
-| CRM | `crm_companies`, `crm_contacts`, `crm_deals`, `crm_contracts`, `crm_invoices` |
-| Fleetbase sync | `fleetbase_sync_jobs`, `fleetbase_sync_audit` |
-| Driver ops | `driver_location_pings`, `driver_wallet_transactions`, `driver_stop_meta` |
-| Billing | `billing_ledger_entries` |
-| Notifications | `notification_delivery_logs` |
+| Module         | Tables                                                                                                           |
+| -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Core           | `customers`, `quotes`, `bookings`, `orders`, `payments`, `invoices`, `order_events`, `domain_events`             |
+| Drafts         | `booking_drafts`, `booking_draft_audits`                                                                         |
+| Merchant       | `merchants`, `merchant_users`, `saved_addresses`, `merchant_recipients`, `merchant_api_keys`, `bulk_import_jobs` |
+| Admin/Ops      | `admin_users`, `drivers`, `vehicles`, `support_tickets`, `claims`, `pricing_tariffs`                             |
+| CRM            | `crm_companies`, `crm_contacts`, `crm_deals`, `crm_contracts`, `crm_invoices`                                    |
+| Fleetbase sync | `fleetbase_sync_jobs`, `fleetbase_sync_audit`                                                                    |
+| Driver ops     | `driver_location_pings`, `driver_wallet_transactions`, `driver_stop_meta`                                        |
+| Billing        | `billing_ledger_entries`                                                                                         |
+| Notifications  | `notification_delivery_logs`                                                                                     |
 
 ## Order Metadata (migration d5f6a7b8c9d0)
 
@@ -34,8 +34,8 @@ Customer ──< Quote ──1:1──> Order ──< OrderEvent
 
 ## Ownership Split (masterrule.md §9)
 
-| Porterchain DB | Fleetbase DB |
-|----------------|--------------|
+| Porterchain DB                                     | Fleetbase DB                                             |
+| -------------------------------------------------- | -------------------------------------------------------- |
 | Customers, quotes, orders, payments, invoices, CRM | Operational drivers, dispatch, GPS traces, POD artifacts |
 
 `orders.fleetbase_order_id` and `orders.assigned_driver_id` are cross-reference fields only.

@@ -54,7 +54,11 @@ export function DiagnosticsHealthView() {
         actions={
           <>
             <label className="flex items-center gap-2 text-sm text-muted">
-              <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+              />
               Auto-refresh 60s
             </label>
             <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
@@ -74,7 +78,9 @@ export function DiagnosticsHealthView() {
         </div>
       )}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</div>
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {error}
+        </div>
       )}
 
       {data && (
@@ -96,10 +102,16 @@ export function DiagnosticsHealthView() {
           </div>
 
           {issues.length > 0 && (
-            <SettingsCard title="Attention required" description={`${issues.length} component(s) need review`}>
+            <SettingsCard
+              title="Attention required"
+              description={`${issues.length} component(s) need review`}
+            >
               <ul className="space-y-2 text-sm">
                 {issues.slice(0, 8).map((c) => (
-                  <li key={c.id} className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2">
+                  <li
+                    key={c.id}
+                    className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2"
+                  >
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
                     <div>
                       <span className="font-medium">{c.name}</span>
@@ -127,15 +139,36 @@ export function DiagnosticsHealthView() {
               />
             </div>
             <div className="flex flex-wrap gap-2">
-              <FilterChip active={!statusFilter} onClick={() => setStatusFilter(null)} label="All statuses" />
-              <FilterChip active={statusFilter === "healthy"} onClick={() => setStatusFilter("healthy")} label="Healthy" />
-              <FilterChip active={statusFilter === "warning"} onClick={() => setStatusFilter("warning")} label="Warning" />
-              <FilterChip active={statusFilter === "critical"} onClick={() => setStatusFilter("critical")} label="Critical" />
+              <FilterChip
+                active={!statusFilter}
+                onClick={() => setStatusFilter(null)}
+                label="All statuses"
+              />
+              <FilterChip
+                active={statusFilter === "healthy"}
+                onClick={() => setStatusFilter("healthy")}
+                label="Healthy"
+              />
+              <FilterChip
+                active={statusFilter === "warning"}
+                onClick={() => setStatusFilter("warning")}
+                label="Warning"
+              />
+              <FilterChip
+                active={statusFilter === "critical"}
+                onClick={() => setStatusFilter("critical")}
+                label="Critical"
+              />
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <CategoryChip active={!category} label="All" count={data.components.length} onClick={() => setCategory(null)} />
+            <CategoryChip
+              active={!category}
+              label="All"
+              count={data.components.length}
+              onClick={() => setCategory(null)}
+            />
             {HEALTH_CATEGORY_ORDER.map((cat) => {
               const g = data.groups?.[cat];
               if (!g) return null;
@@ -227,7 +260,9 @@ function CategoryChip({
       type="button"
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition ${
-        active ? "border-secondary bg-secondary/10 text-secondary" : "border-primary/10 bg-white hover:bg-gray-50"
+        active
+          ? "border-secondary bg-secondary/10 text-secondary"
+          : "border-primary/10 bg-white hover:bg-gray-50"
       }`}
     >
       {label}
@@ -242,10 +277,14 @@ export function DiagnosticsHealthCompact({ data }: { data: HealthDashboard | nul
   return (
     <div className="flex items-center gap-2 text-sm">
       <ShieldCheck className="h-4 w-4 text-muted" />
-      <Badge tone={data.overall === "healthy" ? "green" : data.overall === "warning" ? "amber" : "red"}>
+      <Badge
+        tone={data.overall === "healthy" ? "green" : data.overall === "warning" ? "amber" : "red"}
+      >
         {data.overall}
       </Badge>
-      <span className="text-muted">{data.summary.healthy}/{data.components.length} healthy</span>
+      <span className="text-muted">
+        {data.summary.healthy}/{data.components.length} healthy
+      </span>
     </div>
   );
 }

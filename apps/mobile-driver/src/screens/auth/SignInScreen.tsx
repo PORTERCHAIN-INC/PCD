@@ -55,7 +55,9 @@ export function SignInScreen() {
   return (
     <Screen style={{ justifyContent: "center" }}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={{ padding: theme.spacing["2xl"], gap: theme.spacing.lg }}>
+        <ScrollView
+          contentContainerStyle={{ padding: theme.spacing["2xl"], gap: theme.spacing.lg }}
+        >
           {clerkConfigured ? (
             <ClerkSignInPanel
               title="Porterchain Driver"

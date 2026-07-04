@@ -45,7 +45,8 @@ export function createNotificationApi(client: ApiClient, v1 = "/v1") {
       notification_permission?: string;
     }) => client.post<{ device_id: string; registered: boolean }>(`${base}/devices/register`, body),
 
-    revokeDevice: (deviceId: string) => client.delete(`${base}/devices/${encodeURIComponent(deviceId)}`),
+    revokeDevice: (deviceId: string) =>
+      client.delete(`${base}/devices/${encodeURIComponent(deviceId)}`),
 
     inbox: (params?: { unreadOnly?: boolean; archived?: boolean; limit?: number }) => {
       const qs = new URLSearchParams();

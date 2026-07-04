@@ -11,7 +11,9 @@ const AdminProfileContext = createContext<{
 export function AdminProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<AdminStaffProfile | null>(null);
   return (
-    <AdminProfileContext.Provider value={{ profile, setProfile }}>{children}</AdminProfileContext.Provider>
+    <AdminProfileContext.Provider value={{ profile, setProfile }}>
+      {children}
+    </AdminProfileContext.Provider>
   );
 }
 

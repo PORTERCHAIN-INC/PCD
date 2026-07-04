@@ -49,11 +49,5 @@ export default function OnboardingPage() {
 
   if (!data) return null;
 
-  return (
-    <DriverOnboardingView
-      data={data}
-      onRefresh={() => void refresh()}
-      refreshing={loading}
-    />
-  );
+  return <DriverOnboardingView data={data} onRefresh={() => void refresh()} refreshing={loading} />;
 }

@@ -96,7 +96,9 @@ export default function SupportGrid({ rows, selected, onSelect }: Props) {
         header: "Category",
         size: 130,
         enableGrouping: true,
-        cell: ({ getValue }) => <span className="text-xs capitalize">{formatCategory(String(getValue()))}</span>,
+        cell: ({ getValue }) => (
+          <span className="text-xs capitalize">{formatCategory(String(getValue()))}</span>
+        ),
       },
       {
         accessorKey: "priority",
@@ -124,7 +126,12 @@ export default function SupportGrid({ rows, selected, onSelect }: Props) {
         cell: ({ getValue }) => {
           const v = String(getValue());
           return (
-            <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", STATUS_STYLES[v] ?? "bg-gray-100")}>
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold",
+                STATUS_STYLES[v] ?? "bg-gray-100"
+              )}
+            >
               {v.replace(/_/g, " ")}
             </span>
           );
@@ -134,17 +141,32 @@ export default function SupportGrid({ rows, selected, onSelect }: Props) {
         accessorKey: "customer_email",
         header: "Customer",
         size: 150,
-        cell: ({ getValue }) => <span className="truncate text-xs">{String(getValue() || "—")}</span>,
+        cell: ({ getValue }) => (
+          <span className="truncate text-xs">{String(getValue() || "—")}</span>
+        ),
       },
-      { accessorKey: "merchant_name", header: "Merchant", size: 120, cell: ({ getValue }) => String(getValue() || "—") },
-      { accessorKey: "driver_name", header: "Driver", size: 110, cell: ({ getValue }) => String(getValue() || "—") },
+      {
+        accessorKey: "merchant_name",
+        header: "Merchant",
+        size: 120,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
+      {
+        accessorKey: "driver_name",
+        header: "Driver",
+        size: 110,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
       {
         accessorKey: "order_number",
         header: "Order",
         size: 100,
         cell: ({ row, getValue }) =>
           row.original.order_id ? (
-            <Link href={`/orders/${row.original.order_id}`} className="font-mono text-xs text-secondary hover:underline">
+            <Link
+              href={`/orders/${row.original.order_id}`}
+              className="font-mono text-xs text-secondary hover:underline"
+            >
               {String(getValue() || "—")}
             </Link>
           ) : (
@@ -155,15 +177,24 @@ export default function SupportGrid({ rows, selected, onSelect }: Props) {
         accessorKey: "booking_number",
         header: "Booking",
         size: 100,
-        cell: ({ getValue }) => <span className="font-mono text-xs">{String(getValue() || "—")}</span>,
+        cell: ({ getValue }) => (
+          <span className="font-mono text-xs">{String(getValue() || "—")}</span>
+        ),
       },
       {
         accessorKey: "tracking_number",
         header: "Tracking",
         size: 110,
-        cell: ({ getValue }) => <span className="font-mono text-xs">{String(getValue() || "—")}</span>,
+        cell: ({ getValue }) => (
+          <span className="font-mono text-xs">{String(getValue() || "—")}</span>
+        ),
       },
-      { accessorKey: "assigned_agent", header: "Agent", size: 120, cell: ({ getValue }) => String(getValue() || "—") },
+      {
+        accessorKey: "assigned_agent",
+        header: "Agent",
+        size: 120,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
       {
         accessorKey: "created_at",
         header: "Created",
@@ -183,7 +214,12 @@ export default function SupportGrid({ rows, selected, onSelect }: Props) {
         cell: ({ getValue }) => {
           const v = String(getValue());
           return (
-            <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold capitalize", SLA_STYLES[v] ?? "bg-gray-100")}>
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold capitalize",
+                SLA_STYLES[v] ?? "bg-gray-100"
+              )}
+            >
               {v}
             </span>
           );
@@ -255,7 +291,11 @@ export default function SupportGrid({ rows, selected, onSelect }: Props) {
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
                 {hg.headers.map((header) => (
-                  <th key={header.id} className="relative px-3 py-3 font-medium" style={{ width: header.getSize() }}>
+                  <th
+                    key={header.id}
+                    className="relative px-3 py-3 font-medium"
+                    style={{ width: header.getSize() }}
+                  >
                     {flexRender(header.column.columnDef.header, header.getContext())}
                     <div
                       onMouseDown={header.getResizeHandler()}

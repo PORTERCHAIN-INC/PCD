@@ -50,14 +50,22 @@ export function ReceiptsScreen() {
           estimatedItemSize={LIST_ITEM_SIZES.standard}
           keyExtractor={(payment) => payment.payment_id}
           contentContainerStyle={{ padding: theme.spacing.lg }}
-          ListEmptyComponent={<Body muted style={{ padding: theme.spacing.lg }}>No receipts yet.</Body>}
+          ListEmptyComponent={
+            <Body muted style={{ padding: theme.spacing.lg }}>
+              No receipts yet.
+            </Body>
+          }
           renderItem={({ item: payment }) => (
             <ListItem
               title={formatMoney(payment.amount_cents, payment.currency)}
               subtitle={payment.status}
               trailing={
                 payment.receipt_url ? (
-                  <Button label="Open" size="sm" onPress={() => void Linking.openURL(payment.receipt_url!)} />
+                  <Button
+                    label="Open"
+                    size="sm"
+                    onPress={() => void Linking.openURL(payment.receipt_url!)}
+                  />
                 ) : undefined
               }
             />

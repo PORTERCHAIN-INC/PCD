@@ -26,7 +26,8 @@ export const CUSTOMER_OFFLINE_ACTIONS = {
   CLAIM_CREATE: "customer.claim.create",
 } as const;
 
-export type OfflineActionStatus = "queued" | "uploading" | "syncing" | "synced" | "failed" | "conflict";
+export type OfflineActionStatus =
+  "queued" | "uploading" | "syncing" | "synced" | "failed" | "conflict";
 
 export type OfflineAction = {
   id: string;
@@ -94,7 +95,9 @@ export type OfflineSyncResult = {
 };
 
 export type OfflineQueueAdapter = {
-  enqueue: (action: Omit<OfflineAction, "id" | "created_at" | "status" | "retry_count">) => OfflineAction;
+  enqueue: (
+    action: Omit<OfflineAction, "id" | "created_at" | "status" | "retry_count">
+  ) => OfflineAction;
   list: () => OfflineAction[];
   update: (id: string, patch: Partial<OfflineAction>) => OfflineAction | null;
   remove: (id: string) => void;
@@ -102,9 +105,23 @@ export type OfflineQueueAdapter = {
 };
 
 export type OfflineSyncAdapter = {
-  queueAction: (actionType: string, payload: Record<string, unknown>, clientId?: string) => Promise<unknown>;
-  sync: () => Promise<{ synced: number; failed: number; conflicts_resolved?: number; synced_at?: string }>;
-  retryFailed: () => Promise<{ synced: number; failed: number; retried: number; conflicts_resolved?: number }>;
+  queueAction: (
+    actionType: string,
+    payload: Record<string, unknown>,
+    clientId?: string
+  ) => Promise<unknown>;
+  sync: () => Promise<{
+    synced: number;
+    failed: number;
+    conflicts_resolved?: number;
+    synced_at?: string;
+  }>;
+  retryFailed: () => Promise<{
+    synced: number;
+    failed: number;
+    retried: number;
+    conflicts_resolved?: number;
+  }>;
   getStatus?: () => Promise<OfflineStatus>;
   uploadFile?: (localUri: string) => Promise<string>;
   executeDirect?: (actionType: string, payload: Record<string, unknown>) => Promise<unknown>;
@@ -112,7 +129,10 @@ export type OfflineSyncAdapter = {
 
 export type ConflictResolution = "server_wins" | "client_retry" | "skip";
 
-export function entityKeyForAction(actionType: string, payload: Record<string, unknown>): string | null {
+export function entityKeyForAction(
+  actionType: string,
+  payload: Record<string, unknown>
+): string | null {
   const orderId = payload.order_id ?? payload.orderId;
   const stopId = payload.stop_id ?? payload.stopId;
   if (typeof orderId === "string") return `${actionType}:${orderId}`;

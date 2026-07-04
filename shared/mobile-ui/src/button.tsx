@@ -1,7 +1,13 @@
 "use client";
 
 import { forwardRef, type ReactNode } from "react";
-import { ActivityIndicator, Pressable, View, type PressableProps, type ViewStyle } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  View,
+  type PressableProps,
+  type ViewStyle,
+} from "react-native";
 import { a11yProps } from "@porterchain/mobile-hooks";
 import { shadowForScheme, useTheme } from "@porterchain/mobile-theme";
 import { Text } from "./typography";
@@ -50,7 +56,11 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
 
   const palette: Record<ButtonVariant, { bg: string; text: string; border: string }> = {
     primary: { bg: theme.colors.secondary, text: theme.colors.onSecondary, border: "transparent" },
-    secondary: { bg: theme.colors.surfaceElevated, text: theme.colors.text, border: theme.colors.border },
+    secondary: {
+      bg: theme.colors.surfaceElevated,
+      text: theme.colors.text,
+      border: theme.colors.border,
+    },
     ghost: { bg: "transparent", text: theme.colors.secondary, border: "transparent" },
     danger: { bg: theme.colors.danger, text: theme.colors.onSecondary, border: "transparent" },
     outline: { bg: "transparent", text: theme.colors.secondary, border: theme.colors.secondary },
@@ -91,7 +101,9 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
         <>
           {leftIcon}
           {typeof content === "string" ? (
-            <Text style={{ color: colors.text, fontSize: dims.fontSize, fontWeight: "600" }}>{content}</Text>
+            <Text style={{ color: colors.text, fontSize: dims.fontSize, fontWeight: "600" }}>
+              {content}
+            </Text>
           ) : (
             content
           )}

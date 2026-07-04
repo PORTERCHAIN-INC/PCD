@@ -4,7 +4,15 @@ import { Headline, Body } from "@porterchain/mobile-ui";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export function ScreenHeader({ title, subtitle, right }: { title: string; subtitle?: string; right?: ReactNode }) {
+export function ScreenHeader({
+  title,
+  subtitle,
+  right,
+}: {
+  title: string;
+  subtitle?: string;
+  right?: ReactNode;
+}) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   return (
@@ -24,7 +32,11 @@ export function ScreenHeader({ title, subtitle, right }: { title: string; subtit
     >
       <View style={{ flex: 1 }}>
         <Headline>{title}</Headline>
-        {subtitle ? <Body muted style={{ marginTop: 2 }}>{subtitle}</Body> : null}
+        {subtitle ? (
+          <Body muted style={{ marginTop: 2 }}>
+            {subtitle}
+          </Body>
+        ) : null}
       </View>
       {right}
     </View>

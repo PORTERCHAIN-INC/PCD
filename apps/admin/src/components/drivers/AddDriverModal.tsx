@@ -5,14 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { drivers, DRIVER_DOC_TYPES, type DriverCreatePayload } from "@/lib/drivers";
 import { VEHICLE_CLASSES } from "@/lib/pricing";
-import {
-  Button,
-  Drawer,
-  Field,
-  Input,
-  Select,
-  Textarea,
-} from "@/components/crm/primitives";
+import { Button, Drawer, Field, Input, Select, Textarea } from "@/components/crm/primitives";
 
 type DocDraft = {
   doc_type: string;
@@ -145,7 +138,9 @@ export function AddDriverModal({
       close();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not create driver";
-      setError(msg.includes("driver_email_exists") ? "A driver with this email already exists." : msg);
+      setError(
+        msg.includes("driver_email_exists") ? "A driver with this email already exists." : msg
+      );
     } finally {
       setBusy(false);
     }
@@ -162,10 +157,7 @@ export function AddDriverModal({
           <Button variant="ghost" onClick={close} disabled={busy}>
             Cancel
           </Button>
-          <Button
-            disabled={busy || !fullName.trim() || !email.trim()}
-            onClick={() => submit()}
-          >
+          <Button disabled={busy || !fullName.trim() || !email.trim()} onClick={() => submit()}>
             {busy ? "Saving…" : "Create driver"}
           </Button>
         </>
@@ -173,7 +165,9 @@ export function AddDriverModal({
     >
       <form id="add-driver-form" onSubmit={submit} className="space-y-6">
         {error && (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+          <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </p>
         )}
 
         <section className="space-y-3">
@@ -183,7 +177,12 @@ export function AddDriverModal({
               <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
             </Field>
             <Field label="Email *">
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </Field>
             <Field label="Phone">
               <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1…" />
@@ -202,7 +201,11 @@ export function AddDriverModal({
           <h3 className="text-sm font-semibold text-primary">License</h3>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="License class">
-              <Input value={licenseClass} onChange={(e) => setLicenseClass(e.target.value)} placeholder="G, AZ…" />
+              <Input
+                value={licenseClass}
+                onChange={(e) => setLicenseClass(e.target.value)}
+                placeholder="G, AZ…"
+              />
             </Field>
             <Field label="License number">
               <Input value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} />
@@ -242,7 +245,11 @@ export function AddDriverModal({
 
         <section className="space-y-3">
           <label className="flex items-center gap-2 text-sm font-medium text-primary">
-            <input type="checkbox" checked={addVehicle} onChange={(e) => setAddVehicle(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={addVehicle}
+              onChange={(e) => setAddVehicle(e.target.checked)}
+            />
             Register a vehicle
           </label>
           {addVehicle && (
@@ -257,10 +264,18 @@ export function AddDriverModal({
                 </Select>
               </Field>
               <Field label="Plate number *">
-                <Input value={plateNumber} onChange={(e) => setPlateNumber(e.target.value)} required={addVehicle} />
+                <Input
+                  value={plateNumber}
+                  onChange={(e) => setPlateNumber(e.target.value)}
+                  required={addVehicle}
+                />
               </Field>
               <Field label="Make / model" className="sm:col-span-2">
-                <Input value={makeModel} onChange={(e) => setMakeModel(e.target.value)} placeholder="Ford Transit…" />
+                <Input
+                  value={makeModel}
+                  onChange={(e) => setMakeModel(e.target.value)}
+                  placeholder="Ford Transit…"
+                />
               </Field>
             </div>
           )}
@@ -269,12 +284,18 @@ export function AddDriverModal({
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-primary">Documents</h3>
-            <Button type="button" variant="outline" onClick={() => setDocs((d) => [...d, emptyDoc()])}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDocs((d) => [...d, emptyDoc()])}
+            >
               <Plus className="h-4 w-4" /> Add document
             </Button>
           </div>
           {docs.length === 0 && (
-            <p className="text-sm text-muted">Optional — add license, insurance, or background check records.</p>
+            <p className="text-sm text-muted">
+              Optional — add license, insurance, or background check records.
+            </p>
           )}
           {docs.map((doc, i) => (
             <div key={i} className="space-y-3 rounded-xl border border-primary/10 p-3">
@@ -293,7 +314,9 @@ export function AddDriverModal({
                   <Select
                     value={doc.doc_type}
                     onChange={(e) =>
-                      setDocs((d) => d.map((row, j) => (j === i ? { ...row, doc_type: e.target.value } : row)))
+                      setDocs((d) =>
+                        d.map((row, j) => (j === i ? { ...row, doc_type: e.target.value } : row))
+                      )
                     }
                   >
                     {DRIVER_DOC_TYPES.map((t) => (
@@ -307,7 +330,9 @@ export function AddDriverModal({
                   <Input
                     value={doc.label}
                     onChange={(e) =>
-                      setDocs((d) => d.map((row, j) => (j === i ? { ...row, label: e.target.value } : row)))
+                      setDocs((d) =>
+                        d.map((row, j) => (j === i ? { ...row, label: e.target.value } : row))
+                      )
                     }
                     placeholder="Optional display name"
                   />
@@ -316,7 +341,9 @@ export function AddDriverModal({
                   <Input
                     value={doc.file_url}
                     onChange={(e) =>
-                      setDocs((d) => d.map((row, j) => (j === i ? { ...row, file_url: e.target.value } : row)))
+                      setDocs((d) =>
+                        d.map((row, j) => (j === i ? { ...row, file_url: e.target.value } : row))
+                      )
                     }
                     placeholder="https://… or internal storage path"
                   />
@@ -326,7 +353,9 @@ export function AddDriverModal({
                     value={doc.reference_number}
                     onChange={(e) =>
                       setDocs((d) =>
-                        d.map((row, j) => (j === i ? { ...row, reference_number: e.target.value } : row))
+                        d.map((row, j) =>
+                          j === i ? { ...row, reference_number: e.target.value } : row
+                        )
                       )
                     }
                   />
@@ -336,7 +365,9 @@ export function AddDriverModal({
                     type="date"
                     value={doc.expires_at}
                     onChange={(e) =>
-                      setDocs((d) => d.map((row, j) => (j === i ? { ...row, expires_at: e.target.value } : row)))
+                      setDocs((d) =>
+                        d.map((row, j) => (j === i ? { ...row, expires_at: e.target.value } : row))
+                      )
                     }
                   />
                 </Field>
@@ -344,7 +375,9 @@ export function AddDriverModal({
                   <Textarea
                     value={doc.notes}
                     onChange={(e) =>
-                      setDocs((d) => d.map((row, j) => (j === i ? { ...row, notes: e.target.value } : row)))
+                      setDocs((d) =>
+                        d.map((row, j) => (j === i ? { ...row, notes: e.target.value } : row))
+                      )
                     }
                     rows={2}
                   />
@@ -364,7 +397,8 @@ export function AddDriverModal({
           <span>
             <span className="font-medium text-primary">Approve immediately</span>
             <span className="mt-0.5 block text-muted">
-              Sets status to approved and syncs to Fleetbase when configured. Leave unchecked for pending review.
+              Sets status to approved and syncs to Fleetbase when configured. Leave unchecked for
+              pending review.
             </span>
           </span>
         </label>

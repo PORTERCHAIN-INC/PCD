@@ -76,7 +76,8 @@ export default function SignInPage() {
         fallbackRedirectUrl="/onboarding"
       />
       <p className="mt-6 max-w-sm text-center text-xs text-muted">
-        Merchant access is invitation-only. Contact your Porterchain account manager if you need an invite.
+        Merchant access is invitation-only. Contact your Porterchain account manager if you need an
+        invite.
       </p>
     </div>
   );

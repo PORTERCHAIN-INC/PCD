@@ -45,7 +45,8 @@ export function EnterpriseMap({
   const { enabled } = useMapsConfig();
   const mapRef = useRef<MapView>(null);
   const [internalReplayIndex, setInternalReplayIndex] = useState<number | null>(null);
-  const replayIndex = controlledReplayIndex !== undefined ? controlledReplayIndex : internalReplayIndex;
+  const replayIndex =
+    controlledReplayIndex !== undefined ? controlledReplayIndex : internalReplayIndex;
 
   useEffect(() => {
     if (__DEV__) {
@@ -89,7 +90,11 @@ export function EnterpriseMap({
     return (
       <View style={[styles.placeholder, { height }, style]}>
         <View style={styles.placeholderInner}>
-          <EtaBadge eta={session.eta} gpsSource={session.gps_source} engines={session.routing_engines} />
+          <EtaBadge
+            eta={session.eta}
+            gpsSource={session.gps_source}
+            engines={session.routing_engines}
+          />
         </View>
       </View>
     );
@@ -137,7 +142,11 @@ export function EnterpriseMap({
       </MapView>
 
       <View style={styles.etaOverlay} pointerEvents="none">
-        <EtaBadge eta={session.eta} gpsSource={session.gps_source} engines={session.routing_engines} />
+        <EtaBadge
+          eta={session.eta}
+          gpsSource={session.gps_source}
+          engines={session.routing_engines}
+        />
       </View>
 
       {showReplayControls ? (

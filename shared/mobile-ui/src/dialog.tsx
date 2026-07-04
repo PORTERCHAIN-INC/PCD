@@ -71,9 +71,7 @@ export function Dialog({
               marginTop: theme.spacing["2xl"],
             }}
           >
-            {onCancel ? (
-              <Button label={cancelLabel} variant="ghost" onPress={onCancel} />
-            ) : null}
+            {onCancel ? <Button label={cancelLabel} variant="ghost" onPress={onCancel} /> : null}
             {onConfirm ? (
               <Button
                 label={confirmLabel}

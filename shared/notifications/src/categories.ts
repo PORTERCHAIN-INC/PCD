@@ -4,7 +4,9 @@ export async function setupNotificationCategories(mode: "driver" | "customer"): 
   const common = [
     {
       identifier: "porterchain_open",
-      actions: [{ identifier: "open", buttonTitle: "Open", options: { opensAppToForeground: true } }],
+      actions: [
+        { identifier: "open", buttonTitle: "Open", options: { opensAppToForeground: true } },
+      ],
     },
     {
       identifier: "porterchain_archive",

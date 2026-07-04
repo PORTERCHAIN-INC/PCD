@@ -1,4 +1,9 @@
-import type { InboxFilter, NotificationCenterAdapter, NotificationInboxResponse, NotificationPreference } from "./types";
+import type {
+  InboxFilter,
+  NotificationCenterAdapter,
+  NotificationInboxResponse,
+  NotificationPreference,
+} from "./types";
 
 type DriverNotificationApi = {
   driverNotificationInbox: () => Promise<NotificationInboxResponse>;
@@ -13,7 +18,10 @@ type DriverNotificationApi = {
 };
 
 type CustomerNotificationApi = {
-  notificationInbox: (params?: { unreadOnly?: boolean; archived?: boolean }) => Promise<NotificationInboxResponse>;
+  notificationInbox: (params?: {
+    unreadOnly?: boolean;
+    archived?: boolean;
+  }) => Promise<NotificationInboxResponse>;
   notificationHistory: () => Promise<NotificationInboxResponse>;
   markNotificationRead: (id: string) => Promise<unknown>;
   markNotificationArchive: (id: string) => Promise<unknown>;
@@ -29,7 +37,9 @@ function filterToParams(filter?: InboxFilter) {
   return {};
 }
 
-export function createDriverNotificationAdapter(api: DriverNotificationApi): NotificationCenterAdapter {
+export function createDriverNotificationAdapter(
+  api: DriverNotificationApi
+): NotificationCenterAdapter {
   return {
     fetchInbox: async (filter) => {
       const data = await api.driverNotificationInbox();
@@ -56,7 +66,9 @@ export function createDriverNotificationAdapter(api: DriverNotificationApi): Not
   };
 }
 
-export function createCustomerNotificationAdapter(api: CustomerNotificationApi): NotificationCenterAdapter {
+export function createCustomerNotificationAdapter(
+  api: CustomerNotificationApi
+): NotificationCenterAdapter {
   return {
     fetchInbox: async (filter) => {
       const data = await api.notificationInbox(filterToParams(filter));

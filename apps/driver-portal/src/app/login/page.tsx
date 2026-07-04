@@ -77,9 +77,9 @@ function ClerkDriverExchange({ redirectUrl }: { redirectUrl: string | null }) {
           <div className="space-y-4">
             <p className="text-sm text-red-600">{error}</p>
             <p className="text-sm text-[var(--muted)]">
-              Signed in as{" "}
-              <strong>{user?.primaryEmailAddress?.emailAddress ?? "unknown"}</strong>. This account
-              is not an approved driver, or you are signed into the wrong Clerk session (e.g. admin).
+              Signed in as <strong>{user?.primaryEmailAddress?.emailAddress ?? "unknown"}</strong>.
+              This account is not an approved driver, or you are signed into the wrong Clerk session
+              (e.g. admin).
             </p>
             <button
               type="button"
@@ -217,9 +217,7 @@ function LoginPageContent() {
           </details>
         ) : null}
 
-        {!showDevLogin && !isClerkConfigured() ? (
-          <EmailDevLogin redirectUrl={redirectUrl} />
-        ) : null}
+        {!showDevLogin && !isClerkConfigured() ? <EmailDevLogin redirectUrl={redirectUrl} /> : null}
       </div>
     </div>
   );

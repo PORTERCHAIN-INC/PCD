@@ -81,9 +81,16 @@ export function StripeCheckoutScreen() {
       <ScreenHeader title="Stripe checkout" />
       <View style={{ padding: theme.spacing.lg, gap: theme.spacing.md }}>
         {error ? <Body style={{ color: theme.colors.danger }}>{error}</Body> : null}
-        <Body muted>Complete payment in the browser. Porterchain confirms via Stripe webhook — use Check payment status when done.</Body>
+        <Body muted>
+          Complete payment in the browser. Porterchain confirms via Stripe webhook — use Check
+          payment status when done.
+        </Body>
         {route.params.checkoutUrl ? (
-          <Button label="Reopen checkout" fullWidth onPress={() => void Linking.openURL(route.params.checkoutUrl)} />
+          <Button
+            label="Reopen checkout"
+            fullWidth
+            onPress={() => void Linking.openURL(route.params.checkoutUrl)}
+          />
         ) : null}
         <Button
           label="Check payment status"

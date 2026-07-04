@@ -30,12 +30,21 @@ export function NotificationSettingsScreen() {
     <Screen>
       <View style={{ padding: theme.spacing.lg, gap: theme.spacing.xs }}>
         <Body style={{ fontSize: 24, fontWeight: "700" }}>Notification settings</Body>
-        <Caption>Managed by Porterchain Notification Engine. Push delivery respects these preferences.</Caption>
+        <Caption>
+          Managed by Porterchain Notification Engine. Push delivery respects these preferences.
+        </Caption>
       </View>
       <ListSection title="Categories">
-        {isLoading ? <Body muted style={{ padding: theme.spacing.lg }}>Loading preferences…</Body> : null}
+        {isLoading ? (
+          <Body muted style={{ padding: theme.spacing.lg }}>
+            Loading preferences…
+          </Body>
+        ) : null}
         {preferences.map((pref: NotificationPreference) => (
-          <View key={pref.category} style={{ backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm }}>
+          <View
+            key={pref.category}
+            style={{ backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm }}
+          >
             <ListItem
               title={labelForCategory(pref.category)}
               subtitle="In-app"
@@ -43,7 +52,9 @@ export function NotificationSettingsScreen() {
                 <Switch
                   value={pref.in_app_enabled}
                   disabled={isSaving === pref.category}
-                  onValueChange={(value) => void update({ category: pref.category, in_app_enabled: value })}
+                  onValueChange={(value) =>
+                    void update({ category: pref.category, in_app_enabled: value })
+                  }
                 />
               }
               showDivider
@@ -54,7 +65,9 @@ export function NotificationSettingsScreen() {
                 <Switch
                   value={pref.push_enabled}
                   disabled={isSaving === pref.category}
-                  onValueChange={(value) => void update({ category: pref.category, push_enabled: value })}
+                  onValueChange={(value) =>
+                    void update({ category: pref.category, push_enabled: value })
+                  }
                 />
               }
               showDivider
@@ -65,7 +78,9 @@ export function NotificationSettingsScreen() {
                 <Switch
                   value={pref.email_enabled}
                   disabled={isSaving === pref.category}
-                  onValueChange={(value) => void update({ category: pref.category, email_enabled: value })}
+                  onValueChange={(value) =>
+                    void update({ category: pref.category, email_enabled: value })
+                  }
                 />
               }
               showDivider={false}

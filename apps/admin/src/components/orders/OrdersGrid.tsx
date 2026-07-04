@@ -84,7 +84,10 @@ export default function OrdersGrid({ rows, selected, onSelect, loading }: Props)
         header: "Order #",
         size: 110,
         cell: ({ row }) => (
-          <Link href={`/orders/${row.original.order_id}`} className="font-mono text-xs font-semibold text-secondary hover:underline">
+          <Link
+            href={`/orders/${row.original.order_id}`}
+            className="font-mono text-xs font-semibold text-secondary hover:underline"
+          >
             {row.original.order_number}
           </Link>
         ),
@@ -99,22 +102,71 @@ export default function OrdersGrid({ rows, selected, onSelect, loading }: Props)
         accessorKey: "booking_number",
         header: "Booking",
         size: 100,
-        cell: ({ getValue }) => <span className="font-mono text-xs">{String(getValue() || "—")}</span>,
+        cell: ({ getValue }) => (
+          <span className="font-mono text-xs">{String(getValue() || "—")}</span>
+        ),
       },
-      { accessorKey: "merchant_name", header: "Merchant", size: 130, enableGrouping: true, cell: ({ getValue }) => String(getValue() || "—") },
-      { accessorKey: "customer_email", header: "Customer", size: 150, cell: ({ getValue }) => <span className="truncate text-xs">{String(getValue() || "—")}</span> },
-      { accessorKey: "driver_name", header: "Driver", size: 120, cell: ({ getValue }) => String(getValue() || "—") },
-      { accessorKey: "vehicle_label", header: "Vehicle", size: 120, cell: ({ getValue }) => String(getValue() || "—") },
-      { accessorKey: "pickup", header: "Pickup", size: 140, cell: ({ getValue }) => <span className="truncate text-xs">{String(getValue())}</span> },
-      { accessorKey: "destination", header: "Destination", size: 140, cell: ({ getValue }) => <span className="truncate text-xs">{String(getValue())}</span> },
-      { accessorKey: "service_type", header: "Service", size: 90, cell: ({ getValue }) => String(getValue() || "—") },
+      {
+        accessorKey: "merchant_name",
+        header: "Merchant",
+        size: 130,
+        enableGrouping: true,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
+      {
+        accessorKey: "customer_email",
+        header: "Customer",
+        size: 150,
+        cell: ({ getValue }) => (
+          <span className="truncate text-xs">{String(getValue() || "—")}</span>
+        ),
+      },
+      {
+        accessorKey: "driver_name",
+        header: "Driver",
+        size: 120,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
+      {
+        accessorKey: "vehicle_label",
+        header: "Vehicle",
+        size: 120,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
+      {
+        accessorKey: "pickup",
+        header: "Pickup",
+        size: 140,
+        cell: ({ getValue }) => <span className="truncate text-xs">{String(getValue())}</span>,
+      },
+      {
+        accessorKey: "destination",
+        header: "Destination",
+        size: 140,
+        cell: ({ getValue }) => <span className="truncate text-xs">{String(getValue())}</span>,
+      },
+      {
+        accessorKey: "service_type",
+        header: "Service",
+        size: 90,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
       {
         accessorKey: "priority",
         header: "Priority",
         size: 80,
         cell: ({ getValue }) => {
           const v = String(getValue());
-          return <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold capitalize", v === "high" ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-600")}>{v}</span>;
+          return (
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold capitalize",
+                v === "high" ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-600"
+              )}
+            >
+              {v}
+            </span>
+          );
         },
       },
       {
@@ -124,7 +176,16 @@ export default function OrdersGrid({ rows, selected, onSelect, loading }: Props)
         enableGrouping: true,
         cell: ({ getValue }) => {
           const v = String(getValue());
-          return <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", STATE_STYLES[v] ?? "bg-gray-100")}>{formatState(v)}</span>;
+          return (
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold",
+                STATE_STYLES[v] ?? "bg-gray-100"
+              )}
+            >
+              {formatState(v)}
+            </span>
+          );
         },
       },
       {
@@ -134,10 +195,24 @@ export default function OrdersGrid({ rows, selected, onSelect, loading }: Props)
         cell: ({ getValue }) => {
           const v = String(getValue() || "—");
           if (v === "—") return v;
-          return <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", PAYMENT_STYLES[v] ?? "bg-gray-100")}>{v}</span>;
+          return (
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold",
+                PAYMENT_STYLES[v] ?? "bg-gray-100"
+              )}
+            >
+              {v}
+            </span>
+          );
         },
       },
-      { accessorKey: "invoice_status", header: "Invoice", size: 90, cell: ({ getValue }) => String(getValue()) },
+      {
+        accessorKey: "invoice_status",
+        header: "Invoice",
+        size: 90,
+        cell: ({ getValue }) => String(getValue()),
+      },
       {
         accessorKey: "amount_cents",
         header: "Amount",
@@ -159,7 +234,16 @@ export default function OrdersGrid({ rows, selected, onSelect, loading }: Props)
         size: 80,
         cell: ({ getValue }) => {
           const v = String(getValue());
-          return <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold capitalize", SLA_STYLES[v] ?? "bg-gray-100")}>{v}</span>;
+          return (
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold capitalize",
+                SLA_STYLES[v] ?? "bg-gray-100"
+              )}
+            >
+              {v}
+            </span>
+          );
         },
       },
       {
@@ -246,7 +330,11 @@ export default function OrdersGrid({ rows, selected, onSelect, loading }: Props)
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id}>
                   {hg.headers.map((header) => (
-                    <th key={header.id} className="relative px-3 py-3 font-medium" style={{ width: header.getSize() }}>
+                    <th
+                      key={header.id}
+                      className="relative px-3 py-3 font-medium"
+                      style={{ width: header.getSize() }}
+                    >
                       {flexRender(header.column.columnDef.header, header.getContext())}
                       <div
                         onMouseDown={header.getResizeHandler()}

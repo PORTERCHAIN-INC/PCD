@@ -7,25 +7,25 @@
 
 ## Executive Verdict
 
-| Area | Status |
-|------|--------|
-| Connection pool | **PASS** |
-| PostgreSQL indexes | **PARTIAL** |
-| Caching | **PARTIAL** |
-| Background workers | **PASS** |
+| Area                 | Status         |
+| -------------------- | -------------- |
+| Connection pool      | **PASS**       |
+| PostgreSQL indexes   | **PARTIAL**    |
+| Caching              | **PARTIAL**    |
+| Background workers   | **PASS**       |
 | API latency patterns | **ACCEPTABLE** |
-| Query optimization | **PARTIAL** |
+| Query optimization   | **PARTIAL**    |
 
 ---
 
 ## Connection Pool
 
-| Setting | Implementation |
-|---------|----------------|
-| Engine | SQLAlchemy + psycopg |
-| `pool_pre_ping` | ✅ Enabled |
-| Pool size | Configurable via env |
-| SQLite | Rejected at startup |
+| Setting         | Implementation       |
+| --------------- | -------------------- |
+| Engine          | SQLAlchemy + psycopg |
+| `pool_pre_ping` | ✅ Enabled           |
+| Pool size       | Configurable via env |
+| SQLite          | Rejected at startup  |
 
 ---
 
@@ -33,33 +33,33 @@
 
 ### Indexes (Applied)
 
-| Index | Purpose |
-|-------|---------|
-| `ix_orders_state_created_at` | Control tower / queue |
-| `ix_orders_merchant_state` | Merchant order lists |
-| `ix_domain_events_type_occurred` | Event queries |
-| `ix_fleetbase_sync_jobs_pending` | Retry drain |
-| GIN on CRM JSONB | Company/lead search |
-| `uq_orders_quote_id` | Idempotency |
+| Index                            | Purpose               |
+| -------------------------------- | --------------------- |
+| `ix_orders_state_created_at`     | Control tower / queue |
+| `ix_orders_merchant_state`       | Merchant order lists  |
+| `ix_domain_events_type_occurred` | Event queries         |
+| `ix_fleetbase_sync_jobs_pending` | Retry drain           |
+| GIN on CRM JSONB                 | Company/lead search   |
+| `uq_orders_quote_id`             | Idempotency           |
 
 ### Gaps
 
-| ID | Severity | Issue | Effort |
-|----|----------|-------|--------|
-| P-M01 | Medium | JSONB migration incomplete for non-CRM tables | 1–2 days |
-| P-M02 | Medium | Missing FK indexes on some newer tables | 4 hours |
-| P-L01 | Low | String UUID vs native UUID | Future |
+| ID    | Severity | Issue                                         | Effort   |
+| ----- | -------- | --------------------------------------------- | -------- |
+| P-M01 | Medium   | JSONB migration incomplete for non-CRM tables | 1–2 days |
+| P-M02 | Medium   | Missing FK indexes on some newer tables       | 4 hours  |
+| P-L01 | Low      | String UUID vs native UUID                    | Future   |
 
 ---
 
 ## Caching
 
-| Layer | Implementation | Status |
-|-------|----------------|--------|
-| Redis | Event bus, queues, idempotency | ✅ |
-| HTTP response cache | Not global | ⚠️ |
-| Clerk JWKS | Cached in auth module | ✅ |
-| Maps/routing | No result cache | ⚠️ Medium |
+| Layer               | Implementation                 | Status    |
+| ------------------- | ------------------------------ | --------- |
+| Redis               | Event bus, queues, idempotency | ✅        |
+| HTTP response cache | Not global                     | ⚠️        |
+| Clerk JWKS          | Cached in auth module          | ✅        |
+| Maps/routing        | No result cache                | ⚠️ Medium |
 
 ### P-M03 — No routing result cache (Medium)
 
@@ -69,11 +69,11 @@ Repeated Valhalla/OSRM calls for same coordinates. Recommend short-TTL Redis cac
 
 ## Background Workers
 
-| Worker | Function | Interval |
-|--------|----------|----------|
-| `apps/worker` | Event bus consume | 1s block |
-| Queue drain | Email, SMS, push, billing | Per batch |
-| Fleetbase retry | `process_retry_queue` | 60s |
+| Worker          | Function                  | Interval  |
+| --------------- | ------------------------- | --------- |
+| `apps/worker`   | Event bus consume         | 1s block  |
+| Queue drain     | Email, SMS, push, billing | Per batch |
+| Fleetbase retry | `process_retry_queue`     | 60s       |
 
 **Queue monitoring:** Diagnostics + Prometheus metrics for depth and DLQ.
 
@@ -89,11 +89,11 @@ Repeated Valhalla/OSRM calls for same coordinates. Recommend short-TTL Redis cac
 
 ### Concerns
 
-| ID | Severity | Issue | File |
-|----|----------|-------|------|
-| P-H01 | High | `driver.py` router — large handler surface, multiple commits per request | `routers/driver.py` |
-| P-M04 | Medium | Admin pricing endpoints N+1 merchant lookups | `routers/admin.py` |
-| P-M05 | Medium | CRM list without cursor pagination on large datasets | `crm_service.py` |
+| ID    | Severity | Issue                                                                    | File                |
+| ----- | -------- | ------------------------------------------------------------------------ | ------------------- |
+| P-H01 | High     | `driver.py` router — large handler surface, multiple commits per request | `routers/driver.py` |
+| P-M04 | Medium   | Admin pricing endpoints N+1 merchant lookups                             | `routers/admin.py`  |
+| P-M05 | Medium   | CRM list without cursor pagination on large datasets                     | `crm_service.py`    |
 
 ---
 
@@ -105,14 +105,14 @@ Repeated Valhalla/OSRM calls for same coordinates. Recommend short-TTL Redis cac
 
 ## Observability (§16)
 
-| Requirement | Status |
-|-------------|--------|
-| Structured logging | ✅ |
-| Correlation IDs | ⚠️ Partial on HTTP→event |
-| Queue depth monitoring | ✅ Diagnostics |
-| DLQ monitoring | ✅ |
-| Integration health | ✅ Full diagnostics dashboard |
-| Webhook success rate | ⚠️ Manual via diagnostics |
+| Requirement            | Status                        |
+| ---------------------- | ----------------------------- |
+| Structured logging     | ✅                            |
+| Correlation IDs        | ⚠️ Partial on HTTP→event      |
+| Queue depth monitoring | ✅ Diagnostics                |
+| DLQ monitoring         | ✅                            |
+| Integration health     | ✅ Full diagnostics dashboard |
+| Webhook success rate   | ⚠️ Manual via diagnostics     |
 
 ---
 
@@ -125,4 +125,4 @@ Repeated Valhalla/OSRM calls for same coordinates. Recommend short-TTL Redis cac
 
 ---
 
-*Database detail: `DATABASE_AUDIT.md` · Production gates: `PRODUCTION_READINESS_REPORT.md`*
+_Database detail: `DATABASE_AUDIT.md` · Production gates: `PRODUCTION_READINESS_REPORT.md`_

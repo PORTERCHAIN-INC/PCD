@@ -66,12 +66,17 @@ export function MobileSecurityProvider({
   onSessionTimeout,
   onLoadPrincipal,
 }: MobileSecurityProviderProps) {
-  const policy = useMemo(() => ({ ...DEFAULT_SECURITY_POLICY, ...policyOverride }), [policyOverride]);
+  const policy = useMemo(
+    () => ({ ...DEFAULT_SECURITY_POLICY, ...policyOverride }),
+    [policyOverride]
+  );
   const [locked, setLocked] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [pinEnabled, setPinEnabled] = useState(false);
   const [principal, setPrincipal] = useState<AuthPrincipal | null>(null);
-  const [integrity, setIntegrity] = useState<Awaited<ReturnType<typeof checkDeviceIntegrity>> | null>(null);
+  const [integrity, setIntegrity] = useState<Awaited<
+    ReturnType<typeof checkDeviceIntegrity>
+  > | null>(null);
   const appState = useRef(AppState.currentState);
 
   useEffect(() => {
@@ -168,7 +173,20 @@ export function MobileSecurityProvider({
       enablePin,
       setPrincipal,
     }),
-    [appKind, biometricEnabled, enableBiometric, enablePin, env, integrity, lock, locked, pinEnabled, policy, principal, unlock]
+    [
+      appKind,
+      biometricEnabled,
+      enableBiometric,
+      enablePin,
+      env,
+      integrity,
+      lock,
+      locked,
+      pinEnabled,
+      policy,
+      principal,
+      unlock,
+    ]
   );
 
   return <MobileSecurityContext.Provider value={value}>{children}</MobileSecurityContext.Provider>;

@@ -74,7 +74,10 @@ export default function TrackPage() {
 
   useEffect(() => {
     if (!isSignedIn || !live) return;
-    const timer = setInterval(() => void trackNumber(query.trim() || live.tracking_number, true), POLL_MS);
+    const timer = setInterval(
+      () => void trackNumber(query.trim() || live.tracking_number, true),
+      POLL_MS
+    );
     return () => clearInterval(timer);
   }, [isSignedIn, live, query, trackNumber]);
 

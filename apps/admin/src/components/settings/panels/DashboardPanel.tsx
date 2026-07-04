@@ -1,15 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  Activity,
-  Clock,
-  Database,
-  Globe,
-  Mail,
-  Server,
-  Shield,
-} from "lucide-react";
+import { Activity, Clock, Database, Globe, Mail, Server, Shield } from "lucide-react";
 import { relativeTime } from "@/lib/crmFormat";
 import type { SettingsDashboard } from "@/lib/settings";
 import { SettingsCard, SettingsPageHeader, StatTile, StatusPill } from "../ui/SettingsPrimitives";
@@ -17,7 +9,8 @@ import { SettingsCard, SettingsPageHeader, StatTile, StatusPill } from "../ui/Se
 function healthStatus(val: unknown): string {
   if (val == null) return "unknown";
   if (typeof val === "string") return val;
-  if (typeof val === "object" && val !== null && "status" in val) return String((val as { status: unknown }).status);
+  if (typeof val === "object" && val !== null && "status" in val)
+    return String((val as { status: unknown }).status);
   return String(val);
 }
 
@@ -58,7 +51,10 @@ export default function DashboardPanel({ dash }: { dash: SettingsDashboard }) {
         <StatTile label="API" value={<StatusPill status={healthStatus(health.api)} />} />
       </div>
 
-      <SettingsCard title="Integration health" description="Adapter and infrastructure status — secrets in env only">
+      <SettingsCard
+        title="Integration health"
+        description="Adapter and infrastructure status — secrets in env only"
+      >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {integrations.map(([key, meta]) => {
             const raw = health[key];
@@ -110,15 +106,32 @@ export default function DashboardPanel({ dash }: { dash: SettingsDashboard }) {
             </li>
           ))}
           {!dash.recent_changes.length && (
-            <li className="py-8 text-center text-sm text-muted">No configuration changes recorded yet</li>
+            <li className="py-8 text-center text-sm text-muted">
+              No configuration changes recorded yet
+            </li>
           )}
         </ul>
       </SettingsCard>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <QuickLink icon={Shield} title="Access control" hint="Staff invites & RBAC" target="users" />
-        <QuickLink icon={Database} title="Runtime config" hint="Booking & merchant defaults" target="booking" />
-        <QuickLink icon={Globe} title="Integrations" hint="Fleetbase & Stripe status" target="fleetbase" />
+        <QuickLink
+          icon={Shield}
+          title="Access control"
+          hint="Staff invites & RBAC"
+          target="users"
+        />
+        <QuickLink
+          icon={Database}
+          title="Runtime config"
+          hint="Booking & merchant defaults"
+          target="booking"
+        />
+        <QuickLink
+          icon={Globe}
+          title="Integrations"
+          hint="Fleetbase & Stripe status"
+          target="fleetbase"
+        />
       </div>
     </div>
   );

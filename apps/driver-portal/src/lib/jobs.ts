@@ -5,10 +5,7 @@ export type JobUrgency = "critical" | "high" | "medium" | "normal";
 export type JobLeg = "pickup" | "delivery" | "completed";
 
 export type JobActionKey =
-  | "arrive_pickup"
-  | "confirm_pickup"
-  | "arrive_delivery"
-  | "confirm_delivery";
+  "arrive_pickup" | "confirm_pickup" | "arrive_delivery" | "confirm_delivery";
 
 export interface DriverNextStop {
   stop_id: string;
@@ -128,12 +125,7 @@ export interface DriverJobDetail extends DriverJobSummary {
   route_id: string | null;
 }
 
-const PICKUP_LEG = new Set([
-  "DRIVER_ASSIGNED",
-  "DRIVER_ACCEPTED",
-  "DRIVER_EN_ROUTE",
-  "AT_PICKUP",
-]);
+const PICKUP_LEG = new Set(["DRIVER_ASSIGNED", "DRIVER_ACCEPTED", "DRIVER_EN_ROUTE", "AT_PICKUP"]);
 const DELIVERY_LEG = new Set(["PICKED_UP", "IN_TRANSIT", "AT_DESTINATION"]);
 const DONE = new Set(["DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"]);
 
@@ -142,7 +134,11 @@ export const JOB_STEPS = [
   { key: "en_route", label: "En Route", states: ["DRIVER_EN_ROUTE", "IN_TRANSIT"] },
   { key: "at_stop", label: "At Stop", states: ["AT_PICKUP", "AT_DESTINATION"] },
   { key: "picked_up", label: "Picked Up", states: ["PICKED_UP"] },
-  { key: "delivered", label: "Delivered", states: ["DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"] },
+  {
+    key: "delivered",
+    label: "Delivered",
+    states: ["DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"],
+  },
 ] as const;
 
 export function getJobLeg(state: string): JobLeg {
@@ -193,7 +189,10 @@ export function actionErrorMessage(code: string): string {
 }
 
 export function jobStatusLabel(state: string): string {
-  return state.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  return state
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export function jobStatusColor(state: string): string {
@@ -233,15 +232,23 @@ export function stepIndexForState(state: string): number {
   return 0;
 }
 
-export function isInPickupPhase(job: Pick<DriverJobDetail, "state" | "pickup_completed" | "current_leg">): boolean {
+export function isInPickupPhase(
+  job: Pick<DriverJobDetail, "state" | "pickup_completed" | "current_leg">
+): boolean {
   return job.current_leg === "pickup" || getJobLeg(job.state) === "pickup";
 }
 
-export function isInDeliveryPhase(job: Pick<DriverJobDetail, "state" | "pickup_completed" | "current_leg">): boolean {
+export function isInDeliveryPhase(
+  job: Pick<DriverJobDetail, "state" | "pickup_completed" | "current_leg">
+): boolean {
   if (job.pickup_completed || getJobLeg(job.state) === "delivery") return true;
   return job.current_leg === "delivery";
 }
 
-export function isJobCompleted(job: Pick<DriverJobDetail, "state" | "current_leg" | "delivery_completed">): boolean {
-  return job.current_leg === "completed" || job.delivery_completed || DONE.has(job.state.toUpperCase());
+export function isJobCompleted(
+  job: Pick<DriverJobDetail, "state" | "current_leg" | "delivery_completed">
+): boolean {
+  return (
+    job.current_leg === "completed" || job.delivery_completed || DONE.has(job.state.toUpperCase())
+  );
 }

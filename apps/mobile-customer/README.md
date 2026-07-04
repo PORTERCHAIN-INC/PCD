@@ -10,13 +10,13 @@ pnpm dev:mobile-customer
 
 ## Tabs
 
-| Tab | Features |
-|-----|----------|
-| **Home** | Dashboard metrics, active shipment, quick quote |
-| **Bookings** | Quote, booking, drafts, Stripe checkout, confirmation |
-| **Tracking** | Public lookup, live map, order history |
+| Tab               | Features                                                                |
+| ----------------- | ----------------------------------------------------------------------- |
+| **Home**          | Dashboard metrics, active shipment, quick quote                         |
+| **Bookings**      | Quote, booking, drafts, Stripe checkout, confirmation                   |
+| **Tracking**      | Public lookup, live map, order history                                  |
 | **Notifications** | FCM foreground + local inbox (remote inbox when API supports customers) |
-| **Profile** | Invoices, receipts, support, claims, settings, sign out |
+| **Profile**       | Invoices, receipts, support, claims, settings, sign out                 |
 
 ## Auth
 

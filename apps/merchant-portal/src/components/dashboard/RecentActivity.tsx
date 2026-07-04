@@ -14,7 +14,10 @@ export function RecentActivity({ items }: RecentActivityProps) {
           <li className="text-sm text-muted">No recent activity.</li>
         ) : (
           items.map((item) => (
-            <li key={`${item.kind}-${item.id}`} className="flex gap-3 border-b border-primary/5 pb-3 last:border-0">
+            <li
+              key={`${item.kind}-${item.id}`}
+              className="flex gap-3 border-b border-primary/5 pb-3 last:border-0"
+            >
               <span
                 className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
                   item.kind === "order" ? "bg-secondary" : "bg-primary/40"

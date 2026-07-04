@@ -109,11 +109,13 @@ export default function ScheduleDateTimePicker({
   };
 
   return (
-    <div
-      ref={rootRef}
-      className={cn(compact ? "space-y-1.5" : "space-y-2")}
-    >
-      <div className={cn("grid gap-2", compact ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-[1.2fr_1fr]")}>
+    <div ref={rootRef} className={cn(compact ? "space-y-1.5" : "space-y-2")}>
+      <div
+        className={cn(
+          "grid gap-2",
+          compact ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-[1.2fr_1fr]"
+        )}
+      >
         {compact ? (
           <label className="booking-schedule-field booking-schedule-field-compact cursor-pointer">
             <Calendar className="w-3.5 h-3.5 text-secondary shrink-0" />

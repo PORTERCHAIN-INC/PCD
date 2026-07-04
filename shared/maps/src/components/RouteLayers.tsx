@@ -45,16 +45,38 @@ export function RouteLayers({
   return (
     <>
       {pickupPath.length > 1 ? (
-        <Polyline coordinates={pickupPath} strokeColor="#0ea5e9" strokeWidth={4} lineCap="round" lineJoin="round" />
+        <Polyline
+          coordinates={pickupPath}
+          strokeColor="#0ea5e9"
+          strokeWidth={4}
+          lineCap="round"
+          lineJoin="round"
+        />
       ) : null}
       {primary.length > 1 ? (
-        <Polyline coordinates={primary} strokeColor="#7c3aed" strokeWidth={4} lineCap="round" lineJoin="round" />
+        <Polyline
+          coordinates={primary}
+          strokeColor="#7c3aed"
+          strokeWidth={4}
+          lineCap="round"
+          lineJoin="round"
+        />
       ) : null}
       {etaPath.length > 1 && etaPath !== primary ? (
-        <Polyline coordinates={etaPath} strokeColor="#2563eb" strokeWidth={3} lineDashPattern={[6, 4]} />
+        <Polyline
+          coordinates={etaPath}
+          strokeColor="#2563eb"
+          strokeWidth={3}
+          lineDashPattern={[6, 4]}
+        />
       ) : null}
       {replayPath && replayPath.length > 1 ? (
-        <Polyline coordinates={replayPath} strokeColor="#94a3b8" strokeWidth={2} lineDashPattern={[4, 6]} />
+        <Polyline
+          coordinates={replayPath}
+          strokeColor="#94a3b8"
+          strokeWidth={2}
+          lineDashPattern={[4, 6]}
+        />
       ) : null}
     </>
   );

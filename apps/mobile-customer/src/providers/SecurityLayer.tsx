@@ -13,7 +13,11 @@ export function SecurityLayer({ children }: { children: ReactNode }) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const clearSession = useAuthStore((s) => s.clearSession);
   const env = useMemo(
-    () => ({ ...readMobileSecurityEnv(), apiBaseUrl: mobileEnv.apiBaseUrl, appKind: "customer" as const }),
+    () => ({
+      ...readMobileSecurityEnv(),
+      apiBaseUrl: mobileEnv.apiBaseUrl,
+      appKind: "customer" as const,
+    }),
     []
   );
 

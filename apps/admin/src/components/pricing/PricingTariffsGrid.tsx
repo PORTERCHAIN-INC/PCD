@@ -35,13 +35,40 @@ export default function PricingTariffsGrid({ rows, onPublish }: Props) {
         header: "Type",
         size: 100,
         enableGrouping: true,
-        cell: ({ getValue }) => <span className="text-xs capitalize">{String(getValue()).replace(/_/g, " ")}</span>,
+        cell: ({ getValue }) => (
+          <span className="text-xs capitalize">{String(getValue()).replace(/_/g, " ")}</span>
+        ),
       },
-      { accessorKey: "vehicle_class", header: "Vehicle", size: 90, cell: ({ getValue }) => String(getValue() || "—") },
-      { accessorKey: "zone", header: "Zone", size: 90, cell: ({ getValue }) => String(getValue() || "—") },
-      { accessorKey: "merchant_name", header: "Merchant", size: 120, cell: ({ getValue }) => String(getValue() || "—") },
-      { accessorKey: "base_cents", header: "Base", size: 80, cell: ({ getValue }) => formatCents(Number(getValue())) },
-      { accessorKey: "per_km_cents", header: "/km", size: 70, cell: ({ getValue }) => formatCents(Number(getValue())) },
+      {
+        accessorKey: "vehicle_class",
+        header: "Vehicle",
+        size: 90,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
+      {
+        accessorKey: "zone",
+        header: "Zone",
+        size: 90,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
+      {
+        accessorKey: "merchant_name",
+        header: "Merchant",
+        size: 120,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
+      {
+        accessorKey: "base_cents",
+        header: "Base",
+        size: 80,
+        cell: ({ getValue }) => formatCents(Number(getValue())),
+      },
+      {
+        accessorKey: "per_km_cents",
+        header: "/km",
+        size: 70,
+        cell: ({ getValue }) => formatCents(Number(getValue())),
+      },
       {
         accessorKey: "status",
         header: "Status",
@@ -49,7 +76,16 @@ export default function PricingTariffsGrid({ rows, onPublish }: Props) {
         enableGrouping: true,
         cell: ({ getValue }) => {
           const v = String(getValue());
-          return <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold capitalize", STATUS_STYLES[v] ?? "bg-gray-100")}>{v.replace(/_/g, " ")}</span>;
+          return (
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold capitalize",
+                STATUS_STYLES[v] ?? "bg-gray-100"
+              )}
+            >
+              {v.replace(/_/g, " ")}
+            </span>
+          );
         },
       },
       { accessorKey: "version", header: "Ver", size: 50 },
@@ -59,7 +95,9 @@ export default function PricingTariffsGrid({ rows, onPublish }: Props) {
         size: 90,
         cell: ({ row }) =>
           row.original.status !== "published" ? (
-            <Button variant="outline" onClick={() => onPublish(row.original.id)}>Publish</Button>
+            <Button variant="outline" onClick={() => onPublish(row.original.id)}>
+              Publish
+            </Button>
           ) : null,
       },
     ],
@@ -109,7 +147,11 @@ export default function PricingTariffsGrid({ rows, onPublish }: Props) {
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
                 {hg.headers.map((header) => (
-                  <th key={header.id} className="relative px-3 py-3 font-medium" style={{ width: header.getSize() }}>
+                  <th
+                    key={header.id}
+                    className="relative px-3 py-3 font-medium"
+                    style={{ width: header.getSize() }}
+                  >
                     {flexRender(header.column.columnDef.header, header.getContext())}
                     <div
                       onMouseDown={header.getResizeHandler()}

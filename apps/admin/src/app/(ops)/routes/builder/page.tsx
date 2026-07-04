@@ -20,7 +20,11 @@ export default function RouteBuilderPage() {
   const { getApiToken } = useAdminAuth();
   const [name, setName] = useState(`Route ${new Date().toLocaleDateString()}`);
   const [busy, setBusy] = useState(false);
-  const { data: plans, error, refetch } = useApiData((t) => routeCenter.listPlans(t), [], { key: "route-plans" });
+  const {
+    data: plans,
+    error,
+    refetch,
+  } = useApiData((t) => routeCenter.listPlans(t), [], { key: "route-plans" });
 
   const createRoute = useCallback(async () => {
     setBusy(true);
@@ -44,7 +48,11 @@ export default function RouteBuilderPage() {
       >
         <div className="flex flex-wrap items-end gap-4">
           <Field label="Route name" className="min-w-[240px] flex-1">
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Morning GTA West" />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Morning GTA West"
+            />
           </Field>
           <Button onClick={createRoute} disabled={busy} className="gap-2">
             <Plus className="h-4 w-4" />
@@ -53,7 +61,8 @@ export default function RouteBuilderPage() {
         </div>
         {prefill.length > 0 && (
           <p className="mt-3 rounded-xl border border-secondary/20 bg-secondary/5 px-3 py-2 text-xs text-muted">
-            <span className="font-medium text-primary">{prefill.length} orders</span> pre-selected from planning queue.
+            <span className="font-medium text-primary">{prefill.length} orders</span> pre-selected
+            from planning queue.
           </p>
         )}
       </RouteSectionCard>

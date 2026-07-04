@@ -99,7 +99,9 @@ export default function DriverShell({ children }: { children: React.ReactNode })
                 P
               </span>
               <span className="hidden min-w-0 sm:block">
-                <span className="block text-sm font-bold leading-tight text-primary">Porterchain</span>
+                <span className="block text-sm font-bold leading-tight text-primary">
+                  Porterchain
+                </span>
                 <span className="block text-[10px] leading-tight text-muted">Driver</span>
               </span>
             </Link>

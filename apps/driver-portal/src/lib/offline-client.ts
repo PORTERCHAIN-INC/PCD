@@ -45,7 +45,7 @@ export function enqueueGpsPing(ping: {
 }) {
   if (typeof window === "undefined") return;
   const raw = localStorage.getItem(GPS_BUFFER_KEY);
-  const buffer = raw ? (JSON.parse(raw) as typeof ping[]) : [];
+  const buffer = raw ? (JSON.parse(raw) as (typeof ping)[]) : [];
   buffer.push(ping);
   if (buffer.length > 500) buffer.splice(0, buffer.length - 500);
   localStorage.setItem(GPS_BUFFER_KEY, JSON.stringify(buffer));

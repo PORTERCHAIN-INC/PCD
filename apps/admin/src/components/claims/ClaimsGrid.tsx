@@ -77,7 +77,10 @@ export default function ClaimsGrid({ rows, selected, onSelect }: Props) {
         header: "Claim #",
         size: 110,
         cell: ({ row }) => (
-          <Link href={`/claims/${row.original.id}`} className="font-mono text-xs font-semibold text-secondary hover:underline">
+          <Link
+            href={`/claims/${row.original.id}`}
+            className="font-mono text-xs font-semibold text-secondary hover:underline"
+          >
             {row.original.claim_number}
           </Link>
         ),
@@ -87,7 +90,9 @@ export default function ClaimsGrid({ rows, selected, onSelect }: Props) {
         header: "Type",
         size: 140,
         enableGrouping: true,
-        cell: ({ getValue }) => <span className="text-xs">{formatClaimType(String(getValue()))}</span>,
+        cell: ({ getValue }) => (
+          <span className="text-xs">{formatClaimType(String(getValue()))}</span>
+        ),
       },
       {
         accessorKey: "priority",
@@ -96,7 +101,12 @@ export default function ClaimsGrid({ rows, selected, onSelect }: Props) {
         cell: ({ getValue }) => {
           const v = String(getValue());
           return (
-            <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold capitalize", PRIORITY_STYLES[v] ?? PRIORITY_STYLES.normal)}>
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold capitalize",
+                PRIORITY_STYLES[v] ?? PRIORITY_STYLES.normal
+              )}
+            >
               {v}
             </span>
           );
@@ -110,16 +120,45 @@ export default function ClaimsGrid({ rows, selected, onSelect }: Props) {
         cell: ({ getValue }) => {
           const v = String(getValue());
           return (
-            <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", STATUS_STYLES[v] ?? "bg-gray-100")}>
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold",
+                STATUS_STYLES[v] ?? "bg-gray-100"
+              )}
+            >
               {v.replace(/_/g, " ")}
             </span>
           );
         },
       },
-      { accessorKey: "merchant_name", header: "Merchant", size: 130, cell: ({ getValue }) => String(getValue() || "—") },
-      { accessorKey: "customer_email", header: "Customer", size: 160, cell: ({ getValue }) => <span className="truncate text-xs">{String(getValue() || "—")}</span> },
-      { accessorKey: "driver_name", header: "Driver", size: 120, cell: ({ getValue }) => String(getValue() || "—") },
-      { accessorKey: "tracking_number", header: "Tracking", size: 120, cell: ({ getValue }) => <span className="font-mono text-xs">{String(getValue() || "—")}</span> },
+      {
+        accessorKey: "merchant_name",
+        header: "Merchant",
+        size: 130,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
+      {
+        accessorKey: "customer_email",
+        header: "Customer",
+        size: 160,
+        cell: ({ getValue }) => (
+          <span className="truncate text-xs">{String(getValue() || "—")}</span>
+        ),
+      },
+      {
+        accessorKey: "driver_name",
+        header: "Driver",
+        size: 120,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
+      {
+        accessorKey: "tracking_number",
+        header: "Tracking",
+        size: 120,
+        cell: ({ getValue }) => (
+          <span className="font-mono text-xs">{String(getValue() || "—")}</span>
+        ),
+      },
       {
         accessorKey: "amount_cents",
         header: "Amount",
@@ -132,14 +171,28 @@ export default function ClaimsGrid({ rows, selected, onSelect }: Props) {
         size: 80,
         cell: ({ getValue }) => (getValue() ? "Yes" : "—"),
       },
-      { accessorKey: "assigned_investigator", header: "Investigator", size: 130, cell: ({ getValue }) => String(getValue() || "—") },
+      {
+        accessorKey: "assigned_investigator",
+        header: "Investigator",
+        size: 130,
+        cell: ({ getValue }) => String(getValue() || "—"),
+      },
       {
         accessorKey: "risk_score",
         header: "Risk",
         size: 70,
         cell: ({ getValue }) => {
           const v = Number(getValue());
-          return <span className={cn("font-bold", v >= 70 ? "text-red-600" : v >= 40 ? "text-amber-600" : "text-green-600")}>{v}</span>;
+          return (
+            <span
+              className={cn(
+                "font-bold",
+                v >= 70 ? "text-red-600" : v >= 40 ? "text-amber-600" : "text-green-600"
+              )}
+            >
+              {v}
+            </span>
+          );
         },
       },
       {
@@ -213,7 +266,11 @@ export default function ClaimsGrid({ rows, selected, onSelect }: Props) {
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
                 {hg.headers.map((header) => (
-                  <th key={header.id} className="relative px-3 py-3 font-medium" style={{ width: header.getSize() }}>
+                  <th
+                    key={header.id}
+                    className="relative px-3 py-3 font-medium"
+                    style={{ width: header.getSize() }}
+                  >
                     {flexRender(header.column.columnDef.header, header.getContext())}
                     <div
                       onMouseDown={header.getResizeHandler()}

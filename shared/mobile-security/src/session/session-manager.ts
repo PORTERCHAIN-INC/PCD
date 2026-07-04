@@ -7,16 +7,19 @@ import {
   setSecureValue,
 } from "../storage/secure-session";
 
-export async function loadPersistedSession(): Promise<Partial<MobileSession> & { biometricEnabled: boolean; pinEnabled: boolean }> {
-  const [accessToken, refreshToken, driverId, customerId, biometric, pin, expiresAt] = await Promise.all([
-    getSecureValue(securityKeys.accessToken),
-    getSecureValue(securityKeys.refreshToken),
-    getSecureValue(securityKeys.driverId),
-    getSecureValue(securityKeys.customerId),
-    getSecureValue(securityKeys.biometricEnabled),
-    getSecureValue(securityKeys.pinEnabled),
-    getSecureValue(securityKeys.sessionExpiresAt),
-  ]);
+export async function loadPersistedSession(): Promise<
+  Partial<MobileSession> & { biometricEnabled: boolean; pinEnabled: boolean }
+> {
+  const [accessToken, refreshToken, driverId, customerId, biometric, pin, expiresAt] =
+    await Promise.all([
+      getSecureValue(securityKeys.accessToken),
+      getSecureValue(securityKeys.refreshToken),
+      getSecureValue(securityKeys.driverId),
+      getSecureValue(securityKeys.customerId),
+      getSecureValue(securityKeys.biometricEnabled),
+      getSecureValue(securityKeys.pinEnabled),
+      getSecureValue(securityKeys.sessionExpiresAt),
+    ]);
 
   return {
     accessToken: accessToken ?? undefined,
@@ -30,10 +33,12 @@ export async function loadPersistedSession(): Promise<Partial<MobileSession> & {
 
 export async function persistSession(session: MobileSession, appKind: "customer" | "driver") {
   const writes = [setSecureValue(securityKeys.accessToken, session.accessToken)];
-  if (session.refreshToken) writes.push(setSecureValue(securityKeys.refreshToken, session.refreshToken));
+  if (session.refreshToken)
+    writes.push(setSecureValue(securityKeys.refreshToken, session.refreshToken));
   if (appKind === "driver") writes.push(setSecureValue(securityKeys.driverId, session.userId));
   if (appKind === "customer") writes.push(setSecureValue(securityKeys.customerId, session.userId));
-  if (session.expiresAt) writes.push(setSecureValue(securityKeys.sessionExpiresAt, session.expiresAt));
+  if (session.expiresAt)
+    writes.push(setSecureValue(securityKeys.sessionExpiresAt, session.expiresAt));
   await Promise.all(writes);
   await touchLastActive();
 }

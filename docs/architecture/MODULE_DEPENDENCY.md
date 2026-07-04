@@ -13,25 +13,25 @@ Adapters → external HTTP only (no business rules)
 
 ## Python Module Graph
 
-| Consumer | Depends On |
-|----------|------------|
-| `booking_engine` | `pricing_engine`, `fleetbase_engine`, `billing_engine`, `notification_engine`, `porterchain_services`, `porterchain_shared`, `porterchain_event_bus` |
-| `merchant_engine` | `booking_engine` (transitions), `pricing_engine`, `fleetbase_engine` |
-| `admin_engine` | All engines, `crm_models`, `porterchain_pricing` |
-| `fleetbase_engine` | `fleetbase-adapter` via `services/fleetbase_integration.py` |
-| `driver_engine` | `porterchain_driver`, `fleetbase_engine` bridge |
-| `pricing_engine` | `services/pricing-engine/porterchain_pricing` |
-| `apps/worker` | `porterchain_api.*`, `porterchain_event_bus`, `porterchain_shared` |
+| Consumer           | Depends On                                                                                                                                           |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `booking_engine`   | `pricing_engine`, `fleetbase_engine`, `billing_engine`, `notification_engine`, `porterchain_services`, `porterchain_shared`, `porterchain_event_bus` |
+| `merchant_engine`  | `booking_engine` (transitions), `pricing_engine`, `fleetbase_engine`                                                                                 |
+| `admin_engine`     | All engines, `crm_models`, `porterchain_pricing`                                                                                                     |
+| `fleetbase_engine` | `fleetbase-adapter` via `services/fleetbase_integration.py`                                                                                          |
+| `driver_engine`    | `porterchain_driver`, `fleetbase_engine` bridge                                                                                                      |
+| `pricing_engine`   | `services/pricing-engine/porterchain_pricing`                                                                                                        |
+| `apps/worker`      | `porterchain_api.*`, `porterchain_event_bus`, `porterchain_shared`                                                                                   |
 
 ## TypeScript Package Graph
 
-| App | Workspace packages |
-|-----|-------------------|
-| website | `@porterchain/maps`, `@porterchain/auth`, `@porterchain/types` |
-| admin | `@porterchain/ui`, `@porterchain/maps`, `@porterchain/auth` |
-| merchant-portal | `@porterchain/maps`, `@porterchain/auth` |
-| driver-portal | `@porterchain/auth` |
-| customer | `@porterchain/auth` |
+| App             | Workspace packages                                             |
+| --------------- | -------------------------------------------------------------- |
+| website         | `@porterchain/maps`, `@porterchain/auth`, `@porterchain/types` |
+| admin           | `@porterchain/ui`, `@porterchain/maps`, `@porterchain/auth`    |
+| merchant-portal | `@porterchain/maps`, `@porterchain/auth`                       |
+| driver-portal   | `@porterchain/auth`                                            |
+| customer        | `@porterchain/auth`                                            |
 
 ## Forbidden Dependencies (verified)
 

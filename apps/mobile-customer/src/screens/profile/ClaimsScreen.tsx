@@ -26,12 +26,14 @@ export function ClaimsScreen() {
       order_id: orderId,
     };
     try {
-      const result = await runDirectOrQueue(
-        CUSTOMER_OFFLINE_ACTIONS.CLAIM_CREATE,
-        payload,
-        () => api.createSupport(payload)
+      const result = await runDirectOrQueue(CUSTOMER_OFFLINE_ACTIONS.CLAIM_CREATE, payload, () =>
+        api.createSupport(payload)
       );
-      setMessage(result.mode === "queued" ? "Claim saved offline — will submit when connected." : "Claim submitted. Our team will review it.");
+      setMessage(
+        result.mode === "queued"
+          ? "Claim saved offline — will submit when connected."
+          : "Claim submitted. Our team will review it."
+      );
       setOrderId("");
       setDescription("");
     } catch (e) {

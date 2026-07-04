@@ -35,13 +35,13 @@ Fleetbase Core (dispatch, GPS, orchestrator, POD)
 
 ## Module Boundaries
 
-| Layer | Responsibility | Route Center files |
-|-------|----------------|-------------------|
-| Router | HTTP, RBAC guard, schema validation | `routers/route_center.py` |
-| Application service | Orchestration, audit, plan lifecycle | `admin_engine/route_center_service.py` |
-| Domain models | Plan + template persistence | `admin_models.RouteCenterPlan`, `RouteCenterTemplate` |
-| Integration | External systems | `MapsService`, `FleetbaseAdapter`, `BookingSyncService` |
-| UI | Presentation only | `apps/admin/src/app/(ops)/routes/*` |
+| Layer               | Responsibility                       | Route Center files                                      |
+| ------------------- | ------------------------------------ | ------------------------------------------------------- |
+| Router              | HTTP, RBAC guard, schema validation  | `routers/route_center.py`                               |
+| Application service | Orchestration, audit, plan lifecycle | `admin_engine/route_center_service.py`                  |
+| Domain models       | Plan + template persistence          | `admin_models.RouteCenterPlan`, `RouteCenterTemplate`   |
+| Integration         | External systems                     | `MapsService`, `FleetbaseAdapter`, `BookingSyncService` |
+| UI                  | Presentation only                    | `apps/admin/src/app/(ops)/routes/*`                     |
 
 ---
 
@@ -49,16 +49,16 @@ Fleetbase Core (dispatch, GPS, orchestrator, POD)
 
 ### RouteCenterPlan
 
-| Field | Purpose |
-|-------|---------|
-| `status` | `waiting → planned → optimized → dispatched → active → completed` |
-| `order_ids` | Porterchain order mirror IDs |
-| `stops` | Pickup/delivery stop JSON (built from orders or manual PATCH) |
-| `strategy` | Optimization strategy enum |
-| `simulation` | Pre-dispatch distance, fuel, cost, revenue, profit |
-| `recommendations` | Vehicle class, driver, warnings |
-| `fleetbase_run_id` | Orchestrator run from adapter |
-| `requires_approval` | Dispatch approval workflow flag |
+| Field               | Purpose                                                           |
+| ------------------- | ----------------------------------------------------------------- |
+| `status`            | `waiting → planned → optimized → dispatched → active → completed` |
+| `order_ids`         | Porterchain order mirror IDs                                      |
+| `stops`             | Pickup/delivery stop JSON (built from orders or manual PATCH)     |
+| `strategy`          | Optimization strategy enum                                        |
+| `simulation`        | Pre-dispatch distance, fuel, cost, revenue, profit                |
+| `recommendations`   | Vehicle class, driver, warnings                                   |
+| `fleetbase_run_id`  | Orchestrator run from adapter                                     |
+| `requires_approval` | Dispatch approval workflow flag                                   |
 
 ### RouteCenterTemplate
 
@@ -70,11 +70,11 @@ Reusable stop patterns for daily/weekly/merchant/recurring routes.
 
 Prefix: `/v1/admin/route-center`
 
-| Endpoint group | RBAC module |
-|----------------|-------------|
-| dashboard, planning-queue, plans (read) | `routes_read` |
-| plans (write), optimize, templates | `routes` |
-| dispatch, pause, resume, cancel | `routes_dispatch` |
+| Endpoint group                          | RBAC module       |
+| --------------------------------------- | ----------------- |
+| dashboard, planning-queue, plans (read) | `routes_read`     |
+| plans (write), optimize, templates      | `routes`          |
+| dispatch, pause, resume, cancel         | `routes_dispatch` |
 
 ---
 

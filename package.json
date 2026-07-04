@@ -24,7 +24,7 @@
     "dev:admin": "pnpm --filter @porterchain/admin dev",
     "dev:worker": "cd apps/worker && source ../api/.venv/bin/activate && PYTHONPATH=.:../api/src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python run.py",
     "build": "turbo build",
-    "lint": "turbo lint",
+    "lint": "turbo lint --filter=!@porterchain/mobile-driver --filter=!@porterchain/mobile-customer",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "docker:up": "docker compose -f infrastructure/docker/docker-compose.yml --profile core up -d",

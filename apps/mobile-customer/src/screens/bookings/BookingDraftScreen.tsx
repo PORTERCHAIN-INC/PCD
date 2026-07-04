@@ -68,7 +68,13 @@ export function BookingDraftScreen() {
         {loading ? <Body muted>Loading draft…</Body> : null}
         <Input label="Pickup" value={pickup} onChangeText={setPickup} />
         <Input label="Dropoff" value={dropoff} onChangeText={setDropoff} />
-        <Button label="Save draft" variant="secondary" loading={saving} fullWidth onPress={() => void saveDraft()} />
+        <Button
+          label="Save draft"
+          variant="secondary"
+          loading={saving}
+          fullWidth
+          onPress={() => void saveDraft()}
+        />
         <Button
           label="Continue to quote"
           fullWidth

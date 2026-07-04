@@ -49,7 +49,13 @@ export type DriverJobDetail = DriverJobSummary & {
     otp_verified: boolean;
   };
   otp_required: boolean;
-  incidents: Array<{ id: string; incident_type: string; description: string; status: string; created_at: string }>;
+  incidents: Array<{
+    id: string;
+    incident_type: string;
+    description: string;
+    status: string;
+    created_at: string;
+  }>;
   amount_cents: number;
   currency: string;
   updated_at: string | null;
@@ -141,7 +147,12 @@ export type DriverShiftSnapshot = {
   working_minutes: number;
   working_hours_label: string;
   mileage_km: number;
-  current_route: { route_id: string; status: string; stops_count: number; earnings_cents: number } | null;
+  current_route: {
+    route_id: string;
+    status: string;
+    stops_count: number;
+    earnings_cents: number;
+  } | null;
   last_updated: string;
 };
 
@@ -152,7 +163,12 @@ export type DriverEarningsSnapshot = {
   wallet_balance_cents: number;
   completed_deliveries_today: number;
   bonuses: Array<{ id: string; title: string; amount_cents: number; status: string }>;
-  payout_history: Array<{ id: string; amount_cents: number; status: string; created_at: string | null }>;
+  payout_history: Array<{
+    id: string;
+    amount_cents: number;
+    status: string;
+    created_at: string | null;
+  }>;
   last_updated: string;
 };
 

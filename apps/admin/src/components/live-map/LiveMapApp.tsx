@@ -66,7 +66,9 @@ export default function LiveMapApp() {
   const [layers, setLayers] = useState<MapLayers>(DEFAULT_LAYERS);
   const [mapMode, setMapMode] = useState<MapMode>("roadmap");
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [heatMetric, setHeatMetric] = useState<"orders" | "pickups" | "deliveries" | "drivers" | "revenue">("orders");
+  const [heatMetric, setHeatMetric] = useState<
+    "orders" | "pickups" | "deliveries" | "drivers" | "revenue"
+  >("orders");
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(false);
   const [bottomOpen, setBottomOpen] = useState(true);
@@ -74,7 +76,9 @@ export default function LiveMapApp() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [leftTab, setLeftTab] = useState<LeftTab>("queue");
   const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<Array<{ type: string; id: string; label: string; subtitle?: string }>>([]);
+  const [searchResults, setSearchResults] = useState<
+    Array<{ type: string; id: string; label: string; subtitle?: string }>
+  >([]);
   const [selected, setSelected] = useState<{ type: string; id: string } | null>(null);
   const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
@@ -83,7 +87,9 @@ export default function LiveMapApp() {
   const [measureActive, setMeasureActive] = useState(false);
   const [drawMode, setDrawMode] = useState<"none" | "rectangle" | "circle" | "polygon">("none");
   const [playbackDate, setPlaybackDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [playbackFrames, setPlaybackFrames] = useState<Array<{ lat: number; lng: number; driver_id: string }>>([]);
+  const [playbackFrames, setPlaybackFrames] = useState<
+    Array<{ lat: number; lng: number; driver_id: string }>
+  >([]);
   const [playbackIndex, setPlaybackIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
 
@@ -168,7 +174,12 @@ export default function LiveMapApp() {
             { label: "Drivers Online", value: cc.drivers_online, icon: Users },
             { label: "Vehicles Active", value: cc.vehicles_active, icon: Truck },
             { label: "Waiting", value: cc.orders_waiting, icon: Zap },
-            { label: "Late Orders", value: cc.late_orders, icon: AlertTriangle, alert: cc.late_orders > 0 },
+            {
+              label: "Late Orders",
+              value: cc.late_orders,
+              icon: AlertTriangle,
+              alert: cc.late_orders > 0,
+            },
             { label: "Delayed Drivers", value: cc.delayed_drivers, icon: Radio },
             { label: "Support", value: cc.support_tickets, icon: Users },
             { label: "Revenue Today", value: money(cc.revenue_today_cents), icon: Boxes },
@@ -231,8 +242,18 @@ export default function LiveMapApp() {
           </div>
 
           <div className="flex flex-wrap items-center gap-1">
-            <ToolbarBtn icon={Layers} label="Layers" active={layersOpen} onClick={() => setLayersOpen((v) => !v)} />
-            <ToolbarBtn icon={FilterIcon} label="Filters" active={filtersOpen} onClick={() => setFiltersOpen((v) => !v)} />
+            <ToolbarBtn
+              icon={Layers}
+              label="Layers"
+              active={layersOpen}
+              onClick={() => setLayersOpen((v) => !v)}
+            />
+            <ToolbarBtn
+              icon={FilterIcon}
+              label="Filters"
+              active={filtersOpen}
+              onClick={() => setFiltersOpen((v) => !v)}
+            />
             <select
               value={mapMode}
               onChange={(e) => setMapMode(e.target.value as MapMode)}
@@ -249,10 +270,30 @@ export default function LiveMapApp() {
               label={theme === "dark" ? "Light" : "Dark"}
               onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
             />
-            <ToolbarBtn icon={Ruler} label="Measure" active={measureActive} onClick={() => setMeasureActive((v) => !v)} />
-            <ToolbarBtn icon={Square} label="Rect" active={drawMode === "rectangle"} onClick={() => setDrawMode(drawMode === "rectangle" ? "none" : "rectangle")} />
-            <ToolbarBtn icon={Circle} label="Circle" active={drawMode === "circle"} onClick={() => setDrawMode(drawMode === "circle" ? "none" : "circle")} />
-            <ToolbarBtn icon={Hexagon} label="Polygon" active={drawMode === "polygon"} onClick={() => setDrawMode(drawMode === "polygon" ? "none" : "polygon")} />
+            <ToolbarBtn
+              icon={Ruler}
+              label="Measure"
+              active={measureActive}
+              onClick={() => setMeasureActive((v) => !v)}
+            />
+            <ToolbarBtn
+              icon={Square}
+              label="Rect"
+              active={drawMode === "rectangle"}
+              onClick={() => setDrawMode(drawMode === "rectangle" ? "none" : "rectangle")}
+            />
+            <ToolbarBtn
+              icon={Circle}
+              label="Circle"
+              active={drawMode === "circle"}
+              onClick={() => setDrawMode(drawMode === "circle" ? "none" : "circle")}
+            />
+            <ToolbarBtn
+              icon={Hexagon}
+              label="Polygon"
+              active={drawMode === "polygon"}
+              onClick={() => setDrawMode(drawMode === "polygon" ? "none" : "polygon")}
+            />
             <ToolbarBtn icon={RefreshCw} label="Refresh" onClick={() => void refresh()} />
           </div>
         </header>
@@ -266,7 +307,9 @@ export default function LiveMapApp() {
               exit={{ opacity: 0, y: -8 }}
               className="absolute left-3 top-14 z-40 w-56 rounded-2xl border border-primary/10 bg-white p-3 shadow-xl"
             >
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Layers</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                Layers
+              </p>
               {(Object.keys(DEFAULT_LAYERS) as Array<keyof MapLayers>).map((key) => (
                 <label key={key} className="flex cursor-pointer items-center gap-2 py-1 text-sm">
                   <input
@@ -304,19 +347,28 @@ export default function LiveMapApp() {
               exit={{ opacity: 0, y: -8 }}
               className="absolute left-64 top-14 z-40 w-72 rounded-2xl border border-primary/10 bg-white p-4 shadow-xl"
             >
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">Filters</p>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
+                Filters
+              </p>
               <div className="space-y-2 text-sm">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={!!filters.online_only}
-                    onChange={(e) => setFilters((f) => ({ ...f, online_only: e.target.checked || undefined }))}
+                    onChange={(e) =>
+                      setFilters((f) => ({ ...f, online_only: e.target.checked || undefined }))
+                    }
                   />
                   Online drivers only
                 </label>
                 <select
                   value={filters.priority ?? "all"}
-                  onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value as LiveMapFilters["priority"] }))}
+                  onChange={(e) =>
+                    setFilters((f) => ({
+                      ...f,
+                      priority: e.target.value as LiveMapFilters["priority"],
+                    }))
+                  }
                   className="w-full rounded-lg border border-primary/10 px-2 py-1.5"
                 >
                   <option value="all">All priorities</option>
@@ -387,7 +439,9 @@ export default function LiveMapApp() {
                       onClick={() => setLeftTab(id)}
                       className={cn(
                         "shrink-0 rounded-lg px-2 py-1 text-xs font-medium",
-                        leftTab === id ? "bg-secondary/10 text-secondary" : "text-muted hover:bg-gray-bg"
+                        leftTab === id
+                          ? "bg-secondary/10 text-secondary"
+                          : "text-muted hover:bg-gray-bg"
                       )}
                     >
                       {label}
@@ -418,7 +472,9 @@ export default function LiveMapApp() {
                 playbackIndex={playbackIndex}
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-red-600">{error}</div>
+              <div className="flex h-full items-center justify-center text-sm text-red-600">
+                {error}
+              </div>
             )}
           </div>
 
@@ -433,7 +489,11 @@ export default function LiveMapApp() {
               >
                 <div className="flex items-center justify-between border-b border-primary/10 px-4 py-3">
                   <h2 className="font-semibold text-primary">Details</h2>
-                  <button type="button" onClick={() => setRightOpen(false)} aria-label="Close drawer">
+                  <button
+                    type="button"
+                    onClick={() => setRightOpen(false)}
+                    aria-label="Close drawer"
+                  >
                     <X className="h-5 w-5 text-muted" />
                   </button>
                 </div>
@@ -466,7 +526,11 @@ export default function LiveMapApp() {
         >
           <div className="flex items-center justify-between px-3 py-1.5">
             <div className="flex items-center gap-3">
-              <button type="button" className="text-xs font-semibold text-primary" onClick={() => setBottomOpen((v) => !v)}>
+              <button
+                type="button"
+                className="text-xs font-semibold text-primary"
+                onClick={() => setBottomOpen((v) => !v)}
+              >
                 {bottomOpen ? "Hide events" : "Show events"}
               </button>
               <span className="text-xs text-muted">Playback</span>
@@ -476,7 +540,11 @@ export default function LiveMapApp() {
                 onChange={(e) => setPlaybackDate(e.target.value)}
                 className="rounded border border-primary/10 px-2 py-0.5 text-xs"
               />
-              <Button variant="outline" className="!px-2 !py-1 text-xs" onClick={() => void loadPlayback()}>
+              <Button
+                variant="outline"
+                className="!px-2 !py-1 text-xs"
+                onClick={() => void loadPlayback()}
+              >
                 Load
               </Button>
               <button
@@ -497,17 +565,29 @@ export default function LiveMapApp() {
           {bottomOpen && data && (
             <div className="grid max-h-32 grid-cols-1 gap-2 overflow-y-auto px-3 pb-2 md:grid-cols-2">
               <div>
-                <p className="mb-1 text-[10px] font-semibold uppercase text-muted">Live notifications</p>
+                <p className="mb-1 text-[10px] font-semibold uppercase text-muted">
+                  Live notifications
+                </p>
                 <ul className="space-y-1">
                   {data.alerts.slice(0, 6).map((a) => (
                     <li key={a.id} className="flex items-start gap-2 text-xs">
                       <AlertTriangle
                         className={cn(
                           "mt-0.5 h-3 w-3 shrink-0",
-                          a.severity === "critical" ? "text-red-500" : a.severity === "warning" ? "text-amber-500" : "text-blue-500"
+                          a.severity === "critical"
+                            ? "text-red-500"
+                            : a.severity === "warning"
+                              ? "text-amber-500"
+                              : "text-blue-500"
                         )}
                       />
-                      <button type="button" className="text-left hover:text-secondary" onClick={() => a.entity_id && a.entity_type && loadDetail(a.entity_type, a.entity_id)}>
+                      <button
+                        type="button"
+                        className="text-left hover:text-secondary"
+                        onClick={() =>
+                          a.entity_id && a.entity_type && loadDetail(a.entity_type, a.entity_id)
+                        }
+                      >
                         <span className="font-medium">{a.title}</span> — {a.message}
                       </button>
                     </li>
@@ -529,21 +609,22 @@ export default function LiveMapApp() {
         </div>
 
         {/* Smart features strip */}
-        {data?.smart && (data.smart.traffic_warnings.length > 0 || data.smart.suggested_drivers.length > 0) && (
-          <div className="absolute bottom-48 right-4 z-20 max-w-xs rounded-xl border border-primary/10 bg-white/95 p-3 text-xs shadow-lg backdrop-blur">
-            <p className="mb-1 font-semibold text-primary">Smart ops</p>
-            {data.smart.traffic_warnings.map((w) => (
-              <p key={w} className="text-amber-700">
-                {w}
-              </p>
-            ))}
-            {data.smart.suggested_drivers.length > 0 && (
-              <p className="mt-1 text-muted">
-                Suggested: {data.smart.suggested_drivers.map((d) => d.name).join(", ")}
-              </p>
-            )}
-          </div>
-        )}
+        {data?.smart &&
+          (data.smart.traffic_warnings.length > 0 || data.smart.suggested_drivers.length > 0) && (
+            <div className="absolute bottom-48 right-4 z-20 max-w-xs rounded-xl border border-primary/10 bg-white/95 p-3 text-xs shadow-lg backdrop-blur">
+              <p className="mb-1 font-semibold text-primary">Smart ops</p>
+              {data.smart.traffic_warnings.map((w) => (
+                <p key={w} className="text-amber-700">
+                  {w}
+                </p>
+              ))}
+              {data.smart.suggested_drivers.length > 0 && (
+                <p className="mt-1 text-muted">
+                  Suggested: {data.smart.suggested_drivers.map((d) => d.name).join(", ")}
+                </p>
+              )}
+            </div>
+          )}
       </div>
     </GoogleMapsProvider>
   );
@@ -612,7 +693,11 @@ function LeftPanelContent({
       <ul className="space-y-1">
         {data.vehicles.map((v) => (
           <li key={v.id}>
-            <button type="button" className="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-gray-bg" onClick={() => onSelect("vehicle", v.id)}>
+            <button
+              type="button"
+              className="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-gray-bg"
+              onClick={() => onSelect("vehicle", v.id)}
+            >
               <span className="font-medium">{v.plate_number}</span>
               <span className="ml-2 text-xs text-muted">{v.vehicle_class}</span>
             </button>
@@ -624,35 +709,47 @@ function LeftPanelContent({
   if (tab === "incidents") {
     return (
       <ul className="space-y-1">
-        {data.alerts.filter((a) => a.alert_type === "incident").map((a) => (
-          <li key={a.id} className="rounded-lg bg-amber-50 px-2 py-2 text-xs">
-            {a.message}
-          </li>
-        ))}
+        {data.alerts
+          .filter((a) => a.alert_type === "incident")
+          .map((a) => (
+            <li key={a.id} className="rounded-lg bg-amber-50 px-2 py-2 text-xs">
+              {a.message}
+            </li>
+          ))}
       </ul>
     );
   }
   if (tab === "claims") {
     return (
       <ul className="space-y-1">
-        {data.alerts.filter((a) => a.alert_type === "claim").map((a) => (
-          <li key={a.id} className="rounded-lg bg-blue-50 px-2 py-2 text-xs">
-            {a.message}
-          </li>
-        ))}
+        {data.alerts
+          .filter((a) => a.alert_type === "claim")
+          .map((a) => (
+            <li key={a.id} className="rounded-lg bg-blue-50 px-2 py-2 text-xs">
+              {a.message}
+            </li>
+          ))}
       </ul>
     );
   }
   if (tab === "support") {
-    return <p className="px-2 text-xs text-muted">{data.command_center.support_tickets} open tickets</p>;
+    return (
+      <p className="px-2 text-xs text-muted">{data.command_center.support_tickets} open tickets</p>
+    );
   }
   // queue default
-  const waiting = data.orders.filter((o) => o.stop_type === "pickup" && ["BOOKED", "DISPATCH_READY"].includes(o.state));
+  const waiting = data.orders.filter(
+    (o) => o.stop_type === "pickup" && ["BOOKED", "DISPATCH_READY"].includes(o.state)
+  );
   return (
     <ul className="space-y-1">
       {waiting.map((o) => (
         <li key={o.order_id}>
-          <button type="button" className="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-gray-bg" onClick={() => onSelect("order", o.order_id)}>
+          <button
+            type="button"
+            className="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-gray-bg"
+            onClick={() => onSelect("order", o.order_id)}
+          >
             <span className="font-mono text-xs">{o.tracking_number}</span>
             <p className="text-xs text-muted">{o.merchant ?? "—"}</p>
           </button>
@@ -680,7 +777,9 @@ function DetailPanel({ detail }: { detail: Record<string, unknown> }) {
       {currentJob && (
         <section>
           <h3 className="text-xs font-semibold uppercase text-muted">Current job</h3>
-          <pre className="mt-1 rounded-lg bg-gray-bg p-2 text-xs">{JSON.stringify(currentJob, null, 2)}</pre>
+          <pre className="mt-1 rounded-lg bg-gray-bg p-2 text-xs">
+            {JSON.stringify(currentJob, null, 2)}
+          </pre>
         </section>
       )}
 

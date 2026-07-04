@@ -15,22 +15,18 @@ export default function CustomerAccessGate({ children }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { isLoaded, isSignedIn, getToken } = useAuth();
-  const [checking, setChecking] = useState(isClerkConfigured());
+  const clerkOn = isClerkConfigured();
+  const onPendingPath = isPendingCustomerPath(pathname);
+  const [checking, setChecking] = useState(clerkOn);
 
   useEffect(() => {
-    if (!isClerkConfigured()) {
-      setChecking(false);
-      return;
-    }
+    if (!clerkOn) return;
     if (!isLoaded) return;
     if (!isSignedIn) {
       router.replace("/sign-in");
       return;
     }
-    if (isPendingCustomerPath(pathname)) {
-      setChecking(false);
-      return;
-    }
+    if (onPendingPath) return;
 
     let cancelled = false;
     void (async () => {
@@ -53,13 +49,13 @@ export default function CustomerAccessGate({ children }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [getToken, isLoaded, isSignedIn, pathname, router]);
+  }, [clerkOn, getToken, isLoaded, isSignedIn, onPendingPath, pathname, router]);
 
-  if (!isClerkConfigured()) {
+  if (!clerkOn) {
     return <>{children}</>;
   }
 
-  if (!isLoaded || checking) {
+  if (!isLoaded || (checking && !onPendingPath)) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" />

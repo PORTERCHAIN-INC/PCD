@@ -1,11 +1,4 @@
-import {
-  AlertTriangle,
-  Car,
-  LogIn,
-  LogOut,
-  Power,
-  PowerOff,
-} from "lucide-react";
+import { AlertTriangle, Car, LogIn, LogOut, Power, PowerOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function QuickActions({
@@ -100,7 +93,8 @@ function ActionButton({
         variant === "success" && "bg-emerald-600 text-white hover:bg-emerald-700",
         variant === "muted" && "bg-gray-600 text-white hover:bg-gray-700",
         variant === "danger" && "bg-red-600 text-white hover:bg-red-700",
-        variant === "default" && "border border-[var(--primary)]/10 bg-[var(--gray-bg)] text-[var(--primary)] hover:bg-white",
+        variant === "default" &&
+          "border border-[var(--primary)]/10 bg-[var(--gray-bg)] text-[var(--primary)] hover:bg-white",
         className
       )}
     >

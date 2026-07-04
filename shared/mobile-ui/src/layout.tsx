@@ -22,7 +22,11 @@ export function Divider({ inset = 0 }: { inset?: number }) {
   );
 }
 
-export function Spacer({ size = "lg" }: { size?: keyof typeof import("@porterchain/mobile-theme").spacing }) {
+export function Spacer({
+  size = "lg",
+}: {
+  size?: keyof typeof import("@porterchain/mobile-theme").spacing;
+}) {
   const { theme } = useTheme();
   return <View style={{ height: theme.spacing[size] }} />;
 }

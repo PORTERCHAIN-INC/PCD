@@ -54,7 +54,9 @@ function FilterChip({
         backgroundColor: active ? theme.colors.primary : theme.colors.surfaceMuted,
       }}
     >
-      <Caption style={{ color: active ? theme.colors.onPrimary : theme.colors.text }}>{label}</Caption>
+      <Caption style={{ color: active ? theme.colors.onPrimary : theme.colors.text }}>
+        {label}
+      </Caption>
     </Pressable>
   );
 }
@@ -78,7 +80,14 @@ function NotificationRowCard({
         subtitle={item.body}
         meta={item.created_at?.slice(0, 16) ?? undefined}
         leading={
-          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: item.is_read ? "transparent" : theme.colors.primary }} />
+          <View
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: item.is_read ? "transparent" : theme.colors.primary,
+            }}
+          />
         }
         trailing={
           <View style={{ flexDirection: "row", gap: theme.spacing.xs, alignItems: "center" }}>
@@ -90,7 +99,14 @@ function NotificationRowCard({
         showDivider={false}
         inset={false}
       />
-      <View style={{ flexDirection: "row", gap: theme.spacing.sm, paddingHorizontal: theme.spacing.lg, paddingBottom: theme.spacing.md }}>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: theme.spacing.sm,
+          paddingHorizontal: theme.spacing.lg,
+          paddingBottom: theme.spacing.md,
+        }}
+      >
         <Button size="sm" variant="ghost" label="Archive" onPress={onArchive} />
       </View>
     </Card>
@@ -155,18 +171,31 @@ export function NotificationCenter({
         <FilterChip label="Inbox" active={tab === "inbox"} onPress={() => setTab("inbox")} />
         <FilterChip label="History" active={tab === "history"} onPress={() => setTab("history")} />
         {showSettings ? (
-          <FilterChip label="Settings" active={tab === "settings"} onPress={() => setTab("settings")} />
+          <FilterChip
+            label="Settings"
+            active={tab === "settings"}
+            onPress={() => setTab("settings")}
+          />
         ) : null}
       </View>
       {tab === "inbox" ? (
         <View style={{ flexDirection: "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
           <FilterChip label="All" active={filter === "all"} onPress={() => setFilter("all")} />
-          <FilterChip label="Unread" active={filter === "unread"} onPress={() => setFilter("unread")} />
+          <FilterChip
+            label="Unread"
+            active={filter === "unread"}
+            onPress={() => setFilter("unread")}
+          />
           <FilterChip label="Read" active={filter === "read"} onPress={() => setFilter("read")} />
         </View>
       ) : null}
       {tab === "inbox" && center.unreadCount > 0 ? (
-        <Button size="sm" variant="secondary" label="Mark all read" onPress={() => void center.markAllRead()} />
+        <Button
+          size="sm"
+          variant="secondary"
+          label="Mark all read"
+          onPress={() => void center.markAllRead()}
+        />
       ) : null}
     </View>
   );
@@ -181,10 +210,7 @@ export function NotificationCenter({
   }
 
   const loading = tab === "history" ? center.isHistoryLoading : center.isLoading;
-  const empty =
-    tab === "history"
-      ? center.historyItems.length === 0
-      : center.items.length === 0;
+  const empty = tab === "history" ? center.historyItems.length === 0 : center.items.length === 0;
 
   return (
     <Screen>
@@ -209,7 +235,13 @@ export function NotificationCenter({
           renderItem={({ item: row }) => {
             if (row.kind === "section") {
               return (
-                <Body style={{ fontWeight: "700", marginTop: theme.spacing.md, marginBottom: theme.spacing.sm }}>
+                <Body
+                  style={{
+                    fontWeight: "700",
+                    marginTop: theme.spacing.md,
+                    marginBottom: theme.spacing.sm,
+                  }}
+                >
                   {row.title}
                 </Body>
               );

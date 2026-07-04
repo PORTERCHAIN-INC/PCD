@@ -12,7 +12,11 @@ export default function SupportDetailPage({ params }: { params: Promise<{ id: st
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const enabled = isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
 
-  const { data: detail, isLoading, refetch } = useQuery({
+  const {
+    data: detail,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["support-ticket", id],
     enabled,
     refetchInterval: 15_000,

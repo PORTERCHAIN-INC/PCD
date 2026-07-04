@@ -32,12 +32,12 @@
 
 **Hard rules (masterrule §2, §7):**
 
-| Rule | Mobile enforcement |
-|------|-------------------|
-| No Fleetbase HTTP from mobile | API client base URL is Porterchain only |
-| No business logic in UI | Zod validates forms; server decides outcomes |
-| Server-side truth | MMKV/offline queue is cache/replay only |
-| Reuse modules | Shared `shared/api` mirrors web BFF contracts |
+| Rule                          | Mobile enforcement                            |
+| ----------------------------- | --------------------------------------------- |
+| No Fleetbase HTTP from mobile | API client base URL is Porterchain only       |
+| No business logic in UI       | Zod validates forms; server decides outcomes  |
+| Server-side truth             | MMKV/offline queue is cache/replay only       |
+| Reuse modules                 | Shared `shared/api` mirrors web BFF contracts |
 
 Mobile apps sit at the **UI layer** only (masterrule §3.7).
 
@@ -71,13 +71,13 @@ Web-only hooks remain at `shared/hooks/useVisitorSession.ts` (not part of mobile
 
 ### 3.1 `apps/mobile-driver`
 
-| Item | Value |
-|------|-------|
-| Package | `@porterchain/mobile-driver` |
-| Entry | `index.ts` → `App.tsx` |
-| API prefix | `/driver-api/v1/*` |
-| Scheme | `porterchain-driver` |
-| Port (dev) | Expo default `8081` |
+| Item       | Value                        |
+| ---------- | ---------------------------- |
+| Package    | `@porterchain/mobile-driver` |
+| Entry      | `index.ts` → `App.tsx`       |
+| API prefix | `/driver-api/v1/*`           |
+| Scheme     | `porterchain-driver`         |
+| Port (dev) | Expo default `8081`          |
 
 **App structure (no feature screens):**
 
@@ -100,13 +100,13 @@ apps/mobile-driver/
 
 ### 3.2 `apps/mobile-customer`
 
-| Item | Value |
-|------|-------|
-| Package | `@porterchain/mobile-customer` |
-| Entry | `index.ts` → `App.tsx` |
-| API prefix | `/v1/*` (retail/customer) |
-| Scheme | `porterchain-customer` |
-| Port (dev) | `8082` |
+| Item       | Value                          |
+| ---------- | ------------------------------ |
+| Package    | `@porterchain/mobile-customer` |
+| Entry      | `index.ts` → `App.tsx`         |
+| API prefix | `/v1/*` (retail/customer)      |
+| Scheme     | `porterchain-customer`         |
+| Port (dev) | `8082`                         |
 
 Same shell pattern as driver; `createCustomerApi` from shared API.
 
@@ -116,13 +116,13 @@ Same shell pattern as driver; `createCustomerApi` from shared API.
 
 ### 4.1 `@porterchain/mobile-api` (`shared/api`)
 
-| Module | Responsibility |
-|--------|----------------|
-| `client.ts` | `createApiClient` — fetch, auth header, 401 hook |
+| Module            | Responsibility                                    |
+| ----------------- | ------------------------------------------------- |
+| `client.ts`       | `createApiClient` — fetch, auth header, 401 hook  |
 | `query-client.ts` | TanStack Query defaults (stale time, retry rules) |
-| `driver.ts` | Driver endpoint facades |
-| `customer.ts` | Customer endpoint facades |
-| `offline.ts` | Offline action types |
+| `driver.ts`       | Driver endpoint facades                           |
+| `customer.ts`     | Customer endpoint facades                         |
+| `offline.ts`      | Offline action types                              |
 
 **No Fleetbase URLs.** Base URL: `EXPO_PUBLIC_API_URL`.
 
@@ -135,10 +135,10 @@ Same shell pattern as driver; `createCustomerApi` from shared API.
 
 ### 4.3 `@porterchain/mobile-storage` (`shared/storage`)
 
-| Store | Use |
-|-------|-----|
-| **MMKV** | Preferences, offline queue, non-sensitive cache |
-| **Secure Store** | Access/refresh tokens, user ids |
+| Store             | Use                                                   |
+| ----------------- | ----------------------------------------------------- |
+| **MMKV**          | Preferences, offline queue, non-sensitive cache       |
+| **Secure Store**  | Access/refresh tokens, user ids                       |
 | **Offline queue** | Action replay adapter (pairs with API sync endpoints) |
 
 Business state is **not** authoritative in MMKV — server is source of truth.
@@ -189,23 +189,23 @@ Enterprise design system — see **`MOBILE_DESIGN_SYSTEM.md`**.
 
 ## 5. Configured stack
 
-| Technology | Version / package | Role |
-|------------|-------------------|------|
-| **TypeScript** | 5.9 | Strict mode in apps + shared |
-| **Expo** | SDK 52 | Build, native modules, dev client |
-| **React Navigation** | v7 native-stack + bottom-tabs | Navigation shell (tabs added with screens) |
-| **TanStack Query** | v5 | Server state, cache, retries |
-| **Zustand** | v5 | Client session bootstrap |
-| **React Hook Form** | v7 | Forms (schemas present, screens later) |
-| **Zod** | v3 | Input validation |
-| **MMKV** | v3 | Fast local storage |
-| **Expo Secure Store** | v14 | Token storage |
-| **Firebase** | RN Firebase v21 | FCM push |
-| **Google Maps** | react-native-maps | Map display |
-| **Reanimated** | v3 | Animations |
-| **Gesture Handler** | v2 | Gestures, navigation |
-| **Bottom Sheets** | @gorhom/bottom-sheet v5 | Modal sheets |
-| **FlashList** | v1 | Performant lists |
+| Technology            | Version / package             | Role                                       |
+| --------------------- | ----------------------------- | ------------------------------------------ |
+| **TypeScript**        | 5.9                           | Strict mode in apps + shared               |
+| **Expo**              | SDK 52                        | Build, native modules, dev client          |
+| **React Navigation**  | v7 native-stack + bottom-tabs | Navigation shell (tabs added with screens) |
+| **TanStack Query**    | v5                            | Server state, cache, retries               |
+| **Zustand**           | v5                            | Client session bootstrap                   |
+| **React Hook Form**   | v7                            | Forms (schemas present, screens later)     |
+| **Zod**               | v3                            | Input validation                           |
+| **MMKV**              | v3                            | Fast local storage                         |
+| **Expo Secure Store** | v14                           | Token storage                              |
+| **Firebase**          | RN Firebase v21               | FCM push                                   |
+| **Google Maps**       | react-native-maps             | Map display                                |
+| **Reanimated**        | v3                            | Animations                                 |
+| **Gesture Handler**   | v2                            | Gestures, navigation                       |
+| **Bottom Sheets**     | @gorhom/bottom-sheet v5       | Modal sheets                               |
+| **FlashList**         | v1                            | Performant lists                           |
 
 ---
 
@@ -248,21 +248,21 @@ Fleetbase Adapter (when action requires execution)
 
 ## 8. Dark mode, RTL, accessibility
 
-| Concern | Implementation |
-|---------|----------------|
-| **Dark mode** | `ThemeProvider` + `userInterfaceStyle: "automatic"` in app.config |
-| **RTL** | `theme.isRTL` from `I18nManager`; use `start`/`end` spacing when screens are built |
-| **Accessibility** | `a11yProps()`, `accessibilityRole` on banners; minimum touch targets in `Button` |
+| Concern           | Implementation                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| **Dark mode**     | `ThemeProvider` + `userInterfaceStyle: "automatic"` in app.config                  |
+| **RTL**           | `theme.isRTL` from `I18nManager`; use `start`/`end` spacing when screens are built |
+| **Accessibility** | `a11yProps()`, `accessibilityRole` on banners; minimum touch targets in `Button`   |
 
 ---
 
 ## 9. Environment variables
 
-| Variable | Apps | Purpose |
-|----------|------|---------|
-| `EXPO_PUBLIC_API_URL` | both | Porterchain API base (`http://localhost:8001`) |
-| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` | both | Maps display |
-| `GOOGLE_SERVICES_JSON` / `GOOGLE_SERVICES_INFO_PLIST` | driver (EAS) | Firebase native config |
+| Variable                                              | Apps         | Purpose                                        |
+| ----------------------------------------------------- | ------------ | ---------------------------------------------- |
+| `EXPO_PUBLIC_API_URL`                                 | both         | Porterchain API base (`http://localhost:8001`) |
+| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`                     | both         | Maps display                                   |
+| `GOOGLE_SERVICES_JSON` / `GOOGLE_SERVICES_INFO_PLIST` | driver (EAS) | Firebase native config                         |
 
 See [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md).
 
@@ -293,20 +293,20 @@ pnpm dev:mobile-customer
 
 ### Driver mobile → Porterchain
 
-| Domain | API prefix | Service (server) |
-|--------|------------|------------------|
-| Auth | `/driver-api/v1/auth/*` | `driver_engine` |
-| Dashboard, jobs, shift | `/driver-api/v1/*` | `porterchain_driver/*` |
-| Push | `/driver-api/v1/push/register` | `notification_engine` |
-| Offline | `/driver-api/v1/offline/*` | `porterchain_driver/offline` |
+| Domain                 | API prefix                     | Service (server)             |
+| ---------------------- | ------------------------------ | ---------------------------- |
+| Auth                   | `/driver-api/v1/auth/*`        | `driver_engine`              |
+| Dashboard, jobs, shift | `/driver-api/v1/*`             | `porterchain_driver/*`       |
+| Push                   | `/driver-api/v1/push/register` | `notification_engine`        |
+| Offline                | `/driver-api/v1/offline/*`     | `porterchain_driver/offline` |
 
 ### Customer mobile → Porterchain
 
-| Domain | API prefix | Service (server) |
-|--------|------------|------------------|
-| Bookings | `/v1/bookings` | `booking_engine` |
-| Tracking | `/v1/tracking/*` | `booking_engine` |
-| Profile | `/v1/customers/*` | customer routers |
+| Domain   | API prefix        | Service (server) |
+| -------- | ----------------- | ---------------- |
+| Bookings | `/v1/bookings`    | `booking_engine` |
+| Tracking | `/v1/tracking/*`  | `booking_engine` |
+| Profile  | `/v1/customers/*` | customer routers |
 
 **Never:** `http://fleetbase:8000`, merchant API, admin API from mobile.
 

@@ -117,9 +117,11 @@ export type E2EResult = {
 const B = "/v1/admin/diagnostics";
 
 export const diagnosticsApi = {
-  center: (token: string) => adminFetch<Record<string, unknown>>(`${B}/center`, token, { timeoutMs: 45_000 }),
+  center: (token: string) =>
+    adminFetch<Record<string, unknown>>(`${B}/center`, token, { timeoutMs: 45_000 }),
 
-  health: (token: string) => adminFetch<HealthDashboard>(`${B}/health`, token, { timeoutMs: 45_000 }),
+  health: (token: string) =>
+    adminFetch<HealthDashboard>(`${B}/health`, token, { timeoutMs: 45_000 }),
 
   listTests: (token: string) =>
     adminFetch<{ tests: TestCatalogItem[]; count: number }>(`${B}/tests`, token),

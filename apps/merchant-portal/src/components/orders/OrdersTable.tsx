@@ -23,9 +23,7 @@ export function OrdersTable({ rows, selected, onSelect }: Props) {
               <input
                 type="checkbox"
                 checked={allSelected}
-                onChange={(e) =>
-                  onSelect(e.target.checked ? rows.map((r) => r.order_id) : [])
-                }
+                onChange={(e) => onSelect(e.target.checked ? rows.map((r) => r.order_id) : [])}
                 aria-label="Select all"
               />
             </th>
@@ -70,7 +68,9 @@ export function OrdersTable({ rows, selected, onSelect }: Props) {
                 {row.pickup} → {row.destination}
               </td>
               <td className="px-3 py-3 text-muted">{row.driver_name ?? "—"}</td>
-              <td className="px-3 py-3">{formatCents(row.amount_cents, row.currency.toUpperCase())}</td>
+              <td className="px-3 py-3">
+                {formatCents(row.amount_cents, row.currency.toUpperCase())}
+              </td>
               <td className="px-3 py-3 capitalize text-muted">{row.invoice_status}</td>
               <td className="px-3 py-3 text-muted">{formatDate(row.updated_at)}</td>
             </tr>

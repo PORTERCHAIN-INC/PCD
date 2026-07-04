@@ -114,7 +114,9 @@ export default function BillingClient() {
             type="button"
             onClick={() => setTab(t.id)}
             className={`rounded-lg px-3 py-1.5 text-sm ${
-              tab === t.id ? "bg-secondary/10 font-semibold text-secondary" : "text-muted hover:text-primary"
+              tab === t.id
+                ? "bg-secondary/10 font-semibold text-secondary"
+                : "text-muted hover:text-primary"
             }`}
           >
             {t.label}
@@ -123,9 +125,13 @@ export default function BillingClient() {
       </nav>
 
       {tab === "overview" && <OverviewTab overview={overview} />}
-      {tab === "invoices" && <InvoicesTab invoices={invoices} orgId={orgId} getToken={getApiToken} />}
+      {tab === "invoices" && (
+        <InvoicesTab invoices={invoices} orgId={orgId} getToken={getApiToken} />
+      )}
       {tab === "statement" && statement && <StatementTab statement={statement} />}
-      {tab === "payments" && <PaymentsTab payments={payments} stripeEnabled={overview.stripe_enabled} />}
+      {tab === "payments" && (
+        <PaymentsTab payments={payments} stripeEnabled={overview.stripe_enabled} />
+      )}
       {tab === "credits" && <CreditsTab credits={credits} />}
       {tab === "history" && <HistoryTab history={history} />}
       {tab === "tax" && <TaxTab overview={overview} />}
@@ -139,7 +145,10 @@ function OverviewTab({ overview }: { overview: BillingOverview }) {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi label="Outstanding balance" value={formatCents(overview.outstanding_balance_cents)} />
-        <Kpi label="Invoiced outstanding" value={formatCents(overview.outstanding_invoices_cents)} />
+        <Kpi
+          label="Invoiced outstanding"
+          value={formatCents(overview.outstanding_invoices_cents)}
+        />
         <Kpi label="Uninvoiced orders" value={formatCents(overview.uninvoiced_orders_cents)} />
         {(overview.credit_notes_cents ?? 0) > 0 && (
           <Kpi label="Credit notes" value={`−${formatCents(overview.credit_notes_cents!)}`} />
@@ -148,12 +157,18 @@ function OverviewTab({ overview }: { overview: BillingOverview }) {
         <Kpi label="Invoices due" value={String(overview.invoices_due)} />
         <Kpi label="Overdue" value={String(overview.overdue_invoices)} />
         <Kpi label="Net terms" value={`${overview.net_terms_days} days`} />
-        <Kpi label="Credit limit" value={overview.credit_limit_cents != null ? formatCents(overview.credit_limit_cents) : "—"} />
+        <Kpi
+          label="Credit limit"
+          value={
+            overview.credit_limit_cents != null ? formatCents(overview.credit_limit_cents) : "—"
+          }
+        />
       </div>
 
       {overview.period_start && (
         <p className="text-sm text-muted">
-          Current billing period: {formatDate(overview.period_start)} — {formatDate(overview.period_end || "")}
+          Current billing period: {formatDate(overview.period_start)} —{" "}
+          {formatDate(overview.period_end || "")}
         </p>
       )}
 
@@ -201,7 +216,9 @@ function InvoicesTab({
   }
 
   if (!invoices.length) {
-    return <p className="text-sm text-muted">No invoices yet — net terms orders appear when invoiced.</p>;
+    return (
+      <p className="text-sm text-muted">No invoices yet — net terms orders appear when invoiced.</p>
+    );
   }
 
   return (
@@ -228,7 +245,9 @@ function InvoicesTab({
               <td className="px-4 py-3">
                 {formatCents(inv.amount_cents, inv.currency.toUpperCase())}
                 {inv.outstanding_cents > 0 && inv.status !== "paid" && (
-                  <span className="ml-1 text-xs text-muted">({formatCents(inv.outstanding_cents)} due)</span>
+                  <span className="ml-1 text-xs text-muted">
+                    ({formatCents(inv.outstanding_cents)} due)
+                  </span>
                 )}
               </td>
               <td className="px-4 py-3">{inv.due_date ? formatDate(inv.due_date) : "—"}</td>
@@ -237,7 +256,9 @@ function InvoicesTab({
                   <button
                     type="button"
                     className="text-secondary hover:underline"
-                    onClick={() => void openPdf(inv.invoice_id, inv.pdf_url || inv.stripe_receipt_url)}
+                    onClick={() =>
+                      void openPdf(inv.invoice_id, inv.pdf_url || inv.stripe_receipt_url)
+                    }
                   >
                     Download PDF
                   </button>
@@ -277,7 +298,9 @@ function StatementTab({ statement }: { statement: StatementDetail }) {
                 <td className="px-4 py-3 font-mono text-xs">{String(line.reference ?? "—")}</td>
                 <td className="px-4 py-3">{String(line.description ?? "")}</td>
                 <td className="px-4 py-3">{formatCents(Number(line.amount_cents) || 0)}</td>
-                <td className="px-4 py-3">{line.status ? <StatusBadge status={String(line.status)} /> : "—"}</td>
+                <td className="px-4 py-3">
+                  {line.status ? <StatusBadge status={String(line.status)} /> : "—"}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -287,7 +310,13 @@ function StatementTab({ statement }: { statement: StatementDetail }) {
   );
 }
 
-function PaymentsTab({ payments, stripeEnabled }: { payments: PaymentRow[]; stripeEnabled: boolean }) {
+function PaymentsTab({
+  payments,
+  stripeEnabled,
+}: {
+  payments: PaymentRow[];
+  stripeEnabled: boolean;
+}) {
   if (!payments.length) {
     return (
       <p className="text-sm text-muted">
@@ -310,7 +339,9 @@ function PaymentsTab({ payments, stripeEnabled }: { payments: PaymentRow[]; stri
       <tbody>
         {payments.map((p) => (
           <tr key={p.payment_id} className="border-b border-primary/5">
-            <td className="px-4 py-3 font-mono text-xs">{p.payment_reference ?? p.payment_id.slice(0, 8)}</td>
+            <td className="px-4 py-3 font-mono text-xs">
+              {p.payment_reference ?? p.payment_id.slice(0, 8)}
+            </td>
             <td className="px-4 py-3">{p.order_number ?? "—"}</td>
             <td className="px-4 py-3">{p.payment_method ?? "—"}</td>
             <td className="px-4 py-3">
@@ -330,7 +361,10 @@ function CreditsTab({ credits }: { credits: CreditNoteRow[] }) {
   return (
     <ul className="space-y-3">
       {credits.map((c) => (
-        <li key={c.credit_note_id} className="rounded-xl border border-primary/10 bg-white p-4 text-sm">
+        <li
+          key={c.credit_note_id}
+          className="rounded-xl border border-primary/10 bg-white p-4 text-sm"
+        >
           <p className="font-medium">{c.order_number ?? c.credit_note_id.slice(0, 8)}</p>
           <p className="text-muted">{c.reason ?? "Credit note"}</p>
           <p className="mt-1">{c.amount_cents != null ? formatCents(c.amount_cents) : "—"}</p>
@@ -345,14 +379,21 @@ function HistoryTab({ history }: { history: BillingHistoryRow[] }) {
   return (
     <ul className="divide-y divide-primary/10 rounded-2xl border border-primary/10 bg-white">
       {history.map((h) => (
-        <li key={`${h.kind}-${h.id}`} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+        <li
+          key={`${h.kind}-${h.id}`}
+          className="flex items-center justify-between gap-4 px-4 py-3 text-sm"
+        >
           <div>
             <p className="font-medium capitalize">{h.kind.replace("_", " ")}</p>
             <p className="text-muted">{h.description}</p>
           </div>
           <div className="text-right">
-            <p className={h.amount_cents < 0 ? "text-green-700" : ""}>{formatCents(Math.abs(h.amount_cents))}</p>
-            <p className="text-xs text-muted">{h.occurred_at ? formatDate(String(h.occurred_at)) : ""}</p>
+            <p className={h.amount_cents < 0 ? "text-green-700" : ""}>
+              {formatCents(Math.abs(h.amount_cents))}
+            </p>
+            <p className="text-xs text-muted">
+              {h.occurred_at ? formatDate(String(h.occurred_at)) : ""}
+            </p>
           </div>
         </li>
       ))}
@@ -367,7 +408,10 @@ function TaxTab({ overview }: { overview: BillingOverview }) {
       <Kpi label="Subtotal" value={formatCents(tax.subtotal_cents, tax.currency.toUpperCase())} />
       <Kpi label="Tax (HST/GST)" value={formatCents(tax.tax_cents, tax.currency.toUpperCase())} />
       <Kpi label="Fees" value={formatCents(tax.fees_cents, tax.currency.toUpperCase())} />
-      <Kpi label="Total invoiced" value={formatCents(tax.total_cents, tax.currency.toUpperCase())} />
+      <Kpi
+        label="Total invoiced"
+        value={formatCents(tax.total_cents, tax.currency.toUpperCase())}
+      />
     </div>
   );
 }

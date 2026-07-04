@@ -45,12 +45,21 @@ export function Timeline({ items }: { items: TimelineItem[] }) {
               ) : null}
             </View>
             <View style={{ flex: 1, paddingBottom: isLast ? 0 : theme.spacing.lg }}>
-              <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: theme.spacing.sm }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: theme.spacing.sm,
+                }}
+              >
                 <Body style={{ fontWeight: "600", flex: 1 }}>{item.title}</Body>
                 {item.tone ? <StatusChip label={item.tone} tone={item.tone} /> : null}
               </View>
               {item.subtitle ? <Caption style={{ marginTop: 2 }}>{item.subtitle}</Caption> : null}
-              {item.timestamp ? <Caption style={{ marginTop: theme.spacing.xs }}>{item.timestamp}</Caption> : null}
+              {item.timestamp ? (
+                <Caption style={{ marginTop: theme.spacing.xs }}>{item.timestamp}</Caption>
+              ) : null}
             </View>
           </View>
         );

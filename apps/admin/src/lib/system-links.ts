@@ -37,7 +37,11 @@ export function getSystemLinks(): SystemLink[] {
       description: "porterchain.com",
       href: url("NEXT_PUBLIC_WEBSITE_URL", "http://localhost:3000"),
       port: 3000,
-      host: linkHost(url("NEXT_PUBLIC_WEBSITE_URL", "http://localhost:3000"), 3000, "porterchain.com"),
+      host: linkHost(
+        url("NEXT_PUBLIC_WEBSITE_URL", "http://localhost:3000"),
+        3000,
+        "porterchain.com"
+      ),
     },
     {
       id: "merchant",
@@ -69,7 +73,11 @@ export function getSystemLinks(): SystemLink[] {
       description: "admin.porterchain.com",
       href: url("NEXT_PUBLIC_SITE_URL", "http://localhost:3002"),
       port: 3002,
-      host: linkHost(url("NEXT_PUBLIC_SITE_URL", "http://localhost:3002"), 3002, "admin.porterchain.com"),
+      host: linkHost(
+        url("NEXT_PUBLIC_SITE_URL", "http://localhost:3002"),
+        3002,
+        "admin.porterchain.com"
+      ),
     },
     {
       id: "driver",

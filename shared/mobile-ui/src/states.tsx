@@ -59,7 +59,11 @@ function StateShell({
       ) : null}
       {children}
       {action ? (
-        <Button label={action.label} onPress={action.onPress} style={{ marginTop: theme.spacing["2xl"] }} />
+        <Button
+          label={action.label}
+          onPress={action.onPress}
+          style={{ marginTop: theme.spacing["2xl"] }}
+        />
       ) : null}
     </View>
   );
@@ -68,7 +72,14 @@ function StateShell({
 export function LoadingState({ message = "Loading…" }: { message?: string }) {
   const { theme } = useTheme();
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: theme.spacing["3xl"] }}>
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        padding: theme.spacing["3xl"],
+      }}
+    >
       <ActivityIndicator size="large" color={theme.colors.secondary} />
       <Body muted style={{ marginTop: theme.spacing.lg }}>
         {message}

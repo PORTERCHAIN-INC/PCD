@@ -31,7 +31,9 @@ export const publicEnv = {
   ).replace(/\/$/, ""),
   porterchainApiUrl: (
     process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ??
-    (process.env.NODE_ENV === "development" ? "http://localhost:8001" : "https://api.porterchain.com")
+    (process.env.NODE_ENV === "development"
+      ? "http://localhost:8001"
+      : "https://api.porterchain.com")
   ).replace(/\/$/, ""),
   clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
   contactEmail: (process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "ravi@porterchain.com").trim(),

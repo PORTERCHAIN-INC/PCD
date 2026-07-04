@@ -30,7 +30,11 @@ export default function FinancePage() {
     queryFn: async () => financeApi.dashboard(await getApiToken()),
   });
 
-  const { data: invoices = [], isLoading: invLoading, refetch } = useQuery({
+  const {
+    data: invoices = [],
+    isLoading: invLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["finance-invoices", JSON.stringify(filters)],
     enabled: enabled && (tab === "invoices" || tab === "overview"),
     queryFn: async () => financeApi.invoices(await getApiToken(), filters),
@@ -87,11 +91,17 @@ export default function FinancePage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-primary">Finance Center</h1>
-          <p className="text-sm text-muted">Revenue, invoices, payments, payouts, and accounting export</p>
+          <p className="text-sm text-muted">
+            Revenue, invoices, payments, payouts, and accounting export
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => void refetch()}><RefreshCw className="h-4 w-4" /> Refresh</Button>
-          <Button variant="outline" onClick={() => void exportGl()}><Download className="h-4 w-4" /> GL export</Button>
+          <Button variant="outline" onClick={() => void refetch()}>
+            <RefreshCw className="h-4 w-4" /> Refresh
+          </Button>
+          <Button variant="outline" onClick={() => void exportGl()}>
+            <Download className="h-4 w-4" /> GL export
+          </Button>
         </div>
       </div>
 
@@ -99,7 +109,11 @@ export default function FinancePage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
           <Kpi label="Today" value={formatCents(dashboard.today_revenue_cents)} />
           <Kpi label="This month" value={formatCents(dashboard.month_revenue_cents)} />
-          <Kpi label="Outstanding" value={formatCents(dashboard.outstanding_invoices_cents)} alert={dashboard.outstanding_invoices_cents > 0} />
+          <Kpi
+            label="Outstanding"
+            value={formatCents(dashboard.outstanding_invoices_cents)}
+            alert={dashboard.outstanding_invoices_cents > 0}
+          />
           <Kpi label="Paid invoices" value={formatCents(dashboard.paid_invoices_cents)} />
           <Kpi label="Pending payments" value={dashboard.pending_payments} />
           <Kpi label="Refunds" value={dashboard.refunds_count} />
@@ -114,14 +128,20 @@ export default function FinancePage() {
 
       {dashboard?.revenue_trend?.length ? (
         <div className="rounded-xl border border-primary/10 bg-white p-4">
-          <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-muted"><TrendingUp className="h-4 w-4" /> Revenue trend (7d)</p>
+          <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-muted">
+            <TrendingUp className="h-4 w-4" /> Revenue trend (7d)
+          </p>
           <div className="flex h-16 items-end gap-1">
             {dashboard.revenue_trend.map((d) => {
               const max = Math.max(...dashboard.revenue_trend.map((x) => x.revenue_cents), 1);
               const h = Math.max(8, (d.revenue_cents / max) * 100);
               return (
                 <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
-                  <div className="w-full rounded-t bg-secondary/70" style={{ height: `${h}%` }} title={formatCents(d.revenue_cents)} />
+                  <div
+                    className="w-full rounded-t bg-secondary/70"
+                    style={{ height: `${h}%` }}
+                    title={formatCents(d.revenue_cents)}
+                  />
                   <span className="text-[10px] text-muted">{d.date.slice(5)}</span>
                 </div>
               );
@@ -135,7 +155,10 @@ export default function FinancePage() {
           <p className="text-xs font-bold uppercase text-muted">Top merchants (month)</p>
           <ul className="mt-2 space-y-1 text-sm">
             {dashboard.top_merchants.slice(0, 5).map((m) => (
-              <li key={m.name} className="flex justify-between"><span>{m.name}</span><span className="font-medium">{formatCents(m.revenue_cents)}</span></li>
+              <li key={m.name} className="flex justify-between">
+                <span>{m.name}</span>
+                <span className="font-medium">{formatCents(m.revenue_cents)}</span>
+              </li>
             ))}
           </ul>
         </div>
@@ -143,7 +166,17 @@ export default function FinancePage() {
 
       <nav className="flex gap-1 overflow-x-auto border-b border-primary/10 pb-px">
         {TABS.map((t) => (
-          <button key={t.id} type="button" onClick={() => setTab(t.id)} className={cn("shrink-0 rounded-t-lg px-3 py-2 text-sm font-medium", tab === t.id ? "border border-b-0 border-primary/10 bg-white text-secondary" : "text-muted")}>
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={cn(
+              "shrink-0 rounded-t-lg px-3 py-2 text-sm font-medium",
+              tab === t.id
+                ? "border border-b-0 border-primary/10 bg-white text-secondary"
+                : "text-muted"
+            )}
+          >
             {t.label}
           </button>
         ))}
@@ -152,7 +185,9 @@ export default function FinancePage() {
       <div className="rounded-2xl border border-primary/10 bg-white p-4">
         {tab === "overview" && (
           <div className="space-y-4">
-            <p className="text-sm text-muted">Recent invoices — open Invoices tab for full grid and filters.</p>
+            <p className="text-sm text-muted">
+              Recent invoices — open Invoices tab for full grid and filters.
+            </p>
             {invLoading ? <Spinner /> : <FinanceInvoicesGrid rows={invoices.slice(0, 10)} />}
           </div>
         )}
@@ -160,17 +195,42 @@ export default function FinancePage() {
         {tab === "invoices" && (
           <>
             <div className="mb-4 flex flex-wrap gap-2">
-              <input placeholder="Invoice #, order, tracking…" value={filters.search ?? ""} onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))} className="min-w-[200px] flex-1 rounded-xl border border-primary/10 px-3 py-2 text-sm" />
-              <select value={filters.status ?? ""} onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value || undefined }))} className="rounded-xl border border-primary/10 px-3 py-2 text-sm">
+              <input
+                placeholder="Invoice #, order, tracking…"
+                value={filters.search ?? ""}
+                onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))}
+                className="min-w-[200px] flex-1 rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              />
+              <select
+                value={filters.status ?? ""}
+                onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value || undefined }))}
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
                 <option value="">All statuses</option>
-                {INVOICE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                {INVOICE_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
               </select>
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={filters.outstanding_only ?? false} onChange={(e) => setFilters((f) => ({ ...f, outstanding_only: e.target.checked || undefined }))} />
+                <input
+                  type="checkbox"
+                  checked={filters.outstanding_only ?? false}
+                  onChange={(e) =>
+                    setFilters((f) => ({ ...f, outstanding_only: e.target.checked || undefined }))
+                  }
+                />
                 Outstanding only
               </label>
             </div>
-            {invLoading ? <div className="flex justify-center py-12"><Spinner /></div> : <FinanceInvoicesGrid rows={invoices} />}
+            {invLoading ? (
+              <div className="flex justify-center py-12">
+                <Spinner />
+              </div>
+            ) : (
+              <FinanceInvoicesGrid rows={invoices} />
+            )}
           </>
         )}
 
@@ -180,14 +240,24 @@ export default function FinancePage() {
 
         {tab === "collections" && (
           <div className="space-y-2">
-            <p className="text-sm text-muted">{collections.length} invoice(s) requiring collection</p>
+            <p className="text-sm text-muted">
+              {collections.length} invoice(s) requiring collection
+            </p>
             <FinanceInvoicesGrid rows={collections} />
           </div>
         )}
 
         {tab === "ledger" && (
           <table className="w-full text-sm">
-            <thead><tr className="border-b text-left text-muted"><th className="py-2">Kind</th><th>Amount</th><th>Order</th><th>Status</th><th>Date</th></tr></thead>
+            <thead>
+              <tr className="border-b text-left text-muted">
+                <th className="py-2">Kind</th>
+                <th>Amount</th>
+                <th>Order</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
             <tbody>
               {ledger.map((e) => (
                 <tr key={String(e.id)} className="border-b border-primary/5">
@@ -204,12 +274,34 @@ export default function FinancePage() {
 
         {tab === "reports" && reports && (
           <div className="grid gap-4 md:grid-cols-2 text-sm">
-            <div><span className="text-muted">Revenue</span><p className="text-lg font-bold">{formatCents(Number(reports.revenue_cents))}</p></div>
-            <div><span className="text-muted">Profit estimate</span><p className="text-lg font-bold">{formatCents(Number(reports.profit_estimate_cents))}</p></div>
-            <div><span className="text-muted">Outstanding</span><p className="text-lg font-bold">{formatCents(Number(reports.outstanding_cents))}</p></div>
-            <div><span className="text-muted">Collections</span><p className="text-lg font-bold">{String(reports.collections_count)}</p></div>
-            <div><span className="text-muted">Tax summary</span><p className="text-lg font-bold">{formatCents(Number(reports.tax_summary_cents))}</p></div>
-            <div><span className="text-muted">Refunds</span><p className="text-lg font-bold">{formatCents(Number(reports.refund_analysis_cents))}</p></div>
+            <div>
+              <span className="text-muted">Revenue</span>
+              <p className="text-lg font-bold">{formatCents(Number(reports.revenue_cents))}</p>
+            </div>
+            <div>
+              <span className="text-muted">Profit estimate</span>
+              <p className="text-lg font-bold">
+                {formatCents(Number(reports.profit_estimate_cents))}
+              </p>
+            </div>
+            <div>
+              <span className="text-muted">Outstanding</span>
+              <p className="text-lg font-bold">{formatCents(Number(reports.outstanding_cents))}</p>
+            </div>
+            <div>
+              <span className="text-muted">Collections</span>
+              <p className="text-lg font-bold">{String(reports.collections_count)}</p>
+            </div>
+            <div>
+              <span className="text-muted">Tax summary</span>
+              <p className="text-lg font-bold">{formatCents(Number(reports.tax_summary_cents))}</p>
+            </div>
+            <div>
+              <span className="text-muted">Refunds</span>
+              <p className="text-lg font-bold">
+                {formatCents(Number(reports.refund_analysis_cents))}
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -219,7 +311,12 @@ export default function FinancePage() {
 
 function Kpi({ label, value, alert }: { label: string; value: string | number; alert?: boolean }) {
   return (
-    <div className={cn("rounded-xl border border-primary/10 bg-white px-3 py-2 shadow-sm", alert && "border-amber-200 bg-amber-50")}>
+    <div
+      className={cn(
+        "rounded-xl border border-primary/10 bg-white px-3 py-2 shadow-sm",
+        alert && "border-amber-200 bg-amber-50"
+      )}
+    >
       <p className="text-xs text-muted">{label}</p>
       <p className="text-lg font-bold text-primary">{value}</p>
     </div>
@@ -229,7 +326,15 @@ function Kpi({ label, value, alert }: { label: string; value: string | number; a
 function PayoutsTable({ rows }: { rows: PayoutRow[] }) {
   return (
     <table className="w-full text-sm">
-      <thead><tr className="border-b text-left text-muted"><th className="py-2">Driver</th><th>Amount</th><th>Status</th><th>Reference</th><th>Date</th></tr></thead>
+      <thead>
+        <tr className="border-b text-left text-muted">
+          <th className="py-2">Driver</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Reference</th>
+          <th>Date</th>
+        </tr>
+      </thead>
       <tbody>
         {rows.map((p) => (
           <tr key={p.payout_id} className="border-b border-primary/5">
@@ -240,7 +345,13 @@ function PayoutsTable({ rows }: { rows: PayoutRow[] }) {
             <td>{String(p.created_at).slice(0, 10)}</td>
           </tr>
         ))}
-        {!rows.length && <tr><td colSpan={5} className="py-8 text-center text-muted">No payouts</td></tr>}
+        {!rows.length && (
+          <tr>
+            <td colSpan={5} className="py-8 text-center text-muted">
+              No payouts
+            </td>
+          </tr>
+        )}
       </tbody>
     </table>
   );

@@ -4,7 +4,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CUSTOMER_OFFLINE_ACTIONS } from "@porterchain/mobile-api";
 import { useOfflineSync } from "@porterchain/mobile-offline";
 import { useTheme } from "@porterchain/mobile-theme";
-import { Body, Button, Input, ListItem, ListSection, Screen, SkeletonList } from "@porterchain/mobile-ui";
+import {
+  Body,
+  Button,
+  Input,
+  ListItem,
+  ListSection,
+  Screen,
+  SkeletonList,
+} from "@porterchain/mobile-ui";
 import { useCustomerApi } from "../../api/CustomerApiContext";
 import { ScreenHeader } from "../../components/ScreenHeader";
 
@@ -38,7 +46,9 @@ export function SupportScreen() {
           await queryClient.invalidateQueries({ queryKey: ["customer", "support"] });
         }
       );
-      setMessage(result.mode === "queued" ? "Saved offline — will send when connected." : "Ticket created.");
+      setMessage(
+        result.mode === "queued" ? "Saved offline — will send when connected." : "Ticket created."
+      );
       setSubject("");
       setDescription("");
       setOrderId("");
@@ -62,7 +72,12 @@ export function SupportScreen() {
         {isLoading ? <SkeletonList /> : null}
         <ListSection title="Your tickets">
           {(data ?? []).map((ticket) => (
-            <ListItem key={ticket.ticket_id} title={ticket.subject} subtitle={ticket.status} meta={ticket.created_at?.slice(0, 10)} />
+            <ListItem
+              key={ticket.ticket_id}
+              title={ticket.subject}
+              subtitle={ticket.status}
+              meta={ticket.created_at?.slice(0, 10)}
+            />
           ))}
         </ListSection>
         <Button label="Refresh" variant="ghost" onPress={() => void refetch()} />

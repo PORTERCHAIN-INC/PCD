@@ -20,7 +20,12 @@ export type DataTableProps<T> = {
   emptyMessage?: string;
 };
 
-export function DataTable<T>({ columns, data, keyExtractor, emptyMessage = "No rows" }: DataTableProps<T>) {
+export function DataTable<T>({
+  columns,
+  data,
+  keyExtractor,
+  emptyMessage = "No rows",
+}: DataTableProps<T>) {
   const { theme } = useTheme();
 
   if (data.length === 0) {

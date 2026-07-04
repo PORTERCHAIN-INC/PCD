@@ -78,36 +78,36 @@ SafeAreaProvider
 
 ### Driver (6 tabs)
 
-| Tab | Stack | Key screens |
-|-----|-------|-------------|
-| Home | HomeStack | Dashboard |
-| Jobs | JobsStack | Jobs, JobDetail, AssignmentQueue, Pod†, Incident† |
-| Navigation | NavigationStack | Navigation†, LiveMap |
-| Earnings | EarningsStack | Earnings |
-| Shift | ShiftStack | Shift |
-| More | MoreStack | Profile, Notifications, OfflineSync†, Support, SOS†, Settings, Performance† |
+| Tab        | Stack           | Key screens                                                                 |
+| ---------- | --------------- | --------------------------------------------------------------------------- |
+| Home       | HomeStack       | Dashboard                                                                   |
+| Jobs       | JobsStack       | Jobs, JobDetail, AssignmentQueue, Pod†, Incident†                           |
+| Navigation | NavigationStack | Navigation†, LiveMap                                                        |
+| Earnings   | EarningsStack   | Earnings                                                                    |
+| Shift      | ShiftStack      | Shift                                                                       |
+| More       | MoreStack       | Profile, Notifications, OfflineSync†, Support, SOS†, Settings, Performance† |
 
 † = lazy-loaded via `createLazyScreen` (`@porterchain/mobile-performance`)
 
 ### Customer (5 tabs)
 
-| Tab | Stack | Key screens |
-|-----|-------|-------------|
-| Home | HomeStack | Dashboard |
-| Bookings | BookingsStack | Bookings, Quote, Booking, Draft, StripeCheckout†, Confirmation |
-| Tracking | TrackingStack | Tracking, LiveMap†, History |
-| Notifications | NotificationsStack | NotificationCenter |
-| Profile | ProfileStack | Profile, Invoices, Receipts, Support, Claims†, OfflineSync†, Settings, Performance† |
+| Tab           | Stack              | Key screens                                                                         |
+| ------------- | ------------------ | ----------------------------------------------------------------------------------- |
+| Home          | HomeStack          | Dashboard                                                                           |
+| Bookings      | BookingsStack      | Bookings, Quote, Booking, Draft, StripeCheckout†, Confirmation                      |
+| Tracking      | TrackingStack      | Tracking, LiveMap†, History                                                         |
+| Notifications | NotificationsStack | NotificationCenter                                                                  |
+| Profile       | ProfileStack       | Profile, Invoices, Receipts, Support, Claims†, OfflineSync†, Settings, Performance† |
 
 ### Deep linking
 
-| Mechanism | Implementation |
-|-----------|----------------|
-| Custom scheme | `porterchain-driver://`, `porterchain-customer://` |
-| Push tap (warm) | `NotificationProvider` → `onDeepLink` |
-| Push tap (cold) | `getInitialNotification` + `onNotificationOpenedApp` |
-| URL cold start | `useAppLinking` + `expo-linking` |
-| React Navigation `linking` config | Not configured (custom handlers used) |
+| Mechanism                         | Implementation                                       |
+| --------------------------------- | ---------------------------------------------------- |
+| Custom scheme                     | `porterchain-driver://`, `porterchain-customer://`   |
+| Push tap (warm)                   | `NotificationProvider` → `onDeepLink`                |
+| Push tap (cold)                   | `getInitialNotification` + `onNotificationOpenedApp` |
+| URL cold start                    | `useAppLinking` + `expo-linking`                     |
+| React Navigation `linking` config | Not configured (custom handlers used)                |
 
 **Driver routes:** `jobs/{id}`, `navigation`, `support`, `sos`, `notifications`  
 **Customer routes:** `tracking/{id}`, `bookings`, `support`, `claims`, `notifications`
@@ -118,25 +118,25 @@ SafeAreaProvider
 
 ### Driver → `/driver-api/v1`
 
-| Domain | Client method | Server |
-|--------|---------------|--------|
-| Auth | `login`, `refreshSession` | `driver_engine/auth_service` |
-| Jobs / routes | `jobs`, `job`, `acceptOrder`, `rejectOrder` | `porterchain_driver` |
-| POD | `podPhoto`, `podSignature`, `podComplete`, `generateOtp` | `driver_engine` + Fleetbase bridge |
-| GPS | `postLocation` | → Fleetbase adapter |
-| Shift | `shiftStart`, `shiftEnd`, `setAvailability` | `porterchain_driver` |
-| Offline | `queueOffline`, `syncOffline` | `porterchain_driver/offline` |
-| Push | `registerPush` | `notification_engine` |
+| Domain        | Client method                                            | Server                             |
+| ------------- | -------------------------------------------------------- | ---------------------------------- |
+| Auth          | `login`, `refreshSession`                                | `driver_engine/auth_service`       |
+| Jobs / routes | `jobs`, `job`, `acceptOrder`, `rejectOrder`              | `porterchain_driver`               |
+| POD           | `podPhoto`, `podSignature`, `podComplete`, `generateOtp` | `driver_engine` + Fleetbase bridge |
+| GPS           | `postLocation`                                           | → Fleetbase adapter                |
+| Shift         | `shiftStart`, `shiftEnd`, `setAvailability`              | `porterchain_driver`               |
+| Offline       | `queueOffline`, `syncOffline`                            | `porterchain_driver/offline`       |
+| Push          | `registerPush`                                           | `notification_engine`              |
 
 ### Customer → `/v1`
 
-| Domain | Client method | Server |
-|--------|---------------|--------|
-| Auth | `authMe` (Clerk bearer) | `auth/principal_resolver` |
-| Bookings | `createQuote`, `startBooking`, `getBookingConfirmation` | `booking_engine` |
-| Tracking | `getOrder`, `getLiveTracking` | `booking_engine` + Fleetbase tracking |
-| Billing | dashboard `invoices`, `payments` | `merchant_engine` / billing |
-| Notifications | inbox, prefs, device register | `notification_engine` |
+| Domain        | Client method                                           | Server                                |
+| ------------- | ------------------------------------------------------- | ------------------------------------- |
+| Auth          | `authMe` (Clerk bearer)                                 | `auth/principal_resolver`             |
+| Bookings      | `createQuote`, `startBooking`, `getBookingConfirmation` | `booking_engine`                      |
+| Tracking      | `getOrder`, `getLiveTracking`                           | `booking_engine` + Fleetbase tracking |
+| Billing       | dashboard `invoices`, `payments`                        | `merchant_engine` / billing           |
+| Notifications | inbox, prefs, device register                           | `notification_engine`                 |
 
 ---
 
@@ -154,10 +154,10 @@ POST /driver-api/v1/offline/sync → offline_executor → Application Services
 Fleetbase Adapter (when execution required)
 ```
 
-| App | Queue | Server sync | Background GPS |
-|-----|-------|---------------|----------------|
-| Driver | MMKV enterprise queue | ✅ Full | ✅ `expo-task-manager` |
-| Customer | MMKV local | ❌ Stub adapter | N/A |
+| App      | Queue                 | Server sync     | Background GPS         |
+| -------- | --------------------- | --------------- | ---------------------- |
+| Driver   | MMKV enterprise queue | ✅ Full         | ✅ `expo-task-manager` |
+| Customer | MMKV local            | ❌ Stub adapter | N/A                    |
 
 ---
 
@@ -195,14 +195,14 @@ WebSocket ─────┘         │
 
 ## 10. Architecture gaps
 
-| Gap | Severity | Recommendation |
-|-----|----------|----------------|
-| `MOBILE_ARCHITECTURE.md` outdated | Low | Update scaffold status |
-| Customer not in masterrule §4.1 repo tree | Low | Add to masterrule |
-| Guest tracking behind auth | Medium | Optional auth stack for public tracking |
-| Driver upload stub | High | Presigned upload API |
-| Customer offline sync stub | Medium | Mirror driver offline endpoints or document support-only |
-| Universal links | Medium | `associatedDomains` + Navigation linking config |
+| Gap                                       | Severity | Recommendation                                           |
+| ----------------------------------------- | -------- | -------------------------------------------------------- |
+| `MOBILE_ARCHITECTURE.md` outdated         | Low      | Update scaffold status                                   |
+| Customer not in masterrule §4.1 repo tree | Low      | Add to masterrule                                        |
+| Guest tracking behind auth                | Medium   | Optional auth stack for public tracking                  |
+| Driver upload stub                        | High     | Presigned upload API                                     |
+| Customer offline sync stub                | Medium   | Mirror driver offline endpoints or document support-only |
+| Universal links                           | Medium   | `associatedDomains` + Navigation linking config          |
 
 ---
 

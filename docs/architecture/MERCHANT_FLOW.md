@@ -8,14 +8,14 @@ Merchants authenticate via **Clerk** with organization context (`X-Merchant-Org-
 
 ## Flow
 
-| Stage | Service | Notes |
-|-------|---------|-------|
-| Contract | `MerchantContract` in `admin_models.py`, CRM `CrmContract` | `resolve_order_type(has_contract=True)` → `CONTRACT` |
-| Single booking | `MerchantBookingService.create_shipment()` | Order at `BOOKED`, immediate `transition_to_dispatch_ready()` |
-| Bulk CSV | `MerchantBulkService` upload + confirm | `order_source=CSV` |
-| Operations | Admin `ControlTowerService` / dispatch | Same Fleetbase path as retail |
-| Billing | `MerchantBillingService` | Statement + invoice list; batch invoice run **not implemented** |
-| API keys | `MerchantApiKeyService` | Keys stored; **no `/v1/merchant-api` auth router** |
+| Stage          | Service                                                    | Notes                                                           |
+| -------------- | ---------------------------------------------------------- | --------------------------------------------------------------- |
+| Contract       | `MerchantContract` in `admin_models.py`, CRM `CrmContract` | `resolve_order_type(has_contract=True)` → `CONTRACT`            |
+| Single booking | `MerchantBookingService.create_shipment()`                 | Order at `BOOKED`, immediate `transition_to_dispatch_ready()`   |
+| Bulk CSV       | `MerchantBulkService` upload + confirm                     | `order_source=CSV`                                              |
+| Operations     | Admin `ControlTowerService` / dispatch                     | Same Fleetbase path as retail                                   |
+| Billing        | `MerchantBillingService`                                   | Statement + invoice list; batch invoice run **not implemented** |
+| API keys       | `MerchantApiKeyService`                                    | Keys stored; **no `/v1/merchant-api` auth router**              |
 
 ## Diagram
 

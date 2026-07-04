@@ -37,7 +37,8 @@ export function createCustomerApi(client: ApiClient) {
 
     createQuote: (body: CreateQuotePayload) => client.post<QuoteResult>(`${v1}/quotes`, body),
 
-    getQuote: (quoteId: string) => client.get<QuoteResult>(`${v1}/quotes/${encodeURIComponent(quoteId)}`),
+    getQuote: (quoteId: string) =>
+      client.get<QuoteResult>(`${v1}/quotes/${encodeURIComponent(quoteId)}`),
 
     startBooking: (body: StartBookingPayload) => client.post<BookingResult>(`${v1}/bookings`, body),
 
@@ -53,7 +54,9 @@ export function createCustomerApi(client: ApiClient) {
       client.get<OrderResult>(`${v1}/orders/${encodeURIComponent(trackingNumber)}`),
 
     getLiveTracking: (trackingNumber: string) =>
-      client.get<LiveTrackingPayload>(`${v1}/orders/${encodeURIComponent(trackingNumber)}/tracking`),
+      client.get<LiveTrackingPayload>(
+        `${v1}/orders/${encodeURIComponent(trackingNumber)}/tracking`
+      ),
 
     retryPayment: (quoteId: string) =>
       client.post<PaymentRetryResult>(`${v1}/payments/retry`, { quote_id: quoteId }),
@@ -70,7 +73,9 @@ export function createCustomerApi(client: ApiClient) {
     }) => client.post<BookingDraftResult>(`${v1}/booking-drafts`, body),
 
     getActiveDraft: (sessionId: string) =>
-      client.get<BookingDraftResult>(`${v1}/booking-drafts/active?session_id=${encodeURIComponent(sessionId)}`),
+      client.get<BookingDraftResult>(
+        `${v1}/booking-drafts/active?session_id=${encodeURIComponent(sessionId)}`
+      ),
 
     getDraft: (draftId: string, sessionId: string) =>
       client.get<BookingDraftResult>(
@@ -99,7 +104,11 @@ export function createCustomerApi(client: ApiClient) {
       device_name?: string;
       app_version?: string;
       notification_permission?: boolean;
-    }) => client.post<{ device_id: string; registered: boolean }>(`${v1}/notifications/devices/register`, body),
+    }) =>
+      client.post<{ device_id: string; registered: boolean }>(
+        `${v1}/notifications/devices/register`,
+        body
+      ),
 
     notificationInbox: (params?: { unreadOnly?: boolean; archived?: boolean }) =>
       createNotificationApi(client, v1).inbox(params),

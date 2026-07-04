@@ -34,7 +34,8 @@ export default function IntegrationPanel({
   data: unknown;
 }) {
   const title = sectionId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  const description = SECTION_DESCRIPTIONS[sectionId] ?? "Integration status — credentials in environment.";
+  const description =
+    SECTION_DESCRIPTIONS[sectionId] ?? "Integration status — credentials in environment.";
   const status =
     typeof data === "object" && data !== null && "status" in data
       ? String((data as { status: unknown }).status)
@@ -60,12 +61,17 @@ export default function IntegrationPanel({
         </span>
       </div>
 
-      <SettingsCard title="Connection details" description="Non-sensitive configuration visible to operators">
+      <SettingsCard
+        title="Connection details"
+        description="Non-sensitive configuration visible to operators"
+      >
         {details.length ? (
           <dl className="grid gap-3 sm:grid-cols-2">
             {details.map(([key, val]) => (
               <div key={key} className="rounded-xl bg-gray-bg/50 px-3 py-2">
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted">{key.replace(/_/g, " ")}</dt>
+                <dt className="text-xs font-medium uppercase tracking-wide text-muted">
+                  {key.replace(/_/g, " ")}
+                </dt>
                 <dd className="mt-0.5 font-mono text-sm text-primary">{String(val ?? "—")}</dd>
               </div>
             ))}

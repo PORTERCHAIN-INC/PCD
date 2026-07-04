@@ -18,12 +18,16 @@ export default function DispatchPage() {
   const { getApiToken } = useAdminAuth();
   const [driverByPlan, setDriverByPlan] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
-  const { data: plans, error, refetch } = useApiData(
-    (t) => routeCenter.listPlans(t, { status: "optimized" }),
-    [],
-    { key: "route-dispatch-plans" }
-  );
-  const { data: drivers } = useApiData((t) => ops.assignableDrivers(t), [], { key: "ops-assignable-drivers" });
+  const {
+    data: plans,
+    error,
+    refetch,
+  } = useApiData((t) => routeCenter.listPlans(t, { status: "optimized" }), [], {
+    key: "route-dispatch-plans",
+  });
+  const { data: drivers } = useApiData((t) => ops.assignableDrivers(t), [], {
+    key: "ops-assignable-drivers",
+  });
 
   const dispatch = async (planId: string) => {
     const driverId = driverByPlan[planId];
@@ -57,7 +61,9 @@ export default function DispatchPage() {
               <>
                 <Select
                   value={driverId}
-                  onChange={(e) => setDriverByPlan((prev) => ({ ...prev, [plan.id]: e.target.value }))}
+                  onChange={(e) =>
+                    setDriverByPlan((prev) => ({ ...prev, [plan.id]: e.target.value }))
+                  }
                   className="min-w-[180px] text-xs"
                 >
                   <option value="">Select driver…</option>

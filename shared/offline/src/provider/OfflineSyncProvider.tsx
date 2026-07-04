@@ -11,14 +11,23 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOnlineStatus, useAppState } from "@porterchain/mobile-hooks";
 import { recordSyncLatency } from "@porterchain/mobile-performance";
-import type { OfflineAction, OfflineStatus, OfflineSyncAdapter, OfflineSyncResult } from "@porterchain/mobile-api";
+import type {
+  OfflineAction,
+  OfflineStatus,
+  OfflineSyncAdapter,
+  OfflineSyncResult,
+} from "@porterchain/mobile-api";
 import {
   createEnterpriseOfflineQueue,
   createGpsBuffer,
   createUploadQueue,
   getLastSyncAt,
 } from "@porterchain/mobile-storage";
-import { registerBackgroundGpsTask, startBackgroundGps, stopBackgroundGps } from "../background-gps";
+import {
+  registerBackgroundGpsTask,
+  startBackgroundGps,
+  stopBackgroundGps,
+} from "../background-gps";
 import { queueOfflineAction, runOfflineSync, summarizeLocalQueue } from "../sync-engine";
 
 export type OfflineSyncProviderProps = {
@@ -157,7 +166,8 @@ export function OfflineSyncProvider({
   }, [enableBackgroundGps, gpsBuffer]);
 
   const enqueue = useCallback(
-    (input: Parameters<OfflineSyncContextValue["enqueue"]>[0]) => queueOfflineAction(engineDeps, input),
+    (input: Parameters<OfflineSyncContextValue["enqueue"]>[0]) =>
+      queueOfflineAction(engineDeps, input),
     [engineDeps]
   );
 

@@ -7,33 +7,33 @@
 
 ## Order ownership fields
 
-| Field | Values | Set by | Status |
-|-------|--------|--------|--------|
-| `order_source` | WEBSITE, MERCHANT, API, CSV, ADMIN, PHONE, PARTNER | Service at creation | ✅ **Added** |
-| `order_type` | INSTANT, CONTRACT, RECURRING, EXPRESS, SCHEDULED | `order_metadata.resolve_order_type()` | ✅ **Added** |
-| `payment_terms` | IMMEDIATE, NET_7, NET_14, NET_15, NET_30, NET_45, CUSTOM | Merchant profile or IMMEDIATE retail | ✅ |
-| `merchant_id` | UUID | Merchant bookings | ✅ |
-| `customer_id` | UUID | Retail bookings | ✅ |
+| Field           | Values                                                   | Set by                                | Status       |
+| --------------- | -------------------------------------------------------- | ------------------------------------- | ------------ |
+| `order_source`  | WEBSITE, MERCHANT, API, CSV, ADMIN, PHONE, PARTNER       | Service at creation                   | ✅ **Added** |
+| `order_type`    | INSTANT, CONTRACT, RECURRING, EXPRESS, SCHEDULED         | `order_metadata.resolve_order_type()` | ✅ **Added** |
+| `payment_terms` | IMMEDIATE, NET_7, NET_14, NET_15, NET_30, NET_45, CUSTOM | Merchant profile or IMMEDIATE retail  | ✅           |
+| `merchant_id`   | UUID                                                     | Merchant bookings                     | ✅           |
+| `customer_id`   | UUID                                                     | Retail bookings                       | ✅           |
 
 ### Source assignment
 
-| Channel | `order_source` | File |
-|---------|----------------|------|
-| Website retail checkout | `WEBSITE` | `confirmation_service.py` |
-| Merchant portal manual | `MERCHANT` | `merchant_engine/booking_service.py` |
-| Merchant CSV bulk | `CSV` | `bulk_service.py` → `create_shipment(..., order_source=CSV)` |
-| Merchant API | `API` | ❌ Not wired (no API-key booking endpoint) |
-| Admin manual | `ADMIN` | ❌ Not implemented |
-| Phone / Partner | `PHONE` / `PARTNER` | ❌ Not implemented |
+| Channel                 | `order_source`      | File                                                         |
+| ----------------------- | ------------------- | ------------------------------------------------------------ |
+| Website retail checkout | `WEBSITE`           | `confirmation_service.py`                                    |
+| Merchant portal manual  | `MERCHANT`          | `merchant_engine/booking_service.py`                         |
+| Merchant CSV bulk       | `CSV`               | `bulk_service.py` → `create_shipment(..., order_source=CSV)` |
+| Merchant API            | `API`               | ❌ Not wired (no API-key booking endpoint)                   |
+| Admin manual            | `ADMIN`             | ❌ Not implemented                                           |
+| Phone / Partner         | `PHONE` / `PARTNER` | ❌ Not implemented                                           |
 
 ### Type assignment
 
-| Condition | `order_type` |
-|-----------|--------------|
-| Active merchant contract | `CONTRACT` |
-| `schedule_mode == "later"` | `SCHEDULED` |
-| Rush / same-day | `EXPRESS` or `INSTANT` |
-| Recurring template (future) | `RECURRING` |
+| Condition                   | `order_type`           |
+| --------------------------- | ---------------------- |
+| Active merchant contract    | `CONTRACT`             |
+| `schedule_mode == "later"`  | `SCHEDULED`            |
+| Rush / same-day             | `EXPRESS` or `INSTANT` |
+| Recurring template (future) | `RECURRING`            |
 
 Helper: `apps/api/.../booking_engine/order_metadata.py`
 
@@ -81,10 +81,10 @@ Manual/CSV → Order (MERCHANT|CSV, CONTRACT|…) → NET payment_terms from mer
 
 ## Billing models
 
-| Model | Flow | Status |
-|-------|------|--------|
-| **Website** | Stripe → Receipt → Invoice at payment | ✅ |
-| **Merchant NET** | Contract → Order → Cycle → Statement | ⚠️ Cycle field added; batch invoice job roadmap |
+| Model            | Flow                                  | Status                                          |
+| ---------------- | ------------------------------------- | ----------------------------------------------- |
+| **Website**      | Stripe → Receipt → Invoice at payment | ✅                                              |
+| **Merchant NET** | Contract → Order → Cycle → Statement  | ⚠️ Cycle field added; batch invoice job roadmap |
 
 ---
 

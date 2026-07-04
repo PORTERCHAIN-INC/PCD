@@ -12,7 +12,8 @@ export function BookingConfirmationScreen() {
   const { theme } = useTheme();
   const api = useCustomerApi();
   const route = useRoute<RouteProp<BookingsStackParamList, "BookingConfirmation">>();
-  const [confirmation, setConfirmation] = useState<Awaited<ReturnType<typeof api.getBookingConfirmation>>["confirmation"]>(null);
+  const [confirmation, setConfirmation] =
+    useState<Awaited<ReturnType<typeof api.getBookingConfirmation>>["confirmation"]>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,13 +27,20 @@ export function BookingConfirmationScreen() {
     })();
   }, [api, route.params.quoteId]);
 
-  if (loading) return <Screen><SuccessState title="Confirming…" message="Finalizing your booking" /></Screen>;
+  if (loading)
+    return (
+      <Screen>
+        <SuccessState title="Confirming…" message="Finalizing your booking" />
+      </Screen>
+    );
 
   if (!confirmation) {
     return (
       <Screen>
         <ScreenHeader title="Processing" />
-        <Body style={{ padding: theme.spacing.lg }} muted>Payment is still processing. Pull to refresh shortly.</Body>
+        <Body style={{ padding: theme.spacing.lg }} muted>
+          Payment is still processing. Pull to refresh shortly.
+        </Body>
       </Screen>
     );
   }
@@ -43,11 +51,20 @@ export function BookingConfirmationScreen() {
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.lg }}>
         <Card>
           <CardHeader title="Tracking" subtitle={confirmation.tracking_number} />
-          <Body>{confirmation.pickup?.formatted} → {confirmation.dropoff?.formatted}</Body>
-          <Body muted style={{ marginTop: theme.spacing.sm }}>Invoice {confirmation.invoice_number}</Body>
+          <Body>
+            {confirmation.pickup?.formatted} → {confirmation.dropoff?.formatted}
+          </Body>
+          <Body muted style={{ marginTop: theme.spacing.sm }}>
+            Invoice {confirmation.invoice_number}
+          </Body>
         </Card>
         {confirmation.receipt_url ? (
-          <Button label="View receipt" variant="secondary" fullWidth onPress={() => void Linking.openURL(confirmation.receipt_url!)} />
+          <Button
+            label="View receipt"
+            variant="secondary"
+            fullWidth
+            onPress={() => void Linking.openURL(confirmation.receipt_url!)}
+          />
         ) : null}
       </ScrollView>
     </Screen>

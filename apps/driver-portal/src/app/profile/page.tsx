@@ -76,9 +76,7 @@ export default function ProfilePage() {
         </button>
       </header>
 
-      {error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-      )}
+      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
       {snap.expiry_notifications.length > 0 && (
         <section className="mt-6 space-y-2">
@@ -118,7 +116,12 @@ export default function ProfilePage() {
             </div>
             <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
               <Row label="Service area" value={snap.profile.service_area} />
-              <Row label="Location" value={[snap.profile.city, snap.profile.province].filter(Boolean).join(", ") || null} />
+              <Row
+                label="Location"
+                value={
+                  [snap.profile.city, snap.profile.province].filter(Boolean).join(", ") || null
+                }
+              />
               <Row label="License class" value={snap.profile.license_class} />
             </dl>
           </div>
@@ -131,7 +134,11 @@ export default function ProfilePage() {
           <Row label="Number" value={snap.license.number} />
           <Row label="Expires" value={formatProfileDate(snap.license.expires_at)} />
         </ComplianceCard>
-        <ComplianceCard title="Insurance" icon={Shield} verified={snap.verification.insurance_verified}>
+        <ComplianceCard
+          title="Insurance"
+          icon={Shield}
+          verified={snap.verification.insurance_verified}
+        >
           <Row label="Provider" value={String(snap.insurance.provider ?? "—")} />
           <Row label="Policy" value={String(snap.insurance.policy_number ?? "—")} />
           <Row label="Expires" value={formatProfileDate(String(snap.insurance.expires_at ?? ""))} />
@@ -162,8 +169,14 @@ export default function ProfilePage() {
             <Row label="Unit" value={snap.vehicle.make_model} />
             <Row label="Plate" value={snap.vehicle.plate_number} />
             <Row label="Class" value={snap.vehicle.vehicle_class} />
-            <Row label="Capacity" value={snap.vehicle.capacity_kg ? `${snap.vehicle.capacity_kg} kg` : null} />
-            <Row label="Compliance expires" value={formatProfileDate(snap.vehicle.compliance_expires_at)} />
+            <Row
+              label="Capacity"
+              value={snap.vehicle.capacity_kg ? `${snap.vehicle.capacity_kg} kg` : null}
+            />
+            <Row
+              label="Compliance expires"
+              value={formatProfileDate(snap.vehicle.compliance_expires_at)}
+            />
           </dl>
         ) : (
           <p className="mt-4 text-sm text-[var(--muted)]">No active vehicle on file</p>
@@ -178,8 +191,14 @@ export default function ProfilePage() {
           </div>
           <dl className="mt-4 space-y-2 text-sm">
             <Row label="Status" value={snap.maintenance_status.status} />
-            <Row label="Last service" value={formatProfileDate(snap.maintenance_status.last_service_at)} />
-            <Row label="Next due" value={formatProfileDate(snap.maintenance_status.next_service_due)} />
+            <Row
+              label="Last service"
+              value={formatProfileDate(snap.maintenance_status.last_service_at)}
+            />
+            <Row
+              label="Next due"
+              value={formatProfileDate(snap.maintenance_status.next_service_due)}
+            />
             {snap.maintenance_status.notes && (
               <Row label="Notes" value={snap.maintenance_status.notes} />
             )}
@@ -197,7 +216,12 @@ export default function ProfilePage() {
                   className="flex items-center justify-between gap-3 rounded-xl bg-[var(--gray-bg)] px-3 py-2 text-sm"
                 >
                   <span>{e.label}</span>
-                  <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", severityStyles(e.severity))}>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-xs font-semibold",
+                      severityStyles(e.severity)
+                    )}
+                  >
                     {formatProfileDate(e.expires_at)}
                   </span>
                 </li>
@@ -216,7 +240,12 @@ export default function ProfilePage() {
           {snap.vehicle_photos.map((p) => (
             <div key={p.id} className="rounded-xl border border-[var(--primary)]/10 p-3">
               {p.url ? (
-                <a href={p.url} target="_blank" rel="noopener noreferrer" className="block truncate text-sm text-[var(--secondary)] underline">
+                <a
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block truncate text-sm text-[var(--secondary)] underline"
+                >
                   {p.label || "View photo"}
                 </a>
               ) : (
@@ -236,7 +265,10 @@ export default function ProfilePage() {
         <h2 className="text-lg font-bold">Documents</h2>
         <ul className="mt-4 space-y-3">
           {snap.documents.map((doc) => (
-            <li key={doc.type} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[var(--gray-bg)] px-4 py-3">
+            <li
+              key={doc.type}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[var(--gray-bg)] px-4 py-3"
+            >
               <div>
                 <p className="font-medium">{doc.label}</p>
                 <p className="text-xs text-[var(--muted)]">
@@ -244,11 +276,21 @@ export default function ProfilePage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold capitalize", statusBadge(doc.status))}>
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-xs font-semibold capitalize",
+                    statusBadge(doc.status)
+                  )}
+                >
                   {doc.status.replace(/_/g, " ")}
                 </span>
                 {doc.url && (
-                  <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[var(--secondary)]">
+                  <a
+                    href={doc.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-[var(--secondary)]"
+                  >
                     View
                   </a>
                 )}
@@ -280,7 +322,9 @@ export default function ProfilePage() {
                 </a>
               </div>
             )}
-            {snap.contract.notes && <p className="mt-2 text-xs text-[var(--muted)]">{snap.contract.notes}</p>}
+            {snap.contract.notes && (
+              <p className="mt-2 text-xs text-[var(--muted)]">{snap.contract.notes}</p>
+            )}
           </dl>
         ) : (
           <p className="mt-3 text-sm text-[var(--muted)]">{snap.contract.message}</p>
@@ -315,7 +359,12 @@ function ComplianceCard({
           <Icon className="h-5 w-5 text-[var(--secondary)]" />
           <h2 className="text-lg font-bold">{title}</h2>
         </div>
-        <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", verified ? statusBadge("verified") : statusBadge("pending"))}>
+        <span
+          className={cn(
+            "rounded-full px-2 py-0.5 text-xs font-semibold",
+            verified ? statusBadge("verified") : statusBadge("pending")
+          )}
+        >
           {verified ? "Verified" : "Pending"}
         </span>
       </div>
@@ -335,7 +384,12 @@ function Row({ label, value }: { label: string; value?: string | null }) {
 
 function Badge({ label }: { label: string }) {
   return (
-    <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold capitalize", statusBadge(label))}>
+    <span
+      className={cn(
+        "rounded-full px-2 py-0.5 text-xs font-semibold capitalize",
+        statusBadge(label)
+      )}
+    >
       {label.replace(/_/g, " ")}
     </span>
   );

@@ -20,15 +20,7 @@ import { formatDate } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 type Tab =
-  | "overview"
-  | "keys"
-  | "webhooks"
-  | "logs"
-  | "usage"
-  | "sandbox"
-  | "docs"
-  | "erp"
-  | "console";
+  "overview" | "keys" | "webhooks" | "logs" | "usage" | "sandbox" | "docs" | "erp" | "console";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -142,7 +134,13 @@ export default function IntegrationsClient() {
 
       {tab === "overview" && <OverviewTab overview={overview} limits={limits} />}
       {tab === "keys" && (
-        <KeysTab keys={keys} limits={limits} onRefresh={load} getToken={getApiToken} orgId={orgId} />
+        <KeysTab
+          keys={keys}
+          limits={limits}
+          onRefresh={load}
+          getToken={getApiToken}
+          orgId={orgId}
+        />
       )}
       {tab === "webhooks" && (
         <WebhooksTab
@@ -154,7 +152,13 @@ export default function IntegrationsClient() {
         />
       )}
       {tab === "logs" && (
-        <LogsTab logs={logs} webhooks={webhooks} onRefresh={load} getToken={getApiToken} orgId={orgId} />
+        <LogsTab
+          logs={logs}
+          webhooks={webhooks}
+          onRefresh={load}
+          getToken={getApiToken}
+          orgId={orgId}
+        />
       )}
       {tab === "usage" && <UsageTab overview={overview} />}
       {tab === "sandbox" && (
@@ -167,7 +171,13 @@ export default function IntegrationsClient() {
       )}
       {tab === "docs" && docs && <DocsTab docs={docs} events={events} />}
       {tab === "erp" && (
-        <ErpTab platforms={erp} oauth={oauth} templates={templates} getToken={getApiToken} orgId={orgId} />
+        <ErpTab
+          platforms={erp}
+          oauth={oauth}
+          templates={templates}
+          getToken={getApiToken}
+          orgId={orgId}
+        />
       )}
       {tab === "console" && <ConsoleTab getToken={getApiToken} orgId={orgId} />}
     </div>
@@ -187,10 +197,7 @@ function OverviewTab({
         <Metric label="API keys" value={String(overview.api_keys_count)} />
         <Metric label="Webhooks" value={String(overview.webhooks_count)} />
         <Metric label="Requests (7d)" value={String(overview.usage.total_requests)} />
-        <Metric
-          label="Sandbox"
-          value={overview.sandbox_mode ? "Enabled" : "Disabled"}
-        />
+        <Metric label="Sandbox" value={overview.sandbox_mode ? "Enabled" : "Disabled"} />
       </div>
       <section className="rounded-2xl border border-primary/10 bg-white p-6">
         <h2 className="font-semibold text-primary">Rate limits</h2>
@@ -305,7 +312,10 @@ function KeysTab({
           {keys.map((k) => {
             const limit = limits.find((l) => l.api_key_id === k.id);
             return (
-              <li key={k.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+              <li
+                key={k.id}
+                className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
+              >
                 <div>
                   <p className="font-medium">{k.name}</p>
                   <p className="font-mono text-xs text-muted">
@@ -322,7 +332,11 @@ function KeysTab({
                     className="w-20 rounded border border-primary/15 px-2 py-1 text-xs"
                     onBlur={(e) => void updateLimit(k.id, Number(e.target.value))}
                   />
-                  <button type="button" className="text-xs text-red-600" onClick={() => void revoke(k.id)}>
+                  <button
+                    type="button"
+                    className="text-xs text-red-600"
+                    onClick={() => void revoke(k.id)}
+                  >
                     Revoke
                   </button>
                 </div>
@@ -350,13 +364,14 @@ function WebhooksTab({
   orgId?: string;
 }) {
   const [url, setUrl] = useState("");
-  const [selectedEvents, setSelectedEvents] = useState<string[]>(["order.booked", "order.delivered"]);
+  const [selectedEvents, setSelectedEvents] = useState<string[]>([
+    "order.booked",
+    "order.delivered",
+  ]);
   const [newSecret, setNewSecret] = useState<string | null>(null);
 
   const toggleEvent = (ev: string) => {
-    setSelectedEvents((prev) =>
-      prev.includes(ev) ? prev.filter((e) => e !== ev) : [...prev, ev]
-    );
+    setSelectedEvents((prev) => (prev.includes(ev) ? prev.filter((e) => e !== ev) : [...prev, ev]));
   };
 
   const create = async (e: React.FormEvent) => {
@@ -390,7 +405,11 @@ function WebhooksTab({
   return (
     <div className="space-y-6">
       {newSecret && (
-        <SecretBanner secret={newSecret} label="Webhook signing secret" onDismiss={() => setNewSecret(null)} />
+        <SecretBanner
+          secret={newSecret}
+          label="Webhook signing secret"
+          onDismiss={() => setNewSecret(null)}
+        />
       )}
       <form
         onSubmit={(e) => void create(e)}
@@ -433,7 +452,11 @@ function WebhooksTab({
                 <Button size="sm" variant="outline" onClick={() => void rotate(h.id)}>
                   Rotate secret
                 </Button>
-                <button type="button" className="text-xs text-red-600" onClick={() => void remove(h.id)}>
+                <button
+                  type="button"
+                  className="text-xs text-red-600"
+                  onClick={() => void remove(h.id)}
+                >
                   Delete
                 </button>
               </div>
@@ -479,7 +502,8 @@ function LogsTab({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted">
-        Delivery history with automatic retry (up to 3 attempts). Failed deliveries can be retried manually.
+        Delivery history with automatic retry (up to 3 attempts). Failed deliveries can be retried
+        manually.
       </p>
       <DeliveryTable rows={logs} webhooks={webhooks} onRetry={retry} />
     </div>
@@ -547,8 +571,9 @@ function SandboxTab({
     <section className="rounded-2xl border border-primary/10 bg-white p-6">
       <h2 className="font-semibold text-primary">Sandbox mode</h2>
       <p className="mt-2 text-sm text-muted">
-        When enabled, use <code className="rounded bg-gray-bg px-1">pk_sandbox_</code> keys for safe integration
-        testing. Production keys remain available but should only be used after go-live validation.
+        When enabled, use <code className="rounded bg-gray-bg px-1">pk_sandbox_</code> keys for safe
+        integration testing. Production keys remain available but should only be used after go-live
+        validation.
       </p>
       <div className="mt-4 flex items-center gap-4">
         <span className={`text-sm font-medium ${enabled ? "text-green-700" : "text-muted"}`}>
@@ -572,7 +597,8 @@ function DocsTab({ docs, events }: { docs: ApiDoc; events: EventCatalogItem[] })
           Base URL: <code className="rounded bg-gray-bg px-1">{docs.base_url}/v1/merchant-api</code>
         </p>
         <p className="mt-2">
-          Header: <code className="rounded bg-gray-bg px-1">{docs.auth_header}: &lt;your_key&gt;</code>
+          Header:{" "}
+          <code className="rounded bg-gray-bg px-1">{docs.auth_header}: &lt;your_key&gt;</code>
         </p>
         <p className="mt-2 text-muted">
           Default rate limit: {docs.default_rate_limit_per_minute} req/min · Scopes:{" "}
@@ -684,13 +710,7 @@ function ErpTab({
   );
 }
 
-function ConsoleTab({
-  getToken,
-  orgId,
-}: {
-  getToken: () => Promise<string>;
-  orgId?: string;
-}) {
+function ConsoleTab({ getToken, orgId }: { getToken: () => Promise<string>; orgId?: string }) {
   const [action, setAction] = useState("list_orders");
   const [payload, setPayload] = useState('{"limit": 5}');
   const [result, setResult] = useState<string | null>(null);
@@ -817,7 +837,9 @@ function SecretBanner({
 }) {
   return (
     <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm">
-      <p className="font-semibold text-amber-900">Copy your {label} now — it won&apos;t be shown again</p>
+      <p className="font-semibold text-amber-900">
+        Copy your {label} now — it won&apos;t be shown again
+      </p>
       <code className="mt-2 block break-all rounded bg-white p-2 font-mono text-xs">{secret}</code>
       <button type="button" className="mt-2 text-xs text-muted underline" onClick={onDismiss}>
         Dismiss

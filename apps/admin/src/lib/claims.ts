@@ -136,16 +136,31 @@ export const claimsApi = {
     const raw = await adminFetch<unknown>(`${B}/${id}`, token);
     return claimDetailSchema.parse(raw);
   },
-  create: (token: string, body: { order_id: string; claim_type: string; description?: string; priority?: string }) =>
-    adminFetch<ClaimRow>(B, token, { method: "POST", body: JSON.stringify(body) }),
+  create: (
+    token: string,
+    body: { order_id: string; claim_type: string; description?: string; priority?: string }
+  ) => adminFetch<ClaimRow>(B, token, { method: "POST", body: JSON.stringify(body) }),
   updateStatus: (token: string, id: string, status: string) =>
-    adminFetch<ClaimDetail>(`${B}/${id}/status`, token, { method: "POST", body: JSON.stringify({ status }) }),
+    adminFetch<ClaimDetail>(`${B}/${id}/status`, token, {
+      method: "POST",
+      body: JSON.stringify({ status }),
+    }),
   assign: (token: string, id: string, investigator_id: string) =>
-    adminFetch<ClaimDetail>(`${B}/${id}/assign`, token, { method: "POST", body: JSON.stringify({ investigator_id }) }),
+    adminFetch<ClaimDetail>(`${B}/${id}/assign`, token, {
+      method: "POST",
+      body: JSON.stringify({ investigator_id }),
+    }),
   autoAssign: (token: string, id: string) =>
     adminFetch<ClaimDetail>(`${B}/${id}/auto-assign`, token, { method: "POST" }),
-  addEvidence: (token: string, id: string, body: { file_type: string; name: string; url?: string }) =>
-    adminFetch<ClaimDetail>(`${B}/${id}/evidence`, token, { method: "POST", body: JSON.stringify(body) }),
+  addEvidence: (
+    token: string,
+    id: string,
+    body: { file_type: string; name: string; url?: string }
+  ) =>
+    adminFetch<ClaimDetail>(`${B}/${id}/evidence`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   addNote: (token: string, id: string, body: string, internal = true) =>
     adminFetch<ClaimDetail>(`${B}/${id}/notes`, token, {
       method: "POST",
@@ -166,7 +181,12 @@ export const claimsApi = {
       method: "POST",
       body: JSON.stringify(insurance),
     }),
-  bulk: (token: string, claimIds: string[], action: string, opts?: { investigator_id?: string; status?: string }) =>
+  bulk: (
+    token: string,
+    claimIds: string[],
+    action: string,
+    opts?: { investigator_id?: string; status?: string }
+  ) =>
     adminFetch<{ results: Array<{ claim_id: string; status: string }> }>(`${B}/bulk`, token, {
       method: "POST",
       body: JSON.stringify({ claim_ids: claimIds, action, ...opts }),

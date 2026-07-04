@@ -96,7 +96,11 @@ export default function HeaderDropdown({
   return (
     <>
       <div ref={triggerRef} className="inline-flex">
-        {trigger({ open, toggle, triggerProps: { onClick: toggle, "aria-expanded": open, "aria-haspopup": true } })}
+        {trigger({
+          open,
+          toggle,
+          triggerProps: { onClick: toggle, "aria-expanded": open, "aria-haspopup": true },
+        })}
       </div>
       {panel}
     </>

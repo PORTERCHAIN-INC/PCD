@@ -1,4 +1,11 @@
-export type { PlatformRole, UserType, Permission, AuthPrincipal, SessionTokens } from "./auth";
+export type {
+  PlatformRole,
+  EnterpriseRole,
+  UserType,
+  Permission,
+  AuthPrincipal,
+  SessionTokens,
+} from "./auth";
 export type { EventActor, EventEnvelope, DomainEventType } from "./events";
 export type { QueueName } from "./queue";
 export type { DataOwnership } from "./ownership";

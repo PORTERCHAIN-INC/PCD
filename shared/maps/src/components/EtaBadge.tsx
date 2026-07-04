@@ -19,7 +19,8 @@ export function EtaBadge({
     <View style={styles.wrap}>
       <Text style={styles.title}>ETA {eta.eta_label ?? formatEta(eta.duration_seconds)}</Text>
       <Text style={styles.meta}>
-        {formatDistance(eta.distance_meters)} · {eta.source ?? engines?.eta ?? "osrm"} · GPS {gpsSource ?? engines?.gps ?? "fleetbase"}
+        {formatDistance(eta.distance_meters)} · {eta.source ?? engines?.eta ?? "osrm"} · GPS{" "}
+        {gpsSource ?? engines?.gps ?? "fleetbase"}
       </Text>
       {engines?.optimized_route ? (
         <Text style={styles.meta}>Route {engines.optimized_route}</Text>

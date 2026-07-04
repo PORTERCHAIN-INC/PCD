@@ -15,16 +15,16 @@ Mobile ← Porterchain API ← Application Services
                               └── Valhalla → optimized route polylines
 ```
 
-| Concern | Provider | Client |
-|---------|----------|--------|
-| Map display | Google Maps | `MapView` + `PROVIDER_GOOGLE` |
-| Live tracking | Fleetbase (via API) | Render `driver_location` |
-| ETA | OSRM (via API) | Render `eta.polyline` |
-| Optimized route | Valhalla (via API) | Render `optimized_route.polyline` |
-| Geofences | API | `Circle` components |
-| Traffic | Google Maps UI | `showsTraffic` |
-| Heatmaps | Google Maps | `Heatmap` from replay density |
-| Route replay | API `replay[]` | Polyline + scrubber |
+| Concern         | Provider            | Client                            |
+| --------------- | ------------------- | --------------------------------- |
+| Map display     | Google Maps         | `MapView` + `PROVIDER_GOOGLE`     |
+| Live tracking   | Fleetbase (via API) | Render `driver_location`          |
+| ETA             | OSRM (via API)      | Render `eta.polyline`             |
+| Optimized route | Valhalla (via API)  | Render `optimized_route.polyline` |
+| Geofences       | API                 | `Circle` components               |
+| Traffic         | Google Maps UI      | `showsTraffic`                    |
+| Heatmaps        | Google Maps         | `Heatmap` from replay density     |
+| Route replay    | API `replay[]`      | Polyline + scrubber               |
 
 **The client never calls OSRM, Valhalla, or Fleetbase directly.**
 
@@ -47,19 +47,19 @@ const mapSession = driverSessionToMapSession(navigationApiResponse);
   showGeofences
   showHeatmap
   showReplayControls
-/>
+/>;
 ```
 
 ## Entities
 
-| Marker | Kind | Color |
-|--------|------|-------|
-| Driver | `driver` | Blue |
-| Customer | `customer` | Green |
-| Merchant | `merchant` | Violet |
-| Warehouse | `warehouse` | Amber |
-| Pickup | `pickup` | Green |
-| Dropoff | `dropoff` | Red |
+| Marker    | Kind        | Color  |
+| --------- | ----------- | ------ |
+| Driver    | `driver`    | Blue   |
+| Customer  | `customer`  | Green  |
+| Merchant  | `merchant`  | Violet |
+| Warehouse | `warehouse` | Amber  |
+| Pickup    | `pickup`    | Green  |
+| Dropoff   | `dropoff`   | Red    |
 
 ## Verification
 

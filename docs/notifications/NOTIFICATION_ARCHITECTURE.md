@@ -23,25 +23,25 @@ Users (Android / iOS / Web Push / Email / Admin bell)
 
 ## Components
 
-| Component | Path | Responsibility |
-|-----------|------|----------------|
-| **NotificationEngine** | `notification_engine/engine.py` | Single dispatch entry — templates, routing, preferences, audit |
-| **EventRouter** | `notification_engine/event_router.py` | Maps domain events → notification specs (recipients resolved here) |
-| **DeviceService** | `notification_engine/device_service.py` | FCM token registration, invalidation, multi-device |
-| **FCMService** | `notification_engine/fcm_service.py` | Firebase Admin SDK — only FCM touchpoint |
-| **DeliveryService** | `notification_engine/delivery_service.py` | Worker delivery (SMTP, Twilio, FCM, in-app) |
-| **PreferenceService** | `notification_engine/preference_service.py` | Per-user channel/category opt-in |
-| **RetryService** | `notification_engine/retry_service.py` | Exponential backoff, DLQ |
-| **RealtimeHub** | `notification_engine/realtime.py` | WebSocket fan-out for in-app bell |
+| Component              | Path                                        | Responsibility                                                     |
+| ---------------------- | ------------------------------------------- | ------------------------------------------------------------------ |
+| **NotificationEngine** | `notification_engine/engine.py`             | Single dispatch entry — templates, routing, preferences, audit     |
+| **EventRouter**        | `notification_engine/event_router.py`       | Maps domain events → notification specs (recipients resolved here) |
+| **DeviceService**      | `notification_engine/device_service.py`     | FCM token registration, invalidation, multi-device                 |
+| **FCMService**         | `notification_engine/fcm_service.py`        | Firebase Admin SDK — only FCM touchpoint                           |
+| **DeliveryService**    | `notification_engine/delivery_service.py`   | Worker delivery (SMTP, Twilio, FCM, in-app)                        |
+| **PreferenceService**  | `notification_engine/preference_service.py` | Per-user channel/category opt-in                                   |
+| **RetryService**       | `notification_engine/retry_service.py`      | Exponential backoff, DLQ                                           |
+| **RealtimeHub**        | `notification_engine/realtime.py`           | WebSocket fan-out for in-app bell                                  |
 
 ## Data Model
 
-| Table | Purpose |
-|-------|---------|
-| `notification_records` | Full audit — status, retry, opened/clicked, search fields |
-| `notification_devices` | FCM tokens per user/role/device |
-| `notification_preferences` | Channel + category preferences |
-| `notification_delivery_logs` | Per-attempt delivery log (legacy + worker trace) |
+| Table                        | Purpose                                                   |
+| ---------------------------- | --------------------------------------------------------- |
+| `notification_records`       | Full audit — status, retry, opened/clicked, search fields |
+| `notification_devices`       | FCM tokens per user/role/device                           |
+| `notification_preferences`   | Channel + category preferences                            |
+| `notification_delivery_logs` | Per-attempt delivery log (legacy + worker trace)          |
 
 ## Integration Rules
 
@@ -53,10 +53,10 @@ Users (Android / iOS / Web Push / Email / Admin bell)
 
 ## RBAC
 
-| Module | Roles |
-|--------|-------|
-| `notifications_read` | All admin roles (read-only) |
-| `notifications` | `SUPER_ADMIN`, `ADMIN`, `DISPATCHER`, `SUPPORT_LEAD`, `MARKETING` |
+| Module               | Roles                                                             |
+| -------------------- | ----------------------------------------------------------------- |
+| `notifications_read` | All admin roles (read-only)                                       |
+| `notifications`      | `SUPER_ADMIN`, `ADMIN`, `DISPATCHER`, `SUPPORT_LEAD`, `MARKETING` |
 
 ## Non-Goals (Future)
 

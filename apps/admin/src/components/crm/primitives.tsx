@@ -100,11 +100,13 @@ export function Avatar({
 
 export function SectionCard({
   title,
+  icon,
   action,
   children,
   className,
 }: {
   title?: ReactNode;
+  icon?: ReactNode;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -113,7 +115,10 @@ export function SectionCard({
     <div className={cn("rounded-2xl border border-primary/10 bg-white", className)}>
       {(title || action) && (
         <div className="flex items-center justify-between border-b border-primary/10 px-5 py-3.5">
-          <h2 className="text-sm font-semibold text-primary">{title}</h2>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-primary">
+            {icon}
+            {title}
+          </h2>
           {action}
         </div>
       )}

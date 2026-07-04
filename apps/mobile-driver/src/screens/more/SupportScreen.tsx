@@ -20,10 +20,8 @@ export function SupportScreen() {
     setLoading(true);
     const payload = { subject, description };
     try {
-      const result = await runDirectOrQueue(
-        DRIVER_OFFLINE_ACTIONS.SUPPORT_TICKET,
-        payload,
-        () => api.createSupport(payload)
+      const result = await runDirectOrQueue(DRIVER_OFFLINE_ACTIONS.SUPPORT_TICKET, payload, () =>
+        api.createSupport(payload)
       );
       setMessage(result.mode === "queued" ? "Saved offline." : "Ticket created.");
       setSubject("");

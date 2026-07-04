@@ -20,7 +20,9 @@ export function MetricCard({
     <div
       className={cn(
         "rounded-2xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md",
-        accent ? "border-[var(--secondary)]/30 ring-1 ring-[var(--secondary)]/10" : "border-transparent",
+        accent
+          ? "border-[var(--secondary)]/30 ring-1 ring-[var(--secondary)]/10"
+          : "border-transparent",
         className
       )}
     >
@@ -30,7 +32,9 @@ export function MetricCard({
           <span
             className={cn(
               "rounded-lg p-1.5",
-              accent ? "bg-[var(--secondary)]/10 text-[var(--secondary)]" : "bg-[var(--gray-bg)] text-[var(--primary)]/60"
+              accent
+                ? "bg-[var(--secondary)]/10 text-[var(--secondary)]"
+                : "bg-[var(--gray-bg)] text-[var(--primary)]/60"
             )}
           >
             <Icon className="h-4 w-4" />

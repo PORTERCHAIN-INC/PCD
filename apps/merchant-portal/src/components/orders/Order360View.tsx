@@ -64,7 +64,6 @@ export function Order360View({
   orgId,
 }: Props) {
   const [tab, setTab] = useState<Tab>("overview");
-  const live = (tracking?.live as Record<string, unknown> | undefined) ?? detail.tracking;
 
   return (
     <div className="space-y-6">
@@ -106,7 +105,9 @@ export function Order360View({
             type="button"
             onClick={() => setTab(t.id)}
             className={`rounded-lg px-3 py-1.5 text-sm ${
-              tab === t.id ? "bg-secondary/10 font-semibold text-secondary" : "text-muted hover:text-primary"
+              tab === t.id
+                ? "bg-secondary/10 font-semibold text-secondary"
+                : "text-muted hover:text-primary"
             }`}
           >
             {t.label}
@@ -116,7 +117,7 @@ export function Order360View({
 
       {tab === "overview" && <OverviewTab detail={detail} />}
       {tab === "timeline" && <TimelineTab timeline={detail.timeline} />}
-      {tab === "tracking" && <TrackingTab tracking={tracking} live={live} />}
+      {tab === "tracking" && <TrackingTab tracking={tracking} />}
       {tab === "driver" && <DriverTab driver={detail.driver} status={detail.driver_status} />}
       {tab === "vehicle" && <VehicleTab vehicle={detail.vehicle} status={detail.vehicle_status} />}
       {tab === "pricing" && <PricingTab detail={detail} />}
@@ -172,7 +173,7 @@ function OverviewTab({ detail }: { detail: OrderDetail }) {
         <p className="mt-1">Vehicle: {detail.vehicle_label ?? "—"}</p>
         <p className="mt-1">SLA: {detail.sla_status}</p>
       </Card>
-      {detail.smart?.ai_summary && (
+      {detail.smart?.ai_summary != null && (
         <Card title="Insights">
           <p className="text-muted">{String(detail.smart.ai_summary)}</p>
         </Card>
@@ -198,20 +199,12 @@ function TimelineTab({ timeline }: { timeline: Array<Record<string, unknown>> })
   );
 }
 
-function TrackingTab({
-  tracking,
-}: {
-  tracking: Record<string, unknown> | null;
-  live: Record<string, unknown> | null | undefined;
-}) {
+function TrackingTab({ tracking }: { tracking: LiveTracking | null }) {
   if (tracking?.order_id && tracking?.tracking_number) {
     return <LiveTrackingView tracking={tracking as LiveTracking} />;
   }
 
-  const history =
-    (tracking?.tracking_history as Array<Record<string, unknown>>) ??
-    (tracking?.history as Array<Record<string, unknown>>) ??
-    [];
+  const history = tracking?.tracking_history ?? tracking?.timeline ?? [];
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -237,7 +230,9 @@ function DriverTab({
     <Card title="Driver">
       <p className="font-medium">{String(driver.name ?? "—")}</p>
       <p className="mt-1 text-muted">Phone: {String(driver.phone ?? "—")}</p>
-      <p className="mt-1 text-muted">Status: {status ?? String(driver.is_online ? "online" : "offline")}</p>
+      <p className="mt-1 text-muted">
+        Status: {status ?? String(driver.is_online ? "online" : "offline")}
+      </p>
       {driver.rating != null && <p className="mt-1 text-muted">Rating: {String(driver.rating)}</p>}
     </Card>
   );
@@ -264,8 +259,12 @@ function VehicleTab({
 function PricingTab({ detail }: { detail: OrderDetail }) {
   return (
     <Card title="Pricing">
-      <p>Quoted: {detail.quote_amount_cents != null ? formatCents(detail.quote_amount_cents) : "—"}</p>
-      <p className="mt-1">Charged: {formatCents(detail.amount_cents, detail.currency.toUpperCase())}</p>
+      <p>
+        Quoted: {detail.quote_amount_cents != null ? formatCents(detail.quote_amount_cents) : "—"}
+      </p>
+      <p className="mt-1">
+        Charged: {formatCents(detail.amount_cents, detail.currency.toUpperCase())}
+      </p>
       <p className="mt-1 text-muted">Vehicle: {detail.vehicle_class ?? "—"}</p>
       <p className="mt-1 text-muted">Package: {detail.package_type ?? "—"}</p>
       {detail.pricing_breakdown && (
@@ -286,12 +285,22 @@ function InvoiceTab({ detail }: { detail: OrderDetail }) {
       )}
       <div className="mt-3 flex flex-wrap gap-2">
         {detail.invoice_pdf_url && (
-          <a href={detail.invoice_pdf_url} target="_blank" rel="noopener noreferrer" className="text-secondary underline">
+          <a
+            href={detail.invoice_pdf_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-secondary underline"
+          >
             Download PDF
           </a>
         )}
         {detail.invoice_receipt_url && (
-          <a href={detail.invoice_receipt_url} target="_blank" rel="noopener noreferrer" className="text-secondary underline">
+          <a
+            href={detail.invoice_receipt_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-secondary underline"
+          >
             Receipt
           </a>
         )}
@@ -307,7 +316,15 @@ function PodTab({ pod }: { pod: Record<string, unknown> }) {
       {empty ? (
         <p className="text-muted">POD will appear after delivery is completed.</p>
       ) : (
-        <PodGallery pod={pod as { photos?: Array<Record<string, unknown>>; signatures?: Array<Record<string, unknown>>; otp?: Array<Record<string, unknown>> }} />
+        <PodGallery
+          pod={
+            pod as {
+              photos?: Array<Record<string, unknown>>;
+              signatures?: Array<Record<string, unknown>>;
+              otp?: Array<Record<string, unknown>>;
+            }
+          }
+        />
       )}
     </Card>
   );
@@ -410,7 +427,11 @@ function ClaimsTab({
     setSubmitting(true);
     try {
       const token = await getApiToken();
-      await settingsApi.openClaim(token, { order_id: orderId, claim_type: claimType, description }, orgId);
+      await settingsApi.openClaim(
+        token,
+        { order_id: orderId, claim_type: claimType, description },
+        orgId
+      );
       setDescription("");
       onRefresh();
     } finally {

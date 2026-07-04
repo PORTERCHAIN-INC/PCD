@@ -65,11 +65,7 @@ function GeofenceCircles({ geofences }: { geofences: Array<Record<string, unknow
   return null;
 }
 
-function FitBounds({
-  points,
-}: {
-  points: google.maps.LatLngLiteral[];
-}) {
+function FitBounds({ points }: { points: google.maps.LatLngLiteral[] }) {
   const map = useMap();
   const boundsLib = useMapsLibrary("core");
 
@@ -123,42 +119,57 @@ export function TrackingMap({
   return (
     <MapShell height={height}>
       <div className="overflow-hidden rounded-2xl border border-primary/10" style={{ height }}>
-        <Map defaultCenter={center} defaultZoom={12} gestureHandling="greedy" disableDefaultUI={false} mapId="merchant-tracking">
-        <TrafficLayer enabled={showTraffic} />
-        <GeofenceCircles geofences={tracking.geofences ?? []} />
-        {fitPoints.length >= 2 && <FitBounds points={fitPoints} />}
+        <Map
+          defaultCenter={center}
+          defaultZoom={12}
+          gestureHandling="greedy"
+          disableDefaultUI={false}
+          mapId="merchant-tracking"
+        >
+          <TrafficLayer enabled={showTraffic} />
+          <GeofenceCircles geofences={tracking.geofences ?? []} />
+          {fitPoints.length >= 2 && <FitBounds points={fitPoints} />}
 
-        {pickup && (
-          <AdvancedMarker position={pickup} title="Pickup">
-            <div className="rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-bold text-white">P</div>
-          </AdvancedMarker>
-        )}
-        {dropoff && (
-          <AdvancedMarker position={dropoff} title="Dropoff">
-            <div className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">D</div>
-          </AdvancedMarker>
-        )}
-        {(replayPoint || driver) && (
-          <AdvancedMarker position={replayPoint ?? driver!} title="Driver">
-            <div className="h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow" />
-          </AdvancedMarker>
-        )}
+          {pickup && (
+            <AdvancedMarker position={pickup} title="Pickup">
+              <div className="rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                P
+              </div>
+            </AdvancedMarker>
+          )}
+          {dropoff && (
+            <AdvancedMarker position={dropoff} title="Dropoff">
+              <div className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                D
+              </div>
+            </AdvancedMarker>
+          )}
+          {(replayPoint || driver) && (
+            <AdvancedMarker position={replayPoint ?? driver!} title="Driver">
+              <div className="h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow" />
+            </AdvancedMarker>
+          )}
 
-        {optimizedPath.length > 1 && (
-          <Polyline path={optimizedPath} strokeColor="#7c3aed" strokeWeight={4} strokeOpacity={0.8} />
-        )}
-        {etaPath.length > 1 && (
-          <Polyline path={etaPath} strokeColor="#0ea5e9" strokeWeight={3} strokeOpacity={0.7} />
-        )}
-        {replayFrames.length > 1 && (
-          <Polyline
-            path={replayFrames.map((f) => ({ lat: f.lat, lng: f.lng }))}
-            strokeColor="#94a3b8"
-            strokeWeight={2}
-            strokeOpacity={0.5}
-          />
-        )}
-      </Map>
+          {optimizedPath.length > 1 && (
+            <Polyline
+              path={optimizedPath}
+              strokeColor="#7c3aed"
+              strokeWeight={4}
+              strokeOpacity={0.8}
+            />
+          )}
+          {etaPath.length > 1 && (
+            <Polyline path={etaPath} strokeColor="#0ea5e9" strokeWeight={3} strokeOpacity={0.7} />
+          )}
+          {replayFrames.length > 1 && (
+            <Polyline
+              path={replayFrames.map((f) => ({ lat: f.lat, lng: f.lng }))}
+              strokeColor="#94a3b8"
+              strokeWeight={2}
+              strokeOpacity={0.5}
+            />
+          )}
+        </Map>
       </div>
     </MapShell>
   );

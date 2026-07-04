@@ -2,16 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Bell,
-  Camera,
-  CloudOff,
-  MapPin,
-  RefreshCw,
-  Smartphone,
-  Wifi,
-  WifiOff,
-} from "lucide-react";
+import { Bell, Camera, CloudOff, MapPin, RefreshCw, Smartphone, Wifi, WifiOff } from "lucide-react";
 import DriverShell from "@/components/DriverShell";
 import { useDriverCommunications } from "@/hooks/useDriverCommunications";
 import { hasDriverSession } from "@/lib/api";
@@ -83,16 +74,10 @@ export default function CommunicationsPage() {
         </div>
       </header>
 
-      {error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-      )}
+      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
       <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Unread"
-          value={String(snap.notifications.unread_count)}
-          icon={Bell}
-        />
+        <StatCard label="Unread" value={String(snap.notifications.unread_count)} icon={Bell} />
         <StatCard
           label="Push devices"
           value={String(snap.push.registered_devices)}
@@ -131,7 +116,10 @@ export default function CommunicationsPage() {
         {snap.push.devices.length > 0 && (
           <ul className="mt-4 space-y-2 text-sm">
             {snap.push.devices.map((d) => (
-              <li key={d.id} className="flex justify-between rounded-xl bg-[var(--gray-bg)] px-3 py-2">
+              <li
+                key={d.id}
+                className="flex justify-between rounded-xl bg-[var(--gray-bg)] px-3 py-2"
+              >
                 <span>
                   {d.platform} {d.device_name ? `· ${d.device_name}` : ""}
                 </span>
@@ -169,7 +157,9 @@ export default function CommunicationsPage() {
                       )}
                     </div>
                     <p className="mt-1 text-[var(--muted)]">{n.body}</p>
-                    <p className="mt-1 text-xs text-[var(--muted)]">{formatCommTime(n.created_at)}</p>
+                    <p className="mt-1 text-xs text-[var(--muted)]">
+                      {formatCommTime(n.created_at)}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -199,7 +189,9 @@ export default function CommunicationsPage() {
           </p>
           <p className="mt-3 text-2xl font-bold">{snap.offline.camera_upload_pending} pending</p>
           {snap.offline.failed_uploads > 0 && (
-            <p className="mt-1 text-sm text-red-700">{snap.offline.failed_uploads} failed — use Sync offline</p>
+            <p className="mt-1 text-sm text-red-700">
+              {snap.offline.failed_uploads} failed — use Sync offline
+            </p>
           )}
         </div>
       </section>
@@ -220,7 +212,9 @@ export default function CommunicationsPage() {
 
       <p className="mt-6 text-xs text-[var(--muted)]">
         Last synced {new Date(snap.last_updated).toLocaleString()}
-        {snap.offline.last_sync_at ? ` · Offline sync ${formatCommTime(snap.offline.last_sync_at)}` : ""}
+        {snap.offline.last_sync_at
+          ? ` · Offline sync ${formatCommTime(snap.offline.last_sync_at)}`
+          : ""}
       </p>
     </DriverShell>
   );

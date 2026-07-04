@@ -8,28 +8,28 @@
 
 ## Adapter Modules
 
-| Module | Responsibility |
-|--------|----------------|
-| `orders/` | Create, update, cancel orders |
-| `drivers/` | Driver sync |
-| `vehicles/` | Vehicle sync |
-| `dispatch/` | Driver assignment |
-| `tracking/` | Live tracking snapshots |
-| `pod/` | Proof of delivery fetch |
-| `routes/` | Route data |
-| `webhooks/` | Inbound signature verify + parse |
-| `auth/` | SSO session for admin console |
-| `events/` | `EventTranslator` — status mapping |
+| Module      | Responsibility                     |
+| ----------- | ---------------------------------- |
+| `orders/`   | Create, update, cancel orders      |
+| `drivers/`  | Driver sync                        |
+| `vehicles/` | Vehicle sync                       |
+| `dispatch/` | Driver assignment                  |
+| `tracking/` | Live tracking snapshots            |
+| `pod/`      | Proof of delivery fetch            |
+| `routes/`   | Route data                         |
+| `webhooks/` | Inbound signature verify + parse   |
+| `auth/`     | SSO session for admin console      |
+| `events/`   | `EventTranslator` — status mapping |
 
 ## Outbound Triggers
 
-| Trigger | Service | Adapter method |
-|---------|---------|----------------|
-| `order.dispatch_ready` event | `BookingSyncService.push_order()` | `sync_order()` |
-| `order.driver_assigned` event | `push_driver_assignment()` | dispatch API |
-| Merchant cancel | `sync_cancellation()` (direct) | `cancel_order()` |
-| Driver location | `DriverFleetbaseBridge` | tracking sync |
-| Admin SSO | `SsoService.exchange_fleetbase_session()` | `FleetbaseSsoClient` |
+| Trigger                       | Service                                   | Adapter method       |
+| ----------------------------- | ----------------------------------------- | -------------------- |
+| `order.dispatch_ready` event  | `BookingSyncService.push_order()`         | `sync_order()`       |
+| `order.driver_assigned` event | `push_driver_assignment()`                | dispatch API         |
+| Merchant cancel               | `sync_cancellation()` (direct)            | `cancel_order()`     |
+| Driver location               | `DriverFleetbaseBridge`                   | tracking sync        |
+| Admin SSO                     | `SsoService.exchange_fleetbase_session()` | `FleetbaseSsoClient` |
 
 ## Inbound
 

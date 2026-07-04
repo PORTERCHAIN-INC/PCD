@@ -26,7 +26,10 @@ export function BookingScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void api.getQuote(route.params.quoteId).then(setQuote).catch(() => setError("Quote not found"));
+    void api
+      .getQuote(route.params.quoteId)
+      .then(setQuote)
+      .catch(() => setError("Quote not found"));
   }, [api, route.params.quoteId]);
 
   async function onBook() {
@@ -69,15 +72,29 @@ export function BookingScreen() {
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.lg }}>
         {quote ? (
           <Card>
-            <CardHeader title="Route" subtitle={`${quote.pickup?.formatted ?? ""} → ${quote.dropoff?.formatted ?? ""}`} />
+            <CardHeader
+              title="Route"
+              subtitle={`${quote.pickup?.formatted ?? ""} → ${quote.dropoff?.formatted ?? ""}`}
+            />
             <Body muted>Vehicle: {quote.vehicle_class}</Body>
           </Card>
         ) : null}
 
-        <Input label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="+1 416 555 0100" />
+        <Input
+          label="Phone"
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+          placeholder="+1 416 555 0100"
+        />
         <Input label="Email" value={email} editable={false} />
         {error ? <Body style={{ color: theme.colors.danger }}>{error}</Body> : null}
-        <Button label="Continue to payment" loading={loading} fullWidth onPress={() => void onBook()} />
+        <Button
+          label="Continue to payment"
+          loading={loading}
+          fullWidth
+          onPress={() => void onBook()}
+        />
       </ScrollView>
     </Screen>
   );

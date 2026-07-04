@@ -6,7 +6,10 @@ export type CustomerAccessProfile = {
 };
 
 export async function fetchCustomerAccess(token: string): Promise<CustomerAccessProfile> {
-  const api = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(/\/$/, "");
+  const api = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
+    /\/$/,
+    ""
+  );
   const res = await fetch(`${api}/v1/auth/customer/access`, {
     headers: { Authorization: `Bearer ${token}` },
   });

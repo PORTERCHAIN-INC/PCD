@@ -10,14 +10,14 @@ pnpm dev:mobile-driver
 
 ## Tabs
 
-| Tab | Features |
-|-----|----------|
-| **Home** | Dashboard, today's stops/earnings, quick actions |
-| **Jobs** | Current/upcoming/completed, job detail, assignment queue |
-| **Navigation** | Live map, GPS pings, Fleetbase routing via API |
-| **Earnings** | Today/week/month, wallet |
-| **Shift** | Online/offline, start/end shift, breaks |
-| **More** | Profile, Notifications, Support, SOS, Settings |
+| Tab            | Features                                                 |
+| -------------- | -------------------------------------------------------- |
+| **Home**       | Dashboard, today's stops/earnings, quick actions         |
+| **Jobs**       | Current/upcoming/completed, job detail, assignment queue |
+| **Navigation** | Live map, GPS pings, Fleetbase routing via API           |
+| **Earnings**   | Today/week/month, wallet                                 |
+| **Shift**      | Online/offline, start/end shift, breaks                  |
+| **More**       | Profile, Notifications, Support, SOS, Settings           |
 
 ## Execution flows
 

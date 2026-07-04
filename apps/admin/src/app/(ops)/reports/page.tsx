@@ -15,14 +15,13 @@ import {
 } from "lucide-react";
 import { cn, formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import ReportChart, { barChartOption, lineChartOption, pieChartOption } from "@/components/reports/ReportChart";
+import ReportChart, {
+  barChartOption,
+  lineChartOption,
+  pieChartOption,
+} from "@/components/reports/ReportChart";
 import { Button, Spinner } from "@/components/crm/primitives";
-import {
-  dictToPairs,
-  exportReportCsv,
-  reportsApi,
-  type ReportCategory,
-} from "@/lib/reports";
+import { dictToPairs, exportReportCsv, reportsApi, type ReportCategory } from "@/lib/reports";
 
 type Tab =
   | "dashboard"
@@ -51,7 +50,11 @@ export default function ReportsPage() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  const { data: center, isLoading, refetch } = useQuery({
+  const {
+    data: center,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["reports-center"],
     enabled,
     queryFn: async () => reportsApi.center(await getApiToken()),
@@ -153,7 +156,9 @@ export default function ReportsPage() {
             onClick={() => setTab(t.id)}
             className={cn(
               "inline-flex shrink-0 items-center gap-1.5 rounded-t-lg px-3 py-2 text-sm font-medium",
-              tab === t.id ? "border border-b-0 border-primary/10 bg-white text-secondary" : "text-muted"
+              tab === t.id
+                ? "border border-b-0 border-primary/10 bg-white text-secondary"
+                : "text-muted"
             )}
           >
             {t.icon}
@@ -163,13 +168,23 @@ export default function ReportsPage() {
       </nav>
 
       {tab === "dashboard" && center && (
-        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
             <Kpi label="Revenue" value={formatCents(Number(center.executive.revenue_cents))} />
-            <Kpi label="Profit (est.)" value={formatCents(Number(center.executive.profit_estimate_cents))} />
+            <Kpi
+              label="Profit (est.)"
+              value={formatCents(Number(center.executive.profit_estimate_cents))}
+            />
             <Kpi label="Growth" value={`${center.executive.growth_percent}%`} />
             <Kpi label="Orders" value={String(center.summary.monthly_orders)} />
-            <Kpi label="AOV" value={formatCents(Number(center.executive.average_order_value_cents))} />
+            <Kpi
+              label="AOV"
+              value={formatCents(Number(center.executive.average_order_value_cents))}
+            />
             <Kpi label="Delivery SLA" value={`${center.summary.delivery_sla_percent}%`} />
             <Kpi label="CSAT" value={String(center.executive.customer_satisfaction || "—")} />
             <Kpi label="Merchants" value={String(center.summary.active_merchants)} />
@@ -247,7 +262,10 @@ export default function ReportsPage() {
           </div>
           <ul className="space-y-2">
             {saved.map((r) => (
-              <li key={r.id} className="flex items-center justify-between rounded-lg border border-primary/10 px-3 py-2 text-sm">
+              <li
+                key={r.id}
+                className="flex items-center justify-between rounded-lg border border-primary/10 px-3 py-2 text-sm"
+              >
                 <span>
                   <span className="font-medium">{r.name}</span>
                   <span className="ml-2 text-xs text-muted">{r.category_id}</span>
@@ -416,7 +434,11 @@ export default function ReportsPage() {
           />
           <ModuleChart
             title="Finance top merchants"
-            data={((center.modules.finance as Record<string, unknown>)?.top_merchants as Array<[string, number]>) ?? []}
+            data={
+              ((center.modules.finance as Record<string, unknown>)?.top_merchants as Array<
+                [string, number]
+              >) ?? []
+            }
           />
         </div>
       )}
@@ -463,7 +485,11 @@ function RoleDashboard({ title, data }: { title: string; data: Record<string, un
   );
 }
 
-function PinnedReports({ reports }: { reports: Array<{ id: string; name: string; category_id: string }> }) {
+function PinnedReports({
+  reports,
+}: {
+  reports: Array<{ id: string; name: string; category_id: string }>;
+}) {
   return (
     <Panel title="Pinned reports">
       {reports.map((r) => (
@@ -474,22 +500,33 @@ function PinnedReports({ reports }: { reports: Array<{ id: string; name: string;
   );
 }
 
-function ModuleChart({
-  title,
-  data,
-}: {
-  title: string;
-  data: Array<[string, number]>;
-}) {
-  if (!data.length) return <Panel title={title}><p className="text-sm text-muted">No data</p></Panel>;
+function ModuleChart({ title, data }: { title: string; data: Array<[string, number]> }) {
+  if (!data.length)
+    return (
+      <Panel title={title}>
+        <p className="text-sm text-muted">No data</p>
+      </Panel>
+    );
   return (
     <Panel title={title}>
-      <ReportChart option={pieChartOption(data.map((d) => d[0]), data.map((d) => d[1]))} height={280} />
+      <ReportChart
+        option={pieChartOption(
+          data.map((d) => d[0]),
+          data.map((d) => d[1])
+        )}
+        height={280}
+      />
     </Panel>
   );
 }
 
-function CategoryPanel({ categoryId, data }: { categoryId: string; data: Record<string, unknown> }) {
+function CategoryPanel({
+  categoryId,
+  data,
+}: {
+  categoryId: string;
+  data: Record<string, unknown>;
+}) {
   const pairs = useMemo(() => {
     for (const key of ["top_merchants", "top_drivers", "by_type", "by_merchant", "by_driver"]) {
       const val = data[key];

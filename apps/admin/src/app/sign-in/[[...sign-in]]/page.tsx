@@ -13,7 +13,8 @@ export default function SignInPage() {
           <h1 className="text-2xl font-bold text-primary">Porterchain Admin</h1>
           <p className="mt-2 text-sm text-muted">
             Clerk is not configured. Local dev uses API bypass — add staff in{" "}
-            <code className="rounded bg-gray-bg px-1">admin_users</code> for production-like testing.
+            <code className="rounded bg-gray-bg px-1">admin_users</code> for production-like
+            testing.
           </p>
           <Link
             href="/dashboard"
@@ -34,8 +35,8 @@ export default function SignInPage() {
         </div>
         <h1 className="text-2xl font-bold text-primary">Porterchain Admin</h1>
         <p className="mt-2 text-sm text-muted">
-          Staff-only access. You must be provisioned in Admin Settings → Staff before you can use this console.
-          Creating a Clerk account alone does not grant access.
+          Staff-only access. You must be provisioned in Admin Settings → Staff before you can use
+          this console. Creating a Clerk account alone does not grant access.
         </p>
       </div>
       <SignIn

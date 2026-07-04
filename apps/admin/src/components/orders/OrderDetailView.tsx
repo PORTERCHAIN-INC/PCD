@@ -121,11 +121,7 @@ export default function OrderDetailView({
     );
   }
   if (!detail) {
-    return (
-      <p className="py-12 text-center text-muted">
-        {error ?? "Order not found"}
-      </p>
-    );
+    return <p className="py-12 text-center text-muted">{error ?? "Order not found"}</p>;
   }
 
   const smart = detail.smart;
@@ -133,7 +129,9 @@ export default function OrderDetailView({
     items?: Array<{ code: string; label: string; amount_cents: number }>;
   } | null;
   const live = (tracking?.live ?? detail.tracking) as Record<string, unknown> | null | undefined;
-  const openClaims = detail.claims.filter((c) => !["closed", "rejected", "archived"].includes(String(c.status)));
+  const openClaims = detail.claims.filter(
+    (c) => !["closed", "rejected", "archived"].includes(String(c.status))
+  );
   const openTickets = detail.support_tickets.filter(
     (t) => !["closed", "resolved"].includes(String(t.status))
   );
@@ -193,9 +191,16 @@ export default function OrderDetailView({
               tone={detail.payment_status === "SUCCEEDED" ? "green" : "amber"}
             />
             <SummaryCard label="Invoice" value={detail.invoice_status} tone="blue" />
-            <SummaryCard label="Driver" value={detail.driver_status || (detail.driver_name ? "assigned" : "—")} />
+            <SummaryCard
+              label="Driver"
+              value={detail.driver_status || (detail.driver_name ? "assigned" : "—")}
+            />
             <SummaryCard label="Vehicle" value={detail.vehicle_status || "—"} />
-            <SummaryCard label="ETA" value={detail.eta ? relativeTime(detail.eta) : "—"} icon={<Clock className="h-3.5 w-3.5" />} />
+            <SummaryCard
+              label="ETA"
+              value={detail.eta ? relativeTime(detail.eta) : "—"}
+              icon={<Clock className="h-3.5 w-3.5" />}
+            />
             <SummaryCard
               label="SLA"
               value={detail.sla_status}
@@ -203,19 +208,35 @@ export default function OrderDetailView({
             />
             <SummaryCard
               label="Location"
-              value={live?.current_location ? "GPS live" : detail.state.includes("TRANSIT") ? "In transit" : "—"}
+              value={
+                live?.current_location
+                  ? "GPS live"
+                  : detail.state.includes("TRANSIT")
+                    ? "In transit"
+                    : "—"
+              }
               icon={<MapPin className="h-3.5 w-3.5" />}
             />
-            <SummaryCard label="Parcels" value={String(detail.parcel_count ?? (detail.packages.length || 1))} icon={<Package className="h-3.5 w-3.5" />} />
+            <SummaryCard
+              label="Parcels"
+              value={String(detail.parcel_count ?? (detail.packages.length || 1))}
+              icon={<Package className="h-3.5 w-3.5" />}
+            />
             <SummaryCard
               label="Weight"
               value={detail.weight_kg != null ? `${detail.weight_kg} kg` : "—"}
             />
             <SummaryCard
               label="Distance"
-              value={detail.distance_meters ? `${(detail.distance_meters / 1000).toFixed(1)} km` : "—"}
+              value={
+                detail.distance_meters ? `${(detail.distance_meters / 1000).toFixed(1)} km` : "—"
+              }
             />
-            <SummaryCard label="Revenue" value={formatCents(detail.amount_cents)} icon={<CreditCard className="h-3.5 w-3.5" />} />
+            <SummaryCard
+              label="Revenue"
+              value={formatCents(detail.amount_cents)}
+              icon={<CreditCard className="h-3.5 w-3.5" />}
+            />
           </div>
 
           {smart.ai_summary ? (
@@ -278,7 +299,10 @@ export default function OrderDetailView({
             {tab === "driver" && <Driver360Tab detail={detail} />}
             {tab === "vehicle" && <Vehicle360Tab detail={detail} />}
             {tab === "pricing" && (
-              <PricingTab items={pricing?.items} total={detail.quote_amount_cents ?? detail.amount_cents} />
+              <PricingTab
+                items={pricing?.items}
+                total={detail.quote_amount_cents ?? detail.amount_cents}
+              />
             )}
             {tab === "payments" && <PaymentsTab detail={detail} />}
             {tab === "invoices" && <InvoicesTab detail={detail} />}
@@ -424,7 +448,12 @@ function QuickActions({ detail, actions }: { detail: OrderDetail; actions: Order
             </Button>
           </a>
         ) : (
-          <Button key={item.label} variant="outline" className="px-2 py-1 text-xs" onClick={item.onClick}>
+          <Button
+            key={item.label}
+            variant="outline"
+            className="px-2 py-1 text-xs"
+            onClick={item.onClick}
+          >
             {item.label}
           </Button>
         )
@@ -455,7 +484,9 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
   return (
     <div className="flex justify-between gap-4 border-b border-primary/5 py-2 text-sm last:border-0">
       <span className="text-muted">{label}</span>
-      <span className={cn("text-right text-primary", mono && "font-mono text-xs break-all")}>{value}</span>
+      <span className={cn("text-right text-primary", mono && "font-mono text-xs break-all")}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -479,7 +510,10 @@ function OverviewTab({
         </div>
         <div>
           <h3 className="mb-3 font-semibold text-primary">Financial</h3>
-          <Row label="Quote" value={detail.quote_amount_cents ? formatCents(detail.quote_amount_cents) : "—"} />
+          <Row
+            label="Quote"
+            value={detail.quote_amount_cents ? formatCents(detail.quote_amount_cents) : "—"}
+          />
           <Row label="Order amount" value={formatCents(detail.amount_cents)} />
           <Row label="Payment" value={detail.payment_status || "—"} />
           <Row label="Invoice" value={detail.invoice_number || "Not generated"} mono />
@@ -544,11 +578,16 @@ function TrackingTab({
       <div>
         <h3 className="mb-2 font-semibold">Current position</h3>
         <Row label="State" value={formatState(detail.state)} />
-        <Row label="Scheduled" value={detail.scheduled_at ? String(detail.scheduled_at).slice(0, 16) : "—"} />
+        <Row
+          label="Scheduled"
+          value={detail.scheduled_at ? String(detail.scheduled_at).slice(0, 16) : "—"}
+        />
         {live?.driver_location ? (
           <Row label="GPS" value={JSON.stringify(live.driver_location)} mono />
         ) : (
-          <p className="text-sm text-muted">Live GPS syncs via Fleetbase when order is in flight.</p>
+          <p className="text-sm text-muted">
+            Live GPS syncs via Fleetbase when order is in flight.
+          </p>
         )}
       </div>
       {history.length > 0 && (
@@ -577,11 +616,13 @@ function StopsTab({ stops }: { stops: unknown[] }) {
       {stops.map((stop, i) => (
         <div key={i} className="rounded-xl border border-primary/10 p-3">
           <p className="mb-2 text-xs font-bold text-muted">Stop {i + 1}</p>
-          {typeof stop === "object" && stop !== null
-            ? Object.entries(stop as Record<string, unknown>).map(([k, v]) => (
-                <Row key={k} label={k.replace(/_/g, " ")} value={v == null ? "—" : String(v)} />
-              ))
-            : <Row label="Address" value={String(stop)} />}
+          {typeof stop === "object" && stop !== null ? (
+            Object.entries(stop as Record<string, unknown>).map(([k, v]) => (
+              <Row key={k} label={k.replace(/_/g, " ")} value={v == null ? "—" : String(v)} />
+            ))
+          ) : (
+            <Row label="Address" value={String(stop)} />
+          )}
         </div>
       ))}
     </div>
@@ -869,7 +910,9 @@ function ClaimsTab({ claims }: { claims: Array<Record<string, unknown>> }) {
           <Link href={`/claims/${c.id}`} className="font-medium text-secondary hover:underline">
             {String(c.claim_type)} — {String(c.status)}
           </Link>
-          {c.description ? <p className="mt-1 text-xs text-muted">{String(c.description)}</p> : null}
+          {c.description ? (
+            <p className="mt-1 text-xs text-muted">{String(c.description)}</p>
+          ) : null}
         </li>
       ))}
       {!claims.length && <p className="text-sm text-muted">No claims on this order</p>}
@@ -893,13 +936,7 @@ function SupportTab({ tickets }: { tickets: Array<Record<string, unknown>> }) {
   );
 }
 
-function EventListTab({
-  items,
-  empty,
-}: {
-  items: Array<Record<string, unknown>>;
-  empty: string;
-}) {
+function EventListTab({ items, empty }: { items: Array<Record<string, unknown>>; empty: string }) {
   return (
     <div className="space-y-2">
       {items.map((e, i) => (
@@ -936,7 +973,9 @@ function AuditTab({ detail }: { detail: OrderDetail }) {
             {a.created_at ? relativeTime(String(a.created_at)) : ""}
             {a.actor_user_id ? ` · ${String(a.actor_user_id)}` : ""}
           </p>
-          {a.payload && typeof a.payload === "object" && Object.keys(a.payload as object).length > 0 ? (
+          {a.payload &&
+          typeof a.payload === "object" &&
+          Object.keys(a.payload as object).length > 0 ? (
             <pre className="mt-1 overflow-auto rounded bg-gray-bg p-2 text-[10px]">
               {JSON.stringify(a.payload, null, 2)}
             </pre>

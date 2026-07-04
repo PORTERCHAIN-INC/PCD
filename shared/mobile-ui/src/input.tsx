@@ -1,12 +1,7 @@
 "use client";
 
 import { forwardRef, useState } from "react";
-import {
-  TextInput,
-  View,
-  type TextInputProps,
-  type ViewStyle,
-} from "react-native";
+import { TextInput, View, type TextInputProps, type ViewStyle } from "react-native";
 import { useTheme } from "@porterchain/mobile-theme";
 import { Caption, Label } from "./typography";
 

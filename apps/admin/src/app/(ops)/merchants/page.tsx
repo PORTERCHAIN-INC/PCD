@@ -38,7 +38,15 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { merchants, healthTone, type MerchantRow } from "@/lib/merchants";
 import { Dropdown, FilterChip, ProvincePills } from "@/components/crm/filters";
-import { Badge, Button, EmptyState, Field, Input, Modal, Spinner } from "@/components/crm/primitives";
+import {
+  Badge,
+  Button,
+  EmptyState,
+  Field,
+  Input,
+  Modal,
+  Spinner,
+} from "@/components/crm/primitives";
 import { money, shortDate, relativeTime, titleCase, downloadCsv, toCsv } from "@/lib/crmFormat";
 
 const STATUSES = ["PENDING", "ONBOARDING", "ACTIVE", "SUSPENDED"];
@@ -190,11 +198,25 @@ export default function MerchantsPage() {
       r.sort((a, b) => b.outstanding_balance_cents - a.outstanding_balance_cents);
     else if (sortBy === "name") r.sort((a, b) => a.company_name.localeCompare(b.company_name));
     return r;
-  }, [data, search, status, industry, province, city, terms, contract, apiOnly, health, onboardingFilter, sortBy]);
+  }, [
+    data,
+    search,
+    status,
+    industry,
+    province,
+    city,
+    terms,
+    contract,
+    apiOnly,
+    health,
+    onboardingFilter,
+    sortBy,
+  ]);
 
   const activeFilters =
-    [status, industry, province, city, terms, contract, health, apiOnly, onboardingFilter].filter(Boolean).length +
-    (sortBy !== "recent" ? 1 : 0);
+    [status, industry, province, city, terms, contract, health, apiOnly, onboardingFilter].filter(
+      Boolean
+    ).length + (sortBy !== "recent" ? 1 : 0);
 
   function clearFilters() {
     setStatus("");
@@ -232,7 +254,9 @@ export default function MerchantsPage() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Registration failed";
       if (msg === "merchant_email_exists" || msg === "merchant_user_email_exists") {
-        setRegisterError("This email is already registered — find them in the merchants list below.");
+        setRegisterError(
+          "This email is already registered — find them in the merchants list below."
+        );
       } else if (msg === "merchant_create_failed") {
         setRegisterError("Could not create merchant. Check the API logs and try again.");
       } else {
@@ -243,7 +267,11 @@ export default function MerchantsPage() {
     }
   }
 
-  async function runAction(merchantId: string, action: string, fn: (token: string) => Promise<void>) {
+  async function runAction(
+    merchantId: string,
+    action: string,
+    fn: (token: string) => Promise<unknown>
+  ) {
     setBusy(`${merchantId}:${action}`);
     try {
       const token = await getApiToken();
@@ -392,16 +420,20 @@ export default function MerchantsPage() {
                   Enable user
                 </Button>
               )}
-              {m.can_approve && m.portal_ready === false && m.onboarding_phase === "needs_approval" && (
-                <Button
-                  variant="ghost"
-                  className="h-8 px-2 text-xs"
-                  disabled={isBusy}
-                  onClick={() => void runAction(id, "approve", (token) => merchants.approve(token, id))}
-                >
-                  Approve
-                </Button>
-              )}
+              {m.can_approve &&
+                m.portal_ready === false &&
+                m.onboarding_phase === "needs_approval" && (
+                  <Button
+                    variant="ghost"
+                    className="h-8 px-2 text-xs"
+                    disabled={isBusy}
+                    onClick={() =>
+                      void runAction(id, "approve", (token) => merchants.approve(token, id))
+                    }
+                  >
+                    Approve
+                  </Button>
+                )}
             </div>
           );
         },
@@ -930,7 +962,9 @@ export default function MerchantsPage() {
               Cancel
             </Button>
             <Button
-              disabled={!registerForm.email.trim() || !registerForm.company_name.trim() || registering}
+              disabled={
+                !registerForm.email.trim() || !registerForm.company_name.trim() || registering
+              }
               onClick={() => void registerMerchant(registerForm.email, registerForm.company_name)}
             >
               {registering ? "Creating…" : "Create & activate"}
@@ -940,8 +974,8 @@ export default function MerchantsPage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-muted">
-            Creates the merchant organization, links the Clerk user, sends an invitation if needed, and activates
-            portal access.
+            Creates the merchant organization, links the Clerk user, sends an invitation if needed,
+            and activates portal access.
           </p>
           <Field label="Owner email">
             <Input

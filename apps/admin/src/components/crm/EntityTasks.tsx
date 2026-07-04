@@ -38,9 +38,7 @@ export function EntityTasks({
   const [version, setVersion] = useState(0);
   const { data } = useApiData(
     (t) =>
-      entityType === "driver"
-        ? drivers.tasks(t, entityId)
-        : crm.tasks(t, { entity_id: entityId }),
+      entityType === "driver" ? drivers.tasks(t, entityId) : crm.tasks(t, { entity_id: entityId }),
     [entityType, entityId, version],
     { key: `${entityType}-${entityId}-tasks` }
   );

@@ -3,24 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowRight,
-  Box,
-  Car,
-  GripVertical,
-  Plus,
-  Save,
-  Search,
-  Truck,
-} from "lucide-react";
+import { ArrowRight, Box, Car, GripVertical, Plus, Save, Search, Truck } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Badge, Button, Drawer, Field, Input, Textarea } from "@/components/crm/primitives";
-import {
-  settingsApi,
-  type VehicleClassConfig,
-  type VehiclesOverview,
-} from "@/lib/settings";
+import { settingsApi, type VehicleClassConfig, type VehiclesOverview } from "@/lib/settings";
 import { SECTION_DESCRIPTIONS } from "@/lib/settings-metadata";
 import { SettingsCard, SettingsPageHeader, StatTile, Toggle } from "../ui/SettingsPrimitives";
 
@@ -173,7 +160,9 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
     if (!target) return;
     const fleet = fleetByClass.get(target.id)?.fleet_count ?? 0;
     if (fleet > 0) {
-      window.alert(`Cannot remove "${target.label}" — ${fleet} registered fleet vehicle(s) use this class.`);
+      window.alert(
+        `Cannot remove "${target.label}" — ${fleet} registered fleet vehicle(s) use this class.`
+      );
       return;
     }
     if (classes.length <= 1) {
@@ -225,9 +214,14 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
       <div className="flex flex-wrap gap-3 rounded-xl border border-primary/10 bg-gray-bg/40 px-4 py-3 text-sm">
         <span className="text-muted">
           Default booking class:{" "}
-          <strong className="text-primary">{defaultClass ?? overview?.default_vehicle_class ?? "sedan"}</strong>
+          <strong className="text-primary">
+            {defaultClass ?? overview?.default_vehicle_class ?? "sedan"}
+          </strong>
         </span>
-        <Link href="/settings?section=booking" className="inline-flex items-center gap-1 font-medium text-secondary">
+        <Link
+          href="/settings?section=booking"
+          className="inline-flex items-center gap-1 font-medium text-secondary"
+        >
           Change in Booking settings <ArrowRight className="h-3.5 w-3.5" />
         </Link>
         <Link href="/pricing" className="inline-flex items-center gap-1 font-medium text-secondary">
@@ -273,7 +267,10 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
                 const isDefault =
                   item.id === (defaultClass ?? overview?.default_vehicle_class ?? "sedan");
                 return (
-                  <tr key={item.id} className="border-b border-primary/5 last:border-0 hover:bg-secondary/5">
+                  <tr
+                    key={item.id}
+                    className="border-b border-primary/5 last:border-0 hover:bg-secondary/5"
+                  >
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-3">
                         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
@@ -286,13 +283,17 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
                           </p>
                           <p className="font-mono text-xs text-muted">{item.id}</p>
                           {item.description && (
-                            <p className="mt-0.5 max-w-xs truncate text-xs text-muted">{item.description}</p>
+                            <p className="mt-0.5 max-w-xs truncate text-xs text-muted">
+                              {item.description}
+                            </p>
                           )}
                         </div>
                       </div>
                     </td>
                     <td className="px-3 py-3">
-                      <p className="font-medium text-primary">{item.capacity_kg.toLocaleString()} kg</p>
+                      <p className="font-medium text-primary">
+                        {item.capacity_kg.toLocaleString()} kg
+                      </p>
                       {(item.max_length_cm || item.max_width_cm || item.max_height_cm) && (
                         <p className="text-xs text-muted">
                           {[item.max_length_cm, item.max_width_cm, item.max_height_cm]
@@ -330,7 +331,9 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => toggleField(index, "booking_enabled", item.booking_enabled === false)}
+                          onClick={() =>
+                            toggleField(index, "booking_enabled", item.booking_enabled === false)
+                          }
                           className="text-xs font-medium text-secondary hover:underline"
                         >
                           {item.booking_enabled !== false ? "Disable" : "Enable"}
@@ -357,38 +360,47 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
             </tbody>
           </table>
           {filtered.length === 0 && (
-            <p className="py-10 text-center text-sm text-muted">No vehicle classes match your search.</p>
+            <p className="py-10 text-center text-sm text-muted">
+              No vehicle classes match your search.
+            </p>
           )}
         </div>
       </SettingsCard>
 
-      <SettingsCard title="How this works" description="Porterchain owns the catalog; Fleetbase owns execution">
+      <SettingsCard
+        title="How this works"
+        description="Porterchain owns the catalog; Fleetbase owns execution"
+      >
         <ul className="space-y-2 text-sm text-muted">
           <li className="flex gap-2">
             <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
             <span>
-              <strong className="text-primary">Vehicle classes</strong> define what shippers can book and how routes
-              are planned. They sync to pricing tariffs and the website quote widget.
+              <strong className="text-primary">Vehicle classes</strong> define what shippers can
+              book and how routes are planned. They sync to pricing tariffs and the website quote
+              widget.
             </span>
           </li>
           <li className="flex gap-2">
             <Truck className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
             <span>
-              <strong className="text-primary">Fleet vehicles</strong> are physical units (plate, compliance, driver
-              assignment) registered on each driver profile — not edited here.
+              <strong className="text-primary">Fleet vehicles</strong> are physical units (plate,
+              compliance, driver assignment) registered on each driver profile — not edited here.
             </span>
           </li>
           <li className="flex gap-2">
             <Car className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
             <span>
-              Disabling booking for a class hides it from new quotes but does not remove existing driver vehicles or
-              tariffs.
+              Disabling booking for a class hides it from new quotes but does not remove existing
+              driver vehicles or tariffs.
             </span>
           </li>
         </ul>
       </SettingsCard>
 
-      <SettingsCard title="Change reason" description="Optional — recorded in the settings audit log">
+      <SettingsCard
+        title="Change reason"
+        description="Optional — recorded in the settings audit log"
+      >
         <Input
           placeholder="e.g. Added sprinter class for GTA merchant routes"
           value={reason}

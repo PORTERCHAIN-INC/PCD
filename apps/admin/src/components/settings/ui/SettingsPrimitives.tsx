@@ -8,7 +8,13 @@ import { healthTone } from "@/lib/settings";
 export function StatusPill({ status }: { status: string }) {
   const tone = healthTone(status);
   const Icon =
-    tone === "green" ? CheckCircle2 : tone === "red" ? XCircle : tone === "amber" ? AlertTriangle : Info;
+    tone === "green"
+      ? CheckCircle2
+      : tone === "red"
+        ? XCircle
+        : tone === "amber"
+          ? AlertTriangle
+          : Info;
   return (
     <span
       className={cn(
@@ -38,7 +44,9 @@ export function SettingsPageHeader({
     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-primary/10 pb-5">
       <div className="min-w-0">
         <h2 className="text-xl font-bold tracking-tight text-primary">{title}</h2>
-        {description && <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">{description}</p>}
+        {description && (
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">{description}</p>
+        )}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
@@ -145,10 +153,10 @@ export function MasterruleCallout() {
     <div className="flex gap-3 rounded-xl border border-secondary/20 bg-secondary/5 px-4 py-3 text-xs text-primary/80">
       <Info className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
       <p>
-        <span className="font-semibold text-primary">Architecture policy:</span> Runtime settings are stored in
-        Porterchain <code className="rounded bg-white px-1">SystemConfig</code>. Secrets and API keys remain in
-        environment variables — this UI shows status only, never credentials. Business logic stays in Application
-        Services per masterrule §3.
+        <span className="font-semibold text-primary">Architecture policy:</span> Runtime settings
+        are stored in Porterchain <code className="rounded bg-white px-1">SystemConfig</code>.
+        Secrets and API keys remain in environment variables — this UI shows status only, never
+        credentials. Business logic stays in Application Services per masterrule §3.
       </p>
     </div>
   );

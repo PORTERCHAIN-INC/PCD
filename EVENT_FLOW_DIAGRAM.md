@@ -6,20 +6,20 @@
 
 ## Driver lifecycle events (audit checklist)
 
-| Event | String | Emitted? | Source |
-|-------|--------|----------|--------|
-| Driver Assigned | `order.driver_assigned` | ✅ | Admin ops, Fleetbase webhook |
-| Driver Accepted | `order.driver_accepted` | ✅ | driver-platform availability |
-| Driver Rejected | `order.driver_rejected` | ✅ | driver-platform |
-| Pickup Started | `order.arrived_pickup` | ✅ | driver stops, webhooks |
-| Picked Up | `order.pickup_completed` | ✅ | driver stops, webhooks |
-| Transit | `order.in_transit` | ⚠️ | Webhooks primarily |
-| Near Delivery | `order.near_delivery` | ✅ | **Fixed** — driver arrive at dropoff |
-| Delivered | `order.delivered` | ✅ | driver stops, webhooks |
-| Proof Completed | `order.pod_completed` | ✅ | POD service, webhooks |
-| Location Updated | `order.tracking_updated` | ✅ | Fleetbase tracking webhooks |
-| Fleetbase Sync | `fleetbase.status_updated` | ✅ | WebhookProcessor |
-| Route Optimized | `route.optimized` | ❌ | Catalog only — Fleetbase orchestrator not wired |
+| Event            | String                     | Emitted? | Source                                          |
+| ---------------- | -------------------------- | -------- | ----------------------------------------------- |
+| Driver Assigned  | `order.driver_assigned`    | ✅       | Admin ops, Fleetbase webhook                    |
+| Driver Accepted  | `order.driver_accepted`    | ✅       | driver-platform availability                    |
+| Driver Rejected  | `order.driver_rejected`    | ✅       | driver-platform                                 |
+| Pickup Started   | `order.arrived_pickup`     | ✅       | driver stops, webhooks                          |
+| Picked Up        | `order.pickup_completed`   | ✅       | driver stops, webhooks                          |
+| Transit          | `order.in_transit`         | ⚠️       | Webhooks primarily                              |
+| Near Delivery    | `order.near_delivery`      | ✅       | **Fixed** — driver arrive at dropoff            |
+| Delivered        | `order.delivered`          | ✅       | driver stops, webhooks                          |
+| Proof Completed  | `order.pod_completed`      | ✅       | POD service, webhooks                           |
+| Location Updated | `order.tracking_updated`   | ✅       | Fleetbase tracking webhooks                     |
+| Fleetbase Sync   | `fleetbase.status_updated` | ✅       | WebhookProcessor                                |
+| Route Optimized  | `route.optimized`          | ❌       | Catalog only — Fleetbase orchestrator not wired |
 
 ---
 
@@ -79,26 +79,26 @@ invoice.created + order.invoiced → audit
 
 ## Registered bus handlers
 
-| Event | Handler |
-|-------|---------|
-| `order.dispatch_ready` | Fleetbase order sync |
-| `order.driver_assigned` | Fleetbase dispatch assign |
-| `order.booked` | Email notification |
-| `booking.confirmed` | Confirmation email |
-| `payment.succeeded` | Billing queue |
-| `webhook.received` | Fleetbase processor |
-| `notification.queued` | Email/SMS/push queues |
-| `claim.opened` | Claim notification |
-| `support.ticket_created` | Support notification |
-| `order.*` | Merchant webhook fanout (stub) |
+| Event                    | Handler                        |
+| ------------------------ | ------------------------------ |
+| `order.dispatch_ready`   | Fleetbase order sync           |
+| `order.driver_assigned`  | Fleetbase dispatch assign      |
+| `order.booked`           | Email notification             |
+| `booking.confirmed`      | Confirmation email             |
+| `payment.succeeded`      | Billing queue                  |
+| `webhook.received`       | Fleetbase processor            |
+| `notification.queued`    | Email/SMS/push queues          |
+| `claim.opened`           | Claim notification             |
+| `support.ticket_created` | Support notification           |
+| `order.*`                | Merchant webhook fanout (stub) |
 
 ---
 
 ## Webhooks (ingress only)
 
-| Provider | Endpoint | Status |
-|----------|----------|--------|
-| Stripe | `POST /webhooks/stripe` | ✅ |
-| Fleetbase | `POST /webhooks/fleetbase` | ✅ |
-| Firebase | — | ❌ Push outbound only (FCM), no ingress webhook |
-| Google Maps | — | ✅ Correctly absent |
+| Provider    | Endpoint                   | Status                                          |
+| ----------- | -------------------------- | ----------------------------------------------- |
+| Stripe      | `POST /webhooks/stripe`    | ✅                                              |
+| Fleetbase   | `POST /webhooks/fleetbase` | ✅                                              |
+| Firebase    | —                          | ❌ Push outbound only (FCM), no ingress webhook |
+| Google Maps | —                          | ✅ Correctly absent                             |

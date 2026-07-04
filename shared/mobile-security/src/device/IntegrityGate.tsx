@@ -15,7 +15,9 @@ export function IntegrityGate({
   children: ReactNode;
   mode?: "warn" | "block";
 }) {
-  const [result, setResult] = useState<Awaited<ReturnType<typeof checkDeviceIntegrity>> | null>(null);
+  const [result, setResult] = useState<Awaited<ReturnType<typeof checkDeviceIntegrity>> | null>(
+    null
+  );
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {

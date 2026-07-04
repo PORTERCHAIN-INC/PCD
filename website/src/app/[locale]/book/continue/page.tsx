@@ -11,7 +11,13 @@ import Button from "@/components/ui/Button";
 import { getAnonymousSessionId } from "@/lib/anonymous-session";
 import { clearBookingDraftHint } from "@/lib/booking-draft-hint";
 import { isClerkConfigured } from "@/lib/env";
-import { getActiveBookingDraft, getQuote, mockCompleteCheckout, startBooking, type QuoteResult } from "@/lib/api";
+import {
+  getActiveBookingDraft,
+  getQuote,
+  mockCompleteCheckout,
+  startBooking,
+  type QuoteResult,
+} from "@/lib/api";
 import { fetchAuthMe } from "@/lib/auth";
 import { publicEnv } from "@/lib/env";
 
@@ -148,7 +154,9 @@ function BookContinueContent() {
       return;
     }
     if (!consentComplete) {
-      setError("Please accept the Terms, Privacy Policy and dangerous-goods declaration to continue.");
+      setError(
+        "Please accept the Terms, Privacy Policy and dangerous-goods declaration to continue."
+      );
       return;
     }
     if (clerkConfigured && staffPortal) {
@@ -219,7 +227,9 @@ function BookContinueContent() {
         {quoteError && <p className="text-red-600 type-small mb-4">{quoteError}</p>}
         {staffPortal && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-6 space-y-3">
-            <p className="type-small text-amber-900">{t("staffAccountBlocked", { portal: staffPortal })}</p>
+            <p className="type-small text-amber-900">
+              {t("staffAccountBlocked", { portal: staffPortal })}
+            </p>
             <p className="type-caption text-amber-800">{t("staffAccountHint")}</p>
             {returnUrl && (
               <SignOutButton redirectUrl={returnUrl}>
@@ -280,14 +290,24 @@ function BookContinueContent() {
               <div className="rounded-2xl border border-gray-200 p-4 space-y-3">
                 <ConsentCheckbox checked={terms} onChange={setTerms}>
                   I agree to the{" "}
-                  <a href="/terms" target="_blank" className="text-secondary underline" rel="noreferrer">
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    className="text-secondary underline"
+                    rel="noreferrer"
+                  >
                     Terms of Service
                   </a>
                   .
                 </ConsentCheckbox>
                 <ConsentCheckbox checked={privacy} onChange={setPrivacy}>
                   I accept the{" "}
-                  <a href="/privacy" target="_blank" className="text-secondary underline" rel="noreferrer">
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    className="text-secondary underline"
+                    rel="noreferrer"
+                  >
                     Privacy Policy
                   </a>{" "}
                   (PIPEDA).

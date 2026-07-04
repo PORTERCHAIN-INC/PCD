@@ -4,10 +4,10 @@ Enterprise-grade React Native UI for **Driver** and **Customer** apps. Portercha
 
 ## Packages
 
-| Package | Role |
-|---------|------|
+| Package                     | Role                                                       |
+| --------------------------- | ---------------------------------------------------------- |
 | `@porterchain/mobile-theme` | Colors, spacing, typography, shadows, motion, status tones |
-| `@porterchain/mobile-ui` | Components (this design system) |
+| `@porterchain/mobile-ui`    | Components (this design system)                            |
 
 ## Setup
 
@@ -28,15 +28,15 @@ export function AppProviders({ children }) {
 
 ## Typography
 
-| Token | Size | Use |
-|-------|------|-----|
-| `display` | 36 | Hero numbers, splash |
-| `headline` | 24 | Screen titles |
-| `title` | 17 | Card headers |
-| `body` | 15 | Default copy |
-| `label` | 13 | Form labels, table headers |
-| `caption` | 11 | Meta, timestamps |
-| `overline` | 10 | Section labels (uppercase) |
+| Token      | Size | Use                        |
+| ---------- | ---- | -------------------------- |
+| `display`  | 36   | Hero numbers, splash       |
+| `headline` | 24   | Screen titles              |
+| `title`    | 17   | Card headers               |
+| `body`     | 15   | Default copy               |
+| `label`    | 13   | Form labels, table headers |
+| `caption`  | 11   | Meta, timestamps           |
+| `overline` | 10   | Section labels (uppercase) |
 
 ```tsx
 import { Headline, Body, Caption } from "@porterchain/mobile-ui";
@@ -51,12 +51,13 @@ import { Headline, Body, Caption } from "@porterchain/mobile-ui";
 
 ```tsx
 import { Spacer } from "@porterchain/mobile-ui";
-<Spacer size="2xl" />
+<Spacer size="2xl" />;
 ```
 
 ## Components
 
 ### Buttons
+
 Variants: `primary` · `secondary` · `ghost` · `outline` · `danger`  
 Sizes: `sm` · `md` · `lg` (44pt min touch on `md`)
 
@@ -65,6 +66,7 @@ Sizes: `sm` · `md` · `lg` (44pt min touch on `md`)
 ```
 
 ### Cards
+
 ```tsx
 <Card elevated onPress={open}>
   <CardHeader title="Stop 3" subtitle="123 Main St" action={<Badge label="ETA 4m" />} />
@@ -72,12 +74,14 @@ Sizes: `sm` · `md` · `lg` (44pt min touch on `md`)
 ```
 
 ### Inputs & Search
+
 ```tsx
 <Input label="Phone" hint="Include country code" error={errors.phone} />
 <SearchInput placeholder="Search orders…" />
 ```
 
 ### Lists & Tables
+
 ```tsx
 <ListSection title="Active jobs">
   <ListItem title="PC-1042" subtitle="Downtown" meta="2.1 km" onPress={open} />
@@ -87,6 +91,7 @@ Sizes: `sm` · `md` · `lg` (44pt min touch on `md`)
 ```
 
 ### Badges & Status Chips
+
 ```tsx
 <Badge label="Live" variant="success" dot />
 <StatusChip label="In transit" tone="active" />
@@ -95,34 +100,39 @@ Sizes: `sm` · `md` · `lg` (44pt min touch on `md`)
 Tones: `neutral` · `info` · `success` · `warning` · `danger` · `active` · `pending` · `completed` · `cancelled`
 
 ### Toast
+
 ```tsx
 const { show } = useToast();
 show("Route updated", "success");
 ```
 
 ### Dialogs & Bottom Sheets
+
 ```tsx
-<Dialog visible={open} title="Cancel stop?" destructive onConfirm={cancel} onCancel={close} />
+<Dialog visible={open} title="Cancel stop?" destructive onConfirm={cancel} onCancel={close} />;
 
 const sheetRef = useRef<BottomSheetModal>(null);
 <SheetModal ref={sheetRef} title="Proof of delivery" snapPoints={["50%", "90%"]}>
   ...
-</SheetModal>
+</SheetModal>;
 ```
 
 ### Skeletons
+
 ```tsx
 <SkeletonList count={5} />
 <SkeletonCard />
 ```
 
 ### Charts
+
 ```tsx
 <BarChart data={[{ label: "Mon", value: 12 }, ...]} />
 <MetricCard label="Earnings" value="$284" delta="+12%" trend={[4,6,5,8,12]} />
 ```
 
 ### Timeline & Maps
+
 ```tsx
 <Timeline items={[{ id: "1", title: "Picked up", timestamp: "9:02 AM", tone: "completed" }]} />
 
@@ -132,6 +142,7 @@ const sheetRef = useRef<BottomSheetModal>(null);
 ```
 
 ### State Views
+
 ```tsx
 <LoadingState message="Syncing route…" />
 <EmptyState title="No jobs" action={{ label: "Go online", onPress }} />
@@ -140,12 +151,15 @@ const sheetRef = useRef<BottomSheetModal>(null);
 ```
 
 ### Motion
+
 ```tsx
 import { FadeInDown, PressableScale } from "@porterchain/mobile-ui";
 
 <Animated.View entering={FadeInDown.duration(280)}>
-  <PressableScale onPress={tap}><Card>...</Card></PressableScale>
-</Animated.View>
+  <PressableScale onPress={tap}>
+    <Card>...</Card>
+  </PressableScale>
+</Animated.View>;
 ```
 
 ## Theming

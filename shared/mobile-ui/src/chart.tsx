@@ -33,7 +33,10 @@ export function BarChart({
         {data.map((point) => {
           const barHeight = Math.max((point.value / max) * (height - 24), 4);
           return (
-            <View key={point.label} style={{ flex: 1, alignItems: "center", gap: theme.spacing.xs }}>
+            <View
+              key={point.label}
+              style={{ flex: 1, alignItems: "center", gap: theme.spacing.xs }}
+            >
               <View
                 style={{
                   width: "100%",
@@ -112,12 +115,25 @@ export function MetricCard({
       }}
     >
       <Label>{label}</Label>
-      <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
-        <Label style={{ fontSize: theme.typography.size["2xl"], color: theme.colors.text, fontWeight: "700" }}>
+      <View
+        style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}
+      >
+        <Label
+          style={{
+            fontSize: theme.typography.size["2xl"],
+            color: theme.colors.text,
+            fontWeight: "700",
+          }}
+        >
           {value}
         </Label>
         {delta ? (
-          <Caption style={{ color: deltaUp ? theme.colors.success : theme.colors.danger, fontWeight: "600" }}>
+          <Caption
+            style={{
+              color: deltaUp ? theme.colors.success : theme.colors.danger,
+              fontWeight: "600",
+            }}
+          >
             {delta}
           </Caption>
         ) : null}

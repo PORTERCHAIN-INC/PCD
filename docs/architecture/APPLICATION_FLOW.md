@@ -22,16 +22,16 @@ fleetbase_engine → fleetbase-adapter → Fleetbase
 
 ## Router → Service Mapping
 
-| Router prefix | Auth | Primary engines |
-|---------------|------|-----------------|
-| `/v1/quotes`, `/v1/booking-drafts`, `/v1/orders`, `/v1/payments` | Clerk (optional/public) | `booking_engine` |
-| `/v1/customers` | Clerk | `booking_engine.CustomerService` |
-| `/v1/merchant` | Clerk + merchant context | `merchant_engine` |
-| `/v1/admin` | Clerk + admin RBAC | `admin_engine` |
-| `/v1/admin/operations` | Admin RBAC | `admin_engine.ControlTowerService`, `LiveMapService` |
-| `/v1/admin/crm`, `/merchants`, `/drivers` | Admin RBAC | `admin_engine`, `CrmSalesService` |
-| `/driver-api/v1` | Porterchain JWT | `driver_engine`, `porterchain_driver` |
-| `/webhooks` | Signature verify | `StripeWebhookService`, `WebhookIngressService` |
+| Router prefix                                                    | Auth                     | Primary engines                                      |
+| ---------------------------------------------------------------- | ------------------------ | ---------------------------------------------------- |
+| `/v1/quotes`, `/v1/booking-drafts`, `/v1/orders`, `/v1/payments` | Clerk (optional/public)  | `booking_engine`                                     |
+| `/v1/customers`                                                  | Clerk                    | `booking_engine.CustomerService`                     |
+| `/v1/merchant`                                                   | Clerk + merchant context | `merchant_engine`                                    |
+| `/v1/admin`                                                      | Clerk + admin RBAC       | `admin_engine`                                       |
+| `/v1/admin/operations`                                           | Admin RBAC               | `admin_engine.ControlTowerService`, `LiveMapService` |
+| `/v1/admin/crm`, `/merchants`, `/drivers`                        | Admin RBAC               | `admin_engine`, `CrmSalesService`                    |
+| `/driver-api/v1`                                                 | Porterchain JWT          | `driver_engine`, `porterchain_driver`                |
+| `/webhooks`                                                      | Signature verify         | `StripeWebhookService`, `WebhookIngressService`      |
 
 ## Middleware
 

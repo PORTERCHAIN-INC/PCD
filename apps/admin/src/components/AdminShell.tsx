@@ -21,12 +21,17 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     <div className="flex h-dvh flex-col bg-gray-bg">
       <header className="relative z-50 shrink-0 overflow-visible border-b border-primary/10 bg-white shadow-sm">
         <div className="flex min-h-12 flex-wrap items-center gap-x-2 gap-y-1 px-2 py-1.5 sm:px-3">
-          <Link href="/dashboard" className="flex shrink-0 items-center gap-2 rounded-lg px-1 py-1 hover:bg-gray-bg">
+          <Link
+            href="/dashboard"
+            className="flex shrink-0 items-center gap-2 rounded-lg px-1 py-1 hover:bg-gray-bg"
+          >
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-sm font-bold text-white shadow-sm">
               P
             </span>
             <span className="hidden min-w-0 sm:block">
-              <span className="block text-sm font-bold leading-tight text-primary">Porterchain</span>
+              <span className="block text-sm font-bold leading-tight text-primary">
+                Porterchain
+              </span>
               <span className="block text-[10px] leading-tight text-muted">Admin</span>
             </span>
           </Link>

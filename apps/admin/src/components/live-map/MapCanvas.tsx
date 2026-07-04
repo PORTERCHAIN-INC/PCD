@@ -27,7 +27,9 @@ type Props = {
   onSelect: (type: string, id: string) => void;
   measureActive: boolean;
   drawMode: "none" | "rectangle" | "circle" | "polygon";
-  onDrawComplete?: (shape: google.maps.Polygon | google.maps.Circle | google.maps.Rectangle) => void;
+  onDrawComplete?: (
+    shape: google.maps.Polygon | google.maps.Circle | google.maps.Rectangle
+  ) => void;
   playbackFrames?: Array<{ lat: number; lng: number; driver_id: string }>;
   playbackIndex?: number;
 };
@@ -86,9 +88,7 @@ function MapLayersController({
       overlaySetMap(heatmapRef.current, null);
     }
     if (!layers.heatMap) return;
-    const pts = (data.heat_maps[heatMetric] ?? []).map(
-      (p) => new google.maps.LatLng(p.lat, p.lng)
-    );
+    const pts = (data.heat_maps[heatMetric] ?? []).map((p) => new google.maps.LatLng(p.lat, p.lng));
     if (!pts.length) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const layer = new (google.maps.visualization.HeatmapLayer as any)({
@@ -100,8 +100,8 @@ function MapLayersController({
     heatmapRef.current = layer;
     return () => {
       if (heatmapRef.current) {
-      overlaySetMap(heatmapRef.current, null);
-    }
+        overlaySetMap(heatmapRef.current, null);
+      }
     };
   }, [map, visualization, layers.heatMap, heatMetric, data.heat_maps]);
 
@@ -166,7 +166,11 @@ function ClusteredMarkers({
     return (
       <>
         {markers.map((m) => (
-          <AdvancedMarker key={m.id} position={{ lat: m.lat, lng: m.lng }} onClick={() => onSelect(m.type, m.id)}>
+          <AdvancedMarker
+            key={m.id}
+            position={{ lat: m.lat, lng: m.lng }}
+            onClick={() => onSelect(m.type, m.id)}
+          >
             {m.content}
           </AdvancedMarker>
         ))}
@@ -199,7 +203,9 @@ function DrawTools({
         : mode === "circle"
           ? google.maps.drawing.OverlayType.CIRCLE
           : google.maps.drawing.OverlayType.POLYGON;
-    managerRef.current = new (drawing.DrawingManager as new (opts?: object) => google.maps.drawing.DrawingManager)({
+    managerRef.current = new (
+      drawing.DrawingManager as new (opts?: object) => google.maps.drawing.DrawingManager
+    )({
       drawingMode: overlay,
       drawingControl: false,
       rectangleOptions: { fillColor: "#2563eb", fillOpacity: 0.15, strokeColor: "#2563eb" },
@@ -212,7 +218,9 @@ function DrawTools({
       (e: { overlay: google.maps.Polygon | google.maps.Circle | google.maps.Rectangle }) => {
         const shape = e.overlay as google.maps.Polygon | google.maps.Circle | google.maps.Rectangle;
         onComplete?.(shape);
-        (managerRef.current as unknown as { setDrawingMode: (m: null) => void })?.setDrawingMode(null);
+        (managerRef.current as unknown as { setDrawingMode: (m: null) => void })?.setDrawingMode(
+          null
+        );
       }
     );
     return () => {
@@ -248,7 +256,12 @@ function MeasureTool({ active }: { active: boolean }) {
     if (!map) return;
     overlaySetMap(lineRef.current, null);
     if (path.length < 2) return;
-    lineRef.current = new google.maps.Polyline({ path, strokeColor: "#2563eb", strokeWeight: 3, map });
+    lineRef.current = new google.maps.Polyline({
+      path,
+      strokeColor: "#2563eb",
+      strokeWeight: 3,
+      map,
+    });
   }, [map, path]);
 
   if (!active || path.length < 2) return null;
@@ -282,7 +295,10 @@ function DriverPin({
 }) {
   const color = driverMarkerColor(availability, online);
   return (
-    <div className="flex flex-col items-center gap-0.5" style={{ transform: `rotate(${heading ?? 0}deg)` }}>
+    <div
+      className="flex flex-col items-center gap-0.5"
+      style={{ transform: `rotate(${heading ?? 0}deg)` }}
+    >
       <div
         className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white shadow-lg"
         style={{ backgroundColor: color }}
@@ -380,7 +396,13 @@ export default function MapCanvas({
   }, [data.orders, layers.orders]);
 
   const staticMarkers = useMemo(() => {
-    const out: Array<{ id: string; type: string; lat: number; lng: number; content: React.ReactNode }> = [];
+    const out: Array<{
+      id: string;
+      type: string;
+      lat: number;
+      lng: number;
+      content: React.ReactNode;
+    }> = [];
     if (layers.warehouses) {
       for (const w of data.warehouses) {
         out.push({
@@ -388,7 +410,11 @@ export default function MapCanvas({
           type: "warehouse",
           lat: w.location.lat,
           lng: w.location.lng,
-          content: <div className="rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white shadow">WH</div>,
+          content: (
+            <div className="rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white shadow">
+              WH
+            </div>
+          ),
         });
       }
     }
@@ -400,7 +426,11 @@ export default function MapCanvas({
           type: "merchant",
           lat: m.location.lat,
           lng: m.location.lng,
-          content: <div className="rounded-full bg-violet-600 px-2 py-1 text-[10px] font-semibold text-white shadow">M</div>,
+          content: (
+            <div className="rounded-full bg-violet-600 px-2 py-1 text-[10px] font-semibold text-white shadow">
+              M
+            </div>
+          ),
         });
       }
     }
@@ -412,7 +442,11 @@ export default function MapCanvas({
           type: "customer",
           lat: c.location.lat,
           lng: c.location.lng,
-          content: <div className="rounded-full bg-teal-600 px-2 py-1 text-[10px] font-semibold text-white shadow">C</div>,
+          content: (
+            <div className="rounded-full bg-teal-600 px-2 py-1 text-[10px] font-semibold text-white shadow">
+              C
+            </div>
+          ),
         });
       }
     }
@@ -429,8 +463,8 @@ export default function MapCanvas({
         <div>
           <p className="text-lg font-semibold text-primary">Google Maps API key required</p>
           <p className="mt-2 max-w-md text-sm text-muted">
-            Set <code className="rounded bg-white px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to enable the live
-            operations map. Operational data is still available in the side panels.
+            Set <code className="rounded bg-white px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to
+            enable the live operations map. Operational data is still available in the side panels.
           </p>
         </div>
       </div>
@@ -464,7 +498,12 @@ export default function MapCanvas({
         )}
         {layers.geofences &&
           data.geofences.map((g) => {
-            const bounds = g.bounds as { north?: number; south?: number; east?: number; west?: number };
+            const bounds = g.bounds as {
+              north?: number;
+              south?: number;
+              east?: number;
+              west?: number;
+            };
             if (
               bounds.north == null ||
               bounds.south == null ||
@@ -475,7 +514,12 @@ export default function MapCanvas({
             return (
               <GeofenceRect
                 key={g.id}
-                bounds={{ north: bounds.north, south: bounds.south, east: bounds.east, west: bounds.west }}
+                bounds={{
+                  north: bounds.north,
+                  south: bounds.south,
+                  east: bounds.east,
+                  west: bounds.west,
+                }}
                 name={g.name}
               />
             );

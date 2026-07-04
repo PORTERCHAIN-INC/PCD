@@ -10,21 +10,10 @@ export type EnterpriseRole =
   | "admin"
   | "super_admin";
 
-export type PlatformRole =
-  | "visitor"
-  | EnterpriseRole
-  | "sales"
-  | "fleet_manager";
+export type PlatformRole = "visitor" | EnterpriseRole | "sales" | "fleet_manager";
 
 export type UserType =
-  | "visitor"
-  | "customer"
-  | "merchant"
-  | "driver"
-  | "admin"
-  | "dispatcher"
-  | "support"
-  | "sales";
+  "visitor" | "customer" | "merchant" | "driver" | "admin" | "dispatcher" | "support" | "sales";
 
 export type Permission =
   | "quote:read"

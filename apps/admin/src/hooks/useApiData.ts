@@ -54,7 +54,10 @@ export function useApiData<T>(
 
   return {
     data: query.data ?? null,
-    error: query.error instanceof Error ? query.error.message : query.error ? String(query.error) : null,
+    error: (() => {
+      const err = query.error as unknown;
+      return err instanceof Error ? err.message : err ? String(err) : null;
+    })(),
     loading: query.isLoading,
     isFetching: query.isFetching,
     isLoaded,

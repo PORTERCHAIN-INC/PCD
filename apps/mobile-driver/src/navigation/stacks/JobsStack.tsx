@@ -6,7 +6,10 @@ import { AssignmentQueueScreen } from "../../screens/jobs/AssignmentQueueScreen"
 import type { JobsStackParamList } from "../types";
 
 const PodScreen = createLazyScreen(() => import("../../screens/jobs/PodScreen"), "PodScreen");
-const IncidentScreen = createLazyScreen(() => import("../../screens/jobs/IncidentScreen"), "IncidentScreen");
+const IncidentScreen = createLazyScreen(
+  () => import("../../screens/jobs/IncidentScreen"),
+  "IncidentScreen"
+);
 
 const Stack = createNativeStackNavigator<JobsStackParamList>();
 

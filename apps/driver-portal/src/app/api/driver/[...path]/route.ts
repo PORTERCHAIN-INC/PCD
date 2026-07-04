@@ -35,7 +35,10 @@ async function refreshDriverTokens(refreshToken: string) {
   };
 }
 
-function applyTokenCookies(response: NextResponse, tokens: { access_token: string; refresh_token: string; expires_in?: number }) {
+function applyTokenCookies(
+  response: NextResponse,
+  tokens: { access_token: string; refresh_token: string; expires_in?: number }
+) {
   const accessMaxAge = tokens.expires_in ?? 60 * 60;
   response.cookies.set(ACCESS_COOKIE, tokens.access_token, cookieOptions(accessMaxAge));
   response.cookies.set(REFRESH_COOKIE, tokens.refresh_token, cookieOptions(60 * 60 * 24 * 30));

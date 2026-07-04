@@ -89,18 +89,11 @@ export default function DashboardPage() {
         <StatCard label="Delivered Today" value={String(data.delivered_today)} />
         <StatCard label="Monthly Orders" value={String(data.monthly_orders)} />
         <StatCard label="Monthly Spend" value={formatCents(data.monthly_spend_cents)} />
-        <StatCard
-          label="Outstanding Balance"
-          value={formatCents(data.outstanding_balance_cents)}
-        />
+        <StatCard label="Outstanding Balance" value={formatCents(data.outstanding_balance_cents)} />
         <StatCard label="Invoices Due" value={String(data.invoices_due)} />
         <StatCard label="Open Claims" value={String(data.open_claims)} />
         <StatCard label="Open Support Tickets" value={String(data.open_support_tickets)} />
-        <StatCard
-          label="On-Time Delivery"
-          value={`${data.on_time_percent}%`}
-          hint="This month"
-        />
+        <StatCard label="On-Time Delivery" value={`${data.on_time_percent}%`} hint="This month" />
         <StatCard
           label="Delivery Success"
           value={`${data.delivery_success_percent}%`}

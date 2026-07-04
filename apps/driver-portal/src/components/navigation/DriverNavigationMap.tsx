@@ -102,11 +102,7 @@ export function DriverNavigationMap({
       session.optimized_route?.polyline ??
       session.eta?.polyline;
     return poly ? decodePolyline(poly) : [];
-  }, [
-    session.delivery_route?.polyline,
-    session.optimized_route?.polyline,
-    session.eta?.polyline,
-  ]);
+  }, [session.delivery_route?.polyline, session.optimized_route?.polyline, session.eta?.polyline]);
 
   const replayFrames = session.replay ?? [];
   const replayPoint =
@@ -171,7 +167,12 @@ export function DriverNavigationMap({
           <Polyline path={pickupPath} strokeColor="#0ea5e9" strokeWeight={4} strokeOpacity={0.85} />
         )}
         {deliveryPath.length > 1 && (
-          <Polyline path={deliveryPath} strokeColor="#7c3aed" strokeWeight={4} strokeOpacity={0.8} />
+          <Polyline
+            path={deliveryPath}
+            strokeColor="#7c3aed"
+            strokeWeight={4}
+            strokeOpacity={0.8}
+          />
         )}
         {replayFrames.length > 1 && (
           <Polyline

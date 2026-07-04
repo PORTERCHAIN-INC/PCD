@@ -3,7 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { EnterpriseFlashList, LIST_ITEM_SIZES, usePrefetchOnFocus } from "@porterchain/mobile-performance";
+import {
+  EnterpriseFlashList,
+  LIST_ITEM_SIZES,
+  usePrefetchOnFocus,
+} from "@porterchain/mobile-performance";
 import { useTheme } from "@porterchain/mobile-theme";
 import {
   Body,
@@ -61,7 +65,14 @@ export function JobsScreen() {
       <ScreenHeader
         title="Jobs"
         subtitle="Today's deliveries"
-        right={<Button label="Queue" size="sm" variant="ghost" onPress={() => navigation.navigate("AssignmentQueue")} />}
+        right={
+          <Button
+            label="Queue"
+            size="sm"
+            variant="ghost"
+            onPress={() => navigation.navigate("AssignmentQueue")}
+          />
+        }
       />
       {isLoading ? (
         <View style={{ padding: theme.spacing.lg }}>
@@ -73,16 +84,30 @@ export function JobsScreen() {
           estimatedItemSize={LIST_ITEM_SIZES.standard}
           keyExtractor={(row) => row.id}
           contentContainerStyle={{ padding: theme.spacing.lg }}
-          ListFooterComponent={<Button label="Refresh" variant="ghost" onPress={() => void refetch()} style={{ marginTop: theme.spacing.lg }} />}
+          ListFooterComponent={
+            <Button
+              label="Refresh"
+              variant="ghost"
+              onPress={() => void refetch()}
+              style={{ marginTop: theme.spacing.lg }}
+            />
+          }
           renderItem={({ item }) => {
             if (item.kind === "section") {
               return (
-                <Body style={{ fontWeight: "700", marginTop: theme.spacing.md, marginBottom: theme.spacing.sm }}>
+                <Body
+                  style={{
+                    fontWeight: "700",
+                    marginTop: theme.spacing.md,
+                    marginBottom: theme.spacing.sm,
+                  }}
+                >
                   {item.title}
                 </Body>
               );
             }
-            const chipTone = item.tone === "active" ? "active" : item.tone === "pending" ? "pending" : "completed";
+            const chipTone =
+              item.tone === "active" ? "active" : item.tone === "pending" ? "pending" : "completed";
             return (
               <Card style={{ marginBottom: theme.spacing.sm }}>
                 <ListItem

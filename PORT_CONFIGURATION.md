@@ -80,12 +80,12 @@ API CORS (default) allows origins `3000`–`3003`: set `CORS_ORIGINS` in `apps/a
 
 Porterchain API is on **8001** locally.
 
-| Context                  | `EXPO_PUBLIC_API_URL`                              |
-| ------------------------ | -------------------------------------------------- |
-| iOS Simulator            | `http://localhost:8001` or `http://127.0.0.1:8001` |
-| Android Emulator         | `http://10.0.2.2:8001`                             |
-| Physical device (LAN)    | `http://<YOUR_LAN_IP>:8001`                        |
-| Production               | `https://api.porterchain.com`                      |
+| Context               | `EXPO_PUBLIC_API_URL`                              |
+| --------------------- | -------------------------------------------------- |
+| iOS Simulator         | `http://localhost:8001` or `http://127.0.0.1:8001` |
+| Android Emulator      | `http://10.0.2.2:8001`                             |
+| Physical device (LAN) | `http://<YOUR_LAN_IP>:8001`                        |
+| Production            | `https://api.porterchain.com`                      |
 
 ---
 
@@ -103,14 +103,14 @@ Porterchain API is on **8001** locally.
 
 ## Production URLs (subdomains — no local ports)
 
-| Service         | URL                              | Local port (dev) |
-| --------------- | -------------------------------- | ---------------- |
-| Website         | `https://porterchain.com`        | 3000             |
-| Merchant portal | `https://merchant.porterchain.com` | 3001           |
-| Admin platform  | `https://admin.porterchain.com`  | 3002             |
-| Driver portal   | `https://driver.porterchain.com` | 3003             |
-| Customer portal | `https://customer.porterchain.com` | 3004           |
-| Porterchain API | `https://api.porterchain.com`    | 8001             |
+| Service         | URL                                | Local port (dev) |
+| --------------- | ---------------------------------- | ---------------- |
+| Website         | `https://porterchain.com`          | 3000             |
+| Merchant portal | `https://merchant.porterchain.com` | 3001             |
+| Admin platform  | `https://admin.porterchain.com`    | 3002             |
+| Driver portal   | `https://driver.porterchain.com`   | 3003             |
+| Customer portal | `https://customer.porterchain.com` | 3004             |
+| Porterchain API | `https://api.porterchain.com`      | 8001             |
 
 See [`env/production.env.example`](env/production.env.example) for the full production env template.
 

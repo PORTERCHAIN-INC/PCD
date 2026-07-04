@@ -8,9 +8,7 @@ export type MerchantAccessProfile = {
   enterprise_role?: string;
 };
 
-export async function fetchMerchantAccess(
-  token: string
-): Promise<MerchantAccessProfile> {
+export async function fetchMerchantAccess(token: string): Promise<MerchantAccessProfile> {
   const res = await fetch(`${publicEnv.porterchainApiUrl}/v1/auth/merchant/access`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",

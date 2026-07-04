@@ -20,9 +20,13 @@ export function DeliveryTimeline({ events }: { events: Event[] }) {
                 isLast ? "bg-secondary ring-4 ring-secondary/20" : "bg-primary/30"
               }`}
             />
-            <p className="font-medium text-primary">{String(ev.label ?? ev.event_type ?? "Event")}</p>
+            <p className="font-medium text-primary">
+              {String(ev.label ?? ev.event_type ?? "Event")}
+            </p>
             {ev.to_state ? (
-              <p className="text-sm text-muted">Status → {String(ev.to_state).replace(/_/g, " ")}</p>
+              <p className="text-sm text-muted">
+                Status → {String(ev.to_state).replace(/_/g, " ")}
+              </p>
             ) : null}
             {ev.occurred_at ? (
               <p className="text-xs text-muted">{formatDate(String(ev.occurred_at))}</p>

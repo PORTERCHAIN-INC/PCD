@@ -23,7 +23,8 @@ type Props = {
 export default function ConfigFormPanel({ sectionId, data, onSave, saving }: Props) {
   const schema = CONFIG_FIELD_SCHEMAS[sectionId];
   const title = sectionId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  const description = SECTION_DESCRIPTIONS[sectionId] ?? "Runtime configuration stored in SystemConfig.";
+  const description =
+    SECTION_DESCRIPTIONS[sectionId] ?? "Runtime configuration stored in SystemConfig.";
 
   const initial = useMemo(() => data ?? {}, [data]);
   const [form, setForm] = useState<unknown>(initial);
@@ -52,7 +53,10 @@ export default function ConfigFormPanel({ sectionId, data, onSave, saving }: Pro
   }
 
   if (sectionId === "feature_flags") {
-    const flags = (typeof form === "object" && form !== null ? form : {}) as Record<string, boolean>;
+    const flags = (typeof form === "object" && form !== null ? form : {}) as Record<
+      string,
+      boolean
+    >;
     return (
       <div className="space-y-6">
         <SettingsPageHeader
@@ -64,7 +68,10 @@ export default function ConfigFormPanel({ sectionId, data, onSave, saving }: Pro
             </Button>
           }
         />
-        <SettingsCard title="Rollout toggles" description="Gradual feature enablement — no redeploy required">
+        <SettingsCard
+          title="Rollout toggles"
+          description="Gradual feature enablement — no redeploy required"
+        >
           <div className="space-y-2">
             {Object.entries(flags).map(([key, val]) => (
               <Toggle
@@ -82,7 +89,11 @@ export default function ConfigFormPanel({ sectionId, data, onSave, saving }: Pro
     );
   }
 
-  if (sectionId === "service_areas" || sectionId === "delivery_zones" || sectionId === "notifications") {
+  if (
+    sectionId === "service_areas" ||
+    sectionId === "delivery_zones" ||
+    sectionId === "notifications"
+  ) {
     return (
       <JsonConfigPanel
         title={title}
@@ -131,7 +142,10 @@ export default function ConfigFormPanel({ sectionId, data, onSave, saving }: Pro
           </Button>
         }
       />
-      <SettingsCard title="Configuration" description="Changes are audited with actor and optional reason">
+      <SettingsCard
+        title="Configuration"
+        description="Changes are audited with actor and optional reason"
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           {schema.map((field) => (
             <ConfigField
@@ -218,7 +232,10 @@ function ConfigField({
             onChange={(e) => onChange(field.key, e.target.value)}
             className="h-10 w-12 cursor-pointer rounded-lg border border-primary/15"
           />
-          <Input value={String(value ?? "")} onChange={(e) => onChange(field.key, e.target.value)} />
+          <Input
+            value={String(value ?? "")}
+            onChange={(e) => onChange(field.key, e.target.value)}
+          />
         </div>
       </Field>
     );
@@ -242,7 +259,10 @@ function ConfigField({
 
 function ReasonField({ reason, onReason }: { reason: string; onReason: (v: string) => void }) {
   return (
-    <SettingsCard title="Change reason" description="Optional — recorded in audit log for compliance">
+    <SettingsCard
+      title="Change reason"
+      description="Optional — recorded in audit log for compliance"
+    >
       <Input
         placeholder="e.g. Updated quote TTL per ops review"
         value={reason}
@@ -287,12 +307,19 @@ function JsonConfigPanel({
         title={title}
         description={description}
         actions={
-          <Button variant="primary" disabled={!dirty || saving || !!parseError} onClick={() => void onSave()}>
+          <Button
+            variant="primary"
+            disabled={!dirty || saving || !!parseError}
+            onClick={() => void onSave()}
+          >
             <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save changes"}
           </Button>
         }
       />
-      <SettingsCard title="Structured data" description="Arrays and complex objects — validated before save">
+      <SettingsCard
+        title="Structured data"
+        description="Arrays and complex objects — validated before save"
+      >
         <Textarea
           rows={16}
           className="font-mono text-xs"

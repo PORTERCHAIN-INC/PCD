@@ -11,7 +11,11 @@ export default function ClaimDetailPage({ params }: { params: Promise<{ id: stri
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const qc = useQueryClient();
 
-  const { data: detail, isLoading, refetch } = useQuery({
+  const {
+    data: detail,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["claim", id],
     enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
     queryFn: async () => {

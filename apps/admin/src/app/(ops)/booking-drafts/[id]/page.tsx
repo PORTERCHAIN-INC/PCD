@@ -11,7 +11,11 @@ export default function BookingDraftDetailPage({ params }: { params: Promise<{ i
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const qc = useQueryClient();
 
-  const { data: detail, isLoading, refetch } = useQuery({
+  const {
+    data: detail,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["booking-draft", id],
     enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
     queryFn: async () => {

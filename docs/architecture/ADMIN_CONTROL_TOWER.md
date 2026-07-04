@@ -10,29 +10,29 @@ The Admin Portal is the **business control tower**. It communicates exclusively 
 
 Central ops hub at `/v1/admin/operations/`:
 
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /stats` | KPI counters (orders, SLA, exceptions) |
-| `GET /board` | Dispatch board columns |
-| `GET /queue` | Dispatch-ready queue |
-| `GET /orders` | Active operational orders |
-| `GET /exceptions` | `OrderException` list |
-| `GET /sla` | SLA breach metrics |
-| `GET /activity` | Recent domain events |
-| `GET /ai` | AI ops insights (if configured) |
-| `POST /sync/process` | Fleetbase retry queue processor |
-| `GET /sync/health` | Sync job health |
+| Endpoint             | Purpose                                |
+| -------------------- | -------------------------------------- |
+| `GET /stats`         | KPI counters (orders, SLA, exceptions) |
+| `GET /board`         | Dispatch board columns                 |
+| `GET /queue`         | Dispatch-ready queue                   |
+| `GET /orders`        | Active operational orders              |
+| `GET /exceptions`    | `OrderException` list                  |
+| `GET /sla`           | SLA breach metrics                     |
+| `GET /activity`      | Recent domain events                   |
+| `GET /ai`            | AI ops insights (if configured)        |
+| `POST /sync/process` | Fleetbase retry queue processor        |
+| `GET /sync/health`   | Sync job health                        |
 
 ## Live Map (`LiveMapService`)
 
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /map`, `/live-map` | Map snapshot data |
-| `GET /live-map/search` | Entity search |
-| `GET /live-map/detail/{type}/{id}` | Order/driver detail |
-| `GET /live-map/playback` | Historical playback |
-| `GET /live-map/nearest-drivers` | Proximity query |
-| `WS /live-map/ws` | 5s realtime snapshots |
+| Endpoint                           | Purpose               |
+| ---------------------------------- | --------------------- |
+| `GET /map`, `/live-map`            | Map snapshot data     |
+| `GET /live-map/search`             | Entity search         |
+| `GET /live-map/detail/{type}/{id}` | Order/driver detail   |
+| `GET /live-map/playback`           | Historical playback   |
+| `GET /live-map/nearest-drivers`    | Proximity query       |
+| `WS /live-map/ws`                  | 5s realtime snapshots |
 
 ## Module Communication
 

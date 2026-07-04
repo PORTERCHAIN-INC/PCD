@@ -49,7 +49,10 @@ export class NotificationRealtimeClient {
         if (payload.type === "notification" && payload.payload) {
           this.options.onEvent({
             type: "notification",
-            payload: payload.payload as NotificationRealtimeEvent extends { type: "notification"; payload: infer P }
+            payload: payload.payload as NotificationRealtimeEvent extends {
+              type: "notification";
+              payload: infer P;
+            }
               ? P
               : never,
           });

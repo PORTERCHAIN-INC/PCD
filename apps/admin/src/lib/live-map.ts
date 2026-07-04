@@ -138,7 +138,10 @@ export const liveMapSnapshotSchema = z.object({
     open_claims: z.number(),
     open_exceptions: z.number(),
   }),
-  heat_maps: z.record(z.string(), z.array(z.object({ lat: z.number(), lng: z.number(), weight: z.number().optional() }))),
+  heat_maps: z.record(
+    z.string(),
+    z.array(z.object({ lat: z.number(), lng: z.number(), weight: z.number().optional() }))
+  ),
   smart: z.object({
     nearest_drivers: z.array(liveMapDriverSchema),
     suggested_drivers: z.array(liveMapDriverSchema),
@@ -234,10 +237,15 @@ export const liveMapApi = {
     return liveMapSnapshotSchema.parse(raw);
   },
   search: (token: string, q: string) =>
-    adminFetch<Array<{ type: string; id: string; label: string; subtitle?: string; location?: { lat: number; lng: number } }>>(
-      `${B}/search?q=${encodeURIComponent(q)}`,
-      token
-    ),
+    adminFetch<
+      Array<{
+        type: string;
+        id: string;
+        label: string;
+        subtitle?: string;
+        location?: { lat: number; lng: number };
+      }>
+    >(`${B}/search?q=${encodeURIComponent(q)}`, token),
   detail: (token: string, entityType: string, entityId: string) =>
     adminFetch<Record<string, unknown>>(`${B}/detail/${entityType}/${entityId}`, token),
   playback: (token: string, date: string, driverId?: string) => {

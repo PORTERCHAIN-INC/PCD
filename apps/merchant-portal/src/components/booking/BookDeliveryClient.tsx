@@ -117,7 +117,9 @@ export default function BookDeliveryClient() {
   const [previewToken, setPreviewToken] = useState<string | null>(null);
   useEffect(() => {
     if (!isSignedIn) return;
-    getApiToken().then(setPreviewToken).catch(() => setPreviewToken(null));
+    getApiToken()
+      .then(setPreviewToken)
+      .catch(() => setPreviewToken(null));
   }, [isSignedIn, getApiToken]);
 
   const { preview, loading: previewLoading } = useBookingPreview(
@@ -152,7 +154,9 @@ export default function BookDeliveryClient() {
       setPoNumber(String(meta.purchase_order_number || ""));
       setCostCentre(String(meta.cost_centre || ""));
       setRecipientId(String(meta.recipient_id || ""));
-      setDraftBanner(`Draft recovered — expires ${draft.expires_at ? new Date(draft.expires_at).toLocaleString() : "soon"}`);
+      setDraftBanner(
+        `Draft recovered — expires ${draft.expires_at ? new Date(draft.expires_at).toLocaleString() : "soon"}`
+      );
     }
   }, [getApiToken, isSignedIn, orgId]);
 
@@ -431,7 +435,12 @@ export default function BookDeliveryClient() {
                     value={scheduledAt}
                     onChange={setScheduledAt}
                   />
-                  <Field label="Weight (kg)" value={weightKg} onChange={setWeightKg} type="number" />
+                  <Field
+                    label="Weight (kg)"
+                    value={weightKg}
+                    onChange={setWeightKg}
+                    type="number"
+                  />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
@@ -485,7 +494,11 @@ export default function BookDeliveryClient() {
                 <ReviewRow label="Pickup" value={pickup.formatted} />
                 <ReviewRow
                   label="Dropoff"
-                  value={mode === "single" ? dropoff.formatted : `${parcels.filter((p) => p.formatted).length} parcels`}
+                  value={
+                    mode === "single"
+                      ? dropoff.formatted
+                      : `${parcels.filter((p) => p.formatted).length} parcels`
+                  }
                 />
                 <ReviewRow label="Vehicle" value={vehicleClass} />
                 <ReviewRow label="Package" value={packageType} />
@@ -521,7 +534,11 @@ export default function BookDeliveryClient() {
                   <Button type="button" variant="secondary" onClick={() => setStep("details")}>
                     Back
                   </Button>
-                  <Button type="button" onClick={onConfirm} disabled={loading || preview?.valid === false}>
+                  <Button
+                    type="button"
+                    onClick={onConfirm}
+                    disabled={loading || preview?.valid === false}
+                  >
                     {loading ? "Confirming…" : "Confirm booking"}
                   </Button>
                 </>
@@ -572,7 +589,12 @@ export default function BookDeliveryClient() {
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
               />
-              <Button type="button" variant="secondary" onClick={onSaveTemplate} disabled={!templateName.trim()}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onSaveTemplate}
+                disabled={!templateName.trim()}
+              >
                 Save
               </Button>
             </div>

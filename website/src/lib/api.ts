@@ -233,11 +233,14 @@ export function createCustomerSupportTicket(
   token: string,
   payload: { subject: string; description?: string; order_id?: string }
 ) {
-  return apiFetch<{ ticket_id: string; status: string; subject: string }>("/v1/customers/me/support", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify(payload),
-  });
+  return apiFetch<{ ticket_id: string; status: string; subject: string }>(
+    "/v1/customers/me/support",
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
 export function getCustomerRebookPayload(token: string, orderId: string) {

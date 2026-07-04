@@ -7,9 +7,15 @@ import { SupportScreen } from "../../screens/more/SupportScreen";
 import { SettingsScreen } from "../../screens/more/SettingsScreen";
 import type { MoreStackParamList } from "../types";
 
-const OfflineSyncScreen = createLazyScreen(() => import("../../screens/more/OfflineSyncScreen"), "OfflineSyncScreen");
+const OfflineSyncScreen = createLazyScreen(
+  () => import("../../screens/more/OfflineSyncScreen"),
+  "OfflineSyncScreen"
+);
 const SosScreen = createLazyScreen(() => import("../../screens/more/SosScreen"), "SosScreen");
-const PerformanceScreen = createLazyScreen(() => import("../../screens/more/PerformanceScreen"), "PerformanceScreen");
+const PerformanceScreen = createLazyScreen(
+  () => import("../../screens/more/PerformanceScreen"),
+  "PerformanceScreen"
+);
 
 const Stack = createNativeStackNavigator<MoreStackParamList>();
 

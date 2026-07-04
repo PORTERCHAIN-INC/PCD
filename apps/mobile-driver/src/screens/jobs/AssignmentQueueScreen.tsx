@@ -5,14 +5,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { DRIVER_OFFLINE_ACTIONS } from "@porterchain/mobile-api";
 import { useOfflineSync } from "@porterchain/mobile-offline";
 import { EnterpriseFlashList, LIST_ITEM_SIZES } from "@porterchain/mobile-performance";
-import {
-  Body,
-  Button,
-  ListItem,
-  Screen,
-  SkeletonList,
-  StatusChip,
-} from "@porterchain/mobile-ui";
+import { Body, Button, ListItem, Screen, SkeletonList, StatusChip } from "@porterchain/mobile-ui";
 import { useDriverApi } from "../../api/DriverApiContext";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import type { JobsStackParamList } from "../../navigation/types";
@@ -66,7 +59,9 @@ export function AssignmentQueueScreen() {
           keyExtractor={(job) => job.order_id}
           contentContainerStyle={{ padding: 16 }}
           ListEmptyComponent={<Body muted>No assignments in queue.</Body>}
-          ListFooterComponent={<Button label="Refresh" variant="ghost" onPress={() => void refetch()} />}
+          ListFooterComponent={
+            <Button label="Refresh" variant="ghost" onPress={() => void refetch()} />
+          }
           renderItem={({ item: job }) => (
             <View style={{ gap: 8, marginBottom: 12 }}>
               <ListItem
@@ -77,8 +72,19 @@ export function AssignmentQueueScreen() {
                 showDivider={false}
               />
               <View style={{ flexDirection: "row", gap: 8 }}>
-                <Button label="Accept" size="sm" style={{ flex: 1 }} onPress={() => void accept(job.order_id)} />
-                <Button label="Reject" size="sm" variant="outline" style={{ flex: 1 }} onPress={() => void reject(job.order_id)} />
+                <Button
+                  label="Accept"
+                  size="sm"
+                  style={{ flex: 1 }}
+                  onPress={() => void accept(job.order_id)}
+                />
+                <Button
+                  label="Reject"
+                  size="sm"
+                  variant="outline"
+                  style={{ flex: 1 }}
+                  onPress={() => void reject(job.order_id)}
+                />
               </View>
             </View>
           )}

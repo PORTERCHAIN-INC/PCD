@@ -13,8 +13,17 @@ type Tab = "all" | "current" | "upcoming" | "completed" | "history";
 
 export default function JobsPage() {
   const router = useRouter();
-  const { data, history, error, loading, optimizing, optimizeMessage, lastUpdatedLabel, refresh, optimize } =
-    useDriverJobs();
+  const {
+    data,
+    history,
+    error,
+    loading,
+    optimizing,
+    optimizeMessage,
+    lastUpdatedLabel,
+    refresh,
+    optimize,
+  } = useDriverJobs();
   const [tab, setTab] = useState<Tab>("all");
   const [tabInitialized, setTabInitialized] = useState(false);
   const [assignPending, setAssignPending] = useState<string | null>(null);
@@ -91,7 +100,11 @@ export default function JobsPage() {
           {lastUpdatedLabel && (
             <p className="mt-1 text-xs text-[var(--muted)]">
               Live · Updated {lastUpdatedLabel}
-              <button type="button" onClick={refresh} className="ml-2 font-semibold text-[var(--secondary)]">
+              <button
+                type="button"
+                onClick={refresh}
+                className="ml-2 font-semibold text-[var(--secondary)]"
+              >
                 Refresh
               </button>
             </p>
@@ -207,7 +220,9 @@ export default function JobsPage() {
                   <li key={job.order_id}>
                     <JobCard
                       job={job}
-                      highlight={Boolean(job.is_current_job || job.order_id === data.current?.order_id)}
+                      highlight={Boolean(
+                        job.is_current_job || job.order_id === data.current?.order_id
+                      )}
                       {...cardProps}
                     />
                   </li>

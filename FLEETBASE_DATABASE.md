@@ -309,10 +309,10 @@ erDiagram
 
 ## Dual database architecture
 
-| Store       | Engine              | Owner           | Port (dev)  |
-| ----------- | ------------------- | --------------- | ----------- |
-| Porterchain | PostgreSQL | Porterchain API | 5432 |
-| Fleetbase   | MySQL 8             | Fleetbase API   | 3307        |
+| Store       | Engine     | Owner           | Port (dev) |
+| ----------- | ---------- | --------------- | ---------- |
+| Porterchain | PostgreSQL | Porterchain API | 5432       |
+| Fleetbase   | MySQL 8    | Fleetbase API   | 3307       |
 
 No shared database. Sync via API + webhooks only.
 

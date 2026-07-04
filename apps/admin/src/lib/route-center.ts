@@ -86,7 +86,8 @@ export type PlanningQueue = {
 };
 
 export const routeCenter = {
-  meta: (token: string) => adminFetch<{ statuses: string[]; strategies: string[] }>(`${PREFIX}/meta`, token),
+  meta: (token: string) =>
+    adminFetch<{ statuses: string[]; strategies: string[] }>(`${PREFIX}/meta`, token),
   dashboard: (token: string) => adminFetch<RouteCenterDashboard>(`${PREFIX}/dashboard`, token),
   planningQueue: (token: string) => adminFetch<PlanningQueue>(`${PREFIX}/planning-queue`, token),
   listPlans: (token: string, params?: { status?: string; search?: string }) => {
@@ -100,7 +101,10 @@ export const routeCenter = {
   createPlan: (token: string, body: { name: string; order_ids: string[]; strategy?: string }) =>
     adminFetch<RoutePlan>(`${PREFIX}/plans`, token, { method: "POST", body: JSON.stringify(body) }),
   updatePlan: (token: string, id: string, body: Record<string, unknown>) =>
-    adminFetch<RoutePlan>(`${PREFIX}/plans/${id}`, token, { method: "PATCH", body: JSON.stringify(body) }),
+    adminFetch<RoutePlan>(`${PREFIX}/plans/${id}`, token, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
   clonePlan: (token: string, id: string) =>
     adminFetch<RoutePlan>(`${PREFIX}/plans/${id}/clone`, token, { method: "POST" }),
   optimizePlan: (token: string, id: string, body?: { strategy?: string; engine?: string }) =>
@@ -109,8 +113,14 @@ export const routeCenter = {
       body: JSON.stringify(body ?? {}),
     }),
   simulatePlan: (token: string, id: string) =>
-    adminFetch<Record<string, unknown>>(`${PREFIX}/plans/${id}/simulate`, token, { method: "POST" }),
-  dispatchPlan: (token: string, id: string, body: { driver_id: string; vehicle_id?: string; approve?: boolean }) =>
+    adminFetch<Record<string, unknown>>(`${PREFIX}/plans/${id}/simulate`, token, {
+      method: "POST",
+    }),
+  dispatchPlan: (
+    token: string,
+    id: string,
+    body: { driver_id: string; vehicle_id?: string; approve?: boolean }
+  ) =>
     adminFetch<RoutePlan>(`${PREFIX}/plans/${id}/dispatch`, token, {
       method: "POST",
       body: JSON.stringify(body),
@@ -130,5 +140,6 @@ export const routeCenter = {
     }),
   analytics: (token: string) => adminFetch<Record<string, number>>(`${PREFIX}/analytics`, token),
   history: (token: string) => adminFetch<RoutePlan[]>(`${PREFIX}/history`, token),
-  liveExecution: (token: string) => adminFetch<Record<string, unknown>>(`${PREFIX}/live-execution`, token),
+  liveExecution: (token: string) =>
+    adminFetch<Record<string, unknown>>(`${PREFIX}/live-execution`, token),
 };

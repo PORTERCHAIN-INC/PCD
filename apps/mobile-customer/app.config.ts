@@ -22,7 +22,8 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.porterchain.customer",
-    googleServicesFile: process.env.GOOGLE_SERVICES_INFO_PLIST ?? "./credentials/GoogleService-Info.plist",
+    googleServicesFile:
+      process.env.GOOGLE_SERVICES_INFO_PLIST ?? "./credentials/GoogleService-Info.plist",
     config: { googleMapsApiKey },
     infoPlist: {
       UIBackgroundModes: ["remote-notification"],

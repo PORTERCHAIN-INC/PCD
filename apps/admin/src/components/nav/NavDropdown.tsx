@@ -5,7 +5,11 @@ import { createPortal } from "react-dom";
 import { cn } from "@porterchain/ui/utils";
 
 type Props = {
-  trigger: (props: { open: boolean; toggle: () => void; triggerProps: { onClick: () => void; "aria-expanded": boolean; "aria-haspopup": boolean } }) => ReactNode;
+  trigger: (props: {
+    open: boolean;
+    toggle: () => void;
+    triggerProps: { onClick: () => void; "aria-expanded": boolean; "aria-haspopup": boolean };
+  }) => ReactNode;
   children: ReactNode;
   align?: "left" | "right";
   width?: "sm" | "md" | "lg" | "xl";

@@ -34,7 +34,11 @@ export default function JobDetailPage() {
         {lastUpdatedLabel && (
           <p className="text-xs text-[var(--muted)]">
             Live · {lastUpdatedLabel}
-            <button type="button" onClick={refresh} className="ml-2 font-semibold text-[var(--secondary)]">
+            <button
+              type="button"
+              onClick={refresh}
+              className="ml-2 font-semibold text-[var(--secondary)]"
+            >
               Refresh
             </button>
           </p>
@@ -43,9 +47,7 @@ export default function JobDetailPage() {
 
       {loading && !job && <p className="text-[var(--muted)]">Loading job…</p>}
       {error && <p className="text-red-600">{error}</p>}
-      {job && (
-        <Delivery360 job={job} routeId={job.route_id} onUpdated={refresh} />
-      )}
+      {job && <Delivery360 job={job} routeId={job.route_id} onUpdated={refresh} />}
     </DriverShell>
   );
 }

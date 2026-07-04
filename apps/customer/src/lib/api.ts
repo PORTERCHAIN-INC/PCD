@@ -9,7 +9,12 @@ export interface CustomerDashboard {
     state: string;
   } | null;
   orders: Array<{ order_id: string; tracking_number: string; state: string }>;
-  invoices: Array<{ invoice_id: string; invoice_number: string; amount_cents: number; currency: string }>;
+  invoices: Array<{
+    invoice_id: string;
+    invoice_number: string;
+    amount_cents: number;
+    currency: string;
+  }>;
   payments: Array<{ payment_id: string; status: string; amount_cents: number; currency: string }>;
 }
 

@@ -59,7 +59,9 @@ export default function SettingsSidebar({ sections, activeId, onSelect }: Props)
                           : "text-primary/70 hover:bg-gray-bg hover:text-primary"
                       )}
                     >
-                      <Icon className={cn("h-4 w-4 shrink-0", active ? "text-white/90" : "text-muted")} />
+                      <Icon
+                        className={cn("h-4 w-4 shrink-0", active ? "text-white/90" : "text-muted")}
+                      />
                       <span className="truncate font-medium">{s.label}</span>
                     </button>
                   </li>

@@ -4,7 +4,10 @@ import { TrackingScreen } from "../../screens/tracking/TrackingScreen";
 import { HistoryScreen } from "../../screens/tracking/HistoryScreen";
 import type { TrackingStackParamList } from "../types";
 
-const LiveMapScreen = createLazyScreen(() => import("../../screens/tracking/LiveMapScreen"), "LiveMapScreen");
+const LiveMapScreen = createLazyScreen(
+  () => import("../../screens/tracking/LiveMapScreen"),
+  "LiveMapScreen"
+);
 
 const Stack = createNativeStackNavigator<TrackingStackParamList>();
 

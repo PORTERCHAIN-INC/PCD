@@ -22,7 +22,9 @@ export function ProfileScreen() {
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.lg }}>
         <Card>
           <CardHeader title={data?.full_name ?? "Driver"} subtitle={data?.email} />
-          <Body muted>Status: {data?.status} · Rating {data?.rating ?? "—"}</Body>
+          <Body muted>
+            Status: {data?.status} · Rating {data?.rating ?? "—"}
+          </Body>
           <Body muted>Phone: {data?.phone ?? "—"}</Body>
         </Card>
         <Button label="Sign out" variant="danger" fullWidth onPress={() => void clearSession()} />

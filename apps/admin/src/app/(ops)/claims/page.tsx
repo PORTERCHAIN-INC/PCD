@@ -16,7 +16,11 @@ export default function ClaimsPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const filterKey = JSON.stringify(filters);
 
-  const { data: rows = [], isLoading, refetch } = useQuery({
+  const {
+    data: rows = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["claims", filterKey],
     enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
     queryFn: async () => {
@@ -50,7 +54,9 @@ export default function ClaimsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-primary">Claims Management</h1>
-          <p className="text-sm text-muted">Logistics claims platform — investigation, compensation, and insurance</p>
+          <p className="text-sm text-muted">
+            Logistics claims platform — investigation, compensation, and insurance
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => void refetch()}>
@@ -69,7 +75,11 @@ export default function ClaimsPage() {
           <Kpi label="Waiting customer" value={dashboard.waiting_customer} />
           <Kpi label="Waiting merchant" value={dashboard.waiting_merchant} />
           <Kpi label="Insurance" value={dashboard.insurance_claims} />
-          <Kpi label="Chargebacks" value={dashboard.chargebacks} alert={dashboard.chargebacks > 0} />
+          <Kpi
+            label="Chargebacks"
+            value={dashboard.chargebacks}
+            alert={dashboard.chargebacks > 0}
+          />
           <Kpi label="Resolved" value={dashboard.resolved_claims} />
           <Kpi label="Rejected" value={dashboard.rejected_claims} />
           <Kpi label="Avg resolution" value={`${dashboard.avg_resolution_hours}h`} />
@@ -95,7 +105,9 @@ export default function ClaimsPage() {
           >
             <option value="">All statuses</option>
             {CLAIM_STATUSES.map((s) => (
-              <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
+              <option key={s} value={s}>
+                {s.replace(/_/g, " ")}
+              </option>
             ))}
           </select>
           <select
@@ -105,7 +117,9 @@ export default function ClaimsPage() {
           >
             <option value="">All types</option>
             {CLAIM_TYPES.map((t) => (
-              <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
+              <option key={t} value={t}>
+                {t.replace(/_/g, " ")}
+              </option>
             ))}
           </select>
           <select
@@ -123,7 +137,12 @@ export default function ClaimsPage() {
             type="number"
             placeholder="Min risk"
             value={filters.risk_min ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, risk_min: e.target.value ? Number(e.target.value) : undefined }))}
+            onChange={(e) =>
+              setFilters((f) => ({
+                ...f,
+                risk_min: e.target.value ? Number(e.target.value) : undefined,
+              }))
+            }
             className="w-24 rounded-xl border border-primary/10 px-3 py-2 text-sm"
           />
         </div>
@@ -131,17 +150,24 @@ export default function ClaimsPage() {
         {selected.length > 0 && (
           <div className="mb-3 flex gap-2 rounded-xl bg-secondary/5 px-3 py-2">
             <span className="text-sm font-medium">{selected.length} selected</span>
-            <Button variant="outline" onClick={async () => {
-              const token = await getApiToken();
-              await claimsApi.bulk(token, selected, "status", { status: "under_investigation" });
-              setSelected([]);
-              void refetch();
-            }}>Bulk investigate</Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                const token = await getApiToken();
+                await claimsApi.bulk(token, selected, "status", { status: "under_investigation" });
+                setSelected([]);
+                void refetch();
+              }}
+            >
+              Bulk investigate
+            </Button>
           </div>
         )}
 
         {isLoading ? (
-          <div className="flex justify-center py-12"><Spinner /></div>
+          <div className="flex justify-center py-12">
+            <Spinner />
+          </div>
         ) : (
           <ClaimsGrid rows={rows} selected={selected} onSelect={setSelected} />
         )}
@@ -152,7 +178,12 @@ export default function ClaimsPage() {
 
 function Kpi({ label, value, alert }: { label: string; value: string | number; alert?: boolean }) {
   return (
-    <div className={cn("rounded-xl border border-primary/10 bg-white px-3 py-2 shadow-sm", alert && "border-amber-200 bg-amber-50")}>
+    <div
+      className={cn(
+        "rounded-xl border border-primary/10 bg-white px-3 py-2 shadow-sm",
+        alert && "border-amber-200 bg-amber-50"
+      )}
+    >
       <p className="text-xs text-muted">{label}</p>
       <p className="text-lg font-bold text-primary">{value}</p>
     </div>

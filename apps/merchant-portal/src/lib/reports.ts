@@ -175,7 +175,9 @@ export const reportsApi = {
     reportsFetch<ExecutiveReport>("/v1/merchant/reports/executive", token, { orgId }),
 
   deliveryPerformance: (token: string, orgId?: string) =>
-    reportsFetch<DeliveryPerformance>("/v1/merchant/reports/delivery-performance", token, { orgId }),
+    reportsFetch<DeliveryPerformance>("/v1/merchant/reports/delivery-performance", token, {
+      orgId,
+    }),
 
   saved: (token: string, orgId?: string) =>
     reportsFetch<SavedReport[]>("/v1/merchant/reports/saved", token, { orgId }),

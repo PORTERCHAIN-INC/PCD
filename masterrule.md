@@ -87,14 +87,14 @@ This topology is **locked**. Do not redesign it without updating this document (
 
 ## 2. Core principles
 
-| Principle | Rule |
-|-----------|------|
-| Product ownership | **Porterchain is the product.** All commercial and customer-facing logic lives here. |
-| Execution engine | **Fleetbase is the logistics execution engine only.** Dispatch, GPS, routes, POD — not CRM, pricing, or billing. |
-| Single integration path | **Never bypass the Fleetbase Adapter.** No frontend or API code calls Fleetbase HTTP directly. |
-| Upstream preservation | Keep Fleetbase as close to upstream open source as possible. |
-| No duplication | Reuse existing modules. Do not copy business rules into UI, routers, or adapters. |
-| Server-side truth | Booking drafts, quotes, payments, and order state are **database-persisted**. Never rely on browser storage for business state. |
+| Principle               | Rule                                                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Product ownership       | **Porterchain is the product.** All commercial and customer-facing logic lives here.                                            |
+| Execution engine        | **Fleetbase is the logistics execution engine only.** Dispatch, GPS, routes, POD — not CRM, pricing, or billing.                |
+| Single integration path | **Never bypass the Fleetbase Adapter.** No frontend or API code calls Fleetbase HTTP directly.                                  |
+| Upstream preservation   | Keep Fleetbase as close to upstream open source as possible.                                                                    |
+| No duplication          | Reuse existing modules. Do not copy business rules into UI, routers, or adapters.                                               |
+| Server-side truth       | Booking drafts, quotes, payments, and order state are **database-persisted**. Never rely on browser storage for business state. |
 
 ---
 
@@ -104,13 +104,13 @@ Every feature must respect this separation. **Violations are architecture defect
 
 ### 3.1 The five rules
 
-| Layer | Responsibility | Must NOT contain |
-|-------|----------------|------------------|
-| **UI** | Render data, capture input, call Porterchain API | Business rules, pricing logic, payment verification, Fleetbase calls |
-| **Controllers** | Authenticate, validate input, call one Application Service, return response | Business rules, SQL, external HTTP |
-| **Application Services** | **All business logic** — state machines, pricing decisions, orchestration, domain events | Direct Fleetbase HTTP (use adapter via service) |
-| **Repositories** | Persistence only — CRUD, queries, transactions | Business rules, HTTP, UI concerns |
-| **Adapters** | External integration only — map DTOs, auth, retries, webhooks | Business rules, Porterchain domain decisions |
+| Layer                    | Responsibility                                                                           | Must NOT contain                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **UI**                   | Render data, capture input, call Porterchain API                                         | Business rules, pricing logic, payment verification, Fleetbase calls |
+| **Controllers**          | Authenticate, validate input, call one Application Service, return response              | Business rules, SQL, external HTTP                                   |
+| **Application Services** | **All business logic** — state machines, pricing decisions, orchestration, domain events | Direct Fleetbase HTTP (use adapter via service)                      |
+| **Repositories**         | Persistence only — CRUD, queries, transactions                                           | Business rules, HTTP, UI concerns                                    |
+| **Adapters**             | External integration only — map DTOs, auth, retries, webhooks                            | Business rules, Porterchain domain decisions                         |
 
 ```
 UI  →  Controller  →  Application Service  →  Repository  →  Database
@@ -121,13 +121,13 @@ UI  →  Controller  →  Application Service  →  Repository  →  Database
 
 ### 3.2 How this maps to the PCD repo
 
-| Layer | Porterchain location | Examples |
-|-------|----------------------|----------|
-| **UI** | `website/`, `apps/admin/`, `apps/merchant-portal/`, `apps/driver-portal/` | Pages, components, `lib/api.ts` fetch clients |
-| **Controllers** | `apps/api/src/porterchain_api/routers/` | `quotes.py`, `merchant.py`, `admin.py`, `webhooks.py` |
-| **Application Services** | `apps/api/src/porterchain_api/*_engine/*_service.py` | `BookingService`, `QuoteService`, `MerchantBillingService`, `AdminOrdersService` |
-| **Repositories** | `apps/api/src/porterchain_api/models.py`, `*_models.py`, `pricing_engine/repository.py` | SQLAlchemy models; `SqlAlchemyPricingRepository` |
-| **Adapters** | `services/fleetbase-adapter/`, `services/stripe_service.py` (API wrapper), `services/python/porterchain_services/` | `FleetbaseAdapter`, Stripe checkout, notification delivery |
+| Layer                    | Porterchain location                                                                                               | Examples                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| **UI**                   | `website/`, `apps/admin/`, `apps/merchant-portal/`, `apps/driver-portal/`                                          | Pages, components, `lib/api.ts` fetch clients                                    |
+| **Controllers**          | `apps/api/src/porterchain_api/routers/`                                                                            | `quotes.py`, `merchant.py`, `admin.py`, `webhooks.py`                            |
+| **Application Services** | `apps/api/src/porterchain_api/*_engine/*_service.py`                                                               | `BookingService`, `QuoteService`, `MerchantBillingService`, `AdminOrdersService` |
+| **Repositories**         | `apps/api/src/porterchain_api/models.py`, `*_models.py`, `pricing_engine/repository.py`                            | SQLAlchemy models; `SqlAlchemyPricingRepository`                                 |
+| **Adapters**             | `services/fleetbase-adapter/`, `services/stripe_service.py` (API wrapper), `services/python/porterchain_services/` | `FleetbaseAdapter`, Stripe checkout, notification delivery                       |
 
 ### 3.3 Controller pattern (FastAPI routers)
 
@@ -164,13 +164,13 @@ Services own:
 
 Services live under `*_engine/` packages:
 
-| Package | Domain |
-|---------|--------|
-| `booking_engine/` | Retail quote, draft, booking, payment, confirmation, tracking |
-| `merchant_engine/` | B2B bookings, billing, bulk, API keys |
-| `admin_engine/` | Ops, CRM, finance, drivers, pricing admin |
-| `fleetbase_engine/` | Sync jobs, webhook processing, retry queue |
-| `driver_engine/` | Driver platform bridge |
+| Package             | Domain                                                        |
+| ------------------- | ------------------------------------------------------------- |
+| `booking_engine/`   | Retail quote, draft, booking, payment, confirmation, tracking |
+| `merchant_engine/`  | B2B bookings, billing, bulk, API keys                         |
+| `admin_engine/`     | Ops, CRM, finance, drivers, pricing admin                     |
+| `fleetbase_engine/` | Sync jobs, webhook processing, retry queue                    |
+| `driver_engine/`    | Driver platform bridge                                        |
 
 ### 3.5 Repository pattern
 
@@ -192,13 +192,13 @@ Services live under `*_engine/` packages:
 
 ### 3.8 Where business logic must never live
 
-| Location | Why forbidden |
-|----------|----------------|
-| React components / pages | UI renders and submits; services decide |
-| `routers/*.py` | Controllers orchestrate only |
-| `models.py` / repositories | Persistence only |
-| `services/fleetbase-adapter/` | Integration mapping only |
-| Fleetbase PHP/Ember code | Execution engine only — not Porterchain rules |
+| Location                      | Why forbidden                                 |
+| ----------------------------- | --------------------------------------------- |
+| React components / pages      | UI renders and submits; services decide       |
+| `routers/*.py`                | Controllers orchestrate only                  |
+| `models.py` / repositories    | Persistence only                              |
+| `services/fleetbase-adapter/` | Integration mapping only                      |
+| Fleetbase PHP/Ember code      | Execution engine only — not Porterchain rules |
 
 ---
 
@@ -233,14 +233,14 @@ porterchain/
 
 ### 4.2 Path aliases (current vs target)
 
-| Target | Current canonical path | Status |
-|--------|------------------------|--------|
-| `apps/website/` | `website/` | Active (migration planned) |
-| `apps/merchant/` | `apps/merchant-portal/` | Active |
-| `apps/customer/` | `apps/customer/` + `website/.../portal/customer` | Active |
-| `apps/admin/` | `apps/admin/` | Active |
-| `apps/api/` | `apps/api/` | Active |
-| `apps/driver/` | `apps/driver-portal/` + `apps/mobile-driver/` | Web + mobile scaffold active |
+| Target           | Current canonical path                           | Status                       |
+| ---------------- | ------------------------------------------------ | ---------------------------- |
+| `apps/website/`  | `website/`                                       | Active (migration planned)   |
+| `apps/merchant/` | `apps/merchant-portal/`                          | Active                       |
+| `apps/customer/` | `apps/customer/` + `website/.../portal/customer` | Active                       |
+| `apps/admin/`    | `apps/admin/`                                    | Active                       |
+| `apps/api/`      | `apps/api/`                                      | Active                       |
+| `apps/driver/`   | `apps/driver-portal/` + `apps/mobile-driver/`    | Web + mobile scaffold active |
 
 Full detail: [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md).
 
@@ -248,14 +248,14 @@ Full detail: [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md).
 
 ## 5. Application boundaries
 
-| Application | Port | Calls Fleetbase? | Role |
-|-------------|------|------------------|------|
-| Website | 3000 | **No** | Marketing, SEO, booking entry, tracking, customer dashboard (partial) |
-| Merchant portal | 3001 | **No** | B2B bookings, bulk, billing, API keys |
-| Admin | 3002 | **SSO only** | CRM, ops, finance, pricing — opens Fleetbase console via SSO |
-| Driver portal | 3003 | **No** | Driver web dashboard → Porterchain API |
-| Porterchain API | 8001 | **Via adapter** | All business logic and orchestration |
-| Fleetbase | 8000 / 4200 | N/A | Dispatch, GPS, routes, POD |
+| Application     | Port        | Calls Fleetbase? | Role                                                                  |
+| --------------- | ----------- | ---------------- | --------------------------------------------------------------------- |
+| Website         | 3000        | **No**           | Marketing, SEO, booking entry, tracking, customer dashboard (partial) |
+| Merchant portal | 3001        | **No**           | B2B bookings, bulk, billing, API keys                                 |
+| Admin           | 3002        | **SSO only**     | CRM, ops, finance, pricing — opens Fleetbase console via SSO          |
+| Driver portal   | 3003        | **No**           | Driver web dashboard → Porterchain API                                |
+| Porterchain API | 8001        | **Via adapter**  | All business logic and orchestration                                  |
+| Fleetbase       | 8000 / 4200 | N/A              | Dispatch, GPS, routes, POD                                            |
 
 ### 5.1 Portal responsibilities
 
@@ -275,16 +275,16 @@ The API at `apps/api/` is the **Logistics Orchestrator** in the locked diagram. 
 
 ### 6.1 Engine modules (Application Services home)
 
-| Engine | Responsibility |
-|--------|----------------|
-| `booking_engine/` | Quote, booking draft, booking, payment, confirmation, tracking |
-| `billing_engine/` | Settlement ledger, async billing queue processing |
-| `notification_engine/` | Templates, delivery logs, email/SMS/push queueing |
-| `merchant_engine/` | B2B lifecycle, merchant billing, bulk, dashboard |
-| `admin_engine/` | Ops, CRM, finance, claims, pricing admin, RBAC |
-| `fleetbase_engine/` | Outbound sync, inbound webhooks, retry, audit |
-| `driver_engine/` | Driver auth and Fleetbase bridge |
-| `pricing_engine/` | Bridge to `services/pricing-engine` |
+| Engine                 | Responsibility                                                 |
+| ---------------------- | -------------------------------------------------------------- |
+| `booking_engine/`      | Quote, booking draft, booking, payment, confirmation, tracking |
+| `billing_engine/`      | Settlement ledger, async billing queue processing              |
+| `notification_engine/` | Templates, delivery logs, email/SMS/push queueing              |
+| `merchant_engine/`     | B2B lifecycle, merchant billing, bulk, dashboard               |
+| `admin_engine/`        | Ops, CRM, finance, claims, pricing admin, RBAC                 |
+| `fleetbase_engine/`    | Outbound sync, inbound webhooks, retry, audit                  |
+| `driver_engine/`       | Driver auth and Fleetbase bridge                               |
+| `pricing_engine/`      | Bridge to `services/pricing-engine`                            |
 
 Billing and notification **engines** live in `billing_engine/` and `notification_engine/` (embedded in API monolith). Merchant-specific billing views remain in `merchant_engine/`.
 
@@ -326,15 +326,15 @@ Fleetbase Adapter → Fleetbase API
 
 **Factory:** `apps/api/src/porterchain_api/services/fleetbase_integration.py`
 
-| Responsibility |
-|----------------|
-| Authentication |
-| Order, driver, vehicle mapping |
-| Tracking and status translation |
-| Webhook processing |
-| Retry queue and error handling |
+| Responsibility                    |
+| --------------------------------- |
+| Authentication                    |
+| Order, driver, vehicle mapping    |
+| Tracking and status translation   |
+| Webhook processing                |
+| Retry queue and error handling    |
 | Logging and version compatibility |
-| Health monitoring |
+| Health monitoring                 |
 
 Deprecated shim: `services/fleetbase/` — do not add new code there.
 
@@ -374,18 +374,18 @@ Visitor
 
 ### 10.2 Booking draft states
 
-| State | Meaning |
-|-------|---------|
-| `DRAFT` | Partial data saved server-side |
-| `QUOTE_GENERATED` | Quote attached |
-| `CUSTOMER_IDENTIFIED` | Session merged to customer |
-| `AUTHENTICATED` | Clerk auth complete |
-| `PAYMENT_PENDING` | Stripe Checkout started |
-| `PAYMENT_FAILED` | Payment failed or abandoned |
-| `PAYMENT_COMPLETED` | Webhook verified payment |
-| `BOOKING_CONFIRMED` | Booking + order created |
-| `CANCELLED` | Explicitly cancelled |
-| `EXPIRED` | Timed out — kept for analytics; may resume if extended |
+| State                 | Meaning                                                |
+| --------------------- | ------------------------------------------------------ |
+| `DRAFT`               | Partial data saved server-side                         |
+| `QUOTE_GENERATED`     | Quote attached                                         |
+| `CUSTOMER_IDENTIFIED` | Session merged to customer                             |
+| `AUTHENTICATED`       | Clerk auth complete                                    |
+| `PAYMENT_PENDING`     | Stripe Checkout started                                |
+| `PAYMENT_FAILED`      | Payment failed or abandoned                            |
+| `PAYMENT_COMPLETED`   | Webhook verified payment                               |
+| `BOOKING_CONFIRMED`   | Booking + order created                                |
+| `CANCELLED`           | Explicitly cancelled                                   |
+| `EXPIRED`             | Timed out — kept for analytics; may resume if extended |
 
 Every transition is audited. Implementation: `booking_draft_models.py`, `BookingDraftService`.
 
@@ -395,12 +395,12 @@ Every transition is audited. Implementation: `booking_draft_models.py`, `Booking
 
 ### 11.1 Pricing
 
-| Rule | Detail |
-|------|--------|
-| Website estimate | Client engine (`website/src/lib/pricing/`) is for UX preview only |
-| Authoritative pricing | Server `services/pricing-engine/` before payment |
-| Re-validation | Validate again at checkout and in `PaymentService` |
-| Contracts | Merchant contract pricing overrides public retail |
+| Rule                  | Detail                                                            |
+| --------------------- | ----------------------------------------------------------------- |
+| Website estimate      | Client engine (`website/src/lib/pricing/`) is for UX preview only |
+| Authoritative pricing | Server `services/pricing-engine/` before payment                  |
+| Re-validation         | Validate again at checkout and in `PaymentService`                |
+| Contracts             | Merchant contract pricing overrides public retail                 |
 
 ### 11.2 Billing (modules — target: Billing Engine)
 
@@ -430,11 +430,11 @@ Key services: `PaymentService`, `BookingConfirmationService`, `MerchantBillingSe
 
 **Bridge:** `apps/api/src/porterchain_api/platform/bus.py`
 
-| Requirement |
-|-------------|
-| Domain events for all significant state changes |
-| Idempotency on webhook and payment handlers |
-| Retries and dead-letter queue support |
+| Requirement                                                   |
+| ------------------------------------------------------------- |
+| Domain events for all significant state changes               |
+| Idempotency on webhook and payment handlers                   |
+| Retries and dead-letter queue support                         |
 | Redis Streams in production; in-memory fallback for local dev |
 
 **Example events:** `quote.created`, `booking.draft_restored`, `payment.succeeded`, `booking.confirmed`, `order.dispatch_ready`, `fleetbase.order_created`, `invoice.created`.
@@ -480,26 +480,26 @@ CRM, pricing, billing, contracts, Stripe, merchant accounts, booking drafts, inv
 
 ## 16. Observability
 
-| Area | Requirement |
-|------|-------------|
-| Logging | Structured logs with correlation IDs on requests and events |
-| Queues | Monitor worker queue depth and DLQ |
-| Integrations | Health checks for Fleetbase, Stripe, Redis, PostgreSQL |
-| Metrics | API latency, webhook success rate, dispatch sync failures |
-| Retries | Alert on exhausted Fleetbase sync retries |
+| Area         | Requirement                                                 |
+| ------------ | ----------------------------------------------------------- |
+| Logging      | Structured logs with correlation IDs on requests and events |
+| Queues       | Monitor worker queue depth and DLQ                          |
+| Integrations | Health checks for Fleetbase, Stripe, Redis, PostgreSQL      |
+| Metrics      | API latency, webhook success rate, dispatch sync failures   |
+| Retries      | Alert on exhausted Fleetbase sync retries                   |
 
 ---
 
 ## 17. Reference numbers
 
-| Entity | Format example |
-|--------|----------------|
-| Booking | `PCB-2026-000001` |
+| Entity   | Format example    |
+| -------- | ----------------- |
+| Booking  | `PCB-2026-000001` |
 | Tracking | `PCT-2026-000001` |
-| Invoice | `PCI-2026-000001` |
-| Merchant | `PCM-000001` |
-| Driver | `PCD-000001` |
-| Vehicle | `PCV-000001` |
+| Invoice  | `PCI-2026-000001` |
+| Merchant | `PCM-000001`      |
+| Driver   | `PCD-000001`      |
+| Vehicle  | `PCV-000001`      |
 
 Generator: `apps/api/src/porterchain_api/booking_engine/numbers.py`.
 
@@ -507,14 +507,14 @@ Generator: `apps/api/src/porterchain_api/booking_engine/numbers.py`.
 
 ## 18. Architecture decision records
 
-| ADR | Decision |
-|-----|----------|
-| ADR-001 | Fleetbase is the execution engine only |
-| ADR-002 | Porterchain owns all business logic |
-| ADR-003 | Fleetbase Adapter is mandatory — no direct Fleetbase calls |
-| ADR-004 | Booking Draft is mandatory — server-persisted, no browser-only state |
-| ADR-005 | Event Bus is mandatory for async side effects |
-| ADR-006 | Stripe webhook is the only payment finalization signal |
+| ADR     | Decision                                                                |
+| ------- | ----------------------------------------------------------------------- |
+| ADR-001 | Fleetbase is the execution engine only                                  |
+| ADR-002 | Porterchain owns all business logic                                     |
+| ADR-003 | Fleetbase Adapter is mandatory — no direct Fleetbase calls              |
+| ADR-004 | Booking Draft is mandatory — server-persisted, no browser-only state    |
+| ADR-005 | Event Bus is mandatory for async side effects                           |
+| ADR-006 | Stripe webhook is the only payment finalization signal                  |
 | ADR-007 | Layered architecture — business logic only in Application Services (§3) |
 
 ---
@@ -551,17 +551,17 @@ Before implementing anything:
 
 ### Porterchain order state → Fleetbase status
 
-| Porterchain | Fleetbase |
-|-------------|-----------|
-| Waiting dispatch | `pending` |
-| Assigned | `assigned` |
-| Driver accepted | `accepted` |
-| At pickup | `arrived` |
-| Picked up | `picked_up` |
-| In transit | `in_transit` |
-| Delivered | `completed` |
-| Returned | `returned` |
-| Cancelled | `cancelled` |
+| Porterchain      | Fleetbase    |
+| ---------------- | ------------ |
+| Waiting dispatch | `pending`    |
+| Assigned         | `assigned`   |
+| Driver accepted  | `accepted`   |
+| At pickup        | `arrived`    |
+| Picked up        | `picked_up`  |
+| In transit       | `in_transit` |
+| Delivered        | `completed`  |
+| Returned         | `returned`   |
+| Cancelled        | `cancelled`  |
 
 Translator: `fleetbase_engine/status_translator.py`, `fleetbase_engine/tracking_translator.py`.
 
@@ -571,31 +571,31 @@ Translator: `fleetbase_engine/status_translator.py`, `fleetbase_engine/tracking_
 
 Monitor in production; verify locally with `pnpm ports` and `pnpm docker:fleetbase:verify`.
 
-| Integration | Local endpoint / check |
-|-------------|------------------------|
-| Porterchain API | `http://localhost:8001/health` |
-| Fleetbase API | `http://localhost:8000` |
-| Fleetbase console | `http://localhost:4200` |
-| Stripe | Webhook + `STRIPE_MOCK` for dev |
-| Redis | `127.0.0.1:6379` |
-| PostgreSQL | `127.0.0.1:5432` |
-| Valhalla (routing) | `http://localhost:8002/status` |
-| OSRM (fallback) | Configured in Fleetbase env |
-| Mailhog | `http://localhost:8025` |
-| Background worker | `pnpm dev:worker` — no HTTP port |
+| Integration        | Local endpoint / check           |
+| ------------------ | -------------------------------- |
+| Porterchain API    | `http://localhost:8001/health`   |
+| Fleetbase API      | `http://localhost:8000`          |
+| Fleetbase console  | `http://localhost:4200`          |
+| Stripe             | Webhook + `STRIPE_MOCK` for dev  |
+| Redis              | `127.0.0.1:6379`                 |
+| PostgreSQL         | `127.0.0.1:5432`                 |
+| Valhalla (routing) | `http://localhost:8002/status`   |
+| OSRM (fallback)    | Configured in Fleetbase env      |
+| Mailhog            | `http://localhost:8025`          |
+| Background worker  | `pnpm dev:worker` — no HTTP port |
 
 ---
 
 ## Related documents
 
-| Document | Purpose |
-|----------|---------|
-| [ARCHITECTURE_ALIGNMENT_REPORT.md](./ARCHITECTURE_ALIGNMENT_REPORT.md) | Diagram vs current codebase |
-| [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) | Monorepo layout and PYTHONPATH |
-| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md) | Local ports and start commands |
-| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Adapter and sync flows |
-| [EVENT_BUS.md](./EVENT_BUS.md) | Event bus design |
-| [AUTHENTICATION.md](./AUTHENTICATION.md) | Clerk and RBAC |
+| Document                                                               | Purpose                        |
+| ---------------------------------------------------------------------- | ------------------------------ |
+| [ARCHITECTURE_ALIGNMENT_REPORT.md](./ARCHITECTURE_ALIGNMENT_REPORT.md) | Diagram vs current codebase    |
+| [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md)                   | Monorepo layout and PYTHONPATH |
+| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)                       | Local ports and start commands |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                 | Adapter and sync flows         |
+| [EVENT_BUS.md](./EVENT_BUS.md)                                         | Event bus design               |
+| [AUTHENTICATION.md](./AUTHENTICATION.md)                               | Clerk and RBAC                 |
 
 ---
 

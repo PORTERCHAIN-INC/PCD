@@ -19,11 +19,7 @@ import {
 import DriverShell from "@/components/DriverShell";
 import { useDriverShift } from "@/hooks/useDriverShift";
 import { hasDriverSession } from "@/lib/api";
-import {
-  availabilityColor,
-  availabilityLabel,
-  formatActivityTime,
-} from "@/lib/shift";
+import { availabilityColor, availabilityLabel, formatActivityTime } from "@/lib/shift";
 import { cn, formatCents } from "@/lib/utils";
 
 export default function ShiftPage() {
@@ -102,9 +98,7 @@ export default function ShiftPage() {
         </button>
       </header>
 
-      {error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-      )}
+      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
       <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center gap-3">
@@ -173,9 +167,15 @@ export default function ShiftPage() {
               label={mode === "online" ? "Online" : mode.charAt(0).toUpperCase() + mode.slice(1)}
               icon={mode === "offline" ? Pause : Activity}
               onClick={() => setAvailability(mode)}
-              disabled={busy(mode) || snap.availability === (mode === "online" ? "available" : mode)}
+              disabled={
+                busy(mode) || snap.availability === (mode === "online" ? "available" : mode)
+              }
               loading={busy(mode)}
-              variant={snap.availability === (mode === "online" ? "available" : mode) ? "primary" : "default"}
+              variant={
+                snap.availability === (mode === "online" ? "available" : mode)
+                  ? "primary"
+                  : "default"
+              }
             />
           ))}
         </div>
@@ -252,7 +252,10 @@ export default function ShiftPage() {
               <li className="text-sm text-[var(--muted)]">No events yet this shift</li>
             ) : (
               snap.timeline.map((item) => (
-                <li key={item.id} className="flex gap-3 border-l-2 border-[var(--secondary)]/30 pl-4">
+                <li
+                  key={item.id}
+                  className="flex gap-3 border-l-2 border-[var(--secondary)]/30 pl-4"
+                >
                   <div>
                     <p className="text-sm font-semibold">{item.label}</p>
                     <p className="text-xs text-[var(--muted)]">
@@ -342,7 +345,8 @@ function ShiftButton({
         "flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50",
         variant === "primary" && "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90",
         variant === "success" && "bg-emerald-600 text-white hover:bg-emerald-700",
-        variant === "default" && "border border-[var(--primary)]/10 bg-[var(--gray-bg)] text-[var(--primary)] hover:bg-white"
+        variant === "default" &&
+          "border border-[var(--primary)]/10 bg-[var(--gray-bg)] text-[var(--primary)] hover:bg-white"
       )}
     >
       <Icon className="h-4 w-4" />

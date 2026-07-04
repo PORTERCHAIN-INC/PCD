@@ -12,7 +12,8 @@ export default function RoutesLayout({ children }: { children: React.ReactNode }
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight text-primary">Route Center</h1>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">
-              Plan routes, optimize stops, dispatch drivers, and monitor live execution — all in one workflow.
+              Plan routes, optimize stops, dispatch drivers, and monitor live execution — all in one
+              workflow.
             </p>
           </div>
         </div>

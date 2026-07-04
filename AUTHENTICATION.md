@@ -31,17 +31,17 @@ Porterchain uses **Clerk** as the only identity provider for end-user authentica
 
 Clerk handles **only** authentication concerns:
 
-| Capability | Owner |
-|------------|-------|
-| Signup | Clerk |
-| Login | Clerk |
-| Password reset | Clerk |
-| MFA | Clerk |
+| Capability         | Owner |
+| ------------------ | ----- |
+| Signup             | Clerk |
+| Login              | Clerk |
+| Password reset     | Clerk |
+| MFA                | Clerk |
 | Email verification | Clerk |
 | Phone verification | Clerk |
-| OAuth | Clerk |
-| Session | Clerk |
-| Logout | Clerk |
+| OAuth              | Clerk |
+| Session            | Clerk |
+| Logout             | Clerk |
 
 No Supabase, Twilio Verify, custom OTP, or alternate IdP is used for user authentication.
 
@@ -49,23 +49,23 @@ No Supabase, Twilio Verify, custom OTP, or alternate IdP is used for user authen
 
 ## Configuration
 
-| Variable | Purpose |
-|----------|---------|
-| `CLERK_PUBLISHABLE_KEY` / `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Frontend SDK |
-| `CLERK_SECRET_KEY` | Server-side verification |
-| `CLERK_JWKS_URL` | JWT public key rotation |
-| `CLERK_DEV_BYPASS` | **Local only** (`APP_ENV=local` **and** `CLERK_DEV_BYPASS=true`) — never in staging/production |
+| Variable                                                      | Purpose                                                                                        |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `CLERK_PUBLISHABLE_KEY` / `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Frontend SDK                                                                                   |
+| `CLERK_SECRET_KEY`                                            | Server-side verification                                                                       |
+| `CLERK_JWKS_URL`                                              | JWT public key rotation                                                                        |
+| `CLERK_DEV_BYPASS`                                            | **Local only** (`APP_ENV=local` **and** `CLERK_DEV_BYPASS=true`) — never in staging/production |
 
 ### Enterprise: separate Clerk apps per user class
 
 For production blast-radius isolation, create **four Clerk applications** in [Clerk Dashboard](https://dashboard.clerk.com):
 
-| Clerk app | User class | Frontend(s) | API env prefix |
-|-----------|------------|-------------|----------------|
+| Clerk app              | User class       | Frontend(s)                               | API env prefix     |
+| ---------------------- | ---------------- | ----------------------------------------- | ------------------ |
 | `porterchain-customer` | Retail customers | Website, customer portal, customer mobile | `CLERK_CUSTOMER_*` |
-| `porterchain-merchant` | B2B merchants | Merchant portal | `CLERK_MERCHANT_*` |
-| `porterchain-admin` | Internal staff | Admin portal | `CLERK_ADMIN_*` |
-| `porterchain-driver` | Drivers | Driver portal, driver mobile | `CLERK_DRIVER_*` |
+| `porterchain-merchant` | B2B merchants    | Merchant portal                           | `CLERK_MERCHANT_*` |
+| `porterchain-admin`    | Internal staff   | Admin portal                              | `CLERK_ADMIN_*`    |
+| `porterchain-driver`   | Drivers          | Driver portal, driver mobile              | `CLERK_DRIVER_*`   |
 
 **API (`apps/api/.env`):** set all four `CLERK_{CLASS}_SECRET_KEY` and `CLERK_{CLASS}_JWKS_URL` values. JWT verification tries each JWKS URL until the token validates; invitations use the matching class secret.
 
@@ -100,13 +100,13 @@ This enables: empty `Authorization` → synthetic dev user, `Bearer dev` token, 
 
 ### Surfaces
 
-| Application | Port | Clerk integration |
-|-------------|------|-------------------|
-| Website | 3000 | Retail booking auth |
-| Merchant portal | 3001 | Sign-in / sign-up |
-| Admin | 3002 | Sign-in + RBAC |
-| Driver portal | 3003 | Sign-in + invite flow |
-| Driver mobile | Expo | Clerk session → API bridge |
+| Application     | Port | Clerk integration          |
+| --------------- | ---- | -------------------------- |
+| Website         | 3000 | Retail booking auth        |
+| Merchant portal | 3001 | Sign-in / sign-up          |
+| Admin           | 3002 | Sign-in + RBAC             |
+| Driver portal   | 3003 | Sign-in + invite flow      |
+| Driver mobile   | Expo | Clerk session → API bridge |
 
 ---
 
@@ -125,22 +125,22 @@ Client → Clerk session → JWT in Authorization header
 
 Each portal verifies Clerk identity **and** Porterchain provisioning:
 
-| Portal | Middleware | API gate |
-|--------|------------|----------|
-| Admin | `auth.protect()` | `GET /v1/auth/admin/access` → `admin_users` |
-| Merchant | `auth.protect()` | `GET /v1/auth/merchant/access` → `merchant_users` |
-| Customer (app + website) | `auth.protect()` | `GET /v1/auth/customer/access` → auto-provision `customers` |
-| Driver web | Porterchain JWT cookie | Clerk at `/login` → `POST /driver-api/v1/auth/login` |
+| Portal                   | Middleware             | API gate                                                    |
+| ------------------------ | ---------------------- | ----------------------------------------------------------- |
+| Admin                    | `auth.protect()`       | `GET /v1/auth/admin/access` → `admin_users`                 |
+| Merchant                 | `auth.protect()`       | `GET /v1/auth/merchant/access` → `merchant_users`           |
+| Customer (app + website) | `auth.protect()`       | `GET /v1/auth/customer/access` → auto-provision `customers` |
+| Driver web               | Porterchain JWT cookie | Clerk at `/login` → `POST /driver-api/v1/auth/login`        |
 
 Authorization uses **database rows only** in production — Clerk `public_metadata` role fallback is disabled unless local dev bypass is active.
 
 ### JWT claims (expected)
 
-| Claim | Use |
-|-------|-----|
-| `sub` | Clerk user ID |
-| `org_id` | Merchant organization |
-| `email` | Contact email |
+| Claim           | Use                                       |
+| --------------- | ----------------------------------------- |
+| `sub`           | Clerk user ID                             |
+| `org_id`        | Merchant organization                     |
+| `email`         | Contact email                             |
 | Custom metadata | Merchant status, driver link, admin roles |
 
 ---
@@ -153,11 +153,11 @@ Every Clerk-authenticated request syncs into `porterchain_users` via `UserSyncSe
 
 Drivers authenticate through **Clerk**. After Clerk verification, the API issues short-lived Porterchain session tokens for mobile/offline API access:
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/auth/login` | POST | Clerk token + email → driver session |
-| `/auth/refresh` | POST | Refresh Porterchain session token |
-| `/auth/driver-invite/accept` | POST | Invite token + Clerk password setup |
+| Endpoint                     | Method | Purpose                              |
+| ---------------------------- | ------ | ------------------------------------ |
+| `/auth/login`                | POST   | Clerk token + email → driver session |
+| `/auth/refresh`              | POST   | Refresh Porterchain session token    |
+| `/auth/driver-invite/accept` | POST   | Invite token + Clerk password setup  |
 
 `DriverAuthService` (`driver_engine/auth_service.py`) requires a valid Clerk bearer token in all non-dev environments.
 
@@ -165,10 +165,10 @@ Drivers authenticate through **Clerk**. After Clerk verification, the API issues
 
 ## Fleetbase authentication (execution only)
 
-| Method | Header | Use |
-|--------|--------|-----|
-| Sanctum bearer | `Authorization: Bearer <token>` | Fleetbase console session |
-| API key | `X-Dispatcher-Api-Key` | Porterchain ↔ Fleetbase dispatch bridge |
+| Method         | Header                          | Use                                     |
+| -------------- | ------------------------------- | --------------------------------------- |
+| Sanctum bearer | `Authorization: Bearer <token>` | Fleetbase console session               |
+| API key        | `X-Dispatcher-Api-Key`          | Porterchain ↔ Fleetbase dispatch bridge |
 
 Not used for Porterchain portal user login.
 
@@ -176,13 +176,13 @@ Not used for Porterchain portal user login.
 
 ## Roles and permissions
 
-| Role | Surface | Provider | Permissions |
-|------|---------|----------|-------------|
-| **Merchant (owner)** | Merchant portal | Clerk | Full account, billing, shipments, API keys |
-| **Merchant (user)** | Merchant portal | Clerk | Scoped by org role |
-| **Driver** | Mobile / driver web | Clerk + session bridge | Routes, POD, location |
-| **Admin** | Admin portal | Clerk + RBAC | Ops, CRM, finance |
-| **Dispatcher** | Fleetbase console | Fleetbase session | Dispatch only |
+| Role                 | Surface             | Provider               | Permissions                                |
+| -------------------- | ------------------- | ---------------------- | ------------------------------------------ |
+| **Merchant (owner)** | Merchant portal     | Clerk                  | Full account, billing, shipments, API keys |
+| **Merchant (user)**  | Merchant portal     | Clerk                  | Scoped by org role                         |
+| **Driver**           | Mobile / driver web | Clerk + session bridge | Routes, POD, location                      |
+| **Admin**            | Admin portal        | Clerk + RBAC           | Ops, CRM, finance                          |
+| **Dispatcher**       | Fleetbase console   | Fleetbase session      | Dispatch only                              |
 
 RBAC: `admin_engine/rbac.py`, `merchant_engine/rbac.py`, `packages/auth/`.
 
@@ -208,10 +208,10 @@ SMTP environment variables (`MAIL_*`, `SMTP_*`) are retained for **notification 
 
 ## Related documents
 
-| Document | Purpose |
-|----------|---------|
-| [AUTHENTICATION_AUDIT.md](./AUTHENTICATION_AUDIT.md) | Pre-cleanup inventory |
-| [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md) | Changes applied |
-| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Target architecture |
-| [SECURITY.md](./SECURITY.md) | Secrets, JWT hardening |
-| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) | Env var reference |
+| Document                                                           | Purpose                |
+| ------------------------------------------------------------------ | ---------------------- |
+| [AUTHENTICATION_AUDIT.md](./AUTHENTICATION_AUDIT.md)               | Pre-cleanup inventory  |
+| [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md)           | Changes applied        |
+| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Target architecture    |
+| [SECURITY.md](./SECURITY.md)                                       | Secrets, JWT hardening |
+| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)             | Env var reference      |

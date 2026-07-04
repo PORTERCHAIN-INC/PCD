@@ -94,7 +94,10 @@ export default function SupportDetailView({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link href="/support" className="mb-2 inline-flex items-center gap-1 text-sm text-muted hover:text-secondary">
+          <Link
+            href="/support"
+            className="mb-2 inline-flex items-center gap-1 text-sm text-muted hover:text-secondary"
+          >
             <ArrowLeft className="h-4 w-4" /> Support Center
           </Link>
           <h1 className="font-mono text-2xl font-bold text-primary">{detail.ticket_number}</h1>
@@ -137,7 +140,11 @@ export default function SupportDetailView({
           <Button variant="outline" disabled={terminal} onClick={() => onStatus("escalated")}>
             Escalate
           </Button>
-          <Button variant="outline" disabled={terminal} onClick={() => onStatus("waiting_customer")}>
+          <Button
+            variant="outline"
+            disabled={terminal}
+            onClick={() => onStatus("waiting_customer")}
+          >
             Wait customer
           </Button>
           <Button variant="primary" disabled={terminal} onClick={() => onStatus("resolved")}>
@@ -156,12 +163,18 @@ export default function SupportDetailView({
           </p>
           <p className="mt-2 text-sm text-primary">{String(smart.ai_summary)}</p>
           <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted">
-            {smart.suggested_category ? <span>Suggested category: {String(smart.suggested_category)}</span> : null}
-            {smart.suggested_priority ? <span>Suggested priority: {String(smart.suggested_priority)}</span> : null}
+            {smart.suggested_category ? (
+              <span>Suggested category: {String(smart.suggested_category)}</span>
+            ) : null}
+            {smart.suggested_priority ? (
+              <span>Suggested priority: {String(smart.suggested_priority)}</span>
+            ) : null}
             {smart.sentiment ? <span>Sentiment: {String(smart.sentiment)}</span> : null}
           </div>
           {(detail.duplicates as unknown[]).length > 0 && (
-            <p className="mt-1 text-xs text-amber-700">{(detail.duplicates as unknown[]).length} possible duplicate(s)</p>
+            <p className="mt-1 text-xs text-amber-700">
+              {(detail.duplicates as unknown[]).length} possible duplicate(s)
+            </p>
           )}
         </div>
       ) : null}
@@ -174,7 +187,9 @@ export default function SupportDetailView({
             onClick={() => setTab(t.id)}
             className={cn(
               "shrink-0 rounded-t-lg px-3 py-2 text-sm font-medium",
-              tab === t.id ? "border border-b-0 border-primary/10 bg-white text-secondary" : "text-muted"
+              tab === t.id
+                ? "border border-b-0 border-primary/10 bg-white text-secondary"
+                : "text-muted"
             )}
           >
             {t.label}
@@ -200,8 +215,12 @@ export default function SupportDetailView({
         {tab === "claims" && <ClaimsTab detail={detail} />}
         {tab === "invoices" && <InvoiceTab detail={detail} />}
         {tab === "payments" && <PaymentTab detail={detail} />}
-        {tab === "documents" && <ListTab items={detail.documents} empty="No documents" field="name" />}
-        {tab === "attachments" && <ListTab items={detail.attachments} empty="No attachments" field="name" />}
+        {tab === "documents" && (
+          <ListTab items={detail.documents} empty="No documents" field="name" />
+        )}
+        {tab === "attachments" && (
+          <ListTab items={detail.attachments} empty="No attachments" field="name" />
+        )}
         {tab === "notes" && <NotesTab detail={detail} onAddNote={onAddNote} />}
         {tab === "audit" && <AuditTab detail={detail} />}
         {tab === "events" && <EventsTab detail={detail} />}
@@ -214,7 +233,9 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
   return (
     <div className="flex justify-between gap-4 border-b border-primary/5 py-2 text-sm last:border-0">
       <span className="text-muted">{label}</span>
-      <span className={cn("text-right text-primary", mono && "font-mono text-xs break-all")}>{value}</span>
+      <span className={cn("text-right text-primary", mono && "font-mono text-xs break-all")}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -248,7 +269,9 @@ function TimelineTab({ detail }: { detail: TicketDetail }) {
         <li key={i} className="relative mb-4">
           <span className="absolute -left-[25px] mt-1 h-3 w-3 rounded-full bg-secondary" />
           <p className="font-semibold text-primary">{String(e.label)}</p>
-          <p className="text-xs text-muted">{e.occurred_at ? relativeTime(String(e.occurred_at)) : ""}</p>
+          <p className="text-xs text-muted">
+            {e.occurred_at ? relativeTime(String(e.occurred_at)) : ""}
+          </p>
         </li>
       ))}
       {!items.length && <p className="text-sm text-muted">No timeline events</p>}
@@ -342,7 +365,10 @@ function OrderTab({ detail }: { detail: TicketDetail }) {
       <Row label="State" value={String(o?.state || "—")} />
       <Row label="Amount" value={o?.amount_cents ? formatCents(Number(o.amount_cents)) : "—"} />
       {detail.order_id && (
-        <Link href={`/orders/${detail.order_id}`} className="mt-3 inline-block text-sm text-secondary hover:underline">
+        <Link
+          href={`/orders/${detail.order_id}`}
+          className="mt-3 inline-block text-sm text-secondary hover:underline"
+        >
           Open Order 360
         </Link>
       )}
@@ -354,9 +380,16 @@ function TrackingTab({ detail }: { detail: TicketDetail }) {
   const t = detail.tracking;
   return (
     <>
-      <Row label="Tracking number" value={detail.tracking_number || String(t?.tracking_number || "—")} mono />
+      <Row
+        label="Tracking number"
+        value={detail.tracking_number || String(t?.tracking_number || "—")}
+        mono
+      />
       {detail.order_id && (
-        <Link href={`/orders/${detail.order_id}`} className="mt-3 inline-block text-sm text-secondary hover:underline">
+        <Link
+          href={`/orders/${detail.order_id}`}
+          className="mt-3 inline-block text-sm text-secondary hover:underline"
+        >
           View live tracking in Order 360
         </Link>
       )}
@@ -388,7 +421,12 @@ function InvoiceTab({ detail }: { detail: TicketDetail }) {
       <Row label="Status" value={String(inv.status || "—")} />
       <Row label="Amount" value={inv.amount_cents ? formatCents(Number(inv.amount_cents)) : "—"} />
       {inv.pdf_url ? (
-        <a href={String(inv.pdf_url)} target="_blank" rel="noreferrer" className="text-sm text-secondary hover:underline">
+        <a
+          href={String(inv.pdf_url)}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm text-secondary hover:underline"
+        >
           Download PDF
         </a>
       ) : null}
@@ -405,7 +443,12 @@ function PaymentTab({ detail }: { detail: TicketDetail }) {
       <Row label="Amount" value={p.amount_cents ? formatCents(Number(p.amount_cents)) : "—"} />
       <Row label="Payment intent" value={String(p.stripe_payment_intent_id || "—")} mono />
       {p.receipt_url ? (
-        <a href={String(p.receipt_url)} target="_blank" rel="noreferrer" className="text-sm text-secondary hover:underline">
+        <a
+          href={String(p.receipt_url)}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm text-secondary hover:underline"
+        >
           Receipt
         </a>
       ) : null}

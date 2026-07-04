@@ -2,7 +2,15 @@ import { ScrollView, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTheme } from "@porterchain/mobile-theme";
-import { Body, Button, Card, CardHeader, ListItem, ListSection, Screen } from "@porterchain/mobile-ui";
+import {
+  Body,
+  Button,
+  Card,
+  CardHeader,
+  ListItem,
+  ListSection,
+  Screen,
+} from "@porterchain/mobile-ui";
 import { useAuthStore } from "../../store/auth-store";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import type { ProfileStackParamList } from "../../navigation/types";
@@ -34,7 +42,11 @@ export function ProfileScreen() {
 
         <ListSection title="Billing & help">
           {links.map((link) => (
-            <ListItem key={link.screen} title={link.label} onPress={() => navigation.navigate(link.screen)} />
+            <ListItem
+              key={link.screen}
+              title={link.label}
+              onPress={() => navigation.navigate(link.screen)}
+            />
           ))}
         </ListSection>
 

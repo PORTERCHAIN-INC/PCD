@@ -125,7 +125,8 @@ export const driverApi = {
     await driverLogin(email, clerkToken);
     return { access_token: "", refresh_token: "", driver_id: "" };
   },
-  onboarding: () => driverFetch<import("@/lib/onboarding").DriverOnboardingStatus>("/v1/onboarding"),
+  onboarding: () =>
+    driverFetch<import("@/lib/onboarding").DriverOnboardingStatus>("/v1/onboarding"),
   dashboard: () => driverFetch<DriverDashboard>("/v1/dashboard"),
   earnings: () =>
     driverFetch<{ today_cents: number; week_cents: number; month_cents?: number }>(
@@ -163,11 +164,15 @@ export const driverApi = {
   jobsHistory: () => driverFetch<{ history: DriverJobSummary[] }>("/v1/jobs/history"),
   navigationSession: (orderId?: string) =>
     driverFetch<DriverNavigationSession>(
-      orderId ? `/v1/navigation/session?order_id=${encodeURIComponent(orderId)}` : "/v1/navigation/session"
+      orderId
+        ? `/v1/navigation/session?order_id=${encodeURIComponent(orderId)}`
+        : "/v1/navigation/session"
     ),
   navigationRoute: (routeId?: string) =>
     driverFetch<Record<string, unknown>>(
-      routeId ? `/v1/navigation/route?route_id=${encodeURIComponent(routeId)}` : "/v1/navigation/route"
+      routeId
+        ? `/v1/navigation/route?route_id=${encodeURIComponent(routeId)}`
+        : "/v1/navigation/route"
     ),
   postLocation: (body: {
     lat: number;
@@ -238,8 +243,7 @@ export const driverApi = {
     }),
   openClaim: (body: { order_id: string; claim_type: string; description?: string }) =>
     driverFetch("/v1/support/claims", { method: "POST", body: JSON.stringify(body) }),
-  acceptOrder: (orderId: string) =>
-    driverFetch(`/v1/orders/${orderId}/accept`, { method: "POST" }),
+  acceptOrder: (orderId: string) => driverFetch(`/v1/orders/${orderId}/accept`, { method: "POST" }),
   rejectOrder: (orderId: string, reason?: string) =>
     driverFetch(`/v1/orders/${orderId}/reject`, {
       method: "POST",
@@ -287,10 +291,12 @@ export const driverApi = {
       method: "POST",
       body: JSON.stringify({ action_type: actionType, payload }),
     }),
-  syncOffline: () => driverFetch<{ synced: number; failed: number }>("/v1/offline/sync", { method: "POST" }),
+  syncOffline: () =>
+    driverFetch<{ synced: number; failed: number }>("/v1/offline/sync", { method: "POST" }),
   retryOffline: () =>
     driverFetch<{ synced: number; failed: number; retried: number }>(
       "/v1/communications/offline/retry",
       { method: "POST" }
     ),
+  logout: () => driverLogout(),
 };

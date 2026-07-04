@@ -2,9 +2,9 @@
 
 Porterchain uses two GitHub Actions workflows:
 
-| Workflow   | File                           | Trigger                                | Purpose                                                |
-| ---------- | ------------------------------ | -------------------------------------- | ------------------------------------------------------ |
-| **CI**     | `.github/workflows/ci.yml`     | push / PR to `main`                    | Lint, format check, build (quality gate)               |
+| Workflow   | File                           | Trigger                                | Purpose                                                    |
+| ---------- | ------------------------------ | -------------------------------------- | ---------------------------------------------------------- |
+| **CI**     | `.github/workflows/ci.yml`     | push / PR to `main`                    | Lint, format check, build (quality gate)                   |
 | **Deploy** | `.github/workflows/deploy.yml` | after CI succeeds on `main`, or manual | Build all portal images → push to GHCR → deploy to droplet |
 
 The Deploy workflow only runs once CI passes on `main`, so broken code never ships.

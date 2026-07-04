@@ -5,6 +5,7 @@ Generated: 2026-07-02T20:51:20.327112+00:00
 **Overall:** WARNING
 
 ## Connection chain (masterrule §1)
+
 - Website: **PASS**
 - Booking Portal: **PASS**
 - Customer Portal: **PASS**

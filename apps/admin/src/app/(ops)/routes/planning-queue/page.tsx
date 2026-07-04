@@ -25,9 +25,12 @@ const BUCKETS = [
 
 export default function PlanningQueuePage() {
   const [selected, setSelected] = useState<string[]>([]);
-  const [activeBucket, setActiveBucket] = useState<(typeof BUCKETS)[number]["key"]>("ready_for_planning");
+  const [activeBucket, setActiveBucket] =
+    useState<(typeof BUCKETS)[number]["key"]>("ready_for_planning");
   const [query, setQuery] = useState("");
-  const { data, error } = useApiData((t) => routeCenter.planningQueue(t), [], { key: "route-planning-queue" });
+  const { data, error } = useApiData((t) => routeCenter.planningQueue(t), [], {
+    key: "route-planning-queue",
+  });
 
   if (error) return <RouteErrorState message={error} />;
   if (!data) return <Spinner label="Loading planning queue…" />;
@@ -79,7 +82,10 @@ export default function PlanningQueuePage() {
                 )}
               >
                 {b.label}
-                <Badge tone={active ? "slate" : b.tone} className={active ? "bg-white/20 text-white ring-white/30" : undefined}>
+                <Badge
+                  tone={active ? "slate" : b.tone}
+                  className={active ? "bg-white/20 text-white ring-white/30" : undefined}
+                >
                   {count}
                 </Badge>
               </button>
@@ -100,7 +106,11 @@ export default function PlanningQueuePage() {
         {items.length === 0 ? (
           <RouteEmptyState
             title={`No orders in ${bucket.label}`}
-            hint={query ? "Try a different search term or bucket." : "Orders will appear here when ready for planning."}
+            hint={
+              query
+                ? "Try a different search term or bucket."
+                : "Orders will appear here when ready for planning."
+            }
           />
         ) : (
           <div className="overflow-hidden rounded-xl border border-primary/10">
@@ -132,10 +142,15 @@ export default function PlanningQueuePage() {
                         {String(item.tracking_number ?? item.order_number ?? id)}
                       </p>
                       <p className="truncate text-xs text-muted">
-                        {String(item.merchant ?? "Direct")} · {titleCase(String(item.state ?? "unknown"))}
+                        {String(item.merchant ?? "Direct")} ·{" "}
+                        {titleCase(String(item.state ?? "unknown"))}
                       </p>
                     </div>
-                    {item.high_priority ? <Badge tone="red">Express</Badge> : <Badge tone="slate">Standard</Badge>}
+                    {item.high_priority ? (
+                      <Badge tone="red">Express</Badge>
+                    ) : (
+                      <Badge tone="slate">Standard</Badge>
+                    )}
                   </label>
                 );
               })}

@@ -52,7 +52,10 @@ export function groupInboxItems(
   }));
 }
 
-export function filterInboxItems(items: NotificationInboxItem[], filter: "all" | "unread" | "read") {
+export function filterInboxItems(
+  items: NotificationInboxItem[],
+  filter: "all" | "unread" | "read"
+) {
   if (filter === "unread") return items.filter((item) => !item.is_read);
   if (filter === "read") return items.filter((item) => item.is_read);
   return items;

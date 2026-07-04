@@ -31,9 +31,7 @@ function filterForOrder(
     (v) => driverVehicleIds.has(v.id) || drivers.some((d) => d.id === v.driver_id)
   );
   const center =
-    drivers.find((d) => d.location)?.location ??
-    orders[0]?.location ??
-    data.default_center;
+    drivers.find((d) => d.location)?.location ?? orders[0]?.location ?? data.default_center;
 
   return {
     ...data,
@@ -47,9 +45,7 @@ function filterForOrder(
       (w) => orders.some((o) => o.merchant_id === w.merchant_id) || orders.length === 0
     ),
     alerts: data.alerts.filter((a) => a.entity_id === orderId || a.entity_id === driverId),
-    events: data.events.filter(
-      (e) => e.aggregate_id === orderId || e.aggregate_id === driverId
-    ),
+    events: data.events.filter((e) => e.aggregate_id === orderId || e.aggregate_id === driverId),
   };
 }
 
@@ -114,7 +110,9 @@ export default function Order360EmbeddedMap({ orderId, driverId, merchantId }: P
           <span>Speed {Math.round(activeDriver.speed_kmh)} km/h</span>
         )}
         {activeDriver?.heading != null && <span>Heading {Math.round(activeDriver.heading)}°</span>}
-        {filtered.orders[0]?.eta && <span>ETA {new Date(filtered.orders[0].eta).toLocaleString()}</span>}
+        {filtered.orders[0]?.eta && (
+          <span>ETA {new Date(filtered.orders[0].eta).toLocaleString()}</span>
+        )}
       </div>
       <div className="relative h-[420px] overflow-hidden rounded-xl border border-primary/10">
         <GoogleMapsProvider>

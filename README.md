@@ -4,16 +4,16 @@ Commercial logistics platform monorepo — website, API, portals, worker, and Fl
 
 ## Applications
 
-| Path | Port | Description |
-|------|------|-------------|
-| [`website/`](website/) | **3000** | Public Next.js site — booking, tracking, customer portal route |
-| [`apps/merchant-portal/`](apps/merchant-portal/) | **3001** | B2B merchant dashboard (Clerk) |
-| [`apps/admin/`](apps/admin/) | **3002** | Business admin / ops (Clerk) |
-| [`apps/driver-portal/`](apps/driver-portal/) | **3003** | Driver web dashboard |
-| [`apps/customer/`](apps/customer/) | **3004** | Retail customer portal |
-| [`apps/api/`](apps/api/) | **8001** | Porterchain API (FastAPI) — all business logic |
-| [`apps/worker/`](apps/worker/) | — | Event bus + queue consumer |
-| [`apps/mobile-driver/`](apps/mobile-driver/) | Expo | Driver mobile app (Expo SDK 52) |
+| Path                                             | Port     | Description                                                    |
+| ------------------------------------------------ | -------- | -------------------------------------------------------------- |
+| [`website/`](website/)                           | **3000** | Public Next.js site — booking, tracking, customer portal route |
+| [`apps/merchant-portal/`](apps/merchant-portal/) | **3001** | B2B merchant dashboard (Clerk)                                 |
+| [`apps/admin/`](apps/admin/)                     | **3002** | Business admin / ops (Clerk)                                   |
+| [`apps/driver-portal/`](apps/driver-portal/)     | **3003** | Driver web dashboard                                           |
+| [`apps/customer/`](apps/customer/)               | **3004** | Retail customer portal                                         |
+| [`apps/api/`](apps/api/)                         | **8001** | Porterchain API (FastAPI) — all business logic                 |
+| [`apps/worker/`](apps/worker/)                   | —        | Event bus + queue consumer                                     |
+| [`apps/mobile-driver/`](apps/mobile-driver/)     | Expo     | Driver mobile app (Expo SDK 52)                                |
 
 Path aliases: `website/` = public site (target `apps/website/`); `apps/merchant-portal/` = merchant portal (target `apps/merchant/`).
 
@@ -64,27 +64,27 @@ PostgreSQL uses Alembic migrations — see [`apps/api/alembic/README.md`](apps/a
 
 ## Monorepo scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Turbo dev (website + configured apps) |
-| `pnpm dev:api` | Porterchain API |
-| `pnpm dev:worker` | Queue + event bus worker |
-| `pnpm build` | Production build |
-| `pnpm docker:up` | Core Docker services |
+| Command           | Description                           |
+| ----------------- | ------------------------------------- |
+| `pnpm dev`        | Turbo dev (website + configured apps) |
+| `pnpm dev:api`    | Porterchain API                       |
+| `pnpm dev:worker` | Queue + event bus worker              |
+| `pnpm build`      | Production build                      |
+| `pnpm docker:up`  | Core Docker services                  |
 
 ## Ports
 
-| Port | Service |
-|------|---------|
-| 3000 | Website |
-| 3001 | Merchant portal |
-| 3002 | Admin |
-| 3003 | Driver portal |
-| 3004 | Customer portal |
-| 8001 | Porterchain API |
-| 8000 | Fleetbase API (when enabled) |
+| Port | Service                             |
+| ---- | ----------------------------------- |
+| 3000 | Website                             |
+| 3001 | Merchant portal                     |
+| 3002 | Admin                               |
+| 3003 | Driver portal                       |
+| 3004 | Customer portal                     |
+| 8001 | Porterchain API                     |
+| 8000 | Fleetbase API (when enabled)        |
 | 5432 | PostgreSQL (Porterchain-owned data) |
-| 6379 | Redis |
+| 6379 | Redis                               |
 
 See [PORT_CONFIGURATION.md](PORT_CONFIGURATION.md).
 

@@ -12,12 +12,12 @@
 
 Fleetbase is a **modular logistics operating system** (LSOS): a thin Laravel 10 API shell plus an Ember 5 console, with all domain logic shipped as Composer/npm extension packages. For Porterchain it is the **internal dispatch and fleet-execution engine** — not a customer-facing product surface.
 
-| Layer                            | Porterchain role                                                             |
-| -------------------------------- | ---------------------------------------------------------------------------- |
-| **Customer / merchant / retail** | Porterchain owns UX, auth (Clerk), pricing, billing, CRM                     |
-| **Operations / dispatch**        | Fleetbase console (port 4200) + FleetOps engine                              |
-| **Integration**                  | Porterchain API (:8001) is the **only** bridge to Fleetbase API (:8000)      |
-| **Data**                         | Dual stores: PostgreSQL (Porterchain) + MySQL `fleetbase` (Fleetbase) |
+| Layer                            | Porterchain role                                                        |
+| -------------------------------- | ----------------------------------------------------------------------- |
+| **Customer / merchant / retail** | Porterchain owns UX, auth (Clerk), pricing, billing, CRM                |
+| **Operations / dispatch**        | Fleetbase console (port 4200) + FleetOps engine                         |
+| **Integration**                  | Porterchain API (:8001) is the **only** bridge to Fleetbase API (:8000) |
+| **Data**                         | Dual stores: PostgreSQL (Porterchain) + MySQL `fleetbase` (Fleetbase)   |
 
 ### Strategic recommendation
 

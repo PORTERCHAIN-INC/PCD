@@ -2,7 +2,12 @@
 
 import { cn } from "@porterchain/ui/utils";
 import { Shield } from "lucide-react";
-import type { HealthComponent, MasterruleCheck, TestCatalogItem, TestResult } from "@/lib/diagnostics";
+import type {
+  HealthComponent,
+  MasterruleCheck,
+  TestCatalogItem,
+  TestResult,
+} from "@/lib/diagnostics";
 import { statusIcon, statusTone } from "@/lib/diagnostics";
 import { SettingsCard } from "@/components/settings/ui/SettingsPrimitives";
 
@@ -16,7 +21,9 @@ const TONE_CLASS: Record<string, string> = {
 export function HealthComponentCard({ component }: { component: HealthComponent }) {
   const tone = statusTone(component.status);
   return (
-    <div className={cn("rounded-xl border p-4 shadow-sm transition hover:shadow-md", TONE_CLASS[tone])}>
+    <div
+      className={cn("rounded-xl border p-4 shadow-sm transition hover:shadow-md", TONE_CLASS[tone])}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="font-semibold">{component.name}</p>
@@ -28,10 +35,14 @@ export function HealthComponentCard({ component }: { component: HealthComponent 
       </div>
       <dl className="mt-3 space-y-1.5 text-sm">
         <Row label="Status" value={component.status} />
-        {component.latency_ms != null && <Row label="Latency" value={`${component.latency_ms} ms`} />}
+        {component.latency_ms != null && (
+          <Row label="Latency" value={`${component.latency_ms} ms`} />
+        )}
         {component.version && <Row label="Version" value={component.version} />}
         {component.last_sync && <Row label="Last sync" value={component.last_sync} />}
-        {component.recovery_status !== "none" && <Row label="Recovery" value={component.recovery_status} />}
+        {component.recovery_status !== "none" && (
+          <Row label="Recovery" value={component.recovery_status} />
+        )}
       </dl>
       {component.errors.length > 0 && (
         <ul className="mt-2 list-disc pl-4 text-xs text-red-700">
@@ -145,7 +156,10 @@ export function MasterruleCompliancePanel({
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
         {compliance.checks.map((c) => (
-          <div key={c.id} className="flex items-start gap-2 rounded-lg border border-primary/5 px-3 py-2 text-sm">
+          <div
+            key={c.id}
+            className="flex items-start gap-2 rounded-lg border border-primary/5 px-3 py-2 text-sm"
+          >
             <span>{statusIcon(c.status)}</span>
             <div>
               <p className="font-medium">{c.label}</p>
@@ -171,7 +185,12 @@ export function TestCatalogCard({
 }) {
   const tone = result ? statusTone(result.status) : "gray";
   return (
-    <div className={cn("flex flex-col rounded-xl border p-4", result ? TONE_CLASS[tone] : "border-primary/10 bg-white")}>
+    <div
+      className={cn(
+        "flex flex-col rounded-xl border p-4",
+        result ? TONE_CLASS[tone] : "border-primary/10 bg-white"
+      )}
+    >
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="font-semibold text-primary">{test.name}</p>
@@ -189,7 +208,9 @@ export function TestCatalogCard({
         {busy ? "Running…" : result ? "Re-run" : "Run test"}
       </button>
       {result && result.logs.length > 0 && (
-        <pre className="mt-2 max-h-24 overflow-auto rounded bg-black/5 p-2 text-[10px]">{result.logs.join("\n")}</pre>
+        <pre className="mt-2 max-h-24 overflow-auto rounded bg-black/5 p-2 text-[10px]">
+          {result.logs.join("\n")}
+        </pre>
       )}
     </div>
   );
@@ -216,9 +237,13 @@ export function TestResultRow({
         </span>
         <span className="text-xs text-muted">{result.execution_ms} ms</span>
       </div>
-      {result.masterrule && <p className="mt-0.5 text-[10px] uppercase text-muted">{result.masterrule}</p>}
+      {result.masterrule && (
+        <p className="mt-0.5 text-[10px] uppercase text-muted">{result.masterrule}</p>
+      )}
       {result.logs.length > 0 && (
-        <pre className="mt-2 max-h-32 overflow-auto rounded bg-black/5 p-2 text-xs">{result.logs.join("\n")}</pre>
+        <pre className="mt-2 max-h-32 overflow-auto rounded bg-black/5 p-2 text-xs">
+          {result.logs.join("\n")}
+        </pre>
       )}
     </div>
   );
@@ -252,7 +277,9 @@ export function ArchitectureChainView({ chain }: { chain: Array<Record<string, u
             {node.downstream != null && (
               <p className="mt-1 text-xs text-muted">→ {String(node.downstream)}</p>
             )}
-            {node.error != null && <p className="mt-1 text-xs text-red-600">{String(node.error)}</p>}
+            {node.error != null && (
+              <p className="mt-1 text-xs text-red-600">{String(node.error)}</p>
+            )}
           </div>
         </div>
       ))}
@@ -289,10 +316,16 @@ export function ObservabilityPanel({ data }: { data: Record<string, unknown> }) 
       <div className="rounded-xl border border-primary/10 p-4 lg:col-span-2">
         <h4 className="text-sm font-semibold">Tracing</h4>
         <p className="mt-1 text-sm text-muted">
-          Correlation header: <code className="rounded bg-gray-100 px-1">{String((data.correlation_ids as Record<string, unknown>)?.header ?? "X-Request-ID")}</code>
+          Correlation header:{" "}
+          <code className="rounded bg-gray-100 px-1">
+            {String((data.correlation_ids as Record<string, unknown>)?.header ?? "X-Request-ID")}
+          </code>
         </p>
         <p className="text-sm text-muted">
-          Metrics: <code className="rounded bg-gray-100 px-1">{String((data.api_metrics as Record<string, unknown>)?.endpoint ?? "/metrics")}</code>
+          Metrics:{" "}
+          <code className="rounded bg-gray-100 px-1">
+            {String((data.api_metrics as Record<string, unknown>)?.endpoint ?? "/metrics")}
+          </code>
         </p>
       </div>
     </div>

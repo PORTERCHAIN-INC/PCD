@@ -184,7 +184,9 @@ export default function DriverOnboardingView({
             <UserCheck className="h-5 w-5 text-[var(--muted)]" />
             <div>
               <p className="font-semibold text-[var(--primary)]">Need help?</p>
-              <p className="text-xs text-[var(--muted)]">Contact operations after you submit docs</p>
+              <p className="text-xs text-[var(--muted)]">
+                Contact operations after you submit docs
+              </p>
             </div>
           </div>
         </div>

@@ -129,7 +129,8 @@ function BookSuccessContent() {
                 <div className="flex justify-between gap-4">
                   <dt className="type-caption text-muted">Amount paid</dt>
                   <dd className="type-caption font-semibold text-primary">
-                    ${(confirmation.amount_cents / 100).toFixed(2)} {confirmation.currency.toUpperCase()}
+                    ${(confirmation.amount_cents / 100).toFixed(2)}{" "}
+                    {confirmation.currency.toUpperCase()}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-4">

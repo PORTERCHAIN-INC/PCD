@@ -4,14 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  AlertTriangle,
-  Download,
-  RefreshCw,
-  Search,
-  Settings2,
-  Upload,
-} from "lucide-react";
+import { AlertTriangle, Download, RefreshCw, Search, Settings2, Upload } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Button, Spinner } from "@/components/crm/primitives";
@@ -49,7 +42,13 @@ export default function SettingsCenter() {
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const { data: center, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: center,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["settings-center"],
     enabled,
     queryFn: async () => settingsApi.center(await getApiToken()),
@@ -135,7 +134,9 @@ export default function SettingsCenter() {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-8">
         <p className="font-semibold text-red-800">Failed to load settings center</p>
-        <p className="mt-1 text-sm text-red-700">{error instanceof Error ? error.message : "Unknown error"}</p>
+        <p className="mt-1 text-sm text-red-700">
+          {error instanceof Error ? error.message : "Unknown error"}
+        </p>
         <Button variant="outline" className="mt-4" onClick={() => void refetch()}>
           <RefreshCw className="h-4 w-4" /> Retry
         </Button>
@@ -326,11 +327,16 @@ function SectionRouter({
   if (tab === "roles" && center)
     return <RolesPanel permissions={center.permissions} roles={center.roles} />;
   if (tab === "audit") return <AuditPanel />;
-  if (tab === "backup") return <PlatformPanel variant="backup" onExport={onExport} onImport={onImport} />;
-  if (tab === "logs") return <PlatformPanel variant="logs" onExport={onExport} onImport={onImport} />;
-  if (tab === "developer") return <PlatformPanel variant="developer" onExport={onExport} onImport={onImport} />;
+  if (tab === "backup")
+    return <PlatformPanel variant="backup" onExport={onExport} onImport={onImport} />;
+  if (tab === "logs")
+    return <PlatformPanel variant="logs" onExport={onExport} onImport={onImport} />;
+  if (tab === "developer")
+    return <PlatformPanel variant="developer" onExport={onExport} onImport={onImport} />;
   if (tab === "maintenance")
-    return <PlatformPanel variant="maintenance" dash={dash} onExport={onExport} onImport={onImport} />;
+    return (
+      <PlatformPanel variant="maintenance" dash={dash} onExport={onExport} onImport={onImport} />
+    );
 
   if (tab === "api_keys" || tab === "integrations") return <EnvManagedPanel sectionId={tab} />;
 

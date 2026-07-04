@@ -6,11 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useForegroundAwarePolling } from "@porterchain/mobile-performance";
 import { useTheme } from "@porterchain/mobile-theme";
 import { Body, Button, Card, Screen } from "@porterchain/mobile-ui";
-import {
-  EnterpriseMap,
-  driverSessionToMapSession,
-  formatEta,
-} from "@porterchain/mobile-maps";
+import { EnterpriseMap, driverSessionToMapSession, formatEta } from "@porterchain/mobile-maps";
 import { useDriverApi } from "../../api/DriverApiContext";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import type { NavigationStackParamList } from "../../navigation/types";
@@ -34,7 +30,10 @@ export function NavigationScreen() {
 
   return (
     <Screen>
-      <ScreenHeader title="Navigation" subtitle={data?.tracking_number ?? "Fleetbase GPS via API"} />
+      <ScreenHeader
+        title="Navigation"
+        subtitle={data?.tracking_number ?? "Fleetbase GPS via API"}
+      />
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.lg }}>
         {mapSession ? (
           <EnterpriseMap
@@ -53,13 +52,23 @@ export function NavigationScreen() {
             ETA: {formatEta(data?.eta?.duration_seconds)} · GPS: {data?.gps_source ?? "fleetbase"}
           </Body>
           <Body muted>
-            Engines: {data?.routing_engines?.gps} / {data?.routing_engines?.eta} / {data?.routing_engines?.optimized_route}
+            Engines: {data?.routing_engines?.gps} / {data?.routing_engines?.eta} /{" "}
+            {data?.routing_engines?.optimized_route}
           </Body>
         </Card>
         {data?.navigation_url ? (
-          <Button label="Open in Google Maps" fullWidth onPress={() => void Linking.openURL(data.navigation_url!)} />
+          <Button
+            label="Open in Google Maps"
+            fullWidth
+            onPress={() => void Linking.openURL(data.navigation_url!)}
+          />
         ) : null}
-        <Button label="Refresh route" variant="secondary" fullWidth onPress={() => void refetch()} />
+        <Button
+          label="Refresh route"
+          variant="secondary"
+          fullWidth
+          onPress={() => void refetch()}
+        />
       </ScrollView>
     </Screen>
   );

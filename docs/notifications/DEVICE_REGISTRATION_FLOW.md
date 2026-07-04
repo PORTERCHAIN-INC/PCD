@@ -55,12 +55,12 @@ sequenceDiagram
 
 ## User Resolution
 
-| Portal | Principal | `user_role` | `user_id` |
-|--------|-----------|-------------|-----------|
-| Admin | Clerk + admin_users | `admin` | admin_users.id |
-| Merchant | Clerk + merchant | `merchant` | merchant.id |
-| Customer | Clerk / guest | `customer` | customer.id |
-| Driver | Driver JWT | `driver` | drivers.id |
+| Portal   | Principal           | `user_role` | `user_id`      |
+| -------- | ------------------- | ----------- | -------------- |
+| Admin    | Clerk + admin_users | `admin`     | admin_users.id |
+| Merchant | Clerk + merchant    | `merchant`  | merchant.id    |
+| Customer | Clerk / guest       | `customer`  | customer.id    |
+| Driver   | Driver JWT          | `driver`    | drivers.id     |
 
 ## Multi-Device
 
@@ -89,9 +89,9 @@ Driver tokens previously stored in `drivers.performance.push_devices` are migrat
 
 ## Client Requirements
 
-| App | Status | Library |
-|-----|--------|---------|
-| Driver mobile | Roadmap | `expo-notifications` |
-| Admin portal | Supported | Firebase JS + service worker |
-| Merchant portal | Roadmap | Firebase JS |
-| Customer portal | Roadmap | Firebase JS |
+| App             | Status    | Library                      |
+| --------------- | --------- | ---------------------------- |
+| Driver mobile   | Roadmap   | `expo-notifications`         |
+| Admin portal    | Supported | Firebase JS + service worker |
+| Merchant portal | Roadmap   | Firebase JS                  |
+| Customer portal | Roadmap   | Firebase JS                  |

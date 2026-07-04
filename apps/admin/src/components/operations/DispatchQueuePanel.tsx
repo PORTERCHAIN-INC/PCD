@@ -34,7 +34,11 @@ function stopKey(s: OptimizedStop) {
 }
 
 /** Linked stops for the same parcel (pickup ↔ delivery). */
-function linkedStopKeys(stops: OptimizedStop[], stop: OptimizedStop, mode: "check" | "uncheck"): string[] {
+function linkedStopKeys(
+  stops: OptimizedStop[],
+  stop: OptimizedStop,
+  mode: "check" | "uncheck"
+): string[] {
   const keys: string[] = [stopKey(stop)];
   const siblings = stops.filter((s) => s.order_id === stop.order_id && s.type !== stop.type);
   for (const s of siblings) {
@@ -55,13 +59,9 @@ type Props = {
 
 export function DispatchQueuePanel({ tick, onAssigned }: Props) {
   const { getApiToken } = useAdminAuth();
-  const {
-    data,
-    loading,
-    error,
-    refetch,
-    isFetching,
-  } = useApiData((t) => ops.queue(t), [tick], { key: "ops-queue" });
+  const { data, loading, error, refetch, isFetching } = useApiData((t) => ops.queue(t), [tick], {
+    key: "ops-queue",
+  });
   const { data: driversList, loading: driversLoading } = useApiData(
     (t) => ops.assignableDrivers(t),
     [tick],
@@ -240,7 +240,9 @@ export function DispatchQueuePanel({ tick, onAssigned }: Props) {
         >
           {queueSelected.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 border-b border-primary/10 px-4 py-3">
-              <span className="text-sm font-medium text-primary">{queueSelected.length} selected</span>
+              <span className="text-sm font-medium text-primary">
+                {queueSelected.length} selected
+              </span>
               <Button
                 variant="outline"
                 className="gap-2"
@@ -340,7 +342,8 @@ export function DispatchQueuePanel({ tick, onAssigned }: Props) {
           action={
             optimizeResult?.metrics ? (
               <span className="text-xs text-muted">
-                {optimizeResult.metrics.distance_km} km · ~{optimizeResult.metrics.duration_minutes} min
+                {optimizeResult.metrics.distance_km} km · ~{optimizeResult.metrics.duration_minutes}{" "}
+                min
               </span>
             ) : undefined
           }
@@ -351,8 +354,8 @@ export function DispatchQueuePanel({ tick, onAssigned }: Props) {
               <Route className="mb-3 h-10 w-10 text-muted/40" />
               <p className="text-sm font-medium text-primary">No optimized route yet</p>
               <p className="mt-1 max-w-xs text-xs text-muted">
-                Select parcels on the left, then click <strong>Optimize route</strong> to build the stop
-                sequence here.
+                Select parcels on the left, then click <strong>Optimize route</strong> to build the
+                stop sequence here.
               </p>
             </div>
           ) : (
@@ -426,9 +429,15 @@ export function DispatchQueuePanel({ tick, onAssigned }: Props) {
                         />
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-secondary">#{s.sequence}</span>
-                            <Badge tone={s.type === "pickup" ? "blue" : "green"}>{titleCase(s.type)}</Badge>
-                            <span className="font-mono text-xs font-semibold text-primary">{s.tracking_number}</span>
+                            <span className="font-mono text-xs font-bold text-secondary">
+                              #{s.sequence}
+                            </span>
+                            <Badge tone={s.type === "pickup" ? "blue" : "green"}>
+                              {titleCase(s.type)}
+                            </Badge>
+                            <span className="font-mono text-xs font-semibold text-primary">
+                              {s.tracking_number}
+                            </span>
                           </div>
                           <p className="mt-0.5 truncate text-xs text-muted">{s.address ?? "—"}</p>
                           {s.leg_duration_seconds ? (

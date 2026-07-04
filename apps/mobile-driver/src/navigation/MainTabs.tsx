@@ -17,8 +17,22 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   const { theme } = useTheme();
   return (
     <View style={{ alignItems: "center", minWidth: 48 }}>
-      <View style={{ width: 6, height: 6, borderRadius: 3, marginBottom: 4, backgroundColor: focused ? theme.colors.secondary : "transparent" }} />
-      <Caption style={{ color: focused ? theme.colors.secondary : theme.colors.textMuted, fontWeight: focused ? "700" : "500", fontSize: 10 }}>
+      <View
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: 3,
+          marginBottom: 4,
+          backgroundColor: focused ? theme.colors.secondary : "transparent",
+        }}
+      />
+      <Caption
+        style={{
+          color: focused ? theme.colors.secondary : theme.colors.textMuted,
+          fontWeight: focused ? "700" : "500",
+          fontSize: 10,
+        }}
+      >
         {label}
       </Caption>
     </View>
@@ -42,12 +56,36 @@ export function MainTabs() {
           tabBarShowLabel: false,
         }}
       >
-        <Tab.Screen name="Home" component={HomeStack} options={{ tabBarIcon: ({ focused }) => <TabIcon label="Home" focused={focused} /> }} />
-        <Tab.Screen name="Jobs" component={JobsStack} options={{ tabBarIcon: ({ focused }) => <TabIcon label="Jobs" focused={focused} /> }} />
-        <Tab.Screen name="Navigation" component={NavigationStack} options={{ tabBarIcon: ({ focused }) => <TabIcon label="Nav" focused={focused} /> }} />
-        <Tab.Screen name="Earnings" component={EarningsStack} options={{ tabBarIcon: ({ focused }) => <TabIcon label="Earn" focused={focused} /> }} />
-        <Tab.Screen name="Shift" component={ShiftStack} options={{ tabBarIcon: ({ focused }) => <TabIcon label="Shift" focused={focused} /> }} />
-        <Tab.Screen name="More" component={MoreStack} options={{ tabBarIcon: ({ focused }) => <TabIcon label="More" focused={focused} /> }} />
+        <Tab.Screen
+          name="Home"
+          component={HomeStack}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon label="Home" focused={focused} /> }}
+        />
+        <Tab.Screen
+          name="Jobs"
+          component={JobsStack}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon label="Jobs" focused={focused} /> }}
+        />
+        <Tab.Screen
+          name="Navigation"
+          component={NavigationStack}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon label="Nav" focused={focused} /> }}
+        />
+        <Tab.Screen
+          name="Earnings"
+          component={EarningsStack}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon label="Earn" focused={focused} /> }}
+        />
+        <Tab.Screen
+          name="Shift"
+          component={ShiftStack}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon label="Shift" focused={focused} /> }}
+        />
+        <Tab.Screen
+          name="More"
+          component={MoreStack}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon label="More" focused={focused} /> }}
+        />
       </Tab.Navigator>
     </AppShell>
   );

@@ -169,16 +169,24 @@ export const integrationsApi = {
     integrationsFetch<ApiDoc>("/v1/merchant/integrations/documentation", token, { orgId }),
 
   events: (token: string, orgId?: string) =>
-    integrationsFetch<{ events: EventCatalogItem[] }>("/v1/merchant/integrations/events", token, { orgId }),
+    integrationsFetch<{ events: EventCatalogItem[] }>("/v1/merchant/integrations/events", token, {
+      orgId,
+    }),
 
   usage: (token: string, orgId?: string, days = 7) =>
-    integrationsFetch<ApiUsageSummary>(`/v1/merchant/integrations/usage?days=${days}`, token, { orgId }),
+    integrationsFetch<ApiUsageSummary>(`/v1/merchant/integrations/usage?days=${days}`, token, {
+      orgId,
+    }),
 
   rateLimits: (token: string, orgId?: string) =>
-    integrationsFetch<{ limits: RateLimitRow[] }>("/v1/merchant/integrations/rate-limits", token, { orgId }),
+    integrationsFetch<{ limits: RateLimitRow[] }>("/v1/merchant/integrations/rate-limits", token, {
+      orgId,
+    }),
 
   sandbox: (token: string, orgId?: string) =>
-    integrationsFetch<{ sandbox_mode: boolean }>("/v1/merchant/integrations/sandbox", token, { orgId }),
+    integrationsFetch<{ sandbox_mode: boolean }>("/v1/merchant/integrations/sandbox", token, {
+      orgId,
+    }),
 
   setSandbox: (token: string, sandbox_mode: boolean, orgId?: string) =>
     integrationsFetch<{ sandbox_mode: boolean }>("/v1/merchant/integrations/sandbox", token, {
@@ -202,10 +210,14 @@ export const integrationsApi = {
     ),
 
   testWebhook: (token: string, webhookId: string, orgId?: string) =>
-    integrationsFetch<WebhookDelivery>(`/v1/merchant/integrations/webhooks/${webhookId}/test`, token, {
-      method: "POST",
-      orgId,
-    }),
+    integrationsFetch<WebhookDelivery>(
+      `/v1/merchant/integrations/webhooks/${webhookId}/test`,
+      token,
+      {
+        method: "POST",
+        orgId,
+      }
+    ),
 
   retryDelivery: (token: string, deliveryId: string, orgId?: string) =>
     integrationsFetch<WebhookDelivery>(
@@ -247,7 +259,9 @@ export const integrationsApi = {
     ),
 
   erp: (token: string, orgId?: string) =>
-    integrationsFetch<{ platforms: ErpPlatform[] }>("/v1/merchant/integrations/erp", token, { orgId }),
+    integrationsFetch<{ platforms: ErpPlatform[] }>("/v1/merchant/integrations/erp", token, {
+      orgId,
+    }),
 
   oauth: (token: string, orgId?: string) =>
     integrationsFetch<{ providers: OAuthProvider[]; enabled: boolean }>(
@@ -257,12 +271,21 @@ export const integrationsApi = {
     ),
 
   csvTemplates: (token: string, orgId?: string) =>
-    integrationsFetch<{ templates: CsvTemplate[] }>("/v1/merchant/integrations/csv-templates", token, {
-      orgId,
-    }),
+    integrationsFetch<{ templates: CsvTemplate[] }>(
+      "/v1/merchant/integrations/csv-templates",
+      token,
+      {
+        orgId,
+      }
+    ),
 
   downloadTemplate: (token: string, templateId: string, orgId?: string) =>
-    downloadCsv(`/v1/merchant/integrations/csv-templates/${templateId}.csv`, token, orgId, `${templateId}.csv`),
+    downloadCsv(
+      `/v1/merchant/integrations/csv-templates/${templateId}.csv`,
+      token,
+      orgId,
+      `${templateId}.csv`
+    ),
 
   console: (token: string, action: string, payload: Record<string, unknown>, orgId?: string) =>
     integrationsFetch<Record<string, unknown>>("/v1/merchant/integrations/console", token, {

@@ -98,7 +98,8 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
   dashboard: "System health, integration status, and recent configuration activity.",
   general: "Company identity, timezone, support contacts, and business hours.",
   branding: "Portal colors, typography, and customer-facing brand tokens.",
-  users: "Staff, drivers, merchants, and customers — Porterchain provisioning and Clerk identity status.",
+  users:
+    "Staff, drivers, merchants, and customers — Porterchain provisioning and Clerk identity status.",
   roles: "Enterprise RBAC matrix — Porterchain owns permissions, not Clerk.",
   authentication: "Session policy, MFA requirements, and allowed email domains.",
   security: "Rate limits, IP allow lists, and password policy thresholds.",
@@ -135,7 +136,8 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
   developer: "API docs, webhooks, and developer portal configuration.",
 };
 
-export type ConfigFieldType = "text" | "email" | "number" | "boolean" | "select" | "color" | "textarea" | "json";
+export type ConfigFieldType =
+  "text" | "email" | "number" | "boolean" | "select" | "color" | "textarea" | "json";
 
 export type ConfigFieldDef = {
   key: string;
@@ -152,62 +154,137 @@ export const CONFIG_FIELD_SCHEMAS: Record<string, ConfigFieldDef[]> = {
   general: [
     { key: "company_name", label: "Company name", type: "text" },
     { key: "legal_name", label: "Legal name", type: "text" },
-    { key: "timezone", label: "Timezone", type: "select", options: [
-      { value: "America/Toronto", label: "America/Toronto (ET)" },
-      { value: "America/Vancouver", label: "America/Vancouver (PT)" },
-      { value: "America/Chicago", label: "America/Chicago (CT)" },
-      { value: "UTC", label: "UTC" },
-    ]},
+    {
+      key: "timezone",
+      label: "Timezone",
+      type: "select",
+      options: [
+        { value: "America/Toronto", label: "America/Toronto (ET)" },
+        { value: "America/Vancouver", label: "America/Vancouver (PT)" },
+        { value: "America/Chicago", label: "America/Chicago (CT)" },
+        { value: "UTC", label: "UTC" },
+      ],
+    },
     { key: "support_email", label: "Support email", type: "email" },
-    { key: "business_hours.mon_fri", label: "Mon–Fri hours", type: "text", hint: "e.g. 08:00-18:00" },
+    {
+      key: "business_hours.mon_fri",
+      label: "Mon–Fri hours",
+      type: "text",
+      hint: "e.g. 08:00-18:00",
+    },
     { key: "business_hours.sat", label: "Saturday hours", type: "text", hint: "e.g. 09:00-14:00" },
   ],
   branding: [
     { key: "primary_color", label: "Primary color", type: "color" },
     { key: "secondary_color", label: "Secondary color", type: "color" },
-    { key: "typography", label: "Font family", type: "select", options: [
-      { value: "Inter", label: "Inter" },
-      { value: "DM Sans", label: "DM Sans" },
-      { value: "Plus Jakarta Sans", label: "Plus Jakarta Sans" },
-    ]},
+    {
+      key: "typography",
+      label: "Font family",
+      type: "select",
+      options: [
+        { value: "Inter", label: "Inter" },
+        { value: "DM Sans", label: "DM Sans" },
+        { value: "Plus Jakarta Sans", label: "Plus Jakarta Sans" },
+      ],
+    },
   ],
   authentication: [
-    { key: "session_timeout_minutes", label: "Session timeout (minutes)", type: "number", min: 15, max: 1440 },
+    {
+      key: "session_timeout_minutes",
+      label: "Session timeout (minutes)",
+      type: "number",
+      min: 15,
+      max: 1440,
+    },
     { key: "mfa_required", label: "Require MFA for staff", type: "boolean" },
-    { key: "allowed_domains", label: "Allowed email domains", type: "json", hint: "JSON array, e.g. [\"porterchain.com\"]" },
+    {
+      key: "allowed_domains",
+      label: "Allowed email domains",
+      type: "json",
+      hint: 'JSON array, e.g. ["porterchain.com"]',
+    },
   ],
   security: [
-    { key: "rate_limit_per_minute", label: "API rate limit / minute", type: "number", min: 10, max: 10000 },
-    { key: "password_min_length", label: "Minimum password length", type: "number", min: 8, max: 128 },
-    { key: "ip_allow_list", label: "IP allow list", type: "json", hint: "Empty array = no restriction" },
+    {
+      key: "rate_limit_per_minute",
+      label: "API rate limit / minute",
+      type: "number",
+      min: 10,
+      max: 10000,
+    },
+    {
+      key: "password_min_length",
+      label: "Minimum password length",
+      type: "number",
+      min: 8,
+      max: 128,
+    },
+    {
+      key: "ip_allow_list",
+      label: "IP allow list",
+      type: "json",
+      hint: "Empty array = no restriction",
+    },
   ],
   booking: [
     { key: "quote_ttl_minutes", label: "Quote TTL (minutes)", type: "number", min: 5, max: 1440 },
-    { key: "booking_draft_ttl_minutes", label: "Draft TTL (minutes)", type: "number", min: 60, max: 10080 },
-    { key: "default_currency", label: "Default currency", type: "select", options: [
-      { value: "cad", label: "CAD" },
-      { value: "usd", label: "USD" },
-    ]},
-    { key: "default_vehicle_class", label: "Default vehicle", type: "select", options: [
-      { value: "sedan", label: "Sedan" },
-      { value: "suv", label: "SUV" },
-      { value: "cargo_van", label: "Cargo Van" },
-      { value: "box_truck", label: "Box Truck" },
-    ]},
+    {
+      key: "booking_draft_ttl_minutes",
+      label: "Draft TTL (minutes)",
+      type: "number",
+      min: 60,
+      max: 10080,
+    },
+    {
+      key: "default_currency",
+      label: "Default currency",
+      type: "select",
+      options: [
+        { value: "cad", label: "CAD" },
+        { value: "usd", label: "USD" },
+      ],
+    },
+    {
+      key: "default_vehicle_class",
+      label: "Default vehicle",
+      type: "select",
+      options: [
+        { value: "sedan", label: "Sedan" },
+        { value: "suv", label: "SUV" },
+        { value: "cargo_van", label: "Cargo Van" },
+        { value: "box_truck", label: "Box Truck" },
+      ],
+    },
   ],
   merchant: [
-    { key: "default_payment_terms", label: "Default payment terms", type: "select", options: [
-      { value: "NET_15", label: "Net 15" },
-      { value: "NET_30", label: "Net 30" },
-      { value: "NET_45", label: "Net 45" },
-      { value: "PREPAID", label: "Prepaid" },
-    ]},
-    { key: "default_credit_limit_cents", label: "Default credit limit (¢)", type: "number", min: 0 },
+    {
+      key: "default_payment_terms",
+      label: "Default payment terms",
+      type: "select",
+      options: [
+        { value: "NET_15", label: "Net 15" },
+        { value: "NET_30", label: "Net 30" },
+        { value: "NET_45", label: "Net 45" },
+        { value: "PREPAID", label: "Prepaid" },
+      ],
+    },
+    {
+      key: "default_credit_limit_cents",
+      label: "Default credit limit (¢)",
+      type: "number",
+      min: 0,
+    },
     { key: "approval_required", label: "Require admin approval", type: "boolean" },
   ],
   driver: [
     { key: "background_check_required", label: "Background check required", type: "boolean" },
-    { key: "document_expiry_alert_days", label: "Document expiry alert (days)", type: "number", min: 1, max: 365 },
+    {
+      key: "document_expiry_alert_days",
+      label: "Document expiry alert (days)",
+      type: "number",
+      min: 1,
+      max: 365,
+    },
   ],
   customer: [
     { key: "portal_enabled", label: "Customer portal enabled", type: "boolean" },
@@ -217,20 +294,44 @@ export const CONFIG_FIELD_SCHEMAS: Record<string, ConfigFieldDef[]> = {
   finance: [
     { key: "invoice_number_prefix", label: "Invoice prefix", type: "text" },
     { key: "receipt_number_prefix", label: "Receipt prefix", type: "text" },
-    { key: "default_tax_percent", label: "Default tax %", type: "number", min: 0, max: 100, step: 0.1 },
+    {
+      key: "default_tax_percent",
+      label: "Default tax %",
+      type: "number",
+      min: 0,
+      max: 100,
+      step: 0.1,
+    },
   ],
   documents: [
     { key: "max_file_size_mb", label: "Max file size (MB)", type: "number", min: 1, max: 500 },
     { key: "retention_days", label: "Retention (days)", type: "number", min: 30, max: 3650 },
-    { key: "allowed_types", label: "Allowed file types", type: "json", hint: 'e.g. ["pdf","jpg","png"]' },
+    {
+      key: "allowed_types",
+      label: "Allowed file types",
+      type: "json",
+      hint: 'e.g. ["pdf","jpg","png"]',
+    },
   ],
   claims: [
-    { key: "investigation_sla_hours", label: "Investigation SLA (hours)", type: "number", min: 1, max: 720 },
+    {
+      key: "investigation_sla_hours",
+      label: "Investigation SLA (hours)",
+      type: "number",
+      min: 1,
+      max: 720,
+    },
     { key: "max_compensation_cents", label: "Max compensation (¢)", type: "number", min: 0 },
   ],
   automation: [
     { key: "queue_retry_max", label: "Max queue retries", type: "number", min: 0, max: 20 },
-    { key: "dispatch_retry_seconds", label: "Dispatch retry interval (s)", type: "number", min: 5, max: 3600 },
+    {
+      key: "dispatch_retry_seconds",
+      label: "Dispatch retry interval (s)",
+      type: "number",
+      min: 5,
+      max: 3600,
+    },
   ],
 };
 
@@ -251,14 +352,19 @@ export function getNestedValue(obj: Record<string, unknown>, path: string): unkn
   return cur;
 }
 
-export function setNestedValue(obj: Record<string, unknown>, path: string, value: unknown): Record<string, unknown> {
+export function setNestedValue(
+  obj: Record<string, unknown>,
+  path: string,
+  value: unknown
+): Record<string, unknown> {
   const parts = path.split(".");
   const next = { ...obj };
   let cur: Record<string, unknown> = next;
   for (let i = 0; i < parts.length - 1; i++) {
     const p = parts[i];
     const child = cur[p];
-    cur[p] = typeof child === "object" && child !== null ? { ...(child as Record<string, unknown>) } : {};
+    cur[p] =
+      typeof child === "object" && child !== null ? { ...(child as Record<string, unknown>) } : {};
     cur = cur[p] as Record<string, unknown>;
   }
   cur[parts[parts.length - 1]] = value;

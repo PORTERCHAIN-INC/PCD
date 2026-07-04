@@ -25,7 +25,12 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
           backgroundColor: focused ? theme.colors.secondary : "transparent",
         }}
       />
-      <Caption style={{ color: focused ? theme.colors.secondary : theme.colors.textMuted, fontWeight: focused ? "700" : "500" }}>
+      <Caption
+        style={{
+          color: focused ? theme.colors.secondary : theme.colors.textMuted,
+          fontWeight: focused ? "700" : "500",
+        }}
+      >
         {label}
       </Caption>
     </View>

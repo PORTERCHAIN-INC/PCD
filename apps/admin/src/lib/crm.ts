@@ -51,6 +51,7 @@ export type Contact = {
   birthday: string | null;
   roles: string[];
   is_primary: boolean;
+  source?: string | null;
   created_at: string;
 };
 
@@ -516,7 +517,8 @@ export const crm = {
   deleteTask: (t: string, id: string) =>
     adminFetch<void>(`${B}/tasks/${id}`, t, { method: "DELETE" }),
 
-  calendarStatus: (t: string) => adminFetch<CrmCalendarPayload["integration"]>(`${B}/calendar/status`, t),
+  calendarStatus: (t: string) =>
+    adminFetch<CrmCalendarPayload["integration"]>(`${B}/calendar/status`, t),
   calendarEvents: (t: string, params: { start: string; end: string; entity_id?: string }) =>
     adminFetch<CrmCalendarPayload>(`${B}/calendar/events${qs(params)}`, t),
 

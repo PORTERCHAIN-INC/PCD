@@ -8,22 +8,22 @@ Porterchain uses **Firebase Admin SDK** (`firebase-admin`) inside the Notificati
 
 ## Supported Platforms
 
-| Platform | Client | Token type |
-|----------|--------|------------|
-| Android | Driver mobile (Expo) | FCM registration token |
-| iOS | Driver mobile (Expo) | APNs via FCM |
-| Web Push | Admin / Merchant / Customer portals | FCM web token + VAPID |
+| Platform | Client                              | Token type             |
+| -------- | ----------------------------------- | ---------------------- |
+| Android  | Driver mobile (Expo)                | FCM registration token |
+| iOS      | Driver mobile (Expo)                | APNs via FCM           |
+| Web Push | Admin / Merchant / Customer portals | FCM web token + VAPID  |
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `FIREBASE_PROJECT_ID` | Yes (prod) | GCP Firebase project ID |
-| `FIREBASE_CREDENTIALS_JSON` | Yes (prod) | Service account JSON inline (worker/API) |
-| `FIREBASE_CREDENTIALS_PATH` | Alt | Path to service account file (mounted volume) |
-| `FIREBASE_WEB_VAPID_KEY` | Web push | VAPID public key for browser clients |
-| `PORTERCHAIN_PUSH_ENABLED` | Yes | Master toggle — when false, push is log-only |
-| `PORTERCHAIN_PUSH_SEND` | Yes | When false, validate but do not call FCM |
+| Variable                    | Required   | Description                                   |
+| --------------------------- | ---------- | --------------------------------------------- |
+| `FIREBASE_PROJECT_ID`       | Yes (prod) | GCP Firebase project ID                       |
+| `FIREBASE_CREDENTIALS_JSON` | Yes (prod) | Service account JSON inline (worker/API)      |
+| `FIREBASE_CREDENTIALS_PATH` | Alt        | Path to service account file (mounted volume) |
+| `FIREBASE_WEB_VAPID_KEY`    | Web push   | VAPID public key for browser clients          |
+| `PORTERCHAIN_PUSH_ENABLED`  | Yes        | Master toggle — when false, push is log-only  |
+| `PORTERCHAIN_PUSH_SEND`     | Yes        | When false, validate but do not call FCM      |
 
 ## Service Account Setup
 
@@ -41,11 +41,11 @@ Mount read-only into API and worker containers.
 
 ## Code Touchpoints
 
-| File | Role |
-|------|------|
-| `notification_engine/fcm_service.py` | Initialize Admin SDK, send to token(s) |
-| `notification_engine/delivery_service.py` | Calls FCMService for `channel=push` |
-| `shared/python/porterchain_shared/config/settings.py` | Reads env vars |
+| File                                                  | Role                                   |
+| ----------------------------------------------------- | -------------------------------------- |
+| `notification_engine/fcm_service.py`                  | Initialize Admin SDK, send to token(s) |
+| `notification_engine/delivery_service.py`             | Calls FCMService for `channel=push`    |
+| `shared/python/porterchain_shared/config/settings.py` | Reads env vars                         |
 
 ## Security
 

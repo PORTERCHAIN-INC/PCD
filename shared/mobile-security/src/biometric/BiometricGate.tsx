@@ -5,13 +5,7 @@ import { ActivityIndicator, View } from "react-native";
 import { authenticateWithBiometrics } from "../biometric/service";
 import { emitSecurityEvent } from "../audit/emitter";
 
-export function BiometricGate({
-  enabled,
-  children,
-}: {
-  enabled: boolean;
-  children: ReactNode;
-}) {
+export function BiometricGate({ enabled, children }: { enabled: boolean; children: ReactNode }) {
   const [unlocked, setUnlocked] = useState(!enabled);
 
   useEffect(() => {

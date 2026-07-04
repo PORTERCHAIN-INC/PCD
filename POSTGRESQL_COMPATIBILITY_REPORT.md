@@ -8,10 +8,10 @@
 
 ## Summary
 
-| Status | Count |
-|--------|-------|
-| **Fixed** | 11 occurrences |
-| **Compatible (no change)** | Majority of ORM usage |
+| Status                                          | Count                           |
+| ----------------------------------------------- | ------------------------------- |
+| **Fixed**                                       | 11 occurrences                  |
+| **Compatible (no change)**                      | Majority of ORM usage           |
 | **Recommended (Phase 5 — not yet implemented)** | JSONB, native UUID, GIN indexes |
 
 ---
@@ -20,8 +20,8 @@
 
 ### `json_extract` (CRM address filters)
 
-| File | Lines | Issue | Fix |
-|------|-------|-------|-----|
+| File                                | Lines   | Issue                                             | Fix                                                                 |
+| ----------------------------------- | ------- | ------------------------------------------------- | ------------------------------------------------------------------- |
 | `admin_engine/crm_sales_service.py` | 201–952 | `func.json_extract(col, "$.city")` is SQLite-only | Replaced with `json_text()` / `json_text_lower()` from `db_json.py` |
 
 **New helper:** `apps/api/src/porterchain_api/db_json.py`
@@ -34,38 +34,38 @@ column[key].astext  # PostgreSQL JSON/JSONB text extraction
 
 ## Compatible — no change required
 
-| Pattern | Files | PostgreSQL support |
-|---------|-------|-------------------|
-| `Column.ilike()` | `orders_service`, `claims_service`, `finance_service`, `support_service`, etc. | Native `ILIKE` ✅ |
-| `Column.like()` | `settings_service`, `pricing_service`, `booking_draft_service` | Native ✅ |
-| `func.count()`, `func.now()` | Widespread | Native ✅ |
-| `DateTime(timezone=True)` | All models | `TIMESTAMPTZ` ✅ |
-| `JSON` column type | `models.py`, CRM, routes, notifications | PostgreSQL `JSON` ✅ |
-| `text("SELECT 1")` | Diagnostics, health | Native ✅ |
-| `db.execute(text(...))` | Diagnostics chaos tests | Native ✅ |
-| Foreign keys in Alembic | All migrations | PostgreSQL ✅ |
+| Pattern                      | Files                                                                          | PostgreSQL support   |
+| ---------------------------- | ------------------------------------------------------------------------------ | -------------------- |
+| `Column.ilike()`             | `orders_service`, `claims_service`, `finance_service`, `support_service`, etc. | Native `ILIKE` ✅    |
+| `Column.like()`              | `settings_service`, `pricing_service`, `booking_draft_service`                 | Native ✅            |
+| `func.count()`, `func.now()` | Widespread                                                                     | Native ✅            |
+| `DateTime(timezone=True)`    | All models                                                                     | `TIMESTAMPTZ` ✅     |
+| `JSON` column type           | `models.py`, CRM, routes, notifications                                        | PostgreSQL `JSON` ✅ |
+| `text("SELECT 1")`           | Diagnostics, health                                                            | Native ✅            |
+| `db.execute(text(...))`      | Diagnostics chaos tests                                                        | Native ✅            |
+| Foreign keys in Alembic      | All migrations                                                                 | PostgreSQL ✅        |
 
 ---
 
 ## Alembic migration notes
 
-| Item | Current | PostgreSQL impact | Recommendation |
-|------|---------|-------------------|----------------|
+| Item                                            | Current       | PostgreSQL impact   | Recommendation                                                |
+| ----------------------------------------------- | ------------- | ------------------- | ------------------------------------------------------------- |
 | `server_default=sa.text('(CURRENT_TIMESTAMP)')` | All revisions | Works on PostgreSQL | Migrate to `sa.text('now()')` in future revisions for clarity |
-| String UUIDs `String(36)` | All PKs | Works | Phase 5: native `UUID` type |
-| Generic `sa.JSON()` | Widespread | Stored as JSON | Phase 5: `JSONB` + GIN indexes for CRM/search |
+| String UUIDs `String(36)`                       | All PKs       | Works               | Phase 5: native `UUID` type                                   |
+| Generic `sa.JSON()`                             | Widespread    | Stored as JSON      | Phase 5: `JSONB` + GIN indexes for CRM/search                 |
 
 ---
 
 ## Not found (clean)
 
-| SQLite pattern | Status |
-|----------------|--------|
-| SQLite date functions (`date('now')`) | Not used |
-| SQLite string functions (`GROUP_CONCAT`) | Not used |
-| SQLite casting (`CAST(x AS TEXT)`) in queries | Not used |
-| `PRAGMA` | Removed from `db.py` |
-| Raw SQLite SQL in routers | Not found |
+| SQLite pattern                                | Status               |
+| --------------------------------------------- | -------------------- |
+| SQLite date functions (`date('now')`)         | Not used             |
+| SQLite string functions (`GROUP_CONCAT`)      | Not used             |
+| SQLite casting (`CAST(x AS TEXT)`) in queries | Not used             |
+| `PRAGMA`                                      | Removed from `db.py` |
+| Raw SQLite SQL in routers                     | Not found            |
 
 ---
 
@@ -84,9 +84,9 @@ These are **recommended** improvements — not applied in this migration to avoi
 
 ## Compatibility score
 
-| Area | Score | Notes |
-|------|-------|-------|
-| Query compatibility | **Healthy** | All known SQLite-only queries fixed |
-| Schema compatibility | **Healthy** | Alembic runs on PostgreSQL |
-| Type system | **Warning** | JSON not JSONB; string UUIDs |
-| Performance | **Warning** | Missing GIN/composite indexes (see `POSTGRESQL_PERFORMANCE.md`) |
+| Area                 | Score       | Notes                                                           |
+| -------------------- | ----------- | --------------------------------------------------------------- |
+| Query compatibility  | **Healthy** | All known SQLite-only queries fixed                             |
+| Schema compatibility | **Healthy** | Alembic runs on PostgreSQL                                      |
+| Type system          | **Warning** | JSON not JSONB; string UUIDs                                    |
+| Performance          | **Warning** | Missing GIN/composite indexes (see `POSTGRESQL_PERFORMANCE.md`) |

@@ -25,7 +25,11 @@ export default function GuestTrackLookup({ compact = false }: { compact?: boolea
           : "rounded-2xl border border-primary/10 bg-gray-bg p-6"
       }
     >
-      <h2 className={compact ? "type-body font-bold text-primary mb-1" : "type-h3 font-bold text-primary mb-2"}>
+      <h2
+        className={
+          compact ? "type-body font-bold text-primary mb-1" : "type-h3 font-bold text-primary mb-2"
+        }
+      >
         {t("guestTrackTitle")}
       </h2>
       <p className="type-caption text-muted mb-4">{t("guestTrackSubtitle")}</p>

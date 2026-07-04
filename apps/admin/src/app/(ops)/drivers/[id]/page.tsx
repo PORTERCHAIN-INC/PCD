@@ -489,7 +489,10 @@ function DocumentsTab({
             const f = file as Record<string, string | null | undefined>;
             const label = (f.label as string) || titleCase(String(f.doc_type ?? "document"));
             return (
-              <div key={String(f.id ?? i)} className="flex flex-wrap items-start justify-between gap-3 px-5 py-3">
+              <div
+                key={String(f.id ?? i)}
+                className="flex flex-wrap items-start justify-between gap-3 px-5 py-3"
+              >
                 <div>
                   <p className="text-sm font-medium text-primary">{label}</p>
                   <p className="text-xs text-muted">
@@ -521,7 +524,8 @@ function DocumentsTab({
           })}
           {files.length === 0 && (
             <p className="px-5 py-10 text-center text-sm text-muted">
-              No documents on file yet. Use Add document to attach license, insurance, or compliance records.
+              No documents on file yet. Use Add document to attach license, insurance, or compliance
+              records.
             </p>
           )}
         </div>
@@ -540,7 +544,9 @@ function VerifyRow({ label, ok }: { label: string; ok: boolean }) {
 }
 
 function VehiclesTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.vehicles(t, id), [id], { key: `driver-vehicles-${id}` });
+  const { data } = useApiData((t) => drivers.vehicles(t, id), [id], {
+    key: `driver-vehicles-${id}`,
+  });
   return (
     <SectionCard title={`Vehicles (${data?.length ?? 0})`}>
       <div className="divide-y divide-primary/5">
@@ -653,13 +659,17 @@ function PerformanceTab({ d }: { d: DriverDetail }) {
 }
 
 function WalletTab({ id }: { id: string }) {
-  const { data, error } = useApiData((t) => drivers.payouts(t, id), [id], { key: `driver-payouts-${id}` });
+  const { data, error } = useApiData((t) => drivers.payouts(t, id), [id], {
+    key: `driver-payouts-${id}`,
+  });
   if (!data && !error) return <Spinner />;
   const payouts = data?.payouts ?? [];
   return (
     <div className="space-y-5">
       {error && (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {error}
+        </p>
       )}
       <div className="grid gap-3 sm:grid-cols-3">
         <Metric label="Wallet balance" value={money(data?.wallet_balance_cents ?? 0)} />
@@ -692,59 +702,65 @@ function WalletTab({ id }: { id: string }) {
 }
 
 function IncidentsTab({ id }: { id: string }) {
-  const { data, error } = useApiData((t) => drivers.incidents(t, id), [id], { key: `driver-incidents-${id}` });
+  const { data, error } = useApiData((t) => drivers.incidents(t, id), [id], {
+    key: `driver-incidents-${id}`,
+  });
   if (!data && !error) return <Spinner />;
   const incidents = data?.incidents ?? [];
   const claims = data?.claims ?? [];
   return (
     <div className="space-y-5">
       {error && (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {error}
+        </p>
       )}
       <div className="grid gap-5 md:grid-cols-2">
-      <SectionCard title={`Incidents (${incidents.length})`}>
-        <div className="divide-y divide-primary/5">
-          {incidents.map((i) => (
-            <div key={i.id} className="flex items-center justify-between px-5 py-3">
-              <div>
-                <p className="text-sm font-medium text-primary">{titleCase(i.type)}</p>
-                <p className="text-xs text-muted">{shortDate(i.created_at)}</p>
+        <SectionCard title={`Incidents (${incidents.length})`}>
+          <div className="divide-y divide-primary/5">
+            {incidents.map((i) => (
+              <div key={i.id} className="flex items-center justify-between px-5 py-3">
+                <div>
+                  <p className="text-sm font-medium text-primary">{titleCase(i.type)}</p>
+                  <p className="text-xs text-muted">{shortDate(i.created_at)}</p>
+                </div>
+                <Badge tone={i.status === "resolved" ? "green" : "amber"}>
+                  {titleCase(i.status)}
+                </Badge>
               </div>
-              <Badge tone={i.status === "resolved" ? "green" : "amber"}>
-                {titleCase(i.status)}
-              </Badge>
-            </div>
-          ))}
-          {incidents.length === 0 && (
-            <p className="px-5 py-10 text-center text-sm text-muted">No incidents on record.</p>
-          )}
-        </div>
-      </SectionCard>
-      <SectionCard title={`Claims (${claims.length})`}>
-        <div className="divide-y divide-primary/5">
-          {claims.map((c) => (
-            <div key={c.id} className="flex items-center justify-between px-5 py-3">
-              <div>
-                <p className="text-sm font-medium text-primary">{titleCase(c.claim_type)}</p>
-                <p className="text-xs text-muted">{shortDate(c.created_at)}</p>
+            ))}
+            {incidents.length === 0 && (
+              <p className="px-5 py-10 text-center text-sm text-muted">No incidents on record.</p>
+            )}
+          </div>
+        </SectionCard>
+        <SectionCard title={`Claims (${claims.length})`}>
+          <div className="divide-y divide-primary/5">
+            {claims.map((c) => (
+              <div key={c.id} className="flex items-center justify-between px-5 py-3">
+                <div>
+                  <p className="text-sm font-medium text-primary">{titleCase(c.claim_type)}</p>
+                  <p className="text-xs text-muted">{shortDate(c.created_at)}</p>
+                </div>
+                <Badge tone={c.status === "resolved" ? "green" : "amber"}>
+                  {titleCase(c.status)}
+                </Badge>
               </div>
-              <Badge tone={c.status === "resolved" ? "green" : "amber"}>
-                {titleCase(c.status)}
-              </Badge>
-            </div>
-          ))}
-          {claims.length === 0 && (
-            <p className="px-5 py-10 text-center text-sm text-muted">No claims.</p>
-          )}
-        </div>
-      </SectionCard>
+            ))}
+            {claims.length === 0 && (
+              <p className="px-5 py-10 text-center text-sm text-muted">No claims.</p>
+            )}
+          </div>
+        </SectionCard>
       </div>
     </div>
   );
 }
 
 function TimelineTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.timeline(t, id), [id], { key: `driver-timeline-${id}` });
+  const { data } = useApiData((t) => drivers.timeline(t, id), [id], {
+    key: `driver-timeline-${id}`,
+  });
   const tone: Record<string, string> = {
     activity: "bg-secondary",
     order: "bg-violet-500",
@@ -776,7 +792,9 @@ function TimelineTab({ id }: { id: string }) {
 }
 
 function AnalyticsTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.analytics(t, id), [id], { key: `driver-analytics-${id}` });
+  const { data } = useApiData((t) => drivers.analytics(t, id), [id], {
+    key: `driver-analytics-${id}`,
+  });
   if (!data) return <Spinner />;
   const max = Math.max(1, ...data.by_month.map((r) => r.orders));
   return (

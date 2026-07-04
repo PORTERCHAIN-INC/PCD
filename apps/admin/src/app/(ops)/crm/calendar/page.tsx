@@ -92,12 +92,13 @@ export default function CalendarPage() {
       >
         {zohoConnected ? (
           <p>
-            <span className="font-semibold">Zoho Calendar connected.</span> CRM meetings sync to Zoho;
-            external Zoho events appear below in indigo.
+            <span className="font-semibold">Zoho Calendar connected.</span> CRM meetings sync to
+            Zoho; external Zoho events appear below in indigo.
           </p>
         ) : (
           <p>
-            <span className="font-semibold">Zoho Calendar not configured.</span> Showing CRM tasks only.
+            <span className="font-semibold">Zoho Calendar not configured.</span> Showing CRM tasks
+            only.
             {data.integration.missing.length > 0 && (
               <span className="ml-1">Missing: {data.integration.missing.join(", ")}</span>
             )}
@@ -119,7 +120,9 @@ export default function CalendarPage() {
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
-              onClick={() => setCursor(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}
+              onClick={() =>
+                setCursor(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
+              }
               className="rounded-lg border border-primary/15 px-3 py-1.5 text-xs font-medium hover:bg-gray-bg"
             >
               Today
@@ -174,7 +177,7 @@ export default function CalendarPage() {
                         "truncate rounded px-1.5 py-0.5 text-[11px] font-medium " +
                         (event.source === "zoho"
                           ? TONE_BG.zoho
-                          : TONE_BG[event.task_type ?? "todo"] ?? "bg-slate-100 text-slate-700") +
+                          : (TONE_BG[event.task_type ?? "todo"] ?? "bg-slate-100 text-slate-700")) +
                         (event.status === "done" ? " line-through opacity-60" : "")
                       }
                     >

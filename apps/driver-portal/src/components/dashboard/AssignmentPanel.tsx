@@ -10,7 +10,9 @@ function StopRow({ stop, highlight }: { stop: DriverStop; highlight?: boolean })
     <li
       className={cn(
         "flex items-start gap-3 rounded-xl px-3 py-2.5",
-        highlight ? "bg-[var(--secondary)]/8 border border-[var(--secondary)]/20" : "bg-[var(--gray-bg)]"
+        highlight
+          ? "bg-[var(--secondary)]/8 border border-[var(--secondary)]/20"
+          : "bg-[var(--gray-bg)]"
       )}
     >
       <span

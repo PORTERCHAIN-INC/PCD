@@ -224,17 +224,19 @@ export const merchants = {
   team: (t: string, id: string) => adminFetch<MerchantTeamUser[]>(`${B}/${id}/team`, t),
   onboarding: (t: string, id: string) => adminFetch<MerchantOnboarding>(`${B}/${id}/onboarding`, t),
   inviteOwner: (t: string, id: string, email: string) =>
-    adminFetch<{ merchant_user_id: string; email: string; role: string; invitation_status: string }>(
-      `${B}/${id}/invite-owner`,
-      t,
-      { method: "POST", body: JSON.stringify({ email }) }
-    ),
+    adminFetch<{
+      merchant_user_id: string;
+      email: string;
+      role: string;
+      invitation_status: string;
+    }>(`${B}/${id}/invite-owner`, t, { method: "POST", body: JSON.stringify({ email }) }),
   inviteTeamMember: (t: string, id: string, email: string, role: string) =>
-    adminFetch<{ merchant_user_id: string; email: string; role: string; invitation_status: string }>(
-      `${B}/${id}/team/invite`,
-      t,
-      { method: "POST", body: JSON.stringify({ email, role }) }
-    ),
+    adminFetch<{
+      merchant_user_id: string;
+      email: string;
+      role: string;
+      invitation_status: string;
+    }>(`${B}/${id}/team/invite`, t, { method: "POST", body: JSON.stringify({ email, role }) }),
   activateUsers: (t: string, id: string, email?: string) =>
     adminFetch<{ activated: number; emails: string[] }>(`${B}/${id}/activate-users`, t, {
       method: "POST",

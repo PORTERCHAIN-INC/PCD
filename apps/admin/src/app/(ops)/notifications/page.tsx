@@ -27,11 +27,15 @@ export default function NotificationsPage() {
 
   const { data: dashboard } = useApiData((t) => notificationsApi.dashboard(t), [version]);
   const { data: queue } = useApiData(
-    (t) => (tab === "queue" ? notificationsApi.queue(t, search ? { search } : {}) : Promise.resolve([])),
+    (t) =>
+      tab === "queue" ? notificationsApi.queue(t, search ? { search } : {}) : Promise.resolve([]),
     [tab, version, search]
   );
   const { data: history } = useApiData(
-    (t) => (tab === "history" ? notificationsApi.history(t, search ? { search } : {}) : Promise.resolve([])),
+    (t) =>
+      tab === "history"
+        ? notificationsApi.history(t, search ? { search } : {})
+        : Promise.resolve([]),
     [tab, version, search]
   );
   const { data: failed } = useApiData(
@@ -110,13 +114,29 @@ export default function NotificationsPage() {
       )}
 
       {tab === "queue" && (
-        <RecordTable rows={queue ?? undefined} onRetry={retry} busy={busy} empty="Queue is empty." />
+        <RecordTable
+          rows={queue ?? undefined}
+          onRetry={retry}
+          busy={busy}
+          empty="Queue is empty."
+        />
       )}
       {tab === "history" && (
-        <RecordTable rows={history ?? undefined} onRetry={retry} busy={busy} empty="No notification history yet." />
+        <RecordTable
+          rows={history ?? undefined}
+          onRetry={retry}
+          busy={busy}
+          empty="No notification history yet."
+        />
       )}
       {tab === "failed" && (
-        <RecordTable rows={failed ?? undefined} onRetry={retry} busy={busy} empty="No failed notifications." showRetry />
+        <RecordTable
+          rows={failed ?? undefined}
+          onRetry={retry}
+          busy={busy}
+          empty="No failed notifications."
+          showRetry
+        />
       )}
 
       {tab === "templates" && (
@@ -144,7 +164,10 @@ export default function NotificationsPage() {
           {!devices ? (
             <Spinner />
           ) : devices.length === 0 ? (
-            <EmptyState title="No registered devices" hint="Devices register via POST /v1/notifications/devices/register" />
+            <EmptyState
+              title="No registered devices"
+              hint="Devices register via POST /v1/notifications/devices/register"
+            />
           ) : (
             <div className="divide-y divide-primary/5">
               {devices.map((d) => (
@@ -169,7 +192,15 @@ export default function NotificationsPage() {
   );
 }
 
-function Stat({ label, value, accent = "text-primary" }: { label: string; value: number; accent?: string }) {
+function Stat({
+  label,
+  value,
+  accent = "text-primary",
+}: {
+  label: string;
+  value: number;
+  accent?: string;
+}) {
   return (
     <div className="rounded-2xl border border-primary/10 bg-white p-4 shadow-sm">
       <p className="text-xs text-muted">{label}</p>

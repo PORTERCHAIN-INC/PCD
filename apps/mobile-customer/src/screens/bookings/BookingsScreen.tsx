@@ -4,7 +4,16 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { EnterpriseFlashList, LIST_ITEM_SIZES } from "@porterchain/mobile-performance";
 import { useTheme } from "@porterchain/mobile-theme";
-import { Body, Button, Card, CardHeader, ListItem, Screen, SkeletonList, StatusChip } from "@porterchain/mobile-ui";
+import {
+  Body,
+  Button,
+  Card,
+  CardHeader,
+  ListItem,
+  Screen,
+  SkeletonList,
+  StatusChip,
+} from "@porterchain/mobile-ui";
 import { useCustomerApi } from "../../api/CustomerApiContext";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import type { BookingsStackParamList } from "../../navigation/types";
@@ -40,7 +49,12 @@ export function BookingsScreen() {
           contentContainerStyle={{ padding: theme.spacing.lg }}
           ListHeaderComponent={
             <View style={{ gap: theme.spacing.lg, marginBottom: theme.spacing.md }}>
-              <Button label="Resume booking draft" variant="secondary" fullWidth onPress={() => navigation.navigate("BookingDraft")} />
+              <Button
+                label="Resume booking draft"
+                variant="secondary"
+                fullWidth
+                onPress={() => navigation.navigate("BookingDraft")}
+              />
               <Body style={{ fontWeight: "700" }}>Recent bookings</Body>
             </View>
           }
@@ -62,9 +76,15 @@ export function BookingsScreen() {
             <ListItem
               title={booking.booking_number}
               subtitle={booking.state}
-              trailing={<StatusChip label={booking.state} tone={booking.state === "completed" ? "completed" : "pending"} />}
+              trailing={
+                <StatusChip
+                  label={booking.state}
+                  tone={booking.state === "completed" ? "completed" : "pending"}
+                />
+              }
               onPress={() => {
-                if (booking.quote_id) navigation.navigate("BookingConfirmation", { quoteId: booking.quote_id });
+                if (booking.quote_id)
+                  navigation.navigate("BookingConfirmation", { quoteId: booking.quote_id });
               }}
             />
           )}

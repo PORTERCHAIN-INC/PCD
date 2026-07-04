@@ -41,7 +41,11 @@ export function JobDetailScreen() {
         {data ? (
           <>
             <Card>
-              <CardHeader title="Route" subtitle={`${data.pickup_address} → ${data.delivery_address}`} action={<StatusChip label={data.state} tone="active" />} />
+              <CardHeader
+                title="Route"
+                subtitle={`${data.pickup_address} → ${data.delivery_address}`}
+                action={<StatusChip label={data.state} tone="active" />}
+              />
               {data.special_instructions ? <Body muted>{data.special_instructions}</Body> : null}
             </Card>
 
@@ -59,23 +63,47 @@ export function JobDetailScreen() {
                 label="Pickup"
                 variant="secondary"
                 fullWidth
-                onPress={() => routeId && pickupStopId && void api.arriveStop(routeId, pickupStopId)}
+                onPress={() =>
+                  routeId && pickupStopId && void api.arriveStop(routeId, pickupStopId)
+                }
               />
-              <Button label="In transit" variant="secondary" fullWidth onPress={() => navigation.getParent()?.navigate("Navigation", { screen: "Navigation", params: { orderId: data.order_id } })} />
+              <Button
+                label="In transit"
+                variant="secondary"
+                fullWidth
+                onPress={() =>
+                  navigation.getParent()?.navigate("Navigation", {
+                    screen: "Navigation",
+                    params: { orderId: data.order_id },
+                  })
+                }
+              />
               <Button
                 label="Delivered / POD"
                 fullWidth
                 onPress={() => {
-                  if (routeId && deliveryStopId) navigation.navigate("Pod", { orderId: data.order_id, routeId, stopId: deliveryStopId });
+                  if (routeId && deliveryStopId)
+                    navigation.navigate("Pod", {
+                      orderId: data.order_id,
+                      routeId,
+                      stopId: deliveryStopId,
+                    });
                 }}
               />
               <Button
                 label="Mark delivered"
                 variant="outline"
                 fullWidth
-                onPress={() => routeId && deliveryStopId && void api.deliverStop(routeId, deliveryStopId)}
+                onPress={() =>
+                  routeId && deliveryStopId && void api.deliverStop(routeId, deliveryStopId)
+                }
               />
-              <Button label="Report incident" variant="outline" fullWidth onPress={() => navigation.navigate("Incident", { orderId: data.order_id })} />
+              <Button
+                label="Report incident"
+                variant="outline"
+                fullWidth
+                onPress={() => navigation.navigate("Incident", { orderId: data.order_id })}
+              />
             </View>
           </>
         ) : null}

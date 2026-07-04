@@ -35,7 +35,9 @@ export function PodGallery({ pod }: { pod: Pod }) {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={String(p.url)} alt="POD" className="h-28 w-full object-cover" />
                 ) : (
-                  <div className="flex h-28 items-center justify-center bg-gray-50 text-xs text-muted">Photo</div>
+                  <div className="flex h-28 items-center justify-center bg-gray-50 text-xs text-muted">
+                    Photo
+                  </div>
                 )}
               </a>
             ))}

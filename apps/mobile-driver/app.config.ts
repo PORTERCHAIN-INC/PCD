@@ -26,7 +26,8 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: "com.porterchain.PCD",
     buildNumber: "1",
-    googleServicesFile: process.env.GOOGLE_SERVICES_INFO_PLIST ?? "./credentials/GoogleService-Info.plist",
+    googleServicesFile:
+      process.env.GOOGLE_SERVICES_INFO_PLIST ?? "./credentials/GoogleService-Info.plist",
     config: { googleMapsApiKey },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,

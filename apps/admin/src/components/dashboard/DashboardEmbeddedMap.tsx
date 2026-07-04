@@ -30,7 +30,12 @@ export default function DashboardEmbeddedMap({ theme = "light", className }: Pro
 
   if (!isGoogleMapsConfigured()) {
     return (
-      <div className={cn("flex items-center justify-center rounded-xl bg-gray-bg text-sm text-muted", className)}>
+      <div
+        className={cn(
+          "flex items-center justify-center rounded-xl bg-gray-bg text-sm text-muted",
+          className
+        )}
+      >
         Configure Google Maps API key for live map
       </div>
     );

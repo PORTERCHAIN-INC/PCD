@@ -7,11 +7,7 @@ import { formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import BookingDraftsGrid from "@/components/booking-drafts/BookingDraftsGrid";
 import { Badge, Button, Spinner } from "@/components/crm/primitives";
-import {
-  bookingDraftsApi,
-  DRAFT_STATES,
-  type DraftFilters,
-} from "@/lib/booking-drafts";
+import { bookingDraftsApi, DRAFT_STATES, type DraftFilters } from "@/lib/booking-drafts";
 
 const FILTERS_KEY = "porterchain.booking-drafts.saved-filters";
 
@@ -24,7 +20,11 @@ export default function BookingDraftsPage() {
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
-  const { data: rows = [], isLoading, refetch } = useQuery({
+  const {
+    data: rows = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["booking-drafts", filterKey],
     enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
     queryFn: async () => {
@@ -61,13 +61,19 @@ export default function BookingDraftsPage() {
   function saveFilters() {
     const name = prompt("Filter preset name");
     if (!name) return;
-    const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}") as Record<string, DraftFilters>;
+    const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}") as Record<
+      string,
+      DraftFilters
+    >;
     saved[name] = filters;
     localStorage.setItem(FILTERS_KEY, JSON.stringify(saved));
   }
 
   function loadFilters() {
-    const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}") as Record<string, DraftFilters>;
+    const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}") as Record<
+      string,
+      DraftFilters
+    >;
     const names = Object.keys(saved);
     if (!names.length) return alert("No saved filters");
     const name = prompt(`Load filter:\n${names.join("\n")}`);
@@ -91,8 +97,17 @@ export default function BookingDraftsPage() {
 
       {analytics && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-          <StatCard icon={BarChart3} label="Conversion" value={`${analytics.conversion_rate_percent}%`} />
-          <StatCard icon={AlertTriangle} label="Abandoned now" value={String(analytics.abandoned_now)} alert={analytics.abandoned_now > 0} />
+          <StatCard
+            icon={BarChart3}
+            label="Conversion"
+            value={`${analytics.conversion_rate_percent}%`}
+          />
+          <StatCard
+            icon={AlertTriangle}
+            label="Abandoned now"
+            value={String(analytics.abandoned_now)}
+            alert={analytics.abandoned_now > 0}
+          />
           <StatCard label="Active drafts" value={String(analytics.active_drafts)} />
           <StatCard label="Payment success" value={`${analytics.payment_success_rate_percent}%`} />
           <StatCard label="Revenue lost" value={formatCents(analytics.revenue_lost_cents)} />
@@ -128,7 +143,9 @@ export default function BookingDraftsPage() {
           </select>
           <select
             value={filters.booking_type ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, booking_type: e.target.value || undefined }))}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, booking_type: e.target.value || undefined }))
+            }
             className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
           >
             <option value="">All types</option>
@@ -137,7 +154,9 @@ export default function BookingDraftsPage() {
           </select>
           <select
             value={filters.payment_status ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, payment_status: e.target.value || undefined }))}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, payment_status: e.target.value || undefined }))
+            }
             className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
           >
             <option value="">Payment status</option>
@@ -162,7 +181,9 @@ export default function BookingDraftsPage() {
             <input
               type="checkbox"
               checked={!!filters.abandoned_only}
-              onChange={(e) => setFilters((f) => ({ ...f, abandoned_only: e.target.checked || undefined }))}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, abandoned_only: e.target.checked || undefined }))
+              }
             />
             Abandoned
           </label>
@@ -170,7 +191,9 @@ export default function BookingDraftsPage() {
             <input
               type="checkbox"
               checked={!!filters.expired_only}
-              onChange={(e) => setFilters((f) => ({ ...f, expired_only: e.target.checked || undefined }))}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, expired_only: e.target.checked || undefined }))
+              }
             />
             Expired
           </label>

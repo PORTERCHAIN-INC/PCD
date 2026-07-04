@@ -8,17 +8,17 @@
 
 ## Policy
 
-| Access type | Signup | Invitation |
-|-------------|--------|------------|
-| **Customer** (retail) | Allowed — website booking / customer portal | Not required |
-| **Merchant** | Blocked | Required |
-| **Driver** | Blocked | Required |
-| **Admin staff** | Blocked | Required |
-| **Dispatcher** | Blocked | Required (admin role) |
-| **Support** | Blocked | Required (admin role) |
-| **Finance** | Blocked | Required (admin role) |
-| **Manager** (`fleet_manager`, `sales_manager`) | Blocked | Required (admin role) |
-| **Super Admin** | Blocked | Required (admin role) |
+| Access type                                    | Signup                                      | Invitation            |
+| ---------------------------------------------- | ------------------------------------------- | --------------------- |
+| **Customer** (retail)                          | Allowed — website booking / customer portal | Not required          |
+| **Merchant**                                   | Blocked                                     | Required              |
+| **Driver**                                     | Blocked                                     | Required              |
+| **Admin staff**                                | Blocked                                     | Required              |
+| **Dispatcher**                                 | Blocked                                     | Required (admin role) |
+| **Support**                                    | Blocked                                     | Required (admin role) |
+| **Finance**                                    | Blocked                                     | Required (admin role) |
+| **Manager** (`fleet_manager`, `sales_manager`) | Blocked                                     | Required (admin role) |
+| **Super Admin**                                | Blocked                                     | Required (admin role) |
 
 Clerk owns credentials. Porterchain **never stores passwords**. Invitations are sent through the **Clerk Invitations API**.
 
@@ -46,12 +46,12 @@ Admin / Merchant owner                Porterchain API                    Clerk
 
 ### Components
 
-| Layer | Module | Responsibility |
-|-------|--------|----------------|
-| Adapter | `auth/clerk_client.py` | Clerk Users + Invitations HTTP API |
-| Application Service | `auth/invitation_service.py` | Invite workflows + domain provisioning |
-| Persistence | `invitation_models.UserInvitation` | Audit trail |
-| Sync | `auth/user_sync_service.py` | Activate invitation on first Clerk login |
+| Layer               | Module                             | Responsibility                           |
+| ------------------- | ---------------------------------- | ---------------------------------------- |
+| Adapter             | `auth/clerk_client.py`             | Clerk Users + Invitations HTTP API       |
+| Application Service | `auth/invitation_service.py`       | Invite workflows + domain provisioning   |
+| Persistence         | `invitation_models.UserInvitation` | Audit trail                              |
+| Sync                | `auth/user_sync_service.py`        | Activate invitation on first Clerk login |
 
 ---
 
@@ -86,16 +86,16 @@ Admin / Merchant owner                Porterchain API                    Clerk
 
 **Invitable admin roles:**
 
-| Role key | Label |
-|----------|-------|
-| `super_admin` | Super Admin |
-| `admin` | Admin |
-| `dispatcher` | Dispatcher |
-| `support` | Support |
-| `support_lead` | Support Lead |
-| `finance` | Finance |
+| Role key        | Label                      |
+| --------------- | -------------------------- |
+| `super_admin`   | Super Admin                |
+| `admin`         | Admin                      |
+| `dispatcher`    | Dispatcher                 |
+| `support`       | Support                    |
+| `support_lead`  | Support Lead               |
+| `finance`       | Finance                    |
 | `fleet_manager` | Fleet / Operations Manager |
-| `sales_manager` | Sales Manager |
+| `sales_manager` | Sales Manager              |
 
 ---
 
@@ -152,40 +152,40 @@ No `user_invitations` row required.
 
 **Table:** `user_invitations`
 
-| Column | Description |
-|--------|-------------|
-| `email` | Invitee email |
-| `user_type` | `admin`, `merchant`, `driver` |
-| `role` | RBAC role at invite time |
-| `status` | `pending`, `accepted`, `revoked`, `expired` |
-| `clerk_invitation_id` | Clerk invitation ID |
-| `clerk_user_id` | Set when user exists or accepts |
-| `platform_user_id` | `admin_users` / `merchant_users` / `drivers` id |
-| `invited_by` | Admin user id (when applicable) |
-| `redirect_url` | Portal sign-in URL |
+| Column                | Description                                     |
+| --------------------- | ----------------------------------------------- |
+| `email`               | Invitee email                                   |
+| `user_type`           | `admin`, `merchant`, `driver`                   |
+| `role`                | RBAC role at invite time                        |
+| `status`              | `pending`, `accepted`, `revoked`, `expired`     |
+| `clerk_invitation_id` | Clerk invitation ID                             |
+| `clerk_user_id`       | Set when user exists or accepts                 |
+| `platform_user_id`    | `admin_users` / `merchant_users` / `drivers` id |
+| `invited_by`          | Admin user id (when applicable)                 |
+| `redirect_url`        | Portal sign-in URL                              |
 
 ---
 
 ## Portal configuration
 
-| Variable | Default | Used for |
-|----------|---------|----------|
-| `ADMIN_PORTAL_URL` | `http://localhost:3002` | Admin invite redirect |
-| `MERCHANT_PORTAL_URL` | `http://localhost:3001` | Merchant invite redirect |
-| `DRIVER_PORTAL_URL` | `http://localhost:3003` | Driver invite redirect |
-| `WEBSITE_URL` | `http://localhost:3000` | Customer flows |
-| `CLERK_SECRET_KEY` | — | Required to send invitations |
+| Variable              | Default                 | Used for                     |
+| --------------------- | ----------------------- | ---------------------------- |
+| `ADMIN_PORTAL_URL`    | `http://localhost:3002` | Admin invite redirect        |
+| `MERCHANT_PORTAL_URL` | `http://localhost:3001` | Merchant invite redirect     |
+| `DRIVER_PORTAL_URL`   | `http://localhost:3003` | Driver invite redirect       |
+| `WEBSITE_URL`         | `http://localhost:3000` | Customer flows               |
+| `CLERK_SECRET_KEY`    | —                       | Required to send invitations |
 
 ---
 
 ## Enforcement
 
-| Surface | Self-signup blocked | Access gated by |
-|---------|---------------------|-----------------|
-| Admin | Clerk footer hidden; no public sign-up route | `admin_users` + RBAC |
-| Merchant | `/sign-up` informational only; middleware | `merchant_users` + org |
-| Driver | Clerk sign-up disabled on login | `drivers` + Clerk token |
-| Customer | Open on website | `customers` (optional until first booking) |
+| Surface  | Self-signup blocked                          | Access gated by                            |
+| -------- | -------------------------------------------- | ------------------------------------------ |
+| Admin    | Clerk footer hidden; no public sign-up route | `admin_users` + RBAC                       |
+| Merchant | `/sign-up` informational only; middleware    | `merchant_users` + org                     |
+| Driver   | Clerk sign-up disabled on login              | `drivers` + Clerk token                    |
+| Customer | Open on website                              | `customers` (optional until first booking) |
 
 Creating a Clerk account **alone does not grant Porterchain access** for staff, merchant, or driver roles. A pending domain record must exist from an invitation.
 
@@ -205,10 +205,10 @@ Uses the same Clerk Invitations API pattern as `InvitationService`.
 
 ## Migrations
 
-| Revision | Table |
-|----------|-------|
+| Revision       | Table               |
+| -------------- | ------------------- |
 | `j1k2l3m4n5o6` | `porterchain_users` |
-| `k2l3m4n5o6p7` | `user_invitations` |
+| `k2l3m4n5o6p7` | `user_invitations`  |
 
 ```bash
 cd apps/api && alembic upgrade head

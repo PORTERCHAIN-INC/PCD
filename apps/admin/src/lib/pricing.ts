@@ -30,7 +30,13 @@ export const TARIFF_TYPES = [
   "public",
 ] as const;
 
-export const RULE_STATUSES = ["draft", "pending_approval", "approved", "published", "archived"] as const;
+export const RULE_STATUSES = [
+  "draft",
+  "pending_approval",
+  "approved",
+  "published",
+  "archived",
+] as const;
 
 const tariffSchema = z.object({
   id: z.string(),
@@ -189,12 +195,21 @@ export const pricingApi = {
   },
   tax: (token: string) => adminFetch<Record<string, unknown>>(`${B}/tax`, token),
   updateTax: (token: string, body: Record<string, unknown>) =>
-    adminFetch<Record<string, unknown>>(`${B}/tax`, token, { method: "PUT", body: JSON.stringify(body) }),
+    adminFetch<Record<string, unknown>>(`${B}/tax`, token, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
   fuel: (token: string) => adminFetch<Record<string, unknown>>(`${B}/fuel`, token),
   updateFuel: (token: string, body: Record<string, unknown>) =>
-    adminFetch<Record<string, unknown>>(`${B}/fuel`, token, { method: "PUT", body: JSON.stringify(body) }),
+    adminFetch<Record<string, unknown>>(`${B}/fuel`, token, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
   simulate: (token: string, body: SimulateRequest) =>
-    adminFetch<SimulateResult>(`${B}/simulate`, token, { method: "POST", body: JSON.stringify(body) }),
+    adminFetch<SimulateResult>(`${B}/simulate`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
 
 export const STATUS_STYLES: Record<string, string> = {
@@ -206,15 +221,27 @@ export const STATUS_STYLES: Record<string, string> = {
 };
 
 export function exportTariffsCsv(rows: TariffRow[], filename = "pricing-rules.csv") {
-  const headers = ["name", "tariff_type", "vehicle_class", "zone", "merchant_name", "base_cents", "per_km_cents", "status", "version"];
+  const headers = [
+    "name",
+    "tariff_type",
+    "vehicle_class",
+    "zone",
+    "merchant_name",
+    "base_cents",
+    "per_km_cents",
+    "status",
+    "version",
+  ];
   const lines = [
     headers.join(","),
     ...rows.map((r) =>
-      headers.map((h) => {
-        const v = r[h as keyof TariffRow];
-        const s = v == null ? "" : String(v);
-        return s.includes(",") ? `"${s.replace(/"/g, '""')}"` : s;
-      }).join(",")
+      headers
+        .map((h) => {
+          const v = r[h as keyof TariffRow];
+          const s = v == null ? "" : String(v);
+          return s.includes(",") ? `"${s.replace(/"/g, '""')}"` : s;
+        })
+        .join(",")
     ),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });

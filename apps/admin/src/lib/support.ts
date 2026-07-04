@@ -193,12 +193,18 @@ export const supportApi = {
     adminFetch<TicketDetail>(`${B}/tickets/${id}/sla/pause`, token, { method: "POST" }),
   resumeSla: (token: string, id: string) =>
     adminFetch<TicketDetail>(`${B}/tickets/${id}/sla/resume`, token, { method: "POST" }),
-  bulk: (token: string, ticketIds: string[], action: string, opts?: { agent_id?: string; status?: string }) =>
+  bulk: (
+    token: string,
+    ticketIds: string[],
+    action: string,
+    opts?: { agent_id?: string; status?: string }
+  ) =>
     adminFetch<{ results: Array<{ ticket_id: string; status: string }> }>(`${B}/bulk`, token, {
       method: "POST",
       body: JSON.stringify({ ticket_ids: ticketIds, action, ...opts }),
     }),
-  knowledgeBase: (token: string) => adminFetch<Record<string, unknown>>(`${B}/knowledge-base`, token),
+  knowledgeBase: (token: string) =>
+    adminFetch<Record<string, unknown>>(`${B}/knowledge-base`, token),
   saveArticle: (token: string, article: Record<string, unknown>) =>
     adminFetch<Record<string, unknown>>(`${B}/knowledge-base/articles`, token, {
       method: "POST",

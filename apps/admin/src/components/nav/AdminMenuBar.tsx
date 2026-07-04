@@ -38,7 +38,11 @@ function NavLinkItem({
     >
       <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", active ? "text-secondary" : "text-muted")} />
       <span className="min-w-0">
-        <span className={cn("block text-sm font-medium", active ? "text-secondary" : "text-primary")}>{label}</span>
+        <span
+          className={cn("block text-sm font-medium", active ? "text-secondary" : "text-primary")}
+        >
+          {label}
+        </span>
         {description && <span className="block text-xs text-muted">{description}</span>}
       </span>
     </Link>
@@ -71,7 +75,9 @@ function GroupPanel({
 }) {
   return (
     <div className="p-1.5">
-      <p className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-muted">{groupLabel}</p>
+      <p className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-muted">
+        {groupLabel}
+      </p>
       {items.map((item) => (
         <NavLinkItem key={item.href} {...item} pathname={pathname} onNavigate={onNavigate} />
       ))}
@@ -98,7 +104,9 @@ export default function AdminMenuBar() {
           >
             <LayoutGrid className="h-4 w-4" />
             All modules
-            <ChevronDown className={cn("h-3.5 w-3.5 opacity-60 transition", open && "rotate-180")} />
+            <ChevronDown
+              className={cn("h-3.5 w-3.5 opacity-60 transition", open && "rotate-180")}
+            />
           </button>
         )}
       >
@@ -140,11 +148,15 @@ export default function AdminMenuBar() {
                 {...triggerProps}
                 className={cn(
                   "hidden items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition whitespace-nowrap md:inline-flex",
-                  active || open ? "bg-secondary/10 text-secondary" : "text-primary/80 hover:bg-primary/5"
+                  active || open
+                    ? "bg-secondary/10 text-secondary"
+                    : "text-primary/80 hover:bg-primary/5"
                 )}
               >
                 {group.label}
-                <ChevronDown className={cn("h-3.5 w-3.5 opacity-60 transition", open && "rotate-180")} />
+                <ChevronDown
+                  className={cn("h-3.5 w-3.5 opacity-60 transition", open && "rotate-180")}
+                />
               </button>
             )}
           >

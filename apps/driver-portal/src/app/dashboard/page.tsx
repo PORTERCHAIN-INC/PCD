@@ -60,9 +60,7 @@ export default function DashboardPage() {
   const { dashboard, performance, ratings, queues, route, vehicle } = data;
   const shiftActive = data.shiftActive;
   const deliveriesToday =
-    performance.deliveries_today > 0
-      ? performance.deliveries_today
-      : queues.todaysDeliveries;
+    performance.deliveries_today > 0 ? performance.deliveries_today : queues.todaysDeliveries;
 
   return (
     <DriverShell>
@@ -70,7 +68,9 @@ export default function DashboardPage() {
         <div>
           <p className="text-sm font-medium text-[var(--muted)]">Driver Workspace</p>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            {data.profile?.full_name ? `Hello, ${data.profile.full_name.split(" ")[0]}` : "Dashboard"}
+            {data.profile?.full_name
+              ? `Hello, ${data.profile.full_name.split(" ")[0]}`
+              : "Dashboard"}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span
@@ -167,9 +167,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-[var(--muted)]">Route Earnings</dt>
-                <dd className="font-semibold">
-                  {route ? formatCents(route.earnings_cents) : "—"}
-                </dd>
+                <dd className="font-semibold">{route ? formatCents(route.earnings_cents) : "—"}</dd>
               </div>
             </dl>
           </div>

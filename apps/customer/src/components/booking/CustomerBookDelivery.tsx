@@ -149,7 +149,9 @@ export default function CustomerBookDelivery() {
     return (
       <div className="rounded-2xl border border-emerald-200 bg-white p-8 text-center shadow-sm">
         <h1 className="text-2xl font-bold text-primary">Booking confirmed</h1>
-        <p className="mt-2 text-sm text-muted">Your delivery is booked and will appear on your dashboard.</p>
+        <p className="mt-2 text-sm text-muted">
+          Your delivery is booked and will appear on your dashboard.
+        </p>
         <p className="mt-6 font-mono text-lg font-semibold text-secondary">{trackingNumber}</p>
         <p className="mt-1 text-xs text-muted">Tracking number</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
