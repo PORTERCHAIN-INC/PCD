@@ -32,8 +32,21 @@ def _now() -> datetime:
 
 
 def _naive_now() -> datetime:
-    """Naive UTC now for comparing against SQLite (naive) timestamps."""
+    """UTC naive now for timestamp comparisons against DB datetimes."""
     return datetime.now(UTC).replace(tzinfo=None)
+
+
+def _as_naive(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        return dt.astimezone(UTC).replace(tzinfo=None)
+    return dt
+
+
+def _on_or_after(dt: datetime | None, cutoff: datetime) -> bool:
+    naive = _as_naive(dt)
+    return naive is not None and naive >= cutoff
 
 
 class Driver360Service:
@@ -51,11 +64,11 @@ class Driver360Service:
         def revenue(orders: list[Order]) -> int:
             return sum(o.amount_cents for o in orders if o.state in COMPLETED_STATES)
 
-        today_orders = [o for o in all_orders if o.created_at and o.created_at >= sod]
+        today_orders = [o for o in all_orders if _on_or_after(o.created_at, sod)]
         completed_today = [o for o in today_orders if o.state in COMPLETED_STATES]
         in_progress = [o for o in all_orders if o.state in ACTIVE_STATES]
-        week_orders = [o for o in all_orders if o.created_at and o.created_at >= week]
-        month_orders = [o for o in all_orders if o.created_at and o.created_at >= month]
+        week_orders = [o for o in all_orders if _on_or_after(o.created_at, week)]
+        month_orders = [o for o in all_orders if _on_or_after(o.created_at, month)]
 
         total = len(all_orders)
         completed = len([o for o in all_orders if o.state in COMPLETED_STATES])
@@ -74,7 +87,7 @@ class Driver360Service:
 
         # Payout-based earnings.
         payouts = db.query(DriverPayout).filter(DriverPayout.driver_id == driver.id).all()
-        weekly_earnings = sum(p.amount_cents for p in payouts if p.created_at and p.created_at >= week)
+        weekly_earnings = sum(p.amount_cents for p in payouts if _on_or_after(p.created_at, week))
         pending_payout = sum(p.amount_cents for p in payouts if p.status == "pending")
 
         incidents = (
@@ -402,7 +415,7 @@ class Driver360Service:
     def documents(self, db: Session, driver_id: str) -> dict:
         driver = db.get(Driver, driver_id)
         if not driver:
-            return {}
+            raise LookupError("driver_not_found")
         docs = driver.documents or {}
         vehicles = db.query(Vehicle).filter(Vehicle.driver_id == driver_id).all()
         return {

@@ -25,6 +25,7 @@ import {
   SlidersHorizontal,
   Star,
   UserCheck,
+  UserPlus,
   Users,
   Wallet,
   Wifi,
@@ -37,6 +38,7 @@ import { drivers, healthTone, type DriverRow } from "@/lib/drivers";
 import { Dropdown, FilterChip, ProvincePills } from "@/components/crm/filters";
 import { Badge, Button, EmptyState, Spinner } from "@/components/crm/primitives";
 import { money, shortDate, relativeTime, titleCase, downloadCsv, toCsv } from "@/lib/crmFormat";
+import { AddDriverModal } from "@/components/drivers/AddDriverModal";
 
 const STATUSES = ["PENDING", "APPROVED", "SUSPENDED", "REJECTED"];
 const AVAILABILITY = ["online", "offline", "busy", "break", "vacation"];
@@ -77,8 +79,10 @@ export default function DriversPage() {
   const router = useRouter();
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
-  const { data, error } = useApiData((t) => drivers.list(t, { limit: "10000" }), [version]);
-  const { data: stats } = useApiData((t) => drivers.stats(t), [version]);
+  const { data, error } = useApiData((t) => drivers.list(t, { limit: "500" }), [version], {
+    key: "drivers-list",
+  });
+  const { data: stats } = useApiData((t) => drivers.stats(t), [version], { key: "drivers-stats" });
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
@@ -98,6 +102,7 @@ export default function DriversPage() {
     weekly_earnings_cents: false,
   });
   const [chooserOpen, setChooserOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const chooserRef = useRef<HTMLDivElement>(null);
 
@@ -119,11 +124,11 @@ export default function DriversPage() {
   }, []);
 
   const facets = useMemo(() => {
-    const rows = data ?? [];
+    const list = Array.isArray(data) ? data : [];
     const provMap = new Map<string, number>();
     const cityMap = new Map<string, number>();
     const vtSet = new Set<string>();
-    rows.forEach((r) => {
+    list.forEach((r) => {
       if (r.province) provMap.set(r.province, (provMap.get(r.province) ?? 0) + 1);
       if (r.city) cityMap.set(r.city, (cityMap.get(r.city) ?? 0) + 1);
       if (r.vehicle_type) vtSet.add(r.vehicle_type);
@@ -140,7 +145,7 @@ export default function DriversPage() {
   }, [data]);
 
   const rows = useMemo(() => {
-    let r = data ? [...data] : [];
+    let r = Array.isArray(data) ? [...data] : [];
     const q = search.toLowerCase();
     if (q)
       r = r.filter((d) =>
@@ -413,11 +418,16 @@ export default function DriversPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">Driver Command Center</h1>
-        <p className="text-sm text-muted">
-          360° driver platform — performance, compliance, payouts, and risk.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Driver Command Center</h1>
+          <p className="text-sm text-muted">
+            360° driver platform — performance, compliance, payouts, and risk.
+          </p>
+        </div>
+        <Button onClick={() => setAddOpen(true)}>
+          <UserPlus className="h-4 w-4" /> Add driver
+        </Button>
       </div>
 
       {stats && (
@@ -657,12 +667,12 @@ export default function DriversPage() {
           </div>
         )}
 
-        {!data ? (
+        {!data || !Array.isArray(data) ? (
           <Spinner label="Loading drivers…" />
         ) : rows.length === 0 ? (
           <EmptyState
             title="No drivers match these filters"
-            hint="Drivers register via the driver app and appear here for approval."
+            hint="Add a driver manually or wait for driver app registrations to appear here."
           />
         ) : (
           <>
@@ -735,6 +745,15 @@ export default function DriversPage() {
           </>
         )}
       </div>
+
+      <AddDriverModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onCreated={(driverId) => {
+          setVersion((v) => v + 1);
+          router.push(`/drivers/${driverId}`);
+        }}
+      />
     </div>
   );
 }

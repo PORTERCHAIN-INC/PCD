@@ -499,11 +499,45 @@ class TaskOut(_ORM):
     assigned_to: str | None
     due_at: datetime | None
     remind_at: datetime | None
+    zoho_event_uid: str | None = None
     is_recurring: bool
     recurrence_rule: str | None
     completed_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class CrmCalendarStatusResponse(BaseModel):
+    provider: str
+    configured: bool
+    accounts_url: str
+    api_base: str
+    calendar_uid: str | None = None
+    timezone: str
+    missing: list[str] = Field(default_factory=list)
+    sync_task_types: list[str] = Field(default_factory=list)
+
+
+class CrmCalendarEventItem(BaseModel):
+    id: str
+    title: str
+    start: str | None = None
+    end: str | None = None
+    source: str
+    task_type: str | None = None
+    status: str | None = None
+    zoho_event_uid: str | None = None
+    entity_type: str | None = None
+    entity_id: str | None = None
+    location: str | None = None
+    organizer: str | None = None
+
+
+class CrmCalendarEventsResponse(BaseModel):
+    integration: CrmCalendarStatusResponse
+    crm_events: list[CrmCalendarEventItem]
+    zoho_events: list[CrmCalendarEventItem]
+    zoho_error: str | None = None
 
 
 # --------------------------------------------------------------------------- #

@@ -3,7 +3,10 @@
 import Button from "@/components/ui/Button";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { confirmBulk, uploadBulkCsv } from "@/lib/api";
+import { Download } from "lucide-react";
 import { useState } from "react";
+
+const SAMPLE_CSV_URL = "/samples/bulk-bookings-sample.csv";
 
 export default function BulkPage() {
   const { getApiToken, orgId, isSignedIn } = useMerchantAuth();
@@ -55,13 +58,24 @@ export default function BulkPage() {
       <div>
         <h1 className="text-2xl font-bold text-primary">Bulk Bookings</h1>
         <p className="text-sm text-muted">
-          Upload CSV with columns: pickup, dropoff, scheduled_at (optional: internal_reference,
-          purchase_order_number, cost_centre)
+          Upload CSV or Excel (.xlsx) with columns: pickup, dropoff, scheduled_at (optional:
+          internal_reference, purchase_order_number, cost_centre, pickup_lat, pickup_lng,
+          dropoff_lat, dropoff_lng, recipient_id, vehicle_class, package_type, weight_kg)
         </p>
       </div>
 
       <div className="rounded-2xl border border-primary/10 bg-white p-6">
-        <input type="file" accept=".csv,.xlsx" onChange={onUpload} disabled={loading} />
+        <div className="flex flex-wrap items-center gap-3">
+          <input type="file" accept=".csv,.xlsx" onChange={onUpload} disabled={loading} />
+          <a
+            href={SAMPLE_CSV_URL}
+            download="bulk-bookings-sample.csv"
+            className="inline-flex items-center gap-2 rounded-xl border border-primary/15 px-4 py-2 text-sm font-medium text-primary transition hover:bg-gray-bg"
+          >
+            <Download className="h-4 w-4" />
+            Download sample CSV
+          </a>
+        </div>
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       </div>
 

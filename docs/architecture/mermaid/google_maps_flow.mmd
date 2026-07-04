@@ -1,0 +1,26 @@
+flowchart TB
+  subgraph Browser["Browser (Client-Side)"]
+    PKG["@porterchain/maps<br/>packages/maps"]
+    GMP["GoogleMapsProvider<br/>@vis.gl/react-google-maps"]
+    AC["AddressAutocomplete"]
+  end
+
+  subgraph Apps["Consumers"]
+    WEB[website book page]
+    MERCH[merchant-portal book]
+    ADMIN[admin live-map<br/>map visualization]
+  end
+
+  subgraph ServerPreview["Server Preview Only"]
+    WQR["website POST /api/quote<br/>geocode.ts → maps.googleapis.com"]
+  end
+
+  subgraph NOT_USED["NOT used for routing/pricing in API"]
+    NOTE["Distance/pricing uses OSRM/Valhalla<br/>via MapsService — not Google"]
+  end
+
+  WEB & MERCH & ADMIN --> PKG
+  PKG --> GMP --> GAPI[Google Maps JavaScript API]
+  PKG --> AC
+  WEB --> WQR
+  WQR --> GAPI

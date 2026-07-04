@@ -20,7 +20,9 @@ BOOKING_CREATED = "booking.created"
 BOOKING_CONFIRMED = "booking.confirmed"
 ORDER_CREATED = "order.created"
 ORDER_BOOKED = "order.booked"
+ORDER_DISPATCH_REQUESTED = "order.dispatch_requested"
 ORDER_DISPATCH_READY = "order.dispatch_ready"
+ORDER_INVOICED = "order.invoiced"
 
 # Invoice & notifications
 INVOICE_CREATED = "invoice.created"
@@ -30,6 +32,12 @@ NOTIFICATION_SENT = "notification.sent"
 CHECKOUT_STARTED = "checkout.started"
 CHECKOUT_ABANDONED = "checkout.abandoned"
 BOOKING_STARTED = "booking.started"
+
+# Consent / compliance
+BOOKING_CONSENT_RECORDED = "booking.consent_recorded"
+BOOKING_DRAFT_RESTORED = "booking.draft_restored"
+RECEIPT_GENERATED = "receipt.generated"
+DISPATCH_QUEUED = "dispatch.queued"
 
 # Fleetbase
 FLEETBASE_ORDER_CREATED = "fleetbase.order_created"

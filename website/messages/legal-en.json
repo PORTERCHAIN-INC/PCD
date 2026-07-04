@@ -72,7 +72,7 @@
       {
         "title": "Contact us",
         "paragraphs": [
-          "Privacy inquiries: peter@porterchain.com",
+          "Privacy inquiries: ravi@porterchain.com",
           "Operations: ops@porterchain.com",
           "Phone: +1 (647) 619-7951",
           "Mailing address: 100 King Street West, Toronto, ON M5X 1A9, Canada"
@@ -137,7 +137,7 @@
         "title": "Governing law",
         "paragraphs": [
           "These Terms are governed by the laws of the Province of Ontario and the federal laws of Canada applicable therein. Disputes shall be resolved in the courts of Ontario, unless otherwise agreed in a merchant agreement.",
-          "Questions about these Terms: peter@porterchain.com · +1 (647) 619-7951"
+          "Questions about these Terms: ravi@porterchain.com · +1 (647) 619-7951"
         ]
       }
     ]
@@ -166,7 +166,7 @@
         ],
         "list": [
           "Essential cookies — required for site functionality, security, and session management",
-          "Authentication cookies — set by Clerk and Supabase when you sign in or verify booking OTP codes",
+          "Authentication cookies — set by Clerk when you sign in or verify your account",
           "Preference cookies — such as language selection (English / French)",
           "Analytics and chat cookies — set by Zoho SalesIQ when the live chat widget is enabled",
           "Payment cookies — set by Stripe during checkout on tracking and billing pages",
@@ -180,10 +180,9 @@
         ],
         "list": [
           "Zoho SalesIQ (salesiq.zohopublic.com) — live chat support",
-          "Clerk — merchant and customer authentication",
+          "Clerk — authentication for retail booking, merchant portal, admin, and driver portals",
           "Google Maps (maps.googleapis.com) — address autocomplete and maps",
-          "Stripe (stripe.com) — payment processing",
-          "Supabase — booking OTP authentication when enabled"
+          "Stripe (stripe.com) — payment processing"
         ]
       },
       {
@@ -197,7 +196,7 @@
         "title": "Updates and contact",
         "paragraphs": [
           "We may update this Cookie Policy from time to time. The \"Last updated\" date at the top reflects the most recent revision.",
-          "Questions: peter@porterchain.com · ops@porterchain.com · +1 (647) 619-7951"
+          "Questions: ravi@porterchain.com · ops@porterchain.com · +1 (647) 619-7951"
         ]
       }
     ]

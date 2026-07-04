@@ -158,6 +158,55 @@ export type DriverAnalytics = {
 
 export type TimelineEvent = { kind: string; type: string; title: string; at: string | null };
 
+export const DRIVER_DOC_TYPES = [
+  { value: "driver_license", label: "Driver license" },
+  { value: "insurance", label: "Insurance certificate" },
+  { value: "vehicle_registration", label: "Vehicle registration" },
+  { value: "background_check", label: "Background check" },
+  { value: "work_permit", label: "Work permit" },
+  { value: "profile_photo", label: "Profile photo" },
+  { value: "other", label: "Other" },
+] as const;
+
+export type DriverDocumentPayload = {
+  doc_type: string;
+  label?: string;
+  file_url?: string;
+  reference_number?: string;
+  expires_at?: string;
+  notes?: string;
+};
+
+export type DriverCreatePayload = {
+  full_name: string;
+  email: string;
+  phone?: string;
+  license_class?: string;
+  license_number?: string;
+  service_area?: string;
+  employment_type?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    province?: string;
+    postal_code?: string;
+  };
+  emergency_contact?: {
+    name?: string;
+    phone?: string;
+    relationship?: string;
+  };
+  vehicle?: {
+    vehicle_class: string;
+    plate_number: string;
+    make_model?: string;
+    capacity_kg?: number;
+    compliance_expires_at?: string;
+  };
+  documents?: DriverDocumentPayload[];
+  auto_approve?: boolean;
+};
+
 const qs = (params: Record<string, string | undefined>) => {
   const s = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v) s.set(k, v);
@@ -172,6 +221,8 @@ export const drivers = {
     adminFetch<DriverRow[]>(`${B}${qs(params)}`, t),
   facets: (t: string) => adminFetch<DriverFacets>(`${B}/facets`, t),
   stats: (t: string) => adminFetch<DriverStats>(`${B}/stats`, t),
+  create: (t: string, body: DriverCreatePayload) =>
+    adminFetch<DriverDetail>(B, t, { method: "POST", body: JSON.stringify(body) }),
   detail: (t: string, id: string) => adminFetch<DriverDetail>(`${B}/${id}`, t),
   approve: (t: string, id: string) =>
     adminFetch<DriverDetail>(`${B}/${id}/approve`, t, { method: "POST" }),
@@ -201,6 +252,11 @@ export const drivers = {
   vehicles: (t: string, id: string) => adminFetch<DriverVehicle[]>(`${B}/${id}/vehicles`, t),
   payouts: (t: string, id: string) => adminFetch<DriverPayouts>(`${B}/${id}/payouts`, t),
   documents: (t: string, id: string) => adminFetch<DriverDocuments>(`${B}/${id}/documents`, t),
+  addDocument: (t: string, id: string, body: DriverDocumentPayload) =>
+    adminFetch<DriverDocuments>(`${B}/${id}/documents`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   incidents: (t: string, id: string) => adminFetch<DriverIncidents>(`${B}/${id}/incidents`, t),
   analytics: (t: string, id: string) => adminFetch<DriverAnalytics>(`${B}/${id}/analytics`, t),
   timeline: (t: string, id: string) => adminFetch<TimelineEvent[]>(`${B}/${id}/timeline`, t),

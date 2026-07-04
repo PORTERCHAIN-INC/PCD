@@ -32,7 +32,7 @@ export default function Hero() {
       <Container className="relative z-10 flex-1 flex flex-col min-h-0 pt-[4.25rem] pb-3 sm:pt-[4.5rem] sm:pb-4">
         <div className="flex-1 min-h-0 flex flex-col items-center justify-start mx-auto w-full max-w-4xl">
           {/* Hero copy — upper portion of booking area */}
-          <div className="shrink-0 text-center mb-3 sm:mb-4 lg:mb-5">
+          <div className="shrink-0 text-center mb-2 sm:mb-4 lg:mb-5">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -48,7 +48,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.06 }}
-              className="text-[1.75rem] leading-[1.1] sm:text-4xl lg:text-5xl font-bold tracking-tight text-white text-balance"
+              className="text-[1.5rem] leading-[1.1] sm:text-4xl lg:text-5xl font-bold tracking-tight text-white text-balance"
             >
               {t("titleLine1")}{" "}
               <span className="gradient-text block sm:inline">{t("titleLine2")}</span>
@@ -58,7 +58,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.1 }}
-              className="mt-2 sm:mt-3 text-sm sm:text-base lg:text-lg text-white/75 max-w-xl mx-auto"
+              className="mt-1.5 sm:mt-3 text-sm sm:text-base lg:text-lg text-white/75 max-w-xl mx-auto hidden sm:block"
             >
               {t("subtitle")}
             </motion.p>

@@ -1,0 +1,98 @@
+@startuml system_architecture
+!theme plain
+skinparam componentStyle rectangle
+
+package "Frontends (Next.js)" {
+  [Website :3000] as WEB
+  [Customer Portal :3004] as CUST
+  [Merchant Portal :3001] as MERCH
+  [Admin Portal :3002] as ADMIN
+  [Driver Portal :3003] as DRIVER
+  [Mobile Driver] as MOBILE
+}
+
+package "Porterchain API (FastAPI :8001)" {
+  [Routers / Controllers] as ROUTERS
+  [booking_engine] as BE
+  [merchant_engine] as ME
+  [admin_engine] as AE
+  [fleetbase_engine] as FE
+  [driver_engine] as DE
+  [pricing_engine] as PE
+  [billing_engine] as BLE
+  [notification_engine] as NE
+}
+
+database "PostgreSQL / SQLite" as PG
+database "Redis" as REDIS
+queue "Event Bus" as EB
+queue "Task Queues" as Q
+
+node "apps/worker" as WORKER
+
+package "Adapters" {
+  [fleetbase-adapter] as FBA
+  [Stripe SDK] as STRIPE
+  [MapsService] as MAPS
+  [@porterchain/maps] as GMAPS
+}
+
+cloud "Fleetbase :8000" as FB
+cloud "Clerk" as CLERK
+cloud "Stripe" as STRIPE_EXT
+cloud "OSRM" as OSRM
+cloud "Valhalla :8002" as VAL
+cloud "Google Maps API" as GAPI
+cloud "Firebase" as FIREBASE
+
+WEB --> ROUTERS
+CUST --> ROUTERS
+MERCH --> ROUTERS
+ADMIN --> ROUTERS
+DRIVER --> ROUTERS
+MOBILE --> ROUTERS
+
+ROUTERS --> BE
+ROUTERS --> ME
+ROUTERS --> AE
+ROUTERS --> FE
+ROUTERS --> DE
+
+BE --> PG
+ME --> PG
+AE --> PG
+FE --> PG
+
+BE --> EB
+ME --> EB
+AE --> EB
+EB --> REDIS
+EB --> WORKER
+WORKER --> Q
+WORKER --> NE
+WORKER --> BLE
+
+FE --> FBA
+DE --> FBA
+FBA --> FB
+
+BE --> STRIPE
+STRIPE --> STRIPE_EXT
+
+BE --> MAPS
+PE --> MAPS
+MAPS --> OSRM
+MAPS --> VAL
+
+WEB --> GMAPS
+MERCH --> GMAPS
+ADMIN --> GMAPS
+GMAPS --> GAPI
+
+WEB --> CLERK
+MERCH --> CLERK
+ADMIN --> CLERK
+DRIVER --> CLERK
+NE --> FIREBASE
+
+@enduml

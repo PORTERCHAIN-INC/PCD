@@ -6,7 +6,7 @@ from porterchain_api.booking_engine import TrackingService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.models import Booking, Customer, Invoice, Order
-from porterchain_api.schemas import CustomerDashboardResponse, OrderResponse, OrderTrackingResponse
+from porterchain_api.schemas import OrderResponse, OrderTrackingResponse
 
 router = APIRouter(prefix="/v1", tags=["orders"])
 _tracking = TrackingService()
@@ -60,18 +60,6 @@ def get_order_live_tracking(
         fleetbase_order_id=order.fleetbase_order_id,
         live_tracking=live,
     )
-
-
-@router.get("/customers/me/dashboard", response_model=CustomerDashboardResponse)
-def get_my_dashboard(
-    db: Session = Depends(get_db),
-    clerk_user_id: str = Depends(get_clerk_user_id),
-) -> CustomerDashboardResponse:
-    customer = db.query(Customer).filter(Customer.clerk_user_id == clerk_user_id).first()
-    if not customer:
-        raise HTTPException(status_code=404, detail="customer_not_found")
-    data = _tracking.get_customer_dashboard(db, customer.id)
-    return CustomerDashboardResponse(**data)
 
 
 @router.get("/customers/{customer_id}/orders", response_model=list[OrderResponse])

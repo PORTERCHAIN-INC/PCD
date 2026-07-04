@@ -303,7 +303,7 @@ erDiagram
 | Vehicle ID              | `fleetbase_vehicles.uuid`       | `meta.porterchain_vehicle_id`               |
 | Merchant org            | `fleetbase_contacts` (optional) | Not required for MVP                        |
 
-**Rule:** Porterchain PostgreSQL/SQLite is authoritative for commercial data. Fleetbase MySQL is authoritative for dispatch execution.
+**Rule:** Porterchain PostgreSQL is authoritative for commercial data. Fleetbase MySQL is authoritative for dispatch execution.
 
 ---
 
@@ -311,7 +311,7 @@ erDiagram
 
 | Store       | Engine              | Owner           | Port (dev)  |
 | ----------- | ------------------- | --------------- | ----------- |
-| Porterchain | PostgreSQL / SQLite | Porterchain API | 5432 / file |
+| Porterchain | PostgreSQL | Porterchain API | 5432 |
 | Fleetbase   | MySQL 8             | Fleetbase API   | 3307        |
 
 No shared database. Sync via API + webhooks only.

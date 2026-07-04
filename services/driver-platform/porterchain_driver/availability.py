@@ -24,19 +24,20 @@ class AvailabilityService:
         online: bool,
         fleetbase_bridge: Any = None,
     ) -> dict:
-        from porterchain_api.domain.admin_states import DriverStatus
+        from porterchain_driver.shift import ShiftService
 
-        if driver.status != DriverStatus.APPROVED.value:
-            raise PermissionError("driver_not_approved")
-        driver.is_online = online
-        driver.availability = "available" if online else "offline"
-        if fleetbase_bridge and driver.fleetbase_driver_id:
-            fleetbase_bridge.toggle_driver_online(driver.fleetbase_driver_id, online=online)
-        db.flush()
-        self._emit_availability_event(db, driver, online)
+        mode = "online" if online else "offline"
+        ShiftService().set_availability(db, driver, mode, fleetbase_bridge=fleetbase_bridge)
         return self.get_status(driver)
 
-    def accept_assignment(self, db: Session, driver: Any, order_id: str) -> dict:
+    def accept_assignment(
+        self,
+        db: Session,
+        driver: Any,
+        order_id: str,
+        *,
+        fleetbase_bridge: Any = None,
+    ) -> dict:
         from porterchain_api.models import Order
         from porterchain_api.domain.states import OrderState
         from porterchain_api.booking_engine.order_transitions import transition_order_state
@@ -54,9 +55,19 @@ class AvailabilityService:
             actor_type="driver",
             actor_id=driver.id,
         )
+        if fleetbase_bridge and order.fleetbase_order_id:
+            fleetbase_bridge.sync_order_state(order.fleetbase_order_id, OrderState.DRIVER_ACCEPTED.value)
         return {"order_id": order.id, "state": order.state}
 
-    def reject_assignment(self, db: Session, driver: Any, order_id: str, *, reason: str = "") -> dict:
+    def reject_assignment(
+        self,
+        db: Session,
+        driver: Any,
+        order_id: str,
+        *,
+        reason: str = "",
+        fleetbase_bridge: Any = None,
+    ) -> dict:
         from porterchain_api.models import Order
         from porterchain_api.domain.states import OrderState
         from porterchain_api.booking_engine.order_transitions import transition_order_state
@@ -74,8 +85,11 @@ class AvailabilityService:
             actor_id=driver.id,
             payload={"reason": reason},
         )
+        fleetbase_order_id = order.fleetbase_order_id
         order.assigned_driver_id = None
         db.flush()
+        if fleetbase_bridge and fleetbase_order_id:
+            fleetbase_bridge.sync_order_state(fleetbase_order_id, OrderState.DISPATCH_READY.value)
         return {"order_id": order.id, "state": order.state}
 
     def _emit_availability_event(self, db: Session, driver: Any, online: bool) -> None:

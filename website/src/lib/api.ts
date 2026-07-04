@@ -47,6 +47,13 @@ export interface QuoteResult {
   vehicle_class: string;
   scheduled_at: string;
   pricing_breakdown?: PricingLineItem[];
+  pickup?: AddressPayload | null;
+  dropoff?: AddressPayload | null;
+  package_type?: string | null;
+  weight_kg?: number | null;
+  dimensions?: string | null;
+  additional_stops?: AddressPayload[] | null;
+  special_instructions?: string | null;
 }
 
 export interface CreateQuotePayload {
@@ -99,6 +106,10 @@ export interface StartBookingPayload {
   phone: string;
   clerk_user_id: string;
   anonymous_session_id?: string;
+  terms_accepted?: boolean;
+  privacy_accepted?: boolean;
+  dangerous_goods_confirmed?: boolean;
+  consent_at?: string;
 }
 
 export interface BookingResult {
@@ -125,6 +136,12 @@ export interface BookingConfirmationResult {
   tracking_number: string;
   invoice_id: string;
   invoice_number: string;
+  receipt_number?: string | null;
+  payment_reference?: string | null;
+  customer_reference?: string | null;
+  payment_method?: string | null;
+  receipt_url?: string | null;
+  tax_cents?: number;
   state: string;
   amount_cents: number;
   currency: string;
@@ -133,6 +150,17 @@ export interface BookingConfirmationResult {
   dropoff: { formatted?: string };
   fleetbase_order_id?: string | null;
   dashboard_url: string;
+}
+
+export interface BookingConfirmationStatus {
+  status: "processing" | "ready";
+  confirmation: BookingConfirmationResult | null;
+}
+
+export function getBookingConfirmation(quoteId: string) {
+  return apiFetch<BookingConfirmationStatus>(
+    `/v1/bookings/confirmation?quote_id=${encodeURIComponent(quoteId)}`
+  );
 }
 
 export interface OrderResult {
@@ -201,6 +229,30 @@ export function getCustomerDashboard(token: string) {
   });
 }
 
+export function createCustomerSupportTicket(
+  token: string,
+  payload: { subject: string; description?: string; order_id?: string }
+) {
+  return apiFetch<{ ticket_id: string; status: string; subject: string }>("/v1/customers/me/support", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getCustomerRebookPayload(token: string, orderId: string) {
+  return apiFetch<{
+    pickup: AddressPayload;
+    dropoff: AddressPayload;
+    vehicle_class: string | null;
+    source_order_id: string;
+    tracking_number: string;
+  }>(`/v1/customers/me/rebook/${orderId}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 export function retryPayment(quoteId: string, token: string) {
   return apiFetch<{ payment_id: string; checkout_url: string | null; status: string }>(
     "/v1/payments/retry",
@@ -210,4 +262,57 @@ export function retryPayment(quoteId: string, token: string) {
       body: JSON.stringify({ quote_id: quoteId }),
     }
   );
+}
+
+export interface BookingDraftResult {
+  draft_id: string;
+  session_id: string;
+  customer_id: string | null;
+  quote_id: string | null;
+  state: string;
+  current_step: string;
+  payment_status: string | null;
+  pickup?: AddressPayload | null;
+  dropoff?: AddressPayload | null;
+  vehicle_class?: string | null;
+  package_type?: string | null;
+  amount_cents?: number | null;
+  expires_at: string;
+  continue_url?: string | null;
+}
+
+export function createBookingDraft(payload: {
+  session_id: string;
+  pickup?: AddressPayload;
+  dropoff?: AddressPayload;
+  vehicle_class?: string;
+  package_type?: string;
+  weight_kg?: number;
+  dimensions?: string;
+  current_step?: string;
+}) {
+  return apiFetch<BookingDraftResult>("/v1/booking-drafts", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getActiveBookingDraft(
+  sessionId: string,
+  token?: string
+): Promise<BookingDraftResult | null> {
+  const params = new URLSearchParams({ session_id: sessionId });
+  const response = await fetch(`${API_BASE}/v1/booking-drafts/active?${params}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail || `API error ${response.status}`);
+  }
+  const data = (await response.json()) as BookingDraftResult | null;
+  return data ?? null;
 }

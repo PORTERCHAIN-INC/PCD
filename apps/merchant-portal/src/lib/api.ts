@@ -2,16 +2,75 @@ import { publicEnv } from "@/lib/env";
 
 const API_BASE = publicEnv.porterchainApiUrl;
 
+export interface DashboardChartPoint {
+  label: string;
+  value: number;
+}
+
+export interface DashboardPerformanceCharts {
+  daily_orders: DashboardChartPoint[];
+  daily_spend_cents: DashboardChartPoint[];
+  orders_by_state: Array<{ state: string; count: number }>;
+}
+
+export interface DashboardDelivery {
+  order_id: string;
+  order_number: string;
+  tracking_number: string;
+  state: string;
+  amount_cents: number;
+  dropoff?: string | null;
+  delivered_at: string;
+}
+
+export interface DashboardActivity {
+  id: string;
+  kind: string;
+  title: string;
+  detail?: string | null;
+  occurred_at: string;
+}
+
+export interface DashboardNotification {
+  id: string;
+  title: string;
+  body: string;
+  category: string;
+  priority: string;
+  deep_link?: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface DashboardInvoiceLink {
+  invoice_id: string;
+  invoice_number: string;
+  pdf_url?: string | null;
+  stripe_receipt_url?: string | null;
+}
+
 export interface MerchantDashboard {
   todays_orders: number;
+  awaiting_pickup: number;
   in_transit: number;
   delivered_today: number;
-  pending_dispatch: number;
-  outstanding_invoices_cents: number;
-  account_balance_cents: number;
+  monthly_orders: number;
   monthly_spend_cents: number;
+  outstanding_balance_cents: number;
+  invoices_due: number;
+  open_claims: number;
+  open_support_tickets: number;
   on_time_percent: number;
-  notifications: Array<Record<string, unknown>>;
+  delivery_success_percent: number;
+  payment_terms: string;
+  pending_dispatch?: number;
+  outstanding_invoices_cents?: number;
+  account_balance_cents?: number;
+  performance_charts: DashboardPerformanceCharts;
+  recent_deliveries: DashboardDelivery[];
+  recent_activity: DashboardActivity[];
+  notifications: DashboardNotification[];
+  latest_invoice?: DashboardInvoiceLink | null;
 }
 
 export interface MerchantOrder {
@@ -40,14 +99,20 @@ export interface AddressPayload {
 export interface BookDeliveryPayload {
   pickup: AddressPayload;
   dropoff: AddressPayload;
+  additional_stops?: AddressPayload[];
   vehicle_class?: string;
   package_type?: string;
+  weight_kg?: number;
+  dimensions?: string;
   scheduled_at: string;
   schedule_mode?: string;
   special_instructions?: string;
   internal_reference?: string;
   purchase_order_number?: string;
   cost_centre?: string;
+  recipient_id?: string;
+  saved_pickup_id?: string;
+  template_id?: string;
 }
 
 export interface MerchantProfile {
@@ -118,8 +183,6 @@ async function merchantFetch<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
-    ...(init?.orgId ? { "X-Merchant-Org-Id": init.orgId } : {}),
-    ...(init?.role ? { "X-Merchant-Role": init.role } : {}),
   };
   if (!(init?.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";

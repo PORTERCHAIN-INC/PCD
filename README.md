@@ -1,104 +1,97 @@
 # Porterchain (PCD)
 
-Commercial logistics platform monorepo foundation.
+Commercial logistics platform monorepo — website, API, portals, worker, and Fleetbase integration.
 
-## What's in this repo
+## Applications
 
-| Path                                                                 | Description                                                       |
-| -------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| [`website/`](website/)                                               | Public Next.js site (port **3000**) — **only runnable app today** |
-| [`env/`](env/README.md)                                              | Environment variable templates per service                        |
-| [`apps/`](apps/)                                                     | Placeholders for API, merchant portal, driver app                 |
-| [`services/fleetbase/`](services/fleetbase/)                         | Fleetbase stack reference                                         |
-| [`infrastructure/docker/`](infrastructure/docker/docker-compose.yml) | Local MySQL, Redis, Mailhog, Valhalla                             |
-| Architecture specs                                                   | See `SYSTEM_ARCHITECTURE.md` and related docs at repo root        |
+| Path | Port | Description |
+|------|------|-------------|
+| [`website/`](website/) | **3000** | Public Next.js site — booking, tracking, customer portal route |
+| [`apps/merchant-portal/`](apps/merchant-portal/) | **3001** | B2B merchant dashboard (Clerk) |
+| [`apps/admin/`](apps/admin/) | **3002** | Business admin / ops (Clerk) |
+| [`apps/driver-portal/`](apps/driver-portal/) | **3003** | Driver web dashboard |
+| [`apps/customer/`](apps/customer/) | **3004** | Retail customer portal |
+| [`apps/api/`](apps/api/) | **8001** | Porterchain API (FastAPI) — all business logic |
+| [`apps/worker/`](apps/worker/) | — | Event bus + queue consumer |
+| [`apps/mobile-driver/`](apps/mobile-driver/) | Expo | Driver mobile app (Expo SDK 52) |
+
+Path aliases: `website/` = public site (target `apps/website/`); `apps/merchant-portal/` = merchant portal (target `apps/merchant/`).
 
 ## Quick start
 
 ### Prerequisites
 
-- Node.js **20.18+** (see [`.nvmrc`](.nvmrc))
+- Node.js **20.9+** (see [`.nvmrc`](.nvmrc))
 - [pnpm](https://pnpm.io) **9.15+**
-- Docker (optional, for local data services)
+- Python **3.12+** for API/worker
+- Docker (Postgres, Redis, Mailhog)
 
-### Website
+### Install
 
 ```bash
 corepack enable
 pnpm install
-
-cp env/website.env.example website/.env.local
-# Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-
-pnpm dev          # http://localhost:3000
-pnpm build
-pnpm lint
+cd apps/api && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
 ```
 
-### Local infrastructure (Docker)
+### Environment
+
+Copy templates from [`env/`](env/README.md) to each app (e.g. `apps/api/.env`, `website/.env.local`).
+
+### Run locally
 
 ```bash
-cp infrastructure/docker/.env.example infrastructure/docker/.env
-pnpm docker:up    # MySQL :3306, Redis :6379, Mailhog :8025
+pnpm docker:up          # Postgres :5432, Redis :6379, Mailhog :8025
+pnpm dev:api            # API :8001
+pnpm dev:worker         # async worker
+pnpm dev                # website :3000
+pnpm dev:merchant       # :3001
+pnpm dev:admin          # :3002
+pnpm dev:driver         # :3003
+pnpm dev:customer       # :3004
 ```
 
-Valhalla routing (optional, large download):
+Mobile driver: `cd apps/mobile-driver && npm install && npm start`
+
+### Database migrations
 
 ```bash
-pnpm docker:up:routing   # adds Valhalla :8002
+pnpm db:migrate         # alembic upgrade head (PostgreSQL production)
+pnpm db:revision -- -m "describe change"
 ```
+
+PostgreSQL uses Alembic migrations — see [`apps/api/alembic/README.md`](apps/api/alembic/README.md). Run `pnpm db:migrate` before starting the API.
 
 ## Monorepo scripts
 
-| Command             | Description                               |
-| ------------------- | ----------------------------------------- |
-| `pnpm dev`          | Start all workspace dev servers (website) |
-| `pnpm build`        | Production build                          |
-| `pnpm lint`         | ESLint across workspace                   |
-| `pnpm format`       | Prettier write                            |
-| `pnpm format:check` | Prettier check (CI)                       |
-| `pnpm docker:up`    | Core Docker services                      |
-| `pnpm docker:down`  | Stop Docker services                      |
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Turbo dev (website + configured apps) |
+| `pnpm dev:api` | Porterchain API |
+| `pnpm dev:worker` | Queue + event bus worker |
+| `pnpm build` | Production build |
+| `pnpm docker:up` | Core Docker services |
 
 ## Ports
 
-| Port | Service                       |
-| ---- | ----------------------------- |
-| 3000 | Website                       |
-| 3001 | Merchant portal (future)      |
-| 8000 | Fleetbase API (future)        |
-| 8001 | Porterchain API (recommended) |
-| 8002 | Valhalla                      |
-| 3306 | MySQL                         |
-| 6379 | Redis                         |
+| Port | Service |
+|------|---------|
+| 3000 | Website |
+| 3001 | Merchant portal |
+| 3002 | Admin |
+| 3003 | Driver portal |
+| 3004 | Customer portal |
+| 8001 | Porterchain API |
+| 8000 | Fleetbase API (when enabled) |
+| 5432 | PostgreSQL (Porterchain-owned data) |
+| 6379 | Redis |
 
 See [PORT_CONFIGURATION.md](PORT_CONFIGURATION.md).
 
-## Architecture docs
+## Architecture
 
+- [masterrule.md](masterrule.md) — locked rules and layer boundaries
+- [MASTERULE_COMPLIANCE_GAPS.md](MASTERULE_COMPLIANCE_GAPS.md) — compliance tracker
+- [ARCHITECTURE_ALIGNMENT_REPORT.md](ARCHITECTURE_ALIGNMENT_REPORT.md)
 - [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)
 - [TECH_STACK.md](TECH_STACK.md)
-- [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md)
-- [DOCKER_ARCHITECTURE.md](DOCKER_ARCHITECTURE.md)
-- [CONNECTIONS.md](CONNECTIONS.md) — driver app integrations
-
-## Product & operations design
-
-- [PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.md)
-- [BUSINESS_WORKFLOW.md](BUSINESS_WORKFLOW.md)
-- [USER_JOURNEYS.md](USER_JOURNEYS.md)
-- [ORDER_LIFECYCLE.md](ORDER_LIFECYCLE.md)
-- [EXCEPTION_WORKFLOWS.md](EXCEPTION_WORKFLOWS.md)
-- [ROLE_PERMISSIONS.md](ROLE_PERMISSIONS.md)
-- [MODULE_BREAKDOWN.md](MODULE_BREAKDOWN.md)
-- [EVENT_FLOW.md](EVENT_FLOW.md)
-- [SYSTEM_SEQUENCE_DIAGRAMS.md](SYSTEM_SEQUENCE_DIAGRAMS.md)
-- [ENTITY_RELATIONSHIP_MODEL.md](ENTITY_RELATIONSHIP_MODEL.md)
-
-## Environment variables
-
-Copy templates from [`env/`](env/README.md) — never commit secrets to git.
-
-## CI
-
-GitHub Actions workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)

@@ -24,6 +24,7 @@ class Merchant(Base):
     email: Mapped[str] = mapped_column(String(320), index=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     payment_terms: Mapped[str] = mapped_column(String(16), default="NET_30")
+    billing_cycle: Mapped[str] = mapped_column(String(16), default="MONTHLY")
     credit_limit_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
     hst_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
     business_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
@@ -119,10 +120,49 @@ class MerchantWebhook(Base):
     url: Mapped[str] = mapped_column(String(512))
     events: Mapped[list] = mapped_column(JSON, default=list)
     secret_hash: Mapped[str] = mapped_column(String(128))
+    encrypted_signing_secret: Mapped[str | None] = mapped_column(String(512), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     merchant: Mapped[Merchant] = relationship(back_populates="webhooks")
+    deliveries: Mapped[list["MerchantWebhookDelivery"]] = relationship(back_populates="webhook")
+
+
+class MerchantApiUsageLog(Base):
+    __tablename__ = "merchant_api_usage_logs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    api_key_id: Mapped[str] = mapped_column(ForeignKey("merchant_api_keys.id"), index=True)
+    method: Mapped[str] = mapped_column(String(16))
+    path: Mapped[str] = mapped_column(String(255), index=True)
+    status_code: Mapped[int] = mapped_column(Integer, default=200)
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+    environment: Mapped[str] = mapped_column(String(16), default="sandbox")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class MerchantWebhookDelivery(Base):
+    __tablename__ = "merchant_webhook_deliveries"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    webhook_id: Mapped[str] = mapped_column(ForeignKey("merchant_webhooks.id"), index=True)
+    event_type: Mapped[str] = mapped_column(String(128), index=True)
+    request_body: Mapped[dict] = mapped_column(JSON, default=dict)
+    response_status: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    response_body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attempt: Mapped[int] = mapped_column(Integer, default=1)
+    success: Mapped[bool] = mapped_column(Boolean, default=False)
+    error_message: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+    next_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    webhook: Mapped[MerchantWebhook] = relationship(back_populates="deliveries")
 
 
 class BulkImportJob(Base):

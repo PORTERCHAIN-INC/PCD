@@ -7,8 +7,14 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.rbac import parse_admin_role
 from porterchain_api.admin_models import AdminUser
 from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.rbac import admin_role_to_platform_roles
+from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.config import Settings
+from porterchain_api.auth.rbac import (
+    admin_role_to_platform_roles,
+    merchant_role_to_platform_roles,
+)
 from porterchain_api.domain.admin_states import AdminRole
+from porterchain_api.domain.merchant_states import MerchantRole
 from porterchain_api.merchant_engine.rbac import parse_merchant_role
 from porterchain_api.merchant_models import MerchantUser
 from porterchain_api.models import Customer
@@ -19,23 +25,18 @@ from porterchain_shared.types.user_types import UserType
 
 
 class PrincipalResolver:
-    def resolve(self, db: Session, claims: ClerkClaims) -> AuthPrincipal | None:
+    def resolve(
+        self,
+        db: Session,
+        claims: ClerkClaims,
+        *,
+        settings: Settings | None = None,
+    ) -> AuthPrincipal | None:
         admin = (
             db.query(AdminUser)
             .filter(AdminUser.clerk_user_id == claims.clerk_user_id, AdminUser.is_active.is_(True))
             .first()
         )
-        if not admin and claims.email:
-            pending = (
-                db.query(AdminUser)
-                .filter(AdminUser.email == claims.email.lower(), AdminUser.is_active.is_(True))
-                .first()
-            )
-            if pending and pending.clerk_user_id.startswith("pending:"):
-                pending.clerk_user_id = claims.clerk_user_id
-                db.commit()
-                db.refresh(pending)
-                admin = pending
         if admin:
             admin_role = parse_admin_role(admin.role)
             return AuthPrincipal(
@@ -57,7 +58,7 @@ class PrincipalResolver:
             return AuthPrincipal(
                 user_id=merchant_user.id,
                 user_type=UserType.MERCHANT,
-                roles=frozenset({PlatformRole.MERCHANT}),
+                roles=merchant_role_to_platform_roles(m_role),
                 org_id=merchant_user.merchant_id,
                 email=merchant_user.email or claims.email,
                 session_id=claims.session_id,
@@ -85,35 +86,39 @@ class PrincipalResolver:
                 session_id=claims.session_id,
             )
 
-        # Clerk metadata fallback for dev / pre-provisioned users
-        meta_role = (claims.metadata_role or claims.org_role or "").lower()
-        if meta_role in ("dispatcher", "admin", "super_admin", "support", "sales"):
-            return AuthPrincipal(
-                user_id=claims.clerk_user_id,
-                user_type=_metadata_user_type(meta_role),
-                roles=admin_role_to_platform_roles(parse_admin_role(meta_role)),
-                org_id=claims.org_id,
-                email=claims.email,
-                session_id=claims.session_id,
-            )
-        if meta_role.startswith("merchant"):
-            return AuthPrincipal(
-                user_id=claims.clerk_user_id,
-                user_type=UserType.MERCHANT,
-                roles=frozenset({PlatformRole.MERCHANT}),
-                org_id=claims.org_id,
-                email=claims.email,
-                session_id=claims.session_id,
-            )
-        if meta_role == "driver":
-            return AuthPrincipal(
-                user_id=claims.clerk_user_id,
-                user_type=UserType.DRIVER,
-                roles=frozenset({PlatformRole.DRIVER}),
-                org_id=claims.org_id,
-                email=claims.email,
-                session_id=claims.session_id,
-            )
+        # Clerk metadata fallback — local dev only (never in production)
+        if settings and allow_auth_dev_bypass(settings):
+            meta_role = (claims.metadata_role or claims.org_role or "").lower()
+            if meta_role in ("dispatcher", "admin", "super_admin", "support", "sales"):
+                return AuthPrincipal(
+                    user_id=claims.clerk_user_id,
+                    user_type=_metadata_user_type(meta_role),
+                    roles=admin_role_to_platform_roles(parse_admin_role(meta_role)),
+                    org_id=claims.org_id,
+                    email=claims.email,
+                    session_id=claims.session_id,
+                )
+            if meta_role.startswith("merchant"):
+                m_role = parse_merchant_role(
+                    meta_role if meta_role in {r.value for r in MerchantRole} else "merchant_ops"
+                )
+                return AuthPrincipal(
+                    user_id=claims.clerk_user_id,
+                    user_type=UserType.MERCHANT,
+                    roles=merchant_role_to_platform_roles(m_role),
+                    org_id=None,
+                    email=claims.email,
+                    session_id=claims.session_id,
+                )
+            if meta_role == "driver":
+                return AuthPrincipal(
+                    user_id=claims.clerk_user_id,
+                    user_type=UserType.DRIVER,
+                    roles=frozenset({PlatformRole.DRIVER}),
+                    org_id=claims.org_id,
+                    email=claims.email,
+                    session_id=claims.session_id,
+                )
 
         return None
 

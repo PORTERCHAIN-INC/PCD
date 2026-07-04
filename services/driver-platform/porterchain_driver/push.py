@@ -1,4 +1,4 @@
-"""Push notification registration for drivers."""
+"""Push notification registration — delegates to Notification Engine DeviceService."""
 
 from __future__ import annotations
 
@@ -16,15 +16,31 @@ class PushService:
         *,
         device_token: str,
         platform: str = "expo",
+        device_name: str | None = None,
+        app_version: str | None = None,
+        os_version: str | None = None,
+        language: str = "en-CA",
+        timezone: str = "America/Toronto",
+        notification_permission: str = "default",
     ) -> dict:
-        perf = dict(driver.performance or {})
-        devices = list(perf.get("push_devices", []))
-        devices = [d for d in devices if d.get("token") != device_token]
-        devices.append({"token": device_token, "platform": platform})
-        perf["push_devices"] = devices[-5:]
-        driver.performance = perf
-        db.flush()
-        return {"registered": True, "device_count": len(devices)}
+        from porterchain_api.notification_engine.device_service import DeviceService
+
+        svc = DeviceService()
+        svc.migrate_legacy_driver_tokens(db, driver)
+        device = svc.register(
+            db,
+            user_role="driver",
+            user_id=driver.id,
+            fcm_token=device_token,
+            platform=platform,
+            device_name=device_name,
+            app_version=app_version,
+            os_version=os_version,
+            language=language,
+            timezone=timezone,
+            notification_permission=notification_permission,
+        )
+        return {"registered": True, "device_id": device.id, "device_count": len(svc.list_active(db, user_role="driver", user_id=driver.id))}
 
     def notify_driver(
         self,
@@ -34,20 +50,27 @@ class PushService:
         title: str,
         body: str,
         data: dict | None = None,
+        template: str = "driver_alert",
     ) -> None:
-        from porterchain_api.booking_engine._core import emit_event
-        from porterchain_shared.events.catalog import DomainEventType
+        from porterchain_api.notification_engine.engine import get_notification_engine
 
-        emit_event(
+        get_notification_engine().dispatch(
             db,
-            event_type=DomainEventType.NOTIFICATION_QUEUED,
-            aggregate_type="driver",
-            aggregate_id=driver.id,
-            actor_type="system",
-            payload={
-                "channel": "push",
-                "template": "driver_alert",
-                "recipient": {"driver_id": driver.id, "devices": (driver.performance or {}).get("push_devices", [])},
-                "context": {"title": title, "body": body, **(data or {})},
-            },
+            event_type="driver.alert",
+            template_key=template,
+            channel="push",
+            recipient_type="driver",
+            recipient_id=driver.id,
+            context={"title": title, "body": body, **(data or {})},
+            priority="high",
+        )
+        get_notification_engine().dispatch(
+            db,
+            event_type="driver.alert",
+            template_key=template,
+            channel="in_app",
+            recipient_type="driver",
+            recipient_id=driver.id,
+            context={"title": title, "body": body, **(data or {})},
+            priority="high",
         )

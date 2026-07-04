@@ -69,12 +69,18 @@ export default function CompaniesPage() {
         industry: industry || undefined,
         province: province || undefined,
         city: city || undefined,
-        limit: "10000",
+        limit: "500",
       }),
-    [status, industry, province, city, version]
+    [status, industry, province, city, version],
+    { key: "crm-companies-list" }
   );
-  const { data: facets } = useApiData((t) => crm.companyFacets(t), [version]);
-  const { data: stats } = useApiData((t) => crm.companyStats(t), [version]);
+  const { data: facets } = useApiData((t) => crm.companyFacets(t), [version], {
+    key: "crm-companies-facets",
+  });
+  const { data: statsData } = useApiData((t) => crm.companyStats(t), [version], {
+    key: "crm-companies-stats",
+  });
+  const stats = statsData && typeof statsData.total === "number" ? statsData : null;
 
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<Partial<Company>>(blank());
@@ -84,7 +90,7 @@ export default function CompaniesPage() {
   const refresh = () => setVersion((v) => v + 1);
 
   const rows = useMemo(() => {
-    let r = data ? [...data] : [];
+    let r = Array.isArray(data) ? [...data] : [];
     if (minValue) r = r.filter((c) => (c.estimated_monthly_revenue_cents ?? 0) >= Number(minValue));
     if (sortBy === "value")
       r.sort(

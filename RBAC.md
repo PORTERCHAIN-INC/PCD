@@ -1,7 +1,9 @@
-# Porterchain — Role-Based Access Control (RBAC)
+# Porterchain Enterprise RBAC
 
-**Version:** 2.0  
-**Date:** June 29, 2026  
+See **[RBAC_MATRIX.md](./RBAC_MATRIX.md)** for the canonical enterprise role × permission × module matrix.
+
+**Version:** 2.1  
+**Date:** July 1, 2026  
 **Enforcement:** Server-side in Porterchain API; Fleetbase permissions synchronized for console users
 
 ---
@@ -9,9 +11,10 @@
 ## Design principles
 
 1. **Clerk authenticates** — identity only
-2. **Porterchain authorizes** — roles and permissions in API
-3. **Fleetbase mirrors ops permissions** — dispatchers/admins get synced Fleetbase IAM permissions via SSO
-4. **No client-only security** — portals may hide UI; API always enforces
+2. **Porterchain authorizes** — enterprise roles in `porterchain_users`, `admin_users`, `merchant_users`
+3. **Never use Clerk Organizations for authorization** — merchant context resolves from `merchant_users.clerk_user_id`
+4. **Fleetbase mirrors ops permissions** — dispatchers/admins get synced Fleetbase IAM permissions via SSO
+5. **No client-only security** — portals may hide UI; API always enforces
 
 ---
 

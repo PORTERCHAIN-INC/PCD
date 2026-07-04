@@ -6,7 +6,6 @@ import { format, setHours, setMinutes, startOfDay, isToday, isBefore } from "dat
 import { enCA, frCA } from "date-fns/locale";
 import { Calendar, Clock } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const TIME_SLOTS = buildTimeSlots(30, 6, 22);
@@ -110,77 +109,91 @@ export default function ScheduleDateTimePicker({
   };
 
   return (
-    <motion.div
+    <div
       ref={rootRef}
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      className={cn(compact ? "space-y-1" : "space-y-2")}
+      className={cn(compact ? "space-y-1.5" : "space-y-2")}
     >
-      <div className="grid grid-cols-1 sm:grid-cols-[1.2fr_1fr] gap-2">
-        <div className="relative">
-          <button
-            type="button"
-            id={calendarId}
-            aria-haspopup="dialog"
-            aria-expanded={calendarOpen}
-            aria-label={t("pickDate")}
-            onClick={() => setCalendarOpen((open) => !open)}
-            className={cn(
-              "booking-schedule-field w-full",
-              compact && "booking-schedule-field-compact"
-            )}
-          >
-            <Calendar className="w-4 h-4 text-secondary shrink-0" />
-            <span className="truncate">
-              {format(value, "EEE, MMM d, yyyy", { locale: dateFnsLocale })}
-            </span>
-          </button>
-
-          {calendarOpen && (
-            <div
-              role="dialog"
-              aria-labelledby={calendarId}
-              className="booking-schedule-calendar absolute left-0 right-0 z-30 mt-2 rounded-2xl border border-gray-200/80 bg-white p-3 shadow-xl shadow-primary/10"
+      <div className={cn("grid gap-2", compact ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-[1.2fr_1fr]")}>
+        {compact ? (
+          <label className="booking-schedule-field booking-schedule-field-compact cursor-pointer">
+            <Calendar className="w-3.5 h-3.5 text-secondary shrink-0" />
+            <input
+              type="date"
+              value={format(value, "yyyy-MM-dd")}
+              min={format(new Date(), "yyyy-MM-dd")}
+              onChange={(e) => {
+                if (!e.target.value) return;
+                const [y, m, d] = e.target.value.split("-").map(Number);
+                const next = new Date(y, m - 1, d);
+                const slots = slotsAvailableOnDate(next);
+                onChange(combineDateAndTime(next, getNextAvailableSlot(next, slots)));
+              }}
+              aria-label={t("pickDate")}
+              className="w-full min-w-0 bg-transparent text-primary outline-none text-sm"
+            />
+          </label>
+        ) : (
+          <div className="relative">
+            <button
+              type="button"
+              id={calendarId}
+              aria-haspopup="dialog"
+              aria-expanded={calendarOpen}
+              aria-label={t("pickDate")}
+              onClick={() => setCalendarOpen((open) => !open)}
+              className="booking-schedule-field w-full"
             >
-              <DayPicker
-                mode="single"
-                selected={value}
-                onSelect={handleDateSelect}
-                locale={dateFnsLocale}
-                weekStartsOn={0}
-                disabled={{ before: startOfDay(new Date()) }}
-                classNames={{
-                  root: "booking-day-picker",
-                  months: "flex flex-col",
-                  month: "space-y-3",
-                  month_caption: "flex items-center justify-center relative px-8",
-                  caption_label: "text-sm font-semibold text-primary",
-                  nav: "flex items-center gap-1",
-                  button_previous:
-                    "absolute left-0 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-gray-bg hover:text-primary",
-                  button_next:
-                    "absolute right-0 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-gray-bg hover:text-primary",
-                  weekdays: "grid grid-cols-7 gap-1",
-                  weekday:
-                    "text-center text-[0.7rem] font-semibold uppercase tracking-wide text-muted",
-                  week: "mt-1 grid grid-cols-7 gap-1",
-                  day: "flex items-center justify-center",
-                  day_button: cn(
-                    "h-9 w-9 rounded-full text-sm font-medium text-primary transition-colors",
-                    "hover:bg-secondary/10 hover:text-secondary",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/30"
-                  ),
-                  selected:
-                    "[&>button]:bg-secondary [&>button]:text-white [&>button]:hover:bg-secondary [&>button]:hover:text-white",
-                  today: "[&>button]:ring-1 [&>button]:ring-secondary/30",
-                  outside: "[&>button]:text-muted/40",
-                  disabled: "[&>button]:text-muted/30 [&>button]:hover:bg-transparent",
-                }}
-              />
-            </div>
-          )}
-        </div>
+              <Calendar className="w-4 h-4 text-secondary shrink-0" />
+              <span className="truncate">
+                {format(value, "EEE, MMM d, yyyy", { locale: dateFnsLocale })}
+              </span>
+            </button>
+
+            {calendarOpen && (
+              <div
+                role="dialog"
+                aria-labelledby={calendarId}
+                className="booking-schedule-calendar absolute left-0 right-0 z-30 mt-2 rounded-2xl border border-gray-200/80 bg-white p-3 shadow-xl shadow-primary/10"
+              >
+                <DayPicker
+                  mode="single"
+                  selected={value}
+                  onSelect={handleDateSelect}
+                  locale={dateFnsLocale}
+                  weekStartsOn={0}
+                  disabled={{ before: startOfDay(new Date()) }}
+                  classNames={{
+                    root: "booking-day-picker",
+                    months: "flex flex-col",
+                    month: "space-y-3",
+                    month_caption: "flex items-center justify-center relative px-8",
+                    caption_label: "text-sm font-semibold text-primary",
+                    nav: "flex items-center gap-1",
+                    button_previous:
+                      "absolute left-0 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-gray-bg hover:text-primary",
+                    button_next:
+                      "absolute right-0 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-gray-bg hover:text-primary",
+                    weekdays: "grid grid-cols-7 gap-1",
+                    weekday:
+                      "text-center text-[0.7rem] font-semibold uppercase tracking-wide text-muted",
+                    week: "mt-1 grid grid-cols-7 gap-1",
+                    day: "flex items-center justify-center",
+                    day_button: cn(
+                      "h-9 w-9 rounded-full text-sm font-medium text-primary transition-colors",
+                      "hover:bg-secondary/10 hover:text-secondary",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/30"
+                    ),
+                    selected:
+                      "[&>button]:bg-secondary [&>button]:text-white [&>button]:hover:bg-secondary [&>button]:hover:text-white",
+                    today: "[&>button]:ring-1 [&>button]:ring-secondary/30",
+                    outside: "[&>button]:text-muted/40",
+                    disabled: "[&>button]:text-muted/30 [&>button]:hover:bg-transparent",
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         <label
           className={cn(
@@ -214,7 +227,7 @@ export default function ScheduleDateTimePicker({
           {t("timezoneNote")}
         </p>
       )}
-    </motion.div>
+    </div>
   );
 }
 

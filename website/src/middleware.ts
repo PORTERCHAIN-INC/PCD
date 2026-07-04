@@ -1,4 +1,4 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import createMiddleware from "next-intl/middleware";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -6,16 +6,28 @@ import { routing } from "./i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
 
+const isPublicRoute = createRouteMatcher([
+  "/:locale/login(.*)",
+  "/login(.*)",
+  "/:locale/book/success(.*)",
+  "/book/success(.*)",
+  "/:locale/portal/customer/sign-in(.*)",
+  "/portal/customer/sign-in(.*)",
+]);
+
+const isCustomerPortalRoute = createRouteMatcher([
+  "/:locale/portal/customer",
+  "/:locale/portal/customer/(.*)",
+  "/portal/customer",
+  "/portal/customer/(.*)",
+]);
+
 function isClerkConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim() && process.env.CLERK_SECRET_KEY?.trim()
   );
 }
 
-/**
- * API routes must not be locale-prefixed by next-intl (it would 307-redirect
- * /api/quote → /en/api/quote and break client fetches). Let those pass through.
- */
 function handleRequest(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/api")) {
     return NextResponse.next();
@@ -24,7 +36,16 @@ function handleRequest(req: NextRequest) {
 }
 
 export default isClerkConfigured()
-  ? clerkMiddleware((_auth, req) => handleRequest(req))
+  ? clerkMiddleware(async (auth, req) => {
+      if (isPublicRoute(req)) {
+        return handleRequest(req);
+      }
+      // Legacy embedded portal — client-side gate redirects to /login (not Clerk hosted).
+      if (isCustomerPortalRoute(req)) {
+        return handleRequest(req);
+      }
+      return handleRequest(req);
+    })
   : handleRequest;
 
 export const config = {

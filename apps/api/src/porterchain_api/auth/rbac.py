@@ -1,42 +1,65 @@
-"""Unified RBAC — Clerk principal → platform permissions."""
+"""Unified RBAC — Porterchain enterprise roles → platform permissions."""
 
 from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS as ADMIN_MODULES
-from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.admin_engine.rbac import AdminContext, parse_admin_role
+from porterchain_api.auth.enterprise_rbac import (
+    enterprise_role_for_admin,
+    enterprise_role_for_merchant,
+)
 from porterchain_api.domain.admin_states import AdminRole
+from porterchain_api.domain.merchant_states import MerchantRole
 from porterchain_api.merchant_engine.rbac import MODULE_PERMISSIONS as MERCHANT_MODULES
-from porterchain_api.merchant_engine.rbac import MerchantContext
+from porterchain_api.merchant_engine.rbac import MerchantContext, parse_merchant_role
+from porterchain_shared.auth.enterprise_roles import (
+    ENTERPRISE_ROLE_PERMISSIONS,
+    EnterpriseRole,
+    permissions_for_enterprise_role,
+)
 from porterchain_shared.auth.principal import AuthPrincipal
-from porterchain_shared.auth.roles import Permission, PlatformRole, ROLE_PERMISSIONS
+from porterchain_shared.auth.roles import Permission, PlatformRole
 from porterchain_shared.types.user_types import UserType
+
+_ENTERPRISE_TO_PLATFORM: dict[EnterpriseRole, PlatformRole] = {
+    EnterpriseRole.CUSTOMER: PlatformRole.CUSTOMER,
+    EnterpriseRole.MERCHANT: PlatformRole.MERCHANT,
+    EnterpriseRole.MERCHANT_ADMIN: PlatformRole.MERCHANT_ADMIN,
+    EnterpriseRole.DRIVER: PlatformRole.DRIVER,
+    EnterpriseRole.DISPATCHER: PlatformRole.DISPATCHER,
+    EnterpriseRole.FINANCE: PlatformRole.FINANCE,
+    EnterpriseRole.SUPPORT: PlatformRole.SUPPORT,
+    EnterpriseRole.OPERATIONS: PlatformRole.OPERATIONS,
+    EnterpriseRole.ADMIN: PlatformRole.ADMIN,
+    EnterpriseRole.SUPER_ADMIN: PlatformRole.SUPER_ADMIN,
+}
+
+
+def enterprise_role_to_platform_roles(role: EnterpriseRole) -> frozenset[PlatformRole]:
+    return frozenset({_ENTERPRISE_TO_PLATFORM[role]})
 
 
 def admin_role_to_platform_roles(role: AdminRole) -> frozenset[PlatformRole]:
-    mapping: dict[AdminRole, PlatformRole] = {
-        AdminRole.SUPER_ADMIN: PlatformRole.SUPER_ADMIN,
-        AdminRole.ADMIN: PlatformRole.ADMIN,
-        AdminRole.DISPATCHER: PlatformRole.DISPATCHER,
-        AdminRole.SUPPORT: PlatformRole.SUPPORT,
-        AdminRole.SUPPORT_LEAD: PlatformRole.SUPPORT,
-        AdminRole.SALES: PlatformRole.SALES,
-        AdminRole.SALES_MANAGER: PlatformRole.SALES,
-        AdminRole.FINANCE: PlatformRole.ADMIN,
-        AdminRole.FLEET_MANAGER: PlatformRole.FLEET_MANAGER,
-    }
-    platform = mapping.get(role, PlatformRole.ADMIN)
-    roles: set[PlatformRole] = {platform}
-    if role == AdminRole.DISPATCHER:
-        roles.add(PlatformRole.DISPATCHER)
-    if role in (AdminRole.SUPPORT, AdminRole.SUPPORT_LEAD):
-        roles.add(PlatformRole.SUPPORT)
-    if role in (AdminRole.SALES, AdminRole.SALES_MANAGER):
-        roles.add(PlatformRole.SALES)
-    return frozenset(roles)
+    return enterprise_role_to_platform_roles(enterprise_role_for_admin(role))
+
+
+def merchant_role_to_platform_roles(role: MerchantRole) -> frozenset[PlatformRole]:
+    return enterprise_role_to_platform_roles(enterprise_role_for_merchant(role))
+
+
+def enterprise_permissions(role: EnterpriseRole) -> frozenset[Permission]:
+    return permissions_for_enterprise_role(role)
 
 
 def principal_can_admin_module(principal: AuthPrincipal, module: str) -> bool:
-    if not principal.has_any_role(PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN, PlatformRole.DISPATCHER):
+    staff_roles = (
+        PlatformRole.ADMIN,
+        PlatformRole.SUPER_ADMIN,
+        PlatformRole.DISPATCHER,
+        PlatformRole.SUPPORT,
+        PlatformRole.FINANCE,
+        PlatformRole.OPERATIONS,
+    )
+    if not principal.has_any_role(*staff_roles):
         return False
-    # Resolve admin role from platform roles for module check
     for admin_role in AdminRole:
         platform_roles = admin_role_to_platform_roles(admin_role)
         if not principal.roles.intersection(platform_roles):

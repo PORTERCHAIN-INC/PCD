@@ -41,6 +41,7 @@ export default function SiteFooter() {
             <form
               onSubmit={handleNewsletterSubmit}
               className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 max-w-md mx-auto sm:mx-0"
+              suppressHydrationWarning
             >
               <div className="flex items-center gap-2 flex-1 sm:w-72 md:w-80 bg-white/10 rounded-xl px-4 py-3.5 min-h-[2.75rem] border border-white/10">
                 <Mail className="w-4 h-4 text-white/40 shrink-0" />

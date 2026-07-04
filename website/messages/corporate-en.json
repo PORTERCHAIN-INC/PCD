@@ -44,6 +44,8 @@
     "contact": "Contact",
     "book": "Book delivery",
     "business": "Business",
+    "myOrders": "My orders",
+    "businessLogin": "Business login",
     "login": "Sign in",
     "getQuote": "Get a quote",
     "bookNow": "Book Now",
@@ -598,8 +600,8 @@
       "phone": "+1 (647) 619-7951",
       "phoneHref": "tel:+16476197951",
       "emailLabel": "Email",
-      "email": "peter@porterchain.com",
-      "emailHref": "mailto:peter@porterchain.com",
+      "email": "ravi@porterchain.com",
+      "emailHref": "mailto:ravi@porterchain.com",
       "whatsappLabel": "WhatsApp",
       "whatsapp": "+1 (647) 619-7951",
       "whatsappHref": "https://wa.me/16476197951",
@@ -640,7 +642,7 @@
         "0": {
           "title": "Sales",
           "description": "Quotes, pricing, and enterprise onboarding for growing businesses.",
-          "contact": "peter@porterchain.com"
+          "contact": "ravi@porterchain.com"
         },
         "1": {
           "title": "Support",
@@ -650,7 +652,7 @@
         "2": {
           "title": "Business Accounts",
           "description": "Account setup, billing, recurring routes, and SLA configuration.",
-          "contact": "peter@porterchain.com"
+          "contact": "ravi@porterchain.com"
         },
         "3": {
           "title": "Driver Support",
@@ -660,7 +662,7 @@
         "4": {
           "title": "Developer Support",
           "description": "API access, webhooks, integrations, and technical documentation.",
-          "contact": "peter@porterchain.com"
+          "contact": "ravi@porterchain.com"
         }
       }
     },
@@ -682,7 +684,7 @@
         },
         "2": {
           "q": "Who should I contact for API access?",
-          "a": "Select API as your inquiry type or email peter@porterchain.com with your integration requirements."
+          "a": "Select API as your inquiry type or email ravi@porterchain.com with your integration requirements."
         },
         "3": {
           "q": "How do I report an active shipment issue?",

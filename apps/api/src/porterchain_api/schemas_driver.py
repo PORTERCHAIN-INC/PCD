@@ -10,6 +10,10 @@ class DriverLoginRequest(BaseModel):
     phone: str | None = None
 
 
+class DriverRefreshRequest(BaseModel):
+    refresh_token: str
+
+
 class DriverTokenResponse(BaseModel):
     access_token: str
     refresh_token: str
@@ -48,6 +52,25 @@ class DriverDashboardResponse(BaseModel):
     pending_documents: int
 
 
+class DriverOnboardingStep(BaseModel):
+    id: str
+    label: str
+    description: str
+    complete: bool
+    status: str
+    missing: list[str] = Field(default_factory=list)
+
+
+class DriverOnboardingResponse(BaseModel):
+    ready: bool
+    blockers: list[str]
+    status: str
+    clerk_linked: bool
+    steps: list[DriverOnboardingStep]
+    pending_documents: int
+    can_access_portal: bool
+
+
 class StopResponse(BaseModel):
     stop_id: str
     order_id: str
@@ -74,7 +97,12 @@ class RouteResponse(BaseModel):
 
 
 class AvailabilityRequest(BaseModel):
-    online: bool
+    online: bool | None = None
+    mode: str | None = None
+
+
+class ShiftStartRequest(BaseModel):
+    route_id: str | None = None
 
 
 class LocationPingRequest(BaseModel):
@@ -129,6 +157,19 @@ class SupportTicketRequest(BaseModel):
     description: str | None = None
     order_id: str | None = None
     priority: str = "normal"
+    category: str = "driver_support"
+
+
+class DriverClaimOpenRequest(BaseModel):
+    order_id: str
+    claim_type: str
+    description: str | None = None
+
+
+class EmergencyContactUpdateRequest(BaseModel):
+    name: str
+    phone: str
+    relationship: str | None = None
 
 
 class PushRegisterRequest(BaseModel):
@@ -139,7 +180,98 @@ class PushRegisterRequest(BaseModel):
 class OfflineActionRequest(BaseModel):
     action_type: str
     payload: dict = Field(default_factory=dict)
+    client_id: str | None = None
 
 
 class AcceptRejectRequest(BaseModel):
     reason: str | None = None
+
+
+class DriverNextStop(BaseModel):
+    stop_id: str
+    stop_type: str
+    order_id: str
+    order_number: str | None = None
+    tracking_number: str | None = None
+    sequence: int = 0
+    address: dict = Field(default_factory=dict)
+    formatted_address: str = "—"
+    distance_m: int | None = None
+    eta_minutes: int | None = None
+    status: str | None = None
+
+
+class DriverJobSummary(BaseModel):
+    order_id: str
+    order_number: str
+    tracking_number: str
+    state: str
+    status: str
+    bucket: str
+    pickup_address: str
+    delivery_address: str
+    pickup_stop_id: str
+    delivery_stop_id: str
+    scheduled_at: str | None = None
+    special_instructions: str | None = None
+    urgency: str = "normal"
+    high_priority: bool = False
+    priority_rank: int | None = None
+    current_leg: str = "pickup"
+    pickup_completed: bool = False
+    delivery_completed: bool = False
+    is_current_job: bool = False
+
+
+class DriverRouteMetrics(BaseModel):
+    stop_count: int | None = None
+    order_count: int | None = None
+    distance_km: float | None = None
+    duration_minutes: float | None = None
+
+
+class DriverJobsListResponse(BaseModel):
+    route_id: str | None = None
+    route_status: str | None = None
+    plan_id: str | None = None
+    route_metrics: DriverRouteMetrics | None = None
+    optimize_available: bool = False
+    next_stop: DriverNextStop | None = None
+    current: DriverJobSummary | None = None
+    upcoming: list[DriverJobSummary] = Field(default_factory=list)
+    completed: list[DriverJobSummary] = Field(default_factory=list)
+    jobs: list[DriverJobSummary] = Field(default_factory=list)
+
+
+class DriverJobsOptimizeResponse(BaseModel):
+    plan_id: str
+    optimized_stops: list[dict] = Field(default_factory=list)
+    metrics: dict = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list)
+    order_ids: list[str] = Field(default_factory=list)
+    jobs: DriverJobsListResponse
+
+
+class DriverJobDetailResponse(DriverJobSummary):
+    pickup_detail: dict = Field(default_factory=dict)
+    delivery_detail: dict = Field(default_factory=dict)
+    pickup_stop: dict = Field(default_factory=dict)
+    delivery_stop: dict = Field(default_factory=dict)
+    allowed_actions: list[str] = Field(default_factory=list)
+    next_stop: DriverNextStop | None = None
+    pickup_completed_at: str | None = None
+    delivery_completed_at: str | None = None
+    merchant: dict | None = None
+    customer: dict = Field(default_factory=dict)
+    packages: list[dict] = Field(default_factory=list)
+    timeline: list[dict] = Field(default_factory=list)
+    photos: list[dict] = Field(default_factory=list)
+    signatures: list[dict] = Field(default_factory=list)
+    documents: list[dict] = Field(default_factory=list)
+    proof_of_delivery: dict = Field(default_factory=dict)
+    otp_required: bool = True
+    incidents: list[dict] = Field(default_factory=list)
+    amount_cents: int = 0
+    currency: str = "cad"
+    updated_at: str | None = None
+    route_id: str | None = None

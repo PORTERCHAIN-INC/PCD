@@ -1,10 +1,9 @@
-# Customer portal (planned)
+# Customer portal
 
-Retail customer dashboard for tracking, invoices, history, and rebook.
+Retail customer dashboard — tracking, invoices, support, and rebook.
 
-**Status:** Not yet implemented.  
-**Target package:** `apps/customer/`  
+**Port:** 3004 (`pnpm dev:customer`)  
 **Auth:** Clerk  
-**API:** Porterchain API `/v1/customer/*`
+**API:** Porterchain API `/v1/customers/*`
 
-See [PRODUCT_REQUIREMENTS.md](../../PRODUCT_REQUIREMENTS.md) — Individual customers (retail).
+The public marketing site also exposes `/portal/customer` on the website app; this standalone app is the canonical customer portal per masterrule §4.

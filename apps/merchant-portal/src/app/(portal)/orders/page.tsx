@@ -1,141 +1,107 @@
 "use client";
 
-import Button from "@/components/ui/Button";
+import { OrdersTable } from "@/components/orders/OrdersTable";
+import { OrdersToolbar } from "@/components/orders/OrdersToolbar";
+import { StatCard } from "@/components/portal/StatCard";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
-import { cancelOrder, duplicateOrder, listOrders, type MerchantOrder } from "@/lib/api";
-import { formatCents, formatDate } from "@/lib/utils";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
+import {
+  exportOrdersCsv,
+  ordersApi,
+  printOrderLabels,
+  type OrderFilters,
+  type OrderRow,
+  type OrdersDashboard,
+} from "@/lib/orders";
+import { formatCents } from "@/lib/utils";
+import { useCallback, useEffect, useState } from "react";
 
 export default function OrdersPage() {
-  const { getApiToken, orgId, isSignedIn, isLoaded } = useMerchantAuth();
-  const [orders, setOrders] = useState<MerchantOrder[]>([]);
-  const [search, setSearch] = useState("");
-  const [stateFilter, setStateFilter] = useState("");
+  const { getApiToken, orgId, isLoaded, isSignedIn } = useMerchantAuth();
+  const [rows, setRows] = useState<OrderRow[]>([]);
+  const [dashboard, setDashboard] = useState<OrdersDashboard | null>(null);
+  const [filters, setFilters] = useState<OrderFilters>({});
+  const [selected, setSelected] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!isSignedIn) return;
     const token = await getApiToken();
-    const data = await listOrders(token, orgId, {
-      search: search || undefined,
-      state: stateFilter || undefined,
-    });
-    setOrders(data);
-  }
+    const [list, dash] = await Promise.all([
+      ordersApi.list(token, orgId, filters),
+      ordersApi.dashboard(token, orgId),
+    ]);
+    setRows(list);
+    setDashboard(dash);
+    setError(null);
+  }, [filters, getApiToken, isSignedIn, orgId]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch orders on mount
-    void load().catch((e) => setError(e instanceof Error ? e.message : "Failed to load orders"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, isSignedIn, orgId]);
+    setLoading(true);
+    void load()
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load orders"))
+      .finally(() => setLoading(false));
+  }, [isLoaded, isSignedIn, load]);
 
-  async function onSearch(e: React.FormEvent) {
-    e.preventDefault();
-    try {
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Search failed");
-    }
-  }
+  useMerchantRealtime(isLoaded && isSignedIn, orgId, getApiToken, () => {
+    void load();
+  });
 
-  async function onCancel(orderId: string) {
+  const selectedRows = rows.filter((r) => selected.includes(r.order_id));
+
+  async function runBulk(action: string) {
+    if (!selected.length) return;
     const token = await getApiToken();
-    await cancelOrder(token, orderId, orgId);
-    await load();
-  }
-
-  async function onDuplicate(orderId: string) {
-    const token = await getApiToken();
-    await duplicateOrder(token, orderId, orgId);
+    await ordersApi.bulk(token, selected, action, orgId);
+    setSelected([]);
     await load();
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-primary">Orders</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-primary">Orders</h1>
+        <p className="text-sm text-muted">Enterprise order platform — lifecycle, tracking, billing, and dispatch</p>
+      </div>
 
-      <form onSubmit={onSearch} className="flex flex-wrap gap-3">
-        <input
-          className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
-          placeholder="Search tracking, PO, reference…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+      {dashboard && (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+          <StatCard label="Today" value={String(dashboard.orders_today)} />
+          <StatCard label="In progress" value={String(dashboard.orders_in_progress)} />
+          <StatCard label="Waiting dispatch" value={String(dashboard.waiting_dispatch)} />
+          <StatCard label="Delivered" value={String(dashboard.delivered)} />
+          <StatCard label="Claims" value={String(dashboard.claims)} />
+          <StatCard label="Support" value={String(dashboard.open_support_tickets)} />
+          <StatCard label="Revenue today" value={formatCents(dashboard.revenue_today_cents)} />
+          <StatCard label="Avg delivery" value={`${dashboard.avg_delivery_hours}h`} />
+        </div>
+      )}
+
+      <div className="rounded-2xl border border-primary/10 bg-white p-4">
+        <OrdersToolbar
+          filters={filters}
+          onChange={setFilters}
+          onSearch={() => void load()}
+          selectedCount={selected.length}
+          onBulkCancel={() => {
+            if (!window.confirm("Cancel selected orders?")) return;
+            void runBulk("cancel");
+          }}
+          onBulkDuplicate={() => void runBulk("duplicate")}
+          onExport={() => exportOrdersCsv(selected.length ? selectedRows : rows)}
+          onPrintLabels={() => printOrderLabels(selected.length ? selectedRows : rows.slice(0, 20))}
+          onPrintManifest={() => window.print()}
         />
-        <select
-          className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
-          value={stateFilter}
-          onChange={(e) => setStateFilter(e.target.value)}
-        >
-          <option value="">All states</option>
-          <option value="BOOKED">Booked</option>
-          <option value="DISPATCH_READY">Dispatch ready</option>
-          <option value="IN_TRANSIT">In transit</option>
-          <option value="DELIVERED">Delivered</option>
-          <option value="CANCELLED">Cancelled</option>
-        </select>
-        <Button type="submit" size="sm">
-          Search
-        </Button>
-      </form>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      <div className="overflow-x-auto rounded-2xl border border-primary/10 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-primary/10 bg-gray-bg/50">
-            <tr>
-              <th className="px-4 py-3 font-medium">Tracking</th>
-              <th className="px-4 py-3 font-medium">State</th>
-              <th className="px-4 py-3 font-medium">Route</th>
-              <th className="px-4 py-3 font-medium">Amount</th>
-              <th className="px-4 py-3 font-medium">Scheduled</th>
-              <th className="px-4 py-3 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((o) => (
-              <tr key={o.order_id} className="border-b border-primary/5">
-                <td className="px-4 py-3 font-mono text-xs">
-                  <Link href={`/orders/${o.order_id}`} className="text-secondary hover:underline">
-                    {o.tracking_number}
-                  </Link>
-                </td>
-                <td className="px-4 py-3">{o.state}</td>
-                <td className="max-w-xs truncate px-4 py-3 text-muted">
-                  {o.pickup?.formatted} → {o.dropoff?.formatted}
-                </td>
-                <td className="px-4 py-3">
-                  {formatCents(o.amount_cents, o.currency.toUpperCase())}
-                </td>
-                <td className="px-4 py-3">{formatDate(o.scheduled_at)}</td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="text-xs text-secondary"
-                      onClick={() => onDuplicate(o.order_id)}
-                    >
-                      Duplicate
-                    </button>
-                    {o.state !== "CANCELLED" && (
-                      <button
-                        type="button"
-                        className="text-xs text-red-600"
-                        onClick={() => onCancel(o.order_id)}
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {orders.length === 0 && (
-          <p className="p-6 text-center text-sm text-muted">No orders found</p>
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {loading ? (
+          <p className="mt-6 text-center text-sm text-muted">Loading orders…</p>
+        ) : (
+          <div className="mt-4">
+            <OrdersTable rows={rows} selected={selected} onSelect={setSelected} />
+          </div>
         )}
       </div>
     </div>

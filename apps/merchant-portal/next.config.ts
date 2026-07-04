@@ -8,6 +8,12 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  env: {
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ??
+      process.env.GOOGLE_MAPS_BROWSER_API_KEY ??
+      "",
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

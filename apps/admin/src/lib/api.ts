@@ -1,27 +1,47 @@
-import { publicEnv } from "@/lib/env";
+import { publicEnv, isLocalDev } from "@/lib/env";
 
 const API = publicEnv.porterchainApiUrl;
 
 export async function adminFetch<T>(
   path: string,
   token: string,
-  init?: RequestInit & { role?: string }
+  init?: RequestInit & { role?: string; timeoutMs?: number }
 ): Promise<T> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
-    ...(init?.role ? { "X-Admin-Role": init.role } : {}),
+    ...(init?.role && isLocalDev() ? { "X-Admin-Role": init.role } : {}),
   };
-  const res = await fetch(`${API}${path}`, {
-    ...init,
-    headers: { ...headers, ...(init?.headers as Record<string, string>) },
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `API ${res.status}`);
+  const timeoutMs = init?.timeoutMs ?? 15_000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${API}${path}`, {
+      ...init,
+      signal: controller.signal,
+      headers: { ...headers, ...(init?.headers as Record<string, string>) },
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      const detail = body.detail;
+      const message =
+        typeof detail === "string"
+          ? detail
+          : Array.isArray(detail)
+            ? detail.map((d: { msg?: string }) => d.msg).filter(Boolean).join(", ")
+            : `API ${res.status}`;
+      throw new Error(message || `API ${res.status}`);
+    }
+    if (res.status === 204) return undefined as T;
+    return res.json();
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error("porterchain_api_timeout");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
   }
-  if (res.status === 204) return undefined as T;
-  return res.json();
 }
 
 export type AdminDashboard = {
@@ -94,6 +114,40 @@ export type OrderDetail = {
   invoice_pdf_url: string | null;
 };
 
+export type BookingDraftItem = {
+  draft_id: string;
+  session_id: string;
+  customer_id: string | null;
+  customer_email: string | null;
+  quote_id: string | null;
+  state: string;
+  current_step: string;
+  payment_status: string | null;
+  amount_cents: number | null;
+  created_at: string;
+  updated_at: string;
+  expires_at: string;
+};
+
+export type BookingDraftDetail = BookingDraftItem & {
+  pickup: Record<string, unknown> | null;
+  dropoff: Record<string, unknown> | null;
+  vehicle_class: string | null;
+  package_type: string | null;
+  booking_id: string | null;
+  order_id: string | null;
+  continue_url: string | null;
+  audits: Array<{
+    event_label: string;
+    from_state: string | null;
+    to_state: string;
+    actor_type: string;
+    actor_id: string | null;
+    occurred_at: string;
+    payload: Record<string, unknown>;
+  }>;
+};
+
 export const api = {
   dashboard: (t: string) => adminFetch<AdminDashboard>("/v1/admin/dashboard", t),
   merchants: (t: string, status?: string) =>
@@ -127,6 +181,25 @@ export const api = {
     adminFetch<OrderDetail>(`/v1/admin/orders/${orderId}`, t),
   orderTimeline: (t: string, orderId: string) =>
     adminFetch<Array<Record<string, unknown>>>(`/v1/admin/orders/${orderId}/timeline`, t),
+  bookingDrafts: (t: string, params?: { state?: string; search?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.state) qs.set("state", params.state);
+    if (params?.search) qs.set("search", params.search);
+    const q = qs.toString();
+    return adminFetch<BookingDraftItem[]>(`/v1/admin/booking-drafts${q ? `?${q}` : ""}`, t);
+  },
+  bookingDraftDetail: (t: string, draftId: string) =>
+    adminFetch<BookingDraftDetail>(`/v1/admin/booking-drafts/${draftId}`, t),
+  extendBookingDraft: (t: string, draftId: string, extraMinutes?: number) =>
+    adminFetch<BookingDraftDetail>(`/v1/admin/booking-drafts/${draftId}/extend`, t, {
+      method: "POST",
+      body: JSON.stringify({ extra_minutes: extraMinutes }),
+    }),
+  cancelBookingDraft: (t: string, draftId: string, reason?: string) =>
+    adminFetch<BookingDraftDetail>(`/v1/admin/booking-drafts/${draftId}/cancel`, t, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
   claims: (t: string) => adminFetch<Array<Record<string, unknown>>>("/v1/admin/claims", t),
   tariffs: (t: string) =>
     adminFetch<Array<Record<string, unknown>>>("/v1/admin/pricing/tariffs", t),

@@ -47,6 +47,15 @@ class OrderService:
             self.errors.log_and_suppress(exc, "Fleetbase order fetch failed")
             return None
 
+    def update_status(self, fleetbase_order_id: str, status: str) -> bool:
+        """Push operational status to Fleetbase (driver execution sync)."""
+        try:
+            self.client.patch(f"/v1/orders/{fleetbase_order_id}", json={"status": status})
+            return True
+        except Exception as exc:
+            self.errors.log_and_suppress(exc, f"Fleetbase order status update failed for {fleetbase_order_id}")
+            return False
+
     def cancel(self, fleetbase_order_id: str) -> bool:
         try:
             self.client.delete(f"/v1/orders/{fleetbase_order_id}/cancel")

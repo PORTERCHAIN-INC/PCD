@@ -1,0 +1,21 @@
+@startuml dispatch_flow
+!theme plain
+participant "Admin Operations" as OPS
+participant "AdminOperationsService" as ASSIGN
+participant "Event Bus" as EV
+participant "BookingSyncService" as SYNC
+participant "fleetbase-adapter" as FBA
+cloud "Fleetbase" as FB
+actor Driver
+participant "WebhookProcessor" as WP
+
+OPS -> ASSIGN: assign driver
+ASSIGN -> EV: order.driver_assigned
+EV -> SYNC: push_driver_assignment
+SYNC -> FBA: HTTP
+FBA -> FB: dispatch
+FB -> Driver: assignment
+Driver -> FB: location / stops
+FB -> WP: webhook
+WP -> WP: state transitions + POD
+@enduml

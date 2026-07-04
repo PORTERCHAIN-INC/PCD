@@ -2,6 +2,7 @@
 
 MERCHANT_APPROVED = "merchant.approved"
 MERCHANT_SUSPENDED = "merchant.suspended"
+DRIVER_CREATED = "driver.created"
 DRIVER_APPROVED = "driver.approved"
 DRIVER_SUSPENDED = "driver.suspended"
 CLAIM_OPENED = "claim.opened"

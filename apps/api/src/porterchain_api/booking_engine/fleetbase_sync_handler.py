@@ -16,7 +16,7 @@ def sync_order_from_event(envelope: dict[str, Any]) -> None:
     from porterchain_api.config import get_settings
     from porterchain_api.db import SessionLocal
     from porterchain_api.models import Order
-    from porterchain_api.booking_engine.fleetbase_sync_service import FleetbaseSyncService
+    from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
 
     db = SessionLocal()
     try:
@@ -25,7 +25,88 @@ def sync_order_from_event(envelope: dict[str, Any]) -> None:
             logger.warning("fleetbase handler: order %s not found", order_id)
             return
         settings = get_settings()
-        FleetbaseSyncService().sync_order(db, settings, order)
+        BookingSyncService().push_order(db, settings, order)
+    finally:
+        db.close()
+
+
+def sync_cancellation_from_event(envelope: dict[str, Any]) -> None:
+    order_id = envelope.get("aggregate_id")
+    if not order_id:
+        return
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.models import Order
+    from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
+
+    db = SessionLocal()
+    try:
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            return
+        BookingSyncService().sync_cancellation(db, get_settings(), order)
+    finally:
+        db.close()
+
+
+def sync_return_from_event(envelope: dict[str, Any]) -> None:
+    order_id = envelope.get("aggregate_id")
+    if not order_id:
+        return
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.models import Order
+    from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
+
+    db = SessionLocal()
+    try:
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            return
+        BookingSyncService().sync_return(db, get_settings(), order)
+    finally:
+        db.close()
+
+
+def sync_damage_from_event(envelope: dict[str, Any]) -> None:
+    order_id = envelope.get("aggregate_id")
+    if not order_id:
+        return
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.models import Order
+    from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
+
+    db = SessionLocal()
+    try:
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            return
+        BookingSyncService().sync_damage(db, get_settings(), order)
+    finally:
+        db.close()
+
+
+def sync_claim_from_event(envelope: dict[str, Any]) -> None:
+    claim_id = envelope.get("aggregate_id")
+    order_id = envelope.get("payload", {}).get("order_id")
+    if not order_id:
+        return
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.models import Order
+    from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
+
+    db = SessionLocal()
+    try:
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            return
+        BookingSyncService().sync_claim(db, get_settings(), order, claim_id=claim_id)
     finally:
         db.close()
 
@@ -40,7 +121,7 @@ def sync_driver_assignment_from_event(envelope: dict[str, Any]) -> None:
     from porterchain_api.config import get_settings
     from porterchain_api.db import SessionLocal
     from porterchain_api.models import Order
-    from porterchain_api.booking_engine.fleetbase_sync_service import FleetbaseSyncService
+    from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
 
     db = SessionLocal()
     try:
@@ -48,14 +129,18 @@ def sync_driver_assignment_from_event(envelope: dict[str, Any]) -> None:
         if not order:
             return
         settings = get_settings()
-        sync = FleetbaseSyncService()
-        sync.sync_order(db, settings, order)
+        sync = BookingSyncService()
+        sync.push_order(db, settings, order)
+        db.refresh(order)
         if driver_id:
             driver = db.query(Driver).filter(Driver.id == driver_id).first()
             if driver and not driver.fleetbase_driver_id:
-                sync.sync_driver(db, settings, driver)
-            if order.fleetbase_order_id and driver and driver.fleetbase_driver_id:
-                sync.sync_dispatch(settings, order, fleetbase_driver_id=driver.fleetbase_driver_id)
+                sync.push_driver(db, settings, driver)
+                db.refresh(driver)
+            if driver and driver.fleetbase_driver_id and order.fleetbase_order_id:
+                sync.push_driver_assignment(
+                    db, settings, order, fleetbase_driver_id=driver.fleetbase_driver_id
+                )
     finally:
         db.close()
 

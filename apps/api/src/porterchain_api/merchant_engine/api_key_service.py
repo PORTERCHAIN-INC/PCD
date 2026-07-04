@@ -1,13 +1,17 @@
 """Merchant API keys and webhooks."""
 
+from __future__ import annotations
+
 import hashlib
 import secrets
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.merchant_engine import events as E
 from porterchain_api.merchant_engine.rbac import MerchantContext
+from porterchain_api.merchant_engine.secrets import encrypt_signing_secret
 from porterchain_api.merchant_models import MerchantApiKey, MerchantAuditLog, MerchantWebhook
 
 
@@ -56,6 +60,20 @@ class MerchantApiKeyService:
             .all()
         )
 
+    def authenticate_key(self, db: Session, raw_key: str) -> MerchantApiKey | None:
+        key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
+        record = (
+            db.query(MerchantApiKey)
+            .filter(MerchantApiKey.key_hash == key_hash, MerchantApiKey.is_active.is_(True))
+            .first()
+        )
+        if not record:
+            return None
+        record.last_used_at = datetime.now(UTC)
+        db.commit()
+        db.refresh(record)
+        return record
+
     def revoke_key(self, db: Session, ctx: MerchantContext, key_id: str) -> None:
         record = db.query(MerchantApiKey).filter(MerchantApiKey.id == key_id, MerchantApiKey.merchant_id == ctx.merchant.id).first()
         if not record:
@@ -71,6 +89,7 @@ class MerchantApiKeyService:
         *,
         url: str,
         events: list[str],
+        encryption_key: str,
     ) -> tuple[MerchantWebhook, str]:
         secret = secrets.token_urlsafe(24)
         record = MerchantWebhook(
@@ -78,6 +97,7 @@ class MerchantApiKeyService:
             url=url,
             events=events,
             secret_hash=hashlib.sha256(secret.encode()).hexdigest(),
+            encrypted_signing_secret=encrypt_signing_secret(secret, encryption_key=encryption_key),
         )
         db.add(record)
         db.commit()

@@ -16,7 +16,7 @@ function Kpi({ label, value, hint }: { label: string; value: string; hint?: stri
 }
 
 export default function ReportsPage() {
-  const { data, error } = useApiData((t) => crm.reports(t));
+  const { data, error } = useApiData((t) => crm.reports(t), [], { key: "crm-reports" });
 
   if (error) return <p className="text-red-600">{error}</p>;
   if (!data) return <Spinner label="Loading reports…" />;

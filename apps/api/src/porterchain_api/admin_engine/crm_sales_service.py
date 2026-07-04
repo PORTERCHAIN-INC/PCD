@@ -14,6 +14,8 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
+from porterchain_api.config import Settings
 from porterchain_api.crm_models import (
     CrmActivity,
     CrmCompany,
@@ -37,6 +39,7 @@ from porterchain_api.domain.crm_states import (
 )
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.domain.merchant_states import MerchantStatus
+from porterchain_api.db_json import json_text, json_text_lower
 
 
 def _now() -> datetime:
@@ -82,6 +85,27 @@ def province_from_postal(postal: str | None) -> str | None:
 
 
 class CrmSalesService:
+    def _admin_audit(
+        self,
+        db: Session,
+        ctx: AdminContext | None,
+        *,
+        action: str,
+        resource_type: str,
+        resource_id: str,
+        payload: dict | None = None,
+    ) -> None:
+        from porterchain_api.admin_engine.audit import log_admin_audit
+
+        log_admin_audit(
+            db,
+            ctx,
+            action=action,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            payload=payload,
+        )
+
     # ------------------------------------------------------------------ #
     # Activity timeline
     # ------------------------------------------------------------------ #
@@ -176,9 +200,9 @@ class CrmSalesService:
         if industry:
             q = q.filter(CrmCompany.industry == industry)
         if city:
-            q = q.filter(func.json_extract(CrmCompany.address, "$.city") == city)
+            q = q.filter(json_text(CrmCompany.address, "city") == city)
         if province:
-            q = q.filter(func.json_extract(CrmCompany.address, "$.province") == province)
+            q = q.filter(json_text(CrmCompany.address, "province") == province)
         if pinned is not None:
             q = q.filter(CrmCompany.is_pinned == pinned)
         return (
@@ -199,8 +223,8 @@ class CrmSalesService:
         )
         statuses = [{"value": s, "count": n} for s, n in status_rows if s]
 
-        city_expr = func.json_extract(CrmCompany.address, "$.city")
-        province_expr = func.json_extract(CrmCompany.address, "$.province")
+        city_expr = json_text(CrmCompany.address, "city")
+        province_expr = json_text(CrmCompany.address, "province")
         city_rows = (
             db.query(city_expr, func.count(CrmCompany.id)).filter(city_expr.isnot(None)).group_by(city_expr).all()
         )
@@ -252,7 +276,7 @@ class CrmSalesService:
             ),
             key=lambda x: -x["count"],
         )[:8]
-        province_expr = func.json_extract(CrmCompany.address, "$.province")
+        province_expr = json_text(CrmCompany.address, "province")
         by_province = sorted(
             (
                 {"province": p or "—", "count": n}
@@ -363,6 +387,10 @@ class CrmSalesService:
         data.setdefault("owner_id", _actor(ctx))
         company = CrmCompany(**data)
         db.add(company)
+        db.flush()
+        self._admin_audit(
+            db, ctx, action="crm.company.create", resource_type="crm_company", resource_id=company.id
+        )
         db.commit()
         db.refresh(company)
         self.log_activity(
@@ -381,6 +409,10 @@ class CrmSalesService:
             raise LookupError("company_not_found")
         for key, value in data.items():
             setattr(company, key, value)
+        db.flush()
+        self._admin_audit(
+            db, None, action="crm.company.update", resource_type="crm_company", resource_id=company.id
+        )
         db.commit()
         db.refresh(company)
         return company
@@ -389,7 +421,11 @@ class CrmSalesService:
         company = db.get(CrmCompany, company_id)
         if not company:
             raise LookupError("company_not_found")
+        company_id = company.id
         db.delete(company)
+        self._admin_audit(
+            db, None, action="crm.company.delete", resource_type="crm_company", resource_id=company_id
+        )
         db.commit()
 
     def backfill_companies_from_leads(self, db: Session, *, batch: int = 500) -> dict[str, int]:
@@ -533,9 +569,9 @@ class CrmSalesService:
         if industry:
             q = q.filter(CrmLead.industry == industry)
         if city:
-            q = q.filter(func.json_extract(CrmLead.address, "$.city") == city)
+            q = q.filter(json_text(CrmLead.address, "city") == city)
         if province:
-            q = q.filter(func.json_extract(CrmLead.address, "$.province") == province)
+            q = q.filter(json_text(CrmLead.address, "province") == province)
         if min_score is not None:
             q = q.filter(CrmLead.lead_score >= min_score)
         if unassigned:
@@ -565,8 +601,8 @@ class CrmSalesService:
         ]
         sources = [row[0] for row in db.query(CrmLead.source).distinct().all() if row[0]]
 
-        city_expr = func.json_extract(CrmLead.address, "$.city")
-        province_expr = func.json_extract(CrmLead.address, "$.province")
+        city_expr = json_text(CrmLead.address, "city")
+        province_expr = json_text(CrmLead.address, "province")
 
         # Cities with counts so the UI can show the busiest markets first.
         city_rows = (
@@ -914,8 +950,8 @@ class CrmSalesService:
                 leads_q = leads_q.filter(
                     or_(
                         func.lower(CrmLead.company_name).like(like),
-                        func.lower(func.json_extract(CrmLead.address, "$.city")).like(like),
-                        func.lower(func.json_extract(CrmLead.address, "$.province")).like(like),
+                        json_text_lower(CrmLead.address, "city").like(like),
+                        json_text_lower(CrmLead.address, "province").like(like),
                         func.lower(func.coalesce(CrmLead.service_area, "")).like(like),
                     )
                 )
@@ -1186,7 +1222,11 @@ class CrmSalesService:
     # Merchant conversion (one-click)
     # ------------------------------------------------------------------ #
     def convert_company_to_merchant(
-        self, db: Session, ctx: AdminContext | None, company_id: str
+        self,
+        db: Session,
+        ctx: AdminContext | None,
+        company_id: str,
+        settings: Settings | None = None,
     ) -> dict[str, Any]:
         company = db.get(CrmCompany, company_id)
         if not company:
@@ -1225,6 +1265,17 @@ class CrmSalesService:
         db.commit()
         db.refresh(merchant)
 
+        invitation_sent = False
+        invitation_email = email
+        if email and settings and is_clerk_secret_configured(settings, "merchant"):
+            from porterchain_api.auth.invitation_service import InvitationService
+
+            try:
+                InvitationService().invite_merchant_owner(db, ctx, settings, merchant, email=email)
+                invitation_sent = True
+            except Exception:
+                invitation_sent = False
+
         self.log_activity(
             db,
             entity_type="company",
@@ -1234,12 +1285,10 @@ class CrmSalesService:
             metadata={"merchant_id": merchant.id, "invitation_email": email},
             actor_id=_actor(ctx),
         )
-        # Clerk account + invitation are dispatched asynchronously by the merchant
-        # onboarding pipeline once the merchant record exists.
         return {
             "merchant_id": merchant.id,
             "created": True,
-            "invitation_sent": bool(email),
+            "invitation_sent": invitation_sent,
             "invitation_email": email,
         }
 

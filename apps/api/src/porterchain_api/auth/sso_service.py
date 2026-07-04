@@ -17,6 +17,7 @@ from porterchain_api.auth.fleetbase_roles import (
     fleetbase_permissions_for_admin,
 )
 from porterchain_api.auth.principal_resolver import PrincipalResolver
+from porterchain_api.auth.user_sync_service import UserSyncService
 from porterchain_api.config import Settings
 from porterchain_api.identity_models import IdentityLink
 from porterchain_shared.auth.principal import AuthPrincipal
@@ -33,8 +34,8 @@ class SsoService:
     def __init__(self) -> None:
         self._resolver = PrincipalResolver()
 
-    def resolve_principal(self, db: Session, claims: ClerkClaims) -> AuthPrincipal | None:
-        return self._resolver.resolve(db, claims)
+    def resolve_principal(self, db: Session, claims: ClerkClaims, settings: Settings | None = None) -> AuthPrincipal | None:
+        return self._resolver.resolve(db, claims, settings=settings)
 
     def issue_sso_token(
         self,
@@ -66,36 +67,7 @@ class SsoService:
         return jwt.encode(payload, secret, algorithm="HS256")
 
     def upsert_identity_link(self, db: Session, claims: ClerkClaims, principal: AuthPrincipal) -> IdentityLink:
-        link = db.query(IdentityLink).filter(IdentityLink.clerk_user_id == claims.clerk_user_id).first()
-        fleetbase_perms: list[str] | None = None
-        fleetbase_roles: list[str] | None = None
-
-        if principal.user_type in (UserType.ADMIN, UserType.DISPATCHER, UserType.SUPPORT):
-            admin = db.query(AdminUser).filter(AdminUser.id == principal.user_id).first()
-            if admin:
-                admin_role = parse_admin_role(admin.role)
-                fleetbase_perms = fleetbase_permissions_for_admin(admin_role)
-                fleetbase_roles = [admin.role]
-
-        if not link:
-            link = IdentityLink(
-                clerk_user_id=claims.clerk_user_id,
-                email=claims.email or principal.email,
-                user_type=principal.user_type.value,
-                platform_user_id=principal.user_id,
-                platform_org_id=principal.org_id,
-                fleetbase_permissions=fleetbase_perms,
-                fleetbase_roles=fleetbase_roles,
-            )
-            db.add(link)
-        else:
-            link.email = claims.email or principal.email or link.email
-            link.user_type = principal.user_type.value
-            link.platform_user_id = principal.user_id
-            link.platform_org_id = principal.org_id
-            link.fleetbase_permissions = fleetbase_perms
-            link.fleetbase_roles = fleetbase_roles
-
+        link = UserSyncService()._upsert_identity_link(db, claims, principal)
         db.commit()
         db.refresh(link)
         return link
@@ -124,8 +96,8 @@ class SsoService:
 
         fleetbase_session: dict | None = None
         try:
-            from porterchain_fleetbase.sso import FleetbaseSsoClient
-            from porterchain_fleetbase.config import FleetbaseSettings
+            from porterchain_fleetbase_adapter.auth import FleetbaseSsoClient
+            from porterchain_fleetbase_adapter.config import FleetbaseSettings
 
             fb = FleetbaseSsoClient(
                 FleetbaseSettings(

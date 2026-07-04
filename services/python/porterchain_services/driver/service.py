@@ -12,13 +12,6 @@ class DriverService(BaseService):
 
         return issue_driver_session(driver_id, secret=secret, email=email)
 
-    def sync_to_fleetbase(self, driver_id: str, payload: dict) -> str | None:
-        from porterchain_services.gateway.registry import get_service_registry
-
-        return get_service_registry().fleetbase.sync_driver(
-            {"porterchain_driver_id": driver_id, **payload}
-        )
-
     def get_platform(self):
         from porterchain_driver import DriverPlatform
 

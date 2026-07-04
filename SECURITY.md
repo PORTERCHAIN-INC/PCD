@@ -127,7 +127,11 @@ Implement with Redis + `slowapi` (FastAPI) or Laravel middleware.
 # Target — Porterchain API
 ALLOWED_ORIGINS = [
     "https://porterchain.com",
-    "https://portal.porterchain.com",
+    "https://www.porterchain.com",
+    "https://admin.porterchain.com",
+    "https://merchant.porterchain.com",
+    "https://driver.porterchain.com",
+    "https://customer.porterchain.com",
     "http://localhost:3000",  # dev only
     "http://localhost:3001",  # dev only
 ]

@@ -4,11 +4,10 @@ import { createContext, useCallback, useContext, useMemo, type ReactNode } from 
 import { useAuth } from "@clerk/nextjs";
 import { isClerkConfigured } from "@/lib/env";
 
-const DEV_ORG = "dev_merchant_org";
-
 export type MerchantAuthState = {
   isLoaded: boolean;
   isSignedIn: boolean;
+  /** @deprecated Porterchain resolves merchant from JWT; header not required. */
   orgId: string | undefined;
   getApiToken: () => Promise<string>;
 };
@@ -20,7 +19,7 @@ function DevMerchantAuthProvider({ children }: { children: ReactNode }) {
     () => ({
       isLoaded: true,
       isSignedIn: true,
-      orgId: DEV_ORG,
+      orgId: undefined,
       getApiToken: async () => "dev",
     }),
     []
@@ -29,13 +28,7 @@ function DevMerchantAuthProvider({ children }: { children: ReactNode }) {
 }
 
 function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
-  const { getToken, isLoaded, isSignedIn, orgId } = useAuth();
-
-  const resolvedOrgId = useMemo(() => {
-    if (orgId) return orgId;
-    if (process.env.NODE_ENV === "development") return DEV_ORG;
-    return undefined;
-  }, [orgId]);
+  const { getToken, isLoaded, isSignedIn } = useAuth();
 
   const getApiToken = useCallback(async () => {
     const token = await getToken();
@@ -48,10 +41,10 @@ function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
     () => ({
       isLoaded,
       isSignedIn: Boolean(isSignedIn),
-      orgId: resolvedOrgId,
+      orgId: undefined,
       getApiToken,
     }),
-    [getApiToken, isLoaded, isSignedIn, resolvedOrgId]
+    [getApiToken, isLoaded, isSignedIn]
   );
 
   return <MerchantAuthContext.Provider value={value}>{children}</MerchantAuthContext.Provider>;

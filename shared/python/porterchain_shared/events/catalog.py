@@ -29,6 +29,7 @@ class DomainEventType(StrEnum):
     MERCHANT_BILLED = "merchant.billed"
 
     # Payment
+    PAYMENT_STARTED = "payment.started"
     PAYMENT_SUCCEEDED = "payment.succeeded"
     PAYMENT_FAILED = "payment.failed"
 
@@ -48,6 +49,9 @@ class DomainEventType(StrEnum):
     ORDER_CLOSED = "order.closed"
     ORDER_CANCELLED = "order.cancelled"
     DRIVER_REJECTED = "order.driver_rejected"
+    ORDER_NEAR_DELIVERY = "order.near_delivery"
+    ORDER_LOCATION_UPDATED = "order.tracking_updated"
+    ROUTE_OPTIMIZED = "route.optimized"
 
     # Financial
     REFUND_REQUESTED = "refund.requested"
@@ -57,6 +61,12 @@ class DomainEventType(StrEnum):
     # Claims
     CLAIM_OPENED = "claim.opened"
     CLAIM_RESOLVED = "claim.resolved"
+
+    # Support
+    SUPPORT_TICKET_CREATED = "support.ticket_created"
+
+    # Booking draft
+    BOOKING_DRAFT_CREATED = "booking_draft.draft_created"
 
     # Notifications & webhooks
     NOTIFICATION_QUEUED = "notification.queued"
@@ -79,10 +89,23 @@ EVENT_ALIASES: dict[str, str] = {
     "QuoteCreated": DomainEventType.QUOTE_CREATED,
     "QuoteAccepted": DomainEventType.QUOTE_ACCEPTED,
     "CustomerRegistered": DomainEventType.CUSTOMER_REGISTERED,
+    "CustomerAuthenticated": DomainEventType.CUSTOMER_AUTHENTICATED,
+    "PaymentStarted": DomainEventType.PAYMENT_STARTED,
     "MerchantApproved": DomainEventType.MERCHANT_APPROVED,
     "PaymentSucceeded": DomainEventType.PAYMENT_SUCCEEDED,
     "BookingConfirmed": DomainEventType.BOOKING_CONFIRMED,
     "OrderCreated": DomainEventType.ORDER_CREATED,
+    "FleetbaseOrderCreated": DomainEventType.FLEETBASE_ORDER_CREATED,
+    "BookingDraftCreated": DomainEventType.BOOKING_DRAFT_CREATED,
+    "SupportTicketCreated": DomainEventType.SUPPORT_TICKET_CREATED,
+    "PickupStarted": DomainEventType.DRIVER_ARRIVED_PICKUP,
+    "PickedUp": DomainEventType.PARCEL_PICKED_UP,
+    "Delivered": DomainEventType.PARCEL_DELIVERED,
+    "PODCompleted": DomainEventType.PROOF_COMPLETED,
+    "NearDelivery": DomainEventType.ORDER_NEAR_DELIVERY,
+    "LocationUpdated": DomainEventType.ORDER_LOCATION_UPDATED,
+    "RouteOptimized": DomainEventType.ROUTE_OPTIMIZED,
+    "FleetbaseSync": DomainEventType.FLEETBASE_STATUS_UPDATED,
     "DispatchRequested": DomainEventType.DISPATCH_REQUESTED,
     "DriverAssigned": DomainEventType.DRIVER_ASSIGNED,
     "DriverAccepted": DomainEventType.DRIVER_ACCEPTED,

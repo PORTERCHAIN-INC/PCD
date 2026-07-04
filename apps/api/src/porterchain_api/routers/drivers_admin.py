@@ -16,8 +16,11 @@ from porterchain_api.admin_engine.driver360_service import Driver360Service
 from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
+from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
 from porterchain_api.db import get_db
-from porterchain_api.schemas_admin import DriverVerifyRequest
+from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
+from porterchain_api.config import Settings, get_settings
+from porterchain_api.schemas_admin import DriverCreateRequest, DriverDocumentInput, DriverVerifyRequest
 from porterchain_api.schemas_crm import ActivityOut, TaskOut
 
 router = APIRouter(prefix="/v1/admin/drivers", tags=["drivers"])
@@ -54,7 +57,7 @@ def list_drivers(
     availability: str | None = None,
     background_check: str | None = None,
     search: str | None = None,
-    limit: int = Query(1000, le=10000),
+    limit: int = Query(DEFAULT_LIST_LIMIT, ge=1, le=MAX_LIST_LIMIT),
 ) -> list[dict]:
     _guard(ctx, "drivers_read")
     return _d360.list_drivers(
@@ -74,6 +77,29 @@ def driver_stats(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     return _d360.stats(db)
 
 
+@router.post("", status_code=201)
+def create_driver(
+    body: DriverCreateRequest,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Provision a driver from admin — identity, vehicle, and compliance documents."""
+    _guard(ctx, "drivers")
+    try:
+        driver = _drivers.create_driver(
+            db,
+            ctx,
+            body,
+            settings,
+        )
+    except ValueError as exc:
+        if str(exc) == "driver_email_exists":
+            raise HTTPException(status_code=409, detail="driver_email_exists") from exc
+        raise
+    return _detail_or_404(db, driver.id)
+
+
 # --------------------------------------------------------------------------- #
 # Detail + lifecycle
 # --------------------------------------------------------------------------- #
@@ -81,6 +107,31 @@ def driver_stats(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
 def driver_detail(driver_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     _guard(ctx, "drivers_read")
     return _detail_or_404(db, driver_id)
+
+
+@router.post("/{driver_id}/invite")
+def invite_driver(
+    driver_id: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Resend Clerk invitation for an existing driver."""
+    _guard(ctx, "drivers")
+    driver = _drivers.get_driver(db, driver_id)
+    if not driver:
+        raise HTTPException(status_code=404, detail="driver_not_found")
+    if not is_clerk_secret_configured(settings, "driver"):
+        raise HTTPException(status_code=503, detail="clerk_not_configured")
+    from porterchain_api.auth.invitation_service import InvitationService
+
+    invitation = InvitationService().invite_driver(db, ctx, settings, driver)
+    return {
+        "driver_id": driver.id,
+        "email": driver.email,
+        "invitation_status": invitation.status,
+        "clerk_action": invitation.invitation_metadata.get("clerk_action"),
+    }
 
 
 @router.post("/{driver_id}/approve")
@@ -129,14 +180,48 @@ _ACTION_LABEL = {
 
 @router.post("/{driver_id}/action")
 def driver_action(driver_id: str, body: DriverActionRequest, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """Operational driver action — recorded as an auditable activity.
-
-    Delivery (push/SMS/email) is dispatched by the Porterchain notification
-    service; this records intent + audit on the driver timeline.
-    """
+    """Operational driver action — push/SMS/email via Notification Engine."""
     _guard(ctx, "drivers")
-    if not _drivers.get_driver(db, driver_id):
+    driver = _drivers.get_driver(db, driver_id)
+    if not driver:
         raise HTTPException(status_code=404, detail="driver_not_found")
+
+    if body.type == "push":
+        from porterchain_driver.platform import DriverPlatform
+
+        DriverPlatform().push.notify_driver(
+            db,
+            driver,
+            title="Message from Porterchain",
+            body=body.message or "You have a new notification from operations.",
+        )
+    elif body.type == "email" and driver.email:
+        from porterchain_api.notification_engine.engine import get_notification_engine
+
+        get_notification_engine().dispatch(
+            db,
+            event_type="admin.driver_action",
+            template_key="delivery_update",
+            channel="email",
+            recipient_type="driver",
+            recipient_id=driver.id,
+            recipient_address=driver.email,
+            context={"message": body.message or "Message from Porterchain operations."},
+        )
+    elif body.type == "sms" and driver.phone:
+        from porterchain_api.notification_engine.engine import get_notification_engine
+
+        get_notification_engine().dispatch(
+            db,
+            event_type="admin.driver_action",
+            template_key="delivery_update",
+            channel="sms",
+            recipient_type="driver",
+            recipient_id=driver.id,
+            recipient_address=driver.phone,
+            context={"message": body.message or "Message from Porterchain operations."},
+        )
+
     subject = _ACTION_LABEL.get(body.type, body.type)
     _crm.log_activity(
         db,
@@ -147,6 +232,7 @@ def driver_action(driver_id: str, body: DriverActionRequest, ctx: Ctx, db: Sessi
         body=body.message,
         actor_id=ctx.user.id if ctx.user else None,
     )
+    db.commit()
     return {"ok": True, "action": body.type}
 
 
@@ -174,6 +260,25 @@ def driver_payouts(driver_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> d
 @router.get("/{driver_id}/documents")
 def driver_documents(driver_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     _guard(ctx, "drivers_read")
+    try:
+        return _d360.documents(db, driver_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="driver_not_found") from None
+
+
+@router.post("/{driver_id}/documents", status_code=201)
+def add_driver_document(
+    driver_id: str,
+    body: DriverDocumentInput,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+) -> dict:
+    """Attach a compliance document record (URL or reference) to a driver profile."""
+    _guard(ctx, "drivers")
+    try:
+        _drivers.add_document(db, ctx, driver_id, body)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="driver_not_found") from None
     return _d360.documents(db, driver_id)
 
 

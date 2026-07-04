@@ -96,7 +96,7 @@ export default function LeadsPage() {
         province: province || undefined,
         city: city || undefined,
         converted: converted || undefined,
-        limit: "10000",
+        limit: "500",
       }),
     [status, priority, source, industry, province, city, converted, version]
   );
@@ -182,7 +182,7 @@ export default function LeadsPage() {
       setToast(
         `Converted "${lead.company_name}" to a company${res.deal_id ? " and opened a deal" : ""}.`
       );
-      const fresh = await crm.leads(token, { limit: "10000" });
+      const fresh = await crm.leads(token, { limit: "500" });
       setSelected(fresh.find((l) => l.id === lead.id) ?? null);
       refresh();
     } finally {

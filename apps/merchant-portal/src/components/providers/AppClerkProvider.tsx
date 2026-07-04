@@ -7,5 +7,14 @@ export default function AppClerkProvider({ children }: { children: React.ReactNo
   if (!publicEnv.clerkPublishableKey) {
     return <>{children}</>;
   }
-  return <ClerkProvider publishableKey={publicEnv.clerkPublishableKey}>{children}</ClerkProvider>;
+  return (
+    <ClerkProvider
+      publishableKey={publicEnv.clerkPublishableKey}
+      signInUrl="/sign-in"
+      afterSignOutUrl="/sign-in"
+      signInFallbackRedirectUrl="/dashboard"
+    >
+      {children}
+    </ClerkProvider>
+  );
 }

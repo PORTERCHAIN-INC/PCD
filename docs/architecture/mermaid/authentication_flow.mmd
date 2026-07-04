@@ -1,0 +1,32 @@
+flowchart TB
+  subgraph Apps["Frontends"]
+    WEB[website]
+    MERCH[merchant-portal]
+    ADMIN[admin]
+    CUST[customer]
+    DRV[driver-portal]
+  end
+
+  subgraph Clerk["Clerk"]
+    SIGN[Sign-In / Sign-Up]
+    JWT[Session JWT]
+    ORG[Organization<br/>merchant only]
+  end
+
+  subgraph API["Porterchain API auth/"]
+    CLERK_MOD[clerk.py<br/>JWKS verify]
+    ADMIN_CTX[get_admin_context]
+    MERCH_CTX[get_merchant_context]
+    CUST_ID[get_clerk_user_id]
+    DRV_CTX[get_driver_context<br/>Porterchain JWT]
+    PRINC[PrincipalResolver]
+    SSO[SsoService<br/>Fleetbase SSO]
+  end
+
+  WEB & MERCH & ADMIN & CUST & DRV --> SIGN
+  SIGN --> JWT
+  MERCH --> ORG
+  JWT --> CLERK_MOD
+  CLERK_MOD --> ADMIN_CTX & MERCH_CTX & CUST_ID
+  DRV -->|"POST /api/auth/login<br/>clerkToken + credentials"| DRV_CTX
+  ADMIN --> SSO

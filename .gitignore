@@ -5,6 +5,9 @@
 !env/*.env.example
 env/.env
 
+# Credentials and key material
+secrets/
+
 # Docker local secrets
 infrastructure/docker/.env
 

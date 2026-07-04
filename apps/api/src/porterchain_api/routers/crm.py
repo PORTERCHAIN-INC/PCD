@@ -9,10 +9,15 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from datetime import datetime
+
+from porterchain_api.admin_engine.crm_calendar_service import CrmCalendarService
 from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
+from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
+from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
 from porterchain_api.domain.crm_states import (
     CONTACT_ROLES,
     PIPELINE_STAGES,
@@ -31,6 +36,8 @@ from porterchain_api.schemas_crm import (
     ContractOut,
     ContractUpdate,
     CrmDashboardResponse,
+    CrmCalendarEventsResponse,
+    CrmCalendarStatusResponse,
     CrmReportsResponse,
     CsvImportRequest,
     CsvImportResult,
@@ -58,6 +65,7 @@ from porterchain_api.schemas_crm import (
 router = APIRouter(prefix="/v1/admin/crm", tags=["crm"])
 
 _crm = CrmSalesService()
+_calendar = CrmCalendarService()
 
 READ = "crm_read"
 WRITE = "crm"
@@ -131,7 +139,7 @@ def list_companies(
     city: str | None = None,
     province: str | None = None,
     pinned: bool | None = None,
-    limit: int = Query(500, le=10000),
+    limit: int = Query(DEFAULT_LIST_LIMIT, ge=1, le=MAX_LIST_LIMIT),
     offset: int = 0,
 ) -> list[CompanyOut]:
     _guard(ctx, READ)
@@ -180,10 +188,15 @@ def delete_company(company_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> 
 
 
 @router.post("/companies/{company_id}/convert-merchant")
-def convert_company_to_merchant(company_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+def convert_company_to_merchant(
+    company_id: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
     _guard(ctx, WRITE)
     try:
-        return _crm.convert_company_to_merchant(db, ctx, company_id)
+        return _crm.convert_company_to_merchant(db, ctx, company_id, settings)
     except LookupError:
         raise _not_found("company_not_found") from None
 
@@ -255,7 +268,7 @@ def list_leads(
     unassigned: bool | None = None,
     converted: bool | None = None,
     search: str | None = None,
-    limit: int = Query(500, le=10000),
+    limit: int = Query(DEFAULT_LIST_LIMIT, ge=1, le=MAX_LIST_LIMIT),
 ) -> list[LeadOut]:
     _guard(ctx, READ)
     rows = _crm.list_leads(
@@ -583,10 +596,29 @@ def list_tasks(
     return [TaskOut.model_validate(t) for t in rows]
 
 
+@router.get("/calendar/status", response_model=CrmCalendarStatusResponse)
+def crm_calendar_status(ctx: Ctx) -> CrmCalendarStatusResponse:
+    _guard(ctx, READ)
+    return CrmCalendarStatusResponse(**_calendar.status())
+
+
+@router.get("/calendar/events", response_model=CrmCalendarEventsResponse)
+def crm_calendar_events(
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    start: datetime = Query(..., description="Range start (ISO datetime)"),
+    end: datetime = Query(..., description="Range end (ISO datetime)"),
+    entity_id: str | None = None,
+) -> CrmCalendarEventsResponse:
+    _guard(ctx, READ)
+    return CrmCalendarEventsResponse(**_calendar.list_merged(db, start=start, end=end, entity_id=entity_id))
+
+
 @router.post("/tasks", response_model=TaskOut)
 def create_task(body: TaskCreate, ctx: Ctx, db: Session = Depends(get_db)) -> TaskOut:
     _guard(ctx, WRITE)
     task = _crm.create_task(db, ctx, body.model_dump())
+    task = _calendar.sync_task(db, task)
     return TaskOut.model_validate(task)
 
 
@@ -597,12 +629,20 @@ def update_task(task_id: str, body: TaskUpdate, ctx: Ctx, db: Session = Depends(
         task = _crm.update_task(db, task_id, body.model_dump(exclude_unset=True))
     except LookupError:
         raise _not_found("task_not_found") from None
+    if task.status == "done":
+        _calendar.unsync_task(db, task)
+    else:
+        task = _calendar.sync_task(db, task)
     return TaskOut.model_validate(task)
 
 
 @router.delete("/tasks/{task_id}", status_code=204)
 def delete_task(task_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> None:
     _guard(ctx, WRITE)
+    task = _crm.get_task(db, task_id)
+    if not task:
+        raise _not_found("task_not_found")
+    _calendar.unsync_task(db, task)
     try:
         _crm.delete_task(db, task_id)
     except LookupError:

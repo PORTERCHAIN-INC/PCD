@@ -26,3 +26,17 @@ def generate_invoice_number() -> str:
 def generate_booking_number() -> str:
     date_part = datetime.now(UTC).strftime("%Y%m%d")
     return f"BKG-{date_part}-{_suffix()}"
+
+
+def generate_payment_reference() -> str:
+    date_part = datetime.now(UTC).strftime("%Y%m%d")
+    return f"PAY-{date_part}-{_suffix()}"
+
+
+def generate_receipt_number() -> str:
+    date_part = datetime.now(UTC).strftime("%Y%m%d")
+    return f"RCPT-{date_part}-{_suffix()}"
+
+
+def generate_customer_reference() -> str:
+    return f"CUST-{secrets.token_hex(4).upper()}"

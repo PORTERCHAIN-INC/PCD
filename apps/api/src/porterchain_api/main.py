@@ -1,29 +1,42 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
 from porterchain_api.config import get_settings
-from porterchain_api.db import init_db
+from porterchain_api.db import get_db, init_db
 from porterchain_api.gateway.router import router as gateway_router
+from porterchain_api.platform.middleware import RequestIdMiddleware
 from porterchain_api.routers import (
     admin,
     auth,
+    booking_drafts,
     crm,
+    customers,
     driver,
     drivers_admin,
     merchant,
+    merchant_api,
     merchants,
+    notifications,
+    notifications_admin,
     operations,
+    route_center,
     orders,
     payments,
     quotes,
+    security,
     webhooks,
+    diagnostics,
 )
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    from porterchain_shared.redis_health import require_redis_for_production
+
+    require_redis_for_production()
     init_db()
     from porterchain_api.platform.bus import ensure_handlers_registered
 
@@ -45,18 +58,33 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(RequestIdMiddleware)
+    from porterchain_api.platform.rate_limit_middleware import PortalRateLimitMiddleware
+
+    app.add_middleware(PortalRateLimitMiddleware)
+    from porterchain_api.gateway_engine.middleware import MerchantApiGatewayMiddleware
+
+    app.add_middleware(MerchantApiGatewayMiddleware)
     app.include_router(gateway_router)
     app.include_router(auth.router)
     app.include_router(quotes.router)
+    app.include_router(booking_drafts.router)
     app.include_router(orders.router)
+    app.include_router(customers.router)
     app.include_router(payments.router)
     app.include_router(webhooks.router)
     app.include_router(merchant.router)
+    app.include_router(merchant_api.router)
     app.include_router(admin.router)
     app.include_router(crm.router)
     app.include_router(merchants.router)
     app.include_router(drivers_admin.router)
+    app.include_router(notifications_admin.router)
+    app.include_router(notifications.router)
+    app.include_router(security.router)
     app.include_router(operations.router)
+    app.include_router(route_center.router)
+    app.include_router(diagnostics.router)
     app.include_router(driver.router)
     app.include_router(driver.legacy_router)
 
@@ -71,7 +99,28 @@ def create_app() -> FastAPI:
 
     @app.get("/health")
     def health() -> dict[str, str]:
-        return {"status": "ok", "service": "porterchain-api"}
+        from porterchain_api.platform.health import liveness
+
+        return liveness()
+
+    @app.get("/health/live")
+    def health_live() -> dict[str, str]:
+        from porterchain_api.platform.health import liveness
+
+        return liveness()
+
+    @app.get("/health/ready")
+    def health_ready(db: Session = Depends(get_db)) -> dict:
+        from porterchain_api.platform.health import readiness
+
+        return readiness(db, settings)
+
+    @app.get("/metrics")
+    def metrics():
+        from fastapi.responses import PlainTextResponse
+        from porterchain_api.platform.metrics import prometheus_metrics
+
+        return PlainTextResponse(prometheus_metrics(), media_type="text/plain; version=0.0.4")
 
     return app
 

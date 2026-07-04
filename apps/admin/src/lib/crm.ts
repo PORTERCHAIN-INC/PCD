@@ -213,11 +213,43 @@ export type Task = {
   assigned_to: string | null;
   due_at: string | null;
   remind_at: string | null;
+  zoho_event_uid: string | null;
   is_recurring: boolean;
   recurrence_rule: string | null;
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type CrmCalendarEvent = {
+  id: string;
+  title: string;
+  start: string | null;
+  end: string | null;
+  source: "crm" | "zoho";
+  task_type?: string | null;
+  status?: string | null;
+  zoho_event_uid?: string | null;
+  entity_type?: string | null;
+  entity_id?: string | null;
+  location?: string | null;
+  organizer?: string | null;
+};
+
+export type CrmCalendarPayload = {
+  integration: {
+    provider: string;
+    configured: boolean;
+    accounts_url: string;
+    api_base: string;
+    calendar_uid: string | null;
+    timezone: string;
+    missing: string[];
+    sync_task_types: string[];
+  };
+  crm_events: CrmCalendarEvent[];
+  zoho_events: CrmCalendarEvent[];
+  zoho_error: string | null;
 };
 
 export type Invoice = {
@@ -483,6 +515,10 @@ export const crm = {
     adminFetch<Task>(`${B}/tasks/${id}`, t, { method: "PATCH", body: JSON.stringify(body) }),
   deleteTask: (t: string, id: string) =>
     adminFetch<void>(`${B}/tasks/${id}`, t, { method: "DELETE" }),
+
+  calendarStatus: (t: string) => adminFetch<CrmCalendarPayload["integration"]>(`${B}/calendar/status`, t),
+  calendarEvents: (t: string, params: { start: string; end: string; entity_id?: string }) =>
+    adminFetch<CrmCalendarPayload>(`${B}/calendar/events${qs(params)}`, t),
 
   // Import
   import: (t: string, entity: string, rows: Array<Record<string, unknown>>, dedupe = true) =>

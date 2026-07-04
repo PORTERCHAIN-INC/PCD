@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { publicEnv } from "@/lib/env";
 
 const COUNTRY_CODES = [
   { code: "+1", label: "CA +1" },
@@ -51,7 +52,7 @@ export default function InquiryForm({
       ].join("\n")
     );
 
-    window.location.href = `mailto:peter@porterchain.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${publicEnv.contactEmail}?subject=${subject}&body=${body}`;
     await new Promise((r) => setTimeout(r, 400));
     setSubmitting(false);
     setSubmitted(true);

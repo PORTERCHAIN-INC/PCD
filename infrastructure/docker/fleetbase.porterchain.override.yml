@@ -51,8 +51,10 @@ services:
     environment:
       APP_NAME: "Porterchain Fleetbase"
       OSRM_HOST: https://router.project-osrm.org
-      # Optional: Porterchain Valhalla (profile routing) on host :8002
-      VALHALLA_BASE_URL: http://host.docker.internal:8002
+      ROUTING_ENGINE: valhalla
+      # Public OSM Valhalla (no API key — fair-use rate limits apply)
+      VALHALLA_BASE_URL: https://valhalla1.openstreetmap.de
+      VALHALLA_BASE_URI: https://valhalla1.openstreetmap.de
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

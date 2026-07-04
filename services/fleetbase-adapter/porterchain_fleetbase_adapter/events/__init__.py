@@ -4,25 +4,49 @@ from __future__ import annotations
 
 from typing import Any
 
+from porterchain_fleetbase_adapter.events.lifecycle import FleetbaseLifecycleTranslator
+
 FLEETBASE_EVENT_TO_ORDER_STATE: dict[str, str] = {
-    "order.dispatched": "DRIVER_ASSIGNED",
-    "order.driver_assigned": "DRIVER_ASSIGNED",
-    "order.started": "PICKED_UP",
-    "order.completed": "DELIVERED",
-    "order.canceled": "CANCELLED",
-    "order.cancelled": "CANCELLED",
-    "order.failed": "FAILED",
-    "order.ready": "DISPATCH_READY",
+    k: FleetbaseLifecycleTranslator.to_state_str(event=k) or v
+    for k, v in {
+        "order.dispatched": "DISPATCH_READY",
+        "order.driver_assigned": "DRIVER_ASSIGNED",
+        "order.started": "DRIVER_EN_ROUTE",
+        "order.completed": "DELIVERED",
+        "order.canceled": "CANCELLED",
+        "order.cancelled": "CANCELLED",
+        "order.failed": "FAILED",
+        "order.ready": "DISPATCH_READY",
+    }.items()
 }
 
 FLEETBASE_EVENT_TO_DOMAIN_EVENT: dict[str, str] = {
     "order.dispatched": "order.driver_assigned",
     "order.driver_assigned": "order.driver_assigned",
-    "order.started": "order.pickup_completed",
+    "order.assigned": "order.driver_assigned",
+    "driver.assigned": "order.driver_assigned",
+    "order.accepted": "order.driver_accepted",
+    "driver.accepted": "order.driver_accepted",
+    "order.started": "order.in_transit",
+    "driver.enroute": "order.in_transit",
+    "order.en_route": "order.in_transit",
+    "order.arrived_pickup": "order.arrived_pickup",
+    "order.at_pickup": "order.arrived_pickup",
+    "order.picked_up": "order.pickup_completed",
+    "order.loaded": "order.pickup_completed",
+    "order.in_transit": "order.in_transit",
+    "order.arrived_dropoff": "order.near_delivery",
+    "order.at_dropoff": "order.near_delivery",
+    "order.near_delivery": "order.near_delivery",
     "order.completed": "order.delivered",
+    "order.delivered": "order.delivered",
+    "order.pod_completed": "order.pod_completed",
+    "proof.uploaded": "order.pod_completed",
     "order.canceled": "order.cancelled",
     "order.cancelled": "order.cancelled",
     "order.failed": "order.failed",
+    "order.returned": "refund.requested",
+    "order.return_to_sender": "refund.requested",
 }
 
 
@@ -30,7 +54,7 @@ class EventTranslator:
     """Map Fleetbase webhook events to Porterchain order states and domain events."""
 
     def resolve_order_state(self, event_name: str) -> str | None:
-        return FLEETBASE_EVENT_TO_ORDER_STATE.get(event_name)
+        return FleetbaseLifecycleTranslator.to_state_str(event=event_name)
 
     def resolve_domain_event(self, event_name: str) -> str | None:
         return FLEETBASE_EVENT_TO_DOMAIN_EVENT.get(event_name)
@@ -56,7 +80,7 @@ class EventTranslator:
     def translate_status(self, status: str | None) -> str | None:
         if not status:
             return None
-        return self.resolve_order_state(f"order.{status}")
+        return FleetbaseLifecycleTranslator.to_state_str(status=status)
 
 
 # Backward-compatible module-level functions

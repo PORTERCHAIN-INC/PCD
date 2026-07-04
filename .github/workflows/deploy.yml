@@ -17,11 +17,17 @@ concurrency:
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-website
   API_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-api
+  ADMIN_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-admin
+  MERCHANT_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-merchant
+  DRIVER_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-driver
+  CUSTOMER_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-customer
   CONTAINER_NAME: pcd-website
+  PROD_API_URL: https://api.porterchain.com
+  PROD_SITE_URL: https://porterchain.com
 
 jobs:
   deploy:
-    name: Build & deploy website + API
+    name: Build & deploy Porterchain stack
     runs-on: ubuntu-latest
     # Skip when triggered by a failed CI run (manual dispatch always runs).
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
@@ -82,7 +88,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
-            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ vars.NEXT_PUBLIC_PORTERCHAIN_API_URL || 'https://porterchain.com' }}
+            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ vars.NEXT_PUBLIC_PORTERCHAIN_API_URL || 'https://api.porterchain.com' }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -99,6 +105,79 @@ jobs:
             ${{ env.API_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
+
+      - name: Build and push admin image
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/admin/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ADMIN_IMAGE_NAME }}:latest
+            ${{ env.ADMIN_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://admin.porterchain.com
+            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+          cache-from: type=gha,scope=admin
+          cache-to: type=gha,mode=max,scope=admin
+
+      - name: Build and push merchant image
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/merchant-portal/Dockerfile
+          push: true
+          tags: |
+            ${{ env.MERCHANT_IMAGE_NAME }}:latest
+            ${{ env.MERCHANT_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://merchant.porterchain.com
+            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+          cache-from: type=gha,scope=merchant
+          cache-to: type=gha,mode=max,scope=merchant
+
+      - name: Build and push driver portal image
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/driver-portal/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DRIVER_IMAGE_NAME }}:latest
+            ${{ env.DRIVER_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://driver.porterchain.com
+            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+          cache-from: type=gha,scope=driver
+          cache-to: type=gha,mode=max,scope=driver
+
+      - name: Build and push customer portal image
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/customer/Dockerfile
+          push: true
+          tags: |
+            ${{ env.CUSTOMER_IMAGE_NAME }}:latest
+            ${{ env.CUSTOMER_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://customer.porterchain.com
+            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            NEXT_PUBLIC_WEBSITE_URL=${{ env.PROD_SITE_URL }}
+          cache-from: type=gha,scope=customer
+          cache-to: type=gha,mode=max,scope=customer
 
       - name: Copy deploy manifests to droplet
         if: steps.check.outputs.ready == 'true'
@@ -120,7 +199,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          envs: IMAGE_NAME,API_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_MAPS_SERVER_API_KEY,POSTGRES_PASSWORD,CLERK_SECRET_KEY,CLERK_PUBLISHABLE_KEY,CLERK_JWKS_URL,STRIPE_SECRET,STRIPE_WEBHOOK_SECRET,JWT_SECRET
+          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_MAPS_SERVER_API_KEY,POSTGRES_PASSWORD,CLERK_SECRET_KEY,CLERK_PUBLISHABLE_KEY,CLERK_JWKS_URL,STRIPE_SECRET,STRIPE_WEBHOOK_SECRET,JWT_SECRET
           script_stop: true
           script: |
             set -e
@@ -128,6 +207,10 @@ jobs:
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
             export API_IMAGE="$API_IMAGE_NAME:$IMAGE_TAG"
+            export ADMIN_IMAGE="$ADMIN_IMAGE_NAME:$IMAGE_TAG"
+            export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:$IMAGE_TAG"
+            export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:$IMAGE_TAG"
+            export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:$IMAGE_TAG"
             umask 077
             cat > .env <<EOF
             GOOGLE_MAPS_SERVER_API_KEY=$GOOGLE_MAPS_SERVER_API_KEY
@@ -138,6 +221,9 @@ jobs:
             STRIPE_SECRET=$STRIPE_SECRET
             STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET
             JWT_SECRET=$JWT_SECRET
+            CORS_ORIGINS=https://porterchain.com,https://www.porterchain.com,https://admin.porterchain.com,https://merchant.porterchain.com,https://driver.porterchain.com,https://customer.porterchain.com
+            FLEETBASE_DISPATCH_BRIDGE=false
+            FLEETBASE_SSO_ENABLED=false
             EOF
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans

@@ -1,7 +1,13 @@
 import AdminShell from "@/components/AdminShell";
-
-export const dynamic = "force-dynamic";
+import AdminQueryProvider from "@/components/providers/AdminQueryProvider";
+import { AdminProfileProvider } from "@/components/nav/AdminProfileContext";
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
-  return <AdminShell>{children}</AdminShell>;
+  return (
+    <AdminQueryProvider>
+      <AdminProfileProvider>
+        <AdminShell>{children}</AdminShell>
+      </AdminProfileProvider>
+    </AdminQueryProvider>
+  );
 }

@@ -2,99 +2,131 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  AlertTriangle,
-  Award,
-  Car,
-  FileText,
-  GraduationCap,
-  LayoutDashboard,
-  LifeBuoy,
-  MapPin,
-  Shield,
-  Wallet,
-} from "lucide-react";
-import { cn, formatCents } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import Container from "@/components/ui/Container";
+import DriverAccountMenu from "@/components/nav/DriverAccountMenu";
+import DriverAppsMenu from "@/components/nav/DriverAppsMenu";
+import DriverMenuBar from "@/components/nav/DriverMenuBar";
+import { DriverProfileProvider } from "@/components/nav/DriverProfileContext";
+import { activeNavLabel } from "@/lib/driver-nav";
+import { hasDriverSession } from "@/lib/api";
+import { fetchDriverOnboarding, isPendingDriverPath } from "@/lib/onboarding";
 
-const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/stops", label: "Today's Stops", icon: MapPin },
-  { href: "/earnings", label: "Earnings", icon: Award },
-  { href: "/wallet", label: "Wallet", icon: Wallet },
-  { href: "/performance", label: "Performance", icon: Award },
-  { href: "/vehicle", label: "Vehicle", icon: Car },
-  { href: "/insurance", label: "Insurance", icon: Shield },
-  { href: "/documents", label: "Documents", icon: FileText },
-  { href: "/training", label: "Training", icon: GraduationCap },
-  { href: "/support", label: "Support", icon: LifeBuoy },
-];
-
-export default function DriverShell({
-  children,
-  walletCents,
-}: {
-  children: React.ReactNode;
-  walletCents?: number;
-}) {
+export default function DriverShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const pageLabel = activeNavLabel(pathname);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [gateReady, setGateReady] = useState(false);
+  const pendingOnly = isPendingDriverPath(pathname);
+
+  useEffect(() => {
+    let cancelled = false;
+    void hasDriverSession().then((ok) => {
+      if (cancelled) return;
+      if (!ok) {
+        router.replace(`/login?redirect_url=${encodeURIComponent(pathname)}`);
+        return;
+      }
+      setSessionReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, router]);
+
+  useEffect(() => {
+    if (!sessionReady) return;
+    let cancelled = false;
+
+    void fetchDriverOnboarding()
+      .then((status) => {
+        if (cancelled) return;
+        if (!status.ready && !isPendingDriverPath(pathname)) {
+          router.replace("/onboarding");
+          return;
+        }
+        if (status.ready && pathname === "/onboarding") {
+          router.replace("/dashboard");
+          return;
+        }
+        setGateReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setGateReady(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, router, sessionReady]);
+
+  if (!sessionReady || !gateReady) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-gray-bg">
+        <p className="text-sm text-muted">Verifying driver session…</p>
+      </div>
+    );
+  }
+
+  if (pendingOnly) {
+    return (
+      <div className="min-h-dvh bg-gray-bg">
+        <header className="border-b border-primary/10 bg-white">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+            <Link href="/onboarding" className="text-sm font-semibold text-secondary">
+              ← Back to activation
+            </Link>
+            <span className="text-xs text-muted">Documents only — dashboard locked</span>
+          </div>
+        </header>
+        <Container className="py-6">{children}</Container>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen bg-[var(--gray-bg)]">
-      <aside className="hidden w-64 shrink-0 border-r border-[var(--primary)]/10 bg-white lg:flex lg:flex-col">
-        <div className="border-b border-[var(--primary)]/10 px-6 py-5">
-          <Link href="/dashboard" className="text-lg font-bold text-[var(--primary)]">
-            Porterchain
-          </Link>
-          <p className="mt-1 text-xs text-[var(--muted)]">Driver Platform</p>
-          {walletCents !== undefined && (
-            <p className="mt-2 text-sm font-semibold text-[var(--secondary)]">
-              {formatCents(walletCents)}
-            </p>
-          )}
-        </div>
-        <nav className="flex-1 space-y-1 p-4">
-          {NAV.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-[var(--secondary)]/10 text-[var(--secondary)]"
-                    : "text-[var(--primary)]/70 hover:bg-[var(--gray-bg)]"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="border-t border-[var(--primary)]/10 p-4 space-y-2">
-          <button
-            type="button"
-            onClick={() => router.push("/emergency")}
-            className="flex w-full items-center gap-2 rounded-xl bg-red-600 px-3 py-2.5 text-sm font-semibold text-white"
-          >
-            <AlertTriangle className="h-4 w-4" />
-            Emergency
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              localStorage.removeItem("driver_access_token");
-              router.push("/login");
-            }}
-            className="w-full text-left text-sm text-[var(--muted)]"
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-      <main className="min-w-0 flex-1 p-6">{children}</main>
-    </div>
+    <DriverProfileProvider>
+      <div className="flex h-dvh flex-col bg-gray-bg">
+        <header className="relative z-50 shrink-0 overflow-visible border-b border-primary/10 bg-white shadow-sm">
+          <div className="flex min-h-12 flex-wrap items-center gap-x-2 gap-y-1 px-2 py-1.5 sm:px-3">
+            <Link
+              href="/dashboard"
+              className="flex shrink-0 items-center gap-2 rounded-lg px-1 py-1 hover:bg-gray-bg"
+            >
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-sm font-bold text-white shadow-sm">
+                P
+              </span>
+              <span className="hidden min-w-0 sm:block">
+                <span className="block text-sm font-bold leading-tight text-primary">Porterchain</span>
+                <span className="block text-[10px] leading-tight text-muted">Driver</span>
+              </span>
+            </Link>
+
+            {pageLabel && (
+              <span className="hidden max-w-[8rem] truncate rounded-md bg-primary/5 px-2 py-1 text-xs font-medium text-muted sm:inline lg:max-w-xs">
+                {pageLabel}
+              </span>
+            )}
+
+            <div className="mx-0.5 hidden h-6 w-px bg-primary/10 sm:block" />
+
+            <div className="flex min-w-0 flex-1 items-center">
+              <DriverMenuBar />
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2 border-l border-primary/10 pl-2">
+              <DriverAppsMenu />
+              <DriverAccountMenu />
+            </div>
+          </div>
+        </header>
+
+        <main className={cn("min-h-0 flex-1 overflow-y-auto")}>
+          <Container className="py-4 sm:py-6">{children}</Container>
+        </main>
+      </div>
+    </DriverProfileProvider>
   );
 }

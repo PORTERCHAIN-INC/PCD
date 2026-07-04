@@ -1,0 +1,31 @@
+sequenceDiagram
+  participant UI as Next.js UI
+  participant Router as FastAPI Router
+  participant Auth as auth/clerk.py
+  participant Svc as Application Service
+  participant Repo as SQLAlchemy / Repository
+  participant DB as Database
+  participant Bus as Event Bus
+  participant Worker as apps/worker
+  participant FBE as fleetbase_engine
+  participant FBA as fleetbase-adapter
+  participant FB as Fleetbase API
+
+  UI->>Router: HTTPS /v1/*
+  Router->>Auth: get_clerk_user_id / get_admin_context / get_merchant_context
+  Auth-->>Router: principal
+  Router->>Svc: single service method
+  Svc->>Repo: CRUD / queries
+  Repo->>DB: SQL
+  DB-->>Repo: entities
+  Repo-->>Svc: entities
+  Svc->>Bus: emit_event (side effects)
+  Bus->>Worker: async handlers / queues
+  alt dispatch ready
+    Worker->>FBE: sync_order_from_event
+    FBE->>FBA: FleetbaseIntegrationBridge
+    FBA->>FB: HTTP
+    FB-->>FBA: response
+  end
+  Svc-->>Router: DTO / result
+  Router-->>UI: JSON response

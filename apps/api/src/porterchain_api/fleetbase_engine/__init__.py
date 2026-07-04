@@ -23,6 +23,7 @@ from porterchain_api.fleetbase_engine.merchant_sync_service import (
 from porterchain_api.fleetbase_engine.retry_queue import ErrorQueue, RetryQueue
 from porterchain_api.fleetbase_engine.status_translator import StatusTranslator
 from porterchain_api.fleetbase_engine.tracking_translator import TrackingTranslator
+from porterchain_api.fleetbase_engine.webhook_ingress_service import WebhookIngressService
 from porterchain_api.fleetbase_engine.webhook_processor import WebhookProcessor
 
 __all__ = [
@@ -35,5 +36,6 @@ __all__ = [
     "StatusTranslator",
     "TrackingTranslator",
     "ValidatedBooking",
+    "WebhookIngressService",
     "WebhookProcessor",
 ]

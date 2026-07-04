@@ -15,6 +15,12 @@ from typing import Any
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
+from porterchain_api.admin_engine.settings_service import (
+    _clerk_linked,
+    _invite_status,
+    _latest_invitations,
+)
+from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.crm_models import (
     CrmActivity,
     CrmCompany,
@@ -158,7 +164,14 @@ class Merchant360Service:
             "suggested_actions": suggestions,
         }
 
-    def _row(self, db: Session, merchant: Merchant, *, light: bool = False) -> dict[str, Any]:
+    def _row(
+        self,
+        db: Session,
+        merchant: Merchant,
+        *,
+        light: bool = False,
+        onboarding: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         company = self._linked_company(db, merchant.id)
         metrics = self._metrics(db, merchant, company)
         health = self._health(merchant, metrics)
@@ -200,9 +213,80 @@ class Merchant360Service:
             "created_at": merchant.created_at,
             "company_id": company.id if company else None,
         }
+        if onboarding is not None:
+            row.update(onboarding)
         if not light:
             row["metrics"] = metrics
         return row
+
+    def _batch_onboarding_summaries(self, db: Session, merchants: list[Merchant]) -> dict[str, dict[str, Any]]:
+        if not merchants:
+            return {}
+        ids = [m.id for m in merchants]
+        users_by_mid: dict[str, list[MerchantUser]] = defaultdict(list)
+        for mu in db.query(MerchantUser).filter(MerchantUser.merchant_id.in_(ids)).all():
+            users_by_mid[mu.merchant_id].append(mu)
+        invitations = _latest_invitations(db, "merchant")
+
+        result: dict[str, dict[str, Any]] = {}
+        for merchant in merchants:
+            users = users_by_mid.get(merchant.id, [])
+            owner = next((u for u in users if u.role == MerchantRole.OWNER.value), None)
+            if not owner and users:
+                owner = users[0]
+
+            owner_invite = (
+                _invite_status(invitations.get(owner.email.lower()), owner.clerk_user_id)
+                if owner
+                else "not_invited"
+            )
+            owner_linked = _clerk_linked(owner.clerk_user_id) if owner else False
+            merchant_active = merchant.status == MerchantStatus.ACTIVE.value
+            user_active = bool(owner and owner.is_active)
+            company_ready = bool(merchant.company_name and merchant.email)
+
+            steps = [
+                owner is not None,
+                owner is not None and owner_invite != "not_invited",
+                owner_linked,
+                merchant_active,
+                user_active,
+                company_ready,
+            ]
+            steps_complete = sum(1 for s in steps if s)
+            ready = all(steps) and merchant.status != MerchantStatus.SUSPENDED.value
+
+            if ready:
+                phase = "ready"
+            elif not owner or owner_invite in ("not_invited", "invite_failed", "revoked"):
+                phase = "needs_invite"
+            elif not owner_linked:
+                phase = "awaiting_clerk"
+            elif not user_active:
+                phase = "needs_activation"
+            elif not merchant_active:
+                phase = "needs_approval"
+            else:
+                phase = "onboarding"
+
+            result[merchant.id] = {
+                "portal_ready": ready,
+                "onboarding_phase": phase,
+                "onboarding_progress": int(steps_complete / len(steps) * 100),
+                "owner_email": owner.email if owner else merchant.email,
+                "owner_invite_status": owner_invite,
+                "owner_clerk_linked": owner_linked,
+                "owner_active": user_active,
+                "team_count": len(users),
+                "blockers_count": 0 if ready else len(steps) - steps_complete,
+                "can_approve": merchant.status
+                not in (MerchantStatus.ACTIVE.value, MerchantStatus.SUSPENDED.value),
+                "can_invite_owner": not owner
+                or owner_invite in ("not_invited", "invite_failed", "revoked")
+                or not owner_linked,
+                "can_activate_user": bool(owner and not owner.is_active),
+            }
+        return result
 
     # ------------------------------------------------------------------ #
     # List / facets / stats
@@ -225,7 +309,8 @@ class Merchant360Service:
             like = f"%{search}%"
             q = q.filter(or_(Merchant.company_name.ilike(like), Merchant.email.ilike(like)))
         merchants = q.order_by(Merchant.created_at.desc()).limit(limit).all()
-        return [self._row(db, m, light=True) for m in merchants]
+        summaries = self._batch_onboarding_summaries(db, merchants)
+        return [self._row(db, m, light=True, onboarding=summaries.get(m.id)) for m in merchants]
 
     def facets(self, db: Session) -> dict:
         status_rows = db.query(Merchant.status, func.count(Merchant.id)).group_by(Merchant.status).all()
@@ -255,14 +340,55 @@ class Merchant360Service:
             .scalar()
             or 0
         )
+        onboarding_pending = (
+            db.query(func.count(Merchant.id))
+            .filter(Merchant.status.in_([MerchantStatus.PENDING.value, MerchantStatus.ONBOARDING.value]))
+            .scalar()
+            or 0
+        )
         return {
             "total": total,
             "active": active,
             "pending": pending,
             "suspended": suspended,
+            "onboarding_pending": int(onboarding_pending),
             "monthly_revenue_cents": int(monthly_revenue),
             "outstanding_balance_cents": int(outstanding),
         }
+
+    def unprovisioned_signups(self, db: Session, settings: Settings) -> list[dict[str, Any]]:
+        """Clerk merchant-app users with no Porterchain merchant_users row."""
+        from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
+
+        try:
+            snaps = fetch_clerk_snapshots(settings, "merchant", limit=500)
+        except Exception:
+            return []
+
+        linked_clerk_ids = {
+            u.clerk_user_id
+            for u in db.query(MerchantUser).all()
+            if u.clerk_user_id and not u.clerk_user_id.startswith("pending:")
+        }
+        linked_emails = {u.email.lower() for u in db.query(MerchantUser).all()}
+
+        out: list[dict[str, Any]] = []
+        for email, snap in snaps.items():
+            if email in linked_emails or snap.clerk_user_id in linked_clerk_ids:
+                continue
+            name = " ".join(p for p in (snap.first_name, snap.last_name) if p) or email.split("@")[0]
+            out.append(
+                {
+                    "email": email,
+                    "name": name,
+                    "clerk_user_id": snap.clerk_user_id,
+                    "clerk_status": snap.clerk_status,
+                    "last_sign_in_at": snap.last_sign_in_at.isoformat() if snap.last_sign_in_at else None,
+                    "suggested_company_name": name.title(),
+                }
+            )
+        out.sort(key=lambda r: r.get("last_sign_in_at") or "", reverse=True)
+        return out
 
     # ------------------------------------------------------------------ #
     # Detail (360)
@@ -351,11 +477,86 @@ class Merchant360Service:
         }
 
     def team(self, db: Session, merchant_id: str) -> list[dict]:
+        invitations = _latest_invitations(db, "merchant")
         users = db.query(MerchantUser).filter(MerchantUser.merchant_id == merchant_id).all()
         return [
-            {"id": u.id, "email": u.email, "role": u.role, "is_active": u.is_active, "created_at": u.created_at.isoformat()}
+            {
+                "id": u.id,
+                "email": u.email,
+                "role": u.role,
+                "is_active": u.is_active,
+                "created_at": u.created_at.isoformat(),
+                "clerk_linked": _clerk_linked(u.clerk_user_id),
+                "invite_status": _invite_status(invitations.get(u.email.lower()), u.clerk_user_id),
+            }
             for u in users
         ]
+
+    def onboarding(self, db: Session, merchant_id: str) -> dict[str, Any]:
+        merchant = db.query(Merchant).filter(Merchant.id == merchant_id).first()
+        if not merchant:
+            raise LookupError("merchant_not_found")
+
+        users = db.query(MerchantUser).filter(MerchantUser.merchant_id == merchant_id).all()
+        invitations = _latest_invitations(db, "merchant")
+        owner = next((u for u in users if u.role == MerchantRole.OWNER.value), None)
+        if not owner and users:
+            owner = users[0]
+
+        owner_invite = (
+            _invite_status(invitations.get(owner.email.lower()), owner.clerk_user_id) if owner else "not_invited"
+        )
+        owner_linked = _clerk_linked(owner.clerk_user_id) if owner else False
+        merchant_active = merchant.status == MerchantStatus.ACTIVE.value
+        company_ready = bool(merchant.company_name and merchant.email)
+        owner_provisioned = owner is not None
+
+        steps = [
+            {
+                "id": "owner_provisioned",
+                "label": "Owner user provisioned",
+                "complete": owner_provisioned,
+            },
+            {
+                "id": "clerk_invitation",
+                "label": "Clerk invitation sent",
+                "complete": owner_provisioned and owner_invite != "not_invited",
+            },
+            {
+                "id": "clerk_activated",
+                "label": "Owner signed in (Clerk linked)",
+                "complete": owner_linked,
+            },
+            {
+                "id": "admin_approved",
+                "label": "Merchant approved (portal access)",
+                "complete": merchant_active,
+            },
+            {
+                "id": "company_profile",
+                "label": "Company profile on file",
+                "complete": company_ready,
+            },
+        ]
+        blockers = [s["id"] for s in steps if not s["complete"]]
+        if merchant.status == MerchantStatus.SUSPENDED.value:
+            blockers = ["account_suspended"]
+
+        return {
+            "merchant_id": merchant.id,
+            "merchant_status": merchant.status,
+            "company_name": merchant.company_name,
+            "company_email": merchant.email,
+            "owner_email": owner.email if owner else merchant.email,
+            "owner_invite_status": owner_invite,
+            "owner_clerk_linked": owner_linked,
+            "team_count": len(users),
+            "steps": steps,
+            "blockers": blockers,
+            "ready": len(blockers) == 0,
+            "can_approve": merchant.status not in (MerchantStatus.ACTIVE.value, MerchantStatus.SUSPENDED.value),
+            "can_invite_owner": not owner_linked or owner_invite in ("not_invited", "invite_failed", "revoked"),
+        }
 
     def api_keys(self, db: Session, merchant_id: str) -> dict:
         keys = db.query(MerchantApiKey).filter(MerchantApiKey.merchant_id == merchant_id).all()

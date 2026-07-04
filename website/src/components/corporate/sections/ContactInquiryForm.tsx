@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Check, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { publicEnv } from "@/lib/env";
 
 const INQUIRY_TYPES = ["sales", "support", "partnership", "careers", "api"] as const;
 type InquiryType = (typeof INQUIRY_TYPES)[number];
@@ -42,7 +43,7 @@ export default function ContactInquiryForm() {
         .join("\n")
     );
 
-    window.location.href = `mailto:peter@porterchain.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${publicEnv.contactEmail}?subject=${subject}&body=${body}`;
     await new Promise((r) => setTimeout(r, 400));
     setLoading(false);
     setSubmitted(true);

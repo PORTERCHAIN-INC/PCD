@@ -17,16 +17,21 @@ def register_default_handlers() -> None:
 
     registry.subscribe(DomainEventType.ORDER_DISPATCH_READY, _handle_order_dispatch_ready)
     registry.subscribe(DomainEventType.DRIVER_ASSIGNED, _handle_driver_assigned)
-    registry.subscribe(DomainEventType.ORDER_BOOKED, _handle_order_booked_notifications)
-    registry.subscribe(DomainEventType.BOOKING_CONFIRMED, _handle_booking_confirmed_notifications)
+    registry.subscribe(DomainEventType.ORDER_CANCELLED, _handle_order_cancelled)
+    registry.subscribe(DomainEventType.CLAIM_OPENED, _handle_claim_opened)
+    registry.subscribe("order.return_to_sender", _handle_order_return_to_sender)
+    registry.subscribe("order.damaged", _handle_order_damaged)
     registry.subscribe(DomainEventType.PAYMENT_SUCCEEDED, _handle_payment_succeeded)
     registry.subscribe(DomainEventType.WEBHOOK_RECEIVED, _handle_webhook_received)
     registry.subscribe(DomainEventType.NOTIFICATION_QUEUED, _handle_notification_queued)
     registry.subscribe("order.*", _handle_merchant_webhook_fanout)
 
+    from porterchain_api.notification_engine.event_router import register_notification_handlers
+
+    register_notification_handlers()
+
 
 def _handle_order_dispatch_ready(envelope: dict[str, Any]) -> None:
-    """Fleetbase sync — reacts to dispatch ready, not direct service calls."""
     from porterchain_api.booking_engine.fleetbase_sync_handler import sync_order_from_event
 
     sync_order_from_event(envelope)
@@ -38,16 +43,28 @@ def _handle_driver_assigned(envelope: dict[str, Any]) -> None:
     sync_driver_assignment_from_event(envelope)
 
 
-def _handle_order_booked_notifications(envelope: dict[str, Any]) -> None:
-    from porterchain_api.booking_engine.notification_handler import notify_order_booked
+def _handle_order_cancelled(envelope: dict[str, Any]) -> None:
+    from porterchain_api.booking_engine.fleetbase_sync_handler import sync_cancellation_from_event
 
-    notify_order_booked(envelope)
+    sync_cancellation_from_event(envelope)
 
 
-def _handle_booking_confirmed_notifications(envelope: dict[str, Any]) -> None:
-    from porterchain_api.booking_engine.notification_handler import notify_booking_confirmed
+def _handle_claim_opened(envelope: dict[str, Any]) -> None:
+    from porterchain_api.booking_engine.fleetbase_sync_handler import sync_claim_from_event
 
-    notify_booking_confirmed(envelope)
+    sync_claim_from_event(envelope)
+
+
+def _handle_order_return_to_sender(envelope: dict[str, Any]) -> None:
+    from porterchain_api.booking_engine.fleetbase_sync_handler import sync_return_from_event
+
+    sync_return_from_event(envelope)
+
+
+def _handle_order_damaged(envelope: dict[str, Any]) -> None:
+    from porterchain_api.booking_engine.fleetbase_sync_handler import sync_damage_from_event
+
+    sync_damage_from_event(envelope)
 
 
 def _handle_payment_succeeded(envelope: dict[str, Any]) -> None:

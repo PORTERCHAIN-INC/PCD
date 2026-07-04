@@ -2,34 +2,36 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.clerk import get_clerk_user_id
-from porterchain_api.booking_engine import QuoteService
+from porterchain_api.booking_engine import BookingConfirmationService, BookingService, QuoteService
+from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
+from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
-from porterchain_api.models import Booking, Invoice, Order, Quote
 from porterchain_api.schemas import (
     BookingConfirmationResponse,
+    BookingConfirmationStatusResponse,
     BookingResponse,
     CheckoutMockCompleteRequest,
     CreateQuoteRequest,
-    OrderResponse,
-    PricingLineItem,
     QuoteResponse,
     StartBookingRequest,
 )
-from porterchain_api.booking_engine import BookingConfirmationService, BookingService
 
 router = APIRouter(prefix="/v1", tags=["quotes"])
 _quote_service = QuoteService()
 _booking_service = BookingService()
 _confirmation_service = BookingConfirmationService()
+_draft_service = BookingDraftService()
 
 
 def _format_cad(cents: int) -> str:
     return f"${cents / 100:.2f} CAD"
 
 
-def _quote_response(quote: Quote) -> QuoteResponse:
+def _quote_response(quote) -> QuoteResponse:
     items = quote.pricing_breakdown.get("items", [])
+    from porterchain_api.schemas import PricingLineItem
+
     breakdown = [PricingLineItem(**item) for item in items]
     distance_km = round(quote.distance_meters / 1000, 1) if quote.distance_meters else None
     return QuoteResponse(
@@ -43,27 +45,27 @@ def _quote_response(quote: Quote) -> QuoteResponse:
         pricing_breakdown=breakdown,
         vehicle_class=quote.vehicle_class,
         scheduled_at=quote.scheduled_at,
+        pickup=quote.pickup,
+        dropoff=quote.dropoff,
+        package_type=quote.package_type,
+        weight_kg=quote.weight_kg,
+        dimensions=quote.dimensions,
+        additional_stops=quote.additional_stops,
+        special_instructions=quote.special_instructions,
     )
 
 
-def _confirmation_response(order: Order, db: Session) -> BookingConfirmationResponse:
-    booking = db.query(Booking).filter(Booking.order_id == order.id).first()
-    invoice = db.query(Invoice).filter(Invoice.order_id == order.id).first()
-    return BookingConfirmationResponse(
-        booking_id=booking.id if booking else "",
-        booking_number=booking.booking_number if booking else "",
-        order_id=order.id,
-        order_number=order.order_number,
-        tracking_number=order.tracking_number,
-        invoice_id=invoice.id if invoice else "",
-        invoice_number=invoice.invoice_number if invoice else "",
-        state=order.state,
-        amount_cents=order.amount_cents,
-        currency=order.currency,
-        scheduled_at=order.scheduled_at,
-        pickup=order.pickup,
-        dropoff=order.dropoff,
-        fleetbase_order_id=order.fleetbase_order_id,
+@router.get("/bookings/confirmation", response_model=BookingConfirmationStatusResponse)
+def get_booking_confirmation(
+    quote_id: str,
+    db: Session = Depends(get_db),
+) -> BookingConfirmationStatusResponse:
+    status, order = _confirmation_service.get_confirmation_status(db, quote_id)
+    if not order:
+        return BookingConfirmationStatusResponse(status=status, confirmation=None)
+    return BookingConfirmationStatusResponse(
+        status=status,
+        confirmation=BookingConfirmationResponse(**_confirmation_service.build_confirmation_response(db, order)),
     )
 
 
@@ -87,6 +89,13 @@ def get_quote(
     quote = _quote_service.get_quote(db, quote_id)
     if not quote:
         raise HTTPException(status_code=404, detail="quote_not_found")
+    draft = _draft_service.get_by_quote_id(db, quote_id)
+    if draft:
+        try:
+            _draft_service.restore_draft(db, draft)
+        except ValueError as exc:
+            if str(exc) != "draft_expired":
+                raise
     return _quote_response(quote)
 
 
@@ -97,7 +106,7 @@ def post_booking(
     settings: Settings = Depends(get_settings),
     clerk_user_id: str = Depends(get_clerk_user_id),
 ) -> BookingResponse:
-    if body.clerk_user_id != clerk_user_id and not settings.clerk_dev_bypass:
+    if body.clerk_user_id != clerk_user_id and not allow_auth_dev_bypass(settings):
         raise HTTPException(status_code=403, detail="clerk_user_mismatch")
     try:
         quote, customer, checkout_url = _booking_service.start_booking(
@@ -108,13 +117,19 @@ def post_booking(
             phone=body.phone,
             clerk_user_id=clerk_user_id,
             anonymous_session_id=body.anonymous_session_id,
+            consent={
+                "terms_accepted": body.terms_accepted,
+                "privacy_accepted": body.privacy_accepted,
+                "dangerous_goods_confirmed": body.dangerous_goods_confirmed,
+                "consent_at": body.consent_at,
+            },
         )
     except LookupError:
         raise HTTPException(status_code=404, detail="quote_not_found") from None
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    mock = settings.stripe_mock or not settings.stripe_secret
+    mock = settings.allow_stripe_mock
     return BookingResponse(
         quote_id=quote.id,
         state=quote.state,
@@ -130,17 +145,12 @@ def mock_complete_checkout(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> BookingConfirmationResponse:
-    """Local dev only — simulates Stripe success per PRD when STRIPE_MOCK=true."""
-    if not settings.stripe_mock and settings.stripe_secret:
+    if not settings.allow_stripe_mock:
         raise HTTPException(status_code=403, detail="mock_checkout_disabled")
-    quote = db.query(Quote).filter(Quote.id == body.quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="quote_not_found")
-    from porterchain_api.domain.states import QuoteState
-
-    if quote.state != QuoteState.PAYMENT_PENDING.value:
-        raise HTTPException(status_code=400, detail="quote_not_awaiting_payment")
-    order = _confirmation_service.complete_payment_and_create_order(
-        db, settings, quote, stripe_payment_intent_id="mock_pi"
-    )
-    return _confirmation_response(order, db)
+    try:
+        order = _confirmation_service.mock_complete_checkout(db, settings, body.quote_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="quote_not_found") from None
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return BookingConfirmationResponse(**_confirmation_service.build_confirmation_response(db, order))

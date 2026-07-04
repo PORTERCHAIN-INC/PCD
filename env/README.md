@@ -14,6 +14,7 @@ Copy the relevant template(s) to a local `.env` file. **Never commit real secret
 | Driver portal            | `driver-portal.env.example`   | `apps/driver-portal/.env.local`                |
 | Driver app               | `mobile-driver.env.example`   | `apps/mobile-driver/.env`                      |
 | Full local stack         | `compose.env.example`         | `.env` at repo root (Docker Compose)           |
+| Production (droplet)   | `production.env.example`    | `/opt/porterchain/.env` on server              |
 
 ```bash
 # Website (only app in this repo today)
@@ -33,22 +34,23 @@ pnpm docker:up
 | `EXPO_PUBLIC_*` | Yes (inlined at mobile build) |
 | Everything else | No — server only              |
 
-## Ports (local)
+## Ports (local) → production subdomain
 
-| Port        | Service                  |
-| ----------- | ------------------------ |
-| 3000        | Website                  |
-| 3001        | Merchant portal          |
-| 3002        | Admin platform           |
-| 3003        | Driver web portal        |
-| 4200        | Fleetbase console        |
-| 8000        | Fleetbase API            |
-| 8001        | Porterchain API          |
-| 8002        | Valhalla                 |
-| 5432        | PostgreSQL (Porterchain) |
-| 3306        | MySQL (Fleetbase)        |
-| 6379        | Redis                    |
-| 1025 / 8025 | Mailhog SMTP / UI        |
+| Port | Local service        | Production host              |
+| ---- | -------------------- | ---------------------------- |
+| 3000 | Website              | porterchain.com              |
+| 3001 | Merchant portal      | merchant.porterchain.com     |
+| 3002 | Admin platform       | admin.porterchain.com        |
+| 3003 | Driver web portal    | driver.porterchain.com       |
+| 3004 | Customer portal      | customer.porterchain.com     |
+| 8001 | Porterchain API      | api.porterchain.com          |
+| 4200 | Fleetbase console    | (optional)                   |
+| 8000 | Fleetbase API        | (optional)                   |
+| 8002 | Valhalla             | (optional)                   |
+| 5432 | PostgreSQL           | internal only                |
+| 3306 | MySQL (Fleetbase)    | internal only                |
+| 6379 | Redis                | internal only                |
+| 1025 / 8025 | Mailhog SMTP / UI | dev only                |
 
 Check live usage: `pnpm ports`
 

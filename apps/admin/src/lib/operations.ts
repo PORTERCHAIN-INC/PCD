@@ -38,6 +38,47 @@ export type OpsOrder = {
   reasons?: string[];
 };
 
+export type QueueOrder = OpsOrder & {
+  has_pickup_coords?: boolean;
+  has_dropoff_coords?: boolean;
+  stop_phase?: "full" | "delivery_only";
+};
+
+export type OptimizedStop = {
+  sequence: number;
+  order_id: string;
+  tracking_number: string;
+  type: "pickup" | "delivery";
+  address: string | null;
+  leg_duration_seconds?: number;
+  cumulative_duration_seconds?: number;
+};
+
+export type OptimizeQueueResponse = {
+  plan_id: string;
+  optimized_stops: OptimizedStop[];
+  metrics: {
+    stop_count: number;
+    order_count: number;
+    distance_meters: number;
+    duration_seconds: number;
+    duration_minutes: number;
+    distance_km: number;
+    strategy: string;
+    engine: string;
+  };
+  warnings: string[];
+  order_ids: string[];
+};
+
+export type AssignBatchResponse = {
+  plan_id: string;
+  driver_id: string;
+  assigned_count: number;
+  results: Array<{ order_id: string; status: string; tracking_number?: string }>;
+  errors: Array<{ order_id: string; error: string }>;
+};
+
 export type BoardColumn = {
   key: string;
   count: number;
@@ -98,12 +139,35 @@ const B = "/v1/admin/operations";
 export const ops = {
   stats: (t: string) => adminFetch<OpsStats>(`${B}/stats`, t),
   board: (t: string) => adminFetch<BoardColumn[]>(`${B}/board`, t),
+  moveBoardOrder: (t: string, orderId: string, toColumn: string) =>
+    adminFetch<OpsOrder>(`${B}/board/move`, t, {
+      method: "POST",
+      body: JSON.stringify({ order_id: orderId, to_column: toColumn }),
+    }),
   orders: (t: string, search?: string) =>
     adminFetch<OpsOrder[]>(
       `${B}/orders${search ? `?search=${encodeURIComponent(search)}` : ""}`,
       t
     ),
-  queue: (t: string) => adminFetch<OpsOrder[]>(`${B}/queue`, t),
+  queue: (t: string) => adminFetch<QueueOrder[]>(`${B}/queue`, t),
+  optimizeQueue: (t: string, orderIds: string[], opts?: { strategy?: string; engine?: string }) =>
+    adminFetch<OptimizeQueueResponse>(`${B}/queue/optimize`, t, {
+      method: "POST",
+      timeoutMs: 60_000,
+      body: JSON.stringify({
+        order_ids: orderIds,
+        strategy: opts?.strategy ?? "balanced",
+        engine: opts?.engine ?? "valhalla",
+      }),
+    }),
+  assignBatch: (
+    t: string,
+    body: { plan_id: string; driver_id: string; order_ids?: string[] }
+  ) =>
+    adminFetch<AssignBatchResponse>(`${B}/queue/assign-batch`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   assignableDrivers: (t: string) => adminFetch<AssignableDriver[]>(`${B}/assignable-drivers`, t),
   exceptions: (t: string) => adminFetch<OpsException[]>(`${B}/exceptions`, t),
   sla: (t: string) => adminFetch<SlaResponse>(`${B}/sla`, t),

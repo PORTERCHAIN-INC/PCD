@@ -43,7 +43,7 @@ function Tile({
 }
 
 export default function CrmDashboardPage() {
-  const { data, error } = useApiData((t) => crm.dashboard(t));
+  const { data, error } = useApiData((t) => crm.dashboard(t), [], { key: "crm-dashboard" });
 
   if (error) return <p className="text-red-600">{error}</p>;
   if (!data) return <Spinner label="Loading CRM dashboard…" />;

@@ -23,6 +23,21 @@
       "recurring": "Recurring Routes"
     }
   },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Use your Porterchain account. We'll send you to the right portal for your role.",
+    "roleNote": "Works for customers, merchants, drivers, and staff — one sign-in for everyone.",
+    "redirecting": "Signing you in and opening your portal…",
+    "notProvisioned": "This email isn't set up on Porterchain yet. If you were invited, use the link in your invitation email, or contact us to get access.",
+    "identityConflict": "This account is linked to multiple portal types. Use separate emails for staff and customer accounts, or contact support.",
+    "error": "We couldn't sign you in. Check your connection and try again.",
+    "missingToken": "Clerk did not return a session token. Sign out and try again.",
+    "apiUnreachable": "Porterchain API is not reachable. Ensure the API is running on port 8001.",
+    "signOut": "Sign out and try again",
+    "devModeNote": "Clerk is not configured in this environment.",
+    "backHome": "Back to home",
+    "contactSupport": "Contact support"
+  },
   "hero": {
     "badge": "Commercial Logistics Partner",
     "titleLine1": "Deliver Anything.",
@@ -105,7 +120,10 @@
       "error": "Something went wrong. Please try again.",
       "noQuote": "No quote found. Start from the homepage booking form.",
       "clerkNote": "Sign-in is handled by Clerk before payment.",
-      "signInPrompt": "Sign in or create an account to continue to payment."
+      "signInPrompt": "Sign in or create an account to continue to payment.",
+      "staffAccountBlocked": "You're signed in as a {portal} account. Personal retail bookings need a separate customer sign-in.",
+      "staffAccountHint": "Sign out, then sign in with a customer email (not your staff account) to complete this delivery.",
+      "staffSignOut": "Sign out and use a customer account"
     },
     "success": {
       "title": "Booking confirmed",
@@ -130,6 +148,25 @@
     "customer": {
       "title": "Your deliveries",
       "subtitle": "Track shipments, view invoices, and rebook.",
+      "signInTitle": "Customer portal",
+      "signInSubtitle": "Sign in to view order history, download receipts, and contact support.",
+      "signInBenefitHistory": "See all your past and active deliveries in one place",
+      "signInBenefitInvoices": "Download invoices and payment receipts",
+      "signInBenefitSupport": "Open support tickets linked to your shipments",
+      "signInBusinessNote": "Shipping for your business?",
+      "signInBusinessLink": "Use the merchant portal",
+      "signedInAs": "Signed in as {email}",
+      "devModeNote": "Clerk is not configured. Local dev uses API bypass.",
+      "continueDev": "Continue to dashboard",
+      "emptyTitle": "No deliveries yet",
+      "emptySubtitle": "Book your first delivery and it will appear here with tracking, invoices, and support.",
+      "emptyCta": "Book a delivery",
+      "guestTrackTitle": "Track without signing in",
+      "guestTrackSubtitle": "Enter your tracking number for a one-time status lookup.",
+      "guestTrackPlaceholder": "PC-XXXXXXXX",
+      "guestTrackSubmit": "Track shipment",
+      "trackPortalPrompt": "Want your full order history, invoices, and support?",
+      "trackPortalCta": "Sign in to customer portal",
       "activeShipment": "Active shipment",
       "status": "Status",
       "track": "Track live",
@@ -140,7 +177,17 @@
       "rebook": "Book again",
       "support": "Contact support",
       "signInRequired": "Sign in to view your dashboard.",
-      "loadError": "Could not load your dashboard."
+      "loadError": "Could not load your dashboard.",
+      "payments": "Payments",
+      "noPayments": "No payments yet.",
+      "receipt": "View receipt",
+      "supportSubject": "Subject",
+      "supportMessage": "How can we help?",
+      "submitSupport": "Submit ticket",
+      "supportSent": "Support ticket submitted.",
+      "supportError": "Could not submit support ticket.",
+      "rebookError": "Could not start rebook.",
+      "newBooking": "New booking"
     }
   },
   "deliveryTypes": {

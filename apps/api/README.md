@@ -22,7 +22,7 @@ Default port: **8001**. Health: `GET /health`.
 
 ## Dev defaults (`.env.example`)
 
-- SQLite database (`porterchain.db`)
+- PostgreSQL (`postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain`) — run `pnpm db:migrate` from repo root
 - `CLERK_DEV_BYPASS=true` — no real Clerk JWT required
 - `STRIPE_MOCK=true` — use `POST /v1/bookings/mock-complete` instead of Stripe Checkout
 - `FLEETBASE_DISPATCH_BRIDGE=false` — dispatch bridge no-op

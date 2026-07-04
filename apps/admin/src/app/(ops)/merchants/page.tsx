@@ -21,10 +21,14 @@ import {
   ChevronRight,
   Columns3,
   Download,
+  Mail,
+  Rocket,
   Search,
   SlidersHorizontal,
   Store,
   TrendingUp,
+  UserCheck,
+  UserPlus,
   Wallet,
   X,
   Zap,
@@ -34,7 +38,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { merchants, healthTone, type MerchantRow } from "@/lib/merchants";
 import { Dropdown, FilterChip, ProvincePills } from "@/components/crm/filters";
-import { Badge, Button, EmptyState, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState, Field, Input, Modal, Spinner } from "@/components/crm/primitives";
 import { money, shortDate, relativeTime, titleCase, downloadCsv, toCsv } from "@/lib/crmFormat";
 
 const STATUSES = ["PENDING", "ONBOARDING", "ACTIVE", "SUSPENDED"];
@@ -60,6 +64,22 @@ const STATUS_TONE: Record<string, string> = {
   ONBOARDING: "sky",
   SUSPENDED: "red",
 };
+const ONBOARDING_LABELS: Record<string, string> = {
+  ready: "Portal ready",
+  needs_invite: "Needs invite",
+  awaiting_clerk: "Awaiting sign-in",
+  needs_activation: "User inactive",
+  needs_approval: "Needs approval",
+  onboarding: "Onboarding",
+};
+const ONBOARDING_TONE: Record<string, "green" | "amber" | "red" | "slate" | "sky"> = {
+  ready: "green",
+  needs_invite: "amber",
+  awaiting_clerk: "sky",
+  needs_activation: "red",
+  needs_approval: "amber",
+  onboarding: "slate",
+};
 const VIEWS_KEY = "pc.merchants.views";
 
 type SavedView = { name: string; visibility: VisibilityState };
@@ -68,8 +88,18 @@ export default function MerchantsPage() {
   const router = useRouter();
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
-  const { data, error } = useApiData((t) => merchants.list(t, { limit: "10000" }), [version]);
-  const { data: stats } = useApiData((t) => merchants.stats(t), [version]);
+  const { data, error } = useApiData((t) => merchants.list(t, { limit: "500" }), [version], {
+    key: "merchants-list",
+  });
+  const { data: statsData } = useApiData((t) => merchants.stats(t), [version], {
+    key: "merchants-stats",
+  });
+  const stats = statsData && typeof statsData.total === "number" ? statsData : null;
+
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const [registerForm, setRegisterForm] = useState({ email: "", company_name: "" });
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -81,6 +111,7 @@ export default function MerchantsPage() {
   const [contract, setContract] = useState("");
   const [health, setHealth] = useState("");
   const [apiOnly, setApiOnly] = useState("");
+  const [onboardingFilter, setOnboardingFilter] = useState("");
   const [sortBy, setSortBy] = useState("recent");
 
   // Grid state
@@ -92,7 +123,7 @@ export default function MerchantsPage() {
     created_at: false,
   });
   const [chooserOpen, setChooserOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
   const chooserRef = useRef<HTMLDivElement>(null);
 
   const [views, setViews] = useState<SavedView[]>([]);
@@ -113,11 +144,11 @@ export default function MerchantsPage() {
   }, []);
 
   const facets = useMemo(() => {
-    const rows = data ?? [];
-    const industries = [...new Set(rows.map((r) => r.industry).filter(Boolean) as string[])].sort();
+    const list = Array.isArray(data) ? data : [];
+    const industries = [...new Set(list.map((r) => r.industry).filter(Boolean) as string[])].sort();
     const provMap = new Map<string, number>();
     const cityMap = new Map<string, number>();
-    rows.forEach((r) => {
+    list.forEach((r) => {
       if (r.province) provMap.set(r.province, (provMap.get(r.province) ?? 0) + 1);
       if (r.city) cityMap.set(r.city, (cityMap.get(r.city) ?? 0) + 1);
     });
@@ -133,7 +164,7 @@ export default function MerchantsPage() {
   }, [data]);
 
   const rows = useMemo(() => {
-    let r = data ? [...data] : [];
+    let r = Array.isArray(data) ? [...data] : [];
     const q = search.toLowerCase();
     if (q)
       r = r.filter((m) =>
@@ -151,16 +182,18 @@ export default function MerchantsPage() {
     if (health === "hot") r = r.filter((m) => m.health_score >= 70);
     else if (health === "warm") r = r.filter((m) => m.health_score >= 40 && m.health_score < 70);
     else if (health === "risk") r = r.filter((m) => m.health_score < 40);
+    if (onboardingFilter === "pending") r = r.filter((m) => !m.portal_ready);
+    else if (onboardingFilter === "ready") r = r.filter((m) => m.portal_ready);
     if (sortBy === "revenue") r.sort((a, b) => b.monthly_revenue_cents - a.monthly_revenue_cents);
     else if (sortBy === "health") r.sort((a, b) => b.health_score - a.health_score);
     else if (sortBy === "outstanding")
       r.sort((a, b) => b.outstanding_balance_cents - a.outstanding_balance_cents);
     else if (sortBy === "name") r.sort((a, b) => a.company_name.localeCompare(b.company_name));
     return r;
-  }, [data, search, status, industry, province, city, terms, contract, apiOnly, health, sortBy]);
+  }, [data, search, status, industry, province, city, terms, contract, apiOnly, health, onboardingFilter, sortBy]);
 
   const activeFilters =
-    [status, industry, province, city, terms, contract, health, apiOnly].filter(Boolean).length +
+    [status, industry, province, city, terms, contract, health, apiOnly, onboardingFilter].filter(Boolean).length +
     (sortBy !== "recent" ? 1 : 0);
 
   function clearFilters() {
@@ -172,7 +205,53 @@ export default function MerchantsPage() {
     setContract("");
     setHealth("");
     setApiOnly("");
+    setOnboardingFilter("");
     setSortBy("recent");
+  }
+
+  const refresh = () => setVersion((v) => v + 1);
+
+  async function registerMerchant(
+    email: string,
+    companyName: string,
+    opts?: { closeModal?: boolean }
+  ) {
+    setRegistering(true);
+    setRegisterError(null);
+    try {
+      const token = await getApiToken();
+      const created = await merchants.create(token, {
+        email: email.trim(),
+        company_name: companyName.trim(),
+        auto_activate: true,
+        send_invite: true,
+      });
+      refresh();
+      if (opts?.closeModal !== false) setRegisterOpen(false);
+      router.push(`/merchants/${created.id}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Registration failed";
+      if (msg === "merchant_email_exists" || msg === "merchant_user_email_exists") {
+        setRegisterError("This email is already registered — find them in the merchants list below.");
+      } else if (msg === "merchant_create_failed") {
+        setRegisterError("Could not create merchant. Check the API logs and try again.");
+      } else {
+        setRegisterError(msg);
+      }
+    } finally {
+      setRegistering(false);
+    }
+  }
+
+  async function runAction(merchantId: string, action: string, fn: (token: string) => Promise<void>) {
+    setBusy(`${merchantId}:${action}`);
+    try {
+      const token = await getApiToken();
+      await fn(token);
+      refresh();
+    } finally {
+      setBusy(null);
+    }
   }
 
   const columns = useMemo<ColumnDef<MerchantRow, unknown>[]>(
@@ -229,6 +308,103 @@ export default function MerchantsPage() {
             {titleCase(String(getValue()))}
           </Badge>
         ),
+      },
+      {
+        id: "onboarding",
+        header: "Onboarding",
+        cell: ({ row }) => {
+          const m = row.original;
+          const phase = m.onboarding_phase ?? "onboarding";
+          const progress = m.onboarding_progress ?? 0;
+          return (
+            <div className="min-w-[10rem]">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-bg">
+                  <div
+                    className="h-full rounded-full bg-secondary"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <span className="text-xs text-muted">{progress}%</span>
+              </div>
+              <Badge tone={ONBOARDING_TONE[phase] ?? "slate"} className="mt-1">
+                {ONBOARDING_LABELS[phase] ?? titleCase(phase)}
+              </Badge>
+              {m.owner_email && (
+                <p className="mt-0.5 truncate text-[11px] text-muted">{m.owner_email}</p>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        enableSorting: false,
+        cell: ({ row }) => {
+          const m = row.original;
+          const id = m.id;
+          const isBusy = busy?.startsWith(`${id}:`) ?? false;
+          return (
+            <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
+              {!m.portal_ready && (
+                <Button
+                  variant="outline"
+                  className="h-8 px-2 text-xs"
+                  disabled={isBusy}
+                  onClick={() =>
+                    void runAction(id, "complete", (token) =>
+                      merchants.completeOnboarding(token, id, m.owner_email ?? m.email)
+                    )
+                  }
+                >
+                  <Rocket className="h-3.5 w-3.5" />
+                  Activate
+                </Button>
+              )}
+              {m.can_invite_owner && (
+                <Button
+                  variant="ghost"
+                  className="h-8 px-2 text-xs"
+                  disabled={isBusy}
+                  onClick={() =>
+                    void runAction(id, "invite", (token) =>
+                      merchants.inviteOwner(token, id, m.owner_email ?? m.email)
+                    )
+                  }
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                  Invite
+                </Button>
+              )}
+              {m.can_activate_user && (
+                <Button
+                  variant="ghost"
+                  className="h-8 px-2 text-xs"
+                  disabled={isBusy}
+                  onClick={() =>
+                    void runAction(id, "activate", (token) =>
+                      merchants.activateUsers(token, id, m.owner_email)
+                    )
+                  }
+                >
+                  <UserCheck className="h-3.5 w-3.5" />
+                  Enable user
+                </Button>
+              )}
+              {m.can_approve && m.portal_ready === false && m.onboarding_phase === "needs_approval" && (
+                <Button
+                  variant="ghost"
+                  className="h-8 px-2 text-xs"
+                  disabled={isBusy}
+                  onClick={() => void runAction(id, "approve", (token) => merchants.approve(token, id))}
+                >
+                  Approve
+                </Button>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "industry",
@@ -318,7 +494,7 @@ export default function MerchantsPage() {
         cell: ({ getValue }) => shortDate(String(getValue())),
       },
     ],
-    []
+    [busy]
   );
 
   const table = useReactTable({
@@ -338,18 +514,22 @@ export default function MerchantsPage() {
 
   const selectedIds = Object.keys(rowSelection).filter((k) => rowSelection[k]);
 
-  async function bulk(action: "approve" | "suspend") {
-    setBusy(true);
+  async function bulk(action: "approve" | "suspend" | "activate") {
+    setBusy("bulk");
     try {
       const token = await getApiToken();
       for (const id of selectedIds) {
         if (action === "approve") await merchants.approve(token, id);
-        else await merchants.suspend(token, id);
+        else if (action === "suspend") await merchants.suspend(token, id);
+        else {
+          const row = rows.find((r) => r.id === id);
+          await merchants.completeOnboarding(token, id, row?.owner_email ?? row?.email);
+        }
       }
       setRowSelection({});
-      setVersion((v) => v + 1);
+      refresh();
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
@@ -377,11 +557,23 @@ export default function MerchantsPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">Merchant Command Center</h1>
-        <p className="text-sm text-muted">
-          360° view of every Porterchain merchant — health, revenue, contracts, and operations.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Merchant Command Center</h1>
+          <p className="text-sm text-muted">
+            360° view of every Porterchain merchant — health, revenue, contracts, and operations.
+          </p>
+        </div>
+        <Button
+          onClick={() => {
+            setRegisterForm({ email: "", company_name: "" });
+            setRegisterError(null);
+            setRegisterOpen(true);
+          }}
+        >
+          <UserPlus className="h-4 w-4" />
+          Register merchant
+        </Button>
       </div>
 
       {/* Stats */}
@@ -396,8 +588,8 @@ export default function MerchantsPage() {
           />
           <StatTile
             icon={Zap}
-            label="Pending"
-            value={String(stats.pending)}
+            label="Onboarding"
+            value={String(stats.onboarding_pending ?? stats.pending)}
             accent="text-amber-600"
           />
           <StatTile
@@ -477,6 +669,16 @@ export default function MerchantsPage() {
             ]}
           />
           <Dropdown
+            label="Onboarding"
+            value={onboardingFilter}
+            onChange={setOnboardingFilter}
+            allLabel="Any"
+            options={[
+              { value: "pending", label: "Not portal-ready" },
+              { value: "ready", label: "Portal ready" },
+            ]}
+          />
+          <Dropdown
             label="API"
             value={apiOnly}
             onChange={setApiOnly}
@@ -524,6 +726,12 @@ export default function MerchantsPage() {
               />
             )}
             {health && <FilterChip label={`Health: ${health}`} onRemove={() => setHealth("")} />}
+            {onboardingFilter && (
+              <FilterChip
+                label={`Onboarding: ${onboardingFilter === "pending" ? "Not ready" : "Ready"}`}
+                onRemove={() => setOnboardingFilter("")}
+              />
+            )}
             {apiOnly && <FilterChip label={`API: ${apiOnly}`} onRemove={() => setApiOnly("")} />}
           </div>
         )}
@@ -602,8 +810,16 @@ export default function MerchantsPage() {
             <span className="font-medium text-primary">{selectedIds.length} selected</span>
             <Button
               variant="outline"
+              onClick={() => bulk("activate")}
+              disabled={!!busy}
+              className="text-xs"
+            >
+              <Rocket className="h-4 w-4" /> Activate onboarding
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => bulk("approve")}
-              disabled={busy}
+              disabled={!!busy}
               className="text-xs"
             >
               <CheckCircle2 className="h-4 w-4" /> Approve
@@ -611,7 +827,7 @@ export default function MerchantsPage() {
             <Button
               variant="outline"
               onClick={() => bulk("suspend")}
-              disabled={busy}
+              disabled={!!busy}
               className="text-xs"
             >
               Suspend
@@ -625,7 +841,7 @@ export default function MerchantsPage() {
           </div>
         )}
 
-        {!data ? (
+        {!data || !Array.isArray(data) ? (
           <Spinner label="Loading merchants…" />
         ) : rows.length === 0 ? (
           <EmptyState
@@ -703,6 +919,48 @@ export default function MerchantsPage() {
           </>
         )}
       </div>
+
+      <Modal
+        open={registerOpen}
+        onClose={() => setRegisterOpen(false)}
+        title="Register merchant"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setRegisterOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!registerForm.email.trim() || !registerForm.company_name.trim() || registering}
+              onClick={() => void registerMerchant(registerForm.email, registerForm.company_name)}
+            >
+              {registering ? "Creating…" : "Create & activate"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-muted">
+            Creates the merchant organization, links the Clerk user, sends an invitation if needed, and activates
+            portal access.
+          </p>
+          <Field label="Owner email">
+            <Input
+              type="email"
+              value={registerForm.email}
+              onChange={(e) => setRegisterForm((f) => ({ ...f, email: e.target.value }))}
+              placeholder="parevalogistics@gmail.com"
+            />
+          </Field>
+          <Field label="Company name">
+            <Input
+              value={registerForm.company_name}
+              onChange={(e) => setRegisterForm((f) => ({ ...f, company_name: e.target.value }))}
+              placeholder="Pareva Logistics"
+            />
+          </Field>
+          {registerError && <p className="text-sm text-red-600">{registerError}</p>}
+        </div>
+      </Modal>
     </div>
   );
 }

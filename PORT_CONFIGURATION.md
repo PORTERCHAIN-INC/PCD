@@ -85,7 +85,7 @@ Porterchain API is on **8001** locally.
 | iOS Simulator            | `http://localhost:8001` or `http://127.0.0.1:8001` |
 | Android Emulator         | `http://10.0.2.2:8001`                             |
 | Physical device (LAN)    | `http://<YOUR_LAN_IP>:8001`                        |
-| EAS preview / production | `https://api.porterchain.com`                      |
+| Production               | `https://api.porterchain.com`                      |
 
 ---
 
@@ -101,13 +101,18 @@ Porterchain API is on **8001** locally.
 
 ---
 
-## Production URLs (no local ports)
+## Production URLs (subdomains — no local ports)
 
-| Service         | URL                              |
-| --------------- | -------------------------------- |
-| Website         | `https://porterchain.com`        |
-| Merchant portal | `https://portal.porterchain.com` |
-| API             | `https://api.porterchain.com`    |
+| Service         | URL                              | Local port (dev) |
+| --------------- | -------------------------------- | ---------------- |
+| Website         | `https://porterchain.com`        | 3000             |
+| Merchant portal | `https://merchant.porterchain.com` | 3001           |
+| Admin platform  | `https://admin.porterchain.com`  | 3002             |
+| Driver portal   | `https://driver.porterchain.com` | 3003             |
+| Customer portal | `https://customer.porterchain.com` | 3004           |
+| Porterchain API | `https://api.porterchain.com`    | 8001             |
+
+See [`env/production.env.example`](env/production.env.example) for the full production env template.
 
 ---
 

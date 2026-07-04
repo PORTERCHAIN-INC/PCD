@@ -9,7 +9,7 @@ class MerchantStatus(StrEnum):
 
 
 class MerchantRole(StrEnum):
-    """Clerk org roles per ROLE_PERMISSIONS.md."""
+    """Porterchain merchant portal roles (merchant_users.role)."""
     OWNER = "merchant_owner"
     ADMIN = "merchant_admin"
     OPS = "merchant_ops"
@@ -30,6 +30,7 @@ PORTAL_ROLE_MAP: dict[str, MerchantRole] = {
 class MerchantPaymentTerms(StrEnum):
     IMMEDIATE = "IMMEDIATE"
     NET_7 = "NET_7"
+    NET_14 = "NET_14"
     NET_15 = "NET_15"
     NET_30 = "NET_30"
     NET_45 = "NET_45"

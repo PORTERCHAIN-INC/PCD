@@ -13,12 +13,14 @@ if TYPE_CHECKING:
 
 
 class ProofOfDeliveryService:
-    def generate_otp(self, db: Session, order_id: str) -> str:
+    def generate_otp(self, db: Session, driver: Any, order_id: str) -> str:
         from porterchain_api.models import Order
 
         order = db.query(Order).filter(Order.id == order_id).first()
         if not order:
             raise LookupError("order_not_found")
+        if order.assigned_driver_id != driver.id:
+            raise PermissionError("order_not_assigned_to_driver")
         otp = f"{secrets.randbelow(900000) + 100000:06d}"
         from porterchain_api.driver_models import DriverStopMeta
 
@@ -115,7 +117,16 @@ class ProofOfDeliveryService:
             actor_type="driver",
             actor_id=driver.id,
         )
-        return PodCaptureResult(success=True, proof_type="complete", proof_id=order.id, fleetbase_synced=True, message="pod_completed")
+        synced = False
+        if fleetbase_bridge and order.fleetbase_order_id:
+            synced = fleetbase_bridge.sync_order_state(order.fleetbase_order_id, OrderState.POD_COMPLETED.value)
+        return PodCaptureResult(
+            success=True,
+            proof_type="complete",
+            proof_id=order.id,
+            fleetbase_synced=synced,
+            message="pod_completed",
+        )
 
     def _record_pod(self, db: Session, order_id: str, driver_id: str, proof_type: str, value: str) -> None:
         from porterchain_api.driver_models import DriverStopMeta

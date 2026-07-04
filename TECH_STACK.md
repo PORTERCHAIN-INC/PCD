@@ -10,15 +10,18 @@
 
 | Layer           | Technology                                   | Status in PCD repo |
 | --------------- | -------------------------------------------- | ------------------ |
-| Public website  | Next.js 16, React 19, TypeScript, Tailwind 4 | **Implemented**    |
-| Merchant portal | Next.js (inferred)                           | Documented only    |
-| Admin console   | Fleetbase (Ember + Laravel API)              | Documented only    |
-| Driver app      | Expo 52, React Native 0.76                   | Documented only    |
-| Porterchain API | FastAPI (Python)                             | Documented only    |
-| Fleetbase API   | Laravel (PHP)                                | Documented only    |
-| Primary DB      | MySQL 8 (Fleetbase)                          | Documented only    |
-| Cache / queue   | Redis 7                                      | Documented only    |
-| Routing         | Valhalla (primary), OSRM (fallback)          | Documented only    |
+| Public website  | Next.js 16, React 19, TypeScript, Tailwind 4 | **Implemented** (`website/`) |
+| Merchant portal | Next.js 16, Clerk                            | **Implemented** (`apps/merchant-portal/`) |
+| Admin console   | Next.js 16, Clerk                            | **Implemented** (`apps/admin/`) — not Fleetbase Ember |
+| Customer portal | Next.js 16, Clerk                            | **Implemented** (`apps/customer/` + website route) |
+| Driver web      | Next.js 16, Clerk                            | **Implemented** (`apps/driver-portal/`) |
+| Driver mobile   | Expo 52, React Native 0.76                   | **Scaffold** (`apps/mobile-driver/`) |
+| Porterchain API | FastAPI, Python 3.12, SQLAlchemy 2, Alembic  | **Implemented** (`apps/api/`) |
+| Async worker    | Python, Redis queues, event bus              | **Implemented** (`apps/worker/`) |
+| Fleetbase API   | Laravel (PHP)                                | Via `apps/fleetbase/` + adapter |
+| Porterchain DB  | PostgreSQL 16 (all environments)             | **Implemented** + Alembic migrations |
+| Cache / queue   | Redis 7                                      | **Implemented** |
+| Routing         | Valhalla (primary), OSRM (fallback)          | Docker optional |
 
 ---
 
@@ -110,8 +113,7 @@ These are the **recommended pinned versions** for enterprise development across 
 
 | SDK                       | Recommended version | Used by                     | In PCD repo  |
 | ------------------------- | ------------------- | --------------------------- | ------------ |
-| **@clerk/nextjs**         | `6.x`               | Merchant portal, driver web | No           |
-| **@supabase/supabase-js** | `2.x`               | Website booking OTP         | No (planned) |
+| **@clerk/nextjs**         | `6.x`               | Website, merchant, admin, driver web | Yes          |
 | **expo-secure-store**     | Expo 52             | Driver token storage        | External     |
 
 ### Payments
@@ -135,7 +137,6 @@ These are the **recommended pinned versions** for enterprise development across 
 
 | SDK                | Recommended version | Used by                              | In PCD repo |
 | ------------------ | ------------------- | ------------------------------------ | ----------- |
-| **twilio**         | `5.x`               | SMS OTP (API)                        | No          |
 | **resend**         | `4.x`               | Alternative email (evaluate vs Zoho) | No          |
 | **firebase-admin** | `13.x`              | FCM push (API)                       | No          |
 

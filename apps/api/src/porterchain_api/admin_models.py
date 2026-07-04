@@ -98,6 +98,8 @@ class SupportTicket(Base):
     merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     driver_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     order_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    category: Mapped[str] = mapped_column(String(64), default="general_inquiry", index=True)
+    ticket_data: Mapped[dict] = mapped_column(JSON, default=dict)
     assigned_to: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -211,6 +213,51 @@ class AdminAuditLog(Base):
     resource_type: Mapped[str] = mapped_column(String(32))
     resource_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class RouteCenterPlan(Base):
+    """Porterchain route plan — execution dispatched via Fleetbase adapter."""
+
+    __tablename__ = "route_center_plans"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String(128))
+    status: Mapped[str] = mapped_column(String(32), default="waiting", index=True)
+    strategy: Mapped[str] = mapped_column(String(32), default="balanced")
+    zone: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    order_ids: Mapped[list] = mapped_column(JSON, default=list)
+    stops: Mapped[list] = mapped_column(JSON, default=list)
+    driver_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    vehicle_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    simulation: Mapped[dict] = mapped_column(JSON, default=dict)
+    recommendations: Mapped[dict] = mapped_column(JSON, default=dict)
+    fleetbase_run_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    template_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    requires_approval: Mapped[bool] = mapped_column(Boolean, default=False)
+    approved_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    dispatched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class RouteCenterTemplate(Base):
+    __tablename__ = "route_center_templates"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String(128))
+    template_type: Mapped[str] = mapped_column(String(32), default="daily", index=True)
+    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    zone: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    schedule: Mapped[dict] = mapped_column(JSON, default=dict)
+    stops: Mapped[list] = mapped_column(JSON, default=list)
+    config: Mapped[dict] = mapped_column(JSON, default=dict)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

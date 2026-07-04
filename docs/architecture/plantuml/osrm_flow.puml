@@ -1,0 +1,11 @@
+@startuml osrm_flow
+!theme plain
+participant "QuoteService" as QS
+participant "MapsService" as MS
+cloud "OSRM" as OSRM
+
+QS -> MS: route_distance_meters(points)
+MS -> OSRM: GET /route/v1/driving/...
+OSRM --> MS: distance + duration
+MS --> QS: meters, seconds
+@enduml

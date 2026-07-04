@@ -113,14 +113,19 @@ def main() -> None:
     args = parser.parse_args()
 
     load_env()
-    database_url = os.environ.get("DATABASE_URL", "sqlite:///./porterchain.db")
-    if database_url.startswith("sqlite:///./"):
-        database_url = f"sqlite:///{API_ROOT / database_url.removeprefix('sqlite:///./')}"
+    database_url = os.environ.get(
+        "DATABASE_URL",
+        "postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain",
+    )
+    if database_url.startswith("sqlite"):
+        raise SystemExit(
+            "SQLite is not supported. Set DATABASE_URL=postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain"
+        )
 
     with httpx.Client(timeout=20) as client:
         clerk_user_id, clerk_action = find_or_invite_clerk_user(client, args.email, args.role)
 
-    engine = create_engine(database_url)
+    engine = create_engine(database_url, pool_pre_ping=True)
     with Session(engine) as db:
         admin = upsert_admin(
             db,

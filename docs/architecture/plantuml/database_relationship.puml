@@ -1,0 +1,24 @@
+@startuml database_relationship
+!theme plain
+entity Customer
+entity Quote
+entity Order
+entity Booking
+entity Payment
+entity Invoice
+entity BookingDraft
+entity Merchant
+entity Driver
+entity Claim
+entity FleetbaseSyncJob
+
+Customer ||--o{ Quote
+Customer ||--o{ Order
+Quote ||--o| Order
+Order ||--o{ Payment
+Order ||--o{ Invoice
+Order ||--o{ OrderEvent
+Merchant ||--o{ Order : merchant_id
+BookingDraft }o--|| Customer
+FleetbaseSyncJob }o--|| Order
+@enduml

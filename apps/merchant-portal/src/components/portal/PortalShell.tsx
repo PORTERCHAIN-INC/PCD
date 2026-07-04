@@ -2,94 +2,59 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  BarChart3,
-  CreditCard,
-  FileSpreadsheet,
-  Key,
-  LayoutDashboard,
-  Package,
-  Settings,
-  Truck,
-  Users,
-} from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import Container from "@/components/ui/Container";
-import { isClerkConfigured } from "@/lib/env";
-
-const NAV = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/book", label: "Book Delivery", icon: Truck },
-  { href: "/bulk", label: "Bulk Upload", icon: FileSpreadsheet },
-  { href: "/orders", label: "Orders", icon: Package },
-  { href: "/track", label: "Track", icon: Truck },
-  { href: "/billing", label: "Billing", icon: CreditCard },
-  { href: "/reports", label: "Reports", icon: BarChart3 },
-  { href: "/api", label: "API & Webhooks", icon: Key },
-  { href: "/team", label: "Team", icon: Users },
-  { href: "/settings", label: "Business Profile", icon: Settings },
-];
+import MerchantAccessGate from "@/components/MerchantAccessGate";
+import MerchantAccountMenu from "@/components/nav/MerchantAccountMenu";
+import MerchantMenuBar from "@/components/nav/MerchantMenuBar";
+import { useMerchantProfile } from "@/components/nav/MerchantProfileContext";
+import { activeNavLabel } from "@/lib/merchant-nav";
 
 export default function PortalShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const pageLabel = activeNavLabel(pathname);
+  const { setProfile } = useMerchantProfile();
 
   return (
-    <div className="flex min-h-screen bg-gray-bg">
-      <aside className="hidden w-64 shrink-0 border-r border-primary/10 bg-white lg:flex lg:flex-col">
-        <div className="border-b border-primary/10 px-6 py-5">
-          <Link href="/dashboard" className="text-lg font-bold text-primary">
-            Porterchain
+    <div className="flex h-dvh flex-col bg-gray-bg">
+      <header className="relative z-50 shrink-0 overflow-visible border-b border-primary/10 bg-white shadow-sm">
+        <div className="flex min-h-12 flex-wrap items-center gap-x-2 gap-y-1 px-2 py-1.5 sm:px-3">
+          <Link
+            href="/dashboard"
+            className="flex shrink-0 items-center gap-2 rounded-lg px-1 py-1 hover:bg-gray-bg"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-sm font-bold text-white shadow-sm">
+              P
+            </span>
+            <span className="hidden min-w-0 sm:block">
+              <span className="block text-sm font-bold leading-tight text-primary">Porterchain</span>
+              <span className="block text-[10px] leading-tight text-muted">Merchant</span>
+            </span>
           </Link>
-          <p className="mt-1 text-xs text-muted">Merchant Portal</p>
-        </div>
-        <nav className="flex-1 space-y-1 p-4">
-          {NAV.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(`${href}/`);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-secondary/10 text-secondary"
-                    : "text-primary/70 hover:bg-gray-bg hover:text-primary"
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="border-t border-primary/10 p-4">
-          {isClerkConfigured() ? (
-            <UserButton />
-          ) : (
-            <Link href="/sign-in" className="text-sm text-secondary">
-              Sign in
-            </Link>
+
+          {pageLabel && (
+            <span className="hidden max-w-[8rem] truncate rounded-md bg-primary/5 px-2 py-1 text-xs font-medium text-muted sm:inline lg:max-w-xs">
+              {pageLabel}
+            </span>
           )}
+
+          <div className="mx-0.5 hidden h-6 w-px bg-primary/10 sm:block" />
+
+          <div className="flex min-w-0 flex-1 items-center">
+            <MerchantMenuBar />
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2 border-l border-primary/10 pl-2">
+            <MerchantAccountMenu />
+          </div>
         </div>
-      </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-primary/10 bg-white px-4 py-3 lg:hidden">
-          <Link href="/dashboard" className="font-bold text-primary">
-            Porterchain
-          </Link>
-          {isClerkConfigured() ? (
-            <UserButton />
-          ) : (
-            <Link href="/sign-in" className="text-sm text-secondary">
-              Sign in
-            </Link>
-          )}
-        </header>
-        <main className="flex-1 py-6">
+      </header>
+
+      <MerchantAccessGate onProfile={setProfile}>
+        <main className={cn("min-h-0 flex-1 overflow-auto py-6")}>
           <Container>{children}</Container>
         </main>
-      </div>
+      </MerchantAccessGate>
     </div>
   );
 }

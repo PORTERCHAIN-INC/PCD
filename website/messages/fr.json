@@ -23,6 +23,21 @@
       "recurring": "Routes récurrentes"
     }
   },
+  "login": {
+    "title": "Connexion",
+    "subtitle": "Utilisez votre compte Porterchain. Nous vous dirigerons vers le bon portail selon votre rôle.",
+    "roleNote": "Clients, marchands, chauffeurs et personnel — une seule connexion pour tous.",
+    "redirecting": "Connexion en cours, ouverture de votre portail…",
+    "notProvisioned": "Ce courriel n'est pas encore configuré sur Porterchain. Si vous avez reçu une invitation, utilisez le lien dans le courriel ou contactez-nous.",
+    "identityConflict": "Ce compte est lié à plusieurs types de portail. Utilisez des courriels distincts pour le personnel et les clients, ou contactez le soutien.",
+    "error": "Impossible de vous connecter. Vérifiez votre connexion et réessayez.",
+    "missingToken": "Clerk n'a pas renvoyé de jeton de session. Déconnectez-vous et réessayez.",
+    "apiUnreachable": "L'API Porterchain est inaccessible. Assurez-vous que l'API tourne sur le port 8001.",
+    "signOut": "Se déconnecter et réessayer",
+    "devModeNote": "Clerk n'est pas configuré dans cet environnement.",
+    "backHome": "Retour à l'accueil",
+    "contactSupport": "Contacter le soutien"
+  },
   "hero": {
     "badge": "Partenaire logistique commercial",
     "titleLine1": "Livrez tout.",
@@ -105,7 +120,10 @@
       "error": "Une erreur s'est produite. Réessayez.",
       "noQuote": "Aucun devis trouvé. Utilisez le formulaire sur l'accueil.",
       "clerkNote": "La connexion est gérée par Clerk avant le paiement.",
-      "signInPrompt": "Connectez-vous ou créez un compte pour passer au paiement."
+      "signInPrompt": "Connectez-vous ou créez un compte pour passer au paiement.",
+      "staffAccountBlocked": "Vous êtes connecté avec un compte {portal}. Les réservations personnelles nécessitent un compte client distinct.",
+      "staffAccountHint": "Déconnectez-vous, puis connectez-vous avec un courriel client (pas votre compte personnel/staff) pour finaliser cette livraison.",
+      "staffSignOut": "Se déconnecter et utiliser un compte client"
     },
     "success": {
       "title": "Réservation confirmée",
@@ -130,6 +148,25 @@
     "customer": {
       "title": "Vos livraisons",
       "subtitle": "Suivez vos envois, consultez vos factures et réservez.",
+      "signInTitle": "Portail client",
+      "signInSubtitle": "Connectez-vous pour voir l'historique, télécharger vos reçus et contacter le soutien.",
+      "signInBenefitHistory": "Consultez toutes vos livraisons passées et en cours",
+      "signInBenefitInvoices": "Téléchargez vos factures et reçus de paiement",
+      "signInBenefitSupport": "Ouvrez des demandes de soutien liées à vos envois",
+      "signInBusinessNote": "Expédition pour votre entreprise?",
+      "signInBusinessLink": "Utilisez le portail marchand",
+      "signedInAs": "Connecté en tant que {email}",
+      "devModeNote": "Clerk n'est pas configuré. Le mode dev utilise l'API en contournement.",
+      "continueDev": "Continuer vers le tableau de bord",
+      "emptyTitle": "Aucune livraison pour le moment",
+      "emptySubtitle": "Réservez votre première livraison et elle apparaîtra ici avec suivi, factures et soutien.",
+      "emptyCta": "Réserver une livraison",
+      "guestTrackTitle": "Suivre sans connexion",
+      "guestTrackSubtitle": "Entrez votre numéro de suivi pour une consultation unique.",
+      "guestTrackPlaceholder": "PC-XXXXXXXX",
+      "guestTrackSubmit": "Suivre l'envoi",
+      "trackPortalPrompt": "Vous voulez l'historique complet, les factures et le soutien?",
+      "trackPortalCta": "Connexion au portail client",
       "activeShipment": "Envoi en cours",
       "status": "Statut",
       "track": "Suivi en direct",
@@ -140,7 +177,17 @@
       "rebook": "Réserver à nouveau",
       "support": "Contacter le soutien",
       "signInRequired": "Connectez-vous pour voir votre tableau de bord.",
-      "loadError": "Impossible de charger le tableau de bord."
+      "loadError": "Impossible de charger le tableau de bord.",
+      "payments": "Paiements",
+      "noPayments": "Aucun paiement.",
+      "receipt": "Voir le reçu",
+      "supportSubject": "Sujet",
+      "supportMessage": "Comment pouvons-nous vous aider?",
+      "submitSupport": "Envoyer",
+      "supportSent": "Demande envoyée.",
+      "supportError": "Échec de l'envoi.",
+      "rebookError": "Impossible de relancer la réservation.",
+      "newBooking": "Nouvelle réservation"
     }
   },
   "deliveryTypes": {

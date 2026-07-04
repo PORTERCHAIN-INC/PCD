@@ -5,6 +5,7 @@ import { Check, Circle, Plus } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { crm, type Task } from "@/lib/crm";
+import { drivers } from "@/lib/drivers";
 import { Badge, Button, Input, Select } from "@/components/crm/primitives";
 import { STATUS_TONE, dateTime, titleCase } from "@/lib/crmFormat";
 
@@ -35,7 +36,16 @@ export function EntityTasks({
 }) {
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
-  const { data } = useApiData((t) => crm.tasks(t, { entity_id: entityId }), [entityId, version]);
+  const { data } = useApiData(
+    (t) =>
+      entityType === "driver"
+        ? drivers.tasks(t, entityId)
+        : crm.tasks(t, { entity_id: entityId }),
+    [entityType, entityId, version],
+    { key: `${entityType}-${entityId}-tasks` }
+  );
+
+  const tasks = Array.isArray(data) ? data : [];
 
   const [title, setTitle] = useState("");
   const [type, setType] = useState("follow_up");
@@ -107,7 +117,7 @@ export function EntityTasks({
       </div>
 
       <div className="space-y-2">
-        {(data ?? []).map((task) => {
+        {tasks.map((task) => {
           const done = task.status === "done";
           const overdue = !done && task.due_at && new Date(task.due_at) < new Date();
           return (
@@ -148,7 +158,7 @@ export function EntityTasks({
             </div>
           );
         })}
-        {(!data || data.length === 0) && (
+        {tasks.length === 0 && (
           <p className="py-6 text-center text-sm text-muted">No follow-ups scheduled yet.</p>
         )}
       </div>

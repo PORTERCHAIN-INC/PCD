@@ -10,8 +10,10 @@ class ClerkClaims:
     email: str | None = None
     org_id: str | None = None
     org_role: str | None = None
+    phone: str | None = None
     public_metadata: dict[str, Any] | None = None
     session_id: str | None = None
+    clerk_app: str | None = None
 
     @property
     def metadata_role(self) -> str | None:

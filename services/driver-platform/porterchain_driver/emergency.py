@@ -37,8 +37,9 @@ class EmergencyService:
             db,
             driver,
             subject="EMERGENCY — Driver distress signal",
-            description=message or "Driver activated emergency button",
+            description=message or "Driver activated SOS / emergency button",
             priority="critical",
+            category="driver_support",
         )
         emit_event(
             db,
@@ -47,7 +48,18 @@ class EmergencyService:
             aggregate_id=driver.id,
             actor_type="driver",
             actor_id=driver.id,
-            payload={"location": location, "ticket_id": ticket["id"], "triggered_at": datetime.now(UTC).isoformat()},
+            payload={"location": location, "ticket_id": ticket["id"], "driver_id": driver.id},
+        )
+        from porterchain_driver.communications import DriverCommunicationService
+
+        DriverCommunicationService().notify_driver(
+            db,
+            driver,
+            title="Emergency alert sent",
+            body="Operations has been notified of your SOS.",
+            template="driver_alert",
+            category="security",
+            priority="critical",
         )
         db.flush()
         return {"status": "alert_sent", "ticket_id": ticket["id"], "ops_notified": True}

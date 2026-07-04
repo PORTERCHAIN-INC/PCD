@@ -2,14 +2,14 @@
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.fleetbase_sync_service import FleetbaseSyncService
+from porterchain_api.fleetbase_engine.integration_bridge import FleetbaseIntegrationBridge
 from porterchain_api.config import Settings
 from porterchain_api.models import Booking, Invoice, Order, Payment
 
 
 class TrackingService:
     def __init__(self) -> None:
-        self._fleetbase = FleetbaseSyncService()
+        self._fleetbase = FleetbaseIntegrationBridge()
 
     def get_by_tracking(self, db: Session, tracking_number: str) -> Order | None:
         return db.query(Order).filter(Order.tracking_number == tracking_number).first()

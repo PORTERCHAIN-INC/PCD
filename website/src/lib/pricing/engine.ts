@@ -1,3 +1,8 @@
+/**
+ * DISPLAY-ONLY pricing engine for website UX previews.
+ * Authoritative retail pricing is always computed server-side (`services/pricing-engine`).
+ * Do not use this output for payment amounts or API `website_pricing` snapshots.
+ */
 import { getVehicleById } from "@/lib/quote/vehicles";
 import { gtaTrafficEngine } from "@/lib/traffic";
 import {

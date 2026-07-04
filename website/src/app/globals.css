@@ -658,6 +658,31 @@ p {
   transition: colors 0.2s;
 }
 
+.booking-select-field {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.booking-select-field:focus {
+  outline: none;
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.booking-select-field-compact {
+  min-height: 2.25rem;
+  font-size: 0.8125rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.625rem;
+}
+
 /* Compact hero booking widget — fits one viewport */
 .booking-widget-compact .booking-chip {
   padding: 0.375rem 0.625rem;
@@ -673,14 +698,14 @@ p {
 
 .booking-widget-compact .booking-address-autocomplete gmp-place-autocomplete,
 .booking-widget-compact .booking-address-autocomplete .booking-place-autocomplete {
-  min-height: 2.5rem;
-  font-size: 0.875rem;
+  min-height: 2.25rem;
+  font-size: 0.8125rem;
 }
 
 .booking-schedule-field-compact {
-  min-height: 2.5rem !important;
-  padding: 0.5rem 0.75rem !important;
-  font-size: 0.875rem !important;
+  min-height: 2.25rem !important;
+  padding: 0.4375rem 0.625rem !important;
+  font-size: 0.8125rem !important;
 }
 
 /* Google Places API (New) autocomplete widget */

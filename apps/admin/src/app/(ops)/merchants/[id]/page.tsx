@@ -28,6 +28,7 @@ import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { merchants, healthTone, type MerchantDetail } from "@/lib/merchants";
+import MerchantTeamPanel from "@/components/merchants/MerchantTeamPanel";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
 import {
@@ -224,7 +225,7 @@ export default function MerchantDetailPage() {
         {tab === "contracts" && <ContractsTab id={id} />}
         {tab === "pricing" && <PricingTab m={m} />}
         {tab === "api" && <ApiTab id={id} />}
-        {tab === "team" && <TeamTab id={id} />}
+        {tab === "team" && <MerchantTeamPanel merchant={m} />}
         {tab === "activities" &&
           (m.company_id ? (
             <ActivityTimeline entityType="company" entityId={m.company_id} />
@@ -428,17 +429,20 @@ function ContactsTab({ id }: { id: string }) {
               </p>
             </div>
             <div className="flex flex-wrap gap-1">
-              {c.roles.slice(0, 3).map((r) => (
+              {c.roles.filter((r) => r !== "portal_team").slice(0, 3).map((r) => (
                 <Badge key={r} tone="slate">
-                  {titleCase(r)}
+                  {titleCase(r.replace("merchant_", ""))}
                 </Badge>
               ))}
+              {(c.roles.includes("portal_team") || c.source === "team") && (
+                <Badge tone="amber">Portal team</Badge>
+              )}
             </div>
           </div>
         ))}
         {(!data || data.length === 0) && (
           <p className="px-5 py-10 text-center text-sm text-muted">
-            No contacts. Add them from the CRM company.
+            No contacts yet. Merchants add contacts from the portal Team & contacts page.
           </p>
         )}
       </div>
@@ -448,11 +452,13 @@ function ContactsTab({ id }: { id: string }) {
 
 function LocationsTab({ id }: { id: string }) {
   const { data } = useApiData((t) => merchants.locations(t, id), [id]);
+  const addresses = data?.addresses ?? [];
+  const recipients = data?.recipients ?? [];
   return (
     <div className="grid gap-5 md:grid-cols-2">
-      <SectionCard title={`Addresses (${data?.addresses.length ?? 0})`}>
+      <SectionCard title={`Addresses (${addresses.length})`}>
         <div className="divide-y divide-primary/5">
-          {(data?.addresses ?? []).map((a) => (
+          {addresses.map((a) => (
             <div key={a.id} className="px-5 py-3">
               <p className="text-sm font-medium text-primary">
                 {a.label} {a.is_default && <Badge tone="blue">Default</Badge>}
@@ -462,14 +468,14 @@ function LocationsTab({ id }: { id: string }) {
               </p>
             </div>
           ))}
-          {(!data || data.addresses.length === 0) && (
+          {addresses.length === 0 && (
             <p className="px-5 py-10 text-center text-sm text-muted">No saved locations.</p>
           )}
         </div>
       </SectionCard>
-      <SectionCard title={`Recipients (${data?.recipients.length ?? 0})`}>
+      <SectionCard title={`Recipients (${recipients.length})`}>
         <div className="divide-y divide-primary/5">
-          {(data?.recipients ?? []).map((r) => (
+          {recipients.map((r) => (
             <div key={r.id} className="px-5 py-3">
               <p className="text-sm font-medium text-primary">{r.name}</p>
               <p className="text-xs text-muted">
@@ -477,7 +483,7 @@ function LocationsTab({ id }: { id: string }) {
               </p>
             </div>
           ))}
-          {(!data || data.recipients.length === 0) && (
+          {recipients.length === 0 && (
             <p className="px-5 py-10 text-center text-sm text-muted">No recipients.</p>
           )}
         </div>
@@ -632,11 +638,13 @@ function PricingTab({ m }: { m: MerchantDetail }) {
 
 function ApiTab({ id }: { id: string }) {
   const { data } = useApiData((t) => merchants.api(t, id), [id]);
+  const apiKeys = data?.api_keys ?? [];
+  const webhooks = data?.webhooks ?? [];
   return (
     <div className="grid gap-5 md:grid-cols-2">
-      <SectionCard title={`API keys (${data?.api_keys.length ?? 0})`}>
+      <SectionCard title={`API keys (${apiKeys.length})`}>
         <div className="divide-y divide-primary/5">
-          {(data?.api_keys ?? []).map((k) => (
+          {apiKeys.map((k) => (
             <div key={k.id} className="px-5 py-3">
               <p className="text-sm font-medium text-primary">
                 {k.name}{" "}
@@ -650,20 +658,20 @@ function ApiTab({ id }: { id: string }) {
               </p>
             </div>
           ))}
-          {(!data || data.api_keys.length === 0) && (
+          {apiKeys.length === 0 && (
             <p className="px-5 py-10 text-center text-sm text-muted">No API keys.</p>
           )}
         </div>
       </SectionCard>
-      <SectionCard title={`Webhooks (${data?.webhooks.length ?? 0})`}>
+      <SectionCard title={`Webhooks (${webhooks.length})`}>
         <div className="divide-y divide-primary/5">
-          {(data?.webhooks ?? []).map((w) => (
+          {webhooks.map((w) => (
             <div key={w.id} className="px-5 py-3">
               <p className="truncate text-sm font-medium text-primary">{w.url}</p>
               <p className="text-xs text-muted">{w.events.join(", ") || "all events"}</p>
             </div>
           ))}
-          {(!data || data.webhooks.length === 0) && (
+          {webhooks.length === 0 && (
             <p className="px-5 py-10 text-center text-sm text-muted">No webhooks.</p>
           )}
         </div>
@@ -672,29 +680,6 @@ function ApiTab({ id }: { id: string }) {
   );
 }
 
-function TeamTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => merchants.team(t, id), [id]);
-  return (
-    <SectionCard title={`Team (${data?.length ?? 0})`}>
-      <div className="divide-y divide-primary/5">
-        {(data ?? []).map((u) => (
-          <div key={u.id} className="flex items-center justify-between px-5 py-3">
-            <div>
-              <p className="text-sm font-medium text-primary">{u.email}</p>
-              <p className="text-xs text-muted">{titleCase(u.role)}</p>
-            </div>
-            <Badge tone={u.is_active ? "green" : "slate"}>
-              {u.is_active ? "Active" : "Inactive"}
-            </Badge>
-          </div>
-        ))}
-        {(!data || data.length === 0) && (
-          <p className="px-5 py-10 text-center text-sm text-muted">No team members yet.</p>
-        )}
-      </div>
-    </SectionCard>
-  );
-}
 
 function ReadActivities({ id }: { id: string }) {
   const { data } = useApiData((t) => merchants.activities(t, id), [id]);

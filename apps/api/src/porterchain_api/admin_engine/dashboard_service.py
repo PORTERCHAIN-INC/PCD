@@ -1,15 +1,25 @@
-"""Admin dashboard KPIs per MODULE_BREAKDOWN.md."""
+"""Admin dashboard KPIs and Executive Command Center aggregation (masterrule §3).
 
+Orchestrates existing Application Services — does not duplicate module business logic.
+"""
+
+from __future__ import annotations
+
+import os
 from datetime import UTC, datetime
+from typing import Any
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Claim, Driver, SupportTicket
+from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.domain.states import OrderState, QuoteState
 from porterchain_api.merchant_models import Merchant
-from porterchain_api.models import Invoice, Order, Quote
+from porterchain_api.models import Invoice, Order, Payment, Quote
+
+PORTERCHAIN_VERSION = os.environ.get("PORTERCHAIN_VERSION", "3.1.0")
 
 
 class AdminDashboardService:
@@ -74,3 +84,225 @@ class AdminDashboardService:
             "open_support_tickets": open_tickets,
             "fleet_health_percent": fleet_health,
         }
+
+    def get_center(self, db: Session, settings: Settings, *, role: str = "admin") -> dict[str, Any]:
+        """Single payload for the Executive Command Center UI."""
+        from porterchain_api.admin_engine.booking_draft_admin_service import AdminBookingDraftService
+        from porterchain_api.admin_engine.claims_service import AdminClaimsService
+        from porterchain_api.admin_engine.control_tower_service import ControlTowerService
+        from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
+        from porterchain_api.admin_engine.finance_service import AdminFinanceService
+        from porterchain_api.admin_engine.orders_service import AdminOrdersService
+        from porterchain_api.admin_engine.reports_service import AdminReportsService
+        from porterchain_api.admin_engine.settings_service import AdminSettingsService
+        from porterchain_api.admin_engine.support_service import AdminSupportService
+        from porterchain_api.admin_models import Vehicle
+
+        finance_svc = AdminFinanceService()
+        ops = ControlTowerService()
+        reports = AdminReportsService()
+        kpis = self.get_dashboard(db)
+        ops_stats = ops.stats(db)
+        orders = AdminOrdersService().dashboard(db)
+        finance = finance_svc.dashboard(db)
+        claims = AdminClaimsService().dashboard(db)
+        support = AdminSupportService().dashboard(db)
+        crm = CrmSalesService().dashboard(db)
+        booking = AdminBookingDraftService().analytics(db)
+        trends = reports.monthly_trends(db, 6)
+        executive = reports.executive(db)
+        smart = reports.smart_insights(db)
+        merchants = reports._merchant_report(db)  # noqa: SLF001 — orchestration only
+        customers = reports._customer_report(db)  # noqa: SLF001
+        drivers = reports._driver_report(db)  # noqa: SLF001
+        sla = ops.sla_monitor(db, limit=10)
+        activity = ops.live_activity(db, limit=25)
+        ai_ops = ops.ai_ops(db)
+        health = AdminSettingsService().integration_health(db, settings)
+
+        vehicles_total = db.query(func.count(Vehicle.id)).scalar() or 0
+        vehicles_active = int(ops_stats.get("vehicles_active", 0))
+        active_merchants = db.query(Merchant).filter(Merchant.status == MerchantStatus.ACTIVE.value).count()
+
+        merged_kpis = {
+            **kpis,
+            "orders_today": ops_stats.get("orders_today", kpis["todays_bookings"]),
+            "revenue_today_cents": ops_stats.get("revenue_today_cents", kpis["todays_revenue_cents"]),
+            "orders_in_progress": orders.get("orders_in_progress", ops_stats.get("active_deliveries", 0)),
+            "vehicles_active": vehicles_active,
+            "vehicles_available": max(vehicles_total - vehicles_active, 0),
+            "delayed_orders": ops_stats.get("delayed_orders", 0),
+            "high_priority_orders": ops_stats.get("high_priority_orders", 0),
+            "late_deliveries": sla.get("breached_count", 0),
+            "emergency_orders": ops_stats.get("high_priority_orders", 0),
+            "open_exceptions": ops_stats.get("open_exceptions", 0),
+            "merchant_growth": active_merchants,
+            "customer_growth": customers.get("new_customers_month", 0),
+            "avg_delivery_hours": orders.get("avg_delivery_hours", 0),
+            "revenue_trend": finance.get("revenue_trend", []),
+            "profit_estimate_cents": finance.get("profit_estimate_cents", 0),
+            "revenue_forecast_cents": finance.get("revenue_forecast_cents", 0),
+        }
+
+        return {
+            "meta": {
+                "generated_at": datetime.now(UTC).isoformat(),
+                "environment": settings.app_env,
+                "version": PORTERCHAIN_VERSION,
+                "company": "Porterchain",
+                "role": role,
+            },
+            "kpis": merged_kpis,
+            "operations": {
+                **ops_stats,
+                "sla_breached": sla.get("breached_count", 0),
+                "sla_at_risk": sla.get("at_risk_count", 0),
+                "incidents": ops.exceptions(db, limit=8),
+                "risk_orders": ai_ops.get("risk_orders", [])[:8],
+            },
+            "orders": orders,
+            "finance": finance,
+            "claims": claims,
+            "support": support,
+            "crm": crm,
+            "booking": booking,
+            "merchants": {
+                "pending_approval": kpis["pending_merchant_approvals"],
+                "active": active_merchants,
+                "top_by_orders": merchants.get("top_merchants_by_orders", [])[:5],
+                "top_by_revenue": merchants.get("top_merchants_by_revenue", [])[:5],
+                "contracts_expiring": crm.get("contracts_pending", 0),
+            },
+            "customers": customers,
+            "drivers": {
+                **drivers,
+                "online": kpis["drivers_online"],
+                "offline": kpis["drivers_offline"],
+                "busy": max(kpis["drivers_online"] - int(orders.get("assigned", 0)), 0),
+                "available": max(kpis["drivers_online"] - int(orders.get("assigned", 0)), 0),
+            },
+            "fleet": {
+                "vehicles_total": vehicles_total,
+                "vehicles_active": vehicles_active,
+                "vehicles_available": max(vehicles_total - vehicles_active, 0),
+                "utilization_percent": kpis["fleet_health_percent"],
+            },
+            "trends": trends,
+            "executive": executive,
+            "activity": activity,
+            "system_health": health,
+            "smart": smart,
+            "pending": {
+                "merchant_approvals": kpis["pending_merchant_approvals"],
+                "contracts": crm.get("contracts_pending", 0),
+                "claims_open": claims.get("open_claims", 0),
+                "support_open": support.get("open_tickets", 0),
+                "quotes": kpis["pending_quotes"],
+                "overdue_tasks": crm.get("overdue_tasks", 0),
+            },
+            "quick_actions": [
+                {"id": "booking", "label": "Booking Drafts", "href": "/booking-drafts"},
+                {"id": "merchant", "label": "Merchants", "href": "/merchants"},
+                {"id": "driver", "label": "Drivers", "href": "/drivers"},
+                {"id": "dispatch", "label": "Dispatch", "href": "/operations"},
+                {"id": "invoice", "label": "Finance", "href": "/finance"},
+                {"id": "claims", "label": "Claims", "href": "/claims"},
+                {"id": "support", "label": "Support", "href": "/support"},
+                {"id": "crm", "label": "CRM", "href": "/crm"},
+            ],
+        }
+
+    def global_search(self, db: Session, query: str, *, limit: int = 25) -> list[dict[str, Any]]:
+        """Cross-module search for the command center header."""
+        from porterchain_api.admin_engine.finance_service import AdminFinanceService
+        from porterchain_api.admin_engine.live_map_service import LiveMapService
+        from porterchain_api.models import BookingDraft
+
+        q = query.strip()
+        if len(q) < 2:
+            return []
+
+        hits = LiveMapService().search(db, q, limit=limit)
+        like = f"%{q}%"
+
+        for t in (
+            db.query(SupportTicket)
+            .filter(or_(SupportTicket.subject.ilike(like), SupportTicket.id.ilike(like)))
+            .limit(5)
+            .all()
+        ):
+            hits.append(
+                {
+                    "type": "support_ticket",
+                    "id": t.id,
+                    "label": t.subject,
+                    "subtitle": t.status,
+                    "href": f"/support/{t.id}",
+                }
+            )
+
+        for c in (
+            db.query(Claim)
+            .filter(or_(Claim.id.ilike(like), Claim.order_id.ilike(like)))
+            .limit(5)
+            .all()
+        ):
+            hits.append(
+                {
+                    "type": "claim",
+                    "id": c.id,
+                    "label": f"Claim {c.id[:8]}",
+                    "subtitle": c.status,
+                    "href": f"/claims/{c.id}",
+                }
+            )
+
+        for inv in (
+            db.query(Invoice)
+            .filter(or_(Invoice.invoice_number.ilike(like), Invoice.id.ilike(like)))
+            .limit(5)
+            .all()
+        ):
+            order = db.query(Order).filter(Order.id == inv.order_id).first()
+            payment = (
+                db.query(Payment).filter(Payment.order_id == inv.order_id).order_by(Payment.created_at.desc()).first()
+            )
+            hits.append(
+                {
+                    "type": "invoice",
+                    "id": inv.id,
+                    "label": inv.invoice_number or inv.id[:8],
+                    "subtitle": AdminFinanceService()._invoice_status(inv, order, payment),
+                    "href": "/finance",
+                }
+            )
+
+        for d in (
+            db.query(BookingDraft)
+            .filter(BookingDraft.id.ilike(like))
+            .limit(5)
+            .all()
+        ):
+            hits.append(
+                {
+                    "type": "booking_draft",
+                    "id": d.id,
+                    "label": f"Draft {d.id[:8]}",
+                    "subtitle": d.state,
+                    "href": f"/booking-drafts/{d.id}",
+                }
+            )
+
+        type_hrefs = {
+            "order": "/orders",
+            "driver": "/drivers",
+            "merchant": "/merchants",
+            "customer": "/crm/contacts",
+            "vehicle": "/drivers",
+        }
+        for h in hits:
+            if "href" not in h:
+                base = type_hrefs.get(h.get("type", ""), "/dashboard")
+                h["href"] = f"{base}/{h['id']}" if h.get("type") in ("order", "driver", "merchant", "booking_draft") else base
+
+        return hits[:limit]

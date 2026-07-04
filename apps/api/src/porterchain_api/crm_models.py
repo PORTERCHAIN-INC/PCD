@@ -10,6 +10,7 @@ import uuid
 from datetime import date, datetime
 
 from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -47,7 +48,7 @@ class CrmCompany(Base):
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True, index=True)
 
-    address: Mapped[dict] = mapped_column(JSON, default=dict)
+    address: Mapped[dict] = mapped_column(JSONB, default=dict)
     branches: Mapped[list] = mapped_column(JSON, default=list)
     warehouse_locations: Mapped[list] = mapped_column(JSON, default=list)
     pickup_locations: Mapped[list] = mapped_column(JSON, default=list)
@@ -69,7 +70,7 @@ class CrmCompany(Base):
     tags: Mapped[list] = mapped_column(JSON, default=list)
     is_pinned: Mapped[bool] = mapped_column(Boolean, default=False)
     is_favorite: Mapped[bool] = mapped_column(Boolean, default=False)
-    custom_fields: Mapped[dict] = mapped_column(JSON, default=dict)
+    custom_fields: Mapped[dict] = mapped_column(JSONB, default=dict)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -123,7 +124,7 @@ class CrmLead(Base):
     industry: Mapped[str | None] = mapped_column(String(128), nullable=True)
     website: Mapped[str | None] = mapped_column(String(512), nullable=True)
     business_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    address: Mapped[dict] = mapped_column(JSON, default=dict)
+    address: Mapped[dict] = mapped_column(JSONB, default=dict)
 
     primary_contact_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
@@ -149,7 +150,7 @@ class CrmLead(Base):
     contact_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
     # Flexible storage so any CSV column / ad-hoc attribute can live on a lead.
-    custom_fields: Mapped[dict] = mapped_column(JSON, default=dict)
+    custom_fields: Mapped[dict] = mapped_column(JSONB, default=dict)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -289,6 +290,7 @@ class CrmSalesTask(Base):
     assigned_to: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     remind_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    zoho_event_uid: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     is_recurring: Mapped[bool] = mapped_column(Boolean, default=False)
     recurrence_rule: Mapped[str | None] = mapped_column(String(128), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

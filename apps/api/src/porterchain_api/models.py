@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
 from porterchain_api.db import Base
-from porterchain_api.domain.states import OrderState, PaymentTerms, QuoteState
+from porterchain_api.domain.states import OrderState, PaymentTerms, QuoteState, OrderSource, OrderType
 
 
 def _uuid() -> str:
@@ -21,6 +21,7 @@ class Customer(Base):
     email: Mapped[str] = mapped_column(String(320), index=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     visitor_session_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    customer_reference: Mapped[str | None] = mapped_column(String(32), nullable=True, unique=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     quotes: Mapped[list["Quote"]] = relationship(back_populates="customer")
@@ -75,6 +76,7 @@ class Quote(Base):
     distance_meters: Mapped[int | None] = mapped_column(Integer, nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    consent: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     stripe_checkout_session_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -110,9 +112,11 @@ class Order(Base):
     order_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     tracking_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     state: Mapped[str] = mapped_column(String(32), default=OrderState.BOOKED.value, index=True)
-    quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id"), nullable=True)
+    quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id"), nullable=True, unique=True)
     customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id"), nullable=True)
     merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    order_source: Mapped[str] = mapped_column(String(16), default=OrderSource.WEBSITE.value, index=True)
+    order_type: Mapped[str] = mapped_column(String(16), default=OrderType.INSTANT.value, index=True)
     payment_terms: Mapped[str] = mapped_column(String(16), default=PaymentTerms.IMMEDIATE.value)
     amount_cents: Mapped[int] = mapped_column(Integer)
     currency: Mapped[str] = mapped_column(String(8), default="cad")
@@ -152,6 +156,9 @@ class Payment(Base):
     currency: Mapped[str] = mapped_column(String(8), default="cad")
     stripe_payment_intent_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     stripe_checkout_session_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    payment_reference: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+    payment_method: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    transaction_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     receipt_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     failure_reason: Mapped[str | None] = mapped_column(String(512), nullable=True)
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -170,9 +177,12 @@ class Invoice(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     invoice_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    receipt_number: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     order_id: Mapped[str] = mapped_column(ForeignKey("orders.id"), index=True)
     customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id"), index=True)
     amount_cents: Mapped[int] = mapped_column(Integer)
+    tax_cents: Mapped[int] = mapped_column(Integer, default=0)
+    fees_cents: Mapped[int] = mapped_column(Integer, default=0)
     currency: Mapped[str] = mapped_column(String(8), default="cad")
     stripe_receipt_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     pdf_url: Mapped[str | None] = mapped_column(String(512), nullable=True)

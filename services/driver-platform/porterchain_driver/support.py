@@ -10,16 +10,9 @@ if TYPE_CHECKING:
 
 class SupportService:
     def list_tickets(self, db: Session, driver_id: str, *, limit: int = 20) -> list[dict]:
-        from porterchain_api.admin_models import SupportTicket
+        from porterchain_driver.support_bridge import DriverSupportBridgeService
 
-        rows = (
-            db.query(SupportTicket)
-            .filter(SupportTicket.driver_id == driver_id)
-            .order_by(SupportTicket.created_at.desc())
-            .limit(limit)
-            .all()
-        )
-        return [self._serialize(t) for t in rows]
+        return DriverSupportBridgeService().list_tickets(db, driver_id, limit=limit)
 
     def create_ticket(
         self,
@@ -30,20 +23,19 @@ class SupportService:
         description: str | None = None,
         order_id: str | None = None,
         priority: str = "normal",
+        category: str = "driver_support",
     ) -> dict:
-        from porterchain_api.admin_models import SupportTicket
+        from porterchain_driver.support_bridge import DriverSupportBridgeService
 
-        ticket = SupportTicket(
-            driver_id=driver.id,
-            order_id=order_id,
+        return DriverSupportBridgeService().create_ticket(
+            db,
+            driver,
             subject=subject,
             description=description,
+            order_id=order_id,
             priority=priority,
-            status="open",
+            category=category,
         )
-        db.add(ticket)
-        db.flush()
-        return self._serialize(ticket)
 
     @staticmethod
     def _serialize(ticket: Any) -> dict:

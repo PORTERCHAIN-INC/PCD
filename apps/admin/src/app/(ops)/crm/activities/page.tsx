@@ -29,7 +29,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export default function ActivitiesPage() {
   const [type, setType] = useState("");
-  const { data, error } = useApiData((t) => crm.activities(t, { limit: "200" }), []);
+  const { data, error } = useApiData((t) => crm.activities(t, { limit: "200" }), [], { key: "crm-activities" });
 
   if (error) return <p className="text-red-600">{error}</p>;
   if (!data) return <Spinner label="Loading activity…" />;

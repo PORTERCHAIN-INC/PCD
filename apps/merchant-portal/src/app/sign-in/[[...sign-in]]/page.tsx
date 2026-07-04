@@ -1,10 +1,21 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
-import { SignIn } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { SignIn, useAuth } from "@clerk/nextjs";
 import { isClerkConfigured } from "@/lib/env";
 
 export default function SignInPage() {
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useAuth();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.replace("/onboarding");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
   if (!isClerkConfigured()) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-bg p-4">
@@ -44,15 +55,29 @@ export default function SignInPage() {
     );
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-bg p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-primary">Porterchain Merchant Portal</h1>
-          <p className="mt-2 text-sm text-muted">Sign in with your approved business account</p>
-        </div>
-        <SignIn routing="hash" signUpUrl="/sign-in" />
+  if (!isLoaded || isSignedIn) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-bg">
+        <p className="text-sm text-muted">Loading…</p>
       </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-bg p-4">
+      <div className="mb-6 max-w-md text-center">
+        <h1 className="text-2xl font-bold text-primary">Porterchain Merchant Portal</h1>
+        <p className="mt-2 text-sm text-muted">Sign in with your approved business account</p>
+      </div>
+      <SignIn
+        routing="path"
+        path="/sign-in"
+        forceRedirectUrl="/onboarding"
+        fallbackRedirectUrl="/onboarding"
+      />
+      <p className="mt-6 max-w-sm text-center text-xs text-muted">
+        Merchant access is invitation-only. Contact your Porterchain account manager if you need an invite.
+      </p>
     </div>
   );
 }

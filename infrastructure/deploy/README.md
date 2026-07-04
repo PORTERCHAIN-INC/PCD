@@ -5,7 +5,7 @@ Porterchain uses two GitHub Actions workflows:
 | Workflow   | File                           | Trigger                                | Purpose                                                |
 | ---------- | ------------------------------ | -------------------------------------- | ------------------------------------------------------ |
 | **CI**     | `.github/workflows/ci.yml`     | push / PR to `main`                    | Lint, format check, build (quality gate)               |
-| **Deploy** | `.github/workflows/deploy.yml` | after CI succeeds on `main`, or manual | Build website image → push to GHCR → deploy to droplet |
+| **Deploy** | `.github/workflows/deploy.yml` | after CI succeeds on `main`, or manual | Build all portal images → push to GHCR → deploy to droplet |
 
 The Deploy workflow only runs once CI passes on `main`, so broken code never ships.
 
@@ -16,8 +16,8 @@ push to main → CI (lint / format / build)
                  │  on success
                  ▼
             Deploy workflow
-              1. docker build  (website/Dockerfile)
-              2. push image    → ghcr.io/<owner>/pcd-website:<sha> + :latest
+              1. docker build  (website, api, admin, merchant, driver, customer)
+              2. push images   → ghcr.io/<owner>/pcd-*:<sha> + :latest
               3. scp manifests → docker-compose.prod.yml + Caddyfile → /opt/porterchain
               4. ssh droplet   → docker compose pull && up -d
               5. healthcheck   → curl http://localhost:80
@@ -26,19 +26,20 @@ push to main → CI (lint / format / build)
 ### Runtime architecture (on the droplet)
 
 ```
-Internet ──443/tcp──▶ Caddy (pcd-caddy)  ──http──▶ website (pcd-website:3000)
-          ──80/tcp──▶ Caddy → 308 redirect to HTTPS
+Internet ──443──▶ Caddy (pcd-caddy)
+                    ├─ porterchain.com        → website :3000 (+ /v1 → api)
+                    ├─ api.porterchain.com    → api :8001
+                    ├─ admin.porterchain.com  → admin :3002
+                    ├─ merchant.porterchain.com → merchant :3001
+                    ├─ driver.porterchain.com → driver :3003
+                    └─ customer.porterchain.com → customer :3004
 ```
 
 - **Caddy** (`infrastructure/deploy/Caddyfile`) terminates TLS with automatic
-  Let's Encrypt certificates for `porterchain.com` + `www.porterchain.com`,
-  forces HTTP→HTTPS, redirects `www`→apex, and sets security headers
-  (HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`,
-  `Permissions-Policy`).
-- The **website** container (`website/Dockerfile`, Next.js standalone) listens on
-  `3000` and is **not** published to the host — only Caddy is internet-facing.
-- Both run via `infrastructure/deploy/docker-compose.prod.yml` in `/opt/porterchain`.
-  Caddy's certs/state persist in the `caddy-data` / `caddy-config` volumes.
+  Let's Encrypt certificates for all production hosts, forces HTTP→HTTPS,
+  redirects `www`→apex, and sets security headers.
+- Portal containers are **not** published to the host — only Caddy exposes 80/443.
+- Stack runs via `infrastructure/deploy/docker-compose.prod.yml` in `/opt/porterchain`.
 
 ## One-time droplet setup
 
@@ -55,8 +56,10 @@ ssh root@68.183.103.49 'bash -s' < infrastructure/deploy/harden-droplet.sh
 Then ensure the deploy user can log in with the SSH key referenced by
 `DEPLOY_SSH_KEY` (add the matching public key to `~/.ssh/authorized_keys`).
 
-> **DNS:** `porterchain.com` and `www.porterchain.com` must resolve to the droplet
-> IP before the first deploy, otherwise Let's Encrypt cannot issue certificates.
+> **DNS:** All hosts must resolve to the droplet IP before the first deploy:
+> `porterchain.com`, `www.porterchain.com`, `api.porterchain.com`,
+> `admin.porterchain.com`, `merchant.porterchain.com`, `driver.porterchain.com`,
+> `customer.porterchain.com`
 
 ## Required GitHub repository secrets
 

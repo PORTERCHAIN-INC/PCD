@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
   MapPin,
@@ -28,6 +28,8 @@ import {
 import { useRouter } from "@/i18n/navigation";
 import Button from "@/components/ui/Button";
 import { computeAndPersistQuote, type PersistedQuoteResult } from "@/lib/quote-client";
+import { createBookingDraft, getActiveBookingDraft } from "@/lib/api";
+import { clearBookingDraftHint, hasBookingDraftHint, markBookingDraftHint } from "@/lib/booking-draft-hint";
 import { getAnonymousSessionId } from "@/lib/anonymous-session";
 import { getVisitorTracking } from "@/lib/visitor-tracking";
 import VehicleIllustration, {
@@ -38,8 +40,8 @@ import AddressAutocompleteInput from "@/components/maps/AddressAutocompleteInput
 import ScheduleDateTimePicker, {
   createDefaultScheduledAt,
 } from "@/components/booking/ScheduleDateTimePicker";
+import BookingSelectField from "@/components/booking/BookingSelectField";
 import type { BookingVehicleKey } from "@/lib/vehicle-keys";
-
 import { cn } from "@/lib/utils";
 
 const TAB_KEYS = ["oneTime", "business"] as const;
@@ -98,6 +100,50 @@ export default function BookingWidget({ variant = "default", className }: Bookin
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const router = useRouter();
+
+  // Restore in-progress checkout only when this browser session started a draft.
+  useEffect(() => {
+    if (!hasBookingDraftHint()) return;
+    const sessionId = getAnonymousSessionId();
+    getActiveBookingDraft(sessionId)
+      .then((draft) => {
+        if (!draft) {
+          clearBookingDraftHint();
+          return;
+        }
+        if (draft.quote_id && draft.continue_url) {
+          router.replace(`/book/continue?quote_id=${draft.quote_id}&draft_id=${draft.draft_id}`);
+        }
+      })
+      .catch(() => {
+        clearBookingDraftHint();
+      });
+  }, [router]);
+
+  // Persist partial progress server-side (not browser storage).
+  useEffect(() => {
+    if (!pickup?.formatted && !dropoff?.formatted) return;
+    const sessionId = getAnonymousSessionId();
+    const timer = setTimeout(() => {
+      createBookingDraft({
+        session_id: sessionId,
+        pickup: pickup?.formatted
+          ? { formatted: pickup.formatted, lat: pickup.lat, lng: pickup.lng, place_id: pickup.placeId }
+          : undefined,
+        dropoff: dropoff?.formatted
+          ? { formatted: dropoff.formatted, lat: dropoff.lat, lng: dropoff.lng, place_id: dropoff.placeId }
+          : undefined,
+        vehicle_class: selectedVehicle,
+        package_type: delivery,
+        current_step: "details",
+      })
+        .then(() => markBookingDraftHint())
+        .catch(() => {
+          /* best-effort draft sync */
+        });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [pickup, dropoff, selectedVehicle, delivery]);
 
   async function handleInstantQuote() {
     if (!pickup?.formatted || !dropoff?.formatted) {
@@ -159,6 +205,7 @@ export default function BookingWidget({ variant = "default", className }: Bookin
         }
       );
       setQuote(result);
+      markBookingDraftHint();
     } catch (err) {
       setQuoteError(err instanceof Error ? err.message : t("quoteError"));
     } finally {
@@ -168,33 +215,42 @@ export default function BookingWidget({ variant = "default", className }: Bookin
 
   function handleContinueBooking() {
     if (!quote) return;
+    markBookingDraftHint();
     router.push(`/book/continue?quote_id=${quote.quote_id}`);
   }
 
+  const Wrapper = compact ? "div" : motion.div;
+  const wrapperMotionProps = compact
+    ? {}
+    : {
+        initial: { opacity: 0, y: 24 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.65, delay: 0.25 },
+      };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.65, delay: 0.25 }}
+    <Wrapper
+      {...wrapperMotionProps}
       className={cn("w-full", compact && "booking-widget-compact flex flex-col min-h-0", className)}
     >
       <div
         className={cn(
-          "relative flex flex-col min-h-0 bg-white/95 backdrop-blur-2xl border border-white/70 shadow-[0_24px_80px_-16px_rgba(10,22,40,0.4)] overflow-hidden",
+          "relative flex flex-col min-h-0 overflow-hidden",
           compact
-            ? "rounded-xl sm:rounded-2xl flex-1"
-            : "rounded-2xl sm:rounded-[1.75rem] md:rounded-[2rem]"
+            ? "booking-widget-panel rounded-xl sm:rounded-2xl flex-1 bg-white border border-gray-200/80 shadow-[0_4px_24px_-4px_rgba(10,22,40,0.22)]"
+            : "bg-white/95 backdrop-blur-2xl border border-white/70 shadow-[0_24px_80px_-16px_rgba(10,22,40,0.4)] rounded-2xl sm:rounded-[1.75rem] md:rounded-[2rem]"
         )}
       >
-        {/* Subtle top glow */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/40 to-transparent" />
+        {!compact && (
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/40 to-transparent" />
+        )}
 
         {/* Header + tabs */}
         <div
           className={cn(
             "flex shrink-0",
             compact
-              ? "flex-row items-center justify-end px-3 pt-2 pb-1 sm:px-4"
+              ? "flex-row items-center justify-stretch px-3 pt-2 pb-1 sm:px-4"
               : "flex-col gap-4 px-4 pt-5 pb-4 sm:px-7 sm:pt-7 md:flex-row md:items-center md:justify-between"
           )}
         >
@@ -211,17 +267,16 @@ export default function BookingWidget({ variant = "default", className }: Bookin
 
         <div
           className={cn(
-            "min-h-0 flex-1 overflow-y-auto overscroll-contain",
             compact
               ? "px-3 pb-3 space-y-2 sm:px-4 sm:pb-4"
-              : "px-4 pb-5 space-y-4 sm:px-7 sm:pb-7 sm:space-y-5"
+              : "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-5 space-y-4 sm:px-7 sm:pb-7 sm:space-y-5"
           )}
         >
           {/* Main row: addresses + options */}
           <div
             className={cn(
               "grid gap-2 sm:gap-3",
-              compact ? "lg:grid-cols-2" : "md:grid-cols-2 gap-4 md:gap-5"
+              compact ? "grid-cols-1" : "md:grid-cols-2 gap-4 md:gap-5"
             )}
           >
             {/* Uber-style address route */}
@@ -292,6 +347,17 @@ export default function BookingWidget({ variant = "default", className }: Bookin
               </div>
             </div>
 
+            {compact && (
+              <DeliveryVehicleFields
+                compact
+                delivery={delivery}
+                setDelivery={setDelivery}
+                selectedVehicle={selectedVehicle}
+                setSelectedVehicle={setSelectedVehicle}
+                t={t}
+              />
+            )}
+
             {/* Schedule + package */}
             <div className={cn("flex flex-col", compact ? "gap-2" : "gap-4")}>
               <div
@@ -328,15 +394,13 @@ export default function BookingWidget({ variant = "default", className }: Bookin
                     {t("scheduleLater")}
                   </button>
                 </div>
-                <AnimatePresence>
-                  {scheduleMode === "later" && (
-                    <ScheduleDateTimePicker
-                      value={scheduledAt}
-                      onChange={setScheduledAt}
-                      compact={compact}
-                    />
-                  )}
-                </AnimatePresence>
+                {scheduleMode === "later" && (
+                  <ScheduleDateTimePicker
+                    value={scheduledAt}
+                    onChange={setScheduledAt}
+                    compact={compact}
+                  />
+                )}
 
                 <div className={cn(compact ? "mt-2 pt-2 border-t border-gray-200/60" : "mt-0")}>
                   {!compact && (
@@ -405,67 +469,16 @@ export default function BookingWidget({ variant = "default", className }: Bookin
             </div>
           </div>
 
-          {/* Delivery + vehicle — side by side in compact mode */}
-          <div className={cn(compact && "grid sm:grid-cols-2 gap-2 sm:gap-3")}>
-            <div>
-              <span className="type-caption font-bold text-muted mb-1.5 sm:mb-2 flex items-center gap-1.5">
-                <Package className="w-3.5 h-3.5" />
-                {t("deliveryType")}
-              </span>
-              <div
-                className={cn(
-                  compact ? "flex flex-wrap gap-1.5" : "scroll-row scroll-row-fade -mx-1 px-1"
-                )}
-              >
-                {DELIVERY_OPTIONS.map(({ key, icon: Icon }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setDelivery(key)}
-                    className={cn(
-                      "booking-chip",
-                      delivery === key ? "booking-chip-active" : "booking-chip-inactive"
-                    )}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {t(`deliveryOptions.${key}`)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <span className="type-caption font-bold text-muted mb-1.5 sm:mb-2 flex items-center gap-1.5">
-                <Truck className="w-3.5 h-3.5" />
-                {t("vehicleType")}
-              </span>
-              <div
-                className={cn(
-                  compact ? "flex flex-wrap gap-1.5" : "scroll-row scroll-row-fade -mx-1 px-1"
-                )}
-              >
-                {VEHICLE_OPTIONS.map(({ key }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setSelectedVehicle(key as BookingVehicleKey)}
-                    className={cn(
-                      "booking-chip",
-                      selectedVehicle === key ? "booking-chip-active" : "booking-chip-inactive"
-                    )}
-                  >
-                    <VehicleIllustration
-                      type={resolveVehicleIllustration(key)}
-                      id={`chip-${key}`}
-                      variant="dark"
-                      className="w-[1.1rem] h-[0.55rem] shrink-0 opacity-80"
-                    />
-                    {t(`vehicleOptions.${key}`)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          {!compact && (
+            <DeliveryVehicleFields
+              compact={false}
+              delivery={delivery}
+              setDelivery={setDelivery}
+              selectedVehicle={selectedVehicle}
+              setSelectedVehicle={setSelectedVehicle}
+              t={t}
+            />
+          )}
 
           {/* CTA */}
           <Button
@@ -608,7 +621,133 @@ export default function BookingWidget({ variant = "default", className }: Bookin
           )}
         </div>
       </div>
-    </motion.div>
+    </Wrapper>
+  );
+}
+
+function DeliveryVehicleFields({
+  compact,
+  delivery,
+  setDelivery,
+  selectedVehicle,
+  setSelectedVehicle,
+  t,
+}: {
+  compact: boolean;
+  delivery: string;
+  setDelivery: (value: string) => void;
+  selectedVehicle: BookingVehicleKey;
+  setSelectedVehicle: (value: BookingVehicleKey) => void;
+  t: (key: string) => string;
+}) {
+  const deliveryOptions = DELIVERY_OPTIONS.map(({ key }) => ({
+    value: key,
+    label: t(`deliveryOptions.${key}`),
+  }));
+  const vehicleOptions = VEHICLE_OPTIONS.map(({ key }) => ({
+    value: key,
+    label: t(`vehicleOptions.${key}`),
+  }));
+
+  if (compact) {
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        <BookingSelectField
+          id="booking-delivery-type"
+          label={t("deliveryType")}
+          icon={Package}
+          value={delivery}
+          options={deliveryOptions}
+          onChange={setDelivery}
+          compact
+        />
+        <BookingSelectField
+          id="booking-vehicle-type"
+          label={t("vehicleType")}
+          icon={Truck}
+          value={selectedVehicle}
+          options={vehicleOptions}
+          onChange={(value) => setSelectedVehicle(value as BookingVehicleKey)}
+          compact
+        />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <BookingSelectField
+          id="booking-delivery-type-mobile"
+          label={t("deliveryType")}
+          icon={Package}
+          value={delivery}
+          options={deliveryOptions}
+          onChange={setDelivery}
+        />
+        <BookingSelectField
+          id="booking-vehicle-type-mobile"
+          label={t("vehicleType")}
+          icon={Truck}
+          value={selectedVehicle}
+          options={vehicleOptions}
+          onChange={(value) => setSelectedVehicle(value as BookingVehicleKey)}
+        />
+      </div>
+
+      <div className="hidden md:grid md:grid-cols-2 gap-5">
+        <div>
+          <span className="type-caption font-bold text-muted mb-2 flex items-center gap-1.5">
+            <Package className="w-3.5 h-3.5" />
+            {t("deliveryType")}
+          </span>
+          <div className="scroll-row scroll-row-fade -mx-1 px-1">
+            {DELIVERY_OPTIONS.map(({ key, icon: Icon }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setDelivery(key)}
+                className={cn(
+                  "booking-chip",
+                  delivery === key ? "booking-chip-active" : "booking-chip-inactive"
+                )}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {t(`deliveryOptions.${key}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <span className="type-caption font-bold text-muted mb-2 flex items-center gap-1.5">
+            <Truck className="w-3.5 h-3.5" />
+            {t("vehicleType")}
+          </span>
+          <div className="scroll-row scroll-row-fade -mx-1 px-1">
+            {VEHICLE_OPTIONS.map(({ key }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSelectedVehicle(key as BookingVehicleKey)}
+                className={cn(
+                  "booking-chip",
+                  selectedVehicle === key ? "booking-chip-active" : "booking-chip-inactive"
+                )}
+              >
+                <VehicleIllustration
+                  type={resolveVehicleIllustration(key)}
+                  id={`chip-${key}`}
+                  variant="dark"
+                  className="w-[1.1rem] h-[0.55rem] shrink-0 opacity-80"
+                />
+                {t(`vehicleOptions.${key}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 

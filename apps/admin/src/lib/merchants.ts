@@ -27,6 +27,18 @@ export type MerchantRow = {
   last_activity_at: string | null;
   created_at: string;
   company_id: string | null;
+  portal_ready?: boolean;
+  onboarding_phase?: string;
+  onboarding_progress?: number;
+  owner_email?: string;
+  owner_invite_status?: string;
+  owner_clerk_linked?: boolean;
+  owner_active?: boolean;
+  team_count?: number;
+  blockers_count?: number;
+  can_approve?: boolean;
+  can_invite_owner?: boolean;
+  can_activate_user?: boolean;
 };
 
 export type MerchantAi = {
@@ -71,6 +83,7 @@ export type MerchantStats = {
   active: number;
   pending: number;
   suspended: number;
+  onboarding_pending?: number;
   monthly_revenue_cents: number;
   outstanding_balance_cents: number;
 };
@@ -113,6 +126,24 @@ export type MerchantTeamUser = {
   role: string;
   is_active: boolean;
   created_at: string;
+  clerk_linked?: boolean;
+  invite_status?: string;
+};
+
+export type MerchantOnboarding = {
+  merchant_id: string;
+  merchant_status: string;
+  company_name: string;
+  company_email: string;
+  owner_email: string;
+  owner_invite_status: string;
+  owner_clerk_linked: boolean;
+  team_count: number;
+  steps: Array<{ id: string; label: string; complete: boolean }>;
+  blockers: string[];
+  ready: boolean;
+  can_approve: boolean;
+  can_invite_owner: boolean;
 };
 
 export type MerchantApi = {
@@ -159,6 +190,14 @@ const B = "/v1/admin/merchants";
 export const merchants = {
   list: (t: string, params: Record<string, string | undefined> = {}) =>
     adminFetch<MerchantRow[]>(`${B}${qs(params)}`, t),
+  create: (
+    t: string,
+    body: { email: string; company_name: string; auto_activate?: boolean; send_invite?: boolean }
+  ) =>
+    adminFetch<MerchantDetail & { onboarding: MerchantOnboarding }>(`${B}`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   facets: (t: string) =>
     adminFetch<{
       statuses: Array<{ value: string; count: number }>;
@@ -183,6 +222,30 @@ export const merchants = {
     adminFetch<MerchantOrder[]>(`${B}/${id}/orders${qs(params)}`, t),
   locations: (t: string, id: string) => adminFetch<MerchantLocations>(`${B}/${id}/locations`, t),
   team: (t: string, id: string) => adminFetch<MerchantTeamUser[]>(`${B}/${id}/team`, t),
+  onboarding: (t: string, id: string) => adminFetch<MerchantOnboarding>(`${B}/${id}/onboarding`, t),
+  inviteOwner: (t: string, id: string, email: string) =>
+    adminFetch<{ merchant_user_id: string; email: string; role: string; invitation_status: string }>(
+      `${B}/${id}/invite-owner`,
+      t,
+      { method: "POST", body: JSON.stringify({ email }) }
+    ),
+  inviteTeamMember: (t: string, id: string, email: string, role: string) =>
+    adminFetch<{ merchant_user_id: string; email: string; role: string; invitation_status: string }>(
+      `${B}/${id}/team/invite`,
+      t,
+      { method: "POST", body: JSON.stringify({ email, role }) }
+    ),
+  activateUsers: (t: string, id: string, email?: string) =>
+    adminFetch<{ activated: number; emails: string[] }>(`${B}/${id}/activate-users`, t, {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+  completeOnboarding: (t: string, id: string, email?: string) =>
+    adminFetch<{ merchant_id: string; status: string; onboarding: MerchantOnboarding }>(
+      `${B}/${id}/complete-onboarding`,
+      t,
+      { method: "POST", body: JSON.stringify({ email }) }
+    ),
   api: (t: string, id: string) => adminFetch<MerchantApi>(`${B}/${id}/api`, t),
   analytics: (t: string, id: string) => adminFetch<MerchantAnalytics>(`${B}/${id}/analytics`, t),
   timeline: (t: string, id: string) => adminFetch<TimelineEvent[]>(`${B}/${id}/timeline`, t),

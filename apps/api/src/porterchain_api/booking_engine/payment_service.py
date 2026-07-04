@@ -3,6 +3,7 @@
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
+from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import PaymentStatus, QuoteState
@@ -11,6 +12,9 @@ from porterchain_api.services.stripe_service import create_checkout_session
 
 
 class PaymentService:
+    def __init__(self) -> None:
+        self._drafts = BookingDraftService()
+
     def start_payment(
         self,
         db: Session,
@@ -18,6 +22,10 @@ class PaymentService:
         quote: Quote,
         customer: Customer,
     ) -> tuple[str | None, Payment]:
+        from porterchain_api.services.pricing import revalidate_retail_quote
+
+        quote = revalidate_retail_quote(db, quote)
+
         payment = Payment(
             quote_id=quote.id,
             customer_id=customer.id,
@@ -39,7 +47,7 @@ class PaymentService:
         )
 
         checkout_url: str | None = None
-        if settings.stripe_mock or not settings.stripe_secret:
+        if settings.allow_stripe_mock:
             payment.status = PaymentStatus.PROCESSING.value
             emit_event(
                 db,
@@ -50,7 +58,14 @@ class PaymentService:
                 payload={"mock": True, "payment_id": payment.id},
             )
         else:
-            checkout_url, session_id = create_checkout_session(settings, quote, customer, payment.id)
+            draft = self._drafts.get_by_quote_id(db, quote.id)
+            checkout_url, session_id = create_checkout_session(
+                settings,
+                quote,
+                customer,
+                payment.id,
+                booking_draft_id=draft.id if draft else None,
+            )
             payment.stripe_checkout_session_id = session_id
             payment.status = PaymentStatus.PROCESSING.value
             quote.stripe_checkout_session_id = session_id
@@ -64,6 +79,12 @@ class PaymentService:
             )
 
         quote.state = QuoteState.PAYMENT_PENDING.value
+        self._drafts.on_payment_started(
+            db,
+            quote,
+            stripe_session_id=payment.stripe_checkout_session_id,
+            settings=settings,
+        )
         db.commit()
         db.refresh(payment)
         db.refresh(quote)
@@ -109,6 +130,7 @@ class PaymentService:
             correlation_id=payment.quote_id,
             payload={"reason": reason},
         )
+        BookingDraftService().on_payment_failed(db, payment.quote_id, reason=reason)
         db.commit()
         db.refresh(payment)
         return payment
@@ -133,3 +155,22 @@ class PaymentService:
             existing.retry_count += 1
             db.commit()
         return self.start_payment(db, settings, quote, customer)
+
+    def retry_payment_for_clerk(
+        self,
+        db: Session,
+        settings: Settings,
+        *,
+        quote_id: str,
+        clerk_user_id: str,
+    ) -> tuple[str | None, Payment]:
+        quote = db.query(Quote).filter(Quote.id == quote_id).first()
+        if not quote:
+            raise LookupError("quote_not_found")
+        if quote.state not in (QuoteState.PAYMENT_PENDING.value, QuoteState.BOOKING_PENDING.value):
+            raise ValueError("quote_not_payable")
+
+        customer = db.query(Customer).filter(Customer.clerk_user_id == clerk_user_id).first()
+        if not customer or customer.id != quote.customer_id:
+            raise PermissionError("forbidden")
+        return self.retry_payment(db, settings, quote, customer)

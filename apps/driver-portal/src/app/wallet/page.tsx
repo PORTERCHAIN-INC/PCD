@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DriverShell from "@/components/DriverShell";
-import { driverApi } from "@/lib/api";
+import { driverApi, hasDriverSession } from "@/lib/api";
 import { formatCents } from "@/lib/utils";
 
 export default function WalletPage() {
@@ -11,12 +11,14 @@ export default function WalletPage() {
   const [data, setData] = useState<Awaited<ReturnType<typeof driverApi.wallet>> | null>(null);
 
   useEffect(() => {
-    if (!localStorage.getItem("driver_access_token")) router.replace("/login");
-    else driverApi.wallet().then(setData);
+    hasDriverSession().then((ok) => {
+      if (!ok) router.replace("/login");
+      else driverApi.wallet().then(setData);
+    });
   }, [router]);
 
   return (
-    <DriverShell walletCents={data?.balance_cents}>
+    <DriverShell>
       <h1 className="text-2xl font-bold">Wallet</h1>
       {data && (
         <>

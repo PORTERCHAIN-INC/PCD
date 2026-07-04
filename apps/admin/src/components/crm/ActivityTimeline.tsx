@@ -45,8 +45,11 @@ export function ActivityTimeline({
 
   const { data } = useApiData(
     (t) => crm.activities(t, { entity_type: entityType, entity_id: entityId }),
-    [entityType, entityId, version]
+    [entityType, entityId, version],
+    { key: `${entityType}-${entityId}-activities` }
   );
+
+  const activities = Array.isArray(data) ? data : [];
 
   async function add() {
     if (!body.trim()) return;
@@ -88,7 +91,7 @@ export function ActivityTimeline({
         </Button>
       </div>
       <div className="space-y-3">
-        {(data ?? []).map((a) => {
+        {activities.map((a) => {
           const Icon = ICONS[a.activity_type] ?? ActivityIcon;
           return (
             <div key={a.id} className="flex gap-3">
@@ -107,7 +110,7 @@ export function ActivityTimeline({
             </div>
           );
         })}
-        {(!data || data.length === 0) && (
+        {activities.length === 0 && (
           <p className="text-sm text-muted">No activity logged yet.</p>
         )}
       </div>

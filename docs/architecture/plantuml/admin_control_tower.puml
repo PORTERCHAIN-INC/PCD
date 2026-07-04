@@ -1,0 +1,31 @@
+@startuml admin_control_tower
+!theme plain
+actor "Admin Portal" as Admin
+package "Control Tower" {
+  [ControlTowerService]
+  [LiveMapService]
+}
+package "Admin Modules" {
+  [Orders]
+  [Finance]
+  [CRM]
+  [Merchants]
+  [Drivers]
+  [Pricing]
+  [Claims]
+  [Support]
+  [Settings]
+}
+package "Engines" {
+  [fleetbase_engine]
+  [billing_engine]
+  [notification_engine]
+  [pricing_engine]
+}
+
+Admin --> [ControlTowerService]
+Admin --> [Orders]
+[ControlTowerService] --> [fleetbase_engine]
+[Orders] --> [fleetbase_engine]
+[Finance] --> [billing_engine]
+@enduml

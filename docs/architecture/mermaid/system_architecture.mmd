@@ -1,0 +1,71 @@
+flowchart TB
+  subgraph Frontends["Frontends (Next.js)"]
+    WEB["Website :3000"]
+    CUST["Customer Portal :3004"]
+    MERCH["Merchant Portal :3001"]
+    ADMIN["Admin Portal :3002"]
+    DRIVER["Driver Portal :3003"]
+    MOBILE["Mobile Driver (Expo)"]
+  end
+
+  subgraph API["Porterchain API (FastAPI :8001)"]
+  direction TB
+    ROUTERS["Routers / Controllers"]
+    BE["booking_engine"]
+    ME["merchant_engine"]
+    AE["admin_engine"]
+    FE["fleetbase_engine"]
+    DE["driver_engine"]
+    PE["pricing_engine"]
+    BLE["billing_engine"]
+    NE["notification_engine"]
+    ROUTERS --> BE & ME & AE & FE & DE & PE & BLE & NE
+  end
+
+  subgraph Data["Data & Messaging"]
+    PG[("PostgreSQL / SQLite")]
+    REDIS[("Redis")]
+    EB["Event Bus<br/>porterchain_event_bus"]
+    Q["Queues<br/>emails|sms|push|billing|webhooks|dispatch|reports"]
+  end
+
+  subgraph Worker["apps/worker"]
+    WP["Queue + Event Consumers"]
+  end
+
+  subgraph Adapters["Integration Adapters"]
+    FBA["fleetbase-adapter<br/>porterchain_fleetbase_adapter"]
+    STRIPE["Stripe SDK<br/>services/stripe_service"]
+    MAPS["MapsService<br/>OSRM / Valhalla"]
+    GMAPS["@porterchain/maps<br/>Google Maps (viz)"]
+  end
+
+  subgraph External["External Systems"]
+    FB["Fleetbase :8000"]
+    CLERK["Clerk Auth"]
+    STRIPE_EXT["Stripe"]
+    OSRM["OSRM"]
+    VAL["Valhalla :8002"]
+    GAPI["Google Maps API"]
+    FIREBASE["Firebase (push)"]
+  end
+
+  WEB & CUST & MERCH & ADMIN & DRIVER & MOBILE -->|"HTTPS /v1/*"| ROUTERS
+  ADMIN -->|"WS live-map/ws"| ROUTERS
+  BE & ME & AE & FE & DE --> PG
+  BE & ME & AE --> EB
+  EB --> REDIS
+  EB --> WP
+  WP --> Q
+  Q --> WP
+  WP --> NE & BLE
+  FE & DE --> FBA
+  FBA --> FB
+  BE --> STRIPE
+  STRIPE --> STRIPE_EXT
+  BE & PE --> MAPS
+  MAPS --> OSRM & VAL
+  WEB & MERCH & ADMIN --> GMAPS
+  GMAPS --> GAPI
+  WEB & CUST & MERCH & ADMIN & DRIVER --> CLERK
+  NE --> FIREBASE

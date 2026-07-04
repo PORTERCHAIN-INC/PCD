@@ -57,6 +57,10 @@ class FleetbaseAdapter:
     def sync_order(self, order: dict[str, Any]) -> str | None:
         return self.orders.create_or_update(order)
 
+    def cancel_order(self, fleetbase_order_id: str) -> bool:
+        """Cancel an operational order in Fleetbase (execution layer only)."""
+        return self.orders.cancel(fleetbase_order_id)
+
     # --- Driver sync ---
 
     def sync_driver(self, driver: dict[str, Any]) -> str | None:
@@ -80,6 +84,15 @@ class FleetbaseAdapter:
 
     def sync_dispatch(self, fleetbase_order_id: str, *, driver_id: str | None = None) -> dict[str, Any] | None:
         return self.dispatch.dispatch(fleetbase_order_id, driver_id=driver_id)
+
+    def start_order_execution(self, fleetbase_order_id: str) -> dict[str, Any] | None:
+        return self.dispatch.start(fleetbase_order_id)
+
+    def complete_order_execution(self, fleetbase_order_id: str) -> dict[str, Any] | None:
+        return self.dispatch.complete(fleetbase_order_id)
+
+    def update_order_status(self, fleetbase_order_id: str, status: str) -> bool:
+        return self.orders.update_status(fleetbase_order_id, status)
 
     # --- Status sync (from webhook) ---
 

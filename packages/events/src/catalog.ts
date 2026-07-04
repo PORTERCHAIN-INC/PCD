@@ -25,6 +25,7 @@ export const DomainEvents = {
   MERCHANT_BILLED: "merchant.billed",
 
   // Payment
+  PAYMENT_STARTED: "payment.started",
   PAYMENT_SUCCEEDED: "payment.succeeded",
   PAYMENT_FAILED: "payment.failed",
 
@@ -44,6 +45,9 @@ export const DomainEvents = {
   ORDER_CLOSED: "order.closed",
   ORDER_CANCELLED: "order.cancelled",
   DRIVER_REJECTED: "order.driver_rejected",
+  ORDER_NEAR_DELIVERY: "order.near_delivery",
+  ORDER_LOCATION_UPDATED: "order.tracking_updated",
+  ROUTE_OPTIMIZED: "route.optimized",
 
   // Financial
   REFUND_REQUESTED: "refund.requested",
@@ -53,6 +57,12 @@ export const DomainEvents = {
   // Claims
   CLAIM_OPENED: "claim.opened",
   CLAIM_RESOLVED: "claim.resolved",
+
+  // Support
+  SUPPORT_TICKET_CREATED: "support.ticket_created",
+
+  // Booking draft
+  BOOKING_DRAFT_CREATED: "booking_draft.draft_created",
 
   // Notifications & webhooks
   NOTIFICATION_QUEUED: "notification.queued",
@@ -77,10 +87,23 @@ export const EventAliases: Record<string, DomainEventName> = {
   QuoteCreated: DomainEvents.QUOTE_CREATED,
   QuoteAccepted: DomainEvents.QUOTE_ACCEPTED,
   CustomerRegistered: DomainEvents.CUSTOMER_REGISTERED,
+  CustomerAuthenticated: DomainEvents.CUSTOMER_AUTHENTICATED,
+  PaymentStarted: DomainEvents.PAYMENT_STARTED,
   MerchantApproved: DomainEvents.MERCHANT_APPROVED,
   PaymentSucceeded: DomainEvents.PAYMENT_SUCCEEDED,
   BookingConfirmed: DomainEvents.BOOKING_CONFIRMED,
   OrderCreated: DomainEvents.ORDER_CREATED,
+  FleetbaseOrderCreated: DomainEvents.FLEETBASE_ORDER_CREATED,
+  BookingDraftCreated: DomainEvents.BOOKING_DRAFT_CREATED,
+  SupportTicketCreated: DomainEvents.SUPPORT_TICKET_CREATED,
+  PickupStarted: DomainEvents.DRIVER_ARRIVED_PICKUP,
+  PickedUp: DomainEvents.PARCEL_PICKED_UP,
+  Delivered: DomainEvents.PARCEL_DELIVERED,
+  PODCompleted: DomainEvents.PROOF_COMPLETED,
+  NearDelivery: DomainEvents.ORDER_NEAR_DELIVERY,
+  LocationUpdated: DomainEvents.ORDER_LOCATION_UPDATED,
+  RouteOptimized: DomainEvents.ROUTE_OPTIMIZED,
+  FleetbaseSync: DomainEvents.FLEETBASE_STATUS_UPDATED,
   DispatchRequested: DomainEvents.DISPATCH_REQUESTED,
   DriverAssigned: DomainEvents.DRIVER_ASSIGNED,
   DriverAccepted: DomainEvents.DRIVER_ACCEPTED,

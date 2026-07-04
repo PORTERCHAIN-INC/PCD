@@ -8,46 +8,84 @@ This service reads the Porterchain order mirror; it never calls Fleetbase.
 
 from __future__ import annotations
 
+from collections import deque
 from datetime import UTC, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import Claim, Driver, SupportTicket, Vehicle
+from porterchain_api.booking_engine.order_transitions import transition_order_state
+from porterchain_api.domain.states import ORDER_TRANSITIONS, OrderState
 from porterchain_api.models import DomainEvent, Order, OrderException
 
-# Operational order states.
-WAITING = ("DISPATCH_READY",)
-PICKUP_LEG = ("DRIVER_ASSIGNED", "DRIVER_ACCEPTED", "DRIVER_EN_ROUTE", "AT_PICKUP")
-DELIVERY_LEG = ("PICKED_UP", "IN_TRANSIT", "AT_DESTINATION")
-IN_FLIGHT = PICKUP_LEG + DELIVERY_LEG
-FAILED_STATES = ("FAILED", "RETURN_TO_SENDER", "LOST", "DAMAGED")
-DONE_STATES = ("DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED")
-
-# Board column → order states.
-BOARD_COLUMNS: list[tuple[str, tuple[str, ...]]] = [
-    ("waiting_dispatch", ("BOOKED", "DISPATCH_READY")),
-    ("assigned", ("DRIVER_ASSIGNED",)),
-    ("accepted", ("DRIVER_ACCEPTED",)),
-    ("heading_to_pickup", ("DRIVER_EN_ROUTE",)),
-    ("at_pickup", ("AT_PICKUP",)),
-    ("picked_up", ("PICKED_UP",)),
-    ("in_transit", ("IN_TRANSIT",)),
-    ("near_delivery", ("AT_DESTINATION",)),
-    ("delivered", ("DELIVERED", "POD_COMPLETED")),
-    ("failed", ("FAILED",)),
-    ("returned", ("RETURN_TO_SENDER",)),
-    ("lost", ("LOST",)),
-    ("damaged", ("DAMAGED",)),
-]
-
-HIGH_PRIORITY_CENTS = 20000
+from porterchain_api.order_engine.buckets import (
+    BOARD_COLUMNS,
+    DELIVERY_LEG,
+    DELIVERY_ONLY_POOL,
+    DISPATCH_POOL,
+    DONE_STATES,
+    FAILED_STATES,
+    HIGH_PRIORITY_CENTS,
+    IN_FLIGHT,
+    PICKUP_LEG,
+    WAITING,
+)
 CARD_CAP = 60
+
+# Canonical order state when an order is dropped on a board column.
+BOARD_COLUMN_TARGET: dict[str, str] = {
+    "waiting_dispatch": "DISPATCH_READY",
+    "assigned": "DRIVER_ASSIGNED",
+    "accepted": "DRIVER_ACCEPTED",
+    "heading_to_pickup": "DRIVER_EN_ROUTE",
+    "at_pickup": "AT_PICKUP",
+    "picked_up": "PICKED_UP",
+    "in_transit": "IN_TRANSIT",
+    "near_delivery": "AT_DESTINATION",
+    "delivered": "DELIVERED",
+    "failed": "FAILED",
+    "returned": "RETURN_TO_SENDER",
+    "lost": "LOST",
+    "damaged": "DAMAGED",
+}
+
+
+def _column_for_state(state: str) -> str | None:
+    for key, states in BOARD_COLUMNS:
+        if state in states:
+            return key
+    return None
+
+
+def _transition_path(from_state: OrderState, to_state: OrderState) -> list[OrderState] | None:
+    if from_state == to_state:
+        return []
+    queue: deque[tuple[OrderState, list[OrderState]]] = deque([(from_state, [])])
+    visited = {from_state}
+    while queue:
+        current, steps = queue.popleft()
+        for nxt in ORDER_TRANSITIONS.get(current, set()):
+            if nxt == to_state:
+                return steps + [nxt]
+            if nxt not in visited:
+                visited.add(nxt)
+                queue.append((nxt, steps + [nxt]))
+    return None
 
 
 def _now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
+
+
+def _has_coords(addr: dict | None) -> bool:
+    if not addr:
+        return False
+    lat = addr.get("lat") or addr.get("latitude")
+    lng = addr.get("lng") or addr.get("lon") or addr.get("longitude")
+    return lat is not None and lng is not None
 
 
 class ControlTowerService:
@@ -120,6 +158,11 @@ class ControlTowerService:
         return "ok"
 
     def _order_card(self, o: Order, merchants: dict, drivers: dict, now: datetime) -> dict:
+        pickup = o.pickup or {}
+        dropoff = o.dropoff or {}
+        has_pickup = _has_coords(pickup)
+        has_dropoff = _has_coords(dropoff)
+        stop_phase = "delivery_only" if o.state in DELIVERY_ONLY_POOL else "full"
         return {
             "id": o.id,
             "order_number": o.order_number,
@@ -129,8 +172,11 @@ class ControlTowerService:
             "merchant": merchants.get(o.merchant_id) if o.merchant_id else None,
             "driver": drivers.get(o.assigned_driver_id) if o.assigned_driver_id else None,
             "driver_id": o.assigned_driver_id,
-            "pickup": (o.pickup or {}).get("formatted") or (o.pickup or {}).get("city"),
-            "dropoff": (o.dropoff or {}).get("formatted") or (o.dropoff or {}).get("city"),
+            "pickup": pickup.get("formatted") or pickup.get("city"),
+            "dropoff": dropoff.get("formatted") or dropoff.get("city"),
+            "has_pickup_coords": has_pickup,
+            "has_dropoff_coords": has_dropoff,
+            "stop_phase": stop_phase,
             "eta": o.scheduled_at.isoformat() if o.scheduled_at else None,
             "sla": self._sla_status(o, now),
             "high_priority": o.amount_cents >= HIGH_PRIORITY_CENTS,
@@ -160,6 +206,58 @@ class ControlTowerService:
             )
         return columns
 
+    def move_board_order(
+        self,
+        db: Session,
+        ctx: AdminContext,
+        order_id: str,
+        to_column: str,
+    ) -> dict:
+        """Advance order state by dragging on the dispatch board."""
+        target_state_str = BOARD_COLUMN_TARGET.get(to_column)
+        if not target_state_str:
+            raise ValueError("invalid_board_column")
+
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            raise LookupError("order_not_found")
+
+        if _column_for_state(order.state) == to_column:
+            now = _now()
+            return self._order_card(
+                order,
+                self._merchant_names(db),
+                self._driver_names(db),
+                now,
+            )
+
+        from_state = OrderState(order.state)
+        to_state = OrderState(target_state_str)
+        path = _transition_path(from_state, to_state)
+        if path is None:
+            raise ValueError("invalid_order_transition_path")
+
+        for step in path:
+            transition_order_state(
+                db,
+                order,
+                step,
+                event_type="order.dispatch_board_move",
+                actor_type="admin",
+                actor_id=ctx.user.id,
+                payload={"to_column": to_column, "target_state": step.value},
+            )
+
+        db.commit()
+        db.refresh(order)
+        now = _now()
+        return self._order_card(
+            order,
+            self._merchant_names(db),
+            self._driver_names(db),
+            now,
+        )
+
     def active_orders(self, db: Session, *, search: str | None = None, limit: int = 500) -> list[dict]:
         now = _now()
         merchants = self._merchant_names(db)
@@ -171,13 +269,21 @@ class ControlTowerService:
         rows = q.order_by(Order.scheduled_at.asc()).limit(limit).all()
         return [self._order_card(o, merchants, drivers, now) for o in rows]
 
-    def queue(self, db: Session, *, limit: int = 100) -> list[dict]:
+    def queue(self, db: Session, *, limit: int = 200) -> list[dict]:
+        return self.dispatch_pool(db, limit=limit)
+
+    def dispatch_pool(self, db: Session, *, limit: int = 200) -> list[dict]:
+        """Unassigned orders waiting for dispatch (waiting + retryable)."""
         now = _now()
         merchants = self._merchant_names(db)
         drivers = self._driver_names(db)
+        pool_states = DISPATCH_POOL + DELIVERY_ONLY_POOL
         rows = (
             db.query(Order)
-            .filter(Order.state.in_(WAITING))
+            .filter(
+                Order.assigned_driver_id.is_(None),
+                Order.state.in_(pool_states),
+            )
             .order_by(Order.scheduled_at.asc())
             .limit(limit)
             .all()

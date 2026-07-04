@@ -48,11 +48,52 @@ class OrderState(StrEnum):
     REFUNDED = "REFUNDED"
 
 
+class BookingDraftState(StrEnum):
+    DRAFT = "DRAFT"
+    QUOTE_GENERATED = "QUOTE_GENERATED"
+    CUSTOMER_IDENTIFIED = "CUSTOMER_IDENTIFIED"
+    AUTHENTICATED = "AUTHENTICATED"
+    PAYMENT_PENDING = "PAYMENT_PENDING"
+    PAYMENT_FAILED = "PAYMENT_FAILED"
+    PAYMENT_COMPLETED = "PAYMENT_COMPLETED"
+    BOOKING_CONFIRMED = "BOOKING_CONFIRMED"
+    EXPIRED = "EXPIRED"
+    CANCELLED = "CANCELLED"
+
+
 class PaymentTerms(StrEnum):
     IMMEDIATE = "IMMEDIATE"
+    NET_7 = "NET_7"
+    NET_14 = "NET_14"
     NET_15 = "NET_15"
     NET_30 = "NET_30"
     NET_45 = "NET_45"
+    CUSTOM = "CUSTOM"
+
+
+class OrderSource(StrEnum):
+    WEBSITE = "WEBSITE"
+    MERCHANT = "MERCHANT"
+    API = "API"
+    CSV = "CSV"
+    ADMIN = "ADMIN"
+    PHONE = "PHONE"
+    PARTNER = "PARTNER"
+
+
+class OrderType(StrEnum):
+    INSTANT = "INSTANT"
+    CONTRACT = "CONTRACT"
+    RECURRING = "RECURRING"
+    EXPRESS = "EXPRESS"
+    SCHEDULED = "SCHEDULED"
+
+
+class BillingCycle(StrEnum):
+    ON_DELIVERY = "ON_DELIVERY"
+    WEEKLY = "WEEKLY"
+    BIWEEKLY = "BIWEEKLY"
+    MONTHLY = "MONTHLY"
 
 
 class ExceptionType(StrEnum):
@@ -123,3 +164,62 @@ def can_transition_quote(from_state: QuoteState, to_state: QuoteState) -> bool:
     if from_state == to_state:
         return True
     return to_state in QUOTE_TRANSITIONS.get(from_state, set())
+
+
+BOOKING_DRAFT_TERMINAL: frozenset[BookingDraftState] = frozenset(
+    {BookingDraftState.BOOKING_CONFIRMED, BookingDraftState.CANCELLED}
+)
+
+BOOKING_DRAFT_TRANSITIONS: dict[BookingDraftState, set[BookingDraftState]] = {
+    BookingDraftState.DRAFT: {
+        BookingDraftState.QUOTE_GENERATED,
+        BookingDraftState.CANCELLED,
+        BookingDraftState.EXPIRED,
+    },
+    BookingDraftState.QUOTE_GENERATED: {
+        BookingDraftState.CUSTOMER_IDENTIFIED,
+        BookingDraftState.AUTHENTICATED,
+        BookingDraftState.PAYMENT_PENDING,
+        BookingDraftState.CANCELLED,
+        BookingDraftState.EXPIRED,
+    },
+    BookingDraftState.CUSTOMER_IDENTIFIED: {
+        BookingDraftState.AUTHENTICATED,
+        BookingDraftState.PAYMENT_PENDING,
+        BookingDraftState.CANCELLED,
+        BookingDraftState.EXPIRED,
+    },
+    BookingDraftState.AUTHENTICATED: {
+        BookingDraftState.PAYMENT_PENDING,
+        BookingDraftState.CANCELLED,
+        BookingDraftState.EXPIRED,
+    },
+    BookingDraftState.PAYMENT_PENDING: {
+        BookingDraftState.PAYMENT_FAILED,
+        BookingDraftState.PAYMENT_COMPLETED,
+        BookingDraftState.CANCELLED,
+        BookingDraftState.EXPIRED,
+    },
+    BookingDraftState.PAYMENT_FAILED: {
+        BookingDraftState.PAYMENT_PENDING,
+        BookingDraftState.CANCELLED,
+        BookingDraftState.EXPIRED,
+    },
+    BookingDraftState.PAYMENT_COMPLETED: {BookingDraftState.BOOKING_CONFIRMED},
+    BookingDraftState.EXPIRED: {
+        BookingDraftState.DRAFT,
+        BookingDraftState.QUOTE_GENERATED,
+        BookingDraftState.PAYMENT_PENDING,
+        BookingDraftState.PAYMENT_FAILED,
+        # Verified Stripe webhook may arrive after TTL — finalize payment (masterrule §14)
+        BookingDraftState.PAYMENT_COMPLETED,
+    },
+}
+
+
+def can_transition_booking_draft(from_state: BookingDraftState, to_state: BookingDraftState) -> bool:
+    if from_state == to_state:
+        return True
+    if from_state in BOOKING_DRAFT_TERMINAL:
+        return False
+    return to_state in BOOKING_DRAFT_TRANSITIONS.get(from_state, set())

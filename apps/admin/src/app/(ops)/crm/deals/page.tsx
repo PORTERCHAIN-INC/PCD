@@ -56,7 +56,7 @@ export default function DealsPage() {
       }),
     [search, cardType, minValue, version]
   );
-  const { data: companies } = useApiData((t) => crm.companies(t), []);
+  const { data: companies } = useApiData((t) => crm.companies(t), [], { key: "crm-companies" });
 
   const totals = useMemo(() => {
     const cols = board ?? [];

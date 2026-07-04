@@ -15,7 +15,7 @@
 | **Brand / short name** | Porterchain                                       |
 | **Tagline**            | Commercial logistics partner for local businesses |
 | **Website**            | https://porterchain.com                           |
-| **Primary email**      | peter@porterchain.com                             |
+| **Primary email**      | ravi@porterchain.com                             |
 | **Operations email**   | ops@porterchain.com                               |
 | **Phone**              | +1 (647) 619-7951                                 |
 | **WhatsApp**           | +1 (647) 619-7951                                 |
@@ -272,24 +272,23 @@ The following binding references exist today:
 
 | Data type                                     | Purpose                                         | Systems                                            |
 | --------------------------------------------- | ----------------------------------------------- | -------------------------------------------------- |
-| Name, email, phone                            | Account creation, booking OTP, shipment contact | Clerk, Supabase Auth, Porterchain API              |
+| Name, email, phone                            | Account creation, shipment contact              | Clerk, Porterchain API                             |
 | Company profile & tax/insurance details       | Merchant onboarding & compliance                | Porterchain API                                    |
 | Pickup/delivery addresses                     | Routing, dispatch, tracking                     | Porterchain API, Google Maps / OSRM / Valhalla     |
 | Shipment details (weight, dimensions, photos) | Quoting, capacity matching, POD                 | Porterchain API                                    |
 | Payment information                           | Invoicing and checkout                          | Stripe (card data handled by Stripe)               |
 | Location/GPS                                  | Proof of delivery, driver tracking              | Porterchain API, Fleetbase                         |
 | Chat messages                                 | Customer support                                | Zoho SalesIQ                                       |
-| Auth session cookies                          | Login state                                     | Clerk, Supabase, Fleetbase session (control tower) |
+| Auth session cookies                          | Login state                                     | Clerk, Fleetbase session (control tower)           |
 
 ### Authentication providers
 
-- **Clerk** — merchant and driver identity (JWT)
-- **Supabase** — website booking OTP (email for business, SMS for personal via Twilio)
+- **Clerk** — sole identity provider (website, merchant, admin, driver)
 - **Stripe** — payment processing
 
 ### Contact for privacy inquiries
 
-**Email:** peter@porterchain.com  
+**Email:** ravi@porterchain.com  
 **Operations:** ops@porterchain.com
 
 **Recommended next step:** Publish a Privacy Policy at `/privacy` compliant with PIPEDA (Canada) covering collection, use, retention, third-party processors, and user rights.
@@ -305,15 +304,13 @@ The following binding references exist today:
 | Service          | Purpose                                  | Domain / provider       |
 | ---------------- | ---------------------------------------- | ----------------------- |
 | **Zoho SalesIQ** | Live chat widget                         | `salesiq.zohopublic.ca` |
-| **Clerk**        | Authentication (merchant/driver sign-in) | Clerk hosted            |
-| **Supabase**     | Booking OTP auth                         | `*.supabase.co`         |
+| **Clerk**        | Authentication (all Porterchain portals) | Clerk hosted            |
 | **Google Maps**  | Address autocomplete, maps               | `maps.googleapis.com`   |
 | **Stripe**       | Payment checkout (tracking/retail pay)   | `stripe.com`            |
 
 ### Cookies likely set
 
 - **Clerk** — session and authentication cookies
-- **Supabase** — auth session cookies (server-side cookie handling in Next.js)
 - **Zoho SalesIQ** — chat session and analytics cookies
 - **Stripe** — payment session cookies during checkout
 

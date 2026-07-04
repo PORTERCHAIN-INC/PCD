@@ -1,85 +1,126 @@
 "use client";
 
+import { LiveTrackingView } from "@/components/tracking/LiveTrackingView";
+import { TrackingDashboardPanel } from "@/components/tracking/TrackingDashboardPanel";
 import Button from "@/components/ui/Button";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
-import { trackOrder } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
+import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
+import { isGoogleMapsConfigured } from "@/lib/env";
+import { trackingApi, type LiveTracking, type TrackingDashboard } from "@/lib/tracking";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+const POLL_MS = 10_000;
 
 export default function TrackPage() {
   const searchParams = useSearchParams();
   const initial = searchParams.get("q") || "";
-  const { getApiToken, orgId, isSignedIn } = useMerchantAuth();
-  const [tracking, setTracking] = useState(initial);
-  const [result, setResult] = useState<Awaited<ReturnType<typeof trackOrder>> | null>(null);
+  const { getApiToken, orgId, isLoaded, isSignedIn } = useMerchantAuth();
+  const [query, setQuery] = useState(initial);
+  const [live, setLive] = useState<LiveTracking | null>(null);
+  const [dashboard, setDashboard] = useState<TrackingDashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  async function onTrack(e?: React.FormEvent) {
-    e?.preventDefault();
-    if (!tracking || !isSignedIn) return;
-    setLoading(true);
-    setError(null);
+  const refreshDashboard = useCallback(async () => {
+    if (!isSignedIn) return;
     try {
       const token = await getApiToken();
-      const data = await trackOrder(token, tracking.trim(), orgId);
-      setResult(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Not found");
-      setResult(null);
-    } finally {
-      setLoading(false);
+      const data = await trackingApi.dashboard(token, orgId);
+      setDashboard(data);
+    } catch {
+      /* dashboard optional */
     }
-  }
+  }, [getApiToken, isSignedIn, orgId]);
+
+  const trackNumber = useCallback(
+    async (number: string, silent = false) => {
+      if (!number.trim() || !isSignedIn) return;
+      if (!silent) setLoading(true);
+      else setRefreshing(true);
+      setError(null);
+      try {
+        const token = await getApiToken();
+        const data = await trackingApi.byTrackingNumber(token, number.trim(), orgId);
+        setLive(data.live_tracking);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Not found");
+        setLive(null);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [getApiToken, isSignedIn, orgId]
+  );
+
+  const refresh = useCallback(async () => {
+    await Promise.all([
+      refreshDashboard(),
+      query.trim() ? trackNumber(query.trim(), true) : Promise.resolve(),
+    ]);
+  }, [query, refreshDashboard, trackNumber]);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+    void refreshDashboard();
+  }, [isLoaded, isSignedIn, refreshDashboard]);
 
   useEffect(() => {
     if (!initial || !isSignedIn) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- auto-track from query param
-    void onTrack();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initial, isSignedIn]);
+    void trackNumber(initial);
+  }, [initial, isSignedIn, trackNumber]);
+
+  useEffect(() => {
+    if (!isSignedIn || !live) return;
+    const timer = setInterval(() => void trackNumber(query.trim() || live.tracking_number, true), POLL_MS);
+    return () => clearInterval(timer);
+  }, [isSignedIn, live, query, trackNumber]);
+
+  useMerchantRealtime(isLoaded && isSignedIn, orgId, getApiToken, refresh);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await trackNumber(query);
+  }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold text-primary">Track Shipment</h1>
-      <form onSubmit={onTrack} className="flex gap-3">
+    <div className="mx-auto max-w-6xl space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-primary">Live Tracking</h1>
+        <p className="text-sm text-muted">
+          Fleetbase GPS · OSRM ETA · Valhalla routes · Google Maps display only
+        </p>
+      </div>
+
+      <form onSubmit={onSubmit} className="flex gap-3">
         <input
           className="flex-1 rounded-xl border border-primary/15 px-3 py-2 text-sm"
           placeholder="Tracking number"
-          value={tracking}
-          onChange={(e) => setTracking(e.target.value)}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
         />
         <Button type="submit" disabled={loading}>
-          Track
+          {loading ? "Tracking…" : "Track"}
         </Button>
       </form>
+
       {error && <p className="text-sm text-red-600">{error}</p>}
-      {result && (
-        <div className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6">
-          <div>
-            <p className="font-mono text-lg font-bold">{result.order.tracking_number}</p>
-            <p className="text-sm text-muted">
-              {result.order.state} · Scheduled {formatDate(result.order.scheduled_at)}
-            </p>
-          </div>
-          <div className="text-sm">
-            <p>{result.order.pickup?.formatted}</p>
-            <p className="text-muted">↓</p>
-            <p>{result.order.dropoff?.formatted}</p>
-          </div>
-          <div>
-            <h2 className="font-semibold">Timeline</h2>
-            <ol className="mt-3 space-y-2">
-              {result.timeline.map((ev, i) => (
-                <li key={i} className="text-sm">
-                  {String(ev.event_type)} {ev.to_state ? `(${String(ev.to_state)})` : ""}
-                  <span className="ml-2 text-xs text-muted">{String(ev.occurred_at || "")}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
+
+      {!isGoogleMapsConfigured() && (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+          Configure NEXT_PUBLIC_GOOGLE_MAPS_API_KEY for map rendering.
+        </p>
+      )}
+
+      {live && <LiveTrackingView tracking={live} onRefresh={refresh} refreshing={refreshing} />}
+
+      {!live && dashboard && (
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-primary">Active deliveries</h2>
+          <TrackingDashboardPanel dashboard={dashboard} />
+        </section>
       )}
     </div>
   );

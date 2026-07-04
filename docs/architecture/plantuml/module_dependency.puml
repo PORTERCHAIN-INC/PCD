@@ -1,0 +1,33 @@
+@startuml module_dependency
+!theme plain
+package "Frontends" { [website] [admin] [merchant-portal] [driver-portal] [customer] }
+package "porterchain_api" {
+  [routers]
+  [booking_engine]
+  [merchant_engine]
+  [admin_engine]
+  [fleetbase_engine]
+  [driver_engine]
+  [pricing_engine]
+  [billing_engine]
+  [notification_engine]
+}
+package "services" {
+  [fleetbase-adapter]
+  [event-bus]
+  [pricing-engine]
+  [driver-platform]
+  [porterchain_services]
+}
+package "shared" { [porterchain_shared] }
+package "packages" { [@porterchain/maps] [@porterchain/auth] }
+
+[website] --> [routers]
+[routers] --> [booking_engine]
+[booking_engine] --> [pricing_engine]
+[booking_engine] --> [fleetbase_engine]
+[fleetbase_engine] --> [fleetbase-adapter]
+[pricing_engine] --> [pricing-engine]
+[booking_engine] --> [event-bus]
+[event-bus] --> [porterchain_shared]
+@enduml

@@ -28,7 +28,7 @@ export default function ContactsPage() {
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
   const { data, error } = useApiData((t) => crm.contacts(t), [version]);
-  const { data: companies } = useApiData((t) => crm.companies(t), []);
+  const { data: companies } = useApiData((t) => crm.companies(t), [], { key: "crm-companies" });
 
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<Partial<Contact>>(blank());

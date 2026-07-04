@@ -1,0 +1,21 @@
+@startuml google_maps_flow
+!theme plain
+package "@porterchain/maps" {
+  [GoogleMapsProvider]
+  [AddressAutocomplete]
+}
+actor website
+actor merchant
+actor admin
+cloud "Google Maps JS API" as GMAPS
+node "website /api/quote" as PREVIEW
+cloud "Google Geocode API" as GEO
+
+website --> [GoogleMapsProvider]
+merchant --> [GoogleMapsProvider]
+admin --> [GoogleMapsProvider]
+[GoogleMapsProvider] --> GMAPS
+website --> PREVIEW
+PREVIEW --> GEO
+note right of GMAPS : Visualization + autocomplete only\nNOT routing/pricing
+@enduml

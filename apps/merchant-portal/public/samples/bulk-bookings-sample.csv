@@ -1,0 +1,4 @@
+pickup,dropoff,scheduled_at,internal_reference,purchase_order_number,cost_centre,pickup_lat,pickup_lng,dropoff_lat,dropoff_lng,recipient_id,vehicle_class,package_type,weight_kg
+"123 Main St, Toronto ON M5V 1A1","456 Queen St W, Toronto ON M5V 2A9",2026-07-05T09:00:00,REF-001,PO-1001,WAREHOUSE-A,43.6486,-79.3854,43.6479,-79.3922,,cargoVan,looseParcel,12.5
+"789 King St W, Toronto ON M5V 1N4","100 Front St W, Toronto ON M5J 1E3",2026-07-05T14:30:00,REF-002,PO-1002,SALES-EAST,,,,,cargoVan,looseParcel,5
+"50 Bay St, Toronto ON M5J 2L2","200 Bay St, Toronto ON M5J 2J2",2026-07-06T10:00:00,REF-003,PO-1003,,,,,,cargoVan,looseParcel,8

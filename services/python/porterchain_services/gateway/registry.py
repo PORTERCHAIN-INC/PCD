@@ -7,7 +7,6 @@ if TYPE_CHECKING:
     from porterchain_services.customer.service import CustomerService
     from porterchain_services.dispatch.service import DispatchService
     from porterchain_services.driver.service import DriverService
-    from porterchain_services.fleetbase.service import FleetbaseService
     from porterchain_services.maps.service import MapsService
     from porterchain_services.merchant.service import MerchantService
     from porterchain_services.notifications.service import NotificationService
@@ -20,7 +19,6 @@ class ServiceRegistry:
     """Lazy-loaded service container — used by API gateway and workers."""
 
     def __init__(self) -> None:
-        self._fleetbase: FleetbaseService | None = None
         self._stripe: StripeService | None = None
         self._maps: MapsService | None = None
         self._notifications: NotificationService | None = None
@@ -30,14 +28,6 @@ class ServiceRegistry:
         self._dispatch: DispatchService | None = None
         self._customer: CustomerService | None = None
         self._visitor: VisitorService | None = None
-
-    @property
-    def fleetbase(self) -> "FleetbaseService":
-        if self._fleetbase is None:
-            from porterchain_services.fleetbase.service import FleetbaseService
-
-            self._fleetbase = FleetbaseService()
-        return self._fleetbase
 
     @property
     def stripe(self) -> "StripeService":
@@ -112,9 +102,14 @@ class ServiceRegistry:
         return self._visitor
 
     def health(self) -> dict[str, str]:
+        import os
+
+        bridge_on = os.getenv("FLEETBASE_DISPATCH_BRIDGE", "true").lower() not in ("0", "false", "no")
+        has_key = bool(os.getenv("FLEETBASE_API_KEY", "").strip())
+        fleetbase_status = "configured" if bridge_on and has_key else "disabled"
         return {
             "gateway": "ok",
-            "fleetbase": "configured" if self.fleetbase.is_configured else "disabled",
+            "fleetbase": fleetbase_status,
             "stripe": "configured" if self.stripe.is_configured else "mock",
             "maps": self.maps.engine,
             "notifications": "ready",

@@ -1,0 +1,23 @@
+@startuml fleetbase_flow
+!theme plain
+package "fleetbase_engine" {
+  [BookingSyncService]
+  [WebhookProcessor]
+  [FleetbaseIntegrationBridge]
+}
+package "fleetbase-adapter" {
+  [FleetbaseAdapter]
+  [OrderService]
+  [DispatchService]
+  [TrackingService]
+  [PodService]
+}
+cloud "Fleetbase :8000" as FB
+
+[BookingSyncService] --> [FleetbaseIntegrationBridge]
+[FleetbaseIntegrationBridge] --> [FleetbaseAdapter]
+[FleetbaseAdapter] --> [OrderService]
+[OrderService] --> FB
+[WebhookProcessor] --> [TrackingService]
+[TrackingService] --> FB
+@enduml

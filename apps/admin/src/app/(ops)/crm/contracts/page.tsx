@@ -17,7 +17,7 @@ export default function ContractsPage() {
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
   const { data, error } = useApiData((t) => crm.contracts(t), [version]);
-  const { data: companies } = useApiData((t) => crm.companies(t), []);
+  const { data: companies } = useApiData((t) => crm.companies(t), [], { key: "crm-companies" });
 
   const [creating, setCreating] = useState(false);
   const [companyId, setCompanyId] = useState("");

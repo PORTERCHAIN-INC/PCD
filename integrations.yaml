@@ -19,12 +19,6 @@ integrations:
       - NEXT_PUBLIC_PORTERCHAIN_API_URL
     default_port: 8001
 
-  supabase_booking_otp:
-    status: planned
-    env:
-      - NEXT_PUBLIC_SUPABASE_URL
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY
-
   fleetbase:
     status: external
     env_template: env/fleetbase.env.example
@@ -40,6 +34,7 @@ integrations:
   clerk:
     status: external
     env_template: env/merchant-portal.env.example
+    note: Sole authentication provider for Porterchain users
 
   valhalla:
     status: docker
@@ -49,10 +44,6 @@ integrations:
   osrm:
     status: fallback
     env: OSRM_HOST
-
-  twilio:
-    status: external
-    env_template: env/api.env.example
 
   firebase_fcm:
     status: external

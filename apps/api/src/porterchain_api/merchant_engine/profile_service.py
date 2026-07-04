@@ -20,6 +20,7 @@ class MerchantProfileService:
         merchant = ctx.merchant
         for field in (
             "company_name",
+            "legal_name",
             "phone",
             "billing_address",
             "hst_number",
@@ -73,6 +74,17 @@ class MerchantProfileService:
         db.commit()
         db.refresh(record)
         return record
+
+    def delete_saved_address(self, db: Session, ctx: MerchantContext, address_id: str) -> None:
+        record = (
+            db.query(SavedAddress)
+            .filter(SavedAddress.id == address_id, SavedAddress.merchant_id == ctx.merchant.id)
+            .first()
+        )
+        if not record:
+            raise LookupError("address_not_found")
+        db.delete(record)
+        db.commit()
 
     def list_recipients(self, db: Session, ctx: MerchantContext) -> list[MerchantRecipient]:
         return (

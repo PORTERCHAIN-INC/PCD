@@ -1,0 +1,37 @@
+flowchart TB
+  subgraph Porterchain["Porterchain API"]
+    FBE[fleetbase_engine]
+    FIB[FleetbaseIntegrationBridge]
+    BSS[BookingSyncService]
+    WIS[WebhookIngressService]
+    WP[WebhookProcessor]
+    DE[DriverFleetbaseBridge]
+    SSO[SsoService]
+  end
+
+  subgraph Adapter["fleetbase-adapter<br/>FleetbaseAdapter"]
+    ORD[OrderService]
+    DRV[DriverService]
+    DISP[DispatchService]
+    TRK[TrackingService]
+    POD[PodService]
+    WH[WebhookService]
+    SSO_C[FleetbaseSsoClient]
+    CLI[FleetbaseClient]
+  end
+
+  subgraph FB["Fleetbase :8000"]
+    FB_ORD[Orders API]
+    FB_DISP[Dispatch]
+    FB_GPS[GPS / Tracking]
+    FB_POD[POD]
+    FB_CONSOLE[Console :4200]
+  end
+
+  BSS --> FIB --> Adapter
+  DE --> FIB
+  SSO --> SSO_C
+  WIS --> WH
+  WP --> TRK & POD
+  ORD & DRV & DISP & TRK & POD --> CLI --> FB_ORD & FB_DISP & FB_GPS & FB_POD
+  SSO_C --> FB_CONSOLE

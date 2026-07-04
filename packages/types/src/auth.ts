@@ -1,17 +1,30 @@
+export type EnterpriseRole =
+  | "customer"
+  | "merchant"
+  | "merchant_admin"
+  | "driver"
+  | "dispatcher"
+  | "finance"
+  | "support"
+  | "operations"
+  | "admin"
+  | "super_admin";
+
 export type PlatformRole =
+  | "visitor"
+  | EnterpriseRole
+  | "sales"
+  | "fleet_manager";
+
+export type UserType =
   | "visitor"
   | "customer"
   | "merchant"
   | "driver"
+  | "admin"
   | "dispatcher"
   | "support"
-  | "sales"
-  | "fleet_manager"
-  | "admin"
-  | "super_admin";
-
-export type UserType =
-  "visitor" | "customer" | "merchant" | "driver" | "admin" | "dispatcher" | "support" | "sales";
+  | "sales";
 
 export type Permission =
   | "quote:read"
@@ -31,6 +44,7 @@ export interface AuthPrincipal {
   userId: string;
   userType: UserType;
   roles: PlatformRole[];
+  enterpriseRole?: EnterpriseRole;
   orgId?: string;
   email?: string;
   sessionId?: string;

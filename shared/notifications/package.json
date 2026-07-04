@@ -1,0 +1,32 @@
+{
+  "name": "@porterchain/mobile-notifications",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "@porterchain/mobile-hooks": "*",
+    "@porterchain/mobile-performance": "*",
+    "@porterchain/mobile-theme": "*",
+    "@porterchain/mobile-ui": "*",
+    "@react-native-firebase/messaging": ">=21.0.0",
+    "@tanstack/react-query": ">=5.0.0",
+    "expo-notifications": ">=0.29.0",
+    "react": ">=18.0.0",
+    "react-native": ">=0.76.0"
+  },
+  "devDependencies": {
+    "@porterchain/mobile-hooks": "workspace:*",
+    "@porterchain/mobile-performance": "workspace:*",
+    "@porterchain/mobile-theme": "workspace:*",
+    "@porterchain/mobile-ui": "workspace:*",
+    "@tanstack/react-query": "^5.90.2",
+    "@types/react": "~18.3.12",
+    "react": "18.3.1",
+    "react-native": "0.76.3",
+    "typescript": "^5.9.0"
+  }
+}

@@ -1,0 +1,17 @@
+flowchart LR
+  ADMIN[Admin Portal<br/>/reports pages] --> API["GET /v1/admin/reports/*"]
+  API --> ARS[AdminReportsService]
+  ARS --> OS[AdminOrdersService.reports]
+  ARS --> FS[AdminFinanceService.reports]
+  ARS --> CS[AdminClaimsService.reports]
+  ARS --> SS[AdminSupportService.reports]
+  ARS --> PS[AdminPricingService.reports]
+  ARS --> CRM[CrmSalesService.reports]
+  OS & FS & CS & SS & PS & CRM --> DB[(SQLAlchemy queries)]
+  ARS --> RESP[Aggregated JSON response]
+  MERCH[Merchant Portal] --> MRS["GET /v1/merchant/reports/summary"]
+  MRS --> MerchantReportsService --> DB
+  subgraph Async["Async Reports Queue"]
+    RQ[reports queue]
+    WP[worker: log only stub]
+  end

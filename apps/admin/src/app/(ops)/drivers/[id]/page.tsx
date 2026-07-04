@@ -28,6 +28,7 @@ import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { drivers, type DriverDetail } from "@/lib/drivers";
+import { AddDriverDocumentForm } from "@/components/drivers/AddDriverDocumentForm";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
 import { Badge, Button, SectionCard, Spinner } from "@/components/crm/primitives";
@@ -88,7 +89,9 @@ export default function DriverDetailPage() {
   const [tab, setTab] = useState<TabId>("overview");
   const [busy, setBusy] = useState(false);
 
-  const { data: d, error } = useApiData((t) => drivers.detail(t, id), [id, version]);
+  const { data: d, error } = useApiData((t) => drivers.detail(t, id), [id, version], {
+    key: `driver-detail-${id}`,
+  });
   const refresh = () => setVersion((v) => v + 1);
 
   async function lifecycle(action: "approve" | "suspend") {
@@ -209,7 +212,7 @@ export default function DriverDetailPage() {
       <div>
         {tab === "overview" && <OverviewTab d={d} onGoto={setTab} />}
         {tab === "identity" && <IdentityTab d={d} />}
-        {tab === "documents" && <DocumentsTab id={id} />}
+        {tab === "documents" && <DocumentsTab id={id} driver={d} onChanged={refresh} />}
         {tab === "vehicles" && <VehiclesTab id={id} />}
         {tab === "orders" && <OrdersTab id={id} />}
         {tab === "performance" && <PerformanceTab d={d} />}
@@ -411,39 +414,115 @@ function IdentityTab({ d }: { d: DriverDetail }) {
   );
 }
 
-function DocumentsTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.documents(t, id), [id]);
-  if (!data) return <Spinner />;
-  const v = data.verification;
+function DocumentsTab({
+  id,
+  driver,
+  onChanged,
+}: {
+  id: string;
+  driver: DriverDetail;
+  onChanged: () => void;
+}) {
+  const [docVersion, setDocVersion] = useState(0);
+  const { data, error } = useApiData((t) => drivers.documents(t, id), [id, docVersion], {
+    key: `driver-documents-${id}`,
+  });
+  if (!data && !error) return <Spinner />;
+  const v = data?.verification ?? {
+    license_verified: driver.license_verified,
+    insurance_verified: driver.insurance_verified,
+    vehicle_verified: driver.vehicle_verified,
+    background_check_status: driver.background_check_status,
+  };
+  const files = data?.files ?? [];
+  const expiries = data?.expiries ?? [];
+  const refreshDocs = () => {
+    setDocVersion((n) => n + 1);
+    onChanged();
+  };
   return (
-    <div className="grid gap-5 md:grid-cols-2">
-      <SectionCard title="Verification">
-        <div className="space-y-2 p-5">
-          <VerifyRow label="Driver license" ok={v.license_verified} />
-          <VerifyRow label="Insurance" ok={v.insurance_verified} />
-          <VerifyRow label="Vehicle ownership / registration" ok={v.vehicle_verified} />
-          <div className="flex items-center justify-between py-1.5">
-            <span className="text-sm text-primary">Background check</span>
-            <Badge tone={v.background_check_status === "passed" ? "green" : "amber"}>
-              {titleCase(v.background_check_status)}
-            </Badge>
+    <div className="space-y-5">
+      {error && (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+          Could not load document metadata: {error}. Showing verification from driver profile.
+        </p>
+      )}
+      <div className="grid gap-5 md:grid-cols-2">
+        <SectionCard title="Verification">
+          <div className="space-y-2 p-5">
+            <VerifyRow label="Driver license" ok={v.license_verified} />
+            <VerifyRow label="Insurance" ok={v.insurance_verified} />
+            <VerifyRow label="Vehicle ownership / registration" ok={v.vehicle_verified} />
+            <div className="flex items-center justify-between py-1.5">
+              <span className="text-sm text-primary">Background check</span>
+              <Badge tone={v.background_check_status === "passed" ? "green" : "amber"}>
+                {titleCase(v.background_check_status || "pending")}
+              </Badge>
+            </div>
           </div>
-        </div>
-      </SectionCard>
-      <SectionCard title="Expiry reminders">
+        </SectionCard>
+        <SectionCard title="Expiry reminders">
+          <div className="divide-y divide-primary/5">
+            {expiries.map((e, i) => {
+              // eslint-disable-next-line react-hooks/purity -- relative "expiring soon" check needs the current time at render
+              const soon = new Date(e.expires_at) <= new Date(Date.now() + 30 * 86400000);
+              return (
+                <div key={i} className="flex items-center justify-between px-5 py-3">
+                  <span className="text-sm text-primary">{e.label}</span>
+                  <Badge tone={soon ? "red" : "slate"}>{shortDate(e.expires_at)}</Badge>
+                </div>
+              );
+            })}
+            {expiries.length === 0 && (
+              <p className="px-5 py-8 text-center text-sm text-muted">No tracked expiries.</p>
+            )}
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard
+        title={`Uploaded documents (${files.length})`}
+        action={<AddDriverDocumentForm driverId={id} onAdded={refreshDocs} />}
+      >
         <div className="divide-y divide-primary/5">
-          {data.expiries.map((e, i) => {
-            // eslint-disable-next-line react-hooks/purity -- relative "expiring soon" check needs the current time at render
-            const soon = new Date(e.expires_at) <= new Date(Date.now() + 30 * 86400000);
+          {files.map((file, i) => {
+            const f = file as Record<string, string | null | undefined>;
+            const label = (f.label as string) || titleCase(String(f.doc_type ?? "document"));
             return (
-              <div key={i} className="flex items-center justify-between px-5 py-3">
-                <span className="text-sm text-primary">{e.label}</span>
-                <Badge tone={soon ? "red" : "slate"}>{shortDate(e.expires_at)}</Badge>
+              <div key={String(f.id ?? i)} className="flex flex-wrap items-start justify-between gap-3 px-5 py-3">
+                <div>
+                  <p className="text-sm font-medium text-primary">{label}</p>
+                  <p className="text-xs text-muted">
+                    {titleCase(String(f.doc_type ?? ""))}
+                    {f.reference_number ? ` · Ref ${f.reference_number}` : ""}
+                  </p>
+                  {f.notes && <p className="mt-1 text-xs text-muted">{f.notes}</p>}
+                </div>
+                <div className="flex flex-col items-end gap-1 text-xs">
+                  {f.expires_at && (
+                    <Badge tone="slate">Expires {shortDate(String(f.expires_at))}</Badge>
+                  )}
+                  {f.file_url && (
+                    <a
+                      href={String(f.file_url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-secondary hover:underline"
+                    >
+                      View file
+                    </a>
+                  )}
+                  {f.uploaded_at && (
+                    <span className="text-muted">Added {shortDate(String(f.uploaded_at))}</span>
+                  )}
+                </div>
               </div>
             );
           })}
-          {data.expiries.length === 0 && (
-            <p className="px-5 py-8 text-center text-sm text-muted">No tracked expiries.</p>
+          {files.length === 0 && (
+            <p className="px-5 py-10 text-center text-sm text-muted">
+              No documents on file yet. Use Add document to attach license, insurance, or compliance records.
+            </p>
           )}
         </div>
       </SectionCard>
@@ -461,7 +540,7 @@ function VerifyRow({ label, ok }: { label: string; ok: boolean }) {
 }
 
 function VehiclesTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.vehicles(t, id), [id]);
+  const { data } = useApiData((t) => drivers.vehicles(t, id), [id], { key: `driver-vehicles-${id}` });
   return (
     <SectionCard title={`Vehicles (${data?.length ?? 0})`}>
       <div className="divide-y divide-primary/5">
@@ -491,7 +570,7 @@ function VehiclesTab({ id }: { id: string }) {
 }
 
 function OrdersTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.orders(t, id), [id]);
+  const { data } = useApiData((t) => drivers.orders(t, id), [id], { key: `driver-orders-${id}` });
   return (
     <SectionCard title={`Orders (${data?.length ?? 0})`}>
       <div className="overflow-x-auto">
@@ -574,18 +653,22 @@ function PerformanceTab({ d }: { d: DriverDetail }) {
 }
 
 function WalletTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.payouts(t, id), [id]);
-  if (!data) return <Spinner />;
+  const { data, error } = useApiData((t) => drivers.payouts(t, id), [id], { key: `driver-payouts-${id}` });
+  if (!data && !error) return <Spinner />;
+  const payouts = data?.payouts ?? [];
   return (
     <div className="space-y-5">
+      {error && (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
+      )}
       <div className="grid gap-3 sm:grid-cols-3">
-        <Metric label="Wallet balance" value={money(data.wallet_balance_cents)} />
-        <Metric label="Pending payouts" value={money(data.pending_cents)} />
-        <Metric label="Paid out" value={money(data.paid_cents)} />
+        <Metric label="Wallet balance" value={money(data?.wallet_balance_cents ?? 0)} />
+        <Metric label="Pending payouts" value={money(data?.pending_cents ?? 0)} />
+        <Metric label="Paid out" value={money(data?.paid_cents ?? 0)} />
       </div>
       <SectionCard title="Payout history">
         <div className="divide-y divide-primary/5">
-          {data.payouts.map((p) => (
+          {payouts.map((p) => (
             <div key={p.id} className="flex items-center justify-between px-5 py-3">
               <div>
                 <p className="text-sm font-medium text-primary">
@@ -599,7 +682,7 @@ function WalletTab({ id }: { id: string }) {
               <Badge tone={p.status === "paid" ? "green" : "amber"}>{titleCase(p.status)}</Badge>
             </div>
           ))}
-          {data.payouts.length === 0 && (
+          {payouts.length === 0 && (
             <p className="px-5 py-10 text-center text-sm text-muted">No payouts yet.</p>
           )}
         </div>
@@ -609,13 +692,19 @@ function WalletTab({ id }: { id: string }) {
 }
 
 function IncidentsTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.incidents(t, id), [id]);
-  if (!data) return <Spinner />;
+  const { data, error } = useApiData((t) => drivers.incidents(t, id), [id], { key: `driver-incidents-${id}` });
+  if (!data && !error) return <Spinner />;
+  const incidents = data?.incidents ?? [];
+  const claims = data?.claims ?? [];
   return (
-    <div className="grid gap-5 md:grid-cols-2">
-      <SectionCard title={`Incidents (${data.incidents.length})`}>
+    <div className="space-y-5">
+      {error && (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
+      )}
+      <div className="grid gap-5 md:grid-cols-2">
+      <SectionCard title={`Incidents (${incidents.length})`}>
         <div className="divide-y divide-primary/5">
-          {data.incidents.map((i) => (
+          {incidents.map((i) => (
             <div key={i.id} className="flex items-center justify-between px-5 py-3">
               <div>
                 <p className="text-sm font-medium text-primary">{titleCase(i.type)}</p>
@@ -626,14 +715,14 @@ function IncidentsTab({ id }: { id: string }) {
               </Badge>
             </div>
           ))}
-          {data.incidents.length === 0 && (
+          {incidents.length === 0 && (
             <p className="px-5 py-10 text-center text-sm text-muted">No incidents on record.</p>
           )}
         </div>
       </SectionCard>
-      <SectionCard title={`Claims (${data.claims.length})`}>
+      <SectionCard title={`Claims (${claims.length})`}>
         <div className="divide-y divide-primary/5">
-          {data.claims.map((c) => (
+          {claims.map((c) => (
             <div key={c.id} className="flex items-center justify-between px-5 py-3">
               <div>
                 <p className="text-sm font-medium text-primary">{titleCase(c.claim_type)}</p>
@@ -644,17 +733,18 @@ function IncidentsTab({ id }: { id: string }) {
               </Badge>
             </div>
           ))}
-          {data.claims.length === 0 && (
+          {claims.length === 0 && (
             <p className="px-5 py-10 text-center text-sm text-muted">No claims.</p>
           )}
         </div>
       </SectionCard>
+      </div>
     </div>
   );
 }
 
 function TimelineTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.timeline(t, id), [id]);
+  const { data } = useApiData((t) => drivers.timeline(t, id), [id], { key: `driver-timeline-${id}` });
   const tone: Record<string, string> = {
     activity: "bg-secondary",
     order: "bg-violet-500",
@@ -686,7 +776,7 @@ function TimelineTab({ id }: { id: string }) {
 }
 
 function AnalyticsTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.analytics(t, id), [id]);
+  const { data } = useApiData((t) => drivers.analytics(t, id), [id], { key: `driver-analytics-${id}` });
   if (!data) return <Spinner />;
   const max = Math.max(1, ...data.by_month.map((r) => r.orders));
   return (

@@ -1,15 +1,28 @@
 import type { Metadata } from "next";
+import AppClerkProvider from "@/components/providers/AppClerkProvider";
+import { CommunicationsProvider } from "@/components/providers/CommunicationsProvider";
+import { GoogleMapsProvider } from "@porterchain/maps";
+import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Porterchain Driver",
   description: "Driver platform — earnings, stops, POD, wallet",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AppClerkProvider>
+          <CommunicationsProvider>
+            <GoogleMapsProvider apiKey={publicEnv.googleMapsApiKey}>{children}</GoogleMapsProvider>
+          </CommunicationsProvider>
+        </AppClerkProvider>
+      </body>
     </html>
   );
 }

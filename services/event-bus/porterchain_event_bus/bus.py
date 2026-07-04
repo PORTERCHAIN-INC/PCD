@@ -42,6 +42,7 @@ class EventBus:
         retry_policy: RetryPolicy | None = None,
         redis_url: str | None = None,
         use_redis: bool = True,
+        strict_redis: bool = False,
     ) -> None:
         self.registry = registry or get_handler_registry()
         self.retry_policy = retry_policy or RetryPolicy()
@@ -60,6 +61,8 @@ class EventBus:
                 self._ensure_consumer_group()
                 logger.info("EventBus using Redis Streams at %s", STREAM_KEY)
             except Exception as exc:
+                if strict_redis:
+                    raise RuntimeError(f"Redis required but unavailable: {exc}") from exc
                 logger.warning("Redis unavailable for EventBus (%s); using in-memory", exc)
                 self._redis_client = None
                 self.idempotency = idempotency or InMemoryIdempotencyStore()
@@ -153,13 +156,30 @@ class EventBus:
                 processed += 1
             return processed
 
-        messages = self._redis_client.xreadgroup(
-            CONSUMER_GROUP,
-            consumer_name,
-            {STREAM_KEY: ">"},
-            count=10,
-            block=block_ms,
-        )
+        try:
+            messages = self._redis_client.xreadgroup(
+                CONSUMER_GROUP,
+                consumer_name,
+                {STREAM_KEY: ">"},
+                count=10,
+                block=block_ms,
+            )
+        except Exception as exc:
+            # Idle block timeouts and transient socket errors must not crash the worker.
+            exc_name = type(exc).__name__
+            if exc_name in ("TimeoutError", "ConnectionError", "ConnectionResetError"):
+                logger.warning("redis stream read interrupted (%s) — will retry", exc_name)
+                return 0
+            try:
+                import redis
+
+                if isinstance(exc, (redis.TimeoutError, redis.ConnectionError)):
+                    logger.warning("redis stream read interrupted (%s) — will retry", exc_name)
+                    return 0
+            except ImportError:
+                pass
+            raise
+
         processed = 0
         for _stream, entries in messages or []:
             for message_id, fields in entries:
@@ -202,4 +222,8 @@ def get_event_bus() -> EventBus:
     from porterchain_shared.config.settings import get_platform_settings
 
     settings = get_platform_settings()
-    return EventBus(redis_url=settings.redis_url, use_redis=True)
+    return EventBus(
+        redis_url=settings.redis_url,
+        use_redis=True,
+        strict_redis=not settings.is_local,
+    )

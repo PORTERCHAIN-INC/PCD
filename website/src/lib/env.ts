@@ -9,21 +9,32 @@ export const publicEnv = {
     process.env.NEXT_PUBLIC_MERCHANT_PORTAL_URL ??
     (process.env.NODE_ENV === "development"
       ? "http://localhost:3001"
-      : "https://portal.porterchain.com")
+      : "https://merchant.porterchain.com")
+  ).replace(/\/$/, ""),
+  adminPortalUrl: (
+    process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL ??
+    (process.env.NODE_ENV === "development"
+      ? "http://localhost:3002"
+      : "https://admin.porterchain.com")
+  ).replace(/\/$/, ""),
+  customerPortalUrl: (
+    process.env.NEXT_PUBLIC_CUSTOMER_PORTAL_URL ??
+    (process.env.NODE_ENV === "development"
+      ? "http://localhost:3004"
+      : "https://customer.porterchain.com")
   ).replace(/\/$/, ""),
   driverPortalUrl: (
     process.env.NEXT_PUBLIC_DRIVER_PORTAL_URL ??
     (process.env.NODE_ENV === "development"
       ? "http://localhost:3003"
-      : "https://portal.porterchain.com")
+      : "https://driver.porterchain.com")
   ).replace(/\/$/, ""),
   porterchainApiUrl: (
-    process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001"
+    process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ??
+    (process.env.NODE_ENV === "development" ? "http://localhost:8001" : "https://api.porterchain.com")
   ).replace(/\/$/, ""),
   clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
-  supabaseUrl: (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim(),
-  supabaseAnonKey: (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim(),
-  bookingOtpSkipVerify: process.env.NEXT_PUBLIC_BOOKING_OTP_SKIP_VERIFY === "true",
+  contactEmail: (process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "ravi@porterchain.com").trim(),
   zohoSalesIqEnabled: process.env.NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED === "true",
   zohoSalesIqWidgetCode: (process.env.NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE ?? "").trim(),
   socialLinkedIn: (
@@ -42,6 +53,7 @@ export const publicEnv = {
   socialWhatsApp: (process.env.NEXT_PUBLIC_SOCIAL_WHATSAPP ?? "https://wa.me/16476197951").trim(),
   driverAppIosUrl: (process.env.NEXT_PUBLIC_DRIVER_APP_IOS_URL ?? "").trim(),
   driverAppAndroidUrl: (process.env.NEXT_PUBLIC_DRIVER_APP_ANDROID_URL ?? "").trim(),
+  allowStripeMock: process.env.NEXT_PUBLIC_ALLOW_STRIPE_MOCK === "true",
 } as const;
 
 export function isGoogleMapsConfigured(): boolean {
@@ -54,10 +66,6 @@ export function isPorterchainApiConfigured(): boolean {
 
 export function isClerkConfigured(): boolean {
   return publicEnv.clerkPublishableKey.length > 0;
-}
-
-export function isSupabaseConfigured(): boolean {
-  return publicEnv.supabaseUrl.length > 0 && publicEnv.supabaseAnonKey.length > 0;
 }
 
 export function isZohoSalesIqConfigured(): boolean {

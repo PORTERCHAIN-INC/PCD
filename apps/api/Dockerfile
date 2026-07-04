@@ -17,7 +17,6 @@ RUN apt-get update \
 COPY shared/python ./shared/python
 COPY services/python ./services/python
 COPY services/fleetbase-adapter ./services/fleetbase-adapter
-COPY services/fleetbase ./services/fleetbase
 COPY services/pricing-engine ./services/pricing-engine
 COPY services/event-bus ./services/event-bus
 COPY services/driver-platform ./services/driver-platform

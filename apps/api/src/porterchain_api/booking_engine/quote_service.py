@@ -8,13 +8,16 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
+from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
+from porterchain_api.booking_engine.repositories.quote_repository import QuoteRepository
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import QuoteState
 from porterchain_api.models import Quote
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas import CreateQuoteRequest, PricingLineItem, WebsitePricingSnapshot
-from porterchain_api.services.pricing import _request_from_quote_body, expire_quote_if_needed
-from porterchain_pricing import GeoPoint, total_route_meters
+from porterchain_api.services.pricing import PricingRequest_replace, _request_from_quote_body, expire_quote_if_needed
+from porterchain_api.services.routing import resolve_route_distance
+from porterchain_pricing import GeoPoint
 
 
 def _website_breakdown_to_line_items(
@@ -85,6 +88,8 @@ def _website_pricing_summary(snapshot: WebsitePricingSnapshot) -> dict[str, Any]
 class QuoteService:
     def __init__(self) -> None:
         self._visitor = VisitorTrackingService()
+        self._drafts = BookingDraftService()
+        self._quotes = QuoteRepository()
 
     def create_quote(
         self,
@@ -113,24 +118,34 @@ class QuoteService:
         if body.additional_stops:
             stops = [GeoPoint(lat=s.lat, lng=s.lng, formatted=s.formatted) for s in body.additional_stops]
             request = PricingRequest_replace(request, additional_stops=stops)
-            distance = total_route_meters(request.pickup, request.dropoff, stops)
-            request = PricingRequest_replace(request, distance_meters=distance)
+            distance, duration_seconds = resolve_route_distance(request.pickup, request.dropoff, stops)
+            request = PricingRequest_replace(
+                request,
+                distance_meters=distance,
+                estimated_duration_minutes=int(duration_seconds / 60) if duration_seconds else None,
+            )
+
+        pricing = get_pricing_service(db)
+        breakdown = pricing.calculate_retail(request)
+        distance_meters = breakdown.metadata.get("distance_meters")
+        breakdown_items = [
+            PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items
+        ]
+        amount_cents = breakdown.final_cents
+        pricing_summary = pricing.to_api_breakdown(breakdown)
+        pricing_summary["engine"] = "porterchain_pricing"
 
         if body.website_pricing:
-            wp = body.website_pricing
-            breakdown_items = _website_breakdown_to_line_items(wp)
-            amount_cents = int(round(wp.customer_price_cad * 100))
-            distance_meters = int(round(wp.distance_km * 1000))
-            pricing_summary = _website_pricing_summary(wp)
-        else:
-            pricing = get_pricing_service(db)
-            breakdown = pricing.calculate_retail(request)
-            distance_meters = breakdown.metadata.get("distance_meters")
-            breakdown_items = [
-                PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items
-            ]
-            amount_cents = breakdown.final_cents
-            pricing_summary = pricing.to_api_breakdown(breakdown)
+            client_cents = int(round(body.website_pricing.customer_price_cad * 100))
+            tolerance = max(
+                settings.pricing_client_tolerance_cents,
+                int(amount_cents * settings.pricing_client_tolerance_percent),
+            )
+            pricing_summary["client_estimate_cents"] = client_cents
+            pricing_summary["client_engine"] = body.website_pricing.quote_engine
+            if abs(client_cents - amount_cents) > tolerance:
+                pricing_summary["client_estimate_rejected"] = True
+                pricing_summary["client_server_delta_cents"] = client_cents - amount_cents
 
         expires_at = datetime.now(UTC) + timedelta(minutes=settings.quote_ttl_minutes)
         quote = Quote(
@@ -173,10 +188,12 @@ class QuoteService:
         if session_id:
             self._visitor.record_quote(db, session_id, quote.id)
 
+        self._drafts.attach_quote(db, quote, session_id)
+
         return quote
 
     def get_quote(self, db: Session, quote_id: str) -> Quote | None:
-        quote = db.query(Quote).filter(Quote.id == quote_id).first()
+        quote = self._quotes.get_by_id(db, quote_id)
         if not quote:
             return None
         return expire_quote_if_needed(db, quote)

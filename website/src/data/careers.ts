@@ -1,3 +1,5 @@
+import { publicEnv } from "@/lib/env";
+
 export type CareerDepartment =
   | "operations"
   | "engineering"
@@ -33,4 +35,4 @@ export const careerPositions: CareerPosition[] = [
   { id: "dispatch-coordinator", department: "dispatch" },
 ];
 
-export const CAREERS_APPLY_EMAIL = "peter@porterchain.com";
+export const CAREERS_APPLY_EMAIL = publicEnv.contactEmail;

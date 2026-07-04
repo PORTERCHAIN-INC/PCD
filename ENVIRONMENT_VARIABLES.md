@@ -34,11 +34,10 @@
 
 | Variable                               | Required     | Description                          |
 | -------------------------------------- | ------------ | ------------------------------------ |
-| `NEXT_PUBLIC_PORTERCHAIN_API_URL`      | Yes (target) | Public API base for booking submit   |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Yes (target) | Supabase project URL for booking OTP |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`        | Yes (target) | Supabase anon key (public)           |
-| `NEXT_PUBLIC_BOOKING_OTP_SKIP_VERIFY`  | Dev only     | Skip OTP in development              |
-| `NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE` | No           | Zoho SalesIQ widget hash             |
+| `NEXT_PUBLIC_PORTERCHAIN_API_URL`      | Yes      | Public API base for booking submit   |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`    | Yes      | Clerk — retail booking auth          |
+| `NEXT_PUBLIC_CONTACT_EMAIL`            | No       | Public contact email (forms, footer) |
+| `NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE` | No       | Zoho SalesIQ widget hash             |
 | `NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED`     | No           | Enable chat widget                   |
 | `NEXT_PUBLIC_SOCIAL_LINKEDIN`          | No           | Footer social override               |
 | `NEXT_PUBLIC_SOCIAL_INSTAGRAM`         | No           | Footer social override               |
@@ -52,7 +51,7 @@
 
 ## Merchant portal
 
-**Port:** 3001 (local) · **Production:** `portal.porterchain.com`
+**Port:** 3001 (local) · **Production:** `merchant.porterchain.com`
 
 | Variable                             | Required | Description                        |
 | ------------------------------------ | -------- | ---------------------------------- |
@@ -136,10 +135,21 @@ Start: `pnpm dev:admin`
 
 | Variable                      | Required | Description                     |
 | ----------------------------- | -------- | ------------------------------- |
-| `CLERK_PUBLISHABLE_KEY`       | Yes      | Clerk public key                |
-| `CLERK_SECRET_KEY`            | Yes      | Clerk secret                    |
-| `CLERK_JWKS_URL`              | Yes      | JWT verification endpoint       |
-| `PORTERCHAIN_WEBSITE_OTP_KEY` | Yes      | HMAC key for website OTP bridge |
+| `CLERK_PUBLISHABLE_KEY`       | Yes*     | Legacy single-app public key    |
+| `CLERK_SECRET_KEY`            | Yes*     | Legacy single-app secret        |
+| `CLERK_JWKS_URL`              | Yes*     | Legacy JWT verification URL     |
+| `CLERK_DEV_BYPASS`            | Local    | Requires `APP_ENV=local`        |
+
+\*Local dev: set legacy `CLERK_*` only. Production enterprise: set per-class keys below (empty fields fall back to legacy).
+
+| Variable | Required | Description |
+| -------- | -------- | ----------- |
+| `CLERK_CUSTOMER_SECRET_KEY` / `CLERK_CUSTOMER_JWKS_URL` / `CLERK_CUSTOMER_PUBLISHABLE_KEY` | Prod | Customer Clerk app (website, customer portal, customer mobile) |
+| `CLERK_MERCHANT_SECRET_KEY` / `CLERK_MERCHANT_JWKS_URL` / `CLERK_MERCHANT_PUBLISHABLE_KEY` | Prod | Merchant portal |
+| `CLERK_ADMIN_SECRET_KEY` / `CLERK_ADMIN_JWKS_URL` / `CLERK_ADMIN_PUBLISHABLE_KEY` | Prod | Admin portal |
+| `CLERK_DRIVER_SECRET_KEY` / `CLERK_DRIVER_JWKS_URL` / `CLERK_DRIVER_PUBLISHABLE_KEY` | Prod | Driver portal + driver mobile |
+
+Frontends use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` or `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` with the matching class publishable key — see [AUTHENTICATION.md](./AUTHENTICATION.md).
 
 ### Driver onboarding (API server)
 
@@ -153,21 +163,7 @@ Start: `pnpm dev:admin`
 | `AUTH_DRIVER_INVITE_VALIDATE_MAX_ATTEMPTS_PER_MINUTE` | `30`                    | Rate limit               |
 | `AUTH_DRIVER_INVITE_ACCEPT_MAX_ATTEMPTS_PER_MINUTE`   | `15`                    | Rate limit               |
 
-### Booking OTP
-
-| Variable                       | Required | Description                |
-| ------------------------------ | -------- | -------------------------- |
-| `BOOKING_OTP_SKIP_VERIFY`      | Dev      | Server-side OTP skip       |
-| `BOOKING_OTP_DEV_FALLBACK`     | Dev      | Dev fallback code          |
-| `BOOKING_OTP_SMTP_HOST`        | Yes      | OTP email SMTP host        |
-| `BOOKING_OTP_SMTP_PORT`        | Yes      | OTP SMTP port (465 SSL)    |
-| `BOOKING_OTP_SMTP_USER`        | Yes      | SMTP username              |
-| `BOOKING_OTP_SMTP_PASS`        | Yes      | SMTP password              |
-| `BOOKING_OTP_FROM_EMAIL`       | Yes      | From address               |
-| `BOOKING_OTP_FROM_NAME`        | Yes      | From display name          |
-| `SUPABASE_EMAIL_PROBE_ADDRESS` | Optional | Email deliverability probe |
-
-### Notifications
+### Transactional email (notifications — not auth)
 
 | Variable                   | Required | Description                |
 | -------------------------- | -------- | -------------------------- |

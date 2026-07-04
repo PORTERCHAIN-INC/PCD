@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.booking_engine.customer_service import CustomerService
 from porterchain_api.booking_engine.payment_service import PaymentService
 from porterchain_api.booking_engine.quote_service import QuoteService
@@ -17,6 +18,7 @@ class BookingService:
         self._quotes = QuoteService()
         self._customers = CustomerService()
         self._payments = PaymentService()
+        self._drafts = BookingDraftService()
 
     def start_booking(
         self,
@@ -28,6 +30,7 @@ class BookingService:
         phone: str,
         clerk_user_id: str,
         anonymous_session_id: str | None,
+        consent: dict | None = None,
     ) -> tuple[Quote, Customer, str | None]:
         quote = db.query(Quote).filter(Quote.id == quote_id).first()
         if not quote:
@@ -37,6 +40,11 @@ class BookingService:
         if quote.state not in (QuoteState.QUOTE.value, QuoteState.BOOKING_PENDING.value):
             raise ValueError("quote_not_bookable")
 
+        # Compliance gate — Terms, Privacy and Dangerous-goods must be accepted.
+        consent = consent or {}
+        if not (consent.get("terms_accepted") and consent.get("privacy_accepted")):
+            raise ValueError("consent_required")
+
         customer = self._customers.upsert(
             db,
             clerk_user_id=clerk_user_id,
@@ -45,10 +53,36 @@ class BookingService:
             visitor_session_id=anonymous_session_id or quote.visitor_session_id,
         )
         self._customers.merge_anonymous_session(db, quote, customer, anonymous_session_id)
+        session_id = anonymous_session_id or quote.visitor_session_id
+        if session_id:
+            self._drafts.merge_session_to_customer(
+                db,
+                session_id=session_id,
+                customer_id=customer.id,
+                quote_id=quote.id,
+            )
 
         quote.email = email
         quote.phone = phone
+        quote.consent = consent
         quote.state = QuoteState.BOOKING_PENDING.value
+        db.commit()
+
+        emit_event(
+            db,
+            event_type=E.BOOKING_CONSENT_RECORDED,
+            aggregate_type="quote",
+            aggregate_id=quote.id,
+            correlation_id=quote.id,
+            actor_type="customer",
+            actor_id=customer.id,
+            payload={
+                "terms_accepted": bool(consent.get("terms_accepted")),
+                "privacy_accepted": bool(consent.get("privacy_accepted")),
+                "dangerous_goods_confirmed": bool(consent.get("dangerous_goods_confirmed")),
+                "consent_at": consent.get("consent_at"),
+            },
+        )
         db.commit()
 
         emit_event(
@@ -75,6 +109,12 @@ class BookingService:
             payload={"clerk_user_id": clerk_user_id},
         )
         self._quotes.accept_quote(db, quote)
+        self._drafts.on_customer_authenticated(
+            db,
+            quote_id=quote.id,
+            customer_id=customer.id,
+            clerk_user_id=clerk_user_id,
+        )
 
         checkout_url, _payment = self._payments.start_payment(db, settings, quote, customer)
         db.refresh(quote)

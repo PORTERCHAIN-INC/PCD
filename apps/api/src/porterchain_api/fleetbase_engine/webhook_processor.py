@@ -15,20 +15,93 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Claim, Driver
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.fleetbase_sync_service import FleetbaseSyncService
+from porterchain_api.booking_engine.order_transitions import transition_order_state
 from porterchain_api.config import Settings
+from porterchain_api.domain.states import OrderState
 from porterchain_api.fleetbase_engine.audit_logger import AuditLogger
+from porterchain_api.fleetbase_engine.integration_bridge import FleetbaseIntegrationBridge
 from porterchain_api.fleetbase_engine.retry_queue import RetryQueue
 from porterchain_api.fleetbase_engine.status_translator import StatusTranslator
 from porterchain_api.fleetbase_engine.tracking_translator import TrackingTranslator
 from porterchain_api.models import Order, OrderException
+from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
 
 
 class WebhookProcessor:
     def __init__(self) -> None:
-        self._sync = FleetbaseSyncService()
+        self._bridge = FleetbaseIntegrationBridge()
+
+    def apply_status_update(self, db: Session, settings: Settings, update: dict) -> Order | None:
+        """Apply Fleetbase status/POD webhook to the canonical Porterchain order."""
+        order_id = update.get("porterchain_order_id")
+        fleetbase_id = update.get("fleetbase_order_id")
+        order: Order | None = None
+
+        if order_id:
+            order = db.query(Order).filter(Order.id == order_id).first()
+        if not order and fleetbase_id:
+            order = db.query(Order).filter(Order.fleetbase_order_id == fleetbase_id).first()
+        if not order:
+            logger.warning("Fleetbase webhook: order not found pc=%s fb=%s", order_id, fleetbase_id)
+            return None
+
+        target_state = update.get("target_state")
+        if target_state:
+            try:
+                new_state = OrderState(target_state)
+                current = OrderState(order.state)
+                if new_state != current:
+                    transition_order_state(
+                        db,
+                        order,
+                        new_state,
+                        event_type=update.get("domain_event") or f"fleetbase.{update.get('event')}",
+                        actor_type="fleetbase",
+                        payload={"fleetbase_event": update.get("event")},
+                    )
+                    emit_event(
+                        db,
+                        event_type=DomainEventType.FLEETBASE_STATUS_UPDATED,
+                        aggregate_type="order",
+                        aggregate_id=order.id,
+                        actor_type="fleetbase",
+                        payload={
+                            "fleetbase_event": update.get("event"),
+                            "from_state": current.value,
+                            "to_state": new_state.value,
+                            "fleetbase_order_id": order.fleetbase_order_id,
+                        },
+                    )
+            except ValueError as exc:
+                logger.warning("Invalid state transition from webhook: %s", exc)
+
+        if update.get("event") == "order.completed":
+            proofs = self._bridge.sync_proofs(settings, order)
+            if proofs and order.state == OrderState.DELIVERED.value:
+                transition_order_state(
+                    db,
+                    order,
+                    OrderState.POD_COMPLETED,
+                    event_type="order.pod_completed",
+                    actor_type="fleetbase",
+                    payload={"proof_count": len(proofs)},
+                )
+                emit_event(
+                    db,
+                    event_type=DomainEventType.FLEETBASE_POD_RECEIVED,
+                    aggregate_type="order",
+                    aggregate_id=order.id,
+                    actor_type="fleetbase",
+                    payload={
+                        "proof_count": len(proofs),
+                        "fleetbase_order_id": order.fleetbase_order_id,
+                    },
+                )
+
+        db.refresh(order)
+        return order
 
     def _resolve_order(self, db: Session, update: dict) -> Order | None:
         pc = update.get("porterchain_order_id")
@@ -63,8 +136,7 @@ class WebhookProcessor:
             if kind == "tracking":
                 self._handle_tracking(db, order, raw or update)
             else:
-                # Base status + POD handling (canonical transition).
-                self._sync.apply_webhook_update(db, settings, update)
+                self.apply_status_update(db, settings, update)
                 if kind == "exception":
                     self._raise_exception(db, order, event)
                 elif kind == "claim":

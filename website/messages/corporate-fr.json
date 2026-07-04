@@ -44,6 +44,8 @@
     "contact": "Contact",
     "book": "Réserver",
     "business": "Entreprise",
+    "myOrders": "Mes commandes",
+    "businessLogin": "Connexion entreprise",
     "login": "Connexion",
     "getQuote": "Obtenir un devis",
     "bookNow": "Réserver",
@@ -570,8 +572,8 @@
       "phone": "+1 (647) 619-7951",
       "phoneHref": "tel:+16476197951",
       "emailLabel": "Courriel",
-      "email": "peter@porterchain.com",
-      "emailHref": "mailto:peter@porterchain.com",
+      "email": "ravi@porterchain.com",
+      "emailHref": "mailto:ravi@porterchain.com",
       "whatsappLabel": "WhatsApp",
       "whatsapp": "+1 (647) 619-7951",
       "whatsappHref": "https://wa.me/16476197951",
@@ -612,7 +614,7 @@
         "0": {
           "title": "Ventes",
           "description": "Démos, tarification et intégration entreprise.",
-          "contact": "peter@porterchain.com"
+          "contact": "ravi@porterchain.com"
         },
         "1": {
           "title": "Support",
@@ -622,7 +624,7 @@
         "2": {
           "title": "Comptes entreprise",
           "description": "Configuration, facturation et routes récurrentes.",
-          "contact": "peter@porterchain.com"
+          "contact": "ravi@porterchain.com"
         },
         "3": {
           "title": "Support chauffeurs",
@@ -632,7 +634,7 @@
         "4": {
           "title": "Support développeurs",
           "description": "API, webhooks et intégrations techniques.",
-          "contact": "peter@porterchain.com"
+          "contact": "ravi@porterchain.com"
         }
       }
     },
@@ -654,7 +656,7 @@
         },
         "2": {
           "q": "Accès API?",
-          "a": "Sélectionnez API comme type ou écrivez à peter@porterchain.com avec vos besoins d'intégration."
+          "a": "Sélectionnez API comme type ou écrivez à ravi@porterchain.com avec vos besoins d'intégration."
         },
         "3": {
           "q": "Problème d'expédition active?",

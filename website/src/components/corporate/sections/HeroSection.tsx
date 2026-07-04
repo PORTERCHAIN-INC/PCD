@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Container from "@/components/ui/Container";
 import LinkButton from "@/components/corporate/ui/LinkButton";
 import { cn } from "@/lib/utils";
+import { publicEnv } from "@/lib/env";
 
 interface HeroSectionProps {
   badge: string;
@@ -121,7 +122,7 @@ export default function HeroSection({
               </h1>
               <p className="mt-5 text-muted leading-relaxed">{subtitle}</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <LinkButton href="mailto:peter@porterchain.com" external>
+                <LinkButton href={`mailto:${publicEnv.contactEmail}`} external>
                   {primaryCta}
                 </LinkButton>
                 {secondaryCta && (

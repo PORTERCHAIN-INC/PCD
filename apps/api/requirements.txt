@@ -15,7 +15,6 @@ redis>=5.2.0
 -e ../../shared/python
 -e ../../services/python
 -e ../../services/fleetbase-adapter
--e ../../services/fleetbase
 -e ../../services/pricing-engine
 -e ../../services/event-bus
 -e ../../services/driver-platform

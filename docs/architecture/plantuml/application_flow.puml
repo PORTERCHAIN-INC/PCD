@@ -1,0 +1,31 @@
+@startuml application_flow
+!theme plain
+actor "Next.js UI" as UI
+participant "FastAPI Router" as Router
+participant "auth/clerk.py" as Auth
+participant "Application Service" as Svc
+participant "Repository" as Repo
+database "Database" as DB
+queue "Event Bus" as Bus
+participant "apps/worker" as Worker
+participant "fleetbase_engine" as FBE
+participant "fleetbase-adapter" as FBA
+cloud "Fleetbase API" as FB
+
+UI -> Router: HTTPS /v1/*
+Router -> Auth: resolve principal
+Auth --> Router: principal
+Router -> Svc: single service method
+Svc -> Repo: CRUD / queries
+Repo -> DB: SQL
+DB --> Repo: entities
+Repo --> Svc: entities
+Svc -> Bus: emit_event
+Bus -> Worker: handlers / queues
+Worker -> FBE: sync_order_from_event
+FBE -> FBA: IntegrationBridge
+FBA -> FB: HTTP
+FB --> FBA: response
+Svc --> Router: DTO
+Router --> UI: JSON
+@enduml

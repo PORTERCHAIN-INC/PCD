@@ -4,7 +4,7 @@
   "businessTagline": "Enterprise logistics for growing businesses.",
   "address": "100 King Street West, Toronto, ON M5X 1A9",
   "copyright": "© {year} Porterchain Inc. All rights reserved.",
-  "contactLine": "peter@porterchain.com · +1 (647) 619-7951",
+  "contactLine": "ravi@porterchain.com · +1 (647) 619-7951",
   "driverPortal": "Driver Portal",
   "merchantPortal": "Merchant Portal",
   "support": "Customer Support",
@@ -14,7 +14,8 @@
       "title": "Services",
       "links": {
         "book": "Book a Delivery",
-        "business": "Business"
+        "business": "Business",
+        "customerPortal": "My Orders"
       }
     },
     "company": {

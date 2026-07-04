@@ -16,8 +16,8 @@ export default function QuotationsPage() {
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
   const { data, error } = useApiData((t) => crm.quotations(t), [version]);
-  const { data: companies } = useApiData((t) => crm.companies(t), []);
-  const { data: deals } = useApiData((t) => crm.deals(t), []);
+  const { data: companies } = useApiData((t) => crm.companies(t), [], { key: "crm-companies" });
+  const { data: deals } = useApiData((t) => crm.deals(t), [], { key: "crm-deals" });
 
   const [creating, setCreating] = useState(false);
   const [companyId, setCompanyId] = useState("");

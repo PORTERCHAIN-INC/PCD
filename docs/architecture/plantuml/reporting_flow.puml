@@ -1,0 +1,15 @@
+@startuml reporting_flow
+!theme plain
+actor "Admin Portal" as Admin
+participant "AdminReportsService" as ARS
+participant "AdminOrdersService" as OS
+participant "AdminFinanceService" as FS
+database DB
+
+Admin -> ARS: GET /v1/admin/reports/*
+ARS -> OS: reports()
+ARS -> FS: reports()
+OS -> DB: aggregate queries
+FS -> DB: aggregate queries
+ARS --> Admin: JSON aggregates
+@enduml

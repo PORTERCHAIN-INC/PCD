@@ -116,12 +116,43 @@ MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
     "support": frozenset(
         {AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.DISPATCHER, AdminRole.SUPPORT, AdminRole.SUPPORT_LEAD}
     ),
+    "support_read": frozenset(
+        {
+            AdminRole.SUPER_ADMIN,
+            AdminRole.ADMIN,
+            AdminRole.DISPATCHER,
+            AdminRole.SUPPORT,
+            AdminRole.SUPPORT_LEAD,
+            AdminRole.SALES,
+            AdminRole.FINANCE,
+            AdminRole.READ_ONLY,
+        }
+    ),
     "reports": frozenset(AdminRole),
     "settings": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN}),
+    "notifications": frozenset(
+        {AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.DISPATCHER, AdminRole.SUPPORT_LEAD, AdminRole.MARKETING}
+    ),
+    "notifications_read": frozenset(AdminRole),
     "developers": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.DEVELOPER}),
+    "diagnostics": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.DEVELOPER}),
+    "diagnostics_write": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN}),
     "map": frozenset(
         {AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.DISPATCHER, AdminRole.FLEET_MANAGER, AdminRole.SUPPORT}
     ),
+    "routes": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.DISPATCHER, AdminRole.FLEET_MANAGER}),
+    "routes_read": frozenset(
+        {
+            AdminRole.SUPER_ADMIN,
+            AdminRole.ADMIN,
+            AdminRole.DISPATCHER,
+            AdminRole.FLEET_MANAGER,
+            AdminRole.SUPPORT,
+            AdminRole.SUPPORT_LEAD,
+            AdminRole.READ_ONLY,
+        }
+    ),
+    "routes_dispatch": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.DISPATCHER}),
 }
 
 
