@@ -4,7 +4,7 @@
   "private": true,
   "main": "index.ts",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "dev": "expo start --port 8082",

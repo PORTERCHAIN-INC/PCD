@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Build: docker build -f apps/driver-portal/Dockerfile -t pcd-driver .
 
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 RUN corepack enable
 WORKDIR /app
 
