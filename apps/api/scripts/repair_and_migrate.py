@@ -67,6 +67,15 @@ def _create_missing_tables() -> None:
     print("repair: create_all(checkfirst=True) completed")
 
 
+def _repair_quotes_columns() -> None:
+    """Add columns missing from partially-applied production schemas."""
+    if not _table_exists("quotes"):
+        return
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE quotes ADD COLUMN IF NOT EXISTS consent JSON"))
+    print("repair: quotes column drift patched (consent)")
+
+
 def _smoke_pricing() -> None:
     """Verify pricing repository can load DB context (catches missing promotions etc.)."""
     from datetime import UTC, datetime
@@ -171,6 +180,8 @@ def main() -> int:
     from ensure_production_basics import ensure_production_basics
 
     ensure_production_basics()
+
+    _repair_quotes_columns()
 
     try:
         _smoke_pricing()
