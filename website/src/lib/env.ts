@@ -31,10 +31,7 @@ export const publicEnv = {
       ? "http://localhost:3003"
       : "https://driver.porterchain.com")
   ).replace(/\/$/, ""),
-  porterchainApiUrl: (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "").trim().replace(
-    /\/$/,
-    ""
-  ),
+  porterchainApiUrl: (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "").trim().replace(/\/$/, ""),
   clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
   contactEmail: (process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "ravi@porterchain.com").trim(),
   zohoSalesIqEnabled: process.env.NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED === "true",
