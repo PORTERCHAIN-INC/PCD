@@ -34,6 +34,26 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: pcd-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    expose:
+      - "6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+
   api:
     image: ${API_IMAGE:-ghcr.io/porterchain/pcd-api:latest}
     container_name: pcd-api
@@ -42,10 +62,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
       DATABASE_URL: postgresql+psycopg://porterchain:${POSTGRES_PASSWORD}@postgres:5432/porterchain
+      REDIS_URL: redis://redis:6379/0
       PORTERCHAIN_API_URL: https://api.porterchain.com
       CORS_ORIGINS: ${CORS_ORIGINS:-https://porterchain.com,https://www.porterchain.com,https://admin.porterchain.com,https://merchant.porterchain.com,https://driver.porterchain.com,https://customer.porterchain.com}
       WEBSITE_URL: https://porterchain.com
@@ -172,6 +195,7 @@ services:
       - merchant
       - driver
       - customer
+      - redis
     ports:
       - "80:80"
       - "443:443"
@@ -193,3 +217,4 @@ volumes:
   caddy-data:
   caddy-config:
   postgres-data:
+  redis-data:
