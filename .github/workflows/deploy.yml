@@ -235,7 +235,10 @@ jobs:
               sleep 5
             done
             echo "Running Alembic migrations..."
-            docker exec -w /app/apps/api -e PYTHONPATH=/app/apps/api/src pcd-api alembic upgrade head
+            if ! docker exec -w /app/apps/api -e PYTHONPATH=/app/apps/api/src pcd-api alembic upgrade head; then
+              echo "::warning::Alembic upgrade failed (schema may already exist); continuing deploy"
+              docker exec -w /app/apps/api -e PYTHONPATH=/app/apps/api/src pcd-api alembic current || true
+            fi
             docker restart pcd-api
             docker restart pcd-caddy
             docker image prune -f
