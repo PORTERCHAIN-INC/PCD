@@ -14,6 +14,7 @@ RUN pnpm install --frozen-lockfile --filter @porterchain/admin...
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/admin/node_modules ./apps/admin/node_modules
+COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
 COPY . .
 ARG NEXT_PUBLIC_SITE_URL=https://admin.porterchain.com
 ARG NEXT_PUBLIC_PORTERCHAIN_API_URL=https://api.porterchain.com
@@ -31,6 +32,7 @@ ENV NEXT_PUBLIC_WEBSITE_URL=$NEXT_PUBLIC_WEBSITE_URL
 ENV NEXT_PUBLIC_MERCHANT_PORTAL_URL=$NEXT_PUBLIC_MERCHANT_PORTAL_URL
 ENV NEXT_PUBLIC_CUSTOMER_PORTAL_URL=$NEXT_PUBLIC_CUSTOMER_PORTAL_URL
 ENV NEXT_PUBLIC_DRIVER_PORTAL_URL=$NEXT_PUBLIC_DRIVER_PORTAL_URL
+RUN mkdir -p apps/admin/public
 RUN pnpm --filter @porterchain/admin build
 
 FROM base AS runner
