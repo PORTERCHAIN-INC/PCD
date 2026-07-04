@@ -8,7 +8,7 @@ WORKDIR /app
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/driver-portal/package.json ./apps/driver-portal/
-COPY shared/maps/package.json ./shared/maps/
+COPY packages/maps/package.json ./packages/maps/
 RUN pnpm install --frozen-lockfile --filter @porterchain/driver-portal...
 
 FROM base AS builder

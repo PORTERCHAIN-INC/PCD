@@ -9,7 +9,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/merchant-portal/package.json ./apps/merchant-portal/
 COPY packages/config/package.json ./packages/config/
-COPY shared/maps/package.json ./shared/maps/
+COPY packages/maps/package.json ./packages/maps/
 RUN pnpm install --frozen-lockfile --filter @porterchain/merchant-portal...
 
 FROM base AS builder

@@ -8,7 +8,7 @@ WORKDIR /app
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/customer/package.json ./apps/customer/
-COPY shared/maps/package.json ./shared/maps/
+COPY packages/maps/package.json ./packages/maps/
 RUN pnpm install --frozen-lockfile --filter @porterchain/customer...
 
 FROM base AS builder

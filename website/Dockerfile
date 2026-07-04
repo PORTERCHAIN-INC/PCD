@@ -8,6 +8,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY website/package.json ./website/
 COPY packages/config/package.json ./packages/config/
+COPY packages/maps/package.json ./packages/maps/
 RUN pnpm install --frozen-lockfile --filter @porterchain/website...
 
 FROM base AS builder
