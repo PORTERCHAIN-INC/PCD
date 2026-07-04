@@ -92,10 +92,19 @@ def create_app() -> FastAPI:
     from fastapi.responses import JSONResponse
 
     from porterchain_api.fleetbase_engine import BookingValidationError
+    import logging
+
+    _logger = logging.getLogger(__name__)
 
     @app.exception_handler(BookingValidationError)
     async def _booking_validation_handler(_request: Request, exc: BookingValidationError) -> JSONResponse:
         return JSONResponse(status_code=422, content={"detail": exc.message, "code": exc.code})
+
+    @app.exception_handler(Exception)
+    async def _unhandled_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
+        _logger.exception("unhandled error: %s", exc)
+        detail = str(exc) if settings.app_env != "production" else "internal_server_error"
+        return JSONResponse(status_code=500, content={"detail": detail})
 
     @app.get("/health")
     def health() -> dict[str, str]:

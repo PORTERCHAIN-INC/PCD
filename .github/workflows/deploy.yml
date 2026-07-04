@@ -234,8 +234,9 @@ jobs:
               sleep 5
             done
             echo "Running Alembic migrations..."
-            if ! docker exec -w /app/apps/api -e PYTHONPATH=/app/apps/api/src pcd-api alembic upgrade head; then
-              echo "::warning::Alembic upgrade failed (schema may already exist); continuing deploy"
+            if ! docker exec -w /app/apps/api -e PYTHONPATH=/app/apps/api/src:/app/apps/api pcd-api python scripts/repair_and_migrate.py; then
+              echo "::warning::Migration repair failed; dumping API logs"
+              docker logs --tail 120 pcd-api || true
               docker exec -w /app/apps/api -e PYTHONPATH=/app/apps/api/src pcd-api alembic current || true
             fi
             docker restart pcd-api
@@ -251,6 +252,12 @@ jobs:
             done
             curl -fsS -o /dev/null http://localhost:80 && echo "Caddy responding (HTTP->HTTPS)" || (docker compose -f docker-compose.prod.yml logs --tail 50 caddy; exit 1)
             docker exec pcd-api curl -fsS http://localhost:8001/health && echo " <- API healthy" || (docker logs --tail 80 pcd-api; exit 1)
+            echo "Smoke test: booking draft + quote..."
+            docker exec pcd-api curl -fsS -X POST http://localhost:8001/v1/booking-drafts \
+              -H 'Content-Type: application/json' \
+              -d '{"session_id":"deploy-smoke-test"}' >/dev/null \
+              && echo " <- booking-drafts OK" \
+              || (docker logs --tail 120 pcd-api; exit 1)
             docker exec pcd-postgres pg_isready -U porterchain -d porterchain && echo " <- Postgres ready" || (docker logs --tail 50 pcd-postgres; exit 1)
         env:
           IMAGE_TAG: ${{ steps.sha.outputs.value }}

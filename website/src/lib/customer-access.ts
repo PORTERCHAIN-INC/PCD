@@ -1,7 +1,4 @@
-const API = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
-  /\/$/,
-  ""
-);
+import { getPorterchainApiBase } from "@/lib/api-base";
 
 export type CustomerAccessProfile = {
   customer_id: string;
@@ -11,7 +8,7 @@ export type CustomerAccessProfile = {
 };
 
 export async function fetchCustomerAccess(token: string): Promise<CustomerAccessProfile> {
-  const res = await fetch(`${API}/v1/auth/customer/access`, {
+  const res = await fetch(`${getPorterchainApiBase()}/v1/auth/customer/access`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {

@@ -18,7 +18,8 @@ COPY --from=deps /app/packages/maps/node_modules ./packages/maps/node_modules
 COPY . .
 ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ARG NEXT_PUBLIC_SITE_URL=https://porterchain.com
-ARG NEXT_PUBLIC_PORTERCHAIN_API_URL=https://api.porterchain.com
+# Leave empty in production so the site uses same-origin /v1/* (Caddy → API).
+ARG NEXT_PUBLIC_PORTERCHAIN_API_URL=
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
