@@ -102,6 +102,27 @@ gh secret set DEPLOY_SSH_KEY < ~/.ssh/porterchain_deploy   # private key file
 gh secret set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY -b "<your-key>"
 ```
 
+### Clerk production keys (required)
+
+The browser warning `Clerk has been loaded with development keys` means GitHub
+Actions is building portal images with a **test** publishable key (`pk_test_…`).
+For production:
+
+1. In [Clerk Dashboard](https://dashboard.clerk.com), open your **production**
+   instance (or create one) and copy:
+   - Publishable key (`pk_live_…`)
+   - Secret key (`sk_live_…`)
+   - JWKS URL (from the production instance API keys page)
+2. Update GitHub **repository secrets** (Settings → Secrets → Actions):
+   ```bash
+   gh secret set CLERK_PUBLISHABLE_KEY -b "pk_live_…"
+   gh secret set CLERK_SECRET_KEY -b "sk_live_…"
+   gh secret set CLERK_JWKS_URL -b "https://…/.well-known/jwks.json"
+   ```
+3. In Clerk → **Domains**, add all portal origins (`porterchain.com`,
+   `admin.porterchain.com`, etc.).
+4. Re-run **Deploy** so Next.js images are rebuilt with the live key baked in.
+
 ## Manual deploy / rollback
 
 - **Manual deploy:** Actions → _Deploy_ → _Run workflow_.

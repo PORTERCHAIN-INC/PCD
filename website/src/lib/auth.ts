@@ -1,3 +1,4 @@
+import { getPorterchainApiBase } from "@/lib/api-base";
 import { publicEnv } from "@/lib/env";
 import { customerPortalPath } from "@/data/portal-links";
 
@@ -10,7 +11,7 @@ export type AuthMe = {
 };
 
 export async function fetchAuthMe(token: string): Promise<AuthMe> {
-  const res = await fetch(`${publicEnv.porterchainApiUrl}/v1/auth/me`, {
+  const res = await fetch(`${getPorterchainApiBase()}/v1/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {

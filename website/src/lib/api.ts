@@ -1,6 +1,6 @@
-import { publicEnv } from "@/lib/env";
+import { getPorterchainApiBase } from "@/lib/api-base";
 
-const API_BASE = publicEnv.porterchainApiUrl || "http://localhost:8001";
+const API_BASE = getPorterchainApiBase();
 
 export interface AddressPayload {
   formatted: string;

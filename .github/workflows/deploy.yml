@@ -88,7 +88,6 @@ jobs:
           build-args: |
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
-            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ vars.NEXT_PUBLIC_PORTERCHAIN_API_URL || 'https://api.porterchain.com' }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

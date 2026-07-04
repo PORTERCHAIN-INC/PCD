@@ -2,6 +2,8 @@
  * Typed public environment variables for the website.
  * Server-only secrets belong in the API — never add them here.
  */
+import { getPorterchainApiBase } from "@/lib/api-base";
+
 export const publicEnv = {
   googleMapsApiKey: (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "").trim(),
   siteUrl: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://porterchain.com").replace(/\/$/, ""),
@@ -29,12 +31,10 @@ export const publicEnv = {
       ? "http://localhost:3003"
       : "https://driver.porterchain.com")
   ).replace(/\/$/, ""),
-  porterchainApiUrl: (
-    process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ??
-    (process.env.NODE_ENV === "development"
-      ? "http://localhost:8001"
-      : "https://api.porterchain.com")
-  ).replace(/\/$/, ""),
+  porterchainApiUrl: (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "").trim().replace(
+    /\/$/,
+    ""
+  ),
   clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
   contactEmail: (process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "ravi@porterchain.com").trim(),
   zohoSalesIqEnabled: process.env.NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED === "true",
@@ -63,7 +63,7 @@ export function isGoogleMapsConfigured(): boolean {
 }
 
 export function isPorterchainApiConfigured(): boolean {
-  return publicEnv.porterchainApiUrl.length > 0;
+  return Boolean(getPorterchainApiBase());
 }
 
 export function isClerkConfigured(): boolean {
