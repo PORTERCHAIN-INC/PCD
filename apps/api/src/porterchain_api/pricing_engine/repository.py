@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from sqlalchemy import inspect
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import MerchantContract, PricingTariff, PricingZone, Promotion, SystemConfig
+from porterchain_api.db import engine
 from porterchain_api.merchant_models import Merchant
 from porterchain_pricing.types import (
     ContractRecord,
@@ -21,6 +24,9 @@ from porterchain_pricing.types import (
 class SqlAlchemyPricingRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
+
+    def _has_table(self, name: str) -> bool:
+        return inspect(engine).has_table(name)
 
     def load_context(self, request: PricingRequest) -> PricingContext:
         ctx = PricingContext()
@@ -55,8 +61,14 @@ class SqlAlchemyPricingRepository:
         return ctx
 
     def _load_tariffs(self, request: PricingRequest) -> list[TariffRecord]:
-        q = self.db.query(PricingTariff).filter(PricingTariff.is_active.is_(True))
-        rows = q.all()
+        if not self._has_table("pricing_tariffs"):
+            return []
+        try:
+            q = self.db.query(PricingTariff).filter(PricingTariff.is_active.is_(True))
+            rows = q.all()
+        except ProgrammingError:
+            self.db.rollback()
+            return []
         tariffs: list[TariffRecord] = []
         for row in rows:
             if row.merchant_id and request.merchant_id and row.merchant_id != request.merchant_id:
@@ -78,7 +90,13 @@ class SqlAlchemyPricingRepository:
         return tariffs
 
     def _load_promotions(self, request: PricingRequest) -> list[PromotionRecord]:
-        rows = self.db.query(Promotion).filter(Promotion.is_active.is_(True)).all()
+        if not self._has_table("promotions"):
+            return []
+        try:
+            rows = self.db.query(Promotion).filter(Promotion.is_active.is_(True)).all()
+        except ProgrammingError:
+            self.db.rollback()
+            return []
         promos: list[PromotionRecord] = []
         for row in rows:
             config = dict(row.config or {})
@@ -102,7 +120,13 @@ class SqlAlchemyPricingRepository:
         return promos
 
     def _load_zones(self) -> list[ZoneRecord]:
-        rows = self.db.query(PricingZone).filter(PricingZone.is_active.is_(True)).all()
+        if not self._has_table("pricing_zones"):
+            return []
+        try:
+            rows = self.db.query(PricingZone).filter(PricingZone.is_active.is_(True)).all()
+        except ProgrammingError:
+            self.db.rollback()
+            return []
         if not rows:
             return []
         return [
@@ -111,13 +135,25 @@ class SqlAlchemyPricingRepository:
         ]
 
     def _load_tax_config(self) -> TaxConfig:
-        row = self.db.query(SystemConfig).filter(SystemConfig.key == "pricing_tax").first()
+        if not self._has_table("system_config"):
+            return TaxConfig()
+        try:
+            row = self.db.query(SystemConfig).filter(SystemConfig.key == "pricing_tax").first()
+        except ProgrammingError:
+            self.db.rollback()
+            return TaxConfig()
         if row and row.value:
             return TaxConfig(**{k: v for k, v in row.value.items() if k in TaxConfig.__dataclass_fields__})
         return TaxConfig()
 
     def _load_fuel_config(self) -> FuelConfig:
-        row = self.db.query(SystemConfig).filter(SystemConfig.key == "pricing_fuel").first()
+        if not self._has_table("system_config"):
+            return FuelConfig()
+        try:
+            row = self.db.query(SystemConfig).filter(SystemConfig.key == "pricing_fuel").first()
+        except ProgrammingError:
+            self.db.rollback()
+            return FuelConfig()
         if row and row.value:
             return FuelConfig(**{k: v for k, v in row.value.items() if k in FuelConfig.__dataclass_fields__})
         return FuelConfig()

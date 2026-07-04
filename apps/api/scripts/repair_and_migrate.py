@@ -21,6 +21,9 @@ CRITICAL_TABLES = (
     "domain_events",
     "visitor_sessions",
     "pricing_tariffs",
+    "pricing_zones",
+    "promotions",
+    "system_config",
 )
 
 
@@ -64,6 +67,26 @@ def _create_missing_tables() -> None:
     print("repair: create_all(checkfirst=True) completed")
 
 
+def _smoke_pricing() -> None:
+    """Verify pricing repository can load DB context (catches missing promotions etc.)."""
+    from datetime import UTC, datetime
+
+    from porterchain_api.pricing_engine import get_pricing_service
+    from porterchain_pricing.types import GeoPoint, PricingRequest
+
+    with SessionLocal() as db:
+        request = PricingRequest(
+            pickup=GeoPoint(lat=43.65, lng=-79.38, formatted="repair smoke pickup"),
+            dropoff=GeoPoint(lat=43.66, lng=-79.40, formatted="repair smoke dropoff"),
+            vehicle_class="cargoVan",
+            scheduled_at=datetime.now(UTC),
+        )
+        breakdown = get_pricing_service(db).calculate_retail(request)
+        if breakdown.final_cents <= 0:
+            raise RuntimeError("smoke pricing returned zero final_cents")
+        print(f"repair: smoke pricing OK final_cents={breakdown.final_cents}")
+
+
 def _repair_partial_initial_migration() -> bool:
     """Drop orphaned first table so the initial migration can run from scratch."""
     if not _table_exists("abandoned_checkouts"):
@@ -95,6 +118,19 @@ def _upgrade_head(cfg) -> None:
     print("repair: alembic upgrade head OK")
 
 
+def _ensure_schema() -> bool:
+    missing = _missing_critical()
+    if not missing:
+        return True
+    print(f"repair: missing critical tables: {missing}")
+    _create_missing_tables()
+    missing = _missing_critical()
+    if missing:
+        print(f"repair: FATAL still missing after create_all: {missing}", file=sys.stderr)
+        return False
+    return True
+
+
 def main() -> int:
     version = _alembic_version()
     missing = _missing_critical()
@@ -114,10 +150,7 @@ def main() -> int:
         if not _is_duplicate_table_error(err):
             return 1
         print("repair: duplicate table — filling gaps with create_all(checkfirst=True)")
-        _create_missing_tables()
-        missing = _missing_critical()
-        if missing:
-            print(f"repair: still missing after create_all: {missing}", file=sys.stderr)
+        if not _ensure_schema():
             return 1
         if _alembic_version() is None:
             _stamp_head(cfg)
@@ -130,24 +163,19 @@ def main() -> int:
                     return 1
                 _stamp_head(cfg)
 
-    missing = _missing_critical()
-    if missing:
-        print(f"repair: missing critical tables after upgrade: {missing}")
-        _create_missing_tables()
-        missing = _missing_critical()
-        if missing:
-            print(f"repair: FATAL still missing: {missing}", file=sys.stderr)
-            return 1
-        if _alembic_version() is None:
-            _stamp_head(cfg)
+    if not _ensure_schema():
+        return 1
+    if _alembic_version() is None:
+        _stamp_head(cfg)
 
     from ensure_production_basics import ensure_production_basics
 
     ensure_production_basics()
 
-    final_missing = _missing_critical()
-    if final_missing:
-        print(f"repair: FATAL still missing: {final_missing}", file=sys.stderr)
+    try:
+        _smoke_pricing()
+    except Exception as exc:
+        print(f"repair: smoke pricing failed: {exc}", file=sys.stderr)
         return 1
 
     print("repair: schema OK")

@@ -258,6 +258,11 @@ jobs:
               -d '{"session_id":"deploy-smoke-test"}' >/dev/null \
               && echo " <- booking-drafts OK" \
               || (docker logs --tail 120 pcd-api; exit 1)
+            docker exec pcd-api curl -fsS -X POST http://localhost:8001/v1/quotes \
+              -H 'Content-Type: application/json' \
+              -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","scheduled_at":"2026-07-04T12:00:00Z"}' >/dev/null \
+              && echo " <- quotes OK" \
+              || (docker logs --tail 120 pcd-api; exit 1)
             docker exec pcd-postgres pg_isready -U porterchain -d porterchain && echo " <- Postgres ready" || (docker logs --tail 50 pcd-postgres; exit 1)
         env:
           IMAGE_TAG: ${{ steps.sha.outputs.value }}
