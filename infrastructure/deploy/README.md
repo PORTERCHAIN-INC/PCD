@@ -116,14 +116,14 @@ Settings → Secrets and variables → Actions → Secrets:
 
 **Fleetbase (DD-05b)** — optional until dispatch bridge is enabled:
 
-| Secret / variable                 | Description                                      |
-| --------------------------------- | ------------------------------------------------ |
-| `FLEETBASE_DISPATCH_BRIDGE`       | Set to `true` to enable outbound sync + webhooks |
-| `FLEETBASE_API_URL`               | Fleetbase API base URL                           |
-| `FLEETBASE_API_KEY`               | Fleetbase API key                                |
-| `FLEETBASE_WEBHOOK_SECRET`        | HMAC secret for inbound Fleetbase webhooks       |
-| `FLEETBASE_DEFAULT_COMPANY_UUID`  | Default Fleetbase company UUID                   |
-| `FLEETBASE_SSO_ENABLED`           | _(optional)_ SSO bridge, default `false`         |
+| Secret / variable                | Description                                      |
+| -------------------------------- | ------------------------------------------------ |
+| `FLEETBASE_DISPATCH_BRIDGE`      | Set to `true` to enable outbound sync + webhooks |
+| `FLEETBASE_API_URL`              | Fleetbase API base URL                           |
+| `FLEETBASE_API_KEY`              | Fleetbase API key                                |
+| `FLEETBASE_WEBHOOK_SECRET`       | HMAC secret for inbound Fleetbase webhooks       |
+| `FLEETBASE_DEFAULT_COMPANY_UUID` | Default Fleetbase company UUID                   |
+| `FLEETBASE_SSO_ENABLED`          | _(optional)_ SSO bridge, default `false`         |
 
 When `FLEETBASE_DISPATCH_BRIDGE=true`, the API **refuses to boot** in production unless API key, webhook secret, and company UUID are set. Sync health is exposed on `GET /health/ready` (`fleetbase_sync.link_pct` must stay ≥95%).
 
@@ -138,10 +138,10 @@ pnpm fleetbase:replay
 
 **Repository variables:**
 
-| Variable                  | Default | Description                                      |
-| ------------------------- | ------- | ------------------------------------------------ |
-| `PORTERCHAIN_PUSH_ENABLED`| `false` | Enable FCM push pipeline                         |
-| `PORTERCHAIN_PUSH_SEND`   | `false` | When `true`, send real pushes (not dry-run) §0.1.3 |
+| Variable                   | Default | Description                                        |
+| -------------------------- | ------- | -------------------------------------------------- |
+| `PORTERCHAIN_PUSH_ENABLED` | `false` | Enable FCM push pipeline                           |
+| `PORTERCHAIN_PUSH_SEND`    | `false` | When `true`, send real pushes (not dry-run) §0.1.3 |
 
 **Repository variable:** set `PORTERCHAIN_PUSH_ENABLED=true` and `PORTERCHAIN_PUSH_SEND=true` when Firebase secrets are configured.
 

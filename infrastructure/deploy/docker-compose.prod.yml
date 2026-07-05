@@ -154,7 +154,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "python -c \"import os,redis; r=redis.from_url(os.environ['REDIS_URL']); r.ping(); assert r.get('porterchain:worker:heartbeat'), 'missing heartbeat'\"",
+          'python -c "import os,redis; r=redis.from_url(os.environ[''REDIS_URL'']); r.ping(); assert r.get(''porterchain:worker:heartbeat''), ''missing heartbeat''"',
         ]
       interval: 30s
       timeout: 10s
