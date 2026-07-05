@@ -10,6 +10,10 @@ secrets/
 apps/api/.secrets/
 **/firebase-service-account.json
 *firebase-adminsdk*.json
+/GoogleService-Info*.plist
+/google-services*.json
+/*.p8
+apps/mobile-*/credentials/
 
 # Docker local secrets
 infrastructure/docker/.env
