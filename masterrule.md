@@ -893,17 +893,17 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 
 **Verify:** `pnpm validate:d3` (contracts) · `pnpm validate:d3:e2e` (local) · `pnpm validate:d3:prod` (live URLs).
 
-| Feature                      | Owner engine                                | Check                                            |
-| ---------------------------- | ------------------------------------------- | ------------------------------------------------ |
-| Merchant dashboard           | `merchant_engine`                           | [x] local + prod `validate:d3:prod` 2026-07-05   |
-| Driver web + iOS + Android   | `driver_engine` + portals/mobile            | [x] local + prod portal 200                      |
-| Customer web + iOS + Android | `booking_engine` + customer/mobile          | [x] local + prod quote + sign-in                 |
-| Dispatch                     | `fleetbase_engine` + admin operations       | [x] local · [ ] prod Fleetbase bridge off        |
-| Routing                      | Valhalla/OSRM + Fleetbase                   | [x] local `validate:d3:e2e`                      |
-| Tracking                     | public `/v1/orders/{tracking}` + websockets | [x] local + prod OpenAPI                         |
-| Proof of delivery            | `driver_engine` + Fleetbase webhook         | [x] local · [ ] prod Fleetbase                   |
-| Billing                      | `billing_engine` + Stripe                   | [x] local + prod Stripe configured               |
-| Public / partner API         | `/v1/merchant-api/*` + OpenAPI              | [x] local + prod `/docs`                         |
+| Feature                      | Owner engine                                | Check                                          |
+| ---------------------------- | ------------------------------------------- | ---------------------------------------------- |
+| Merchant dashboard           | `merchant_engine`                           | [x] local + prod `validate:d3:prod` 2026-07-05 |
+| Driver web + iOS + Android   | `driver_engine` + portals/mobile            | [x] local + prod portal 200                    |
+| Customer web + iOS + Android | `booking_engine` + customer/mobile          | [x] local + prod quote + sign-in               |
+| Dispatch                     | `fleetbase_engine` + admin operations       | [x] local · [ ] prod Fleetbase bridge off      |
+| Routing                      | Valhalla/OSRM + Fleetbase                   | [x] local `validate:d3:e2e`                    |
+| Tracking                     | public `/v1/orders/{tracking}` + websockets | [x] local + prod OpenAPI                       |
+| Proof of delivery            | `driver_engine` + Fleetbase webhook         | [x] local · [ ] prod Fleetbase                 |
+| Billing                      | `billing_engine` + Stripe                   | [x] local + prod Stripe configured             |
+| Public / partner API         | `/v1/merchant-api/*` + OpenAPI              | [x] local + prod `/docs`                       |
 
 **Prod manual smoke:** Clerk login on each portal; automated: `pnpm validate:d3:prod`.
 
@@ -932,19 +932,19 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 
 ### D7 — Current audit snapshot (2026-07-05)
 
-| Item                                             | Status                                                                    |
-| ------------------------------------------------ | ------------------------------------------------------------------------- |
-| API CRM / route_center / reports routers         | Removed                                                                   |
-| `collaboration` router + `collaboration_engine/` | Added                                                                     |
-| Fat routers admin/merchant/driver                | **Split** into `routers/{admin,merchant,driver}/` packages                |
-| Admin CRM + Route Center UI                      | **Removed** (re-verified 2026-07-05)                                      |
-| Website `/portal/customer`                       | **Removed** — links to `:3004`                                            |
-| `merchant_engine` → `admin_engine` imports       | **Fixed** — `support_engine` + `domain/*`                                 |
-| Fleetbase sync backlog (local audit)             | **Cleared** — 31/31 linked (100%) after replay                            |
+| Item                                             | Status                                                                        |
+| ------------------------------------------------ | ----------------------------------------------------------------------------- |
+| API CRM / route_center / reports routers         | Removed                                                                       |
+| `collaboration` router + `collaboration_engine/` | Added                                                                         |
+| Fat routers admin/merchant/driver                | **Split** into `routers/{admin,merchant,driver}/` packages                    |
+| Admin CRM + Route Center UI                      | **Removed** (re-verified 2026-07-05)                                          |
+| Website `/portal/customer`                       | **Removed** — links to `:3004`                                                |
+| `merchant_engine` → `admin_engine` imports       | **Fixed** — `support_engine` + `domain/*`                                     |
+| Fleetbase sync backlog (local audit)             | **Cleared** — 31/31 linked (100%) after replay                                |
 | Prod droplet containers                          | **Live** — 8 services; `https://api.porterchain.com/health` → ok (2026-07-05) |
-| D3 feature matrix                                | **Local + prod pass** — `validate:d3:e2e` + `validate:d3:prod` 2026-07-05 |
-| Mobile customer + driver apps                    | Present in repo                                                           |
-| Phase 2 AI/analytics code                        | Not started (good)                                                        |
+| D3 feature matrix                                | **Local + prod pass** — `validate:d3:e2e` + `validate:d3:prod` 2026-07-05     |
+| Mobile customer + driver apps                    | Present in repo                                                               |
+| Phase 2 AI/analytics code                        | Not started (good)                                                            |
 
 ### D8 — Suggested execution order (sprints)
 
