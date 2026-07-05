@@ -15,7 +15,6 @@ RUN pnpm install --frozen-lockfile --filter @porterchain/merchant-portal...
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/merchant-portal/node_modules ./apps/merchant-portal/node_modules
-COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
 COPY --from=deps /app/packages/maps/node_modules ./packages/maps/node_modules
 COPY . .
 ARG NEXT_PUBLIC_SITE_URL=https://merchant.porterchain.com

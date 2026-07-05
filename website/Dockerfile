@@ -14,7 +14,6 @@ RUN pnpm install --frozen-lockfile --filter @porterchain/website...
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/website/node_modules ./website/node_modules
-COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
 COPY --from=deps /app/packages/maps/node_modules ./packages/maps/node_modules
 COPY . .
 ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
