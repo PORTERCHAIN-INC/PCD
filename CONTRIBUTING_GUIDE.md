@@ -81,7 +81,7 @@ apps/fleetbase/scripts/             # Upstream install scripts
 
 ### Node / frontend
 
-Requires Node **22.22.3** (see `.nvmrc`) and pnpm **9.15+**.
+Requires Node **24.18.0** (see `.nvmrc`) and pnpm **9.15+**.
 
 ```bash
 corepack enable

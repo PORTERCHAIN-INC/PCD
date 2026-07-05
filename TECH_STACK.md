@@ -33,7 +33,7 @@
 
 | Technology         | Version in PCD                             | Notes                                 |
 | ------------------ | ------------------------------------------ | ------------------------------------- |
-| **Node.js**        | `22.22.3` (`.nvmrc`; engines `>=22`)       | All Next.js apps and root scripts     |
+| **Node.js**        | `24.18.0` (`.nvmrc`; engines `>=24`)       | All Next.js apps and root scripts     |
 | **pnpm**           | `9.15.4` (`packageManager` in root)        | Monorepo workspaces                   |
 | **Turbo**          | `2.3.3`                                    | `pnpm dev`, `pnpm build`, `pnpm lint` |
 | **Prettier**       | `3.4.2`                                    | `pnpm format`, `pnpm format:check`    |

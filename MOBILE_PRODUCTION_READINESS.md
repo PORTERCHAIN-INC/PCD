@@ -103,7 +103,7 @@ Architecture boundaries are sound: both apps call **Porterchain API only** (`EXP
 | Item                | Driver | Customer | Notes                                             |
 | ------------------- | ------ | -------- | ------------------------------------------------- |
 | `eas.json`          | ✅     | ✅       | Both define development/preview/production        |
-| Node in EAS         | ⚠      | ⚠        | EAS uses `22.14.0`; repo `.nvmrc` is `22.22.3`    |
+| Node in EAS         | ✓      | ✓        | EAS uses `24.18.0`; matches repo `.nvmrc`         |
 | App icons           | ✅     | ⚠        | Customer config lacks explicit icon/adaptive icon |
 | Splash              | ✅     | ⚠        | Customer splash has background only               |
 | iOS bundle id       | ✅     | ✅       | `com.porterchain.PCD`, `com.porterchain.customer` |

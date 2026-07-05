@@ -202,7 +202,7 @@ Production push delivery requires `FIREBASE_CREDENTIALS_PATH` and related vars o
 | ------------- | ------------ | ----------------------------- | --------------------------------------- |
 | `development` | internal     | `http://127.0.0.1:8001`       | Dev client, iOS simulator               |
 | `preview`     | internal     | `https://api.porterchain.com` | Device testing                          |
-| `production`  | store        | `https://api.porterchain.com` | App Store; Node 22.14, Xcode 26.2 image |
+| `production`  | store        | `https://api.porterchain.com` | App Store; Node 24.18, Xcode 26.2 image |
 
 **Production Google Maps key:** set as EAS secret (not only local `.env`):
 

@@ -28,7 +28,7 @@ Path aliases: `website/` = public site (target `apps/website/`); `apps/merchant-
 
 ### Prerequisites
 
-- Node.js **22.22.3** (see [`.nvmrc`](.nvmrc); engines `>=22`)
+- Node.js **24.18.0** (see [`.nvmrc`](.nvmrc); engines `>=24`)
 - [pnpm](https://pnpm.io) **9.15+**
 - Python **3.13** for API/worker (see [TECH_STACK.md](TECH_STACK.md))
 - Docker (Postgres, Redis, Mailhog)

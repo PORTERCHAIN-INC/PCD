@@ -98,11 +98,11 @@ Fleetbase stack uses named volumes prefixed `porterchain-fleetbase-*` (see DOCKE
 | Path                              | Base image         | Output              |
 | --------------------------------- | ------------------ | ------------------- |
 | `apps/api/Dockerfile`             | `python:3.13-slim` | Porterchain FastAPI |
-| `website/Dockerfile`              | `node:22-alpine`   | Next.js standalone  |
-| `apps/merchant-portal/Dockerfile` | `node:22-alpine`   | Next.js standalone  |
-| `apps/admin/Dockerfile`           | `node:22-alpine`   | Next.js standalone  |
-| `apps/driver-portal/Dockerfile`   | `node:22-alpine`   | Next.js standalone  |
-| `apps/customer/Dockerfile`        | `node:22-alpine`   | Next.js standalone  |
+| `website/Dockerfile`              | `node:24-alpine`   | Next.js standalone  |
+| `apps/merchant-portal/Dockerfile` | `node:24-alpine`   | Next.js standalone  |
+| `apps/admin/Dockerfile`           | `node:24-alpine`   | Next.js standalone  |
+| `apps/driver-portal/Dockerfile`   | `node:24-alpine`   | Next.js standalone  |
+| `apps/customer/Dockerfile`        | `node:24-alpine`   | Next.js standalone  |
 
 Production deploy: `infrastructure/deploy/docker-compose.prod.yml` — Postgres, Redis, API + 5 portal images, Caddy TLS.
 

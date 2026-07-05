@@ -23,7 +23,7 @@
     },
     "production": {
       "autoIncrement": true,
-      "node": "22.14.0",
+      "node": "24.18.0",
       "distribution": "store",
       "ios": {
         "image": "macos-sequoia-15.6-xcode-26.2",

@@ -18,7 +18,7 @@
 | Metric                   | Value                                                                      |
 | ------------------------ | -------------------------------------------------------------------------- |
 | Monorepo                 | **Yes** — pnpm 9.15 + Turbo 2.3                                            |
-| Node.js                  | **22.22.3** (`.nvmrc`)                                                     |
+| Node.js                  | **24.18.0** (`.nvmrc`)                                                     |
 | TypeScript workspaces    | 26 `package.json` roots (apps + packages + shared)                         |
 | Python services          | API, worker, pricing-engine, fleetbase-adapter, event-bus, driver-platform |
 | Package manager (JS)     | pnpm (lockfile: `pnpm-lock.yaml`)                                          |

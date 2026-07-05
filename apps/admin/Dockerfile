@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Build: docker build -f apps/admin/Dockerfile -t pcd-admin .
 
-FROM node:22-alpine AS base
+FROM node:24-alpine AS base
 RUN corepack enable
 WORKDIR /app
 
