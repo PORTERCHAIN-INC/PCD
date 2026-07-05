@@ -56,7 +56,6 @@ export default function SiteNavbarAuth({
       <div className={onNavigate ? "flex flex-col items-center gap-3" : "contents"}>
         {ordersLink}
         <UserButton
-          afterSignOutUrl="/login"
           appearance={{
             elements: {
               avatarBox: "h-9 w-9",
