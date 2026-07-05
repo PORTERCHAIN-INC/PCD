@@ -281,8 +281,10 @@ pnpm validate:e2e:reports       # full markdown reports (optional)
 | Gate  | What                          | Pass criteria                                                     |
 | ----- | ----------------------------- | ----------------------------------------------------------------- |
 | G1    | API health + `booking_drafts` | `GET /health` 200; table exists; draft smoke POST                 |
-| G2    | Fleetbase sync                | ≥90% orders have `fleetbase_order_id`                             |
-| G3    | Webhook secret                | `FLEETBASE_WEBHOOK_SECRET` set; signed POST `/webhooks/fleetbase` |
+| G2    | Fleetbase sync                | ≥95% orders have `fleetbase_order_id` (excludes cancelled/refunded) |
+| G3    | Webhook secret                | `FLEETBASE_WEBHOOK_SECRET` set; signed POST `/webhooks/fleetbase`     |
+| G8    | Stripe webhook (prod)         | `STRIPE_WEBHOOK_SECRET` set; POST `/webhooks/stripe` ≠ 503            |
+| G9    | Push live (prod)              | `PORTERCHAIN_PUSH_SEND=true`; readiness `firebase: ok`                |
 | G4–G9 | E2E framework                 | `scripts/verify_p0_loop.py` (wraps `E2EValidationService`)        |
 
 **Prod droplet:** deploy workflow runs G1 smoke after migrate. Until `api.porterchain.com` is live, G1 prod stays open — see [infrastructure/deploy/README.md](./infrastructure/deploy/README.md).

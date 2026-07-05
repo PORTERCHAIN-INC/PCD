@@ -48,7 +48,6 @@ def readiness(db: Session, settings: Settings) -> dict:
     checks["fleetbase"] = (
         "bridge_enabled" if settings.fleetbase_dispatch_bridge else "bridge_disabled"
     )
-    fleetbase_sync: dict = {}
     if settings.fleetbase_dispatch_bridge:
         try:
             from porterchain_api.fleetbase_engine.sync_health import assess_fleetbase_sync
@@ -74,7 +73,12 @@ def readiness(db: Session, settings: Settings) -> dict:
             checks["firebase"] = "push_disabled"
         else:
             ready, reason = firebase_production_ready()
-            checks["firebase"] = "ok" if ready else (reason or "not_configured")
+            if not ready:
+                checks["firebase"] = reason or "not_configured"
+            elif not platform.push_send:
+                checks["firebase"] = "dry_run"
+            else:
+                checks["firebase"] = "ok"
     except Exception as exc:  # noqa: BLE001
         checks["firebase"] = f"error: {exc}"
 

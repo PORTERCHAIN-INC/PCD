@@ -22,11 +22,10 @@ from typing import Any
 API_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(API_ROOT / "src"))
 
-from sqlalchemy import func, inspect, text
+from sqlalchemy import inspect
 
 from porterchain_api.config import get_settings
 from porterchain_api.db import SessionLocal, engine, init_db
-from porterchain_api.models import Order
 
 
 def _http_json(url: str, *, method: str = "GET", body: dict | None = None, timeout: float = 10.0) -> tuple[int, Any]:
@@ -105,6 +104,48 @@ def check_g1(check: Check, api_url: str, *, prod: bool) -> None:
             body={"session_id": "p0-smoke-test"},
         )
         check.run("G1", "POST /v1/booking-drafts smoke", code in (200, 201), detail=f"HTTP {code}")
+
+
+def check_prod_integrations(check: Check, api_url: str, *, prod: bool) -> None:
+    """§0.1.3 push live + §0.1.9 Stripe webhook ingress (prod readiness)."""
+    if not prod:
+        return
+
+    status, body = _http_json(f"{api_url.rstrip('/')}/health/ready")
+    if status != 200:
+        check.run("G9", "Push live (PORTERCHAIN_PUSH_SEND)", False, detail=f"readiness HTTP {status}")
+        check.run("G8", "Stripe webhook ingress configured", False, detail=f"readiness HTTP {status}")
+        return
+
+    checks = body.get("checks", {}) if isinstance(body, dict) else {}
+    firebase = checks.get("firebase", "")
+    push_live = firebase == "ok"
+    check.run(
+        "G9",
+        "Push live (PORTERCHAIN_PUSH_SEND=true)",
+        push_live,
+        detail=firebase,
+        warn=firebase == "dry_run",
+    )
+
+    stripe_ok = checks.get("stripe") == "configured"
+    req = urllib.request.Request(
+        f"{api_url.rstrip('/')}/webhooks/stripe",
+        data=b"{}",
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            ingress_ok = resp.status != 503
+    except urllib.error.HTTPError as exc:
+        ingress_ok = exc.code != 503
+    check.run(
+        "G8",
+        "Stripe webhook ingress configured (§0.1.9)",
+        stripe_ok and ingress_ok,
+        detail=f"stripe={checks.get('stripe')}, ingress={'ok' if ingress_ok else '503'}",
+    )
 
 
 def check_g2_g3(check: Check, settings, *, prod: bool, api_url: str) -> None:
@@ -244,6 +285,7 @@ def main() -> int:
 
     check = Check()
     check_g1(check, api_url, prod=args.prod)
+    check_prod_integrations(check, api_url, prod=args.prod)
     check_g2_g3(check, settings, prod=args.prod, api_url=api_url)
     check_g4_g9_e2e(check, settings, skip_e2e=args.skip_e2e)
 

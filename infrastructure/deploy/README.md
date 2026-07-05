@@ -136,7 +136,14 @@ pnpm fleetbase:replay
 # or: cd apps/api && PYTHONPATH=src python scripts/replay_fleetbase_sync.py
 ```
 
-**Repository variable:** `PORTERCHAIN_PUSH_ENABLED` — default `false` until Firebase secrets are set.
+**Repository variables:**
+
+| Variable                  | Default | Description                                      |
+| ------------------------- | ------- | ------------------------------------------------ |
+| `PORTERCHAIN_PUSH_ENABLED`| `false` | Enable FCM push pipeline                         |
+| `PORTERCHAIN_PUSH_SEND`   | `false` | When `true`, send real pushes (not dry-run) §0.1.3 |
+
+**Repository variable:** set `PORTERCHAIN_PUSH_ENABLED=true` and `PORTERCHAIN_PUSH_SEND=true` when Firebase secrets are configured.
 
 **Stripe webhook URL:** `https://porterchain.com/webhooks/stripe` (via Caddy → API)
 
