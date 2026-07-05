@@ -12,20 +12,22 @@ Track execution here. Check boxes when done; add date + commit SHA in **Done** c
 
 ## Firebase mobile credentials (verified 2026-07-05)
 
-| File                            | Bundle / package                                             | Project             | Status                       |
-| ------------------------------- | ------------------------------------------------------------ | ------------------- | ---------------------------- |
-| `GoogleService-Info_cust.plist` | `com.porterchain.customer` (iOS)                             | `porterchain-55313` | ✅ Matches customer app      |
-| `google-services_cust.json`     | `com.porterchain.customer` + `com.porterchain.PCD` (Android) | `porterchain-55313` | ✅ Matches API prod Firebase |
+| File                                                     | Bundle / package                                             | Project             | Status          |
+| -------------------------------------------------------- | ------------------------------------------------------------ | ------------------- | --------------- |
+| `GoogleService-Info_cust.plist`                          | `com.porterchain.customer` (iOS)                             | `porterchain-55313` | ✅ Customer app |
+| `GoogleService-Info (1).plist`                           | `com.porterchain.PCD` (iOS)                                  | `porterchain-55313` | ✅ Driver app   |
+| `google-services_cust.json` / `google-services (1).json` | `com.porterchain.PCD` + `com.porterchain.customer` (Android) | `porterchain-55313` | ✅ Both apps    |
 
 **Installed for EAS/local builds** (gitignored — do not commit):
 
-- `apps/mobile-customer/credentials/GoogleService-Info.plist` ← from `_cust.plist`
-- `apps/mobile-customer/credentials/google-services.json` ← from `_cust.json`
-- `apps/mobile-driver/credentials/google-services.json` ← Android `com.porterchain.PCD` entry
+| App      | iOS                                                         | Android                                                 |
+| -------- | ----------------------------------------------------------- | ------------------------------------------------------- |
+| Customer | `apps/mobile-customer/credentials/GoogleService-Info.plist` | `apps/mobile-customer/credentials/google-services.json` |
+| Driver   | `apps/mobile-driver/credentials/GoogleService-Info.plist`   | `apps/mobile-driver/credentials/google-services.json`   |
 
-**Still needed for driver iOS push:** download `GoogleService-Info.plist` for **`com.porterchain.PCD`** from Firebase → `apps/mobile-driver/credentials/GoogleService-Info.plist` (not in repo root yet).
+Root staging copies (`*_cust.*`, `GoogleService-Info (1).plist`, `google-services (1).json`) stay gitignored.
 
-Keep root copies `GoogleService-Info_cust.plist` / `google-services_cust.json` out of git (see root `.gitignore`).
+**§0.1.3 remaining:** physical device push test + APNs key uploaded in Firebase Console for both iOS apps.
 
 ---
 
@@ -33,13 +35,13 @@ Keep root copies `GoogleService-Info_cust.plist` / `google-services_cust.json` o
 
 All Wave DD **code** blockers are done. Close these manually:
 
-| Priority | ID     | Action                                                                                            | How to verify                                                                   |
-| -------- | ------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| 1        | §0.1.3 | **Device push test** — customer creds ✅; driver iOS plist still needed for `com.porterchain.PCD` | Push on device + row in `notification_devices`                                  |
-| 2        | §0.1.9 | **Stripe dashboard** — webhook URL `https://porterchain.com/webhooks/stripe` (live mode)          | `STRIPE_MOCK=false STRIPE_SECRET=sk_live_… pnpm validate:p0:prod` → G8b pass    |
-| 3        | §0.1.9 | **Invoice row proof** — complete one live payment                                                 | Droplet SQL on `invoices` (G8c hint in `validate:p0:prod`)                      |
-| 4        | DD-05b | **Fleetbase prod** — host Fleetbase, set GitHub secrets, enable bridge                            | `GET /health/ready` → `fleetbase_sync.meets_slo: true`; `pnpm fleetbase:replay` |
-| 5        | DD-02  | **Sentry DSN** — optional but recommended                                                         | `gh secret set SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN`                           |
+| Priority | ID     | Action                                                                                   | How to verify                                                                   |
+| -------- | ------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 1        | §0.1.3 | **Device push test** — Firebase creds ✅ both apps; build + test on device               | Push on device + row in `notification_devices`                                  |
+| 2        | §0.1.9 | **Stripe dashboard** — webhook URL `https://porterchain.com/webhooks/stripe` (live mode) | `STRIPE_MOCK=false STRIPE_SECRET=sk_live_… pnpm validate:p0:prod` → G8b pass    |
+| 3        | §0.1.9 | **Invoice row proof** — complete one live payment                                        | Droplet SQL on `invoices` (G8c hint in `validate:p0:prod`)                      |
+| 4        | DD-05b | **Fleetbase prod** — host Fleetbase, set GitHub secrets, enable bridge                   | `GET /health/ready` → `fleetbase_sync.meets_slo: true`; `pnpm fleetbase:replay` |
+| 5        | DD-02  | **Sentry DSN** — optional but recommended                                                | `gh secret set SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN`                           |
 
 **Missing GitHub secrets today:** `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, all `FLEETBASE_*` (bridge correctly off until set).
 
