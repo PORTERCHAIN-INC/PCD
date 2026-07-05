@@ -148,6 +148,41 @@ def check_prod_integrations(check: Check, api_url: str, *, prod: bool) -> None:
     )
 
 
+def check_stripe_webhook_registered(check: Check, settings, *, prod: bool) -> None:
+    """Verify Stripe dashboard has live webhook URL (requires STRIPE_SECRET locally)."""
+    if not prod:
+        return
+    if settings.stripe_mock or not settings.stripe_secret:
+        check.warn(
+            "G8b",
+            "Stripe live webhook registered in dashboard",
+            "set STRIPE_SECRET locally to verify endpoint list",
+        )
+        return
+
+    import stripe
+
+    stripe.api_key = settings.stripe_secret
+    expected_urls = {
+        "https://porterchain.com/webhooks/stripe",
+        "https://api.porterchain.com/webhooks/stripe",
+    }
+    try:
+        endpoints = stripe.WebhookEndpoint.list(limit=25)
+        found = {item.url for item in endpoints.data}
+        ok = bool(found & expected_urls)
+        sample = ", ".join(sorted(found)[:4]) or "none"
+        check.run(
+            "G8b",
+            "Stripe live webhook registered (§0.1.9)",
+            ok,
+            detail=sample,
+            warn=not ok,
+        )
+    except Exception as exc:  # noqa: BLE001
+        check.run("G8b", "Stripe live webhook registered (§0.1.9)", False, detail=str(exc))
+
+
 def check_g2_g3(check: Check, settings, *, prod: bool, api_url: str) -> None:
     from porterchain_api.fleetbase_engine.sync_health import SLO_TARGET_PCT, assess_fleetbase_sync
 
@@ -286,6 +321,7 @@ def main() -> int:
     check = Check()
     check_g1(check, api_url, prod=args.prod)
     check_prod_integrations(check, api_url, prod=args.prod)
+    check_stripe_webhook_registered(check, settings, prod=args.prod)
     check_g2_g3(check, settings, prod=args.prod, api_url=api_url)
     check_g4_g9_e2e(check, settings, skip_e2e=args.skip_e2e)
 

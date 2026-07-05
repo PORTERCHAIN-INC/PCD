@@ -15,6 +15,7 @@
   "dependencies": {
     "@clerk/nextjs": "^7.5.9",
     "@porterchain/maps": "workspace:*",
+    "@sentry/nextjs": "^10.63.0",
     "@vis.gl/react-google-maps": "^1.8.3",
     "date-fns": "^4.4.0",
     "framer-motion": "^12.42.0",

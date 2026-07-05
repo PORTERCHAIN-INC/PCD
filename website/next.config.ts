@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadMonorepoEnv, nextPublicEnv } from "@porterchain/config/monorepo-env.mjs";
 import createNextIntlPlugin from "next-intl/plugin";
 
 loadMonorepoEnv(process.cwd(), "../env/.env");
+
+const monorepoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -20,6 +24,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  turbopack: {
+    root: monorepoRoot,
+  },
+  transpilePackages: ["@porterchain/config"],
   env: {
     ...nextPublicEnv(),
     NEXT_PUBLIC_ADMIN_PORTAL_URL:

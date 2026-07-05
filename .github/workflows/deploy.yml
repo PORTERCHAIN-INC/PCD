@@ -89,6 +89,8 @@ jobs:
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -120,6 +122,8 @@ jobs:
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
           cache-from: type=gha,scope=admin
           cache-to: type=gha,mode=max,scope=admin
 
@@ -138,6 +142,8 @@ jobs:
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
           cache-from: type=gha,scope=merchant
           cache-to: type=gha,mode=max,scope=merchant
 
@@ -156,6 +162,8 @@ jobs:
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
           cache-from: type=gha,scope=driver
           cache-to: type=gha,mode=max,scope=driver
 
@@ -175,6 +183,8 @@ jobs:
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_WEBSITE_URL=${{ env.PROD_SITE_URL }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
           cache-from: type=gha,scope=customer
           cache-to: type=gha,mode=max,scope=customer
 

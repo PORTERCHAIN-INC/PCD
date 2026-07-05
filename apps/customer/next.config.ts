@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: monorepoRoot,
   },
+  transpilePackages: ["@porterchain/config"],
   env: customerPublicEnv(),
 };
 

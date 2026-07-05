@@ -8,12 +8,20 @@
     "./monorepo-env.mjs": {
       "types": "./monorepo-env.d.ts",
       "default": "./monorepo-env.mjs"
+    },
+    "./sentry/portal": {
+      "types": "./sentry/portal.ts",
+      "default": "./sentry/portal.ts"
     }
   },
   "files": [
     "prettier.config.mjs",
     "monorepo-env.mjs",
     "monorepo-env.d.ts",
+    "sentry/portal.ts",
     "tsconfig.base.json"
-  ]
+  ],
+  "dependencies": {
+    "@sentry/nextjs": "^10"
+  }
 }

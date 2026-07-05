@@ -4,7 +4,7 @@
 **masterrule:** [Appendix D](../masterrule.md#appendix-d--phase-alignment-checklist-zero-complexity)  
 **Checklist:** [SILICON_VALLEY_READINESS_CHECKLIST.md](./SILICON_VALLEY_READINESS_CHECKLIST.md)  
 **Last verified:** 2026-07-05  
-**Progress:** 52/408 checklist items (~13%)
+**Progress:** 54/408 checklist items (~13%)
 
 Track execution here. Check boxes when done; add date + commit SHA in **Done** column.
 
@@ -15,7 +15,7 @@ Track execution here. Check boxes when done; add date + commit SHA in **Done** c
 - [x] **DD-06** Rate limit fail-closed + pooled Redis — `apps/api/src/porterchain_api/platform/rate_limit_middleware.py` _(2026-07-05, uncommitted)_
 - [x] **DD-12** `jwt_secret` boot fails if dev default in prod — `apps/api/src/porterchain_api/config.py` _(2026-07-05, uncommitted)_
 - [x] **DD-04** Add `pcd-worker` to prod compose + queue health — `infrastructure/deploy/docker-compose.prod.yml`, `apps/worker/` _(2026-07-05, uncommitted)_
-- [x] **DD-02** Sentry + request correlation on API — `platform/middleware.py`, all apps _(2026-07-05, uncommitted — API only; portals next)_
+- [x] **DD-02** Sentry + request correlation on API — `platform/middleware.py`, all apps _(2026-07-05, API + portals Sentry in `81dab60+`)_
 - [x] **DD-01** Order state machine tests — `apps/api/tests/test_order_transitions.py` _(2026-07-05, uncommitted)_
 
 ---
@@ -29,14 +29,14 @@ _Closes **DD-G1** / Series A technical blockers. Do in order within P0._
 | [x]  | DD-06  | Rate limit fail-closed + pooled Redis                | 1 day    | `rate_limit_middleware.py` · §0.7.6                                                                      |
 | [x]  | DD-12  | `jwt_secret` boot fails if dev default               | 0.5 day  | `config.py` · §11.1.13                                                                                   |
 | [x]  | DD-04  | Worker in prod compose + queue health                | 1–2 days | `docker-compose.prod.yml`, `apps/worker/` · §0.1.4                                                       |
-| [x]  | DD-02  | Sentry + OpenTelemetry on API (then portals)         | 2 days   | `platform/middleware.py` · §0.7.2, B.13                                                                  |
+| [x]  | DD-02  | Sentry + OpenTelemetry on API (then portals)         | 2 days   | API + 5 Next.js portals · §0.7.2, B.13                                                                   |
 | [x]  | DD-10  | CI security: Dependabot + CodeQL + Trivy             | 0.5 day  | `.github/workflows/` · §2.5.5, B.16                                                                      |
 | [x]  | DD-01a | Order state machine tests                            | 2 days   | `tests/test_order_transitions.py` · §2.1.1                                                               |
 | [x]  | DD-01b | Booking loop integration test                        | 2 days   | `tests/integration/test_booking_loop.py` · §2.1.2                                                        |
 | [x]  | DD-01c | Stripe webhook idempotency tests                     | 1 day    | `stripe_webhook_service.py` · §2.1.14                                                                    |
 | [x]  | DD-05a | Implement dispatch worker (not stub)                 | 2 days   | `worker/processors/dispatch.py` · §2.2.7                                                                 |
-| [~]  | §0.1.3 | `PORTERCHAIN_PUSH_SEND=true` prod + device test      | 0.5 day  | deploy wired; set `PORTERCHAIN_PUSH_SEND` var + device test                                              |
-| [~]  | §0.1.9 | Stripe live webhook + invoice row proof              | 1 day    | ingress check in `validate:p0:prod`; register URL in Stripe dash                                         |
+| [~]  | §0.1.3 | `PORTERCHAIN_PUSH_SEND=true` prod + device test      | 0.5 day  | **G9 pass** on prod (`firebase: ok`); manual device test remaining                                       |
+| [~]  | §0.1.9 | Stripe live webhook + invoice row proof              | 1 day    | **G8 pass** ingress; G8b dashboard check with `STRIPE_SECRET`; live invoice row proof in Stripe dash     |
 | [~]  | DD-05b | Fleetbase prod: bridge on, webhook secret, sync >95% | 1–2 wks  | `sync_health.py`, deploy secrets · §0.1.5–7 — **code ready; set GitHub secrets + enable bridge in prod** |
 | [x]  | DD-08  | Order/payment transactions + `SELECT FOR UPDATE`     | 1 wk     | `confirmation_service.py`, `stripe_webhook_service.py` · §0.7.8                                          |
 | [x]  | DD-07  | Tenant isolation: context + repos + IDOR tests       | 2 wks    | `models.py`, `*_engine/` · §0.7.7, §2.5.1                                                                |

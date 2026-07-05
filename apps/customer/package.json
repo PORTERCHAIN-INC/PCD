@@ -14,6 +14,7 @@
   "dependencies": {
     "@clerk/nextjs": "^7.5.9",
     "@porterchain/maps": "workspace:*",
+    "@sentry/nextjs": "^10.63.0",
     "@vis.gl/react-google-maps": "^1.8.3",
     "lucide-react": "^1.21.0",
     "next": "16.2.10",
