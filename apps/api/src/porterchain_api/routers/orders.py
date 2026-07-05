@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.auth.clerk import get_clerk_user_id
 from porterchain_api.booking_engine import TrackingService
+from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.models import Booking, Customer, Invoice, Order
@@ -10,6 +11,7 @@ from porterchain_api.schemas import OrderResponse, OrderTrackingResponse
 
 router = APIRouter(prefix="/v1", tags=["orders"])
 _tracking = TrackingService()
+_orders = OrderRepository()
 
 
 def _order_response(order: Order, db: Session) -> OrderResponse:
@@ -73,11 +75,5 @@ def list_customer_orders(
         raise HTTPException(status_code=404, detail="customer_not_found")
     if customer.clerk_user_id != clerk_user_id:
         raise HTTPException(status_code=403, detail="forbidden")
-    orders = (
-        db.query(Order)
-        .filter(Order.customer_id == customer_id)
-        .order_by(Order.created_at.desc())
-        .limit(50)
-        .all()
-    )
+    orders = _orders.list_for_customer(db, customer_id, limit=50)
     return [_order_response(o, db) for o in orders]

@@ -49,12 +49,15 @@ class MerchantOrderFilters:
 
 class MerchantOrdersService:
     def __init__(self) -> None:
+        from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
+
         self._orders = OrderPlatformService()
         self._booking = MerchantBookingService()
+        self._order_repo = OrderRepository()
 
     def _require_owned(self, db: Session, ctx: MerchantContext, order_id: str) -> Order:
-        order = self._orders.get_order(db, order_id)
-        if not order or order.merchant_id != ctx.merchant.id:
+        order = self._order_repo.get_for_merchant(db, ctx.merchant.id, order_id)
+        if not order:
             raise LookupError("order_not_found")
         return order
 
@@ -248,11 +251,7 @@ class MerchantOrdersService:
         return q.order_by(Order.created_at.desc()).offset(offset).limit(limit).all()
 
     def get_order(self, db: Session, ctx: MerchantContext, order_id: str) -> Order | None:
-        return (
-            db.query(Order)
-            .filter(Order.id == order_id, Order.merchant_id == ctx.merchant.id)
-            .first()
-        )
+        return self._order_repo.get_for_merchant(db, ctx.merchant.id, order_id)
 
     def get_tracking_timeline(self, db: Session, ctx: MerchantContext, order_id: str) -> list[dict]:
         order = self.get_order(db, ctx, order_id)
@@ -276,9 +275,4 @@ class MerchantOrdersService:
         ]
 
     def get_by_tracking(self, db: Session, ctx: MerchantContext, tracking_number: str) -> Order | None:
-        from porterchain_api.booking_engine.tracking_service import TrackingService
-
-        order = TrackingService().get_by_tracking(db, tracking_number)
-        if order and order.merchant_id == ctx.merchant.id:
-            return order
-        return None
+        return self._order_repo.get_by_tracking_for_merchant(db, ctx.merchant.id, tracking_number)

@@ -4,7 +4,7 @@
 **masterrule:** [Appendix D](../masterrule.md#appendix-d--phase-alignment-checklist-zero-complexity)  
 **Checklist:** [SILICON_VALLEY_READINESS_CHECKLIST.md](./SILICON_VALLEY_READINESS_CHECKLIST.md)  
 **Last verified:** 2026-07-05  
-**Progress:** 51/408 checklist items (~13%)
+**Progress:** 52/408 checklist items (~13%)
 
 Track execution here. Check boxes when done; add date + commit SHA in **Done** column.
 
@@ -39,7 +39,7 @@ _Closes **DD-G1** / Series A technical blockers. Do in order within P0._
 | [ ]  | §0.1.9 | Stripe live webhook + invoice row proof              | 1 day    | Stripe dashboard · §0.1.9, D.9                                  |
 | [ ]  | DD-05b | Fleetbase prod: bridge on, webhook secret, sync >95% | 1–2 wks  | `fleetbase_engine/` · §0.1.5–7                                  |
 | [x]  | DD-08  | Order/payment transactions + `SELECT FOR UPDATE`     | 1 wk     | `confirmation_service.py`, `stripe_webhook_service.py` · §0.7.8 |
-| [ ]  | DD-07  | Tenant isolation: context + repos + IDOR tests       | 2 wks    | `models.py`, `*_engine/` · §0.7.7, §2.5.1                       |
+| [x]  | DD-07  | Tenant isolation: context + repos + IDOR tests       | 2 wks    | `models.py`, `*_engine/` · §0.7.7, §2.5.1                       |
 | [x]  | DD-01d | ≥20 API test files + CI blocks on failure            | 2 wks    | `apps/api/tests/`, `ci.yml` · ENG-G1                            |
 
 **P0 exit criteria:** All DD-01–DD-08 checked · Appendix A prod column green for A.3–A.14 · **DD-G1** green

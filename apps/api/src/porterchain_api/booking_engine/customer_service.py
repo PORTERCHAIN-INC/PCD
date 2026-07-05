@@ -221,9 +221,9 @@ class CustomerService:
         return ticket
 
     def rebook_payload(self, db: Session, customer_id: str, order_id: str) -> dict:
-        from porterchain_api.models import Order
+        from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
 
-        order = db.query(Order).filter(Order.id == order_id, Order.customer_id == customer_id).first()
+        order = OrderRepository().get_for_customer(db, customer_id, order_id)
         if not order:
             raise LookupError("order_not_found")
         return {

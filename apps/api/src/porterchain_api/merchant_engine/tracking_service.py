@@ -73,8 +73,11 @@ def _normalize_pod(proofs: list[dict[str, Any]]) -> dict[str, Any]:
 
 class MerchantTrackingService:
     def __init__(self) -> None:
+        from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
+
         self._tracking = TrackingService()
         self._maps = MapsService()
+        self._order_repo = OrderRepository()
 
     def dashboard(self, db: Session, settings: Settings, ctx: MerchantContext) -> dict[str, Any]:
         orders = (
@@ -103,11 +106,7 @@ class MerchantTrackingService:
         ctx: MerchantContext,
         order_id: str,
     ) -> dict[str, Any]:
-        order = (
-            db.query(Order)
-            .filter(Order.id == order_id, Order.merchant_id == ctx.merchant.id)
-            .first()
-        )
+        order = self._order_repo.get_for_merchant(db, ctx.merchant.id, order_id)
         if not order:
             raise LookupError("order_not_found")
         return self._full_snapshot(db, settings, ctx, order)
@@ -119,8 +118,8 @@ class MerchantTrackingService:
         ctx: MerchantContext,
         tracking_number: str,
     ) -> dict[str, Any]:
-        order = self._tracking.get_by_tracking(db, tracking_number)
-        if not order or order.merchant_id != ctx.merchant.id:
+        order = self._order_repo.get_by_tracking_for_merchant(db, ctx.merchant.id, tracking_number)
+        if not order:
             raise LookupError("order_not_found")
         return self._full_snapshot(db, settings, ctx, order)
 
