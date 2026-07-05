@@ -839,7 +839,7 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 - [x] **G6** Merchant path: bulk upload → order list → invoice/billing view
 - [x] **G7** Customer path: book on website → pay → track on `apps/customer` or mobile (one dashboard)
 - [x] **G8** Billing: Stripe webhook finalizes payment; invoice row created _(mock Stripe local)_
-- [x] **G9** Notifications: email/push path works in chosen prod async mode _(local phase 7 WARNING — push off; prod `PORTERCHAIN_PUSH_ENABLED=false` until Firebase secrets)_
+- [x] **G9** Notifications: email/push path works in chosen prod async mode _(prod Firebase live 2026-07-05 — `PORTERCHAIN_PUSH_ENABLED=true`, project `porterchain-55313`, service-account mounted at `/run/secrets/firebase-service-account.json`; `/health/ready` → `firebase: ok`)_
 
 ### D2 — Remove accidental complexity (codebase)
 
@@ -953,7 +953,7 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 3. ~~**Sprint C (boundaries):** D2 bounded-context extractions~~ ✓
 4. ~~**Sprint D (routers):** D2 thin routers~~ ✓
 5. ~~**Sprint E:** D3 prod smoke + portal URLs~~ ✓ `validate:d3:prod` 2026-07-05
-6. **Sprint F (now):** G9 Firebase secrets → enable `PORTERCHAIN_PUSH_ENABLED`; prod Fleetbase G2/G3 when dispatch needed
+6. ~~**Sprint F:** G9 Firebase secrets → enable `PORTERCHAIN_PUSH_ENABLED`~~ ✓ prod push live 2026-07-05; prod Fleetbase G2/G3 pending (when dispatch needed)
 7. ~~**Sprint G (Phase 2 prep):** D5 hooks + ADR-010 only~~ ✓
 
 ---
