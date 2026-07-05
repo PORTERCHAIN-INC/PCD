@@ -30,8 +30,10 @@ def readiness(db: Session, settings: Settings) -> dict:
 
     try:
         from porterchain_api.notification_engine.fcm_service import firebase_production_ready
+        from porterchain_shared.config.settings import get_platform_settings
 
-        if not settings.push_enabled:
+        platform = get_platform_settings()
+        if not platform.push_enabled:
             checks["firebase"] = "push_disabled"
         else:
             ready, reason = firebase_production_ready()
