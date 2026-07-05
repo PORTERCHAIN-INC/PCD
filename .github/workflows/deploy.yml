@@ -58,7 +58,7 @@ jobs:
             echo "value=${{ github.sha }}" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.check.outputs.ready == 'true'
         with:
           ref: ${{ steps.sha.outputs.value }}
