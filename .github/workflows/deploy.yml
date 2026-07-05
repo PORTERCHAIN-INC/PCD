@@ -210,6 +210,15 @@ jobs:
             export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:$IMAGE_TAG"
             export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:$IMAGE_TAG"
             umask 077
+            mkdir -p secrets
+            if [ -n "$FIREBASE_CREDENTIALS_JSON" ]; then
+              printf '%s' "$FIREBASE_CREDENTIALS_JSON" > secrets/firebase-service-account.json
+              chmod 600 secrets/firebase-service-account.json
+            else
+              rm -f secrets/firebase-service-account.json
+              touch secrets/firebase-service-account.json
+              chmod 600 secrets/firebase-service-account.json
+            fi
             cat > .env <<EOF
             GOOGLE_MAPS_SERVER_API_KEY=$GOOGLE_MAPS_SERVER_API_KEY
             POSTGRES_PASSWORD=$POSTGRES_PASSWORD
@@ -224,7 +233,6 @@ jobs:
             FLEETBASE_SSO_ENABLED=false
             PORTERCHAIN_PUSH_ENABLED=${PORTERCHAIN_PUSH_ENABLED:-false}
             FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
-            FIREBASE_CREDENTIALS_JSON=${FIREBASE_CREDENTIALS_JSON:-}
             FIREBASE_WEB_VAPID_KEY=${FIREBASE_WEB_VAPID_KEY:-}
             EOF
             docker compose -f docker-compose.prod.yml pull

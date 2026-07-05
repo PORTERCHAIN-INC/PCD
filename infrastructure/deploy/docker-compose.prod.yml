@@ -96,8 +96,10 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       PORTERCHAIN_PUSH_ENABLED: ${PORTERCHAIN_PUSH_ENABLED:-false}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
-      FIREBASE_CREDENTIALS_JSON: ${FIREBASE_CREDENTIALS_JSON:-}
+      FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
       FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
+    volumes:
+      - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     expose:
       - "8001"
     networks:
