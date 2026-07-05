@@ -8,12 +8,14 @@ WORKDIR /app
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/driver-portal/package.json ./apps/driver-portal/
+COPY packages/config/package.json ./packages/config/
 COPY packages/maps/package.json ./packages/maps/
 RUN pnpm install --frozen-lockfile --filter @porterchain/driver-portal...
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/driver-portal/node_modules ./apps/driver-portal/node_modules
+COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
 COPY --from=deps /app/packages/maps/node_modules ./packages/maps/node_modules
 COPY . .
 ARG NEXT_PUBLIC_SITE_URL=https://driver.porterchain.com

@@ -8,12 +8,14 @@ WORKDIR /app
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/admin/package.json ./apps/admin/
+COPY packages/config/package.json ./packages/config/
 COPY packages/ui/package.json ./packages/ui/
 RUN pnpm install --frozen-lockfile --filter @porterchain/admin...
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/admin/node_modules ./apps/admin/node_modules
+COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
 COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
 COPY . .
 ARG NEXT_PUBLIC_SITE_URL=https://admin.porterchain.com
