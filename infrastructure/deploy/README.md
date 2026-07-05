@@ -143,7 +143,9 @@ pnpm fleetbase:replay
 | `PORTERCHAIN_PUSH_ENABLED` | `false` | Enable FCM push pipeline                           |
 | `PORTERCHAIN_PUSH_SEND`    | `false` | When `true`, send real pushes (not dry-run) §0.1.3 |
 
-**Repository variable:** set `PORTERCHAIN_PUSH_ENABLED=true` and `PORTERCHAIN_PUSH_SEND=true` when Firebase secrets are configured.
+**Still missing in repo (optional / blocked):** `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, all `FLEETBASE_*` secrets (bridge stays off until Fleetbase prod is ready).
+
+Set `PORTERCHAIN_PUSH_ENABLED=true` and `PORTERCHAIN_PUSH_SEND=true` when Firebase secrets are configured.
 
 **Stripe webhook URL:** `https://porterchain.com/webhooks/stripe` (via Caddy → API)
 

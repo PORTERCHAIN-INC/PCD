@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
@@ -148,21 +149,27 @@ def check_prod_integrations(check: Check, api_url: str, *, prod: bool) -> None:
     )
 
 
+def _prod_stripe_secret(settings) -> str:
+    """Prefer explicit STRIPE_SECRET env over local .env (for live dashboard checks)."""
+    return (os.environ.get("STRIPE_SECRET") or settings.stripe_secret or "").strip()
+
+
 def check_stripe_webhook_registered(check: Check, settings, *, prod: bool) -> None:
     """Verify Stripe dashboard has live webhook URL (requires STRIPE_SECRET locally)."""
     if not prod:
         return
-    if settings.stripe_mock or not settings.stripe_secret:
+    secret = _prod_stripe_secret(settings)
+    if not secret or (settings.stripe_mock and not os.environ.get("STRIPE_SECRET")):
         check.warn(
             "G8b",
             "Stripe live webhook registered in dashboard",
-            "set STRIPE_SECRET locally to verify endpoint list",
+            "run: STRIPE_MOCK=false STRIPE_SECRET=sk_live_… pnpm validate:p0:prod",
         )
         return
 
     import stripe
 
-    stripe.api_key = settings.stripe_secret
+    stripe.api_key = secret
     expected_urls = {
         "https://porterchain.com/webhooks/stripe",
         "https://api.porterchain.com/webhooks/stripe",
@@ -181,6 +188,18 @@ def check_stripe_webhook_registered(check: Check, settings, *, prod: bool) -> No
         )
     except Exception as exc:  # noqa: BLE001
         check.run("G8b", "Stripe live webhook registered (§0.1.9)", False, detail=str(exc))
+
+
+def check_stripe_invoice_proof(check: Check, *, prod: bool) -> None:
+    """§0.1.9 — invoice row after live Stripe event (manual SQL on droplet)."""
+    if not prod:
+        return
+    check.warn(
+        "G8c",
+        "Stripe live event → invoice row (§0.1.9)",
+        "on droplet: docker exec pcd-postgres psql -U porterchain -d porterchain "
+        "-c \"SELECT id, stripe_receipt_url, created_at FROM invoices ORDER BY created_at DESC LIMIT 5;\"",
+    )
 
 
 def check_g2_g3(check: Check, settings, *, prod: bool, api_url: str) -> None:
@@ -322,6 +341,7 @@ def main() -> int:
     check_g1(check, api_url, prod=args.prod)
     check_prod_integrations(check, api_url, prod=args.prod)
     check_stripe_webhook_registered(check, settings, prod=args.prod)
+    check_stripe_invoice_proof(check, prod=args.prod)
     check_g2_g3(check, settings, prod=args.prod, api_url=api_url)
     check_g4_g9_e2e(check, settings, skip_e2e=args.skip_e2e)
 

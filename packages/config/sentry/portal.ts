@@ -15,8 +15,7 @@ export function portalSentryOptions(serviceName: string): PortalSentryOptions | 
   const dsn = pickEnv("NEXT_PUBLIC_SENTRY_DSN", "SENTRY_DSN");
   if (!dsn) return null;
 
-  const environment =
-    pickEnv("NEXT_PUBLIC_APP_ENV", "APP_ENV", "NODE_ENV") || "development";
+  const environment = pickEnv("NEXT_PUBLIC_APP_ENV", "APP_ENV", "NODE_ENV") || "development";
 
   return {
     dsn,

@@ -284,17 +284,42 @@ pnpm validate:e2e:reports       # full markdown reports (optional)
 | G2    | Fleetbase sync                | ≥95% orders have `fleetbase_order_id` (excludes cancelled/refunded) |
 | G3    | Webhook secret                | `FLEETBASE_WEBHOOK_SECRET` set; signed POST `/webhooks/fleetbase`   |
 | G8    | Stripe webhook (prod)         | `STRIPE_WEBHOOK_SECRET` set; POST `/webhooks/stripe` ≠ 503          |
+| G8b   | Stripe dashboard URL          | Webhook endpoint lists `porterchain.com/webhooks/stripe`            |
+| G8c   | Stripe → invoice row          | Recent row in `invoices` after live payment (droplet SQL)           |
 | G9    | Push live (prod)              | `PORTERCHAIN_PUSH_SEND=true`; readiness `firebase: ok`              |
 | G4–G9 | E2E framework                 | `scripts/verify_p0_loop.py` (wraps `E2EValidationService`)          |
 
 **Prod droplet:** deploy workflow runs G1 smoke after migrate. Until `api.porterchain.com` is live, G1 prod stays open — see [infrastructure/deploy/README.md](./infrastructure/deploy/README.md).
 
 ```bash
-pnpm validate:p0:prod   # G1 against https://api.porterchain.com (skips local DB + E2E)
+pnpm validate:p0:prod   # G1/G8/G9 against https://api.porterchain.com
+# G8b (Stripe dashboard): needs live key — does not read apps/api/.env mock mode
+STRIPE_MOCK=false STRIPE_SECRET=sk_live_… pnpm validate:p0:prod
 pnpm validate:p0        # full local G1–G9 including E2E phases
 ```
 
-**G9 (notifications):** local `validate:p0` may show `phase WARNING` when Firebase/FCM is not configured — acceptable for dev. Prod requires `FIREBASE_PROJECT_ID` + credentials; see [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
+**G9 (notifications):** Prod requires `PORTERCHAIN_PUSH_ENABLED=true`, `PORTERCHAIN_PUSH_SEND=true`, and Firebase credentials. Confirm with `pnpm validate:p0:prod` (G9). **Device test:** register FCM token on driver/customer app, trigger a dispatch notification, confirm delivery on device.
+
+---
+
+## Prod vs local environment (§0.1.11)
+
+| Variable / setting                      | Local (default)                | Production (droplet)                    |
+| --------------------------------------- | ------------------------------ | --------------------------------------- |
+| `APP_ENV`                               | `local`                        | `production`                            |
+| `STRIPE_MOCK`                           | `true`                         | `false`                                 |
+| `CLERK_DEV_BYPASS`                      | often `true`                   | `false`                                 |
+| `FLEETBASE_DISPATCH_BRIDGE`             | `true` (local Fleetbase :8000) | `false` until prod Fleetbase + secrets  |
+| `FLEETBASE_API_URL`                     | `http://localhost:8000`        | Fleetbase prod URL (not localhost)      |
+| `PORTERCHAIN_PUSH_SEND`                 | often `false` / log-only       | `true` (GitHub var)                     |
+| `JWT_SECRET`                            | dev default allowed            | must be non-default (boot guard)        |
+| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | optional                       | set in GitHub secrets for API + portals |
+| `DATABASE_URL`                          | `localhost:5432`               | in-compose `postgres:5432`              |
+| `REDIS_URL`                             | `localhost:6379`               | in-compose `redis:6379`                 |
+| Worker                                  | `pnpm dev:worker` (optional)   | `pcd-worker` container + heartbeat      |
+| Valhalla / OSRM                         | local `:8002` or mock          | not in prod compose yet (§0.1.6)        |
+
+Templates: [`env/`](./env/README.md) · deploy secrets: [infrastructure/deploy/README.md](./infrastructure/deploy/README.md).
 
 ---
 
@@ -321,20 +346,20 @@ Manual smoke (optional): book on `website` → pay → track on `apps/customer`;
 pnpm validate:d3:prod   # automated prod URL + quote smoke (Sprint F)
 ```
 
-**G9 (Firebase push):** prod defaults `PORTERCHAIN_PUSH_ENABLED=false` until GitHub secrets `FIREBASE_PROJECT_ID` + `FIREBASE_CREDENTIALS_JSON` are set and `PORTERCHAIN_PUSH_ENABLED=true` (repository variable). `/health/ready` reports `firebase: push_disabled | ok | <reason>`.
+**G9 (Firebase push):** set repository variables `PORTERCHAIN_PUSH_ENABLED=true` and `PORTERCHAIN_PUSH_SEND=true` plus Firebase GitHub secrets. `/health/ready` reports `firebase: ok` when live send is enabled.
 
 ---
 
-## D4 — Async runtime (Option A — prod default)
+## D4 — Async runtime (prod)
 
-Production uses **sync-only API handlers** (see `ensure_handlers_registered()` in API lifespan). The worker is **not** in `docker-compose.prod.yml` — queue drains run inline in the API process.
+Production runs a dedicated **`pcd-worker`** container (DD-04) that drains Redis queues; the API publishes jobs and reports queue depth + heartbeat on `/health/ready`.
 
-| Mode                        | When                                                    | Compose                                                               |
-| --------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------- |
-| **Option A (default prod)** | Event handlers in API lifespan; worker optional locally | `infrastructure/deploy/docker-compose.prod.yml` — no `worker` service |
-| **Option B (scale)**        | API publishes only; dedicated worker drains queues      | Add `worker` service to prod compose + document in this section       |
+| Mode      | When                                                     | Compose                                                            |
+| --------- | -------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Prod**  | API + worker; worker heartbeat required for `queues: ok` | `infrastructure/deploy/docker-compose.prod.yml` — `api` + `worker` |
+| **Local** | Optional `pnpm dev:worker` alongside `pnpm dev:api`      | Same queue names as prod                                           |
 
-Local dev: run `pnpm dev:worker` alongside `pnpm dev:api` when testing Redis queue drains. See [infrastructure/deploy/README.md](./infrastructure/deploy/README.md#images-built).
+Local dev: run `pnpm dev:worker` when testing Redis queue drains. See [infrastructure/deploy/README.md](./infrastructure/deploy/README.md).
 
 ---
 

@@ -3,20 +3,41 @@
 **Type:** CANONICAL  
 **masterrule:** [Appendix D](../masterrule.md#appendix-d--phase-alignment-checklist-zero-complexity)  
 **Checklist:** [SILICON_VALLEY_READINESS_CHECKLIST.md](./SILICON_VALLEY_READINESS_CHECKLIST.md)  
-**Last verified:** 2026-07-05  
-**Progress:** 54/408 checklist items (~13%)
+**Last verified:** 2026-07-05 (prod `validate:p0:prod` — 6 pass, 0 fail)  
+**Progress:** 54/408 checklist items (~13%) · **P0 code: DD-01–DD-08 complete**
 
 Track execution here. Check boxes when done; add date + commit SHA in **Done** column.
 
 ---
 
+## Remaining required (P0 ops — not code)
+
+All Wave DD **code** blockers are done. Close these manually:
+
+| Priority | ID     | Action                                                                                   | How to verify                                                                   |
+| -------- | ------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 1        | §0.1.3 | **Device push test** — register FCM token on driver/customer app; trigger notification   | Push received on physical device                                                |
+| 2        | §0.1.9 | **Stripe dashboard** — webhook URL `https://porterchain.com/webhooks/stripe` (live mode) | `STRIPE_MOCK=false STRIPE_SECRET=sk_live_… pnpm validate:p0:prod` → G8b pass    |
+| 3        | §0.1.9 | **Invoice row proof** — complete one live payment                                        | Droplet SQL on `invoices` (G8c hint in `validate:p0:prod`)                      |
+| 4        | DD-05b | **Fleetbase prod** — host Fleetbase, set GitHub secrets, enable bridge                   | `GET /health/ready` → `fleetbase_sync.meets_slo: true`; `pnpm fleetbase:replay` |
+| 5        | DD-02  | **Sentry DSN** — optional but recommended                                                | `gh secret set SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN`                           |
+
+**Missing GitHub secrets today:** `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, all `FLEETBASE_*` (bridge correctly off until set).
+
+```bash
+pnpm validate:p0:prod   # automated prod gates (G1, G8, G9, G2/G3 when bridge off)
+curl -fsS https://api.porterchain.com/health/ready | jq .
+```
+
+---
+
 ## This week (start here — 5 items)
 
-- [x] **DD-06** Rate limit fail-closed + pooled Redis — `apps/api/src/porterchain_api/platform/rate_limit_middleware.py` _(2026-07-05, uncommitted)_
-- [x] **DD-12** `jwt_secret` boot fails if dev default in prod — `apps/api/src/porterchain_api/config.py` _(2026-07-05, uncommitted)_
-- [x] **DD-04** Add `pcd-worker` to prod compose + queue health — `infrastructure/deploy/docker-compose.prod.yml`, `apps/worker/` _(2026-07-05, uncommitted)_
-- [x] **DD-02** Sentry + request correlation on API — `platform/middleware.py`, all apps _(2026-07-05, API + portals Sentry in `81dab60+`)_
-- [x] **DD-01** Order state machine tests — `apps/api/tests/test_order_transitions.py` _(2026-07-05, uncommitted)_
+- [x] **DD-06** Rate limit fail-closed + pooled Redis — `rate_limit_middleware.py` _(2026-07-05, `e5308c8`)_
+- [x] **DD-12** `jwt_secret` boot fails if dev default in prod — `config.py` _(2026-07-05, `e5308c8`)_
+- [x] **DD-04** Add `pcd-worker` to prod compose + queue health — `docker-compose.prod.yml` _(2026-07-05, `e5308c8`)_
+- [x] **DD-02** Sentry on API + all Next.js portals — `observability.py`, `packages/config/sentry/` _(2026-07-05, `751122c`)_
+- [x] **DD-01** Order state machine tests — `test_order_transitions.py` _(2026-07-05, `e5308c8`)_
 
 ---
 
@@ -24,23 +45,23 @@ Track execution here. Check boxes when done; add date + commit SHA in **Done** c
 
 _Closes **DD-G1** / Series A technical blockers. Do in order within P0._
 
-| Done | ID     | Task                                                 | Effort   | Files / checklist                                                                                        |
-| ---- | ------ | ---------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------- |
-| [x]  | DD-06  | Rate limit fail-closed + pooled Redis                | 1 day    | `rate_limit_middleware.py` · §0.7.6                                                                      |
-| [x]  | DD-12  | `jwt_secret` boot fails if dev default               | 0.5 day  | `config.py` · §11.1.13                                                                                   |
-| [x]  | DD-04  | Worker in prod compose + queue health                | 1–2 days | `docker-compose.prod.yml`, `apps/worker/` · §0.1.4                                                       |
-| [x]  | DD-02  | Sentry + OpenTelemetry on API (then portals)         | 2 days   | API + 5 Next.js portals · §0.7.2, B.13                                                                   |
-| [x]  | DD-10  | CI security: Dependabot + CodeQL + Trivy             | 0.5 day  | `.github/workflows/` · §2.5.5, B.16                                                                      |
-| [x]  | DD-01a | Order state machine tests                            | 2 days   | `tests/test_order_transitions.py` · §2.1.1                                                               |
-| [x]  | DD-01b | Booking loop integration test                        | 2 days   | `tests/integration/test_booking_loop.py` · §2.1.2                                                        |
-| [x]  | DD-01c | Stripe webhook idempotency tests                     | 1 day    | `stripe_webhook_service.py` · §2.1.14                                                                    |
-| [x]  | DD-05a | Implement dispatch worker (not stub)                 | 2 days   | `worker/processors/dispatch.py` · §2.2.7                                                                 |
-| [~]  | §0.1.3 | `PORTERCHAIN_PUSH_SEND=true` prod + device test      | 0.5 day  | **G9 pass** on prod (`firebase: ok`); manual device test remaining                                       |
-| [~]  | §0.1.9 | Stripe live webhook + invoice row proof              | 1 day    | **G8 pass** ingress; G8b dashboard check with `STRIPE_SECRET`; live invoice row proof in Stripe dash     |
-| [~]  | DD-05b | Fleetbase prod: bridge on, webhook secret, sync >95% | 1–2 wks  | `sync_health.py`, deploy secrets · §0.1.5–7 — **code ready; set GitHub secrets + enable bridge in prod** |
-| [x]  | DD-08  | Order/payment transactions + `SELECT FOR UPDATE`     | 1 wk     | `confirmation_service.py`, `stripe_webhook_service.py` · §0.7.8                                          |
-| [x]  | DD-07  | Tenant isolation: context + repos + IDOR tests       | 2 wks    | `models.py`, `*_engine/` · §0.7.7, §2.5.1                                                                |
-| [x]  | DD-01d | ≥20 API test files + CI blocks on failure            | 2 wks    | `apps/api/tests/`, `ci.yml` · ENG-G1                                                                     |
+| Done | ID     | Task                                                 | Effort   | Files / checklist                                                                 |
+| ---- | ------ | ---------------------------------------------------- | -------- | --------------------------------------------------------------------------------- |
+| [x]  | DD-06  | Rate limit fail-closed + pooled Redis                | 1 day    | `rate_limit_middleware.py` · §0.7.6                                               |
+| [x]  | DD-12  | `jwt_secret` boot fails if dev default               | 0.5 day  | `config.py` · §11.1.13                                                            |
+| [x]  | DD-04  | Worker in prod compose + queue health                | 1–2 days | `docker-compose.prod.yml`, `apps/worker/` · §0.1.4                                |
+| [x]  | DD-02  | Sentry + OpenTelemetry on API (then portals)         | 2 days   | API + 5 Next.js portals · §0.7.2, B.13 (OTel needs `OTEL_EXPORTER_OTLP_ENDPOINT`) |
+| [x]  | DD-10  | CI security: Dependabot + CodeQL + Trivy             | 0.5 day  | `.github/workflows/` · §2.5.5, B.16                                               |
+| [x]  | DD-01a | Order state machine tests                            | 2 days   | `tests/test_order_transitions.py` · §2.1.1                                        |
+| [x]  | DD-01b | Booking loop integration test                        | 2 days   | `tests/integration/test_booking_loop.py` · §2.1.2                                 |
+| [x]  | DD-01c | Stripe webhook idempotency tests                     | 1 day    | `stripe_webhook_service.py` · §2.1.14                                             |
+| [x]  | DD-05a | Implement dispatch worker (not stub)                 | 2 days   | `worker/processors/dispatch.py` · §2.2.7                                          |
+| [~]  | §0.1.3 | `PORTERCHAIN_PUSH_SEND=true` prod + device test      | 0.5 day  | **G9 pass** on prod; manual device test remaining                                 |
+| [~]  | §0.1.9 | Stripe live webhook + invoice row proof              | 1 day    | **G8 pass** ingress; G8b/G8c need live Stripe key + payment proof                 |
+| [~]  | DD-05b | Fleetbase prod: bridge on, webhook secret, sync >95% | 1–2 wks  | Code ready; blocked on prod Fleetbase host + GitHub secrets                       |
+| [x]  | DD-08  | Order/payment transactions + `SELECT FOR UPDATE`     | 1 wk     | `confirmation_service.py`, `stripe_webhook_service.py` · §0.7.8                   |
+| [x]  | DD-07  | Tenant isolation: context + repos + IDOR tests       | 2 wks    | `models.py`, `*_engine/` · §0.7.7, §2.5.1                                         |
+| [x]  | DD-01d | ≥20 API test files + CI blocks on failure            | 2 wks    | `apps/api/tests/`, `ci.yml` · ENG-G1                                              |
 
 **P0 exit criteria:** All DD-01–DD-08 checked · Appendix A prod column green for A.3–A.14 · **DD-G1** green
 
@@ -76,7 +97,7 @@ _Closes **DD-G1** / Series A technical blockers. Do in order within P0._
 | [ ]  | Partner API docs + Postman + CHANGELOG          | §7.1 · `docs/api/`                                           |
 | [ ]  | Remove "logistics company" copy from marketing  | §1.1.2 · `website/messages/corporate-en.json`                |
 | [ ]  | Manual Clerk login walkthrough all portals      | §0.4.10                                                      |
-| [ ]  | Prod ≡ local env diff table in RUNBOOK          | §0.1.11                                                      |
+| [x]  | Prod ≡ local env diff table in RUNBOOK          | §0.1.11 · `RUNBOOK.md`                                       |
 | [ ]  | Playwright smoke: merchant sign-in, book, track | §2.1.9                                                       |
 
 ---
