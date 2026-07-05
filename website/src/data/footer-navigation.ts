@@ -9,7 +9,7 @@ export const footerNavigation: Record<FooterSectionId, FooterLink[]> = {
   products: [
     { id: "book", href: "/" },
     { id: "business", href: "/business" },
-    { id: "customerPortal", href: "/portal/customer" },
+    { id: "customerPortal", href: "__CUSTOMER_PORTAL__" },
   ],
   company: [
     { id: "about", href: "/company" },

@@ -1,7 +1,13 @@
 # Porterchain — Module Integration Matrix
 
+
+**Type:** REPORT
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+> **Snapshot report** — point-in-time audit. Current truth: [INTEGRATIONS.md](INTEGRATIONS.md) (canonical doc).
+
 **Reference:** [masterrule.md](./masterrule.md) v3.1  
-**Last updated:** June 30, 2026 (Maps / Routing / Fleetbase audit)  
 **Companion:** [MAPS_ARCHITECTURE_AUDIT.md](./MAPS_ARCHITECTURE_AUDIT.md), [GAP_ANALYSIS.md](./GAP_ANALYSIS.md)
 
 ---
@@ -14,7 +20,8 @@
 | Merchant → NET terms → Order → Fleetbase → POD       | ✅           |
 | Admin unified dispatch (no source split)             | ✅           |
 | `order_source` / `order_type` on all new orders      | ✅           |
-| API-key merchant booking                             | ❌           |
+| API-key merchant booking                             | ✅           |
+| Merchant webhook delivery                          | ✅           |
 | Merchant invoice run batch                           | ❌ (roadmap) |
 
 ---
@@ -24,7 +31,9 @@
 | Module          | Google Maps              | OSRM/Valhalla      | Fleetbase    | FastAPI | Status |
 | --------------- | ------------------------ | ------------------ | ------------ | ------- | ------ |
 | Website         | ✅ Autocomplete, geocode | ✅ Quote preview   | ❌ Never     | ✅      | ✅     |
-| Customer portal | ❌                       | ❌                 | ❌           | ✅      | ⚠️     |
+| Customer portal | ❌                       | ❌                 | ❌           | ✅      | ⚠️ (no tracking map) |
+| Mobile driver   | ❌                       | via API routing    | via adapter  | ✅      | ✅                   |
+| Mobile customer | ❌                       | via API            | ❌           | ✅      | ⚠️ 62% readiness     |
 | Merchant portal | ✅ Book autocomplete     | via API pricing    | via events   | ✅      | ✅     |
 | Admin           | ✅ Live map full         | ❌ (viz only)      | SSO + mirror | ✅      | ✅     |
 | Driver portal   | ❌                       | ❌                 | via adapter  | ✅      | ⚠️     |
@@ -144,9 +153,9 @@
 | Database       | ✅     | `merchant_models`                                      |
 | Permissions    | ✅     | `merchant_engine/rbac.py`                              |
 | Events         | ✅     | `merchant.booking_created`, `order.dispatch_ready`     |
-| Fleetbase      | ✅     | Event-driven dispatch; cancel via `BookingSyncService` |
-| Notifications  | ⚠️     | Merchant webhook fanout stub in worker                 |
-| Maps           | ❌     | Book form uses plain text addresses                    |
+| Fleetbase      | ✅     | Event-driven dispatch; cancel via `fleetbase_engine` |
+| Notifications  | ✅     | Webhook fanout via `WebhookDeliveryService` + worker   |
+| Maps           | ✅     | `AddressAutocompleteInput` on book form                |
 | Audit          | ✅     | API key generation events                              |
 | Realtime       | ❌     | —                                                      |
 | Search         | ⚠️     | Order list filter                                      |
@@ -502,8 +511,15 @@ UI → FastAPI Router → Application Service → Repository → DB
 3. **P1** — Notification handlers for `claim.opened`, `support.ticket_created`
 4. **P1** — `fleetbase.status_updated` / `fleetbase.pod_received` not emitted on webhook
 5. **P1** — Event catalog aliases (`BookingDraftCreated`, `SupportTicketCreated`, `FleetbaseOrderCreated`)
-6. **P2** — Merchant book address autocomplete (UI)
-7. **P2** — Driver portal missing pages (performance, vehicle, documents, support)
-8. **P2** — Delivery lifecycle notification handlers (`order.delivered`, `driver_assigned`)
-9. **P3** — Documents module event emissions
-10. **P3** — Operations/dashboard WebSocket (poll-only today)
+6. **P2** — Driver portal missing pages (performance, vehicle, documents, support)
+7. **P2** — Delivery lifecycle notification handlers (`order.delivered`, `driver_assigned`)
+8. **P3** — Documents module event emissions
+9. **P3** — Operations/dashboard WebSocket (poll-only today)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

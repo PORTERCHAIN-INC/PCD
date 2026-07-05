@@ -19,6 +19,7 @@ _PREFIXES = (
 )
 _EXEMPT_PREFIXES = (
     "/health",
+    "/webhooks/",
     "/v1/webhooks/",
     "/v1/quotes",
     "/v1/booking-drafts",

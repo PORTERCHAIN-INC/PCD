@@ -6,8 +6,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
 from porterchain_api.crm_models import CrmCompany, CrmContact
+from porterchain_api.domain.contacts import list_company_contacts
 from porterchain_api.domain.crm_states import CompanyMerchantStatus
 from porterchain_api.domain.merchant_states import MerchantRole
 from porterchain_api.merchant_engine.rbac import ROLE_LABELS, MerchantContext
@@ -32,9 +32,6 @@ def _role_label(role: str) -> str:
 
 
 class MerchantContactsService:
-    def __init__(self) -> None:
-        self._crm = CrmSalesService()
-
     def ensure_company(self, db: Session, merchant: Merchant) -> CrmCompany:
         company = db.query(CrmCompany).filter(CrmCompany.merchant_id == merchant.id).first()
         if company:
@@ -72,7 +69,7 @@ class MerchantContactsService:
     def list_contacts(self, db: Session, ctx: MerchantContext) -> list[dict[str, Any]]:
         self.sync_team_contacts(db, ctx.merchant)
         company = self.ensure_company(db, ctx.merchant)
-        contacts = self._crm.list_contacts(db, company_id=company.id)
+        contacts = list_company_contacts(db, company_id=company.id)
         team_by_email = {
             u.email.lower(): u
             for u in db.query(MerchantUser)

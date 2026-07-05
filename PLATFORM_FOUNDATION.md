@@ -1,9 +1,13 @@
 # Porterchain Platform Foundation
 
-**Status:** Infrastructure scaffolding — no feature or UI changes  
-**Date:** June 29, 2026
 
-This document describes the modular enterprise foundation added to the Porterchain monorepo. All customer-facing surfaces (website booking widget, auth UX, merchant pages, driver UI) remain unchanged.
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Status:** Implemented — modular enterprise foundation  
+
+This document describes the modular enterprise foundation of the Porterchain monorepo: the layered architecture, shared packages, internal services, event bus, and queues that all customer-facing surfaces build on.
 
 ---
 
@@ -29,17 +33,19 @@ This document describes the modular enterprise foundation added to the Portercha
 
 | Path                                    | Responsibility                                     |
 | --------------------------------------- | -------------------------------------------------- |
-| `apps/website/`                         | Public site (unchanged UX)                         |
-| `apps/api/`                             | Porterchain FastAPI — customer-facing API          |
-| `apps/worker/`                          | Async queue processor                              |
+| `website/`                              | Public site + booking (:3000)                      |
+| `apps/api/`                             | Porterchain FastAPI — all business logic (:8001)   |
+| `apps/worker/`                          | Async queue + event consumer                       |
+| `apps/{admin,merchant-portal,customer,driver-portal}/` | Next.js portals                     |
+| `apps/{mobile-driver,mobile-customer}/` | Expo mobile apps                                   |
 | `packages/types/`                       | `@porterchain/types` — roles, events, ownership    |
 | `packages/auth/`                        | `@porterchain/auth` — RBAC, Clerk metadata mapping |
 | `packages/events/`                      | `@porterchain/events` — domain event catalog       |
 | `packages/queue/`                       | `@porterchain/queue` — queue names and messages    |
 | `packages/config/`                      | `@porterchain/config` — ESLint, Prettier, TS base  |
 | `shared/python/porterchain_shared/`     | Python auth, events, queues, config                |
-| `services/python/porterchain_services/` | Fleetbase, Stripe, Maps, Notifications, …          |
-| `services/fleetbase/`                   | Fleetbase deployment config (engine only)          |
+| `services/python/porterchain_services/` | Stripe, Maps, Notifications, …                     |
+| `services/fleetbase-adapter/`           | Sole Fleetbase integration boundary                |
 
 ---
 
@@ -80,7 +86,7 @@ Merchants and customers **never** authenticate against Fleetbase directly.
 | Service       | Module                               | Notes                                         |
 | ------------- | ------------------------------------ | --------------------------------------------- |
 | API Gateway   | `porterchain_services.gateway`       | Service registry, `/internal/services` health |
-| Fleetbase     | `porterchain_services.fleetbase`     | All Fleetbase HTTP via Porterchain API        |
+| Fleetbase     | `porterchain_fleetbase_adapter`      | All Fleetbase HTTP via the adapter boundary    |
 | Stripe        | `porterchain_services.stripe`        | Checkout + webhooks                           |
 | Maps          | `porterchain_services.maps`          | Valhalla / OSRM routing                       |
 | Notifications | `porterchain_services.notifications` | Email, SMS, push queues                       |
@@ -95,7 +101,7 @@ Merchants and customers **never** authenticate against Fleetbase directly.
 
 ## Event system
 
-Immutable domain events with envelope schema per `EVENT_FLOW.md`.
+Immutable domain events with envelope schema per `EVENT_BUS.md`.
 
 - **Catalog:** `porterchain_shared.events.catalog.DomainEventType`
 - **Publisher:** Redis Streams (production) or in-memory (local)
@@ -136,8 +142,12 @@ pnpm dev:api            # port 8001
 # Worker
 pnpm dev:worker
 
-# Website (unchanged)
-pnpm --filter @porterchain/website dev
+# Frontends
+pnpm dev:website        # :3000
+pnpm dev:merchant       # :3001
+pnpm dev:admin          # :3002
+pnpm dev:driver         # :3003
+pnpm dev:customer       # :3004
 ```
 
 ### Health endpoints
@@ -150,19 +160,18 @@ pnpm --filter @porterchain/website dev
 
 ---
 
-## What was NOT changed
-
-- Website booking widget UI and flow
-- Authentication UX on continue booking page
-- Merchant or driver application surfaces
-- Existing API route contracts (`/v1/quotes`, `/v1/bookings`, etc.)
-
----
-
 ## Related documents
 
-- [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
-- [FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md)
-- [EVENT_FLOW.md](./EVENT_FLOW.md)
+- [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md)
+- [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md)
+- [EVENT_BUS.md](./EVENT_BUS.md)
 - [ROLE_PERMISSIONS.md](./ROLE_PERMISSIONS.md)
-- [AUTHENTICATION.md](./AUTHENTICATION.md)
+- [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

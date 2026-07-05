@@ -1,8 +1,12 @@
 # Invitation Workflow
 
-**Date:** July 1, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Authority:** [masterrule.md](./masterrule.md) §15  
-**Related:** [CLERK_INTEGRATION_REPORT.md](./CLERK_INTEGRATION_REPORT.md), [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md)
+**Related:** [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md), [RBAC_MATRIX.md](./RBAC_MATRIX.md)
 
 ---
 
@@ -10,7 +14,7 @@
 
 | Access type                                    | Signup                                      | Invitation            |
 | ---------------------------------------------- | ------------------------------------------- | --------------------- |
-| **Customer** (retail)                          | Allowed — website booking / customer portal | Not required          |
+| **Customer** (retail)                          | Allowed — website, `apps/customer/`, mobile-customer | Not required          |
 | **Merchant**                                   | Blocked                                     | Required              |
 | **Driver**                                     | Blocked                                     | Required              |
 | **Admin staff**                                | Blocked                                     | Required              |
@@ -173,7 +177,8 @@ No `user_invitations` row required.
 | `ADMIN_PORTAL_URL`    | `http://localhost:3002` | Admin invite redirect        |
 | `MERCHANT_PORTAL_URL` | `http://localhost:3001` | Merchant invite redirect     |
 | `DRIVER_PORTAL_URL`   | `http://localhost:3003` | Driver invite redirect       |
-| `WEBSITE_URL`         | `http://localhost:3000` | Customer flows               |
+| `WEBSITE_URL`         | `http://localhost:3000` | Customer website flows       |
+| `CUSTOMER_PORTAL_URL` | `http://localhost:3004` | Customer app invite redirect |
 | `CLERK_SECRET_KEY`    | —                       | Required to send invitations |
 
 ---
@@ -185,7 +190,7 @@ No `user_invitations` row required.
 | Admin    | Clerk footer hidden; no public sign-up route | `admin_users` + RBAC                       |
 | Merchant | `/sign-up` informational only; middleware    | `merchant_users` + org                     |
 | Driver   | Clerk sign-up disabled on login              | `drivers` + Clerk token                    |
-| Customer | Open on website                              | `customers` (optional until first booking) |
+| Customer | Open on website + `apps/customer/`       | `customers` (auto-provision on access)     |
 
 Creating a Clerk account **alone does not grant Porterchain access** for staff, merchant, or driver roles. A pending domain record must exist from an invitation.
 
@@ -225,4 +230,22 @@ cd apps/api && alembic upgrade head
 
 ---
 
+## Related documents
+
+| Document | Purpose |
+| -------- | ------- |
+| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Clerk-only policy |
+| [RBAC_MATRIX.md](./RBAC_MATRIX.md) | Invitation policy by role |
+| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) | Portal URL env vars |
+
+---
+
 _Violations: bypassing invitation for merchant/driver/admin provisioning is a security defect per masterrule §15._
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

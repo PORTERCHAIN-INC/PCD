@@ -123,7 +123,10 @@
       "signInPrompt": "Connectez-vous ou créez un compte pour passer au paiement.",
       "staffAccountBlocked": "Vous êtes connecté avec un compte {portal}. Les réservations personnelles nécessitent un compte client distinct.",
       "staffAccountHint": "Déconnectez-vous, puis connectez-vous avec un courriel client (pas votre compte personnel/staff) pour finaliser cette livraison.",
-      "staffSignOut": "Se déconnecter et utiliser un compte client"
+      "staffSignOut": "Se déconnecter et utiliser un compte client",
+      "cancelBooking": "Annuler la réservation",
+      "cancelConfirm": "Annuler cette réservation et retourner à l'accueil ? Votre devis sera abandonné.",
+      "cancelError": "Impossible d'annuler cette réservation. Veuillez réessayer."
     },
     "success": {
       "title": "Réservation confirmée",

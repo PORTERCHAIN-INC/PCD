@@ -1,270 +1,179 @@
 # Porterchain — Technology Stack
 
-**Document version:** 1.0  
-**Date:** June 29, 2026  
-**Status:** Audit + standardization recommendations
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Status:** Current stack as implemented in PCD monorepo
 
 ---
 
 ## Stack overview
 
-| Layer           | Technology                                   | Status in PCD repo                                    |
-| --------------- | -------------------------------------------- | ----------------------------------------------------- |
-| Public website  | Next.js 16, React 19, TypeScript, Tailwind 4 | **Implemented** (`website/`)                          |
-| Merchant portal | Next.js 16, Clerk                            | **Implemented** (`apps/merchant-portal/`)             |
-| Admin console   | Next.js 16, Clerk                            | **Implemented** (`apps/admin/`) — not Fleetbase Ember |
-| Customer portal | Next.js 16, Clerk                            | **Implemented** (`apps/customer/` + website route)    |
-| Driver web      | Next.js 16, Clerk                            | **Implemented** (`apps/driver-portal/`)               |
-| Driver mobile   | Expo 52, React Native 0.76                   | **Scaffold** (`apps/mobile-driver/`)                  |
-| Porterchain API | FastAPI, Python 3.12, SQLAlchemy 2, Alembic  | **Implemented** (`apps/api/`)                         |
-| Async worker    | Python, Redis queues, event bus              | **Implemented** (`apps/worker/`)                      |
-| Fleetbase API   | Laravel (PHP)                                | Via `apps/fleetbase/` + adapter                       |
-| Porterchain DB  | PostgreSQL 16 (all environments)             | **Implemented** + Alembic migrations                  |
-| Cache / queue   | Redis 7                                      | **Implemented**                                       |
-| Routing         | Valhalla (primary), OSRM (fallback)          | Docker optional                                       |
+| Layer              | Technology                                   | Status in PCD repo                         |
+| ------------------ | -------------------------------------------- | ------------------------------------------ |
+| Public website     | Next.js 16, React 19, TypeScript, Tailwind 4 | **Implemented** (`website/`)               |
+| Merchant portal    | Next.js 16, Clerk                            | **Implemented** (`apps/merchant-portal/`)  |
+| Admin console      | Next.js 16, Clerk                            | **Implemented** (`apps/admin/`)            |
+| Customer portal    | Next.js 16, Clerk                            | **Implemented** (`apps/customer/`)         |
+| Driver web         | Next.js 16, Clerk                            | **Implemented** (`apps/driver-portal/`)    |
+| Driver mobile      | Expo 52, React Native 0.76                   | **Implemented** — 72% prod readiness       |
+| Customer mobile    | Expo 52, React Native 0.76                   | **Implemented** — 62% prod readiness       |
+| Porterchain API    | FastAPI, Python 3.13, SQLAlchemy 2, Alembic  | **Implemented** (`apps/api/`)              |
+| Async worker       | Python, Redis queues, event bus              | **Implemented** (`apps/worker/`)           |
+| Fleetbase API      | Laravel (PHP)                                | Via `apps/fleetbase/` + adapter            |
+| Porterchain DB     | PostgreSQL 16 (all environments)             | **Implemented** + Alembic migrations       |
+| Fleetbase DB       | MySQL 8                                      | Docker (port 3306 core / 3307 Fleetbase stack) |
+| Cache / queue      | Redis 7.2                                    | **Implemented**                            |
+| Routing            | Valhalla (primary), OSRM (fallback)          | Docker optional (`pnpm docker:up:routing`) |
 
 ---
 
-## Standardized versions (target)
+## Runtime & tooling
 
-These are the **recommended pinned versions** for enterprise development across all Porterchain projects.
-
-### Runtime & tooling
-
-| Technology               | Recommended version        | Reason                                         | Current in PCD               |
-| ------------------------ | -------------------------- | ---------------------------------------------- | ---------------------------- |
-| **Node.js**              | `20.18 LTS` (min `20.9.0`) | Next.js 16 requirement; stable LTS             | Not pinned (no `.nvmrc`)     |
-| **Node.js (EAS builds)** | `22.14`                    | Driver app production EAS profile              | Documented in CONNECTIONS.md |
-| **pnpm**                 | `9.15.x`                   | Monorepo workspaces; referenced in driver docs | Not used (npm in website)    |
-| **Docker**               | `27.x`                     | Container runtime                              | Not in repo                  |
-| **Docker Compose**       | `v2.29+`                   | Multi-service local dev                        | Not in repo                  |
-
-### Frontend (website, merchant portal, admin SPA)
-
-| Technology             | Recommended version | Reason                                    | Current in PCD |
-| ---------------------- | ------------------- | ----------------------------------------- | -------------- |
-| **Next.js**            | `16.2.9`            | App Router, React 19 support, stable 16.x | `16.2.9` ✓     |
-| **React**              | `19.2.4`            | Matches Next 16 peer                      | `19.2.4` ✓     |
-| **react-dom**          | `19.2.4`            | Lock with React                           | `19.2.4` ✓     |
-| **TypeScript**         | `5.9.x`             | Latest 5.x stable                         | `5.9.3` ✓      |
-| **Tailwind CSS**       | `4.3.x`             | v4 PostCSS pipeline                       | `4.3.1` ✓      |
-| **next-intl**          | `4.13.x`            | i18n for en/fr                            | `4.13.0` ✓     |
-| **framer-motion**      | `12.x`              | Animation (website)                       | `12.42.0` ✓    |
-| **ESLint**             | `9.x`               | Flat config                               | `9.39.4` ✓     |
-| **eslint-config-next** | `16.2.9`            | Match Next version                        | `16.2.9` ✓     |
-
-### Mobile (driver app)
-
-| Technology            | Recommended version | Reason                | Source         |
-| --------------------- | ------------------- | --------------------- | -------------- |
-| **Expo SDK**          | `52`                | Current driver stack  | CONNECTIONS.md |
-| **React Native**      | `0.76`              | Bundled with Expo 52  | CONNECTIONS.md |
-| **react-native-maps** | Pin per Expo 52     | Google Maps tiles     | CONNECTIONS.md |
-| **@mapbox/polyline**  | Latest 1.x          | Route polyline decode | CONNECTIONS.md |
-| **expo-secure-store** | Expo 52 compatible  | Token storage         | CONNECTIONS.md |
-| **EAS CLI**           | Latest              | Cloud builds          | CONNECTIONS.md |
-
-### Backend (Porterchain API)
-
-| Technology     | Recommended version | Reason                            | Source                |
-| -------------- | ------------------- | --------------------------------- | --------------------- |
-| **Python**     | `3.12`              | FastAPI ecosystem standard        | Industry default      |
-| **FastAPI**    | `0.115+`            | Async API, OpenAPI native         | Documented `apps/api` |
-| **Uvicorn**    | `0.32+`             | ASGI server                       | Standard pairing      |
-| **Pydantic**   | `v2`                | FastAPI v2 models                 | Standard pairing      |
-| **SQLAlchemy** | `2.0+`              | ORM if Porterchain-owned Postgres | Recommended           |
-| **Alembic**    | `1.14+`             | Migrations                        | Recommended           |
-
-### Backend (Fleetbase)
-
-| Technology  | Recommended version   | Reason                    | Source             |
-| ----------- | --------------------- | ------------------------- | ------------------ |
-| **PHP**     | `8.2+`                | Laravel 10/11 requirement | Fleetbase standard |
-| **Laravel** | Per Fleetbase release | Core framework            | Fleetbase          |
-| **MySQL**   | `8.0`                 | `DB_CONNECTION=mysql`     | details.md         |
-| **Redis**   | `7.2`                 | Cache + queue             | details.md         |
-
-### Data stores
-
-| Technology     | Recommended version | Reason                                                             | Notes                |
-| -------------- | ------------------- | ------------------------------------------------------------------ | -------------------- |
-| **MySQL**      | `8.0`               | Fleetbase primary store                                            | `fleetbase` database |
-| **PostgreSQL** | `16`                | **Recommended for Porterchain-owned data** if split from Fleetbase | Not currently used   |
-| **Redis**      | `7.2`               | Session cache, queues, rate limits                                 | `REDIS_HOST=cache`   |
-
-> **Note:** Platform docs reference MySQL for Fleetbase. PostgreSQL is recommended for future Porterchain-native services (billing ledger, merchant contracts) if decoupling from Fleetbase schema.
-
-### Routing engines
-
-| Technology   | Recommended version   | Reason                                         | Source     |
-| ------------ | --------------------- | ---------------------------------------------- | ---------- |
-| **Valhalla** | Latest stable image   | `ROUTING_ENGINE=valhalla`, self-hosted `:8002` | details.md |
-| **OSRM**     | Public or self-hosted | Fallback `OSRM_HOST`                           | details.md |
-
-### Infrastructure
-
-| Technology       | Recommended version    | Reason                                         |
-| ---------------- | ---------------------- | ---------------------------------------------- |
-| **Nginx**        | `1.27`                 | Reverse proxy, TLS termination                 |
-| **Traefik**      | `3.x`                  | Alternative to Nginx for Docker-native routing |
-| **DigitalOcean** | Managed droplets / K8s | `DIGITALOCEAN_API_TOKEN` in platform config    |
-
-### Auth SDKs
-
-| SDK                   | Recommended version | Used by                              | In PCD repo |
-| --------------------- | ------------------- | ------------------------------------ | ----------- |
-| **@clerk/nextjs**     | `6.x`               | Website, merchant, admin, driver web | Yes         |
-| **expo-secure-store** | Expo 52             | Driver token storage                 | External    |
-
-### Payments
-
-| SDK                 | Recommended version | Used by                  | In PCD repo |
-| ------------------- | ------------------- | ------------------------ | ----------- |
-| **stripe** (Node)   | `17.x`              | Merchant portal          | No          |
-| **stripe** (Python) | `11.x`              | Porterchain API webhooks | No          |
-
-### Maps
-
-| SDK                           | Recommended version    | Used by                     | In PCD repo |
-| ----------------------------- | ---------------------- | --------------------------- | ----------- |
-| **@vis.gl/react-google-maps** | `1.8.x`                | Website Places autocomplete | `1.8.3` ✓   |
-| **@googlemaps/js-api-loader** | `2.x` (transitive)     | Maps loader                 | `2.1.1` ✓   |
-| **@types/google.maps**        | `3.65.x`               | TypeScript                  | `3.65.2` ✓  |
-| **react-native-maps**         | Expo 52 pin            | Driver app                  | External    |
-| **Mapbox**                    | `@mapbox/polyline` 1.x | Driver polyline decode only | External    |
-
-### Communications
-
-| SDK                | Recommended version | Used by                              | In PCD repo |
-| ------------------ | ------------------- | ------------------------------------ | ----------- |
-| **resend**         | `4.x`               | Alternative email (evaluate vs Zoho) | No          |
-| **firebase-admin** | `13.x`              | FCM push (API)                       | No          |
-
-### Observability
-
-| SDK                      | Recommended version | Status                          |
-| ------------------------ | ------------------- | ------------------------------- |
-| **@sentry/nextjs**       | `8.x`               | **Not installed** — recommended |
-| **@sentry/react-native** | `6.x`               | **Not installed** — recommended |
-| **sentry-sdk** (Python)  | `2.x`               | **Not installed** — recommended |
-
-### API documentation
-
-| Tool            | Recommended            | Status          |
-| --------------- | ---------------------- | --------------- |
-| **OpenAPI 3.1** | FastAPI auto-generates | Not in PCD repo |
-| **Swagger UI**  | `/docs` on FastAPI     | Not in PCD repo |
-
-### Code quality
-
-| Tool            | Recommended version | In PCD repo                         |
-| --------------- | ------------------- | ----------------------------------- |
-| **ESLint**      | `9.x`               | Yes                                 |
-| **Prettier**    | `3.4.x`             | **No** — add                        |
-| **Husky**       | `9.x`               | **No** — add                        |
-| **lint-staged** | `15.x`              | **No** — add                        |
-| **Turbo**       | `2.x`               | **No** — add for monorepo           |
-| **Vitest**      | `3.x`               | **No** — add                        |
-| **Playwright**  | `1.51+`             | **No** (optional peer of Next only) |
+| Technology        | Version in PCD                          | Notes                              |
+| ----------------- | --------------------------------------- | ---------------------------------- |
+| **Node.js**       | `22.22.3` (`.nvmrc`; engines `>=22`)    | All Next.js apps and root scripts  |
+| **pnpm**          | `9.15.4` (`packageManager` in root)     | Monorepo workspaces                |
+| **Turbo**         | `2.3.3`                                 | `pnpm dev`, `pnpm build`, `pnpm lint` |
+| **Prettier**      | `3.4.2`                                 | `pnpm format`, `pnpm format:check` |
+| **Docker Compose**| `infrastructure/docker/docker-compose.yml` | Profiles: core, routing, proxy  |
 
 ---
 
-## Technology choices — rationale
+## Frontend (Next.js apps)
 
-| Choice            | Why                                                                       |
-| ----------------- | ------------------------------------------------------------------------- |
-| **Next.js**       | SSR/SSG for SEO-heavy marketing site; App Router; i18n; Vercel-compatible |
-| **FastAPI**       | Typed Python API; OpenAPI; async; good for driver execution + webhooks    |
-| **Fleetbase**     | Open-source dispatch OS; routing integration; control tower               |
-| **Clerk**         | Managed auth for merchant/driver web; JWKS verification                   |
-| **Supabase Auth** | Quick OTP for anonymous retail booking without full account               |
-| **Valhalla**      | Self-hosted routing; GTA-scale; no per-request billing                    |
-| **Redis**         | Queue + cache for Laravel/Fleetbase; rate limiting                        |
-| **Stripe**        | PCI-compliant payments; invoicing + retail checkout                       |
-| **Expo**          | Faster mobile delivery; EAS for App Store pipeline                        |
+| Technology             | Version (website) | Notes                    |
+| ---------------------- | ----------------- | ------------------------ |
+| **Next.js**            | `16.2.10`         | App Router               |
+| **React**              | `19.2.7`          | Matches Next 16 peer     |
+| **TypeScript**         | `5.9.x`           | Shared via packages      |
+| **Tailwind CSS**       | `4.3.x`           | v4 PostCSS pipeline      |
+| **next-intl**          | `4.13.x`          | i18n en/fr (website)     |
+| **@clerk/nextjs**      | `7.x`             | Portals + website auth   |
+| **@vis.gl/react-google-maps** | `1.8.3`    | Places autocomplete, maps |
 
 ---
 
-## Upgrade recommendations
+## Mobile (Expo apps)
 
-### Immediate (website — in repo)
-
-| Item                                                            | Action                       | Priority |
-| --------------------------------------------------------------- | ---------------------------- | -------- |
-| Add `.nvmrc` → `20.18.0`                                        | Pin Node across team         | High     |
-| Add `packageManager: "pnpm@9.15.0"`                             | Prepare monorepo migration   | High     |
-| Add Prettier + Husky                                            | Consistent formatting        | Medium   |
-| Evaluate `gray-matter` → `2.0.1` or replace with `contentlayer` | Fix moderate CVE via js-yaml | Medium   |
-| Add `@sentry/nextjs`                                            | Production error tracking    | High     |
-| Add Vitest + Playwright                                         | Test foundation              | Medium   |
-
-### Platform (external repos)
-
-| Item                                         | Action                       | Priority |
-| -------------------------------------------- | ---------------------------- | -------- |
-| Consolidate npm → pnpm workspaces            | Single lockfile, Turbo cache | High     |
-| Separate API ports (8000 vs 8001)            | Dev port conflict            | High     |
-| Add OpenAPI spec export to CI                | Contract testing             | High     |
-| Evaluate Resend vs Zoho SMTP                 | Deliverability + DX          | Low      |
-| Add PostgreSQL for Porterchain-native tables | Schema ownership             | Medium   |
+| Technology            | Version | Apps                          |
+| --------------------- | ------- | ----------------------------- |
+| **Expo SDK**          | `52`    | mobile-driver, mobile-customer |
+| **React Native**      | `0.76`  | Bundled with Expo 52          |
+| **@clerk/clerk-expo** | `7.x`   | Auth                          |
+| **react-native-maps** | Expo 52 pin | Map display               |
+| **MMKV**              | Latest  | Offline queue storage         |
+| **Firebase messaging**| Optional | Push (requires prod creds)   |
 
 ---
 
-## Deprecated / avoid
+## Backend (Porterchain API)
 
-| Item                              | Status                                  | Recommendation                          |
-| --------------------------------- | --------------------------------------- | --------------------------------------- |
-| Legacy Google Places Autocomplete | Migrated to Places API (New) on website | Keep using `PlaceAutocompleteElement`   |
-| `/driver` legacy routes           | Still used by driver app                | Deprecate after `/driver-api/v1` parity |
-| `FILESYSTEM_DRIVER=public`        | Local disk storage                      | Migrate to S3-compatible object storage |
-| Secrets in `details.md`           | **Critical risk**                       | Remove; use secret manager              |
-| npm in monorepo                   | Single project uses npm                 | Standardize on pnpm                     |
-| Firebase Auth in driver app       | Not used                                | Do not add unless required              |
-
----
-
-## Future roadmap
-
-### Phase 1 — Foundation (Q3 2026)
-
-- Monorepo with pnpm + Turbo
-- Docker Compose for full local stack
-- `.env.example` per service
-- CI: lint, typecheck, build, test
-- Sentry across website, API, mobile
-
-### Phase 2 — Integration (Q4 2026)
-
-- Website booking → Porterchain API
-- OpenAPI client generation for portals
-- Unified design system package (`@porterchain/ui`)
-- Playwright E2E for booking + merchant flows
-
-### Phase 3 — Scale (2027)
-
-- Kubernetes or DO App Platform
-- Read replicas for MySQL
-- Redis Cluster for HA
-- Event bus (Redis Streams or NATS) for dispatch events
-- PostgreSQL for Porterchain billing ledger
+| Technology     | Version   | Notes                          |
+| -------------- | --------- | ------------------------------ |
+| **Python**     | `3.13`    | API + worker (`apps/api/Dockerfile`) |
+| **FastAPI**    | `0.115+`  | Async API, OpenAPI at `/docs`  |
+| **SQLAlchemy** | `2.0+`    | ORM — PostgreSQL only          |
+| **Alembic**    | `1.14+`   | Schema migrations              |
+| **Stripe**     | `11+`     | Python SDK — webhooks          |
+| **firebase-admin** | `13+` | FCM push (optional locally)    |
 
 ---
 
-## Version lock file (website — evidence)
+## Backend (Fleetbase)
 
-Source: `website/package-lock.json` (June 2026)
+| Technology  | Version           | Notes                    |
+| ----------- | ----------------- | ------------------------ |
+| **PHP**     | `8.2+`            | Laravel                  |
+| **MySQL**   | `8.0`             | Fleetbase primary store  |
+| **Redis**   | `7.2`             | Cache + queue            |
 
-```
-next:           16.2.9
-react:          19.2.4
-react-dom:      19.2.4
-typescript:     5.9.3
-tailwindcss:    4.3.1
-next-intl:      4.13.0
-eslint:         9.39.4
-@vis.gl/react-google-maps: 1.8.3
-```
+Fleetbase runs as a **separate Docker stack** (`pnpm docker:fleetbase:up`), not inside the Porterchain core compose.
 
 ---
 
-_Versions should be pinned in `.nvmrc`, `package.json#engines`, and CI images. Re-audit quarterly._
+## Data stores
+
+| Technology     | Port  | Owner       | Purpose                          |
+| -------------- | ----- | ----------- | -------------------------------- |
+| **PostgreSQL** | 5432  | Porterchain | All business data (Alembic)      |
+| **MySQL**      | 3306  | Porterchain core / 3307 Fleetbase stack | Fleetbase only       |
+| **Redis**      | 6379  | Shared      | Cache, queues, rate limits       |
+
+SQLite has been **removed** from Porterchain runtime code. See [docs/archive/SQLITE_AUDIT.md](./docs/archive/SQLITE_AUDIT.md) for migration history.
+
+---
+
+## Routing engines
+
+| Engine       | Default endpoint                          | Start command              |
+| ------------ | ----------------------------------------- | -------------------------- |
+| **Valhalla** | `http://localhost:8002`                   | `pnpm docker:up:routing`   |
+| **OSRM**     | `https://router.project-osrm.org` (public)| Fleetbase env / fallback   |
+
+---
+
+## Infrastructure
+
+| Component        | Local                          | Production                          |
+| ---------------- | ------------------------------ | ----------------------------------- |
+| **Docker Compose** | `infrastructure/docker/`     | `infrastructure/deploy/` (Caddy)    |
+| **CI/CD**        | `.github/workflows/ci.yml`     | GHCR images → droplet deploy        |
+| **Mailhog**      | `:8025` (dev email capture)    | Real SMTP in prod                   |
+
+Portal Dockerfiles exist: `website/`, `apps/admin/`, `apps/merchant-portal/`, `apps/driver-portal/`, `apps/customer/`, `apps/api/`.
+
+---
+
+## Auth
+
+| Method              | Used by                                    |
+| ------------------- | ------------------------------------------ |
+| **Clerk**           | Website, merchant, admin, driver web, mobile |
+| **Porterchain JWT** | Driver mobile API (`/driver-api/v1/*`)     |
+| **Fleetbase SSO**   | Admin → Fleetbase console (via adapter)    |
+| **Stripe webhooks** | Retail checkout confirmation               |
+
+Legacy Supabase OTP paths are removed. See [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
+
+---
+
+## Observability (gaps)
+
+| Tool                 | Status              |
+| -------------------- | ------------------- |
+| **@sentry/nextjs**   | Not installed       |
+| **sentry-sdk** (Python) | Not installed    |
+| Structured logging   | Partial (API logs)  |
+
+---
+
+## Open gaps (not stack blockers)
+
+| Item                         | Status                                      |
+| ---------------------------- | ------------------------------------------- |
+| Global API rate limiting     | Partial — needs Redis sliding window in prod |
+| FCM push in production       | Requires Firebase credentials               |
+| Sentry                       | Recommended, not yet wired                  |
+| Husky / lint-staged          | Not configured at root                      |
+
+Platform go/no-go: [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md).
+
+---
+
+## Related documents
+
+- [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) — monorepo layout
+- [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md) — local ports
+- [DOCKER_SETUP.md](./DOCKER_SETUP.md) — Fleetbase Docker stack
+- [DOCKER_ARCHITECTURE.md](./DOCKER_ARCHITECTURE.md) — compose architecture
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,6 +1,10 @@
 # Gap Analysis — Porterchain Platform
 
-**Date:** July 3, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Reference:** `masterrule.md` v3.1 vs current codebase
 
 ---
@@ -120,7 +124,7 @@
 | GAP-M09 | Architecture | Duplicate Fleetbase bridges                    | 2 days   |
 | GAP-M10 | Performance  | No routing result cache                        | 1 day    |
 | GAP-M11 | Admin        | Fleetbase API browser quick-link               | 1h       |
-| GAP-M12 | Driver       | Mobile app scaffold only                       | 2+ weeks |
+| GAP-M12 | Mobile       | Release ops (EAS, Firebase, store assets)      | 1–2 weeks |
 | GAP-M13 | Health       | Valhalla/OSRM not in `/health/ready`           | 4h       |
 | GAP-M14 | Website      | Customer portal client-side auth gate          | 4h       |
 
@@ -142,9 +146,11 @@
 
 ---
 
-## Compliance vs MASTERULE_COMPLIANCE_GAPS.md
+## Compliance vs Master Rule Archive
 
-Previous checklist marked several items "Done". This audit identified:
+The historical `MASTERULE_COMPLIANCE_GAPS.md` checklist is archived in `docs/archive/`. Current remediation status lives here and in `ROADMAP.md`.
+
+This audit identified:
 
 - **BW-C01** — not previously tracked; now fixed
 - **Event catalog emissions** — still partial for reverse logistics
@@ -153,3 +159,11 @@ Previous checklist marked several items "Done". This audit identified:
 ---
 
 _Remediation plan: `ROADMAP.md`_
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

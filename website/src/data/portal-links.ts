@@ -3,12 +3,13 @@ import { publicEnv } from "@/lib/env";
 /** Unified Porterchain sign-in on the public website (role-based redirect). */
 export const unifiedSignInPath = "/login";
 
-/** Retail customer portal on the dedicated app (:3004). */
+/** Retail customer app (:3004) — sole authenticated customer surface (masterrule §21). */
 export const customerPortalDashboardUrl = `${publicEnv.customerPortalUrl}/dashboard`;
+export const customerPortalSignInUrl = `${publicEnv.customerPortalUrl}/sign-in`;
 
-/** Legacy embedded customer area on the marketing site. */
-export const customerPortalPath = "/portal/customer";
-export const customerSignInPath = unifiedSignInPath;
+/** @deprecated Use customerPortalDashboardUrl — embedded website portal removed. */
+export const customerPortalPath = customerPortalDashboardUrl;
+export const customerSignInPath = customerPortalSignInUrl;
 
 /** Merchant portal sign-in (direct deep-link; prefer unifiedSignInPath from website). */
 export const merchantSignInUrl = `${publicEnv.merchantPortalUrl}/sign-in`;

@@ -1,8 +1,11 @@
 # Porterchain — Product Requirements
 
-**Document version:** 1.0  
-**Date:** June 29, 2026  
-**Status:** Product specification — design only (no implementation)  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Status:** Implemented with known gaps — see [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md)  
 **Audience:** Product, Engineering, Operations, Sales, Executive
 
 ---
@@ -43,7 +46,7 @@ Porterchain is **not** an open driver marketplace. Drivers are vetted partners; 
 | Continue booking   | Email + phone collection                                                                  | P0       |
 | Authentication     | **Clerk** — merge anonymous quote session into account                                    | P0       |
 | Payment            | **Stripe** checkout before booking confirmation                                           | P0       |
-| Customer dashboard | Track, invoice download, history, rebook, profile                                         | P0       |
+| Customer dashboard | Track, invoice download, history, rebook, profile (`apps/customer/` :3004) | P0 — ✅ Live |
 | Abandoned checkout | Persist quote, email, phone; remarketing                                                  | P1       |
 | Guest estimate TTL | Quote expires (`QUOTE_EXPIRED`)                                                           | P0       |
 
@@ -66,7 +69,7 @@ Porterchain is **not** an open driver marketplace. Drivers are vetted partners; 
 | Merchant portal       | Full B2B feature set                                | P0       |
 | Book deliveries       | Portal UI + saved addresses                         | P0       |
 | CSV bulk upload       | Batch shipment creation                             | P1       |
-| API integration       | REST + webhooks                                     | P1       |
+| API integration       | REST + webhooks (`/v1/merchant-api` with API keys) | P1 — ✅ Live |
 | Recurring routes      | Scheduled recurring lanes                           | P2       |
 | Multi-user            | Org roles in merchant portal                        | P1       |
 | Billing               | Net 15 / Net 30 / Net 45; optional per-order Stripe | P0       |
@@ -200,7 +203,7 @@ All exceptions must be **logged, stateful, and auditable**. See [EXCEPTION_WORKF
 - Waypoints & stop execution
 - POD capture plumbing (synced to Porterchain)
 
-See [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md).
+See [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md).
 
 ---
 
@@ -250,7 +253,21 @@ See [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md).
 
 ---
 
-## Auth note (target vs legacy docs)
+## Implementation status (July 2026)
+
+| Area              | Status | Notes                                              |
+| ----------------- | ------ | -------------------------------------------------- |
+| Retail booking    | ✅     | Website + Stripe; webhook required in prod         |
+| Customer portal   | ✅     | `apps/customer/` — tracking map gap remains        |
+| Merchant portal   | ✅     | Core B2B flows live; NET batch invoicing partial   |
+| Admin ops         | ✅     | 46+ pages, dispatch, CRM, finance                  |
+| Driver mobile     | ⚠️     | 72% — field ops work; EAS/Firebase prod ops needed |
+| Customer mobile   | ⚠️     | 62% — core flows; store assets pending             |
+| Production cert   | ❌     | See `PRODUCTION_READINESS_REPORT.md`               |
+
+---
+
+## Auth note
 
 **Target (this PRD):** Retail customers use **Clerk + Stripe pre-payment** at booking.
 
@@ -258,4 +275,12 @@ Legacy platform notes referenced Supabase OTP for booking verification. That pat
 
 ---
 
-_Design specification only. No code changes implied._
+_Design specification with implementation status. Platform is **not yet production certified**._
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

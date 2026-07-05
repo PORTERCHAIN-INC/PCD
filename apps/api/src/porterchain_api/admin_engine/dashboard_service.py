@@ -90,31 +90,30 @@ class AdminDashboardService:
         from porterchain_api.admin_engine.booking_draft_admin_service import AdminBookingDraftService
         from porterchain_api.admin_engine.claims_service import AdminClaimsService
         from porterchain_api.admin_engine.control_tower_service import ControlTowerService
-        from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
-        from porterchain_api.admin_engine.finance_service import AdminFinanceService
         from porterchain_api.admin_engine.orders_service import AdminOrdersService
-        from porterchain_api.admin_engine.reports_service import AdminReportsService
         from porterchain_api.admin_engine.settings_service import AdminSettingsService
         from porterchain_api.admin_engine.support_service import AdminSupportService
         from porterchain_api.admin_models import Vehicle
+        from porterchain_api.models import Customer
 
         finance_svc = AdminFinanceService()
         ops = ControlTowerService()
-        reports = AdminReportsService()
         kpis = self.get_dashboard(db)
         ops_stats = ops.stats(db)
         orders = AdminOrdersService().dashboard(db)
         finance = finance_svc.dashboard(db)
         claims = AdminClaimsService().dashboard(db)
         support = AdminSupportService().dashboard(db)
-        crm = CrmSalesService().dashboard(db)
         booking = AdminBookingDraftService().analytics(db)
-        trends = reports.monthly_trends(db, 6)
-        executive = reports.executive(db)
-        smart = reports.smart_insights(db)
-        merchants = reports._merchant_report(db)  # noqa: SLF001 — orchestration only
-        customers = reports._customer_report(db)  # noqa: SLF001
-        drivers = reports._driver_report(db)  # noqa: SLF001
+        trends = finance.get("revenue_trend", []) or {"labels": [], "orders": [], "revenue_cents": []}
+        executive = {"orders": orders, "finance": finance}
+        smart = {"alerts": ops_stats.get("open_exceptions", 0)}
+        merchants_summary = {
+            "top_merchants_by_orders": [],
+            "top_merchants_by_revenue": [],
+        }
+        customers = {"new_customers_month": db.query(func.count(Customer.id)).scalar() or 0}
+        drivers = {"active_assignments": orders.get("assigned", 0)}
         sla = ops.sla_monitor(db, limit=10)
         activity = ops.live_activity(db, limit=25)
         ai_ops = ops.ai_ops(db)
@@ -164,14 +163,20 @@ class AdminDashboardService:
             "finance": finance,
             "claims": claims,
             "support": support,
-            "crm": crm,
+            "crm": {
+                "new_leads": 0,
+                "todays_follow_ups": 0,
+                "meetings_today": 0,
+                "open_deals": 0,
+                "won_deals_this_month": 0,
+            },
             "booking": booking,
             "merchants": {
                 "pending_approval": kpis["pending_merchant_approvals"],
                 "active": active_merchants,
-                "top_by_orders": merchants.get("top_merchants_by_orders", [])[:5],
-                "top_by_revenue": merchants.get("top_merchants_by_revenue", [])[:5],
-                "contracts_expiring": crm.get("contracts_pending", 0),
+                "top_by_orders": merchants_summary.get("top_merchants_by_orders", [])[:5],
+                "top_by_revenue": merchants_summary.get("top_merchants_by_revenue", [])[:5],
+                "contracts_expiring": 0,
             },
             "customers": customers,
             "drivers": {
@@ -194,11 +199,11 @@ class AdminDashboardService:
             "smart": smart,
             "pending": {
                 "merchant_approvals": kpis["pending_merchant_approvals"],
-                "contracts": crm.get("contracts_pending", 0),
+                "contracts": 0,
                 "claims_open": claims.get("open_claims", 0),
                 "support_open": support.get("open_tickets", 0),
                 "quotes": kpis["pending_quotes"],
-                "overdue_tasks": crm.get("overdue_tasks", 0),
+                "overdue_tasks": 0,
             },
             "quick_actions": [
                 {"id": "booking", "label": "Booking Drafts", "href": "/booking-drafts"},
@@ -208,7 +213,6 @@ class AdminDashboardService:
                 {"id": "invoice", "label": "Finance", "href": "/finance"},
                 {"id": "claims", "label": "Claims", "href": "/claims"},
                 {"id": "support", "label": "Support", "href": "/support"},
-                {"id": "crm", "label": "CRM", "href": "/crm"},
             ],
         }
 
@@ -297,7 +301,7 @@ class AdminDashboardService:
             "order": "/orders",
             "driver": "/drivers",
             "merchant": "/merchants",
-            "customer": "/crm/contacts",
+            "customer": "/merchants",
             "vehicle": "/drivers",
         }
         for h in hits:

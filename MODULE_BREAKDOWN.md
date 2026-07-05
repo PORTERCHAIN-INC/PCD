@@ -1,21 +1,26 @@
 # Porterchain — Module Breakdown
 
-**Document version:** 1.0  
-**Date:** June 29, 2026
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 
 ---
 
 ## Application surfaces
 
-| Application            | Users                    | URL / surface              |
-| ---------------------- | ------------------------ | -------------------------- |
-| **Website**            | Public, retail customers | `porterchain.com`          |
-| **Customer dashboard** | Retail customers         | `/portal/customer`         |
-| **Merchant portal**    | Business customers       | `portal.porterchain.com`   |
-| **Admin**              | Porterchain staff        | `admin.porterchain.com`    |
-| **Driver app**         | Driver partners          | iOS / Android              |
-| **Fleetbase console**  | Dispatchers only         | Internal `:4200` / ops VPN |
-| **Public API**         | Merchants, website       | `api.porterchain.com`      |
+| Application            | Users                    | URL / surface                          |
+| ---------------------- | ------------------------ | -------------------------------------- |
+| **Website**            | Public, retail customers | `porterchain.com` (:3000)              |
+| **Customer portal**    | Retail customers         | `customer.porterchain.com` (:3004)     |
+| **Merchant portal**    | Business customers       | `merchant.porterchain.com` (:3001)     |
+| **Admin**              | Porterchain staff        | `admin.porterchain.com` (:3002)        |
+| **Driver web portal**  | Driver partners          | `driver.porterchain.com` (:3003)       |
+| **Mobile driver app**  | Driver partners          | iOS / Android (Expo)                   |
+| **Mobile customer app**| Retail customers         | iOS / Android (Expo)                   |
+| **Fleetbase console**  | Dispatchers only         | Internal `:4200` / ops VPN             |
+| **Public API**         | Merchants, website       | `api.porterchain.com` (:8001)          |
 
 ---
 
@@ -285,13 +290,13 @@
 
 ## Website modules (existing + target)
 
-| Module              | Status     | Notes                 |
-| ------------------- | ---------- | --------------------- |
-| Marketing pages     | **Live**   | No redesign           |
-| Booking widget      | **Live**   | Quote API to be wired |
-| Blog / corporate    | **Live**   | —                     |
-| Customer dashboard  | **Target** | Post-Clerk + Stripe   |
-| Track (public link) | **Target** | `/track/{id}`         |
+| Module              | Status   | Notes                        |
+| ------------------- | -------- | ---------------------------- |
+| Marketing pages     | **Live** | —                            |
+| Booking widget      | **Live** | Wired to Porterchain API     |
+| Blog / corporate    | **Live** | —                            |
+| Customer dashboard  | **Live** | `apps/customer/` (:3004)     |
+| Track (public link) | **Live** | `/track/{tracking_number}`   |
 
 ---
 
@@ -328,4 +333,13 @@
 
 - [ROLE_PERMISSIONS.md](./ROLE_PERMISSIONS.md)
 - [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md)
-- [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
+- [MODULE_SCORECARD.md](./MODULE_SCORECARD.md)
+- [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

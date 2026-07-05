@@ -7,6 +7,8 @@ author: "marcus-okonkwo"
 tags: ["supply-chain", "visibility", "data"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Supply chain visibility became a boardroom topic overnight. Most initiatives still fail for a simple reason: **the data stops where the truck starts.**
 
 ## Visibility requires connected events
@@ -23,7 +25,7 @@ If any step lives in a spreadsheet or a driver's text thread, your visibility da
 
 ## Connected operations, end to end
 
-Porterchain can share delivery events with your WMS, ERP, and customer systems so every team works from the same shipment record.
+Porterchain can share delivery events with your WMS, ERP, and customer systems — via webhooks and operational exports — so every team works from the same shipment record.
 
 Visibility is not a portal you bolt on. It is **one connected operation** — dispatch, routing, and proof on the same workflow.
 

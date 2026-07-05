@@ -1,8 +1,18 @@
-"""Order metadata helpers — source and type classification (masterrule §10)."""
+"""Order metadata helpers — source, type, and executor classification (masterrule §10)."""
 
 from __future__ import annotations
 
 from porterchain_api.domain.states import OrderSource, OrderType
+
+# Phase 2 hook — mixed fleet executors (human driver today; robot/drone/AV later).
+EXECUTOR_TYPES = frozenset({"human_driver", "autonomous_vehicle", "drone", "robot"})
+DEFAULT_EXECUTOR_TYPE = "human_driver"
+
+
+def resolve_executor_type(raw: str | None = None) -> str:
+    if raw and raw in EXECUTOR_TYPES:
+        return raw
+    return DEFAULT_EXECUTOR_TYPE
 
 
 def resolve_order_type(

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_engine import BookingConfirmationService, BookingService, PaymentService
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.config import Settings
-from porterchain_api.models import Payment, Quote
+from porterchain_api.models import Order, Payment, Quote
 from porterchain_api.services.stripe_service import handle_checkout_completed
 from porterchain_event_bus import get_event_bus
 from porterchain_shared.events.catalog import DomainEventType
@@ -111,3 +111,34 @@ class StripeWebhookService:
             reason = data_object.get("last_payment_error", {}).get("message", "payment_failed")
             self._payments.mark_failed(db, payment, reason=reason)
         self._bookings.record_abandoned_checkout(db, quote, reason="payment_failed")
+
+    def sync_checkout_session(self, db: Session, settings: Settings, quote_id: str) -> bool:
+        """Confirm a paid Stripe Checkout session when the webhook has not arrived yet."""
+        if not settings.stripe_secret:
+            return False
+
+        quote = db.query(Quote).filter(Quote.id == quote_id).first()
+        if not quote:
+            return False
+        if db.query(Order).filter(Order.quote_id == quote_id).first():
+            return True
+
+        payment = self._payments.get_active_payment(db, quote_id)
+        session_id = (
+            payment.stripe_checkout_session_id
+            if payment and payment.stripe_checkout_session_id
+            else quote.stripe_checkout_session_id
+        )
+        if not session_id:
+            return False
+
+        import stripe
+
+        stripe.api_key = settings.stripe_secret
+        session = stripe.checkout.Session.retrieve(session_id)
+        if session.payment_status != "paid" and session.status != "complete":
+            return False
+
+        session_payload = session.to_dict()
+        self._handle_checkout_completed(db, settings, session_payload)
+        return True

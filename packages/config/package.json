@@ -4,10 +4,12 @@
   "private": true,
   "description": "Shared Porterchain tooling configuration",
   "exports": {
-    "./prettier": "./prettier.config.mjs"
+    "./prettier": "./prettier.config.mjs",
+    "./monorepo-env.mjs": "./monorepo-env.mjs"
   },
   "files": [
     "prettier.config.mjs",
+    "monorepo-env.mjs",
     "tsconfig.base.json"
   ]
 }

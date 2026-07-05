@@ -1,5 +1,10 @@
 # Porterchain + Fleetbase — Docker Setup
 
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Compose project name:** `porterchain-fleetbase`  
 **Upstream compose:** `apps/fleetbase/docker-compose.yml` (Fleetbase v0.7.40)  
 **Porterchain overlay:** `infrastructure/docker/fleetbase.porterchain.override.yml`
@@ -84,8 +89,8 @@ Project: `porterchain`
 
 | Service  | Profile         | Ports      |
 | -------- | --------------- | ---------- |
-| postgres | core            | 5432       |
-| mysql    | core, fleetbase | 3306       |
+| **postgres** | core            | 5432       |
+| **database** (MySQL) | core, fleetbase | 3306       |
 | redis    | core, fleetbase | 6379       |
 | mailhog  | core            | 1025, 8025 |
 | valhalla | routing         | 8002       |
@@ -98,7 +103,7 @@ pnpm docker:up              # core (postgres, mysql, redis, mailhog)
 pnpm docker:up:routing      # + Valhalla on :8002
 ```
 
-Fleetbase and Porterchain stacks are **independent** compose projects.
+Fleetbase MySQL binds to **3307** on the host (via Porterchain overlay) to avoid conflict with core stack MySQL on **3306**.
 
 ---
 
@@ -107,7 +112,7 @@ Fleetbase and Porterchain stacks are **independent** compose projects.
 | Engine       | Config                         | Default                                                                   |
 | ------------ | ------------------------------ | ------------------------------------------------------------------------- |
 | **OSRM**     | `OSRM_HOST` in application env | `https://router.project-osrm.org` (public)                                |
-| **Valhalla** | `VALHALLA_BASE_URL`            | `http://host.docker.internal:8002` when Porterchain routing profile is up |
+| **Valhalla** | `VALHALLA_BASE_URL`            | Porterchain pricing: `http://127.0.0.1:8002` (`pnpm docker:up:routing`). Fleetbase stack overlay uses public OSM (`https://valhalla1.openstreetmap.de`) — see `fleetbase.porterchain.override.yml` |
 
 Verify:
 
@@ -179,3 +184,11 @@ pnpm docker:fleetbase:verify
 ```
 
 See [SERVICE_STATUS.md](./SERVICE_STATUS.md) for last verified snapshot.
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

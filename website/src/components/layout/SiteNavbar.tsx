@@ -8,7 +8,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
 import LinkButton from "@/components/corporate/ui/LinkButton";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
-import { customerPortalPath, unifiedSignInPath } from "@/data/portal-links";
+import SiteNavbarAuth from "@/components/layout/SiteNavbarAuth";
 import { cn } from "@/lib/utils";
 
 const DARK_HERO_PATHS = new Set(["/", "/business", "/careers", "/contact"]);
@@ -103,12 +103,7 @@ export default function SiteNavbar() {
                 {link.label}
               </Link>
             ))}
-            <Link href={customerPortalPath} className={linkClass(customerPortalPath)}>
-              {t("myOrders")}
-            </Link>
-            <Link href={unifiedSignInPath} className={linkClass(unifiedSignInPath)}>
-              {t("login")}
-            </Link>
+            <SiteNavbarAuth navLight={navLight} linkClass={linkClass} />
             {isHome ? (
               <LinkButton href="/#book" size="sm">
                 {t("bookNow")}
@@ -166,20 +161,11 @@ export default function SiteNavbar() {
               ))}
               <div className="pt-4 mt-2 border-t border-primary/[0.06] flex flex-col gap-3">
                 <LanguageSwitcher scrolled />
-                <Link
-                  href={customerPortalPath}
-                  onClick={() => setMobileOpen(false)}
-                  className="text-center py-3 text-sm font-medium text-primary"
-                >
-                  {t("myOrders")}
-                </Link>
-                <Link
-                  href={unifiedSignInPath}
-                  onClick={() => setMobileOpen(false)}
-                  className="text-center py-3 text-sm font-medium text-primary"
-                >
-                  {t("login")}
-                </Link>
+                <SiteNavbarAuth
+                  navLight
+                  linkClass={linkClass}
+                  onNavigate={() => setMobileOpen(false)}
+                />
                 {isHome ? (
                   <div onClick={() => setMobileOpen(false)}>
                     <LinkButton href="/#book" className="w-full justify-center">

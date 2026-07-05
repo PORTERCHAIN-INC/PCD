@@ -1,162 +1,108 @@
 # Extension Guide — Fleetbase Adapter
 
-**Document version:** 1.0  
-**Date:** June 29, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Package:** `services/fleetbase-adapter/`
+
+> **Architecture:** [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) · **Fleetbase extensions:** [FLEETBASE_EXTENSION_POINTS.md](./FLEETBASE_EXTENSION_POINTS.md)
 
 ---
 
 ## Purpose
 
-This guide explains how to extend Porterchain's Fleetbase integration **without modifying Fleetbase core** or leaking Porterchain business logic into upstream code.
+Extend Porterchain's Fleetbase integration **without modifying Fleetbase core** or leaking Porterchain business logic into upstream code.
 
 ---
 
 ## Extension layers
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  Layer 1: Porterchain API (apps/api/)                   │
-│  Business rules, pricing, auth, webhooks to merchants   │
-└────────────────────────┬────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────┐
-│  Layer 2: Fleetbase Adapter (services/fleetbase-adapter)│
-│  HTTP client, mappers, events, retries — EXTEND HERE      │
-└────────────────────────┬────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────┐
-│  Layer 3: Fleetbase Bridge Extension (future Composer pkg)│
-│  /int/v1/porterchain/* routes, SSO trust, custom sync    │
-└────────────────────────┬────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────┐
-│  Layer 4: Fleetbase OSS (apps/fleetbase/) — READ ONLY     │
-│  core-api, fleetops-api, console                        │
-└─────────────────────────────────────────────────────────┘
+Layer 1: Porterchain API (apps/api/) — business rules, fleetbase_engine/
+Layer 2: Fleetbase Adapter (services/fleetbase-adapter/) — EXTEND HERE
+Layer 3: Fleetbase bridge extension (Composer pkg) — SSO / tailored routes
+Layer 4: Fleetbase OSS (apps/fleetbase/) — READ ONLY
 ```
 
 ---
 
 ## When to extend the adapter (Layer 2)
 
-Extend `services/fleetbase-adapter/` when you need to:
+| Need | Where |
+| ---- | ----- |
+| New resource sync | New module + service class |
+| Order meta fields | `mappers.py` |
+| Webhook event mapping | `events/__init__.py` |
+| New API endpoint wrapper | Service module |
+| Retry / error handling | `retry.py`, `errors.py` |
+| POD normalization | `pod/__init__.py` |
 
-| Need                                          | Where                              |
-| --------------------------------------------- | ---------------------------------- |
-| New Fleetbase resource sync (e.g. facilities) | New module + service class         |
-| Additional order meta fields                  | `mappers.py`                       |
-| New webhook event mapping                     | `events/__init__.py`               |
-| New Fleetbase API endpoint wrapper            | Existing service module or new one |
-| Custom retry / error handling                 | `retry.py`, `errors.py`            |
-| POD normalization changes                     | `pod/__init__.py`                  |
-
-### Example: add a new webhook event
+### Example: add a webhook event
 
 ```python
 # services/fleetbase-adapter/porterchain_fleetbase_adapter/events/__init__.py
 
-FLEETBASE_EVENT_TO_ORDER_STATE["order.arrived_at_dropoff"] = "AT_DROPOFF"
-FLEETBASE_EVENT_TO_DOMAIN_EVENT["order.arrived_at_dropoff"] = "order.arrived_at_dropoff"
+FLEETBASE_EVENT_TO_DOMAIN_EVENT["order.arrived_at_dropoff"] = "order.near_delivery"
 ```
 
-Then handle the new Porterchain state in `apps/api/booking_engine/fleetbase_sync_service.py`.
+Then ensure `fleetbase_engine/WebhookProcessor` handles the resulting Porterchain state.
 
-### Example: add a new Fleetbase API call
+### Example: add an API call
 
-```python
-# services/fleetbase-adapter/porterchain_fleetbase_adapter/orders/__init__.py
-
-def mark_ready(self, fleetbase_order_id: str) -> dict[str, Any] | None:
-    try:
-        return self.client.patch(f"/v1/orders/{fleetbase_order_id}/ready")
-    except Exception as exc:
-        self.errors.log_and_suppress(exc, "Fleetbase ready failed")
-        return None
-```
-
-Expose via `FleetbaseAdapter` in `integration.py` if needed by the API.
+Expose via `OrderService` → `FleetbaseAdapter` in `integration.py`; wire from `fleetbase_engine/`, not routers directly.
 
 ---
 
 ## When to extend the Fleetbase bridge (Layer 3)
 
-Create a **separate Composer extension package** when you need:
+Separate Composer extension for:
 
-| Need                                   | Example endpoint                                        |
-| -------------------------------------- | ------------------------------------------------------- |
-| Porterchain SSO token exchange         | `POST /int/v1/porterchain/sso/exchange`                 |
-| Permission sync from Porterchain RBAC  | `POST /int/v1/porterchain/sso/users/{uuid}/permissions` |
-| Bulk order import with Porterchain IDs | `POST /int/v1/porterchain/orders/bulk`                  |
-| Custom webhook signing scheme          | Bridge middleware                                       |
+| Need | Endpoint |
+| ---- | -------- |
+| SSO token exchange | `POST /int/v1/porterchain/sso/exchange` |
+| Permission sync | `POST /int/v1/porterchain/sso/users/{uuid}/permissions` |
 
-Install the extension into the Fleetbase Docker image — never patch `apps/fleetbase/api/routes/`.
-
-Adapter client calls for bridge routes go in `auth/__init__.py` or a new `bridge/` module.
+Client stubs: `porterchain_fleetbase_adapter/auth/`. SSO extension deploy still required on Fleetbase side.
 
 ---
 
 ## When to extend Porterchain API (Layer 1)
 
-| Need                                       | Location              |
-| ------------------------------------------ | --------------------- |
-| When to sync orders (after Stripe payment) | `booking_engine/`     |
-| Merchant-specific dispatch rules           | `admin_engine/`       |
-| Public tracking response shape             | `routers/orders.py`   |
-| Outbound merchant webhooks                 | `routers/webhooks.py` |
+| Need | Location |
+| ---- | -------- |
+| Sync triggers | `fleetbase_engine/`, event handlers in `booking_engine/fleetbase_sync_handler.py` |
+| Dispatch rules | `admin_engine/` |
+| Tracking response | `booking_engine/tracking_service.py` |
+| Merchant webhooks | `merchant_engine/webhook_delivery_service.py` |
 
-The API calls adapter methods — it does not construct Fleetbase payloads directly.
+API calls adapter via `get_fleetbase_integration()` — never construct Fleetbase payloads in routers.
 
 ---
 
 ## Adding a new adapter module
 
 1. Create `services/fleetbase-adapter/porterchain_fleetbase_adapter/<module>/__init__.py`
-2. Implement a service class accepting `(FleetbaseSettings, FleetbaseClient, ErrorHandler)`
+2. Service class accepts `(FleetbaseSettings, FleetbaseClient, ErrorHandler)`
 3. Register on `FleetbaseAdapter` in `integration.py`
-4. Export from `__init__.py` `__all__`
-5. Add shim re-export in `services/fleetbase/porterchain_fleetbase/<module>/` if needed
-6. Wire in `apps/api/` via `fleetbase_integration.py` factory
-7. Document in [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)
+4. Wire in `apps/api/services/fleetbase_integration.py`
+5. Document in [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)
 
 ---
 
 ## Mapper guidelines
 
-- Put Porterchain → Fleetbase field mapping in `mappers.py`
+- Porterchain → Fleetbase mapping in `mappers.py`
 - Always include `meta.porterchain_order_id` for webhook correlation
-- Never send Stripe customer IDs, invoice amounts, or contract terms
-- Use `place_from_address()` for geo fields — do not duplicate address logic in API
+- Never send Stripe IDs, invoice amounts, or contract terms to Fleetbase
 
 ---
 
-## Event translation guidelines
-
-- Fleetbase events are the source of truth for **execution state**
-- Porterchain `OrderState` enum is the source of truth for **customer-facing status**
-- Unmapped events should log at DEBUG and return `None` from `WebhookService.process`
-- Add domain events to `packages/events` catalog when introducing new transitions
-
----
-
-## Testing extensions
+## Testing
 
 ```bash
-cd apps/api
-source .venv/bin/activate
-pip install -e ../../services/fleetbase-adapter
-
-python -c "
-from porterchain_fleetbase_adapter.events import EventTranslator
-t = EventTranslator()
-assert t.resolve_order_state('order.completed') == 'DELIVERED'
-print('ok')
-"
-```
-
-Integration tests against a running Fleetbase stack:
-
-```bash
+cd apps/api && pip install -e ../../services/fleetbase-adapter
 pnpm docker:fleetbase:up
 pnpm dev:api
 ```
@@ -165,19 +111,25 @@ pnpm dev:api
 
 ## Anti-patterns
 
-| Anti-pattern                                           | Correct approach                    |
-| ------------------------------------------------------ | ----------------------------------- |
-| `httpx.post('http://fleetbase:8000/v1/orders')` in API | Use `OrderService`                  |
-| Edit `apps/fleetbase/api/app/Http/`                    | Fleetbase bridge extension          |
-| Store merchant pricing in Fleetbase meta               | Keep in Porterchain DB              |
-| Fork `fleetops-api`                                    | Use adapter mappers + bridge routes |
-| Import adapter from `website/`                         | Website → API only                  |
+| Anti-pattern | Correct approach |
+| ------------ | ---------------- |
+| Direct `httpx` to Fleetbase in API | Use adapter services |
+| Edit `apps/fleetbase/api/` | Fleetbase extension package |
+| Import adapter from frontends | Frontend → API only |
 
 ---
 
 ## Related documents
 
-- [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)
-- [FLEETBASE_EXTENSION_POINTS.md](./FLEETBASE_EXTENSION_POINTS.md)
-- [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md)
-- [CONTRIBUTING_GUIDE.md](./CONTRIBUTING_GUIDE.md)
+| Document | Purpose |
+| -------- | ------- |
+| [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) | Adapter structure |
+| [services/fleetbase-adapter/README.md](./services/fleetbase-adapter/README.md) | Package quick start |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

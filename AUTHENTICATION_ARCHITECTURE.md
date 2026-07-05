@@ -1,7 +1,11 @@
 # Authentication Architecture
 
-**Version:** 1.0  
-**Date:** July 1, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Version:** 1.1  
 **Status:** APPROVED  
 **Authority:** [masterrule.md](./masterrule.md) §15
 
@@ -19,8 +23,8 @@
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                         PORTERCHAIN SURFACES                             │
 ├──────────────┬──────────────┬──────────────┬───────────────────────────┤
-│   Website    │   Merchant   │    Admin     │   Driver (web + mobile)   │
-│   :3000      │   :3001      │   :3002      │   :3003 / Expo            │
+│   Website    │   Merchant   │    Admin     │ Customer │ Driver (web + mobile)   │
+│   :3000      │   :3001      │   :3002      │ :3004    │ :3003 / Expo ×2         │
 └──────┬───────┴──────┬───────┴──────┬───────┴─────────────┬─────────────┘
        │              │              │                     │
        └──────────────┴──────────────┴─────────────────────┘
@@ -129,6 +133,13 @@ Clerk sign-up → onboarding state machine → Porterchain API (JWT)
              → merchant_engine RBAC → dashboard
 ```
 
+### Customer portal
+
+```
+Clerk sign-in → apps/customer/ (:3004) → Porterchain API (JWT)
+             → customer routes + support
+```
+
 ### Admin portal
 
 ```
@@ -144,6 +155,36 @@ Admin opens Fleetbase console via **SSO JWT** (`sso_service.py`) — separate fr
 Clerk sign-in → /auth/login → session tokens → driver_engine routes
 Invite flow: /auth/driver-invite → Clerk password → ACTIVE
 ```
+
+Mobile: `apps/mobile-driver/` and `apps/mobile-customer/` use `@clerk/clerk-expo`; API calls use Porterchain JWT/session after Clerk login.
+
+---
+
+## Enterprise Clerk apps (production)
+
+| Clerk app              | User class       | Frontend(s)                                          |
+| ---------------------- | ---------------- | ---------------------------------------------------- |
+| `porterchain-customer` | Retail customers | Website, `apps/customer/`, `apps/mobile-customer/`   |
+| `porterchain-merchant` | B2B merchants    | Merchant portal                                      |
+| `porterchain-admin`    | Internal staff   | Admin portal                                         |
+| `porterchain-driver`   | Drivers          | Driver portal, `apps/mobile-driver/`                 |
+
+Per-class `CLERK_{CLASS}_SECRET_KEY` + `CLERK_{CLASS}_JWKS_URL` in API; frontends use matching publishable keys. Local dev may use legacy single `CLERK_*` vars for all classes.
+
+### Portal access gates
+
+| Portal           | Middleware       | API gate                                      |
+| ---------------- | ---------------- | --------------------------------------------- |
+| Admin            | `auth.protect()` | `GET /v1/auth/admin/access`                   |
+| Merchant         | `auth.protect()` | `GET /v1/auth/merchant/access`                |
+| Customer         | `auth.protect()` | `GET /v1/auth/customer/access`                |
+| Driver web       | Porterchain JWT  | Clerk at login → `POST /driver-api/v1/auth/login` |
+
+Authorization uses **database rows** (`admin_users`, `merchant_users`, `customers`, `drivers`) — not Clerk metadata alone in production.
+
+### Public order tracking
+
+`GET /v1/orders/{tracking_number}` is intentionally unauthenticated — tracking number only.
 
 ---
 
@@ -216,15 +257,24 @@ SMTP configuration (`MAIL_*`, `SMTP_*` in platform settings) supports the **noti
 
 ## Related documents
 
-| Document                                                 | Purpose               |
-| -------------------------------------------------------- | --------------------- |
-| [AUTHENTICATION.md](./AUTHENTICATION.md)                 | Operational reference |
-| [AUTHENTICATION_AUDIT.md](./AUTHENTICATION_AUDIT.md)     | Pre-cleanup inventory |
-| [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md) | Changes applied       |
-| [AUTHENTICATION_FLOW.md](./AUTHENTICATION_FLOW.md)       | Sequence diagrams     |
-| [RBAC.md](./RBAC.md)                                     | Role matrix           |
-| [SSO.md](./SSO.md)                                       | Fleetbase console SSO |
+| Document                                                                 | Purpose                          |
+| ------------------------------------------------------------------------ | -------------------------------- |
+| [docs/architecture/AUTHENTICATION_FLOW.md](./docs/architecture/AUTHENTICATION_FLOW.md) | Flow diagrams + code map         |
+| [RBAC.md](./RBAC.md)                                                     | Role matrix                      |
+| [SSO.md](./SSO.md)                                                       | Fleetbase console SSO            |
+| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)                   | Env var reference                |
+| [AUTHENTICATION_AUDIT.md](./AUTHENTICATION_AUDIT.md)                     | Historical pre-cleanup inventory |
+| [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md)                 | Historical cleanup log           |
+| [docs/archive/CLERK_INTEGRATION_REPORT.md](./docs/archive/CLERK_INTEGRATION_REPORT.md) | Historical Clerk integration audit |
 
 ---
 
 _Architecture locked per masterrule.md §15. Violations should be fixed in refactor, not extended._
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

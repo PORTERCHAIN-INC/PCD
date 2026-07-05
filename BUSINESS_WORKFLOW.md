@@ -1,8 +1,11 @@
 # Porterchain — Business Workflow
 
-**Document version:** 1.0  
-**Date:** June 29, 2026  
-**Status:** Operational design specification
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Status:** Operational specification — reflects current implementation
 
 ---
 
@@ -69,7 +72,7 @@ This document describes how Porterchain operates as a **logistics technology com
    - Emit `order.booked` event
    - Bridge → Fleetbase create payload/order
    - Send confirmation (email + optional SMS)
-9. Redirect to **customer dashboard** (`/portal/customer` or equivalent).
+9. Redirect to **customer portal** (`apps/customer/` :3004) or website track page.
 
 ### 1.3 Abandoned checkout
 
@@ -82,7 +85,7 @@ This document describes how Porterchain operates as a **logistics technology com
 
 ### 1.4 Post-booking customer workflow
 
-1. Customer tracks shipment on dashboard (status from Porterchain ← Fleetbase sync).
+1. Customer tracks shipment on dashboard (`apps/customer/` or website `/track/{tracking_number}`).
 2. On delivery: POD visible (photo, signature, timestamp, GPS).
 3. **Invoice/receipt** downloadable (Stripe receipt + Porterchain invoice PDF).
 4. **Rebook** pre-fills addresses from history.
@@ -143,7 +146,7 @@ This document describes how Porterchain operates as a **logistics technology com
 ### 3.2 Daily operations
 
 1. Dispatcher assigns order/route in **Fleetbase console** (or auto-assign rules).
-2. Driver notified (push when enabled, in-app list).
+2. Driver notified (FCM push when configured; in-app list always).
 3. Driver **accepts** or **rejects** job.
 4. En route → **at pickup** → **picked up** → **in transit** → **at destination** → **delivered**.
 5. **POD**: photo, signature, barcode scan, OTP if required.
@@ -231,10 +234,18 @@ This document describes how Porterchain operates as a **logistics technology com
 ## Related documents
 
 - [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)
-- [EVENT_FLOW.md](./EVENT_FLOW.md)
+- [EVENT_BUS.md](./EVENT_BUS.md)
 - [EXCEPTION_WORKFLOWS.md](./EXCEPTION_WORKFLOWS.md)
 - [USER_JOURNEYS.md](./USER_JOURNEYS.md)
 
 ---
 
-_Operational design only. Existing website UI and booking widget behavior unchanged._
+_Operational specification reflecting current monorepo. Platform not yet production certified — see `PRODUCTION_READINESS_REPORT.md`._
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

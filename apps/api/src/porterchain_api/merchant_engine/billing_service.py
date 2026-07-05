@@ -24,7 +24,7 @@ from porterchain_api.billing_engine.models import BillingLedgerEntry
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.models import Invoice, Order, Payment
-from porterchain_api.reporting_engine import merchant_service as report_engine
+from porterchain_api.merchant_engine import reporting_metrics as report_engine
 
 
 class MerchantBillingService:

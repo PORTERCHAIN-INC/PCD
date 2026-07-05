@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Porterchain Website
 
-## Getting Started
 
-First, run the development server:
+**Type:** README
+**masterrule:** [§21](../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+
+Public marketing site and retail booking funnel. Next.js 16 with `next-intl` (EN/FR).
+
+| Item | Value |
+| ---- | ----- |
+| **Package** | `@porterchain/website` |
+| **Port** | **3000** |
+| **Path** | `website/` (pnpm workspace root entry) |
+| **Output** | `standalone` (Docker production build) |
+
+> Path alias doc: [../apps/website/README.md](../apps/website/README.md)
+
+---
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp env/website.env.example website/.env.local
+pnpm dev:website
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) (locales: `/en/`, `/fr/`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architecture
 
-## Learn More
+```
+Website (:3000)
+    ↓ Clerk (optional) + Porterchain API calls
+Porterchain API (:8001) /v1/*
+    ↓
+booking_engine, quotes, orders, Stripe webhooks
+```
 
-To learn more about Next.js, take a look at the following resources:
+- **No direct Fleetbase** from the website.
+- **Pricing display** may use client-side estimate helpers; authoritative quotes come from `POST /v1/quotes`.
+- **Server quote proxy:** `website/src/app/api/quote/route.ts` (geocoding with server Maps key when configured).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Env loading: `@porterchain/config/monorepo-env.mjs` reads `env/.env` in `next.config.ts`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Project Layout
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+website/
+├── src/app/[locale]/     # Localized App Router pages
+├── src/components/       # UI sections, booking, blog, portal
+├── src/lib/              # API client, quote engine, maps helpers
+├── content/blog/         # Markdown posts (en/, fr/)
+├── messages/             # next-intl strings (en.json, fr.json)
+├── Dockerfile            # Production image
+├── AGENTS.md             # AI agent rules for this app
+└── CLAUDE.md             # Pointer to AGENTS.md
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Key Routes
+
+All routes under `[locale]` (e.g. `/en/`, `/fr/`):
+
+| Route | Purpose |
+| ----- | ------- |
+| `/` | Home |
+| `/book/continue` | Booking wizard continuation |
+| `/book/success` | Post-checkout confirmation |
+| `/track/[tracking]` | Public tracking |
+| Customer portal | External link to `apps/customer` (`:3004`) — not embedded on website |
+| `/login` | Clerk sign-in |
+| `/blog`, `/blog/[slug]` | Blog (24 posts EN+FR) |
+| `/business`, `/company`, `/contact`, `/careers` | Marketing |
+| `/privacy`, `/terms`, `/cookies` | Legal |
+
+Legacy paths `/platform`, `/overview`, `/solutions` redirect to `/business`.
+
+---
+
+## Environment
+
+Copy from `env/website.env.example`:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `NEXT_PUBLIC_PORTERCHAIN_API_URL` | API base |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk (booking/account) |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Maps on booking/tracking |
+| `GOOGLE_MAPS_SERVER_API_KEY` | Server geocoding in `/api/quote` (prod) |
+
+Portal URL hints are injected in `next.config.ts` for admin, merchant, driver, customer links.
+
+See [ENVIRONMENT_VARIABLES.md](../ENVIRONMENT_VARIABLES.md).
+
+---
+
+## Agent / IDE Docs
+
+| File | Purpose |
+| ---- | ------- |
+| [AGENTS.md](./AGENTS.md) | Rules for AI agents editing this app |
+| [CLAUDE.md](./CLAUDE.md) | Claude pointer to AGENTS.md |
+
+---
+
+## Related Documents
+
+| Document | Purpose |
+| -------- | ------- |
+| [../docs/architecture/BOOKING_FLOW.md](../docs/architecture/BOOKING_FLOW.md) | Booking flow |
+| [../apps/customer/README.md](../apps/customer/README.md) | Customer portal (:3004) |
+| [../infrastructure/deploy/README.md](../infrastructure/deploy/README.md) | Production deploy |
+| [../PRODUCT_REQUIREMENTS.md](../PRODUCT_REQUIREMENTS.md) | Product scope |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [../masterrule.md](../masterrule.md) | Architecture SSOT |
+| [../REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md) | Monorepo layout |
+

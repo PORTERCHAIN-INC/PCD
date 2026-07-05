@@ -12,7 +12,7 @@ from porterchain_api.routers import (
     admin,
     auth,
     booking_drafts,
-    crm,
+    collaboration,
     customers,
     driver,
     drivers_admin,
@@ -22,7 +22,6 @@ from porterchain_api.routers import (
     notifications,
     notifications_admin,
     operations,
-    route_center,
     orders,
     payments,
     quotes,
@@ -76,14 +75,13 @@ def create_app() -> FastAPI:
     app.include_router(merchant.router)
     app.include_router(merchant_api.router)
     app.include_router(admin.router)
-    app.include_router(crm.router)
+    app.include_router(collaboration.router)
     app.include_router(merchants.router)
     app.include_router(drivers_admin.router)
     app.include_router(notifications_admin.router)
     app.include_router(notifications.router)
     app.include_router(security.router)
     app.include_router(operations.router)
-    app.include_router(route_center.router)
     app.include_router(diagnostics.router)
     app.include_router(driver.router)
     app.include_router(driver.legacy_router)

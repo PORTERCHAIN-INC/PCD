@@ -1,6 +1,17 @@
 # Order Lifecycle
 
-> **Source:** `domain/states.py`, `booking_engine/order_transitions.py`, `fleetbase_engine/webhook_processor.py`
+
+**Type:** CANONICAL
+**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Source:** `domain/states.py`, `booking_engine/order_transitions.py`, `fleetbase_engine/webhook_processor.py`
+
+> **Canonical reference:** [ORDER_LIFECYCLE.md](../../ORDER_LIFECYCLE.md) — full state definitions, quote/payment pre-states, SLAs, Fleetbase mapping, and transition rules.
+
+This document is the **architecture supplement**: code-derived `OrderState` enum and transition diagram from `ORDER_TRANSITIONS`.
+
+---
 
 ## OrderState Enum
 
@@ -10,6 +21,8 @@ Defined in `apps/api/src/porterchain_api/domain/states.py`:
 
 Exception states: `DRIVER_REJECTED`, `FAILED`, `CANCELLED`, `RETURN_TO_SENDER`, `DAMAGED`, `LOST`, `CLAIM_OPEN`, `REFUNDED`
 
+Pre-order states (draft/quote flow): `QUOTE`, `QUOTE_EXPIRED`, `BOOKING_PENDING`, `PAYMENT_PENDING` — see canonical doc.
+
 ## Enforcement
 
 - `can_transition_order()` — validates against `ORDER_TRANSITIONS` map
@@ -18,14 +31,14 @@ Exception states: `DRIVER_REJECTED`, `FAILED`, `CANCELLED`, `RETURN_TO_SENDER`, 
 
 ## Transition Sources
 
-| Source              | Mechanism                                                                      |
-| ------------------- | ------------------------------------------------------------------------------ |
-| Retail confirmation | `BookingConfirmationService` → `BOOKED` → `DISPATCH_READY`                     |
-| Merchant booking    | `MerchantBookingService` → same                                                |
-| Admin assign        | `AdminOperationsService.assign_driver()` → `DRIVER_ASSIGNED`                   |
-| Fleetbase webhooks  | `WebhookProcessor` + `StatusTranslator`                                        |
-| Driver app          | `porterchain_driver` stop actions → events                                     |
-| Merchant cancel     | `MerchantOrdersService.cancel_order()` → `CANCELLED` + direct Fleetbase cancel |
+| Source | Mechanism |
+| ------ | --------- |
+| Retail confirmation | `BookingConfirmationService` → `BOOKED` → `DISPATCH_READY` |
+| Merchant booking | `MerchantBookingService` → same |
+| Admin assign | `AdminOperationsService.assign_driver()` → `DRIVER_ASSIGNED` |
+| Fleetbase webhooks | `WebhookProcessor` + `StatusTranslator` |
+| Driver app | `porterchain_driver` stop actions → events |
+| Merchant cancel | `MerchantOrdersService.cancel_order()` → `CANCELLED` + Fleetbase cancel |
 
 ## Metadata
 
@@ -80,3 +93,11 @@ stateDiagram-v2
 ## PlantUML
 
 See [plantuml/order_lifecycle.puml](./plantuml/order_lifecycle.puml)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

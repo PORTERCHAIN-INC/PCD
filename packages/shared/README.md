@@ -1,11 +1,34 @@
-# Shared packages (Python)
+# Shared Packages (path alias)
 
-Python shared code lives at:
 
-```
-shared/python/porterchain_shared/
-```
+**Type:** README
+**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
 
-TypeScript shared packages live under `packages/` (`ui`, `types`, `auth`, `events`, `queue`).
 
-A future consolidation may move Python shared code to `packages/shared/python/`.
+This directory is a documentation alias. Shared module documentation lives at:
+
+**[../../shared/README.md](../../shared/README.md)**
+
+---
+
+## Quick Reference
+
+| Layer | Canonical path |
+| ----- | -------------- |
+| Mobile TS packages | `shared/api`, `shared/mobile-ui`, `shared/mobile-security`, … |
+| Web TS packages | `packages/ui`, `packages/maps`, `packages/auth`, `packages/types`, … |
+| Python shared | `shared/python/porterchain_shared/` |
+| Env index | `shared/config/README.md` |
+| Tooling config | `packages/config/` (`@porterchain/config`) |
+
+A future consolidation may colocate Python shared code under `packages/shared/python/`; until then, use the paths above.
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [../../masterrule.md](../../masterrule.md) | Architecture SSOT |
+| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout |
+

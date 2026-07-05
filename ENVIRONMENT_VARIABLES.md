@@ -1,11 +1,12 @@
 # Porterchain — Environment Variables
 
-**Document version:** 1.1  
-**Date:** June 29, 2026
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 
 > **Templates:** Organized copy-paste files live in [`env/`](./env/README.md). Copy to local `.env` files and fill secrets there — never commit real values.
-
-> **Security:** Never commit real secrets. Rotate any credentials that were previously stored in `details.md`.
 
 ---
 
@@ -22,30 +23,41 @@
 
 ## Website
 
-**Files:** `website/env.example`, `website/.env.local`  
-**Active in code today:** 2 variables
+**Files:** `env/website.env.example` → `website/.env.local`  
+**Code:** `website/src/lib/env.ts`
 
-| Variable                          | Required | Description                                     | Example                   |
-| --------------------------------- | -------- | ----------------------------------------------- | ------------------------- |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Yes      | Browser-restricted Google Maps / Places API key | `AIza...`                 |
-| `NEXT_PUBLIC_SITE_URL`            | No       | Canonical URL for SEO / blog metadata           | `https://porterchain.com` |
+| Variable                               | Required | Description                                     |
+| -------------------------------------- | -------- | ----------------------------------------------- |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`      | Yes      | Browser-restricted Google Maps / Places API key |
+| `NEXT_PUBLIC_PORTERCHAIN_API_URL`      | Yes      | API base for booking (`http://localhost:8001`)  |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`    | Yes      | Clerk — retail booking auth                     |
+| `NEXT_PUBLIC_SITE_URL`                 | No       | Canonical URL for SEO / blog metadata           |
+| `NEXT_PUBLIC_CONTACT_EMAIL`            | No       | Public contact email (forms, footer)            |
+| `NEXT_PUBLIC_MERCHANT_PORTAL_URL`      | No       | Link to merchant portal                         |
+| `NEXT_PUBLIC_ADMIN_PORTAL_URL`         | No       | Link to admin portal                            |
+| `NEXT_PUBLIC_CUSTOMER_PORTAL_URL`      | No       | Link to customer portal                         |
+| `NEXT_PUBLIC_DRIVER_PORTAL_URL`        | No       | Link to driver portal                           |
+| `NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE` | No       | Zoho SalesIQ widget hash                        |
+| `NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED`     | No       | Enable chat widget                              |
+| `NEXT_PUBLIC_SOCIAL_*`                 | No       | Footer social link overrides                    |
+| `NEXT_PUBLIC_DRIVER_APP_IOS_URL`       | No       | App Store link on drive page                    |
+| `NEXT_PUBLIC_DRIVER_APP_ANDROID_URL`   | No       | Play Store link on drive page                   |
+| `NEXT_PUBLIC_ALLOW_STRIPE_MOCK`        | No       | Dev-only Stripe mock checkout                   |
 
-### Planned / documented (not wired in PCD website code)
+---
 
-| Variable                               | Required | Description                          |
-| -------------------------------------- | -------- | ------------------------------------ |
-| `NEXT_PUBLIC_PORTERCHAIN_API_URL`      | Yes      | Public API base for booking submit   |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`    | Yes      | Clerk — retail booking auth          |
-| `NEXT_PUBLIC_CONTACT_EMAIL`            | No       | Public contact email (forms, footer) |
-| `NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE` | No       | Zoho SalesIQ widget hash             |
-| `NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED`     | No       | Enable chat widget                   |
-| `NEXT_PUBLIC_SOCIAL_LINKEDIN`          | No       | Footer social override               |
-| `NEXT_PUBLIC_SOCIAL_INSTAGRAM`         | No       | Footer social override               |
-| `NEXT_PUBLIC_SOCIAL_FACEBOOK`          | No       | Footer social override               |
-| `NEXT_PUBLIC_SOCIAL_YOUTUBE`           | No       | Footer social override               |
-| `NEXT_PUBLIC_SOCIAL_WHATSAPP`          | No       | Footer social override               |
-| `NEXT_PUBLIC_DRIVER_APP_IOS_URL`       | No       | App Store link on drive page         |
-| `NEXT_PUBLIC_DRIVER_APP_ANDROID_URL`   | No       | Play Store link on drive page        |
+## Customer portal
+
+**Port:** 3004 (local) · **Production:** `customer.porterchain.com`
+
+| Variable                            | Required | Description                            |
+| ----------------------------------- | -------- | -------------------------------------- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes      | Clerk frontend key                     |
+| `CLERK_SECRET_KEY`                  | Yes      | Clerk server key (API routes only)     |
+| `NEXT_PUBLIC_PORTERCHAIN_API_URL`   | Yes      | API base URL (`http://localhost:8001`) |
+| `NEXT_PUBLIC_SITE_URL`              | No       | Portal base (`http://localhost:3004`) |
+
+Start: `pnpm dev:customer`
 
 ---
 
@@ -66,7 +78,7 @@
 
 ## Admin platform
 
-**Port:** 3002 (local) · **Production:** internal ops URL
+**Port:** 3002 (local) · **Production:** `admin.porterchain.com`
 
 | Variable                            | Required | Description                            |
 | ----------------------------------- | -------- | -------------------------------------- |
@@ -76,6 +88,29 @@
 | `NEXT_PUBLIC_SITE_URL`              | No       | Portal base (`http://localhost:3002`)  |
 
 Start: `pnpm dev:admin`
+
+---
+
+## Customer mobile app (Expo)
+
+**Files:** `apps/mobile-customer/.env.example` → `apps/mobile-customer/.env`
+
+| Variable                          | Required | Description                   |
+| --------------------------------- | -------- | ----------------------------- |
+| `EXPO_PUBLIC_API_URL`             | Yes      | API origin, no trailing slash |
+| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` | Optional | Maps SDK key                  |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes    | Clerk auth                    |
+| `EXPO_PUBLIC_APP_KIND`            | Yes      | `customer`                    |
+
+Start: `pnpm dev:mobile-customer`
+
+---
+
+## Worker
+
+**Files:** `env/worker.env.example` → `apps/worker/.env`
+
+Shares most API env vars (Redis, database, event bus). No HTTP port. Start: `pnpm dev:worker`
 
 ---
 
@@ -149,7 +184,7 @@ Start: `pnpm dev:admin`
 | `CLERK_ADMIN_SECRET_KEY` / `CLERK_ADMIN_JWKS_URL` / `CLERK_ADMIN_PUBLISHABLE_KEY`          | Prod     | Admin portal                                                   |
 | `CLERK_DRIVER_SECRET_KEY` / `CLERK_DRIVER_JWKS_URL` / `CLERK_DRIVER_PUBLISHABLE_KEY`       | Prod     | Driver portal + driver mobile                                  |
 
-Frontends use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` or `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` with the matching class publishable key — see [AUTHENTICATION.md](./AUTHENTICATION.md).
+Frontends use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` or `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` with the matching class publishable key — see [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
 
 ### Driver onboarding (API server)
 
@@ -219,6 +254,18 @@ Frontends use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` or `EXPO_PUBLIC_CLERK_PUBLISHA
 | `REDIS_PASSWORD`   | Optional | Password (`null` locally) |
 | `CACHE_DRIVER`     | Yes      | `redis`                   |
 | `QUEUE_CONNECTION` | Yes      | `redis`                   |
+
+---
+
+## PostgreSQL (Porterchain database)
+
+**Port:** 5432 (local) · **Used by:** `apps/api/`, `apps/worker/`
+
+| Variable       | Required | Description                                              |
+| -------------- | -------- | -------------------------------------------------------- |
+| `DATABASE_URL` | Yes      | `postgresql+psycopg://user:pass@localhost:5432/porterchain` |
+
+SQLite is **not supported**. Run `pnpm db:migrate` before starting the API.
 
 ---
 
@@ -396,7 +443,7 @@ Not currently configured in PCD repo.
 
 ---
 
-## Environment file template layout (target monorepo)
+## Environment file template layout
 
 ```
 /
@@ -404,14 +451,18 @@ Not currently configured in PCD repo.
 │   ├── README.md
 │   ├── website.env.example
 │   ├── api.env.example
-│   ├── fleetbase.env.example
+│   ├── worker.env.example
+│   ├── admin.env.example
 │   ├── merchant-portal.env.example
+│   ├── customer-portal.env.example
+│   ├── driver-portal.env.example
 │   ├── mobile-driver.env.example
+│   ├── fleetbase.env.example
 │   └── compose.env.example
-├── details.md                      # Index only — points to env/
-├── website/.env.local              # gitignored — your website secrets
+├── website/.env.local              # gitignored
 ├── apps/api/.env                   # gitignored
-└── .env                            # gitignored — Docker Compose secrets
+├── apps/worker/.env                # gitignored
+└── infrastructure/docker/.env      # gitignored — Docker Compose secrets
 ```
 
 ---
@@ -423,8 +474,15 @@ Not currently configured in PCD repo.
 - [ ] Server keys restricted by IP
 - [ ] `NEXT_PUBLIC_*` contains no secrets
 - [ ] Production uses secret manager (DO Secrets, Vault, or CI vars)
-- [ ] `details.md` removed and all contained secrets rotated
 
 ---
 
-_Source: `website/env.example`, `details.md` (sanitized), `CONNECTIONS.md`, codebase grep. Reconcile when monorepo is consolidated._
+_See [env/README.md](./env/README.md) and [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)._
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

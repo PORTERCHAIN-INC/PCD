@@ -1,8 +1,14 @@
 # Database Migration Plan
 
-**Date:** July 1, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Objective:** Porterchain on PostgreSQL only; Fleetbase remains MySQL  
 **Authority:** [masterrule.md](./masterrule.md) §9
+
+> **Architecture:** [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md) · **Alembic:** [ALEMBIC_VALIDATION.md](./ALEMBIC_VALIDATION.md) · **Archive:** [docs/archive/README.md#database](./docs/archive/README.md#database)
 
 ---
 
@@ -12,32 +18,31 @@
 Porterchain API / Worker  →  PostgreSQL 16 (postgresql+psycopg://)
 Fleetbase Core            →  MySQL 8       (unchanged)
 Redis                     →  Cache + queues (unchanged)
-Fleetbase Adapter         →  Syncs PG ↔ Fleetbase HTTP ↔ MySQL
+Fleetbase Adapter         →  HTTP sync (no direct MySQL from Porterchain API)
 ```
 
 ---
 
-## Phase A — Preparation (completed)
+## Phase A — Preparation ✅ complete
 
-- [x] Audit SQLite usage (`SQLITE_AUDIT.md`)
-- [x] Classify table ownership (`DATABASE_OWNERSHIP_MATRIX.md`)
-- [x] Fix PostgreSQL-incompatible SQL (`POSTGRESQL_COMPATIBILITY_REPORT.md`)
+- [x] Audit SQLite usage ([docs/archive/SQLITE_AUDIT.md](./docs/archive/SQLITE_AUDIT.md))
+- [x] Classify table ownership ([DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md))
+- [x] Fix PostgreSQL-incompatible SQL ([docs/archive/POSTGRESQL_COMPATIBILITY_REPORT.md](./docs/archive/POSTGRESQL_COMPATIBILITY_REPORT.md))
 - [x] Standardize `DATABASE_URL` to `postgresql+psycopg://`
 - [x] Remove SQLite from `db.py`, `config.py`
 - [x] Implement connection pool
 
 ---
 
-## Phase B — Schema migration (completed)
+## Phase B — Schema migration ✅ complete
 
-- [x] Validate Alembic on fresh PostgreSQL (`ALEMBIC_VALIDATION.md`)
-- [x] Confirm 11 revisions apply cleanly
-- [x] Test downgrade / upgrade cycle
-
-**Command:**
+- [x] Validate Alembic on fresh PostgreSQL ([ALEMBIC_VALIDATION.md](./ALEMBIC_VALIDATION.md))
+- [x] **13 revisions** apply cleanly (head `n2o3p4q5r6s7`)
+- [x] Performance/JSONB revision `m1n2o3p4q5r6` applied
+- [x] Retail idempotency index `n2o3p4q5r6s7` applied
 
 ```bash
-pnpm docker:up          # starts porterchain-postgres
+pnpm docker:up          # porterchain-postgres
 pnpm db:migrate         # alembic upgrade head
 ```
 
@@ -45,93 +50,94 @@ pnpm db:migrate         # alembic upgrade head
 
 ## Phase C — Data migration (optional — manual)
 
-**Only required if existing `porterchain.db` SQLite data must be preserved.**
+**Only if legacy `porterchain.db` SQLite data must be preserved.**
 
-| Step | Action                                 | Owner       | Risk                           |
-| ---- | -------------------------------------- | ----------- | ------------------------------ |
-| C1   | Export SQLite to SQL/CSV               | DBA         | Low                            |
-| C2   | Map types (JSON, timestamps)           | Engineering | Medium                         |
-| C3   | Import via `pgloader` or custom script | DBA         | **High** — validate row counts |
-| C4   | Reconcile sequences / UUIDs            | Engineering | Medium                         |
-| C5   | Run module validation (Phase 9)        | QA          | —                              |
+| Step | Action | Tool |
+| ---- | ------ | ---- |
+| C1 | Dry-run row counts | `apps/api/scripts/migrate_sqlite_to_postgres.py --dry-run` |
+| C2 | Execute import | Same script with `--execute` |
+| C3 | Validate | `python scripts/validate_postgres_modules.py` |
 
-**Stop rule:** If row count mismatch >0.1% or FK violations, **rollback** and do not cut over.
+**Dev recommendation:** Fresh PostgreSQL + seed scripts:
 
-**Dev recommendation:** Use fresh PostgreSQL + seed scripts (`seed_crm.py`, `seed_dev_portal_users.py`) instead of SQLite import.
+- `scripts/seed_crm.py`
+- `scripts/seed_dev_portal_users.py`
+- `scripts/seed_local_dev.py`
 
----
-
-## Phase D — Environment cutover
-
-| Environment | `DATABASE_URL`                                                            | Migration                          |
-| ----------- | ------------------------------------------------------------------------- | ---------------------------------- |
-| Local       | `postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain` | `pnpm db:migrate`                  |
-| CI          | PostgreSQL service container                                              | `alembic upgrade head` in pipeline |
-| Production  | Set in `docker-compose.prod.yml`                                          | Pre-deploy migration job           |
-
-**Files updated:**
-
-- `apps/api/.env` / `.env.example`
-- `env/api.env.example` (already PostgreSQL)
-- `shared/python/porterchain_shared/config/settings.py` (already PostgreSQL)
-- `infrastructure/deploy/docker-compose.prod.yml` (already PostgreSQL)
+**Stop rule:** Row count mismatch >0.1% or FK violations → rollback, do not cut over.
 
 ---
 
-## Phase E — Application validation (Phase 9)
+## Phase D — Environment cutover ✅ complete (local/dev)
 
-Run after cutover:
+| Environment | `DATABASE_URL` | Migration |
+| ----------- | -------------- | --------- |
+| Local | `postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain` | `pnpm db:migrate` |
+| CI | PostgreSQL service container | `alembic upgrade head` (recommended — not yet in all workflows) |
+| Production | `infrastructure/deploy/docker-compose.prod.yml` | Pre-deploy migration job |
+
+---
+
+## Phase E — Application validation ⚠️ partial
+
+Schema validation: ✅ ([docs/archive/DATABASE_VALIDATION_REPORT.md](./docs/archive/DATABASE_VALIDATION_REPORT.md))
+
+Runtime E2E (manual QA pending):
 
 1. Website quote → booking flow
 2. Merchant portal CRUD
 3. Admin modules (CRM, orders, finance, claims, support)
 4. Driver API reads/writes
-5. Fleetbase adapter sync (order create + status inbound)
+5. Fleetbase adapter sync
 6. Notification queue processing
 7. Stripe webhook idempotency
 
-Document results in `DATABASE_VALIDATION_REPORT.md`.
-
 ---
 
-## Phase F — Cleanup
+## Phase F — Cleanup ⚠️ partial
 
-| Item                                       | When                     |
-| ------------------------------------------ | ------------------------ |
-| Delete `apps/api/porterchain.db`           | After Phase E pass       |
-| Remove SQLite mentions from remaining docs | After Phase E pass       |
-| Add CI PostgreSQL job                      | Before production deploy |
+| Item | Status |
+| ---- | ------ |
+| Delete `apps/api/porterchain.db` if present | Manual — safe after PG validated |
+| Remove SQLite mentions from docs | Ongoing (Groups 20–21, final grep Group 43) |
+| CI PostgreSQL + pytest | Pending |
 
 ---
 
 ## Rollback plan
 
-| Scenario                | Action                                                                          |
-| ----------------------- | ------------------------------------------------------------------------------- |
-| Alembic migration fails | `alembic downgrade -1`; fix revision; retry                                     |
-| App fails on PostgreSQL | Revert code deploy; PostgreSQL data retained                                    |
-| Data migration corrupt  | Restore PostgreSQL from pre-migration snapshot; do not use SQLite in production |
+| Scenario | Action |
+| -------- | ------ |
+| Alembic migration fails | `alembic downgrade -1`; fix revision; retry |
+| App fails on PostgreSQL | Revert code deploy; PostgreSQL data retained |
+| Data migration corrupt | Restore PG snapshot; **do not** revert to SQLite production |
 
-**SQLite rollback is NOT supported** after this standardization — PostgreSQL is the only Porterchain store going forward.
-
----
-
-## Timeline estimate
-
-| Phase               | Duration               |
-| ------------------- | ---------------------- |
-| A–B (code + schema) | ✅ Complete            |
-| C (data migration)  | 1–3 days if needed     |
-| D (env cutover)     | 1 hour per environment |
-| E (validation)      | 1–2 days               |
-| F (cleanup)         | 2 hours                |
+**SQLite rollback is NOT supported** — PostgreSQL is the only Porterchain store.
 
 ---
 
 ## Fleetbase — no changes
 
-- MySQL container: `porterchain-fleetbase-mysql` / `porterchain-mysql`
-- Laravel migrations: unchanged
-- Adapter sync: unchanged
+- MySQL: core compose `:3306` or Fleetbase stack `:3307`
+- Laravel migrations: Fleetbase-owned
+- Do **not** consolidate Fleetbase MySQL into Porterchain PostgreSQL
 
-Do **not** attempt to consolidate Fleetbase MySQL into Porterchain PostgreSQL.
+---
+
+## Timeline
+
+| Phase | Status |
+| ----- | ------ |
+| A–B (code + schema) | ✅ Complete |
+| C (data migration) | Optional — 1–3 days if legacy SQLite exists |
+| D (local env) | ✅ Complete |
+| E (validation) | ⚠️ Schema done; E2E manual |
+| F (cleanup) | ⚠️ Partial |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

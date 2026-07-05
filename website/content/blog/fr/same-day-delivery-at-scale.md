@@ -7,6 +7,8 @@ author: "sarah-chen"
 tags: ["same-day", "dispatch", "sla"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Same-day delivery is easy to promise and hard to operationalize. The difference between marketing copy and customer trust is **what happens when the third exception hits before noon.**
 
 ## Same-day is a dispatch problem
@@ -28,4 +30,4 @@ Same-day at scale is not about more drivers. It is about **fewer avoidable failu
 
 ## Who benefits
 
-Retail replenishment, food distribution, industrial parts — any vertical where the afternoon delivery window is non-negotiable — gains from structured same-day operations backed by technology, not hope.
+Retail replenishment, food distribution, industrial parts — any vertical where the afternoon delivery window is non-negotiable — gains from structured same-day operations backed by professional dispatch, not hope.

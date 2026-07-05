@@ -1,7 +1,10 @@
 # System Architecture
 
-> **Source:** Reverse-engineered from `/Users/ravi/Documents/GitHub/PCD` on 2026-06-30.  
-> **Reference:** [masterrule.md](../../masterrule.md) v3.1
+
+**Type:** CANONICAL
+**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05  
+**Reference:** [masterrule.md](../../masterrule.md) §21
 
 ## Overview
 
@@ -11,12 +14,13 @@ Porterchain is a logistics orchestration platform. All commercial logic lives in
 
 | Layer             | Path                                    | Port | Role                                                   |
 | ----------------- | --------------------------------------- | ---- | ------------------------------------------------------ |
-| Website           | `website/`                              | 3000 | Marketing, booking, tracking, embedded customer portal |
+| Website           | `website/`                              | 3000 | Marketing, booking, quote; links to customer app `:3004` |
 | Merchant Portal   | `apps/merchant-portal/`                 | 3001 | B2B bookings, bulk, billing, API keys                  |
-| Admin Portal      | `apps/admin/`                           | 3002 | CRM, ops, finance, pricing, live map                   |
+| Admin Portal      | `apps/admin/`                           | 3002 | Ops control tower — dispatch, orders, finance (not CRM) |
 | Driver Portal     | `apps/driver-portal/`                   | 3003 | Driver web UI (proxied to `/driver-api/v1`)            |
 | Customer Portal   | `apps/customer/`                        | 3004 | Retail dashboard, support, rebook                      |
-| Mobile Driver     | `apps/mobile-driver/`                   | —    | Expo app → API                                         |
+| Mobile Driver     | `apps/mobile-driver/`                   | —    | Expo app → `/driver-api/v1/*`                          |
+| Mobile Customer   | `apps/mobile-customer/`                 | —    | Expo app → `/v1/*`                                     |
 | Porterchain API   | `apps/api/`                             | 8001 | FastAPI orchestrator, all `*_engine` services          |
 | Worker            | `apps/worker/`                          | —    | Redis event bus + queue consumer                       |
 | Fleetbase Adapter | `services/fleetbase-adapter/`           | —    | Sole Fleetbase HTTP boundary                           |
@@ -43,7 +47,8 @@ flowchart TB
     MERCH["Merchant Portal :3001"]
     ADMIN["Admin Portal :3002"]
     DRIVER["Driver Portal :3003"]
-    MOBILE["Mobile Driver (Expo)"]
+    MOBILE_D["Mobile Driver (Expo)"]
+    MOBILE_C["Mobile Customer (Expo)"]
   end
 
   subgraph API["Porterchain API (FastAPI :8001)"]
@@ -88,7 +93,7 @@ flowchart TB
     FIREBASE["Firebase (push)"]
   end
 
-  WEB & CUST & MERCH & ADMIN & DRIVER & MOBILE -->|"HTTPS /v1/*"| ROUTERS
+  WEB & CUST & MERCH & ADMIN & DRIVER & MOBILE_D & MOBILE_C -->|"HTTPS /v1/*"| ROUTERS
   ADMIN -->|"WS live-map/ws"| ROUTERS
   BE & ME & AE & FE & DE --> PG
   BE & ME & AE --> EB
@@ -118,3 +123,11 @@ flowchart TB
 ## PlantUML
 
 See [plantuml/system_architecture.puml](./plantuml/system_architecture.puml)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -7,6 +7,8 @@ author: "sarah-chen"
 tags: ["wholesale", "b2b", "gta"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Wholesale distribution in the GTA runs on rhythm: morning pulls, afternoon drops, tight cut-offs, and customers who measure you in **fill rate and punctuality** — not star ratings.
 
 ## Recurring route complexity
@@ -22,7 +24,7 @@ Generic courier tools treat each stop as isolated. Wholesale needs **route templ
 
 ## Visibility your customers expect
 
-B2B buyers increasingly expect consumer-grade tracking — branded portals, live ETA, delivery confirmation — without calling your dispatch desk.
+B2B buyers increasingly expect consumer-grade tracking — branded portals, live ETA, delivery confirmation, and public tracking links — without calling your dispatch desk.
 
 Porterchain's tracking and status updates give your customers the same operational clarity your team has internally.
 

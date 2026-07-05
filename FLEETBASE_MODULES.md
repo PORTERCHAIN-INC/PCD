@@ -1,7 +1,14 @@
 # Fleetbase Modules — Porterchain Integration Guide
 
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Fleetbase:** v0.7.40 | **Packages:** core-api 1.6.47, fleetops-api 0.6.48  
-For each module: purpose, Porterchain fit, and recommended action.
+
+For each module: purpose, Porterchain fit, and recommended action.  
+**Canonical integration:** [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)
 
 **Legend**
 
@@ -31,7 +38,7 @@ For each module: purpose, Porterchain fit, and recommended action.
 | Can Porterchain use it directly? | **Partially** — API keys for bridge; Sanctum for ops console login only                                 |
 | Remain unchanged?                | **Yes** — Fleetbase auth stays for console and Navigator                                                |
 | Extend?                          | **Yes** — `FLEETBASE_API_KEY` on Porterchain bridge; `PORTERCHAIN_DISPATCHER_API_KEY` for reverse calls |
-| Replace?                         | **Yes** — Clerk for website, merchant portal, admin portal; Porterchain JWT for driver app              |
+| Replace?                         | **Yes** — Clerk for all Porterchain portals; Porterchain JWT for driver app (`apps/mobile-driver/`) |
 
 ---
 
@@ -322,13 +329,13 @@ For each module: purpose, Porterchain fit, and recommended action.
 - Admin: `int/v1/webhook-endpoints`, logs at `webhook-request-logs`
 - Signed payloads with API secret
 
-See [FLEETBASE_WEBHOOKS.md](./FLEETBASE_WEBHOOKS.md).
+See [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md).
 
 | Question                         | Answer                                                            |
 | -------------------------------- | ----------------------------------------------------------------- |
 | Can Porterchain use it directly? | **Yes** — subscribe Porterchain API to Fleetbase events           |
 | Remain unchanged?                | **Yes**                                                           |
-| Extend?                          | **Yes** — Porterchain `/v1/webhooks/fleetbase` handler (to build) |
+| Extend?                          | **Yes** — `POST /webhooks/fleetbase` handler implemented |
 | Replace?                         | **No**                                                            |
 
 ---
@@ -342,7 +349,7 @@ See [FLEETBASE_WEBHOOKS.md](./FLEETBASE_WEBHOOKS.md).
 - API credentials, request logs, sandbox DB (`fleetbase_sandbox`)
 - Throttling, response caching (configurable)
 
-See [FLEETBASE_APIS.md](./FLEETBASE_APIS.md).
+See [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md).
 
 | Question                         | Answer                                            |
 | -------------------------------- | ------------------------------------------------- |
@@ -382,7 +389,7 @@ Bundled extensions: FleetOps, Storefront, Ledger, Valhalla, VROOM, Registry Brid
 - Activity log (Spatie) → `fleetbase_activity`
 - API event audit → `fleetbase_api_events`
 
-See [FLEETBASE_EVENTS.md](./FLEETBASE_EVENTS.md).
+See [EVENT_CATALOG.md](./EVENT_CATALOG.md).
 
 | Question                         | Answer                                                    |
 | -------------------------------- | --------------------------------------------------------- |
@@ -444,7 +451,7 @@ See [FLEETBASE_EVENTS.md](./FLEETBASE_EVENTS.md).
 | Can Porterchain use it directly? | **Console only**                                                                       |
 | Remain unchanged?                | **Yes**                                                                                |
 | Extend?                          | —                                                                                      |
-| Replace?                         | **Yes** — Porterchain RBAC (`ROLE_PERMISSIONS.md`, `admin_engine/rbac.py`) for portals |
+| Replace?                         | **Yes** — Porterchain RBAC ([RBAC_MATRIX.md](./RBAC_MATRIX.md)) for portals |
 
 ---
 
@@ -476,3 +483,11 @@ See [FLEETBASE_EVENTS.md](./FLEETBASE_EVENTS.md).
 | `@fleetbase/vroom-engine`      | 0.0.4   | Optimization UI                              |
 
 **Porterchain rule:** Merchants and retail customers **never** access `:4200`. Ops and dispatch staff only.
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

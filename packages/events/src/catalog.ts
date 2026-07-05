@@ -49,6 +49,10 @@ export const DomainEvents = {
   ORDER_LOCATION_UPDATED: "order.tracking_updated",
   ROUTE_OPTIMIZED: "route.optimized",
 
+  // Phase 2 stubs (ADR-010 — no consumers yet)
+  DISPATCH_RECOMMENDATION: "dispatch.recommendation",
+  ETA_PREDICTED: "eta.predicted",
+
   // Financial
   REFUND_REQUESTED: "refund.requested",
   REFUND_ISSUED: "refund.issued",

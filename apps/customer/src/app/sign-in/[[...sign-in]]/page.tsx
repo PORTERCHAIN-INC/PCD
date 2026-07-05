@@ -84,7 +84,7 @@ function SignInContent() {
       <p className="mt-8 max-w-sm text-center text-xs text-muted">
         Need to track one shipment without signing in?{" "}
         <a
-          href={`${publicEnv.websiteUrl}/en/portal/customer/sign-in`}
+          href={`${publicEnv.websiteUrl}/login`}
           className="font-semibold text-secondary hover:underline"
         >
           Use guest tracking on the website

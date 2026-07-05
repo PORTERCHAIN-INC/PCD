@@ -1,8 +1,14 @@
 # Database Ownership Matrix
 
-**Date:** July 1, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Authority:** [masterrule.md](./masterrule.md) §9  
-**Architecture:** Porterchain → PostgreSQL | Fleetbase → MySQL | Redis → Cache / Queue
+**Architecture:** [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md)
+
+Porterchain → **PostgreSQL 16** | Fleetbase → **MySQL 8** | Redis → cache / queue (not SoT)
 
 ---
 
@@ -14,7 +20,7 @@
 | Fleetbase execution | Fleetbase Core (Laravel) | **MySQL 8**       | Dispatch, GPS, routes, POD      |
 | Async jobs / cache  | Porterchain worker + API | **Redis 7**       | Ephemeral — not source of truth |
 
-**Synchronization:** Fleetbase Adapter writes/reads Fleetbase MySQL via HTTP; sync state persisted in Porterchain PostgreSQL (`fleetbase_sync_*`).
+**Synchronization:** Fleetbase Adapter via HTTP; sync state in PostgreSQL (`fleetbase_sync_*`). **No direct MySQL connection** from Porterchain API.
 
 ---
 
@@ -109,7 +115,7 @@ Fleetbase owns ~90 `fleetbase_*` tables. Porterchain **never** connects to this 
 | Tracking       | GPS traces, POD records                                                             | Fleetbase | **Yes** — inbound webhooks |
 | Developer API  | `fleetbase_api_credentials`, `fleetbase_webhooks`                                   | Fleetbase | No (Fleetbase-internal)    |
 
-See [FLEETBASE_DATABASE.md](./FLEETBASE_DATABASE.md) for full schema reference.
+See [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) for the Fleetbase boundary and [docs/archive/FLEETBASE_DATABASE.md](./docs/archive/FLEETBASE_DATABASE.md) for the historical schema reference.
 
 ---
 
@@ -136,3 +142,11 @@ See [FLEETBASE_DATABASE.md](./FLEETBASE_DATABASE.md) for full schema reference.
 | **Business critical** | Loss or corruption affects revenue, compliance, or customer-facing truth   |
 | **Operational**       | Real-time ops, dispatch, telemetry, or retry queues                        |
 | **Sync required**     | Must stay consistent with Fleetbase MySQL via adapter (not direct DB link) |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

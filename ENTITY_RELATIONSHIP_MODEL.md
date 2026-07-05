@@ -1,8 +1,11 @@
 # Porterchain — Entity Relationship Model
 
-**Document version:** 2.0  
-**Date:** June 29, 2026  
-**Status:** Canonical — aligned with [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Status:** Canonical — aligned with [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) and PostgreSQL schema (Alembic)
 
 ---
 
@@ -762,8 +765,16 @@ visitor_sessions.id (cookie)
 - [BUSINESS_GLOSSARY.md](./BUSINESS_GLOSSARY.md) — Term definitions
 - [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)
 - [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md)
-- [EVENT_FLOW.md](./EVENT_FLOW.md)
+- [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md)
 
 ---
 
 _Logical ER model for Porterchain-owned data. Fleetbase schema governed by upstream._
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

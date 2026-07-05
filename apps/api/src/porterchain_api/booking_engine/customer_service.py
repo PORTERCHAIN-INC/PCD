@@ -200,7 +200,7 @@ class CustomerService:
         db.add(ticket)
         db.flush()
         customer = db.query(Customer).filter(Customer.id == customer_id).first()
-        from porterchain_api.admin_engine.support_service import ticket_number
+        from porterchain_api.domain.support import ticket_number
 
         emit_event(
             db,

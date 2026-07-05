@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Check, Circle, Plus } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
-import { crm, type Task } from "@/lib/crm";
+import { collaboration } from "@/lib/collaboration";
+import { type Task } from "@/lib/crm";
 import { drivers } from "@/lib/drivers";
 import { Badge, Button, Input, Select } from "@/components/crm/primitives";
 import { STATUS_TONE, dateTime, titleCase } from "@/lib/crmFormat";
@@ -38,7 +39,7 @@ export function EntityTasks({
   const [version, setVersion] = useState(0);
   const { data } = useApiData(
     (t) =>
-      entityType === "driver" ? drivers.tasks(t, entityId) : crm.tasks(t, { entity_id: entityId }),
+      entityType === "driver" ? drivers.tasks(t, entityId) : collaboration.tasks(t, { entity_id: entityId }),
     [entityType, entityId, version],
     { key: `${entityType}-${entityId}-tasks` }
   );
@@ -60,7 +61,7 @@ export function EntityTasks({
     setBusy(true);
     try {
       const token = await getApiToken();
-      await crm.createTask(token, {
+      await collaboration.createTask(token, {
         title,
         task_type: type,
         entity_type: entityType,
@@ -79,7 +80,7 @@ export function EntityTasks({
 
   async function toggle(task: Task) {
     const token = await getApiToken();
-    await crm.updateTask(token, task.id, { status: task.status === "done" ? "open" : "done" });
+    await collaboration.updateTask(token, task.id, { status: task.status === "done" ? "open" : "done" });
     refresh();
   }
 

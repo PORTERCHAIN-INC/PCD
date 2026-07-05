@@ -1,5 +1,10 @@
 # Porterchain Driver App — Connections & Integrations
 
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 Single reference for how the **mobile-driver** app connects to backends, stores, maps, and Apple distribution.  
 App path: `apps/mobile-driver` · Stack: **Expo SDK 52** · **React Native 0.76**
 
@@ -11,8 +16,8 @@ App path: `apps/mobile-driver` · Stack: **Expo SDK 52** · **React Native 0.76*
 | ------------------------------------------------------- | ------ | --------------------------------------------------------------------- |
 | **Porterchain API** (`EXPO_PUBLIC_API_URL`)             | Yes    | Auth, routes, stops, POD uploads, location                            |
 | **Google Maps SDK** (`EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`) | Yes    | Route map tiles via `react-native-maps`                               |
-| **Firebase**                                            | **No** | Not in dependencies, config, or native projects                       |
-| **Push notifications (FCM / APNs)**                     | **No** | Not implemented                                                       |
+| **Firebase / FCM**                                      | Yes    | `@react-native-firebase/messaging` — registers token via `/push/register` |
+| **Push notifications**                                  | Partial | Implemented in app; production delivery requires Firebase credentials on API |
 | **Expo / EAS**                                          | Yes    | Cloud builds, project linking, optional OTA config (updates disabled) |
 | **App Store Connect**                                   | Yes    | iOS distribution via EAS Submit                                       |
 | **Apple Developer Program**                             | Yes    | Signing, bundle ID, TestFlight / App Store                            |
@@ -63,7 +68,7 @@ These are **not** read by the mobile app; they configure invite emails and the p
 | `AUTH_DRIVER_INVITE_VALIDATE_MAX_ATTEMPTS_PER_MINUTE` | `30`                    | Rate limit                                                                         |
 | `AUTH_DRIVER_INVITE_ACCEPT_MAX_ATTEMPTS_PER_MINUTE`   | `15`                    | Rate limit                                                                         |
 
-**Public website** (optional): `NEXT_PUBLIC_DRIVER_APP_IOS_URL`, `NEXT_PUBLIC_DRIVER_APP_ANDROID_URL` on `apps/web` for the drive page.
+**Public website** (optional): `NEXT_PUBLIC_DRIVER_APP_IOS_URL`, `NEXT_PUBLIC_DRIVER_APP_ANDROID_URL` on `website/` for the drive page.
 
 **Google Maps (root):** `GOOGLE_MAPS_BROWSER_API_KEY` / `GOOGLE_MAPS_SERVER_API_KEY` are for web/API — **not** the driver app. Driver uses its own `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`.
 
@@ -107,7 +112,8 @@ Login body: `{ email, password }`. Response must include `access_token` and `dri
 | `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/exception`     | Report exception                   |
 | `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/pod-photo`     | POD photo upload                   |
 | `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/pod-signature` | POD signature upload               |
-| `POST` | `/driver-api/v1/routes/{id}/stops/{stopId}/pop-photo`     | Proof-of-pickup photo              |
+
+> **Note:** Proof-of-pickup (`pop-photo`) is not implemented in `routers/driver.py` as of 2026-07-05. Use POD endpoints after pickup completion.
 
 ### Legacy / companion driver routes (`/driver`)
 
@@ -169,15 +175,15 @@ Maps require a **development build** or production build — Expo Go may not app
 
 ---
 
-## Firebase
+## Firebase & push notifications
 
-**The driver app does not use Firebase.**
+The driver app uses **Firebase Cloud Messaging** for push:
 
-- No `@react-native-firebase/*`, `firebase` SDK, `google-services.json`, or `GoogleService-Info.plist`
-- No FCM/APNs push token registration
-- Auth is Porterchain JWT via `/auth/login`, not Firebase Auth
+- Packages: `@react-native-firebase/app`, `@react-native-firebase/messaging`, `expo-notifications`
+- Token registration: `src/services/push.ts` → `POST /push/register` on Porterchain API
+- Auth remains Porterchain JWT — **not** Firebase Auth
 
-If push notifications are added later, that would be a new integration (likely `expo-notifications` + APNs/FCM).
+Production push delivery requires `FIREBASE_CREDENTIALS_PATH` and related vars on the API/worker. Local dev works without push if credentials are unset.
 
 ---
 
@@ -195,7 +201,7 @@ If push notifications are added later, that would be a new integration (likely `
 
 | Profile       | Distribution | API URL                       | Notes                                   |
 | ------------- | ------------ | ----------------------------- | --------------------------------------- |
-| `development` | internal     | `http://127.0.0.1:8000`       | Dev client, iOS simulator               |
+| `development` | internal     | `http://127.0.0.1:8001`       | Dev client, iOS simulator               |
 | `preview`     | internal     | `https://api.porterchain.com` | Device testing                          |
 | `production`  | store        | `https://api.porterchain.com` | App Store; Node 22.14, Xcode 26.2 image |
 
@@ -292,7 +298,7 @@ Location tracking does **not** work in Expo Go; use `npx expo run:ios` or an EAS
 
 ## Local development checklist
 
-1. Start API: `pnpm dev:api` (port **8000**)
+1. Start API: `pnpm dev:api` (port **8001**)
 2. `cd apps/mobile-driver && cp .env.example .env`
 3. Set `EXPO_PUBLIC_API_URL` (LAN IP for physical device)
 4. Set `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` for map screen
@@ -320,10 +326,19 @@ Location tracking does **not** work in Expo Go; use `npx expo run:ios` or an EAS
 | Expo config           | `app.config.ts`                                                                   |
 | EAS config            | `eas.json`                                                                        |
 | Deploy script         | `scripts/deploy-driver-appstore.sh`                                               |
-| API driver routers    | `apps/api/src/domains/drivers/route_execution_router.py`, `today_route_router.py` |
-| API auth / invites    | `apps/api/src/domains/auth/router.py`, `driver_invite_service.py`                 |
+| API driver router    | `apps/api/src/porterchain_api/routers/driver.py` |
+| API auth / invites   | `apps/api/src/porterchain_api/` auth modules     |
 | Driver onboarding ops | `DRIVER-ONBOARDING-ARCHITECTURE.md`, `DRIVER-ONBOARDING-OPERATIONS.md`            |
 
 ---
 
-_Last updated from repo scan. Firebase is not part of this app; all live data flows through the Porterchain API and Google Maps SDK only._
+_Last verified: 2026-07-04. Firebase FCM is integrated for push; auth and execution data flow through Porterchain API on port 8001._
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |
+| [OpenAPI](http://localhost:8001/docs) | OpenAPI (local) |

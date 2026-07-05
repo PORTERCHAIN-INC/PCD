@@ -7,6 +7,8 @@ author: "marcus-okonkwo"
 tags: ["compliance", "pod", "operations"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Proof of delivery is where logistics meets finance, compliance, and customer trust. A blurry photo and a checkbox are not enough when disputes, audits, or regulated shipments are involved.
 
 ## The proof chain
@@ -15,6 +17,7 @@ Porterchain links every delivery confirmation to a **structured proof chain**:
 
 - **Photo capture** with timestamp and geolocation
 - **Signature** where required by customer or regulation
+- **OTP verification** for controlled handoff flows
 - **GPS coordinates** at completion event
 - **Shipment references** tying proof to order and billing records
 - **Status history** — immutable event log from ingest to complete
@@ -29,6 +32,6 @@ Audit-ready proof is not overhead — it is **revenue protection.**
 
 ## Built into every shipment
 
-Proof events are captured as part of Porterchain's delivery workflow and can be shared with your billing and operations teams — so ERP systems can reconcile deliveries without manual data entry.
+Proof events are captured as part of Porterchain's delivery workflow and can be surfaced to billing and operations teams — so ERP systems can reconcile deliveries without manual data entry.
 
 When compliance is built into how every shipment runs — not bolted on after the fact — operations scale without scaling disputes.

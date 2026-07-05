@@ -1,256 +1,144 @@
 # Porterchain — Database Architecture
 
-**Document version:** 1.0  
-**Date:** June 29, 2026  
-**Status:** Documented platform design — no migrations in PCD repo
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Status:** Implemented — PostgreSQL 16 + Alembic in `apps/api/`
+
+> **Ownership:** [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md) · **Migrations:** [ALEMBIC_VALIDATION.md](./ALEMBIC_VALIDATION.md) · **Domain:** [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
 
 ---
 
 ## Data store summary
 
-| Store                      | Engine                        | Purpose                                       | Owner                            |
-| -------------------------- | ----------------------------- | --------------------------------------------- | -------------------------------- |
-| **Fleetbase DB**           | MySQL 8                       | Dispatch, orders, drivers, Fleetbase entities | Fleetbase (Laravel)              |
-| **Porterchain extensions** | MySQL (same instance)         | Billing, merchant onboarding, contracts       | Porterchain (Laravel extensions) |
-| **Porterchain API DB**     | PostgreSQL 16 _(recommended)_ | FastAPI-owned domain data                     | Porterchain API                  |
-| **Redis**                  | Redis 7                       | Cache, queues, rate limits, sessions          | Shared infrastructure            |
+| Store | Engine | Purpose | Owner | Access from Porterchain |
+| ----- | ------ | ------- | ----- | ----------------------- |
+| **Porterchain API DB** | PostgreSQL 16 | Commercial domain, CRM, billing, admin | Porterchain API | SQLAlchemy + Alembic |
+| **Fleetbase DB** | MySQL 8 | Dispatch, GPS, routes, POD | Fleetbase (Laravel) | **HTTP adapter only** — never direct SQL |
+| **Redis** | Redis 7 | Queues, cache, event streams | Shared infra | `redis` client / worker |
 
-> **Current state:** Platform docs specify MySQL only (`DB_DATABASE=fleetbase`). PostgreSQL is recommended for Porterchain FastAPI-native tables when the API repo is consolidated.
+Auth identity: **Clerk** (external). User mirrors live in PostgreSQL (`porterchain_users`, portal-specific link tables).
 
 ---
 
-## MySQL — Fleetbase primary database
+## Porterchain PostgreSQL (canonical)
 
 ### Connection
 
-| Setting       | Value                      |
-| ------------- | -------------------------- |
-| Host (Docker) | `database`                 |
-| Port          | `3306`                     |
-| Database      | `fleetbase`                |
-| User          | `fleetbase`                |
-| Driver        | `mysql` (Laravel Eloquent) |
+| Setting | Local dev |
+| ------- | --------- |
+| URL | `postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain` |
+| Env var | `DATABASE_URL` |
+| Container | `porterchain-postgres` (`postgres:16-alpine`) |
+| Driver | `psycopg` ≥3.2 (`postgresql+psycopg://`) |
 
-### Schema ownership
+### ORM layout
 
-```
-fleetbase (MySQL database)
-├── Fleetbase core tables          # Owned by Fleetbase — DO NOT modify directly
-│   ├── companies
-│   ├── users (Fleetbase users)
-│   ├── drivers
-│   ├── vehicles
-│   ├── orders
-│   ├── payloads
-│   ├── places
-│   ├── routes
-│   └── ... (Fleetbase schema)
-│
-└── Porterchain extension tables   # Owned by Porterchain Laravel layer
-    ├── porterchain_billing_records
-    ├── porterchain_merchant_profiles
-    ├── porterchain_contracts
-    └── ... (inferred from api/app/Models/Porterchain/*)
-```
+| Module | Tables (examples) |
+| ------ | ----------------- |
+| `models.py` | `customers`, `quotes`, `bookings`, `orders`, `domain_events` |
+| `merchant_models.py` | `merchants`, `merchant_api_keys`, `merchant_webhooks` |
+| `crm_models.py` | `crm_leads`, `crm_companies`, `crm_deals` |
+| `admin_models.py` | `drivers`, `pricing_tariffs`, `route_center_plans` |
+| `driver_models.py` | `driver_shifts`, `driver_location_pings` |
+| `booking_draft_models.py` | `booking_drafts`, `booking_draft_audits` |
+| `notification_engine/models.py` | `notification_records`, `notification_devices` |
+| `billing_engine/models.py` | `billing_ledger_entries` |
+| `fleetbase_models.py` | `fleetbase_sync_jobs`, `fleetbase_sync_audit` |
+| `user_models.py` / `invitation_models.py` | `porterchain_users`, `user_invitations` |
 
-**Rule:** Porterchain business logic accesses Fleetbase data through **API bridges**, not direct cross-schema writes from the website.
+**~68 application tables** + `alembic_version`. Full list: [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md).
 
----
+### Schema rules
 
-## Porterchain Laravel models (documented)
+- **Alembic-only DDL** — `init_db()` runs `SELECT 1` only; no runtime `create_all`
+- **SQLite blocked** — `config.py` validator + `db.py` guard reject `sqlite://`
+- **Fleetbase mirror** — `orders`, `drivers`, `vehicles` in PostgreSQL; execution state synced via adapter
+- **Commercial authority** — pricing, invoices, contracts, CRM stay in PostgreSQL
 
-Source references in `PORTERCHAIN-LEGAL-AND-IMPORTANT-INFO.md`:
+### Migrations
 
-| Model path                                                   | Domain                                  |
-| ------------------------------------------------------------ | --------------------------------------- |
-| `api/app/Models/Porterchain/BillingRecord.php`               | Payment terms, invoice metadata         |
-| `api/app/Services/Porterchain/MerchantOnboardingService.php` | Contract acceptance, merchant lifecycle |
-
-### Merchant onboarding fields (documented)
-
-| Field                 | Type      | Purpose                     |
-| --------------------- | --------- | --------------------------- |
-| `contract_status`     | enum      | `signed`, pending, etc.     |
-| `contract_signed_at`  | timestamp | Legal acceptance            |
-| `contract_expires_at` | timestamp | Annual renewal              |
-| Merchant status       | enum      | `ACTIVE` after admin review |
-
-### Billing payment terms
-
-| Term ID                                  | Label            |
-| ---------------------------------------- | ---------------- |
-| `stripe`                                 | Stripe checkout  |
-| `credit_card`                            | Credit card      |
-| `net_30`                                 | Net 30 (default) |
-| `net_45`                                 | Net 45           |
-| `immediate`, `net_7`, `net_14`, `custom` | API constants    |
+| Item | Path |
+| ---- | ---- |
+| Alembic config | `apps/api/alembic.ini` |
+| Revisions | `apps/api/alembic/versions/` (13 revisions) |
+| Head (July 2026) | `n2o3p4q5r6s7` — partial unique index on `orders.quote_id` |
+| Apply | `pnpm db:migrate` |
 
 ---
 
-## PostgreSQL — recommended Porterchain API store
+## Fleetbase MySQL (execution — do not modify from Porterchain)
 
-When `apps/api` is consolidated, use a **separate PostgreSQL database** for FastAPI-owned data:
+| Context | Host port | Container |
+| ------- | --------- | --------- |
+| Core compose profile | `127.0.0.1:3306` | `porterchain-mysql` |
+| Fleetbase stack (`pnpm docker:fleetbase:up`) | `127.0.0.1:3307` | `porterchain-fleetbase-mysql` |
 
-```
-porterchain_api (PostgreSQL database)
-├── users_mirror          # Clerk user ID mapping (optional)
-├── booking_sessions      # Retail booking state
-├── otp_verifications     # Website OTP audit log
-├── driver_invite_tokens  # Invite token hashes
-├── api_keys              # Merchant integration keys
-├── webhook_deliveries    # Outbound webhook log
-└── audit_events          # Compliance audit trail
-```
+Schema owned by Fleetbase Laravel migrations. Porterchain reads/writes via `services/fleetbase-adapter/` only.
 
-### Why separate from Fleetbase MySQL
-
-| Reason             | Detail                                               |
-| ------------------ | ---------------------------------------------------- |
-| Schema ownership   | Fleetbase upgrades must not break Porterchain tables |
-| ORM fit            | SQLAlchemy + Alembic for FastAPI                     |
-| Migration velocity | Independent release cycles                           |
-| Compliance         | Audit tables with strict retention policies          |
-
----
-
-## Fleetbase tables (reference)
-
-Fleetbase manages its own migrations via Laravel. Key entity groups:
-
-| Entity group  | Purpose                                                                |
-| ------------- | ---------------------------------------------------------------------- |
-| **Companies** | Fleetbase organizations (`PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID`) |
-| **Orders**    | Shipment orders created via console or API                             |
-| **Drivers**   | Fleetbase driver records (bridged to Porterchain driver IDs)           |
-| **Vehicles**  | Fleet vehicle registry                                                 |
-| **Routes**    | Optimized routes with stops                                            |
-| **Places**    | Geocoded locations                                                     |
-
-Porterchain bridge flags control sync:
-
-- `PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE`
-- `PORTERCHAIN_FLEETBASE_DRIVER_JOB_BRIDGE`
+See [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) and [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md).
 
 ---
 
 ## Redis usage
 
-| Use case               | Key pattern            | TTL               |
-| ---------------------- | ---------------------- | ----------------- |
-| Laravel cache          | `fleetbase_cache:*`    | Configurable      |
-| Queue jobs             | `queues:*`             | Job-dependent     |
-| Session (if migrated)  | `session:*`            | 120 min           |
-| Rate limiting          | `rate_limit:auth:*`    | 60s windows       |
-| OTP codes              | `otp:{phone\|email}`   | 5–10 min          |
-| Driver location buffer | `driver:location:{id}` | Short (real-time) |
+| Use case | Pattern |
+| -------- | ------- |
+| Worker task queues | `porterchain:queue:*` (email, sms, push, dispatch, billing, webhooks) |
+| Event bus | Streams + DLQ (`porterchain:events`, `porterchain:events:dlq`) |
+| Idempotency | Short-TTL keys in API handlers |
+| Cache | Application-specific TTL keys |
 
-### Configuration
+Fleetbase uses its own Redis instance inside the Fleetbase Docker stack.
+
+---
+
+## Data flow
 
 ```
-CACHE_DRIVER=redis
-QUEUE_CONNECTION=redis
-REDIS_HOST=cache
-REDIS_PORT=6379
+Website / portals / mobile
+        │
+        ▼
+Porterchain API (:8001)
+        │
+        ├── PostgreSQL — quotes, bookings, orders, merchants, CRM, billing
+        ├── Redis — queues, events, cache
+        └── Fleetbase adapter (HTTP)
+                    │
+                    ▼
+            Fleetbase MySQL — dispatch execution, GPS, POD
 ```
 
----
-
-## Caching strategy
-
-| Layer           | What                                 | Invalidation               |
-| --------------- | ------------------------------------ | -------------------------- |
-| **CDN**         | Static assets, blog pages            | Build-time                 |
-| **Next.js**     | ISR for blog, static pages           | On-demand revalidation     |
-| **Redis**       | API response cache (quotes, geocode) | TTL + event invalidation   |
-| **Application** | Fleetbase order lookups              | On dispatch update webhook |
+Merchant onboarding, contracts, and billing terms are **PostgreSQL + Clerk** — not a separate Laravel DB in this monorepo.
 
 ---
 
-## Indexes (recommended)
+## Backup (production target)
 
-### Porterchain API (PostgreSQL)
-
-```sql
--- Booking sessions
-CREATE INDEX idx_booking_sessions_created_at ON booking_sessions(created_at);
-CREATE INDEX idx_booking_sessions_status ON booking_sessions(status);
-
--- Driver invites
-CREATE UNIQUE INDEX idx_driver_invite_token_hash ON driver_invite_tokens(token_hash);
-CREATE INDEX idx_driver_invite_expires ON driver_invite_tokens(expires_at);
-
--- Webhook deliveries
-CREATE INDEX idx_webhook_deliveries_merchant_id ON webhook_deliveries(merchant_id);
-CREATE INDEX idx_webhook_deliveries_status ON webhook_deliveries(status);
-```
-
-### Fleetbase (via Laravel migrations — do not hand-edit)
-
-Indexes are managed by Fleetbase upstream. Porterchain extensions should add indexes on:
-
-- `merchant_id` foreign keys
-- `contract_status`
-- `billing_due_date`
+| Database | Method | Retention |
+| -------- | ------ | --------- |
+| PostgreSQL | `pg_dump` + WAL / managed RDS | 30 days |
+| Fleetbase MySQL | `mysqldump` / managed | 30 days |
+| Redis | AOF + snapshot | 7 days |
 
 ---
 
-## Data flow between stores
+## Related documents
 
-```
-Website booking
-  → Porterchain API (PostgreSQL: booking_sessions)
-  → Fleetbase bridge (MySQL: orders)
-  → Redis (queue: dispatch job)
-
-Merchant onboarding
-  → Clerk (identity)
-  → Porterchain Laravel (MySQL: porterchain_merchant_*)
-  → Admin review → ACTIVE
-
-Driver execution
-  → Porterchain API (PostgreSQL: execution audit)
-  → Fleetbase (MySQL: routes, stops, POD metadata)
-  → Object storage (POD images)
-```
-
+| Document | Purpose |
+| -------- | ------- |
+| [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md) | Table ownership |
+| [ALEMBIC_VALIDATION.md](./ALEMBIC_VALIDATION.md) | Migration validation |
+| [ENTITY_RELATIONSHIP_MODEL.md](./ENTITY_RELATIONSHIP_MODEL.md) | ERM |
+| [docs/architecture/DATABASE_RELATIONSHIP.md](./docs/architecture/DATABASE_RELATIONSHIP.md) | Flow diagram (Group 28) |
+| [docs/archive/README.md](./docs/archive/README.md#database) | Historical database audits |
 ---
 
-## Backup architecture
+## Governance
 
-| Database          | Frequency                  | Retention | Method                       |
-| ----------------- | -------------------------- | --------- | ---------------------------- |
-| MySQL (Fleetbase) | Daily full + hourly binlog | 30 days   | `mysqldump` / managed backup |
-| PostgreSQL (API)  | Daily full + WAL           | 30 days   | `pg_dump` / managed backup   |
-| Redis             | AOF persistence            | 7 days    | Volume snapshot              |
-
-Store backups in separate region (DO Spaces / S3) with encryption at rest.
-
----
-
-## Migration tooling (target)
-
-| Project             | Tool               | Path                         |
-| ------------------- | ------------------ | ---------------------------- |
-| Fleetbase           | Laravel migrations | Fleetbase upstream           |
-| Porterchain Laravel | Laravel migrations | `api/database/migrations/`   |
-| Porterchain API     | Alembic            | `apps/api/alembic/versions/` |
-
-**Rule:** Never run Fleetbase migrations from Porterchain CI without reviewing upstream changelog.
-
----
-
-## Current gap in PCD repo
-
-| Item             | Status          |
-| ---------------- | --------------- |
-| Migration files  | **None**        |
-| ORM models       | **None**        |
-| Prisma / Drizzle | **Not used**    |
-| SQLAlchemy       | **Not in repo** |
-| Seed data        | **None**        |
-
-All database architecture above is derived from `details.md`, `PORTERCHAIN-LEGAL-AND-IMPORTANT-INFO.md`, and `CONNECTIONS.md`.
-
----
-
-_Reconcile with actual schemas when `apps/api` and Fleetbase stack are added to the monorepo._
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,5 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { customerPortalDashboardUrl } from "@/data/portal-links";
 import {
   footerNavigation,
   footerSectionOrder,
@@ -32,7 +33,7 @@ export function OrganizedFooterLinks({
           key={section}
           title={getSectionTitle(section)}
           links={footerNavigation[section].map((link) => ({
-            href: link.href,
+            href: link.href === "__CUSTOMER_PORTAL__" ? customerPortalDashboardUrl : link.href,
             label: getLinkLabel(section, link.id),
           }))}
           columnClassName={columnClassName}
@@ -63,9 +64,15 @@ function FooterColumn({
       <ul className="mt-3 space-y-2.5">
         {links.map((link) => (
           <li key={`${link.href}-${link.label}`}>
-            <Link href={link.href} className={linkClassName}>
-              {link.label}
-            </Link>
+            {link.href.startsWith("http") ? (
+              <a href={link.href} className={linkClassName}>
+                {link.label}
+              </a>
+            ) : (
+              <Link href={link.href} className={linkClassName}>
+                {link.label}
+              </Link>
+            )}
           </li>
         ))}
       </ul>

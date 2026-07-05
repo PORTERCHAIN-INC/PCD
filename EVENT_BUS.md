@@ -1,7 +1,10 @@
 # Porterchain Event Bus
 
-**Document version:** 2.0  
-**Date:** June 29, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Package:** `services/event-bus` (`porterchain-event-bus`)
 
 ---
@@ -150,13 +153,15 @@ pnpm dev:worker
 
 ## Retry
 
-`RetryPolicy` (default: 3 attempts, exponential backoff):
+`RetryPolicy` (default: **5 attempts**, exponential backoff from **2s**, cap **900s**):
 
-| Attempt | Delay     |
-| ------- | --------- |
-| 1       | immediate |
-| 2       | 1s        |
-| 3       | 2s        |
+| Attempt | Delay (typical) |
+| ------- | --------------- |
+| 1       | immediate       |
+| 2       | 2s              |
+| 3       | 4s              |
+| 4       | 8s              |
+| 5       | 16s (capped)    |
 
 On final failure, the event is sent to the DLQ with error metadata.
 
@@ -259,7 +264,7 @@ Set `REDIS_URL` in environment (see `ENVIRONMENT_VARIABLES.md`). Without Redis, 
 2. Register schema version in `versioning.py`.
 3. Emit the event from the owning module via `emit_event()`.
 4. Add a handler in `porterchain_event_bus/handlers/` or a module-specific handler file.
-5. Document in `EVENT_CATALOG.md` and `EVENT_FLOW.md`.
+5. Document in `EVENT_CATALOG.md` and [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md).
 
 **Do not** import the consuming module from the publishing module.
 
@@ -267,6 +272,17 @@ Set `REDIS_URL` in environment (see `ENVIRONMENT_VARIABLES.md`). Without Redis, 
 
 ## Related documents
 
-- [EVENT_CATALOG.md](./EVENT_CATALOG.md) — full event reference
-- [EVENT_FLOW.md](./EVENT_FLOW.md) — lifecycle diagrams and consumer map
-- [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) — bounded contexts and aggregates
+| Document | Purpose |
+| -------- | ------- |
+| [EVENT_CATALOG.md](./EVENT_CATALOG.md) | Full event reference |
+| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | Lifecycle diagrams and handler wiring |
+| [docs/archive/EVENT_BUS_AUDIT.md](./docs/archive/EVENT_BUS_AUDIT.md) | Historical audit (July 2026) |
+| [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) | Bounded contexts and aggregates |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

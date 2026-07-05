@@ -1,8 +1,11 @@
 # Repository Structure
 
-**Document version:** 1.0  
-**Date:** June 29, 2026  
-**Status:** Target layout with migration notes
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Status:** Current monorepo layout
 
 ---
 
@@ -12,72 +15,91 @@ Porterchain is a monorepo separating **customer-facing applications**, **shared 
 
 ---
 
-## Target structure
+## Current structure
 
 ```
 porterchain/
+├── website/                    # Public marketing + booking (:3000)
 ├── apps/
-│   ├── website/              # Public marketing + booking (:3000)
-│   ├── merchant/             # B2B merchant portal (:3001)
-│   ├── customer/             # Retail customer dashboard (planned)
-│   ├── admin/                # Ops control tower (:3002)
-│   ├── api/                  # Porterchain FastAPI (:8001)
-│   ├── driver/               # Driver mobile app (planned)
-│   └── fleetbase/            # Upstream Fleetbase clone — DO NOT MODIFY
+│   ├── merchant-portal/        # B2B merchant portal (:3001)
+│   ├── admin/                  # Ops control tower (:3002)
+│   ├── driver-portal/          # Driver web dashboard (:3003)
+│   ├── customer/               # Retail customer portal (:3004)
+│   ├── api/                    # Porterchain FastAPI (:8001)
+│   ├── worker/                 # Event bus + queue consumer
+│   ├── mobile-driver/          # Driver mobile app (Expo SDK 52)
+│   ├── mobile-customer/        # Customer mobile app (Expo SDK 52)
+│   ├── fleetbase/              # Upstream Fleetbase clone — DO NOT MODIFY
+│   ├── website/                # README placeholder → canonical `website/`
+│   ├── merchant/               # README placeholder → `apps/merchant-portal/`
+│   └── driver/                 # README placeholder → driver-portal + mobile-driver
 │
 ├── packages/
-│   ├── ui/                   # Shared React components
-│   ├── config/               # Shared config references
-│   ├── types/                # TypeScript types
-│   ├── auth/                 # Clerk + RBAC helpers
-│   ├── events/               # Domain event catalog
-│   └── shared/               # Python shared code pointer
+│   ├── ui/                     # Shared React components
+│   ├── config/                 # Shared config references
+│   ├── types/                  # TypeScript types
+│   ├── auth/                   # Clerk + RBAC helpers
+│   ├── events/                 # Domain event catalog
+│   └── queue/                  # Queue name constants
 │
 ├── services/
-│   └── fleetbase-adapter/    # Sole Fleetbase integration boundary
-│
-├── vendor/
-│   └── fleetbase/            # Logical vendor reference (docs only)
+│   ├── fleetbase-adapter/      # Sole Fleetbase integration boundary
+│   ├── pricing-engine/         # porterchain_pricing library
+│   ├── event-bus/              # porterchain_event_bus
+│   ├── driver-platform/        # Driver domain library
+│   ├── python/                 # porterchain_services (Stripe, maps, …)
+│   └── fleetbase/              # DEPRECATED shim — re-exports adapter
 │
 ├── shared/
-│   └── python/               # porterchain_shared Python package
+│   ├── python/                 # porterchain_shared
+│   ├── api/, theme/, maps/, …  # Shared TS packages (pnpm workspace)
+│   └── mobile-*                # Mobile UI, security, offline packages
+│
+├── vendor/
+│   └── fleetbase/              # Logical vendor reference (docs only)
 │
 ├── infrastructure/
-│   └── docker/               # Compose, Fleetbase overlays
+│   ├── docker/                 # Compose, Fleetbase overlays
+│   └── deploy/                 # Production Caddy + GHCR deploy
 │
-├── docs/                     # Documentation index
-└── env/                      # Environment templates
+├── docs/                       # Documentation index
+└── env/                        # Environment templates
 ```
 
 ---
 
-## Current vs target paths
+## Path aliases (canonical vs placeholder)
 
-| Target                        | Current canonical path        | Status                                 |
-| ----------------------------- | ----------------------------- | -------------------------------------- |
-| `apps/website/`               | `website/` (repo root)        | README placeholder at `apps/website/`  |
-| `apps/merchant/`              | `apps/merchant-portal/`       | README placeholder at `apps/merchant/` |
-| `apps/customer/`              | —                             | Planned                                |
-| `apps/admin/`                 | `apps/admin/`                 | Active                                 |
-| `apps/api/`                   | `apps/api/`                   | Active                                 |
-| `apps/driver/`                | —                             | Planned (`apps/mobile-driver` TBD)     |
-| `vendor/fleetbase/`           | `apps/fleetbase/`             | Source stays at `apps/fleetbase/`      |
-| `services/fleetbase-adapter/` | `services/fleetbase-adapter/` | **Active**                             |
-| `packages/shared/`            | `shared/python/`              | README pointer                         |
+| Canonical path              | Placeholder / alias              | Status   |
+| --------------------------- | -------------------------------- | -------- |
+| `website/` (repo root)      | `apps/website/`                  | Active   |
+| `apps/merchant-portal/`     | `apps/merchant/`                 | Active   |
+| `apps/customer/`            | —                                | Active   |
+| `apps/driver-portal/`       | `apps/driver/` (README pointer)  | Active   |
+| `apps/mobile-driver/`       | —                                | Active   |
+| `apps/mobile-customer/`     | —                                | Active   |
+| `apps/admin/`               | —                                | Active   |
+| `apps/api/`                 | —                                | Active   |
+| `apps/worker/`              | —                                | Active   |
+| `apps/fleetbase/`           | `vendor/fleetbase/` (docs only)  | Active   |
+| `services/fleetbase-adapter/` | —                              | Active   |
 
 ---
 
 ## Application boundaries
 
-| App       | Port        | Talks to Fleetbase? | Notes                                       |
-| --------- | ----------- | ------------------- | ------------------------------------------- |
-| Website   | 3000        | **No**              | Booking UI → Porterchain API only           |
-| Merchant  | 3001        | **No**              | B2B portal → Porterchain API                |
-| Customer  | TBD         | **No**              | Retail dashboard (planned)                  |
-| Admin     | 3002        | **SSO only**        | Opens Fleetbase console via Porterchain SSO |
-| API       | 8001        | **Via adapter**     | Sole bridge to Fleetbase                    |
-| Driver    | TBD         | **No**              | Execution API via Porterchain               |
-| Fleetbase | 8000 / 4200 | N/A                 | Internal ops engine                         |
+| App              | Port        | Talks to Fleetbase? | Notes                                       |
+| ---------------- | ----------- | ------------------- | ------------------------------------------- |
+| Website          | 3000        | **No**              | Booking UI → Porterchain API only           |
+| Merchant portal  | 3001        | **No**              | B2B portal → Porterchain API                |
+| Admin            | 3002        | **SSO only**        | Opens Fleetbase console via Porterchain SSO |
+| Driver portal    | 3003        | **No**              | Driver web → Porterchain API                |
+| Customer portal  | 3004        | **No**              | Retail dashboard → Porterchain API          |
+| Mobile driver    | Expo        | **No**              | Field execution → `/driver-api/v1/*`        |
+| Mobile customer  | Expo        | **No**              | Retail mobile → `/v1/*`                     |
+| Porterchain API  | 8001        | **Via adapter**     | Sole bridge to Fleetbase                    |
+| Worker           | —           | **Via adapter**     | Event bus + queue consumer                  |
+| Fleetbase        | 8000 / 4200 | N/A                 | Internal ops engine                         |
 
 ---
 
@@ -97,8 +119,11 @@ services/
 │   ├── webhooks/
 │   ├── events/
 │   └── pod/
-├── fleetbase/                  # DEPRECATED shim — re-exports adapter
-└── python/                   # porterchain_services worker package
+├── pricing-engine/             # porterchain_pricing
+├── event-bus/                  # porterchain_event_bus
+├── driver-platform/            # porterchain_driver
+├── python/                     # porterchain_services
+└── fleetbase/                  # DEPRECATED shim — re-exports adapter
 ```
 
 **Rule:** All Fleetbase HTTP calls originate in `fleetbase-adapter/`.
@@ -115,6 +140,7 @@ services/
 | `packages/events` | TypeScript | Event envelope types          |
 | `packages/queue`  | TypeScript | Queue name constants          |
 | `shared/python`   | Python     | Settings, events, queue names |
+| `shared/mobile-*` | TypeScript | Mobile UI, offline, security  |
 
 ---
 
@@ -148,7 +174,7 @@ services/fleetbase-adapter/                    # All integration logic
 ## PYTHONPATH (development)
 
 ```bash
-PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/fleetbase
+PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
 ```
 
 Configured in `package.json` → `dev:api`, `dev:worker`.
@@ -162,6 +188,9 @@ apps/api/requirements.txt:
   -e ../../shared/python
   -e ../../services/python
   -e ../../services/fleetbase-adapter
+  -e ../../services/pricing-engine
+  -e ../../services/event-bus
+  -e ../../services/driver-platform
   -e ../../services/fleetbase          # deprecated shim
 ```
 
@@ -173,8 +202,13 @@ apps/api/requirements.txt:
 packages:
   - "website"
   - "apps/merchant-portal"
+  - "apps/driver-portal"
+  - "apps/customer"
   - "apps/admin"
+  - "apps/mobile-driver"
+  - "apps/mobile-customer"
   - "packages/*"
+  - "shared/*"
 ```
 
 ---
@@ -187,7 +221,7 @@ packages:
 | Webhook event → Porterchain state | `services/fleetbase-adapter/.../events/`      |
 | SSO bridge client                 | `services/fleetbase-adapter/.../auth/`        |
 | Fleetbase bridge API routes       | Separate Fleetbase extension package (future) |
-| Merchant pricing rules            | `apps/api/booking_engine/`                    |
+| Merchant pricing rules            | `apps/api/merchant_engine/`                   |
 | Public tracking UX                | `website/`                                    |
 | Ops dashboard widgets             | `apps/admin/`                                 |
 | Docker port overrides             | `infrastructure/docker/`                      |
@@ -203,6 +237,14 @@ See [docs/README.md](./docs/README.md) for the full index.
 ## Related documents
 
 - [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)
-- [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
+- [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md)
 - [CONTRIBUTING_GUIDE.md](./CONTRIBUTING_GUIDE.md)
 - [vendor/fleetbase/README.md](./vendor/fleetbase/README.md)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

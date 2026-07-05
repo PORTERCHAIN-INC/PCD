@@ -1,7 +1,10 @@
 # Fleetbase Upgrade Guide
 
-**Document version:** 1.0  
-**Date:** June 29, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Current Fleetbase version:** v0.7.40  
 **Adapter package:** `services/fleetbase-adapter/`
 
@@ -20,7 +23,7 @@ Fleetbase is an upstream dependency at `apps/fleetbase/`. Porterchain integrates
 - [ ] Export current Fleetbase API key and company UUID
 - [ ] Snapshot MySQL `fleetbase` database (if production data exists)
 - [ ] Run Porterchain API integration smoke tests against current version
-- [ ] Review [FLEETBASE_ANALYSIS.md](./FLEETBASE_ANALYSIS.md) for breaking changes
+- [ ] Review [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) and upstream Fleetbase release notes for breaking changes
 
 ---
 
@@ -156,3 +159,11 @@ After a successful upgrade, update:
 - [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)
 - [EXTENSION_GUIDE.md](./EXTENSION_GUIDE.md)
 - [vendor/fleetbase/README.md](./vendor/fleetbase/README.md)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

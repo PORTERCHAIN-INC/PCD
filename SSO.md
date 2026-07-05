@@ -1,7 +1,11 @@
 # Porterchain ↔ Fleetbase Single Sign-On (SSO)
 
-**Version:** 1.0  
-**Date:** June 29, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Version:** 1.1  
 **Goal:** Porterchain users never see the Fleetbase login screen
 
 ---
@@ -10,7 +14,7 @@
 
 | Aspect               | Approach                                                                |
 | -------------------- | ----------------------------------------------------------------------- |
-| Identity provider    | **Clerk** (merchants, admin, support, sales, dispatchers)               |
+| Identity provider    | **Clerk** (admin staff — dispatchers, support, ops) |
 | Trust broker         | **Porterchain API**                                                     |
 | Fleetbase auth       | Trusts **Porterchain-signed SSO JWT**                                   |
 | User duplication     | **None** — one Clerk ID → one `identity_links` row → one Fleetbase user |
@@ -148,7 +152,13 @@ Porterchain calls these Fleetbase internal endpoints (implemented via `portercha
 }
 ```
 
-**Until the Fleetbase extension is deployed:** Porterchain still issues `sso_token` and `console_url`; Fleetbase console SSO handler must be added to consume the token (no Fleetbase login screen).
+**Until the Fleetbase extension is fully deployed:** Porterchain issues `sso_token` and `console_url`; the Fleetbase console route `/porterchain/sso` consumes the token (see `services/fleetbase/porterchain_fleetbase/sso/`).
+
+---
+
+## Who cannot use SSO
+
+Merchants, customers, and drivers receive **403** from `POST /v1/auth/sso/fleetbase`. Console access is ops-only per [RBAC_MATRIX.md](./RBAC_MATRIX.md).
 
 ---
 
@@ -261,7 +271,18 @@ PORTERCHAIN_API_URL=http://localhost:8001
 
 ## Related documents
 
-- [AUTHENTICATION_FLOW.md](./AUTHENTICATION_FLOW.md)
-- [RBAC.md](./RBAC.md)
-- [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)
-- [FLEETBASE_EXTENSION_POINTS.md](./FLEETBASE_EXTENSION_POINTS.md)
+| Document | Purpose |
+| -------- | ------- |
+| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Auth policy |
+| [docs/architecture/AUTHENTICATION_FLOW.md](./docs/architecture/AUTHENTICATION_FLOW.md) | Flow diagrams |
+| [RBAC_MATRIX.md](./RBAC_MATRIX.md) | Console access matrix |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Fleetbase bridge |
+| [FLEETBASE_EXTENSION_POINTS.md](./FLEETBASE_EXTENSION_POINTS.md) | Extension endpoints |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

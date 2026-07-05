@@ -53,6 +53,10 @@ class DomainEventType(StrEnum):
     ORDER_LOCATION_UPDATED = "order.tracking_updated"
     ROUTE_OPTIMIZED = "route.optimized"
 
+    # Phase 2 stubs — no consumers yet (ADR-010)
+    DISPATCH_RECOMMENDATION = "dispatch.recommendation"
+    ETA_PREDICTED = "eta.predicted"
+
     # Financial
     REFUND_REQUESTED = "refund.requested"
     REFUND_ISSUED = "refund.issued"

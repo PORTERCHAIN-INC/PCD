@@ -174,7 +174,6 @@ export const INTEGRATION_SECTION_IDS = [
 export const MODULE_SECTION_LINKS: Record<string, { href: string; label: string }> = {
   finance: { href: "/pricing", label: "Tax, fuel, and tariff defaults live in Pricing Center" },
   support: { href: "/support", label: "SLA, macros, and automation in Support Center" },
-  reports: { href: "/reports", label: "Saved and scheduled reports in Reports Center" },
   pricing: { href: "/pricing", label: "Pricing rules and tariffs" },
   operations: { href: "/operations", label: "Operations control tower" },
 };

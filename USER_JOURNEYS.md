@@ -1,19 +1,22 @@
 # Porterchain — User Journeys
 
-**Document version:** 1.0  
-**Date:** June 29, 2026
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 
 ---
 
 ## Personas
 
-| Persona    | Role                            | Primary surface              |
-| ---------- | ------------------------------- | ---------------------------- |
-| **Alex**   | Individual customer             | Website + customer dashboard |
-| **Morgan** | Business owner / merchant admin | Merchant portal              |
-| **Jordan** | Merchant ops user               | Merchant portal              |
-| **Sam**    | Dispatcher                      | Admin / Fleetbase console    |
-| **Riley**  | Driver partner                  | Driver app                   |
+| Persona    | Role                            | Primary surface                              |
+| ---------- | ------------------------------- | -------------------------------------------- |
+| **Alex**   | Individual customer             | Website + `apps/customer/` + mobile customer |
+| **Morgan** | Business owner / merchant admin | Merchant portal                              |
+| **Jordan** | Merchant ops user               | Merchant portal                              |
+| **Sam**    | Dispatcher                      | Admin / Fleetbase console                    |
+| **Riley**  | Driver partner                  | `apps/mobile-driver/` + driver web portal    |
 | **Casey**  | Support agent                   | Admin support module         |
 | **Taylor** | Sales rep                       | Admin CRM                    |
 | **Admin**  | Porterchain operations lead     | Admin (all modules)          |
@@ -36,7 +39,7 @@ Ship a furniture item across the GTA today without creating a business account.
 | 6    | Clerk sign-up (Google or email)                               | Acceptable     | Account created             |
 | 7    | Stripe payment                                                | Trust-critical | `PAYMENT_PENDING`           |
 | 8    | Confirmation + dashboard redirect                             | Relieved       | `BOOKED`                    |
-| 9    | Tracks driver on map                                          | In control     | Fleetbase GPS → Porterchain |
+| 9    | Tracks shipment on dashboard (`apps/customer/` or website track) | In control     | Porterchain API polling |
 | 10   | Receives delivery + POD photo                                 | Satisfied      | `DELIVERED` → `CLOSED`      |
 | 11   | Downloads receipt                                             | Done           | Invoice PDF                 |
 
@@ -96,7 +99,7 @@ Ship a furniture item across the GTA today without creating a business account.
 | Step | Action                       | State                         |
 | ---- | ---------------------------- | ----------------------------- |
 | 1    | Opens app; sees Today's Jobs | —                             |
-| 2    | New assignment notification  | `DRIVER_ASSIGNED`             |
+| 2    | New assignment notification  | `DRIVER_ASSIGNED` (push when FCM configured) |
 | 3    | Accepts job                  | `DRIVER_ACCEPTED`             |
 | 4    | Navigates to pickup          | `DRIVER_EN_ROUTE`             |
 | 5    | Arrives; confirms pickup     | `AT_PICKUP` → `PICKED_UP`     |
@@ -156,7 +159,7 @@ Ship a furniture item across the GTA today without creating a business account.
 | ---- | ---------------------------------------------- |
 | 1    | Morgan requests API access (Developers module) |
 | 2    | Admin issues API keys + webhook URL            |
-| 3    | ERP posts `POST /v1/shipments` on order ship   |
+| 3    | ERP posts `POST /v1/merchant-api/shipments` with API key |
 | 4    | Porterchain creates order → Fleetbase          |
 | 5    | Webhook `shipment.delivered` → ERP updates     |
 
@@ -180,3 +183,11 @@ Ship a furniture item across the GTA today without creating a business account.
 - [BUSINESS_WORKFLOW.md](./BUSINESS_WORKFLOW.md)
 - [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)
 - [SYSTEM_SEQUENCE_DIAGRAMS.md](./SYSTEM_SEQUENCE_DIAGRAMS.md)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

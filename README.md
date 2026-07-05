@@ -1,12 +1,19 @@
 # Porterchain (PCD)
 
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 Commercial logistics platform monorepo — website, API, portals, worker, and Fleetbase integration.
+
+> **Architecture:** [masterrule.md](./masterrule.md) · **Doc rollout:** [Appendix C](./masterrule.md#appendix-c--documentation-simplification-program) · **Audit:** [CTO_AUDIT_REPORT.md](./CTO_AUDIT_REPORT.md)
 
 ## Applications
 
 | Path                                             | Port     | Description                                                    |
 | ------------------------------------------------ | -------- | -------------------------------------------------------------- |
-| [`website/`](website/)                           | **3000** | Public Next.js site — booking, tracking, customer portal route |
+| [`website/`](website/)                           | **3000** | Public Next.js site — marketing, booking, track (link to customer app for dashboard) |
 | [`apps/merchant-portal/`](apps/merchant-portal/) | **3001** | B2B merchant dashboard (Clerk)                                 |
 | [`apps/admin/`](apps/admin/)                     | **3002** | Business admin / ops (Clerk)                                   |
 | [`apps/driver-portal/`](apps/driver-portal/)     | **3003** | Driver web dashboard                                           |
@@ -14,6 +21,7 @@ Commercial logistics platform monorepo — website, API, portals, worker, and Fl
 | [`apps/api/`](apps/api/)                         | **8001** | Porterchain API (FastAPI) — all business logic                 |
 | [`apps/worker/`](apps/worker/)                   | —        | Event bus + queue consumer                                     |
 | [`apps/mobile-driver/`](apps/mobile-driver/)     | Expo     | Driver mobile app (Expo SDK 52)                                |
+| [`apps/mobile-customer/`](apps/mobile-customer/) | Expo     | Retail customer mobile app (Expo SDK 52)                       |
 
 Path aliases: `website/` = public site (target `apps/website/`); `apps/merchant-portal/` = merchant portal (target `apps/merchant/`).
 
@@ -21,9 +29,9 @@ Path aliases: `website/` = public site (target `apps/website/`); `apps/merchant-
 
 ### Prerequisites
 
-- Node.js **20.9+** (see [`.nvmrc`](.nvmrc))
+- Node.js **22.22.3** (see [`.nvmrc`](.nvmrc); engines `>=22`)
 - [pnpm](https://pnpm.io) **9.15+**
-- Python **3.12+** for API/worker
+- Python **3.13** for API/worker (see [TECH_STACK.md](TECH_STACK.md))
 - Docker (Postgres, Redis, Mailhog)
 
 ### Install
@@ -51,7 +59,7 @@ pnpm dev:driver         # :3003
 pnpm dev:customer       # :3004
 ```
 
-Mobile driver: `cd apps/mobile-driver && npm install && npm start`
+Mobile apps: `pnpm dev:mobile-driver` or `pnpm dev:mobile-customer`
 
 ### Database migrations
 
@@ -91,7 +99,16 @@ See [PORT_CONFIGURATION.md](PORT_CONFIGURATION.md).
 ## Architecture
 
 - [masterrule.md](masterrule.md) — locked rules and layer boundaries
-- [MASTERULE_COMPLIANCE_GAPS.md](MASTERULE_COMPLIANCE_GAPS.md) — compliance tracker
-- [ARCHITECTURE_ALIGNMENT_REPORT.md](ARCHITECTURE_ALIGNMENT_REPORT.md)
-- [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)
+- [docs/architecture/SYSTEM_ARCHITECTURE.md](docs/architecture/SYSTEM_ARCHITECTURE.md) — platform topology (code-derived)
+- [PRODUCTION_READINESS_REPORT.md](PRODUCTION_READINESS_REPORT.md) — go/no-go status (July 2026)
+- [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md) — monorepo layout
 - [TECH_STACK.md](TECH_STACK.md)
+- [docs/README.md](docs/README.md) — full documentation index
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

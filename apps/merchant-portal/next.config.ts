@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import { loadMonorepoEnv, nextPublicEnv } from "@porterchain/config/monorepo-env.mjs";
+
+loadMonorepoEnv(process.cwd());
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -8,10 +11,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  env: {
-    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:
-      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? process.env.GOOGLE_MAPS_BROWSER_API_KEY ?? "",
-  },
+  env: nextPublicEnv(),
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

@@ -9,6 +9,8 @@ trending: true
 tags: ["operations", "dispatch", "logistics"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Commercial logistics is not a consumer problem. It is an operations problem — one that local businesses solve today with phone trees, spreadsheets, and blind trust in drivers they do not control.
 
 Porterchain was built on a different premise: **business-critical delivery deserves accountable, professional execution.**
@@ -19,7 +21,7 @@ Most delivery tools optimize for speed of booking. Porterchain optimizes for **a
 
 1. **Pre-dispatch validation** — address checks, vehicle-class matching, capacity gates
 2. **Managed execution** — SLA-based dispatch, not marketplace guesswork
-3. **Live visibility** — status events and exceptions surfaced in real time
+3. **Live visibility** — status events and exceptions surfaced as execution progresses
 4. **Audit-ready proof** — photo, signature, GPS, and reference-linked history
 
 This is what structured commercial logistics looks like: one connected operation from booking to delivery confirmation.

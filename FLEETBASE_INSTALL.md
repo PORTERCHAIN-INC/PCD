@@ -1,8 +1,12 @@
 # Fleetbase Installation — Porterchain Monorepo
 
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Version installed:** [Fleetbase v0.7.40](https://github.com/fleetbase/fleetbase/releases/tag/v0.7.40)  
 **Location:** `apps/fleetbase/` (upstream clone — **no Porterchain modifications to Fleetbase source**)  
-**Date:** June 29, 2026
 
 ---
 
@@ -39,19 +43,21 @@ Review `LICENSE.md` before production deployment. A commercial license is availa
 ```
 PCD/
 ├── apps/
-│   ├── api/                 # Porterchain API (bridge to Fleetbase)
-│   ├── admin/
-│   ├── merchant-portal/
+│   ├── api/                 # Porterchain API (:8001)
+│   ├── admin/               # :3002
+│   ├── merchant-portal/     # :3001
+│   ├── customer/            # :3004
+│   ├── driver-portal/       # :3003
+│   ├── mobile-driver/       # Expo — Porterchain driver (not Fleetbase Navigator)
 │   └── fleetbase/           # ← Official Fleetbase OSS clone (v0.7.40)
+├── services/fleetbase-adapter/   # Porterchain ↔ Fleetbase HTTP boundary
 ├── infrastructure/docker/
 │   ├── fleetbase.porterchain.override.yml   # Porterchain-only overlay (ports, volumes)
 │   └── scripts/
 │       ├── fleetbase-install.sh
 │       └── fleetbase-verify.sh
-├── FLEETBASE_INSTALL.md     # this file
-├── RUNBOOK.md
-├── DOCKER_SETUP.md
-└── SERVICE_STATUS.md
+├── FLEETBASE_INSTALL.md
+├── FLEETBASE_SERVICE_STATUS.md
 ```
 
 Porterchain **does not** embed Fleetbase UI in the website, merchant portal, or admin app. Dispatch staff use the Fleetbase Console at `http://localhost:4200`.
@@ -109,7 +115,13 @@ pnpm docker:fleetbase:verify
 
 1. Open **Console** → complete onboarding wizard (organization + admin user).
 2. Copy organization/company UUID into Porterchain API env: `FLEETBASE_DEFAULT_COMPANY_UUID` / `PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID`.
-3. Set Porterchain API: `FLEETBASE_API_URL=http://localhost:8000`, `FLEETBASE_DISPATCH_BRIDGE=true`.
+3. Set Porterchain API env (see `env/fleetbase.env.example`):
+   - `FLEETBASE_API_URL=http://localhost:8000`
+   - `FLEETBASE_API_KEY=flb_live_...`
+   - `FLEETBASE_DEFAULT_COMPANY_UUID=...`
+   - `FLEETBASE_DISPATCH_BRIDGE=true`
+   - `FLEETBASE_WEBHOOK_SECRET=...`
+4. Register Fleetbase webhook → `http://localhost:8001/webhooks/fleetbase` (see [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md))
 
 ---
 
@@ -119,7 +131,7 @@ pnpm docker:fleetbase:verify
 pnpm docker:fleetbase:verify
 ```
 
-Expected: all checks `PASS` (see `SERVICE_STATUS.md`).
+Expected: all checks `PASS` (see [FLEETBASE_SERVICE_STATUS.md](./FLEETBASE_SERVICE_STATUS.md)).
 
 ---
 
@@ -164,7 +176,18 @@ Always run `./deploy.sh` after upgrading per [Fleetbase docs](https://fleetbase.
 
 ## Related documents
 
-- [DOCKER_SETUP.md](./DOCKER_SETUP.md) — container reference
-- [RUNBOOK.md](./RUNBOOK.md) — day-2 operations
-- [SERVICE_STATUS.md](./SERVICE_STATUS.md) — verification snapshot
-- [CONNECTIONS.md](./CONNECTIONS.md) — Porterchain ↔ Fleetbase bridge
+| Document | Purpose |
+| -------- | ------- |
+| [DOCKER_SETUP.md](./DOCKER_SETUP.md) | Container reference |
+| [RUNBOOK.md](./RUNBOOK.md) | Day-2 operations |
+| [FLEETBASE_SERVICE_STATUS.md](./FLEETBASE_SERVICE_STATUS.md) | Verification snapshot |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Porterchain bridge |
+| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md) | Port map |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

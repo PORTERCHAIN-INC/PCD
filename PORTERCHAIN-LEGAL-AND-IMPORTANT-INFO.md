@@ -1,7 +1,11 @@
 # Porterchain — Legal, Policy & Important Information
 
-**Compiled from the Porterchain public website (`apps/website`) and related platform configuration.**  
-**Last updated:** June 29, 2026
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Compiled from the Porterchain public website (`website/`) and related platform configuration.**  
 
 > **Note:** The live website does **not** yet have dedicated `/terms`, `/privacy`, `/cookies`, or `/knowledge-center` routes. This document consolidates all Porterchain-related legal, policy, compliance, and help content that **currently exists** in the website and platform, plus technical disclosures implied by integrations.
 
@@ -382,16 +386,23 @@ Social links can be overridden via:
 
 | Content                         | Source                                                                         |
 | ------------------------------- | ------------------------------------------------------------------------------ |
-| Company info, social links, nav | `apps/website/src/lib/site.ts`                                                 |
-| FAQ, blog, careers              | `apps/website/src/lib/content.ts`                                              |
-| Footer & social icons           | `apps/website/src/components/layout/Footer.tsx`                                |
-| Merchant agreement text         | `apps/website/src/components/merchant-onboarding/MerchantOnboardingWizard.tsx` |
-| Support hours & topics          | `apps/website/src/app/support/page.tsx`                                        |
-| Standards page                  | `apps/website/src/app/standards/page.tsx`                                      |
-| Billing payment terms           | `api/app/Models/Porterchain/BillingRecord.php`                                 |
-| Contract acceptance logic       | `api/app/Services/Porterchain/MerchantOnboardingService.php`                   |
-| Zoho chat widget                | `apps/website/src/components/support/ZohoSalesIQ.tsx`                          |
+| Company info, social links, nav | `website/src/lib/site.ts`                                                      |
+| FAQ, blog, careers              | `website/src/lib/content.ts`                                                   |
+| Footer & social icons           | `website/src/components/layout/Footer.tsx`                                     |
+| Merchant agreement text         | `website/src/components/merchant-onboarding/MerchantOnboardingWizard.tsx`      |
+| Support hours & topics          | `website/src/app/support/page.tsx`                                             |
+| Standards page                  | `website/src/app/standards/page.tsx`                                           |
+| Billing payment terms           | `apps/api/src/porterchain_api/merchant_engine/`                                |
+| Zoho chat widget                | `website/src/components/support/ZohoSalesIQ.tsx`                               |
 
 ---
 
 _This document is an internal compilation for reference. It is not legal advice. Formal Terms, Privacy, and Cookie policies should be reviewed by qualified counsel before publication._
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

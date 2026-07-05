@@ -8,6 +8,8 @@ trending: true
 tags: ["dispatch", "sla", "operations"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 When a shipment matters — a medical restock, a wholesale cut-off, a construction site waiting on materials — **reliability beats availability.**
 
 Marketplace delivery optimizes for finding _a_ driver quickly. SLA-based dispatch optimizes for finding the _right_ execution path every time.
@@ -33,7 +35,7 @@ Porterchain's dispatch controls enforce standards before and during execution:
 | Vehicle-class checks       | Match load to capacity                    |
 | Pre-departure verification | Catch issues before departure             |
 | Live monitoring            | Surface delays early                      |
-| Proof workflow             | Close the loop for billing and compliance |
+| Proof workflow             | Photo, signature, GPS, and audit trail for billing |
 
 ## SLA as an operating contract
 

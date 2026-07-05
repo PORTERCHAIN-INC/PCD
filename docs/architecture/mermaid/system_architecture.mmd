@@ -5,7 +5,8 @@ flowchart TB
     MERCH["Merchant Portal :3001"]
     ADMIN["Admin Portal :3002"]
     DRIVER["Driver Portal :3003"]
-    MOBILE["Mobile Driver (Expo)"]
+    MOBILE_D["Mobile Driver (Expo)"]
+    MOBILE_C["Mobile Customer (Expo)"]
   end
 
   subgraph API["Porterchain API (FastAPI :8001)"]
@@ -23,7 +24,7 @@ flowchart TB
   end
 
   subgraph Data["Data & Messaging"]
-    PG[("PostgreSQL / SQLite")]
+    PG[("PostgreSQL 16")]
     REDIS[("Redis")]
     EB["Event Bus<br/>porterchain_event_bus"]
     Q["Queues<br/>emails|sms|push|billing|webhooks|dispatch|reports"]
@@ -50,7 +51,7 @@ flowchart TB
     FIREBASE["Firebase (push)"]
   end
 
-  WEB & CUST & MERCH & ADMIN & DRIVER & MOBILE -->|"HTTPS /v1/*"| ROUTERS
+  WEB & CUST & MERCH & ADMIN & DRIVER & MOBILE_D & MOBILE_C -->|"HTTPS /v1/*"| ROUTERS
   ADMIN -->|"WS live-map/ws"| ROUTERS
   BE & ME & AE & FE & DE --> PG
   BE & ME & AE --> EB

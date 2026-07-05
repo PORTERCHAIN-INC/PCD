@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { customerPublicEnv, loadMonorepoEnv } from "@porterchain/config/monorepo-env.mjs";
+
+loadMonorepoEnv(process.cwd());
 
 const monorepoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -9,10 +12,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: monorepoRoot,
   },
-  env: {
-    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:
-      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? process.env.GOOGLE_MAPS_BROWSER_API_KEY ?? "",
-  },
+  env: customerPublicEnv(),
 };
 
 export default nextConfig;

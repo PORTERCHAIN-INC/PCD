@@ -7,6 +7,8 @@ author: "sarah-chen"
 tags: ["construction", "heavy-freight", "proof"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Construction supply chains punish improvisation. Wrong vehicle class, missed site access windows, or missing proof on a high-value drop creates costly downtime.
 
 ## Site-specific constraints
@@ -21,7 +23,7 @@ Dispatch must encode these constraints before release — not discover them at t
 
 ## Proof as project documentation
 
-Photo and signature capture tied to shipment references gives project managers evidence that materials arrived when billed — reducing disputes across the supply chain.
+Photo, signature, and GPS-backed proof tied to shipment references gives project managers evidence that materials arrived when billed — reducing disputes across the supply chain.
 
 ## Why Porterchain fits construction
 

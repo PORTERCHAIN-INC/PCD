@@ -1,18 +1,23 @@
 # Contributing Guide
 
-**Document version:** 1.0  
-**Date:** June 29, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Repository:** Porterchain (PCD monorepo)
 
 ---
 
 ## Principles
 
-1. **Porterchain owns the customer experience** — website, merchant portal, pricing, billing, CRM.
+1. **Porterchain owns the customer experience** — website, merchant portal, pricing, billing.
 2. **Fleetbase owns fleet execution** — dispatch, routing, GPS, driver ops console.
 3. **The adapter is the only bridge** — no direct Fleetbase HTTP calls outside `services/fleetbase-adapter/`.
 4. **Never modify Fleetbase core** — treat `apps/fleetbase/` as read-only upstream.
 5. **Never mix business logic into Fleetbase** — no merchant contracts, Stripe, or Clerk code in Fleetbase.
+6. **Simplify before expanding** — [masterrule §21](./masterrule.md#21-simplification--essential-complexity): essential complexity only; thin routers; no `merchant_engine` → `admin_engine` imports.
+7. **Docs follow code** — update canonical docs or OpenAPI; follow [Appendix C](./masterrule.md#appendix-c--documentation-simplification-program) (39 groups × 5 files).
 
 ---
 
@@ -25,6 +30,11 @@ See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the full map.
 | `website/`                    | Booking UX, marketing   | Fleetbase API calls       |
 | `apps/merchant-portal/`       | B2B portal              | Fleetbase schema          |
 | `apps/admin/`                 | Ops dashboard           | Fleetbase console source  |
+| `apps/customer/`              | Retail customer portal  | Fleetbase API calls       |
+| `apps/driver-portal/`         | Driver web dashboard    | Fleetbase API calls       |
+| `apps/mobile-driver/`         | Driver mobile app       | Fleetbase API calls       |
+| `apps/mobile-customer/`       | Customer mobile app     | Fleetbase API calls       |
+| `apps/worker/`                | Event bus + queues      | Direct Fleetbase HTTP     |
 | `apps/api/`                   | All Porterchain domains | Direct Fleetbase HTTP     |
 | `services/fleetbase-adapter/` | Integration logic       | Porterchain pricing rules |
 | `apps/fleetbase/`             | **Nothing** (read-only) | Core packages, console    |
@@ -37,7 +47,7 @@ See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the full map.
 | Change type                     | Location                                                   |
 | ------------------------------- | ---------------------------------------------------------- |
 | New Fleetbase API wrapper       | `services/fleetbase-adapter/`                              |
-| Order status webhook handling   | Adapter `events/` + API `fleetbase_sync_service.py`        |
+| Order status webhook handling   | Adapter `events/` + API `fleetbase_engine/`                |
 | SSO / RBAC                      | `apps/api/auth/` + adapter `auth/`                         |
 | Public tracking page            | `website/`                                                 |
 | Merchant invoice logic          | `apps/api/` billing domains                                |
@@ -72,11 +82,18 @@ apps/fleetbase/scripts/             # Upstream install scripts
 
 ### Node / frontend
 
+Requires Node **22.22.3** (see `.nvmrc`) and pnpm **9.15+**.
+
 ```bash
+corepack enable
 pnpm install
 pnpm dev              # turbo — website, portals
 pnpm dev:merchant
 pnpm dev:admin
+pnpm dev:customer
+pnpm dev:driver
+pnpm dev:mobile-driver
+pnpm dev:mobile-customer
 ```
 
 ### Python / API
@@ -170,9 +187,9 @@ When making architectural changes, update:
 
 | Topic               | Document                                                                 |
 | ------------------- | ------------------------------------------------------------------------ |
-| System design       | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)                       |
+| System design       | [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md) |
 | Product scope       | [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md)                     |
-| Fleetbase internals | [FLEETBASE_ANALYSIS.md](./FLEETBASE_ANALYSIS.md)                         |
+| Fleetbase internals | [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                   |
 | Adapter design      | [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) |
 | Upgrading Fleetbase | [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md)                                   |
 
@@ -183,3 +200,12 @@ When making architectural changes, update:
 - [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md)
 - [EXTENSION_GUIDE.md](./EXTENSION_GUIDE.md)
 - [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md)
+
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

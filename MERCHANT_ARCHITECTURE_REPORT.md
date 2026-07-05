@@ -1,18 +1,25 @@
 # Merchant Portal — Architecture Report
 
-**Date:** June 30, 2026  
-**Authority:** [masterrule.md](./masterrule.md)
+
+**Type:** REPORT
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+> **Snapshot report** — point-in-time audit. Current truth: [MERCHANT_FLOW.md](docs/architecture/MERCHANT_FLOW.md) (canonical doc).
+
+**Authority:** [masterrule.md](./masterrule.md)  
+**See also:** [MERCHANT_PRODUCTION_READINESS.md](./MERCHANT_PRODUCTION_READINESS.md) · [docs/architecture/MERCHANT_FLOW.md](./docs/architecture/MERCHANT_FLOW.md)
 
 ---
 
 ## Layered communication model
 
 ```
-Merchant Portal (Next.js 3001)
-        │  Clerk JWT + X-Merchant-Org-Id
+Merchant Portal (Next.js :3001)
+        │  Clerk JWT + X-Merchant-Org-Id + X-Merchant-Role
         ▼
 FastAPI (`/v1/merchant/*`, `/v1/merchant-api/*`)
-        │  require_module() / API-key scopes
+        │  require_module() / shipments:* scopes / gateway middleware
         ▼
 Application Services (`merchant_engine/*`)
         │  orchestrate, never duplicate
@@ -20,7 +27,7 @@ Application Services (`merchant_engine/*`)
 Domain Engines
   ├── pricing_engine/
   ├── billing_engine/
-  ├── reporting_engine/
+  ├── reporting_engine/ (via MerchantReportsService)
   ├── booking_engine/
   ├── fleetbase_engine/  (adapter only)
   └── notification_engine/
@@ -32,41 +39,44 @@ Event Bus (`platform/bus.py` → `porterchain_event_bus`)
         └──► Fleetbase Adapter (`services/fleetbase_integration.py`)
                     │
                     ▼
-              Fleetbase HTTP API
+              Fleetbase HTTP API (:8000)
 ```
 
-**Rule:** UI never calls Fleetbase, Stripe, OSRM, Valhalla, or Google directly for business logic. Maps render client-side; routing/ETA server-side via `MapsService`.
+**Rule:** UI never calls Fleetbase, Stripe, OSRM, Valhalla, or Google for business logic. Maps render via `@porterchain/maps`; routing/ETA server-side via `MapsService` (default `routing_engine=valhalla`).
 
 ---
 
 ## Portal structure
 
-| Route          | Client               | Primary service                                            |
-| -------------- | -------------------- | ---------------------------------------------------------- |
-| `/dashboard`   | `DashboardClient`    | `MerchantDashboardService`                                 |
-| `/book`        | `BookDeliveryClient` | `MerchantBookingFlowService`                               |
-| `/bulk`        | `bulk/page`          | `MerchantBulkService`                                      |
-| `/orders`      | `orders/page`        | `MerchantOrdersService`                                    |
-| `/orders/[id]` | `Order360View`       | `MerchantOrdersService` + `MerchantTrackingService`        |
-| `/track`       | `track/page`         | `MerchantTrackingService`                                  |
-| `/billing`     | `BillingClient`      | `MerchantBillingService`                                   |
-| `/reports`     | `ReportsClient`      | `MerchantReportsService`                                   |
-| `/api`         | `IntegrationsClient` | `MerchantIntegrationsService` + `gateway_engine`           |
-| `/team`        | `TeamClient`         | `MerchantTeamService`                                      |
-| `/settings`    | `SettingsClient`     | `MerchantSettingsService` + `MerchantSupportBridgeService` |
+| Route | Client | Primary service |
+| ----- | ------ | --------------- |
+| `/dashboard` | `DashboardClient` | `MerchantDashboardService` |
+| `/book` | `BookDeliveryClient` | `MerchantBookingFlowService` + `MerchantBookingService` |
+| `/bulk` | `bulk/page` | `MerchantBulkService` |
+| `/orders` | `orders/page` | `MerchantOrdersService` |
+| `/orders/[id]` | `Order360View` | `MerchantOrdersService` + `MerchantTrackingService` |
+| `/track` | `track/page` | `MerchantTrackingService` |
+| `/billing` | `BillingClient` | `MerchantBillingService` |
+| `/reports` | `ReportsClient` | `MerchantReportsService` |
+| `/api` | `IntegrationsClient` | `MerchantIntegrationsService` + `gateway_engine` |
+| `/team` | `TeamClient` | `MerchantTeamService` |
+| `/settings` | `SettingsClient` | `MerchantSettingsService` + `MerchantSupportBridgeService` |
 
 ---
 
 ## Authentication & RBAC
 
-| Surface          | Auth                      | Authorization                                       |
-| ---------------- | ------------------------- | --------------------------------------------------- |
-| Portal           | Clerk Bearer + org header | `MerchantContext` + `require_module()`              |
-| Programmatic API | `X-Api-Key`               | Scopes + `MerchantApiGatewayMiddleware` rate limits |
+| Surface | Auth | Authorization |
+| ------- | ---- | ------------- |
+| Portal | Clerk Bearer + org/role headers | `MerchantContext` + `require_module()` |
+| Programmatic API | `X-Api-Key` | `shipments:read` / `shipments:write` + gateway rate limits |
+| Notifications WS | Clerk JWT + `org_id` query | `notification_engine/principal.py` |
 
-**Single RBAC source:** `merchant_engine/rbac.py` → `MODULE_PERMISSIONS`, `permissions_catalog()`.
+**RBAC source:** `merchant_engine/rbac.py` → `MODULE_PERMISSIONS`
 
 Roles: `merchant_owner`, `merchant_admin`, `merchant_ops`, `merchant_finance`, `merchant_readonly`.
+
+Production: `PortalRateLimitMiddleware` applies to `/v1/merchant/*` (skipped when `APP_ENV=local`).
 
 ---
 
@@ -74,15 +84,15 @@ Roles: `merchant_owner`, `merchant_admin`, `merchant_ops`, `merchant_finance`, `
 
 ```
 BookDeliveryClient
-  → POST /booking/preview
+  → POST /v1/merchant/booking/preview
   → MerchantBookingFlowService.preview()
       → pricing_engine.calculate_merchant()
       → fleetbase_engine.MerchantSyncService (address validation)
-  → POST /booking/confirm
+  → POST /v1/merchant/booking/confirm (or POST /bookings)
   → MerchantBookingService.create_shipment()
-      → emit_event(MERCHANT_BOOKING_CREATED)
-      → transition_to_dispatch_ready → event bus
-      → fleetbase_engine.BookingSyncService (via handler, not direct)
+      → emit_event(merchant.booking_created)
+      → transition_to_dispatch_ready → order.dispatch_ready
+      → fleetbase_sync_handler → BookingSyncService (via event bus)
 ```
 
 ---
@@ -92,59 +102,23 @@ BookDeliveryClient
 ```
 MerchantTrackingService
   → booking_engine.tracking_service.TrackingService
-  → fleetbase_engine.integration_bridge.FleetbaseIntegrationBridge
-  → services/fleetbase_integration.py (adapter factory)
-  → MapsService: OSRM (ETA), Valhalla (route polyline)
-  → Google Maps: client render only (@vis.gl/react-google-maps)
+  → fleetbase_engine.integration_bridge
+  → services/fleetbase_integration.py
+  → MapsService (Valhalla primary, OSRM when engine=osrm)
+  → Google Maps: client render only (@porterchain/maps)
 ```
 
 ---
 
-## Billing flow
+## Billing / reporting / integrations
 
-```
-BillingClient → MerchantBillingService
-  → billing_engine/merchant_service.py (serialize, NET terms, outstanding)
-  → Invoice / Payment / Order models
-```
-
-No Stripe for contract merchants unless `merchant_uses_stripe()`.
-
----
-
-## Reporting flow
-
-```
-ReportsClient → MerchantReportsService
-  → reporting_engine/merchant_service.py (SQL aggregates)
-  → MerchantOrdersService, MerchantBillingService (orchestration)
-  → Saved/scheduled → merchant.profile JSON
-```
-
----
-
-## Integrations flow
-
-```
-IntegrationsClient → MerchantIntegrationsService
-  → MerchantApiKeyService (keys/webhooks)
-  → gateway_engine (rate limits, usage logs, docs)
-  → webhook_delivery_service → worker fanout on domain events
-```
-
----
-
-## Support & claims (bridge pattern)
-
-```
-SettingsClient / Order360View
-  → MerchantSupportBridgeService
-  → AdminSupportService.list_enriched(merchant_id=…)
-  → AdminClaimsService.list_enriched(merchant_id=…)
-  → Ticket/claim create with merchant actor + emit_event
-```
-
-No duplicate support/claims business logic in merchant_engine.
+| Flow | Path |
+| ---- | ---- |
+| Billing | `MerchantBillingService` → `billing_engine/merchant_service.py` (NET terms) |
+| Reports | `MerchantReportsService` → SQL aggregates; saved/scheduled in profile JSON |
+| Integrations | `MerchantIntegrationsService` → keys/webhooks + `gateway_engine` usage logs |
+| Webhooks | `order.*` fanout → worker → `webhook_delivery_service` (HMAC) |
+| Support/claims | `MerchantSupportBridgeService` → admin services filtered by `merchant_id` |
 
 ---
 
@@ -152,34 +126,40 @@ No duplicate support/claims business logic in merchant_engine.
 
 ```
 useMerchantRealtime
-  → WebSocket /v1/notifications/ws
+  → WS /v1/notifications/ws?token=&org_id=
   → notification_engine.realtime.realtime_hub
-  → on message: refresh dashboard/orders/tracking (poll 60s fallback)
+  → on notification → refresh(); 60s poll fallback
 ```
-
----
-
-## Data ownership
-
-| Entity              | Model                     | Merchant scope |
-| ------------------- | ------------------------- | -------------- |
-| Merchant            | `merchants`               | `clerk_org_id` |
-| Orders              | `orders`                  | `merchant_id`  |
-| API keys            | `merchant_api_keys`       | per merchant   |
-| Webhooks            | `merchant_webhooks`       | per merchant   |
-| Usage logs          | `merchant_api_usage_logs` | per merchant   |
-| Team                | `merchant_users`          | per merchant   |
-| Settings extensions | `merchants.profile` JSON  | per merchant   |
 
 ---
 
 ## masterrule compliance
 
-| Rule                         | Status                                                |
-| ---------------------------- | ----------------------------------------------------- |
-| UI → API only                | ✅                                                    |
-| Logic in `*_engine` services | ✅                                                    |
-| Fleetbase via adapter only   | ✅ Verified (grep: no direct HTTP in merchant_engine) |
-| Pricing via pricing_engine   | ✅                                                    |
-| No duplicate RBAC            | ✅                                                    |
-| Event bus for side effects   | ✅                                                    |
+| Rule | Status |
+| ---- | ------ |
+| UI → API only | ✅ |
+| Logic in `*_engine` services | ✅ |
+| Fleetbase via adapter only | ✅ |
+| Pricing via pricing_engine | ✅ |
+| Single RBAC source | ✅ |
+| Event bus for dispatch side effects | ✅ |
+| Cancel sync direct (G-M010) | ⚠ |
+
+---
+
+## Related
+
+| Document | Purpose |
+| -------- | ------- |
+| [MERCHANT_PRODUCTION_READINESS.md](./MERCHANT_PRODUCTION_READINESS.md) | Readiness and open gaps |
+| [docs/archive/MERCHANT_COMPONENT_MATRIX.md](./docs/archive/MERCHANT_COMPONENT_MATRIX.md) | Historical UI ↔ API mapping |
+| [docs/archive/MERCHANT_INTEGRATION_MATRIX.md](./docs/archive/MERCHANT_INTEGRATION_MATRIX.md) | Historical endpoint inventory |
+| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Platform certification |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

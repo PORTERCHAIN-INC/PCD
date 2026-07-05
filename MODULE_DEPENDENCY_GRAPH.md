@@ -1,7 +1,11 @@
 # Porterchain — Module Dependency Graph
 
-**Reference:** [masterrule.md](./masterrule.md) §1 locked topology  
-**Audit date:** June 30, 2026
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Reference:** [masterrule.md](./masterrule.md) §1 locked topology
 
 ---
 
@@ -15,6 +19,8 @@ flowchart TB
     AP[Admin Portal :3002]
     DP[Driver Portal :3003]
     CP[Customer :3004]
+    MD[Mobile Driver Expo]
+    MC[Mobile Customer Expo]
   end
 
   subgraph api [Porterchain API :8001]
@@ -46,6 +52,8 @@ flowchart TB
   AP --> R
   DP --> R
   CP --> R
+  MD --> R
+  MC --> R
   R --> BE & ME & AE & DE
   BE & ME & AE --> PE & BLE & NE
   BE & ME & AE & FE --> EB
@@ -117,7 +125,7 @@ flowchart TB
 | Claims      | ⚠️ Incidents API          |
 | Support     | ⚠️ API stub               |
 | Performance | ⚠️ API stub               |
-| Documents   | ⚠️ API exists             |
+| Documents   | ⚠️ API exists; mobile POD upload partial |
 | Incidents   | ✅ driver-platform        |
 
 ---
@@ -247,3 +255,11 @@ Layer 5: UI apps
 ```
 
 **Rule:** Lower layers never import UI. Fleetbase never imports Porterchain engines. ✅ Verified.
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

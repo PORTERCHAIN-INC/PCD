@@ -1,8 +1,10 @@
 @startuml merchant_flow
 !theme plain
 actor Merchant
-participant "Merchant Portal" as APP
+participant "Merchant Portal :3001" as APP
 participant "API /v1/merchant" as API
+participant "API /v1/merchant-api" as MAPI
+participant "gateway_engine" as GW
 participant "MerchantBookingService" as BOOK
 participant "MerchantBulkService" as BULK
 participant "Order" as ORD
@@ -17,4 +19,7 @@ BOOK -> FB: transition_to_dispatch_ready
 API -> BULK: bulk upload / confirm
 BULK -> ORD: CSV orders
 API -> BILL: GET billing/statement
+Merchant -> MAPI: X-Api-Key + scopes
+MAPI -> GW: rate limit + usage
+GW -> BOOK: POST /bookings
 @enduml

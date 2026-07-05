@@ -1,85 +1,93 @@
 # Notification Delivery Flow
 
+
+**Type:** CANONICAL
+**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**See also:** [NOTIFICATION_ARCHITECTURE.md](./NOTIFICATION_ARCHITECTURE.md) · [EVENT_BUS_FLOW.md](../architecture/EVENT_BUS_FLOW.md)
+
+---
+
 ## End-to-End Flow
 
 ```mermaid
 flowchart TB
   subgraph Sources
-    BE[Booking Engine]
-    OE[Order Engine]
-    FE[Finance / Stripe]
-    CE[Claims Engine]
-    SE[Support Engine]
-    FB[Fleetbase Adapter]
+    BE[booking_engine]
+    ME[merchant_engine]
+    AE[admin_engine]
+    FB[Fleetbase webhooks]
   end
 
   subgraph Bus
     EB[Event Bus]
+    NQ[notification.queued]
   end
 
   subgraph NE["Notification Engine"]
-    ER[EventRouter]
+    ER[event_router.handle_domain_event]
     ENG[NotificationEngine.dispatch]
     PREF[PreferenceService]
     REC[NotificationRecord]
-    Q[notification.queued]
   end
 
-  subgraph Worker
-    W[apps/worker]
-    DS[DeliveryService.deliver]
+  subgraph Worker["apps/worker"]
+    EP[emails queue]
+    SP[sms queue]
+    PP[push queue]
+    DS[deliver_notification]
   end
 
   subgraph Channels
     FCM[FCM]
     SMTP[SMTP]
-    IA[In-App + WebSocket]
+    IA[In-App + RealtimeHub]
   end
 
-  BE & OE & FE & CE & SE & FB --> EB
+  BE & ME & AE & FB --> EB
   EB --> ER
   ER --> ENG
   ENG --> PREF
   PREF --> REC
-  REC --> Q
-  Q --> Wrotein
-  ENG --> W
-  W --> DS
-  DS --> FCM & SMTP & IA
+  ENG -->|in_app| IA
+  ENG --> NQ
+  NQ --> EP & SP & PP
+  EP & SP & PP --> DS
+  DS --> FCM & SMTP
   DS --> REC
 ```
 
 ## Status Lifecycle
 
 ```
-queued → sent → delivered → opened → clicked
+queued → sent → (delivered / opened / clicked)
          ↓
-       failed → retry (exponential backoff) → dead_letter
-         ↓
-      expired
+       failed → schedule_retry → dead_letter (max retries)
 ```
 
-| Status        | Meaning                               |
-| ------------- | ------------------------------------- |
-| `queued`      | Record created, job enqueued          |
-| `sent`        | Provider accepted (SMTP/FCM API 200)  |
-| `delivered`   | FCM delivery receipt (when available) |
-| `opened`      | User opened in-app / push tap         |
-| `clicked`     | Deep link clicked                     |
-| `failed`      | Delivery error                        |
-| `expired`     | Max retries exceeded                  |
-| `dead_letter` | Moved to DLQ                          |
+| Status | Meaning |
+| ------ | ------- |
+| `queued` | Record created; async job pending |
+| `sent` | Provider accepted or in-app delivered |
+| `failed` | Delivery error; may retry |
+| `dead_letter` | `retry_count >= max_retries` |
+| `opened` / `clicked` | User interaction timestamps on record |
+
+In-app records skip the worker — status set to `sent` immediately on create.
 
 ## Retry Policy
 
-| Setting                    | Default                            |
-| -------------------------- | ---------------------------------- |
-| `NOTIFICATION_MAX_RETRIES` | 5                                  |
-| Base delay                 | 30s                                |
-| Backoff                    | exponential (30s, 2m, 8m, 32m, 2h) |
-| DLQ queue                  | `notifications_dlq`                |
+Implemented in `NotificationEngine.schedule_retry()` (`engine.py`):
 
-Retry worker runs on `notifications_retry` queue.
+| Setting | Default |
+| ------- | ------- |
+| `NOTIFICATION_MAX_RETRIES` | 5 (on record) |
+| Delays | 30s, 2m, 8m, 32m, 2h (`RETRY_DELAYS_SEC`) |
+
+Failed deliveries call `schedule_retry` from `DeliveryService._mark_failed`. There is no separate `notifications_retry` worker queue — retries are record-based (background drain may be added later).
+
+Admin manual retry: `POST /v1/admin/notifications/retry/{notification_id}`.
 
 ## Worker Payload
 
@@ -88,9 +96,9 @@ Retry worker runs on `notifications_retry` queue.
   "notification_id": "uuid",
   "channel": "push",
   "template": "driver_assigned",
-  "recipient": "fcm-token-or-email",
   "recipient_type": "driver",
   "recipient_id": "driver-uuid",
+  "recipient": "",
   "context": { "order_number": "PC-1234", "title": "…", "body": "…" }
 }
 ```
@@ -98,17 +106,29 @@ Retry worker runs on `notifications_retry` queue.
 ## In-App Realtime
 
 1. `NotificationEngine` creates record with `channel=in_app`
-2. `RealtimeHub.broadcast(user_role, user_id, notification)`
-3. WebSocket clients at `WS /v1/notifications/ws` receive `{ type: "notification", data: {...} }`
-4. Bell unread count updates instantly
+2. `RealtimeHub.broadcast_sync(recipient_type, recipient_id, payload)`
+3. WebSocket clients at `WS /v1/notifications/ws?token=` receive `{ "type": "notification", "data": {...} }`
+4. Bell unread count from `GET /v1/notifications/inbox`
 
-## Audit
+## Log-Only Modes (local / unset providers)
 
-Every notification writes to `notification_records` with full lifecycle timestamps. Per-attempt traces in `notification_delivery_logs`.
+| Channel | When |
+| ------- | ---- |
+| Email | `smtp_host` empty |
+| SMS | Always log-only (no Twilio) |
+| Push | No Firebase creds or `push_send=false` |
 
 ## Architecture Rules
 
-1. **No direct sends** from routers or adapters
-2. **All paths** go through `NotificationEngine.dispatch()`
+1. **No direct sends** from routers or adapters (except orchestrator for checkout recovery)
+2. **All event-driven paths** go through `EventRouter` → `NotificationEngine.dispatch()`
 3. **FCM** only in `fcm_service.py`
-4. **Recipients** resolved in `EventRouter` / `NotificationEngine`, not in source modules
+4. **Recipients** resolved in `EventRouter`, not in source modules
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

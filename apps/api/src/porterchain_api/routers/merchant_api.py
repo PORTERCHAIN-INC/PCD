@@ -11,7 +11,7 @@ from porterchain_api.db import get_db
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.orders_service import MerchantOrdersService
 from porterchain_api.merchant_engine.tracking_service import MerchantTrackingService
-from porterchain_api.routers.merchant import _order_response
+from porterchain_api.routers.merchant._deps import _order_response
 from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest, MerchantOrderResponse, OrderTrackingResponse
 
 router = APIRouter(prefix="/v1/merchant-api", tags=["merchant-api"])

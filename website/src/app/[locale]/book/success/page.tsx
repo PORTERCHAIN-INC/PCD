@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import SiteShell from "@/components/layout/SiteShell";
 import Container from "@/components/ui/Container";
-import { getBookingConfirmation, type BookingConfirmationResult } from "@/lib/api";
+import { syncBookingCheckout, type BookingConfirmationResult } from "@/lib/api";
 import { publicEnv } from "@/lib/env";
 
 export default function BookSuccessPage() {
@@ -46,7 +46,7 @@ function BookSuccessContent() {
 
     async function poll() {
       try {
-        const res = await getBookingConfirmation(quoteId);
+        const res = await syncBookingCheckout(quoteId);
         if (cancelled) return;
         if (res.status === "ready" && res.confirmation) {
           setConfirmation(res.confirmation);

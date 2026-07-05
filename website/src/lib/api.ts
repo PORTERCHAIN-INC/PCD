@@ -163,6 +163,13 @@ export function getBookingConfirmation(quoteId: string) {
   );
 }
 
+export function syncBookingCheckout(quoteId: string) {
+  return apiFetch<BookingConfirmationStatus>("/v1/bookings/sync-checkout", {
+    method: "POST",
+    body: JSON.stringify({ quote_id: quoteId }),
+  });
+}
+
 export interface OrderResult {
   order_id: string;
   order_number: string;
@@ -318,4 +325,12 @@ export async function getActiveBookingDraft(
   }
   const data = (await response.json()) as BookingDraftResult | null;
   return data ?? null;
+}
+
+export function cancelBookingDraft(draftId: string, sessionId: string, token?: string) {
+  const params = new URLSearchParams({ session_id: sessionId });
+  return apiFetch<BookingDraftResult>(`/v1/booking-drafts/${draftId}/cancel?${params}`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
 }

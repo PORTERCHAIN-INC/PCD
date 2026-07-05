@@ -1,38 +1,41 @@
 # Mobile Architecture Report
 
-**Audit date:** June 30, 2026  
+
+**Type:** REPORT
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+> **Snapshot report** — point-in-time audit. Current truth: [MOBILE_ARCHITECTURE.md](MOBILE_ARCHITECTURE.md) (canonical doc).
+
 **Reference:** [masterrule.md](./masterrule.md) v3.1  
-**Supersedes:** Stale sections of [MOBILE_ARCHITECTURE.md](./MOBILE_ARCHITECTURE.md) (still marked "scaffold" — apps are fully wired)
+**Canonical for:** [MOBILE_ARCHITECTURE.md](./MOBILE_ARCHITECTURE.md)
 
 ---
 
-## 1. Locked topology
+## Locked Topology
 
 ```
-┌─────────────────────┐     ┌──────────────────────┐
-│  mobile-driver      │     │  mobile-customer     │
-│  Expo SDK 52        │     │  Expo SDK 52         │
-└──────────┬──────────┘     └──────────┬───────────┘
-           │  HTTPS / WSS              │
-           ▼                           ▼
-┌──────────────────────────────────────────────────┐
-│  Porterchain API (:8001)                         │
-│  • /driver-api/v1/*  (driver)                    │
-│  • /v1/*             (customer)                  │
-└──────────────────────┬───────────────────────────┘
-                       │
-                       ▼
-            Application Services (*_engine/)
-                       │
-                       ▼
-            Fleetbase Adapter → Fleetbase (:8000)
+mobile-driver (Expo SDK 52)       mobile-customer (Expo SDK 52)
+        │                                      │
+        │ HTTPS / WSS                          │ HTTPS / WSS
+        ▼                                      ▼
+Porterchain API :8001                  Porterchain API :8001
+  /driver-api/v1/*                       /v1/*
+        │                                      │
+        ├──────────── Application services (*_engine/) ────────────┐
+        │                                                          │
+        ▼                                                          ▼
+PostgreSQL 16                                           Fleetbase adapter
+                                                               │
+                                                               ▼
+                                                        Fleetbase :8000
 ```
 
-**Compliance:** No mobile code calls Fleetbase, Stripe SDK, or merchant/admin APIs directly.
+**Compliance:** mobile apps never call Fleetbase, merchant API, admin API, or Stripe native SDK directly. Stripe is hosted checkout through Porterchain server responses.
 
 ---
 
-## 2. Repository layout
+## Repository Layout
 
 ```
 apps/
@@ -41,174 +44,220 @@ apps/
 
 shared/
 ├── api/                    # @porterchain/mobile-api
-├── theme/                  # @porterchain/mobile-theme
+├── components/             # @porterchain/mobile-components
 ├── hooks/                  # @porterchain/mobile-hooks
-├── storage/                # @porterchain/mobile-storage
 ├── maps/                   # @porterchain/mobile-maps
+├── mobile-performance/     # @porterchain/mobile-performance
+├── mobile-security/        # @porterchain/mobile-security
+├── mobile-ui/              # @porterchain/mobile-ui
 ├── notifications/          # @porterchain/mobile-notifications
 ├── offline/                # @porterchain/mobile-offline
-├── mobile-security/        # @porterchain/mobile-security
-├── mobile-performance/     # @porterchain/mobile-performance
-├── components/             # @porterchain/mobile-components
-└── mobile-ui/              # @porterchain/mobile-ui
+├── storage/                # @porterchain/mobile-storage
+└── theme/                  # @porterchain/mobile-theme
 ```
 
 ---
 
-## 3. Provider tree (both apps)
+## Provider Tree
+
+Both apps share the same provider shape:
 
 ```
 SafeAreaProvider
 └── ThemeProvider
     └── QueryClientProvider
-        └── PerformanceProvider          # focus manager, metrics
+        └── PerformanceLayer
             └── MapsProvider
                 └── MobileUiProvider
                     └── ToastProvider
-                        └── SecurityLayer    # ClerkBridge → MobileSecurityProvider
-                            └── ApiProvider  # createSecureApiClient
+                        └── SecurityLayer
+                            └── ApiProvider
                                 └── OfflineSyncLayer
                                     └── NotificationLayer
                                         └── RootNavigator
 ```
 
----
-
-## 4. Navigation architecture
-
-### Driver (6 tabs)
-
-| Tab        | Stack           | Key screens                                                                 |
-| ---------- | --------------- | --------------------------------------------------------------------------- |
-| Home       | HomeStack       | Dashboard                                                                   |
-| Jobs       | JobsStack       | Jobs, JobDetail, AssignmentQueue, Pod†, Incident†                           |
-| Navigation | NavigationStack | Navigation†, LiveMap                                                        |
-| Earnings   | EarningsStack   | Earnings                                                                    |
-| Shift      | ShiftStack      | Shift                                                                       |
-| More       | MoreStack       | Profile, Notifications, OfflineSync†, Support, SOS†, Settings, Performance† |
-
-† = lazy-loaded via `createLazyScreen` (`@porterchain/mobile-performance`)
-
-### Customer (5 tabs)
-
-| Tab           | Stack              | Key screens                                                                         |
-| ------------- | ------------------ | ----------------------------------------------------------------------------------- |
-| Home          | HomeStack          | Dashboard                                                                           |
-| Bookings      | BookingsStack      | Bookings, Quote, Booking, Draft, StripeCheckout†, Confirmation                      |
-| Tracking      | TrackingStack      | Tracking, LiveMap†, History                                                         |
-| Notifications | NotificationsStack | NotificationCenter                                                                  |
-| Profile       | ProfileStack       | Profile, Invoices, Receipts, Support, Claims†, OfflineSync†, Settings, Performance† |
-
-### Deep linking
-
-| Mechanism                         | Implementation                                       |
-| --------------------------------- | ---------------------------------------------------- |
-| Custom scheme                     | `porterchain-driver://`, `porterchain-customer://`   |
-| Push tap (warm)                   | `NotificationProvider` → `onDeepLink`                |
-| Push tap (cold)                   | `getInitialNotification` + `onNotificationOpenedApp` |
-| URL cold start                    | `useAppLinking` + `expo-linking`                     |
-| React Navigation `linking` config | Not configured (custom handlers used)                |
-
-**Driver routes:** `jobs/{id}`, `navigation`, `support`, `sos`, `notifications`  
-**Customer routes:** `tracking/{id}`, `bookings`, `support`, `claims`, `notifications`
+Driver uses `DriverApiProvider`; customer uses `CustomerApiProvider`. Both wrap `createSecureApiClient`.
 
 ---
 
-## 5. API boundaries
+## Navigation Architecture
+
+### Driver App
+
+| Tab | Stack | Key Screens |
+| --- | ----- | ----------- |
+| Home | HomeStack | Dashboard |
+| Jobs | JobsStack | Jobs, JobDetail, AssignmentQueue, POD, Incident |
+| Navigation | NavigationStack | Navigation, live map |
+| Earnings | EarningsStack | Earnings |
+| Shift | ShiftStack | Shift |
+| More | MoreStack | Profile, Notifications, OfflineSync, Support, SOS, Settings, Performance |
+
+### Customer App
+
+| Tab | Stack | Key Screens |
+| --- | ----- | ----------- |
+| Home | HomeStack | Dashboard |
+| Bookings | BookingsStack | Bookings, Quote, Booking, Draft, StripeCheckout, Confirmation |
+| Tracking | TrackingStack | Tracking, LiveMap, History |
+| Notifications | NotificationsStack | Notification center |
+| Profile | ProfileStack | Profile, Invoices, Receipts, Support, Claims, OfflineSync, Settings, Performance |
+
+### Deep Linking
+
+| Mechanism | Implementation |
+| --------- | -------------- |
+| Custom schemes | `porterchain-driver://`, `porterchain-customer://` |
+| Push tap | `NotificationProvider` → app-specific deep-link handler |
+| Cold-start push | FCM initial notification handlers |
+| URL cold start | `useAppLinking` + `expo-linking` |
+| Universal links | ⚠ Not configured |
+
+---
+
+## API Boundaries
 
 ### Driver → `/driver-api/v1`
 
-| Domain        | Client method                                            | Server                             |
-| ------------- | -------------------------------------------------------- | ---------------------------------- |
-| Auth          | `login`, `refreshSession`                                | `driver_engine/auth_service`       |
-| Jobs / routes | `jobs`, `job`, `acceptOrder`, `rejectOrder`              | `porterchain_driver`               |
-| POD           | `podPhoto`, `podSignature`, `podComplete`, `generateOtp` | `driver_engine` + Fleetbase bridge |
-| GPS           | `postLocation`                                           | → Fleetbase adapter                |
-| Shift         | `shiftStart`, `shiftEnd`, `setAvailability`              | `porterchain_driver`               |
-| Offline       | `queueOffline`, `syncOffline`                            | `porterchain_driver/offline`       |
-| Push          | `registerPush`                                           | `notification_engine`              |
+| Domain | Client Methods | Server |
+| ------ | -------------- | ------ |
+| Auth | `login`, `refreshSession` | `driver_engine/auth_service` |
+| Dashboard/jobs/routes | `dashboard`, `jobs`, `job`, `route` | `porterchain_driver` |
+| Execution | `acceptOrder`, `rejectOrder`, `arriveStop`, `deliverStop`, `stopException` | `StopsService` / bridge |
+| POD | `podPhoto`, `podSignature`, `podComplete`, `generateOtp` | POD service + Fleetbase adapter |
+| GPS | `postLocation` | `LocationService` → Fleetbase track |
+| Shift | `shiftStart`, `shiftEnd`, `shiftBreak`, `setAvailability` | `ShiftService` / availability |
+| Offline | `queueOffline`, `offlinePending`, `syncOffline`, `retryOffline` | offline executor |
+| Push | `registerPush` | notification `DeviceService` |
 
 ### Customer → `/v1`
 
-| Domain        | Client method                                           | Server                                |
-| ------------- | ------------------------------------------------------- | ------------------------------------- |
-| Auth          | `authMe` (Clerk bearer)                                 | `auth/principal_resolver`             |
-| Bookings      | `createQuote`, `startBooking`, `getBookingConfirmation` | `booking_engine`                      |
-| Tracking      | `getOrder`, `getLiveTracking`                           | `booking_engine` + Fleetbase tracking |
-| Billing       | dashboard `invoices`, `payments`                        | `merchant_engine` / billing           |
-| Notifications | inbox, prefs, device register                           | `notification_engine`                 |
+| Domain | Client Methods | Server |
+| ------ | -------------- | ------ |
+| Auth | `authMe` | Clerk principal resolver |
+| Dashboard | `dashboard` | customer/dashboard services |
+| Quote/booking | `createQuote`, `startBooking`, draft methods | booking engine |
+| Payment | `retryPayment`, hosted checkout flow | billing/Stripe webhook path |
+| Tracking | `getOrder`, `getLiveTracking` | booking/tracking + Fleetbase adapter |
+| Support | `listSupport`, `createSupport` | customer support services |
+| Notifications | inbox/history/read/archive/preferences | notification engine |
+| Push | `registerPushDevice` | notification `DeviceService` |
 
 ---
 
-## 6. Offline architecture
+## Offline Architecture
 
 ```
 Screen action
     ↓
-runDirectOrQueue (online → API, offline → MMKV queue)
+run direct when online, or enqueue in MMKV
     ↓
-OfflineSyncProvider (30s driver / 45s customer, paused in background)
+OfflineSyncProvider
     ↓
-POST /driver-api/v1/offline/sync → offline_executor → Application Services
-    ↓
-Fleetbase Adapter (when execution required)
+Driver: POST /driver-api/v1/offline/* → offline_executor
+Customer: local/stub adapter until server reconciliation is added
 ```
 
-| App      | Queue                 | Server sync     | Background GPS         |
-| -------- | --------------------- | --------------- | ---------------------- |
-| Driver   | MMKV enterprise queue | ✅ Full         | ✅ `expo-task-manager` |
-| Customer | MMKV local            | ❌ Stub adapter | N/A                    |
+| App | Queue | Auto Sync | Server Sync | Notes |
+| --- | ----- | --------- | ----------- | ----- |
+| Driver | MMKV enterprise queue | 30s | ✅ Full driver executor | Background GPS enabled |
+| Customer | MMKV local queue | 45s | ⚠ Stub/local | Needs server-backed reconciliation |
 
 ---
 
-## 7. Notifications architecture
+## Notifications Architecture
 
 ```
-FCM (native) ──┐
-               ├──► NotificationProvider ──► React Query inbox cache
-WebSocket ─────┘         │
-                         ├── Badge sync
-                         └── Deep link → navigation
+FCM native token
+    ↓
+NotificationProvider
+    ├── register device with Porterchain API
+    ├── merge foreground events into inbox cache
+    └── deep link into navigation
+
+WebSocket /v1/notifications/ws
+    ↓
+Realtime inbox/badge updates with polling fallback
 ```
 
-- **Engine:** Notification Engine only — mobile never sends push directly.
-- **Realtime:** `WS /v1/notifications/ws` with exponential backoff; paused in background.
-- **FCM:** Foreground merge into inbox; device register on sign-in.
+| Feature | Driver | Customer |
+| ------- | ------ | -------- |
+| FCM token registration | ✅ `/driver-api/v1/push/register` | ✅ `/v1/notifications/devices/register` |
+| Inbox/history/read/archive | ✅ | ✅ |
+| Preferences | ✅ via notification API | ✅ |
+| Deep links | ✅ | ✅ |
+| Universal links | ⚠ | ⚠ |
 
 ---
 
-## 8. Maps & Fleetbase (display-only)
+## Maps And Fleetbase
 
-- `EnterpriseMap` renders server-provided polylines, driver position, geofences.
-- GPS source labeled `fleetbase` from API — mobile does not compute routes.
-- Driver navigation opens external Google Maps URL from `navigation_url`.
-
----
-
-## 9. Payments (customer)
-
-- Hosted Stripe Checkout URL from `startBooking`.
-- Confirmation via polling `getBookingConfirmation` (server updated by Stripe webhook).
-- No Stripe RN SDK — compliant with masterrule §14.
+| Concern | Driver | Customer |
+| ------- | ------ | -------- |
+| Map rendering | `EnterpriseMap`, navigation screen | tracking/live map screens |
+| Route truth | Porterchain API / Fleetbase adapter | Porterchain API / Fleetbase adapter |
+| GPS writes | Driver app posts `/location` | N/A |
+| Direct Fleetbase access | ❌ | ❌ |
+| Google Maps key | `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` | same |
 
 ---
 
-## 10. Architecture gaps
+## Security Architecture
 
-| Gap                                       | Severity | Recommendation                                           |
-| ----------------------------------------- | -------- | -------------------------------------------------------- |
-| `MOBILE_ARCHITECTURE.md` outdated         | Low      | Update scaffold status                                   |
-| Customer not in masterrule §4.1 repo tree | Low      | Add to masterrule                                        |
-| Guest tracking behind auth                | Medium   | Optional auth stack for public tracking                  |
-| Driver upload stub                        | High     | Presigned upload API                                     |
-| Customer offline sync stub                | Medium   | Mirror driver offline endpoints or document support-only |
-| Universal links                           | Medium   | `associatedDomains` + Navigation linking config          |
+| Layer | Implementation | Status |
+| ----- | -------------- | ------ |
+| Clerk | `@clerk/clerk-expo`, `ClerkSignInPanel` | ✅ |
+| API client | `createSecureApiClient` | ✅ |
+| Driver refresh | `/driver-api/v1/auth/refresh` callback | ✅ |
+| Secure storage | Secure Store / mobile auth stores | ✅ |
+| PIN/biometric shell | `@porterchain/mobile-security` | ✅ |
+| Security audit events | `emitSecurityEvent` | ✅ |
+| Certificate pinning | package support, not enforced | ⚠ |
+| Dev bypass | allowed only for local/dev configs | ⚠ production guard required |
 
 ---
 
-## 11. Related documents
+## Release Architecture
 
-- [MOBILE_PRODUCTION_READINESS.md](./MOBILE_PRODUCTION_READINESS.md)
-- [MOBILE_SECURITY_REPORT.md](./MOBILE_SECURITY_REPORT.md)
-- [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)
-- [AUTHENTICATION.md](./AUTHENTICATION.md)
+| Item | Driver | Customer |
+| ---- | ------ | -------- |
+| Expo SDK | 52 | 52 |
+| React Native | 0.76.3 | 0.76.3 |
+| EAS config | ✅ | ✅ |
+| Dev port | 8081 default | 8082 |
+| Bundle/package ids | ✅ | ✅ |
+| Firebase native paths | ✅ | ✅ |
+| Store assets | ✅ | ⚠ incomplete |
+| `EAS_PROJECT_ID` | fixed in app config | env-dependent |
+
+---
+
+## Known Architecture Gaps
+
+| Gap | Severity | Recommendation |
+| --- | -------- | -------------- |
+| Customer server offline sync is stub/local | Medium | Add `/v1/offline/*` or document local-only behavior |
+| Customer store assets incomplete | High | Add icon/splash/adaptive assets before release |
+| Universal links absent | Medium | Add iOS associated domains and Android intent filters |
+| Crash reporting absent | Medium | Add Sentry or equivalent |
+| Certificate pinning not enforced | Low/Medium | Enable after production API host and pins stabilize |
+| Driver POD upload hardening | High | Use production presigned upload flow |
+
+---
+
+## Related Documents
+
+| Document | Purpose |
+| -------- | ------- |
+| [MOBILE_PRODUCTION_READINESS.md](./MOBILE_PRODUCTION_READINESS.md) | Release readiness, security, and performance |
+| [DRIVER_PLATFORM.md](./DRIVER_PLATFORM.md) | Driver integration coverage |
+| [CONNECTIONS.md](./CONNECTIONS.md) | Mobile/API contracts |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

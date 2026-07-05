@@ -14,7 +14,7 @@ integrations:
       - website/src/components/maps/
 
   porterchain_api:
-    status: planned
+    status: implemented
     env:
       - NEXT_PUBLIC_PORTERCHAIN_API_URL
     default_port: 8001
@@ -46,5 +46,5 @@ integrations:
     env: OSRM_HOST
 
   firebase_fcm:
-    status: external
-    note: API-side only; driver app does not use Firebase
+    status: partial
+    note: mobile-driver registers FCM token; API send requires prod credentials

@@ -1,7 +1,11 @@
 # Porterchain Enterprise RBAC Matrix
 
-**Version:** 1.0  
-**Date:** July 1, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Version:** 1.1  
 **Authority:** Porterchain API (not Clerk Organizations)
 
 ---
@@ -19,10 +23,10 @@
 
 | Role           | Value            | Portal          | Provisioned via  |
 | -------------- | ---------------- | --------------- | ---------------- |
-| Customer       | `customer`       | Customer app    | Open signup      |
+| Customer       | `customer`       | Website, `apps/customer/` (:3004), mobile-customer | Open signup      |
 | Merchant       | `merchant`       | Merchant portal | Invitation       |
 | Merchant Admin | `merchant_admin` | Merchant portal | Invitation       |
-| Driver         | `driver`         | Driver app      | Admin invitation |
+| Driver         | `driver`         | Driver portal (:3003), `apps/mobile-driver/` | Admin invitation |
 | Dispatcher     | `dispatcher`     | Admin portal    | Staff invitation |
 | Finance        | `finance`        | Admin portal    | Staff invitation |
 | Support        | `support`        | Admin portal    | Staff invitation |
@@ -237,8 +241,70 @@ Optional `X-Merchant-Id` header selects membership when a user belongs to multip
 
 ---
 
+## Data scope rules
+
+| Role         | Data scope                                       |
+| ------------ | ------------------------------------------------ |
+| `customer`   | `customer_id = self`                             |
+| `merchant_*` | `merchant_id = org` (from `merchant_users` row)  |
+| `driver`     | `driver_id = self`                               |
+| `sales`      | Leads + merchants in territory (optional filter) |
+| `support`    | Order lookup by reference; tier-1 PII masking    |
+| `finance`    | All billing entities; no dispatch write          |
+
+---
+
+## Driver and customer capabilities
+
+| Surface  | Allowed actions (summary) |
+| -------- | ------------------------- |
+| Driver   | Assigned jobs, location, POD, own wallet/documents |
+| Customer | Own orders, tracking, invoices, rebook, profile (Clerk) |
+
+Enforced in `driver_engine/` and customer routes — not module-based like admin/merchant portals.
+
+---
+
+## Merchant API key scopes (machine auth)
+
+| Scope             | Allows            |
+| ----------------- | ----------------- |
+| `shipments:read`  | GET shipments     |
+| `shipments:write` | Create shipments  |
+| `tracking:read`   | Tracking events   |
+| `webhooks:manage` | Register webhooks |
+| `invoices:read`   | Billing read      |
+
+Implementation: `apps/api/src/porterchain_api/auth/merchant_api.py`
+
+---
+
+## Audit requirements
+
+| Action                     | Logged              |
+| -------------------------- | ------------------- |
+| Role assignment            | `admin_audit_log`   |
+| Refund approval            | `admin_audit_log`   |
+| Merchant ACTIVE toggle     | Merchant events     |
+| API key create/revoke      | Merchant audit      |
+| SSO Fleetbase session      | Recommended         |
+
+---
+
 ## Related docs
 
-- `RBAC.md` — legacy overview (see this matrix for current enterprise model)
-- `INVITATION_WORKFLOW.md` — invitation provisioning
-- `AUTHENTICATION_ARCHITECTURE.md` — Clerk-only identity
+| Document | Purpose |
+| -------- | ------- |
+| [RBAC.md](./RBAC.md) | Overview + Fleetbase sync summary |
+| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Clerk-only identity |
+| [SSO.md](./SSO.md) | Fleetbase console SSO |
+| [SECURITY.md](./SECURITY.md) | Secrets, API hardening |
+| [INVITATION_WORKFLOW.md](./INVITATION_WORKFLOW.md) | Invitation provisioning |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

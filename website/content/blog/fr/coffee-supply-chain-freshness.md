@@ -9,6 +9,8 @@ trending: true
 tags: ["coffee", "perishables", "food"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Specialty coffee distribution is a freshness business. Roasters and wholesalers invest in origin, roast profile, and packaging — then lose quality in an uncontrolled last mile.
 
 ## Time is a product attribute
@@ -23,7 +25,7 @@ Generic delivery treats coffee like any box. Freshness-focused operators treat *
 
 ## Structured routes for recurring accounts
 
-Most coffee wholesalers run recurring loops to cafés and retail partners. Route templates, multi-stop optimization, and SLA monitoring turn those loops into **repeatable quality** — not driver-dependent luck.
+Most coffee wholesalers run recurring loops to cafés and retail partners. Route templates, multi-stop planning, and SLA monitoring turn those loops into **repeatable quality** — not driver-dependent luck.
 
 ## Small volume, high standards
 

@@ -8,7 +8,8 @@ package "Frontends (Next.js)" {
   [Merchant Portal :3001] as MERCH
   [Admin Portal :3002] as ADMIN
   [Driver Portal :3003] as DRIVER
-  [Mobile Driver] as MOBILE
+  [Mobile Driver] as MOBILE_D
+  [Mobile Customer] as MOBILE_C
 }
 
 package "Porterchain API (FastAPI :8001)" {
@@ -23,7 +24,7 @@ package "Porterchain API (FastAPI :8001)" {
   [notification_engine] as NE
 }
 
-database "PostgreSQL / SQLite" as PG
+database "PostgreSQL 16" as PG
 database "Redis" as REDIS
 queue "Event Bus" as EB
 queue "Task Queues" as Q
@@ -50,7 +51,8 @@ CUST --> ROUTERS
 MERCH --> ROUTERS
 ADMIN --> ROUTERS
 DRIVER --> ROUTERS
-MOBILE --> ROUTERS
+MOBILE_D --> ROUTERS
+MOBILE_C --> ROUTERS
 
 ROUTERS --> BE
 ROUTERS --> ME

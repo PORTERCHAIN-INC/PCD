@@ -1,16 +1,16 @@
 @startuml notification_flow
 !theme plain
-queue "order.booked / booking.confirmed" as EV
-participant "notification_handler" as NH
-participant "NotificationOrchestrator" as ORCH
+queue "domain events" as EV
+participant "event_router" as ER
+participant "NotificationEngine" as ENG
 participant "DeliveryService" as DEL
 queue "notification.queued" as NQ
 participant "apps/worker" as W
 cloud "Email/SMS/Push" as CH
 
-EV -> NH
-NH -> ORCH
-ORCH -> DEL
+EV -> ER
+ER -> ENG
+ENG -> DEL
 DEL -> NQ
 NQ -> W
 W -> CH

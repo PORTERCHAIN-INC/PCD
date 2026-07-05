@@ -13,8 +13,6 @@ from porterchain_api.admin_engine.diagnostics_service import (
     TEST_IDS,
     AdminDiagnosticsService,
 )
-from porterchain_api.admin_engine.e2e_validation_catalog import DEFAULT_MERCHANT_BULK_COUNT
-from porterchain_api.admin_engine.e2e_validation_service import E2EValidationService
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.config import Settings, get_settings
@@ -23,7 +21,6 @@ from porterchain_api.db import get_db
 router = APIRouter(prefix="/v1/admin/diagnostics", tags=["diagnostics"])
 
 _svc = AdminDiagnosticsService()
-_e2e = E2EValidationService()
 Ctx = Annotated[AdminContext, Depends(get_admin_context)]
 
 
@@ -36,12 +33,6 @@ def _guard(ctx: AdminContext, module: str = "diagnostics") -> None:
 
 class ReportsRequest(BaseModel):
     write_files: bool = False
-
-
-class E2ERunRequest(BaseModel):
-    write_files: bool = False
-    cleanup: bool = True
-    merchant_order_count: int = DEFAULT_MERCHANT_BULK_COUNT
 
 
 @router.get("/center")
@@ -182,49 +173,3 @@ def generate_reports(
 ) -> dict:
     _guard(ctx, "diagnostics_write")
     return _svc.generate_reports(db, settings, write_files=body.write_files)
-
-
-@router.post("/e2e/run")
-def run_e2e_validation(
-    ctx: Ctx,
-    body: E2ERunRequest,
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> dict:
-    """Enterprise End-to-End Operations Validation — all 10 phases."""
-    _guard(ctx, "diagnostics_write")
-    return _e2e.run_full(
-        db,
-        settings,
-        write_files=body.write_files,
-        cleanup=body.cleanup,
-        merchant_order_count=body.merchant_order_count,
-    )
-
-
-@router.get("/e2e/phases")
-def e2e_phases(ctx: Ctx) -> dict:
-    _guard(ctx)
-    from porterchain_api.admin_engine.e2e_validation_catalog import (
-        E2E_REPORT_FILES,
-        FAILURE_SCENARIOS,
-        FORWARD_LOGISTICS_STEPS,
-        MERCHANT_SCENARIO_STEPS,
-        REVERSE_LOGISTICS_FLOW,
-        SYSTEM_CHAIN,
-    )
-
-    return {
-        "phases": [
-            {"id": 1, "name": "System Layer Validation", "chain": list(SYSTEM_CHAIN)},
-            {"id": 2, "name": "Forward Logistics", "steps": list(FORWARD_LOGISTICS_STEPS)},
-            {"id": 3, "name": "Merchant Scenario", "steps": list(MERCHANT_SCENARIO_STEPS)},
-            {"id": 4, "name": "Reverse Logistics", "steps": list(REVERSE_LOGISTICS_FLOW)},
-            {"id": 5, "name": "Failure Scenarios", "scenarios": list(FAILURE_SCENARIOS)},
-            {"id": 6, "name": "Event Bus Validation"},
-            {"id": 7, "name": "Notification Validation"},
-            {"id": 8, "name": "System Consistency"},
-            {"id": 9, "name": "Observability"},
-            {"id": 10, "name": "Report Generation", "reports": list(E2E_REPORT_FILES)},
-        ]
-    }

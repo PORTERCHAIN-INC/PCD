@@ -129,3 +129,30 @@ def update_booking_draft(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return _draft_response(db, draft, settings)
+
+
+@router.post("/{draft_id}/cancel", response_model=BookingDraftResponse)
+def cancel_booking_draft(
+    draft_id: str,
+    session_id: str | None = Query(None),
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    clerk_user_id: Annotated[str | None, Depends(get_optional_clerk_user_id)] = None,
+) -> BookingDraftResponse:
+    draft = _drafts.get_by_id(db, draft_id)
+    if not draft:
+        raise HTTPException(status_code=404, detail="draft_not_found")
+    try:
+        _drafts.assert_access(db, draft, session_id=session_id, clerk_user_id=clerk_user_id)
+        draft = _drafts.cancel_draft(
+            db,
+            draft,
+            actor_type="customer" if clerk_user_id else "visitor",
+            actor_id=clerk_user_id or session_id,
+            reason="customer_cancelled",
+        )
+    except PermissionError as exc:
+        raise _access_denied(exc) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _draft_response(db, draft, settings)

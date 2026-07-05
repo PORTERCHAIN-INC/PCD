@@ -16,7 +16,6 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.control_tower_service import ControlTowerService
-from porterchain_api.admin_engine.dispatch_queue_optimizer import DispatchQueueOptimizer
 from porterchain_api.admin_engine.live_map_service import LiveMapService
 from porterchain_api.admin_engine.operations_service import AdminOperationsService
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
@@ -33,7 +32,6 @@ router = APIRouter(prefix="/v1/admin/operations", tags=["operations"])
 _ct = ControlTowerService()
 _live_map = LiveMapService()
 _ops = AdminOperationsService()
-_optimizer = DispatchQueueOptimizer()
 Ctx = Annotated[AdminContext, Depends(get_admin_context)]
 
 
@@ -82,39 +80,6 @@ def active_orders(ctx: Ctx, db: Session = Depends(get_db), search: str | None = 
 def queue(ctx: Ctx, db: Session = Depends(get_db)) -> list[dict]:
     _guard(ctx, "dispatch_read")
     return _ct.queue(db)
-
-
-class OptimizeQueueBody(BaseModel):
-    order_ids: list[str]
-    strategy: str | None = "balanced"
-    engine: str = "valhalla"
-
-
-class AssignBatchBody(BaseModel):
-    plan_id: str
-    driver_id: str
-    order_ids: list[str] | None = None
-
-
-@router.post("/queue/optimize")
-def optimize_queue(
-    body: OptimizeQueueBody,
-    ctx: Ctx,
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> dict:
-    _guard(ctx, "dispatch")
-    try:
-        return _optimizer.optimize(
-            db,
-            settings,
-            ctx,
-            body.order_ids,
-            strategy=body.strategy or "balanced",
-            engine=body.engine,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/queue/assign-batch")

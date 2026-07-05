@@ -1,113 +1,137 @@
 # Merchant Portal — Production Readiness Report
 
-**Date:** June 30, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Reference:** [masterrule.md](./masterrule.md) v3.1  
 **Scope:** B2B Merchant Portal (`apps/merchant-portal`) + `/v1/merchant/*` + `/v1/merchant-api/*`
+
+> **Platform status:** The **overall Porterchain platform is NOT production ready** — see [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md). This report covers **merchant surface readiness only**.
 
 ---
 
 ## Executive summary
 
-The Merchant Portal is **production-ready for core logistics operations** (book, track, bill, report, integrate). Most features are end-to-end wired through FastAPI application services with no duplicated business engines. Remaining gaps are **non-blocking** for launch: Clerk org invite automation, scheduled report delivery worker, OAuth ERP connectors, and server-side order export.
+The Merchant Portal is **operationally ready for core B2B logistics** (book, track, bill, report, integrate) when deployed alongside a configured API, Clerk, Fleetbase adapter, and Redis. Remaining gaps are **non-blocking for merchant beta** but documented below.
 
 | Classification | Count |
 | -------------- | ----- |
-| ✅ Complete    | 22    |
-| ⚠ Partial      | 11    |
-| ❌ Missing     | 3     |
+| ✅ Complete | 22 |
+| ⚠ Partial | 11 |
+| ❌ Missing | 3 |
 
-**Overall readiness:** **85%** — ship with documented limitations below.
+**Merchant surface readiness:** **~85%** — suitable for staged rollout with documented limitations.
 
 ---
 
 ## Feature readiness matrix
 
-| Feature            | Status      | Notes                                                                                             |
-| ------------------ | ----------- | ------------------------------------------------------------------------------------------------- |
-| Dashboard          | ✅ Complete | KPIs, charts, activity, notifications, WebSocket refresh                                          |
-| Orders             | ✅ Complete | List, filters, bulk actions, Order 360                                                            |
-| Book Delivery      | ✅ Complete | Preview, confirm, multi-parcel, drafts, templates, bulk                                           |
-| Tracking           | ✅ Complete | Live tracking, timeline, POD, dashboard panel                                                     |
-| Live Map           | ⚠ Partial   | Embedded in `/track` + Order 360; requires Google Maps key; poll-based map updates                |
-| Recipients         | ✅ Complete | Settings CRUD + booking picker (post-audit)                                                       |
-| Billing            | ✅ Complete | Overview, invoices, statement, payments, credits, tax, CSV/PDF                                    |
-| Reports            | ⚠ Partial   | Full workspace; scheduled delivery is profile-only (no worker)                                    |
-| API / Integrations | ✅ Complete | Keys, sandbox, usage, rate limits, docs, console                                                  |
-| Webhooks           | ✅ Complete | CRUD, logs, retry, HMAC delivery, test ping                                                       |
-| Team               | ⚠ Partial   | Invite/roles/activity/2FA prefs; no Clerk org invite API                                          |
-| Support            | ✅ Complete | Tickets, KB, Order 360 create (post-audit)                                                        |
-| Claims             | ✅ Complete | List, file, Order 360 file (post-audit)                                                           |
-| Settings           | ✅ Complete | Profile, locations, warehouses, branding, tax, documents, contract                                |
-| Notifications      | ⚠ Partial   | Inbox on dashboard + mark-read (post-audit); prefs in settings; full inbox at `/v1/notifications` |
-| Realtime           | ⚠ Partial   | WebSocket on dashboard/orders/track; 60s poll fallback                                            |
-| RBAC               | ✅ Complete | `merchant_engine/rbac.py` enforced on all routes                                                  |
-| Programmatic API   | ✅ Complete | Live tracking parity on `/merchant-api/track` (post-audit)                                        |
+| Feature | Status | Notes |
+| ------- | ------ | ----- |
+| Dashboard | ✅ Complete | KPIs, charts, activity, `NotificationCenter` mark-read |
+| Orders | ✅ Complete | List, filters, bulk actions, Order 360 |
+| Book Delivery | ✅ Complete | Preview, confirm, multi-parcel, drafts, bulk |
+| Tracking | ✅ Complete | Live tracking, timeline, POD, dashboard panel |
+| Live Map | ⚠ Partial | Embedded in `/track` + Order 360; Google Maps key required; poll-based |
+| Recipients | ✅ Complete | Settings CRUD + booking picker |
+| Billing | ✅ Complete | Overview, invoices, statement, payments, credits, tax, CSV/PDF |
+| Reports | ⚠ Partial | Full workspace; scheduled delivery profile-only (no worker) |
+| API / Integrations | ✅ Complete | Keys, sandbox, usage, rate limits, docs, webhooks UI |
+| Webhooks | ✅ Complete | CRUD, logs, retry, HMAC delivery via worker |
+| Team | ⚠ Partial | Invite/roles/activity; no Clerk org invite API |
+| Support | ✅ Complete | Tickets, KB, Order 360 create |
+| Claims | ✅ Complete | List, file, Order 360 file |
+| Settings | ✅ Complete | Profile, locations, warehouses, branding, tax, documents, contract |
+| Notifications | ⚠ Partial | Dashboard embed + `/v1/notifications/inbox`; prefs in settings |
+| Realtime | ⚠ Partial | WebSocket on dashboard/orders/track; poll fallback |
+| RBAC | ✅ Complete | `merchant_engine/rbac.py` on all routes |
+| Programmatic API | ✅ Complete | 5 routes on `/v1/merchant-api/*` + gateway rate limits |
 
 ---
 
 ## Infrastructure & engines
 
-| Component            | Status | Verification                                            |
-| -------------------- | ------ | ------------------------------------------------------- |
-| FastAPI routers      | ✅     | 120+ merchant routes + 5 merchant-api routes            |
-| Application services | ✅     | `merchant_engine/*` orchestrate engines                 |
-| Pricing Engine       | ✅     | `pricing_engine` + `calculate_merchant` on all bookings |
-| Billing Engine       | ✅     | `billing_engine/merchant_service.py`                    |
-| Reporting Engine     | ✅     | `reporting_engine/merchant_service.py`                  |
-| Notification Engine  | ⚠      | `/v1/notifications/*`; dashboard embeds subset          |
-| Fleetbase Adapter    | ✅     | No direct Fleetbase HTTP from merchant layer            |
-| Google Maps          | ⚠      | Render-only via `@porterchain/maps`; env required       |
-| OSRM                 | ✅     | ETA via `MapsService._osrm_route` in tracking           |
-| Valhalla             | ✅     | Route geometry via `MapsService._valhalla_route`        |
-| Event Bus            | ✅     | `emit_event` → `platform/bus.py`                        |
-| Gateway Engine       | ✅     | Rate limits + usage on `/v1/merchant-api/*`             |
-| WebSockets           | ⚠      | `/v1/notifications/ws` for merchant principals          |
+| Component | Status | Verification |
+| --------- | ------ | ------------ |
+| FastAPI routers | ✅ | 120+ `/v1/merchant/*` + 5 `/v1/merchant-api/*` |
+| Application services | ✅ | `merchant_engine/*` orchestrates engines |
+| Pricing Engine | ✅ | `calculate_merchant` on all bookings |
+| Billing Engine | ✅ | `billing_engine/merchant_service.py` |
+| Reporting Engine | ✅ | `MerchantReportsService` |
+| Notification Engine | ⚠ | `/v1/notifications/*`; merchant `user_role=merchant` |
+| Fleetbase Adapter | ✅ | No direct Fleetbase HTTP from merchant layer |
+| Google Maps | ⚠ | `@porterchain/maps` render-only; env key required |
+| Valhalla / OSRM | ✅ | ETA via `MapsService` in tracking |
+| Event Bus | ✅ | `emit_event` → handlers |
+| Gateway Engine | ✅ | Usage + rate limits on `/v1/merchant-api/*` |
 
 ---
 
-## Missing (❌) — out of scope for this release
+## Missing (❌) — follow-on release
 
-| Item                                  | Reason                                    |
-| ------------------------------------- | ----------------------------------------- |
-| ERP OAuth (Shopify/WooCommerce)       | Marked `coming_soon`; readiness docs only |
-| Scheduled report email worker         | Metadata stored; no delivery processor    |
-| Server-side order CSV/manifest export | Client-side only today                    |
+| Item | Reason |
+| ---- | ------ |
+| ERP OAuth (Shopify/WooCommerce) | Marked `coming_soon` |
+| Scheduled report email worker | Metadata stored; no delivery processor |
+| Server-side order CSV/manifest export | Client-side export only |
 
 ---
 
 ## Partial (⚠) — acceptable with docs
 
-| Item                               | Mitigation                                               |
-| ---------------------------------- | -------------------------------------------------------- |
-| Live map streaming                 | 10s poll + WebSocket page refresh                        |
-| Team Clerk invite                  | Manual `pending_{email}` user rows; ops can link Clerk   |
-| Notification preference dual-store | Settings profile + notification_engine prefs             |
-| Invoice pay flow                   | NET billing; no Stripe pay button for contract merchants |
-| Legacy `lib/api.ts`                | Superseded by domain libs; safe to deprecate             |
+| Item | Mitigation |
+| ---- | ---------- |
+| Live map streaming | Poll + page refresh |
+| Team Clerk invite | Manual `pending_{email}` rows |
+| NET batch invoicing | Statement read-only; no scheduled invoice run |
+| Invoice PDF | `pdf_url` not populated platform-wide |
+| Platform production cert | See [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) |
 
 ---
 
-## Pre-production checklist
+## Pre-deployment checklist
 
-- [ ] Run Alembic migrations (`g8h9i0j1k2l3` integrations tables, prior webhook secret)
-- [ ] Set `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` and `PORTERCHAIN_API_URL`
-- [ ] Configure Clerk merchant org + `X-Merchant-Org-Id`
-- [ ] Verify Fleetbase adapter connectivity (health via `/internal/services`)
-- [ ] Enable Redis for event bus / worker webhook fanout
-- [ ] Set `JWT_SECRET` for webhook signing encryption
-- [ ] Smoke test: book → track live → invoice → report export → API key → webhook test
+- [ ] `pnpm db:migrate` (head `n2o3p4q5r6s7`; includes `g8h9i0j1k2l3` gateway tables)
+- [ ] `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `NEXT_PUBLIC_PORTERCHAIN_API_URL`
+- [ ] Clerk merchant org + `X-Merchant-Org-Id`
+- [ ] Fleetbase adapter: `pnpm docker:fleetbase:verify`
+- [ ] Redis for event bus + webhook fanout
+- [ ] Smoke: book → track → invoice → API key → webhook test ping
 
 ---
 
-## Post-audit fixes applied
+## Programmatic API routes
 
-1. **Programmatic API live tracking** — `/v1/merchant-api/track/{number}` now returns `live_tracking` via `MerchantTrackingService` (Fleetbase + OSRM + Valhalla).
-2. **Notification mark-read** — Dashboard `NotificationCenter` calls `POST /v1/notifications/inbox/{id}/read` and follows `deep_link`.
-3. **Recipients management** — Settings → Recipients tab with `POST /v1/merchant/recipients`.
-4. **Order 360 Support/Claims** — Inline ticket and claim filing from order detail page.
+| Method | Path | Scope |
+| ------ | ---- | ----- |
+| POST | `/v1/merchant-api/bookings` | `shipments:write` |
+| GET | `/v1/merchant-api/orders` | `shipments:read` |
+| GET | `/v1/merchant-api/orders/{id}` | `shipments:read` |
+| GET | `/v1/merchant-api/track/{tracking_number}` | `shipments:read` |
+| POST | `/v1/merchant-api/orders/{id}/cancel` | `shipments:write` |
 
 ---
 
 ## Sign-off recommendation
 
-**Approve production deployment** for merchant self-service logistics, billing, reporting, and API integrations. Defer ERP OAuth and automated scheduled reports to a follow-on release.
+**Approve merchant portal for staged B2B rollout** (book, track, bill, API integrations) when platform ops prerequisites are met. Do **not** treat this as full platform production certification — defer ERP OAuth, scheduled reports, and NET batch billing to follow-on work.
+
+---
+
+## Related
+
+| Document | Purpose |
+| -------- | ------- |
+| [MERCHANT_ARCHITECTURE_REPORT.md](./MERCHANT_ARCHITECTURE_REPORT.md) | Architecture and component map |
+| [docs/architecture/MERCHANT_FLOW.md](./docs/architecture/MERCHANT_FLOW.md) | Flow diagram |
+| [docs/archive/MERCHANT_GAP_ANALYSIS.md](./docs/archive/MERCHANT_GAP_ANALYSIS.md) | Historical gap inventory |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

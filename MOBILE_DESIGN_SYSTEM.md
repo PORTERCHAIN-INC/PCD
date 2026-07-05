@@ -1,21 +1,35 @@
 # Porterchain Mobile Design System
 
-Enterprise-grade React Native UI for **Driver** and **Customer** apps. Porterchain Blue theme — navy `#0a1628` + electric blue `#2563eb` — with patterns inspired by Uber Driver, Stripe, Linear, Apple HIG, and Material Design 3.
 
-## Packages
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
 
-| Package                     | Role                                                       |
-| --------------------------- | ---------------------------------------------------------- |
-| `@porterchain/mobile-theme` | Colors, spacing, typography, shadows, motion, status tones |
-| `@porterchain/mobile-ui`    | Components (this design system)                            |
+**Packages:** `@porterchain/mobile-theme`, `@porterchain/mobile-ui`, `@porterchain/mobile-components`
 
-## Setup
+Enterprise React Native UI shared by **Driver** and **Customer** mobile apps. The system uses Porterchain navy/blue tokens, dark-mode parity, logistics-oriented status components, and app-level providers wired through each Expo app.
+
+---
+
+## Package Map
+
+| Package | Path | Role |
+| ------- | ---- | ---- |
+| `@porterchain/mobile-theme` | `shared/theme/` | Colors, spacing, typography, motion, RTL-aware `ThemeProvider` |
+| `@porterchain/mobile-ui` | `shared/mobile-ui/` | Core primitives and composed UI components |
+| `@porterchain/mobile-components` | `shared/components/` | App-level list/offline/empty-state patterns |
+
+---
+
+## Provider Setup
+
+Both mobile apps include the UI providers inside the full app provider stack:
 
 ```tsx
 import { ThemeProvider } from "@porterchain/mobile-theme";
 import { MobileUiProvider, ToastProvider } from "@porterchain/mobile-ui";
 
-export function AppProviders({ children }) {
+export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider initialScheme="system">
       <MobileUiProvider>
@@ -26,155 +40,99 @@ export function AppProviders({ children }) {
 }
 ```
 
-## Typography
+In production apps this sits inside `SafeAreaProvider`, `QueryClientProvider`, `PerformanceLayer`, `MapsProvider`, `SecurityLayer`, API provider, offline sync, and notification layers.
 
-| Token      | Size | Use                        |
-| ---------- | ---- | -------------------------- |
-| `display`  | 36   | Hero numbers, splash       |
-| `headline` | 24   | Screen titles              |
-| `title`    | 17   | Card headers               |
-| `body`     | 15   | Default copy               |
-| `label`    | 13   | Form labels, table headers |
-| `caption`  | 11   | Meta, timestamps           |
-| `overline` | 10   | Section labels (uppercase) |
+---
 
-```tsx
-import { Headline, Body, Caption } from "@porterchain/mobile-ui";
+## Tokens
 
-<Headline>Today's route</Headline>
-<Body muted>12 stops remaining</Body>
-```
+| Token Group | Examples |
+| ----------- | -------- |
+| Brand | Navy `#0a1628`, blue `#2563eb`; driver splash green `#124835` |
+| Typography | `Display`, `Headline`, `Title`, `Body`, `Label`, `Caption`, `Text` |
+| Spacing | 4pt grid: `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl`, `4xl` |
+| Status | `neutral`, `info`, `success`, `warning`, `danger`, `active`, `pending`, `completed`, `cancelled` |
+| Motion | `FadeIn`, `FadeInDown`, `FadeInUp`, `FadeOut`, `AnimatedView`, `PressableScale` |
 
-## Spacing
+---
 
-4pt grid via `theme.spacing`: `xs` 4 · `sm` 8 · `md` 12 · `lg` 16 · `xl` 20 · `2xl` 24 · `3xl` 32 · `4xl` 40
+## Component Inventory
 
-```tsx
-import { Spacer } from "@porterchain/mobile-ui";
-<Spacer size="2xl" />;
-```
+| Category | Exports |
+| -------- | ------- |
+| Layout | `Screen`, `Divider`, `Spacer` |
+| Typography | `Text`, `Display`, `Headline`, `Title`, `Body`, `Label`, `Caption` |
+| Actions | `Button` (`primary`, `secondary`, `ghost`, `outline`, `danger`) |
+| Surfaces | `Card`, `CardHeader` |
+| Forms | `Input`, `SearchInput` |
+| Data display | `ListItem`, `ListSection`, `DataTable`, `Badge`, `StatusChip` |
+| Feedback | `ToastProvider`, `useToast`, `Dialog`, `MobileUiProvider`, `AppBottomSheet`, `SheetModal` |
+| Loading | `Skeleton`, `SkeletonCard`, `SkeletonList` |
+| Charts | `BarChart`, `Sparkline`, `MetricCard` |
+| Logistics | `Timeline`, `MapFrame` |
+| States | `LoadingState`, `EmptyState`, `ErrorState`, `SuccessState` |
+| Motion | `AnimatedView`, `PressableScale`, `FadeIn*`, `FadeOut` |
 
-## Components
+---
 
-### Buttons
-
-Variants: `primary` · `secondary` · `ghost` · `outline` · `danger`  
-Sizes: `sm` · `md` · `lg` (44pt min touch on `md`)
-
-```tsx
-<Button label="Accept job" variant="primary" loading={pending} fullWidth />
-```
-
-### Cards
+## Usage Examples
 
 ```tsx
-<Card elevated onPress={open}>
-  <CardHeader title="Stop 3" subtitle="123 Main St" action={<Badge label="ETA 4m" />} />
+import { Body, Button, Card, CardHeader, StatusChip } from "@porterchain/mobile-ui";
+
+<Card elevated onPress={openJob}>
+  <CardHeader
+    title="Stop 3"
+    subtitle="123 Main St"
+    action={<StatusChip label="In transit" tone="active" />}
+  />
+  <Body muted>ETA 4 min</Body>
+  <Button label="Capture POD" variant="primary" fullWidth />
 </Card>
 ```
 
-### Inputs & Search
-
 ```tsx
-<Input label="Phone" hint="Include country code" error={errors.phone} />
-<SearchInput placeholder="Search orders…" />
-```
+import { EmptyState, SkeletonList, Timeline } from "@porterchain/mobile-ui";
 
-### Lists & Tables
-
-```tsx
-<ListSection title="Active jobs">
-  <ListItem title="PC-1042" subtitle="Downtown" meta="2.1 km" onPress={open} />
-</ListSection>
-
-<DataTable columns={cols} data={rows} keyExtractor={(r) => r.id} />
-```
-
-### Badges & Status Chips
-
-```tsx
-<Badge label="Live" variant="success" dot />
-<StatusChip label="In transit" tone="active" />
-```
-
-Tones: `neutral` · `info` · `success` · `warning` · `danger` · `active` · `pending` · `completed` · `cancelled`
-
-### Toast
-
-```tsx
-const { show } = useToast();
-show("Route updated", "success");
-```
-
-### Dialogs & Bottom Sheets
-
-```tsx
-<Dialog visible={open} title="Cancel stop?" destructive onConfirm={cancel} onCancel={close} />;
-
-const sheetRef = useRef<BottomSheetModal>(null);
-<SheetModal ref={sheetRef} title="Proof of delivery" snapPoints={["50%", "90%"]}>
-  ...
-</SheetModal>;
-```
-
-### Skeletons
-
-```tsx
 <SkeletonList count={5} />
-<SkeletonCard />
-```
-
-### Charts
-
-```tsx
-<BarChart data={[{ label: "Mon", value: 12 }, ...]} />
-<MetricCard label="Earnings" value="$284" delta="+12%" trend={[4,6,5,8,12]} />
-```
-
-### Timeline & Maps
-
-```tsx
-<Timeline items={[{ id: "1", title: "Picked up", timestamp: "9:02 AM", tone: "completed" }]} />
-
-<MapFrame loading={!ready} overlay={<SearchInput />}>
-  <MapView ... />
-</MapFrame>
-```
-
-### State Views
-
-```tsx
-<LoadingState message="Syncing route…" />
 <EmptyState title="No jobs" action={{ label: "Go online", onPress }} />
-<ErrorState action={{ label: "Retry", onPress: refetch }} />
-<SuccessState title="Delivered" message="POD captured" />
+<Timeline items={[{ id: "1", title: "Picked up", timestamp: "9:02 AM", tone: "completed" }]} />
 ```
 
-### Motion
+---
 
-```tsx
-import { FadeInDown, PressableScale } from "@porterchain/mobile-ui";
+## App Usage
 
-<Animated.View entering={FadeInDown.duration(280)}>
-  <PressableScale onPress={tap}>
-    <Card>...</Card>
-  </PressableScale>
-</Animated.View>;
-```
+| App | Design System Usage |
+| --- | ------------------- |
+| `apps/mobile-driver` | Dashboard cards, jobs lists, POD states, navigation map frame, shift controls, SOS/support screens |
+| `apps/mobile-customer` | Quote/booking flows, tracking map, notification inbox, invoices/receipts, support/claims screens |
 
-## Theming
+The apps also use `@porterchain/mobile-performance` (`EnterpriseFlashList`, lazy screens, optimized image) and `@porterchain/mobile-offline` (`OfflineSyncBar`, `OfflineSyncPanel`) alongside the core UI package.
 
-```tsx
-const { theme, toggleScheme } = useTheme();
-// theme.colors.secondary — Porterchain Blue
-// theme.shadows.md — elevation
-// theme.motion.duration.normal — 280ms
-```
+---
 
 ## Principles
 
-1. **Premium density** — generous whitespace, crisp borders, subtle shadows
-2. **Operational clarity** — status chips, timeline, and map chrome for logistics
-3. **Accessibility** — 44pt touch targets, `a11yProps` on primary actions
-4. **Dark mode** — full token parity via `ThemeProvider`
-5. **No direct Fleetbase** — UI calls Porterchain API only (`masterrule.md`)
+1. **Operational clarity** — status chips, timelines, maps, and action buttons make logistics state obvious.
+2. **Server truth** — UI validates inputs, but Porterchain API owns business decisions.
+3. **Mobile accessibility** — 44pt touch targets, screen-reader roles, and dark-mode token parity are required.
+4. **Shared by default** — new primitives belong in shared packages unless they are app-specific.
+5. **No direct Fleetbase** — mobile UI calls Porterchain API only.
+
+---
+
+## Related Documents
+
+| Document | Purpose |
+| -------- | ------- |
+| [MOBILE_ARCHITECTURE_REPORT.md](./MOBILE_ARCHITECTURE_REPORT.md) | Mobile architecture and UI map |
+| [MOBILE_PRODUCTION_READINESS.md](./MOBILE_PRODUCTION_READINESS.md) | Readiness and performance notes |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

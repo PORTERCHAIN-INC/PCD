@@ -5,7 +5,7 @@ participant "FastAPI Router" as Router
 participant "auth/clerk.py" as Auth
 participant "Application Service" as Svc
 participant "Repository" as Repo
-database "Database" as DB
+database "PostgreSQL 16" as DB
 queue "Event Bus" as Bus
 participant "apps/worker" as Worker
 participant "fleetbase_engine" as FBE

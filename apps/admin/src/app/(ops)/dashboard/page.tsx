@@ -229,7 +229,6 @@ export default function DashboardPage() {
             {widgets.finance && <FinancePanel center={center} theme={theme} />}
             {widgets.support && <SupportPanel center={center} theme={theme} />}
             {widgets.claims && <ClaimsPanel center={center} theme={theme} />}
-            {widgets.crm && <CrmPanel center={center} theme={theme} />}
             {widgets.merchants && <MerchantsPanel center={center} theme={theme} />}
             {widgets.drivers && <DriversPanel center={center} theme={theme} />}
             {widgets.fleet && <FleetPanel center={center} theme={theme} />}
@@ -242,12 +241,6 @@ export default function DashboardPage() {
               theme={theme}
             >
               <ReportChart option={chartOption} height={280} />
-              <Link
-                href="/reports"
-                className="mt-2 inline-block text-sm text-secondary hover:underline"
-              >
-                Reports center →
-              </Link>
             </Panel>
           )}
 
@@ -585,23 +578,6 @@ function ClaimsPanel({ center, theme }: { center: DashboardCenter; theme: "light
   );
 }
 
-function CrmPanel({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
-  const c = center.crm;
-  return (
-    <Panel title="CRM" icon={<Building2 className="h-4 w-4" />} theme={theme}>
-      <div className="grid grid-cols-2 gap-2 text-sm">
-        <Row label="New leads" value={Number(c.new_leads ?? 0)} />
-        <Row label="Follow-ups today" value={Number(c.todays_follow_ups ?? 0)} />
-        <Row label="Open deals" value={Number(c.open_deals ?? 0)} />
-        <Row label="Won this month" value={Number(c.won_deals_this_month ?? 0)} />
-      </div>
-      <Link href="/crm" className="mt-2 inline-block text-sm text-secondary hover:underline">
-        CRM →
-      </Link>
-    </Panel>
-  );
-}
-
 function MerchantsPanel({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
   const m = center.merchants as Record<string, unknown>;
   return (
@@ -703,19 +679,14 @@ function RightSidebar({ center, theme }: { center: DashboardCenter; theme: "ligh
   return (
     <>
       <Panel title="Today's schedule" icon={<Calendar className="h-4 w-4" />} theme={theme}>
-        <p className="text-sm text-muted">
-          Follow-ups: {Number(center.crm.todays_follow_ups ?? 0)}
-        </p>
-        <p className="text-sm text-muted">Meetings: {Number(center.crm.meetings_today ?? 0)}</p>
+        <p className="text-sm text-muted">Use merchant and driver pages for follow-ups.</p>
       </Panel>
       <Panel title="Approvals & pending" icon={<Bell className="h-4 w-4" />} theme={theme}>
         <ul className="space-y-2 text-sm">
           <PendingRow label="Merchant approvals" count={p.merchant_approvals} href="/merchants" />
-          <PendingRow label="Contracts" count={p.contracts} href="/crm/contracts" />
           <PendingRow label="Open claims" count={p.claims_open} href="/claims" />
           <PendingRow label="Support tickets" count={p.support_open} href="/support" />
           <PendingRow label="Quotes" count={p.quotes} href="/booking-drafts" />
-          <PendingRow label="Overdue tasks" count={p.overdue_tasks} href="/crm/tasks" />
         </ul>
       </Panel>
       <Panel title="Notifications" icon={<Bell className="h-4 w-4" />} theme={theme}>

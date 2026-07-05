@@ -8,6 +8,8 @@ trending: true
 tags: ["routing", "sustainability", "valhalla"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Empty miles are the silent tax on every logistics operation. They inflate fuel bills, compress margins, and push more vehicles onto roads than necessary.
 
 Modern route optimization treats routing as a **constraint satisfaction problem** — not a list of stops on a map.
@@ -19,7 +21,7 @@ Modern route optimization treats routing as a **constraint satisfaction problem*
 - **Multi-stop density** — combine compatible deliveries into single efficient loops
 - **Real-time replanning** — adjust when exceptions occur without breaking SLAs
 
-Porterchain uses Valhalla-powered routing with OSRM fallback, supporting multi-stop sequences and time-window constraints common in wholesale and recurring B2B routes.
+Porterchain uses Valhalla-powered routing with OSRM fallback on the server side — supporting multi-stop sequences and time-window constraints common in wholesale and recurring B2B routes.
 
 ## Measurable impact
 

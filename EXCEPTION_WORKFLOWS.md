@@ -1,7 +1,10 @@
 # Porterchain — Exception Workflows
 
-**Document version:** 1.0  
-**Date:** June 29, 2026
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 
 ---
 
@@ -194,17 +197,32 @@ flowchart TD
 
 ## Notifications per exception
 
-| Exception       | Customer    | Merchant     | Driver | Ops        |
-| --------------- | ----------- | ------------ | ------ | ---------- |
-| Delay           | SMS         | Email        | —      | Dashboard  |
-| Failed delivery | SMS + email | Email        | —      | Ticket     |
-| Refund          | Email       | Email        | —      | —          |
-| Claim           | Email       | Email if B2B | —      | Case owner |
+Delivered via the notification engine (`order.*` / `claim.*` events → `notification.queued`). Email and push are live; **SMS is log-only** until a transactional SMS provider is selected (see [EVENT_BUS.md](./EVENT_BUS.md)).
+
+| Exception       | Customer          | Merchant     | Driver | Ops        |
+| --------------- | ----------------- | ------------ | ------ | ---------- |
+| Delay           | Email/push (SMS*) | Email        | —      | Dashboard  |
+| Failed delivery | Email/push (SMS*) | Email        | —      | Ticket     |
+| Refund          | Email             | Email        | —      | —          |
+| Claim           | Email             | Email if B2B | —      | Case owner |
+
+\* SMS channel currently log-only.
 
 ---
 
 ## Related documents
 
-- [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)
-- [BUSINESS_WORKFLOW.md](./BUSINESS_WORKFLOW.md)
-- [ROLE_PERMISSIONS.md](./ROLE_PERMISSIONS.md)
+| Document | Purpose |
+| -------- | ------- |
+| [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md) | Canonical states |
+| [EVENT_CATALOG.md](./EVENT_CATALOG.md) | Exception/claim events |
+| [BUSINESS_WORKFLOW.md](./BUSINESS_WORKFLOW.md) | Business processes |
+| [RBAC_MATRIX.md](./RBAC_MATRIX.md) | Who can act on exceptions |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,8 +1,11 @@
 # Porterchain — Domain Model
 
-**Document version:** 2.0  
-**Date:** June 29, 2026  
-**Status:** Canonical domain specification — **no implementation until approved**  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Status:** Canonical domain specification — implemented in `apps/api/` (PostgreSQL + Alembic)  
 **Audience:** Engineering, Product, Operations
 
 ---
@@ -940,10 +943,18 @@ Mapped by `EventTranslator` in `services/fleetbase-adapter/`.
 - [ENTITY_RELATIONSHIP_MODEL.md](./ENTITY_RELATIONSHIP_MODEL.md) — ER diagrams
 - [BUSINESS_GLOSSARY.md](./BUSINESS_GLOSSARY.md) — Term definitions
 - [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md) — State machine detail
-- [EVENT_FLOW.md](./EVENT_FLOW.md) — Event catalog
+- [EVENT_BUS.md](./EVENT_BUS.md) — Event catalog
 - [PRICING_ENGINE.md](./PRICING_ENGINE.md) — Pricing entities
 - [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) — Sync boundaries
 
 ---
 
-_Canonical domain specification. Implementation must conform to this model._
+_Canonical domain specification. SQLAlchemy models in `apps/api/src/porterchain_api/` implement this model; see [ENTITY_RELATIONSHIP_MODEL.md](./ENTITY_RELATIONSHIP_MODEL.md) for table mappings._
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

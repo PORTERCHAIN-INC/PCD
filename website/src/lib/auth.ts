@@ -1,6 +1,5 @@
 import { getPorterchainApiBase } from "@/lib/api-base";
 import { publicEnv } from "@/lib/env";
-import { customerPortalPath } from "@/data/portal-links";
 
 export type AuthMe = {
   user_id: string;
@@ -34,9 +33,5 @@ export function portalHomeUrl(userType: string): string {
   if (type === "driver") {
     return `${publicEnv.driverPortalUrl}/onboarding`;
   }
-  if (type === "customer") {
-    return `${publicEnv.customerPortalUrl}/dashboard`;
-  }
-
-  return customerPortalPath;
+  return `${publicEnv.customerPortalUrl}/dashboard`;
 }

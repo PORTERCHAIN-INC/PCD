@@ -8,6 +8,8 @@ trending: true
 tags: ["medical", "compliance", "healthcare"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Healthcare logistics tolerates little ambiguity. A late delivery is not an inconvenience — it can disrupt patient care, clinic operations, or cold-chain integrity.
 
 ## Beyond speed: documentation
@@ -19,7 +21,7 @@ Medical and healthcare suppliers need:
 - **Proof standards** that satisfy internal QA and external auditors
 - **Controlled escalations** when exceptions occur
 
-Porterchain's compliance procedures capture photo, signature, GPS, and reference-linked events — not as optional fields, but as **required workflow steps.**
+Porterchain's compliance procedures capture photo, signature, OTP where needed, GPS, and reference-linked events — not as optional fields, but as **required workflow steps.**
 
 ## Partner network quality
 

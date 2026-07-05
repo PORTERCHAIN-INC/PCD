@@ -12,6 +12,7 @@ import { getAnonymousSessionId } from "@/lib/anonymous-session";
 import { clearBookingDraftHint } from "@/lib/booking-draft-hint";
 import { isClerkConfigured } from "@/lib/env";
 import {
+  cancelBookingDraft,
   getActiveBookingDraft,
   getQuote,
   mockCompleteCheckout,
@@ -19,7 +20,6 @@ import {
   type QuoteResult,
 } from "@/lib/api";
 import { fetchAuthMe } from "@/lib/auth";
-import { publicEnv } from "@/lib/env";
 
 export default function BookContinuePage() {
   return (
@@ -46,6 +46,7 @@ function BookContinueContent() {
   const { isSignedIn, isLoaded, getToken } = useAuth();
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [quote, setQuote] = useState<QuoteResult | null>(null);
@@ -194,11 +195,12 @@ function BookContinueContent() {
         return;
       }
 
-      if (booking.mock_checkout && publicEnv.allowStripeMock) {
-        const confirmation = await mockCompleteCheckout(quoteId);
-        router.push(`/book/success?quote_id=${quoteId}`);
-        void confirmation;
-      } else if (booking.mock_checkout) {
+      if (booking.mock_checkout) {
+        try {
+          await mockCompleteCheckout(quoteId);
+        } catch {
+          // Server rejected mock (STRIPE_MOCK=false) — should not happen without checkout_url.
+        }
         router.push(`/book/success?quote_id=${quoteId}`);
       }
     } catch (err) {
@@ -212,6 +214,25 @@ function BookContinueContent() {
       }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleCancelBooking() {
+    if (!window.confirm(t("cancelConfirm"))) return;
+    setCancelling(true);
+    setError(null);
+    try {
+      if (draftId) {
+        const token =
+          clerkConfigured && isLoaded && isSignedIn ? ((await getToken()) ?? undefined) : undefined;
+        await cancelBookingDraft(draftId, getAnonymousSessionId(), token);
+      }
+      clearBookingDraftHint();
+      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("cancelError"));
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -333,6 +354,19 @@ function BookContinueContent() {
             </>
           )}
         </div>
+
+        {quoteId && (
+          <Button
+            variant="ghost"
+            shape="pill"
+            size="lg"
+            className="mt-6 w-full border border-gray-200 text-muted hover:text-primary"
+            disabled={loading || cancelling}
+            onClick={handleCancelBooking}
+          >
+            {cancelling ? t("processing") : t("cancelBooking")}
+          </Button>
+        )}
       </Container>
     </SiteShell>
   );

@@ -1,30 +1,7 @@
 # System Validation Report
 
-Generated: 2026-07-02T20:51:20.327112+00:00
+**Type:** POINTER
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
 
-**Overall:** WARNING
-
-## Connection chain (masterrule §1)
-
-- Website: **PASS**
-- Booking Portal: **PASS**
-- Customer Portal: **PASS**
-- Merchant Portal: **PASS**
-- Admin Portal: **PASS**
-- Porterchain API: **PASS**
-- Pricing Engine: **PASS**
-- Billing Engine: **PASS**
-- Notification Engine: **PASS**
-- Orders Engine: **PASS**
-- CRM Engine: **PASS**
-- Finance Engine: **PASS**
-- Claims Engine: **PASS**
-- Support Engine: **PASS**
-- Internal Event Bus: **PASS**
-- Fleetbase Adapter: **PASS**
-- Fleetbase: **WARNING**
-- Driver Mobile: **PASS**
-
-## Auto-fixes applied
-
-## Summary: pass=104 warning=0 fail=0 blocker=0
+Pointer to **[CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md)** — validation audit

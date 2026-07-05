@@ -1,4 +1,4 @@
-"""Merchant reports — orchestrates reporting_engine + orders/billing (masterrule §3)."""
+"""Merchant reports — order and billing aggregates (masterrule §3)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 from porterchain_api.merchant_engine.orders_service import MerchantOrdersService
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.reporting_engine import merchant_service as report_engine
+from porterchain_api.merchant_engine import reporting_metrics as report_engine
 
 
 class MerchantReportsService:

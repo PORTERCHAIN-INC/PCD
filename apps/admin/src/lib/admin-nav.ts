@@ -11,11 +11,9 @@ import {
   LayoutDashboard,
   Map,
   Package,
-  Route,
   Settings,
   Shield,
   Truck,
-  Users,
   Zap,
 } from "lucide-react";
 
@@ -55,12 +53,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         description: "Dispatch board & SLA",
         icon: Zap,
       },
-      {
-        href: "/routes",
-        label: "Route Center",
-        description: "Planning, optimization & dispatch",
-        icon: Route,
-      },
       { href: "/live-map", label: "Live Map", description: "Real-time fleet map", icon: Map },
       { href: "/orders", label: "Orders", description: "Order 360 & lifecycle", icon: Package },
       {
@@ -76,7 +68,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "commerce",
     label: "Commerce",
     items: [
-      { href: "/crm", label: "CRM", description: "Leads, deals, and pipeline", icon: Users },
       {
         href: "/merchants",
         label: "Merchants",
@@ -92,7 +83,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: "/pricing", label: "Pricing", description: "Tariffs & simulator", icon: CreditCard },
       { href: "/finance", label: "Finance", description: "Invoices & payments", icon: CreditCard },
-      { href: "/reports", label: "Reports", description: "Analytics & exports", icon: BarChart3 },
     ],
   },
   {

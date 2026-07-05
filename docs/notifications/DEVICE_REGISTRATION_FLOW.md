@@ -1,14 +1,22 @@
 # Device Registration Flow
 
-## Principle
 
-Every authenticated client registers its FCM token with the Notification Engine. Tokens are **never** stored in ad-hoc JSON blobs on domain models.
+**Type:** CANONICAL
+**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
 
-## Endpoint
+**See also:** [FCM_CONFIGURATION.md](./FCM_CONFIGURATION.md) · [NOTIFICATION_ARCHITECTURE.md](./NOTIFICATION_ARCHITECTURE.md)
+
+Every authenticated client registers FCM tokens with the Notification Engine. Tokens are stored in `notification_devices` — not ad-hoc JSON on domain models.
+
+---
+
+## Primary Endpoint
 
 ```
 POST /v1/notifications/devices/register
 Authorization: Bearer <Clerk JWT | Driver JWT>
+X-Merchant-Org-Id: <org>   (merchant principals only)
 ```
 
 ### Request Body
@@ -31,10 +39,24 @@ Authorization: Bearer <Clerk JWT | Driver JWT>
 ```json
 {
   "device_id": "uuid",
-  "registered": true,
-  "active_devices": 2
+  "registered": true
 }
 ```
+
+Implementation: `routers/notifications.py` → `DeviceService.register()`.
+
+## Driver Legacy Alias
+
+Mobile driver app may also call:
+
+```
+POST /driver-api/v1/push/register
+Authorization: Bearer <Porterchain driver JWT>
+```
+
+This delegates to `porterchain_driver/push.py` → same `DeviceService.register()` (`user_role=driver`).
+
+---
 
 ## Flow
 
@@ -42,56 +64,73 @@ Authorization: Bearer <Clerk JWT | Driver JWT>
 sequenceDiagram
   participant App as Client App
   participant Auth as Clerk / Driver Auth
-  participant API as Notification Engine
+  participant API as POST /v1/notifications/devices/register
+  participant DS as DeviceService
   participant DB as notification_devices
 
   App->>Auth: Sign in
   Auth-->>App: JWT
   App->>App: Request FCM token (expo-notifications / Firebase JS)
-  App->>API: POST /devices/register
-  API->>DB: Upsert device row
-  API-->>App: device_id
+  App->>API: register body
+  API->>DS: register()
+  DS->>DB: upsert by (user_role, user_id, fcm_token)
+  DS->>DS: trim to max 10 active devices
+  API-->>App: device_id, registered
 ```
 
 ## User Resolution
 
-| Portal   | Principal           | `user_role` | `user_id`      |
-| -------- | ------------------- | ----------- | -------------- |
-| Admin    | Clerk + admin_users | `admin`     | admin_users.id |
-| Merchant | Clerk + merchant    | `merchant`  | merchant.id    |
-| Customer | Clerk / guest       | `customer`  | customer.id    |
-| Driver   | Driver JWT          | `driver`    | drivers.id     |
+Resolved in `notification_engine/principal.py` → `get_notification_user()`:
+
+| Portal | Principal | `user_role` | `user_id` |
+| ------ | ----------- | ----------- | --------- |
+| Admin | Clerk + admin_users | `admin` | `admin_users.id` |
+| Merchant | Clerk + org | `merchant` | `merchants.id` |
+| Customer | Clerk | `customer` | `customers.id` |
+| Driver | Porterchain JWT | `driver` | `drivers.id` |
+
+WebSocket auth uses the same resolution via `resolve_notification_ws_user()` on `WS /v1/notifications/ws?token=`.
 
 ## Multi-Device
 
-- One user may register Android phone, iPhone, web browser, tablet
-- Each row is unique on `(user_role, user_id, fcm_token)`
-- Max 10 active devices per user (oldest deactivated)
+- One user may register phone, tablet, and web browser
+- Unique on `(user_role, user_id, fcm_token)`
+- Max **10** active devices per user — oldest deactivated (`MAX_DEVICES_PER_USER`)
 
 ## Logout / Revoke
 
 ```
 DELETE /v1/notifications/devices/{device_id}
-POST /v1/notifications/devices/revoke-all
 ```
+
+`DeviceService.revoke_all()` exists in code but **no HTTP route** is exposed yet — use per-device DELETE.
 
 ## Invalid Token Cleanup
 
-When FCM returns `registration-token-not-registered`:
+When FCM returns `registration-token-not-registered` or invalid token:
 
-1. `FCMService` marks device `is_active=false`
-2. Sets `invalidated_at` timestamp
-3. Audit log entry
+1. `FCMService.send()` flags invalid token
+2. `DeviceService.invalidate_token()` sets `is_active=false`, `invalidated_at`
 
-## Migration from Legacy
+## Legacy Migration
 
-Driver tokens previously stored in `drivers.performance.push_devices` are migrated on next register; legacy path delegates to `DeviceService`.
+`DeviceService.migrate_legacy_driver_tokens()` reads `drivers.performance.push_devices` on next register; legacy JSON path is deprecated.
 
-## Client Requirements
+## Client Status (July 2026)
 
-| App             | Status    | Library                      |
-| --------------- | --------- | ---------------------------- |
-| Driver mobile   | Roadmap   | `expo-notifications`         |
-| Admin portal    | Supported | Firebase JS + service worker |
-| Merchant portal | Roadmap   | Firebase JS                  |
-| Customer portal | Roadmap   | Firebase JS                  |
+| App | Registration path | Library |
+| --- | ----------------- | ------- |
+| mobile-driver | `/driver-api/v1/push/register` | `expo-notifications` ✅ in package.json |
+| Admin portal | `/v1/notifications/devices/register` | Firebase JS (when wired) |
+| Merchant portal | Same unified endpoint | Roadmap |
+| Customer portal / mobile-customer | Same unified endpoint | Roadmap |
+
+Push delivery resolves tokens from `notification_devices` when the delivery payload has no explicit token.
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

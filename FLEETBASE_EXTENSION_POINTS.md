@@ -1,6 +1,13 @@
 # Fleetbase Extension Points — Porterchain Guide
 
-**Goal:** Integrate Porterchain with Fleetbase **without modifying upstream OSS source** (AGPL compliance + upgrade path).
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Goal:** Integrate with Fleetbase **without modifying upstream OSS source** (AGPL compliance + upgrade path)
+
+> **Current integration:** [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) · **Adapter:** [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)
 
 ---
 
@@ -69,17 +76,15 @@ porterchain-bridge/
 
 **Auth middleware:** Validate `PORTERCHAIN_DISPATCHER_API_KEY` or dedicated service Bearer — separate from merchant Clerk auth.
 
-### 2. Porterchain webhook consumer (Porterchain side — not Fleetbase)
+### 2. Porterchain webhook consumer ✅ **Implemented**
 
-**Purpose:** Receive Fleetbase outbound webhooks.
+| Location | `apps/api/.../routers/webhooks.py` |
+| -------- | ---------------------------------- |
+| Route | `POST /webhooks/fleetbase` |
+| Verify | HMAC via `FLEETBASE_WEBHOOK_SECRET` |
+| Process | `fleetbase_engine/WebhookProcessor` |
 
-| Location | `apps/api/src/porterchain_api/routers/webhooks.py` (extend) |
-| -------- | ----------------------------------------------------------- |
-| Route    | `POST /v1/webhooks/fleetbase`                               |
-| Verify   | HMAC from Fleetbase API secret                              |
-| Map      | Fleetbase `order.*` → Porterchain `DomainEvents`            |
-
-No Fleetbase code change required — configure endpoint in Fleetbase dev console.
+Configure endpoint URL in Fleetbase dev console — no Fleetbase code change required.
 
 ### 3. Optional: `porterchain-ops-engine` (Ember — low priority)
 
@@ -285,21 +290,29 @@ If you modify Fleetbase packages, you must comply with AGPL source distribution 
 
 ---
 
-## Implementation roadmap
+## Implementation status (July 2026)
 
-| Phase       | Deliverable                                       |
-| ----------- | ------------------------------------------------- |
-| **Now**     | `v1` API bridge with `flb_live_*` key             |
-| **Phase 2** | `porterchain-bridge` PHP extension                |
-| **Phase 3** | Fleetbase webhook → Porterchain handler           |
-| **Phase 4** | Driver/vehicle bidirectional sync                 |
-| **Future**  | Custom order config for Porterchain retail vs B2B |
+| Phase | Deliverable | Status |
+| ----- | ----------- | ------ |
+| **Now** | `v1` API bridge (`POST /v1/orders`, drivers, vehicles) | ✅ Production |
+| **Now** | Fleetbase webhook → Porterchain handler | ✅ Implemented |
+| **Now** | Driver/vehicle outbound sync on admin approval | ✅ Implemented |
+| **Next** | `porterchain-bridge` PHP extension (SSO + tailored payloads) | ⚠️ SSO client exists; extension deploy needed |
+| **Future** | Custom order config for retail vs B2B | Roadmap |
 
 ---
 
 ## Related documents
 
-- [FLEETBASE_ANALYSIS.md](./FLEETBASE_ANALYSIS.md)
-- [FLEETBASE_APIS.md](./FLEETBASE_APIS.md)
-- [FLEETBASE_WEBHOOKS.md](./FLEETBASE_WEBHOOKS.md)
+- [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)
+- [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)
+- [EVENT_CATALOG.md](./EVENT_CATALOG.md)
 - [FLEETBASE_INSTALL.md](./FLEETBASE_INSTALL.md)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

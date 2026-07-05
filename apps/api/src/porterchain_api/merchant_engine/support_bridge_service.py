@@ -6,22 +6,13 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.claims_service import (
-    CLAIM_TYPES,
-    AdminClaimsService,
-    ClaimFilters,
-    claim_number,
-)
-from porterchain_api.admin_engine.support_service import (
-    AdminSupportService,
-    SupportFilters,
-    TICKET_CATEGORIES,
-    _append_timeline,
-    ticket_number,
-)
+from porterchain_api.support_engine.claims_service import AdminClaimsService, ClaimFilters
+from porterchain_api.support_engine.support_service import AdminSupportService, SupportFilters
+from porterchain_api.domain.claims import CLAIM_TYPES, claim_number
+from porterchain_api.domain.support import TICKET_CATEGORIES, append_ticket_timeline, ticket_number
 from porterchain_api.admin_models import Claim, SupportTicket
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.admin_engine import events as E
+from porterchain_shared.events.catalog import DomainEventType
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import MerchantAuditLog
 from porterchain_api.models import Order
@@ -91,7 +82,7 @@ class MerchantSupportBridgeService:
         )
         db.add(ticket)
         db.flush()
-        _append_timeline(
+        append_ticket_timeline(
             ticket,
             label="Ticket created by merchant",
             actor_type="merchant",
@@ -110,7 +101,7 @@ class MerchantSupportBridgeService:
         )
         emit_event(
             db,
-            event_type=E.TICKET_CREATED,
+            event_type=DomainEventType.SUPPORT_TICKET_CREATED,
             aggregate_type="support_ticket",
             aggregate_id=ticket.id,
             actor_type="merchant",
@@ -206,7 +197,7 @@ class MerchantSupportBridgeService:
         order = db.query(Order).filter(Order.id == order_id).first()
         emit_event(
             db,
-            event_type=E.CLAIM_OPENED,
+            event_type=DomainEventType.CLAIM_OPENED,
             aggregate_type="claim",
             aggregate_id=claim.id,
             actor_type="merchant",

@@ -7,6 +7,8 @@ author: "peter-porter"
 tags: ["retail", "visibility", "customer-experience"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 "Where is my order?" is the most expensive sentence in retail operations. Every call deflects staff from selling and signals a visibility gap your logistics partner should have closed.
 
 ## Visibility is a product feature
@@ -21,7 +23,7 @@ When tracking is an afterthought, support teams become the tracking system.
 
 ## Branded, operationally connected
 
-Porterchain's customer tracking experience delivers branded updates powered by the same shipment events our dispatch team uses internally — so customers and operators see **one source of truth.**
+Porterchain's customer tracking experience delivers branded updates powered by the same shipment events our dispatch team uses internally — including public tracking links and live ETA — so customers and operators see **one source of truth.**
 
 ## Business impact
 

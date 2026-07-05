@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
-import { crm } from "@/lib/crm";
+import { collaboration } from "@/lib/collaboration";
 import { Button, Input, Select } from "@/components/crm/primitives";
 import { relativeTime, titleCase } from "@/lib/crmFormat";
 
@@ -44,7 +44,7 @@ export function ActivityTimeline({
   const [busy, setBusy] = useState(false);
 
   const { data } = useApiData(
-    (t) => crm.activities(t, { entity_type: entityType, entity_id: entityId }),
+    (t) => collaboration.activities(t, { entity_type: entityType, entity_id: entityId }),
     [entityType, entityId, version],
     { key: `${entityType}-${entityId}-activities` }
   );
@@ -56,7 +56,7 @@ export function ActivityTimeline({
     setBusy(true);
     try {
       const token = await getApiToken();
-      await crm.createActivity(token, {
+      await collaboration.createActivity(token, {
         entity_type: entityType,
         entity_id: entityId,
         activity_type: type,

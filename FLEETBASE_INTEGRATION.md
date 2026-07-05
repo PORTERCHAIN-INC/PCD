@@ -1,203 +1,108 @@
 # Porterchain ↔ Fleetbase Integration
 
-**Version:** 1.0  
-**Date:** June 29, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Version:** 2.0  
 **Status:** Implemented
+
+> **Adapter detail:** [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) · **Topology:** [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md)
 
 ---
 
 ## Overview
 
-Fleetbase is Porterchain's **internal logistics engine**. Porterchain owns customer experience, auth, pricing, billing, and CRM. Fleetbase owns drivers, vehicles, operational orders, dispatch, GPS tracking, routes, and proof of delivery.
+Fleetbase is Porterchain's **internal logistics engine**. Porterchain owns customer experience, auth (Clerk), pricing, billing, and CRM. Fleetbase owns dispatch, GPS tracking, routes, and proof of delivery execution.
 
 ```
 ┌─────────────┐     ┌─────────────────┐     ┌──────────────────────┐     ┌─────────────┐
-│   Website   │────►│ Porterchain API │────►│ FleetbaseIntegration   │────►│ Fleetbase   │
-│  :3000      │     │  :8001          │     │ Service              │     │ API :8000   │
-├─────────────┤     │                 │     │ services/fleetbase/  │     └─────────────┘
-│  Merchant   │────►│  /v1/*          │     └──────────────────────┘
-│  Portal     │     │  /webhooks/*    │
-├─────────────┤     └────────▲────────┘
-│  Admin      │──────────────┘
-│  Portal     │
-└─────────────┘
-
-Fleetbase Console :4200 — ops dispatch only (unchanged)
+│  Frontends  │────►│ Porterchain API │────►│ fleetbase_engine +   │────►│ Fleetbase   │
+│  :3000–3004 │     │  :8001          │     │ fleetbase-adapter    │     │ API :8000   │
+│  mobile ×2  │     │  /v1/*          │     │                      │     └─────────────┘
+└─────────────┘     │  /webhooks/*    │     └──────────────────────┘
+                    └────────▲────────┘
+                             │ Event bus (order.dispatch_ready, webhooks)
+                    Admin SSO → Fleetbase Console :4200 (ops only)
 ```
 
-**Never:** Website → Fleetbase API  
-**Always:** Website → Porterchain API → Fleetbase Service → Fleetbase API
+**Never:** Frontend → Fleetbase API  
+**Always:** Frontend → Porterchain API → `fleetbase_engine` → `services/fleetbase-adapter/` → Fleetbase
 
 ---
 
 ## Ownership matrix
 
-| Domain                                           | Owner       |
-| ------------------------------------------------ | ----------- |
-| Authentication (Clerk)                           | Porterchain |
-| Website, merchant portal, admin portal UX        | Porterchain |
-| Business rules, pricing, billing, CRM, analytics | Porterchain |
-| Drivers, vehicles, ops orders, dispatch          | Fleetbase   |
-| GPS tracking, routes, POD capture                | Fleetbase   |
+| Domain | Owner |
+| ------ | ----- |
+| Authentication (Clerk) | Porterchain |
+| Website, merchant, admin, customer, driver UX | Porterchain |
+| Pricing, billing, CRM, commercial order state | Porterchain |
+| Drivers, vehicles, ops orders, dispatch | Fleetbase |
+| GPS tracking, routes, POD capture | Fleetbase |
 
 ---
 
-## Integration service
+## Integration layers
 
-**Package:** `porterchain-fleetbase` at `services/fleetbase/`
+| Layer | Path | Role |
+| ----- | ---- | ---- |
+| Adapter (HTTP) | `services/fleetbase-adapter/` | Sole Fleetbase HTTP boundary |
+| Sync engine | `apps/api/.../fleetbase_engine/` | BookingSyncService, WebhookProcessor, translators |
+| Event handlers | `booking_engine/fleetbase_sync_handler.py` | React to `order.dispatch_ready`, webhooks |
+| Factory | `services/fleetbase_integration.py` | `get_fleetbase_integration()` → `FleetbaseAdapter` |
 
-### Modules
+**Production order sync:** `POST /v1/orders` via adapter (API key).  
+**SSO extension routes:** `POST /int/v1/porterchain/sso/*` — requires Fleetbase `porterchain-bridge` extension (see [SSO.md](./SSO.md)).
 
-| Module        | Class                         | Responsibility                               |
-| ------------- | ----------------------------- | -------------------------------------------- |
-| `client`      | `FleetbaseClient`             | HTTP transport, auth headers, error handling |
-| `orders`      | `OrderSyncService`            | Create/update Fleetbase orders               |
-| `drivers`     | `DriverSyncService`           | Sync approved Porterchain drivers            |
-| `vehicles`    | `VehicleSyncService`          | Sync Porterchain vehicles                    |
-| `dispatch`    | `DispatchSyncService`         | Dispatch, schedule, start, complete          |
-| `tracking`    | `TrackingSyncService`         | Tracker, ETA, proof aggregation              |
-| `routes`      | `RouteSyncService`            | Route polyline, orchestrator                 |
-| `webhooks`    | verify/parse                  | HMAC validation, envelope normalization      |
-| `events`      | mappers                       | Fleetbase event → Porterchain state          |
-| `integration` | `FleetbaseIntegrationService` | Unified facade                               |
+---
 
-### Usage (Python)
+## Sync flows (event-driven)
+
+| Trigger | Path |
+| ------- | ---- |
+| `order.dispatch_ready` | Event bus → `sync_order_from_event` → `BookingSyncService` → adapter |
+| Admin approves driver | `AdminDriverService` → sync driver + vehicle |
+| Admin assigns driver | `AdminOperationsService` → sync dispatch |
+| Customer tracking | `GET /v1/orders/{tracking}/tracking` → adapter tracker API |
+| Fleetbase webhook | `POST /webhooks/fleetbase` → `WebhookIngressService` → `WebhookProcessor` |
+
+Order sync is **never** called directly from booking/admin services at call sites — handlers only (masterrule §12).
+
+---
+
+## FleetExecutor (Phase 2 hook — ADR-010)
+
+Mixed-fleet delivery (human driver today; autonomous vehicle, drone, robot later) uses an **anti-corruption layer** behind the Fleetbase adapter — not new Porterchain deployables.
 
 ```python
-from porterchain_fleetbase import FleetbaseIntegrationService, FleetbaseSettings
+# Conceptual port (implementations live in services/fleetbase-adapter/ or future adapters)
+class FleetExecutor(Protocol):
+    executor_type: str  # human_driver | autonomous_vehicle | drone | robot
 
-svc = FleetbaseIntegrationService(
-    FleetbaseSettings(
-        api_url="http://localhost:8000",
-        api_key="flb_live_...",
-        company_uuid="...",
-        dispatch_bridge=True,
-    )
-)
-
-fleetbase_order_id = svc.sync_order({
-    "porterchain_order_id": order.id,
-    "order_number": order.order_number,
-    "tracking_number": order.tracking_number,
-    "pickup": order.pickup,
-    "dropoff": order.dropoff,
-    "scheduled_at": order.scheduled_at.isoformat(),
-})
-
-tracking = svc.fetch_tracking(fleetbase_order_id)
+    def dispatch(self, order_id: str, payload: dict) -> str: ...
+    def tracking_snapshot(self, external_id: str) -> dict: ...
+    def cancel(self, external_id: str) -> None: ...
 ```
+
+| Field | Location | Default |
+| ----- | -------- | ------- |
+| `executor_type` | `booking_engine/order_metadata.resolve_executor_type()` | `human_driver` |
+| External ID | `orders.fleetbase_order_id` | Fleetbase human fleet today |
+
+New executor types plug in as **adapter strategies**; Porterchain order state and billing stay unchanged.
 
 ---
 
-## Sync flows
+## Porterchain API endpoints
 
-### 1. Order sync
-
-**When:** Retail booking confirmed, merchant creates shipment, order reaches `DISPATCH_READY`
-
-**Path:**
-
-```
-BookingConfirmationService / MerchantBookingService
-  → FleetbaseSyncService.sync_order()
-  → OrderSyncService.create_or_update()
-  → POST /v1/orders
-  → order.fleetbase_order_id saved
-```
-
-**ID mapping:** `orders.meta.porterchain_order_id` in Fleetbase (via mapper)
-
-### 2. Driver sync
-
-**When:** Admin approves driver (`POST /v1/admin/drivers/{id}/approve`)
-
-**Path:**
-
-```
-AdminDriverService.approve_driver()
-  → sync active vehicles first
-  → sync driver
-  → driver.fleetbase_driver_id saved
-```
-
-### 3. Vehicle sync
-
-**When:** Bundled with driver approval (active vehicle)
-
-**Path:** `VehicleSyncService.sync()` → `POST /v1/vehicles`
-
-### 4. Dispatch sync
-
-**When:** Admin assigns driver to order
-
-**Path:**
-
-```
-AdminOperationsService.assign_driver()
-  → sync_order (ensure Fleetbase order exists)
-  → sync_dispatch(fleetbase_driver_id)
-  → PATCH /v1/orders/{id}/dispatch
-```
-
-### 5. Tracking sync
-
-**When:** Customer views tracking page
-
-**API:** `GET /v1/orders/{tracking_number}/tracking`
-
-**Path:**
-
-```
-TrackingService.get_live_tracking()
-  → GET /v1/orders/{id}/tracker
-  → GET /v1/orders/{id}/eta
-  → GET /v1/orders/{id}/proofs
-```
-
-Returns Porterchain order state + `live_tracking` blob from Fleetbase.
-
-### 6. Status sync (webhooks)
-
-**When:** Fleetbase fires order lifecycle event
-
-**API:** `POST /webhooks/fleetbase`
-
-**Subscribed events:**
-
-| Fleetbase event         | Porterchain state             |
-| ----------------------- | ----------------------------- |
-| `order.dispatched`      | `DRIVER_ASSIGNED`             |
-| `order.driver_assigned` | `DRIVER_ASSIGNED`             |
-| `order.started`         | `PICKED_UP`                   |
-| `order.completed`       | `DELIVERED` → `POD_COMPLETED` |
-| `order.canceled`        | `CANCELLED`                   |
-| `order.failed`          | `FAILED`                      |
-
-**Path:**
-
-```
-Fleetbase webhook
-  → verify HMAC signature
-  → process_webhook()
-  → apply_webhook_update()
-  → transition_order_state()
-```
-
-### 7. Proof sync
-
-**When:** `order.completed` webhook received
-
-**Path:** `GET /v1/orders/{id}/proofs` → transition to `POD_COMPLETED` if proofs exist
-
----
-
-## API endpoints (Porterchain)
-
-| Method | Path                                    | Description                     |
-| ------ | --------------------------------------- | ------------------------------- |
-| GET    | `/v1/orders/{tracking_number}`          | Order summary (Porterchain DB)  |
-| GET    | `/v1/orders/{tracking_number}/tracking` | Order + live Fleetbase tracking |
-| POST   | `/webhooks/fleetbase`                   | Fleetbase status webhooks       |
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/v1/orders/{tracking_number}` | Order summary (Porterchain DB) |
+| GET | `/v1/orders/{tracking_number}/tracking` | Order + live Fleetbase tracking |
+| POST | `/webhooks/fleetbase` | Inbound Fleetbase status webhooks |
+| POST | `/v1/auth/sso/fleetbase` | Issue SSO token for ops console |
 
 Merchant and admin endpoints trigger sync internally — no Fleetbase URLs exposed to clients.
 
@@ -205,31 +110,26 @@ Merchant and admin endpoints trigger sync internally — no Fleetbase URLs expos
 
 ## Configuration
 
-Add to Porterchain API `.env`:
-
 ```env
 FLEETBASE_API_URL=http://localhost:8000
-FLEETBASE_API_KEY=flb_live_your_key_here
-FLEETBASE_DEFAULT_COMPANY_UUID=your-company-uuid
+FLEETBASE_API_KEY=flb_live_...
+FLEETBASE_DEFAULT_COMPANY_UUID=...
 FLEETBASE_DISPATCH_BRIDGE=true
-FLEETBASE_WEBHOOK_SECRET=your_api_credential_secret
+FLEETBASE_WEBHOOK_SECRET=...
+PORTERCHAIN_DISPATCHER_API_KEY=...
 ```
 
-Create API credentials in Fleetbase console (`@fleetbase/dev-engine`).
+See [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) and `env/fleetbase.env.example`.
 
 ---
 
 ## Development setup
 
 ```bash
-# Start Fleetbase stack
-pnpm docker:fleetbase:up
-
-# Install Porterchain API with fleetbase package
-cd apps/api && pip install -r requirements.txt
-
-# Start API
-pnpm dev:api
+pnpm docker:fleetbase:up    # Fleetbase stack :8000 / :4200
+pnpm docker:up              # PostgreSQL + Redis for Porterchain
+pnpm dev:api                # Porterchain API :8001
+pnpm dev:worker             # Event bus consumer
 ```
 
 Complete Fleetbase onboarding at http://localhost:4200 and copy company UUID.
@@ -238,41 +138,38 @@ Complete Fleetbase onboarding at http://localhost:4200 and copy company UUID.
 
 ## Fleetbase UI policy
 
-- **Do not modify** Fleetbase Ember console (`apps/fleetbase/console/`)
-- Ops staff use stock Fleetbase console for dispatch, live map, orchestrator
-- Merchants and retail customers use Porterchain portals only
+- **Do not modify** upstream Fleetbase vendor code (`apps/fleetbase/**`)
+- Ops staff use Fleetbase console (:4200) via SSO or direct login
+- Merchants and customers use Porterchain portals only
 
 ---
 
 ## Error handling
 
-| Scenario                    | Behavior                                                  |
-| --------------------------- | --------------------------------------------------------- |
-| Bridge disabled             | Sync skipped, logged                                      |
-| Fleetbase unreachable       | Order stays in Porterchain; `fleetbase.sync_failed` event |
-| Webhook signature invalid   | 200 ignored (logged)                                      |
-| Order not found for webhook | `order_not_found` response                                |
-| Invalid state transition    | Logged, no crash                                          |
-
----
-
-## File index
-
-| Path                                                        | Purpose                 |
-| ----------------------------------------------------------- | ----------------------- |
-| `services/fleetbase/porterchain_fleetbase/`                 | Integration package     |
-| `apps/api/.../fleetbase_sync_service.py`                    | DB orchestration        |
-| `apps/api/.../fleetbase_integration.py`                     | Settings factory        |
-| `services/python/porterchain_services/fleetbase/service.py` | Worker/gateway delegate |
-| `apps/api/.../routers/webhooks.py`                          | Webhook receiver        |
+| Scenario | Behavior |
+| -------- | -------- |
+| Bridge disabled | Sync skipped, logged |
+| Fleetbase unreachable | Order stays in Porterchain; retry queue / `fleetbase.sync_failed` |
+| Invalid webhook signature | Rejected (logged) |
+| Invalid state transition | Logged, no crash |
 
 ---
 
 ## Related documents
 
-- [FLEETBASE_ANALYSIS.md](./FLEETBASE_ANALYSIS.md)
-- [FLEETBASE_MODULES.md](./FLEETBASE_MODULES.md)
-- [FLEETBASE_APIS.md](./FLEETBASE_APIS.md)
-- [FLEETBASE_WEBHOOKS.md](./FLEETBASE_WEBHOOKS.md)
-- [services/fleetbase/README.md](./services/fleetbase/README.md)
-- [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
+| Document | Purpose |
+| -------- | ------- |
+| [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) | Adapter package structure |
+| [FLEETBASE_MODULES.md](./FLEETBASE_MODULES.md) | Per-module Porterchain decisions |
+| [EVENT_CATALOG.md](./EVENT_CATALOG.md) | Fleetbase-related domain events |
+| [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md) | Fleetbase/Porterchain data boundary |
+| [INTEGRATIONS.md](./INTEGRATIONS.md) | All external integrations |
+| [docs/archive/README.md](./docs/archive/README.md#fleetbase-detail) | Historical Fleetbase detail reports |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

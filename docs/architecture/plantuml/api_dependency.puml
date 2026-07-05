@@ -2,6 +2,7 @@
 !theme plain
 actor website
 actor merchant
+actor "merchant-api" as mapi
 actor admin
 actor driver
 actor customer
@@ -13,6 +14,7 @@ cloud "Google Maps" as GMAPS
 
 website --> API : /v1/*
 merchant --> API : /v1/merchant/*
+mapi --> API : /v1/merchant-api/*
 admin --> API : /v1/admin/*
 driver --> API : /driver-api/v1
 customer --> API : /v1/customers/*

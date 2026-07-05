@@ -1,32 +1,46 @@
 # Booking Flow (Retail)
 
-> **Source:** `booking_engine/quote_service.py`, `booking_draft_service.py`, `booking_service.py`, `payment_service.py`, `confirmation_service.py`, `stripe_webhook_service.py`
+
+**Type:** CANONICAL
+**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Source:** `booking_engine/quote_service.py`, `booking_draft_service.py`, `booking_service.py`, `payment_service.py`, `confirmation_service.py`, `stripe_webhook_service.py`  
+**See also:** [PAYMENT_FLOW.md](./PAYMENT_FLOW.md) · [DISPATCH_FLOW.md](./DISPATCH_FLOW.md) · [ORDER_LIFECYCLE.md](../../ORDER_LIFECYCLE.md)
+
+---
 
 ## Lifecycle (Actual Implementation)
 
-| Step         | Component                                                        | State / Event                                      |
-| ------------ | ---------------------------------------------------------------- | -------------------------------------------------- |
-| 1. Quote     | `QuoteService.create_quote()`                                    | `quote.created`                                    |
-| 2. Draft     | `BookingDraftService.create_or_update()`                         | `DRAFT` → `QUOTE_GENERATED`                        |
-| 3. Auth      | Clerk JWT on `POST /v1/bookings`                                 | `AUTHENTICATED`                                    |
-| 4. Checkout  | `PaymentService.start_payment()`                                 | `PAYMENT_PENDING`, `payment.started`               |
-| 5. Stripe    | Redirect to `checkout_url`                                       | External Stripe hosted page                        |
-| 6. Webhook   | `StripeWebhookService`                                           | `checkout.session.completed` only trusted signal   |
-| 7. Confirm   | `BookingConfirmationService.complete_payment_and_create_order()` | `Order` BOOKED, `booking.confirmed`                |
-| 8. Dispatch  | `transition_to_dispatch_ready()`                                 | `order.dispatch_requested`, `order.dispatch_ready` |
-| 9. Fleetbase | Event handler → `BookingSyncService.push_order()`                | `fleetbase.order_created`                          |
-| 10. Delivery | Fleetbase webhooks → `WebhookProcessor`                          | State machine transitions                          |
-| 11. Invoice  | On `POD_COMPLETED` path                                          | `order.invoiced`, `invoice.created`                |
+| Step | Component | State / Event |
+| ---- | --------- | ------------- |
+| 1. Quote | `QuoteService.create_quote()` | `quote.created` |
+| 2. Draft | `BookingDraftService.create_or_update()` | `DRAFT` → `QUOTE_GENERATED` |
+| 3. Auth | Clerk JWT on `POST /v1/bookings` | `AUTHENTICATED` |
+| 4. Checkout | `PaymentService.start_payment()` | `PAYMENT_PENDING`, `payment.started` |
+| 5. Stripe | Redirect to `checkout_url` | External Stripe hosted page |
+| 6. Webhook | `StripeWebhookService` | `checkout.session.completed` only trusted signal |
+| 7. Confirm | `BookingConfirmationService.complete_payment_and_create_order()` | `Order` BOOKED, `booking.confirmed` |
+| 8. Dispatch | `transition_to_dispatch_ready()` | `order.dispatch_requested`, `order.dispatch_ready` |
+| 9. Fleetbase | Event handler → `BookingSyncService.push_order()` | `fleetbase.order_created` |
+| 10. Delivery | Fleetbase webhooks → `WebhookProcessor` | State machine transitions |
+| 11. Invoice | On `POD_COMPLETED` path | `order.invoiced`, `invoice.created` |
+
+## Background Reconciliation
+
+`apps/worker/run.py` runs `DraftReconciliationService` every **300s** to expire stale drafts and reconcile orphaned `PAYMENT_PENDING` states (`draft_reconciliation_service.py`).
 
 ## Dev Bypass
 
-When `settings.allow_stripe_mock` is true: `POST /v1/bookings/mock-complete` skips Stripe.
+When `settings.allow_stripe_mock` is true (`STRIPE_MOCK=true`, local only): `POST /v1/bookings/mock-complete` skips Stripe.
+
+When Stripe webhooks are unavailable (typical local dev), clients may call `POST /v1/bookings/sync-checkout` with `{ "quote_id": "..." }` to poll Stripe and finalize the order (website and customer portal success pages).
 
 ## Diagram
 
 ```mermaid
 flowchart TD
-  V[Visitor] --> Q[POST /v1/quotes<br/>QuoteService]
+  V[Visitor — website :3000] --> Q[POST /v1/quotes<br/>QuoteService]
   Q --> BD[POST /v1/booking-drafts<br/>BookingDraftService DRAFT]
   BD --> QG[QUOTE_GENERATED]
   V --> AUTH[Clerk Sign-In<br/>website middleware]
@@ -48,8 +62,17 @@ flowchart TD
   DEL --> POD[POD_COMPLETED]
   POD --> INV[INVOICED / order.invoiced]
   INV --> CLS[CLOSED]
+  WRK[apps/worker every 300s] -.-> BD
 ```
 
 ## PlantUML
 
 See [plantuml/booking_flow.puml](./plantuml/booking_flow.puml)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

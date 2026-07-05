@@ -1,9 +1,12 @@
 # Fleetbase Adapter Architecture
 
-**Document version:** 1.0  
-**Date:** June 29, 2026  
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 **Package:** `porterchain-fleetbase-adapter` at `services/fleetbase-adapter/`  
-**Status:** Active — sole Porterchain ↔ Fleetbase integration boundary
+**Status:** Active — sole Porterchain ↔ Fleetbase HTTP boundary
 
 ---
 
@@ -19,8 +22,8 @@ The Fleetbase adapter isolates Porterchain from Fleetbase API details. Portercha
 
 ```
 ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│   Website    │  │   Merchant   │  │    Admin     │
-│   :3000      │  │   :3001      │  │    :3002     │
+│   Website    │  │   Merchant   │  │    Admin     │  │  Customer    │
+│   :3000      │  │   :3001      │  │    :3002     │  │  :3004       │
 └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
        │                 │                 │
        └─────────────────┼─────────────────┘
@@ -191,13 +194,14 @@ Factory: `apps/api/src/porterchain_api/services/fleetbase_integration.py`
 
 ## API wiring
 
-| Porterchain module                         | Adapter method                                          |
-| ------------------------------------------ | ------------------------------------------------------- |
-| `booking_engine/fleetbase_sync_service.py` | `sync_order`, `sync_driver`, `process_webhook`          |
-| `routers/webhooks.py`                      | `POST /webhooks/fleetbase` → `process_webhook`          |
-| `routers/orders.py`                        | `GET /v1/orders/{tracking}/tracking` → `fetch_tracking` |
-| `auth/sso_service.py`                      | `FleetbaseSsoClient.exchange_sso_token`                 |
-| `services/python/.../fleetbase/service.py` | Worker delegate via `FleetbaseAdapter`                  |
+| Porterchain module | Adapter method |
+| ------------------ | -------------- |
+| `fleetbase_engine/booking_sync_service.py` | `sync_order`, `sync_driver`, `sync_dispatch` |
+| `fleetbase_engine/webhook_processor.py` | `process_webhook` |
+| `routers/webhooks.py` | `POST /webhooks/fleetbase` |
+| `routers/orders.py` | `fetch_tracking` |
+| `auth/sso_service.py` | `FleetbaseSsoClient` → `/int/v1/porterchain/sso/*` |
+| `driver_engine/` (DriverFleetbaseBridge) | GPS, POD, route execution |
 
 ---
 
@@ -219,16 +223,25 @@ Factory: `apps/api/src/porterchain_api/services/fleetbase_integration.py`
 
 ---
 
-## Deprecated shim
+## Deprecated paths
 
-`services/fleetbase/porterchain_fleetbase/` re-exports the adapter for legacy `from porterchain_fleetbase import ...` imports. New code must use `porterchain_fleetbase_adapter`.
+Legacy `services/fleetbase/porterchain_fleetbase/` shim removed — use `porterchain_fleetbase_adapter` only.
 
 ---
 
 ## Related documents
 
-- [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md)
-- [EXTENSION_GUIDE.md](./EXTENSION_GUIDE.md)
-- [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md)
-- [CONTRIBUTING_GUIDE.md](./CONTRIBUTING_GUIDE.md)
-- [FLEETBASE_ANALYSIS.md](./FLEETBASE_ANALYSIS.md)
+| Document | Purpose |
+| -------- | ------- |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Integration overview |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Fleetbase route and integration reference |
+| [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md) | Version upgrades |
+| [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md) | Platform topology |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,8 +1,11 @@
 # Porterchain Event Catalog
 
-**Document version:** 2.0  
-**Date:** June 29, 2026  
-**Source of truth:** `shared/python/porterchain_shared/events/catalog.py`
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+**Source of truth:** `shared/python/porterchain_shared/events/catalog.py` (+ mirror `packages/events/src/catalog.ts`)
 
 Event names use `{aggregate}.{action}` dot notation. PascalCase aliases (e.g. `QuoteCreated`) map to the same string via `EVENT_ALIASES`.
 
@@ -29,6 +32,7 @@ Event names use `{aggregate}.{action}` dot notation. PascalCase aliases (e.g. `Q
 | `booking.confirmed`  | BookingConfirmed | booking   | Payment captured; booking + order created       |
 | `checkout.started`   | —                | checkout  | Stripe session created                          |
 | `checkout.abandoned` | —                | checkout  | Session expired or payment failed               |
+| `booking_draft.draft_created` | BookingDraftCreated | booking_draft | Server-persisted retail draft created |
 
 ---
 
@@ -58,6 +62,7 @@ Event names use `{aggregate}.{action}` dot notation. PascalCase aliases (e.g. `Q
 | ------------------- | ---------------- | --------- | ----------------------- |
 | `payment.succeeded` | PaymentSucceeded | payment   | Stripe payment captured |
 | `payment.failed`    | —                | payment   | Payment attempt failed  |
+| `payment.started`   | PaymentStarted   | payment   | Checkout session initiated |
 
 ---
 
@@ -80,6 +85,9 @@ Event names use `{aggregate}.{action}` dot notation. PascalCase aliases (e.g. `Q
 | `order.invoiced`           | InvoiceGenerated    | order     | 1           | Invoice generated                   |
 | `order.closed`             | —                   | order     | 1           | Order settled and archived          |
 | `order.cancelled`          | —                   | order     | 1           | Order cancelled                     |
+| `order.near_delivery`      | NearDelivery        | order     | 1           | Driver approaching destination      |
+| `order.tracking_updated`   | LocationUpdated     | order     | 1           | GPS / tracking ping                 |
+| `route.optimized`          | RouteOptimized      | route     | 1           | Route plan updated                  |
 
 ---
 
@@ -102,6 +110,14 @@ Event names use `{aggregate}.{action}` dot notation. PascalCase aliases (e.g. `Q
 
 ---
 
+## Support
+
+| Event                    | Alias               | Aggregate | Description              |
+| ------------------------ | ------------------- | --------- | ------------------------ |
+| `support.ticket_created` | SupportTicketCreated | support  | Customer support ticket  |
+
+---
+
 ## Notifications & webhooks
 
 | Event                 | Alias              | Aggregate    | Description                               |
@@ -120,6 +136,15 @@ Event names use `{aggregate}.{action}` dot notation. PascalCase aliases (e.g. `Q
 | `fleetbase.status_updated` | order     | Fleetbase status pushed to Porterchain |
 | `fleetbase.pod_received`   | order     | Proof documents received               |
 | `fleetbase.sync_failed`    | order     | Sync error (retry/DLQ)                 |
+
+---
+
+## Phase 2 stubs (no consumers yet — ADR-010)
+
+| Event                      | Aggregate | Description                              |
+| -------------------------- | --------- | ---------------------------------------- |
+| `dispatch.recommendation`  | dispatch  | AI/optimizer suggestion (not implemented)|
+| `eta.predicted`            | order     | Predictive ETA (not implemented)         |
 
 ---
 
@@ -181,5 +206,16 @@ DomainEvents.BOOKING_CONFIRMED; // "booking.confirmed"
 
 ## Related documents
 
-- [EVENT_BUS.md](./EVENT_BUS.md) — infrastructure and operations
-- [EVENT_FLOW.md](./EVENT_FLOW.md) — end-to-end flows
+| Document | Purpose |
+| -------- | ------- |
+| [EVENT_BUS.md](./EVENT_BUS.md) | Infrastructure and operations |
+| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | End-to-end flows |
+| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | Handler wiring diagram |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

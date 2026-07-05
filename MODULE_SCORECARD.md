@@ -1,6 +1,12 @@
 # Module Scorecard — Porterchain Platform
 
-**Date:** July 3, 2026  
+
+**Type:** REPORT
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+> **Snapshot report** — point-in-time audit. Current truth: [PRODUCTION_READINESS_REPORT.md](PRODUCTION_READINESS_REPORT.md) (canonical doc).
+
 **Reference:** `masterrule.md` §5 (Application boundaries)
 
 **Legend:** ✅ Complete · ⚠️ Partial · ❌ Missing · 🔴 Architecture Violation · 🟡 Technical Debt
@@ -25,8 +31,8 @@
 | **Website**  | 3000 | ✅ Complete | `quotes`, `booking_drafts` | Marketing, book, track | Public + Clerk                          | Client pricing display-only (compliant §11) |
 | **Customer** | 3004 | ⚠️ Partial  | `customers`, booking       | Dashboard, book, track | Clerk + access gate                     | Tracking map missing                        |
 | **Merchant** | 3001 | ✅ Complete | `merchant_engine/*`        | 15+ portal pages       | `merchant_engine/rbac`                  | 🔴 Depends on `admin_engine` for orders     |
-| **Driver**   | 3003 | ⚠️ Partial  | `driver_engine/*`          | Web portal 20 pages    | JWT cookie                              | Mobile scaffold; map viz gap                |
-| **Admin**    | 3002 | ✅ Complete | `admin_engine/*`           | 46 ops pages           | `admin_engine/rbac` + `AdminAccessGate` | CRM audit partial                           |
+| **Driver**   | 3003 | ⚠️ Partial  | `driver_engine/*`          | Web portal 20 pages    | JWT cookie                              | Fat router debt; map viz gap                |
+| **Admin**    | 3002 | ✅ Complete | `admin_engine/*`           | Ops control tower      | `admin_engine/rbac` + `AdminAccessGate` | CRM/Route Center UI removed (Phase 2)       |
 
 ---
 
@@ -35,10 +41,10 @@
 | Module               | Status      | Service                            | Admin UI                  | Notes                        |
 | -------------------- | ----------- | ---------------------------------- | ------------------------- | ---------------------------- |
 | **Booking Workflow** | ✅ Complete | `booking_engine/`                  | Booking drafts grid       | Critical draft race fixed    |
-| **CRM**              | ✅ Complete | `crm_service`, `crm_sales_service` | Full CRM section          | Audit partial on leads/deals |
+| **CRM (sales pipeline)** | ⚠️ Deferred | `collaboration_engine/crm_service` | — (admin CRM UI removed) | Phase 2 — `/v1/admin/collaboration` only |
 | **Orders**           | ✅ Complete | `admin_engine/orders_service`      | Grid + Order360           | Embedded map                 |
 | **Operations**       | ✅ Complete | `control_tower_service`            | Dispatch board            |                              |
-| **Route Center**     | ✅ Complete | `route_center_service`             | 10 route pages            | Valhalla/OSRM                |
+| **Route Center**     | ❌ Removed  | —                                  | —                         | Fleetbase + Control Tower    |
 | **Finance**          | ⚠️ Partial  | `finance_service`                  | Invoices grid/detail      | No PDF export                |
 | **Billing**          | ⚠️ Partial  | `billing_engine/`                  | Merchant NET views        | Credit notes roadmap §11.2   |
 | **Pricing**          | ✅ Complete | `pricing_engine/` + library        | Admin tariffs + simulator |                              |
@@ -64,7 +70,7 @@
 | `billing_engine/`      | ⚠️     | Ledger; refund events partial                 |
 | `notification_engine/` | ⚠️     | Templates, delivery; FCM partial              |
 | `pricing_engine/`      | ✅     | Bridge to pricing library                     |
-| `route_center_engine/` | ✅     | Planning, optimization, dispatch              |
+| `route_center_engine/` | ❌ Removed | Use Fleetbase routes + Control Tower          |
 | `gateway_engine/`      | ✅     | Merchant API key rate limits                  |
 
 ---
@@ -91,9 +97,18 @@
 | Admin ops                      | ✅ Yes                                   |
 | Customer portal                | ⚠️ After tracking map                    |
 | Driver (web)                   | ⚠️ After router refactor                 |
-| Driver (mobile)                | ❌ Scaffold only                         |
+| Mobile driver                  | ⚠️ 72% — EAS/Firebase/Clerk prod ops     |
+| Mobile customer                | ⚠️ 62% — store assets, EAS, payment UI   |
 | Finance PDFs                   | ❌ Not required for MVP dispatch         |
 
 ---
 
-_Detailed gaps: `GAP_ANALYSIS.md` · Remediation plan: `ROADMAP.md`_
+_Detailed gaps: `GAP_ANALYSIS.md` · Remediation plan: `ROADMAP.md` · Go/no-go: `PRODUCTION_READINESS_REPORT.md`_
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

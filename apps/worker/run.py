@@ -92,8 +92,6 @@ def _drain_draft_reconciliation() -> int:
 
 
 def main() -> None:
-    from porterchain_event_bus import get_event_bus
-    from porterchain_event_bus.handlers import register_default_handlers
     from porterchain_shared.queue.names import QueueName
     from porterchain_shared.queue.publisher import get_queue_publisher
     from porterchain_shared.redis_health import require_redis_for_production
@@ -103,15 +101,12 @@ def main() -> None:
     signal.signal(signal.SIGINT, _shutdown)
     signal.signal(signal.SIGTERM, _shutdown)
 
-    register_default_handlers()
-    bus = get_event_bus()
     publisher = get_queue_publisher()
-    logger.info("worker started — event bus + queues: %s", ", ".join(q.value for q in QueueName))
+    logger.info("worker started — queues only: %s", ", ".join(q.value for q in QueueName))
 
     while _running:
         try:
-            processed = bus.consume_once(consumer_name="porterchain-worker", block_ms=1000)
-            processed += _drain_queues(publisher, timeout_seconds=1)
+            processed = _drain_queues(publisher, timeout_seconds=1)
             processed += _drain_fleetbase_retry_queue()
             processed += _drain_draft_reconciliation()
         except Exception:

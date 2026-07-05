@@ -36,6 +36,7 @@ def test_core_tables_exist() -> None:
         "orders",
         "customers",
         "quotes",
+        "booking_drafts",
         "merchants",
         "crm_leads",
         "crm_companies",

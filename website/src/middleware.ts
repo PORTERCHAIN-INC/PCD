@@ -11,15 +11,6 @@ const isPublicRoute = createRouteMatcher([
   "/login(.*)",
   "/:locale/book/success(.*)",
   "/book/success(.*)",
-  "/:locale/portal/customer/sign-in(.*)",
-  "/portal/customer/sign-in(.*)",
-]);
-
-const isCustomerPortalRoute = createRouteMatcher([
-  "/:locale/portal/customer",
-  "/:locale/portal/customer/(.*)",
-  "/portal/customer",
-  "/portal/customer/(.*)",
 ]);
 
 function isClerkConfigured(): boolean {
@@ -36,16 +27,7 @@ function handleRequest(req: NextRequest) {
 }
 
 export default isClerkConfigured()
-  ? clerkMiddleware(async (auth, req) => {
-      if (isPublicRoute(req)) {
-        return handleRequest(req);
-      }
-      // Legacy embedded portal — client-side gate redirects to /login (not Clerk hosted).
-      if (isCustomerPortalRoute(req)) {
-        return handleRequest(req);
-      }
-      return handleRequest(req);
-    })
+  ? clerkMiddleware(async (_auth, req) => handleRequest(req))
   : handleRequest;
 
 export const config = {

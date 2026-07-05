@@ -28,14 +28,12 @@ def _load_script(name: str):
     return mod
 
 
-_seed_crm = _load_script("seed_crm")
 _seed_portal = _load_script("seed_dev_portal_users")
 DEV_ORG = _seed_portal.DEV_ORG
 from porterchain_api.admin_engine.claims_service import AdminClaimsService
 from porterchain_api.admin_engine.rbac import AdminContext
-from porterchain_api.admin_engine.route_center_service import RouteCenterService
 from porterchain_api.admin_engine.support_service import AdminSupportService
-from porterchain_api.admin_models import AdminUser, PricingTariff, RouteCenterTemplate
+from porterchain_api.admin_models import AdminUser, PricingTariff
 from porterchain_api.auth.merchant import MerchantContext
 from porterchain_api.billing_engine.models import BillingLedgerEntry
 from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
@@ -129,7 +127,7 @@ def ensure_crm_tasks(db) -> None:
 
 def seed_complete(db) -> bool:
     return (
-        db.query(RouteCenterTemplate).filter(RouteCenterTemplate.name == "Seed Daily GTA").first()
+        db.query(BookingDraft).filter(BookingDraft.session_id == "seed-draft-session").first()
         is not None
     )
 
@@ -368,7 +366,6 @@ def seed_ops_data(
 ) -> None:
     claims = AdminClaimsService()
     support = AdminSupportService()
-    routes = RouteCenterService()
     notify = NotificationEngine()
 
     if orders:
@@ -399,7 +396,6 @@ def seed_ops_data(
             category="billing",
             merchant_id=merchant.id,
         )
-        routes.create_plan(db, ctx, name="Seed GTA Morning Route", order_ids=[o.id for o in orders[:3]])
         RetryQueue.enqueue(
             db,
             direction="outbound",
@@ -463,19 +459,6 @@ def seed_ops_data(
             )
         )
 
-    if not db.query(RouteCenterTemplate).filter(RouteCenterTemplate.name == "Seed Daily GTA").first():
-        db.add(
-            RouteCenterTemplate(
-                name="Seed Daily GTA",
-                template_type="daily",
-                zone="gta",
-                schedule={"start": "08:00", "days": ["mon", "tue", "wed", "thu", "fri"]},
-                stops=[{"label": "Warehouse", "lat": 43.7, "lng": -79.4}],
-                config={"strategy": "balanced"},
-                created_by=ctx.user.id,
-            )
-        )
-
     if not db.query(BookingDraft).filter(BookingDraft.session_id == "seed-draft-session").first():
         db.add(
             BookingDraft(
@@ -507,20 +490,14 @@ def main() -> None:
     db = SessionLocal()
     try:
         if seed_complete(db):
-            ensure_crm_tasks(db)
             print("Local dev seed data already present — skipping.")
-            print("  Marker: RouteCenterTemplate 'Seed Daily GTA'")
+            print("  Marker: BookingDraft 'seed-draft-session'")
             return
 
         print("Seeding Porterchain local dev data...")
         ensure_pricing_tariff(db)
 
-        seed_crm_main = _seed_crm.main
         seed_portal_main = _seed_portal.main
-
-        print("  → CRM demo data")
-        seed_crm_main()
-        ensure_crm_tasks(db)
 
         print("  → Merchant + driver portal accounts")
         seed_portal_main()

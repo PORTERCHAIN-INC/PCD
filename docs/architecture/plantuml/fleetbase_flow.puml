@@ -1,6 +1,6 @@
 @startuml fleetbase_flow
 !theme plain
-package "fleetbase_engine" {
+package "Porterchain API :8001" {
   [BookingSyncService]
   [WebhookProcessor]
   [FleetbaseIntegrationBridge]
@@ -13,6 +13,7 @@ package "fleetbase-adapter" {
   [PodService]
 }
 cloud "Fleetbase :8000" as FB
+node "Console :4200" as CON
 
 [BookingSyncService] --> [FleetbaseIntegrationBridge]
 [FleetbaseIntegrationBridge] --> [FleetbaseAdapter]

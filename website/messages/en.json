@@ -123,7 +123,10 @@
       "signInPrompt": "Sign in or create an account to continue to payment.",
       "staffAccountBlocked": "You're signed in as a {portal} account. Personal retail bookings need a separate customer sign-in.",
       "staffAccountHint": "Sign out, then sign in with a customer email (not your staff account) to complete this delivery.",
-      "staffSignOut": "Sign out and use a customer account"
+      "staffSignOut": "Sign out and use a customer account",
+      "cancelBooking": "Cancel booking",
+      "cancelConfirm": "Cancel this booking and return to the homepage? Your quote will be discarded.",
+      "cancelError": "Could not cancel this booking. Please try again."
     },
     "success": {
       "title": "Booking confirmed",

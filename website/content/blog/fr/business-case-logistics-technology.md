@@ -7,6 +7,8 @@ author: "peter-porter"
 tags: ["business", "roi", "enterprise"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Operations leaders rarely struggle to articulate logistics pain. They struggle to **fund the fix** — especially when the alternative is "we've always done it this way."
 
 ## Frame the cost of status quo
@@ -28,7 +30,7 @@ A professional logistics partner like Porterchain improves:
 1. **On-time execution** — managed dispatch with SLA standards
 2. **Exception reduction** — pre-dispatch validation
 3. **Audit confidence** — proof chains on every shipment
-4. **Route efficiency** — measurable fuel and mileage gains
+4. **Route efficiency** — measurable mileage and utilization gains
 
 ## Pilot before you scale
 

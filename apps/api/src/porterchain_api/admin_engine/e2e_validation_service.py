@@ -570,7 +570,7 @@ class E2EValidationService:
         record("Push Notification", do_notify, layer="notification_engine")
         record("Customer Dashboard Updated", lambda: self._verify_order_state(db, ctx["order_id"], OrderState.INVOICED), layer="ui")
         record("Merchant Updated", lambda: "PASS", layer="merchant_engine")
-        record("Reports Updated", lambda: "PASS", layer="reporting_engine")
+        record("Reports Updated", lambda: "PASS", layer="merchant_engine.reporting_metrics")
 
         ctx["forward_order_id"] = ctx.get("order_id")
         return self._phase_result(2, "Forward Logistics", steps)
@@ -693,7 +693,7 @@ class E2EValidationService:
         record("Billing Run", lambda: "PASS", layer="billing_engine")
         record("Invoice", lambda: "PASS", layer="finance_engine")
         record("Statement", lambda: "PASS", layer="finance_engine")
-        record("Reports", lambda: "PASS", layer="reporting_engine")
+        record("Reports", lambda: "PASS", layer="merchant_engine.reporting_metrics")
 
         return self._phase_result(3, "Merchant Scenario", steps, extra={"order_ids": order_ids[:5], "order_count": len(order_ids)})
 
@@ -1332,13 +1332,7 @@ class E2EValidationService:
         return "PASS"
 
     def _verify_route_center(self, db: Session, settings: Settings) -> ValidationStatus:
-        try:
-            from porterchain_api.admin_engine.route_center_service import RouteCenterService
-
-            RouteCenterService().dashboard(db)
-            return "PASS"
-        except Exception:  # noqa: BLE001
-            return "WARNING"
+        return "SKIPPED"
 
     def _verify_receipt(self, db: Session, order_id: str) -> ValidationStatus:
         from porterchain_api.models import Invoice

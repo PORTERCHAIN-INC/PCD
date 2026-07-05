@@ -1,7 +1,10 @@
 # Porterchain — Local Port Configuration
 
-**Document version:** 1.1  
-**Date:** June 29, 2026
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 
 Single reference for **local development** ports. Production uses domain names (no local ports).
 
@@ -15,6 +18,7 @@ Single reference for **local development** ports. Production uses domain names (
 | http://localhost:3001      | `pnpm dev:merchant`                            |
 | http://localhost:3002      | `pnpm dev:admin`                               |
 | http://localhost:3003      | `pnpm dev:driver`                              |
+| http://localhost:3004      | `pnpm dev:customer`                            |
 | http://localhost:8001      | `pnpm dev:api`                                 |
 | http://localhost:8001/docs | API Swagger (with API running)                 |
 | http://localhost:4200      | Fleetbase console (`pnpm docker:fleetbase:up`) |
@@ -32,19 +36,23 @@ Check which ports are in use: `pnpm ports`
 | **3001**  | Merchant portal          | HTTP     | `pnpm dev:merchant`                                         |
 | **3002**  | Admin platform           | HTTP     | `pnpm dev:admin`                                            |
 | **3003**  | Driver web portal        | HTTP     | `pnpm dev:driver` — invite links (`DRIVER_PORTAL_BASE_URL`) |
-| **4200**  | Fleetbase console        | HTTP     | Docker / `apps/fleetbase` — dispatch UI                     |
-| **8000**  | Fleetbase API            | HTTP     | Docker / `apps/fleetbase` — **not** Porterchain API         |
+| **3004**  | Customer portal          | HTTP     | `pnpm dev:customer`                                         |
+| **4200**  | Fleetbase console        | HTTP     | `pnpm docker:fleetbase:up` — dispatch UI                    |
+| **8000**  | Fleetbase API            | HTTP     | `pnpm docker:fleetbase:up` — **not** Porterchain API        |
 | **8001**  | Porterchain API          | HTTP     | `pnpm dev:api` — all frontends call this                    |
 | **8002**  | Valhalla routing         | HTTP     | `pnpm docker:up:routing`                                    |
 | **8080**  | Nginx dev proxy          | HTTP     | Docker `proxy` profile (optional)                           |
 | **1025**  | Mailhog SMTP             | TCP      | `pnpm docker:up` — outbound mail capture                    |
 | **8025**  | Mailhog web UI           | HTTP     | http://localhost:8025                                       |
-| **3306**  | MySQL (Fleetbase)        | TCP      | `pnpm docker:up` — `127.0.0.1` only                         |
+| **3306**  | MySQL (core stack)       | TCP      | `pnpm docker:up` — `127.0.0.1` only                         |
+| **3307**  | MySQL (Fleetbase stack)  | TCP      | `pnpm docker:fleetbase:up` — avoids 3306 conflict           |
 | **5432**  | PostgreSQL (Porterchain) | TCP      | `pnpm docker:up` — `127.0.0.1` only                         |
 | **6379**  | Redis                    | TCP      | `pnpm docker:up` — `127.0.0.1` only                         |
 | **38000** | Fleetbase SocketCluster  | WS       | Fleetbase real-time (with Fleetbase stack)                  |
 
 **Worker** (`pnpm dev:worker`) has no HTTP port — it consumes Redis/events only.
+
+**Mobile apps** (Expo) have no fixed port — they call Porterchain API at `:8001` via `EXPO_PUBLIC_API_URL`.
 
 ---
 
@@ -55,7 +63,7 @@ Check which ports are in use: `pnpm ports`
 | **Porterchain API** | **8001**   | `PORTERCHAIN_API_URL` | `http://localhost:8001` |
 | **Fleetbase API**   | **8000**   | `FLEETBASE_API_URL`   | `http://localhost:8000` |
 
-Do **not** point frontends or the mobile app at `:8000` unless you intentionally proxy Porterchain through Fleetbase. All Next.js apps and `EXPO_PUBLIC_API_URL` use **`:8001`** locally.
+Do **not** point frontends or mobile apps at `:8000`. All Next.js apps and `EXPO_PUBLIC_API_URL` use **`:8001`** locally.
 
 ---
 
@@ -63,16 +71,18 @@ Do **not** point frontends or the mobile app at `:8000` unless you intentionally
 
 Copy templates from [`env/`](./env/README.md):
 
-| App           | Env file                          | Key URL vars                                                                                          |
-| ------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Website       | `website/.env.local`              | `NEXT_PUBLIC_SITE_URL=http://localhost:3000`, `NEXT_PUBLIC_PORTERCHAIN_API_URL=http://localhost:8001` |
-| Merchant      | `apps/merchant-portal/.env.local` | `NEXT_PUBLIC_SITE_URL=http://localhost:3001`, `NEXT_PUBLIC_PORTERCHAIN_API_URL=http://localhost:8001` |
-| Admin         | `apps/admin/.env.local`           | `NEXT_PUBLIC_SITE_URL=http://localhost:3002`, `NEXT_PUBLIC_PORTERCHAIN_API_URL=http://localhost:8001` |
-| Driver portal | `apps/driver-portal/.env.local`   | `NEXT_PUBLIC_PORTERCHAIN_API_URL=http://localhost:8001`                                               |
-| API           | `apps/api/.env`                   | `PORTERCHAIN_API_URL=http://localhost:8001`, `FLEETBASE_API_URL=http://localhost:8000`                |
-| Mobile driver | `apps/mobile-driver/.env`         | `EXPO_PUBLIC_API_URL=http://localhost:8001`                                                           |
+| App              | Env file                          | Key URL vars                                                                                          |
+| ---------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Website          | `website/.env.local`              | `NEXT_PUBLIC_SITE_URL=http://localhost:3000`, `NEXT_PUBLIC_PORTERCHAIN_API_URL=http://localhost:8001` |
+| Merchant         | `apps/merchant-portal/.env.local` | `NEXT_PUBLIC_SITE_URL=http://localhost:3001`, `NEXT_PUBLIC_PORTERCHAIN_API_URL=http://localhost:8001` |
+| Admin            | `apps/admin/.env.local`           | `NEXT_PUBLIC_SITE_URL=http://localhost:3002`, `NEXT_PUBLIC_PORTERCHAIN_API_URL=http://localhost:8001` |
+| Driver portal    | `apps/driver-portal/.env.local`   | `NEXT_PUBLIC_PORTERCHAIN_API_URL=http://localhost:8001`                                               |
+| Customer portal  | `apps/customer/.env.local`        | `NEXT_PUBLIC_PORTERCHAIN_API_URL=http://localhost:8001`                                               |
+| API              | `apps/api/.env`                   | `PORTERCHAIN_API_URL=http://localhost:8001`, `FLEETBASE_API_URL=http://localhost:8000`               |
+| Mobile driver    | `apps/mobile-driver/.env`         | `EXPO_PUBLIC_API_URL=http://localhost:8001` (Expo default **8081**) |
+| Mobile customer  | `apps/mobile-customer/.env`       | `EXPO_PUBLIC_API_URL=http://localhost:8001` (dev script binds **8082**) |
 
-API CORS (default) allows origins `3000`–`3003`: set `CORS_ORIGINS` in `apps/api/.env` if you change any frontend port.
+API CORS (default) allows origins `3000`–`3004`: set `CORS_ORIGINS` in `apps/api/.env` if you change any frontend port.
 
 ---
 
@@ -91,13 +101,14 @@ Porterchain API is on **8001** locally.
 
 ## Docker: internal vs host
 
-| Service       | Inside Docker   | From host machine       |
-| ------------- | --------------- | ----------------------- |
-| MySQL         | `database:3306` | `127.0.0.1:3306`        |
-| PostgreSQL    | `postgres:5432` | `127.0.0.1:5432`        |
-| Redis         | `cache:6379`    | `127.0.0.1:6379`        |
-| Valhalla      | `valhalla:8002` | `http://localhost:8002` |
-| Fleetbase API | `api:8000`      | `http://localhost:8000` |
+| Service            | Inside Docker   | From host machine       |
+| ------------------ | --------------- | ----------------------- |
+| PostgreSQL         | `postgres:5432` | `127.0.0.1:5432`        |
+| MySQL (core)       | `database:3306` | `127.0.0.1:3306`        |
+| MySQL (Fleetbase)  | `database:3306` | `127.0.0.1:3307`        |
+| Redis              | `cache:6379`    | `127.0.0.1:6379`        |
+| Valhalla           | `valhalla:8002` | `http://localhost:8002` |
+| Fleetbase API      | `httpd:80`      | `http://localhost:8000` |
 
 ---
 
@@ -123,7 +134,7 @@ See [`env/production.env.example`](env/production.env.example) for the full prod
 | 3000–3009 | Porterchain Next.js frontends |
 | 4200–4299 | Fleetbase / console UIs       |
 | 8000–8019 | HTTP APIs and routing engines |
-| 3306      | MySQL                         |
+| 3306–3307 | MySQL (core / Fleetbase)      |
 | 5432      | PostgreSQL                    |
 | 6379      | Redis                         |
 
@@ -131,4 +142,12 @@ Register new services here before assigning a port.
 
 ---
 
-_See also: [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md), [env/README.md](./env/README.md)_
+_See also: [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md), [env/README.md](./env/README.md), [DOCKER_ARCHITECTURE.md](./DOCKER_ARCHITECTURE.md)_
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

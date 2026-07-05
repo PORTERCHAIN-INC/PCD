@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     fleetbase_api_key: str = ""
     fleetbase_webhook_secret: str = ""
     fleetbase_dispatch_bridge: bool = Field(
-        default=True,
+        default=False,
         validation_alias=AliasChoices(
             "fleetbase_dispatch_bridge",
             "FLEETBASE_DISPATCH_BRIDGE",

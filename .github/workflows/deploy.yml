@@ -1,6 +1,6 @@
 name: Deploy
 
-# Continuous deployment for the Porterchain website.
+# Continuous deployment for the Porterchain platform (website, API, portals).
 # Runs only after the CI workflow succeeds on `main`, builds a Docker image,
 # pushes it to GHCR, then deploys it to the Digital Ocean droplet over SSH.
 on:
@@ -235,9 +235,14 @@ jobs:
             done
             echo "Running Alembic migrations..."
             if ! docker exec -w /app/apps/api -e PYTHONPATH=/app/apps/api/src:/app/apps/api pcd-api python scripts/repair_and_migrate.py; then
-              echo "::warning::Migration repair failed; dumping API logs"
+              echo "::error::Migration repair failed; aborting deploy before smoke test"
               docker logs --tail 120 pcd-api || true
               docker exec -w /app/apps/api -e PYTHONPATH=/app/apps/api/src pcd-api alembic current || true
+              exit 1
+            fi
+            if ! docker exec pcd-postgres psql -U porterchain -d porterchain -tAc "SELECT to_regclass('public.booking_drafts')" | grep -q booking_drafts; then
+              echo "::error::booking_drafts table missing after migrations"
+              exit 1
             fi
             docker restart pcd-api
             docker restart pcd-caddy

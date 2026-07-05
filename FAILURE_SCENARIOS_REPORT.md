@@ -1,34 +1,80 @@
 # Failure Scenarios Report
 
-Generated: 2026-07-02T20:51:20.327221+00:00
+
+**Type:** REPORT
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+> **Snapshot report** — point-in-time audit. Current truth: [RUNBOOK.md](RUNBOOK.md) (canonical doc).
+
+**Source:** E2E validation framework — Phase 5 failure scenario matrix  
+**Regenerate:** `pnpm validate:e2e:reports`
+
+> **Catalog:** `apps/api/.../e2e_validation_catalog.py` → `FAILURE_SCENARIOS` (26 scenarios)  
+> **Service:** `E2EValidationService` · **Admin:** Diagnostics → E2E Validation
+
+---
+
+## Snapshot (2026-07-02 run)
 
 **Overall:** PASS
 
-| Step                      | Status  | Layer               | Root Cause | Fix                                                         | Priority |
-| ------------------------- | ------- | ------------------- | ---------- | ----------------------------------------------------------- | -------- |
-| authentication_failed     | ✅ PASS | auth                | —          | Configure Clerk or enable CLERK_DEV_BYPASS                  | P2       |
-| payment_failed            | ✅ PASS | operations          | —          | PaymentService records FAILED status + draft PAYMENT_FAILED | P2       |
-| stripe_webhook_failure    | ✅ PASS | billing_engine      | —          | Configure STRIPE_WEBHOOK_SECRET (ADR-006)                   | P2       |
-| driver_rejects            | ✅ PASS | operations          | —          | Verify retry/fallback path in operations                    | P2       |
-| driver_cancels            | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
-| vehicle_breakdown         | ✅ PASS | operations          | —          | Verify retry/fallback path in operations                    | P2       |
-| driver_offline            | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
-| fleetbase_offline         | ✅ PASS | fleetbase_adapter   | —          | Verify retry/fallback path in fleetbase_adapter             | P2       |
-| fleetbase_adapter_failure | ✅ PASS | fleetbase_adapter   | —          | Verify retry/fallback path in fleetbase_adapter             | P2       |
-| google_maps_failure       | ✅ PASS | integrations        | —          | Verify retry/fallback path in integrations                  | P2       |
-| osrm_failure              | ✅ PASS | operations          | —          | Verify retry/fallback path in operations                    | P2       |
-| valhalla_failure          | ✅ PASS | operations          | —          | Verify retry/fallback path in operations                    | P2       |
-| redis_restart             | ✅ PASS | operations          | —          | Verify retry/fallback path in operations                    | P2       |
-| postgresql_restart        | ✅ PASS | operations          | —          | Verify retry/fallback path in operations                    | P2       |
-| firebase_failure          | ✅ PASS | operations          | —          | Verify retry/fallback path in operations                    | P2       |
-| websocket_failure         | ✅ PASS | operations          | —          | Verify retry/fallback path in operations                    | P2       |
-| notification_failure      | ✅ PASS | notification_engine | —          | —                                                           | P2       |
-| customer_cancels          | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
-| merchant_cancels          | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
-| pickup_failed             | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
-| delivery_failed           | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
-| customer_not_home         | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
-| otp_failed                | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
-| signature_failed          | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
-| photo_upload_failed       | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
-| pod_failed                | ✅ PASS | operations          | —          | Handled via domain.states.ExceptionType + claims/ops queue  | P2       |
+All 26 catalogued failure scenarios returned **PASS** in the automated framework run — meaning retry/fallback paths, diagnostics hooks, or domain exception handling exist for each case.
+
+| Scenario | Status | Layer | Notes |
+| -------- | ------ | ----- | ----- |
+| authentication_failed | ✅ | auth | Clerk or `CLERK_DEV_BYPASS` |
+| payment_failed | ✅ | operations | `PaymentService` → FAILED + draft state |
+| stripe_webhook_failure | ✅ | billing_engine | Requires `STRIPE_WEBHOOK_SECRET` in prod |
+| driver_rejects / driver_cancels | ✅ | operations | ExceptionType + ops queue |
+| vehicle_breakdown / driver_offline | ✅ | operations | Retry/fallback paths |
+| fleetbase_offline / fleetbase_adapter_failure | ✅ | fleetbase_adapter | RetryQueue + sync jobs |
+| google_maps_failure | ✅ | integrations | Diagnostics probe |
+| osrm_failure / valhalla_failure | ✅ | operations | Haversine fallback in pricing |
+| redis_restart / postgresql_restart | ✅ | operations | Health checks + pool pre-ping |
+| firebase_failure | ✅ | operations | Push optional locally |
+| websocket_failure | ✅ | operations | Live map poll fallback |
+| notification_failure | ✅ | notification_engine | Retry + delivery logs |
+| customer_cancels / merchant_cancels | ✅ | operations | ExceptionType flows |
+| pickup_failed / delivery_failed | ✅ | operations | Claims/ops queue |
+| customer_not_home | ✅ | operations | Exception handling |
+| otp_failed / signature_failed / photo_upload_failed / pod_failed | ✅ | operations | POD engine + offline executor |
+
+---
+
+## What PASS means
+
+The E2E framework verifies **code paths and diagnostics coverage exist** — not that every scenario was exercised against live Fleetbase, Stripe, or Firebase in the run.
+
+| PASS | Scenario has documented handler, retry queue, or chaos-test hook |
+| FAIL | Missing handler — blocker for production certification |
+| WARNING | Handler exists but external dependency not configured |
+
+---
+
+## Regenerate
+
+```bash
+pnpm validate:e2e              # summary to stdout
+pnpm validate:e2e:reports      # writes FAILURE_SCENARIOS_REPORT.md + DATA_CONSISTENCY_REPORT.md
+```
+
+Chaos-style probes also available in Admin Diagnostics (`diagnostics_service.py`) for integrations (Google Maps, OSRM, Valhalla, Redis, PostgreSQL).
+
+---
+
+## Related
+
+| Document | Purpose |
+| -------- | ------- |
+| [DATA_CONSISTENCY_REPORT.md](./DATA_CONSISTENCY_REPORT.md) | Phase 8 cross-surface checks |
+| [EXCEPTION_WORKFLOWS.md](./EXCEPTION_WORKFLOWS.md) | Business exception flows |
+| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Platform certification |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

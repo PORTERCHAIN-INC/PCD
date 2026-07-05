@@ -1,24 +1,95 @@
 # Porterchain Worker
 
-Async job processor for platform queues.
 
-## Queues
+**Type:** README
+**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
 
-| Queue      | Purpose                      |
-| ---------- | ---------------------------- |
-| `emails`   | Transactional email delivery |
-| `sms`      | SMS notifications            |
-| `push`     | Firebase push notifications  |
-| `dispatch` | Fleetbase dispatch sync      |
-| `billing`  | Stripe reconciliation        |
-| `reports`  | Scheduled report generation  |
-| `webhooks` | Outbound merchant webhooks   |
+
+Async background processor for the Porterchain event bus and task queues. Shares the API Python venv and database connection.
+
+---
 
 ## Run
 
 ```bash
-# From repo root (shares API venv)
+# From repo root (uses apps/api/.venv)
 pnpm dev:worker
 ```
 
-Requires Redis for production (`REDIS_URL` in `.env`). Falls back to in-memory queues in local dev.
+Runs alongside `pnpm dev:api`. Requires PostgreSQL; Redis required in production (`require_redis_for_production()`).
+
+---
+
+## Responsibilities
+
+Each loop iteration:
+
+1. **Event bus** — `bus.consume_once()` for domain events
+2. **Task queues** — drain Redis/in-memory queues via `process_queue_message`
+3. **Fleetbase retry** — `BookingSyncService.process_retry_queue` every 60s (when `FLEETBASE_DISPATCH_BRIDGE=true`)
+4. **Draft reconciliation** — expire/repair booking drafts every 300s
+
+---
+
+## Queues
+
+| Queue | Processor | Purpose |
+| ----- | --------- | ------- |
+| `emails` | notifications | Transactional email |
+| `sms` | notifications | SMS delivery |
+| `push` | notifications | Firebase push |
+| `dispatch` | dispatch | Fleetbase dispatch sync |
+| `billing` | billing | Stripe reconciliation |
+| `reports` | (logged) | Scheduled reports — processor stub |
+| `webhooks` | webhooks | Outbound merchant webhooks |
+
+Queue names: `shared/python/porterchain_shared/queue/names.py`
+
+---
+
+## Layout
+
+```
+apps/worker/
+├── run.py                 # Main loop
+└── processors/
+    ├── notifications.py
+    ├── dispatch.py
+    ├── billing.py
+    └── webhooks.py
+```
+
+PYTHONPATH includes API `src`, `shared/python`, and service packages (see root `pnpm dev:worker`).
+
+---
+
+## Environment
+
+Uses `apps/api/.env` — same `DATABASE_URL`, Redis, Fleetbase, and Stripe settings as the API.
+
+| Variable | Notes |
+| -------- | ----- |
+| `DATABASE_URL` | PostgreSQL 16 |
+| `REDIS_URL` | Required in production |
+| `FLEETBASE_DISPATCH_BRIDGE` | Enables retry drain |
+| `APP_ENV` | `local` allows in-memory queue fallback |
+
+---
+
+## Related Documents
+
+| Document | Purpose |
+| -------- | ------- |
+| [../../EVENT_BUS.md](../../EVENT_BUS.md) | Event bus architecture |
+| [../../RUNBOOK.md](../../RUNBOOK.md) | Ops runbook |
+| [../api/README.md](../api/README.md) | API setup |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [../../masterrule.md](../../masterrule.md) | Architecture SSOT |
+| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout |
+

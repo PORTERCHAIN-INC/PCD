@@ -2,12 +2,13 @@
 !theme plain
 package "Producers" {
   [booking_engine services] as PROD
+  [notification_engine] as NE
 }
 queue "Redis Event Bus" as BUS
 package "Handlers" {
   [dispatch_ready → Fleetbase sync] as H1
   [driver_assigned → Fleetbase sync] as H2
-  [notifications] as H3
+  [event_router → notification.queued] as H3
   [payment.succeeded → billing] as H4
   [webhook.received] as H5
   [merchant fanout order.*] as H6
@@ -15,13 +16,14 @@ package "Handlers" {
 node "apps/worker" as W
 
 PROD --> BUS
+NE --> BUS
 BUS --> H1
 BUS --> H2
 BUS --> H3
 BUS --> H4
 BUS --> H5
 BUS --> H6
-H4 --> W
-H3 --> W
-H5 --> W
+H3 --> W : emails/sms/push
+H4 --> W : billing
+H5 --> W : webhooks
 @enduml

@@ -1,4 +1,9 @@
 > Why do I have a folder named ".expo" in my project?
+
+**Type:** README
+**masterrule:** [§21](../../../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 > The ".expo" folder is created when an Expo project is started using "expo start" command.
 > What do the files contain?
 
@@ -8,3 +13,12 @@
 > Should I commit the ".expo" folder?
 > No, you should not share the ".expo" folder. It does not contain any information that is relevant for other developers working on the project, it is specific to your machine.
 > Upon project creation, the ".expo" folder is already added to your ".gitignore" file.
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [../../../masterrule.md](../../../masterrule.md) | Architecture SSOT |
+| [../../../REPOSITORY_STRUCTURE.md](../../../REPOSITORY_STRUCTURE.md) | Monorepo layout |
+

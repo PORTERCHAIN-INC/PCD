@@ -104,6 +104,18 @@ export function mockCompleteCheckout(quoteId: string) {
   });
 }
 
+export type BookingConfirmationStatus = {
+  status: "pending" | "ready" | "failed";
+  confirmation?: BookingConfirmation;
+};
+
+export function syncBookingCheckout(quoteId: string) {
+  return apiFetch<BookingConfirmationStatus>("/v1/bookings/sync-checkout", {
+    method: "POST",
+    body: JSON.stringify({ quote_id: quoteId }),
+  });
+}
+
 export function getOrderByTracking(trackingNumber: string) {
   return apiFetch<OrderResult>(`/v1/orders/${encodeURIComponent(trackingNumber)}`);
 }

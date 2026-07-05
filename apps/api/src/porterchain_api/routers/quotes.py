@@ -154,3 +154,24 @@ def mock_complete_checkout(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return BookingConfirmationResponse(**_confirmation_service.build_confirmation_response(db, order))
+
+
+@router.post("/bookings/sync-checkout", response_model=BookingConfirmationStatusResponse)
+def sync_checkout_confirmation(
+    body: CheckoutMockCompleteRequest,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> BookingConfirmationStatusResponse:
+    """Poll Stripe for a completed checkout when webhooks are not configured (local dev)."""
+    from porterchain_api.booking_engine.stripe_webhook_service import StripeWebhookService
+
+    if settings.stripe_secret:
+        StripeWebhookService().sync_checkout_session(db, settings, body.quote_id)
+
+    status, order = _confirmation_service.get_confirmation_status(db, body.quote_id)
+    if not order:
+        return BookingConfirmationStatusResponse(status=status, confirmation=None)
+    return BookingConfirmationStatusResponse(
+        status=status,
+        confirmation=BookingConfirmationResponse(**_confirmation_service.build_confirmation_response(db, order)),
+    )

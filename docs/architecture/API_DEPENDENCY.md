@@ -1,34 +1,55 @@
 # API Dependency
 
-> **Source:** Frontend `lib/api.ts` files, `apps/api/src/porterchain_api/routers/`
 
-## Client → API Matrix
+**Type:** CANONICAL
+**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
 
-| Client    | Base URL              | Auth                             | Key paths                                                                                                                 |
-| --------- | --------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Website   | `:8001/v1`            | Clerk bearer (booking)           | `/quotes`, `/bookings`, `/booking-drafts`, `/orders`, `/customers/me`, `/payments/retry`                                  |
-| Customer  | `:8001/v1`            | Clerk bearer                     | `/customers/me/dashboard`, `/customers/me/support`, `/customers/me/rebook/{id}`                                           |
-| Merchant  | `:8001/v1/merchant`   | Clerk + org headers              | `/dashboard`, `/bookings`, `/orders`, `/bulk`, `/billing`, `/profile`, `/team`, `/api-keys`                               |
-| Admin     | `:8001/v1/admin`      | Clerk bearer                     | `/dashboard`, `/orders`, `/operations`, `/crm`, `/merchants`, `/drivers`, `/finance`, `/pricing`, `/reports`, `/settings` |
-| Driver    | `:8001/driver-api/v1` | Porterchain JWT (via Next proxy) | `/auth/login`, `/routes`, `/stops`, `/availability`, `/location`                                                          |
-| Stripe    | `:8001/webhooks`      | HMAC signature                   | `/webhooks/stripe`                                                                                                        |
-| Fleetbase | `:8001/webhooks`      | HMAC signature                   | `/webhooks/fleetbase`                                                                                                     |
+**Source:** Frontend `lib/api.ts` files, `apps/api/src/porterchain_api/routers/`  
+**See also:** [API_FLOW_DIAGRAM.md](../../API_FLOW_DIAGRAM.md) · [APPLICATION_FLOW.md](./APPLICATION_FLOW.md)
 
-## External API Calls (Server-Side Only)
+> **Policy:** [masterrule.md](../../masterrule.md) §7
 
-| System         | Caller                                 | Path                                 |
-| -------------- | -------------------------------------- | ------------------------------------ |
-| Fleetbase      | `fleetbase-adapter`                    | `settings.fleetbase_api_url` (:8000) |
-| Stripe         | `services/stripe_service.py`           | Stripe REST API                      |
-| OSRM           | `porterchain_services/maps/service.py` | `settings.osrm_url`                  |
-| Valhalla       | `porterchain_services/maps/service.py` | `settings.valhalla_url` (:8002)      |
-| Clerk          | `auth/clerk.py`                        | JWKS endpoint                        |
-| Google Geocode | `website/src/lib/quote/geocode.ts`     | Server-only quote preview            |
-| Google Maps    | `@porterchain/maps`                    | Browser JS API (viz/autocomplete)    |
+---
 
-## No Direct Fleetbase from UI
+## Client → API matrix
 
-Admin opens Fleetbase console via `POST /v1/auth/sso/fleetbase` → SSO URL only.
+| Client | Base URL | Auth | Key paths |
+| ------ | -------- | ---- | --------- |
+| Website | `:8001/v1` | Clerk bearer (booking) | `/quotes`, `/bookings`, `/booking-drafts`, `/orders`, `/customers/me`, `/payments` |
+| Customer | `:8001/v1` | Clerk bearer | `/customers/me/dashboard`, `/customers/me/support`, `/customers/me/rebook/{id}` |
+| Merchant | `:8001/v1/merchant` | Clerk bearer | `/dashboard`, `/bookings`, `/orders`, `/bulk`, `/billing`, `/api-keys`, `/integrations/webhooks` |
+| Merchant API | `:8001/v1/merchant-api` | `X-Api-Key` + scopes | `/bookings`, `/orders`, `/track/{tracking_number}` |
+| Admin | `:8001/v1/admin` | Clerk bearer | `/dashboard`, `/orders`, `/operations`, `/route-center`, `/crm`, `/merchants`, `/drivers`, `/finance`, `/reports`, `/diagnostics` |
+| Driver portal | `:8001/driver-api/v1` | Porterchain JWT (via Next proxy) | `/auth/login`, `/routes`, `/stops`, `/location`, `/pod` |
+| mobile-driver | `:8001/driver-api/v1` | Clerk → Porterchain JWT | Same as driver portal |
+| mobile-customer | `:8001/v1` | Clerk bearer | `/customers/me/*` |
+| Stripe | `:8001/webhooks` | HMAC | `/webhooks/stripe` |
+| Fleetbase | `:8001/webhooks` | HMAC | `/webhooks/fleetbase` |
+
+Webhooks are **not** under `/v1/` — router prefix is `/webhooks`.
+
+---
+
+## External API calls (server-side only)
+
+| System | Caller | Target |
+| ------ | ------ | ------ |
+| Fleetbase | `fleetbase_engine` / adapter | `FLEETBASE_API_URL` (:8000) |
+| Stripe | `stripe_service` | Stripe REST |
+| Valhalla / OSRM | `porterchain_services/maps` | `:8002` / `OSRM_HOST` |
+| Clerk | `auth/clerk.py` | JWKS URL(s) |
+| Google Maps | `@porterchain/maps`, `@porterchain/mobile-maps` | Browser / native SDK (UI only) |
+| FCM | notification engine | Firebase (when configured) |
+| SMTP | notification engine | Zoho / configured SMTP |
+
+---
+
+## No direct Fleetbase from UI
+
+Admin opens Fleetbase console via `POST /v1/auth/sso/fleetbase` → SSO URL only. All execution sync goes through adapter + event bus.
+
+---
 
 ## Diagram
 
@@ -40,40 +61,64 @@ flowchart LR
     A[admin :3002]
     D[driver :3003]
     C[customer :3004]
-    MOB[mobile-driver]
+    MDRV[mobile-driver]
+    MCUST[mobile-customer]
+    MAPI[merchant-api]
   end
 
   subgraph API["Porterchain API :8001"]
     PUB["/v1/quotes, /orders, /booking-drafts"]
     CUST_API["/v1/customers"]
     MERCH_API["/v1/merchant"]
+    MERCH_KEY["/v1/merchant-api"]
     ADMIN_API["/v1/admin/*"]
+    OPS["/v1/admin/operations"]
+    RC["/v1/admin/route-center"]
     DRV_API["/driver-api/v1"]
     WH["/webhooks/stripe, /webhooks/fleetbase"]
     WS["WS /v1/admin/operations/live-map/ws"]
   end
 
   subgraph External
-    STRIPE[Stripe API]
-    FB_WH[Fleetbase Webhooks]
-    CLERK[Clerk JWKS]
-    GMAPS[Google Maps JS API]
+    STRIPE[Stripe]
+    FB[Fleetbase :8000]
+    CLERK[Clerk]
+    GMAPS[Google Maps]
   end
 
   W --> PUB & CUST_API
-  C --> CUST_API
+  C & MCUST --> CUST_API
   M --> MERCH_API
-  A --> ADMIN_API & WS
-  D -->|"Next proxy /api/driver"| DRV_API
-  MOB --> DRV_API
-  W & M & A --> GMAPS
-  W & M & A & C & D --> CLERK
+  MAPI --> MERCH_KEY
+  A --> ADMIN_API & OPS & RC & WS
+  D & MDRV --> DRV_API
+  W & M & A & C --> GMAPS
+  Clients --> CLERK
   STRIPE --> WH
-  FB_WH --> WH
+  FB --> WH
   API --> STRIPE
-  API -->|"fleetbase-adapter"| FB_API[Fleetbase :8000]
+  API --> FB
 ```
+
+---
 
 ## PlantUML
 
 See [plantuml/api_dependency.puml](./plantuml/api_dependency.puml)
+
+---
+
+## Related
+
+| Document | Purpose |
+| -------- | ------- |
+| [INTEGRATIONS.md](../../INTEGRATIONS.md) | External systems |
+| [PORT_CONFIGURATION.md](../../PORT_CONFIGURATION.md) | Ports |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

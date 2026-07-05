@@ -149,7 +149,7 @@ class BookingConfirmationResponse(BaseModel):
     pickup: dict[str, Any]
     dropoff: dict[str, Any]
     fleetbase_order_id: str | None = None
-    dashboard_url: str = "/portal/customer"
+    dashboard_url: str = "http://localhost:3004/dashboard"
 
 
 class BookingConfirmationStatusResponse(BaseModel):

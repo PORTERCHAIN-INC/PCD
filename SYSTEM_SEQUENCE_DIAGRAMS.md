@@ -1,7 +1,10 @@
 # Porterchain — System Sequence Diagrams
 
-**Document version:** 1.0  
-**Date:** June 29, 2026
+
+**Type:** CANONICAL
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
 
 ---
 
@@ -15,7 +18,7 @@ sequenceDiagram
     participant API as Porterchain API
     participant Maps as Google Maps
     participant Route as Valhalla/OSRM
-    participant DB as Porterchain DB
+    participant DB as PostgreSQL
 
     Visitor->>Web: Enter pickup, dropoff, vehicle, package, schedule
     Web->>Maps: Validate addresses (Places)
@@ -60,7 +63,7 @@ sequenceDiagram
     API->>API: Emit order.booked
     API-->>Stripe: 200 OK
     Stripe-->>Visitor: Redirect success URL
-    Web->>Visitor: Customer dashboard
+    Web->>Visitor: Customer portal (`apps/customer/`)
 ```
 
 ---
@@ -71,7 +74,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant API as Porterchain API
-    participant DB as Porterchain DB
+    participant DB as PostgreSQL
     participant Stripe as Stripe
     participant Mkt as Marketing job
     actor Customer
@@ -93,7 +96,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant API as Porterchain API
-    participant Bridge as Fleetbase Bridge
+    participant Bridge as fleetbase_engine / Adapter
     participant FB as Fleetbase API
     participant Disp as Dispatcher (Admin)
     participant Driver as Driver App
@@ -268,7 +271,9 @@ flowchart LR
         CP[Customer Portal]
         MP[Merchant Portal]
         AD[Admin]
-        DA[Driver App]
+        DA[Mobile Driver]
+        MC[Mobile Customer]
+        DP[Driver Portal]
         API[Porterchain API]
     end
     subgraph External
@@ -285,6 +290,8 @@ flowchart LR
     MP --> API
     AD --> API
     DA --> API
+    MC --> API
+    DP --> API
     Web --> Clerk
     MP --> Clerk
     API --> Clerk
@@ -300,6 +307,14 @@ flowchart LR
 ## Related documents
 
 - [BUSINESS_WORKFLOW.md](./BUSINESS_WORKFLOW.md)
-- [EVENT_FLOW.md](./EVENT_FLOW.md)
+- [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md)
 - [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)
-- [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
+- [EVENT_BUS.md](./EVENT_BUS.md)
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -7,6 +7,8 @@ author: "sarah-chen"
 tags: ["same-day", "dispatch", "sla"]
 ---
 
+<!-- Last verified: 2026-07-04 -->
+
 Same-day delivery is easy to promise and hard to operationalize. The difference between marketing copy and customer trust is **what happens when the third exception hits before noon.**
 
 ## Same-day is a dispatch problem

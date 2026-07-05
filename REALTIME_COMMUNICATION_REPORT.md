@@ -1,154 +1,165 @@
 # Porterchain — Realtime Communication Report
 
+
+**Type:** REPORT
+**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+> **Snapshot report** — point-in-time audit. Current truth: [REALTIME_FLOW.md](docs/architecture/REALTIME_FLOW.md) (canonical doc).
+
 **Reference:** [masterrule.md](./masterrule.md) §7 — all realtime via Porterchain API  
-**Audit date:** June 30, 2026
+**Canonical topology:** [docs/architecture/REALTIME_FLOW.md](./docs/architecture/REALTIME_FLOW.md) (Group 26)
 
 ---
 
 ## Executive summary
 
-| Channel                   | Implemented                                | Gap                            |
-| ------------------------- | ------------------------------------------ | ------------------------------ |
-| WebSocket (API)           | ✅ Live map only                           | Orders, drivers, ops dashboard |
-| HTTP polling              | ✅ Admin dashboard, ops, live-map fallback | —                              |
-| Event bus (async)         | ✅ Redis Streams / in-memory               | —                              |
-| Server-Sent Events        | ❌                                         | Not used                       |
-| Fleetbase realtime direct | ❌ Correct — blocked                       | —                              |
+| Channel | Status | Notes |
+| ------- | ------ | ----- |
+| WebSocket (API) | ✅ | Admin live map only |
+| HTTP polling | ✅ | Ops, dashboards, merchant track |
+| Event bus (async) | ✅ | Redis streams / in-memory |
+| Server-Sent Events | ❌ | Not used |
+| Fleetbase realtime direct | ❌ | **Correct** — blocked |
 
 ---
 
 ## WebSocket endpoints
 
-| Endpoint                                     | Auth                  | Payload                            | Interval | Consumer                         |
-| -------------------------------------------- | --------------------- | ---------------------------------- | -------- | -------------------------------- |
-| `WS /v1/admin/operations/live-map/ws?token=` | Clerk JWT query param | `{"type":"snapshot","data":{...}}` | 5s push  | `apps/admin` `useLiveMapData.ts` |
+| Endpoint | Auth | Payload | Interval | Consumer |
+| -------- | ---- | ------- | -------- | -------- |
+| `WS /v1/admin/operations/live-map/ws?token=` | Clerk JWT (query) | `{"type":"snapshot","data":{...}}` | 5s push | `apps/admin` `useLiveMapData.ts` |
 
 **Implementation:** `routers/operations.py:live_map_ws` → `LiveMapService.snapshot()`
 
-**Data sources (all Porterchain DB mirror):**
+**Data sources (Porterchain PostgreSQL mirror only):**
 
-- Active drivers + last `DriverLocationPing`
-- Vehicles
-- In-flight orders (state filter)
+- Active drivers + `DriverLocationPing`
+- Vehicles, in-flight orders
 - Route polylines from mirror
-- Incident/exception markers (partial)
+- Exception markers (partial)
 
-**No Fleetbase WebSocket or HTTP polling from WS handler.** ✅
-
----
-
-## HTTP polling (realtime fallback)
-
-| Surface                  | Interval    | Endpoint                                 | WebSocket?   |
-| ------------------------ | ----------- | ---------------------------------------- | ------------ |
-| Live map                 | 8s fallback | `GET /v1/admin/operations/live-map`      | WS primary   |
-| Operations control tower | 15s         | `GET /v1/admin/operations/control-tower` | ❌ Poll only |
-| Admin dashboard          | 20s         | `GET /v1/admin/dashboard`                | ❌ Poll only |
-| Website tracking         | On load     | `GET /v1/orders/{tracking}`              | ❌ No poll   |
-| Merchant track           | On load     | `GET /v1/merchant/track`                 | ❌           |
-| Driver stops             | On load     | `GET /driver-api/v1/routes/assigned`     | ❌           |
+No Fleetbase WebSocket from UI. ✅
 
 ---
 
-## Required realtime surfaces (Step 16 audit)
+## HTTP polling
 
-| Surface              | Status     | Mechanism                                               |
-| -------------------- | ---------- | ------------------------------------------------------- |
-| Orders               | ⚠️ Partial | State changes via event bus; UI polls or manual refresh |
-| Tracking             | ⚠️ Partial | `order.tracking_updated` events; no WS to customer      |
-| Live Map             | ✅         | WebSocket + poll fallback                               |
-| Drivers              | ⚠️ Partial | Location pings → DB → live map WS                       |
-| Notifications        | ❌         | No push WS to portals; email/SMS via worker             |
-| Operations Dashboard | ⚠️ Partial | 15–20s HTTP poll                                        |
+| Surface | Interval | Endpoint | WS? |
+| ------- | -------- | -------- | --- |
+| Live map fallback | 8s | `GET /v1/admin/operations/live-map` | WS primary |
+| Operations control tower | ~15s | `GET /v1/admin/operations/control-tower` | Poll |
+| Admin dashboard | ~20s | `GET /v1/admin/dashboard` | Poll |
+| Merchant live track | 10s | Merchant tracking API | Poll |
+| Customer track page | On load | `GET /v1/orders/{tracking}` | Text-only UI |
+| Driver navigation | On demand + refresh | Driver API navigation session | Poll |
 
 ---
 
-## Event-driven realtime chain
+## Required surfaces audit
+
+| Surface | Status | Mechanism |
+| ------- | ------ | --------- |
+| Live map (admin) | ✅ | WS + 8s poll fallback |
+| Operations dashboard | ⚠️ | HTTP poll |
+| Order state changes | ⚠️ | Event bus; UI manual refresh |
+| Customer tracking | ⚠️ | API data available; customer web map missing |
+| Driver live map | ⚠️ | Driver portal + mobile `EnterpriseMap` when configured |
+| Push notifications | ⚠️ | FCM/email/SMS via worker — not inbox WS |
+
+---
+
+## Event-driven chain
 
 ```
-Fleetbase webhook
-  → webhook.received
+Fleetbase webhook (POST /webhooks/fleetbase)
   → WebhookProcessor
   → transition_order_state
   → order.* domain event
-  → [merchant webhook fanout queue — stub]
-  → LiveMapService reads DB on next WS tick (5s)
+  → Merchant webhook fanout (queue)
+  → LiveMapService reads DB on next WS tick (~5s)
 ```
 
-**Latency:** Up to 5s for live map reflection of Fleetbase GPS updates (acceptable for ops mirror pattern).
+**Typical ops map latency:** ≤5s after mirror update.
 
 ---
 
-## Driver location realtime
+## Driver location path
 
 ```
 Driver mobile/web
-  → POST /driver-api/v1/location
-  → DriverFleetbaseBridge.track_driver_location
-  → Fleetbase API
-  → (webhook) order.location / driver.location
-  → WebhookProcessor → order.tracking_updated
-  → DriverLocationPing mirror (if implemented in processor)
-  → LiveMapService snapshot
+  → POST /driver-api/v1/location (or Fleetbase bridge)
+  → Fleetbase execution GPS
+  → Inbound webhook → order.tracking_updated
+  → DriverLocationPing mirror
+  → LiveMapService snapshot → admin WS
 ```
 
 ---
 
-## Frontend WebSocket clients
+## Frontend clients
 
-| App   | File                      | URL construction                                                 |
-| ----- | ------------------------- | ---------------------------------------------------------------- |
-| Admin | `hooks/useLiveMapData.ts` | `ws(s)://{API}/v1/admin/operations/live-map/ws?token={clerkJwt}` |
-| Admin | `lib/maps.ts`             | `wsLiveMapUrl()` helper                                          |
+| App | File | URL |
+| --- | ---- | --- |
+| Admin | `hooks/useLiveMapData.ts` | `wsLiveMapUrl(token)` from `lib/maps.ts` |
 
-**Reconnect:** Hook falls back to HTTP polling on WS failure.
+Reconnect: falls back to HTTP polling on WS failure.
 
 ---
 
 ## Security
 
-| Check               | Status                |
-| ------------------- | --------------------- |
-| WS auth required    | ✅ Clerk JWT in query |
-| Public WS endpoints | ❌ None               |
-| Driver WS           | ❌ Not implemented    |
-| CORS for WS         | ✅ Same-origin API    |
+| Check | Status |
+| ----- | ------ |
+| WS auth required | ✅ Clerk JWT in query |
+| Public WS | ❌ None |
+| CORS | ✅ API-bound |
 
 ---
 
-## Worker / queue realtime
+## Worker / async (not push-to-UI)
 
-| Queue               | Realtime to UI?        |
-| ------------------- | ---------------------- |
-| EMAILS / SMS / PUSH | ❌ Async delivery only |
-| BILLING             | ❌ Backend only        |
-| WEBHOOKS            | ❌ Stub processor      |
-
-Notifications are **push-out** (email/SMS), not **push-to-UI**.
+Email, SMS, FCM push, billing, merchant webhooks — processed via Redis queues in `apps/worker/`. No portal notification inbox WebSocket.
 
 ---
 
 ## Gaps & recommendations
 
-| ID  | Gap                         | Priority | Approach                                 |
-| --- | --------------------------- | -------- | ---------------------------------------- |
-| R1  | No order-specific WS        | P3       | Extend ops WS or SSE for order 360       |
-| R2  | Dashboard poll-only         | P2       | Reuse live-map WS pattern or 10s SSE     |
-| R3  | Customer tracking not live  | P2       | Poll `/tracking` every 30s on track page |
-| R4  | Driver portal no live map   | P2       | Viz-only Google map + API route polyline |
-| R5  | Notification inbox realtime | P3       | Future — FCM/web push                    |
-| R6  | Merchant order status push  | P3       | Merchant webhook fanout (worker stub)    |
+| ID | Gap | Priority |
+| -- | --- | -------- |
+| R1 | Order-specific WS for Order 360 | P3 |
+| R2 | Dashboard SSE or shared WS channel | P2 |
+| R3 | Customer web tracking map + 30s poll | P2 |
+| R4 | Merchant realtime already has 10s poll + map viz | — |
+| R5 | Notification inbox realtime | P3 |
 
-**Architecture constraint:** All new realtime channels must terminate at Porterchain API — never subscribe to Fleetbase streams from UI.
+**Constraint:** New realtime channels must terminate at Porterchain API — never Fleetbase streams from UI.
 
 ---
 
 ## Verification
 
 ```bash
-# Live map WS (requires valid Clerk token)
-wscat -c "ws://localhost:8001/v1/admin/operations/live-map/ws?token=YOUR_JWT"
-
-# Snapshot REST
+# REST snapshot
 curl -H "Authorization: Bearer $TOKEN" http://localhost:8001/v1/admin/operations/live-map
+
+# WS (valid Clerk JWT)
+wscat -c "ws://localhost:8001/v1/admin/operations/live-map/ws?token=YOUR_JWT"
 ```
+
+---
+
+## Related
+
+| Document | Purpose |
+| -------- | ------- |
+| [NOTIFICATION_REPORT.md](./NOTIFICATION_REPORT.md) | Template coverage (E2E) |
+| [docs/notifications/NOTIFICATION_ARCHITECTURE.md](./docs/notifications/NOTIFICATION_ARCHITECTURE.md) | Push architecture (Group 29) |
+---
+
+## Governance
+
+| Document | Role |
+| -------- | ---- |
+| [masterrule.md](masterrule.md) | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

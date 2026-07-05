@@ -21,6 +21,7 @@
     "react-dom": "19.2.7"
   },
   "devDependencies": {
+    "@porterchain/config": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/google.maps": "^3.65.2",
     "@types/node": "^22",
