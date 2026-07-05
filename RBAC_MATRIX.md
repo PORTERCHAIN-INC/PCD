@@ -1,6 +1,5 @@
 # Porterchain Enterprise RBAC Matrix
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -21,18 +20,18 @@
 
 ## Enterprise roles (canonical)
 
-| Role           | Value            | Portal          | Provisioned via  |
-| -------------- | ---------------- | --------------- | ---------------- |
+| Role           | Value            | Portal                                             | Provisioned via  |
+| -------------- | ---------------- | -------------------------------------------------- | ---------------- |
 | Customer       | `customer`       | Website, `apps/customer/` (:3004), mobile-customer | Open signup      |
-| Merchant       | `merchant`       | Merchant portal | Invitation       |
-| Merchant Admin | `merchant_admin` | Merchant portal | Invitation       |
-| Driver         | `driver`         | Driver portal (:3003), `apps/mobile-driver/` | Admin invitation |
-| Dispatcher     | `dispatcher`     | Admin portal    | Staff invitation |
-| Finance        | `finance`        | Admin portal    | Staff invitation |
-| Support        | `support`        | Admin portal    | Staff invitation |
-| Operations     | `operations`     | Admin portal    | Staff invitation |
-| Admin          | `admin`          | Admin portal    | Staff invitation |
-| Super Admin    | `super_admin`    | Admin portal    | Staff invitation |
+| Merchant       | `merchant`       | Merchant portal                                    | Invitation       |
+| Merchant Admin | `merchant_admin` | Merchant portal                                    | Invitation       |
+| Driver         | `driver`         | Driver portal (:3003), `apps/mobile-driver/`       | Admin invitation |
+| Dispatcher     | `dispatcher`     | Admin portal                                       | Staff invitation |
+| Finance        | `finance`        | Admin portal                                       | Staff invitation |
+| Support        | `support`        | Admin portal                                       | Staff invitation |
+| Operations     | `operations`     | Admin portal                                       | Staff invitation |
+| Admin          | `admin`          | Admin portal                                       | Staff invitation |
+| Super Admin    | `super_admin`    | Admin portal                                       | Staff invitation |
 
 **Source of truth:** `shared/python/porterchain_shared/auth/enterprise_roles.py`
 
@@ -256,9 +255,9 @@ Optional `X-Merchant-Id` header selects membership when a user belongs to multip
 
 ## Driver and customer capabilities
 
-| Surface  | Allowed actions (summary) |
-| -------- | ------------------------- |
-| Driver   | Assigned jobs, location, POD, own wallet/documents |
+| Surface  | Allowed actions (summary)                               |
+| -------- | ------------------------------------------------------- |
+| Driver   | Assigned jobs, location, POD, own wallet/documents      |
 | Customer | Own orders, tracking, invoices, rebook, profile (Clerk) |
 
 Enforced in `driver_engine/` and customer routes — not module-based like admin/merchant portals.
@@ -281,30 +280,31 @@ Implementation: `apps/api/src/porterchain_api/auth/merchant_api.py`
 
 ## Audit requirements
 
-| Action                     | Logged              |
-| -------------------------- | ------------------- |
-| Role assignment            | `admin_audit_log`   |
-| Refund approval            | `admin_audit_log`   |
-| Merchant ACTIVE toggle     | Merchant events     |
-| API key create/revoke      | Merchant audit      |
-| SSO Fleetbase session      | Recommended         |
+| Action                 | Logged            |
+| ---------------------- | ----------------- |
+| Role assignment        | `admin_audit_log` |
+| Refund approval        | `admin_audit_log` |
+| Merchant ACTIVE toggle | Merchant events   |
+| API key create/revoke  | Merchant audit    |
+| SSO Fleetbase session  | Recommended       |
 
 ---
 
 ## Related docs
 
-| Document | Purpose |
-| -------- | ------- |
-| [RBAC.md](./RBAC.md) | Overview + Fleetbase sync summary |
-| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Clerk-only identity |
-| [SSO.md](./SSO.md) | Fleetbase console SSO |
-| [SECURITY.md](./SECURITY.md) | Secrets, API hardening |
-| [INVITATION_WORKFLOW.md](./INVITATION_WORKFLOW.md) | Invitation provisioning |
+| Document                                                           | Purpose                           |
+| ------------------------------------------------------------------ | --------------------------------- |
+| [RBAC.md](./RBAC.md)                                               | Overview + Fleetbase sync summary |
+| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Clerk-only identity               |
+| [SSO.md](./SSO.md)                                                 | Fleetbase console SSO             |
+| [SECURITY.md](./SECURITY.md)                                       | Secrets, API hardening            |
+| [INVITATION_WORKFLOW.md](./INVITATION_WORKFLOW.md)                 | Invitation provisioning           |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

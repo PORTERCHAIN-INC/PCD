@@ -1,10 +1,8 @@
 # Deployment (CI/CD)
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 Porterchain production deployment uses GitHub Actions → GHCR → DigitalOcean droplet with Caddy TLS termination.
 
@@ -14,9 +12,9 @@ Porterchain production deployment uses GitHub Actions → GHCR → DigitalOcean 
 
 ## Workflows
 
-| Workflow | File | Trigger | Purpose |
-| -------- | ---- | ------- | ------- |
-| **CI** | `.github/workflows/ci.yml` | push / PR to `main` | Lint, format check, build |
+| Workflow   | File                           | Trigger                         | Purpose                              |
+| ---------- | ------------------------------ | ------------------------------- | ------------------------------------ |
+| **CI**     | `.github/workflows/ci.yml`     | push / PR to `main`             | Lint, format check, build            |
 | **Deploy** | `.github/workflows/deploy.yml` | CI success on `main`, or manual | Build images → GHCR → droplet deploy |
 
 Deploy runs only after CI passes on `main`, so broken code does not ship automatically.
@@ -40,14 +38,14 @@ push to main → CI (lint / format / build)
 
 ### Images Built
 
-| Image | Dockerfile | Service |
-| ----- | ---------- | ------- |
-| `pcd-website` | `website/Dockerfile` | Marketing + booking |
-| `pcd-api` | `apps/api/Dockerfile` | FastAPI orchestrator |
-| `pcd-admin` | `apps/admin/Dockerfile` | Admin portal |
-| `pcd-merchant` | `apps/merchant-portal/Dockerfile` | Merchant portal |
-| `pcd-driver` | `apps/driver-portal/Dockerfile` | Driver portal |
-| `pcd-customer` | `apps/customer/Dockerfile` | Customer portal |
+| Image          | Dockerfile                        | Service              |
+| -------------- | --------------------------------- | -------------------- |
+| `pcd-website`  | `website/Dockerfile`              | Marketing + booking  |
+| `pcd-api`      | `apps/api/Dockerfile`             | FastAPI orchestrator |
+| `pcd-admin`    | `apps/admin/Dockerfile`           | Admin portal         |
+| `pcd-merchant` | `apps/merchant-portal/Dockerfile` | Merchant portal      |
+| `pcd-driver`   | `apps/driver-portal/Dockerfile`   | Driver portal        |
+| `pcd-customer` | `apps/customer/Dockerfile`        | Customer portal      |
 
 **Not in prod compose (July 2026):** `apps/worker` — run worker separately or add to compose when background jobs are required in production.
 
@@ -96,21 +94,21 @@ Ensure the deploy user can log in with the SSH key referenced by `DEPLOY_SSH_KEY
 
 Settings → Secrets and variables → Actions → Secrets:
 
-| Secret | Description |
-| ------ | ----------- |
-| `DEPLOY_HOST` | Droplet IP |
-| `DEPLOY_USER` | SSH user (`root` or `deploy`) |
-| `DEPLOY_SSH_KEY` | Private SSH key (PEM) authorized on droplet |
-| `DEPLOY_PORT` | _(optional)_ SSH port, default `22` |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser Maps key (build-time) |
-| `GOOGLE_MAPS_SERVER_API_KEY` | Server-side Maps key for geocoding |
-| `POSTGRES_PASSWORD` | PostgreSQL password for `porterchain` DB |
-| `CLERK_PUBLISHABLE_KEY` | Clerk publishable key (`pk_live_…` in prod) |
-| `CLERK_SECRET_KEY` | Clerk secret key |
-| `CLERK_JWKS_URL` | Clerk JWKS endpoint |
-| `STRIPE_SECRET` | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `JWT_SECRET` | SSO token secret (`openssl rand -hex 32`) |
+| Secret                            | Description                                 |
+| --------------------------------- | ------------------------------------------- |
+| `DEPLOY_HOST`                     | Droplet IP                                  |
+| `DEPLOY_USER`                     | SSH user (`root` or `deploy`)               |
+| `DEPLOY_SSH_KEY`                  | Private SSH key (PEM) authorized on droplet |
+| `DEPLOY_PORT`                     | _(optional)_ SSH port, default `22`         |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser Maps key (build-time)               |
+| `GOOGLE_MAPS_SERVER_API_KEY`      | Server-side Maps key for geocoding          |
+| `POSTGRES_PASSWORD`               | PostgreSQL password for `porterchain` DB    |
+| `CLERK_PUBLISHABLE_KEY`           | Clerk publishable key (`pk_live_…` in prod) |
+| `CLERK_SECRET_KEY`                | Clerk secret key                            |
+| `CLERK_JWKS_URL`                  | Clerk JWKS endpoint                         |
+| `STRIPE_SECRET`                   | Stripe secret key                           |
+| `STRIPE_WEBHOOK_SECRET`           | Stripe webhook signing secret               |
+| `JWT_SECRET`                      | SSO token secret (`openssl rand -hex 32`)   |
 
 **Stripe webhook URL:** `https://porterchain.com/webhooks/stripe` (via Caddy → API)
 
@@ -161,16 +159,16 @@ docker compose -f docker-compose.prod.yml up -d
 
 ## Security Posture
 
-| Control | Status |
-| ------- | ------ |
-| Firewall (UFW) | Default-deny; 22/80/443 only |
-| TLS | Let's Encrypt via Caddy; HSTS |
-| Database | PostgreSQL 16 in Docker (`postgres-data` volume) |
-| Redis | In-compose; not exposed to host |
-| Payments | `STRIPE_MOCK=false`; real Stripe Checkout |
-| Auth | `CLERK_DEV_BYPASS=false`; Clerk JWT verification |
-| SSH | Key-only; fail2ban; unattended-upgrades |
-| Containers | `no-new-privileges`; internal network only |
+| Control        | Status                                           |
+| -------------- | ------------------------------------------------ |
+| Firewall (UFW) | Default-deny; 22/80/443 only                     |
+| TLS            | Let's Encrypt via Caddy; HSTS                    |
+| Database       | PostgreSQL 16 in Docker (`postgres-data` volume) |
+| Redis          | In-compose; not exposed to host                  |
+| Payments       | `STRIPE_MOCK=false`; real Stripe Checkout        |
+| Auth           | `CLERK_DEV_BYPASS=false`; Clerk JWT verification |
+| SSH            | Key-only; fail2ban; unattended-upgrades          |
+| Containers     | `no-new-privileges`; internal network only       |
 
 Re-run `harden-droplet.sh` any time (idempotent).
 
@@ -181,11 +179,12 @@ Re-run `harden-droplet.sh` any time (idempotent).
 - GHCR packages are **private** by default; droplet authenticates at deploy time.
 - Fleetbase is **not** in prod compose by default (`FLEETBASE_DISPATCH_BRIDGE=false`).
 - Mobile apps (Expo) deploy via EAS separately — not part of this droplet stack.
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

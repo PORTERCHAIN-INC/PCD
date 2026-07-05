@@ -8,15 +8,15 @@
 
 ## Executive verdict
 
-| Area | Status |
-| ---- | ------ |
-| Authentication (Clerk) | **PASS** |
-| Authorization (RBAC) | **PASS** |
-| Webhook signature verification | **PASS** |
-| Secrets in repo | **PASS** |
-| Audit logs | **PARTIAL** |
-| Rate limiting | **PARTIAL** — implemented; local bypass + Redis dependency |
-| Portal isolation | **PASS** |
+| Area                           | Status                                                     |
+| ------------------------------ | ---------------------------------------------------------- |
+| Authentication (Clerk)         | **PASS**                                                   |
+| Authorization (RBAC)           | **PASS**                                                   |
+| Webhook signature verification | **PASS**                                                   |
+| Secrets in repo                | **PASS**                                                   |
+| Audit logs                     | **PARTIAL**                                                |
+| Rate limiting                  | **PARTIAL** — implemented; local bypass + Redis dependency |
+| Portal isolation               | **PASS**                                                   |
 
 **Overall:** Strong foundation; tune rate limits for production load and extend CRM audit coverage.
 
@@ -24,15 +24,15 @@
 
 ## Authentication
 
-| Portal | Mechanism | Middleware / guard | Notes |
-| ------ | --------- | ------------------ | ----- |
-| Admin | Clerk JWT | `auth.protect()` | Skips if Clerk unset (dev) |
-| Merchant | Clerk JWT | `auth.protect()` | Same |
-| Customer (`apps/customer/`) | Clerk JWT | `middleware.ts` — all routes except sign-in | Dedicated app `:3004` |
-| Website | Clerk | `clerkMiddleware` + i18n | Legacy `/portal/customer` — client gate; prefer `:3004` |
-| Driver web | Clerk → API JWT | Clerk login + Porterchain session cookie | By design |
-| Driver mobile | Clerk Expo | Token → `/driver-api/v1/auth/login` | Session JWT thereafter |
-| API | Clerk JWT per route | `auth/clerk.py` | `CLERK_DEV_BYPASS` local only |
+| Portal                      | Mechanism           | Middleware / guard                          | Notes                                                   |
+| --------------------------- | ------------------- | ------------------------------------------- | ------------------------------------------------------- |
+| Admin                       | Clerk JWT           | `auth.protect()`                            | Skips if Clerk unset (dev)                              |
+| Merchant                    | Clerk JWT           | `auth.protect()`                            | Same                                                    |
+| Customer (`apps/customer/`) | Clerk JWT           | `middleware.ts` — all routes except sign-in | Dedicated app `:3004`                                   |
+| Website                     | Clerk               | `clerkMiddleware` + i18n                    | Legacy `/portal/customer` — client gate; prefer `:3004` |
+| Driver web                  | Clerk → API JWT     | Clerk login + Porterchain session cookie    | By design                                               |
+| Driver mobile               | Clerk Expo          | Token → `/driver-api/v1/auth/login`         | Session JWT thereafter                                  |
+| API                         | Clerk JWT per route | `auth/clerk.py`                             | `CLERK_DEV_BYPASS` local only                           |
 
 ### Portal isolation
 
@@ -63,10 +63,10 @@ Modules enforced via `require_module()`: orders, finance, CRM, drivers, merchant
 
 ## Webhook security
 
-| Webhook | Path | Verification | Idempotency |
-| ------- | ---- | -------------- | ----------- |
-| Stripe | `POST /webhooks/stripe` | `construct_event` + secret | `stripe:{event_id}` |
-| Fleetbase | `POST /webhooks/fleetbase` | Adapter HMAC | Event bus + processor |
+| Webhook   | Path                       | Verification               | Idempotency           |
+| --------- | -------------------------- | -------------------------- | --------------------- |
+| Stripe    | `POST /webhooks/stripe`    | `construct_event` + secret | `stripe:{event_id}`   |
+| Fleetbase | `POST /webhooks/fleetbase` | Adapter HMAC               | Event bus + processor |
 
 **Rule (§14):** Only Stripe webhooks finalize payment — **PASS**.
 
@@ -74,35 +74,35 @@ Modules enforced via `require_module()`: orders, finance, CRM, drivers, merchant
 
 ## Secrets
 
-| Check | Result |
-| ----- | ------ |
-| `.env` gitignored | ✅ |
-| Live keys in source | ❌ None found |
+| Check                               | Result                                                           |
+| ----------------------------------- | ---------------------------------------------------------------- |
+| `.env` gitignored                   | ✅                                                               |
+| Live keys in source                 | ❌ None found                                                    |
 | `jwt_secret` default in `config.py` | ⚠️ Must override in prod (`dev-sso-secret-change-in-production`) |
-| Test keys in examples only | ✅ |
+| Test keys in examples only          | ✅                                                               |
 
 ---
 
 ## Audit logs
 
-| Domain | Coverage | Status |
-| ------ | -------- | ------ |
-| Booking drafts | Every transition | ✅ |
-| Admin mutations | `admin_audit_logs` | ⚠️ Partial |
-| CRM | Company CRUD primarily | ⚠️ Partial |
-| Fleetbase sync | `fleetbase_sync_audit` | ✅ |
-| Domain events | `domain_events` | ✅ |
-| Merchant | `merchant_audit_logs` model | ⚠️ Underutilized |
+| Domain          | Coverage                    | Status           |
+| --------------- | --------------------------- | ---------------- |
+| Booking drafts  | Every transition            | ✅               |
+| Admin mutations | `admin_audit_logs`          | ⚠️ Partial       |
+| CRM             | Company CRUD primarily      | ⚠️ Partial       |
+| Fleetbase sync  | `fleetbase_sync_audit`      | ✅               |
+| Domain events   | `domain_events`             | ✅               |
+| Merchant        | `merchant_audit_logs` model | ⚠️ Underutilized |
 
 ---
 
 ## Rate limiting
 
-| Scope | Implementation | Status |
-| ----- | -------------- | ------ |
-| Merchant API keys (`/v1/merchant-api/*`) | `gateway_engine/middleware.py` | ✅ |
-| Portal JWT routes | `platform/rate_limit_middleware.py` → `PortalRateLimitMiddleware` | ⚠️ **Partial** |
-| Webhooks | Signature-only (exempt from portal limiter) | ✅ |
+| Scope                                    | Implementation                                                    | Status         |
+| ---------------------------------------- | ----------------------------------------------------------------- | -------------- |
+| Merchant API keys (`/v1/merchant-api/*`) | `gateway_engine/middleware.py`                                    | ✅             |
+| Portal JWT routes                        | `platform/rate_limit_middleware.py` → `PortalRateLimitMiddleware` | ⚠️ **Partial** |
+| Webhooks                                 | Signature-only (exempt from portal limiter)                       | ✅             |
 
 **Portal limiter details:**
 
@@ -118,10 +118,10 @@ Modules enforced via `require_module()`: orders, finance, CRM, drivers, merchant
 
 ### S-01 — Portal rate limits not enforced in local / without Redis (Medium)
 
-| Field | Value |
-| ----- | ----- |
-| **Was** | High — no global limits |
-| **Now** | Middleware exists; production must set `app_env≠local` + Redis |
+| Field   | Value                                                                         |
+| ------- | ----------------------------------------------------------------------------- |
+| **Was** | High — no global limits                                                       |
+| **Now** | Middleware exists; production must set `app_env≠local` + Redis                |
 | **Fix** | Fail closed when Redis down in production; optional stricter limits per route |
 
 ### S-02 — CRM audit incomplete (Medium)
@@ -144,18 +144,18 @@ Embedded `/portal/customer` on website lacks server `auth.protect()` — dedicat
 
 ## Booking security
 
-| Control | Status |
-| ------- | ------ |
-| Draft access control | ✅ |
-| Staff cannot book as customer | ✅ |
-| Payment verification server-side only | ✅ |
-| PCI — no card storage | ✅ |
+| Control                               | Status |
+| ------------------------------------- | ------ |
+| Draft access control                  | ✅     |
+| Staff cannot book as customer         | ✅     |
+| Payment verification server-side only | ✅     |
+| PCI — no card storage                 | ✅     |
 
 ---
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [PERFORMANCE_AUDIT.md](./PERFORMANCE_AUDIT.md) | Performance controls |
-| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Auth cluster |
+| Document                                                           | Purpose              |
+| ------------------------------------------------------------------ | -------------------- |
+| [PERFORMANCE_AUDIT.md](./PERFORMANCE_AUDIT.md)                     | Performance controls |
+| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Auth cluster         |

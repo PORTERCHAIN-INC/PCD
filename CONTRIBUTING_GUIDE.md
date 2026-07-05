@@ -1,6 +1,5 @@
 # Contributing Guide
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -185,13 +184,13 @@ When making architectural changes, update:
 
 ## Getting help
 
-| Topic               | Document                                                                 |
-| ------------------- | ------------------------------------------------------------------------ |
+| Topic               | Document                                                                               |
+| ------------------- | -------------------------------------------------------------------------------------- |
 | System design       | [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md) |
-| Product scope       | [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md)                     |
-| Fleetbase internals | [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                   |
-| Adapter design      | [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) |
-| Upgrading Fleetbase | [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md)                                   |
+| Product scope       | [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md)                                   |
+| Fleetbase internals | [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                                 |
+| Adapter design      | [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)               |
+| Upgrading Fleetbase | [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md)                                                 |
 
 ---
 
@@ -205,7 +204,7 @@ When making architectural changes, update:
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,6 +1,5 @@
 # Event Bus Flow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -12,13 +11,13 @@
 
 ## Transport
 
-| Component | Path / detail |
-| --------- | ------------- |
-| Library | `services/event-bus/porterchain_event_bus` |
-| Backend | Redis Streams (`porterchain:events`) |
-| Audit log | `domain_events` table via `emit_event()` |
+| Component    | Path / detail                                                             |
+| ------------ | ------------------------------------------------------------------------- |
+| Library      | `services/event-bus/porterchain_event_bus`                                |
+| Backend      | Redis Streams (`porterchain:events`)                                      |
+| Audit log    | `domain_events` table via `emit_event()`                                  |
 | Registration | API lifespan `platform.bus.ensure_handlers_registered()` + worker startup |
-| Consumer | `apps/worker/run.py` — group `porterchain-workers` |
+| Consumer     | `apps/worker/run.py` — group `porterchain-workers`                        |
 
 Without Redis (local dev): in-memory bus; handlers may run synchronously in the API process.
 
@@ -26,18 +25,18 @@ Without Redis (local dev): in-memory bus; handlers may run synchronously in the 
 
 ## Registered handlers (`register_default_handlers`)
 
-| Event | Handler | Action |
-| ----- | ------- | ------ |
-| `order.dispatch_ready` | `_handle_order_dispatch_ready` | `sync_order_from_event` → Fleetbase push |
-| `order.driver_assigned` | `_handle_driver_assigned` | `sync_driver_assignment_from_event` |
-| `order.cancelled` | `_handle_order_cancelled` | `sync_cancellation_from_event` |
-| `claim.opened` | `_handle_claim_opened` | `sync_claim_from_event` (Fleetbase) |
-| `order.return_to_sender` | `_handle_order_return_to_sender` | `sync_return_from_event` |
-| `order.damaged` | `_handle_order_damaged` | `sync_damage_from_event` |
-| `payment.succeeded` | `_handle_payment_succeeded` | Enqueue `billing` queue |
-| `webhook.received` | `_handle_webhook_received` | Apply Fleetbase webhook + enqueue `webhooks` |
-| `notification.queued` | `_handle_notification_queued` | Route to `emails` / `sms` / `push` queues |
-| `order.*` (wildcard) | `_handle_merchant_webhook_fanout` | Merchant outbound webhook fan-out |
+| Event                    | Handler                           | Action                                       |
+| ------------------------ | --------------------------------- | -------------------------------------------- |
+| `order.dispatch_ready`   | `_handle_order_dispatch_ready`    | `sync_order_from_event` → Fleetbase push     |
+| `order.driver_assigned`  | `_handle_driver_assigned`         | `sync_driver_assignment_from_event`          |
+| `order.cancelled`        | `_handle_order_cancelled`         | `sync_cancellation_from_event`               |
+| `claim.opened`           | `_handle_claim_opened`            | `sync_claim_from_event` (Fleetbase)          |
+| `order.return_to_sender` | `_handle_order_return_to_sender`  | `sync_return_from_event`                     |
+| `order.damaged`          | `_handle_order_damaged`           | `sync_damage_from_event`                     |
+| `payment.succeeded`      | `_handle_payment_succeeded`       | Enqueue `billing` queue                      |
+| `webhook.received`       | `_handle_webhook_received`        | Apply Fleetbase webhook + enqueue `webhooks` |
+| `notification.queued`    | `_handle_notification_queued`     | Route to `emails` / `sms` / `push` queues    |
+| `order.*` (wildcard)     | `_handle_merchant_webhook_fanout` | Merchant outbound webhook fan-out            |
 
 ## Notification routing (`register_notification_handlers`)
 
@@ -47,15 +46,15 @@ Subscribes **30+ domain events** to `notification_engine/event_router.handle_dom
 
 ## Worker processors
 
-| Queue | Processor | Notes |
-| ----- | --------- | ----- |
-| `emails` | `process_notification` | Email delivery |
-| `sms` | `process_notification` | SMS (log-only when provider unset) |
-| `push` | `process_notification` | Firebase push |
-| `billing` | `process_billing` | Triggered by `payment.succeeded` |
-| `webhooks` | `process_webhook` | Fleetbase ingress fan-out + merchant webhooks |
-| `dispatch` | `process_dispatch` | Dispatch job processor |
-| `reports` | stub (log only) | No scheduled generation yet |
+| Queue      | Processor              | Notes                                         |
+| ---------- | ---------------------- | --------------------------------------------- |
+| `emails`   | `process_notification` | Email delivery                                |
+| `sms`      | `process_notification` | SMS (log-only when provider unset)            |
+| `push`     | `process_notification` | Firebase push                                 |
+| `billing`  | `process_billing`      | Triggered by `payment.succeeded`              |
+| `webhooks` | `process_webhook`      | Fleetbase ingress fan-out + merchant webhooks |
+| `dispatch` | `process_dispatch`     | Dispatch job processor                        |
+| `reports`  | stub (log only)        | No scheduled generation yet                   |
 
 Background jobs in `apps/worker/run.py` also drain draft reconciliation every **300s** (not event-bus driven).
 
@@ -121,16 +120,17 @@ See [plantuml/event_bus_flow.puml](./plantuml/event_bus_flow.puml)
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [EVENT_BUS.md](../../EVENT_BUS.md) | Infrastructure, retry, DLQ |
-| [EVENT_CATALOG.md](../../EVENT_CATALOG.md) | Event types |
-| [docs/archive/EVENT_BUS_AUDIT.md](../../docs/archive/EVENT_BUS_AUDIT.md) | Historical audit findings |
+| Document                                                                 | Purpose                    |
+| ------------------------------------------------------------------------ | -------------------------- |
+| [EVENT_BUS.md](../../EVENT_BUS.md)                                       | Infrastructure, retry, DLQ |
+| [EVENT_CATALOG.md](../../EVENT_CATALOG.md)                               | Event types                |
+| [docs/archive/EVENT_BUS_AUDIT.md](../../docs/archive/EVENT_BUS_AUDIT.md) | Historical audit findings  |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

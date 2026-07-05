@@ -9,19 +9,19 @@
 
 ## Executive summary
 
-| Area | Posture | Notes |
-| ---- | ------- | ----- |
-| Auth (Clerk → JWT) | ✅ Strong | Single identity path; dev bypass gated |
-| Token storage (web) | ✅ Strong | httpOnly cookies via BFF |
-| Token storage (mobile) | ✅ Strong | Secure storage (`auth-store`) |
-| Route protection (web) | ✅ Fixed | `middleware.ts` cookie guard |
-| API authorization | ✅ Good | `require_approved_driver`; OTP/POD gates fixed |
-| Fleetbase isolation | ✅ Strong | Adapter-only; no UI direct access |
-| Rate limiting | ✅ Prod | `PortalRateLimitMiddleware` on `/driver-api/` |
-| Refresh / session rotation | ⚠ Partial | API endpoint exists; client wiring incomplete |
-| WebSocket auth | ⚠ Weak | Token in query string |
-| Push (web) | ⚠ Weak | Synthetic FCM token path |
-| RBAC depth | ⚠ Thin | Approved-driver gate only |
+| Area                       | Posture   | Notes                                          |
+| -------------------------- | --------- | ---------------------------------------------- |
+| Auth (Clerk → JWT)         | ✅ Strong | Single identity path; dev bypass gated         |
+| Token storage (web)        | ✅ Strong | httpOnly cookies via BFF                       |
+| Token storage (mobile)     | ✅ Strong | Secure storage (`auth-store`)                  |
+| Route protection (web)     | ✅ Fixed  | `middleware.ts` cookie guard                   |
+| API authorization          | ✅ Good   | `require_approved_driver`; OTP/POD gates fixed |
+| Fleetbase isolation        | ✅ Strong | Adapter-only; no UI direct access              |
+| Rate limiting              | ✅ Prod   | `PortalRateLimitMiddleware` on `/driver-api/`  |
+| Refresh / session rotation | ⚠ Partial | API endpoint exists; client wiring incomplete  |
+| WebSocket auth             | ⚠ Weak    | Token in query string                          |
+| Push (web)                 | ⚠ Weak    | Synthetic FCM token path                       |
+| RBAC depth                 | ⚠ Thin    | Approved-driver gate only                      |
 
 **Overall:** Suitable for **controlled pilot**. Address refresh UX and WS auth before wide production.
 
@@ -45,14 +45,14 @@ When `CLERK_DEV_BYPASS=true` and `APP_ENV=local`, simplified paths (email-only /
 
 ## Web portal security
 
-| Control | Status | Implementation |
-| ------- | ------ | -------------- |
-| Route guard | ✅ | `apps/driver-portal/src/middleware.ts` — redirects unauthenticated users to `/login` |
-| Public paths | ✅ | `/login`, `/api/auth/login`, `/api/auth/driver-session` |
-| API BFF | ✅ | `/api/driver/[...path]` — server-side proxy with cookie auth |
-| XSS token theft | ✅ Mitigated | JWT not in `localStorage` |
-| CSRF | ⚠ | SameSite=lax cookies; no explicit CSRF token on mutations |
-| Clerk scope | ✅ | Clerk only at login; Porterchain JWT for API |
+| Control         | Status       | Implementation                                                                       |
+| --------------- | ------------ | ------------------------------------------------------------------------------------ |
+| Route guard     | ✅           | `apps/driver-portal/src/middleware.ts` — redirects unauthenticated users to `/login` |
+| Public paths    | ✅           | `/login`, `/api/auth/login`, `/api/auth/driver-session`                              |
+| API BFF         | ✅           | `/api/driver/[...path]` — server-side proxy with cookie auth                         |
+| XSS token theft | ✅ Mitigated | JWT not in `localStorage`                                                            |
+| CSRF            | ⚠            | SameSite=lax cookies; no explicit CSRF token on mutations                            |
+| Clerk scope     | ✅           | Clerk only at login; Porterchain JWT for API                                         |
 
 ### Middleware (July 2026 — resolved)
 
@@ -67,54 +67,54 @@ Previously flagged **P0** in June audit — **now implemented**.
 
 ## Mobile security
 
-| Control | Status | Implementation |
-| ------- | ------ | -------------- |
-| Clerk production auth | ✅ | `ClerkSignInPanel` + `@porterchain/mobile-security` |
-| Token storage | ✅ | Secure storage keys for access/refresh |
-| API transport | ✅ | HTTPS to Porterchain API only |
-| Certificate pinning | ❌ | Not implemented |
-| Jailbreak/root detection | ❌ | Not implemented |
+| Control                  | Status | Implementation                                      |
+| ------------------------ | ------ | --------------------------------------------------- |
+| Clerk production auth    | ✅     | `ClerkSignInPanel` + `@porterchain/mobile-security` |
+| Token storage            | ✅     | Secure storage keys for access/refresh              |
+| API transport            | ✅     | HTTPS to Porterchain API only                       |
+| Certificate pinning      | ❌     | Not implemented                                     |
+| Jailbreak/root detection | ❌     | Not implemented                                     |
 
 ---
 
 ## API security (`/driver-api/v1`)
 
-| Control | Status | Notes |
-| ------- | ------ | ----- |
-| JWT validation | ✅ | Bearer on protected routes |
-| Approved driver gate | ✅ | `require_approved_driver` |
-| OTP generation | ✅ Fixed | Assigned-driver check |
-| POD endpoints | ✅ Fixed | Approval gate on sensitive actions |
-| Auth refresh | ✅ API | `POST /auth/refresh` — clients partially wired |
-| Rate limiting | ✅ Prod | Portal rate limit middleware |
-| Emergency SOS | ⚠ | No dedicated rate limit |
-| Legacy push route | ✅ | Delegates to `DeviceService` with validation |
+| Control              | Status   | Notes                                          |
+| -------------------- | -------- | ---------------------------------------------- |
+| JWT validation       | ✅       | Bearer on protected routes                     |
+| Approved driver gate | ✅       | `require_approved_driver`                      |
+| OTP generation       | ✅ Fixed | Assigned-driver check                          |
+| POD endpoints        | ✅ Fixed | Approval gate on sensitive actions             |
+| Auth refresh         | ✅ API   | `POST /auth/refresh` — clients partially wired |
+| Rate limiting        | ✅ Prod  | Portal rate limit middleware                   |
+| Emergency SOS        | ⚠        | No dedicated rate limit                        |
+| Legacy push route    | ✅       | Delegates to `DeviceService` with validation   |
 
 ---
 
 ## Findings register
 
-| ID | Severity | Finding | Status |
-| -- | -------- | ------- | ------ |
-| DS-001 | P0 | No Next.js middleware | ✅ **Resolved** — `middleware.ts` |
-| DS-002 | P0 | OTP without driver authorization | ✅ **Resolved** |
-| DS-003 | P0 | POD without approval gate | ✅ **Resolved** |
-| DS-004 | P1 | JWT in localStorage (portal) | ✅ **Resolved** — httpOnly cookies |
-| DS-005 | P1 | No refresh token rotation UX | ⚠ **Open** — API ready; add BFF + mobile refresh |
-| DS-006 | P1 | Mobile lacks Clerk | ✅ **Resolved** |
-| DS-007 | P2 | WS token in URL query | ⚠ **Open** — `/api/auth/ws-token` |
-| DS-008 | P2 | Thin RBAC (approved only) | ⚠ **Open** |
-| DS-009 | P2 | Web FCM synthetic token | ⚠ **Open** |
-| DS-010 | P2 | Emergency endpoint abuse | ⚠ **Open** — add rate limit |
+| ID     | Severity | Finding                          | Status                                           |
+| ------ | -------- | -------------------------------- | ------------------------------------------------ |
+| DS-001 | P0       | No Next.js middleware            | ✅ **Resolved** — `middleware.ts`                |
+| DS-002 | P0       | OTP without driver authorization | ✅ **Resolved**                                  |
+| DS-003 | P0       | POD without approval gate        | ✅ **Resolved**                                  |
+| DS-004 | P1       | JWT in localStorage (portal)     | ✅ **Resolved** — httpOnly cookies               |
+| DS-005 | P1       | No refresh token rotation UX     | ⚠ **Open** — API ready; add BFF + mobile refresh |
+| DS-006 | P1       | Mobile lacks Clerk               | ✅ **Resolved**                                  |
+| DS-007 | P2       | WS token in URL query            | ⚠ **Open** — `/api/auth/ws-token`                |
+| DS-008 | P2       | Thin RBAC (approved only)        | ⚠ **Open**                                       |
+| DS-009 | P2       | Web FCM synthetic token          | ⚠ **Open**                                       |
+| DS-010 | P2       | Emergency endpoint abuse         | ⚠ **Open** — add rate limit                      |
 
 ---
 
 ## Token lifecycle gaps
 
-| Client | Access token | Refresh token | Gap |
-| ------ | ------------ | ------------- | --- |
+| Client     | Access token    | Refresh token                | Gap                                         |
+| ---------- | --------------- | ---------------------------- | ------------------------------------------- |
 | Web portal | httpOnly cookie | httpOnly cookie set at login | No BFF route calling `/auth/refresh` on 401 |
-| Mobile | Secure storage | Secure storage | No automatic refresh before expiry |
+| Mobile     | Secure storage  | Secure storage               | No automatic refresh before expiry          |
 
 **Recommendation:** Add `/api/auth/refresh` BFF route; mobile client interceptor on 401 → refresh → retry.
 
@@ -122,12 +122,12 @@ Previously flagged **P0** in June audit — **now implemented**.
 
 ## Fleetbase and data isolation
 
-| Rule | Status |
-| ---- | ------ |
-| No Fleetbase credentials in clients | ✅ |
-| No direct Fleetbase HTTP from UI | ✅ |
-| Bridge gated by env flag | ✅ `FLEETBASE_DISPATCH_BRIDGE` |
-| Driver PII in Porterchain DB | ✅ PostgreSQL 16 |
+| Rule                                | Status                         |
+| ----------------------------------- | ------------------------------ |
+| No Fleetbase credentials in clients | ✅                             |
+| No direct Fleetbase HTTP from UI    | ✅                             |
+| Bridge gated by env flag            | ✅ `FLEETBASE_DISPATCH_BRIDGE` |
+| Driver PII in Porterchain DB        | ✅ PostgreSQL 16               |
 
 ---
 
@@ -147,8 +147,8 @@ Previously flagged **P0** in June audit — **now implemented**.
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
+| Document                                                           | Purpose          |
+| ------------------------------------------------------------------ | ---------------- |
 | [DRIVER_PRODUCTION_READINESS.md](./DRIVER_PRODUCTION_READINESS.md) | Readiness matrix |
-| [RBAC.md](./RBAC.md) | Platform RBAC |
-| [AUTHENTICATION.md](./AUTHENTICATION.md) | Auth overview |
+| [RBAC.md](./RBAC.md)                                               | Platform RBAC    |
+| [AUTHENTICATION.md](./AUTHENTICATION.md)                           | Auth overview    |

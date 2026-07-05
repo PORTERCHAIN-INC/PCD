@@ -82,18 +82,18 @@ invoice.created + order.invoiced → audit
 
 ## Registered bus handlers
 
-| Event                    | Handler                        |
-| ------------------------ | ------------------------------ |
-| `order.dispatch_ready`   | Fleetbase order sync           |
-| `order.driver_assigned`  | Fleetbase dispatch assign      |
-| `order.booked`           | Email notification             |
-| `booking.confirmed`      | Confirmation email             |
-| `payment.succeeded`      | Billing queue                  |
-| `webhook.received`       | Fleetbase processor            |
+| Event                    | Handler                              |
+| ------------------------ | ------------------------------------ |
+| `order.dispatch_ready`   | Fleetbase order sync                 |
+| `order.driver_assigned`  | Fleetbase dispatch assign            |
+| `order.booked`           | Email notification                   |
+| `booking.confirmed`      | Confirmation email                   |
+| `payment.succeeded`      | Billing queue                        |
+| `webhook.received`       | Fleetbase processor                  |
 | `notification.queued`    | Email / SMS (log-only) / push queues |
-| `claim.opened`           | Claim notification             |
-| `support.ticket_created` | Support notification           |
-| `order.*`                | Merchant webhook fanout (stub) |
+| `claim.opened`           | Claim notification                   |
+| `support.ticket_created` | Support notification                 |
+| `order.*`                | Merchant webhook fanout (stub)       |
 
 ---
 

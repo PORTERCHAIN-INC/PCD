@@ -1,6 +1,5 @@
 # Roadmap — Porterchain Production Readiness
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -66,14 +65,14 @@ Priority: fix violations without redesigning locked topology.
 
 ## Phase 4 — Polish (Week 3+)
 
-| #   | Task                                         | Severity | Effort   |
-| --- | -------------------------------------------- | -------- | -------- |
-| 4.1 | Finance PDF invoices                         | Medium   | 2d       |
-| 4.2 | CRM audit for all entities                   | Medium   | 1d       |
-| 4.3 | Route result caching                         | Medium   | 1d       |
-| 4.4 | FK migration for route_center + invitations  | Medium   | 4h       |
-| 4.5 | Website `draft_id` recovery on continue page | Medium   | 2h       |
-| 4.6 | JSONB rollout (remaining tables)             | Low      | 1–2d     |
+| #   | Task                                             | Severity | Effort    |
+| --- | ------------------------------------------------ | -------- | --------- |
+| 4.1 | Finance PDF invoices                             | Medium   | 2d        |
+| 4.2 | CRM audit for all entities                       | Medium   | 1d        |
+| 4.3 | Route result caching                             | Medium   | 1d        |
+| 4.4 | FK migration for route_center + invitations      | Medium   | 4h        |
+| 4.5 | Website `draft_id` recovery on continue page     | Medium   | 2h        |
+| 4.6 | JSONB rollout (remaining tables)                 | Low      | 1–2d      |
 | 4.7 | Mobile release ops (EAS, Firebase, store assets) | Medium   | 1–2 weeks |
 
 ---
@@ -125,7 +124,7 @@ _Track progress against `GAP_ANALYSIS.md` issue IDs._
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

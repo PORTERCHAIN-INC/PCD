@@ -19,14 +19,14 @@
 
 ### Source assignment
 
-| Channel                 | `order_source`      | File                                                         |
-| ----------------------- | ------------------- | ------------------------------------------------------------ |
-| Website retail checkout | `WEBSITE`           | `confirmation_service.py`                                    |
-| Merchant portal manual  | `MERCHANT`          | `merchant_engine/booking_service.py`                         |
-| Merchant CSV bulk       | `CSV`               | `bulk_service.py` → `create_shipment(..., order_source=CSV)` |
+| Channel                 | `order_source`      | File                                                                                                       |
+| ----------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Website retail checkout | `WEBSITE`           | `confirmation_service.py`                                                                                  |
+| Merchant portal manual  | `MERCHANT`          | `merchant_engine/booking_service.py`                                                                       |
+| Merchant CSV bulk       | `CSV`               | `bulk_service.py` → `create_shipment(..., order_source=CSV)`                                               |
 | Merchant API            | `API`               | ⚠️ Endpoint live (`POST /v1/merchant-api/bookings`) but reuses `MERCHANT` source — pass `order_source=API` |
-| Admin manual            | `ADMIN`             | ❌ Not implemented                                           |
-| Phone / Partner         | `PHONE` / `PARTNER` | ❌ Not implemented                                           |
+| Admin manual            | `ADMIN`             | ❌ Not implemented                                                                                         |
+| Phone / Partner         | `PHONE` / `PARTNER` | ❌ Not implemented                                                                                         |
 
 ### Type assignment
 

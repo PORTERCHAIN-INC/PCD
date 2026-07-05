@@ -1,6 +1,5 @@
 # Authentication Flow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -14,16 +13,16 @@
 
 ## Surfaces
 
-| App | Port / runtime | Auth |
-| --- | -------------- | ---- |
-| Website | :3000 | Clerk |
-| Merchant portal | :3001 | Clerk + org |
-| Admin | :3002 | Clerk + RBAC |
-| Driver portal | :3003 | Clerk login → Porterchain JWT |
-| Customer portal | :3004 | Clerk |
-| Mobile driver | Expo | `@clerk/clerk-expo` → Porterchain JWT |
-| Mobile customer | Expo | `@clerk/clerk-expo` |
-| Merchant API | HTTP | `X-Api-Key` + scopes (`/v1/merchant-api/*`) |
+| App             | Port / runtime | Auth                                        |
+| --------------- | -------------- | ------------------------------------------- |
+| Website         | :3000          | Clerk                                       |
+| Merchant portal | :3001          | Clerk + org                                 |
+| Admin           | :3002          | Clerk + RBAC                                |
+| Driver portal   | :3003          | Clerk login → Porterchain JWT               |
+| Customer portal | :3004          | Clerk                                       |
+| Mobile driver   | Expo           | `@clerk/clerk-expo` → Porterchain JWT       |
+| Mobile customer | Expo           | `@clerk/clerk-expo`                         |
+| Merchant API    | HTTP           | `X-Api-Key` + scopes (`/v1/merchant-api/*`) |
 
 ---
 
@@ -140,17 +139,18 @@ See [plantuml/authentication_flow.puml](./plantuml/authentication_flow.puml)
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [AUTHENTICATION_ARCHITECTURE.md](../../AUTHENTICATION_ARCHITECTURE.md) | Architecture and policy |
-| [SSO.md](../../SSO.md) | Fleetbase SSO exchange detail |
-| [RBAC.md](../../RBAC.md) | Authorization after authentication |
-| [APPLICATION_FLOW.md](./APPLICATION_FLOW.md) | Router → auth mapping |
+| Document                                                               | Purpose                            |
+| ---------------------------------------------------------------------- | ---------------------------------- |
+| [AUTHENTICATION_ARCHITECTURE.md](../../AUTHENTICATION_ARCHITECTURE.md) | Architecture and policy            |
+| [SSO.md](../../SSO.md)                                                 | Fleetbase SSO exchange detail      |
+| [RBAC.md](../../RBAC.md)                                               | Authorization after authentication |
+| [APPLICATION_FLOW.md](./APPLICATION_FLOW.md)                           | Router → auth mapping              |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

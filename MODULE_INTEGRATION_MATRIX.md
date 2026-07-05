@@ -1,6 +1,5 @@
 # Porterchain — Module Integration Matrix
 
-
 **Type:** REPORT
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -21,25 +20,25 @@
 | Admin unified dispatch (no source split)             | ✅           |
 | `order_source` / `order_type` on all new orders      | ✅           |
 | API-key merchant booking                             | ✅           |
-| Merchant webhook delivery                          | ✅           |
+| Merchant webhook delivery                            | ✅           |
 | Merchant invoice run batch                           | ❌ (roadmap) |
 
 ---
 
 ## Maps & routing integration (June 30, 2026)
 
-| Module          | Google Maps              | OSRM/Valhalla      | Fleetbase    | FastAPI | Status |
-| --------------- | ------------------------ | ------------------ | ------------ | ------- | ------ |
-| Website         | ✅ Autocomplete, geocode | ✅ Quote preview   | ❌ Never     | ✅      | ✅     |
+| Module          | Google Maps              | OSRM/Valhalla      | Fleetbase    | FastAPI | Status               |
+| --------------- | ------------------------ | ------------------ | ------------ | ------- | -------------------- |
+| Website         | ✅ Autocomplete, geocode | ✅ Quote preview   | ❌ Never     | ✅      | ✅                   |
 | Customer portal | ❌                       | ❌                 | ❌           | ✅      | ⚠️ (no tracking map) |
 | Mobile driver   | ❌                       | via API routing    | via adapter  | ✅      | ✅                   |
 | Mobile customer | ❌                       | via API            | ❌           | ✅      | ⚠️ 62% readiness     |
-| Merchant portal | ✅ Book autocomplete     | via API pricing    | via events   | ✅      | ✅     |
-| Admin           | ✅ Live map full         | ❌ (viz only)      | SSO + mirror | ✅      | ✅     |
-| Driver portal   | ❌                       | ❌                 | via adapter  | ✅      | ⚠️     |
-| Pricing engine  | ❌                       | ✅ Server distance | ❌           | ✅      | ✅     |
-| Live map        | ✅ Viz                   | ❌                 | mirror only  | ✅ WS   | ✅     |
-| Booking engine  | ❌                       | via pricing        | via events   | ✅      | ✅     |
+| Merchant portal | ✅ Book autocomplete     | via API pricing    | via events   | ✅      | ✅                   |
+| Admin           | ✅ Live map full         | ❌ (viz only)      | SSO + mirror | ✅      | ✅                   |
+| Driver portal   | ❌                       | ❌                 | via adapter  | ✅      | ⚠️                   |
+| Pricing engine  | ❌                       | ✅ Server distance | ❌           | ✅      | ✅                   |
+| Live map        | ✅ Viz                   | ❌                 | mirror only  | ✅ WS   | ✅                   |
+| Booking engine  | ❌                       | via pricing        | via events   | ✅      | ✅                   |
 
 ---
 
@@ -146,20 +145,20 @@
 
 ### Merchant (`merchant_engine/`, `apps/merchant-portal/`)
 
-| Dimension      | Status | Notes                                                  |
-| -------------- | ------ | ------------------------------------------------------ |
-| Business Logic | ✅     | Bookings, bulk, billing, API keys                      |
-| API            | ✅     | `/v1/merchant/*`                                       |
-| Database       | ✅     | `merchant_models`                                      |
-| Permissions    | ✅     | `merchant_engine/rbac.py`                              |
-| Events         | ✅     | `merchant.booking_created`, `order.dispatch_ready`     |
+| Dimension      | Status | Notes                                                |
+| -------------- | ------ | ---------------------------------------------------- |
+| Business Logic | ✅     | Bookings, bulk, billing, API keys                    |
+| API            | ✅     | `/v1/merchant/*`                                     |
+| Database       | ✅     | `merchant_models`                                    |
+| Permissions    | ✅     | `merchant_engine/rbac.py`                            |
+| Events         | ✅     | `merchant.booking_created`, `order.dispatch_ready`   |
 | Fleetbase      | ✅     | Event-driven dispatch; cancel via `fleetbase_engine` |
-| Notifications  | ✅     | Webhook fanout via `WebhookDeliveryService` + worker   |
-| Maps           | ✅     | `AddressAutocompleteInput` on book form                |
-| Audit          | ✅     | API key generation events                              |
-| Realtime       | ❌     | —                                                      |
-| Search         | ⚠️     | Order list filter                                      |
-| Reports        | ✅     | `MerchantReportsService`                               |
+| Notifications  | ✅     | Webhook fanout via `WebhookDeliveryService` + worker |
+| Maps           | ✅     | `AddressAutocompleteInput` on book form              |
+| Audit          | ✅     | API key generation events                            |
+| Realtime       | ❌     | —                                                    |
+| Search         | ⚠️     | Order list filter                                    |
+| Reports        | ✅     | `MerchantReportsService`                             |
 
 **Cross-module:** CRM ⚠️ · Orders ✅ · Invoices ✅ · Payments ✅ · Pricing (contracts) ✅ · CSV/Bulk ✅ · Support ❌ · Claims ❌ · Documents ❌ · Analytics ⚠️
 
@@ -515,11 +514,12 @@ UI → FastAPI Router → Application Service → Repository → DB
 7. **P2** — Delivery lifecycle notification handlers (`order.delivered`, `driver_assigned`)
 8. **P3** — Documents module event emissions
 9. **P3** — Operations/dashboard WebSocket (poll-only today)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

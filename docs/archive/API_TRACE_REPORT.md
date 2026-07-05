@@ -10,24 +10,24 @@ Point-in-time trace of `domain_events` for a test order. Not a live dashboard.
 
 ## Sample order
 
-| Field | Value |
-| ----- | ----- |
-| Order ID | `f66ed072-f277-4dee-944d-415a9c93489e` |
-| Tracking | `PC-20260702-AE4AF3` |
-| Reference | `ORD-20260702-874D67` |
+| Field     | Value                                  |
+| --------- | -------------------------------------- |
+| Order ID  | `f66ed072-f277-4dee-944d-415a9c93489e` |
+| Tracking  | `PC-20260702-AE4AF3`                   |
+| Reference | `ORD-20260702-874D67`                  |
 
 ---
 
 ## Summary (July 2026 run)
 
-| Phase | Events observed |
-| ----- | --------------- |
-| Customer / session | `customer.registered`, `visitor.session_started` |
-| Dispatch | `order.dispatch_requested`, `order.dispatch_ready` |
-| Driver lifecycle | `order.driver_assigned` through `order.delivered` |
-| Exceptions | `claim.opened`, `support.ticket_created` |
-| Notifications | `notification.sent` |
-| Driver presence | `driver.online`, `driver.offline` |
+| Phase              | Events observed                                    |
+| ------------------ | -------------------------------------------------- |
+| Customer / session | `customer.registered`, `visitor.session_started`   |
+| Dispatch           | `order.dispatch_requested`, `order.dispatch_ready` |
+| Driver lifecycle   | `order.driver_assigned` through `order.delivered`  |
+| Exceptions         | `claim.opened`, `support.ticket_created`           |
+| Notifications      | `notification.sent`                                |
+| Driver presence    | `driver.online`, `driver.offline`                  |
 
 **Note:** Trace includes mixed canonical strings (`order.DRIVER_ASSIGNED`) and dot-notation events (`order.driver_assigned`) from test harness — production catalog uses `{aggregate}.{action}` per [EVENT_CATALOG.md](./EVENT_CATALOG.md).
 
@@ -56,8 +56,8 @@ Raw event log from validation run (2026-07-02). For current event definitions se
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
+| Document                                     | Purpose                            |
+| -------------------------------------------- | ---------------------------------- |
 | [EVENT_BUS_REPORT.md](./EVENT_BUS_REPORT.md) | Lifecycle validation PASS snapshot |
-| [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md) | Canonical state machine |
-| [API_FLOW_DIAGRAM.md](./API_FLOW_DIAGRAM.md) | Request flow |
+| [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)   | Canonical state machine            |
+| [API_FLOW_DIAGRAM.md](./API_FLOW_DIAGRAM.md) | Request flow                       |

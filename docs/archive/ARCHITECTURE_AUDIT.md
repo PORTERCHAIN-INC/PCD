@@ -11,13 +11,13 @@
 
 ## Executive verdict (July 2026)
 
-| Dimension | Status |
-| --------- | ------ |
-| Locked topology implemented | **PASS** |
-| Fleetbase single integration path | **PASS** |
-| Layered architecture (5-layer) | **PARTIAL** |
-| Cross-engine coupling | **PARTIAL** |
-| Production ready | **NO** |
+| Dimension                         | Status      |
+| --------------------------------- | ----------- |
+| Locked topology implemented       | **PASS**    |
+| Fleetbase single integration path | **PASS**    |
+| Layered architecture (5-layer)    | **PARTIAL** |
+| Cross-engine coupling             | **PARTIAL** |
+| Production ready                  | **NO**      |
 
 Frontends call Porterchain API (`:8001`) only; Fleetbase HTTP is confined to `services/fleetbase-adapter/`. Remaining gaps are **layer discipline** (fat routers, merchant→admin imports), not missing components.
 
@@ -33,46 +33,46 @@ Porterchain API :8001 → *_engine/ → PostgreSQL
 Event Bus → apps/worker → Fleetbase Adapter → Fleetbase :8000
 ```
 
-| Layer | Status | Notes |
-| ----- | ------ | ----- |
-| UI | ✅ | No Fleetbase HTTP from frontends |
-| Controllers | ⚠️ | `routers/driver.py` still large |
-| Application Services | ✅ | Business logic in `*_engine/` |
-| Repositories | ✅ | SQLAlchemy models |
-| Adapters | ✅ | `fleetbase-adapter/`, Stripe |
+| Layer                | Status | Notes                            |
+| -------------------- | ------ | -------------------------------- |
+| UI                   | ✅     | No Fleetbase HTTP from frontends |
+| Controllers          | ⚠️     | `routers/driver.py` still large  |
+| Application Services | ✅     | Business logic in `*_engine/`    |
+| Repositories         | ✅     | SQLAlchemy models                |
+| Adapters             | ✅     | `fleetbase-adapter/`, Stripe     |
 
 ---
 
 ## Open findings
 
-| ID | Severity | Issue | Status |
-| -- | -------- | ----- | ------ |
-| F-01 | Medium | Admin Fleetbase API quick-link in dev | Open — gate or remove |
-| F-02 | High | Fat driver router | Open — extract to `driver_engine/` |
-| F-03 | High | `merchant_engine` → `admin_engine` dependency | Open — shared `order_engine/` |
-| F-04 | Medium | Duplicate Fleetbase bridges | Open — consolidate in adapter |
-| F-05 | Medium | Order state constants in admin engine | Open — move to `domain/` |
-| F-06 | Medium | SQL in routers | Open — move to services |
+| ID   | Severity | Issue                                         | Status                             |
+| ---- | -------- | --------------------------------------------- | ---------------------------------- |
+| F-01 | Medium   | Admin Fleetbase API quick-link in dev         | Open — gate or remove              |
+| F-02 | High     | Fat driver router                             | Open — extract to `driver_engine/` |
+| F-03 | High     | `merchant_engine` → `admin_engine` dependency | Open — shared `order_engine/`      |
+| F-04 | Medium   | Duplicate Fleetbase bridges                   | Open — consolidate in adapter      |
+| F-05 | Medium   | Order state constants in admin engine         | Open — move to `domain/`           |
+| F-06 | Medium   | SQL in routers                                | Open — move to services            |
 
 ---
 
 ## Fixed during audit
 
-| Fix | Status |
-| --- | ------ |
+| Fix                                       | Status   |
+| ----------------------------------------- | -------- |
 | EXPIRED draft blocks webhook finalization | ✅ Fixed |
-| `orders.quote_id` unique constraint | ✅ Fixed |
-| Fleetbase event → domain event mapping | ✅ Fixed |
+| `orders.quote_id` unique constraint       | ✅ Fixed |
+| Fleetbase event → domain event mapping    | ✅ Fixed |
 
 ---
 
 ## Compliance (masterrule §3, §7)
 
-| Rule | Status |
-| ---- | ------ |
-| UI → API only | ✅ |
-| No router → Fleetbase HTTP | ✅ |
-| Fleetbase adapter mandatory | ✅ |
+| Rule                         | Status     |
+| ---------------------------- | ---------- |
+| UI → API only                | ✅         |
+| No router → Fleetbase HTTP   | ✅         |
+| Fleetbase adapter mandatory  | ✅         |
 | Business logic in `*_engine` | ⚠️ Partial |
 
 ---

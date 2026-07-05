@@ -1,6 +1,5 @@
 # Extension Guide — Fleetbase Adapter
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -30,14 +29,14 @@ Layer 4: Fleetbase OSS (apps/fleetbase/) — READ ONLY
 
 ## When to extend the adapter (Layer 2)
 
-| Need | Where |
-| ---- | ----- |
-| New resource sync | New module + service class |
-| Order meta fields | `mappers.py` |
-| Webhook event mapping | `events/__init__.py` |
-| New API endpoint wrapper | Service module |
-| Retry / error handling | `retry.py`, `errors.py` |
-| POD normalization | `pod/__init__.py` |
+| Need                     | Where                      |
+| ------------------------ | -------------------------- |
+| New resource sync        | New module + service class |
+| Order meta fields        | `mappers.py`               |
+| Webhook event mapping    | `events/__init__.py`       |
+| New API endpoint wrapper | Service module             |
+| Retry / error handling   | `retry.py`, `errors.py`    |
+| POD normalization        | `pod/__init__.py`          |
 
 ### Example: add a webhook event
 
@@ -59,10 +58,10 @@ Expose via `OrderService` → `FleetbaseAdapter` in `integration.py`; wire from 
 
 Separate Composer extension for:
 
-| Need | Endpoint |
-| ---- | -------- |
-| SSO token exchange | `POST /int/v1/porterchain/sso/exchange` |
-| Permission sync | `POST /int/v1/porterchain/sso/users/{uuid}/permissions` |
+| Need               | Endpoint                                                |
+| ------------------ | ------------------------------------------------------- |
+| SSO token exchange | `POST /int/v1/porterchain/sso/exchange`                 |
+| Permission sync    | `POST /int/v1/porterchain/sso/users/{uuid}/permissions` |
 
 Client stubs: `porterchain_fleetbase_adapter/auth/`. SSO extension deploy still required on Fleetbase side.
 
@@ -70,12 +69,12 @@ Client stubs: `porterchain_fleetbase_adapter/auth/`. SSO extension deploy still 
 
 ## When to extend Porterchain API (Layer 1)
 
-| Need | Location |
-| ---- | -------- |
-| Sync triggers | `fleetbase_engine/`, event handlers in `booking_engine/fleetbase_sync_handler.py` |
-| Dispatch rules | `admin_engine/` |
-| Tracking response | `booking_engine/tracking_service.py` |
-| Merchant webhooks | `merchant_engine/webhook_delivery_service.py` |
+| Need              | Location                                                                          |
+| ----------------- | --------------------------------------------------------------------------------- |
+| Sync triggers     | `fleetbase_engine/`, event handlers in `booking_engine/fleetbase_sync_handler.py` |
+| Dispatch rules    | `admin_engine/`                                                                   |
+| Tracking response | `booking_engine/tracking_service.py`                                              |
+| Merchant webhooks | `merchant_engine/webhook_delivery_service.py`                                     |
 
 API calls adapter via `get_fleetbase_integration()` — never construct Fleetbase payloads in routers.
 
@@ -111,25 +110,26 @@ pnpm dev:api
 
 ## Anti-patterns
 
-| Anti-pattern | Correct approach |
-| ------------ | ---------------- |
-| Direct `httpx` to Fleetbase in API | Use adapter services |
-| Edit `apps/fleetbase/api/` | Fleetbase extension package |
-| Import adapter from frontends | Frontend → API only |
+| Anti-pattern                       | Correct approach            |
+| ---------------------------------- | --------------------------- |
+| Direct `httpx` to Fleetbase in API | Use adapter services        |
+| Edit `apps/fleetbase/api/`         | Fleetbase extension package |
+| Import adapter from frontends      | Frontend → API only         |
 
 ---
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) | Adapter structure |
+| Document                                                                       | Purpose             |
+| ------------------------------------------------------------------------------ | ------------------- |
+| [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)       | Adapter structure   |
 | [services/fleetbase-adapter/README.md](./services/fleetbase-adapter/README.md) | Package quick start |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

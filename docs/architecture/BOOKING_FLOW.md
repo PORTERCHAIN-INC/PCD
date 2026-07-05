@@ -1,6 +1,5 @@
 # Booking Flow (Retail)
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -12,19 +11,19 @@
 
 ## Lifecycle (Actual Implementation)
 
-| Step | Component | State / Event |
-| ---- | --------- | ------------- |
-| 1. Quote | `QuoteService.create_quote()` | `quote.created` |
-| 2. Draft | `BookingDraftService.create_or_update()` | `DRAFT` → `QUOTE_GENERATED` |
-| 3. Auth | Clerk JWT on `POST /v1/bookings` | `AUTHENTICATED` |
-| 4. Checkout | `PaymentService.start_payment()` | `PAYMENT_PENDING`, `payment.started` |
-| 5. Stripe | Redirect to `checkout_url` | External Stripe hosted page |
-| 6. Webhook | `StripeWebhookService` | `checkout.session.completed` only trusted signal |
-| 7. Confirm | `BookingConfirmationService.complete_payment_and_create_order()` | `Order` BOOKED, `booking.confirmed` |
-| 8. Dispatch | `transition_to_dispatch_ready()` | `order.dispatch_requested`, `order.dispatch_ready` |
-| 9. Fleetbase | Event handler → `BookingSyncService.push_order()` | `fleetbase.order_created` |
-| 10. Delivery | Fleetbase webhooks → `WebhookProcessor` | State machine transitions |
-| 11. Invoice | On `POD_COMPLETED` path | `order.invoiced`, `invoice.created` |
+| Step         | Component                                                        | State / Event                                      |
+| ------------ | ---------------------------------------------------------------- | -------------------------------------------------- |
+| 1. Quote     | `QuoteService.create_quote()`                                    | `quote.created`                                    |
+| 2. Draft     | `BookingDraftService.create_or_update()`                         | `DRAFT` → `QUOTE_GENERATED`                        |
+| 3. Auth      | Clerk JWT on `POST /v1/bookings`                                 | `AUTHENTICATED`                                    |
+| 4. Checkout  | `PaymentService.start_payment()`                                 | `PAYMENT_PENDING`, `payment.started`               |
+| 5. Stripe    | Redirect to `checkout_url`                                       | External Stripe hosted page                        |
+| 6. Webhook   | `StripeWebhookService`                                           | `checkout.session.completed` only trusted signal   |
+| 7. Confirm   | `BookingConfirmationService.complete_payment_and_create_order()` | `Order` BOOKED, `booking.confirmed`                |
+| 8. Dispatch  | `transition_to_dispatch_ready()`                                 | `order.dispatch_requested`, `order.dispatch_ready` |
+| 9. Fleetbase | Event handler → `BookingSyncService.push_order()`                | `fleetbase.order_created`                          |
+| 10. Delivery | Fleetbase webhooks → `WebhookProcessor`                          | State machine transitions                          |
+| 11. Invoice  | On `POD_COMPLETED` path                                          | `order.invoiced`, `invoice.created`                |
 
 ## Background Reconciliation
 
@@ -72,7 +71,7 @@ See [plantuml/booking_flow.puml](./plantuml/booking_flow.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

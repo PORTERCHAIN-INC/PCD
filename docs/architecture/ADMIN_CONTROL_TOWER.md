@@ -1,6 +1,5 @@
 # Admin Control Tower
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -18,35 +17,35 @@ The Admin Portal (`:3002`) is the **business control tower**. It communicates ex
 
 Central ops hub at `/v1/admin/operations/`:
 
-| Endpoint | Purpose |
-| -------- | ------- |
-| `GET /stats` | KPI counters (orders, SLA, exceptions) |
-| `GET /board` | Dispatch board columns |
-| `POST /board/move` | Move order between board columns |
-| `GET /queue` | Dispatch-ready queue |
-| `POST /queue/optimize` | Queue optimization suggestions |
-| `POST /queue/assign-batch` | Batch driver assignment |
-| `GET /assignable-drivers` | Drivers available for assignment |
-| `GET /orders` | Active operational orders |
-| `GET /exceptions` | `OrderException` list |
-| `GET /sla` | SLA breach metrics |
-| `GET /activity` | Recent domain events |
-| `GET /ai` | AI ops insights (if configured) |
-| `POST /sync/process` | Fleetbase retry queue processor |
-| `GET /sync/health` | Sync job health |
+| Endpoint                   | Purpose                                |
+| -------------------------- | -------------------------------------- |
+| `GET /stats`               | KPI counters (orders, SLA, exceptions) |
+| `GET /board`               | Dispatch board columns                 |
+| `POST /board/move`         | Move order between board columns       |
+| `GET /queue`               | Dispatch-ready queue                   |
+| `POST /queue/optimize`     | Queue optimization suggestions         |
+| `POST /queue/assign-batch` | Batch driver assignment                |
+| `GET /assignable-drivers`  | Drivers available for assignment       |
+| `GET /orders`              | Active operational orders              |
+| `GET /exceptions`          | `OrderException` list                  |
+| `GET /sla`                 | SLA breach metrics                     |
+| `GET /activity`            | Recent domain events                   |
+| `GET /ai`                  | AI ops insights (if configured)        |
+| `POST /sync/process`       | Fleetbase retry queue processor        |
+| `GET /sync/health`         | Sync job health                        |
 
 Driver assignment execution remains on `POST /v1/admin/dispatch/orders/{id}/assign` (`admin.py`).
 
 ## Live Map (`LiveMapService`)
 
-| Endpoint | Purpose |
-| -------- | ------- |
-| `GET /map`, `/live-map` | Map snapshot data |
-| `GET /live-map/search` | Entity search |
-| `GET /live-map/detail/{type}/{id}` | Order/driver detail |
-| `GET /live-map/playback` | Historical playback |
-| `GET /live-map/nearest-drivers` | Proximity query |
-| `WS /live-map/ws` | 5s realtime snapshots (Clerk JWT) |
+| Endpoint                           | Purpose                           |
+| ---------------------------------- | --------------------------------- |
+| `GET /map`, `/live-map`            | Map snapshot data                 |
+| `GET /live-map/search`             | Entity search                     |
+| `GET /live-map/detail/{type}/{id}` | Order/driver detail               |
+| `GET /live-map/playback`           | Historical playback               |
+| `GET /live-map/nearest-drivers`    | Proximity query                   |
+| `WS /live-map/ws`                  | 5s realtime snapshots (Clerk JWT) |
 
 Full WebSocket path: `/v1/admin/operations/live-map/ws`.
 
@@ -147,7 +146,7 @@ See [plantuml/admin_control_tower.puml](./plantuml/admin_control_tower.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,6 +1,5 @@
 # Notification Flow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -30,18 +29,18 @@ Legacy entry points in `booking_engine/notification_handler.py` delegate to the 
 
 Full routing lives in `event_router._specs_for_event`. Key templates:
 
-| Template | Channels | Trigger events |
-| -------- | -------- | -------------- |
-| `booking_confirmed` | email, push, in_app | `booking.confirmed` |
-| `order_booked` / `order_created` | email, in_app | `order.booked`, `order.created` |
-| `payment_receipt` | email, in_app | `payment.succeeded` |
-| `payment_failed` | email, in_app | `payment.failed` |
-| `driver_assigned` | push, in_app | `order.driver_assigned` |
-| `delivered` | push, in_app | `order.parcel_delivered` |
-| `checkout_recovery` | email | abandoned checkout (orchestrator) |
-| `claim_opened` | email, in_app | `claim.opened` |
-| `support_ticket_created` | email, in_app | `support.ticket_created` |
-| `tracking_update` | push, in_app | `fleetbase.status_updated` |
+| Template                         | Channels            | Trigger events                    |
+| -------------------------------- | ------------------- | --------------------------------- |
+| `booking_confirmed`              | email, push, in_app | `booking.confirmed`               |
+| `order_booked` / `order_created` | email, in_app       | `order.booked`, `order.created`   |
+| `payment_receipt`                | email, in_app       | `payment.succeeded`               |
+| `payment_failed`                 | email, in_app       | `payment.failed`                  |
+| `driver_assigned`                | push, in_app        | `order.driver_assigned`           |
+| `delivered`                      | push, in_app        | `order.parcel_delivered`          |
+| `checkout_recovery`              | email               | abandoned checkout (orchestrator) |
+| `claim_opened`                   | email, in_app       | `claim.opened`                    |
+| `support_ticket_created`         | email, in_app       | `support.ticket_created`          |
+| `tracking_update`                | push, in_app        | `fleetbase.status_updated`        |
 
 SMS channel logs only when no SMS provider is configured.
 
@@ -100,7 +99,7 @@ See [plantuml/notification_flow.puml](./plantuml/notification_flow.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -39,7 +39,9 @@ export function EntityTasks({
   const [version, setVersion] = useState(0);
   const { data } = useApiData(
     (t) =>
-      entityType === "driver" ? drivers.tasks(t, entityId) : collaboration.tasks(t, { entity_id: entityId }),
+      entityType === "driver"
+        ? drivers.tasks(t, entityId)
+        : collaboration.tasks(t, { entity_id: entityId }),
     [entityType, entityId, version],
     { key: `${entityType}-${entityId}-tasks` }
   );
@@ -80,7 +82,9 @@ export function EntityTasks({
 
   async function toggle(task: Task) {
     const token = await getApiToken();
-    await collaboration.updateTask(token, task.id, { status: task.status === "done" ? "open" : "done" });
+    await collaboration.updateTask(token, task.id, {
+      status: task.status === "done" ? "open" : "done",
+    });
     refresh();
   }
 

@@ -1,6 +1,5 @@
 # OSRM Flow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -18,11 +17,11 @@ OSRM provides **distance and duration** for quote pricing and merchant bookings 
 
 `MapsService.route()` reads `settings.routing_engine` (default **`valhalla`**):
 
-| Condition | Engine used |
-| --------- | ----------- |
-| `routing_engine=valhalla` and `valhalla_url` set | Valhalla only for that call |
-| `routing_engine=osrm` (or Valhalla URL unset) and `osrm_url` set | OSRM |
-| Request fails or URL unset | Returns `None` — **no automatic cross-engine fallback in API** |
+| Condition                                                        | Engine used                                                    |
+| ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| `routing_engine=valhalla` and `valhalla_url` set                 | Valhalla only for that call                                    |
+| `routing_engine=osrm` (or Valhalla URL unset) and `osrm_url` set | OSRM                                                           |
+| Request fails or URL unset                                       | Returns `None` — **no automatic cross-engine fallback in API** |
 
 Set `OSRM_HOST` / `OSRM_URL` when using OSRM. Default `osrm_url` is empty until configured.
 
@@ -39,12 +38,12 @@ GET {osrm_url}/route/v1/driving/{lon1},{lat1};{lon2},{lat2}
 
 ## Callers
 
-| Service | Usage |
-| ------- | ----- |
-| `QuoteService` | Quote distance for tariff calculation |
-| `PricingService` / `pricing.py` | Admin pricing simulation |
-| `MerchantBookingService` | B2B shipment distance |
-| `services/routing.py` | Legacy wrapper → `MapsService` |
+| Service                            | Usage                                    |
+| ---------------------------------- | ---------------------------------------- |
+| `QuoteService`                     | Quote distance for tariff calculation    |
+| `PricingService` / `pricing.py`    | Admin pricing simulation                 |
+| `MerchantBookingService`           | B2B shipment distance                    |
+| `services/routing.py`              | Legacy wrapper → `MapsService`           |
 | `website/src/lib/quote/routing.ts` | Local `/api/quote` preview (direct HTTP) |
 
 ## Config
@@ -88,7 +87,7 @@ See [plantuml/osrm_flow.puml](./plantuml/osrm_flow.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,6 +1,5 @@
 # Fleetbase Flow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -20,29 +19,29 @@ Local stack: API `:8000`, console `:4200` — see [PORT_CONFIGURATION.md](../../
 
 ## Adapter Modules
 
-| Module | Responsibility |
-| ------ | -------------- |
-| `orders/` | Create, update, cancel orders |
-| `drivers/` | Driver sync |
-| `vehicles/` | Vehicle sync |
-| `dispatch/` | Driver assignment |
-| `tracking/` | Live tracking snapshots |
-| `pod/` | Proof of delivery fetch |
-| `routes/` | Route data |
-| `webhooks/` | Inbound signature verify + parse |
-| `auth/` | SSO session for admin console |
-| `events/` | `EventTranslator` — status mapping |
+| Module      | Responsibility                     |
+| ----------- | ---------------------------------- |
+| `orders/`   | Create, update, cancel orders      |
+| `drivers/`  | Driver sync                        |
+| `vehicles/` | Vehicle sync                       |
+| `dispatch/` | Driver assignment                  |
+| `tracking/` | Live tracking snapshots            |
+| `pod/`      | Proof of delivery fetch            |
+| `routes/`   | Route data                         |
+| `webhooks/` | Inbound signature verify + parse   |
+| `auth/`     | SSO session for admin console      |
+| `events/`   | `EventTranslator` — status mapping |
 
 ## Outbound Triggers
 
-| Trigger | Service | Adapter method |
-| ------- | ------- | -------------- |
-| `order.dispatch_ready` event | `BookingSyncService.push_order()` | `sync_order()` |
-| `order.driver_assigned` event | `push_driver_assignment()` | dispatch API |
-| `order.cancelled` / claim / damage / RTS events | Fleetbase sync handlers | respective cancel/sync APIs |
-| Merchant cancel | `sync_cancellation()` (direct) | `cancel_order()` |
-| Driver location | `DriverFleetbaseBridge` | tracking sync |
-| Admin SSO | `SsoService.exchange_fleetbase_session()` | `FleetbaseSsoClient` |
+| Trigger                                         | Service                                   | Adapter method              |
+| ----------------------------------------------- | ----------------------------------------- | --------------------------- |
+| `order.dispatch_ready` event                    | `BookingSyncService.push_order()`         | `sync_order()`              |
+| `order.driver_assigned` event                   | `push_driver_assignment()`                | dispatch API                |
+| `order.cancelled` / claim / damage / RTS events | Fleetbase sync handlers                   | respective cancel/sync APIs |
+| Merchant cancel                                 | `sync_cancellation()` (direct)            | `cancel_order()`            |
+| Driver location                                 | `DriverFleetbaseBridge`                   | tracking sync               |
+| Admin SSO                                       | `SsoService.exchange_fleetbase_session()` | `FleetbaseSsoClient`        |
 
 ## Inbound
 
@@ -109,7 +108,7 @@ See [plantuml/fleetbase_flow.puml](./plantuml/fleetbase_flow.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

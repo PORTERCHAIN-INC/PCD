@@ -1,6 +1,5 @@
 # Porterchain — Order Lifecycle
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -175,18 +174,19 @@ Each transition records:
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [EXCEPTION_WORKFLOWS.md](./EXCEPTION_WORKFLOWS.md) | Exception state paths |
-| [EVENT_CATALOG.md](./EVENT_CATALOG.md) | Order lifecycle events |
-| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | End-to-end event sequences |
-| [ENTITY_RELATIONSHIP_MODEL.md](./ENTITY_RELATIONSHIP_MODEL.md) | Order data model |
+| Document                                                                           | Purpose                            |
+| ---------------------------------------------------------------------------------- | ---------------------------------- |
+| [EXCEPTION_WORKFLOWS.md](./EXCEPTION_WORKFLOWS.md)                                 | Exception state paths              |
+| [EVENT_CATALOG.md](./EVENT_CATALOG.md)                                             | Order lifecycle events             |
+| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md)       | End-to-end event sequences         |
+| [ENTITY_RELATIONSHIP_MODEL.md](./ENTITY_RELATIONSHIP_MODEL.md)                     | Order data model                   |
 | [docs/archive/ORDER_LIFECYCLE_REPORT.md](./docs/archive/ORDER_LIFECYCLE_REPORT.md) | Historical order source/type audit |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

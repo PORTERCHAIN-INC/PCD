@@ -16,13 +16,13 @@ Removed Supabase, Twilio, and booking-OTP authentication scaffolding from code, 
 
 ## Code changes (applied)
 
-| Area | Change |
-| ---- | ------ |
-| `website/src/lib/env.ts` | Removed Supabase + booking OTP vars; added `contactEmail` |
-| `website/src/components/` | Mailto uses `publicEnv.contactEmail` |
-| `shared/python/porterchain_shared/config/settings.py` | Removed Twilio settings |
-| `apps/api/.../delivery_service.py` | SMS channel log-only |
-| `apps/api/.../settings_service.py` | SMS health reports `log_only` |
+| Area                                                  | Change                                                    |
+| ----------------------------------------------------- | --------------------------------------------------------- |
+| `website/src/lib/env.ts`                              | Removed Supabase + booking OTP vars; added `contactEmail` |
+| `website/src/components/`                             | Mailto uses `publicEnv.contactEmail`                      |
+| `shared/python/porterchain_shared/config/settings.py` | Removed Twilio settings                                   |
+| `apps/api/.../delivery_service.py`                    | SMS channel log-only                                      |
+| `apps/api/.../settings_service.py`                    | SMS health reports `log_only`                             |
 
 ---
 
@@ -36,22 +36,22 @@ Added: `NEXT_PUBLIC_CONTACT_EMAIL`.
 
 ## Documentation (applied)
 
-| File | Change |
-| ---- | ------ |
-| `AUTHENTICATION_ARCHITECTURE.md` | Canonical Clerk-only architecture |
-| `AUTHENTICATION.md` | Pointer to architecture doc |
-| `AUTHENTICATION_AUDIT.md` | Pre-cleanup inventory (historical) |
-| Legal / i18n | Clerk-only cookies; contact email updates |
+| File                             | Change                                    |
+| -------------------------------- | ----------------------------------------- |
+| `AUTHENTICATION_ARCHITECTURE.md` | Canonical Clerk-only architecture         |
+| `AUTHENTICATION.md`              | Pointer to architecture doc               |
+| `AUTHENTICATION_AUDIT.md`        | Pre-cleanup inventory (historical)        |
+| Legal / i18n                     | Clerk-only cookies; contact email updates |
 
 ---
 
 ## Intentionally unchanged
 
-| Item | Reason |
-| ---- | ------ |
-| Driver POD OTP | Delivery proof — not user authentication |
-| Porterchain driver session JWT | Session bridge after Clerk login |
-| Fleetbase Sanctum / dispatcher key | Execution engine integration |
+| Item                               | Reason                                   |
+| ---------------------------------- | ---------------------------------------- |
+| Driver POD OTP                     | Delivery proof — not user authentication |
+| Porterchain driver session JWT     | Session bridge after Clerk login         |
+| Fleetbase Sanctum / dispatcher key | Execution engine integration             |
 
 ---
 

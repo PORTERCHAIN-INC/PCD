@@ -1,6 +1,5 @@
 # Porterchain Event Bus
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -272,17 +271,18 @@ Set `REDIS_URL` in environment (see `ENVIRONMENT_VARIABLES.md`). Without Redis, 
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [EVENT_CATALOG.md](./EVENT_CATALOG.md) | Full event reference |
+| Document                                                                     | Purpose                               |
+| ---------------------------------------------------------------------------- | ------------------------------------- |
+| [EVENT_CATALOG.md](./EVENT_CATALOG.md)                                       | Full event reference                  |
 | [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | Lifecycle diagrams and handler wiring |
-| [docs/archive/EVENT_BUS_AUDIT.md](./docs/archive/EVENT_BUS_AUDIT.md) | Historical audit (July 2026) |
-| [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) | Bounded contexts and aggregates |
+| [docs/archive/EVENT_BUS_AUDIT.md](./docs/archive/EVENT_BUS_AUDIT.md)         | Historical audit (July 2026)          |
+| [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)                                         | Bounded contexts and aggregates       |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

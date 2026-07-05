@@ -1,10 +1,8 @@
 # Porterchain — Environment Variables
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 > **Templates:** Organized copy-paste files live in [`env/`](./env/README.md). Copy to local `.env` files and fill secrets there — never commit real values.
 
@@ -55,7 +53,7 @@
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes      | Clerk frontend key                     |
 | `CLERK_SECRET_KEY`                  | Yes      | Clerk server key (API routes only)     |
 | `NEXT_PUBLIC_PORTERCHAIN_API_URL`   | Yes      | API base URL (`http://localhost:8001`) |
-| `NEXT_PUBLIC_SITE_URL`              | No       | Portal base (`http://localhost:3004`) |
+| `NEXT_PUBLIC_SITE_URL`              | No       | Portal base (`http://localhost:3004`)  |
 
 Start: `pnpm dev:customer`
 
@@ -95,12 +93,12 @@ Start: `pnpm dev:admin`
 
 **Files:** `apps/mobile-customer/.env.example` → `apps/mobile-customer/.env`
 
-| Variable                          | Required | Description                   |
-| --------------------------------- | -------- | ----------------------------- |
-| `EXPO_PUBLIC_API_URL`             | Yes      | API origin, no trailing slash |
-| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` | Optional | Maps SDK key                  |
-| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes    | Clerk auth                    |
-| `EXPO_PUBLIC_APP_KIND`            | Yes      | `customer`                    |
+| Variable                            | Required | Description                   |
+| ----------------------------------- | -------- | ----------------------------- |
+| `EXPO_PUBLIC_API_URL`               | Yes      | API origin, no trailing slash |
+| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`   | Optional | Maps SDK key                  |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes      | Clerk auth                    |
+| `EXPO_PUBLIC_APP_KIND`              | Yes      | `customer`                    |
 
 Start: `pnpm dev:mobile-customer`
 
@@ -261,8 +259,8 @@ Frontends use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` or `EXPO_PUBLIC_CLERK_PUBLISHA
 
 **Port:** 5432 (local) · **Used by:** `apps/api/`, `apps/worker/`
 
-| Variable       | Required | Description                                              |
-| -------------- | -------- | -------------------------------------------------------- |
+| Variable       | Required | Description                                                 |
+| -------------- | -------- | ----------------------------------------------------------- |
 | `DATABASE_URL` | Yes      | `postgresql+psycopg://user:pass@localhost:5432/porterchain` |
 
 SQLite is **not supported**. Run `pnpm db:migrate` before starting the API.
@@ -482,7 +480,7 @@ _See [env/README.md](./env/README.md) and [PORT_CONFIGURATION.md](./PORT_CONFIGU
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

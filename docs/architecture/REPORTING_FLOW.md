@@ -1,6 +1,5 @@
 # Reporting Flow
 
-
 **Type:** REPORT
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -16,19 +15,19 @@
 
 Admin portal calls `GET /v1/admin/reports/*` → `AdminReportsService` aggregates from existing module services. No separate reporting database or OLAP layer — reports are **live PostgreSQL 16 aggregates**.
 
-| Area | Example endpoints | Source service |
-| ---- | ----------------- | -------------- |
-| Reports Center | `/reports/center`, `/reports/executive`, `/reports/categories` | `AdminReportsService` |
-| Module reports | `/orders/reports`, `/finance/reports`, `/claims/reports`, `/support/reports`, `/pricing/reports` | Respective `Admin*Service.reports()` |
-| Builder / export | `/reports/builder/preview`, `/reports/export-audit` | `AdminReportsService` |
-| Saved / scheduled | `/reports/saved`, `/reports/scheduled` | Persisted in admin models; **scheduled worker not implemented** |
+| Area              | Example endpoints                                                                                | Source service                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Reports Center    | `/reports/center`, `/reports/executive`, `/reports/categories`                                   | `AdminReportsService`                                           |
+| Module reports    | `/orders/reports`, `/finance/reports`, `/claims/reports`, `/support/reports`, `/pricing/reports` | Respective `Admin*Service.reports()`                            |
+| Builder / export  | `/reports/builder/preview`, `/reports/export-audit`                                              | `AdminReportsService`                                           |
+| Saved / scheduled | `/reports/saved`, `/reports/scheduled`                                                           | Persisted in admin models; **scheduled worker not implemented** |
 
 ## Merchant Reports
 
-| Endpoint | Service | Output |
-| -------- | ------- | ------ |
-| `GET /v1/merchant/reports/summary` | `MerchantReportsService.summary()` | Order volume, spend summary |
-| `GET /v1/merchant/reports/overview` | `MerchantReportsService.overview()` | Extended dashboard metrics |
+| Endpoint                            | Service                             | Output                      |
+| ----------------------------------- | ----------------------------------- | --------------------------- |
+| `GET /v1/merchant/reports/summary`  | `MerchantReportsService.summary()`  | Order volume, spend summary |
+| `GET /v1/merchant/reports/overview` | `MerchantReportsService.overview()` | Extended dashboard metrics  |
 
 Requires merchant RBAC module `reports`.
 
@@ -69,7 +68,7 @@ See [plantuml/reporting_flow.puml](./plantuml/reporting_flow.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

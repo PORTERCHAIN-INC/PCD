@@ -12,25 +12,25 @@ Automated lifecycle validation run — all steps **PASS** at time of generation.
 
 **Overall:** PASS
 
-| Step | Status |
-| ---- | ------ |
-| BookingDraftCreated | ✅ PASS |
+| Step                  | Status  |
+| --------------------- | ------- |
+| BookingDraftCreated   | ✅ PASS |
 | CustomerAuthenticated | ✅ PASS |
-| PaymentSucceeded | ✅ PASS |
-| OrderCreated | ✅ PASS |
-| DriverAssigned | ✅ PASS |
-| DriverAccepted | ✅ PASS |
-| PickupStarted | ✅ PASS |
-| PickedUp | ✅ PASS |
-| LocationUpdated | ✅ PASS |
-| NearDelivery | ✅ PASS |
-| Delivered | ✅ PASS |
-| PODCompleted | ✅ PASS |
-| InvoiceGenerated | ✅ PASS |
-| ReturnRequested | ✅ PASS |
-| ReturnApproved | ✅ PASS |
-| RefundCompleted | ✅ PASS |
-| NotificationSent | ✅ PASS |
+| PaymentSucceeded      | ✅ PASS |
+| OrderCreated          | ✅ PASS |
+| DriverAssigned        | ✅ PASS |
+| DriverAccepted        | ✅ PASS |
+| PickupStarted         | ✅ PASS |
+| PickedUp              | ✅ PASS |
+| LocationUpdated       | ✅ PASS |
+| NearDelivery          | ✅ PASS |
+| Delivered             | ✅ PASS |
+| PODCompleted          | ✅ PASS |
+| InvoiceGenerated      | ✅ PASS |
+| ReturnRequested       | ✅ PASS |
+| ReturnApproved        | ✅ PASS |
+| RefundCompleted       | ✅ PASS |
+| NotificationSent      | ✅ PASS |
 
 ---
 

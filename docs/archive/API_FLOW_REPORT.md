@@ -15,8 +15,8 @@ This file duplicated `API_FLOW_DIAGRAM.md`. Use the canonical diagram doc instea
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [API_DEPENDENCY_GRAPH.md](./API_DEPENDENCY_GRAPH.md) | Service dependency map |
-| [API_TRACE_REPORT.md](./API_TRACE_REPORT.md) | Historical order trace snapshot |
-| [docs/architecture/API_DEPENDENCY.md](./docs/architecture/API_DEPENDENCY.md) | Client → API matrix |
+| Document                                                                     | Purpose                         |
+| ---------------------------------------------------------------------------- | ------------------------------- |
+| [API_DEPENDENCY_GRAPH.md](./API_DEPENDENCY_GRAPH.md)                         | Service dependency map          |
+| [API_TRACE_REPORT.md](./API_TRACE_REPORT.md)                                 | Historical order trace snapshot |
+| [docs/architecture/API_DEPENDENCY.md](./docs/architecture/API_DEPENDENCY.md) | Client → API matrix             |

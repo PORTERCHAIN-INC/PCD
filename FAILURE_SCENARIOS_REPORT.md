@@ -1,6 +1,5 @@
 # Failure Scenarios Report
 
-
 **Type:** REPORT
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -21,24 +20,24 @@
 
 All 26 catalogued failure scenarios returned **PASS** in the automated framework run — meaning retry/fallback paths, diagnostics hooks, or domain exception handling exist for each case.
 
-| Scenario | Status | Layer | Notes |
-| -------- | ------ | ----- | ----- |
-| authentication_failed | ✅ | auth | Clerk or `CLERK_DEV_BYPASS` |
-| payment_failed | ✅ | operations | `PaymentService` → FAILED + draft state |
-| stripe_webhook_failure | ✅ | billing_engine | Requires `STRIPE_WEBHOOK_SECRET` in prod |
-| driver_rejects / driver_cancels | ✅ | operations | ExceptionType + ops queue |
-| vehicle_breakdown / driver_offline | ✅ | operations | Retry/fallback paths |
-| fleetbase_offline / fleetbase_adapter_failure | ✅ | fleetbase_adapter | RetryQueue + sync jobs |
-| google_maps_failure | ✅ | integrations | Diagnostics probe |
-| osrm_failure / valhalla_failure | ✅ | operations | Haversine fallback in pricing |
-| redis_restart / postgresql_restart | ✅ | operations | Health checks + pool pre-ping |
-| firebase_failure | ✅ | operations | Push optional locally |
-| websocket_failure | ✅ | operations | Live map poll fallback |
-| notification_failure | ✅ | notification_engine | Retry + delivery logs |
-| customer_cancels / merchant_cancels | ✅ | operations | ExceptionType flows |
-| pickup_failed / delivery_failed | ✅ | operations | Claims/ops queue |
-| customer_not_home | ✅ | operations | Exception handling |
-| otp_failed / signature_failed / photo_upload_failed / pod_failed | ✅ | operations | POD engine + offline executor |
+| Scenario                                                         | Status | Layer               | Notes                                    |
+| ---------------------------------------------------------------- | ------ | ------------------- | ---------------------------------------- |
+| authentication_failed                                            | ✅     | auth                | Clerk or `CLERK_DEV_BYPASS`              |
+| payment_failed                                                   | ✅     | operations          | `PaymentService` → FAILED + draft state  |
+| stripe_webhook_failure                                           | ✅     | billing_engine      | Requires `STRIPE_WEBHOOK_SECRET` in prod |
+| driver_rejects / driver_cancels                                  | ✅     | operations          | ExceptionType + ops queue                |
+| vehicle_breakdown / driver_offline                               | ✅     | operations          | Retry/fallback paths                     |
+| fleetbase_offline / fleetbase_adapter_failure                    | ✅     | fleetbase_adapter   | RetryQueue + sync jobs                   |
+| google_maps_failure                                              | ✅     | integrations        | Diagnostics probe                        |
+| osrm_failure / valhalla_failure                                  | ✅     | operations          | Haversine fallback in pricing            |
+| redis_restart / postgresql_restart                               | ✅     | operations          | Health checks + pool pre-ping            |
+| firebase_failure                                                 | ✅     | operations          | Push optional locally                    |
+| websocket_failure                                                | ✅     | operations          | Live map poll fallback                   |
+| notification_failure                                             | ✅     | notification_engine | Retry + delivery logs                    |
+| customer_cancels / merchant_cancels                              | ✅     | operations          | ExceptionType flows                      |
+| pickup_failed / delivery_failed                                  | ✅     | operations          | Claims/ops queue                         |
+| customer_not_home                                                | ✅     | operations          | Exception handling                       |
+| otp_failed / signature_failed / photo_upload_failed / pod_failed | ✅     | operations          | POD engine + offline executor            |
 
 ---
 
@@ -65,16 +64,17 @@ Chaos-style probes also available in Admin Diagnostics (`diagnostics_service.py`
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [DATA_CONSISTENCY_REPORT.md](./DATA_CONSISTENCY_REPORT.md) | Phase 8 cross-surface checks |
-| [EXCEPTION_WORKFLOWS.md](./EXCEPTION_WORKFLOWS.md) | Business exception flows |
-| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Platform certification |
+| Document                                                           | Purpose                      |
+| ------------------------------------------------------------------ | ---------------------------- |
+| [DATA_CONSISTENCY_REPORT.md](./DATA_CONSISTENCY_REPORT.md)         | Phase 8 cross-surface checks |
+| [EXCEPTION_WORKFLOWS.md](./EXCEPTION_WORKFLOWS.md)                 | Business exception flows     |
+| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Platform certification       |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

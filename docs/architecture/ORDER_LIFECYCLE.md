@@ -1,6 +1,5 @@
 # Order Lifecycle
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -31,14 +30,14 @@ Pre-order states (draft/quote flow): `QUOTE`, `QUOTE_EXPIRED`, `BOOKING_PENDING`
 
 ## Transition Sources
 
-| Source | Mechanism |
-| ------ | --------- |
-| Retail confirmation | `BookingConfirmationService` → `BOOKED` → `DISPATCH_READY` |
-| Merchant booking | `MerchantBookingService` → same |
-| Admin assign | `AdminOperationsService.assign_driver()` → `DRIVER_ASSIGNED` |
-| Fleetbase webhooks | `WebhookProcessor` + `StatusTranslator` |
-| Driver app | `porterchain_driver` stop actions → events |
-| Merchant cancel | `MerchantOrdersService.cancel_order()` → `CANCELLED` + Fleetbase cancel |
+| Source              | Mechanism                                                               |
+| ------------------- | ----------------------------------------------------------------------- |
+| Retail confirmation | `BookingConfirmationService` → `BOOKED` → `DISPATCH_READY`              |
+| Merchant booking    | `MerchantBookingService` → same                                         |
+| Admin assign        | `AdminOperationsService.assign_driver()` → `DRIVER_ASSIGNED`            |
+| Fleetbase webhooks  | `WebhookProcessor` + `StatusTranslator`                                 |
+| Driver app          | `porterchain_driver` stop actions → events                              |
+| Merchant cancel     | `MerchantOrdersService.cancel_order()` → `CANCELLED` + Fleetbase cancel |
 
 ## Metadata
 
@@ -97,7 +96,7 @@ See [plantuml/order_lifecycle.puml](./plantuml/order_lifecycle.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,19 +1,17 @@
 # Porterchain Website
 
-
 **Type:** README
 **masterrule:** [§21](../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
 
-
 Public marketing site and retail booking funnel. Next.js 16 with `next-intl` (EN/FR).
 
-| Item | Value |
-| ---- | ----- |
-| **Package** | `@porterchain/website` |
-| **Port** | **3000** |
-| **Path** | `website/` (pnpm workspace root entry) |
-| **Output** | `standalone` (Docker production build) |
+| Item        | Value                                  |
+| ----------- | -------------------------------------- |
+| **Package** | `@porterchain/website`                 |
+| **Port**    | **3000**                               |
+| **Path**    | `website/` (pnpm workspace root entry) |
+| **Output**  | `standalone` (Docker production build) |
 
 > Path alias doc: [../apps/website/README.md](../apps/website/README.md)
 
@@ -68,17 +66,17 @@ website/
 
 All routes under `[locale]` (e.g. `/en/`, `/fr/`):
 
-| Route | Purpose |
-| ----- | ------- |
-| `/` | Home |
-| `/book/continue` | Booking wizard continuation |
-| `/book/success` | Post-checkout confirmation |
-| `/track/[tracking]` | Public tracking |
-| Customer portal | External link to `apps/customer` (`:3004`) — not embedded on website |
-| `/login` | Clerk sign-in |
-| `/blog`, `/blog/[slug]` | Blog (24 posts EN+FR) |
-| `/business`, `/company`, `/contact`, `/careers` | Marketing |
-| `/privacy`, `/terms`, `/cookies` | Legal |
+| Route                                           | Purpose                                                              |
+| ----------------------------------------------- | -------------------------------------------------------------------- |
+| `/`                                             | Home                                                                 |
+| `/book/continue`                                | Booking wizard continuation                                          |
+| `/book/success`                                 | Post-checkout confirmation                                           |
+| `/track/[tracking]`                             | Public tracking                                                      |
+| Customer portal                                 | External link to `apps/customer` (`:3004`) — not embedded on website |
+| `/login`                                        | Clerk sign-in                                                        |
+| `/blog`, `/blog/[slug]`                         | Blog (24 posts EN+FR)                                                |
+| `/business`, `/company`, `/contact`, `/careers` | Marketing                                                            |
+| `/privacy`, `/terms`, `/cookies`                | Legal                                                                |
 
 Legacy paths `/platform`, `/overview`, `/solutions` redirect to `/business`.
 
@@ -88,12 +86,12 @@ Legacy paths `/platform`, `/overview`, `/solutions` redirect to `/business`.
 
 Copy from `env/website.env.example`:
 
-| Variable | Purpose |
-| -------- | ------- |
-| `NEXT_PUBLIC_PORTERCHAIN_API_URL` | API base |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk (booking/account) |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Maps on booking/tracking |
-| `GOOGLE_MAPS_SERVER_API_KEY` | Server geocoding in `/api/quote` (prod) |
+| Variable                            | Purpose                                 |
+| ----------------------------------- | --------------------------------------- |
+| `NEXT_PUBLIC_PORTERCHAIN_API_URL`   | API base                                |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk (booking/account)                 |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`   | Maps on booking/tracking                |
+| `GOOGLE_MAPS_SERVER_API_KEY`        | Server geocoding in `/api/quote` (prod) |
 
 Portal URL hints are injected in `next.config.ts` for admin, merchant, driver, customer links.
 
@@ -103,27 +101,27 @@ See [ENVIRONMENT_VARIABLES.md](../ENVIRONMENT_VARIABLES.md).
 
 ## Agent / IDE Docs
 
-| File | Purpose |
-| ---- | ------- |
+| File                     | Purpose                              |
+| ------------------------ | ------------------------------------ |
 | [AGENTS.md](./AGENTS.md) | Rules for AI agents editing this app |
-| [CLAUDE.md](./CLAUDE.md) | Claude pointer to AGENTS.md |
+| [CLAUDE.md](./CLAUDE.md) | Claude pointer to AGENTS.md          |
 
 ---
 
 ## Related Documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [../docs/architecture/BOOKING_FLOW.md](../docs/architecture/BOOKING_FLOW.md) | Booking flow |
-| [../apps/customer/README.md](../apps/customer/README.md) | Customer portal (:3004) |
-| [../infrastructure/deploy/README.md](../infrastructure/deploy/README.md) | Production deploy |
-| [../PRODUCT_REQUIREMENTS.md](../PRODUCT_REQUIREMENTS.md) | Product scope |
+| Document                                                                     | Purpose                 |
+| ---------------------------------------------------------------------------- | ----------------------- |
+| [../docs/architecture/BOOKING_FLOW.md](../docs/architecture/BOOKING_FLOW.md) | Booking flow            |
+| [../apps/customer/README.md](../apps/customer/README.md)                     | Customer portal (:3004) |
+| [../infrastructure/deploy/README.md](../infrastructure/deploy/README.md)     | Production deploy       |
+| [../PRODUCT_REQUIREMENTS.md](../PRODUCT_REQUIREMENTS.md)                     | Product scope           |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [../masterrule.md](../masterrule.md) | Architecture SSOT |
-| [../REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md) | Monorepo layout |
-
+| Document                                                 | Role              |
+| -------------------------------------------------------- | ----------------- |
+| [../masterrule.md](../masterrule.md)                     | Architecture SSOT |
+| [../REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

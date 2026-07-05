@@ -51,7 +51,10 @@ function SuccessContent() {
       <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
         <h1 className="text-2xl font-bold text-slate-900">Missing booking reference</h1>
         <p className="mt-2 text-sm text-slate-600">Return to booking and try again.</p>
-        <Link href="/book" className="mt-6 inline-block text-sm font-semibold text-emerald-700 hover:underline">
+        <Link
+          href="/book"
+          className="mt-6 inline-block text-sm font-semibold text-emerald-700 hover:underline"
+        >
           Back to book
         </Link>
       </div>
@@ -74,7 +77,10 @@ function SuccessContent() {
         <p className="mt-2 text-sm text-slate-600">
           Payment may still be confirming. Check your dashboard in a few minutes.
         </p>
-        <Link href="/dashboard" className="mt-6 inline-block text-sm font-semibold text-emerald-700 hover:underline">
+        <Link
+          href="/dashboard"
+          className="mt-6 inline-block text-sm font-semibold text-emerald-700 hover:underline"
+        >
           Go to dashboard
         </Link>
       </div>
@@ -102,7 +108,10 @@ function SuccessContent() {
             Track delivery
           </Link>
         ) : null}
-        <Link href="/dashboard" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+        <Link
+          href="/dashboard"
+          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+        >
           Dashboard
         </Link>
       </div>

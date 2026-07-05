@@ -1,6 +1,5 @@
 # Porterchain ↔ Fleetbase Single Sign-On (SSO)
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -14,7 +13,7 @@
 
 | Aspect               | Approach                                                                |
 | -------------------- | ----------------------------------------------------------------------- |
-| Identity provider    | **Clerk** (admin staff — dispatchers, support, ops) |
+| Identity provider    | **Clerk** (admin staff — dispatchers, support, ops)                     |
 | Trust broker         | **Porterchain API**                                                     |
 | Fleetbase auth       | Trusts **Porterchain-signed SSO JWT**                                   |
 | User duplication     | **None** — one Clerk ID → one `identity_links` row → one Fleetbase user |
@@ -271,18 +270,19 @@ PORTERCHAIN_API_URL=http://localhost:8001
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Auth policy |
-| [docs/architecture/AUTHENTICATION_FLOW.md](./docs/architecture/AUTHENTICATION_FLOW.md) | Flow diagrams |
-| [RBAC_MATRIX.md](./RBAC_MATRIX.md) | Console access matrix |
-| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Fleetbase bridge |
-| [FLEETBASE_EXTENSION_POINTS.md](./FLEETBASE_EXTENSION_POINTS.md) | Extension endpoints |
+| Document                                                                               | Purpose               |
+| -------------------------------------------------------------------------------------- | --------------------- |
+| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md)                     | Auth policy           |
+| [docs/architecture/AUTHENTICATION_FLOW.md](./docs/architecture/AUTHENTICATION_FLOW.md) | Flow diagrams         |
+| [RBAC_MATRIX.md](./RBAC_MATRIX.md)                                                     | Console access matrix |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                                 | Fleetbase bridge      |
+| [FLEETBASE_EXTENSION_POINTS.md](./FLEETBASE_EXTENSION_POINTS.md)                       | Extension endpoints   |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

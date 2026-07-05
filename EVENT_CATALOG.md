@@ -1,6 +1,5 @@
 # Porterchain Event Catalog
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -23,16 +22,16 @@ Event names use `{aggregate}.{action}` dot notation. PascalCase aliases (e.g. `Q
 
 ## Quote & booking
 
-| Event                | Alias            | Aggregate | Description                                     |
-| -------------------- | ---------------- | --------- | ----------------------------------------------- |
-| `quote.created`      | QuoteCreated     | quote     | Price quote generated                           |
-| `quote.accepted`     | QuoteAccepted    | quote     | Customer accepted quote / proceeded to checkout |
-| `quote.expired`      | —                | quote     | Quote TTL elapsed                               |
-| `booking.started`    | —                | booking   | Customer clicked continue booking               |
-| `booking.confirmed`  | BookingConfirmed | booking   | Payment captured; booking + order created       |
-| `checkout.started`   | —                | checkout  | Stripe session created                          |
-| `checkout.abandoned` | —                | checkout  | Session expired or payment failed               |
-| `booking_draft.draft_created` | BookingDraftCreated | booking_draft | Server-persisted retail draft created |
+| Event                         | Alias               | Aggregate     | Description                                     |
+| ----------------------------- | ------------------- | ------------- | ----------------------------------------------- |
+| `quote.created`               | QuoteCreated        | quote         | Price quote generated                           |
+| `quote.accepted`              | QuoteAccepted       | quote         | Customer accepted quote / proceeded to checkout |
+| `quote.expired`               | —                   | quote         | Quote TTL elapsed                               |
+| `booking.started`             | —                   | booking       | Customer clicked continue booking               |
+| `booking.confirmed`           | BookingConfirmed    | booking       | Payment captured; booking + order created       |
+| `checkout.started`            | —                   | checkout      | Stripe session created                          |
+| `checkout.abandoned`          | —                   | checkout      | Session expired or payment failed               |
+| `booking_draft.draft_created` | BookingDraftCreated | booking_draft | Server-persisted retail draft created           |
 
 ---
 
@@ -58,10 +57,10 @@ Event names use `{aggregate}.{action}` dot notation. PascalCase aliases (e.g. `Q
 
 ## Payment
 
-| Event               | Alias            | Aggregate | Description             |
-| ------------------- | ---------------- | --------- | ----------------------- |
-| `payment.succeeded` | PaymentSucceeded | payment   | Stripe payment captured |
-| `payment.failed`    | —                | payment   | Payment attempt failed  |
+| Event               | Alias            | Aggregate | Description                |
+| ------------------- | ---------------- | --------- | -------------------------- |
+| `payment.succeeded` | PaymentSucceeded | payment   | Stripe payment captured    |
+| `payment.failed`    | —                | payment   | Payment attempt failed     |
 | `payment.started`   | PaymentStarted   | payment   | Checkout session initiated |
 
 ---
@@ -112,9 +111,9 @@ Event names use `{aggregate}.{action}` dot notation. PascalCase aliases (e.g. `Q
 
 ## Support
 
-| Event                    | Alias               | Aggregate | Description              |
-| ------------------------ | ------------------- | --------- | ------------------------ |
-| `support.ticket_created` | SupportTicketCreated | support  | Customer support ticket  |
+| Event                    | Alias                | Aggregate | Description             |
+| ------------------------ | -------------------- | --------- | ----------------------- |
+| `support.ticket_created` | SupportTicketCreated | support   | Customer support ticket |
 
 ---
 
@@ -141,10 +140,10 @@ Event names use `{aggregate}.{action}` dot notation. PascalCase aliases (e.g. `Q
 
 ## Phase 2 stubs (no consumers yet — ADR-010)
 
-| Event                      | Aggregate | Description                              |
-| -------------------------- | --------- | ---------------------------------------- |
-| `dispatch.recommendation`  | dispatch  | AI/optimizer suggestion (not implemented)|
-| `eta.predicted`            | order     | Predictive ETA (not implemented)         |
+| Event                     | Aggregate | Description                               |
+| ------------------------- | --------- | ----------------------------------------- |
+| `dispatch.recommendation` | dispatch  | AI/optimizer suggestion (not implemented) |
+| `eta.predicted`           | order     | Predictive ETA (not implemented)          |
 
 ---
 
@@ -206,16 +205,17 @@ DomainEvents.BOOKING_CONFIRMED; // "booking.confirmed"
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [EVENT_BUS.md](./EVENT_BUS.md) | Infrastructure and operations |
-| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | End-to-end flows |
-| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | Handler wiring diagram |
+| Document                                                                     | Purpose                       |
+| ---------------------------------------------------------------------------- | ----------------------------- |
+| [EVENT_BUS.md](./EVENT_BUS.md)                                               | Infrastructure and operations |
+| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | End-to-end flows              |
+| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | Handler wiring diagram        |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

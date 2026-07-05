@@ -1,6 +1,5 @@
 # Reverse Logistics Report
 
-
 **Type:** REPORT
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -21,29 +20,29 @@
 
 ### Return flow
 
-| Step | Status | Layer |
-| ---- | ------ | ----- |
-| Delivered | ✅ PASS | admin_engine |
-| Customer Rejects | ✅ PASS | admin_engine |
-| Return Requested | ✅ PASS | admin_engine |
-| Return Approved | ✅ PASS | admin_engine |
-| Driver Assigned | ✅ PASS | fleetbase_engine |
-| Return Pickup | ✅ PASS | admin_engine |
-| Warehouse | ✅ PASS | operations |
-| Merchant | ✅ PASS | merchant_engine |
-| Refund | ✅ PASS | billing_engine |
-| Return Completed | ✅ PASS | admin_engine |
+| Step             | Status  | Layer            |
+| ---------------- | ------- | ---------------- |
+| Delivered        | ✅ PASS | admin_engine     |
+| Customer Rejects | ✅ PASS | admin_engine     |
+| Return Requested | ✅ PASS | admin_engine     |
+| Return Approved  | ✅ PASS | admin_engine     |
+| Driver Assigned  | ✅ PASS | fleetbase_engine |
+| Return Pickup    | ✅ PASS | admin_engine     |
+| Warehouse        | ✅ PASS | operations       |
+| Merchant         | ✅ PASS | merchant_engine  |
+| Refund           | ✅ PASS | billing_engine   |
+| Return Completed | ✅ PASS | admin_engine     |
 
 ### Exception scenarios
 
-| Scenario | Status |
-| -------- | ------ |
+| Scenario         | Status  |
+| ---------------- | ------- |
 | customer_refused | ✅ PASS |
-| wrong_address | ✅ PASS |
-| damaged_parcel | ✅ PASS |
-| lost_parcel | ✅ PASS |
-| wrong_parcel | ✅ PASS |
-| merchant_recall | ✅ PASS |
+| wrong_address    | ✅ PASS |
+| damaged_parcel   | ✅ PASS |
+| lost_parcel      | ✅ PASS |
+| wrong_parcel     | ✅ PASS |
+| merchant_recall  | ✅ PASS |
 
 ---
 
@@ -63,15 +62,16 @@ pnpm validate:e2e:reports
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [FORWARD_LOGISTICS_REPORT.md](./FORWARD_LOGISTICS_REPORT.md) | Forward chain |
+| Document                                                     | Purpose                       |
+| ------------------------------------------------------------ | ----------------------------- |
+| [FORWARD_LOGISTICS_REPORT.md](./FORWARD_LOGISTICS_REPORT.md) | Forward chain                 |
 | [FAILURE_SCENARIOS_REPORT.md](./FAILURE_SCENARIOS_REPORT.md) | Infrastructure failure matrix |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

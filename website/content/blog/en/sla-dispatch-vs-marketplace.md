@@ -29,12 +29,12 @@ For personal errands, that tradeoff can work. For commercial operations, it crea
 
 Porterchain's dispatch controls enforce standards before and during execution:
 
-| Control                    | Purpose                                   |
-| -------------------------- | ----------------------------------------- |
-| Address validation         | Prevent failed first attempts             |
-| Vehicle-class checks       | Match load to capacity                    |
-| Pre-departure verification | Catch issues before departure             |
-| Live monitoring            | Surface delays early                      |
+| Control                    | Purpose                                            |
+| -------------------------- | -------------------------------------------------- |
+| Address validation         | Prevent failed first attempts                      |
+| Vehicle-class checks       | Match load to capacity                             |
+| Pre-departure verification | Catch issues before departure                      |
+| Live monitoring            | Surface delays early                               |
 | Proof workflow             | Photo, signature, GPS, and audit trail for billing |
 
 ## SLA as an operating contract

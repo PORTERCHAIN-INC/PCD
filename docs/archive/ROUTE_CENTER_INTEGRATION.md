@@ -8,15 +8,15 @@
 
 ## Integration map
 
-| System | Role in Route Center | Access path |
-| ------ | -------------------- | ----------- |
-| Porterchain Order mirror | Planning queue, stops, dispatch | SQLAlchemy `Order` |
-| Valhalla | Multi-stop leg routing | `MapsService` (`routing_engine=valhalla`) |
-| OSRM | ETA / distance refinement | `MapsService` + `_osrm_leg_matrix` |
-| Fleetbase Adapter | Orchestrator run/commit, dispatch sync | `get_fleetbase_integration(settings)` |
-| Google Maps | Map visualization only | Admin `MapCanvas` (client) |
-| Clerk | Admin authentication | `get_admin_context` |
-| Event bus | Order state on dispatch | `AdminOperationsService` → `emit_event` |
+| System                   | Role in Route Center                   | Access path                               |
+| ------------------------ | -------------------------------------- | ----------------------------------------- |
+| Porterchain Order mirror | Planning queue, stops, dispatch        | SQLAlchemy `Order`                        |
+| Valhalla                 | Multi-stop leg routing                 | `MapsService` (`routing_engine=valhalla`) |
+| OSRM                     | ETA / distance refinement              | `MapsService` + `_osrm_leg_matrix`        |
+| Fleetbase Adapter        | Orchestrator run/commit, dispatch sync | `get_fleetbase_integration(settings)`     |
+| Google Maps              | Map visualization only                 | Admin `MapCanvas` (client)                |
+| Clerk                    | Admin authentication                   | `get_admin_context`                       |
+| Event bus                | Order state on dispatch                | `AdminOperationsService` → `emit_event`   |
 
 ---
 
@@ -62,12 +62,12 @@ Route Center does **not** silently fall back to haversine. Unreachable engines �
 
 ## Reused admin APIs (not duplicated)
 
-| Consumer | Reused endpoint / service |
-| -------- | ------------------------- |
-| Dispatch driver picker | `GET /v1/admin/operations/assignable-drivers` |
-| Live map | `LiveMapApp` → live-map REST + WS |
-| Order detail from Route 360 | Link to `/orders/[id]` |
-| Driver profile | Link to `/drivers/[id]` |
+| Consumer                    | Reused endpoint / service                     |
+| --------------------------- | --------------------------------------------- |
+| Dispatch driver picker      | `GET /v1/admin/operations/assignable-drivers` |
+| Live map                    | `LiveMapApp` → live-map REST + WS             |
+| Order detail from Route 360 | Link to `/orders/[id]`                        |
+| Driver profile              | Link to `/drivers/[id]`                       |
 
 ---
 
@@ -75,16 +75,16 @@ Route Center does **not** silently fall back to haversine. Unreachable engines �
 
 See [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md):
 
-| Variable | Integration |
-| -------- | ------------- |
-| `VALHALLA_BASE_URL` | Route optimization (host) |
-| `VALHALLA_BASE_URI` | Docker-internal Valhalla |
-| `OSRM_HOST` / `OSRM_URL` | Distance / ETA refinement |
-| `ROUTING_ENGINE` | `valhalla` (API default) |
-| `FLEETBASE_API_URL` | Adapter base |
-| `fleetbase_api_key` (Settings) | Adapter auth — set in API env |
-| `FLEETBASE_DISPATCH_BRIDGE` | Orchestrator + dispatch sync |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Admin map visualization |
+| Variable                          | Integration                   |
+| --------------------------------- | ----------------------------- |
+| `VALHALLA_BASE_URL`               | Route optimization (host)     |
+| `VALHALLA_BASE_URI`               | Docker-internal Valhalla      |
+| `OSRM_HOST` / `OSRM_URL`          | Distance / ETA refinement     |
+| `ROUTING_ENGINE`                  | `valhalla` (API default)      |
+| `FLEETBASE_API_URL`               | Adapter base                  |
+| `fleetbase_api_key` (Settings)    | Adapter auth — set in API env |
+| `FLEETBASE_DISPATCH_BRIDGE`       | Orchestrator + dispatch sync  |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Admin map visualization       |
 
 Local dev defaults: `env/api.env.example`
 
@@ -124,14 +124,14 @@ Route Center `GET /live-execution` provides initial snapshot; WS unchanged.
 
 ## Error handling
 
-| Error | HTTP | Meaning |
-| ----- | ---- | ------- |
-| `route_plan_not_found` | 404 | Invalid plan ID |
-| `route_plan_locked` | 400 | Plan already dispatched/active |
-| `dispatch_approval_required` | 403 | `requires_approval` without approve |
-| `insufficient_stops` | 400 | < 2 stops for optimization |
-| `missing_coordinates` | 400 | Stops lack lat/lng |
-| `driver_not_found` | 404 | Invalid driver ID |
+| Error                        | HTTP | Meaning                             |
+| ---------------------------- | ---- | ----------------------------------- |
+| `route_plan_not_found`       | 404  | Invalid plan ID                     |
+| `route_plan_locked`          | 400  | Plan already dispatched/active      |
+| `dispatch_approval_required` | 403  | `requires_approval` without approve |
+| `insufficient_stops`         | 400  | < 2 stops for optimization          |
+| `missing_coordinates`        | 400  | Stops lack lat/lng                  |
+| `driver_not_found`           | 404  | Invalid driver ID                   |
 
 Fleetbase failures enqueue via `RetryQueue` in `BookingSyncService` (existing pattern).
 
@@ -139,7 +139,7 @@ Fleetbase failures enqueue via `RetryQueue` in `BookingSyncService` (existing pa
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
+| Document                                               | Purpose          |
+| ------------------------------------------------------ | ---------------- |
 | [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Fleetbase bridge |
-| [ROUTING_ENGINE_AUDIT.md](./ROUTING_ENGINE_AUDIT.md) | Engine ownership |
+| [ROUTING_ENGINE_AUDIT.md](./ROUTING_ENGINE_AUDIT.md)   | Engine ownership |

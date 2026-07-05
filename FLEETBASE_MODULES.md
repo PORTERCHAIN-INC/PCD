@@ -1,11 +1,10 @@
 # Fleetbase Modules — Porterchain Integration Guide
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
 
-**Fleetbase:** v0.7.40 | **Packages:** core-api 1.6.47, fleetops-api 0.6.48  
+**Fleetbase:** v0.7.40 | **Packages:** core-api 1.6.47, fleetops-api 0.6.48
 
 For each module: purpose, Porterchain fit, and recommended action.  
 **Canonical integration:** [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)
@@ -38,7 +37,7 @@ For each module: purpose, Porterchain fit, and recommended action.
 | Can Porterchain use it directly? | **Partially** — API keys for bridge; Sanctum for ops console login only                                 |
 | Remain unchanged?                | **Yes** — Fleetbase auth stays for console and Navigator                                                |
 | Extend?                          | **Yes** — `FLEETBASE_API_KEY` on Porterchain bridge; `PORTERCHAIN_DISPATCHER_API_KEY` for reverse calls |
-| Replace?                         | **Yes** — Clerk for all Porterchain portals; Porterchain JWT for driver app (`apps/mobile-driver/`) |
+| Replace?                         | **Yes** — Clerk for all Porterchain portals; Porterchain JWT for driver app (`apps/mobile-driver/`)     |
 
 ---
 
@@ -331,12 +330,12 @@ For each module: purpose, Porterchain fit, and recommended action.
 
 See [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md).
 
-| Question                         | Answer                                                            |
-| -------------------------------- | ----------------------------------------------------------------- |
-| Can Porterchain use it directly? | **Yes** — subscribe Porterchain API to Fleetbase events           |
-| Remain unchanged?                | **Yes**                                                           |
+| Question                         | Answer                                                   |
+| -------------------------------- | -------------------------------------------------------- |
+| Can Porterchain use it directly? | **Yes** — subscribe Porterchain API to Fleetbase events  |
+| Remain unchanged?                | **Yes**                                                  |
 | Extend?                          | **Yes** — `POST /webhooks/fleetbase` handler implemented |
-| Replace?                         | **No**                                                            |
+| Replace?                         | **No**                                                   |
 
 ---
 
@@ -446,11 +445,11 @@ See [EVENT_CATALOG.md](./EVENT_CATALOG.md).
 
 **Tables:** `fleetbase_roles`, `fleetbase_permissions`, `fleetbase_policies`, `fleetbase_groups`, pivots
 
-| Question                         | Answer                                                                                 |
-| -------------------------------- | -------------------------------------------------------------------------------------- |
-| Can Porterchain use it directly? | **Console only**                                                                       |
-| Remain unchanged?                | **Yes**                                                                                |
-| Extend?                          | —                                                                                      |
+| Question                         | Answer                                                                      |
+| -------------------------------- | --------------------------------------------------------------------------- |
+| Can Porterchain use it directly? | **Console only**                                                            |
+| Remain unchanged?                | **Yes**                                                                     |
+| Extend?                          | —                                                                           |
 | Replace?                         | **Yes** — Porterchain RBAC ([RBAC_MATRIX.md](./RBAC_MATRIX.md)) for portals |
 
 ---
@@ -487,7 +486,7 @@ See [EVENT_CATALOG.md](./EVENT_CATALOG.md).
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

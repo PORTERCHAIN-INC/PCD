@@ -1,10 +1,8 @@
 # Porterchain — System Sequence Diagrams
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 ---
 
@@ -310,11 +308,12 @@ flowchart LR
 - [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md)
 - [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)
 - [EVENT_BUS.md](./EVENT_BUS.md)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

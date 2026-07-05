@@ -12,37 +12,37 @@ Enterprise mobile security is implemented through a shared security layer used b
 
 **Security posture:** good for beta; production hardening remains before App Store / Play Store release.
 
-| Area | Status | Notes |
-| ---- | ------ | ----- |
-| Clerk auth | ✅ | `ClerkSignInPanel` supports email/password and Google OAuth |
-| Dev auth fallback | ⚠ | Local-only UI, but production EAS profiles must enforce Clerk keys |
-| Secure token storage | ✅ | Expo Secure Store / secure session helpers |
-| Driver refresh | ✅ | `/driver-api/v1/auth/refresh` on 401 retry |
-| Customer auth | ✅ | Clerk bearer used with `/v1/auth/me` |
-| PIN/biometric shell | ✅ | `SecurityShell`, `PinLockGate`, `BiometricGate` |
-| Certificate pinning | ⚠ off | Support exists; not enforced |
-| Device integrity | ⚠ adapter hook | `registerIntegrityAdapter()` available; production adapter needed |
-| Audit events | ✅ | buffered and scrubbed |
+| Area                 | Status         | Notes                                                              |
+| -------------------- | -------------- | ------------------------------------------------------------------ |
+| Clerk auth           | ✅             | `ClerkSignInPanel` supports email/password and Google OAuth        |
+| Dev auth fallback    | ⚠              | Local-only UI, but production EAS profiles must enforce Clerk keys |
+| Secure token storage | ✅             | Expo Secure Store / secure session helpers                         |
+| Driver refresh       | ✅             | `/driver-api/v1/auth/refresh` on 401 retry                         |
+| Customer auth        | ✅             | Clerk bearer used with `/v1/auth/me`                               |
+| PIN/biometric shell  | ✅             | `SecurityShell`, `PinLockGate`, `BiometricGate`                    |
+| Certificate pinning  | ⚠ off          | Support exists; not enforced                                       |
+| Device integrity     | ⚠ adapter hook | `registerIntegrityAdapter()` available; production adapter needed  |
+| Audit events         | ✅             | buffered and scrubbed                                              |
 
 ---
 
 ## Security Package Capabilities
 
-| Capability | Implementation | Status |
-| ---------- | -------------- | ------ |
-| Clerk bridge | `ClerkBridge`, `getClerkBearerToken`, `getClerkPrimaryEmail` | ✅ |
-| Sign-in panels | `ClerkSignInPanel`, `DevEmailSignInPanel` | ✅ |
-| Secure storage | `getSecureValue`, `setSecureValue`, secure session helpers | ✅ |
-| Encrypted MMKV | `getEncryptedMmkvStore`, JSON helpers | ✅ |
-| Session manager | persisted session, timeout, biometric/PIN flags | ✅ |
-| Driver refresh | `refreshDriverSession`, `refreshAndPersistDriverSession` | ✅ |
-| API client | `createSecureApiClient` with 401 retry/refresh | ✅ |
-| Biometric | `BiometricGate`, service helpers | ✅ |
-| PIN lock | `PinLockGate`, salted PIN hash | ✅ |
-| Integrity | `IntegrityGate`, adapter registration | ⚠ adapter required |
-| Pinning | `configureCertificatePinning`, `createPinningFetch` | ⚠ disabled by default |
-| RBAC | `PermissionGate`, role/permission helpers | ✅ UI-only |
-| Audit | `emitSecurityEvent`, buffer flush/config | ✅ |
+| Capability      | Implementation                                               | Status                |
+| --------------- | ------------------------------------------------------------ | --------------------- |
+| Clerk bridge    | `ClerkBridge`, `getClerkBearerToken`, `getClerkPrimaryEmail` | ✅                    |
+| Sign-in panels  | `ClerkSignInPanel`, `DevEmailSignInPanel`                    | ✅                    |
+| Secure storage  | `getSecureValue`, `setSecureValue`, secure session helpers   | ✅                    |
+| Encrypted MMKV  | `getEncryptedMmkvStore`, JSON helpers                        | ✅                    |
+| Session manager | persisted session, timeout, biometric/PIN flags              | ✅                    |
+| Driver refresh  | `refreshDriverSession`, `refreshAndPersistDriverSession`     | ✅                    |
+| API client      | `createSecureApiClient` with 401 retry/refresh               | ✅                    |
+| Biometric       | `BiometricGate`, service helpers                             | ✅                    |
+| PIN lock        | `PinLockGate`, salted PIN hash                               | ✅                    |
+| Integrity       | `IntegrityGate`, adapter registration                        | ⚠ adapter required    |
+| Pinning         | `configureCertificatePinning`, `createPinningFetch`          | ⚠ disabled by default |
+| RBAC            | `PermissionGate`, role/permission helpers                    | ✅ UI-only            |
+| Audit           | `emitSecurityEvent`, buffer flush/config                     | ✅                    |
 
 ---
 
@@ -89,26 +89,26 @@ Driver and customer each define `apps/mobile-*/src/providers/SecurityLayer.tsx` 
 
 ## Transport Security
 
-| Control | Status | Notes |
-| ------- | ------ | ----- |
-| Production HTTPS API URL | ✅ | EAS profiles point to `https://api.porterchain.com` |
-| Driver 401 refresh | ✅ | `createSecureApiClient` retry path |
-| Customer unauthorized handling | ✅ | Clears session and emits logout audit |
-| Certificate pinning | ⚠ | Package support exists; enable after production pins are stable |
-| WebSocket token handling | ⚠ | Notification WS still needs periodic review for token exposure |
+| Control                        | Status | Notes                                                           |
+| ------------------------------ | ------ | --------------------------------------------------------------- |
+| Production HTTPS API URL       | ✅     | EAS profiles point to `https://api.porterchain.com`             |
+| Driver 401 refresh             | ✅     | `createSecureApiClient` retry path                              |
+| Customer unauthorized handling | ✅     | Clears session and emits logout audit                           |
+| Certificate pinning            | ⚠      | Package support exists; enable after production pins are stable |
+| WebSocket token handling       | ⚠      | Notification WS still needs periodic review for token exposure  |
 
 ---
 
 ## Local Data Protection
 
-| Data | Storage | Protection |
-| ---- | ------- | ---------- |
-| Driver access/refresh tokens | Secure Store | OS keychain/keystore |
-| Customer Clerk bearer | Secure Store | OS keychain/keystore |
-| PIN hash | Secure Store | Salted SHA-256 |
-| Offline queue | MMKV | Cache/replay only; not source of truth |
-| Audit buffer | Encrypted MMKV | Encrypted local buffer |
-| React Query cache | Memory | Cleared on app process end |
+| Data                         | Storage        | Protection                             |
+| ---------------------------- | -------------- | -------------------------------------- |
+| Driver access/refresh tokens | Secure Store   | OS keychain/keystore                   |
+| Customer Clerk bearer        | Secure Store   | OS keychain/keystore                   |
+| PIN hash                     | Secure Store   | Salted SHA-256                         |
+| Offline queue                | MMKV           | Cache/replay only; not source of truth |
+| Audit buffer                 | Encrypted MMKV | Encrypted local buffer                 |
+| React Query cache            | Memory         | Cleared on app process end             |
 
 **Rule:** MMKV/offline data is never authoritative business state. Porterchain API remains source of truth.
 
@@ -116,13 +116,13 @@ Driver and customer each define `apps/mobile-*/src/providers/SecurityLayer.tsx` 
 
 ## Device Controls
 
-| Control | Status | Production Step |
-| ------- | ------ | --------------- |
-| PIN lock | ✅ | Confirm policy thresholds |
-| Biometric unlock | ✅ | Test Face ID / Touch ID / Android biometric flows |
-| Session timeout | ✅ | 15-minute idle policy |
-| Device integrity | ⚠ | Register production adapter, such as a jailbreak/root detection library |
-| Certificate pinning | ⚠ | Enable with production SHA-256 pins |
+| Control             | Status | Production Step                                                         |
+| ------------------- | ------ | ----------------------------------------------------------------------- |
+| PIN lock            | ✅     | Confirm policy thresholds                                               |
+| Biometric unlock    | ✅     | Test Face ID / Touch ID / Android biometric flows                       |
+| Session timeout     | ✅     | 15-minute idle policy                                                   |
+| Device integrity    | ⚠      | Register production adapter, such as a jailbreak/root detection library |
+| Certificate pinning | ⚠      | Enable with production SHA-256 pins                                     |
 
 ---
 
@@ -144,27 +144,27 @@ Audit ingestion uses `POST /v1/security/audit-events` with sensitive fields scru
 
 ## Firebase / Push Security
 
-| Item | Status | Notes |
-| ---- | ------ | ----- |
-| Permission before token | ✅ | Token fetched after permission flow |
-| FCM token registration | ✅ | Driver and customer adapters call Porterchain API |
-| Native credentials | ⚠ | Must be supplied via EAS secrets / secure credentials path |
-| Push deep links | ✅ | Parsed and routed in-app |
-| Secrets in JS bundle | ✅ | Firebase files are native config, not committed secrets |
+| Item                    | Status | Notes                                                      |
+| ----------------------- | ------ | ---------------------------------------------------------- |
+| Permission before token | ✅     | Token fetched after permission flow                        |
+| FCM token registration  | ✅     | Driver and customer adapters call Porterchain API          |
+| Native credentials      | ⚠      | Must be supplied via EAS secrets / secure credentials path |
+| Push deep links         | ✅     | Parsed and routed in-app                                   |
+| Secrets in JS bundle    | ✅     | Firebase files are native config, not committed secrets    |
 
 ---
 
 ## Findings Register
 
-| ID | Severity | Finding | Status |
-| -- | -------- | ------- | ------ |
-| MS-001 | P0 | Dev auth fallback must not appear in production | ⚠ Require EAS/env guard verification |
-| MS-002 | P0 | Firebase native credentials missing for release builds | ⚠ Open |
-| MS-003 | P1 | Certificate pinning not enabled | ⚠ Open |
-| MS-004 | P1 | Device integrity adapter not registered | ⚠ Open |
-| MS-005 | P1 | No crash/security telemetry SDK | ⚠ Open |
-| MS-006 | P2 | Offline replay needs penetration test | ⚠ Open |
-| MS-007 | P2 | App privacy labels/runbook incomplete | ⚠ Open |
+| ID     | Severity | Finding                                                | Status                               |
+| ------ | -------- | ------------------------------------------------------ | ------------------------------------ |
+| MS-001 | P0       | Dev auth fallback must not appear in production        | ⚠ Require EAS/env guard verification |
+| MS-002 | P0       | Firebase native credentials missing for release builds | ⚠ Open                               |
+| MS-003 | P1       | Certificate pinning not enabled                        | ⚠ Open                               |
+| MS-004 | P1       | Device integrity adapter not registered                | ⚠ Open                               |
+| MS-005 | P1       | No crash/security telemetry SDK                        | ⚠ Open                               |
+| MS-006 | P2       | Offline replay needs penetration test                  | ⚠ Open                               |
+| MS-007 | P2       | App privacy labels/runbook incomplete                  | ⚠ Open                               |
 
 ---
 
@@ -186,10 +186,10 @@ Audit ingestion uses `POST /v1/security/audit-events` with sensitive fields scru
 
 ## Related Documents
 
-| Document | Purpose |
-| -------- | ------- |
+| Document                                                           | Purpose           |
+| ------------------------------------------------------------------ | ----------------- |
 | [MOBILE_PRODUCTION_READINESS.md](./MOBILE_PRODUCTION_READINESS.md) | Release readiness |
-| [MOBILE_ARCHITECTURE_REPORT.md](./MOBILE_ARCHITECTURE_REPORT.md) | Architecture |
-| [MOBILE_UI_REPORT.md](./MOBILE_UI_REPORT.md) | UI coverage |
-| [AUTHENTICATION.md](./AUTHENTICATION.md) | Platform auth |
-| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) | Env requirements |
+| [MOBILE_ARCHITECTURE_REPORT.md](./MOBILE_ARCHITECTURE_REPORT.md)   | Architecture      |
+| [MOBILE_UI_REPORT.md](./MOBILE_UI_REPORT.md)                       | UI coverage       |
+| [AUTHENTICATION.md](./AUTHENTICATION.md)                           | Platform auth     |
+| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)             | Env requirements  |

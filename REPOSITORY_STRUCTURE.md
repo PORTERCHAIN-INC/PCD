@@ -1,6 +1,5 @@
 # Repository Structure
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -70,36 +69,36 @@ porterchain/
 
 ## Path aliases (canonical vs placeholder)
 
-| Canonical path              | Placeholder / alias              | Status   |
-| --------------------------- | -------------------------------- | -------- |
-| `website/` (repo root)      | `apps/website/`                  | Active   |
-| `apps/merchant-portal/`     | `apps/merchant/`                 | Active   |
-| `apps/customer/`            | —                                | Active   |
-| `apps/driver-portal/`       | `apps/driver/` (README pointer)  | Active   |
-| `apps/mobile-driver/`       | —                                | Active   |
-| `apps/mobile-customer/`     | —                                | Active   |
-| `apps/admin/`               | —                                | Active   |
-| `apps/api/`                 | —                                | Active   |
-| `apps/worker/`              | —                                | Active   |
-| `apps/fleetbase/`           | `vendor/fleetbase/` (docs only)  | Active   |
-| `services/fleetbase-adapter/` | —                              | Active   |
+| Canonical path                | Placeholder / alias             | Status |
+| ----------------------------- | ------------------------------- | ------ |
+| `website/` (repo root)        | `apps/website/`                 | Active |
+| `apps/merchant-portal/`       | `apps/merchant/`                | Active |
+| `apps/customer/`              | —                               | Active |
+| `apps/driver-portal/`         | `apps/driver/` (README pointer) | Active |
+| `apps/mobile-driver/`         | —                               | Active |
+| `apps/mobile-customer/`       | —                               | Active |
+| `apps/admin/`                 | —                               | Active |
+| `apps/api/`                   | —                               | Active |
+| `apps/worker/`                | —                               | Active |
+| `apps/fleetbase/`             | `vendor/fleetbase/` (docs only) | Active |
+| `services/fleetbase-adapter/` | —                               | Active |
 
 ---
 
 ## Application boundaries
 
-| App              | Port        | Talks to Fleetbase? | Notes                                       |
-| ---------------- | ----------- | ------------------- | ------------------------------------------- |
-| Website          | 3000        | **No**              | Booking UI → Porterchain API only           |
-| Merchant portal  | 3001        | **No**              | B2B portal → Porterchain API                |
-| Admin            | 3002        | **SSO only**        | Opens Fleetbase console via Porterchain SSO |
-| Driver portal    | 3003        | **No**              | Driver web → Porterchain API                |
-| Customer portal  | 3004        | **No**              | Retail dashboard → Porterchain API          |
-| Mobile driver    | Expo        | **No**              | Field execution → `/driver-api/v1/*`        |
-| Mobile customer  | Expo        | **No**              | Retail mobile → `/v1/*`                     |
-| Porterchain API  | 8001        | **Via adapter**     | Sole bridge to Fleetbase                    |
-| Worker           | —           | **Via adapter**     | Event bus + queue consumer                  |
-| Fleetbase        | 8000 / 4200 | N/A                 | Internal ops engine                         |
+| App             | Port        | Talks to Fleetbase? | Notes                                       |
+| --------------- | ----------- | ------------------- | ------------------------------------------- |
+| Website         | 3000        | **No**              | Booking UI → Porterchain API only           |
+| Merchant portal | 3001        | **No**              | B2B portal → Porterchain API                |
+| Admin           | 3002        | **SSO only**        | Opens Fleetbase console via Porterchain SSO |
+| Driver portal   | 3003        | **No**              | Driver web → Porterchain API                |
+| Customer portal | 3004        | **No**              | Retail dashboard → Porterchain API          |
+| Mobile driver   | Expo        | **No**              | Field execution → `/driver-api/v1/*`        |
+| Mobile customer | Expo        | **No**              | Retail mobile → `/v1/*`                     |
+| Porterchain API | 8001        | **Via adapter**     | Sole bridge to Fleetbase                    |
+| Worker          | —           | **Via adapter**     | Event bus + queue consumer                  |
+| Fleetbase       | 8000 / 4200 | N/A                 | Internal ops engine                         |
 
 ---
 
@@ -240,11 +239,12 @@ See [docs/README.md](./docs/README.md) for the full index.
 - [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md)
 - [CONTRIBUTING_GUIDE.md](./CONTRIBUTING_GUIDE.md)
 - [vendor/fleetbase/README.md](./vendor/fleetbase/README.md)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

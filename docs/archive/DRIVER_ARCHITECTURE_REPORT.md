@@ -40,15 +40,15 @@ The driver domain spans four layers:
 
 ## Component map
 
-| Component | Location | Responsibility |
-| --------- | -------- | -------------- |
-| REST surface | `apps/api/src/porterchain_api/routers/driver.py` | ~75 handlers |
-| Domain services | `services/driver-platform/porterchain_driver/` | Reusable driver logic |
-| Engine | `apps/api/.../driver_engine/` | JWT auth, Fleetbase bridge, RBAC |
-| Web BFF | `apps/driver-portal/src/app/api/` | Cookie session, driver proxy |
-| Web UI | `apps/driver-portal/src/app/` | Dashboard, jobs, nav, POD |
-| Mobile | `apps/mobile-driver/src/` | Execution-first Expo app |
-| Adapter | `services/fleetbase-adapter/` | Fleetbase sync only |
+| Component       | Location                                         | Responsibility                   |
+| --------------- | ------------------------------------------------ | -------------------------------- |
+| REST surface    | `apps/api/src/porterchain_api/routers/driver.py` | ~75 handlers                     |
+| Domain services | `services/driver-platform/porterchain_driver/`   | Reusable driver logic            |
+| Engine          | `apps/api/.../driver_engine/`                    | JWT auth, Fleetbase bridge, RBAC |
+| Web BFF         | `apps/driver-portal/src/app/api/`                | Cookie session, driver proxy     |
+| Web UI          | `apps/driver-portal/src/app/`                    | Dashboard, jobs, nav, POD        |
+| Mobile          | `apps/mobile-driver/src/`                        | Execution-first Expo app         |
+| Adapter         | `services/fleetbase-adapter/`                    | Fleetbase sync only              |
 
 ---
 
@@ -99,28 +99,28 @@ Maps: `@porterchain/mobile-maps` + `expo-location` for navigation and GPS pings.
 
 ## Key services (`porterchain_driver`)
 
-| Service | Primary endpoints | Fleetbase touch |
-| ------- | ----------------- | --------------- |
-| `DashboardService` | `GET /dashboard` | — |
-| `JobsService` | routes, orders | bridge on state change |
-| `StopsService` | arrive, deliver, exceptions | sync stops |
-| `NavigationService` | polyline, ETA | routing via adapter |
-| `PodService` | OTP, photo, signature, complete | upload proof |
-| `LocationService` | `POST /location` | track ping |
-| `ShiftService` | shift lifecycle | — |
-| `AvailabilityService` | accept/reject, online | dispatch bridge |
-| `OfflineService` | queue, sync | replay actions |
-| `PushService` | register | → DeviceService |
+| Service               | Primary endpoints               | Fleetbase touch        |
+| --------------------- | ------------------------------- | ---------------------- |
+| `DashboardService`    | `GET /dashboard`                | —                      |
+| `JobsService`         | routes, orders                  | bridge on state change |
+| `StopsService`        | arrive, deliver, exceptions     | sync stops             |
+| `NavigationService`   | polyline, ETA                   | routing via adapter    |
+| `PodService`          | OTP, photo, signature, complete | upload proof           |
+| `LocationService`     | `POST /location`                | track ping             |
+| `ShiftService`        | shift lifecycle                 | —                      |
+| `AvailabilityService` | accept/reject, online           | dispatch bridge        |
+| `OfflineService`      | queue, sync                     | replay actions         |
+| `PushService`         | register                        | → DeviceService        |
 
 ---
 
 ## Data stores
 
-| Store | Tables / usage |
-| ----- | -------------- |
-| PostgreSQL 16 | `drivers`, `orders`, `driver_wallet_transactions`, `driver_location_pings`, `driver_offline_actions`, `driver_stop_meta` |
-| Notification devices | `notification_devices` via push register |
-| Fleetbase | Orders, routes, tracking (via adapter) |
+| Store                | Tables / usage                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| PostgreSQL 16        | `drivers`, `orders`, `driver_wallet_transactions`, `driver_location_pings`, `driver_offline_actions`, `driver_stop_meta` |
+| Notification devices | `notification_devices` via push register                                                                                 |
+| Fleetbase            | Orders, routes, tracking (via adapter)                                                                                   |
 
 Alembic head: `n2o3p4q5r6s7` (13 revisions).
 
@@ -141,11 +141,11 @@ See [EVENT_CATALOG.md](./EVENT_CATALOG.md).
 
 ## UI coverage (July 2026)
 
-| Surface | Maturity | Notes |
-| ------- | -------- | ----- |
-| Web portal | ~85% | Jobs, navigation, POD, comms, shift |
-| Mobile | ~70% | Full execution; ops gaps (EAS, Firebase prod) |
-| Backend API | ~92% | Refresh endpoint exists; some synthetic IDs |
+| Surface     | Maturity | Notes                                         |
+| ----------- | -------- | --------------------------------------------- |
+| Web portal  | ~85%     | Jobs, navigation, POD, comms, shift           |
+| Mobile      | ~70%     | Full execution; ops gaps (EAS, Firebase prod) |
+| Backend API | ~92%     | Refresh endpoint exists; some synthetic IDs   |
 
 ---
 
@@ -161,9 +161,9 @@ See [EVENT_CATALOG.md](./EVENT_CATALOG.md).
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [DRIVER_PRODUCTION_READINESS.md](./DRIVER_PRODUCTION_READINESS.md) | Pilot checklist |
-| [DRIVER_SECURITY_REPORT.md](./DRIVER_SECURITY_REPORT.md) | Security posture |
-| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md) | Port 3003 / 8001 |
-| [docs/architecture/AUTHENTICATION_FLOW.md](./docs/architecture/AUTHENTICATION_FLOW.md) | Clerk + JWT |
+| Document                                                                               | Purpose          |
+| -------------------------------------------------------------------------------------- | ---------------- |
+| [DRIVER_PRODUCTION_READINESS.md](./DRIVER_PRODUCTION_READINESS.md)                     | Pilot checklist  |
+| [DRIVER_SECURITY_REPORT.md](./DRIVER_SECURITY_REPORT.md)                               | Security posture |
+| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)                                       | Port 3003 / 8001 |
+| [docs/architecture/AUTHENTICATION_FLOW.md](./docs/architecture/AUTHENTICATION_FLOW.md) | Clerk + JWT      |

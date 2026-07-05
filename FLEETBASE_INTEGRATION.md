@@ -1,6 +1,5 @@
 # Porterchain ↔ Fleetbase Integration
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -34,24 +33,24 @@ Fleetbase is Porterchain's **internal logistics engine**. Porterchain owns custo
 
 ## Ownership matrix
 
-| Domain | Owner |
-| ------ | ----- |
-| Authentication (Clerk) | Porterchain |
+| Domain                                        | Owner       |
+| --------------------------------------------- | ----------- |
+| Authentication (Clerk)                        | Porterchain |
 | Website, merchant, admin, customer, driver UX | Porterchain |
 | Pricing, billing, CRM, commercial order state | Porterchain |
-| Drivers, vehicles, ops orders, dispatch | Fleetbase |
-| GPS tracking, routes, POD capture | Fleetbase |
+| Drivers, vehicles, ops orders, dispatch       | Fleetbase   |
+| GPS tracking, routes, POD capture             | Fleetbase   |
 
 ---
 
 ## Integration layers
 
-| Layer | Path | Role |
-| ----- | ---- | ---- |
-| Adapter (HTTP) | `services/fleetbase-adapter/` | Sole Fleetbase HTTP boundary |
-| Sync engine | `apps/api/.../fleetbase_engine/` | BookingSyncService, WebhookProcessor, translators |
-| Event handlers | `booking_engine/fleetbase_sync_handler.py` | React to `order.dispatch_ready`, webhooks |
-| Factory | `services/fleetbase_integration.py` | `get_fleetbase_integration()` → `FleetbaseAdapter` |
+| Layer          | Path                                       | Role                                               |
+| -------------- | ------------------------------------------ | -------------------------------------------------- |
+| Adapter (HTTP) | `services/fleetbase-adapter/`              | Sole Fleetbase HTTP boundary                       |
+| Sync engine    | `apps/api/.../fleetbase_engine/`           | BookingSyncService, WebhookProcessor, translators  |
+| Event handlers | `booking_engine/fleetbase_sync_handler.py` | React to `order.dispatch_ready`, webhooks          |
+| Factory        | `services/fleetbase_integration.py`        | `get_fleetbase_integration()` → `FleetbaseAdapter` |
 
 **Production order sync:** `POST /v1/orders` via adapter (API key).  
 **SSO extension routes:** `POST /int/v1/porterchain/sso/*` — requires Fleetbase `porterchain-bridge` extension (see [SSO.md](./SSO.md)).
@@ -60,13 +59,13 @@ Fleetbase is Porterchain's **internal logistics engine**. Porterchain owns custo
 
 ## Sync flows (event-driven)
 
-| Trigger | Path |
-| ------- | ---- |
-| `order.dispatch_ready` | Event bus → `sync_order_from_event` → `BookingSyncService` → adapter |
-| Admin approves driver | `AdminDriverService` → sync driver + vehicle |
-| Admin assigns driver | `AdminOperationsService` → sync dispatch |
-| Customer tracking | `GET /v1/orders/{tracking}/tracking` → adapter tracker API |
-| Fleetbase webhook | `POST /webhooks/fleetbase` → `WebhookIngressService` → `WebhookProcessor` |
+| Trigger                | Path                                                                      |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `order.dispatch_ready` | Event bus → `sync_order_from_event` → `BookingSyncService` → adapter      |
+| Admin approves driver  | `AdminDriverService` → sync driver + vehicle                              |
+| Admin assigns driver   | `AdminOperationsService` → sync dispatch                                  |
+| Customer tracking      | `GET /v1/orders/{tracking}/tracking` → adapter tracker API                |
+| Fleetbase webhook      | `POST /webhooks/fleetbase` → `WebhookIngressService` → `WebhookProcessor` |
 
 Order sync is **never** called directly from booking/admin services at call sites — handlers only (masterrule §12).
 
@@ -86,10 +85,10 @@ class FleetExecutor(Protocol):
     def cancel(self, external_id: str) -> None: ...
 ```
 
-| Field | Location | Default |
-| ----- | -------- | ------- |
-| `executor_type` | `booking_engine/order_metadata.resolve_executor_type()` | `human_driver` |
-| External ID | `orders.fleetbase_order_id` | Fleetbase human fleet today |
+| Field           | Location                                                | Default                     |
+| --------------- | ------------------------------------------------------- | --------------------------- |
+| `executor_type` | `booking_engine/order_metadata.resolve_executor_type()` | `human_driver`              |
+| External ID     | `orders.fleetbase_order_id`                             | Fleetbase human fleet today |
 
 New executor types plug in as **adapter strategies**; Porterchain order state and billing stay unchanged.
 
@@ -97,12 +96,12 @@ New executor types plug in as **adapter strategies**; Porterchain order state an
 
 ## Porterchain API endpoints
 
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-| GET | `/v1/orders/{tracking_number}` | Order summary (Porterchain DB) |
-| GET | `/v1/orders/{tracking_number}/tracking` | Order + live Fleetbase tracking |
-| POST | `/webhooks/fleetbase` | Inbound Fleetbase status webhooks |
-| POST | `/v1/auth/sso/fleetbase` | Issue SSO token for ops console |
+| Method | Path                                    | Description                       |
+| ------ | --------------------------------------- | --------------------------------- |
+| GET    | `/v1/orders/{tracking_number}`          | Order summary (Porterchain DB)    |
+| GET    | `/v1/orders/{tracking_number}/tracking` | Order + live Fleetbase tracking   |
+| POST   | `/webhooks/fleetbase`                   | Inbound Fleetbase status webhooks |
+| POST   | `/v1/auth/sso/fleetbase`                | Issue SSO token for ops console   |
 
 Merchant and admin endpoints trigger sync internally — no Fleetbase URLs exposed to clients.
 
@@ -146,30 +145,31 @@ Complete Fleetbase onboarding at http://localhost:4200 and copy company UUID.
 
 ## Error handling
 
-| Scenario | Behavior |
-| -------- | -------- |
-| Bridge disabled | Sync skipped, logged |
-| Fleetbase unreachable | Order stays in Porterchain; retry queue / `fleetbase.sync_failed` |
-| Invalid webhook signature | Rejected (logged) |
-| Invalid state transition | Logged, no crash |
+| Scenario                  | Behavior                                                          |
+| ------------------------- | ----------------------------------------------------------------- |
+| Bridge disabled           | Sync skipped, logged                                              |
+| Fleetbase unreachable     | Order stays in Porterchain; retry queue / `fleetbase.sync_failed` |
+| Invalid webhook signature | Rejected (logged)                                                 |
+| Invalid state transition  | Logged, no crash                                                  |
 
 ---
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) | Adapter package structure |
-| [FLEETBASE_MODULES.md](./FLEETBASE_MODULES.md) | Per-module Porterchain decisions |
-| [EVENT_CATALOG.md](./EVENT_CATALOG.md) | Fleetbase-related domain events |
-| [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md) | Fleetbase/Porterchain data boundary |
-| [INTEGRATIONS.md](./INTEGRATIONS.md) | All external integrations |
-| [docs/archive/README.md](./docs/archive/README.md#fleetbase-detail) | Historical Fleetbase detail reports |
+| Document                                                                 | Purpose                             |
+| ------------------------------------------------------------------------ | ----------------------------------- |
+| [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) | Adapter package structure           |
+| [FLEETBASE_MODULES.md](./FLEETBASE_MODULES.md)                           | Per-module Porterchain decisions    |
+| [EVENT_CATALOG.md](./EVENT_CATALOG.md)                                   | Fleetbase-related domain events     |
+| [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md)           | Fleetbase/Porterchain data boundary |
+| [INTEGRATIONS.md](./INTEGRATIONS.md)                                     | All external integrations           |
+| [docs/archive/README.md](./docs/archive/README.md#fleetbase-detail)      | Historical Fleetbase detail reports |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

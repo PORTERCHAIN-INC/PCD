@@ -1,6 +1,5 @@
 # Valhalla Flow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -45,10 +44,10 @@ When `routing_engine=valhalla`, a failed Valhalla HTTP response returns `None` �
 
 ## Config
 
-| Variable | Default |
-| -------- | ------- |
+| Variable                             | Default                 |
+| ------------------------------------ | ----------------------- |
 | `VALHALLA_BASE_URL` / `valhalla_url` | `http://localhost:8002` |
-| `ROUTING_ENGINE` | `valhalla` (API) |
+| `ROUTING_ENGINE`                     | `valhalla` (API)        |
 
 Docker: `pnpm docker:up:routing` — see [PORT_CONFIGURATION.md](../../PORT_CONFIGURATION.md) port **8002**.
 
@@ -87,7 +86,7 @@ See [plantuml/valhalla_flow.puml](./plantuml/valhalla_flow.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

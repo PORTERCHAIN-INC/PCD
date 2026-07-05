@@ -1,6 +1,5 @@
 # Production Readiness Report — Porterchain Platform
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -18,20 +17,20 @@ The platform **does not** receive Production Ready status. Critical booking work
 
 ## Certification Criteria
 
-| Criterion                         | Status             | Blocker?                    |
-| --------------------------------- | ------------------ | --------------------------- |
-| Locked architecture implemented   | ✅ PASS            | No                          |
-| No Fleetbase bypass               | ✅ PASS            | No                          |
-| Layered architecture              | ⚠️ PARTIAL         | No                          |
-| Retail booking E2E (with webhook) | ✅ PASS (post-fix) | No                          |
-| Merchant booking E2E              | ✅ PASS            | No                          |
-| Dispatch → delivery → POD         | ⚠️ PARTIAL         | **Yes** — Fleetbase runtime |
-| Billing / invoicing (retail)      | ✅ PASS            | No                          |
-| NET merchant billing              | ⚠️ PARTIAL         | No                          |
-| Notifications (all channels)      | ⚠️ PARTIAL         | **Yes** — Firebase prod creds |
-| Security hardening                | ⚠️ PARTIAL         | **Yes** — global rate limits  |
-| Mobile apps (driver + customer)   | ⚠️ PARTIAL         | No — EAS/Firebase ops gaps    |
-| Event bus completeness            | ⚠️ PARTIAL         | No                          |
+| Criterion                         | Status             | Blocker?                                                                                     |
+| --------------------------------- | ------------------ | -------------------------------------------------------------------------------------------- |
+| Locked architecture implemented   | ✅ PASS            | No                                                                                           |
+| No Fleetbase bypass               | ✅ PASS            | No                                                                                           |
+| Layered architecture              | ⚠️ PARTIAL         | No                                                                                           |
+| Retail booking E2E (with webhook) | ✅ PASS (post-fix) | No                                                                                           |
+| Merchant booking E2E              | ✅ PASS            | No                                                                                           |
+| Dispatch → delivery → POD         | ⚠️ PARTIAL         | **Yes** — Fleetbase runtime                                                                  |
+| Billing / invoicing (retail)      | ✅ PASS            | No                                                                                           |
+| NET merchant billing              | ⚠️ PARTIAL         | No                                                                                           |
+| Notifications (all channels)      | ⚠️ PARTIAL         | **Yes** — Firebase prod creds                                                                |
+| Security hardening                | ⚠️ PARTIAL         | **Yes** — global rate limits                                                                 |
+| Mobile apps (driver + customer)   | ⚠️ PARTIAL         | No — EAS/Firebase ops gaps                                                                   |
+| Event bus completeness            | ⚠️ PARTIAL         | No                                                                                           |
 | PostgreSQL + Redis production     | ⚠️ PARTIAL         | Compose defines them; droplet may be empty until deploy succeeds; worker not in prod compose |
 
 ---
@@ -98,18 +97,18 @@ The platform **does not** receive Production Ready status. Critical booking work
 
 ## What Works Today (Local Dev)
 
-| Flow                 | Port | Status                              |
-| -------------------- | ---- | ----------------------------------- |
-| Website quote + book | 3000 | ✅                                  |
-| Stripe test checkout | —    | ✅ (with `stripe listen` locally)   |
-| Customer portal      | 3004 | ✅                                  |
-| Merchant portal      | 3001 | ✅                                  |
-| Admin ops            | 3002 | ✅                                  |
-| Driver web portal    | 3003 | ✅                                  |
-| Mobile driver        | Expo | ⚠️ 72% — field ops work locally     |
-| Mobile customer      | Expo | ⚠️ 62% — core flows work locally    |
-| API                  | 8001 | ✅                                  |
-| Worker               | —    | ✅ with Redis                       |
+| Flow                 | Port | Status                                 |
+| -------------------- | ---- | -------------------------------------- |
+| Website quote + book | 3000 | ✅                                     |
+| Stripe test checkout | —    | ✅ (with `stripe listen` locally)      |
+| Customer portal      | 3004 | ✅                                     |
+| Merchant portal      | 3001 | ✅                                     |
+| Admin ops            | 3002 | ✅                                     |
+| Driver web portal    | 3003 | ✅                                     |
+| Mobile driver        | Expo | ⚠️ 72% — field ops work locally        |
+| Mobile customer      | Expo | ⚠️ 62% — core flows work locally       |
+| API                  | 8001 | ✅                                     |
+| Worker               | —    | ✅ with Redis                          |
 | Fleetbase dispatch   | 8000 | ⚠️ requires `pnpm docker:fleetbase:up` |
 
 ---
@@ -131,16 +130,16 @@ See `ROADMAP.md` for phased remediation. Minimum bar:
 
 ## Audit Deliverables
 
-| Document                  | Status |
-| ------------------------- | ------ |
-| MODULE_SCORECARD.md       | ✅     |
-| DATABASE_ARCHITECTURE.md (archived audits in docs/archive/) | ✅ |
-| EVENT_BUS.md (archived audit in docs/archive/) | ✅     |
-| FLEETBASE_INTEGRATION.md (archived detail reports in docs/archive/) | ✅ |
-| INTEGRATIONS.md (archived integration audit in docs/archive/) | ✅ |
-| SECURITY.md (archived security audit in docs/archive/) | ✅ |
-| GAP_ANALYSIS.md (archived performance/compliance audits in docs/archive/) | ✅ |
-| ROADMAP.md                | ✅     |
+| Document                                                                  | Status |
+| ------------------------------------------------------------------------- | ------ |
+| MODULE_SCORECARD.md                                                       | ✅     |
+| DATABASE_ARCHITECTURE.md (archived audits in docs/archive/)               | ✅     |
+| EVENT_BUS.md (archived audit in docs/archive/)                            | ✅     |
+| FLEETBASE_INTEGRATION.md (archived detail reports in docs/archive/)       | ✅     |
+| INTEGRATIONS.md (archived integration audit in docs/archive/)             | ✅     |
+| SECURITY.md (archived security audit in docs/archive/)                    | ✅     |
+| GAP_ANALYSIS.md (archived performance/compliance audits in docs/archive/) | ✅     |
+| ROADMAP.md                                                                | ✅     |
 
 ---
 
@@ -149,7 +148,7 @@ _Single source of truth: `masterrule.md`_
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

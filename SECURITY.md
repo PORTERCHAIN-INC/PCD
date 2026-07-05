@@ -1,10 +1,8 @@
 # Porterchain — Security
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md). This document describes security posture, controls, and pre-production checklist.
 
@@ -12,16 +10,16 @@ Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./
 
 ## Security posture summary
 
-| Area | Current state | Target (production) |
-| ---- | ------------- | ------------------- |
-| Secrets in git | `details.md` **removed** (July 2026); use `env/*.example` only | Secret manager only |
-| Auth | **Clerk-only** user identity + Porterchain RBAC + driver session JWT | MFA for admin/merchant admins |
-| Database | **PostgreSQL 16** (Porterchain); MySQL (Fleetbase only) | TLS, private network |
-| HTTPS | Assumed in production deploys | Enforce HSTS |
-| API hardening | Partial (Pydantic validation, RBAC) | Rate limits, strict CORS |
-| Monitoring | Limited | Sentry + uptime checks |
-| Backups | Documented below; not verified in CI | Automated encrypted backups |
-| Dependency CVEs | Track via CI audit | No high/critical in release |
+| Area            | Current state                                                        | Target (production)           |
+| --------------- | -------------------------------------------------------------------- | ----------------------------- |
+| Secrets in git  | `details.md` **removed** (July 2026); use `env/*.example` only       | Secret manager only           |
+| Auth            | **Clerk-only** user identity + Porterchain RBAC + driver session JWT | MFA for admin/merchant admins |
+| Database        | **PostgreSQL 16** (Porterchain); MySQL (Fleetbase only)              | TLS, private network          |
+| HTTPS           | Assumed in production deploys                                        | Enforce HSTS                  |
+| API hardening   | Partial (Pydantic validation, RBAC)                                  | Rate limits, strict CORS      |
+| Monitoring      | Limited                                                              | Sentry + uptime checks        |
+| Backups         | Documented below; not verified in CI                                 | Automated encrypted backups   |
+| Dependency CVEs | Track via CI audit                                                   | No high/critical in release   |
 
 ---
 
@@ -35,11 +33,11 @@ Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./
 
 ### Secret classification
 
-| Class | Examples | Storage |
-| ----- | -------- | ------- |
-| **Public** | `NEXT_PUBLIC_*`, Stripe publishable key | Env / build args |
-| **Internal** | `PORTERCHAIN_API_URL`, feature flags | Env |
-| **Secret** | `STRIPE_SECRET`, `CLERK_SECRET_KEY`, DB passwords | Secret manager |
+| Class        | Examples                                                        | Storage                   |
+| ------------ | --------------------------------------------------------------- | ------------------------- |
+| **Public**   | `NEXT_PUBLIC_*`, Stripe publishable key                         | Env / build args          |
+| **Internal** | `PORTERCHAIN_API_URL`, feature flags                            | Env                       |
+| **Secret**   | `STRIPE_SECRET`, `CLERK_SECRET_KEY`, DB passwords               | Secret manager            |
 | **Critical** | `STRIPE_WEBHOOK_SECRET`, `SSO_JWT_SECRET`, service account JSON | Secret manager + rotation |
 
 ### Production storage
@@ -53,22 +51,22 @@ Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./
 
 ### In transit
 
-| Connection | Requirement |
-| ---------- | ----------- |
-| Client → portals / API | TLS 1.2+ |
+| Connection               | Requirement                |
+| ------------------------ | -------------------------- |
+| Client → portals / API   | TLS 1.2+                   |
 | API → PostgreSQL / Redis | TLS within private network |
-| SMTP | SSL/TLS |
-| Webhooks | HTTPS only |
+| SMTP                     | SSL/TLS                    |
+| Webhooks                 | HTTPS only                 |
 
 ### At rest
 
-| Data | Method |
-| ---- | ------ |
-| PostgreSQL (Porterchain) | Managed encryption (DO/AWS RDS) |
-| MySQL (Fleetbase) | Managed encryption |
-| Redis | Encrypted volume |
-| POD / uploads | S3 SSE-S3 or SSE-KMS |
-| Driver tokens (mobile) | `expo-secure-store` (OS keychain) |
+| Data                     | Method                            |
+| ------------------------ | --------------------------------- |
+| PostgreSQL (Porterchain) | Managed encryption (DO/AWS RDS)   |
+| MySQL (Fleetbase)        | Managed encryption                |
+| Redis                    | Encrypted volume                  |
+| POD / uploads            | S3 SSE-S3 or SSE-KMS              |
+| Driver tokens (mobile)   | `expo-secure-store` (OS keychain) |
 
 ### JWT
 
@@ -82,14 +80,14 @@ Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./
 
 See [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
 
-| Control | Implementation |
-| ------- | -------------- |
-| Identity provider | Clerk only — no Supabase/Twilio OTP |
-| Authorization | Server-side RBAC — [RBAC_MATRIX.md](./RBAC_MATRIX.md) |
-| Invite tokens | Opaque, hashed at rest, expiry enforced |
-| Clerk MFA | Recommended for admin and merchant admins |
-| Dev bypass | `CLERK_DEV_BYPASS` — local only (`APP_ENV=local`) |
-| Delivery POD OTP | Operational proof-of-delivery — not user auth |
+| Control           | Implementation                                        |
+| ----------------- | ----------------------------------------------------- |
+| Identity provider | Clerk only — no Supabase/Twilio OTP                   |
+| Authorization     | Server-side RBAC — [RBAC_MATRIX.md](./RBAC_MATRIX.md) |
+| Invite tokens     | Opaque, hashed at rest, expiry enforced               |
+| Clerk MFA         | Recommended for admin and merchant admins             |
+| Dev bypass        | `CLERK_DEV_BYPASS` — local only (`APP_ENV=local`)     |
+| Delivery POD OTP  | Operational proof-of-delivery — not user auth         |
 
 ---
 
@@ -97,12 +95,12 @@ See [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
 
 ### Rate limiting (recommended)
 
-| Endpoint class | Limit |
-| -------------- | ----- |
-| Auth (`/auth/*`) | 10 req/min per IP |
-| Driver invite | 15–30 req/min |
-| Public quote API | 60 req/min per API key |
-| Webhooks | Signature verify; no rate limit |
+| Endpoint class   | Limit                           |
+| ---------------- | ------------------------------- |
+| Auth (`/auth/*`) | 10 req/min per IP               |
+| Driver invite    | 15–30 req/min                   |
+| Public quote API | 60 req/min per API key          |
+| Webhooks         | Signature verify; no rate limit |
 
 Implement with Redis + middleware (FastAPI).
 
@@ -170,12 +168,12 @@ Verify signature on every request; idempotency via stored `event.id`; process as
 
 ## File upload security
 
-| Control | Detail |
-| ------- | ------ |
-| Max size | 10 MB photos, 1 MB signatures |
-| Types | `image/jpeg`, `image/png`, `image/webp` |
-| Storage | Private bucket; signed URLs |
-| EXIF | Strip GPS from customer uploads |
+| Control  | Detail                                  |
+| -------- | --------------------------------------- |
+| Max size | 10 MB photos, 1 MB signatures           |
+| Types    | `image/jpeg`, `image/png`, `image/webp` |
+| Storage  | Private bucket; signed URLs             |
+| EXIF     | Strip GPS from customer uploads         |
 
 ---
 
@@ -183,12 +181,12 @@ Verify signature on every request; idempotency via stored `event.id`; process as
 
 See [DEPENDENCY_REPORT.md](./DEPENDENCY_REPORT.md).
 
-| Action | Frequency |
-| ------ | --------- |
-| `pnpm audit` | Every CI run |
-| `pip audit` (API) | Every CI run |
-| Dependabot / Renovate | Weekly |
-| Container scan (Trivy) | On build |
+| Action                 | Frequency    |
+| ---------------------- | ------------ |
+| `pnpm audit`           | Every CI run |
+| `pip audit` (API)      | Every CI run |
+| Dependabot / Renovate  | Weekly       |
+| Container scan (Trivy) | On build     |
 
 ---
 
@@ -210,12 +208,12 @@ Separate projects per app; scrub PII in `beforeSend`.
 
 ## Backups
 
-| Asset | Method | Retention |
-| ----- | ------ | --------- |
-| PostgreSQL | pg_dump + WAL | 30 days |
-| MySQL (Fleetbase) | Daily dump + binlog | 30 days |
-| Redis | AOF snapshot | 7 days |
-| S3 uploads | Cross-region replication | 1 year |
+| Asset             | Method                   | Retention |
+| ----------------- | ------------------------ | --------- |
+| PostgreSQL        | pg_dump + WAL            | 30 days   |
+| MySQL (Fleetbase) | Daily dump + binlog      | 30 days   |
+| Redis             | AOF snapshot             | 7 days    |
+| S3 uploads        | Cross-region replication | 1 year    |
 
 **RPO:** 1 hour · **RTO:** 4 hours · Test restore quarterly.
 
@@ -223,11 +221,11 @@ Separate projects per app; scrub PII in `beforeSend`.
 
 ## Compliance
 
-| Regulation | Relevance | Notes |
-| ---------- | --------- | ----- |
-| PIPEDA (Canada) | Customer PII | Privacy policy on website |
-| PCI DSS | Card data | Stripe-hosted — SAQ A eligible |
-| GDPR | EU traffic | Limited scope |
+| Regulation      | Relevance    | Notes                          |
+| --------------- | ------------ | ------------------------------ |
+| PIPEDA (Canada) | Customer PII | Privacy policy on website      |
+| PCI DSS         | Card data    | Stripe-hosted — SAQ A eligible |
+| GDPR            | EU traffic   | Limited scope                  |
 
 ---
 
@@ -259,18 +257,19 @@ Separate projects per app; scrub PII in `beforeSend`.
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Auth policy |
-| [RBAC_MATRIX.md](./RBAC_MATRIX.md) | Authorization |
-| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) | Env reference |
-| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Go/no-go |
+| Document                                                           | Purpose                   |
+| ------------------------------------------------------------------ | ------------------------- |
+| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Auth policy               |
+| [RBAC_MATRIX.md](./RBAC_MATRIX.md)                                 | Authorization             |
+| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)             | Env reference             |
+| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Go/no-go                  |
 | [docs/archive/SECURITY_AUDIT.md](./docs/archive/SECURITY_AUDIT.md) | Historical audit snapshot |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

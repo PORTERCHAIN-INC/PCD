@@ -1,6 +1,5 @@
 # Invitation Workflow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -12,17 +11,17 @@
 
 ## Policy
 
-| Access type                                    | Signup                                      | Invitation            |
-| ---------------------------------------------- | ------------------------------------------- | --------------------- |
+| Access type                                    | Signup                                               | Invitation            |
+| ---------------------------------------------- | ---------------------------------------------------- | --------------------- |
 | **Customer** (retail)                          | Allowed — website, `apps/customer/`, mobile-customer | Not required          |
-| **Merchant**                                   | Blocked                                     | Required              |
-| **Driver**                                     | Blocked                                     | Required              |
-| **Admin staff**                                | Blocked                                     | Required              |
-| **Dispatcher**                                 | Blocked                                     | Required (admin role) |
-| **Support**                                    | Blocked                                     | Required (admin role) |
-| **Finance**                                    | Blocked                                     | Required (admin role) |
-| **Manager** (`fleet_manager`, `sales_manager`) | Blocked                                     | Required (admin role) |
-| **Super Admin**                                | Blocked                                     | Required (admin role) |
+| **Merchant**                                   | Blocked                                              | Required              |
+| **Driver**                                     | Blocked                                              | Required              |
+| **Admin staff**                                | Blocked                                              | Required              |
+| **Dispatcher**                                 | Blocked                                              | Required (admin role) |
+| **Support**                                    | Blocked                                              | Required (admin role) |
+| **Finance**                                    | Blocked                                              | Required (admin role) |
+| **Manager** (`fleet_manager`, `sales_manager`) | Blocked                                              | Required (admin role) |
+| **Super Admin**                                | Blocked                                              | Required (admin role) |
 
 Clerk owns credentials. Porterchain **never stores passwords**. Invitations are sent through the **Clerk Invitations API**.
 
@@ -185,12 +184,12 @@ No `user_invitations` row required.
 
 ## Enforcement
 
-| Surface  | Self-signup blocked                          | Access gated by                            |
-| -------- | -------------------------------------------- | ------------------------------------------ |
-| Admin    | Clerk footer hidden; no public sign-up route | `admin_users` + RBAC                       |
-| Merchant | `/sign-up` informational only; middleware    | `merchant_users` + org                     |
-| Driver   | Clerk sign-up disabled on login              | `drivers` + Clerk token                    |
-| Customer | Open on website + `apps/customer/`       | `customers` (auto-provision on access)     |
+| Surface  | Self-signup blocked                          | Access gated by                        |
+| -------- | -------------------------------------------- | -------------------------------------- |
+| Admin    | Clerk footer hidden; no public sign-up route | `admin_users` + RBAC                   |
+| Merchant | `/sign-up` informational only; middleware    | `merchant_users` + org                 |
+| Driver   | Clerk sign-up disabled on login              | `drivers` + Clerk token                |
+| Customer | Open on website + `apps/customer/`           | `customers` (auto-provision on access) |
 
 Creating a Clerk account **alone does not grant Porterchain access** for staff, merchant, or driver roles. A pending domain record must exist from an invitation.
 
@@ -232,11 +231,11 @@ cd apps/api && alembic upgrade head
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Clerk-only policy |
-| [RBAC_MATRIX.md](./RBAC_MATRIX.md) | Invitation policy by role |
-| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) | Portal URL env vars |
+| Document                                                           | Purpose                   |
+| ------------------------------------------------------------------ | ------------------------- |
+| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Clerk-only policy         |
+| [RBAC_MATRIX.md](./RBAC_MATRIX.md)                                 | Invitation policy by role |
+| [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)             | Portal URL env vars       |
 
 ---
 
@@ -245,7 +244,7 @@ _Violations: bypassing invitation for merchant/driver/admin provisioning is a se
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

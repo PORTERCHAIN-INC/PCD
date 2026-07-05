@@ -1,6 +1,5 @@
 # Database Relationships
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -27,19 +26,19 @@ BookingDraft ── optional link ──> Quote / Customer
 
 ## Key Tables
 
-| Module | Tables |
-| ------ | ------ |
-| Core | `customers`, `quotes`, `bookings`, `orders`, `payments`, `invoices`, `order_events`, `domain_events` |
-| Drafts | `booking_drafts`, `booking_draft_audits` |
-| Merchant | `merchants`, `merchant_users`, `saved_addresses`, `merchant_recipients`, `merchant_api_keys`, `bulk_import_jobs`, `merchant_webhooks`, `merchant_webhook_deliveries`, `merchant_api_usage_logs` |
-| Admin/Ops | `admin_users`, `drivers`, `vehicles`, `support_tickets`, `claims`, `pricing_tariffs` |
-| CRM | `crm_companies`, `crm_contacts`, `crm_deals`, `crm_contracts`, `crm_invoices`, `crm_tasks` |
-| Route Center | `route_center_plans`, `route_center_templates` |
-| Fleetbase sync | `fleetbase_sync_jobs`, `fleetbase_sync_audit` |
-| Driver ops | `driver_location_pings`, `driver_wallet_transactions`, `driver_stop_meta`, `driver_shifts` |
-| Billing | `billing_ledger_entries` |
-| Notifications | `notification_delivery_logs`, enterprise notification prefs (migration `e6f7a8b9c0d1`) |
-| Identity | `identity_links`, `porterchain_users`, `user_invitations` |
+| Module         | Tables                                                                                                                                                                                          |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Core           | `customers`, `quotes`, `bookings`, `orders`, `payments`, `invoices`, `order_events`, `domain_events`                                                                                            |
+| Drafts         | `booking_drafts`, `booking_draft_audits`                                                                                                                                                        |
+| Merchant       | `merchants`, `merchant_users`, `saved_addresses`, `merchant_recipients`, `merchant_api_keys`, `bulk_import_jobs`, `merchant_webhooks`, `merchant_webhook_deliveries`, `merchant_api_usage_logs` |
+| Admin/Ops      | `admin_users`, `drivers`, `vehicles`, `support_tickets`, `claims`, `pricing_tariffs`                                                                                                            |
+| CRM            | `crm_companies`, `crm_contacts`, `crm_deals`, `crm_contracts`, `crm_invoices`, `crm_tasks`                                                                                                      |
+| Route Center   | `route_center_plans`, `route_center_templates`                                                                                                                                                  |
+| Fleetbase sync | `fleetbase_sync_jobs`, `fleetbase_sync_audit`                                                                                                                                                   |
+| Driver ops     | `driver_location_pings`, `driver_wallet_transactions`, `driver_stop_meta`, `driver_shifts`                                                                                                      |
+| Billing        | `billing_ledger_entries`                                                                                                                                                                        |
+| Notifications  | `notification_delivery_logs`, enterprise notification prefs (migration `e6f7a8b9c0d1`)                                                                                                          |
+| Identity       | `identity_links`, `porterchain_users`, `user_invitations`                                                                                                                                       |
 
 ## Order Metadata (migration `d5f6a7b8c9d0`)
 
@@ -49,8 +48,8 @@ BookingDraft ── optional link ──> Quote / Customer
 
 ## Ownership Split (masterrule.md §9)
 
-| Porterchain PostgreSQL | Fleetbase MySQL |
-| ---------------------- | --------------- |
+| Porterchain PostgreSQL                             | Fleetbase MySQL                                          |
+| -------------------------------------------------- | -------------------------------------------------------- |
 | Customers, quotes, orders, payments, invoices, CRM | Operational drivers, dispatch, GPS traces, POD artifacts |
 
 `orders.fleetbase_order_id` and `orders.assigned_driver_id` are cross-reference fields only.
@@ -92,7 +91,7 @@ See [plantuml/database_relationship.puml](./plantuml/database_relationship.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

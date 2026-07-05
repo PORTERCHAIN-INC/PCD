@@ -1,6 +1,5 @@
 # Gap Analysis — Porterchain Platform
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -111,22 +110,22 @@
 
 ## Medium Gaps
 
-| ID      | Area         | Issue                                          | Effort   |
-| ------- | ------------ | ---------------------------------------------- | -------- |
-| GAP-M01 | Website      | `draft_id` query param unused on continue page | 2h       |
-| GAP-M02 | DevOps       | Stripe local webhook not documented            | 2h       |
-| GAP-M03 | Customer     | Tracking map missing                           | 1 day    |
-| GAP-M04 | Finance      | PDF invoice generation                         | 2 days   |
-| GAP-M05 | Security     | CRM audit incomplete                           | 1 day    |
-| GAP-M06 | Security     | Hardcoded JWT secret default                   | 2h       |
-| GAP-M07 | Database     | Missing FKs on route_center, invitations       | 4h       |
-| GAP-M08 | Events       | Catalog drift (`booking.created` etc.)         | 4h       |
-| GAP-M09 | Architecture | Duplicate Fleetbase bridges                    | 2 days   |
-| GAP-M10 | Performance  | No routing result cache                        | 1 day    |
-| GAP-M11 | Admin        | Fleetbase API browser quick-link               | 1h       |
+| ID      | Area         | Issue                                          | Effort    |
+| ------- | ------------ | ---------------------------------------------- | --------- |
+| GAP-M01 | Website      | `draft_id` query param unused on continue page | 2h        |
+| GAP-M02 | DevOps       | Stripe local webhook not documented            | 2h        |
+| GAP-M03 | Customer     | Tracking map missing                           | 1 day     |
+| GAP-M04 | Finance      | PDF invoice generation                         | 2 days    |
+| GAP-M05 | Security     | CRM audit incomplete                           | 1 day     |
+| GAP-M06 | Security     | Hardcoded JWT secret default                   | 2h        |
+| GAP-M07 | Database     | Missing FKs on route_center, invitations       | 4h        |
+| GAP-M08 | Events       | Catalog drift (`booking.created` etc.)         | 4h        |
+| GAP-M09 | Architecture | Duplicate Fleetbase bridges                    | 2 days    |
+| GAP-M10 | Performance  | No routing result cache                        | 1 day     |
+| GAP-M11 | Admin        | Fleetbase API browser quick-link               | 1h        |
 | GAP-M12 | Mobile       | Release ops (EAS, Firebase, store assets)      | 1–2 weeks |
-| GAP-M13 | Health       | Valhalla/OSRM not in `/health/ready`           | 4h       |
-| GAP-M14 | Website      | Customer portal client-side auth gate          | 4h       |
+| GAP-M13 | Health       | Valhalla/OSRM not in `/health/ready`           | 4h        |
+| GAP-M14 | Website      | Customer portal client-side auth gate          | 4h        |
 
 ---
 
@@ -163,7 +162,7 @@ _Remediation plan: `ROADMAP.md`_
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

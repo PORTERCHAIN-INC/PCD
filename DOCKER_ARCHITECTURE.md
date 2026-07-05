@@ -1,6 +1,5 @@
 # Porterchain — Docker Architecture
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -25,14 +24,14 @@ Frontends (Next.js) and the Porterchain API/worker run on the **host** via pnpm 
 **File:** `infrastructure/docker/docker-compose.yml`  
 **Project name:** `porterchain`
 
-| Service    | Profile         | Image                          | Host port      | Purpose                    |
-| ---------- | --------------- | ------------------------------ | -------------- | -------------------------- |
-| `postgres` | core            | `postgres:16-alpine`           | 127.0.0.1:5432 | Porterchain business data  |
-| `database` | core, fleetbase | `mysql:8.0`                    | 127.0.0.1:3306 | Fleetbase MySQL (optional) |
-| `cache`    | core, fleetbase | `redis:7.2-alpine`             | 127.0.0.1:6379 | Cache + queues             |
-| `mailhog`  | core            | `mailhog/mailhog:v1.0.1`       | 1025, 8025     | Dev SMTP capture           |
-| `valhalla` | routing         | `ghcr.io/gis-ops/docker-valhalla/valhalla:latest` | 127.0.0.1:8002 | Routing engine |
-| `proxy`    | proxy           | `nginx:1.27-alpine`            | 127.0.0.1:8080 | Optional dev proxy         |
+| Service    | Profile         | Image                                             | Host port      | Purpose                    |
+| ---------- | --------------- | ------------------------------------------------- | -------------- | -------------------------- |
+| `postgres` | core            | `postgres:16-alpine`                              | 127.0.0.1:5432 | Porterchain business data  |
+| `database` | core, fleetbase | `mysql:8.0`                                       | 127.0.0.1:3306 | Fleetbase MySQL (optional) |
+| `cache`    | core, fleetbase | `redis:7.2-alpine`                                | 127.0.0.1:6379 | Cache + queues             |
+| `mailhog`  | core            | `mailhog/mailhog:v1.0.1`                          | 1025, 8025     | Dev SMTP capture           |
+| `valhalla` | routing         | `ghcr.io/gis-ops/docker-valhalla/valhalla:latest` | 127.0.0.1:8002 | Routing engine             |
+| `proxy`    | proxy           | `nginx:1.27-alpine`                               | 127.0.0.1:8080 | Optional dev proxy         |
 
 ```bash
 pnpm docker:up              # core profile (postgres, mysql, redis, mailhog)
@@ -50,12 +49,12 @@ Fleetbase API/console services in this file are **commented out** — use the de
 
 See [DOCKER_SETUP.md](./DOCKER_SETUP.md) for full service table. Key ports:
 
-| Service   | Host port | Notes                          |
-| --------- | --------- | ------------------------------ |
-| httpd     | 8000      | Fleetbase API                  |
-| console   | 4200      | Dispatch UI                    |
-| database  | 3307      | MySQL (avoids core stack 3306) |
-| socket    | 38000     | SocketCluster WebSockets       |
+| Service  | Host port | Notes                          |
+| -------- | --------- | ------------------------------ |
+| httpd    | 8000      | Fleetbase API                  |
+| console  | 4200      | Dispatch UI                    |
+| database | 3307      | MySQL (avoids core stack 3306) |
+| socket   | 38000     | SocketCluster WebSockets       |
 
 ```bash
 pnpm docker:fleetbase:up
@@ -66,13 +65,14 @@ pnpm docker:fleetbase:verify
 
 ## Networks
 
-| Network               | Stack     | Members                              |
-| --------------------- | --------- | ------------------------------------ |
-| `porterchain-internal`| Core      | postgres, redis, mailhog, valhalla   |
-| `porterchain-data`    | Core      | postgres, mysql, redis               |
-| `fleetbase-internal`  | Fleetbase | All Fleetbase containers             |
+| Network                | Stack     | Members                            |
+| ---------------------- | --------- | ---------------------------------- |
+| `porterchain-internal` | Core      | postgres, redis, mailhog, valhalla |
+| `porterchain-data`     | Core      | postgres, mysql, redis             |
+| `fleetbase-internal`   | Fleetbase | All Fleetbase containers           |
 
 Porterchain API on the host reaches:
+
 - PostgreSQL at `127.0.0.1:5432`
 - Redis at `127.0.0.1:6379`
 - Fleetbase API at `http://localhost:8000`
@@ -82,12 +82,12 @@ Porterchain API on the host reaches:
 
 ## Volumes (core stack)
 
-| Volume           | Service  | Purpose              |
-| ---------------- | -------- | -------------------- |
-| `postgres-data`  | postgres | Porterchain DB       |
-| `mysql-data`     | database | Fleetbase MySQL      |
-| `redis-data`     | cache    | Redis AOF            |
-| `valhalla-tiles` | valhalla | OSM routing tiles    |
+| Volume           | Service  | Purpose           |
+| ---------------- | -------- | ----------------- |
+| `postgres-data`  | postgres | Porterchain DB    |
+| `mysql-data`     | database | Fleetbase MySQL   |
+| `redis-data`     | cache    | Redis AOF         |
+| `valhalla-tiles` | valhalla | OSM routing tiles |
 
 Fleetbase stack uses named volumes prefixed `porterchain-fleetbase-*` (see DOCKER_SETUP.md).
 
@@ -148,11 +148,12 @@ Core stack services define health checks for postgres, mysql, redis, and valhall
 - [DOCKER_SETUP.md](./DOCKER_SETUP.md) — Fleetbase stack detail
 - [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md) — port map
 - [infrastructure/deploy/README.md](./infrastructure/deploy/README.md) — production topology
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

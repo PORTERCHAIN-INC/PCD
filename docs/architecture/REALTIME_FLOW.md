@@ -1,6 +1,5 @@
 # Realtime Flow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -12,8 +11,8 @@
 
 ## WebSocket (Only One)
 
-| Path | Auth | Behavior |
-| ---- | ---- | -------- |
+| Path                                                    | Auth                  | Behavior                                                  |
+| ------------------------------------------------------- | --------------------- | --------------------------------------------------------- |
 | `WS /v1/admin/operations/live-map/ws?token=<clerk_jwt>` | Clerk JWT query param | Push `{"type":"snapshot","data":...}` every **5 seconds** |
 
 Implementation: `operations.py` `@router.websocket("/live-map/ws")` under prefix `/v1/admin/operations` → `LiveMapService.snapshot()`.
@@ -28,12 +27,12 @@ REST fallbacks on the same router: `GET /v1/admin/operations/live-map`, `/live-m
 
 ## Polling Alternatives
 
-| Client | Endpoint | Purpose |
-| ------ | -------- | ------- |
-| Website | `GET /v1/bookings/confirmation?quote_id=` | Post-checkout confirmation polling |
-| Public | `GET /v1/orders/{tracking_number}/tracking` | Fleetbase-backed tracking |
-| Merchant | `GET /v1/merchant/orders/{id}/tracking` | Live tracking dashboard |
-| Driver portal | REST routes under `/driver-api/v1` | No WebSocket |
+| Client        | Endpoint                                    | Purpose                            |
+| ------------- | ------------------------------------------- | ---------------------------------- |
+| Website       | `GET /v1/bookings/confirmation?quote_id=`   | Post-checkout confirmation polling |
+| Public        | `GET /v1/orders/{tracking_number}/tracking` | Fleetbase-backed tracking          |
+| Merchant      | `GET /v1/merchant/orders/{id}/tracking`     | Live tracking dashboard            |
+| Driver portal | REST routes under `/driver-api/v1`          | No WebSocket                       |
 
 ## No Realtime WebSocket For
 
@@ -72,7 +71,7 @@ See [plantuml/realtime_flow.puml](./plantuml/realtime_flow.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

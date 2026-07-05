@@ -1,6 +1,5 @@
 # Google Maps Flow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -16,13 +15,13 @@ Google Maps is used for **visualization and address autocomplete only**. Distanc
 
 ## Web Packages (`@porterchain/maps`)
 
-| App | Port | Purpose |
-| --- | ---- | ------- |
-| Website | `:3000` | Book flow autocomplete, map embed |
-| Customer portal | `:3004` | Book delivery autocomplete |
-| Merchant portal | `:3001` | Book + tracking map viz |
-| Admin | `:3002` | Live map markers (`apps/admin/src/lib/maps.ts`) |
-| Driver portal | `:3003` | Navigation map chrome |
+| App             | Port    | Purpose                                         |
+| --------------- | ------- | ----------------------------------------------- |
+| Website         | `:3000` | Book flow autocomplete, map embed               |
+| Customer portal | `:3004` | Book delivery autocomplete                      |
+| Merchant portal | `:3001` | Book + tracking map viz                         |
+| Admin           | `:3002` | Live map markers (`apps/admin/src/lib/maps.ts`) |
+| Driver portal   | `:3003` | Navigation map chrome                           |
 
 Package: `packages/maps/src/GoogleMapsProvider.tsx` wraps `@vis.gl/react-google-maps`.
 
@@ -88,7 +87,7 @@ See [plantuml/google_maps_flow.puml](./plantuml/google_maps_flow.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

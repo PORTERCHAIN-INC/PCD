@@ -1,10 +1,8 @@
 # Porterchain Services
 
-
 **Type:** README
 **masterrule:** [§21](../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 Internal Python service layer — **not** customer-facing. All external clients talk to `apps/api/` only.
 
@@ -14,13 +12,13 @@ Internal Python service layer — **not** customer-facing. All external clients 
 
 ## Layout
 
-| Path | Package | Purpose |
-| ---- | ------- | ------- |
-| `fleetbase-adapter/` | `porterchain-fleetbase-adapter` | **Sole Porterchain ↔ Fleetbase boundary** |
-| `pricing-engine/` | `porterchain-pricing` | Quotes, contracts, promotions, tax |
-| `driver-platform/` | `porterchain-driver` | Reusable driver domain services |
-| `event-bus/` | `porterchain-event-bus` | Domain events, handlers, DLQ, idempotency |
-| `python/porterchain_services/` | `porterchain-services` | Composition-root service modules |
+| Path                           | Package                         | Purpose                                   |
+| ------------------------------ | ------------------------------- | ----------------------------------------- |
+| `fleetbase-adapter/`           | `porterchain-fleetbase-adapter` | **Sole Porterchain ↔ Fleetbase boundary** |
+| `pricing-engine/`              | `porterchain-pricing`           | Quotes, contracts, promotions, tax        |
+| `driver-platform/`             | `porterchain-driver`            | Reusable driver domain services           |
+| `event-bus/`                   | `porterchain-event-bus`         | Domain events, handlers, DLQ, idempotency |
+| `python/porterchain_services/` | `porterchain-services`          | Composition-root service modules          |
 
 Fleetbase HTTP must go **only** through `fleetbase-adapter/` — never from apps or UI.
 
@@ -49,19 +47,19 @@ See [services/fleetbase-adapter/README.md](./fleetbase-adapter/README.md) · [FL
 
 ## Service Modules (`porterchain_services`)
 
-| Module | Responsibility |
-| ------ | -------------- |
-| `gateway` | Composition root, service registry |
-| `fleetbase` | Delegates to `fleetbase-adapter` |
-| `stripe` | Payments |
-| `maps` | Valhalla / OSRM routing |
-| `notifications` | Email, SMS, push (queued) |
-| `pricing` | Tariff engine protocol |
-| `merchant` | B2B lifecycle |
-| `driver` | Driver execution helpers |
-| `dispatch` | Assignment |
-| `customer` | Retail customer |
-| `visitor` | Anonymous sessions, leads, abandoned checkout |
+| Module          | Responsibility                                |
+| --------------- | --------------------------------------------- |
+| `gateway`       | Composition root, service registry            |
+| `fleetbase`     | Delegates to `fleetbase-adapter`              |
+| `stripe`        | Payments                                      |
+| `maps`          | Valhalla / OSRM routing                       |
+| `notifications` | Email, SMS, push (queued)                     |
+| `pricing`       | Tariff engine protocol                        |
+| `merchant`      | B2B lifecycle                                 |
+| `driver`        | Driver execution helpers                      |
+| `dispatch`      | Assignment                                    |
+| `customer`      | Retail customer                               |
+| `visitor`       | Anonymous sessions, leads, abandoned checkout |
 
 ---
 
@@ -134,17 +132,17 @@ breakdown = service.calculate_retail(PricingRequest(
 
 ## Related Documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [pricing-engine/README.md](./pricing-engine/README.md) | Pricing engine detail |
+| Document                                                | Purpose               |
+| ------------------------------------------------------- | --------------------- |
+| [pricing-engine/README.md](./pricing-engine/README.md)  | Pricing engine detail |
 | [FLEETBASE_INTEGRATION.md](../FLEETBASE_INTEGRATION.md) | Fleetbase integration |
-| [PRICING_ENGINE.md](../PRICING_ENGINE.md) | Pricing architecture |
+| [PRICING_ENGINE.md](../PRICING_ENGINE.md)               | Pricing architecture  |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [../masterrule.md](../masterrule.md) | Architecture SSOT |
-| [../REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md) | Monorepo layout |
-
+| Document                                                 | Role              |
+| -------------------------------------------------------- | ----------------- |
+| [../masterrule.md](../masterrule.md)                     | Architecture SSOT |
+| [../REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

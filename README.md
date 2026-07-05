@@ -1,6 +1,5 @@
 # Porterchain (PCD)
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -11,17 +10,17 @@ Commercial logistics platform monorepo — website, API, portals, worker, and Fl
 
 ## Applications
 
-| Path                                             | Port     | Description                                                    |
-| ------------------------------------------------ | -------- | -------------------------------------------------------------- |
+| Path                                             | Port     | Description                                                                          |
+| ------------------------------------------------ | -------- | ------------------------------------------------------------------------------------ |
 | [`website/`](website/)                           | **3000** | Public Next.js site — marketing, booking, track (link to customer app for dashboard) |
-| [`apps/merchant-portal/`](apps/merchant-portal/) | **3001** | B2B merchant dashboard (Clerk)                                 |
-| [`apps/admin/`](apps/admin/)                     | **3002** | Business admin / ops (Clerk)                                   |
-| [`apps/driver-portal/`](apps/driver-portal/)     | **3003** | Driver web dashboard                                           |
-| [`apps/customer/`](apps/customer/)               | **3004** | Retail customer portal                                         |
-| [`apps/api/`](apps/api/)                         | **8001** | Porterchain API (FastAPI) — all business logic                 |
-| [`apps/worker/`](apps/worker/)                   | —        | Event bus + queue consumer                                     |
-| [`apps/mobile-driver/`](apps/mobile-driver/)     | Expo     | Driver mobile app (Expo SDK 52)                                |
-| [`apps/mobile-customer/`](apps/mobile-customer/) | Expo     | Retail customer mobile app (Expo SDK 52)                       |
+| [`apps/merchant-portal/`](apps/merchant-portal/) | **3001** | B2B merchant dashboard (Clerk)                                                       |
+| [`apps/admin/`](apps/admin/)                     | **3002** | Business admin / ops (Clerk)                                                         |
+| [`apps/driver-portal/`](apps/driver-portal/)     | **3003** | Driver web dashboard                                                                 |
+| [`apps/customer/`](apps/customer/)               | **3004** | Retail customer portal                                                               |
+| [`apps/api/`](apps/api/)                         | **8001** | Porterchain API (FastAPI) — all business logic                                       |
+| [`apps/worker/`](apps/worker/)                   | —        | Event bus + queue consumer                                                           |
+| [`apps/mobile-driver/`](apps/mobile-driver/)     | Expo     | Driver mobile app (Expo SDK 52)                                                      |
+| [`apps/mobile-customer/`](apps/mobile-customer/) | Expo     | Retail customer mobile app (Expo SDK 52)                                             |
 
 Path aliases: `website/` = public site (target `apps/website/`); `apps/merchant-portal/` = merchant portal (target `apps/merchant/`).
 
@@ -104,11 +103,12 @@ See [PORT_CONFIGURATION.md](PORT_CONFIGURATION.md).
 - [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md) — monorepo layout
 - [TECH_STACK.md](TECH_STACK.md)
 - [docs/README.md](docs/README.md) — full documentation index
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

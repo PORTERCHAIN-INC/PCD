@@ -1,6 +1,5 @@
 # Database Ownership Matrix
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -142,11 +141,12 @@ See [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) for the Fleetbase bou
 | **Business critical** | Loss or corruption affects revenue, compliance, or customer-facing truth   |
 | **Operational**       | Real-time ops, dispatch, telemetry, or retry queues                        |
 | **Sync required**     | Must stay consistent with Fleetbase MySQL via adapter (not direct DB link) |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

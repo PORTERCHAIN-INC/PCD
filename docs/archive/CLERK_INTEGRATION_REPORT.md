@@ -16,15 +16,15 @@ Supabase/Twilio OTP paths removed (see [AUTHENTICATION_CLEANUP.md](./AUTHENTICAT
 
 ## Application verification
 
-| Application | Port | Clerk SDK | Route protection | API auth |
-| ----------- | ---- | --------- | ---------------- | -------- |
-| Website | 3000 | `@clerk/nextjs` | `clerkMiddleware` + i18n | Clerk JWT → API |
-| Merchant | 3001 | `@clerk/nextjs` | `auth.protect()` | `get_merchant_context` |
-| Admin | 3002 | `@clerk/nextjs` | `auth.protect()` | `get_admin_context` |
-| Driver web | 3003 | `@clerk/nextjs` | Sign-in + session | Clerk → Porterchain JWT |
-| Customer | 3004 | `@clerk/nextjs` | `middleware.ts` (protect all except sign-in) | `/v1/customers/*` |
-| Driver mobile | Expo | `@clerk/clerk-expo` | `ClerkBridge` | Clerk → driver API login |
-| Customer mobile | Expo | `@clerk/clerk-expo` | App providers | Clerk JWT → API |
+| Application     | Port | Clerk SDK           | Route protection                             | API auth                 |
+| --------------- | ---- | ------------------- | -------------------------------------------- | ------------------------ |
+| Website         | 3000 | `@clerk/nextjs`     | `clerkMiddleware` + i18n                     | Clerk JWT → API          |
+| Merchant        | 3001 | `@clerk/nextjs`     | `auth.protect()`                             | `get_merchant_context`   |
+| Admin           | 3002 | `@clerk/nextjs`     | `auth.protect()`                             | `get_admin_context`      |
+| Driver web      | 3003 | `@clerk/nextjs`     | Sign-in + session                            | Clerk → Porterchain JWT  |
+| Customer        | 3004 | `@clerk/nextjs`     | `middleware.ts` (protect all except sign-in) | `/v1/customers/*`        |
+| Driver mobile   | Expo | `@clerk/clerk-expo` | `ClerkBridge`                                | Clerk → driver API login |
+| Customer mobile | Expo | `@clerk/clerk-expo` | App providers                                | Clerk JWT → API          |
 
 ### Customer app (`apps/customer/`)
 
@@ -42,13 +42,13 @@ Dedicated retail portal at **`:3004`** (website links via `NEXT_PUBLIC_CUSTOMER_
 
 ### Table: `porterchain_users`
 
-| Column | Purpose |
-| ------ | ------- |
-| `clerk_user_id` | Unique Clerk `sub` |
-| `email`, `phone` | From Clerk claims |
+| Column           | Purpose                  |
+| ---------------- | ------------------------ |
+| `clerk_user_id`  | Unique Clerk `sub`       |
+| `email`, `phone` | From Clerk claims        |
 | `role`, `status` | Primary RBAC + lifecycle |
-| `profile` | Name, org metadata |
-| `last_synced_at` | Sync timestamp |
+| `profile`        | Name, org metadata       |
+| `last_synced_at` | Sync timestamp           |
 
 **Migration:** `j1k2l3m4n5o6_porterchain_users.py`
 
@@ -78,12 +78,12 @@ Also invoked from `DriverAuthService.login()` after Clerk verification.
 
 ## Password policy
 
-| Rule | Implementation |
-| ---- | -------------- |
-| Never store passwords | No password columns |
-| Clerk owns credentials | Hosted sign-up / reset / MFA |
-| Driver session JWT | Issued after Clerk login only |
-| Dev bypass | `CLERK_DEV_BYPASS` — local only |
+| Rule                   | Implementation                  |
+| ---------------------- | ------------------------------- |
+| Never store passwords  | No password columns             |
+| Clerk owns credentials | Hosted sign-up / reset / MFA    |
+| Driver session JWT     | Issued after Clerk login only   |
+| Dev bypass             | `CLERK_DEV_BYPASS` — local only |
 
 ---
 
@@ -99,13 +99,13 @@ Frontend → Clerk sign-in → Bearer JWT
 
 ### Key modules
 
-| Module | Role |
-| ------ | ---- |
-| `auth/clerk.py` | JWKS + sync hook |
-| `auth/user_sync_service.py` | Canonical upsert |
-| `auth/principal_resolver.py` | Clerk → principal |
-| `auth/admin.py`, `merchant.py`, `customer.py`, `driver.py` | Context |
-| `routers/auth.py` | `/v1/auth/me`, admin access, Fleetbase SSO |
+| Module                                                     | Role                                       |
+| ---------------------------------------------------------- | ------------------------------------------ |
+| `auth/clerk.py`                                            | JWKS + sync hook                           |
+| `auth/user_sync_service.py`                                | Canonical upsert                           |
+| `auth/principal_resolver.py`                               | Clerk → principal                          |
+| `auth/admin.py`, `merchant.py`, `customer.py`, `driver.py` | Context                                    |
+| `routers/auth.py`                                          | `/v1/auth/me`, admin access, Fleetbase SSO |
 
 ---
 
@@ -113,30 +113,30 @@ Frontend → Clerk sign-in → Bearer JWT
 
 See [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md):
 
-| Variable | Surfaces |
-| -------- | -------- |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Next.js apps |
-| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Mobile |
-| `CLERK_SECRET_KEY` | API + Next server |
-| `CLERK_JWKS_URL` | API verification |
-| Per-portal `CLERK_*_SECRET_KEY` | Optional isolation |
-| `CLERK_DEV_BYPASS` | Local only |
+| Variable                            | Surfaces           |
+| ----------------------------------- | ------------------ |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Next.js apps       |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Mobile             |
+| `CLERK_SECRET_KEY`                  | API + Next server  |
+| `CLERK_JWKS_URL`                    | API verification   |
+| Per-portal `CLERK_*_SECRET_KEY`     | Optional isolation |
+| `CLERK_DEV_BYPASS`                  | Local only         |
 
 ---
 
 ## Gaps (non-blocking)
 
-| Gap | Priority |
-| --- | -------- |
-| Clerk webhook for `user.updated` | Low — sync on each request suffices |
-| Backfill legacy users into `porterchain_users` | Medium — occurs on next login |
-| Deprecate website embedded customer portal | Low — use `apps/customer/` |
+| Gap                                            | Priority                            |
+| ---------------------------------------------- | ----------------------------------- |
+| Clerk webhook for `user.updated`               | Low — sync on each request suffices |
+| Backfill legacy users into `porterchain_users` | Medium — occurs on next login       |
+| Deprecate website embedded customer portal     | Low — use `apps/customer/`          |
 
 ---
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [docs/architecture/AUTHENTICATION_FLOW.md](./docs/architecture/AUTHENTICATION_FLOW.md) | Flow diagrams |
-| [SSO.md](./SSO.md) | Fleetbase SSO bridge |
+| Document                                                                               | Purpose              |
+| -------------------------------------------------------------------------------------- | -------------------- |
+| [docs/architecture/AUTHENTICATION_FLOW.md](./docs/architecture/AUTHENTICATION_FLOW.md) | Flow diagrams        |
+| [SSO.md](./SSO.md)                                                                     | Fleetbase SSO bridge |

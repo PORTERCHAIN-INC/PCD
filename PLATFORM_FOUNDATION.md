@@ -1,11 +1,10 @@
 # Porterchain Platform Foundation
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
 
-**Status:** Implemented — modular enterprise foundation  
+**Status:** Implemented — modular enterprise foundation
 
 This document describes the modular enterprise foundation of the Porterchain monorepo: the layered architecture, shared packages, internal services, event bus, and queues that all customer-facing surfaces build on.
 
@@ -31,21 +30,21 @@ This document describes the modular enterprise foundation of the Porterchain mon
 
 ## Directory map
 
-| Path                                    | Responsibility                                     |
-| --------------------------------------- | -------------------------------------------------- |
-| `website/`                              | Public site + booking (:3000)                      |
-| `apps/api/`                             | Porterchain FastAPI — all business logic (:8001)   |
-| `apps/worker/`                          | Async queue + event consumer                       |
-| `apps/{admin,merchant-portal,customer,driver-portal}/` | Next.js portals                     |
-| `apps/{mobile-driver,mobile-customer}/` | Expo mobile apps                                   |
-| `packages/types/`                       | `@porterchain/types` — roles, events, ownership    |
-| `packages/auth/`                        | `@porterchain/auth` — RBAC, Clerk metadata mapping |
-| `packages/events/`                      | `@porterchain/events` — domain event catalog       |
-| `packages/queue/`                       | `@porterchain/queue` — queue names and messages    |
-| `packages/config/`                      | `@porterchain/config` — ESLint, Prettier, TS base  |
-| `shared/python/porterchain_shared/`     | Python auth, events, queues, config                |
-| `services/python/porterchain_services/` | Stripe, Maps, Notifications, …                     |
-| `services/fleetbase-adapter/`           | Sole Fleetbase integration boundary                |
+| Path                                                   | Responsibility                                     |
+| ------------------------------------------------------ | -------------------------------------------------- |
+| `website/`                                             | Public site + booking (:3000)                      |
+| `apps/api/`                                            | Porterchain FastAPI — all business logic (:8001)   |
+| `apps/worker/`                                         | Async queue + event consumer                       |
+| `apps/{admin,merchant-portal,customer,driver-portal}/` | Next.js portals                                    |
+| `apps/{mobile-driver,mobile-customer}/`                | Expo mobile apps                                   |
+| `packages/types/`                                      | `@porterchain/types` — roles, events, ownership    |
+| `packages/auth/`                                       | `@porterchain/auth` — RBAC, Clerk metadata mapping |
+| `packages/events/`                                     | `@porterchain/events` — domain event catalog       |
+| `packages/queue/`                                      | `@porterchain/queue` — queue names and messages    |
+| `packages/config/`                                     | `@porterchain/config` — ESLint, Prettier, TS base  |
+| `shared/python/porterchain_shared/`                    | Python auth, events, queues, config                |
+| `services/python/porterchain_services/`                | Stripe, Maps, Notifications, …                     |
+| `services/fleetbase-adapter/`                          | Sole Fleetbase integration boundary                |
 
 ---
 
@@ -86,7 +85,7 @@ Merchants and customers **never** authenticate against Fleetbase directly.
 | Service       | Module                               | Notes                                         |
 | ------------- | ------------------------------------ | --------------------------------------------- |
 | API Gateway   | `porterchain_services.gateway`       | Service registry, `/internal/services` health |
-| Fleetbase     | `porterchain_fleetbase_adapter`      | All Fleetbase HTTP via the adapter boundary    |
+| Fleetbase     | `porterchain_fleetbase_adapter`      | All Fleetbase HTTP via the adapter boundary   |
 | Stripe        | `porterchain_services.stripe`        | Checkout + webhooks                           |
 | Maps          | `porterchain_services.maps`          | Valhalla / OSRM routing                       |
 | Notifications | `porterchain_services.notifications` | Email, SMS, push queues                       |
@@ -167,11 +166,12 @@ pnpm dev:customer       # :3004
 - [EVENT_BUS.md](./EVENT_BUS.md)
 - [ROLE_PERMISSIONS.md](./ROLE_PERMISSIONS.md)
 - [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,10 +1,8 @@
 # Porterchain Driver Mobile App
 
-
 **Type:** README
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 Expo SDK 52 driver execution app. It calls **Porterchain API only** (`/driver-api/v1/*`); Fleetbase integration stays server-side through the Porterchain API and Fleetbase adapter.
 
@@ -46,30 +44,30 @@ Shared packages used by the app include:
 
 ## Tabs
 
-| Tab | Features |
-| --- | -------- |
-| **Home** | Dashboard, today’s stops/earnings, quick actions |
-| **Jobs** | Current/upcoming/completed jobs, job detail, assignment queue, POD, incident |
-| **Navigation** | Map, GPS pings, route/navigation session from API |
-| **Earnings** | Today/week/month earnings and wallet summary |
-| **Shift** | Online/offline, start/end shift, breaks |
-| **More** | Profile, notifications, offline sync, support, SOS, settings, performance |
+| Tab            | Features                                                                     |
+| -------------- | ---------------------------------------------------------------------------- |
+| **Home**       | Dashboard, today’s stops/earnings, quick actions                             |
+| **Jobs**       | Current/upcoming/completed jobs, job detail, assignment queue, POD, incident |
+| **Navigation** | Map, GPS pings, route/navigation session from API                            |
+| **Earnings**   | Today/week/month earnings and wallet summary                                 |
+| **Shift**      | Online/offline, start/end shift, breaks                                      |
+| **More**       | Profile, notifications, offline sync, support, SOS, settings, performance    |
 
 ---
 
 ## Execution Flows
 
-| Flow | API |
-| ---- | --- |
-| Accept / reject job | `POST /driver-api/v1/orders/{id}/accept|reject` |
-| Route execution | `GET /routes/assigned`, stop arrive/deliver/exception |
-| POD | `pod-photo`, `pod-signature`, `pod-complete`, `orders/{id}/otp` |
-| Navigation | `GET /navigation/session`, map rendering via mobile maps |
-| Realtime GPS | `expo-location` → `POST /location` |
-| Shift / availability | `/shift/*`, `/availability` |
-| Offline sync | MMKV queue → `/offline/queue`, `/offline/sync` |
-| Push | FCM → `/push/register` |
-| Support / incident / SOS | `/support`, `/incidents`, `/emergency` |
+| Flow                     | API                                                             |
+| ------------------------ | --------------------------------------------------------------- |
+| Accept / reject job      | `POST /driver-api/v1/orders/{id}/accept                         | reject` |
+| Route execution          | `GET /routes/assigned`, stop arrive/deliver/exception           |
+| POD                      | `pod-photo`, `pod-signature`, `pod-complete`, `orders/{id}/otp` |
+| Navigation               | `GET /navigation/session`, map rendering via mobile maps        |
+| Realtime GPS             | `expo-location` → `POST /location`                              |
+| Shift / availability     | `/shift/*`, `/availability`                                     |
+| Offline sync             | MMKV queue → `/offline/queue`, `/offline/sync`                  |
+| Push                     | FCM → `/push/register`                                          |
+| Support / incident / SOS | `/support`, `/incidents`, `/emergency`                          |
 
 ---
 
@@ -113,18 +111,18 @@ Production values should be supplied through EAS secrets/profiles.
 
 ## Related Documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [../../MOBILE_ARCHITECTURE_REPORT.md](../../MOBILE_ARCHITECTURE_REPORT.md) | Mobile architecture |
-| [../../MOBILE_PRODUCTION_READINESS.md](../../MOBILE_PRODUCTION_READINESS.md) | Mobile readiness |
-| [../../DRIVER_PLATFORM.md](../../DRIVER_PLATFORM.md) | Driver backend/API architecture |
-| [../../DRIVER_PRODUCTION_READINESS.md](../../DRIVER_PRODUCTION_READINESS.md) | Driver rollout posture |
+| Document                                                                     | Purpose                         |
+| ---------------------------------------------------------------------------- | ------------------------------- |
+| [../../MOBILE_ARCHITECTURE_REPORT.md](../../MOBILE_ARCHITECTURE_REPORT.md)   | Mobile architecture             |
+| [../../MOBILE_PRODUCTION_READINESS.md](../../MOBILE_PRODUCTION_READINESS.md) | Mobile readiness                |
+| [../../DRIVER_PLATFORM.md](../../DRIVER_PLATFORM.md)                         | Driver backend/API architecture |
+| [../../DRIVER_PRODUCTION_READINESS.md](../../DRIVER_PRODUCTION_READINESS.md) | Driver rollout posture          |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [../../masterrule.md](../../masterrule.md) | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout |
-
+| Document                                                       | Role              |
+| -------------------------------------------------------------- | ----------------- |
+| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
+| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

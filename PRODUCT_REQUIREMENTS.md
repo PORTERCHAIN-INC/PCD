@@ -1,6 +1,5 @@
 # Porterchain — Product Requirements
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -40,15 +39,15 @@ Porterchain is **not** an open driver marketplace. Drivers are vetted partners; 
 
 **Goals:** Fast quote, easy payment, shipment tracking, invoice, rebook.
 
-| Capability         | Requirement                                                                               | Priority |
-| ------------------ | ----------------------------------------------------------------------------------------- | -------- |
-| Instant quote      | Pickup, dropoff, vehicle, package, weight, dimensions, schedule → price **without login** | P0       |
-| Continue booking   | Email + phone collection                                                                  | P0       |
-| Authentication     | **Clerk** — merge anonymous quote session into account                                    | P0       |
-| Payment            | **Stripe** checkout before booking confirmation                                           | P0       |
-| Customer dashboard | Track, invoice download, history, rebook, profile (`apps/customer/` :3004) | P0 — ✅ Live |
-| Abandoned checkout | Persist quote, email, phone; remarketing                                                  | P1       |
-| Guest estimate TTL | Quote expires (`QUOTE_EXPIRED`)                                                           | P0       |
+| Capability         | Requirement                                                                               | Priority     |
+| ------------------ | ----------------------------------------------------------------------------------------- | ------------ |
+| Instant quote      | Pickup, dropoff, vehicle, package, weight, dimensions, schedule → price **without login** | P0           |
+| Continue booking   | Email + phone collection                                                                  | P0           |
+| Authentication     | **Clerk** — merge anonymous quote session into account                                    | P0           |
+| Payment            | **Stripe** checkout before booking confirmation                                           | P0           |
+| Customer dashboard | Track, invoice download, history, rebook, profile (`apps/customer/` :3004)                | P0 — ✅ Live |
+| Abandoned checkout | Persist quote, email, phone; remarketing                                                  | P1           |
+| Guest estimate TTL | Quote expires (`QUOTE_EXPIRED`)                                                           | P0           |
 
 **Out of scope for retail:** Net terms, CSV bulk, API keys, multi-user org (unless they convert to business).
 
@@ -60,21 +59,21 @@ Porterchain is **not** an open driver marketplace. Drivers are vetted partners; 
 
 **Goals:** Reliable SLA delivery, invoicing, integrations, team access.
 
-| Capability            | Requirement                                         | Priority |
-| --------------------- | --------------------------------------------------- | -------- |
-| Sales intake          | Contact / quote request → CRM lead                  | P0       |
-| Sales approval        | Admin approves business before account creation     | P0       |
-| Merchant account      | Created after approval                              | P0       |
-| Commercial agreement  | E-sign / accept in onboarding wizard                | P0       |
-| Merchant portal       | Full B2B feature set                                | P0       |
-| Book deliveries       | Portal UI + saved addresses                         | P0       |
-| CSV bulk upload       | Batch shipment creation                             | P1       |
-| API integration       | REST + webhooks (`/v1/merchant-api` with API keys) | P1 — ✅ Live |
-| Recurring routes      | Scheduled recurring lanes                           | P2       |
-| Multi-user            | Org roles in merchant portal                        | P1       |
-| Billing               | Net 15 / Net 30 / Net 45; optional per-order Stripe | P0       |
-| Invoices & statements | PDF, payment status, overdue reminders              | P0       |
-| Reports & analytics   | Volume, spend, on-time %                            | P1       |
+| Capability            | Requirement                                         | Priority     |
+| --------------------- | --------------------------------------------------- | ------------ |
+| Sales intake          | Contact / quote request → CRM lead                  | P0           |
+| Sales approval        | Admin approves business before account creation     | P0           |
+| Merchant account      | Created after approval                              | P0           |
+| Commercial agreement  | E-sign / accept in onboarding wizard                | P0           |
+| Merchant portal       | Full B2B feature set                                | P0           |
+| Book deliveries       | Portal UI + saved addresses                         | P0           |
+| CSV bulk upload       | Batch shipment creation                             | P1           |
+| API integration       | REST + webhooks (`/v1/merchant-api` with API keys)  | P1 — ✅ Live |
+| Recurring routes      | Scheduled recurring lanes                           | P2           |
+| Multi-user            | Org roles in merchant portal                        | P1           |
+| Billing               | Net 15 / Net 30 / Net 45; optional per-order Stripe | P0           |
+| Invoices & statements | PDF, payment status, overdue reminders              | P0           |
+| Reports & analytics   | Volume, spend, on-time %                            | P1           |
 
 **Payment default:** Invoice on terms — **not** per-order Stripe unless merchant or order is configured for card/immediate pay.
 
@@ -255,15 +254,15 @@ See [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHIT
 
 ## Implementation status (July 2026)
 
-| Area              | Status | Notes                                              |
-| ----------------- | ------ | -------------------------------------------------- |
-| Retail booking    | ✅     | Website + Stripe; webhook required in prod         |
-| Customer portal   | ✅     | `apps/customer/` — tracking map gap remains        |
-| Merchant portal   | ✅     | Core B2B flows live; NET batch invoicing partial   |
-| Admin ops         | ✅     | 46+ pages, dispatch, CRM, finance                  |
-| Driver mobile     | ⚠️     | 72% — field ops work; EAS/Firebase prod ops needed |
-| Customer mobile   | ⚠️     | 62% — core flows; store assets pending             |
-| Production cert   | ❌     | See `PRODUCTION_READINESS_REPORT.md`               |
+| Area            | Status | Notes                                              |
+| --------------- | ------ | -------------------------------------------------- |
+| Retail booking  | ✅     | Website + Stripe; webhook required in prod         |
+| Customer portal | ✅     | `apps/customer/` — tracking map gap remains        |
+| Merchant portal | ✅     | Core B2B flows live; NET batch invoicing partial   |
+| Admin ops       | ✅     | 46+ pages, dispatch, CRM, finance                  |
+| Driver mobile   | ⚠️     | 72% — field ops work; EAS/Firebase prod ops needed |
+| Customer mobile | ⚠️     | 62% — core flows; store assets pending             |
+| Production cert | ❌     | See `PRODUCTION_READINESS_REPORT.md`               |
 
 ---
 
@@ -280,7 +279,7 @@ _Design specification with implementation status. Platform is **not yet producti
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,6 +1,5 @@
 # Fleetbase (upstream vendor)
 
-
 **Type:** README
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -14,10 +13,10 @@ This directory is the **logical vendor reference** for Fleetbase in the Porterch
 
 ## Why two paths?
 
-| Path | Purpose |
-| ---- | ------- |
+| Path                | Purpose                                             |
+| ------------------- | --------------------------------------------------- |
 | `vendor/fleetbase/` | Documentation anchor — external upstream dependency |
-| `apps/fleetbase/` | Actual clone used by Docker Compose |
+| `apps/fleetbase/`   | Actual clone used by Docker Compose                 |
 
 ---
 
@@ -32,22 +31,22 @@ This directory is the **logical vendor reference** for Fleetbase in the Porterch
 
 ## Do not modify
 
-| Directory | Reason |
-| --------- | ------ |
-| `apps/fleetbase/api/` | Laravel shell |
-| `apps/fleetbase/console/` | Ember console |
-| `apps/fleetbase/packages/` | Upstream submodules |
-| `apps/fleetbase/docker/` | Upstream Docker build |
+| Directory                  | Reason                |
+| -------------------------- | --------------------- |
+| `apps/fleetbase/api/`      | Laravel shell         |
+| `apps/fleetbase/console/`  | Ember console         |
+| `apps/fleetbase/packages/` | Upstream submodules   |
+| `apps/fleetbase/docker/`   | Upstream Docker build |
 
 ---
 
 ## Safe Porterchain touchpoints
 
-| Location | Allowed change |
-| -------- | -------------- |
+| Location                                                   | Allowed change               |
+| ---------------------------------------------------------- | ---------------------------- |
 | `infrastructure/docker/fleetbase.porterchain.override.yml` | Port mappings, env overrides |
-| `env/fleetbase.env.example` | Porterchain env template |
-| `porterchain-bridge` extension (future) | SSO + custom routes |
+| `env/fleetbase.env.example`                                | Porterchain env template     |
+| `porterchain-bridge` extension (future)                    | SSO + custom routes          |
 
 ---
 
@@ -63,17 +62,17 @@ pnpm docker:fleetbase:verify
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [FLEETBASE_INSTALL.md](../../FLEETBASE_INSTALL.md) | Install runbook |
-| [FLEETBASE_INTEGRATION.md](../../FLEETBASE_INTEGRATION.md) | Bridge architecture |
+| Document                                                   | Purpose                          |
+| ---------------------------------------------------------- | -------------------------------- |
+| [FLEETBASE_INSTALL.md](../../FLEETBASE_INSTALL.md)         | Install runbook                  |
+| [FLEETBASE_INTEGRATION.md](../../FLEETBASE_INTEGRATION.md) | Bridge architecture              |
 | [FLEETBASE_INTEGRATION.md](../../FLEETBASE_INTEGRATION.md) | Porterchain integration overview |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [../../masterrule.md](../../masterrule.md) | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout |
-
+| Document                                                       | Role              |
+| -------------------------------------------------------------- | ----------------- |
+| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
+| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

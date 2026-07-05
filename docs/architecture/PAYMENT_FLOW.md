@@ -1,6 +1,5 @@
 # Payment Flow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -12,15 +11,15 @@
 
 ## Retail Payment Path
 
-| Step | Component |
-| ---- | --------- |
-| Start | `PaymentService.start_payment()` — creates `Payment` PROCESSING, Stripe session |
-| Redirect | Browser → Stripe hosted checkout (`checkout_url`) |
-| Webhook | `POST /webhooks/stripe` — **only trusted payment completion signal** |
-| Verify | `stripe.Webhook.construct_event` + idempotency `stripe:{event_id}` |
+| Step     | Component                                                                             |
+| -------- | ------------------------------------------------------------------------------------- |
+| Start    | `PaymentService.start_payment()` — creates `Payment` PROCESSING, Stripe session       |
+| Redirect | Browser → Stripe hosted checkout (`checkout_url`)                                     |
+| Webhook  | `POST /webhooks/stripe` — **only trusted payment completion signal**                  |
+| Verify   | `stripe.Webhook.construct_event` + idempotency `stripe:{event_id}`                    |
 | Complete | `mark_succeeded()` → `BookingConfirmationService.complete_payment_and_create_order()` |
-| Events | `payment.succeeded`, `receipt.generated`, `invoice.created` |
-| Billing | Worker `billing` queue → `SettlementService` ledger entry |
+| Events   | `payment.succeeded`, `receipt.generated`, `invoice.created`                           |
+| Billing  | Worker `billing` queue → `SettlementService` ledger entry                             |
 
 ## Failure Paths
 
@@ -72,7 +71,7 @@ See [plantuml/payment_flow.puml](./plantuml/payment_flow.puml)
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

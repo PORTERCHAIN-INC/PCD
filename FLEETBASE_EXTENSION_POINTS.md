@@ -1,6 +1,5 @@
 # Fleetbase Extension Points — Porterchain Guide
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -78,11 +77,11 @@ porterchain-bridge/
 
 ### 2. Porterchain webhook consumer ✅ **Implemented**
 
-| Location | `apps/api/.../routers/webhooks.py` |
-| -------- | ---------------------------------- |
-| Route | `POST /webhooks/fleetbase` |
-| Verify | HMAC via `FLEETBASE_WEBHOOK_SECRET` |
-| Process | `fleetbase_engine/WebhookProcessor` |
+| Location | `apps/api/.../routers/webhooks.py`  |
+| -------- | ----------------------------------- |
+| Route    | `POST /webhooks/fleetbase`          |
+| Verify   | HMAC via `FLEETBASE_WEBHOOK_SECRET` |
+| Process  | `fleetbase_engine/WebhookProcessor` |
 
 Configure endpoint URL in Fleetbase dev console — no Fleetbase code change required.
 
@@ -292,13 +291,13 @@ If you modify Fleetbase packages, you must comply with AGPL source distribution 
 
 ## Implementation status (July 2026)
 
-| Phase | Deliverable | Status |
-| ----- | ----------- | ------ |
-| **Now** | `v1` API bridge (`POST /v1/orders`, drivers, vehicles) | ✅ Production |
-| **Now** | Fleetbase webhook → Porterchain handler | ✅ Implemented |
-| **Now** | Driver/vehicle outbound sync on admin approval | ✅ Implemented |
-| **Next** | `porterchain-bridge` PHP extension (SSO + tailored payloads) | ⚠️ SSO client exists; extension deploy needed |
-| **Future** | Custom order config for retail vs B2B | Roadmap |
+| Phase      | Deliverable                                                  | Status                                        |
+| ---------- | ------------------------------------------------------------ | --------------------------------------------- |
+| **Now**    | `v1` API bridge (`POST /v1/orders`, drivers, vehicles)       | ✅ Production                                 |
+| **Now**    | Fleetbase webhook → Porterchain handler                      | ✅ Implemented                                |
+| **Now**    | Driver/vehicle outbound sync on admin approval               | ✅ Implemented                                |
+| **Next**   | `porterchain-bridge` PHP extension (SSO + tailored payloads) | ⚠️ SSO client exists; extension deploy needed |
+| **Future** | Custom order config for retail vs B2B                        | Roadmap                                       |
 
 ---
 
@@ -308,11 +307,12 @@ If you modify Fleetbase packages, you must comply with AGPL source distribution 
 - [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)
 - [EVENT_CATALOG.md](./EVENT_CATALOG.md)
 - [FLEETBASE_INSTALL.md](./FLEETBASE_INSTALL.md)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

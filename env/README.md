@@ -1,29 +1,27 @@
 # Porterchain environment variables
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 Copy the relevant template(s) to a local `.env` file. **Never commit real secrets.**
 
 ## Quick start
 
-| Service                  | Template                        | Copy to                                        |
-| ------------------------ | ------------------------------- | ---------------------------------------------- |
-| Website                  | `website.env.example`           | `website/.env.local`                           |
-| Porterchain API          | `api.env.example`               | `apps/api/.env`                                |
-| Worker                   | `worker.env.example`            | `apps/worker/.env`                             |
-| Admin portal             | `admin.env.example`             | `apps/admin/.env.local`                        |
-| Merchant portal          | `merchant-portal.env.example`   | `apps/merchant-portal/.env.local`              |
-| Customer portal          | `customer-portal.env.example`   | `apps/customer/.env.local`                     |
-| Driver portal            | `driver-portal.env.example`     | `apps/driver-portal/.env.local`                |
-| Driver mobile app        | `mobile-driver.env.example`     | `apps/mobile-driver/.env`                      |
-| Customer mobile app      | `apps/mobile-customer/.env.example` | `apps/mobile-customer/.env`                |
-| Fleetbase / Docker stack | `fleetbase.env.example`         | `apps/fleetbase/api/.env` or Docker `env_file` |
-| Full local stack         | `compose.env.example`           | `.env` at repo root (Docker Compose)           |
-| Production (droplet)     | `production.env.example`        | `/opt/porterchain/.env` on server              |
+| Service                  | Template                            | Copy to                                        |
+| ------------------------ | ----------------------------------- | ---------------------------------------------- |
+| Website                  | `website.env.example`               | `website/.env.local`                           |
+| Porterchain API          | `api.env.example`                   | `apps/api/.env`                                |
+| Worker                   | `worker.env.example`                | `apps/worker/.env`                             |
+| Admin portal             | `admin.env.example`                 | `apps/admin/.env.local`                        |
+| Merchant portal          | `merchant-portal.env.example`       | `apps/merchant-portal/.env.local`              |
+| Customer portal          | `customer-portal.env.example`       | `apps/customer/.env.local`                     |
+| Driver portal            | `driver-portal.env.example`         | `apps/driver-portal/.env.local`                |
+| Driver mobile app        | `mobile-driver.env.example`         | `apps/mobile-driver/.env`                      |
+| Customer mobile app      | `apps/mobile-customer/.env.example` | `apps/mobile-customer/.env`                    |
+| Fleetbase / Docker stack | `fleetbase.env.example`             | `apps/fleetbase/api/.env` or Docker `env_file` |
+| Full local stack         | `compose.env.example`               | `.env` at repo root (Docker Compose)           |
+| Production (droplet)     | `production.env.example`            | `/opt/porterchain/.env` on server              |
 
 ```bash
 # Minimum local setup
@@ -74,11 +72,12 @@ In each `.env.example`, variables are tagged:
 - **REQUIRED** — service will not work without it
 - **OPTIONAL** — feature flags, overrides, dev convenience
 - **PRODUCTION** — required only in prod
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../masterrule.md) | Architecture SSOT |
+| Document                                      | Role              |
+| --------------------------------------------- | ----------------- |
+| [masterrule.md](../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../CTO_AUDIT_REPORT.md) | Doc vs code audit |

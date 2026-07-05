@@ -12,21 +12,21 @@
 
 The target logical architecture **matches implementation**. Most "engines" remain **modules inside `apps/api/`**, not separate deployable services — by design for the current monolith phase.
 
-| Layer | June 2026 report | July 2026 status |
-| ----- | ---------------- | ---------------- |
-| Website | ✅ Implemented | ✅ Active `:3000` |
-| Customer portal | ⚠️ Website route only | ✅ **`apps/customer/` :3004** (62% readiness) |
-| Merchant portal | ✅ Implemented | ✅ Active `:3001` |
-| Admin portal | ✅ Implemented | ✅ Active `:3002` (Porterchain Next.js, not Fleetbase Ember) |
-| Porterchain API | ✅ Orchestrator | ✅ `:8001` — modular `*_engine/` monolith |
-| Event bus | ✅ Implemented | ✅ `services/event-bus/` + `apps/worker/` |
-| Fleetbase adapter | ✅ Implemented | ✅ Sole HTTP boundary |
-| Fleetbase core | ✅ Docker stack | ✅ `:8000` / console `:4200` |
-| Driver mobile | ❌ Placeholder | ✅ **`apps/mobile-driver/`** (72% readiness) |
-| Driver web | ⚠️ Partial | ✅ `apps/driver-portal/` :3003 |
-| Mobile customer | — | ✅ **`apps/mobile-customer/`** (62% readiness) |
-| Billing / Notification | ⚠️ Embedded modules | ⚠️ Still embedded + worker queues (not separate services) |
-| Pricing engine | ⚠️ Library + client dual path | ⚠️ `services/pricing-engine/` + website client preview |
+| Layer                  | June 2026 report              | July 2026 status                                             |
+| ---------------------- | ----------------------------- | ------------------------------------------------------------ |
+| Website                | ✅ Implemented                | ✅ Active `:3000`                                            |
+| Customer portal        | ⚠️ Website route only         | ✅ **`apps/customer/` :3004** (62% readiness)                |
+| Merchant portal        | ✅ Implemented                | ✅ Active `:3001`                                            |
+| Admin portal           | ✅ Implemented                | ✅ Active `:3002` (Porterchain Next.js, not Fleetbase Ember) |
+| Porterchain API        | ✅ Orchestrator               | ✅ `:8001` — modular `*_engine/` monolith                    |
+| Event bus              | ✅ Implemented                | ✅ `services/event-bus/` + `apps/worker/`                    |
+| Fleetbase adapter      | ✅ Implemented                | ✅ Sole HTTP boundary                                        |
+| Fleetbase core         | ✅ Docker stack               | ✅ `:8000` / console `:4200`                                 |
+| Driver mobile          | ❌ Placeholder                | ✅ **`apps/mobile-driver/`** (72% readiness)                 |
+| Driver web             | ⚠️ Partial                    | ✅ `apps/driver-portal/` :3003                               |
+| Mobile customer        | —                             | ✅ **`apps/mobile-customer/`** (62% readiness)               |
+| Billing / Notification | ⚠️ Embedded modules           | ⚠️ Still embedded + worker queues (not separate services)    |
+| Pricing engine         | ⚠️ Library + client dual path | ⚠️ `services/pricing-engine/` + website client preview       |
 
 **Overall alignment:** ~**90%** functional (up from ~75%) — remaining gaps are production hardening and layer discipline, not missing apps.
 
@@ -72,13 +72,13 @@ Fleetbase Adapter → Fleetbase Core
 
 ## Evidence index
 
-| Topic | Path |
-| ----- | ---- |
-| Architecture rules | `masterrule.md` |
-| Canonical diagram | `docs/architecture/SYSTEM_ARCHITECTURE.md` |
-| Ports | `PORT_CONFIGURATION.md` |
-| Module status | `MODULE_SCORECARD.md` |
-| Apps | `apps/*`, `website/` |
+| Topic              | Path                                       |
+| ------------------ | ------------------------------------------ |
+| Architecture rules | `masterrule.md`                            |
+| Canonical diagram  | `docs/architecture/SYSTEM_ARCHITECTURE.md` |
+| Ports              | `PORT_CONFIGURATION.md`                    |
+| Module status      | `MODULE_SCORECARD.md`                      |
+| Apps               | `apps/*`, `website/`                       |
 
 ---
 

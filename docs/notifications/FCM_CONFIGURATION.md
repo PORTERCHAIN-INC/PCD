@@ -1,6 +1,5 @@
 # FCM Configuration
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -17,24 +16,24 @@ Porterchain uses **Firebase Admin SDK** (`firebase-admin`) inside the Notificati
 
 ## Supported Platforms
 
-| Platform | Client | Token registration |
-| -------- | ------ | ------------------ |
-| Android | Driver mobile (Expo) | `POST /v1/notifications/devices/register` |
-| iOS | Driver / customer mobile (Expo) | Same |
-| Web Push | Admin / merchant / customer (when wired) | Same + VAPID |
+| Platform | Client                                   | Token registration                        |
+| -------- | ---------------------------------------- | ----------------------------------------- |
+| Android  | Driver mobile (Expo)                     | `POST /v1/notifications/devices/register` |
+| iOS      | Driver / customer mobile (Expo)          | Same                                      |
+| Web Push | Admin / merchant / customer (when wired) | Same + VAPID                              |
 
 Push resolves tokens from `notification_devices` when no explicit token is passed in the delivery payload.
 
 ## Environment Variables
 
-| Variable | Required | Description |
-| -------- | -------- | ----------- |
-| `FIREBASE_PROJECT_ID` | Yes (prod) | GCP Firebase project ID |
-| `FIREBASE_CREDENTIALS_JSON` | Yes (prod) | Service account JSON inline |
-| `FIREBASE_CREDENTIALS_PATH` | Alt | Path to service account file |
-| `FIREBASE_WEB_VAPID_KEY` | Web push | VAPID public key for browser clients |
-| `PORTERCHAIN_PUSH_ENABLED` | Yes | Master toggle — when false, push is log-only |
-| `PORTERCHAIN_PUSH_SEND` | Yes | When false, validate but do not call FCM |
+| Variable                    | Required   | Description                                  |
+| --------------------------- | ---------- | -------------------------------------------- |
+| `FIREBASE_PROJECT_ID`       | Yes (prod) | GCP Firebase project ID                      |
+| `FIREBASE_CREDENTIALS_JSON` | Yes (prod) | Service account JSON inline                  |
+| `FIREBASE_CREDENTIALS_PATH` | Alt        | Path to service account file                 |
+| `FIREBASE_WEB_VAPID_KEY`    | Web push   | VAPID public key for browser clients         |
+| `PORTERCHAIN_PUSH_ENABLED`  | Yes        | Master toggle — when false, push is log-only |
+| `PORTERCHAIN_PUSH_SEND`     | Yes        | When false, validate but do not call FCM     |
 
 Aliases in `porterchain_shared/config/settings.py`: `push_enabled`, `push_send`.
 
@@ -48,12 +47,12 @@ Aliases in `porterchain_shared/config/settings.py`: `push_enabled`, `push_send`.
 
 ## Code Touchpoints
 
-| File | Role |
-| ---- | ---- |
-| `notification_engine/fcm_service.py` | Initialize Admin SDK, send to token(s), invalidate bad tokens |
-| `notification_engine/delivery_service.py` | Calls FCMService for `channel=push` |
-| `notification_engine/device_service.py` | Token storage and invalidation |
-| `shared/python/porterchain_shared/config/settings.py` | Reads env vars |
+| File                                                  | Role                                                          |
+| ----------------------------------------------------- | ------------------------------------------------------------- |
+| `notification_engine/fcm_service.py`                  | Initialize Admin SDK, send to token(s), invalidate bad tokens |
+| `notification_engine/delivery_service.py`             | Calls FCMService for `channel=push`                           |
+| `notification_engine/device_service.py`               | Token storage and invalidation                                |
+| `shared/python/porterchain_shared/config/settings.py` | Reads env vars                                                |
 
 ## Security
 
@@ -78,11 +77,12 @@ push (log-only): token=ExponentPush… title=Driver assigned
 - [ ] Device registers via `POST /v1/notifications/devices/register`
 - [ ] Test push appears on physical device
 - [ ] Invalid token removed from `notification_devices`
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

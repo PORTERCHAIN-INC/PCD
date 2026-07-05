@@ -1,6 +1,5 @@
 # Merchant Portal — Architecture Report
 
-
 **Type:** REPORT
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -48,29 +47,29 @@ Event Bus (`platform/bus.py` → `porterchain_event_bus`)
 
 ## Portal structure
 
-| Route | Client | Primary service |
-| ----- | ------ | --------------- |
-| `/dashboard` | `DashboardClient` | `MerchantDashboardService` |
-| `/book` | `BookDeliveryClient` | `MerchantBookingFlowService` + `MerchantBookingService` |
-| `/bulk` | `bulk/page` | `MerchantBulkService` |
-| `/orders` | `orders/page` | `MerchantOrdersService` |
-| `/orders/[id]` | `Order360View` | `MerchantOrdersService` + `MerchantTrackingService` |
-| `/track` | `track/page` | `MerchantTrackingService` |
-| `/billing` | `BillingClient` | `MerchantBillingService` |
-| `/reports` | `ReportsClient` | `MerchantReportsService` |
-| `/api` | `IntegrationsClient` | `MerchantIntegrationsService` + `gateway_engine` |
-| `/team` | `TeamClient` | `MerchantTeamService` |
-| `/settings` | `SettingsClient` | `MerchantSettingsService` + `MerchantSupportBridgeService` |
+| Route          | Client               | Primary service                                            |
+| -------------- | -------------------- | ---------------------------------------------------------- |
+| `/dashboard`   | `DashboardClient`    | `MerchantDashboardService`                                 |
+| `/book`        | `BookDeliveryClient` | `MerchantBookingFlowService` + `MerchantBookingService`    |
+| `/bulk`        | `bulk/page`          | `MerchantBulkService`                                      |
+| `/orders`      | `orders/page`        | `MerchantOrdersService`                                    |
+| `/orders/[id]` | `Order360View`       | `MerchantOrdersService` + `MerchantTrackingService`        |
+| `/track`       | `track/page`         | `MerchantTrackingService`                                  |
+| `/billing`     | `BillingClient`      | `MerchantBillingService`                                   |
+| `/reports`     | `ReportsClient`      | `MerchantReportsService`                                   |
+| `/api`         | `IntegrationsClient` | `MerchantIntegrationsService` + `gateway_engine`           |
+| `/team`        | `TeamClient`         | `MerchantTeamService`                                      |
+| `/settings`    | `SettingsClient`     | `MerchantSettingsService` + `MerchantSupportBridgeService` |
 
 ---
 
 ## Authentication & RBAC
 
-| Surface | Auth | Authorization |
-| ------- | ---- | ------------- |
-| Portal | Clerk Bearer + org/role headers | `MerchantContext` + `require_module()` |
-| Programmatic API | `X-Api-Key` | `shipments:read` / `shipments:write` + gateway rate limits |
-| Notifications WS | Clerk JWT + `org_id` query | `notification_engine/principal.py` |
+| Surface          | Auth                            | Authorization                                              |
+| ---------------- | ------------------------------- | ---------------------------------------------------------- |
+| Portal           | Clerk Bearer + org/role headers | `MerchantContext` + `require_module()`                     |
+| Programmatic API | `X-Api-Key`                     | `shipments:read` / `shipments:write` + gateway rate limits |
+| Notifications WS | Clerk JWT + `org_id` query      | `notification_engine/principal.py`                         |
 
 **RBAC source:** `merchant_engine/rbac.py` → `MODULE_PERMISSIONS`
 
@@ -112,13 +111,13 @@ MerchantTrackingService
 
 ## Billing / reporting / integrations
 
-| Flow | Path |
-| ---- | ---- |
-| Billing | `MerchantBillingService` → `billing_engine/merchant_service.py` (NET terms) |
-| Reports | `MerchantReportsService` → SQL aggregates; saved/scheduled in profile JSON |
-| Integrations | `MerchantIntegrationsService` → keys/webhooks + `gateway_engine` usage logs |
-| Webhooks | `order.*` fanout → worker → `webhook_delivery_service` (HMAC) |
-| Support/claims | `MerchantSupportBridgeService` → admin services filtered by `merchant_id` |
+| Flow           | Path                                                                        |
+| -------------- | --------------------------------------------------------------------------- |
+| Billing        | `MerchantBillingService` → `billing_engine/merchant_service.py` (NET terms) |
+| Reports        | `MerchantReportsService` → SQL aggregates; saved/scheduled in profile JSON  |
+| Integrations   | `MerchantIntegrationsService` → keys/webhooks + `gateway_engine` usage logs |
+| Webhooks       | `order.*` fanout → worker → `webhook_delivery_service` (HMAC)               |
+| Support/claims | `MerchantSupportBridgeService` → admin services filtered by `merchant_id`   |
 
 ---
 
@@ -135,31 +134,32 @@ useMerchantRealtime
 
 ## masterrule compliance
 
-| Rule | Status |
-| ---- | ------ |
-| UI → API only | ✅ |
-| Logic in `*_engine` services | ✅ |
-| Fleetbase via adapter only | ✅ |
-| Pricing via pricing_engine | ✅ |
-| Single RBAC source | ✅ |
-| Event bus for dispatch side effects | ✅ |
-| Cancel sync direct (G-M010) | ⚠ |
+| Rule                                | Status |
+| ----------------------------------- | ------ |
+| UI → API only                       | ✅     |
+| Logic in `*_engine` services        | ✅     |
+| Fleetbase via adapter only          | ✅     |
+| Pricing via pricing_engine          | ✅     |
+| Single RBAC source                  | ✅     |
+| Event bus for dispatch side effects | ✅     |
+| Cancel sync direct (G-M010)         | ⚠      |
 
 ---
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [MERCHANT_PRODUCTION_READINESS.md](./MERCHANT_PRODUCTION_READINESS.md) | Readiness and open gaps |
-| [docs/archive/MERCHANT_COMPONENT_MATRIX.md](./docs/archive/MERCHANT_COMPONENT_MATRIX.md) | Historical UI ↔ API mapping |
+| Document                                                                                     | Purpose                       |
+| -------------------------------------------------------------------------------------------- | ----------------------------- |
+| [MERCHANT_PRODUCTION_READINESS.md](./MERCHANT_PRODUCTION_READINESS.md)                       | Readiness and open gaps       |
+| [docs/archive/MERCHANT_COMPONENT_MATRIX.md](./docs/archive/MERCHANT_COMPONENT_MATRIX.md)     | Historical UI ↔ API mapping   |
 | [docs/archive/MERCHANT_INTEGRATION_MATRIX.md](./docs/archive/MERCHANT_INTEGRATION_MATRIX.md) | Historical endpoint inventory |
-| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Platform certification |
+| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md)                           | Platform certification        |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

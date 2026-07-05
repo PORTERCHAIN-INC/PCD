@@ -1,10 +1,8 @@
 # Porterchain Admin & Operations Platform
 
-
 **Type:** README
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 Internal control tower for Porterchain staff. Next.js 16 app on **port 3002**.
 
@@ -44,24 +42,24 @@ Fleetbase adapter (server-side only — never called from this UI)
 
 ## Modules
 
-| Module | Route prefix | Purpose |
-| ------ | ------------ | ------- |
-| Dashboard | `/dashboard` | KPIs, ops overview |
-| Merchants | `/merchants` | Merchant onboarding and management |
-| Drivers | `/drivers` | Driver roster and detail |
-| Operations | `/operations` | Control tower — dispatch and ops workflows |
-| Live Map | `/live-map`, `/map` | Fleet visualization |
-| Orders | `/orders` | Order management |
-| Booking drafts | `/booking-drafts` | Draft reconciliation |
-| Claims | `/claims` | Claims workflow |
-| Pricing | `/pricing` | Rate configuration |
-| Finance | `/finance` | Invoices, payouts |
-| Support | `/support` | Ticket management |
-| Notifications | `/notifications` | Admin notification tools |
-| Settings | `/settings` | Staff, system config |
-| System health | `/system-health` | Diagnostics |
+| Module         | Route prefix        | Purpose                                    |
+| -------------- | ------------------- | ------------------------------------------ |
+| Dashboard      | `/dashboard`        | KPIs, ops overview                         |
+| Merchants      | `/merchants`        | Merchant onboarding and management         |
+| Drivers        | `/drivers`          | Driver roster and detail                   |
+| Operations     | `/operations`       | Control tower — dispatch and ops workflows |
+| Live Map       | `/live-map`, `/map` | Fleet visualization                        |
+| Orders         | `/orders`           | Order management                           |
+| Booking drafts | `/booking-drafts`   | Draft reconciliation                       |
+| Claims         | `/claims`           | Claims workflow                            |
+| Pricing        | `/pricing`          | Rate configuration                         |
+| Finance        | `/finance`          | Invoices, payouts                          |
+| Support        | `/support`          | Ticket management                          |
+| Notifications  | `/notifications`    | Admin notification tools                   |
+| Settings       | `/settings`         | Staff, system config                       |
+| System health  | `/system-health`    | Diagnostics                                |
 
-*Phase 2 deferred:* CRM sales pipeline UI, Route Center, BI reports center — use Fleetbase console + module dashboards.
+_Phase 2 deferred:_ CRM sales pipeline UI, Route Center, BI reports center — use Fleetbase console + module dashboards.
 
 ---
 
@@ -69,12 +67,12 @@ Fleetbase adapter (server-side only — never called from this UI)
 
 Copy from `env/admin.env.example`:
 
-| Variable | Purpose |
-| -------- | ------- |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk auth |
-| `CLERK_SECRET_KEY` | Server-side Clerk |
-| `NEXT_PUBLIC_PORTERCHAIN_API_URL` | API base (`http://localhost:8001`) |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Live map embeds |
+| Variable                            | Purpose                            |
+| ----------------------------------- | ---------------------------------- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk auth                         |
+| `CLERK_SECRET_KEY`                  | Server-side Clerk                  |
+| `NEXT_PUBLIC_PORTERCHAIN_API_URL`   | API base (`http://localhost:8001`) |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`   | Live map embeds                    |
 
 See [ENVIRONMENT_VARIABLES.md](../../ENVIRONMENT_VARIABLES.md) · [PORT_CONFIGURATION.md](../../PORT_CONFIGURATION.md).
 
@@ -82,16 +80,16 @@ See [ENVIRONMENT_VARIABLES.md](../../ENVIRONMENT_VARIABLES.md) · [PORT_CONFIGUR
 
 ## Related Documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [../../RBAC.md](../../RBAC.md) | Role permissions |
+| Document                                                                     | Purpose            |
+| ---------------------------------------------------------------------------- | ------------------ |
+| [../../RBAC.md](../../RBAC.md)                                               | Role permissions   |
 | [../../PRODUCTION_READINESS_REPORT.md](../../PRODUCTION_READINESS_REPORT.md) | Platform readiness |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [../../masterrule.md](../../masterrule.md) | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout |
-
+| Document                                                       | Role              |
+| -------------------------------------------------------------- | ----------------- |
+| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
+| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

@@ -36,12 +36,12 @@
 
 ### Porterchain bridge
 
-| Endpoint | Auth | Status |
-| -------- | ---- | ------ |
-| `POST /v1/orders` (+ drivers, vehicles, dispatch) | `flb_live_*` API key | ✅ **Production** — used by `fleetbase-adapter` |
-| `POST /int/v1/porterchain/sso/exchange` | Service key / extension | ⚠️ SSO — requires `porterchain-bridge` Fleetbase extension |
-| `POST /int/v1/porterchain/sso/users/{uuid}/permissions` | Service key | ⚠️ SSO permission sync |
-| `POST /int/v1/porterchain/orders` | Service key | Optional — tailored payloads; v1 API used today |
+| Endpoint                                                | Auth                    | Status                                                     |
+| ------------------------------------------------------- | ----------------------- | ---------------------------------------------------------- |
+| `POST /v1/orders` (+ drivers, vehicles, dispatch)       | `flb_live_*` API key    | ✅ **Production** — used by `fleetbase-adapter`            |
+| `POST /int/v1/porterchain/sso/exchange`                 | Service key / extension | ⚠️ SSO — requires `porterchain-bridge` Fleetbase extension |
+| `POST /int/v1/porterchain/sso/users/{uuid}/permissions` | Service key             | ⚠️ SSO permission sync                                     |
+| `POST /int/v1/porterchain/orders`                       | Service key             | Optional — tailored payloads; v1 API used today            |
 
 **Porterchain inbound:** `POST http://localhost:8001/webhooks/fleetbase` (Fleetbase → Porterchain status sync)
 
@@ -309,16 +309,16 @@ Middleware: `fleetbase.protected` + location transform + optional driver session
 
 ## Porterchain → Fleetbase integration map
 
-| Porterchain trigger | Fleetbase API |
-| ------------------- | ------------- |
-| `ORDER_DISPATCH_READY` | `POST /v1/orders` |
-| Admin approves driver | `POST /v1/drivers` |
-| Admin approves vehicle | `POST /v1/vehicles` |
-| Assign driver | `PATCH /v1/orders/{id}/dispatch` |
-| Customer tracking | `GET /v1/orders/{id}/tracker`, `/eta` |
-| Driver GPS (via bridge) | `POST /v1/drivers/{id}/track` |
-| POD complete | `POST /v1/orders/{id}/complete` + capture endpoints |
-| Ops console SSO | `POST /int/v1/porterchain/sso/exchange` (extension) |
+| Porterchain trigger     | Fleetbase API                                       |
+| ----------------------- | --------------------------------------------------- |
+| `ORDER_DISPATCH_READY`  | `POST /v1/orders`                                   |
+| Admin approves driver   | `POST /v1/drivers`                                  |
+| Admin approves vehicle  | `POST /v1/vehicles`                                 |
+| Assign driver           | `PATCH /v1/orders/{id}/dispatch`                    |
+| Customer tracking       | `GET /v1/orders/{id}/tracker`, `/eta`               |
+| Driver GPS (via bridge) | `POST /v1/drivers/{id}/track`                       |
+| POD complete            | `POST /v1/orders/{id}/complete` + capture endpoints |
+| Ops console SSO         | `POST /int/v1/porterchain/sso/exchange` (extension) |
 
 ### Porterchain env vars
 

@@ -114,15 +114,15 @@ DriverFleetbaseBridge ───► FleetbaseAdapter (GPS, POD, route, online tog
 
 ## Service → External adapter dependencies
 
-| Service                      | Adapter               | External system         |
-| ---------------------------- | --------------------- | ----------------------- |
-| `FleetbaseIntegrationBridge` | `FleetbaseAdapter`    | Fleetbase `:8000`       |
-| `PaymentService`             | `stripe_service`      | Stripe Checkout         |
-| `QuoteService`               | `porterchain_pricing` | Pricing library (local) |
-| `SsoService`                 | `FleetbaseSsoClient`  | Fleetbase SSO           |
+| Service                      | Adapter               | External system              |
+| ---------------------------- | --------------------- | ---------------------------- |
+| `FleetbaseIntegrationBridge` | `FleetbaseAdapter`    | Fleetbase `:8000`            |
+| `PaymentService`             | `stripe_service`      | Stripe Checkout              |
+| `QuoteService`               | `porterchain_pricing` | Pricing library (local)      |
+| `SsoService`                 | `FleetbaseSsoClient`  | Fleetbase SSO                |
 | `NotificationOrchestrator`   | worker queues         | SMTP, FCM push; SMS log-only |
 | `WebhookDeliveryService`     | HTTP client           | Merchant webhook endpoints   |
-| `TrackingService`            | Fleetbase adapter     | Fleetbase tracker API   |
+| `TrackingService`            | Fleetbase adapter     | Fleetbase tracker API        |
 
 ---
 
@@ -180,14 +180,14 @@ emit_event() [booking_engine/_core.py]
 
 ## Worker queue API (internal)
 
-| Queue      | Producer                      | Consumer                                      |
-| ---------- | ----------------------------- | --------------------------------------------- |
-| `BILLING`  | `payment.succeeded`           | `worker/processors/billing.py`                |
-| `EMAILS`   | `notification.queued`         | `worker/processors/notifications.py`          |
-| `SMS`      | `notification.queued`         | notifications processor                       |
-| `PUSH`     | `notification.queued`         | notifications processor                       |
+| Queue      | Producer                      | Consumer                                                   |
+| ---------- | ----------------------------- | ---------------------------------------------------------- |
+| `BILLING`  | `payment.succeeded`           | `worker/processors/billing.py`                             |
+| `EMAILS`   | `notification.queued`         | `worker/processors/notifications.py`                       |
+| `SMS`      | `notification.queued`         | notifications processor                                    |
+| `PUSH`     | `notification.queued`         | notifications processor                                    |
 | `WEBHOOKS` | `webhook.received`, `order.*` | `worker/processors/webhooks.py` + `WebhookDeliveryService` |
-| `DISPATCH` | —                             | `worker/processors/dispatch.py` (stub)        |
+| `DISPATCH` | —                             | `worker/processors/dispatch.py` (stub)                     |
 
 ---
 
@@ -215,9 +215,9 @@ emit_event() [booking_engine/_core.py]
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [API_FLOW_DIAGRAM.md](./API_FLOW_DIAGRAM.md) | Request flow diagrams |
+| Document                                                                     | Purpose                 |
+| ---------------------------------------------------------------------------- | ----------------------- |
+| [API_FLOW_DIAGRAM.md](./API_FLOW_DIAGRAM.md)                                 | Request flow diagrams   |
 | [docs/architecture/API_DEPENDENCY.md](./docs/architecture/API_DEPENDENCY.md) | Client matrix + mermaid |
-| [INTEGRATIONS.md](./INTEGRATIONS.md) | External integrations |
-| [EVENT_BUS.md](./EVENT_BUS.md) | Internal event bus |
+| [INTEGRATIONS.md](./INTEGRATIONS.md)                                         | External integrations   |
+| [EVENT_BUS.md](./EVENT_BUS.md)                                               | Internal event bus      |

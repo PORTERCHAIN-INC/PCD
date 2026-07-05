@@ -1,6 +1,5 @@
 # Porterchain Driver App — Connections & Integrations
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -12,15 +11,15 @@ App path: `apps/mobile-driver` · Stack: **Expo SDK 52** · **React Native 0.76*
 
 ## Summary
 
-| Integration                                             | Used?  | Notes                                                                 |
-| ------------------------------------------------------- | ------ | --------------------------------------------------------------------- |
-| **Porterchain API** (`EXPO_PUBLIC_API_URL`)             | Yes    | Auth, routes, stops, POD uploads, location                            |
-| **Google Maps SDK** (`EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`) | Yes    | Route map tiles via `react-native-maps`                               |
-| **Firebase / FCM**                                      | Yes    | `@react-native-firebase/messaging` — registers token via `/push/register` |
+| Integration                                             | Used?   | Notes                                                                        |
+| ------------------------------------------------------- | ------- | ---------------------------------------------------------------------------- |
+| **Porterchain API** (`EXPO_PUBLIC_API_URL`)             | Yes     | Auth, routes, stops, POD uploads, location                                   |
+| **Google Maps SDK** (`EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`) | Yes     | Route map tiles via `react-native-maps`                                      |
+| **Firebase / FCM**                                      | Yes     | `@react-native-firebase/messaging` — registers token via `/push/register`    |
 | **Push notifications**                                  | Partial | Implemented in app; production delivery requires Firebase credentials on API |
-| **Expo / EAS**                                          | Yes    | Cloud builds, project linking, optional OTA config (updates disabled) |
-| **App Store Connect**                                   | Yes    | iOS distribution via EAS Submit                                       |
-| **Apple Developer Program**                             | Yes    | Signing, bundle ID, TestFlight / App Store                            |
+| **Expo / EAS**                                          | Yes     | Cloud builds, project linking, optional OTA config (updates disabled)        |
+| **App Store Connect**                                   | Yes     | iOS distribution via EAS Submit                                              |
+| **Apple Developer Program**                             | Yes     | Signing, bundle ID, TestFlight / App Store                                   |
 
 ---
 
@@ -319,16 +318,16 @@ Location tracking does **not** work in Expo Go; use `npx expo run:ios` or an EAS
 
 ## Related docs & code
 
-| Resource              | Location                                                                          |
-| --------------------- | --------------------------------------------------------------------------------- |
-| App README            | `apps/mobile-driver/README.md`                                                    |
-| Env loader            | `src/config/env.ts`                                                               |
-| Expo config           | `app.config.ts`                                                                   |
-| EAS config            | `eas.json`                                                                        |
-| Deploy script         | `scripts/deploy-driver-appstore.sh`                                               |
-| API driver router    | `apps/api/src/porterchain_api/routers/driver.py` |
-| API auth / invites   | `apps/api/src/porterchain_api/` auth modules     |
-| Driver onboarding ops | `DRIVER-ONBOARDING-ARCHITECTURE.md`, `DRIVER-ONBOARDING-OPERATIONS.md`            |
+| Resource              | Location                                                               |
+| --------------------- | ---------------------------------------------------------------------- |
+| App README            | `apps/mobile-driver/README.md`                                         |
+| Env loader            | `src/config/env.ts`                                                    |
+| Expo config           | `app.config.ts`                                                        |
+| EAS config            | `eas.json`                                                             |
+| Deploy script         | `scripts/deploy-driver-appstore.sh`                                    |
+| API driver router     | `apps/api/src/porterchain_api/routers/driver.py`                       |
+| API auth / invites    | `apps/api/src/porterchain_api/` auth modules                           |
+| Driver onboarding ops | `DRIVER-ONBOARDING-ARCHITECTURE.md`, `DRIVER-ONBOARDING-OPERATIONS.md` |
 
 ---
 
@@ -337,8 +336,8 @@ _Last verified: 2026-07-04. Firebase FCM is integrated for push; auth and execut
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |
-| [OpenAPI](http://localhost:8001/docs) | OpenAPI (local) |
+| [OpenAPI](http://localhost:8001/docs)      | OpenAPI (local)   |

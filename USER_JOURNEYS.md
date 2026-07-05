@@ -1,10 +1,8 @@
 # Porterchain — User Journeys
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 ---
 
@@ -17,9 +15,9 @@
 | **Jordan** | Merchant ops user               | Merchant portal                              |
 | **Sam**    | Dispatcher                      | Admin / Fleetbase console                    |
 | **Riley**  | Driver partner                  | `apps/mobile-driver/` + driver web portal    |
-| **Casey**  | Support agent                   | Admin support module         |
-| **Taylor** | Sales rep                       | Admin CRM                    |
-| **Admin**  | Porterchain operations lead     | Admin (all modules)          |
+| **Casey**  | Support agent                   | Admin support module                         |
+| **Taylor** | Sales rep                       | Admin CRM                                    |
+| **Admin**  | Porterchain operations lead     | Admin (all modules)                          |
 
 ---
 
@@ -29,19 +27,19 @@
 
 Ship a furniture item across the GTA today without creating a business account.
 
-| Step | Touchpoint                                                    | Emotion        | System                      |
-| ---- | ------------------------------------------------------------- | -------------- | --------------------------- |
-| 1    | Lands on homepage                                             | Curious        | Marketing site              |
-| 2    | Fills booking widget (pickup, dropoff, van, weight, schedule) | Hopeful        | Quote API → `QUOTE`         |
-| 3    | Sees $89 estimate in 2 seconds                                | Delighted      | No login required           |
-| 4    | Clicks **Continue Booking**                                   | Committed      | —                           |
-| 5    | Enters email + phone                                          | Mild friction  | Lead capture                |
-| 6    | Clerk sign-up (Google or email)                               | Acceptable     | Account created             |
-| 7    | Stripe payment                                                | Trust-critical | `PAYMENT_PENDING`           |
-| 8    | Confirmation + dashboard redirect                             | Relieved       | `BOOKED`                    |
+| Step | Touchpoint                                                       | Emotion        | System                  |
+| ---- | ---------------------------------------------------------------- | -------------- | ----------------------- |
+| 1    | Lands on homepage                                                | Curious        | Marketing site          |
+| 2    | Fills booking widget (pickup, dropoff, van, weight, schedule)    | Hopeful        | Quote API → `QUOTE`     |
+| 3    | Sees $89 estimate in 2 seconds                                   | Delighted      | No login required       |
+| 4    | Clicks **Continue Booking**                                      | Committed      | —                       |
+| 5    | Enters email + phone                                             | Mild friction  | Lead capture            |
+| 6    | Clerk sign-up (Google or email)                                  | Acceptable     | Account created         |
+| 7    | Stripe payment                                                   | Trust-critical | `PAYMENT_PENDING`       |
+| 8    | Confirmation + dashboard redirect                                | Relieved       | `BOOKED`                |
 | 9    | Tracks shipment on dashboard (`apps/customer/` or website track) | In control     | Porterchain API polling |
-| 10   | Receives delivery + POD photo                                 | Satisfied      | `DELIVERED` → `CLOSED`      |
-| 11   | Downloads receipt                                             | Done           | Invoice PDF                 |
+| 10   | Receives delivery + POD photo                                    | Satisfied      | `DELIVERED` → `CLOSED`  |
+| 11   | Downloads receipt                                                | Done           | Invoice PDF             |
 
 **Pain points to design for:** Quote clarity, payment trust badges, proactive SMS on delays.
 
@@ -96,18 +94,18 @@ Ship a furniture item across the GTA today without creating a business account.
 
 ## Journey 5 — Riley (driver): single job day
 
-| Step | Action                       | State                         |
-| ---- | ---------------------------- | ----------------------------- |
-| 1    | Opens app; sees Today's Jobs | —                             |
+| Step | Action                       | State                                        |
+| ---- | ---------------------------- | -------------------------------------------- |
+| 1    | Opens app; sees Today's Jobs | —                                            |
 | 2    | New assignment notification  | `DRIVER_ASSIGNED` (push when FCM configured) |
-| 3    | Accepts job                  | `DRIVER_ACCEPTED`             |
-| 4    | Navigates to pickup          | `DRIVER_EN_ROUTE`             |
-| 5    | Arrives; confirms pickup     | `AT_PICKUP` → `PICKED_UP`     |
-| 6    | Drives to dropoff            | `IN_TRANSIT`                  |
-| 7    | Arrives at destination       | `AT_DESTINATION`              |
-| 8    | Customer signs; photo taken  | POD capture                   |
-| 9    | Marks delivered              | `DELIVERED` → `POD_COMPLETED` |
-| 10   | Views earnings in wallet     | Payout pending                |
+| 3    | Accepts job                  | `DRIVER_ACCEPTED`                            |
+| 4    | Navigates to pickup          | `DRIVER_EN_ROUTE`                            |
+| 5    | Arrives; confirms pickup     | `AT_PICKUP` → `PICKED_UP`                    |
+| 6    | Drives to dropoff            | `IN_TRANSIT`                                 |
+| 7    | Arrives at destination       | `AT_DESTINATION`                             |
+| 8    | Customer signs; photo taken  | POD capture                                  |
+| 9    | Marks delivered              | `DELIVERED` → `POD_COMPLETED`                |
+| 10   | Views earnings in wallet     | Payout pending                               |
 
 **Exception branch:** Customer unavailable → Riley reports exception → Support contacts Alex → reschedule or `FAILED`.
 
@@ -155,13 +153,13 @@ Ship a furniture item across the GTA today without creating a business account.
 
 ## Journey 9 — Merchant API integrator
 
-| Step | Action                                         |
-| ---- | ---------------------------------------------- |
-| 1    | Morgan requests API access (Developers module) |
-| 2    | Admin issues API keys + webhook URL            |
+| Step | Action                                                   |
+| ---- | -------------------------------------------------------- |
+| 1    | Morgan requests API access (Developers module)           |
+| 2    | Admin issues API keys + webhook URL                      |
 | 3    | ERP posts `POST /v1/merchant-api/shipments` with API key |
-| 4    | Porterchain creates order → Fleetbase          |
-| 5    | Webhook `shipment.delivered` → ERP updates     |
+| 4    | Porterchain creates order → Fleetbase                    |
+| 5    | Webhook `shipment.delivered` → ERP updates               |
 
 ---
 
@@ -183,11 +181,12 @@ Ship a furniture item across the GTA today without creating a business account.
 - [BUSINESS_WORKFLOW.md](./BUSINESS_WORKFLOW.md)
 - [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)
 - [SYSTEM_SEQUENCE_DIAGRAMS.md](./SYSTEM_SEQUENCE_DIAGRAMS.md)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

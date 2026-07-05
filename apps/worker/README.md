@@ -1,10 +1,8 @@
 # Porterchain Worker
 
-
 **Type:** README
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 Async background processor for the Porterchain event bus and task queues. Shares the API Python venv and database connection.
 
@@ -34,15 +32,15 @@ Each loop iteration:
 
 ## Queues
 
-| Queue | Processor | Purpose |
-| ----- | --------- | ------- |
-| `emails` | notifications | Transactional email |
-| `sms` | notifications | SMS delivery |
-| `push` | notifications | Firebase push |
-| `dispatch` | dispatch | Fleetbase dispatch sync |
-| `billing` | billing | Stripe reconciliation |
-| `reports` | (logged) | Scheduled reports — processor stub |
-| `webhooks` | webhooks | Outbound merchant webhooks |
+| Queue      | Processor     | Purpose                            |
+| ---------- | ------------- | ---------------------------------- |
+| `emails`   | notifications | Transactional email                |
+| `sms`      | notifications | SMS delivery                       |
+| `push`     | notifications | Firebase push                      |
+| `dispatch` | dispatch      | Fleetbase dispatch sync            |
+| `billing`  | billing       | Stripe reconciliation              |
+| `reports`  | (logged)      | Scheduled reports — processor stub |
+| `webhooks` | webhooks      | Outbound merchant webhooks         |
 
 Queue names: `shared/python/porterchain_shared/queue/names.py`
 
@@ -68,28 +66,28 @@ PYTHONPATH includes API `src`, `shared/python`, and service packages (see root `
 
 Uses `apps/api/.env` — same `DATABASE_URL`, Redis, Fleetbase, and Stripe settings as the API.
 
-| Variable | Notes |
-| -------- | ----- |
-| `DATABASE_URL` | PostgreSQL 16 |
-| `REDIS_URL` | Required in production |
-| `FLEETBASE_DISPATCH_BRIDGE` | Enables retry drain |
-| `APP_ENV` | `local` allows in-memory queue fallback |
+| Variable                    | Notes                                   |
+| --------------------------- | --------------------------------------- |
+| `DATABASE_URL`              | PostgreSQL 16                           |
+| `REDIS_URL`                 | Required in production                  |
+| `FLEETBASE_DISPATCH_BRIDGE` | Enables retry drain                     |
+| `APP_ENV`                   | `local` allows in-memory queue fallback |
 
 ---
 
 ## Related Documents
 
-| Document | Purpose |
-| -------- | ------- |
+| Document                                 | Purpose                |
+| ---------------------------------------- | ---------------------- |
 | [../../EVENT_BUS.md](../../EVENT_BUS.md) | Event bus architecture |
-| [../../RUNBOOK.md](../../RUNBOOK.md) | Ops runbook |
-| [../api/README.md](../api/README.md) | API setup |
+| [../../RUNBOOK.md](../../RUNBOOK.md)     | Ops runbook            |
+| [../api/README.md](../api/README.md)     | API setup              |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [../../masterrule.md](../../masterrule.md) | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout |
-
+| Document                                                       | Role              |
+| -------------------------------------------------------------- | ----------------- |
+| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
+| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

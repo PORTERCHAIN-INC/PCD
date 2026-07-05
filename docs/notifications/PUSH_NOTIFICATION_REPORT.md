@@ -1,6 +1,5 @@
 # Push Notification Report
 
-
 **Type:** REPORT
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -24,32 +23,32 @@ Porterchain had notification scaffolding (queues, worker, templates, handlers) b
 
 ## Delivered (July 2026) ✅
 
-| Deliverable | Evidence |
-| ----------- | -------- |
-| Enterprise models + migration | `notification_records`, `notification_devices`, `notification_preferences` |
-| `NotificationEngine.dispatch()` | `notification_engine/engine.py` |
-| `FCMService` (Firebase Admin SDK) | `notification_engine/fcm_service.py` |
-| `DeviceService` unified registration | `POST /v1/notifications/devices/register` |
-| Driver alias | `POST /driver-api/v1/push/register` → `DeviceService` |
-| `EventRouter` for 30+ domain events | `notification_engine/event_router.py` |
-| Retry scheduling | `NotificationEngine.schedule_retry()` |
-| Admin API + UI scaffold | `/v1/admin/notifications/*` |
-| In-app inbox + WebSocket bell | `GET /v1/notifications/inbox`, `WS /v1/notifications/ws` |
-| Template catalog (40+ keys) | `notification_engine/templates.py` |
-| Worker channel processors | `emails`, `sms` (log-only), `push` queues |
+| Deliverable                          | Evidence                                                                   |
+| ------------------------------------ | -------------------------------------------------------------------------- |
+| Enterprise models + migration        | `notification_records`, `notification_devices`, `notification_preferences` |
+| `NotificationEngine.dispatch()`      | `notification_engine/engine.py`                                            |
+| `FCMService` (Firebase Admin SDK)    | `notification_engine/fcm_service.py`                                       |
+| `DeviceService` unified registration | `POST /v1/notifications/devices/register`                                  |
+| Driver alias                         | `POST /driver-api/v1/push/register` → `DeviceService`                      |
+| `EventRouter` for 30+ domain events  | `notification_engine/event_router.py`                                      |
+| Retry scheduling                     | `NotificationEngine.schedule_retry()`                                      |
+| Admin API + UI scaffold              | `/v1/admin/notifications/*`                                                |
+| In-app inbox + WebSocket bell        | `GET /v1/notifications/inbox`, `WS /v1/notifications/ws`                   |
+| Template catalog (40+ keys)          | `notification_engine/templates.py`                                         |
+| Worker channel processors            | `emails`, `sms` (log-only), `push` queues                                  |
 
 ---
 
 ## Remaining Gaps (July 2026)
 
-| Area | Status |
-| ---- | ------ |
-| Production Firebase credentials | Required for real push in staging/prod |
-| SMS | Log-only — no Twilio |
-| `revoke-all` devices HTTP route | Service method exists; route not exposed |
-| Dedicated retry worker drain | Record-based retry fields; no background poller |
-| Merchant/customer web push clients | Endpoints ready; client wiring partial |
-| `quote.created`, `support.ticket_reply` | Templates exist; EventRouter not subscribed |
+| Area                                    | Status                                          |
+| --------------------------------------- | ----------------------------------------------- |
+| Production Firebase credentials         | Required for real push in staging/prod          |
+| SMS                                     | Log-only — no Twilio                            |
+| `revoke-all` devices HTTP route         | Service method exists; route not exposed        |
+| Dedicated retry worker drain            | Record-based retry fields; no background poller |
+| Merchant/customer web push clients      | Endpoints ready; client wiring partial          |
+| `quote.created`, `support.ticket_reply` | Templates exist; EventRouter not subscribed     |
 
 ---
 
@@ -88,11 +87,12 @@ Porterchain had notification scaffolding (queues, worker, templates, handlers) b
 - [ ] WebSocket bell updates on new in-app notification
 - [ ] Invalid FCM token deactivated in `notification_devices`
 - [ ] Run `pnpm validate:e2e:reports` → [NOTIFICATION_REPORT.md](../../NOTIFICATION_REPORT.md)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

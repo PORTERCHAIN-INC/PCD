@@ -1,10 +1,8 @@
 # Porterchain Customer Mobile App
 
-
 **Type:** README
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 Expo SDK 52 customer retail app. Calls **Porterchain API only** (`/v1/*` on `:8001`) — Fleetbase integration is server-side via adapter.
 
@@ -38,28 +36,28 @@ Shared packages: `@porterchain/mobile-api`, `mobile-security`, `mobile-offline`,
 
 ## Tabs
 
-| Tab | Features |
-| --- | -------- |
-| **Home** | Dashboard metrics, active shipment, quick quote |
-| **Bookings** | Quote, booking, drafts, Stripe checkout, confirmation |
-| **Tracking** | Order lookup, live map, history |
-| **Notifications** | FCM + inbox, preferences, deep links |
-| **Profile** | Invoices, receipts, support, claims, offline sync, settings, performance |
+| Tab               | Features                                                                 |
+| ----------------- | ------------------------------------------------------------------------ |
+| **Home**          | Dashboard metrics, active shipment, quick quote                          |
+| **Bookings**      | Quote, booking, drafts, Stripe checkout, confirmation                    |
+| **Tracking**      | Order lookup, live map, history                                          |
+| **Notifications** | FCM + inbox, preferences, deep links                                     |
+| **Profile**       | Invoices, receipts, support, claims, offline sync, settings, performance |
 
 ---
 
 ## Features
 
-| Flow | API |
-| ---- | --- |
-| Quote / booking | `POST /v1/quotes`, `POST /v1/bookings` |
-| Booking drafts | `/v1/booking-drafts/*` |
-| Stripe checkout | Hosted checkout URL + confirmation polling |
-| Live tracking | `GET /v1/orders/{tracking}/tracking` |
-| Dashboard | `GET /v1/customers/me/dashboard` |
-| Support / claims | `POST /v1/customers/me/support` |
-| Push register | `POST /v1/notifications/devices/register` |
-| Payment retry | `POST /v1/payments/retry` (API wired; UI partial) |
+| Flow             | API                                               |
+| ---------------- | ------------------------------------------------- |
+| Quote / booking  | `POST /v1/quotes`, `POST /v1/bookings`            |
+| Booking drafts   | `/v1/booking-drafts/*`                            |
+| Stripe checkout  | Hosted checkout URL + confirmation polling        |
+| Live tracking    | `GET /v1/orders/{tracking}/tracking`              |
+| Dashboard        | `GET /v1/customers/me/dashboard`                  |
+| Support / claims | `POST /v1/customers/me/support`                   |
+| Push register    | `POST /v1/notifications/devices/register`         |
+| Payment retry    | `POST /v1/payments/retry` (API wired; UI partial) |
 
 ---
 
@@ -94,17 +92,17 @@ Production values via EAS secrets. See [MOBILE_PRODUCTION_READINESS.md](../../MO
 
 ## Related Documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [../../MOBILE_ARCHITECTURE_REPORT.md](../../MOBILE_ARCHITECTURE_REPORT.md) | Mobile architecture |
-| [../../MOBILE_PRODUCTION_READINESS.md](../../MOBILE_PRODUCTION_READINESS.md) | Release readiness |
-| [../customer/README.md](../customer/README.md) | Web customer portal |
+| Document                                                                     | Purpose             |
+| ---------------------------------------------------------------------------- | ------------------- |
+| [../../MOBILE_ARCHITECTURE_REPORT.md](../../MOBILE_ARCHITECTURE_REPORT.md)   | Mobile architecture |
+| [../../MOBILE_PRODUCTION_READINESS.md](../../MOBILE_PRODUCTION_READINESS.md) | Release readiness   |
+| [../customer/README.md](../customer/README.md)                               | Web customer portal |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [../../masterrule.md](../../masterrule.md) | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout |
-
+| Document                                                       | Role              |
+| -------------------------------------------------------------- | ----------------- |
+| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
+| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

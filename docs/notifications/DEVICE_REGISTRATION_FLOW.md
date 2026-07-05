@@ -1,6 +1,5 @@
 # Device Registration Flow
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -82,12 +81,12 @@ sequenceDiagram
 
 Resolved in `notification_engine/principal.py` → `get_notification_user()`:
 
-| Portal | Principal | `user_role` | `user_id` |
-| ------ | ----------- | ----------- | --------- |
-| Admin | Clerk + admin_users | `admin` | `admin_users.id` |
-| Merchant | Clerk + org | `merchant` | `merchants.id` |
-| Customer | Clerk | `customer` | `customers.id` |
-| Driver | Porterchain JWT | `driver` | `drivers.id` |
+| Portal   | Principal           | `user_role` | `user_id`        |
+| -------- | ------------------- | ----------- | ---------------- |
+| Admin    | Clerk + admin_users | `admin`     | `admin_users.id` |
+| Merchant | Clerk + org         | `merchant`  | `merchants.id`   |
+| Customer | Clerk               | `customer`  | `customers.id`   |
+| Driver   | Porterchain JWT     | `driver`    | `drivers.id`     |
 
 WebSocket auth uses the same resolution via `resolve_notification_ws_user()` on `WS /v1/notifications/ws?token=`.
 
@@ -118,19 +117,19 @@ When FCM returns `registration-token-not-registered` or invalid token:
 
 ## Client Status (July 2026)
 
-| App | Registration path | Library |
-| --- | ----------------- | ------- |
-| mobile-driver | `/driver-api/v1/push/register` | `expo-notifications` ✅ in package.json |
-| Admin portal | `/v1/notifications/devices/register` | Firebase JS (when wired) |
-| Merchant portal | Same unified endpoint | Roadmap |
-| Customer portal / mobile-customer | Same unified endpoint | Roadmap |
+| App                               | Registration path                    | Library                                 |
+| --------------------------------- | ------------------------------------ | --------------------------------------- |
+| mobile-driver                     | `/driver-api/v1/push/register`       | `expo-notifications` ✅ in package.json |
+| Admin portal                      | `/v1/notifications/devices/register` | Firebase JS (when wired)                |
+| Merchant portal                   | Same unified endpoint                | Roadmap                                 |
+| Customer portal / mobile-customer | Same unified endpoint                | Roadmap                                 |
 
 Push delivery resolves tokens from `notification_devices` when the delivery payload has no explicit token.
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

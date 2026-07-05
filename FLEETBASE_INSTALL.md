@@ -1,12 +1,11 @@
 # Fleetbase Installation — Porterchain Monorepo
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
 
 **Version installed:** [Fleetbase v0.7.40](https://github.com/fleetbase/fleetbase/releases/tag/v0.7.40)  
-**Location:** `apps/fleetbase/` (upstream clone — **no Porterchain modifications to Fleetbase source**)  
+**Location:** `apps/fleetbase/` (upstream clone — **no Porterchain modifications to Fleetbase source**)
 
 ---
 
@@ -176,18 +175,19 @@ Always run `./deploy.sh` after upgrading per [Fleetbase docs](https://fleetbase.
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [DOCKER_SETUP.md](./DOCKER_SETUP.md) | Container reference |
-| [RUNBOOK.md](./RUNBOOK.md) | Day-2 operations |
+| Document                                                     | Purpose               |
+| ------------------------------------------------------------ | --------------------- |
+| [DOCKER_SETUP.md](./DOCKER_SETUP.md)                         | Container reference   |
+| [RUNBOOK.md](./RUNBOOK.md)                                   | Day-2 operations      |
 | [FLEETBASE_SERVICE_STATUS.md](./FLEETBASE_SERVICE_STATUS.md) | Verification snapshot |
-| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Porterchain bridge |
-| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md) | Port map |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)       | Porterchain bridge    |
+| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)             | Port map              |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

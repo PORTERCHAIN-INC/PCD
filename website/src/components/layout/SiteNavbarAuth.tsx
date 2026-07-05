@@ -31,10 +31,7 @@ export default function SiteNavbarAuth({
   if (!isLoaded) {
     return (
       <span
-        className={cn(
-          "inline-block h-9 w-9 rounded-full",
-          navLight ? "bg-gray-bg" : "bg-white/10"
-        )}
+        className={cn("inline-block h-9 w-9 rounded-full", navLight ? "bg-gray-bg" : "bg-white/10")}
         aria-hidden
       />
     );

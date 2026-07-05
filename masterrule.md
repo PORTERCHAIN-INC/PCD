@@ -1,6 +1,5 @@
 # Porterchain — Master Architecture Rules
 
-
 **Type:** CANONICAL
 **masterrule:** this document (§21)
 **Last verified:** 2026-07-05
@@ -242,15 +241,15 @@ porterchain/
 
 ### 4.2 Path aliases (current vs target)
 
-| Target           | Current canonical path                           | Status                       |
-| ---------------- | ------------------------------------------------ | ---------------------------- |
-| `apps/website/`  | `website/`                                       | Active (migration planned)   |
-| `apps/merchant/` | `apps/merchant-portal/`                          | Active                       |
-| `apps/customer/` | `apps/customer/` + `website/.../portal/customer` | Active                       |
-| `apps/admin/`    | `apps/admin/`                                    | Active                       |
-| `apps/api/`      | `apps/api/`                                      | Active                       |
-| `apps/driver/`   | `apps/driver-portal/` + `apps/mobile-driver/`    | Active                       |
-| `apps/mobile-customer/` | `apps/mobile-customer/`                   | Active                       |
+| Target                  | Current canonical path                           | Status                     |
+| ----------------------- | ------------------------------------------------ | -------------------------- |
+| `apps/website/`         | `website/`                                       | Active (migration planned) |
+| `apps/merchant/`        | `apps/merchant-portal/`                          | Active                     |
+| `apps/customer/`        | `apps/customer/` + `website/.../portal/customer` | Active                     |
+| `apps/admin/`           | `apps/admin/`                                    | Active                     |
+| `apps/api/`             | `apps/api/`                                      | Active                     |
+| `apps/driver/`          | `apps/driver-portal/` + `apps/mobile-driver/`    | Active                     |
+| `apps/mobile-customer/` | `apps/mobile-customer/`                          | Active                     |
 
 Full detail: [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md).
 
@@ -258,17 +257,17 @@ Full detail: [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md).
 
 ## 5. Application boundaries
 
-| Application     | Port        | Calls Fleetbase? | Role                                                                  |
-| --------------- | ----------- | ---------------- | --------------------------------------------------------------------- |
-| Website         | 3000        | **No**           | Marketing, SEO, booking entry, tracking                   |
-| Merchant portal | 3001        | **No**           | B2B bookings, bulk, billing, API keys                     |
+| Application     | Port        | Calls Fleetbase? | Role                                                         |
+| --------------- | ----------- | ---------------- | ------------------------------------------------------------ |
+| Website         | 3000        | **No**           | Marketing, SEO, booking entry, tracking                      |
+| Merchant portal | 3001        | **No**           | B2B bookings, bulk, billing, API keys                        |
 | Admin           | 3002        | **SSO only**     | CRM, ops, finance, pricing — opens Fleetbase console via SSO |
-| Driver portal   | 3003        | **No**           | Driver web dashboard → Porterchain API                    |
-| Customer portal | 3004        | **No**           | Retail customer dashboard → Porterchain API               |
-| Mobile driver   | Expo        | **No**           | Field execution → `/driver-api/v1/*`                      |
-| Mobile customer | Expo        | **No**           | Retail mobile → `/v1/*`                                   |
-| Porterchain API | 8001        | **Via adapter**  | All business logic and orchestration                      |
-| Fleetbase       | 8000 / 4200 | N/A              | Dispatch, GPS, routes, POD                                            |
+| Driver portal   | 3003        | **No**           | Driver web dashboard → Porterchain API                       |
+| Customer portal | 3004        | **No**           | Retail customer dashboard → Porterchain API                  |
+| Mobile driver   | Expo        | **No**           | Field execution → `/driver-api/v1/*`                         |
+| Mobile customer | Expo        | **No**           | Retail mobile → `/v1/*`                                      |
+| Porterchain API | 8001        | **Via adapter**  | All business logic and orchestration                         |
+| Fleetbase       | 8000 / 4200 | N/A              | Dispatch, GPS, routes, POD                                   |
 
 ### 5.1 Portal responsibilities
 
@@ -520,17 +519,17 @@ Generator: `apps/api/src/porterchain_api/booking_engine/numbers.py`.
 
 ## 18. Architecture decision records
 
-| ADR     | Decision                                                                |
-| ------- | ----------------------------------------------------------------------- |
-| ADR-001 | Fleetbase is the execution engine only                                  |
-| ADR-002 | Porterchain owns all business logic                                     |
-| ADR-003 | Fleetbase Adapter is mandatory — no direct Fleetbase calls              |
-| ADR-004 | Booking Draft is mandatory — server-persisted, no browser-only state    |
-| ADR-005 | Event Bus is mandatory for async side effects                           |
-| ADR-006 | Stripe webhook is the only payment finalization signal                  |
-| ADR-007 | Layered architecture — business logic only in Application Services (§3) |
-| ADR-008 | **Monolith-first modular boundaries** — one API; package by domain, not microservice ceremony |
-| ADR-009 | **Essential documentation only** — masterrule + canonical docs + OpenAPI; pointers replace duplicates (§21) |
+| ADR     | Decision                                                                                                                             |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| ADR-001 | Fleetbase is the execution engine only                                                                                               |
+| ADR-002 | Porterchain owns all business logic                                                                                                  |
+| ADR-003 | Fleetbase Adapter is mandatory — no direct Fleetbase calls                                                                           |
+| ADR-004 | Booking Draft is mandatory — server-persisted, no browser-only state                                                                 |
+| ADR-005 | Event Bus is mandatory for async side effects                                                                                        |
+| ADR-006 | Stripe webhook is the only payment finalization signal                                                                               |
+| ADR-007 | Layered architecture — business logic only in Application Services (§3)                                                              |
+| ADR-008 | **Monolith-first modular boundaries** — one API; package by domain, not microservice ceremony                                        |
+| ADR-009 | **Essential documentation only** — masterrule + canonical docs + OpenAPI; pointers replace duplicates (§21)                          |
 | ADR-010 | **Phase 2 = strategies, not services** — AI dispatch, dynamic pricing, predictive ETA plug into existing engines (§21.4, Appendix D) |
 
 ---
@@ -571,41 +570,41 @@ Before implementing anything:
 
 ## 21. Simplification & essential complexity
 
-*Inspired by evolutionary architecture, bounded contexts, and monolith-first delivery (Martin Fowler). Porterchain is a **logistics company** first; the codebase must optimize for **quote → pay → dispatch → deliver → POD**.*
+_Inspired by evolutionary architecture, bounded contexts, and monolith-first delivery (Martin Fowler). Porterchain is a **logistics company** first; the codebase must optimize for **quote → pay → dispatch → deliver → POD**._
 
 ### 21.1 Essential vs accidental
 
-| Essential (keep) | Accidental (defer, pointer, or delete) |
-| ---------------- | -------------------------------------- |
-| Booking draft, quote, Stripe, order state | Duplicate customer portals on website + `:3004` |
-| Fleetbase adapter + sync + webhooks | CRM sales pipelines before dispatch is reliable |
-| Merchant bulk, API keys, webhooks | Route Center → Fleetbase optimize before sync backlog cleared |
-| Driver execution, POD, GPS | 200+ markdown files that repeat the same topology |
-| Pricing (Valhalla/OSRM), billing, notifications | Fat routers (`admin.py` ~2000 lines) instead of services |
-| Clerk auth, RBAC | `merchant_engine` importing `admin_engine` |
-| PostgreSQL as commercial truth | Optional module scores and conflicting readiness % |
+| Essential (keep)                                | Accidental (defer, pointer, or delete)                        |
+| ----------------------------------------------- | ------------------------------------------------------------- |
+| Booking draft, quote, Stripe, order state       | Duplicate customer portals on website + `:3004`               |
+| Fleetbase adapter + sync + webhooks             | CRM sales pipelines before dispatch is reliable               |
+| Merchant bulk, API keys, webhooks               | Route Center → Fleetbase optimize before sync backlog cleared |
+| Driver execution, POD, GPS                      | 200+ markdown files that repeat the same topology             |
+| Pricing (Valhalla/OSRM), billing, notifications | Fat routers (`admin.py` ~2000 lines) instead of services      |
+| Clerk auth, RBAC                                | `merchant_engine` importing `admin_engine`                    |
+| PostgreSQL as commercial truth                  | Optional module scores and conflicting readiness %            |
 
 ### 21.2 Patterns we follow
 
-| Pattern | Application in Porterchain |
-| ------- | --------------------------- |
-| **Anti-Corruption Layer** | `services/fleetbase-adapter/` — keep; never call Fleetbase from UI |
-| **Monolith first** | Single FastAPI `:8001` — do not split into microservices prematurely |
-| **Bounded context** | Booking, Order, Merchant, Driver, Billing — enforce import direction |
-| **Strangler fig** | Fleetbase replaces manual dispatch gradually; Porterchain stays product owner |
-| **Branch by abstraction** | Event bus + worker **or** synchronous handlers — pick one production mode |
-| **YAGNI** | No new `*_engine` package without an Application Service and tests |
+| Pattern                   | Application in Porterchain                                                    |
+| ------------------------- | ----------------------------------------------------------------------------- |
+| **Anti-Corruption Layer** | `services/fleetbase-adapter/` — keep; never call Fleetbase from UI            |
+| **Monolith first**        | Single FastAPI `:8001` — do not split into microservices prematurely          |
+| **Bounded context**       | Booking, Order, Merchant, Driver, Billing — enforce import direction          |
+| **Strangler fig**         | Fleetbase replaces manual dispatch gradually; Porterchain stays product owner |
+| **Branch by abstraction** | Event bus + worker **or** synchronous handlers — pick one production mode     |
+| **YAGNI**                 | No new `*_engine` package without an Application Service and tests            |
 
 ### 21.3 Code simplification priorities
 
-| Priority | Action | Outcome unchanged |
-| -------- | ------ | ------------------- |
-| P0 | Fleetbase sync UX — unsynced orders visible; replay dead letters | Orders still reach dispatch |
-| P1 | Thin `routers/admin.py`, `merchant.py`, `driver.py` | Same HTTP API (`/docs`) |
-| P1 | Extract shared `order` / `support` domain; fix merchant→admin imports | Same merchant features |
-| P2 | One authenticated customer app; website links out | Same retail journeys |
-| P2 | Worker in prod compose **or** document sync-only mode | Same notifications path |
-| P3 | Delete orphan `services/booking.py`; collapse pricing import path | Same quotes |
+| Priority | Action                                                                | Outcome unchanged           |
+| -------- | --------------------------------------------------------------------- | --------------------------- |
+| P0       | Fleetbase sync UX — unsynced orders visible; replay dead letters      | Orders still reach dispatch |
+| P1       | Thin `routers/admin.py`, `merchant.py`, `driver.py`                   | Same HTTP API (`/docs`)     |
+| P1       | Extract shared `order` / `support` domain; fix merchant→admin imports | Same merchant features      |
+| P2       | One authenticated customer app; website links out                     | Same retail journeys        |
+| P2       | Worker in prod compose **or** document sync-only mode                 | Same notifications path     |
+| P3       | Delete orphan `services/booking.py`; collapse pricing import path     | Same quotes                 |
 
 ### 21.4 Phase 1 vs Phase 2 (Uber 3.0 for B2B logistics)
 
@@ -613,14 +612,14 @@ Before implementing anything:
 
 #### Phase 1 — ship today (essential)
 
-| Actor | Surface | API prefix | Must do |
-| ----- | ------- | ---------- | ------- |
-| Anonymous / retail | `website/` (quote, book, track) + `apps/customer/` + `apps/mobile-customer/` | `/v1/*` | Quote → pay → track; **no** duplicate dashboard on website |
-| Merchant | `apps/merchant-portal/` | `/v1/merchant/*`, `/v1/merchant-api/*` | Dashboard, bulk, billing, API keys, webhooks |
-| Driver | `apps/driver-portal/` + `apps/mobile-driver/` | `/driver-api/v1/*` | Accept job, GPS, POD, offline |
-| Ops (internal) | `apps/admin/` control tower only | `/v1/admin/*` | Dispatch board, orders, Fleetbase sync health, finance — **not** CRM pipeline |
-| Execution | Fleetbase via adapter | webhooks + sync | Dispatch, routing, live GPS, POD mirror |
-| Platform | `apps/api/` monolith | OpenAPI `/docs` | Billing (Stripe), notifications, public API |
+| Actor              | Surface                                                                      | API prefix                             | Must do                                                                       |
+| ------------------ | ---------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
+| Anonymous / retail | `website/` (quote, book, track) + `apps/customer/` + `apps/mobile-customer/` | `/v1/*`                                | Quote → pay → track; **no** duplicate dashboard on website                    |
+| Merchant           | `apps/merchant-portal/`                                                      | `/v1/merchant/*`, `/v1/merchant-api/*` | Dashboard, bulk, billing, API keys, webhooks                                  |
+| Driver             | `apps/driver-portal/` + `apps/mobile-driver/`                                | `/driver-api/v1/*`                     | Accept job, GPS, POD, offline                                                 |
+| Ops (internal)     | `apps/admin/` control tower only                                             | `/v1/admin/*`                          | Dispatch board, orders, Fleetbase sync health, finance — **not** CRM pipeline |
+| Execution          | Fleetbase via adapter                                                        | webhooks + sync                        | Dispatch, routing, live GPS, POD mirror                                       |
+| Platform           | `apps/api/` monolith                                                         | OpenAPI `/docs`                        | Billing (Stripe), notifications, public API                                   |
 
 **One core loop (only path that matters):**
 
@@ -631,12 +630,12 @@ Quote → Booking draft → Stripe pay → Order (PostgreSQL) → Fleetbase disp
 
 #### Phase 2 — design for, build later (accidental if done early)
 
-| Capability | Rule |
-| ---------- | ---- |
-| AI dispatch | New **strategy** behind existing dispatch port — no new admin app |
-| Predictive ETA | Read model + events — no duplicate tracking UI |
-| Dynamic pricing | Extension to `porterchain_pricing` — same quote API |
-| Analytics / fleet mgmt | Read APIs + admin widgets — no Reports BI center |
+| Capability                                 | Rule                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| AI dispatch                                | New **strategy** behind existing dispatch port — no new admin app  |
+| Predictive ETA                             | Read model + events — no duplicate tracking UI                     |
+| Dynamic pricing                            | Extension to `porterchain_pricing` — same quote API                |
+| Analytics / fleet mgmt                     | Read APIs + admin widgets — no Reports BI center                   |
 | Mixed fleet (human, van, robot, drone, AV) | `FleetExecutor` ACL behind adapter — Fleetbase today, others later |
 
 #### Future-proof hooks (allowed in Phase 1 code)
@@ -670,12 +669,12 @@ Each file in the repo (except `website/content/blog/*` and `docs/archive/*`) mus
 **Last verified:** YYYY-MM-DD
 ```
 
-| Type | Rule |
-| ---- | ---- |
-| **CANONICAL** | Single source for a topic; must match code and OpenAPI; updated when behavior changes |
-| **POINTER** | ≤15 lines: title, type, canonical link(s), archive link; **no unique technical content** |
-| **REPORT** | Generated or point-in-time audit; link to canonical doc for current truth |
-| **README** | How to run/build that folder only; link to masterrule for architecture |
+| Type          | Rule                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------- |
+| **CANONICAL** | Single source for a topic; must match code and OpenAPI; updated when behavior changes    |
+| **POINTER**   | ≤15 lines: title, type, canonical link(s), archive link; **no unique technical content** |
+| **REPORT**    | Generated or point-in-time audit; link to canonical doc for current truth                |
+| **README**    | How to run/build that folder only; link to masterrule for architecture                   |
 
 **Canonical set (do not duplicate):** this file, [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md), [INTEGRATIONS.md](./INTEGRATIONS.md), [EVENT_CATALOG.md](./EVENT_CATALOG.md), [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md), [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md), [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md), [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md), [CTO_AUDIT_REPORT.md](./CTO_AUDIT_REPORT.md), OpenAPI `/docs`.
 
@@ -749,47 +748,47 @@ Monitor in production; verify locally with `pnpm ports` and `pnpm docker:fleetba
 
 ### Group index
 
-| Group | Files | Status | Focus |
-| ----- | ----- | ------ | ----- |
-| G01 | `ALEMBIC_VALIDATION.md` · `API_DEPENDENCY_GRAPH.md` · `API_FLOW_DIAGRAM.md` · `API_FLOW_REPORT.md` · `API_TRACE_REPORT.md` | Done | Keep Alembic canonical; pointer API audits |
-| G02 | `ARCHITECTURE_ALIGNMENT_REPORT.md` · `ARCHITECTURE_AUDIT.md` · `AUTHENTICATION.md` · `AUTHENTICATION_ARCHITECTURE.md` · `AUTHENTICATION_AUDIT.md` | Done | Auth cluster; one canonical |
-| G03 | `AUTHENTICATION_CLEANUP.md` · `AUTHENTICATION_FLOW.md` · `BOOKING_WORKFLOW_AUDIT.md` · `BUSINESS_GLOSSARY.md` · `BUSINESS_WORKFLOW.md` | Done | Booking + glossary |
-| G04 | `CLERK_INTEGRATION_REPORT.md` · `CONNECTIONS.md` · `CONTRIBUTING_GUIDE.md` · `CTO_AUDIT_REPORT.md` · `DATABASE_ARCHITECTURE.md` | Done | Governance + DB canonical |
-| G05 | `DATABASE_AUDIT.md` · `DATABASE_CONFIGURATION_REPORT.md` · `DATABASE_MIGRATION_PLAN.md` · `DATABASE_OWNERSHIP_MATRIX.md` · `DATABASE_VALIDATION_REPORT.md` | Done | DB reports → pointers |
-| G06 | `DATA_CONSISTENCY_REPORT.md` · `DEPENDENCY_REPORT.md` · `DOCKER_ARCHITECTURE.md` · `DOCKER_SETUP.md` · `DOMAIN_MODEL.md` | Done | Ops + domain model |
-| G07 | `DRIVER_ARCHITECTURE_REPORT.md` · `DRIVER_AUDIT.md` · `DRIVER_INTEGRATION_MATRIX.md` · `DRIVER_PERFORMANCE_REPORT.md` · `DRIVER_PLATFORM.md` | Done | Driver module |
-| G08 | `DRIVER_PRODUCTION_READINESS.md` · `DRIVER_SECURITY_REPORT.md` · `ENTITY_RELATIONSHIP_MODEL.md` · `ENVIRONMENT_VARIABLES.md` · `EVENT_BUS.md` | Done | Driver readiness + events |
-| G09 | `EVENT_BUS_AUDIT.md` · `EVENT_BUS_REPORT.md` · `EVENT_CATALOG.md` · `EVENT_FLOW.md` · `EVENT_FLOW_DIAGRAM.md` | Done | Event bus canonical set |
-| G10 | `EVENT_MATRIX.md` · `EXCEPTION_WORKFLOWS.md` · `EXTENSION_GUIDE.md` · `FAILURE_SCENARIOS_REPORT.md` · `FLEETBASE_ADAPTER_ARCHITECTURE.md` | Done | Fleetbase adapter |
-| G11 | `FLEETBASE_ANALYSIS.md` · `FLEETBASE_APIS.md` · `FLEETBASE_DATABASE.md` · `FLEETBASE_EVENTS.md` · `FLEETBASE_EXTENSION_POINTS.md` | Done | Fleetbase detail → pointers |
-| G12 | `FLEETBASE_INSTALL.md` · `FLEETBASE_INTEGRATION.md` · `FLEETBASE_MODULES.md` · `FLEETBASE_SERVICE_STATUS.md` · `FLEETBASE_USAGE.md` | Done | Fleetbase ops canonical |
-| G13 | `FLEETBASE_WEBHOOKS.md` · `FOLDER_STRUCTURE.md` · `FORWARD_LOGISTICS_REPORT.md` · `GAP_ANALYSIS.md` · `GOOGLE_MAPS_REPORT.md` | Done | Gaps + maps reports |
-| G14 | `GOOGLE_MAPS_USAGE.md` · `GOOGLE_MAPS_USAGE_REPORT.md` · `INTEGRATIONS.md` · `INTEGRATION_AUDIT.md` · `INVITATION_WORKFLOW.md` | Done | **INTEGRATIONS** hub |
-| G15 | `MAPS_ARCHITECTURE_AUDIT.md` · `MASTERULE_COMPLIANCE_GAPS.md` · `MERCHANT_ARCHITECTURE_REPORT.md` · `MERCHANT_AUDIT.md` · `MERCHANT_COMPONENT_MATRIX.md` | Done | Merchant audits |
-| G16 | `MERCHANT_GAP_ANALYSIS.md` · `MERCHANT_INTEGRATION_MATRIX.md` · `MERCHANT_PERFORMANCE_REPORT.md` · `MERCHANT_PRODUCTION_READINESS.md` · `MERCHANT_SECURITY_REPORT.md` | Done | Merchant readiness |
-| G17 | `MISSING_INTEGRATIONS.md` · `MOBILE_ARCHITECTURE.md` · `MOBILE_ARCHITECTURE_REPORT.md` · `MOBILE_DESIGN_SYSTEM.md` · `MOBILE_PERFORMANCE_REPORT.md` | Done | Mobile cluster |
-| G18 | `MOBILE_PRODUCTION_READINESS.md` · `MOBILE_SECURITY_REPORT.md` · `MOBILE_UI_REPORT.md` · `MODULE_BREAKDOWN.md` · `MODULE_DEPENDENCY_GRAPH.md` | Done | Mobile + modules |
-| G19 | `MODULE_INTEGRATION_MATRIX.md` · `MODULE_SCORECARD.md` · `NOTIFICATION_REPORT.md` · `ORDER_LIFECYCLE.md` · `ORDER_LIFECYCLE_REPORT.md` | Done | Order lifecycle |
-| G20 | `OSRM_REPORT.md` · `OSRM_USAGE.md` · `PERFORMANCE_AUDIT.md` · `PLATFORM_FOUNDATION.md` · `PORTERCHAIN-LEGAL-AND-IMPORTANT-INFO.md` | Done | Platform + legal |
-| G21 | `PORT_CONFIGURATION.md` · `POSTGRESQL_COMPATIBILITY_REPORT.md` · `POSTGRESQL_PERFORMANCE.md` · `PRICING_ENGINE.md` · `PRODUCTION_DATABASE_SCORE.md` | Done | Ports + pricing |
-| G22 | `PRODUCTION_READINESS_REPORT.md` · `PRODUCT_REQUIREMENTS.md` · `RBAC.md` · `RBAC_MATRIX.md` · `README.md` | Done | **README** + go/no-go |
-| G23 | `REALTIME_COMMUNICATION_REPORT.md` · `REPOSITORY_STRUCTURE.md` · `REVERSE_LOGISTICS_REPORT.md` · `ROADMAP.md` · `ROLE_PERMISSIONS.md` | Done | Repo + roadmap |
-| G24 | `ROUTE_CENTER_ARCHITECTURE.md` · `ROUTE_CENTER_AUDIT.md` · `ROUTE_CENTER_INTEGRATION.md` · `ROUTE_CENTER_PERFORMANCE.md` · `ROUTING_ENGINE_AUDIT.md` | Done | Route Center |
-| G25 | `RUNBOOK.md` · `SECURITY.md` · `SECURITY_AUDIT.md` · `SERVICE_STATUS.md` · `SQLITE_AUDIT.md` | Done | Security + runbook |
-| G26 | `SSO.md` · `SYSTEM_ARCHITECTURE.md` · `SYSTEM_SEQUENCE_DIAGRAMS.md` · `SYSTEM_VALIDATION_REPORT.md` · `TECH_STACK.md` | Done | Topology pointers |
-| G27 | `UPGRADE_GUIDE.md` · `USER_JOURNEYS.md` · `VALHALLA_REPORT.md` · `VALHALLA_USAGE.md` · `apps/admin/README.md` | Done | Journeys + Valhalla |
-| G28 | `apps/api/README.md` · `apps/api/alembic/README.md` · `apps/customer/README.md` · `apps/driver/README.md` · `apps/merchant-portal/README.md` | Done | App READMEs (API) |
-| G29 | `apps/merchant/README.md` · `apps/mobile-customer/.expo/README.md` · `apps/mobile-customer/README.md` · `apps/mobile-driver/README.md` · `apps/website/README.md` | Done | App READMEs (mobile) |
-| G30 | `apps/worker/README.md` · `docs/README.md` · `docs/architecture/ADMIN_CONTROL_TOWER.md` · `docs/architecture/API_DEPENDENCY.md` · `docs/architecture/APPLICATION_FLOW.md` | Done | docs index + flows |
-| G31 | `docs/architecture/ARCHITECTURE_VALIDATION_REPORT.md` · `docs/architecture/AUTHENTICATION_FLOW.md` · `docs/architecture/BOOKING_FLOW.md` · `docs/architecture/DATABASE_RELATIONSHIP.md` · `docs/architecture/DISPATCH_FLOW.md` | Done | Core flow diagrams |
-| G32 | `docs/architecture/EVENT_BUS_FLOW.md` · `docs/architecture/FLEETBASE_FLOW.md` · `docs/architecture/GOOGLE_MAPS_FLOW.md` · `docs/architecture/MERCHANT_FLOW.md` · `docs/architecture/MODULE_DEPENDENCY.md` | Done | Integration flows |
-| G33 | `docs/architecture/NOTIFICATION_FLOW.md` · `docs/architecture/ORDER_LIFECYCLE.md` · `docs/architecture/OSRM_FLOW.md` · `docs/architecture/PAYMENT_FLOW.md` · `docs/architecture/README.md` | Done | Payment + order flows |
-| G34 | `docs/architecture/REALTIME_FLOW.md` · `docs/architecture/REPORTING_FLOW.md` · `docs/architecture/SYSTEM_ARCHITECTURE.md` · `docs/architecture/VALHALLA_FLOW.md` · `docs/notifications/DEVICE_REGISTRATION_FLOW.md` | Done | **SYSTEM_ARCHITECTURE** |
-| G35 | `docs/notifications/FCM_CONFIGURATION.md` · `docs/notifications/NOTIFICATION_ARCHITECTURE.md` · `docs/notifications/NOTIFICATION_DELIVERY_FLOW.md` · `docs/notifications/NOTIFICATION_EVENT_MATRIX.md` · `docs/notifications/NOTIFICATION_TEMPLATE_CATALOG.md` | Done | Notifications |
-| G36 | `docs/notifications/PUSH_NOTIFICATION_REPORT.md` · `env/README.md` · `infrastructure/deploy/README.md` · `masterrule.md` · `packages/config/README.md` | Done | Env + deploy + this file |
-| G37 | `packages/shared/README.md` · `services/README.md` · `services/fleetbase-adapter/README.md` · `services/pricing-engine/README.md` · `shared/README.md` | Done | Package READMEs |
-| G38 | `shared/config/README.md` · `shared/maps/MAP_MODULE.md` · `vendor/fleetbase/README.md` · `website/AGENTS.md` · `website/CLAUDE.md` | Done | Shared + vendor |
-| G39 | `website/README.md` | Done | Website README |
+| Group | Files                                                                                                                                                                                                                                                          | Status | Focus                                      |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------ |
+| G01   | `ALEMBIC_VALIDATION.md` · `API_DEPENDENCY_GRAPH.md` · `API_FLOW_DIAGRAM.md` · `API_FLOW_REPORT.md` · `API_TRACE_REPORT.md`                                                                                                                                     | Done   | Keep Alembic canonical; pointer API audits |
+| G02   | `ARCHITECTURE_ALIGNMENT_REPORT.md` · `ARCHITECTURE_AUDIT.md` · `AUTHENTICATION.md` · `AUTHENTICATION_ARCHITECTURE.md` · `AUTHENTICATION_AUDIT.md`                                                                                                              | Done   | Auth cluster; one canonical                |
+| G03   | `AUTHENTICATION_CLEANUP.md` · `AUTHENTICATION_FLOW.md` · `BOOKING_WORKFLOW_AUDIT.md` · `BUSINESS_GLOSSARY.md` · `BUSINESS_WORKFLOW.md`                                                                                                                         | Done   | Booking + glossary                         |
+| G04   | `CLERK_INTEGRATION_REPORT.md` · `CONNECTIONS.md` · `CONTRIBUTING_GUIDE.md` · `CTO_AUDIT_REPORT.md` · `DATABASE_ARCHITECTURE.md`                                                                                                                                | Done   | Governance + DB canonical                  |
+| G05   | `DATABASE_AUDIT.md` · `DATABASE_CONFIGURATION_REPORT.md` · `DATABASE_MIGRATION_PLAN.md` · `DATABASE_OWNERSHIP_MATRIX.md` · `DATABASE_VALIDATION_REPORT.md`                                                                                                     | Done   | DB reports → pointers                      |
+| G06   | `DATA_CONSISTENCY_REPORT.md` · `DEPENDENCY_REPORT.md` · `DOCKER_ARCHITECTURE.md` · `DOCKER_SETUP.md` · `DOMAIN_MODEL.md`                                                                                                                                       | Done   | Ops + domain model                         |
+| G07   | `DRIVER_ARCHITECTURE_REPORT.md` · `DRIVER_AUDIT.md` · `DRIVER_INTEGRATION_MATRIX.md` · `DRIVER_PERFORMANCE_REPORT.md` · `DRIVER_PLATFORM.md`                                                                                                                   | Done   | Driver module                              |
+| G08   | `DRIVER_PRODUCTION_READINESS.md` · `DRIVER_SECURITY_REPORT.md` · `ENTITY_RELATIONSHIP_MODEL.md` · `ENVIRONMENT_VARIABLES.md` · `EVENT_BUS.md`                                                                                                                  | Done   | Driver readiness + events                  |
+| G09   | `EVENT_BUS_AUDIT.md` · `EVENT_BUS_REPORT.md` · `EVENT_CATALOG.md` · `EVENT_FLOW.md` · `EVENT_FLOW_DIAGRAM.md`                                                                                                                                                  | Done   | Event bus canonical set                    |
+| G10   | `EVENT_MATRIX.md` · `EXCEPTION_WORKFLOWS.md` · `EXTENSION_GUIDE.md` · `FAILURE_SCENARIOS_REPORT.md` · `FLEETBASE_ADAPTER_ARCHITECTURE.md`                                                                                                                      | Done   | Fleetbase adapter                          |
+| G11   | `FLEETBASE_ANALYSIS.md` · `FLEETBASE_APIS.md` · `FLEETBASE_DATABASE.md` · `FLEETBASE_EVENTS.md` · `FLEETBASE_EXTENSION_POINTS.md`                                                                                                                              | Done   | Fleetbase detail → pointers                |
+| G12   | `FLEETBASE_INSTALL.md` · `FLEETBASE_INTEGRATION.md` · `FLEETBASE_MODULES.md` · `FLEETBASE_SERVICE_STATUS.md` · `FLEETBASE_USAGE.md`                                                                                                                            | Done   | Fleetbase ops canonical                    |
+| G13   | `FLEETBASE_WEBHOOKS.md` · `FOLDER_STRUCTURE.md` · `FORWARD_LOGISTICS_REPORT.md` · `GAP_ANALYSIS.md` · `GOOGLE_MAPS_REPORT.md`                                                                                                                                  | Done   | Gaps + maps reports                        |
+| G14   | `GOOGLE_MAPS_USAGE.md` · `GOOGLE_MAPS_USAGE_REPORT.md` · `INTEGRATIONS.md` · `INTEGRATION_AUDIT.md` · `INVITATION_WORKFLOW.md`                                                                                                                                 | Done   | **INTEGRATIONS** hub                       |
+| G15   | `MAPS_ARCHITECTURE_AUDIT.md` · `MASTERULE_COMPLIANCE_GAPS.md` · `MERCHANT_ARCHITECTURE_REPORT.md` · `MERCHANT_AUDIT.md` · `MERCHANT_COMPONENT_MATRIX.md`                                                                                                       | Done   | Merchant audits                            |
+| G16   | `MERCHANT_GAP_ANALYSIS.md` · `MERCHANT_INTEGRATION_MATRIX.md` · `MERCHANT_PERFORMANCE_REPORT.md` · `MERCHANT_PRODUCTION_READINESS.md` · `MERCHANT_SECURITY_REPORT.md`                                                                                          | Done   | Merchant readiness                         |
+| G17   | `MISSING_INTEGRATIONS.md` · `MOBILE_ARCHITECTURE.md` · `MOBILE_ARCHITECTURE_REPORT.md` · `MOBILE_DESIGN_SYSTEM.md` · `MOBILE_PERFORMANCE_REPORT.md`                                                                                                            | Done   | Mobile cluster                             |
+| G18   | `MOBILE_PRODUCTION_READINESS.md` · `MOBILE_SECURITY_REPORT.md` · `MOBILE_UI_REPORT.md` · `MODULE_BREAKDOWN.md` · `MODULE_DEPENDENCY_GRAPH.md`                                                                                                                  | Done   | Mobile + modules                           |
+| G19   | `MODULE_INTEGRATION_MATRIX.md` · `MODULE_SCORECARD.md` · `NOTIFICATION_REPORT.md` · `ORDER_LIFECYCLE.md` · `ORDER_LIFECYCLE_REPORT.md`                                                                                                                         | Done   | Order lifecycle                            |
+| G20   | `OSRM_REPORT.md` · `OSRM_USAGE.md` · `PERFORMANCE_AUDIT.md` · `PLATFORM_FOUNDATION.md` · `PORTERCHAIN-LEGAL-AND-IMPORTANT-INFO.md`                                                                                                                             | Done   | Platform + legal                           |
+| G21   | `PORT_CONFIGURATION.md` · `POSTGRESQL_COMPATIBILITY_REPORT.md` · `POSTGRESQL_PERFORMANCE.md` · `PRICING_ENGINE.md` · `PRODUCTION_DATABASE_SCORE.md`                                                                                                            | Done   | Ports + pricing                            |
+| G22   | `PRODUCTION_READINESS_REPORT.md` · `PRODUCT_REQUIREMENTS.md` · `RBAC.md` · `RBAC_MATRIX.md` · `README.md`                                                                                                                                                      | Done   | **README** + go/no-go                      |
+| G23   | `REALTIME_COMMUNICATION_REPORT.md` · `REPOSITORY_STRUCTURE.md` · `REVERSE_LOGISTICS_REPORT.md` · `ROADMAP.md` · `ROLE_PERMISSIONS.md`                                                                                                                          | Done   | Repo + roadmap                             |
+| G24   | `ROUTE_CENTER_ARCHITECTURE.md` · `ROUTE_CENTER_AUDIT.md` · `ROUTE_CENTER_INTEGRATION.md` · `ROUTE_CENTER_PERFORMANCE.md` · `ROUTING_ENGINE_AUDIT.md`                                                                                                           | Done   | Route Center                               |
+| G25   | `RUNBOOK.md` · `SECURITY.md` · `SECURITY_AUDIT.md` · `SERVICE_STATUS.md` · `SQLITE_AUDIT.md`                                                                                                                                                                   | Done   | Security + runbook                         |
+| G26   | `SSO.md` · `SYSTEM_ARCHITECTURE.md` · `SYSTEM_SEQUENCE_DIAGRAMS.md` · `SYSTEM_VALIDATION_REPORT.md` · `TECH_STACK.md`                                                                                                                                          | Done   | Topology pointers                          |
+| G27   | `UPGRADE_GUIDE.md` · `USER_JOURNEYS.md` · `VALHALLA_REPORT.md` · `VALHALLA_USAGE.md` · `apps/admin/README.md`                                                                                                                                                  | Done   | Journeys + Valhalla                        |
+| G28   | `apps/api/README.md` · `apps/api/alembic/README.md` · `apps/customer/README.md` · `apps/driver/README.md` · `apps/merchant-portal/README.md`                                                                                                                   | Done   | App READMEs (API)                          |
+| G29   | `apps/merchant/README.md` · `apps/mobile-customer/.expo/README.md` · `apps/mobile-customer/README.md` · `apps/mobile-driver/README.md` · `apps/website/README.md`                                                                                              | Done   | App READMEs (mobile)                       |
+| G30   | `apps/worker/README.md` · `docs/README.md` · `docs/architecture/ADMIN_CONTROL_TOWER.md` · `docs/architecture/API_DEPENDENCY.md` · `docs/architecture/APPLICATION_FLOW.md`                                                                                      | Done   | docs index + flows                         |
+| G31   | `docs/architecture/ARCHITECTURE_VALIDATION_REPORT.md` · `docs/architecture/AUTHENTICATION_FLOW.md` · `docs/architecture/BOOKING_FLOW.md` · `docs/architecture/DATABASE_RELATIONSHIP.md` · `docs/architecture/DISPATCH_FLOW.md`                                 | Done   | Core flow diagrams                         |
+| G32   | `docs/architecture/EVENT_BUS_FLOW.md` · `docs/architecture/FLEETBASE_FLOW.md` · `docs/architecture/GOOGLE_MAPS_FLOW.md` · `docs/architecture/MERCHANT_FLOW.md` · `docs/architecture/MODULE_DEPENDENCY.md`                                                      | Done   | Integration flows                          |
+| G33   | `docs/architecture/NOTIFICATION_FLOW.md` · `docs/architecture/ORDER_LIFECYCLE.md` · `docs/architecture/OSRM_FLOW.md` · `docs/architecture/PAYMENT_FLOW.md` · `docs/architecture/README.md`                                                                     | Done   | Payment + order flows                      |
+| G34   | `docs/architecture/REALTIME_FLOW.md` · `docs/architecture/REPORTING_FLOW.md` · `docs/architecture/SYSTEM_ARCHITECTURE.md` · `docs/architecture/VALHALLA_FLOW.md` · `docs/notifications/DEVICE_REGISTRATION_FLOW.md`                                            | Done   | **SYSTEM_ARCHITECTURE**                    |
+| G35   | `docs/notifications/FCM_CONFIGURATION.md` · `docs/notifications/NOTIFICATION_ARCHITECTURE.md` · `docs/notifications/NOTIFICATION_DELIVERY_FLOW.md` · `docs/notifications/NOTIFICATION_EVENT_MATRIX.md` · `docs/notifications/NOTIFICATION_TEMPLATE_CATALOG.md` | Done   | Notifications                              |
+| G36   | `docs/notifications/PUSH_NOTIFICATION_REPORT.md` · `env/README.md` · `infrastructure/deploy/README.md` · `masterrule.md` · `packages/config/README.md`                                                                                                         | Done   | Env + deploy + this file                   |
+| G37   | `packages/shared/README.md` · `services/README.md` · `services/fleetbase-adapter/README.md` · `services/pricing-engine/README.md` · `shared/README.md`                                                                                                         | Done   | Package READMEs                            |
+| G38   | `shared/config/README.md` · `shared/maps/MAP_MODULE.md` · `vendor/fleetbase/README.md` · `website/AGENTS.md` · `website/CLAUDE.md`                                                                                                                             | Done   | Shared + vendor                            |
+| G39   | `website/README.md`                                                                                                                                                                                                                                            | Done   | Website README                             |
 
 ---
 
@@ -832,15 +831,15 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 
 **Local verification:** `pnpm fleetbase:replay` then `pnpm validate:p0` (see [RUNBOOK.md](./RUNBOOK.md#d1-p0--production-loop-checklist)).
 
-- [ ] **G1** Droplet/prod: API healthy, `booking_drafts` table exists, smoke test passes *(local ✓ 2026-07-05; prod droplet unreachable)*
-- [x] **G2** Fleetbase sync: >90% orders reach `fleetbase_order_id`; dead-letter replay documented *(local 31/31 = 100%; `pnpm fleetbase:replay` + RUNBOOK)*
-- [x] **G3** `FLEETBASE_WEBHOOK_SECRET` set; webhook ingress verified *(local `.env` + signed POST)*
+- [ ] **G1** Droplet/prod: API healthy, `booking_drafts` table exists, smoke test passes _(local ✓ 2026-07-05; prod droplet unreachable)_
+- [x] **G2** Fleetbase sync: >90% orders reach `fleetbase_order_id`; dead-letter replay documented _(local 31/31 = 100%; `pnpm fleetbase:replay` + RUNBOOK)_
+- [x] **G3** `FLEETBASE_WEBHOOK_SECRET` set; webhook ingress verified _(local `.env` + signed POST)_
 - [x] **G4** End-to-end local: quote → Stripe (mock) → order → dispatch event → Fleetbase order
-- [x] **G5** Driver path: assign → GPS update → POD photo/signature → order `DELIVERED` *(simulated in E2E phase 2)*
+- [x] **G5** Driver path: assign → GPS update → POD photo/signature → order `DELIVERED` _(simulated in E2E phase 2)_
 - [x] **G6** Merchant path: bulk upload → order list → invoice/billing view
 - [x] **G7** Customer path: book on website → pay → track on `apps/customer` or mobile (one dashboard)
-- [x] **G8** Billing: Stripe webhook finalizes payment; invoice row created *(mock Stripe local)*
-- [x] **G9** Notifications: email/push path works in chosen prod async mode *(phase 7 WARNING — push disabled locally)*
+- [x] **G8** Billing: Stripe webhook finalizes payment; invoice row created _(mock Stripe local)_
+- [x] **G9** Notifications: email/push path works in chosen prod async mode _(phase 7 WARNING — push disabled locally)_
 
 ### D2 — Remove accidental complexity (codebase)
 
@@ -851,8 +850,8 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 - [x] Delete `website/src/app/**/portal/customer/**` (embedded retail dashboard)
 - [x] Point website nav/footer to `NEXT_PUBLIC_CUSTOMER_PORTAL_URL` (`:3004`)
 - [x] Confirm `apps/customer` is sole authenticated retail web app
-- [x] Confirm `apps/mobile-customer` shares same `/v1/customers/*` contract *(via `@porterchain/mobile-api` / `shared/api`)*
-- [x] Confirm `apps/driver-portal` + `apps/mobile-driver` share `/driver-api/v1/*` *(web proxy + `shared/api/src/driver.ts`)*
+- [x] Confirm `apps/mobile-customer` shares same `/v1/customers/*` contract _(via `@porterchain/mobile-api` / `shared/api`)_
+- [x] Confirm `apps/driver-portal` + `apps/mobile-driver` share `/driver-api/v1/*` _(web proxy + `shared/api/src/driver.ts`)_
 - [x] Delete stub folders `apps/merchant/`, `apps/driver/` (README-only) if still present
 
 #### Admin — ops only, not a second product
@@ -894,17 +893,17 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 
 **Verify:** `pnpm validate:d3` (contracts) · `pnpm validate:d3:e2e` (contracts + E2E phases).
 
-| Feature | Owner engine | Check |
-| ------- | ------------ | ----- |
-| Merchant dashboard | `merchant_engine` | [x] local `validate:d3:e2e` 2026-07-05 |
-| Driver web + iOS + Android | `driver_engine` + portals/mobile | [x] local `validate:d3:e2e` 2026-07-05 |
-| Customer web + iOS + Android | `booking_engine` + customer/mobile | [x] local `validate:d3:e2e` 2026-07-05 |
-| Dispatch | `fleetbase_engine` + admin operations | [x] local `validate:d3:e2e` 2026-07-05 |
-| Routing | Valhalla/OSRM + Fleetbase | [x] local `validate:d3:e2e` 2026-07-05 |
-| Tracking | public `/v1/orders/{tracking}` + websockets | [x] local `validate:d3:e2e` 2026-07-05 |
-| Proof of delivery | `driver_engine` + Fleetbase webhook | [x] local `validate:d3:e2e` 2026-07-05 |
-| Billing | `billing_engine` + Stripe | [x] local `validate:d3:e2e` 2026-07-05 |
-| Public / partner API | `/v1/merchant-api/*` + OpenAPI | [x] local `validate:d3:e2e` 2026-07-05 |
+| Feature                      | Owner engine                                | Check                                  |
+| ---------------------------- | ------------------------------------------- | -------------------------------------- |
+| Merchant dashboard           | `merchant_engine`                           | [x] local `validate:d3:e2e` 2026-07-05 |
+| Driver web + iOS + Android   | `driver_engine` + portals/mobile            | [x] local `validate:d3:e2e` 2026-07-05 |
+| Customer web + iOS + Android | `booking_engine` + customer/mobile          | [x] local `validate:d3:e2e` 2026-07-05 |
+| Dispatch                     | `fleetbase_engine` + admin operations       | [x] local `validate:d3:e2e` 2026-07-05 |
+| Routing                      | Valhalla/OSRM + Fleetbase                   | [x] local `validate:d3:e2e` 2026-07-05 |
+| Tracking                     | public `/v1/orders/{tracking}` + websockets | [x] local `validate:d3:e2e` 2026-07-05 |
+| Proof of delivery            | `driver_engine` + Fleetbase webhook         | [x] local `validate:d3:e2e` 2026-07-05 |
+| Billing                      | `billing_engine` + Stripe                   | [x] local `validate:d3:e2e` 2026-07-05 |
+| Public / partner API         | `/v1/merchant-api/*` + OpenAPI              | [x] local `validate:d3:e2e` 2026-07-05 |
 
 **Prod manual smoke:** re-run matrix after G1 prod passes (`pnpm validate:p0:prod` then portal walkthroughs).
 
@@ -913,7 +912,7 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 - [x] **Option A (simpler prod):** API registers event handlers inline; worker only for retries/cron
 - [ ] **Option B (scale):** Worker in prod compose; API publishes only; document queue ownership
 - [x] Remove duplicate handler registration (today: API lifespan + worker both can register)
-- [x] Prod compose lists worker OR documents sync-only mode explicitly *(RUNBOOK D4 + deploy README)*
+- [x] Prod compose lists worker OR documents sync-only mode explicitly _(RUNBOOK D4 + deploy README)_
 
 ### D5 — Phase 2 hooks only (no implementation yet)
 
@@ -933,23 +932,23 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 
 ### D7 — Current audit snapshot (2026-07-05)
 
-| Item | Status |
-| ---- | ------ |
-| API CRM / route_center / reports routers | Removed |
-| `collaboration` router + `collaboration_engine/` | Added |
-| Fat routers admin/merchant/driver | **Split** into `routers/{admin,merchant,driver}/` packages |
-| Admin CRM + Route Center UI | **Removed** (re-verified 2026-07-05) |
-| Website `/portal/customer` | **Removed** — links to `:3004` |
-| `merchant_engine` → `admin_engine` imports | **Fixed** — `support_engine` + `domain/*` |
-| Fleetbase sync backlog (local audit) | **Cleared** — 31/31 linked (100%) after replay |
-| Prod droplet containers | **Empty** — G1 prod open; `pnpm validate:p0:prod` fails (API unreachable) |
-| D3 feature matrix | **Local pass** — `pnpm validate:d3:e2e` 9/9 rows |
-| Mobile customer + driver apps | Present in repo |
-| Phase 2 AI/analytics code | Not started (good) |
+| Item                                             | Status                                                                    |
+| ------------------------------------------------ | ------------------------------------------------------------------------- |
+| API CRM / route_center / reports routers         | Removed                                                                   |
+| `collaboration` router + `collaboration_engine/` | Added                                                                     |
+| Fat routers admin/merchant/driver                | **Split** into `routers/{admin,merchant,driver}/` packages                |
+| Admin CRM + Route Center UI                      | **Removed** (re-verified 2026-07-05)                                      |
+| Website `/portal/customer`                       | **Removed** — links to `:3004`                                            |
+| `merchant_engine` → `admin_engine` imports       | **Fixed** — `support_engine` + `domain/*`                                 |
+| Fleetbase sync backlog (local audit)             | **Cleared** — 31/31 linked (100%) after replay                            |
+| Prod droplet containers                          | **Empty** — G1 prod open; `pnpm validate:p0:prod` fails (API unreachable) |
+| D3 feature matrix                                | **Local pass** — `pnpm validate:d3:e2e` 9/9 rows                          |
+| Mobile customer + driver apps                    | Present in repo                                                           |
+| Phase 2 AI/analytics code                        | Not started (good)                                                        |
 
 ### D8 — Suggested execution order (sprints)
 
-1. **Sprint A (P0 ops):** G1–G3 prod + Fleetbase sync replay — *G1 prod open (droplet unreachable 2026-07-05)*
+1. **Sprint A (P0 ops):** G1–G3 prod + Fleetbase sync replay — _G1 prod open (droplet unreachable 2026-07-05)_
 2. ~~**Sprint B (delete UI debt):** D2 surface + admin cleanup~~ ✓
 3. ~~**Sprint C (boundaries):** D2 bounded-context extractions~~ ✓
 4. ~~**Sprint D (routers):** D2 thin routers~~ ✓
@@ -961,17 +960,17 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 
 ## Related documents
 
-| Document                                                               | Purpose                        |
-| ---------------------------------------------------------------------- | ------------------------------ |
-| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md)     | Go/no-go certification         |
-| [CTO_AUDIT_REPORT.md](./CTO_AUDIT_REPORT.md)                           | Doc vs code audit              |
-| [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md) | Platform topology |
-| [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md)                   | Monorepo layout and PYTHONPATH |
-| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)                       | Local ports and start commands |
-| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                 | Adapter and sync flows         |
-| [INTEGRATIONS.md](./INTEGRATIONS.md)                                   | External systems matrix        |
-| [EVENT_BUS.md](./EVENT_BUS.md)                                         | Event bus design               |
-| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md)     | Clerk and RBAC                 |
+| Document                                                                               | Purpose                        |
+| -------------------------------------------------------------------------------------- | ------------------------------ |
+| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md)                     | Go/no-go certification         |
+| [CTO_AUDIT_REPORT.md](./CTO_AUDIT_REPORT.md)                                           | Doc vs code audit              |
+| [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md) | Platform topology              |
+| [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md)                                   | Monorepo layout and PYTHONPATH |
+| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)                                       | Local ports and start commands |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                                 | Adapter and sync flows         |
+| [INTEGRATIONS.md](./INTEGRATIONS.md)                                                   | External systems matrix        |
+| [EVENT_BUS.md](./EVENT_BUS.md)                                                         | Event bus design               |
+| [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md)                     | Clerk and RBAC                 |
 
 ---
 

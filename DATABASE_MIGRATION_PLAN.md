@@ -1,6 +1,5 @@
 # Database Migration Plan
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -52,11 +51,11 @@ pnpm db:migrate         # alembic upgrade head
 
 **Only if legacy `porterchain.db` SQLite data must be preserved.**
 
-| Step | Action | Tool |
-| ---- | ------ | ---- |
-| C1 | Dry-run row counts | `apps/api/scripts/migrate_sqlite_to_postgres.py --dry-run` |
-| C2 | Execute import | Same script with `--execute` |
-| C3 | Validate | `python scripts/validate_postgres_modules.py` |
+| Step | Action             | Tool                                                       |
+| ---- | ------------------ | ---------------------------------------------------------- |
+| C1   | Dry-run row counts | `apps/api/scripts/migrate_sqlite_to_postgres.py --dry-run` |
+| C2   | Execute import     | Same script with `--execute`                               |
+| C3   | Validate           | `python scripts/validate_postgres_modules.py`              |
 
 **Dev recommendation:** Fresh PostgreSQL + seed scripts:
 
@@ -70,11 +69,11 @@ pnpm db:migrate         # alembic upgrade head
 
 ## Phase D — Environment cutover ✅ complete (local/dev)
 
-| Environment | `DATABASE_URL` | Migration |
-| ----------- | -------------- | --------- |
-| Local | `postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain` | `pnpm db:migrate` |
-| CI | PostgreSQL service container | `alembic upgrade head` (recommended — not yet in all workflows) |
-| Production | `infrastructure/deploy/docker-compose.prod.yml` | Pre-deploy migration job |
+| Environment | `DATABASE_URL`                                                            | Migration                                                       |
+| ----------- | ------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Local       | `postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain` | `pnpm db:migrate`                                               |
+| CI          | PostgreSQL service container                                              | `alembic upgrade head` (recommended — not yet in all workflows) |
+| Production  | `infrastructure/deploy/docker-compose.prod.yml`                           | Pre-deploy migration job                                        |
 
 ---
 
@@ -96,21 +95,21 @@ Runtime E2E (manual QA pending):
 
 ## Phase F — Cleanup ⚠️ partial
 
-| Item | Status |
-| ---- | ------ |
-| Delete `apps/api/porterchain.db` if present | Manual — safe after PG validated |
-| Remove SQLite mentions from docs | Ongoing (Groups 20–21, final grep Group 43) |
-| CI PostgreSQL + pytest | Pending |
+| Item                                        | Status                                      |
+| ------------------------------------------- | ------------------------------------------- |
+| Delete `apps/api/porterchain.db` if present | Manual — safe after PG validated            |
+| Remove SQLite mentions from docs            | Ongoing (Groups 20–21, final grep Group 43) |
+| CI PostgreSQL + pytest                      | Pending                                     |
 
 ---
 
 ## Rollback plan
 
-| Scenario | Action |
-| -------- | ------ |
-| Alembic migration fails | `alembic downgrade -1`; fix revision; retry |
-| App fails on PostgreSQL | Revert code deploy; PostgreSQL data retained |
-| Data migration corrupt | Restore PG snapshot; **do not** revert to SQLite production |
+| Scenario                | Action                                                      |
+| ----------------------- | ----------------------------------------------------------- |
+| Alembic migration fails | `alembic downgrade -1`; fix revision; retry                 |
+| App fails on PostgreSQL | Revert code deploy; PostgreSQL data retained                |
+| Data migration corrupt  | Restore PG snapshot; **do not** revert to SQLite production |
 
 **SQLite rollback is NOT supported** — PostgreSQL is the only Porterchain store.
 
@@ -126,18 +125,19 @@ Runtime E2E (manual QA pending):
 
 ## Timeline
 
-| Phase | Status |
-| ----- | ------ |
-| A–B (code + schema) | ✅ Complete |
-| C (data migration) | Optional — 1–3 days if legacy SQLite exists |
-| D (local env) | ✅ Complete |
-| E (validation) | ⚠️ Schema done; E2E manual |
-| F (cleanup) | ⚠️ Partial |
+| Phase               | Status                                      |
+| ------------------- | ------------------------------------------- |
+| A–B (code + schema) | ✅ Complete                                 |
+| C (data migration)  | Optional — 1–3 days if legacy SQLite exists |
+| D (local env)       | ✅ Complete                                 |
+| E (validation)      | ⚠️ Schema done; E2E manual                  |
+| F (cleanup)         | ⚠️ Partial                                  |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

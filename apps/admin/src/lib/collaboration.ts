@@ -24,8 +24,7 @@ export const collaboration = {
       subject?: string;
       body?: string;
     }
-  ) =>
-    adminFetch<Activity>(`${B}/activities`, t, { method: "POST", body: JSON.stringify(body) }),
+  ) => adminFetch<Activity>(`${B}/activities`, t, { method: "POST", body: JSON.stringify(body) }),
   tasks: (t: string, params: Record<string, string | undefined> = {}) =>
     adminFetch<Task[]>(`${B}/tasks${qs(params)}`, t),
   createTask: (t: string, body: Partial<Task>) =>

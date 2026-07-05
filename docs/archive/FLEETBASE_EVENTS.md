@@ -100,19 +100,19 @@ Registered in `Fleetbase\FleetOps\Providers\EventServiceProvider` (v0.6.48):
 
 Source: `FLEETBASE_EVENT_TO_DOMAIN_EVENT` in `fleetbase-adapter/events/__init__.py`
 
-| Fleetbase event | Porterchain domain event |
-| --------------- | ------------------------ |
-| `order.dispatched` | `order.driver_assigned` |
-| `order.driver_assigned` | `order.driver_assigned` |
-| `order.started` | `order.in_transit` |
-| `order.arrived_pickup` / `order.at_pickup` | `order.arrived_pickup` |
-| `order.picked_up` / `order.loaded` | `order.pickup_completed` |
-| `order.arrived_dropoff` / `order.at_dropoff` | `order.near_delivery` |
-| `order.completed` / `order.delivered` | `order.delivered` |
-| `proof.uploaded` | `order.pod_completed` |
-| `order.canceled` / `order.cancelled` | `order.cancelled` |
-| `order.failed` | `order.failed` |
-| `order.return_to_sender` | `refund.requested` |
+| Fleetbase event                              | Porterchain domain event |
+| -------------------------------------------- | ------------------------ |
+| `order.dispatched`                           | `order.driver_assigned`  |
+| `order.driver_assigned`                      | `order.driver_assigned`  |
+| `order.started`                              | `order.in_transit`       |
+| `order.arrived_pickup` / `order.at_pickup`   | `order.arrived_pickup`   |
+| `order.picked_up` / `order.loaded`           | `order.pickup_completed` |
+| `order.arrived_dropoff` / `order.at_dropoff` | `order.near_delivery`    |
+| `order.completed` / `order.delivered`        | `order.delivered`        |
+| `proof.uploaded`                             | `order.pod_completed`    |
+| `order.canceled` / `order.cancelled`         | `order.cancelled`        |
+| `order.failed`                               | `order.failed`           |
+| `order.return_to_sender`                     | `refund.requested`       |
 
 Processed by `fleetbase_engine/WebhookProcessor` after `POST /webhooks/fleetbase`.
 

@@ -9,25 +9,25 @@
 
 ## Executive verdict
 
-| Area | Status |
-| ---- | ------ |
-| Connection pool | **PASS** |
-| PostgreSQL indexes | **PARTIAL** — core + CRM GIN applied; more JSONB pending |
-| Caching | **PARTIAL** — Redis queues/events; no global HTTP cache |
-| Background workers | **PASS** |
-| API latency patterns | **ACCEPTABLE** |
-| Query optimization | **PARTIAL** |
+| Area                 | Status                                                   |
+| -------------------- | -------------------------------------------------------- |
+| Connection pool      | **PASS**                                                 |
+| PostgreSQL indexes   | **PARTIAL** — core + CRM GIN applied; more JSONB pending |
+| Caching              | **PARTIAL** — Redis queues/events; no global HTTP cache  |
+| Background workers   | **PASS**                                                 |
+| API latency patterns | **ACCEPTABLE**                                           |
+| Query optimization   | **PARTIAL**                                              |
 
 ---
 
 ## Connection pool
 
-| Setting | Implementation |
-| ------- | -------------- |
-| Engine | SQLAlchemy + psycopg |
-| `pool_pre_ping` | ✅ |
+| Setting                      | Implementation                 |
+| ---------------------------- | ------------------------------ |
+| Engine                       | SQLAlchemy + psycopg           |
+| `pool_pre_ping`              | ✅                             |
 | `pool_size` / `max_overflow` | 10 / 20 defaults — `config.py` |
-| SQLite | Rejected at startup |
+| SQLite                       | Rejected at startup            |
 
 ---
 
@@ -35,33 +35,33 @@
 
 ### Indexes applied (Alembic `m1`, `n2`)
 
-| Index | Purpose |
-| ----- | ------- |
-| `ix_orders_state_created_at` | Control tower / queue |
-| `ix_orders_merchant_state` | Merchant lists |
-| `ix_domain_events_type_occurred` | Event queries |
+| Index                            | Purpose               |
+| -------------------------------- | --------------------- |
+| `ix_orders_state_created_at`     | Control tower / queue |
+| `ix_orders_merchant_state`       | Merchant lists        |
+| `ix_domain_events_type_occurred` | Event queries         |
 | `ix_fleetbase_sync_jobs_pending` | Retry drain (partial) |
-| GIN on CRM JSONB | Company/lead search |
-| `uq_orders_quote_id` | Retail idempotency |
+| GIN on CRM JSONB                 | Company/lead search   |
+| `uq_orders_quote_id`             | Retail idempotency    |
 
 ### Open gaps
 
-| ID | Severity | Issue |
-| -- | -------- | ----- |
-| P-M01 | Medium | JSONB rollout incomplete for non-CRM tables |
-| P-M02 | Medium | Missing FK indexes on newer tables (route center, invitations) |
-| P-L01 | Low | String UUID vs native UUID |
+| ID    | Severity | Issue                                                          |
+| ----- | -------- | -------------------------------------------------------------- |
+| P-M01 | Medium   | JSONB rollout incomplete for non-CRM tables                    |
+| P-M02 | Medium   | Missing FK indexes on newer tables (route center, invitations) |
+| P-L01 | Low      | String UUID vs native UUID                                     |
 
 ---
 
 ## Caching
 
-| Layer | Status |
-| ----- | ------ |
-| Redis — events, queues, idempotency | ✅ |
-| Clerk JWKS | ✅ Cached in auth module |
-| HTTP response cache | ⚠️ Not global |
-| Valhalla/OSRM route results | ⚠️ No short-TTL cache (Route Center repeats legs) |
+| Layer                               | Status                                            |
+| ----------------------------------- | ------------------------------------------------- |
+| Redis — events, queues, idempotency | ✅                                                |
+| Clerk JWKS                          | ✅ Cached in auth module                          |
+| HTTP response cache                 | ⚠️ Not global                                     |
+| Valhalla/OSRM route results         | ⚠️ No short-TTL cache (Route Center repeats legs) |
 
 **P-M03:** Recommend Redis cache for repeated route matrix lookups in Route Center.
 
@@ -69,11 +69,11 @@
 
 ## Background workers
 
-| Component | Role |
-| --------- | ---- |
-| `apps/worker/` | Event bus consume, queue drain |
-| Fleetbase retry | `process_retry_queue` (~60s) |
-| Queues | email, SMS, push, billing, webhooks, dispatch |
+| Component       | Role                                          |
+| --------------- | --------------------------------------------- |
+| `apps/worker/`  | Event bus consume, queue drain                |
+| Fleetbase retry | `process_retry_queue` (~60s)                  |
+| Queues          | email, SMS, push, billing, webhooks, dispatch |
 
 Diagnostics expose queue depth and DLQ.
 
@@ -89,11 +89,11 @@ Diagnostics expose queue depth and DLQ.
 
 ### Concerns
 
-| ID | Severity | Issue | Location |
-| -- | -------- | ----- | -------- |
-| P-H01 | High | Large `driver.py` router surface | `routers/driver.py` |
-| P-M04 | Medium | Admin pricing N+1 merchant lookups | `routers/admin.py` |
-| P-M05 | Medium | CRM list without cursor pagination | `crm_sales_service.py` |
+| ID    | Severity | Issue                              | Location               |
+| ----- | -------- | ---------------------------------- | ---------------------- |
+| P-H01 | High     | Large `driver.py` router surface   | `routers/driver.py`    |
+| P-M04 | Medium   | Admin pricing N+1 merchant lookups | `routers/admin.py`     |
+| P-M05 | Medium   | CRM list without cursor pagination | `crm_sales_service.py` |
 
 ---
 
@@ -105,13 +105,13 @@ Anonymous `GET /v1/booking-drafts/active` no longer returns slow 404 — returns
 
 ## Observability (§16)
 
-| Requirement | Status |
-| ----------- | ------ |
-| Structured logging | ✅ |
-| Correlation IDs | ⚠️ Partial HTTP → event |
-| Queue / DLQ monitoring | ✅ Diagnostics |
-| Integration health dashboard | ✅ |
-| Webhook success rate | ⚠️ Manual via diagnostics |
+| Requirement                  | Status                    |
+| ---------------------------- | ------------------------- |
+| Structured logging           | ✅                        |
+| Correlation IDs              | ⚠️ Partial HTTP → event   |
+| Queue / DLQ monitoring       | ✅ Diagnostics            |
+| Integration health dashboard | ✅                        |
+| Webhook success rate         | ⚠️ Manual via diagnostics |
 
 ---
 
@@ -126,7 +126,7 @@ Anonymous `GET /v1/booking-drafts/active` no longer returns slow 404 — returns
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Platform gates |
-| [ROUTE_CENTER_PERFORMANCE.md](./ROUTE_CENTER_PERFORMANCE.md) | Route Center specifics |
+| Document                                                           | Purpose                |
+| ------------------------------------------------------------------ | ---------------------- |
+| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Platform gates         |
+| [ROUTE_CENTER_PERFORMANCE.md](./ROUTE_CENTER_PERFORMANCE.md)       | Route Center specifics |

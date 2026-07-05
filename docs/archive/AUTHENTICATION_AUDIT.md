@@ -18,11 +18,11 @@ Prior to cleanup, documentation and env templates described a multi-provider mod
 
 ## Removed providers (historical)
 
-| Provider | Finding | Action taken |
-| -------- | ------- | ------------ |
-| Supabase | Env templates + docs only; no `@supabase/supabase-js` in repo | Removed from env, website, legal copy |
-| Twilio OTP | Optional SMS import in notification delivery; not in API deps | Removed auth/OTP use; SMS log-only |
-| Booking OTP | Env-templated but no API router | Removed env vars and docs |
+| Provider    | Finding                                                       | Action taken                          |
+| ----------- | ------------------------------------------------------------- | ------------------------------------- |
+| Supabase    | Env templates + docs only; no `@supabase/supabase-js` in repo | Removed from env, website, legal copy |
+| Twilio OTP  | Optional SMS import in notification delivery; not in API deps | Removed auth/OTP use; SMS log-only    |
+| Booking OTP | Env-templated but no API router                               | Removed env vars and docs             |
 
 See [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md) for file-level change log.
 
@@ -30,35 +30,35 @@ See [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md) for file-level chan
 
 ## Retained (Clerk-aligned)
 
-| Component | Path | Role |
-| --------- | ---- | ---- |
-| Clerk JWT verification | `apps/api/src/porterchain_api/auth/clerk.py` | API middleware |
-| Admin auth context | `apps/api/src/porterchain_api/auth/admin.py` | Admin RBAC gate |
-| Driver Clerk login | `apps/api/src/porterchain_api/driver_engine/auth_service.py` | Clerk → session bridge |
-| Merchant API auth | `apps/api/src/porterchain_api/auth/merchant_api.py` | API key (machine auth) |
-| SSO to Fleetbase | `apps/api/src/porterchain_api/auth/sso_service.py` | Console SSO JWT |
-| Portal Clerk SDK | `website/`, `apps/admin/`, `apps/merchant-portal/`, `apps/driver-portal/`, `apps/customer/` | Frontend sessions |
-| Mobile Clerk | `apps/mobile-driver/`, `apps/mobile-customer/` | `@clerk/clerk-expo` |
+| Component              | Path                                                                                        | Role                   |
+| ---------------------- | ------------------------------------------------------------------------------------------- | ---------------------- |
+| Clerk JWT verification | `apps/api/src/porterchain_api/auth/clerk.py`                                                | API middleware         |
+| Admin auth context     | `apps/api/src/porterchain_api/auth/admin.py`                                                | Admin RBAC gate        |
+| Driver Clerk login     | `apps/api/src/porterchain_api/driver_engine/auth_service.py`                                | Clerk → session bridge |
+| Merchant API auth      | `apps/api/src/porterchain_api/auth/merchant_api.py`                                         | API key (machine auth) |
+| SSO to Fleetbase       | `apps/api/src/porterchain_api/auth/sso_service.py`                                          | Console SSO JWT        |
+| Portal Clerk SDK       | `website/`, `apps/admin/`, `apps/merchant-portal/`, `apps/driver-portal/`, `apps/customer/` | Frontend sessions      |
+| Mobile Clerk           | `apps/mobile-driver/`, `apps/mobile-customer/`                                              | `@clerk/clerk-expo`    |
 
 ---
 
 ## Gaps at audit time → current status
 
-| Gap (July 1) | Status (July 2026) |
-| ------------ | ------------------ |
+| Gap (July 1)                 | Status (July 2026)                                           |
+| ---------------------------- | ------------------------------------------------------------ |
 | Website booking Clerk wiring | **Implemented** — Clerk middleware + customer portal sign-in |
-| Driver mobile Clerk SDK | **Implemented** — `@clerk/clerk-expo` in mobile-driver |
-| SMS notification provider | **Open** — log-only until provider selected |
-| `otp_verifications` DB table | Verify in DB audit group if still present |
+| Driver mobile Clerk SDK      | **Implemented** — `@clerk/clerk-expo` in mobile-driver       |
+| SMS notification provider    | **Open** — log-only until provider selected                  |
+| `otp_verifications` DB table | Verify in DB audit group if still present                    |
 
 ---
 
 ## Compliance with masterrule.md
 
-| Rule | Status |
-| ---- | ------ |
-| §15 Clerk for authentication | Aligned |
-| §10.1 Clerk auth + session merge in booking | Implemented on website |
+| Rule                                          | Status                          |
+| --------------------------------------------- | ------------------------------- |
+| §15 Clerk for authentication                  | Aligned                         |
+| §10.1 Clerk auth + session merge in booking   | Implemented on website          |
 | §3 Controllers resolve auth via Clerk helpers | Implemented on protected routes |
 
 ---

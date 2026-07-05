@@ -216,9 +216,9 @@ event_id already in idempotency store → skip handler
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [EVENT_BUS.md](./EVENT_BUS.md) | Bus implementation |
-| [EVENT_CATALOG.md](./EVENT_CATALOG.md) | Full event reference |
-| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | Code map + handler registry |
-| [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) | Aggregates and bounded contexts |
+| Document                                                                     | Purpose                         |
+| ---------------------------------------------------------------------------- | ------------------------------- |
+| [EVENT_BUS.md](./EVENT_BUS.md)                                               | Bus implementation              |
+| [EVENT_CATALOG.md](./EVENT_CATALOG.md)                                       | Full event reference            |
+| [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md) | Code map + handler registry     |
+| [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)                                         | Aggregates and bounded contexts |

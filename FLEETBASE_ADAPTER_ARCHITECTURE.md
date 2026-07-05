@@ -1,6 +1,5 @@
 # Fleetbase Adapter Architecture
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -194,14 +193,14 @@ Factory: `apps/api/src/porterchain_api/services/fleetbase_integration.py`
 
 ## API wiring
 
-| Porterchain module | Adapter method |
-| ------------------ | -------------- |
-| `fleetbase_engine/booking_sync_service.py` | `sync_order`, `sync_driver`, `sync_dispatch` |
-| `fleetbase_engine/webhook_processor.py` | `process_webhook` |
-| `routers/webhooks.py` | `POST /webhooks/fleetbase` |
-| `routers/orders.py` | `fetch_tracking` |
-| `auth/sso_service.py` | `FleetbaseSsoClient` → `/int/v1/porterchain/sso/*` |
-| `driver_engine/` (DriverFleetbaseBridge) | GPS, POD, route execution |
+| Porterchain module                         | Adapter method                                     |
+| ------------------------------------------ | -------------------------------------------------- |
+| `fleetbase_engine/booking_sync_service.py` | `sync_order`, `sync_driver`, `sync_dispatch`       |
+| `fleetbase_engine/webhook_processor.py`    | `process_webhook`                                  |
+| `routers/webhooks.py`                      | `POST /webhooks/fleetbase`                         |
+| `routers/orders.py`                        | `fetch_tracking`                                   |
+| `auth/sso_service.py`                      | `FleetbaseSsoClient` → `/int/v1/porterchain/sso/*` |
+| `driver_engine/` (DriverFleetbaseBridge)   | GPS, POD, route execution                          |
 
 ---
 
@@ -231,17 +230,18 @@ Legacy `services/fleetbase/porterchain_fleetbase/` shim removed — use `porterc
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Integration overview |
-| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Fleetbase route and integration reference |
-| [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md) | Version upgrades |
-| [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md) | Platform topology |
+| Document                                                                               | Purpose                                   |
+| -------------------------------------------------------------------------------------- | ----------------------------------------- |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                                 | Integration overview                      |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                                 | Fleetbase route and integration reference |
+| [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md)                                                 | Version upgrades                          |
+| [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md) | Platform topology                         |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

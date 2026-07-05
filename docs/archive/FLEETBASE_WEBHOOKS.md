@@ -12,17 +12,17 @@
 
 Fleetbase has **two webhook directions**:
 
-| Direction | Purpose | Porterchain role |
-| --------- | ------- | ---------------- |
+| Direction    | Purpose                  | Porterchain role                             |
+| ------------ | ------------------------ | -------------------------------------------- |
 | **Outbound** | Fleetbase → your systems | **Primary** — status sync to Porterchain API |
-| **Inbound** | External → Fleetbase | Telematics only (not Porterchain-critical) |
+| **Inbound**  | External → Fleetbase     | Telematics only (not Porterchain-critical)   |
 
 ---
 
 ## Porterchain inbound handler (implemented)
 
-| Route | Handler |
-| ----- | ------- |
+| Route                      | Handler                                      |
+| -------------------------- | -------------------------------------------- |
 | `POST /webhooks/fleetbase` | `WebhookIngressService` → `WebhookProcessor` |
 
 **Flow:**
@@ -53,15 +53,15 @@ Register in Fleetbase console → Developer → Webhooks:
 
 **URL:** `https://api.porterchain.com/webhooks/fleetbase` (local: `http://localhost:8001/webhooks/fleetbase`)
 
-| Event | Porterchain action |
-| ----- | ------------------ |
-| `order.dispatched` | Driver assigned notification |
-| `order.driver_assigned` | `order.driver_assigned` |
-| `order.started` | In-transit / pickup events |
-| `order.completed` | `order.delivered` + POD flow |
-| `order.canceled` | `order.cancelled` |
-| `order.failed` | Exception / claim workflow |
-| `order.dispatch_failed` | Ops alert |
+| Event                   | Porterchain action           |
+| ----------------------- | ---------------------------- |
+| `order.dispatched`      | Driver assigned notification |
+| `order.driver_assigned` | `order.driver_assigned`      |
+| `order.started`         | In-transit / pickup events   |
+| `order.completed`       | `order.delivered` + POD flow |
+| `order.canceled`        | `order.cancelled`            |
+| `order.failed`          | Exception / claim workflow   |
+| `order.dispatch_failed` | Ops alert                    |
 
 Store `porterchain_order_id` in Fleetbase order `meta` during adapter sync.
 
@@ -97,23 +97,23 @@ Optional SSO extension routes: `POST /int/v1/porterchain/sso/*` — requires `po
 
 ## Environment variables
 
-| Variable | Side | Purpose |
-| -------- | ---- | ------- |
-| `FLEETBASE_API_URL` | Porterchain | Fleetbase base URL |
-| `FLEETBASE_API_KEY` | Porterchain | Outbound auth |
-| `FLEETBASE_WEBHOOK_SECRET` | Porterchain | Inbound signature verify |
-| `PORTERCHAIN_DISPATCHER_API_KEY` | Fleetbase | Reverse auth (if added) |
+| Variable                         | Side        | Purpose                  |
+| -------------------------------- | ----------- | ------------------------ |
+| `FLEETBASE_API_URL`              | Porterchain | Fleetbase base URL       |
+| `FLEETBASE_API_KEY`              | Porterchain | Outbound auth            |
+| `FLEETBASE_WEBHOOK_SECRET`       | Porterchain | Inbound signature verify |
+| `PORTERCHAIN_DISPATCHER_API_KEY` | Fleetbase   | Reverse auth (if added)  |
 
 ---
 
 ## Security checklist
 
-| Control | Status |
-| ------- | ------ |
-| HTTPS in production | Required |
-| HMAC signature verification | ✅ Implemented |
-| Idempotency on `event.id` | ✅ Via event bus idempotency store |
-| Secret rotation | Fleetbase `api-credentials/roll/{id}` |
+| Control                     | Status                                |
+| --------------------------- | ------------------------------------- |
+| HTTPS in production         | Required                              |
+| HMAC signature verification | ✅ Implemented                        |
+| Idempotency on `event.id`   | ✅ Via event bus idempotency store    |
+| Secret rotation             | Fleetbase `api-credentials/roll/{id}` |
 
 ---
 
@@ -128,8 +128,8 @@ Optional SSO extension routes: `POST /int/v1/porterchain/sso/*` — requires `po
 
 ## Related documents
 
-| Document | Purpose |
-| -------- | ------- |
-| [FLEETBASE_EVENTS.md](./FLEETBASE_EVENTS.md) | Event catalog + mapping |
-| [FLEETBASE_APIS.md](./FLEETBASE_APIS.md) | REST reference |
-| [FLEETBASE_DATABASE.md](./FLEETBASE_DATABASE.md) | Webhook tables |
+| Document                                         | Purpose                 |
+| ------------------------------------------------ | ----------------------- |
+| [FLEETBASE_EVENTS.md](./FLEETBASE_EVENTS.md)     | Event catalog + mapping |
+| [FLEETBASE_APIS.md](./FLEETBASE_APIS.md)         | REST reference          |
+| [FLEETBASE_DATABASE.md](./FLEETBASE_DATABASE.md) | Webhook tables          |

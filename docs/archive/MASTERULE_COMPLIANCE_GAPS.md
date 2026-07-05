@@ -68,13 +68,13 @@ This document tracks compliance with `masterrule.md`. **Phases 1–5 are complet
 
 ## Phase 4 progress
 
-| ID          | Status   | Notes                               |
-| ----------- | -------- | ----------------------------------- |
-| M1          | **Done** | `billing_engine/`                   |
-| M2          | **Done** | `notification_engine/`              |
-| M12         | **Done** | Alembic + Postgres in Docker        |
+| ID          | Status   | Notes                                                     |
+| ----------- | -------- | --------------------------------------------------------- |
+| M1          | **Done** | `billing_engine/`                                         |
+| M2          | **Done** | `notification_engine/`                                    |
+| M12         | **Done** | Alembic + Postgres in Docker                              |
 | C5          | **Done** | `apps/mobile-driver/` + `apps/mobile-customer/` Expo apps |
-| H12 + L1–L3 | **Done** | README, TECH_STACK, masterrule §4.2 |
+| H12 + L1–L3 | **Done** | README, TECH_STACK, masterrule §4.2                       |
 
 ---
 

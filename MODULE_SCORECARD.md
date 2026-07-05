@@ -1,6 +1,5 @@
 # Module Scorecard — Porterchain Platform
 
-
 **Type:** REPORT
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -38,40 +37,40 @@
 
 ## Business Modules
 
-| Module               | Status      | Service                            | Admin UI                  | Notes                        |
-| -------------------- | ----------- | ---------------------------------- | ------------------------- | ---------------------------- |
-| **Booking Workflow** | ✅ Complete | `booking_engine/`                  | Booking drafts grid       | Critical draft race fixed    |
-| **CRM (sales pipeline)** | ⚠️ Deferred | `collaboration_engine/crm_service` | — (admin CRM UI removed) | Phase 2 — `/v1/admin/collaboration` only |
-| **Orders**           | ✅ Complete | `admin_engine/orders_service`      | Grid + Order360           | Embedded map                 |
-| **Operations**       | ✅ Complete | `control_tower_service`            | Dispatch board            |                              |
-| **Route Center**     | ❌ Removed  | —                                  | —                         | Fleetbase + Control Tower    |
-| **Finance**          | ⚠️ Partial  | `finance_service`                  | Invoices grid/detail      | No PDF export                |
-| **Billing**          | ⚠️ Partial  | `billing_engine/`                  | Merchant NET views        | Credit notes roadmap §11.2   |
-| **Pricing**          | ✅ Complete | `pricing_engine/` + library        | Admin tariffs + simulator |                              |
-| **Claims**           | ✅ Complete | `claims_service`                   | List + detail             | Refund events wired          |
-| **Support**          | ✅ Complete | `support_service`                  | Grid + detail             | Enterprise tickets           |
-| **Reports**          | ✅ Complete | `reports_service`                  | Charts + exports          |                              |
-| **Settings**         | ✅ Complete | `settings_service`                 | Settings center           |                              |
-| **Notifications**    | ⚠️ Partial  | `notification_engine/`             | Admin + inbox WS          | FCM log-only without creds   |
-| **Live Map**         | ✅ Complete | `operations.py` WS                 | `LiveMapApp`              | Poll fallback                |
-| **Diagnostics**      | ✅ Complete | `diagnostics_service`              | System health/tests       |                              |
+| Module                   | Status      | Service                            | Admin UI                  | Notes                                    |
+| ------------------------ | ----------- | ---------------------------------- | ------------------------- | ---------------------------------------- |
+| **Booking Workflow**     | ✅ Complete | `booking_engine/`                  | Booking drafts grid       | Critical draft race fixed                |
+| **CRM (sales pipeline)** | ⚠️ Deferred | `collaboration_engine/crm_service` | — (admin CRM UI removed)  | Phase 2 — `/v1/admin/collaboration` only |
+| **Orders**               | ✅ Complete | `admin_engine/orders_service`      | Grid + Order360           | Embedded map                             |
+| **Operations**           | ✅ Complete | `control_tower_service`            | Dispatch board            |                                          |
+| **Route Center**         | ❌ Removed  | —                                  | —                         | Fleetbase + Control Tower                |
+| **Finance**              | ⚠️ Partial  | `finance_service`                  | Invoices grid/detail      | No PDF export                            |
+| **Billing**              | ⚠️ Partial  | `billing_engine/`                  | Merchant NET views        | Credit notes roadmap §11.2               |
+| **Pricing**              | ✅ Complete | `pricing_engine/` + library        | Admin tariffs + simulator |                                          |
+| **Claims**               | ✅ Complete | `claims_service`                   | List + detail             | Refund events wired                      |
+| **Support**              | ✅ Complete | `support_service`                  | Grid + detail             | Enterprise tickets                       |
+| **Reports**              | ✅ Complete | `reports_service`                  | Charts + exports          |                                          |
+| **Settings**             | ✅ Complete | `settings_service`                 | Settings center           |                                          |
+| **Notifications**        | ⚠️ Partial  | `notification_engine/`             | Admin + inbox WS          | FCM log-only without creds               |
+| **Live Map**             | ✅ Complete | `operations.py` WS                 | `LiveMapApp`              | Poll fallback                            |
+| **Diagnostics**          | ✅ Complete | `diagnostics_service`              | System health/tests       |                                          |
 
 ---
 
 ## Engine Modules (API)
 
-| Engine                 | Status | Responsibility                                |
-| ---------------------- | ------ | --------------------------------------------- |
-| `booking_engine/`      | ✅     | Quote, draft, payment, confirmation, tracking |
-| `merchant_engine/`     | ✅     | B2B lifecycle, billing, bulk                  |
-| `admin_engine/`        | ✅     | Ops, CRM, finance, claims, RBAC               |
-| `fleetbase_engine/`    | ✅     | Sync, webhooks, retry queue                   |
-| `driver_engine/`       | ⚠️     | Driver bridge; router too fat                 |
-| `billing_engine/`      | ⚠️     | Ledger; refund events partial                 |
-| `notification_engine/` | ⚠️     | Templates, delivery; FCM partial              |
-| `pricing_engine/`      | ✅     | Bridge to pricing library                     |
+| Engine                 | Status     | Responsibility                                |
+| ---------------------- | ---------- | --------------------------------------------- |
+| `booking_engine/`      | ✅         | Quote, draft, payment, confirmation, tracking |
+| `merchant_engine/`     | ✅         | B2B lifecycle, billing, bulk                  |
+| `admin_engine/`        | ✅         | Ops, CRM, finance, claims, RBAC               |
+| `fleetbase_engine/`    | ✅         | Sync, webhooks, retry queue                   |
+| `driver_engine/`       | ⚠️         | Driver bridge; router too fat                 |
+| `billing_engine/`      | ⚠️         | Ledger; refund events partial                 |
+| `notification_engine/` | ⚠️         | Templates, delivery; FCM partial              |
+| `pricing_engine/`      | ✅         | Bridge to pricing library                     |
 | `route_center_engine/` | ❌ Removed | Use Fleetbase routes + Control Tower          |
-| `gateway_engine/`      | ✅     | Merchant API key rate limits                  |
+| `gateway_engine/`      | ✅         | Merchant API key rate limits                  |
 
 ---
 
@@ -108,7 +107,7 @@ _Detailed gaps: `GAP_ANALYSIS.md` · Remediation plan: `ROADMAP.md` · Go/no-go:
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

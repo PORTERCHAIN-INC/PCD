@@ -1,6 +1,5 @@
 # Notification Report
 
-
 **Type:** REPORT
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -18,15 +17,15 @@
 
 **Overall:** PASS
 
-| Audience | Status | Total templates | Failed |
-| -------- | ------ | --------------- | ------ |
-| customer | ✅ PASS | 31 | 0 |
-| merchant | ✅ PASS | 0 | 0 |
-| driver | ✅ PASS | 0 | 0 |
-| admin | ✅ PASS | 632 | 0 |
-| operations | ✅ PASS | 0 | 0 |
-| finance | ✅ PASS | 143 | 0 |
-| support | ✅ PASS | 314 | 0 |
+| Audience   | Status  | Total templates | Failed |
+| ---------- | ------- | --------------- | ------ |
+| customer   | ✅ PASS | 31              | 0      |
+| merchant   | ✅ PASS | 0               | 0      |
+| driver     | ✅ PASS | 0               | 0      |
+| admin      | ✅ PASS | 632             | 0      |
+| operations | ✅ PASS | 0               | 0      |
+| finance    | ✅ PASS | 143             | 0      |
+| support    | ✅ PASS | 314             | 0      |
 
 Counts reflect **template catalog entries** exercised by the E2E validator — not live delivery volume.
 
@@ -34,12 +33,12 @@ Counts reflect **template catalog entries** exercised by the E2E validator — n
 
 ## Runtime delivery (July 2026)
 
-| Channel | Implementation | Production |
-| ------- | -------------- | ---------- |
-| Email | Worker queue + SMTP (Zoho) | Config required |
-| SMS | Worker queue | Partial |
+| Channel    | Implementation                                     | Production                 |
+| ---------- | -------------------------------------------------- | -------------------------- |
+| Email      | Worker queue + SMTP (Zoho)                         | Config required            |
+| SMS        | Worker queue                                       | Partial                    |
 | Push (FCM) | `notification_engine` + mobile device registration | ⚠️ Prod credentials needed |
-| In-app | `notification_records` table | Admin/portal poll — no WS |
+| In-app     | `notification_records` table                       | Admin/portal poll — no WS  |
 
 Engine: `apps/api/src/porterchain_api/notification_engine/`
 
@@ -67,25 +66,26 @@ Admin: Diagnostics → E2E Validation.
 
 ## Known gaps (platform)
 
-| Gap | Priority | Doc |
-| --- | -------- | --- |
-| Firebase prod credentials for push | High | [FCM_CONFIGURATION.md](./docs/notifications/FCM_CONFIGURATION.md) |
-| Merchant/driver template expansion | Medium | [NOTIFICATION_TEMPLATE_CATALOG.md](./docs/notifications/NOTIFICATION_TEMPLATE_CATALOG.md) |
-| Realtime notification inbox | Low | [REALTIME_COMMUNICATION_REPORT.md](./REALTIME_COMMUNICATION_REPORT.md) |
+| Gap                                | Priority | Doc                                                                                       |
+| ---------------------------------- | -------- | ----------------------------------------------------------------------------------------- |
+| Firebase prod credentials for push | High     | [FCM_CONFIGURATION.md](./docs/notifications/FCM_CONFIGURATION.md)                         |
+| Merchant/driver template expansion | Medium   | [NOTIFICATION_TEMPLATE_CATALOG.md](./docs/notifications/NOTIFICATION_TEMPLATE_CATALOG.md) |
+| Realtime notification inbox        | Low      | [REALTIME_COMMUNICATION_REPORT.md](./REALTIME_COMMUNICATION_REPORT.md)                    |
 
 ---
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Platform gates |
-| [FAILURE_SCENARIOS_REPORT.md](./FAILURE_SCENARIOS_REPORT.md) | `notification_failure` scenario |
+| Document                                                           | Purpose                         |
+| ------------------------------------------------------------------ | ------------------------------- |
+| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Platform gates                  |
+| [FAILURE_SCENARIOS_REPORT.md](./FAILURE_SCENARIOS_REPORT.md)       | `notification_failure` scenario |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

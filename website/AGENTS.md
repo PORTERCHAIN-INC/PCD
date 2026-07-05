@@ -1,6 +1,5 @@
 <!-- BEGIN:nextjs-agent-rules -->
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -10,7 +9,6 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 
 <!-- END:nextjs-agent-rules -->
-
 
 # Porterchain Website — Agent Rules
 
@@ -36,27 +34,27 @@ This app is the **public marketing site + retail booking funnel** only. It is **
 
 ## Stack
 
-| Tech | Notes |
-| ---- | ----- |
-| Next.js 16 | App Router, `output: "standalone"` |
-| React 19 | |
-| next-intl | Locale routing in `src/i18n/` |
-| Clerk | `@clerk/nextjs` via `AppClerkProvider` |
-| Maps | `@porterchain/maps` + `@vis.gl/react-google-maps` |
-| Env | `@porterchain/config/monorepo-env.mjs` |
+| Tech       | Notes                                             |
+| ---------- | ------------------------------------------------- |
+| Next.js 16 | App Router, `output: "standalone"`                |
+| React 19   |                                                   |
+| next-intl  | Locale routing in `src/i18n/`                     |
+| Clerk      | `@clerk/nextjs` via `AppClerkProvider`            |
+| Maps       | `@porterchain/maps` + `@vis.gl/react-google-maps` |
+| Env        | `@porterchain/config/monorepo-env.mjs`            |
 
 ---
 
 ## Key Paths
 
-| Path | Purpose |
-| ---- | ------- |
-| `src/app/[locale]/` | Pages |
-| `src/lib/api.ts`, `src/lib/api-base.ts` | Porterchain API client |
-| `src/app/api/quote/route.ts` | Server-side quote/geocode proxy |
-| `content/blog/{en,fr}/` | Blog markdown |
-| `messages/{en,fr}.json` | i18n strings |
-| `src/data/portal-links.ts` | Links to other portals |
+| Path                                    | Purpose                         |
+| --------------------------------------- | ------------------------------- |
+| `src/app/[locale]/`                     | Pages                           |
+| `src/lib/api.ts`, `src/lib/api-base.ts` | Porterchain API client          |
+| `src/app/api/quote/route.ts`            | Server-side quote/geocode proxy |
+| `content/blog/{en,fr}/`                 | Blog markdown                   |
+| `messages/{en,fr}.json`                 | i18n strings                    |
+| `src/data/portal-links.ts`              | Links to other portals          |
 
 ---
 
@@ -84,11 +82,12 @@ This app is the **public marketing site + retail booking funnel** only. It is **
 - [README.md](./README.md) — setup and routes
 - [../masterrule.md](../masterrule.md) — platform rules
 - [../docs/architecture/BOOKING_FLOW.md](../docs/architecture/BOOKING_FLOW.md)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../masterrule.md) | Architecture SSOT |
+| Document                                      | Role              |
+| --------------------------------------------- | ----------------- |
+| [masterrule.md](../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../CTO_AUDIT_REPORT.md) | Doc vs code audit |

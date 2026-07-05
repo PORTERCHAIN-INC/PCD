@@ -1,6 +1,5 @@
 # Porterchain Driver Platform
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -34,34 +33,34 @@ Driver App / Portal (:3003)
 
 ## Architecture
 
-| Layer | Path | Role |
-| ----- | ---- | ---- |
-| Reusable services | `services/driver-platform/porterchain_driver/` | Business logic |
-| API engine | `apps/api/.../driver_engine/` | Auth, Fleetbase bridge, RBAC |
-| API routes | `apps/api/.../routers/driver.py` | `/driver-api/v1/*` REST (~75 handlers) |
-| Web portal | `apps/driver-portal/` | Next.js BFF + dashboard (port **3003**) |
-| Mobile | `apps/mobile-driver/` | Expo — same API, execution-first |
-| Fleetbase | `services/fleetbase-adapter/` | track, toggle-online, POD, routes |
+| Layer             | Path                                           | Role                                    |
+| ----------------- | ---------------------------------------------- | --------------------------------------- |
+| Reusable services | `services/driver-platform/porterchain_driver/` | Business logic                          |
+| API engine        | `apps/api/.../driver_engine/`                  | Auth, Fleetbase bridge, RBAC            |
+| API routes        | `apps/api/.../routers/driver.py`               | `/driver-api/v1/*` REST (~75 handlers)  |
+| Web portal        | `apps/driver-portal/`                          | Next.js BFF + dashboard (port **3003**) |
+| Mobile            | `apps/mobile-driver/`                          | Expo — same API, execution-first        |
+| Fleetbase         | `services/fleetbase-adapter/`                  | track, toggle-online, POD, routes       |
 
 ---
 
 ## DriverPlatform services
 
-| Service | Module | Capabilities |
-| ------- | ------ | ------------ |
-| Dashboard | `dashboard.py` | Today's earnings, stops, wallet |
-| Jobs | `jobs.py` | Job list, detail, history |
-| Stops | `stops.py` | Route, arrive, deliver, exceptions |
-| Navigation | `navigation.py` | Polyline, ETA via Fleetbase + maps |
-| Shift | `shift.py` | Shift lifecycle |
-| Availability | `availability.py` | Online/offline, accept/reject |
-| POD | `pod.py` | OTP, photo, signature, complete |
-| Location | `location.py` | GPS → DB + Fleetbase track |
-| Earnings / finance | `earnings.py`, `finance.py` | billing_engine delegation |
-| Communications | `communications.py` | Notification hub |
-| Offline | `offline.py` | Queue + sync |
-| Push | `push.py` | → `DeviceService` |
-| Emergency | `emergency.py` | Distress → ops + event |
+| Service            | Module                      | Capabilities                       |
+| ------------------ | --------------------------- | ---------------------------------- |
+| Dashboard          | `dashboard.py`              | Today's earnings, stops, wallet    |
+| Jobs               | `jobs.py`                   | Job list, detail, history          |
+| Stops              | `stops.py`                  | Route, arrive, deliver, exceptions |
+| Navigation         | `navigation.py`             | Polyline, ETA via Fleetbase + maps |
+| Shift              | `shift.py`                  | Shift lifecycle                    |
+| Availability       | `availability.py`           | Online/offline, accept/reject      |
+| POD                | `pod.py`                    | OTP, photo, signature, complete    |
+| Location           | `location.py`               | GPS → DB + Fleetbase track         |
+| Earnings / finance | `earnings.py`, `finance.py` | billing_engine delegation          |
+| Communications     | `communications.py`         | Notification hub                   |
+| Offline            | `offline.py`                | Queue + sync                       |
+| Push               | `push.py`                   | → `DeviceService`                  |
+| Emergency          | `emergency.py`              | Distress → ops + event             |
 
 ```python
 from porterchain_driver import DriverPlatform
@@ -74,18 +73,18 @@ snap = platform.dashboard.snapshot(db, driver)
 
 ## API (`/driver-api/v1`)
 
-| Area | Endpoints (representative) |
-| ---- | -------------------------- |
-| Auth | `POST /auth/login`, `POST /auth/refresh`, `GET /me` |
-| Workspace | `GET /dashboard`, `/onboarding`, `/profile` |
-| Jobs / routes | `GET /routes/assigned`, `POST /routes/{id}/start`, stops arrive/deliver |
-| Orders | `POST /orders/{id}/accept`, `/reject`, navigation |
-| POD | `/pod-photo`, `/pod-signature`, `/pod-complete`, OTP |
-| Location | `POST /location` (+ legacy `POST /driver/location`) |
-| Shift / availability | `/shift/*`, `POST /availability` |
-| Offline | `POST /offline/queue`, `GET /offline/pending`, `POST /offline/sync` |
-| Support | `/support`, `/incidents`, `POST /emergency` |
-| Push | `POST /push/register` → `DeviceService` |
+| Area                 | Endpoints (representative)                                              |
+| -------------------- | ----------------------------------------------------------------------- |
+| Auth                 | `POST /auth/login`, `POST /auth/refresh`, `GET /me`                     |
+| Workspace            | `GET /dashboard`, `/onboarding`, `/profile`                             |
+| Jobs / routes        | `GET /routes/assigned`, `POST /routes/{id}/start`, stops arrive/deliver |
+| Orders               | `POST /orders/{id}/accept`, `/reject`, navigation                       |
+| POD                  | `/pod-photo`, `/pod-signature`, `/pod-complete`, OTP                    |
+| Location             | `POST /location` (+ legacy `POST /driver/location`)                     |
+| Shift / availability | `/shift/*`, `POST /availability`                                        |
+| Offline              | `POST /offline/queue`, `GET /offline/pending`, `POST /offline/sync`     |
+| Support              | `/support`, `/incidents`, `POST /emergency`                             |
+| Push                 | `POST /push/register` → `DeviceService`                                 |
 
 **Auth:** Porterchain JWT (`Authorization: Bearer`). Portal stores tokens in **httpOnly cookies** via BFF; mobile uses secure storage.
 
@@ -95,12 +94,12 @@ snap = platform.dashboard.snapshot(db, driver)
 
 ## Fleetbase (adapter only)
 
-| Capability | Adapter path |
-| ---------- | ------------ |
-| GPS ping | `DriverService.track_location` |
-| Online toggle | `DriverService.toggle_online` |
-| POD upload | `PodService.upload_proof` |
-| Route polyline | Route/tracker APIs |
+| Capability       | Adapter path                             |
+| ---------------- | ---------------------------------------- |
+| GPS ping         | `DriverService.track_location`           |
+| Online toggle    | `DriverService.toggle_online`            |
+| POD upload       | `PodService.upload_proof`                |
+| Route polyline   | Route/tracker APIs                       |
 | Order state sync | `DriverFleetbaseBridge.sync_order_state` |
 
 **Rule:** Never call Fleetbase from apps. Bridge gated by `fleetbase_dispatch_bridge`.
@@ -109,15 +108,15 @@ snap = platform.dashboard.snapshot(db, driver)
 
 ## Data model (PostgreSQL 16)
 
-| Table | Purpose |
-| ----- | ------- |
-| `drivers` | Profile, wallet, compliance |
-| `orders.assigned_driver_id` | Assignment |
-| `driver_wallet_transactions` | Ledger |
-| `driver_location_pings` | GPS history |
-| `driver_offline_actions` | Offline queue |
-| `driver_stop_meta` | OTP, POD artifacts |
-| `notification_devices` | FCM tokens (via push register) |
+| Table                        | Purpose                        |
+| ---------------------------- | ------------------------------ |
+| `drivers`                    | Profile, wallet, compliance    |
+| `orders.assigned_driver_id`  | Assignment                     |
+| `driver_wallet_transactions` | Ledger                         |
+| `driver_location_pings`      | GPS history                    |
+| `driver_offline_actions`     | Offline queue                  |
+| `driver_stop_meta`           | OTP, POD artifacts             |
+| `notification_devices`       | FCM tokens (via push register) |
 
 ---
 
@@ -151,11 +150,12 @@ pnpm dev:api             # http://localhost:8001
 - [FLEETBASE_SERVICE_STATUS.md](./FLEETBASE_SERVICE_STATUS.md) — Fleetbase stack
 - [EVENT_CATALOG.md](./EVENT_CATALOG.md)
 - [DEVICE_REGISTRATION_FLOW.md](./docs/notifications/DEVICE_REGISTRATION_FLOW.md)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

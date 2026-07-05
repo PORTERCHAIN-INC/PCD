@@ -1,6 +1,5 @@
 # Porterchain — Module Dependency Graph
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -116,17 +115,17 @@ flowchart TB
 
 ## Driver hub (Step 6)
 
-| Connection  | Status                    |
-| ----------- | ------------------------- |
-| Fleetbase   | ✅ Bridge                 |
-| Vehicle     | ⚠️ API stub; page missing |
-| Orders      | ✅ Stops/routes           |
-| Tracking    | ✅ Location ping          |
-| Claims      | ⚠️ Incidents API          |
-| Support     | ⚠️ API stub               |
-| Performance | ⚠️ API stub               |
+| Connection  | Status                                   |
+| ----------- | ---------------------------------------- |
+| Fleetbase   | ✅ Bridge                                |
+| Vehicle     | ⚠️ API stub; page missing                |
+| Orders      | ✅ Stops/routes                          |
+| Tracking    | ✅ Location ping                         |
+| Claims      | ⚠️ Incidents API                         |
+| Support     | ⚠️ API stub                              |
+| Performance | ⚠️ API stub                              |
 | Documents   | ⚠️ API exists; mobile POD upload partial |
-| Incidents   | ✅ driver-platform        |
+| Incidents   | ✅ driver-platform                       |
 
 ---
 
@@ -259,7 +258,7 @@ Layer 5: UI apps
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

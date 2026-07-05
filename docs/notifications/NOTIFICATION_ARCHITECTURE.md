@@ -1,6 +1,5 @@
 # Notification Architecture
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -31,27 +30,27 @@ Users (mobile push / email / in-app bell via WebSocket)
 
 ## Components
 
-| Component | Path | Responsibility |
-| --------- | ---- | -------------- |
-| **NotificationEngine** | `notification_engine/engine.py` | Dispatch, preferences, retry scheduling, in-app realtime |
-| **EventRouter** | `notification_engine/event_router.py` | Maps domain events → notification specs |
-| **DeviceService** | `notification_engine/device_service.py` | FCM token registration, invalidation |
-| **FCMService** | `notification_engine/fcm_service.py` | Firebase Admin SDK — only FCM touchpoint |
-| **DeliveryService** | `notification_engine/delivery_service.py` | SMTP, FCM, SMS (log-only) |
-| **PreferenceService** | `notification_engine/preference_service.py` | Per-user channel/category opt-in |
-| **RealtimeHub** | `notification_engine/realtime.py` | WebSocket fan-out for in-app bell |
-| **NotificationOrchestrator** | `notification_engine/orchestrator.py` | Direct sends (e.g. checkout recovery) |
+| Component                    | Path                                        | Responsibility                                           |
+| ---------------------------- | ------------------------------------------- | -------------------------------------------------------- |
+| **NotificationEngine**       | `notification_engine/engine.py`             | Dispatch, preferences, retry scheduling, in-app realtime |
+| **EventRouter**              | `notification_engine/event_router.py`       | Maps domain events → notification specs                  |
+| **DeviceService**            | `notification_engine/device_service.py`     | FCM token registration, invalidation                     |
+| **FCMService**               | `notification_engine/fcm_service.py`        | Firebase Admin SDK — only FCM touchpoint                 |
+| **DeliveryService**          | `notification_engine/delivery_service.py`   | SMTP, FCM, SMS (log-only)                                |
+| **PreferenceService**        | `notification_engine/preference_service.py` | Per-user channel/category opt-in                         |
+| **RealtimeHub**              | `notification_engine/realtime.py`           | WebSocket fan-out for in-app bell                        |
+| **NotificationOrchestrator** | `notification_engine/orchestrator.py`       | Direct sends (e.g. checkout recovery)                    |
 
 There is no separate `retry_service.py` — retries use `NotificationEngine.schedule_retry()` on the record.
 
 ## Data Model
 
-| Table | Purpose |
-| ----- | ------- |
-| `notification_records` | Full audit — status, retry, opened/clicked, search fields |
-| `notification_devices` | FCM tokens per user/role/device |
-| `notification_preferences` | Channel + category preferences |
-| `notification_delivery_logs` | Per-attempt delivery log |
+| Table                        | Purpose                                                   |
+| ---------------------------- | --------------------------------------------------------- |
+| `notification_records`       | Full audit — status, retry, opened/clicked, search fields |
+| `notification_devices`       | FCM tokens per user/role/device                           |
+| `notification_preferences`   | Channel + category preferences                            |
+| `notification_delivery_logs` | Per-attempt delivery log                                  |
 
 ## Integration Rules
 
@@ -64,12 +63,12 @@ There is no separate `retry_service.py` — retries use `NotificationEngine.sche
 
 ## User API
 
-| Route | Purpose |
-| ----- | ------- |
-| `POST /v1/notifications/devices/register` | Register FCM token |
-| `GET /v1/notifications/inbox` | In-app notification center |
-| `PATCH /v1/notifications/preferences` | Channel preferences |
-| `WS /v1/notifications/ws?token=` | In-app realtime bell |
+| Route                                     | Purpose                    |
+| ----------------------------------------- | -------------------------- |
+| `POST /v1/notifications/devices/register` | Register FCM token         |
+| `GET /v1/notifications/inbox`             | In-app notification center |
+| `PATCH /v1/notifications/preferences`     | Channel preferences        |
+| `WS /v1/notifications/ws?token=`          | In-app realtime bell       |
 
 ## Admin API
 
@@ -77,19 +76,19 @@ There is no separate `retry_service.py` — retries use `NotificationEngine.sche
 
 ## RBAC
 
-| Module | Roles |
-| ------ | ----- |
-| `notifications_read` | All admin roles (read-only) |
-| `notifications` | `SUPER_ADMIN`, `ADMIN`, `DISPATCHER`, `SUPPORT_LEAD`, `MARKETING` |
+| Module               | Roles                                                             |
+| -------------------- | ----------------------------------------------------------------- |
+| `notifications_read` | All admin roles (read-only)                                       |
+| `notifications`      | `SUPER_ADMIN`, `ADMIN`, `DISPATCHER`, `SUPPORT_LEAD`, `MARKETING` |
 
 ## Channel Status (July 2026)
 
-| Channel | Status |
-| ------- | ------ |
-| Email | SMTP when configured; log-only without `smtp_host` |
+| Channel    | Status                                                 |
+| ---------- | ------------------------------------------------------ |
+| Email      | SMTP when configured; log-only without `smtp_host`     |
 | Push (FCM) | Production-ready path; log-only without Firebase creds |
-| In-app | Live — DB + WebSocket |
-| SMS | **Log-only** — no Twilio integration yet |
+| In-app     | Live — DB + WebSocket                                  |
+| SMS        | **Log-only** — no Twilio integration yet               |
 
 ## Related Docs
 
@@ -98,11 +97,12 @@ There is no separate `retry_service.py` — retries use `NotificationEngine.sche
 - [NOTIFICATION_EVENT_MATRIX.md](./NOTIFICATION_EVENT_MATRIX.md)
 - [NOTIFICATION_DELIVERY_FLOW.md](./NOTIFICATION_DELIVERY_FLOW.md)
 - [NOTIFICATION_TEMPLATE_CATALOG.md](./NOTIFICATION_TEMPLATE_CATALOG.md)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](../../masterrule.md) | Architecture SSOT |
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

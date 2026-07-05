@@ -1,10 +1,8 @@
 # Porterchain Operations Runbook
 
-
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
-
 
 Day-2 procedures for the Porterchain monorepo and the self-hosted Fleetbase stack.
 
@@ -216,10 +214,10 @@ curl http://localhost:8001/health
 
 ## Port conflicts
 
-| Port              | Owner                              | Resolution                                                                     |
-| ----------------- | ---------------------------------- | ------------------------------------------------------------------------------ |
-| 3306              | Porterchain MySQL OR legacy stacks | Fleetbase uses **3307** on host                                                |
-| Legacy stacks on 8000/4200/38000 | Stop before starting Fleetbase | `docker ps` → identify project → `docker compose -p <project> down` |
+| Port                             | Owner                              | Resolution                                                          |
+| -------------------------------- | ---------------------------------- | ------------------------------------------------------------------- |
+| 3306                             | Porterchain MySQL OR legacy stacks | Fleetbase uses **3307** on host                                     |
+| Legacy stacks on 8000/4200/38000 | Stop before starting Fleetbase     | `docker ps` → identify project → `docker compose -p <project> down` |
 
 ---
 
@@ -257,9 +255,9 @@ docker run --rm -v porterchain-fleetbase-api-storage:/data -v $(pwd):/backup alp
 
 Porterchain uses **Option A** (masterrule Appendix D4):
 
-| Component | Role |
-| --------- | ---- |
-| **API** (`apps/api`) | Registers domain event handlers in FastAPI lifespan; processes inline where cheap |
+| Component                  | Role                                                                                               |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| **API** (`apps/api`)       | Registers domain event handlers in FastAPI lifespan; processes inline where cheap                  |
 | **Worker** (`apps/worker`) | Redis queue consumer only — retries, cron, webhook replay; **does not** duplicate handler registry |
 
 Local dev: run both `pnpm dev:api` and `pnpm dev:worker` when testing queues. Production compose must either (a) include the worker service for queue drains, or (b) document sync-only mode if queues are disabled.
@@ -280,12 +278,12 @@ pnpm validate:p0                # G1–G9 gates
 pnpm validate:e2e:reports       # full markdown reports (optional)
 ```
 
-| Gate | What | Pass criteria |
-| ---- | ---- | ------------- |
-| G1 | API health + `booking_drafts` | `GET /health` 200; table exists; draft smoke POST |
-| G2 | Fleetbase sync | ≥90% orders have `fleetbase_order_id` |
-| G3 | Webhook secret | `FLEETBASE_WEBHOOK_SECRET` set; signed POST `/webhooks/fleetbase` |
-| G4–G9 | E2E framework | `scripts/verify_p0_loop.py` (wraps `E2EValidationService`) |
+| Gate  | What                          | Pass criteria                                                     |
+| ----- | ----------------------------- | ----------------------------------------------------------------- |
+| G1    | API health + `booking_drafts` | `GET /health` 200; table exists; draft smoke POST                 |
+| G2    | Fleetbase sync                | ≥90% orders have `fleetbase_order_id`                             |
+| G3    | Webhook secret                | `FLEETBASE_WEBHOOK_SECRET` set; signed POST `/webhooks/fleetbase` |
+| G4–G9 | E2E framework                 | `scripts/verify_p0_loop.py` (wraps `E2EValidationService`)        |
 
 **Prod droplet:** deploy workflow runs G1 smoke after migrate. Until `api.porterchain.com` is live, G1 prod stays open — see [infrastructure/deploy/README.md](./infrastructure/deploy/README.md).
 
@@ -300,20 +298,20 @@ pnpm validate:p0        # full local G1–G9 including E2E phases
 
 ## D3 — Phase 1 feature matrix
 
-After D2 deletion pass, prove essential features are wired (Fowler: *make the walking skeleton boring*).
+After D2 deletion pass, prove essential features are wired (Fowler: _make the walking skeleton boring_).
 
 ```bash
 pnpm validate:d3        # static: API routes + client contracts (9 rows)
 pnpm validate:d3:e2e    # static + E2E phase mapping (~10s)
 ```
 
-| Row | Maps to E2E phase |
-| --- | ----------------- |
-| Merchant dashboard | `phase_3_merchant` |
-| Driver / customer surfaces | `phase_2_forward_logistics` |
+| Row                              | Maps to E2E phase                            |
+| -------------------------------- | -------------------------------------------- |
+| Merchant dashboard               | `phase_3_merchant`                           |
+| Driver / customer surfaces       | `phase_2_forward_logistics`                  |
 | Dispatch, POD, tracking, billing | `phase_2` (+ `phase_3` for billing/merchant) |
-| Routing | `phase_1_system_layer` |
-| Partner API | `phase_3_merchant` |
+| Routing                          | `phase_1_system_layer`                       |
+| Partner API                      | `phase_3_merchant`                           |
 
 Manual smoke (optional): book on `website` → pay → track on `apps/customer`; merchant bulk on `merchant-portal`; driver POD on `driver-portal` / mobile.
 
@@ -323,10 +321,10 @@ Manual smoke (optional): book on `website` → pay → track on `apps/customer`;
 
 Production uses **sync-only API handlers** (see `ensure_handlers_registered()` in API lifespan). The worker is **not** in `docker-compose.prod.yml` — queue drains run inline in the API process.
 
-| Mode | When | Compose |
-| ---- | ---- | ------- |
+| Mode                        | When                                                    | Compose                                                               |
+| --------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------- |
 | **Option A (default prod)** | Event handlers in API lifespan; worker optional locally | `infrastructure/deploy/docker-compose.prod.yml` — no `worker` service |
-| **Option B (scale)** | API publishes only; dedicated worker drains queues | Add `worker` service to prod compose + document in this section |
+| **Option B (scale)**        | API publishes only; dedicated worker drains queues      | Add `worker` service to prod compose + document in this section       |
 
 Local dev: run `pnpm dev:worker` alongside `pnpm dev:api` when testing Redis queue drains. See [infrastructure/deploy/README.md](./infrastructure/deploy/README.md#images-built).
 
@@ -379,11 +377,12 @@ Replay only after fixing root cause (missing API key, company UUID, or Fleetbase
 - [SERVICE_STATUS.md](./SERVICE_STATUS.md)
 - [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md)
 - [ROADMAP.md](./ROADMAP.md)
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

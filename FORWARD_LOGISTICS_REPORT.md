@@ -1,6 +1,5 @@
 # Forward Logistics Report
 
-
 **Type:** REPORT
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
@@ -21,35 +20,35 @@
 
 Automated framework exercised the retail forward chain from website visitor through delivery, POD, billing, and reporting surfaces.
 
-| Step | Status | Layer |
-| ---- | ------ | ----- |
-| Website Visitor | ✅ PASS | website |
-| Quote | ✅ PASS | booking_engine |
-| Booking Draft | ✅ PASS | booking_engine |
-| Collect Email / Phone | ✅ PASS | booking_engine |
-| Booking Draft Saved | ✅ PASS | repository |
-| Clerk Authentication | ✅ PASS | auth |
-| Booking Draft Restored | ✅ PASS | booking_engine |
-| Booking Review | ✅ PASS | ui |
-| Stripe Sandbox Payment | ✅ PASS | billing_engine |
-| Webhook Verification | ✅ PASS | billing_engine |
-| Payment Verified | ✅ PASS | billing_engine |
-| Order Created | ✅ PASS | booking_engine |
-| Pricing Engine | ✅ PASS | pricing_engine |
-| Billing Engine | ✅ PASS | billing_engine |
-| Operations Queue | ✅ PASS | admin_engine |
-| Vehicle Recommendation | ✅ PASS | route_center |
-| Driver Recommendation | ✅ PASS | fleetbase_engine |
-| Route Optimization | ✅ PASS | route_center |
-| Fleetbase Adapter | ✅ PASS | fleetbase_adapter |
-| Fleetbase Dispatch | ✅ PASS | fleetbase_engine |
-| Driver Assigned → Delivered | ✅ PASS | orders_engine |
-| Photo / Signature / OTP / POD | ✅ PASS | fleetbase_engine |
-| Invoice / Receipt | ✅ PASS | billing_engine |
-| Push Notification | ✅ PASS | notification_engine |
-| Customer Dashboard Updated | ✅ PASS | ui |
-| Merchant Updated | ✅ PASS | merchant_engine |
-| Reports Updated | ✅ PASS | reporting_engine |
+| Step                          | Status  | Layer               |
+| ----------------------------- | ------- | ------------------- |
+| Website Visitor               | ✅ PASS | website             |
+| Quote                         | ✅ PASS | booking_engine      |
+| Booking Draft                 | ✅ PASS | booking_engine      |
+| Collect Email / Phone         | ✅ PASS | booking_engine      |
+| Booking Draft Saved           | ✅ PASS | repository          |
+| Clerk Authentication          | ✅ PASS | auth                |
+| Booking Draft Restored        | ✅ PASS | booking_engine      |
+| Booking Review                | ✅ PASS | ui                  |
+| Stripe Sandbox Payment        | ✅ PASS | billing_engine      |
+| Webhook Verification          | ✅ PASS | billing_engine      |
+| Payment Verified              | ✅ PASS | billing_engine      |
+| Order Created                 | ✅ PASS | booking_engine      |
+| Pricing Engine                | ✅ PASS | pricing_engine      |
+| Billing Engine                | ✅ PASS | billing_engine      |
+| Operations Queue              | ✅ PASS | admin_engine        |
+| Vehicle Recommendation        | ✅ PASS | route_center        |
+| Driver Recommendation         | ✅ PASS | fleetbase_engine    |
+| Route Optimization            | ✅ PASS | route_center        |
+| Fleetbase Adapter             | ✅ PASS | fleetbase_adapter   |
+| Fleetbase Dispatch            | ✅ PASS | fleetbase_engine    |
+| Driver Assigned → Delivered   | ✅ PASS | orders_engine       |
+| Photo / Signature / OTP / POD | ✅ PASS | fleetbase_engine    |
+| Invoice / Receipt             | ✅ PASS | billing_engine      |
+| Push Notification             | ✅ PASS | notification_engine |
+| Customer Dashboard Updated    | ✅ PASS | ui                  |
+| Merchant Updated              | ✅ PASS | merchant_engine     |
+| Reports Updated               | ✅ PASS | reporting_engine    |
 
 ---
 
@@ -57,11 +56,11 @@ Automated framework exercised the retail forward chain from website visitor thro
 
 The E2E validator confirms **handlers, state transitions, and cross-layer wiring exist** for each step. It does **not** require a live Fleetbase stack or production Stripe webhooks unless configured in the run environment.
 
-| Requirement | Notes |
-| ----------- | ----- |
-| Local Stripe checkout | Use `stripe listen --forward-to localhost:8001/webhooks/stripe` or mock-complete in dev |
-| Fleetbase dispatch steps | May WARN without `FLEETBASE_DISPATCH_BRIDGE=true` and Fleetbase up |
-| Platform certification | See [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) |
+| Requirement              | Notes                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| Local Stripe checkout    | Use `stripe listen --forward-to localhost:8001/webhooks/stripe` or mock-complete in dev |
+| Fleetbase dispatch steps | May WARN without `FLEETBASE_DISPATCH_BRIDGE=true` and Fleetbase up                      |
+| Platform certification   | See [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md)                  |
 
 ---
 
@@ -77,16 +76,17 @@ Console-only: `pnpm validate:e2e`
 
 ## Related
 
-| Document | Purpose |
-| -------- | ------- |
-| [REVERSE_LOGISTICS_REPORT.md](./REVERSE_LOGISTICS_REPORT.md) | Returns / refunds chain |
-| [docs/architecture/BOOKING_FLOW.md](./docs/architecture/BOOKING_FLOW.md) | Retail flow diagram |
-| [docs/architecture/DISPATCH_FLOW.md](./docs/architecture/DISPATCH_FLOW.md) | Dispatch → POD |
+| Document                                                                   | Purpose                 |
+| -------------------------------------------------------------------------- | ----------------------- |
+| [REVERSE_LOGISTICS_REPORT.md](./REVERSE_LOGISTICS_REPORT.md)               | Returns / refunds chain |
+| [docs/architecture/BOOKING_FLOW.md](./docs/architecture/BOOKING_FLOW.md)   | Retail flow diagram     |
+| [docs/architecture/DISPATCH_FLOW.md](./docs/architecture/DISPATCH_FLOW.md) | Dispatch → POD          |
+
 ---
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [masterrule.md](masterrule.md) | Architecture SSOT |
+| Document                                   | Role              |
+| ------------------------------------------ | ----------------- |
+| [masterrule.md](masterrule.md)             | Architecture SSOT |
 | [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |
