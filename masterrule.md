@@ -831,7 +831,7 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 
 **Local verification:** `pnpm fleetbase:replay` then `pnpm validate:p0` (see [RUNBOOK.md](./RUNBOOK.md#d1-p0--production-loop-checklist)).
 
-- [ ] **G1** Droplet/prod: API healthy, `booking_drafts` table exists, smoke test passes _(local ✓ 2026-07-05; prod droplet unreachable)_
+- [x] **G1** Droplet/prod: API healthy, `booking_drafts` table exists, smoke test passes _(prod ✓ 2026-07-05 — `pnpm validate:p0:prod`)_
 - [x] **G2** Fleetbase sync: >90% orders reach `fleetbase_order_id`; dead-letter replay documented _(local 31/31 = 100%; `pnpm fleetbase:replay` + RUNBOOK)_
 - [x] **G3** `FLEETBASE_WEBHOOK_SECRET` set; webhook ingress verified _(local `.env` + signed POST)_
 - [x] **G4** End-to-end local: quote → Stripe (mock) → order → dispatch event → Fleetbase order
@@ -941,18 +941,18 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 | Website `/portal/customer`                       | **Removed** — links to `:3004`                                            |
 | `merchant_engine` → `admin_engine` imports       | **Fixed** — `support_engine` + `domain/*`                                 |
 | Fleetbase sync backlog (local audit)             | **Cleared** — 31/31 linked (100%) after replay                            |
-| Prod droplet containers                          | **Empty** — G1 prod open; `pnpm validate:p0:prod` fails (API unreachable) |
+| Prod droplet containers                          | **Live** — 8 services; `https://api.porterchain.com/health` → ok (2026-07-05) |
 | D3 feature matrix                                | **Local pass** — `pnpm validate:d3:e2e` 9/9 rows                          |
 | Mobile customer + driver apps                    | Present in repo                                                           |
 | Phase 2 AI/analytics code                        | Not started (good)                                                        |
 
 ### D8 — Suggested execution order (sprints)
 
-1. **Sprint A (P0 ops):** G1–G3 prod + Fleetbase sync replay — _G1 prod open (droplet unreachable 2026-07-05)_
+1. ~~**Sprint A (P0 ops):** G1–G3 prod + Fleetbase sync replay~~ ✓ G1 prod live 2026-07-05
 2. ~~**Sprint B (delete UI debt):** D2 surface + admin cleanup~~ ✓
 3. ~~**Sprint C (boundaries):** D2 bounded-context extractions~~ ✓
 4. ~~**Sprint D (routers):** D2 thin routers~~ ✓
-5. **Sprint E (now):** D3 `validate:d3:e2e` + manual portal smoke; close G1 prod deploy
+5. **Sprint E (now):** D3 manual portal smoke on prod URLs; G9 Firebase in prod compose
 6. **Sprint F:** D4 Option A prod sign-off; G9 Firebase in prod
 7. ~~**Sprint G (Phase 2 prep):** D5 hooks + ADR-010 only~~ ✓
 
