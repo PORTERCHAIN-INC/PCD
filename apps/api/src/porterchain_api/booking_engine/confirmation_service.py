@@ -20,6 +20,11 @@ from porterchain_api.domain.states import BookingState, OrderState, QuoteState
 from porterchain_api.models import Booking, Customer, Invoice, Order, Payment, Quote
 from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
 from porterchain_api.booking_engine.order_metadata import resolve_order_type, retail_order_source
+from porterchain_api.booking_engine.row_locks import (
+    lock_active_payment,
+    lock_order_by_quote,
+    lock_quote,
+)
 
 
 class BookingConfirmationService:
@@ -42,11 +47,16 @@ class BookingConfirmationService:
         tax_cents: int | None = None,
         fees_cents: int | None = None,
     ) -> Order:
+        locked_quote = lock_quote(db, quote.id)
+        if not locked_quote:
+            raise LookupError("quote_not_found")
+        quote = locked_quote
+
         if quote.state != QuoteState.PAYMENT_PENDING.value:
             raise ValueError("quote_not_awaiting_payment")
 
         # Idempotency — a verified webhook may arrive more than once.
-        existing = db.query(Order).filter(Order.quote_id == quote.id).first()
+        existing = lock_order_by_quote(db, quote.id)
         if existing:
             booking = db.query(Booking).filter(Booking.quote_id == quote.id).first()
             if booking:
@@ -56,7 +66,7 @@ class BookingConfirmationService:
                 self._drafts.on_booking_confirmed(db, quote, booking, existing)
             return existing
 
-        payment = self._payments.get_active_payment(db, quote.id)
+        payment = lock_active_payment(db, quote.id)
         if payment:
             self._payments.mark_succeeded(
                 db,
@@ -259,7 +269,7 @@ class BookingConfirmationService:
         }
 
     def mock_complete_checkout(self, db: Session, settings: Settings, quote_id: str) -> Order:
-        quote = db.query(Quote).filter(Quote.id == quote_id).first()
+        quote = lock_quote(db, quote_id)
         if not quote:
             raise LookupError("quote_not_found")
         if quote.state != QuoteState.PAYMENT_PENDING.value:

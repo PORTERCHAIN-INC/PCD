@@ -9,6 +9,24 @@ from porterchain_api.config import Settings
 from porterchain_shared.redis_health import ping_redis
 
 
+def _queue_health() -> dict:
+    """Report Redis queue depths and worker heartbeat (DD-04)."""
+    try:
+        from porterchain_shared.redis_client import get_redis_client
+        from porterchain_shared.queue.names import QueueName
+
+        client = get_redis_client()
+        depths = {q.value: int(client.llen(q.redis_key)) for q in QueueName}
+        heartbeat = client.get("porterchain:worker:heartbeat")
+        return {
+            "status": "ok" if heartbeat else "no_heartbeat",
+            "depths": depths,
+            "worker_heartbeat": heartbeat,
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "detail": str(exc)}
+
+
 def liveness() -> dict[str, str]:
     return {"status": "ok", "service": "porterchain-api"}
 
@@ -23,6 +41,8 @@ def readiness(db: Session, settings: Settings) -> dict:
         checks["database"] = f"error: {exc}"
 
     checks["redis"] = "ok" if ping_redis() else "unavailable"
+    queue = _queue_health()
+    checks["queues"] = queue["status"]
     checks["stripe"] = "configured" if settings.stripe_secret else "mock_or_unconfigured"
     checks["fleetbase"] = (
         "bridge_enabled" if settings.fleetbase_dispatch_bridge else "bridge_disabled"
@@ -46,4 +66,4 @@ def readiness(db: Session, settings: Settings) -> dict:
         required["redis"] = "ok"
 
     status = "ok" if all(checks.get(k) == v for k, v in required.items()) else "degraded"
-    return {"status": status, "service": "porterchain-api", "checks": checks}
+    return {"status": status, "service": "porterchain-api", "checks": checks, "queues": queue}

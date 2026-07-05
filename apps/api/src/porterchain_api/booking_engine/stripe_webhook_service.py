@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import BookingConfirmationService, BookingService, PaymentService
 from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.booking_engine.row_locks import lock_active_payment, lock_payment, lock_quote
 from porterchain_api.config import Settings
 from porterchain_api.models import Order, Payment, Quote
 from porterchain_api.services.stripe_service import handle_checkout_completed
@@ -61,12 +62,12 @@ class StripeWebhookService:
         meta = handle_checkout_completed(settings, session)
         if not meta or not meta.get("quote_id"):
             return
-        quote = db.query(Quote).filter(Quote.id == meta["quote_id"]).first()
+        quote = lock_quote(db, meta["quote_id"])
         if not quote:
             return
         payment = None
         if meta.get("payment_id"):
-            payment = db.query(Payment).filter(Payment.id == meta["payment_id"]).first()
+            payment = lock_payment(db, meta["payment_id"])
         if payment:
             self._payments.mark_succeeded(
                 db,
@@ -90,10 +91,10 @@ class StripeWebhookService:
         quote_id = meta.get("quote_id")
         if not quote_id:
             return
-        quote = db.query(Quote).filter(Quote.id == quote_id).first()
+        quote = lock_quote(db, quote_id)
         if not quote:
             return
-        payment = self._payments.get_active_payment(db, quote_id)
+        payment = lock_active_payment(db, quote_id)
         if payment:
             self._payments.mark_failed(db, payment, reason="checkout_session_expired")
         self._bookings.record_abandoned_checkout(db, quote, reason="session_expired")
@@ -103,10 +104,10 @@ class StripeWebhookService:
         quote_id = meta.get("quote_id")
         if not quote_id:
             return
-        quote = db.query(Quote).filter(Quote.id == quote_id).first()
+        quote = lock_quote(db, quote_id)
         if not quote:
             return
-        payment = self._payments.get_active_payment(db, quote_id)
+        payment = lock_active_payment(db, quote_id)
         if payment:
             reason = data_object.get("last_payment_error", {}).get("message", "payment_failed")
             self._payments.mark_failed(db, payment, reason=reason)

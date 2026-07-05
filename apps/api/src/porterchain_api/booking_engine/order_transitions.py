@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import publish_recorded_event, record_domain_event, _event_fields
 from porterchain_api.domain.states import OrderState, can_transition_order
+from porterchain_api.booking_engine.row_locks import lock_order
 from porterchain_api.models import Order, OrderEvent
 
 
@@ -51,6 +52,10 @@ def transition_order_state(
     actor_id: str | None = None,
     payload: dict | None = None,
 ) -> Order:
+    locked = lock_order(db, order.id)
+    if not locked:
+        raise LookupError("order_not_found")
+    order = locked
     from_state = OrderState(order.state)
     if not can_transition_order(from_state, to_state):
         raise ValueError(f"Invalid order transition {from_state} -> {to_state}")

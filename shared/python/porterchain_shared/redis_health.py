@@ -17,12 +17,16 @@ def is_local_env(app_env: str | None = None) -> bool:
 
 
 def ping_redis(redis_url: str | None = None) -> bool:
-    url = redis_url or get_platform_settings().redis_url
     try:
-        import redis
+        if redis_url is not None and redis_url != get_platform_settings().redis_url:
+            import redis
 
-        client = redis.from_url(url, decode_responses=True)
-        client.ping()
+            client = redis.from_url(redis_url, decode_responses=True)
+            client.ping()
+            return True
+        from porterchain_shared.redis_client import get_redis_client
+
+        get_redis_client().ping()
         return True
     except Exception as exc:
         logger.debug("redis ping failed: %s", exc)

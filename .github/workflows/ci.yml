@@ -82,26 +82,32 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-asyncio
 
+      - name: API test file count (ENG-G1, DD-01d)
+        run: |
+          count=$(find tests -name 'test_*.py' | wc -l | tr -d ' ')
+          echo "API test files: $count"
+          test "$count" -ge 20
+
       - name: Alembic upgrade head
         env:
           DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
           APP_ENV: local
         run: |
-          export PYTHONPATH=src
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
           alembic upgrade head
 
-      - name: PostgreSQL smoke tests
+      - name: API tests (PostgreSQL)
         env:
           DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
           APP_ENV: local
         run: |
-          export PYTHONPATH=src
-          pytest tests/test_postgres_smoke.py -v
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform:../../apps/worker
+          pytest tests/ -v
 
       - name: Module validation script
         env:
           DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
           APP_ENV: local
         run: |
-          export PYTHONPATH=src
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
           python scripts/validate_postgres_modules.py

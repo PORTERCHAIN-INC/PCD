@@ -94,6 +94,7 @@ services:
       STRIPE_SECRET: ${STRIPE_SECRET}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN:-}
       PORTERCHAIN_PUSH_ENABLED: ${PORTERCHAIN_PUSH_ENABLED:-false}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
@@ -104,6 +105,51 @@ services:
       - "8001"
     networks:
       - edge
+    security_opt:
+      - no-new-privileges:true
+
+  worker:
+    image: ${API_IMAGE:-ghcr.io/porterchain/pcd-api:latest}
+    container_name: pcd-worker
+    restart: unless-stopped
+    pull_policy: missing
+    working_dir: /app/apps/worker
+    command: ["python", "run.py"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DATABASE_URL: postgresql+psycopg://porterchain:${POSTGRES_PASSWORD}@postgres:5432/porterchain
+      REDIS_URL: redis://redis:6379/0
+      FLEETBASE_DISPATCH_BRIDGE: ${FLEETBASE_DISPATCH_BRIDGE:-false}
+      FLEETBASE_SSO_ENABLED: ${FLEETBASE_SSO_ENABLED:-false}
+      STRIPE_MOCK: "false"
+      STRIPE_SECRET: ${STRIPE_SECRET}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      PORTERCHAIN_PUSH_ENABLED: ${PORTERCHAIN_PUSH_ENABLED:-false}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
+      FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
+    volumes:
+      - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
+    networks:
+      - edge
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import os,redis; r=redis.from_url(os.environ['REDIS_URL']); r.ping(); assert r.get('porterchain:worker:heartbeat'), 'missing heartbeat'\"",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
     security_opt:
       - no-new-privileges:true
 
@@ -197,6 +243,7 @@ services:
     depends_on:
       - web
       - api
+      - worker
       - admin
       - merchant
       - driver

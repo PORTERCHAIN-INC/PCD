@@ -795,6 +795,7 @@ Monitor in production; verify locally with `pnpm ports` and `pnpm docker:fleetba
 ## Appendix D — Phase alignment checklist (zero complexity)
 
 **Purpose:** Single execution tracker for Phase 1 (Uber 3.0 B2B logistics) with Phase 2 hooks only.  
+**10/10 investor/engineering gates:** [docs/SILICON_VALLEY_READINESS_CHECKLIST.md](./docs/SILICON_VALLEY_READINESS_CHECKLIST.md) (408 items) · [docs/PRIORITY_TODOS.md](./docs/PRIORITY_TODOS.md) (P0–P3 execution list)  
 **Method:** Martin Fowler — essential vs accidental complexity, monolith-first, bounded contexts, anti-corruption layers.  
 **Last audited:** 2026-07-05 (repo scan after simplification pass)
 

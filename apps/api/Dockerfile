@@ -21,11 +21,12 @@ COPY services/pricing-engine ./services/pricing-engine
 COPY services/event-bus ./services/event-bus
 COPY services/driver-platform ./services/driver-platform
 COPY apps/api ./apps/api
+COPY apps/worker ./apps/worker
 
 WORKDIR /app/apps/api
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-ENV PYTHONPATH=/app/apps/api/src \
+ENV PYTHONPATH=/app/apps/api/src:/app/apps/worker:/app/shared/python:/app/services/python:/app/services/fleetbase-adapter:/app/services/pricing-engine:/app/services/event-bus:/app/services/driver-platform \
     DATABASE_URL=sqlite:////data/porterchain.db \
     APP_ENV=production \
     APP_DEBUG=false

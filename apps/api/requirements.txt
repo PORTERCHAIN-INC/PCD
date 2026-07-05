@@ -10,6 +10,11 @@ python-jose[cryptography]>=3.3.0
 stripe>=11.0.0
 psycopg[binary]>=3.2.0
 redis>=5.2.0
+sentry-sdk[fastapi]>=2.19.0
+opentelemetry-api>=1.28.0
+opentelemetry-sdk>=1.28.0
+opentelemetry-exporter-otlp-proto-http>=1.28.0
+opentelemetry-instrumentation-fastapi>=0.49b0
 
 # Platform packages (editable — install from repo root or use PYTHONPATH)
 -e ../../shared/python

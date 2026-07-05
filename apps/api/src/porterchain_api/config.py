@@ -1,7 +1,12 @@
 from functools import lru_cache
+from typing import Self
 
-from pydantic import AliasChoices, Field, field_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from porterchain_shared.redis_health import is_local_env
+
+_DEV_JWT_SECRETS = frozenset({"", "dev-sso-secret-change-in-production"})
 
 
 class Settings(BaseSettings):
@@ -85,6 +90,10 @@ class Settings(BaseSettings):
         default=120,
         validation_alias=AliasChoices("portal_rate_limit_per_minute", "PORTAL_RATE_LIMIT_PER_MINUTE"),
     )
+    sentry_dsn: str = Field(
+        default="",
+        validation_alias=AliasChoices("sentry_dsn", "SENTRY_DSN"),
+    )
 
     @field_validator("database_url")
     @classmethod
@@ -97,6 +106,15 @@ class Settings(BaseSettings):
         if not value.startswith("postgresql"):
             raise ValueError("DATABASE_URL must use postgresql+psycopg:// for Porterchain")
         return value
+
+    @model_validator(mode="after")
+    def reject_dev_jwt_secret_in_production(self) -> Self:
+        if not is_local_env(self.app_env) and self.jwt_secret in _DEV_JWT_SECRETS:
+            raise ValueError(
+                "JWT_SECRET must be set to a secure non-default value when APP_ENV is not local "
+                "(generate with: openssl rand -hex 32)"
+            )
+        return self
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -35,6 +35,11 @@ from porterchain_api.routers import (
 async def lifespan(_app: FastAPI):
     from porterchain_shared.redis_health import require_redis_for_production
 
+    settings = get_settings()
+    from porterchain_api.platform.observability import init_observability, instrument_app
+
+    init_observability(sentry_dsn=settings.sentry_dsn, app_env=settings.app_env)
+    instrument_app(_app, app_env=settings.app_env)
     require_redis_for_production()
     init_db()
     from porterchain_api.platform.bus import ensure_handlers_registered

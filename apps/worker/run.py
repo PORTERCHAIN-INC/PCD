@@ -16,6 +16,15 @@ FLEETBASE_RETRY_INTERVAL_SECONDS = 60
 DRAFT_RECONCILE_INTERVAL_SECONDS = 300
 
 
+def _touch_heartbeat() -> None:
+    try:
+        from porterchain_shared.redis_client import get_redis_client
+
+        get_redis_client().setex("porterchain:worker:heartbeat", 120, str(time.time()))
+    except Exception:
+        logger.debug("worker heartbeat write failed", exc_info=True)
+
+
 def _shutdown(_signum, _frame) -> None:
     global _running
     _running = False
@@ -109,6 +118,7 @@ def main() -> None:
             processed = _drain_queues(publisher, timeout_seconds=1)
             processed += _drain_fleetbase_retry_queue()
             processed += _drain_draft_reconciliation()
+            _touch_heartbeat()
         except Exception:
             logger.exception("worker loop error — backing off before retry")
             time.sleep(2)

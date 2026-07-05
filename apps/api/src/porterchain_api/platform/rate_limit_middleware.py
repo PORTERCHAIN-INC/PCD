@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import time
 from typing import Callable
 
@@ -10,6 +11,8 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.responses import JSONResponse
 
 from porterchain_api.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 _PREFIXES = (
     "/v1/admin/",
@@ -62,7 +65,13 @@ class PortalRateLimitMiddleware(BaseHTTPMiddleware):
         key = f"porterchain:ratelimit:{_client_key(request)}"
         window = int(time.time() // 60)
 
-        allowed, current = _check_rate(key, window, limit)
+        allowed, current, error = _check_rate(key, window, limit)
+        if error:
+            logger.warning("rate limit unavailable — failing closed: %s", error)
+            return JSONResponse(
+                status_code=503,
+                content={"detail": "rate_limit_unavailable"},
+            )
         if not allowed:
             return JSONResponse(
                 status_code=429,
@@ -79,21 +88,16 @@ class PortalRateLimitMiddleware(BaseHTTPMiddleware):
         return response
 
 
-def _check_rate(key: str, window: int, limit: int) -> tuple[bool, int]:
+def _check_rate(key: str, window: int, limit: int) -> tuple[bool, int, str | None]:
+    """Return (allowed, current_count, error_message). Fail closed when Redis is unavailable."""
     try:
-        from porterchain_shared.redis_health import ping_redis
+        from porterchain_shared.redis_client import get_redis_client
 
-        if not ping_redis():
-            return True, 0
-        import redis
-
-        from porterchain_shared.config.settings import get_platform_settings
-
-        client = redis.from_url(get_platform_settings().redis_url, decode_responses=True)
+        client = get_redis_client()
         bucket = f"{key}:{window}"
         current = int(client.incr(bucket))
         if current == 1:
             client.expire(bucket, 70)
-        return current <= limit, current
-    except Exception:
-        return True, 0
+        return current <= limit, current, None
+    except Exception as exc:
+        return False, 0, str(exc)

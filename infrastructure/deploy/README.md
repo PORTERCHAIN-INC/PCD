@@ -47,7 +47,7 @@ push to main → CI (lint / format / build)
 | `pcd-driver`   | `apps/driver-portal/Dockerfile`   | Driver portal        |
 | `pcd-customer` | `apps/customer/Dockerfile`        | Customer portal      |
 
-**Not in prod compose (July 2026):** `apps/worker` — run worker separately or add to compose when background jobs are required in production.
+**Not in prod compose (July 2026):** ~~`apps/worker`~~ — **`pcd-worker`** added to `docker-compose.prod.yml` (DD-04); uses the API image with `python run.py`.
 
 ---
 
@@ -109,6 +109,7 @@ Settings → Secrets and variables → Actions → Secrets:
 | `STRIPE_SECRET`                   | Stripe secret key                           |
 | `STRIPE_WEBHOOK_SECRET`           | Stripe webhook signing secret               |
 | `JWT_SECRET`                      | SSO token secret (`openssl rand -hex 32`)   |
+| `SENTRY_DSN`                      | _(optional)_ API error tracking (DD-02)     |
 | `FIREBASE_PROJECT_ID`             | _(optional)_ GCP Firebase project           |
 | `FIREBASE_CREDENTIALS_JSON`       | _(optional)_ Service account JSON inline    |
 | `FIREBASE_WEB_VAPID_KEY`          | _(optional)_ Web push VAPID key             |

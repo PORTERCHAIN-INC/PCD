@@ -478,6 +478,13 @@ class BookingDraftService:
             return None
         draft.order_id = order_id
         draft.booking_id = booking_id
+        if draft.state in (
+            BookingDraftState.PAYMENT_COMPLETED.value,
+            BookingDraftState.BOOKING_CONFIRMED.value,
+        ):
+            db.commit()
+            db.refresh(draft)
+            return draft
         if draft.state != BookingDraftState.PAYMENT_COMPLETED.value:
             self.transition(
                 db,
@@ -503,6 +510,10 @@ class BookingDraftService:
             return None
         draft.booking_id = booking.id
         draft.order_id = order.id
+        if draft.state == BookingDraftState.BOOKING_CONFIRMED.value:
+            db.commit()
+            db.refresh(draft)
+            return draft
         self.transition(
             db,
             draft,

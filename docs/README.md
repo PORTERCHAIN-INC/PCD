@@ -36,13 +36,15 @@ Per **[masterrule §21](../masterrule.md#21-simplification--essential-complexity
 
 ## Production status
 
-| Document                                                            | Description                                    |
-| ------------------------------------------------------------------- | ---------------------------------------------- |
-| [CTO_AUDIT_REPORT.md](../CTO_AUDIT_REPORT.md)                       | **Doc vs code audit** (12 bunches, 2026-07-05) |
-| [PRODUCTION_READINESS_REPORT.md](../PRODUCTION_READINESS_REPORT.md) | **Go/no-go** certification                     |
-| [GAP_ANALYSIS.md](../GAP_ANALYSIS.md)                               | Open platform gaps                             |
-| [ROADMAP.md](../ROADMAP.md)                                         | Remediation timeline                           |
-| [MODULE_SCORECARD.md](../MODULE_SCORECARD.md)                       | Per-module readiness                           |
+| Document                                                                       | Description                                            |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| [CTO_AUDIT_REPORT.md](../CTO_AUDIT_REPORT.md)                                  | **Doc vs code audit** (12 bunches, 2026-07-05)         |
+| [SILICON_VALLEY_READINESS_CHECKLIST.md](SILICON_VALLEY_READINESS_CHECKLIST.md) | **10/10 scorecard gates** — Fowler evolution checklist |
+| [PRIORITY_TODOS.md](PRIORITY_TODOS.md)                                         | **Prioritized execution todos** (P0–P3)                |
+| [PRODUCTION_READINESS_REPORT.md](../PRODUCTION_READINESS_REPORT.md)            | **Go/no-go** certification                             |
+| [GAP_ANALYSIS.md](../GAP_ANALYSIS.md)                                          | Open platform gaps                                     |
+| [ROADMAP.md](../ROADMAP.md)                                                    | Remediation timeline                                   |
+| [MODULE_SCORECARD.md](../MODULE_SCORECARD.md)                                  | Per-module readiness                                   |
 
 ---
 
