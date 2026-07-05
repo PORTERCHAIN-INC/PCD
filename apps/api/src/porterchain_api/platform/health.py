@@ -28,6 +28,17 @@ def readiness(db: Session, settings: Settings) -> dict:
         "bridge_enabled" if settings.fleetbase_dispatch_bridge else "bridge_disabled"
     )
 
+    try:
+        from porterchain_api.notification_engine.fcm_service import firebase_production_ready
+
+        if not settings.push_enabled:
+            checks["firebase"] = "push_disabled"
+        else:
+            ready, reason = firebase_production_ready()
+            checks["firebase"] = "ok" if ready else (reason or "not_configured")
+    except Exception as exc:  # noqa: BLE001
+        checks["firebase"] = f"error: {exc}"
+
     required = {"database": "ok"}
     if settings.app_env != "local":
         required["redis"] = "ok"

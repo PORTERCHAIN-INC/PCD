@@ -315,6 +315,12 @@ pnpm validate:d3:e2e    # static + E2E phase mapping (~10s)
 
 Manual smoke (optional): book on `website` → pay → track on `apps/customer`; merchant bulk on `merchant-portal`; driver POD on `driver-portal` / mobile.
 
+```bash
+pnpm validate:d3:prod   # automated prod URL + quote smoke (Sprint F)
+```
+
+**G9 (Firebase push):** prod defaults `PORTERCHAIN_PUSH_ENABLED=false` until GitHub secrets `FIREBASE_PROJECT_ID` + `FIREBASE_CREDENTIALS_JSON` are set and `PORTERCHAIN_PUSH_ENABLED=true` (repository variable). `/health/ready` reports `firebase: push_disabled | ok | <reason>`.
+
 ---
 
 ## D4 — Async runtime (Option A — prod default)

@@ -109,6 +109,11 @@ Settings → Secrets and variables → Actions → Secrets:
 | `STRIPE_SECRET`                   | Stripe secret key                           |
 | `STRIPE_WEBHOOK_SECRET`           | Stripe webhook signing secret               |
 | `JWT_SECRET`                      | SSO token secret (`openssl rand -hex 32`)   |
+| `FIREBASE_PROJECT_ID`             | _(optional)_ GCP Firebase project           |
+| `FIREBASE_CREDENTIALS_JSON`       | _(optional)_ Service account JSON inline    |
+| `FIREBASE_WEB_VAPID_KEY`          | _(optional)_ Web push VAPID key             |
+
+**Repository variable:** `PORTERCHAIN_PUSH_ENABLED` — default `false` until Firebase secrets are set.
 
 **Stripe webhook URL:** `https://porterchain.com/webhooks/stripe` (via Caddy → API)
 

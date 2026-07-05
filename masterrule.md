@@ -839,7 +839,7 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 - [x] **G6** Merchant path: bulk upload → order list → invoice/billing view
 - [x] **G7** Customer path: book on website → pay → track on `apps/customer` or mobile (one dashboard)
 - [x] **G8** Billing: Stripe webhook finalizes payment; invoice row created _(mock Stripe local)_
-- [x] **G9** Notifications: email/push path works in chosen prod async mode _(phase 7 WARNING — push disabled locally)_
+- [x] **G9** Notifications: email/push path works in chosen prod async mode _(local phase 7 WARNING — push off; prod `PORTERCHAIN_PUSH_ENABLED=false` until Firebase secrets)_
 
 ### D2 — Remove accidental complexity (codebase)
 
@@ -891,21 +891,21 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 
 ### D3 — Phase 1 feature matrix (must work)
 
-**Verify:** `pnpm validate:d3` (contracts) · `pnpm validate:d3:e2e` (contracts + E2E phases).
+**Verify:** `pnpm validate:d3` (contracts) · `pnpm validate:d3:e2e` (local) · `pnpm validate:d3:prod` (live URLs).
 
-| Feature                      | Owner engine                                | Check                                  |
-| ---------------------------- | ------------------------------------------- | -------------------------------------- |
-| Merchant dashboard           | `merchant_engine`                           | [x] local `validate:d3:e2e` 2026-07-05 |
-| Driver web + iOS + Android   | `driver_engine` + portals/mobile            | [x] local `validate:d3:e2e` 2026-07-05 |
-| Customer web + iOS + Android | `booking_engine` + customer/mobile          | [x] local `validate:d3:e2e` 2026-07-05 |
-| Dispatch                     | `fleetbase_engine` + admin operations       | [x] local `validate:d3:e2e` 2026-07-05 |
-| Routing                      | Valhalla/OSRM + Fleetbase                   | [x] local `validate:d3:e2e` 2026-07-05 |
-| Tracking                     | public `/v1/orders/{tracking}` + websockets | [x] local `validate:d3:e2e` 2026-07-05 |
-| Proof of delivery            | `driver_engine` + Fleetbase webhook         | [x] local `validate:d3:e2e` 2026-07-05 |
-| Billing                      | `billing_engine` + Stripe                   | [x] local `validate:d3:e2e` 2026-07-05 |
-| Public / partner API         | `/v1/merchant-api/*` + OpenAPI              | [x] local `validate:d3:e2e` 2026-07-05 |
+| Feature                      | Owner engine                                | Check                                            |
+| ---------------------------- | ------------------------------------------- | ------------------------------------------------ |
+| Merchant dashboard           | `merchant_engine`                           | [x] local + prod `validate:d3:prod` 2026-07-05   |
+| Driver web + iOS + Android   | `driver_engine` + portals/mobile            | [x] local + prod portal 200                      |
+| Customer web + iOS + Android | `booking_engine` + customer/mobile          | [x] local + prod quote + sign-in                 |
+| Dispatch                     | `fleetbase_engine` + admin operations       | [x] local · [ ] prod Fleetbase bridge off        |
+| Routing                      | Valhalla/OSRM + Fleetbase                   | [x] local `validate:d3:e2e`                      |
+| Tracking                     | public `/v1/orders/{tracking}` + websockets | [x] local + prod OpenAPI                         |
+| Proof of delivery            | `driver_engine` + Fleetbase webhook         | [x] local · [ ] prod Fleetbase                   |
+| Billing                      | `billing_engine` + Stripe                   | [x] local + prod Stripe configured               |
+| Public / partner API         | `/v1/merchant-api/*` + OpenAPI              | [x] local + prod `/docs`                         |
 
-**Prod manual smoke:** re-run matrix after G1 prod passes (`pnpm validate:p0:prod` then portal walkthroughs).
+**Prod manual smoke:** Clerk login on each portal; automated: `pnpm validate:d3:prod`.
 
 ### D4 — One async runtime (pick one, document in `RUNBOOK.md`)
 
@@ -942,7 +942,7 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 | `merchant_engine` → `admin_engine` imports       | **Fixed** — `support_engine` + `domain/*`                                 |
 | Fleetbase sync backlog (local audit)             | **Cleared** — 31/31 linked (100%) after replay                            |
 | Prod droplet containers                          | **Live** — 8 services; `https://api.porterchain.com/health` → ok (2026-07-05) |
-| D3 feature matrix                                | **Local pass** — `pnpm validate:d3:e2e` 9/9 rows                          |
+| D3 feature matrix                                | **Local + prod pass** — `validate:d3:e2e` + `validate:d3:prod` 2026-07-05 |
 | Mobile customer + driver apps                    | Present in repo                                                           |
 | Phase 2 AI/analytics code                        | Not started (good)                                                        |
 
@@ -952,8 +952,8 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 2. ~~**Sprint B (delete UI debt):** D2 surface + admin cleanup~~ ✓
 3. ~~**Sprint C (boundaries):** D2 bounded-context extractions~~ ✓
 4. ~~**Sprint D (routers):** D2 thin routers~~ ✓
-5. **Sprint E (now):** D3 manual portal smoke on prod URLs; G9 Firebase in prod compose
-6. **Sprint F:** D4 Option A prod sign-off; G9 Firebase in prod
+5. ~~**Sprint E:** D3 prod smoke + portal URLs~~ ✓ `validate:d3:prod` 2026-07-05
+6. **Sprint F (now):** G9 Firebase secrets → enable `PORTERCHAIN_PUSH_ENABLED`; prod Fleetbase G2/G3 when dispatch needed
 7. ~~**Sprint G (Phase 2 prep):** D5 hooks + ADR-010 only~~ ✓
 
 ---

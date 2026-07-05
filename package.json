@@ -25,6 +25,7 @@
     "validate:d2": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src python scripts/verify_d2_contracts.py",
     "validate:d3": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python scripts/verify_d3_matrix.py",
     "validate:d3:e2e": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python scripts/verify_d3_matrix.py --e2e",
+    "validate:d3:prod": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src python scripts/verify_d3_prod_smoke.py",
     "fleetbase:replay": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter python scripts/replay_fleetbase_sync.py --requeue-all",
     "db:seed": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src python scripts/seed_local_dev.py",
     "dev:admin": "pnpm --filter @porterchain/admin dev",

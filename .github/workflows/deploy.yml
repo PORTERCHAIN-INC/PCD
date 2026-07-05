@@ -198,7 +198,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_MAPS_SERVER_API_KEY,POSTGRES_PASSWORD,CLERK_SECRET_KEY,CLERK_PUBLISHABLE_KEY,CLERK_JWKS_URL,STRIPE_SECRET,STRIPE_WEBHOOK_SECRET,JWT_SECRET
+          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_MAPS_SERVER_API_KEY,POSTGRES_PASSWORD,CLERK_SECRET_KEY,CLERK_PUBLISHABLE_KEY,CLERK_JWKS_URL,STRIPE_SECRET,STRIPE_WEBHOOK_SECRET,JWT_SECRET,FIREBASE_PROJECT_ID,FIREBASE_CREDENTIALS_JSON,FIREBASE_WEB_VAPID_KEY,PORTERCHAIN_PUSH_ENABLED
           script: |
             set -e
             cd /opt/porterchain
@@ -222,6 +222,10 @@ jobs:
             CORS_ORIGINS=https://porterchain.com,https://www.porterchain.com,https://admin.porterchain.com,https://merchant.porterchain.com,https://driver.porterchain.com,https://customer.porterchain.com
             FLEETBASE_DISPATCH_BRIDGE=false
             FLEETBASE_SSO_ENABLED=false
+            PORTERCHAIN_PUSH_ENABLED=${PORTERCHAIN_PUSH_ENABLED:-false}
+            FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
+            FIREBASE_CREDENTIALS_JSON=${FIREBASE_CREDENTIALS_JSON:-}
+            FIREBASE_WEB_VAPID_KEY=${FIREBASE_WEB_VAPID_KEY:-}
             EOF
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
@@ -281,3 +285,23 @@ jobs:
           STRIPE_SECRET: ${{ secrets.STRIPE_SECRET }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
+          FIREBASE_WEB_VAPID_KEY: ${{ secrets.FIREBASE_WEB_VAPID_KEY }}
+          PORTERCHAIN_PUSH_ENABLED: ${{ vars.PORTERCHAIN_PUSH_ENABLED || 'false' }}
+
+      - name: Prod surface smoke (D3 / G1)
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          set -e
+          curl -fsS https://api.porterchain.com/health | grep -q '"status":"ok"'
+          curl -fsS https://api.porterchain.com/health/ready
+          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en | grep -q 200
+          curl -fsS -o /dev/null -w "%{http_code}" https://customer.porterchain.com/sign-in | grep -q 200
+          curl -fsS -o /dev/null -w "%{http_code}" https://merchant.porterchain.com/sign-in | grep -q 200
+          curl -fsS -o /dev/null -w "%{http_code}" https://admin.porterchain.com/sign-in | grep -q 200
+          curl -fsS -X POST https://api.porterchain.com/v1/quotes \
+            -H 'Content-Type: application/json' \
+            -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","scheduled_at":"2026-07-05T18:00:00Z"}' \
+            | grep -q quote_id
+          echo "Prod D3 smoke passed"
