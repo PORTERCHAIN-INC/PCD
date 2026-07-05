@@ -116,6 +116,23 @@ class Settings(BaseSettings):
             )
         return self
 
+    @model_validator(mode="after")
+    def require_fleetbase_secrets_when_bridge_enabled(self) -> Self:
+        if not is_local_env(self.app_env) and self.fleetbase_dispatch_bridge:
+            missing: list[str] = []
+            if not self.fleetbase_api_key:
+                missing.append("FLEETBASE_API_KEY")
+            if not self.fleetbase_webhook_secret:
+                missing.append("FLEETBASE_WEBHOOK_SECRET")
+            if not self.fleetbase_default_company_uuid:
+                missing.append("FLEETBASE_DEFAULT_COMPANY_UUID")
+            if missing:
+                raise ValueError(
+                    "FLEETBASE_DISPATCH_BRIDGE=true in production requires: "
+                    + ", ".join(missing)
+                )
+        return self
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

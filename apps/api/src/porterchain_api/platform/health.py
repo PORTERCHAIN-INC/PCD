@@ -33,6 +33,7 @@ def liveness() -> dict[str, str]:
 
 def readiness(db: Session, settings: Settings) -> dict:
     checks: dict[str, str] = {}
+    fleetbase_sync: dict = {}
 
     try:
         db.execute(text("SELECT 1"))
@@ -47,6 +48,22 @@ def readiness(db: Session, settings: Settings) -> dict:
     checks["fleetbase"] = (
         "bridge_enabled" if settings.fleetbase_dispatch_bridge else "bridge_disabled"
     )
+    fleetbase_sync: dict = {}
+    if settings.fleetbase_dispatch_bridge:
+        try:
+            from porterchain_api.fleetbase_engine.sync_health import assess_fleetbase_sync
+
+            fleetbase_sync = assess_fleetbase_sync(db, settings)
+            if not fleetbase_sync.get("webhook_secret_configured"):
+                checks["fleetbase_webhook"] = "missing_secret"
+            else:
+                checks["fleetbase_webhook"] = "configured"
+            checks["fleetbase_sync"] = (
+                "ok" if fleetbase_sync.get("meets_slo") else f"below_slo:{fleetbase_sync.get('link_pct')}%"
+            )
+        except Exception as exc:  # noqa: BLE001
+            checks["fleetbase_sync"] = f"error: {exc}"
+            fleetbase_sync = {"error": str(exc)}
 
     try:
         from porterchain_api.notification_engine.fcm_service import firebase_production_ready
@@ -66,4 +83,12 @@ def readiness(db: Session, settings: Settings) -> dict:
         required["redis"] = "ok"
 
     status = "ok" if all(checks.get(k) == v for k, v in required.items()) else "degraded"
-    return {"status": status, "service": "porterchain-api", "checks": checks, "queues": queue}
+    payload: dict = {
+        "status": status,
+        "service": "porterchain-api",
+        "checks": checks,
+        "queues": queue,
+    }
+    if fleetbase_sync:
+        payload["fleetbase_sync"] = fleetbase_sync
+    return payload

@@ -37,7 +37,7 @@ _Closes **DD-G1** / Series A technical blockers. Do in order within P0._
 | [x]  | DD-05a | Implement dispatch worker (not stub)                 | 2 days   | `worker/processors/dispatch.py` · §2.2.7                        |
 | [ ]  | §0.1.3 | `PORTERCHAIN_PUSH_SEND=true` prod + device test      | 0.5 day  | prod env · §0.1.3                                               |
 | [ ]  | §0.1.9 | Stripe live webhook + invoice row proof              | 1 day    | Stripe dashboard · §0.1.9, D.9                                  |
-| [ ]  | DD-05b | Fleetbase prod: bridge on, webhook secret, sync >95% | 1–2 wks  | `fleetbase_engine/` · §0.1.5–7                                  |
+| [~]  | DD-05b | Fleetbase prod: bridge on, webhook secret, sync >95% | 1–2 wks  | `sync_health.py`, deploy secrets · §0.1.5–7 — **code ready; set GitHub secrets + enable bridge in prod** |
 | [x]  | DD-08  | Order/payment transactions + `SELECT FOR UPDATE`     | 1 wk     | `confirmation_service.py`, `stripe_webhook_service.py` · §0.7.8 |
 | [x]  | DD-07  | Tenant isolation: context + repos + IDOR tests       | 2 wks    | `models.py`, `*_engine/` · §0.7.7, §2.5.1                       |
 | [x]  | DD-01d | ≥20 API test files + CI blocks on failure            | 2 wks    | `apps/api/tests/`, `ci.yml` · ENG-G1                            |

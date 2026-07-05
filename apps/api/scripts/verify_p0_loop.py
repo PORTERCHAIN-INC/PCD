@@ -26,7 +26,6 @@ from sqlalchemy import func, inspect, text
 
 from porterchain_api.config import get_settings
 from porterchain_api.db import SessionLocal, engine, init_db
-from porterchain_api.fleetbase_engine import ErrorQueue
 from porterchain_api.models import Order
 
 
@@ -108,23 +107,55 @@ def check_g1(check: Check, api_url: str, *, prod: bool) -> None:
         check.run("G1", "POST /v1/booking-drafts smoke", code in (200, 201), detail=f"HTTP {code}")
 
 
-def check_g2_g3(check: Check, settings, *, prod: bool) -> None:
+def check_g2_g3(check: Check, settings, *, prod: bool, api_url: str) -> None:
+    from porterchain_api.fleetbase_engine.sync_health import SLO_TARGET_PCT, assess_fleetbase_sync
+
     if prod:
-        check.warn("G2", "Fleetbase sync link rate", "skipped in prod mode (use admin sync health API)")
-        check.warn("G3", "Fleetbase webhook secret", "skipped in prod mode (check droplet env)")
+        status, body = _http_json(f"{api_url.rstrip('/')}/health/ready")
+        if status != 200:
+            check.run("G2", f"Fleetbase sync link rate ≥{SLO_TARGET_PCT:.0f}%", False, detail=f"HTTP {status}")
+            check.run("G3", "Fleetbase webhook secret configured", False, detail="readiness unreachable")
+            return
+
+        checks = body.get("checks", {}) if isinstance(body, dict) else {}
+        fleetbase = body.get("fleetbase_sync", {}) if isinstance(body, dict) else {}
+        bridge_on = checks.get("fleetbase") == "bridge_enabled"
+        if not bridge_on:
+            check.run("G2", f"Fleetbase sync link rate ≥{SLO_TARGET_PCT:.0f}%", True, detail="bridge disabled")
+            check.run("G3", "Fleetbase webhook secret configured", True, detail="bridge disabled")
+            return
+
+        meets = bool(fleetbase.get("meets_slo"))
+        pct = fleetbase.get("link_pct", 0)
+        linked = fleetbase.get("linked_orders", 0)
+        total = fleetbase.get("eligible_orders", 0)
+        dead = fleetbase.get("dead_letters", 0)
+        check.run(
+            "G2",
+            f"Fleetbase sync link rate ≥{SLO_TARGET_PCT:.0f}%",
+            meets or total == 0,
+            detail=f"{linked}/{total} ({pct}%), dead_letters={dead}",
+            warn=not meets and bridge_on,
+        )
+        webhook_ok = checks.get("fleetbase_webhook") == "configured"
+        check.run(
+            "G3",
+            "Fleetbase webhook secret configured",
+            webhook_ok,
+            detail=checks.get("fleetbase_webhook", ""),
+        )
         return
 
     with SessionLocal() as db:
-        total = db.query(func.count(Order.id)).scalar() or 0
-        linked = (
-            db.query(func.count(Order.id)).filter(Order.fleetbase_order_id.isnot(None)).scalar() or 0
-        )
-        pct = (linked / total * 100.0) if total else 100.0
-        dead = len(ErrorQueue.list_dead(db, limit=500))
-        ok_g2 = pct >= 90.0 or (total == 0)
+        slo = assess_fleetbase_sync(db, settings)
+        total = slo["eligible_orders"]
+        linked = slo["linked_orders"]
+        pct = slo["link_pct"]
+        dead = slo["dead_letters"]
+        ok_g2 = slo["meets_slo"]
         check.run(
             "G2",
-            "Fleetbase sync link rate ≥90%",
+            f"Fleetbase sync link rate ≥{SLO_TARGET_PCT:.0f}%",
             ok_g2,
             detail=f"{linked}/{total} ({pct:.1f}%), dead_letters={dead}",
             warn=not ok_g2 and settings.fleetbase_dispatch_bridge,
@@ -213,7 +244,7 @@ def main() -> int:
 
     check = Check()
     check_g1(check, api_url, prod=args.prod)
-    check_g2_g3(check, settings, prod=args.prod)
+    check_g2_g3(check, settings, prod=args.prod, api_url=api_url)
     check_g4_g9_e2e(check, settings, skip_e2e=args.skip_e2e)
 
     print("=" * 56)

@@ -814,9 +814,13 @@ class AdminDiagnosticsService:
         }
 
     def fleetbase_sync_monitor(self, db: Session) -> dict[str, Any]:
+        from porterchain_api.config import get_settings
         from porterchain_api.fleetbase_engine import ErrorQueue
+        from porterchain_api.fleetbase_engine.sync_health import assess_fleetbase_sync
         from porterchain_api.fleetbase_models import FleetbaseSyncAudit, FleetbaseSyncJob
 
+        settings = get_settings()
+        slo = assess_fleetbase_sync(db, settings)
         stats = ErrorQueue.stats(db)
         pending = stats.get("pending", 0) + stats.get("retrying", 0)
         successful = stats.get("done", 0)
@@ -839,6 +843,7 @@ class AdminDiagnosticsService:
         )
 
         return {
+            "slo": slo,
             "pending_sync": pending,
             "successful_sync": successful,
             "failed_sync": failed,

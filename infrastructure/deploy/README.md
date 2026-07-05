@@ -114,6 +114,28 @@ Settings → Secrets and variables → Actions → Secrets:
 | `FIREBASE_CREDENTIALS_JSON`       | _(optional)_ Service account JSON inline    |
 | `FIREBASE_WEB_VAPID_KEY`          | _(optional)_ Web push VAPID key             |
 
+**Fleetbase (DD-05b)** — optional until dispatch bridge is enabled:
+
+| Secret / variable                 | Description                                      |
+| --------------------------------- | ------------------------------------------------ |
+| `FLEETBASE_DISPATCH_BRIDGE`       | Set to `true` to enable outbound sync + webhooks |
+| `FLEETBASE_API_URL`               | Fleetbase API base URL                           |
+| `FLEETBASE_API_KEY`               | Fleetbase API key                                |
+| `FLEETBASE_WEBHOOK_SECRET`        | HMAC secret for inbound Fleetbase webhooks       |
+| `FLEETBASE_DEFAULT_COMPANY_UUID`  | Default Fleetbase company UUID                   |
+| `FLEETBASE_SSO_ENABLED`           | _(optional)_ SSO bridge, default `false`         |
+
+When `FLEETBASE_DISPATCH_BRIDGE=true`, the API **refuses to boot** in production unless API key, webhook secret, and company UUID are set. Sync health is exposed on `GET /health/ready` (`fleetbase_sync.link_pct` must stay ≥95%).
+
+**Fleetbase webhook URL:** `https://api.porterchain.com/webhooks/fleetbase`
+
+Replay unsynced orders after enablement:
+
+```bash
+pnpm fleetbase:replay
+# or: cd apps/api && PYTHONPATH=src python scripts/replay_fleetbase_sync.py
+```
+
 **Repository variable:** `PORTERCHAIN_PUSH_ENABLED` — default `false` until Firebase secrets are set.
 
 **Stripe webhook URL:** `https://porterchain.com/webhooks/stripe` (via Caddy → API)
@@ -183,7 +205,7 @@ Re-run `harden-droplet.sh` any time (idempotent).
 ## Notes
 
 - GHCR packages are **private** by default; droplet authenticates at deploy time.
-- Fleetbase is **not** in prod compose by default (`FLEETBASE_DISPATCH_BRIDGE=false`).
+- Fleetbase dispatch bridge is **off by default** (`FLEETBASE_DISPATCH_BRIDGE=false`). Enable via GitHub secrets when Fleetbase prod credentials are ready (see Fleetbase table above).
 - Mobile apps (Expo) deploy via EAS separately — not part of this droplet stack.
 
 ---
