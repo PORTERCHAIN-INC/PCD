@@ -12,7 +12,7 @@ Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./
 
 | Area            | Current state                                                        | Target (production)           |
 | --------------- | -------------------------------------------------------------------- | ----------------------------- |
-| Secrets in git  | `details.md` **removed** (July 2026); use `env/*.example` only       | Secret manager only           |
+| Secrets in git  | `details.md` **removed** (July 2026); use `env/*.example` only       | Doppler + [SECRETS.md](./infrastructure/deploy/SECRETS.md) |
 | Auth            | **Clerk-only** user identity + Porterchain RBAC + driver session JWT | MFA for admin/merchant admins |
 | Database        | **PostgreSQL 16** (Porterchain); MySQL (Fleetbase only)              | TLS, private network          |
 | HTTPS           | Assumed in production deploys                                        | Enforce HSTS                  |
@@ -42,7 +42,8 @@ Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./
 
 ### Production storage
 
-- DigitalOcean App Platform secrets, GitHub Actions encrypted secrets (CI), or Vault (enterprise)
+- **[Doppler](https://www.doppler.com)** — production runtime SSOT (`pcd` / `prd`); synced by `infrastructure/deploy/sync-secrets.sh` (DD-14)
+- GitHub Actions encrypted secrets — deploy credentials + legacy fallback until `DOPPLER_TOKEN` is set
 - Browser keys: HTTP referrer restriction; server keys: IP restriction; mobile: bundle ID restriction
 
 ---

@@ -64,6 +64,7 @@ extract_firebase_from_env() {
     return 0
   fi
   python3 - <<'PY'
+import json
 import re
 from pathlib import Path
 
@@ -73,9 +74,15 @@ if not match:
     raise SystemExit(0)
 value = match.group(1).strip()
 if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
-    value = value[1:-1]
-if value:
-    Path("secrets/firebase-service-account.json").write_text(value, encoding="utf-8")
+    value = json.loads(value)
+elif value.startswith("{\\"):
+    value = json.loads(value.encode().decode("unicode_escape"))
+elif value.startswith("{"):
+    value = json.loads(value)
+if not value:
+    raise SystemExit(0)
+out = json.dumps(value) if isinstance(value, dict) else str(value)
+Path("secrets/firebase-service-account.json").write_text(out, encoding="utf-8")
 PY
   chmod 600 secrets/firebase-service-account.json
 }

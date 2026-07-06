@@ -471,7 +471,7 @@ Not currently configured in PCD repo.
 - [ ] Browser keys restricted by HTTP referrer
 - [ ] Server keys restricted by IP
 - [ ] `NEXT_PUBLIC_*` contains no secrets
-- [ ] Production uses secret manager (DO Secrets, Vault, or CI vars)
+- [ ] Production uses secret manager — set `DOPPLER_TOKEN` in GitHub; see [infrastructure/deploy/SECRETS.md](./infrastructure/deploy/SECRETS.md)
 
 ---
 
