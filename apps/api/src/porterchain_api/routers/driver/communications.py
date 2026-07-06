@@ -8,7 +8,7 @@ def register_push(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    result = _svc.platform.push.register_device(
+    result = svc.platform.push.register_device(
         db,
         ctx.driver,
         device_token=body.device_token,
@@ -23,7 +23,7 @@ def communications_hub(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    return _svc.platform.communications.snapshot(db, ctx.driver)
+    return svc.platform.communications.snapshot(db, ctx.driver)
 
 
 @router.get("/communications/notifications")
@@ -31,7 +31,7 @@ def communications_notifications(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    return _svc.platform.communications.inbox(db, ctx.driver.id)
+    return svc.platform.communications.inbox(db, ctx.driver.id)
 
 
 @router.post("/communications/notifications/{notification_id}/read")
@@ -40,7 +40,7 @@ def communications_mark_read(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    if not _svc.platform.communications.mark_read(db, ctx.driver.id, notification_id):
+    if not svc.platform.communications.mark_read(db, ctx.driver.id, notification_id):
         raise HTTPException(status_code=404, detail="notification_not_found")
     db.commit()
     return {"ok": True}
@@ -52,7 +52,7 @@ def communications_mark_archive(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    if not _svc.platform.communications.mark_archive(db, ctx.driver.id, notification_id):
+    if not svc.platform.communications.mark_archive(db, ctx.driver.id, notification_id):
         raise HTTPException(status_code=404, detail="notification_not_found")
     db.commit()
     return {"ok": True}
@@ -63,7 +63,7 @@ def communications_mark_all_read(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    count = _svc.platform.communications.mark_all_read(db, ctx.driver.id)
+    count = svc.platform.communications.mark_all_read(db, ctx.driver.id)
     db.commit()
     return {"ok": True, "marked": count}
 
@@ -74,7 +74,7 @@ def communications_notifications_history(
     db: Session = Depends(get_db),
     limit: int = Query(100, le=500),
 ):
-    return _svc.platform.communications.inbox(db, ctx.driver.id, limit=limit, archived=True)
+    return svc.platform.communications.inbox(db, ctx.driver.id, limit=limit, archived=True)
 
 
 @router.get("/communications/offline")
@@ -82,7 +82,7 @@ def communications_offline(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    return _svc.platform.offline.status(db, ctx.driver.id)
+    return svc.platform.offline.status(db, ctx.driver.id)
 
 
 @router.post("/communications/offline/retry")
@@ -92,10 +92,10 @@ def communications_offline_retry(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    result = _svc.persist(
+    result = svc.persist(
         db,
-        lambda: _svc.platform.offline.retry_failed(
-            db, ctx.driver, executor=_svc.offline_executor(db, settings)
+        lambda: svc.platform.offline.retry_failed(
+            db, ctx.driver, executor=svc.offline_executor(db, settings)
         ),
     )
     return result

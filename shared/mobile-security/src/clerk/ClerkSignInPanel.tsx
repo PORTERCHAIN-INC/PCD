@@ -5,10 +5,15 @@ import { isClerkConfigured, readMobileSecurityEnv } from "../config";
 
 WebBrowser.maybeCompleteAuthSession();
 
+export type ClerkSignInContext = {
+  clerkToken: string;
+  email?: string;
+};
+
 type ClerkSignInPanelProps = {
   title: string;
   subtitle: string;
-  onSignedIn: () => void | Promise<void>;
+  onSignedIn: (ctx: ClerkSignInContext) => void | Promise<void>;
 };
 
 function isLocalDevMobile() {
@@ -98,9 +103,10 @@ export function DevEmailSignInPanel({
 }
 
 function ClerkSignInForm({ title, subtitle, onSignedIn }: ClerkSignInPanelProps) {
-  const { useSignIn, useOAuth } =
+  const { useSignIn, useOAuth, useAuth } =
     require("@clerk/clerk-expo") as typeof import("@clerk/clerk-expo");
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { getToken } = useAuth();
   const google = useOAuth({ strategy: "oauth_google" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -108,11 +114,15 @@ function ClerkSignInForm({ title, subtitle, onSignedIn }: ClerkSignInPanelProps)
   const [error, setError] = useState<string | null>(null);
 
   const finishSession = useCallback(
-    async (sessionId: string) => {
+    async (sessionId: string, emailHint?: string) => {
       await setActive!({ session: sessionId });
-      await onSignedIn();
+      const clerkToken = (await getToken()) ?? null;
+      if (!clerkToken) {
+        throw new Error("Clerk session missing — sign in again.");
+      }
+      await onSignedIn({ clerkToken, email: emailHint?.trim() || undefined });
     },
-    [onSignedIn, setActive]
+    [getToken, onSignedIn, setActive]
   );
 
   const onEmailSignIn = async () => {
@@ -122,7 +132,7 @@ function ClerkSignInForm({ title, subtitle, onSignedIn }: ClerkSignInPanelProps)
     try {
       const result = await signIn.create({ identifier: email.trim(), password });
       if (result.status === "complete" && result.createdSessionId) {
-        await finishSession(result.createdSessionId);
+        await finishSession(result.createdSessionId, email);
         return;
       }
       setError("Additional verification required in Clerk.");
@@ -140,7 +150,11 @@ function ClerkSignInForm({ title, subtitle, onSignedIn }: ClerkSignInPanelProps)
       const { createdSessionId, setActive: oauthSetActive } = await google.startOAuthFlow();
       if (createdSessionId) {
         await oauthSetActive!({ session: createdSessionId });
-        await onSignedIn();
+        const clerkToken = (await getToken()) ?? null;
+        if (!clerkToken) {
+          throw new Error("Clerk session missing — sign in again.");
+        }
+        await onSignedIn({ clerkToken });
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Google sign in failed");

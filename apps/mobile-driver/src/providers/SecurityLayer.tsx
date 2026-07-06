@@ -14,6 +14,7 @@ export function SecurityLayer({ children }: { children: ReactNode }) {
     () => ({
       ...readMobileSecurityEnv(),
       apiBaseUrl: mobileEnv.apiBaseUrl,
+      clerkPublishableKey: mobileEnv.clerkPublishableKey,
       appKind: "driver" as const,
     }),
     []

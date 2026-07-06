@@ -43,7 +43,7 @@ export { hasPermission, hasRole, principalFromAuthMe } from "./rbac/permissions"
 export { PermissionGate } from "./rbac/PermissionGate";
 export { emitSecurityEvent, flushAuditBuffer, configureAuditBuffer } from "./audit/emitter";
 export { ClerkBridge, getClerkBearerToken, getClerkPrimaryEmail } from "./clerk/ClerkBridge";
-export { ClerkSignInPanel, DevEmailSignInPanel } from "./clerk/ClerkSignInPanel";
+export { ClerkSignInPanel, DevEmailSignInPanel, type ClerkSignInContext } from "./clerk/ClerkSignInPanel";
 export {
   MobileSecurityProvider,
   SecurityShell,

@@ -14,7 +14,7 @@ async def driver_login(
     if authorization and authorization.startswith("Bearer "):
         clerk_token = authorization.removeprefix("Bearer ").strip()
     try:
-        driver, tokens = await _svc.auth.login(
+        driver, tokens = await svc.auth.login(
             db, settings, email=body.email, clerk_bearer_token=clerk_token
         )
     except LookupError:
@@ -36,7 +36,7 @@ def driver_refresh(
     settings: Settings = Depends(get_settings),
 ):
     try:
-        driver, tokens = _svc.auth.refresh(db, settings, refresh_token=body.refresh_token)
+        driver, tokens = svc.auth.refresh(db, settings, refresh_token=body.refresh_token)
     except LookupError:
         raise HTTPException(status_code=404, detail="driver_not_found") from None
     except PermissionError as exc:

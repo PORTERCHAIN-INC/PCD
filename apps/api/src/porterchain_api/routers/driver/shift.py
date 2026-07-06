@@ -4,17 +4,17 @@ from porterchain_api.routers.driver._deps import *  # noqa: F403
 
 @router.get("/vehicle")
 def get_vehicle(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Session = Depends(get_db)):
-    return {"vehicle": _svc.platform.vehicle.get_active_vehicle(db, ctx.driver.id), "vehicles": _svc.platform.vehicle.list_vehicles(db, ctx.driver.id)}
+    return {"vehicle": svc.platform.vehicle.get_active_vehicle(db, ctx.driver.id), "vehicles": svc.platform.vehicle.list_vehicles(db, ctx.driver.id)}
 
 
 @router.get("/insurance")
 def insurance(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Session = Depends(get_db)):
-    return _svc.platform.insurance.status(db, ctx.driver)
+    return svc.platform.insurance.status(db, ctx.driver)
 
 
 @router.get("/documents")
 def list_documents(ctx: Annotated[DriverContext, Depends(get_driver_context)]):
-    return {"documents": _svc.platform.documents.list_documents(ctx.driver)}
+    return {"documents": svc.platform.documents.list_documents(ctx.driver)}
 
 
 @router.post("/documents")
@@ -24,7 +24,7 @@ def upload_document(
     db: Session = Depends(get_db),
 ):
     try:
-        doc = _svc.platform.documents.upload_document(
+        doc = svc.platform.documents.upload_document(
             db, ctx.driver, doc_type=body.doc_type, file_url=body.file_url, metadata=body.metadata
         )
         db.commit()
@@ -39,7 +39,7 @@ def upload_vehicle_photo(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    photo = _svc.platform.documents.upload_vehicle_photo(
+    photo = svc.platform.documents.upload_vehicle_photo(
         db, ctx.driver, file_url=body.file_url, metadata=body.metadata
     )
     db.commit()
@@ -48,7 +48,7 @@ def upload_vehicle_photo(
 
 @router.get("/training")
 def training(ctx: Annotated[DriverContext, Depends(get_driver_context)]):
-    return {"modules": _svc.platform.training.list_modules(ctx.driver)}
+    return {"modules": svc.platform.training.list_modules(ctx.driver)}
 
 
 @router.post("/training/{module_id}/complete")
@@ -57,7 +57,7 @@ def complete_training(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    result = _svc.platform.training.complete_module(db, ctx.driver, module_id)
+    result = svc.platform.training.complete_module(db, ctx.driver, module_id)
     db.commit()
     return result
 

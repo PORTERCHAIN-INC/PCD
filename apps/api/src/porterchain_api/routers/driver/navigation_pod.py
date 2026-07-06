@@ -10,15 +10,15 @@ def navigation_session(
     order_id: str | None = None,
 ):
     """Full navigation session — Fleetbase GPS, OSRM ETA, Valhalla route."""
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     if not order_id:
-        jobs = _svc.platform.jobs.list_jobs(db, ctx.driver)
+        jobs = svc.platform.jobs.list_jobs(db, ctx.driver)
         current = jobs.get("current")
         if not current:
-            return _svc.platform.navigation.idle_session(ctx.driver)
+            return svc.platform.navigation.idle_session(ctx.driver)
         order_id = current["order_id"]
     try:
-        return _svc.platform.navigation.session(
+        return svc.platform.navigation.session(
             db, ctx.driver, order_id, settings, fleetbase_bridge=bridge
         )
     except LookupError as exc:
@@ -32,13 +32,13 @@ def navigationroute_response(
     settings: Settings = Depends(get_settings),
     route_id: str | None = None,
 ):
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     if not route_id:
-        route = _svc.platform.stops.assignedroute_response(db, ctx.driver)
+        route = svc.platform.stops.assignedroute_response(db, ctx.driver)
         if not route:
             raise HTTPException(status_code=404, detail="route_not_found")
         route_id = route.route_id
-    return _svc.platform.navigation.route_session(
+    return svc.platform.navigation.route_session(
         db, ctx.driver, route_id, settings, fleetbase_bridge=bridge
     )
 
@@ -50,9 +50,9 @@ def order_navigation(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     try:
-        return _svc.platform.navigation.route_for_order(
+        return svc.platform.navigation.route_for_order(
             db, ctx.driver, order_id, settings, fleetbase_bridge=bridge
         )
     except LookupError as exc:
@@ -69,9 +69,9 @@ def pod_photo(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     try:
-        result = _svc.platform.pod.capture_photo(db, ctx.driver, stop_id, file_url=body.file_url, fleetbase_bridge=bridge)
+        result = svc.platform.pod.capture_photo(db, ctx.driver, stop_id, file_url=body.file_url, fleetbase_bridge=bridge)
         db.commit()
         return {"success": result.success, "fleetbase_synced": result.fleetbase_synced}
     except LookupError as exc:
@@ -88,9 +88,9 @@ def pod_signature(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     try:
-        result = _svc.platform.pod.capture_signature(
+        result = svc.platform.pod.capture_signature(
             db, ctx.driver, stop_id, signature_data=body.signature_data, fleetbase_bridge=bridge
         )
         db.commit()
@@ -109,9 +109,9 @@ def pod_barcode(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     try:
-        result = _svc.platform.pod.capture_barcode(db, ctx.driver, stop_id, barcode=body.barcode, fleetbase_bridge=bridge)
+        result = svc.platform.pod.capture_barcode(db, ctx.driver, stop_id, barcode=body.barcode, fleetbase_bridge=bridge)
         db.commit()
         return {"success": result.success, "fleetbase_synced": result.fleetbase_synced}
     except LookupError as exc:
@@ -128,9 +128,9 @@ def pod_complete(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     try:
-        result = _svc.platform.pod.complete_pod(db, ctx.driver, stop_id, otp=body.otp, fleetbase_bridge=bridge)
+        result = svc.platform.pod.complete_pod(db, ctx.driver, stop_id, otp=body.otp, fleetbase_bridge=bridge)
         if not result.success:
             raise HTTPException(status_code=400, detail=result.message)
         db.commit()
@@ -147,7 +147,7 @@ def generate_otp(
 ):
     require_approved_driver(ctx)
     try:
-        otp = _svc.platform.pod.generate_otp(db, ctx.driver, order_id)
+        otp = svc.platform.pod.generate_otp(db, ctx.driver, order_id)
         db.commit()
         return {"otp": otp}
     except LookupError as exc:
@@ -162,7 +162,7 @@ def queue_offline(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    result = _svc.platform.offline.queue_action(
+    result = svc.platform.offline.queue_action(
         db,
         ctx.driver,
         action_type=body.action_type,
@@ -175,7 +175,7 @@ def queue_offline(
 
 @router.get("/offline/pending")
 def offline_pending(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Session = Depends(get_db)):
-    return {"actions": _svc.platform.offline.list_pending(db, ctx.driver.id)}
+    return {"actions": svc.platform.offline.list_pending(db, ctx.driver.id)}
 
 
 @router.post("/offline/sync")
@@ -186,10 +186,10 @@ def offline_sync(
 ):
     """Replay queued offline actions through DriverPlatform (connectivity restored)."""
     require_approved_driver(ctx)
-    return _svc.persist(
+    return svc.persist(
         db,
-        lambda: _svc.platform.offline.sync_pending(
-            db, ctx.driver, executor=_svc.offline_executor(db, settings)
+        lambda: svc.platform.offline.sync_pending(
+            db, ctx.driver, executor=svc.offline_executor(db, settings)
         ),
     )
 
@@ -206,8 +206,8 @@ def legacy_location(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
-    result = _svc.platform.location.record_ping(
+    bridge = svc.fleetbase_bridge(settings)
+    result = svc.platform.location.record_ping(
         db,
         ctx.driver,
         lat=body.lat,

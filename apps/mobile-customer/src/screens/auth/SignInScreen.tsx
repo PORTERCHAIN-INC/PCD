@@ -8,6 +8,7 @@ import {
   getClerkBearerToken,
   isClerkConfigured,
   readMobileSecurityEnv,
+  type ClerkSignInContext,
 } from "@porterchain/mobile-security";
 import { useTheme } from "@porterchain/mobile-theme";
 import { Body, Screen } from "@porterchain/mobile-ui";
@@ -21,8 +22,8 @@ export function SignInScreen() {
   const clerkConfigured = isClerkConfigured(env);
   const [error, setError] = useState<string | null>(null);
 
-  async function completeCustomerSession(emailHint?: string) {
-    const clerkToken = await getClerkBearerToken();
+  async function completeCustomerSession(ctx: ClerkSignInContext) {
+    const clerkToken = ctx.clerkToken ?? (await getClerkBearerToken());
     if (!clerkToken) {
       throw new Error("Clerk session missing — sign in again.");
     }
@@ -32,7 +33,7 @@ export function SignInScreen() {
     await setSession({
       token: clerkToken,
       clerkUserId: me.user_id,
-      email: me.email ?? emailHint ?? "",
+      email: me.email ?? ctx.email ?? "",
     });
     await emitSecurityEvent("login_success", { app: "customer" });
   }
@@ -53,7 +54,13 @@ export function SignInScreen() {
             <ClerkSignInPanel
               title="Porterchain"
               subtitle="Book deliveries, track shipments, manage invoices."
-              onSignedIn={() => completeCustomerSession()}
+              onSignedIn={async (ctx) => {
+                try {
+                  await completeCustomerSession(ctx);
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : "Sign in failed");
+                }
+              }}
             />
           ) : (
             <DevEmailSignInPanel

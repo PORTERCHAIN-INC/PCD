@@ -21,6 +21,6 @@ def driverdriver_profile(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    return _svc.platform.profile.snapshot(db, ctx.driver)
+    return svc.platform.profile.snapshot(db, ctx.driver)
 
 

@@ -48,10 +48,10 @@ from porterchain_api.driver_engine.api_service import DriverApiService
 from porterchain_api.driver_engine.mappers import driver_profile, guard_portal_ready, route_response, stop_response
 
 router = APIRouter(prefix="/driver-api/v1", tags=["driver"])
-_svc = DriverApiService()
+svc = DriverApiService()
 
 
-def _guard_portal_ready(ctx: DriverContext, settings: Settings) -> None:
+def guard_portal_ready(ctx: DriverContext, settings: Settings) -> None:
     try:
         guard_portal_ready(ctx, settings)
     except PermissionError as exc:

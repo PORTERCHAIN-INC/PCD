@@ -10,8 +10,8 @@ def location_ping(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
-    result = _svc.platform.location.record_ping(
+    bridge = svc.fleetbase_bridge(settings)
+    result = svc.platform.location.record_ping(
         db,
         ctx.driver,
         lat=body.lat,
@@ -31,8 +31,8 @@ def list_jobs(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
-    _guard_portal_ready(ctx, settings)
-    return _svc.platform.jobs.list_jobs(db, ctx.driver)
+    guard_portal_ready(ctx, settings)
+    return svc.platform.jobs.list_jobs(db, ctx.driver)
 
 
 @router.post("/jobs/optimize", response_model=DriverJobsOptimizeResponse)
@@ -41,10 +41,10 @@ def optimize_jobs(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
-    _guard_portal_ready(ctx, settings)
+    guard_portal_ready(ctx, settings)
     require_approved_driver(ctx)
     try:
-        result = _svc.platform.jobs.optimize_route(db, ctx.driver)
+        result = svc.platform.jobs.optimize_route(db, ctx.driver)
         db.commit()
         return result
     except ValueError as exc:
@@ -57,8 +57,8 @@ def jobs_history(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
-    _guard_portal_ready(ctx, settings)
-    return {"history": _svc.platform.jobs.order_history(db, ctx.driver)}
+    guard_portal_ready(ctx, settings)
+    return {"history": svc.platform.jobs.order_history(db, ctx.driver)}
 
 
 @router.get("/jobs/{order_id}", response_model=DriverJobDetailResponse)
@@ -68,9 +68,9 @@ def job_detail(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
-    _guard_portal_ready(ctx, settings)
+    guard_portal_ready(ctx, settings)
     try:
-        return _svc.platform.jobs.job_detail(db, ctx.driver, order_id)
+        return svc.platform.jobs.job_detail(db, ctx.driver, order_id)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="job_not_found") from exc
 
@@ -80,7 +80,7 @@ def assignedroute_response(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    route = _svc.platform.stops.assignedroute_response(db, ctx.driver)
+    route = svc.platform.stops.assignedroute_response(db, ctx.driver)
     if not route:
         return None
     return route_response(route)
@@ -94,8 +94,8 @@ def startroute_response(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
-    route = _svc.platform.stops.startroute_response(db, ctx.driver, route_id, fleetbase_bridge=bridge)
+    bridge = svc.fleetbase_bridge(settings)
+    route = svc.platform.stops.startroute_response(db, ctx.driver, route_id, fleetbase_bridge=bridge)
     db.commit()
     return route_response(route)
 
@@ -107,9 +107,9 @@ def route_stops(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
-    stops = _svc.platform.stops.stops_forroute_response(db, ctx.driver.id, route_id)
-    bridge = _svc.fleetbase_bridge(settings)
-    nav = _svc.platform.navigation.route_for_stops(db, ctx.driver, route_id, settings, fleetbase_bridge=bridge)
+    stops = svc.platform.stops.stops_forroute_response(db, ctx.driver.id, route_id)
+    bridge = svc.fleetbase_bridge(settings)
+    nav = svc.platform.navigation.route_for_stops(db, ctx.driver, route_id, settings, fleetbase_bridge=bridge)
     return {"stops": [stop_response(s) for s in stops], "route_polyline": nav.get("route_polyline")}
 
 
@@ -119,7 +119,7 @@ def route_earnings(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    return {"earnings_cents": _svc.platform.earnings.route_earnings_cents(db, ctx.driver.id, route_id)}
+    return {"earnings_cents": svc.platform.earnings.route_earnings_cents(db, ctx.driver.id, route_id)}
 
 
 @router.post("/routes/{route_id}/stops/{stop_id}/arrive")
@@ -131,9 +131,9 @@ def arrivestop_response(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     try:
-        stop = _svc.platform.stops.arrivestop_response(db, ctx.driver, stop_id, fleetbase_bridge=bridge)
+        stop = svc.platform.stops.arrivestop_response(db, ctx.driver, stop_id, fleetbase_bridge=bridge)
         db.commit()
         return stop_response(stop)
     except LookupError as exc:
@@ -151,9 +151,9 @@ def deliverstop_response(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     try:
-        stop = _svc.platform.stops.deliverstop_response(
+        stop = svc.platform.stops.deliverstop_response(
             db,
             ctx.driver,
             stop_id,
@@ -178,8 +178,8 @@ def stop_exception(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
-    result = _svc.platform.stops.report_exception(
+    bridge = svc.fleetbase_bridge(settings)
+    result = svc.platform.stops.report_exception(
         db,
         ctx.driver,
         stop_id,
@@ -199,9 +199,9 @@ def accept_order(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     try:
-        result = _svc.platform.availability.accept_assignment(
+        result = svc.platform.availability.accept_assignment(
             db, ctx.driver, order_id, fleetbase_bridge=bridge
         )
         db.commit()
@@ -219,9 +219,9 @@ def reject_order(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = _svc.fleetbase_bridge(settings)
+    bridge = svc.fleetbase_bridge(settings)
     try:
-        result = _svc.platform.availability.reject_assignment(
+        result = svc.platform.availability.reject_assignment(
             db, ctx.driver, order_id, reason=body.reason or "", fleetbase_bridge=bridge
         )
         db.commit()

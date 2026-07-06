@@ -91,7 +91,7 @@ def create_app() -> FastAPI:
     app.include_router(driver.router)
     app.include_router(driver.legacy_router)
 
-    from fastapi import Request
+    from fastapi import HTTPException, Request
     from fastapi.responses import JSONResponse
 
     from porterchain_api.fleetbase_engine import BookingValidationError
@@ -105,6 +105,12 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(Exception)
     async def _unhandled_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
+        if isinstance(exc, HTTPException):
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": exc.detail},
+                headers=exc.headers,
+            )
         _logger.exception("unhandled error: %s", exc)
         detail = str(exc) if settings.app_env != "production" else "internal_server_error"
         return JSONResponse(status_code=500, content={"detail": detail})
