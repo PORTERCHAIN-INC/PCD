@@ -60,7 +60,7 @@ export function clerkKeysForPortal(portal) {
   };
 }
 
-/** Next.js env block for a portal — maps CLERK_{PORTAL}_* into runtime vars. */
+/** Next.js env block for a portal — publishable key only (baked at build). */
 export function portalPublicEnv(portal, extras = {}) {
   const clerk = clerkKeysForPortal(portal);
   const base = nextPublicEnv();
@@ -68,7 +68,7 @@ export function portalPublicEnv(portal, extras = {}) {
     ...base,
     ...extras,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: clerk.publishable || base.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    CLERK_SECRET_KEY: clerk.secret,
+    // CLERK_SECRET_KEY must NOT be listed here — Docker runtime env only (not build-time).
   };
 }
 

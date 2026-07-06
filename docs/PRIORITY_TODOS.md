@@ -97,7 +97,7 @@ _Closes **DD-G1** / Series A technical blockers. Do in order within P0._
 | [x]  | DD-17  | k6 load tests + publish p95 SLO                             | 3 days   | `tests/load/` · §5.4 _(2026-07-06, pending commit)_ |
 | [x]  | DD-14  | Secret manager (replace droplet `.env` secrets)             | 2 days   | `sync-secrets.sh`, Doppler, `SECRETS.md` · §5.1.13 _(2026-07-06, set `DOPPLER_TOKEN` to enable)_ |
 | [x]  | §0.1.6 | Valhalla or OSRM in prod routing path                       | 2 days   | `docker-compose.prod.yml`, `health.py` · §0.1.6 _(2026-07-06, pending deploy)_ |
-| [~]  | §0.5   | Clerk prod keys all 4 portals + JWKS verified               | 1 day    | `clerk_registry.py`, deploy, Doppler · §0.5.1–6 _(2026-07-06, code ready — add per-portal keys to Doppler)_ |
+| [x]  | §0.5   | Clerk prod keys all 4 portals + JWKS verified               | 1 day    | Doppler + deploy · `clerk_mode: enterprise` _(2026-07-06)_ |
 | [ ]  | DD-09a | Split `crm_service.py` (1686 LOC → ≤400/module)             | 1 wk     | `collaboration_engine/crm_service.py` · §2.2.1    |
 | [ ]  | DD-09b | Split `diagnostics_service.py` (1645 LOC)                   | 1 wk     | `admin_engine/diagnostics_service.py` · §2.2.2    |
 | [ ]  | DD-09c | Split `e2e_validation_service.py` (1619 LOC)                | 3 days   | `admin_engine/e2e_validation_service.py` · §2.2.3 |
