@@ -28,8 +28,8 @@ jobs:
       - name: Run Bandit
         run: |
           python -m pip install --upgrade pip bandit
-          bandit -r src/porterchain_api -c .bandit -ll --format json -o bandit-report.json || true
-          bandit -r src/porterchain_api -c .bandit -ll
+          bandit -r src/porterchain_api -c bandit.yaml -ll --format json -o bandit-report.json || true
+          bandit -r src/porterchain_api -c bandit.yaml -ll
 
   trivy:
     name: Trivy (containers)
@@ -51,8 +51,18 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Build image for scan
+        env:
+          DOCKERFILE: ${{ matrix.dockerfile }}
+          IMAGE: pcd-scan:${{ matrix.name }}
         run: |
-          docker build -f ${{ matrix.dockerfile }} -t pcd-scan:${{ matrix.name }} .
+          if [ "$DOCKERFILE" = "website/Dockerfile" ]; then
+            docker build -f "$DOCKERFILE" -t "$IMAGE" \
+              --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=ci-placeholder-key \
+              --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=ci-placeholder \
+              .
+          else
+            docker build -f "$DOCKERFILE" -t "$IMAGE" .
+          fi
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@v0.36.0
