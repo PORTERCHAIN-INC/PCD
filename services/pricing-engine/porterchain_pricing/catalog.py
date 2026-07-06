@@ -38,69 +38,72 @@ class PackageType(StrEnum):
     FTL_LOAD = "ftlLoad"
 
 
-# Retail defaults — CAD cents
+# Retail defaults — CAD cents ($1.00 / km, $1.00 minimum for 1 km billed distance)
+_VEHICLE_RATE_CENTS_PER_KM = 100
+_VEHICLE_MINIMUM_CENTS = 100
+
 VEHICLE_BASE_CENTS_PER_KM: dict[str, int] = {
-    VehicleClass.SEDAN: 95,
-    VehicleClass.SUV: 110,
-    VehicleClass.PICKUP: 125,
-    VehicleClass.CARGO_VAN: 145,
-    VehicleClass.HIGH_ROOF: 165,
-    VehicleClass.BOX_16: 195,
-    VehicleClass.BOX_20: 220,
+    VehicleClass.SEDAN: _VEHICLE_RATE_CENTS_PER_KM,
+    VehicleClass.SUV: _VEHICLE_RATE_CENTS_PER_KM,
+    VehicleClass.PICKUP: _VEHICLE_RATE_CENTS_PER_KM,
+    VehicleClass.CARGO_VAN: _VEHICLE_RATE_CENTS_PER_KM,
+    VehicleClass.HIGH_ROOF: _VEHICLE_RATE_CENTS_PER_KM,
+    VehicleClass.BOX_16: _VEHICLE_RATE_CENTS_PER_KM,
+    VehicleClass.BOX_20: _VEHICLE_RATE_CENTS_PER_KM,
 }
 
 VEHICLE_MINIMUM_CENTS: dict[str, int] = {
-    VehicleClass.SEDAN: 1999,
-    VehicleClass.SUV: 2499,
-    VehicleClass.PICKUP: 2799,
-    VehicleClass.CARGO_VAN: 3499,
-    VehicleClass.HIGH_ROOF: 3999,
-    VehicleClass.BOX_16: 4999,
-    VehicleClass.BOX_20: 5999,
+    VehicleClass.SEDAN: _VEHICLE_MINIMUM_CENTS,
+    VehicleClass.SUV: _VEHICLE_MINIMUM_CENTS,
+    VehicleClass.PICKUP: _VEHICLE_MINIMUM_CENTS,
+    VehicleClass.CARGO_VAN: _VEHICLE_MINIMUM_CENTS,
+    VehicleClass.HIGH_ROOF: _VEHICLE_MINIMUM_CENTS,
+    VehicleClass.BOX_16: _VEHICLE_MINIMUM_CENTS,
+    VehicleClass.BOX_20: _VEHICLE_MINIMUM_CENTS,
 }
 
 VEHICLE_SURCHARGE_CENTS: dict[str, int] = {
     VehicleClass.SEDAN: 0,
-    VehicleClass.SUV: 200,
-    VehicleClass.PICKUP: 350,
-    VehicleClass.CARGO_VAN: 500,
-    VehicleClass.HIGH_ROOF: 750,
-    VehicleClass.BOX_16: 1200,
-    VehicleClass.BOX_20: 1500,
+    VehicleClass.SUV: 0,
+    VehicleClass.PICKUP: 0,
+    VehicleClass.CARGO_VAN: 0,
+    VehicleClass.HIGH_ROOF: 0,
+    VehicleClass.BOX_16: 0,
+    VehicleClass.BOX_20: 0,
 }
 
 PACKAGE_SURCHARGE_CENTS: dict[str, int] = {
     PackageType.LOOSE_PARCEL: 0,
     PackageType.DOCUMENTS: 0,
-    PackageType.MEDICAL: 500,
-    PackageType.FURNITURE: 800,
-    PackageType.FOOD_BEVERAGE: 400,
-    PackageType.CONSTRUCTION: 600,
-    PackageType.LTL_PALLET: 1200,
-    PackageType.FTL_LOAD: 2500,
+    PackageType.MEDICAL: 0,
+    PackageType.FURNITURE: 0,
+    PackageType.FOOD_BEVERAGE: 0,
+    PackageType.CONSTRUCTION: 0,
+    PackageType.LTL_PALLET: 0,
+    PackageType.FTL_LOAD: 0,
 }
 
 SERVICE_SURCHARGE_CENTS: dict[str, int] = {
     ServiceType.SAME_DAY: 0,
-    ServiceType.EXPRESS: 800,
-    ServiceType.SCHEDULED: 300,
-    ServiceType.RECURRING: -200,
+    ServiceType.EXPRESS: 0,
+    ServiceType.SCHEDULED: 0,
+    ServiceType.RECURRING: 0,
     ServiceType.MULTI_STOP: 0,
-    ServiceType.LTL: 1500,
-    ServiceType.FTL: 3500,
-    ServiceType.FURNITURE: 600,
-    ServiceType.MEDICAL: 700,
-    ServiceType.CONSTRUCTION: 500,
-    ServiceType.WHOLESALE: 400,
+    ServiceType.LTL: 0,
+    ServiceType.FTL: 0,
+    ServiceType.FURNITURE: 0,
+    ServiceType.MEDICAL: 0,
+    ServiceType.CONSTRUCTION: 0,
+    ServiceType.WHOLESALE: 0,
 }
 
-RUSH_SURCHARGE_CENTS = 1200
-SCHEDULED_SURCHARGE_CENTS = 300
-EXTRA_STOP_CENTS = 800
+RUSH_SURCHARGE_CENTS = 0
+SCHEDULED_SURCHARGE_CENTS = 0
+EXTRA_STOP_CENTS = 0
 WEIGHT_THRESHOLD_KG = 50
-WEIGHT_CENTS_PER_KG = 20
+WEIGHT_CENTS_PER_KG = 0
 DIMENSION_VOLUME_THRESHOLD_CM3 = 100_000
-DIMENSION_CENTS_PER_10K_CM3 = 150
+DIMENSION_CENTS_PER_10K_CM3 = 0
 DECLARED_VALUE_THRESHOLD_CENTS = 50_000
-DECLARED_VALUE_RATE = 0.01
+DECLARED_VALUE_RATE = 0.0
 AVG_SPEED_KMH = 30.0

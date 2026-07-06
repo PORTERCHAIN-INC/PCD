@@ -16,13 +16,13 @@ DEFAULT_ZONES: list[ZoneRecord] = [
         code="gta_outer",
         name="GTA Outer",
         bounds={"min_lat": 43.45, "max_lat": 43.90, "min_lng": -79.75, "max_lng": -79.05},
-        multiplier=1.08,
+        multiplier=1.0,
     ),
     ZoneRecord(
         code="ontario_extended",
         name="Ontario Extended",
         bounds={"min_lat": 42.0, "max_lat": 45.5, "min_lng": -81.0, "max_lng": -78.0},
-        multiplier=1.18,
+        multiplier=1.0,
     ),
 ]
 

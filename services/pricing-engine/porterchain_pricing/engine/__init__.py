@@ -158,7 +158,7 @@ class PricingEngine:
             breakdown.add_item("fuel", f"Fuel surcharge ({pct}%)", fuel)
 
     def _apply_minimum(self, request: PricingRequest, ctx: PricingContext, breakdown: PriceBreakdown, vehicle: str) -> None:
-        minimum = VEHICLE_MINIMUM_CENTS.get(vehicle, 3499)
+        minimum = VEHICLE_MINIMUM_CENTS.get(vehicle, 100)
         contract_min = None
         if request.channel == "merchant":
             if ctx.contract and ctx.contract.minimum_monthly_commitment_cents:

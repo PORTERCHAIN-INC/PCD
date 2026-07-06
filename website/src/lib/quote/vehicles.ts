@@ -1,5 +1,7 @@
 import type { VehicleClass } from "./types";
 
+const MIN_PER_KM = 1.0;
+
 export const VEHICLE_CLASSES: VehicleClass[] = [
   {
     id: "sedan",
@@ -9,9 +11,9 @@ export const VEHICLE_CLASSES: VehicleClass[] = [
     maxWidthCm: 80,
     maxHeightCm: 60,
     maxVolumeM3: 1.2,
-    baseFeeCad: 18,
-    perKmCad: 1.2,
-    perStopCad: 12,
+    baseFeeCad: 0,
+    perKmCad: MIN_PER_KM,
+    perStopCad: 0,
   },
   {
     id: "suv",
@@ -21,9 +23,9 @@ export const VEHICLE_CLASSES: VehicleClass[] = [
     maxWidthCm: 100,
     maxHeightCm: 90,
     maxVolumeM3: 2.5,
-    baseFeeCad: 22,
-    perKmCad: 1.35,
-    perStopCad: 14,
+    baseFeeCad: 0,
+    perKmCad: MIN_PER_KM,
+    perStopCad: 0,
   },
   {
     id: "minivan",
@@ -33,9 +35,9 @@ export const VEHICLE_CLASSES: VehicleClass[] = [
     maxWidthCm: 120,
     maxHeightCm: 110,
     maxVolumeM3: 4,
-    baseFeeCad: 32,
-    perKmCad: 1.5,
-    perStopCad: 16,
+    baseFeeCad: 0,
+    perKmCad: MIN_PER_KM,
+    perStopCad: 0,
   },
   {
     id: "cargo_van",
@@ -45,9 +47,9 @@ export const VEHICLE_CLASSES: VehicleClass[] = [
     maxWidthCm: 150,
     maxHeightCm: 140,
     maxVolumeM3: 8,
-    baseFeeCad: 42,
-    perKmCad: 1.85,
-    perStopCad: 18,
+    baseFeeCad: 0,
+    perKmCad: MIN_PER_KM,
+    perStopCad: 0,
   },
   {
     id: "sprinter_van",
@@ -57,9 +59,9 @@ export const VEHICLE_CLASSES: VehicleClass[] = [
     maxWidthCm: 180,
     maxHeightCm: 190,
     maxVolumeM3: 14,
-    baseFeeCad: 68,
-    perKmCad: 2.25,
-    perStopCad: 22,
+    baseFeeCad: 0,
+    perKmCad: MIN_PER_KM,
+    perStopCad: 0,
   },
   {
     id: "box_16ft",
@@ -69,9 +71,9 @@ export const VEHICLE_CLASSES: VehicleClass[] = [
     maxWidthCm: 210,
     maxHeightCm: 210,
     maxVolumeM3: 22,
-    baseFeeCad: 95,
-    perKmCad: 2.75,
-    perStopCad: 28,
+    baseFeeCad: 0,
+    perKmCad: MIN_PER_KM,
+    perStopCad: 0,
   },
   {
     id: "box_20ft",
@@ -81,9 +83,9 @@ export const VEHICLE_CLASSES: VehicleClass[] = [
     maxWidthCm: 240,
     maxHeightCm: 240,
     maxVolumeM3: 30,
-    baseFeeCad: 125,
-    perKmCad: 3.25,
-    perStopCad: 32,
+    baseFeeCad: 0,
+    perKmCad: MIN_PER_KM,
+    perStopCad: 0,
   },
 ];
 

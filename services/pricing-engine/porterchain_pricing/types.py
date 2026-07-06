@@ -132,7 +132,7 @@ class TaxConfig:
 
 @dataclass
 class FuelConfig:
-    surcharge_percent: float = 8.5
+    surcharge_percent: float = 0.0
     base_fuel_price_cents: int = 145
     current_fuel_price_cents: int = 158
 
