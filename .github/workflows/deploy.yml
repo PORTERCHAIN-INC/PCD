@@ -77,7 +77,7 @@ jobs:
 
       - name: Build and push API image
         if: steps.check.outputs.ready == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/api/Dockerfile
@@ -90,7 +90,7 @@ jobs:
 
       - name: Build and push website image
         if: steps.check.outputs.ready == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: website/Dockerfile
@@ -109,7 +109,7 @@ jobs:
 
       - name: Build and push admin image
         if: steps.check.outputs.ready == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/admin/Dockerfile
@@ -129,7 +129,7 @@ jobs:
 
       - name: Build and push merchant image
         if: steps.check.outputs.ready == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/merchant-portal/Dockerfile
@@ -149,7 +149,7 @@ jobs:
 
       - name: Build and push driver portal image
         if: steps.check.outputs.ready == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/driver-portal/Dockerfile
@@ -169,7 +169,7 @@ jobs:
 
       - name: Build and push customer portal image
         if: steps.check.outputs.ready == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/customer/Dockerfile
