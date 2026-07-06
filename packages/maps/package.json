@@ -9,7 +9,7 @@
     "./types": "./src/types.ts"
   },
   "dependencies": {
-    "@vis.gl/react-google-maps": "^1.8.3"
+    "@vis.gl/react-google-maps": "^1.9.0"
   },
   "peerDependencies": {
     "react": "^19.0.0",
