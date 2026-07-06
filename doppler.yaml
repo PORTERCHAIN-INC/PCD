@@ -1,0 +1,4 @@
+# Doppler project mapping (DD-14). See infrastructure/deploy/SECRETS.md
+setup:
+  project: pcd
+  config: prd

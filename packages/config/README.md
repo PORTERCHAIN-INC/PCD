@@ -37,10 +37,15 @@ export default {
 
 | Function                                 | Returns                                                                                                         |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `loadMonorepoEnv(cwd, relativeEnvPath?)` | Loads `env/.env`; does **not** override existing `process.env`                                                  |
-| `nextPublicEnv()`                        | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `NEXT_PUBLIC_PORTERCHAIN_API_URL`, etc. |
-| `adminPublicEnv()`                       | `nextPublicEnv()` + admin dev bypass flags                                                                      |
-| `customerPublicEnv()`                    | `nextPublicEnv()` + `NEXT_PUBLIC_WEBSITE_URL`                                                                   |
+| `loadMonorepoEnv(cwd, relativeEnvPath?)` | Loads `env/.env` + `env/clerk.env`; does **not** override existing `process.env` |
+| `clerkKeysForPortal(portal)`             | `customer` \| `merchant` \| `admin` \| `driver` → publishable, secret, jwks      |
+| `portalPublicEnv(portal, extras?)`       | Per-portal `NEXT_PUBLIC_CLERK_*` + `CLERK_SECRET_KEY` for Next.js `env`        |
+| `websitePublicEnv()`                     | Customer Clerk + portal URL defaults                                             |
+| `adminPublicEnv()`                       | Admin Clerk + dev bypass flags                                                   |
+| `merchantPublicEnv()`                    | Merchant Clerk                                                                   |
+| `driverPublicEnv()`                      | Driver Clerk                                                                     |
+| `customerPublicEnv()`                    | Customer Clerk + website URL                                                     |
+| `nextPublicEnv()`                        | Shared `NEXT_PUBLIC_*` (legacy fallback)                                         |
 
 ### Apps Using This
 

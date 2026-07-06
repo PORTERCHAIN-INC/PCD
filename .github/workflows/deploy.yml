@@ -101,7 +101,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_CUSTOMER_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
             NEXT_PUBLIC_APP_ENV=production
           cache-from: type=gha
@@ -120,7 +120,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_SITE_URL=https://admin.porterchain.com
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
             NEXT_PUBLIC_APP_ENV=production
@@ -140,7 +140,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_SITE_URL=https://merchant.porterchain.com
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_MERCHANT_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
             NEXT_PUBLIC_APP_ENV=production
@@ -160,7 +160,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_SITE_URL=https://driver.porterchain.com
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_DRIVER_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
             NEXT_PUBLIC_APP_ENV=production
@@ -180,7 +180,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_SITE_URL=https://customer.porterchain.com
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_CUSTOMER_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_WEBSITE_URL=${{ env.PROD_SITE_URL }}
             NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
@@ -196,9 +196,20 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile"
+          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh,infrastructure/deploy/scripts/verify-clerk.sh,infrastructure/deploy/scripts/verify-routing.sh"
           target: "/opt/porterchain"
           strip_components: 2
+
+      - name: Copy Doppler config to droplet
+        if: steps.check.outputs.ready == 'true'
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          source: "doppler.yaml"
+          target: "/opt/porterchain"
 
       - name: Deploy to droplet over SSH
         if: steps.check.outputs.ready == 'true'
@@ -208,7 +219,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_MAPS_SERVER_API_KEY,POSTGRES_PASSWORD,CLERK_SECRET_KEY,CLERK_PUBLISHABLE_KEY,CLERK_JWKS_URL,STRIPE_SECRET,STRIPE_WEBHOOK_SECRET,JWT_SECRET,SENTRY_DSN,FIREBASE_PROJECT_ID,FIREBASE_CREDENTIALS_JSON,FIREBASE_WEB_VAPID_KEY,PORTERCHAIN_PUSH_ENABLED,PORTERCHAIN_PUSH_SEND,FLEETBASE_DISPATCH_BRIDGE,FLEETBASE_SSO_ENABLED,FLEETBASE_API_URL,FLEETBASE_API_KEY,FLEETBASE_WEBHOOK_SECRET,FLEETBASE_DEFAULT_COMPANY_UUID
+          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DOPPLER_TOKEN,DOPPLER_PROJECT,DOPPLER_CONFIG,GOOGLE_MAPS_SERVER_API_KEY,POSTGRES_PASSWORD,CLERK_SECRET_KEY,CLERK_PUBLISHABLE_KEY,CLERK_JWKS_URL,CLERK_CUSTOMER_SECRET_KEY,CLERK_CUSTOMER_PUBLISHABLE_KEY,CLERK_CUSTOMER_JWKS_URL,CLERK_MERCHANT_SECRET_KEY,CLERK_MERCHANT_PUBLISHABLE_KEY,CLERK_MERCHANT_JWKS_URL,CLERK_ADMIN_SECRET_KEY,CLERK_ADMIN_PUBLISHABLE_KEY,CLERK_ADMIN_JWKS_URL,CLERK_DRIVER_SECRET_KEY,CLERK_DRIVER_PUBLISHABLE_KEY,CLERK_DRIVER_JWKS_URL,STRIPE_SECRET,STRIPE_WEBHOOK_SECRET,JWT_SECRET,SENTRY_DSN,FIREBASE_PROJECT_ID,FIREBASE_CREDENTIALS_JSON,FIREBASE_WEB_VAPID_KEY,PORTERCHAIN_PUSH_ENABLED,PORTERCHAIN_PUSH_SEND,FLEETBASE_DISPATCH_BRIDGE,FLEETBASE_SSO_ENABLED,FLEETBASE_API_URL,FLEETBASE_API_KEY,FLEETBASE_WEBHOOK_SECRET,FLEETBASE_DEFAULT_COMPANY_UUID,API_REPLICAS
           script: |
             set -e
             cd /opt/porterchain
@@ -219,40 +230,9 @@ jobs:
             export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:$IMAGE_TAG"
             export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:$IMAGE_TAG"
             export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:$IMAGE_TAG"
-            umask 077
-            mkdir -p secrets
-            if [ -n "$FIREBASE_CREDENTIALS_JSON" ]; then
-              printf '%s' "$FIREBASE_CREDENTIALS_JSON" > secrets/firebase-service-account.json
-              chmod 600 secrets/firebase-service-account.json
-            else
-              rm -f secrets/firebase-service-account.json
-              touch secrets/firebase-service-account.json
-              chmod 600 secrets/firebase-service-account.json
-            fi
-            cat > .env <<EOF
-            GOOGLE_MAPS_SERVER_API_KEY=$GOOGLE_MAPS_SERVER_API_KEY
-            POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-            CLERK_SECRET_KEY=$CLERK_SECRET_KEY
-            CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY
-            CLERK_JWKS_URL=$CLERK_JWKS_URL
-            STRIPE_SECRET=$STRIPE_SECRET
-            STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET
-            JWT_SECRET=$JWT_SECRET
-            SENTRY_DSN=${SENTRY_DSN:-}
-            CORS_ORIGINS=https://porterchain.com,https://www.porterchain.com,https://admin.porterchain.com,https://merchant.porterchain.com,https://driver.porterchain.com,https://customer.porterchain.com
-            FLEETBASE_DISPATCH_BRIDGE=${FLEETBASE_DISPATCH_BRIDGE:-false}
-            FLEETBASE_SSO_ENABLED=${FLEETBASE_SSO_ENABLED:-false}
-            FLEETBASE_API_URL=${FLEETBASE_API_URL:-}
-            FLEETBASE_API_KEY=${FLEETBASE_API_KEY:-}
-            FLEETBASE_WEBHOOK_SECRET=${FLEETBASE_WEBHOOK_SECRET:-}
-            FLEETBASE_DEFAULT_COMPANY_UUID=${FLEETBASE_DEFAULT_COMPANY_UUID:-}
-            PORTERCHAIN_PUSH_ENABLED=${PORTERCHAIN_PUSH_ENABLED:-false}
-            PORTERCHAIN_PUSH_SEND=${PORTERCHAIN_PUSH_SEND:-false}
-            FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
-            FIREBASE_WEB_VAPID_KEY=${FIREBASE_WEB_VAPID_KEY:-}
-            EOF
+            bash sync-secrets.sh
             docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans --scale api=${API_REPLICAS:-2}
             echo "Waiting for Postgres..."
             for i in $(seq 1 24); do
               if docker exec pcd-postgres pg_isready -U porterchain -d porterchain >/dev/null 2>&1; then
@@ -262,40 +242,43 @@ jobs:
               sleep 5
             done
             echo "Running Alembic migrations..."
-            if ! docker exec -w /app/apps/api -e PYTHONPATH=/app/apps/api/src:/app/apps/api pcd-api python scripts/repair_and_migrate.py; then
+            if ! docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \
+              -e PYTHONPATH=/app/apps/api/src:/app/apps/api \
+              api python scripts/repair_and_migrate.py; then
               echo "::error::Migration repair failed; aborting deploy before smoke test"
-              docker logs --tail 120 pcd-api || true
-              docker exec -w /app/apps/api -e PYTHONPATH=/app/apps/api/src pcd-api alembic current || true
+              docker compose -f docker-compose.prod.yml logs --tail 120 api || true
+              docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \
+                -e PYTHONPATH=/app/apps/api/src api alembic current || true
               exit 1
             fi
             if ! docker exec pcd-postgres psql -U porterchain -d porterchain -tAc "SELECT to_regclass('public.booking_drafts')" | grep -q booking_drafts; then
               echo "::error::booking_drafts table missing after migrations"
               exit 1
             fi
-            docker restart pcd-api
-            docker restart pcd-caddy
+            docker compose -f docker-compose.prod.yml restart api
+            docker compose -f docker-compose.prod.yml restart caddy
             docker image prune -f
             echo "Waiting for API health..."
             for i in $(seq 1 18); do
-              if docker exec pcd-api curl -fsS http://localhost:8001/health >/dev/null 2>&1; then
+              if docker compose -f docker-compose.prod.yml exec -T api curl -fsS http://localhost:8001/health >/dev/null 2>&1; then
                 echo "API healthy"
                 break
               fi
               sleep 5
             done
             curl -fsS -o /dev/null http://localhost:80 && echo "Caddy responding (HTTP->HTTPS)" || (docker compose -f docker-compose.prod.yml logs --tail 50 caddy; exit 1)
-            docker exec pcd-api curl -fsS http://localhost:8001/health && echo " <- API healthy" || (docker logs --tail 80 pcd-api; exit 1)
+            docker compose -f docker-compose.prod.yml exec -T api curl -fsS http://localhost:8001/health && echo " <- API healthy" || (docker compose -f docker-compose.prod.yml logs --tail 80 api; exit 1)
             echo "Smoke test: booking draft + quote..."
-            docker exec pcd-api curl -fsS -X POST http://localhost:8001/v1/booking-drafts \
+            docker compose -f docker-compose.prod.yml exec -T api curl -fsS -X POST http://localhost:8001/v1/booking-drafts \
               -H 'Content-Type: application/json' \
               -d '{"session_id":"deploy-smoke-test"}' >/dev/null \
               && echo " <- booking-drafts OK" \
-              || (docker logs --tail 120 pcd-api; exit 1)
-            docker exec pcd-api curl -fsS -X POST http://localhost:8001/v1/quotes \
+              || (docker compose -f docker-compose.prod.yml logs --tail 120 api; exit 1)
+            docker compose -f docker-compose.prod.yml exec -T api curl -fsS -X POST http://localhost:8001/v1/quotes \
               -H 'Content-Type: application/json' \
               -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","scheduled_at":"2026-07-04T12:00:00Z"}' >/dev/null \
               && echo " <- quotes OK" \
-              || (docker logs --tail 120 pcd-api; exit 1)
+              || (docker compose -f docker-compose.prod.yml logs --tail 120 api; exit 1)
             docker exec pcd-postgres pg_isready -U porterchain -d porterchain && echo " <- Postgres ready" || (docker logs --tail 50 pcd-postgres; exit 1)
         env:
           IMAGE_TAG: ${{ steps.sha.outputs.value }}
@@ -306,6 +289,18 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
           CLERK_JWKS_URL: ${{ secrets.CLERK_JWKS_URL }}
+          CLERK_CUSTOMER_SECRET_KEY: ${{ secrets.CLERK_CUSTOMER_SECRET_KEY }}
+          CLERK_CUSTOMER_PUBLISHABLE_KEY: ${{ secrets.CLERK_CUSTOMER_PUBLISHABLE_KEY }}
+          CLERK_CUSTOMER_JWKS_URL: ${{ secrets.CLERK_CUSTOMER_JWKS_URL }}
+          CLERK_MERCHANT_SECRET_KEY: ${{ secrets.CLERK_MERCHANT_SECRET_KEY }}
+          CLERK_MERCHANT_PUBLISHABLE_KEY: ${{ secrets.CLERK_MERCHANT_PUBLISHABLE_KEY }}
+          CLERK_MERCHANT_JWKS_URL: ${{ secrets.CLERK_MERCHANT_JWKS_URL }}
+          CLERK_ADMIN_SECRET_KEY: ${{ secrets.CLERK_ADMIN_SECRET_KEY }}
+          CLERK_ADMIN_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
+          CLERK_ADMIN_JWKS_URL: ${{ secrets.CLERK_ADMIN_JWKS_URL }}
+          CLERK_DRIVER_SECRET_KEY: ${{ secrets.CLERK_DRIVER_SECRET_KEY }}
+          CLERK_DRIVER_PUBLISHABLE_KEY: ${{ secrets.CLERK_DRIVER_PUBLISHABLE_KEY }}
+          CLERK_DRIVER_JWKS_URL: ${{ secrets.CLERK_DRIVER_JWKS_URL }}
           STRIPE_SECRET: ${{ secrets.STRIPE_SECRET }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -321,6 +316,10 @@ jobs:
           FLEETBASE_API_KEY: ${{ secrets.FLEETBASE_API_KEY }}
           FLEETBASE_WEBHOOK_SECRET: ${{ secrets.FLEETBASE_WEBHOOK_SECRET }}
           FLEETBASE_DEFAULT_COMPANY_UUID: ${{ secrets.FLEETBASE_DEFAULT_COMPANY_UUID }}
+          API_REPLICAS: ${{ vars.API_REPLICAS || '2' }}
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
+          DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG || 'prd' }}
 
       - name: Prod surface smoke (D3 / G1)
         if: steps.check.outputs.ready == 'true'

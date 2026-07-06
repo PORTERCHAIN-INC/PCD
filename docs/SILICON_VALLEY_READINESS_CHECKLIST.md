@@ -101,7 +101,7 @@ _Update after each gate review. Score a dimension only when **all** its gate che
 | 0.1.3  | `PORTERCHAIN_PUSH_SEND=true` in prod (real sends, not dry-run) | `docker-compose.prod.yml`, `porterchain_shared/config/settings.py`                          | Test push received on device               | [ ]  |
 | 0.1.4  | Worker in prod compose                                         | `docker-compose.prod.yml`, `apps/worker/`                                                   | `pcd-worker` running; queues drain         | [ ]  |
 | 0.1.5  | Fleetbase in prod OR manual-ops mode documented                | `FLEETBASE_DISPATCH_BRIDGE`, RUNBOOK                                                        | Bridge on: FB healthy; off: manual SLA doc | [ ]  |
-| 0.1.6  | Valhalla or OSRM in prod routing path                          | `services/routing.py`, prod compose                                                         | Non-haversine ETA for prod addresses       | [ ]  |
+| 0.1.6  | Valhalla or OSRM in prod routing path                          | `services/routing.py`, prod compose                                                         | Non-haversine ETA for prod addresses       | [x]  |
 | 0.1.7  | >95% orders `fleetbase_order_id` when bridge on                | `fleetbase_engine/retry_queue.py`                                                           | SQL + `pnpm fleetbase:replay`              | [ ]  |
 | 0.1.8  | `FIREBASE_WEBHOOK_SECRET` set in prod                          | `webhook_ingress_service.py`, GitHub secrets                                                | Signed POST → 200                          | [ ]  |
 | 0.1.9  | Stripe **live** webhook registered                             | `routers/webhooks.py`, Stripe dashboard                                                     | Live event → invoice row                   | [ ]  |
@@ -160,12 +160,12 @@ _Update after each gate review. Score a dimension only when **all** its gate che
 
 | ID    | Gate                             | Files                                    | Done |
 | ----- | -------------------------------- | ---------------------------------------- | ---- |
-| 0.5.1 | Customer Clerk prod keys in API  | `auth/clerk_registry.py`, deploy secrets | [ ]  |
-| 0.5.2 | Merchant Clerk prod keys         | same                                     | [ ]  |
-| 0.5.3 | Admin Clerk prod keys            | same                                     | [ ]  |
-| 0.5.4 | Driver Clerk prod keys           | same                                     | [ ]  |
+| 0.5.1 | Customer Clerk prod keys in API  | `auth/clerk_registry.py`, deploy secrets | [~]  |
+| 0.5.2 | Merchant Clerk prod keys         | same                                     | [~]  |
+| 0.5.3 | Admin Clerk prod keys            | same                                     | [~]  |
+| 0.5.4 | Driver Clerk prod keys           | same                                     | [~]  |
 | 0.5.5 | `CLERK_DEV_BYPASS=false` in prod | `docker-compose.prod.yml`                | [x]  |
-| 0.5.6 | JWKS URL per portal verified     | `auth/clerk.py`                          | [ ]  |
+| 0.5.6 | JWKS URL per portal verified     | `auth/clerk.py`, `/health/ready`         | [x]  |
 
 ### §0.6 CTO open issues — must close
 

@@ -4,7 +4,7 @@
 **masterrule:** [Appendix D](../masterrule.md#appendix-d--phase-alignment-checklist-zero-complexity)  
 **Checklist:** [SILICON_VALLEY_READINESS_CHECKLIST.md](./SILICON_VALLEY_READINESS_CHECKLIST.md)  
 **Last verified:** 2026-07-05 (prod G9 `firebase: ok`; customer Firebase creds installed locally)  
-**Progress:** 54/408 checklist items (~13%) · **P0 code: DD-01–DD-08 complete**
+**Progress:** 59/408 checklist items (~14%) · **P0 code: DD-01–DD-08 complete**
 
 Track execution here. Check boxes when done; add date + commit SHA in **Done** column.
 
@@ -27,7 +27,7 @@ Track execution here. Check boxes when done; add date + commit SHA in **Done** c
 
 Root staging copies (`*_cust.*`, `GoogleService-Info (1).plist`, `google-services (1).json`) stay gitignored.
 
-**§0.1.3 remaining:** physical device push test + APNs key uploaded in Firebase Console for both iOS apps.
+**§0.1.3 remaining:** confirm test push received on physical device (`pnpm push:test -- --email <driver>`). iOS devices registering ✅ prod (2026-07-06). APNs key in Firebase Console for both iOS apps if not done.
 
 ---
 
@@ -37,13 +37,13 @@ All Wave DD **code** blockers are done. Close these manually:
 
 | Priority | ID     | Action                                                                                   | How to verify                                                                   |
 | -------- | ------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| 1        | §0.1.3 | **Device push test** — Firebase creds ✅ both apps; build + test on device               | Push on device + row in `notification_devices`                                  |
-| 2        | §0.1.9 | **Stripe dashboard** — webhook URL `https://porterchain.com/webhooks/stripe` (live mode) | `STRIPE_MOCK=false STRIPE_SECRET=sk_live_… pnpm validate:p0:prod` → G8b pass    |
-| 3        | §0.1.9 | **Invoice row proof** — complete one live payment                                        | Droplet SQL on `invoices` (G8c hint in `validate:p0:prod`)                      |
+| 1        | §0.1.3 | **Device push test** — iOS device registered ✅ prod; **`firebase-admin` added to API image** (redeploy to send) | `pnpm push:test -- --email <driver>` + notification on device |
+| 2        | ~~§0.1.9~~ | ~~Stripe dashboard~~ — **done** 2026-07-06 (`cs_live_…`, G8/G8b pass) | `pnpm validate:p0:stripe` |
+| 3        | ~~§0.1.9~~ | ~~Invoice row proof~~ — **done** 2026-07-06 (`INV-20260706-ECA602`, $1.13 CAD) | prod `sync-checkout` / invoices SQL |
 | 4        | DD-05b | **Fleetbase prod** — host Fleetbase, set GitHub secrets, enable bridge                   | `GET /health/ready` → `fleetbase_sync.meets_slo: true`; `pnpm fleetbase:replay` |
 | 5        | DD-02  | **Sentry DSN** — optional but recommended                                                | `gh secret set SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN`                           |
 
-**Missing GitHub secrets today:** `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, all `FLEETBASE_*` (bridge correctly off until set).
+**Missing GitHub secrets today:** `DOPPLER_TOKEN` (recommended for DD-14), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, all `FLEETBASE_*` (bridge correctly off until set).
 
 ```bash
 pnpm validate:p0:prod   # automated prod gates (G1, G8, G9, G2/G3 when bridge off)
@@ -78,7 +78,7 @@ _Closes **DD-G1** / Series A technical blockers. Do in order within P0._
 | [x]  | DD-01c | Stripe webhook idempotency tests                     | 1 day    | `stripe_webhook_service.py` · §2.1.14                                             |
 | [x]  | DD-05a | Implement dispatch worker (not stub)                 | 2 days   | `worker/processors/dispatch.py` · §2.2.7                                          |
 | [~]  | §0.1.3 | `PORTERCHAIN_PUSH_SEND=true` prod + device test      | 0.5 day  | **G9 pass** on prod; manual device test remaining                                 |
-| [~]  | §0.1.9 | Stripe live webhook + invoice row proof              | 1 day    | **G8 pass** ingress; G8b/G8c need live Stripe key + payment proof                 |
+| [x]  | §0.1.9 | Stripe live webhook + invoice row proof              | 1 day    | **G8/G8b/G8c pass** — live $1.13 CAD, `INV-20260706-ECA602` _(2026-07-06)_     |
 | [~]  | DD-05b | Fleetbase prod: bridge on, webhook secret, sync >95% | 1–2 wks  | Code ready; blocked on prod Fleetbase host + GitHub secrets                       |
 | [x]  | DD-08  | Order/payment transactions + `SELECT FOR UPDATE`     | 1 wk     | `confirmation_service.py`, `stripe_webhook_service.py` · §0.7.8                   |
 | [x]  | DD-07  | Tenant isolation: context + repos + IDOR tests       | 2 wks    | `models.py`, `*_engine/` · §0.7.7, §2.5.1                                         |
@@ -92,12 +92,12 @@ _Closes **DD-G1** / Series A technical blockers. Do in order within P0._
 
 | Done | ID     | Task                                                        | Effort   | Checklist                                         |
 | ---- | ------ | ----------------------------------------------------------- | -------- | ------------------------------------------------- |
-| [ ]  | DD-11  | WebSocket hub → Redis pub/sub                               | 2–3 days | `notification_engine/realtime.py` · §3.5.1        |
-| [ ]  | DD-03  | ADR-012 horizontal scale (managed PG/Redis, 2 API replicas) | 6–10 ew  | `docs/architecture/ADR-012-scaling.md` · §3.4.6   |
-| [ ]  | DD-17  | k6 load tests + publish p95 SLO                             | 3 days   | `tests/load/` · §5.4                              |
-| [ ]  | DD-14  | Secret manager (replace droplet `.env` secrets)             | 2 days   | infra, RUNBOOK · §5.1.13                          |
-| [ ]  | §0.1.6 | Valhalla or OSRM in prod routing path                       | 2 days   | `services/routing.py`, prod compose · §0.1.6      |
-| [ ]  | §0.5   | Clerk prod keys all 4 portals + JWKS verified               | 1 day    | `auth/clerk_registry.py` · §0.5.1–6               |
+| [x]  | DD-11  | WebSocket hub → Redis pub/sub                               | 2–3 days | `notification_engine/realtime.py` · §3.5.1 _(2026-07-06, pending commit)_ |
+| [x]  | DD-03  | ADR-012 horizontal scale (managed PG/Redis, 2 API replicas) | 6–10 ew  | `docs/architecture/ADR-012-scaling.md` · §3.4.6 _(2026-07-06, pending commit)_ |
+| [x]  | DD-17  | k6 load tests + publish p95 SLO                             | 3 days   | `tests/load/` · §5.4 _(2026-07-06, pending commit)_ |
+| [x]  | DD-14  | Secret manager (replace droplet `.env` secrets)             | 2 days   | `sync-secrets.sh`, Doppler, `SECRETS.md` · §5.1.13 _(2026-07-06, set `DOPPLER_TOKEN` to enable)_ |
+| [x]  | §0.1.6 | Valhalla or OSRM in prod routing path                       | 2 days   | `docker-compose.prod.yml`, `health.py` · §0.1.6 _(2026-07-06, pending deploy)_ |
+| [~]  | §0.5   | Clerk prod keys all 4 portals + JWKS verified               | 1 day    | `clerk_registry.py`, deploy, Doppler · §0.5.1–6 _(2026-07-06, code ready — add per-portal keys to Doppler)_ |
 | [ ]  | DD-09a | Split `crm_service.py` (1686 LOC → ≤400/module)             | 1 wk     | `collaboration_engine/crm_service.py` · §2.2.1    |
 | [ ]  | DD-09b | Split `diagnostics_service.py` (1645 LOC)                   | 1 wk     | `admin_engine/diagnostics_service.py` · §2.2.2    |
 | [ ]  | DD-09c | Split `e2e_validation_service.py` (1619 LOC)                | 3 days   | `admin_engine/e2e_validation_service.py` · §2.2.3 |

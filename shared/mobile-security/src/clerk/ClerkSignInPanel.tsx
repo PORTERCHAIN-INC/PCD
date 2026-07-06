@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, TextInput, View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { isClerkConfigured, readMobileSecurityEnv } from "../config";
@@ -102,28 +102,75 @@ export function DevEmailSignInPanel({
   );
 }
 
+function isSessionAlreadyExistsError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+  if (message.includes("already signed in") || message.includes("session_exists")) {
+    return true;
+  }
+  const clerkErrors = (error as { errors?: Array<{ code?: string; message?: string }> })?.errors;
+  if (Array.isArray(clerkErrors)) {
+    return clerkErrors.some(
+      (e) =>
+        e.code === "session_exists" ||
+        (e.message ?? "").toLowerCase().includes("already signed in")
+    );
+  }
+  return false;
+}
+
 function ClerkSignInForm({ title, subtitle, onSignedIn }: ClerkSignInPanelProps) {
-  const { useSignIn, useOAuth, useAuth } =
+  const { useSignIn, useOAuth, useAuth, useUser } =
     require("@clerk/clerk-expo") as typeof import("@clerk/clerk-expo");
   const { signIn, setActive, isLoaded } = useSignIn();
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn, signOut } = useAuth();
+  const { user } = useUser();
   const google = useOAuth({ strategy: "oauth_google" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const autoResumeAttempted = useRef(false);
 
-  const finishSession = useCallback(
-    async (sessionId: string, emailHint?: string) => {
-      await setActive!({ session: sessionId });
+  // Exchange the active Clerk session for a Porterchain session.
+  const runExchange = useCallback(
+    async (emailHint?: string) => {
       const clerkToken = (await getToken()) ?? null;
       if (!clerkToken) {
         throw new Error("Clerk session missing — sign in again.");
       }
-      await onSignedIn({ clerkToken, email: emailHint?.trim() || undefined });
+      const resolvedEmail =
+        emailHint?.trim() || user?.primaryEmailAddress?.emailAddress || undefined;
+      await onSignedIn({ clerkToken, email: resolvedEmail });
     },
-    [getToken, onSignedIn, setActive]
+    [getToken, onSignedIn, user]
   );
+
+  const finishSession = useCallback(
+    async (sessionId: string, emailHint?: string) => {
+      await setActive!({ session: sessionId });
+      await runExchange(emailHint);
+    },
+    [runExchange, setActive]
+  );
+
+  // If a Clerk session already exists (e.g. a prior attempt created one but the
+  // Porterchain exchange failed), resume it automatically instead of trapping the
+  // user on "you're already signed in".
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || autoResumeAttempted.current) return;
+    autoResumeAttempted.current = true;
+    setLoading(true);
+    setError(null);
+    void (async () => {
+      try {
+        await runExchange();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Sign in failed");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [isLoaded, isSignedIn, runExchange]);
 
   const onEmailSignIn = async () => {
     if (!signIn) return;
@@ -137,6 +184,16 @@ function ClerkSignInForm({ title, subtitle, onSignedIn }: ClerkSignInPanelProps)
       }
       setError("Additional verification required in Clerk.");
     } catch (e) {
+      // A leftover Clerk session blocks a fresh sign-in — resume it instead.
+      if (isSessionAlreadyExistsError(e)) {
+        try {
+          await runExchange(email);
+          return;
+        } catch (resumeError) {
+          setError(resumeError instanceof Error ? resumeError.message : "Sign in failed");
+          return;
+        }
+      }
       setError(e instanceof Error ? e.message : "Sign in failed");
     } finally {
       setLoading(false);
@@ -150,11 +207,10 @@ function ClerkSignInForm({ title, subtitle, onSignedIn }: ClerkSignInPanelProps)
       const { createdSessionId, setActive: oauthSetActive } = await google.startOAuthFlow();
       if (createdSessionId) {
         await oauthSetActive!({ session: createdSessionId });
-        const clerkToken = (await getToken()) ?? null;
-        if (!clerkToken) {
-          throw new Error("Clerk session missing — sign in again.");
-        }
-        await onSignedIn({ clerkToken });
+        await runExchange();
+      } else {
+        // OAuth returned no new session — an active one may already exist.
+        await runExchange();
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Google sign in failed");
@@ -163,8 +219,78 @@ function ClerkSignInForm({ title, subtitle, onSignedIn }: ClerkSignInPanelProps)
     }
   };
 
+  const onUseDifferentAccount = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await signOut();
+      autoResumeAttempted.current = false;
+    } catch {
+      // ignore — Clerk clears local session best-effort
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!isLoaded) {
     return <ActivityIndicator />;
+  }
+
+  // Existing Clerk session — offer resume + escape hatch instead of re-login.
+  if (isSignedIn) {
+    const signedInEmail = user?.primaryEmailAddress?.emailAddress;
+    return (
+      <View style={{ gap: 12 }}>
+        <Text style={{ fontSize: 24, fontWeight: "700" }}>{title}</Text>
+        <Text style={{ color: "#64748b" }}>
+          {signedInEmail ? `Signed in as ${signedInEmail}.` : "You're already signed in."}
+        </Text>
+        {error ? <Text style={{ color: "#dc2626" }}>{error}</Text> : null}
+        <Pressable
+          onPress={() => {
+            autoResumeAttempted.current = false;
+            setLoading(true);
+            setError(null);
+            void (async () => {
+              try {
+                await runExchange();
+              } catch (e) {
+                setError(e instanceof Error ? e.message : "Sign in failed");
+              } finally {
+                setLoading(false);
+              }
+            })();
+          }}
+          disabled={loading}
+          style={{
+            backgroundColor: "#2563eb",
+            borderRadius: 12,
+            paddingVertical: 14,
+            alignItems: "center",
+            opacity: loading ? 0.7 : 1,
+          }}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={{ color: "#fff", fontWeight: "600" }}>Continue</Text>
+          )}
+        </Pressable>
+        <Pressable
+          onPress={() => void onUseDifferentAccount()}
+          disabled={loading}
+          style={{
+            borderWidth: 1,
+            borderColor: "#e2e8f0",
+            borderRadius: 12,
+            paddingVertical: 14,
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ fontWeight: "600" }}>Use a different account</Text>
+        </Pressable>
+      </View>
+    );
   }
 
   return (

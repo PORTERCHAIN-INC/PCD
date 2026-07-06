@@ -29,6 +29,9 @@
     "validate:d3:e2e": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python scripts/verify_d3_matrix.py --e2e",
     "validate:d3:prod": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src python scripts/verify_d3_prod_smoke.py",
     "fleetbase:replay": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter python scripts/replay_fleetbase_sync.py --requeue-all",
+    "push:test": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python scripts/send_test_push.py",
+    "clerk:sync": "node scripts/sync-clerk-env.mjs",
+    "clerk:eas": "bash scripts/setup-clerk-eas.sh",
     "db:seed": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src python scripts/seed_local_dev.py",
     "dev:admin": "pnpm --filter @porterchain/admin dev",
     "dev:worker": "cd apps/worker && source ../api/.venv/bin/activate && PYTHONPATH=.:../api/src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python run.py",
@@ -45,7 +48,9 @@
     "docker:fleetbase:verify": "bash infrastructure/docker/scripts/fleetbase-verify.sh",
     "docker:fleetbase:logs": "cd apps/fleetbase && docker compose -f docker-compose.yml -f docker-compose.override.yml -f ../../infrastructure/docker/fleetbase.porterchain.override.yml logs -f",
     "docker:logs": "docker compose -f infrastructure/docker/docker-compose.yml logs -f",
-    "ports": "bash scripts/ports-local.sh"
+    "ports": "bash scripts/ports-local.sh",
+    "load:booking": "k6 run tests/load/booking.js",
+    "load:webhooks": "k6 run tests/load/webhooks.js"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

@@ -54,16 +54,45 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  valhalla:
+    image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
+    container_name: pcd-valhalla
+    restart: unless-stopped
+    expose:
+      - "8002"
+    volumes:
+      - valhalla-tiles:/custom_files
+    environment:
+      tile_urls: https://download.geofabrik.de/north-america/canada/ontario-latest.osm.pbf
+      use_tiles_ignore_pbf: "True"
+      build_elevation: "False"
+      build_admins: "True"
+      build_time_zones: "True"
+      server_threads: "2"
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 1800s
+    security_opt:
+      - no-new-privileges:true
+
   api:
     image: ${API_IMAGE:-ghcr.io/porterchain/pcd-api:latest}
-    container_name: pcd-api
     restart: unless-stopped
     pull_policy: missing
+    # No container_name — required for `docker compose up --scale api=N` (ADR-012).
+    # Default deploy sets API_REPLICAS=2; Caddy load-balances api:8001 across replicas.
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      valhalla:
+        condition: service_started
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
@@ -92,9 +121,21 @@ services:
       FLEETBASE_DEFAULT_COMPANY_UUID: ${FLEETBASE_DEFAULT_COMPANY_UUID:-}
       CLERK_DEV_BYPASS: "false"
       STRIPE_MOCK: "false"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
-      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
-      CLERK_JWKS_URL: ${CLERK_JWKS_URL}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
+      CLERK_JWKS_URL: ${CLERK_JWKS_URL:-}
+      CLERK_CUSTOMER_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-}
+      CLERK_CUSTOMER_JWKS_URL: ${CLERK_CUSTOMER_JWKS_URL:-}
+      CLERK_CUSTOMER_PUBLISHABLE_KEY: ${CLERK_CUSTOMER_PUBLISHABLE_KEY:-}
+      CLERK_MERCHANT_SECRET_KEY: ${CLERK_MERCHANT_SECRET_KEY:-}
+      CLERK_MERCHANT_JWKS_URL: ${CLERK_MERCHANT_JWKS_URL:-}
+      CLERK_MERCHANT_PUBLISHABLE_KEY: ${CLERK_MERCHANT_PUBLISHABLE_KEY:-}
+      CLERK_ADMIN_SECRET_KEY: ${CLERK_ADMIN_SECRET_KEY:-}
+      CLERK_ADMIN_JWKS_URL: ${CLERK_ADMIN_JWKS_URL:-}
+      CLERK_ADMIN_PUBLISHABLE_KEY: ${CLERK_ADMIN_PUBLISHABLE_KEY:-}
+      CLERK_DRIVER_SECRET_KEY: ${CLERK_DRIVER_SECRET_KEY:-}
+      CLERK_DRIVER_JWKS_URL: ${CLERK_DRIVER_JWKS_URL:-}
+      CLERK_DRIVER_PUBLISHABLE_KEY: ${CLERK_DRIVER_PUBLISHABLE_KEY:-}
       STRIPE_SECRET: ${STRIPE_SECRET}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       JWT_SECRET: ${JWT_SECRET}
@@ -104,6 +145,9 @@ services:
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
       FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
+      ROUTING_ENGINE: valhalla
+      VALHALLA_BASE_URL: http://valhalla:8002
+      OSRM_HOST: ${OSRM_HOST:-https://router.project-osrm.org}
     volumes:
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     expose:
@@ -146,6 +190,9 @@ services:
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
       FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
+      ROUTING_ENGINE: valhalla
+      VALHALLA_BASE_URL: http://valhalla:8002
+      OSRM_HOST: ${OSRM_HOST:-https://router.project-osrm.org}
     volumes:
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     networks:
@@ -170,11 +217,15 @@ services:
     pull_policy: missing
     depends_on:
       - api
+      - valhalla
     environment:
       NODE_ENV: production
       PORT: "3000"
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY is required}
+      CLERK_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-${CLERK_SECRET_KEY:?CLERK customer or legacy CLERK_SECRET_KEY is required}}
+      ROUTING_ENGINE: valhalla
+      VALHALLA_BASE_URL: http://valhalla:8002
+      OSRM_HOST: ${OSRM_HOST:-https://router.project-osrm.org}
     expose:
       - "3000"
     networks:
@@ -190,7 +241,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3002"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_SECRET_KEY: ${CLERK_ADMIN_SECRET_KEY:-${CLERK_SECRET_KEY:-}}
     expose:
       - "3002"
     networks:
@@ -206,7 +257,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3001"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_SECRET_KEY: ${CLERK_MERCHANT_SECRET_KEY:-${CLERK_SECRET_KEY:-}}
     expose:
       - "3001"
     networks:
@@ -222,7 +273,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3003"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_SECRET_KEY: ${CLERK_DRIVER_SECRET_KEY:-${CLERK_SECRET_KEY:-}}
     expose:
       - "3003"
     networks:
@@ -238,7 +289,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3004"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-${CLERK_SECRET_KEY:-}}
     expose:
       - "3004"
     networks:
@@ -281,3 +332,4 @@ volumes:
   caddy-config:
   postgres-data:
   redis-data:
+  valhalla-tiles:

@@ -53,6 +53,16 @@ def _get_firebase_app():
         return None
 
 
+def firebase_sdk_available() -> bool:
+    """True when firebase-admin is installed (required for real FCM sends in prod)."""
+    try:
+        import firebase_admin  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
 def firebase_credentials_configured() -> bool:
     """True when FCM can send real pushes (not log-only)."""
     settings = get_platform_settings()

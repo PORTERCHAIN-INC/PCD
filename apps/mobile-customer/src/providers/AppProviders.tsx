@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 import { createMobileQueryClient } from "@porterchain/mobile-api";
 import { MapsProvider } from "@porterchain/mobile-maps";
 import { ThemeProvider } from "@porterchain/mobile-theme";
@@ -16,7 +16,7 @@ const queryClient = createMobileQueryClient();
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <ThemeProvider initialScheme="system">
         <QueryClientProvider client={queryClient}>
           <PerformanceLayer>

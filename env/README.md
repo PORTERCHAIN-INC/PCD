@@ -22,6 +22,15 @@ Copy the relevant template(s) to a local `.env` file. **Never commit real secret
 | Fleetbase / Docker stack | `fleetbase.env.example`             | `apps/fleetbase/api/.env` or Docker `env_file` |
 | Full local stack         | `compose.env.example`               | `.env` at repo root (Docker Compose)           |
 | Production (droplet)     | `production.env.example`            | `/opt/porterchain/.env` on server              |
+| **Clerk (4 apps)**       | `clerk.env.example`                 | `env/clerk.env` then `pnpm clerk:sync`         |
+
+### Clerk (4 isolated apps)
+
+1. Copy keys: `cp env/clerk.env.example env/clerk.env` (or use `infrastructure/deploy/scripts/clerk-keys.local.env`)
+2. Run **`pnpm clerk:sync`** — writes the correct `pk`/`sk` into each portal, mobile app, and `apps/api/.env`
+3. Mobile store builds: **`pnpm clerk:eas`** (EAS secrets per app)
+
+See [infrastructure/deploy/CLERK_APPS_SETUP.md](../infrastructure/deploy/CLERK_APPS_SETUP.md).
 
 ```bash
 # Minimum local setup

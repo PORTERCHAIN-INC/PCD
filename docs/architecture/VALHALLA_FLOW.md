@@ -36,7 +36,7 @@ else:
     return None
 ```
 
-When `routing_engine=valhalla`, a failed Valhalla HTTP response returns `None` — the API does **not** auto-fallback to OSRM on the same request. Website preview (`routing.ts`) does try OSRM after Valhalla failure.
+When `routing_engine=valhalla`, a failed Valhalla HTTP response falls back to OSRM when `OSRM_HOST` is configured (prod compose sets public OSRM as fallback). Website preview (`routing.ts`) uses the same pattern.
 
 ## Event Catalog
 

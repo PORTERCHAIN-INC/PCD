@@ -29,16 +29,16 @@ def _resolve_app(
     jwks: str,
     publishable: str,
 ) -> ClerkAppConfig | None:
-    secret_key = (secret or settings.clerk_secret_key or "").strip()
-    jwks_url = (jwks or settings.clerk_jwks_url or "").strip()
-    publishable_key = (publishable or settings.clerk_publishable_key or "").strip()
+    secret_key = (secret or "").strip()
+    jwks_url = (jwks or "").strip()
+    publishable_key = (publishable or "").strip()
     if not secret_key and not jwks_url and not publishable_key:
         return None
     return ClerkAppConfig(
         kind=kind,
-        secret_key=secret_key,
-        jwks_url=jwks_url,
-        publishable_key=publishable_key,
+        secret_key=secret_key or settings.clerk_secret_key.strip(),
+        jwks_url=jwks_url or settings.clerk_jwks_url.strip(),
+        publishable_key=publishable_key or settings.clerk_publishable_key.strip(),
     )
 
 
@@ -114,6 +114,52 @@ def clerk_jwks_urls(settings: Settings) -> list[tuple[ClerkAppKind, str]]:
             seen.add(app.jwks_url)
             urls.append((app.kind, app.jwks_url))
     return urls
+
+
+def clerk_health_checks(settings: Settings) -> dict[str, str]:
+    """Per-portal JWKS reachability for readiness (§0.5.6)."""
+    import httpx
+
+    results: dict[str, str] = {}
+    for kind in ALL_CLERK_APP_KINDS:
+        app = clerk_app_for_kind(settings, kind)
+        if not app or not app.jwks_url:
+            results[kind] = "missing"
+            continue
+        try:
+            with httpx.Client(timeout=3.0) as client:
+                response = client.get(app.jwks_url)
+                if response.status_code >= 400:
+                    results[kind] = f"http_{response.status_code}"
+                    continue
+                keys = response.json().get("keys", [])
+                results[kind] = "ok" if keys else "empty_jwks"
+        except Exception as exc:  # noqa: BLE001
+            results[kind] = f"unreachable: {exc}"
+    return results
+
+
+def is_enterprise_clerk_configured(settings: Settings) -> bool:
+    """True when all four isolated Clerk apps have explicit secret + JWKS env vars."""
+    explicit = {
+        "customer": (settings.clerk_customer_secret_key, settings.clerk_customer_jwks_url),
+        "merchant": (settings.clerk_merchant_secret_key, settings.clerk_merchant_jwks_url),
+        "admin": (settings.clerk_admin_secret_key, settings.clerk_admin_jwks_url),
+        "driver": (settings.clerk_driver_secret_key, settings.clerk_driver_jwks_url),
+    }
+    return all(secret.strip() and jwks.strip() for secret, jwks in explicit.values())
+
+
+def is_legacy_clerk_configured(settings: Settings) -> bool:
+    return bool(settings.clerk_secret_key.strip() and settings.clerk_jwks_url.strip())
+
+
+def clerk_configuration_mode(settings: Settings) -> str:
+    if is_enterprise_clerk_configured(settings):
+        return "enterprise"
+    if is_legacy_clerk_configured(settings):
+        return "legacy"
+    return "incomplete"
 
 
 def is_clerk_secret_configured(settings: Settings, kind: ClerkAppKind | None = None) -> bool:

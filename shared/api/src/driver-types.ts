@@ -156,19 +156,62 @@ export type DriverShiftSnapshot = {
   last_updated: string;
 };
 
+export type DriverEarningsLineItem = {
+  id: string;
+  type: string;
+  amount_cents: number;
+  description: string;
+  reference_id: string | null;
+  created_at: string | null;
+};
+
+export type DriverEarningsStatement = {
+  id: string;
+  period_label: string;
+  period_start: string;
+  period_end: string;
+  gross_cents: number;
+  deductions_cents: number;
+  net_cents: number;
+  deliveries: number;
+};
+
 export type DriverEarningsSnapshot = {
   today_cents: number;
   week_cents: number;
   month_cents: number;
   wallet_balance_cents: number;
   completed_deliveries_today: number;
+  completed_deliveries_week: number;
+  completed_deliveries_month: number;
   bonuses: Array<{ id: string; title: string; amount_cents: number; status: string }>;
+  adjustments: DriverEarningsLineItem[];
+  incentives: DriverEarningsLineItem[];
+  deductions: DriverEarningsLineItem[];
   payout_history: Array<{
     id: string;
     amount_cents: number;
     status: string;
     created_at: string | null;
+    reference?: string | null;
+    currency?: string;
   }>;
+  taxes: {
+    ytd_gross_cents: number;
+    month_gross_cents: number;
+    withheld_cents: number;
+    estimated_tax_cents: number;
+    tax_rate_percent: number;
+    note: string;
+  };
+  payment_schedule: {
+    frequency: string;
+    day_of_week: string;
+    cutoff_description: string;
+    deposit_delay_business_days: number;
+    currency: string;
+    next_payout_date?: string;
+  };
   last_updated: string;
 };
 

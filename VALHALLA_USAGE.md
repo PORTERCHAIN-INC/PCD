@@ -32,6 +32,7 @@
 | Component                     | Endpoint                                                         |
 | ----------------------------- | ---------------------------------------------------------------- |
 | Docker `porterchain-valhalla` | `http://127.0.0.1:8002` (profile `routing`)                      |
+| Docker `pcd-valhalla` (prod)  | `http://valhalla:8002` (internal; Ontario tiles volume)          |
 | `VALHALLA_BASE_URL`           | Host access (`http://localhost:8002`)                            |
 | `VALHALLA_BASE_URI`           | Docker-internal (`http://valhalla:8002`)                         |
 | Fleetbase override            | Public demo URLs in `fleetbase.porterchain.override.yml` for dev |

@@ -43,9 +43,14 @@ async def lifespan(_app: FastAPI):
     require_redis_for_production()
     init_db()
     from porterchain_api.platform.bus import ensure_handlers_registered
+    from porterchain_api.notification_engine.realtime import realtime_hub
 
     ensure_handlers_registered()
-    yield
+    await realtime_hub.start()
+    try:
+        yield
+    finally:
+        await realtime_hub.stop()
 
 
 def create_app() -> FastAPI:

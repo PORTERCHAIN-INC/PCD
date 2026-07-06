@@ -14,6 +14,7 @@ export type {
   DriverCommunicationsSnapshot,
   DriverDashboard,
   DriverEarningsSnapshot,
+  DriverEarningsStatement,
   DriverJobDetail,
   DriverJobSummary,
   DriverJobsList,

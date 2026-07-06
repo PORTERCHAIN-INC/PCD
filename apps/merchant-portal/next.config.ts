@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadMonorepoEnv, nextPublicEnv } from "@porterchain/config/monorepo-env.mjs";
+import { loadMonorepoEnv, merchantPublicEnv } from "@porterchain/config/monorepo-env.mjs";
 
 loadMonorepoEnv(process.cwd());
 
@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
   },
   transpilePackages: ["@porterchain/config"],
-  env: nextPublicEnv(),
+  env: merchantPublicEnv(),
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

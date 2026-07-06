@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { useTheme } from "@porterchain/mobile-theme";
 import { Headline, Body } from "@porterchain/mobile-ui";
 import { View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function ScreenHeader({
   title,
@@ -14,11 +13,10 @@ export function ScreenHeader({
   right?: ReactNode;
 }) {
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
   return (
     <View
       style={{
-        paddingTop: insets.top + theme.spacing.md,
+        paddingTop: theme.spacing.md,
         paddingHorizontal: theme.spacing.lg,
         paddingBottom: theme.spacing.md,
         backgroundColor: theme.colors.background,

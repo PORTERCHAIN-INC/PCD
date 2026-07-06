@@ -34,6 +34,8 @@ Code-derived flow diagrams and topology. **Canonical topology:** [SYSTEM_ARCHITE
 | 18  | [REALTIME_FLOW.md](./REALTIME_FLOW.md)                 | WebSocket live map                          |
 | 19  | [REPORTING_FLOW.md](./REPORTING_FLOW.md)               | Admin/merchant reporting                    |
 | 20  | [ADMIN_CONTROL_TOWER.md](./ADMIN_CONTROL_TOWER.md)     | Admin ops communication                     |
+| 21  | [ADR-012-scaling.md](./ADR-012-scaling.md)             | Horizontal scale path (DD-03)               |
+| 22  | [ADR-013-secrets.md](./ADR-013-secrets.md)             | Secret manager (DD-14)                      |
 
 ---
 

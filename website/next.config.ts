@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadMonorepoEnv, nextPublicEnv } from "@porterchain/config/monorepo-env.mjs";
+import { loadMonorepoEnv, websitePublicEnv } from "@porterchain/config/monorepo-env.mjs";
 import createNextIntlPlugin from "next-intl/plugin";
 
 loadMonorepoEnv(process.cwd(), "../env/.env");
@@ -28,17 +28,7 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
   },
   transpilePackages: ["@porterchain/config"],
-  env: {
-    ...nextPublicEnv(),
-    NEXT_PUBLIC_ADMIN_PORTAL_URL:
-      process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL?.trim() || "http://localhost:3002",
-    NEXT_PUBLIC_MERCHANT_PORTAL_URL:
-      process.env.NEXT_PUBLIC_MERCHANT_PORTAL_URL?.trim() || "http://localhost:3001",
-    NEXT_PUBLIC_CUSTOMER_PORTAL_URL:
-      process.env.NEXT_PUBLIC_CUSTOMER_PORTAL_URL?.trim() || "http://localhost:3004",
-    NEXT_PUBLIC_DRIVER_PORTAL_URL:
-      process.env.NEXT_PUBLIC_DRIVER_PORTAL_URL?.trim() || "http://localhost:3003",
-  },
+  env: websitePublicEnv(),
   async redirects() {
     return ["en", "fr"].flatMap((locale) =>
       removedCorporatePaths.map((path) => ({

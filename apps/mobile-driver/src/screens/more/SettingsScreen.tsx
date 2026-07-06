@@ -9,7 +9,7 @@ import {
   useMobileSecurity,
 } from "@porterchain/mobile-security";
 import { useTheme } from "@porterchain/mobile-theme";
-import { Body, Button, Input, ListItem, ListSection, Screen } from "@porterchain/mobile-ui";
+import { Body, Button, Input, ListItem, ListSection, Screen, useToast } from "@porterchain/mobile-ui";
 import { useDriverApi } from "../../api/DriverApiContext";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { registerDriverPush } from "../../services/push";
@@ -18,6 +18,7 @@ import type { MoreStackParamList } from "../../navigation/types";
 export function SettingsScreen() {
   const { theme, toggleScheme } = useTheme();
   const api = useDriverApi();
+  const toast = useToast();
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { biometricEnabled, pinEnabled, enableBiometric, enablePin, integrity, policy } =
     useMobileSecurity();
@@ -32,7 +33,18 @@ export function SettingsScreen() {
           <ListItem
             title="Register push"
             subtitle="Firebase Cloud Messaging"
-            onPress={() => void registerDriverPush(api)}
+            onPress={() => {
+              void (async () => {
+                const result = await registerDriverPush(api);
+                if (result.ok) {
+                  toast.show("Push registered with Porterchain", "success");
+                } else if (result.reason === "permission_denied") {
+                  toast.show("Allow notifications in iOS Settings, then try again", "error");
+                } else {
+                  toast.show("API registration failed — check sign-in and network", "error");
+                }
+              })();
+            }}
           />
           <ListItem
             title="Offline sync center"

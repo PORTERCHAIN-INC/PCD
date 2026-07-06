@@ -17,10 +17,14 @@ const config: ExpoConfig = {
     backgroundColor: "#124835",
   },
   assetBundlePatterns: ["**/*"],
+  newArchEnabled: true,
   extra: {
     eas: {
       projectId: "4beda39e-2c2c-4cda-b994-262e646438ca",
     },
+    apiUrl: (process.env.EXPO_PUBLIC_API_URL ?? "https://api.porterchain.com").replace(/\/$/, ""),
+    clerkPublishableKey: (process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
+    appKind: "driver",
   },
   ios: {
     supportsTablet: true,
@@ -31,6 +35,9 @@ const config: ExpoConfig = {
     config: { googleMapsApiKey },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
+      NSLocalNetworkUsageDescription:
+        "Porterchain Driver connects to your Mac on the local network during development to load the app.",
+      NSBonjourServices: ["_http._tcp", "_http._tcp.local."],
       NSLocationWhenInUseUsageDescription: "Show your location while delivering",
       NSLocationAlwaysAndWhenInUseUsageDescription:
         "Share your location while online for dispatch and customer tracking.",
@@ -58,6 +65,9 @@ const config: ExpoConfig = {
       {
         ios: {
           useFrameworks: "static",
+        },
+        android: {
+          newArchEnabled: true,
         },
       },
     ],

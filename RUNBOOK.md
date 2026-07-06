@@ -31,6 +31,54 @@ Production deploy: see [infrastructure/deploy/README.md](./infrastructure/deploy
 
 ---
 
+## Load testing (DD-17)
+
+Published API latency SLOs (local/staging baseline; tune after first prod run):
+
+| Endpoint              | p95 target | k6 script              |
+| --------------------- | ---------- | ---------------------- |
+| `GET /health`         | < 200 ms   | `tests/load/booking.js` |
+| `POST /v1/quotes`     | < 3 s      | `tests/load/booking.js` |
+| `POST /webhooks/stripe` | < 1 s    | `tests/load/webhooks.js` |
+
+```bash
+brew install k6
+pnpm docker:up && pnpm db:migrate
+pnpm dev:api   # separate terminal
+
+pnpm load:booking
+STRIPE_WEBHOOK_SECRET=whsec_... pnpm load:webhooks   # from stripe listen --print-secret
+```
+
+Details: [tests/load/README.md](./tests/load/README.md). Breached thresholds fail the run (`k6 run` exit code 99).
+
+---
+
+## Device push test (§0.1.3)
+
+Prod Firebase is live when `GET /health/ready` → `checks.firebase: "ok"`.
+
+1. Sign in on physical device (driver app) — push registers automatically on dashboard load.
+2. Confirm device row exists (droplet):
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T postgres \
+  psql -U porterchain -d porterchain -c \
+  "SELECT platform, left(fcm_token,20), last_seen_at FROM notification_devices WHERE user_role='driver' ORDER BY last_seen_at DESC LIMIT 5;"
+```
+
+3. Send test push:
+
+```bash
+pnpm push:test -- --email priya.sharma@porterchain.com
+# on droplet:
+docker compose exec -T -w /app/apps/api api python scripts/send_test_push.py --email priya.sharma@porterchain.com
+```
+
+4. Notification should appear on the device. Requires `PORTERCHAIN_PUSH_SEND=true` and APNs key in Firebase Console for iOS.
+
+---
+
 ## Fleetbase stack — daily checks
 
 ```bash
@@ -182,14 +230,24 @@ docker compose ... restart socket console
 
 ## Routing (OSRM / Valhalla)
 
-| Engine         | When to use                                         |
-| -------------- | --------------------------------------------------- |
-| OSRM public    | Default; no local setup                             |
-| Valhalla local | Start Porterchain routing: `pnpm docker:up:routing` |
+| Engine              | When to use                                         |
+| ------------------- | --------------------------------------------------- |
+| OSRM public         | Fallback when Valhalla is building or unreachable   |
+| Valhalla local      | Start Porterchain routing: `pnpm docker:up:routing` |
+| Valhalla production | `pcd-valhalla` in prod compose (Ontario tiles)      |
 
 Application env (via override): `VALHALLA_BASE_URL=http://host.docker.internal:8002`
 
 Test Valhalla: `curl http://127.0.0.1:8002/status`
+
+**Production:** API and website use `VALHALLA_BASE_URL=http://valhalla:8002` on the internal Docker network. First boot downloads Ontario OSM and builds tiles (~20–60 min on the droplet); quotes fall back to OSRM public until `/status` is healthy.
+
+```bash
+# On droplet (/opt/porterchain)
+docker compose -f docker-compose.prod.yml logs -f valhalla
+bash scripts/verify-routing.sh
+curl -s https://api.porterchain.com/health/ready | jq '.checks.routing'
+```
 
 ---
 
@@ -309,6 +367,7 @@ pnpm validate:p0        # full local G1–G9 including E2E phases
 | `APP_ENV`                               | `local`                        | `production`                            |
 | `STRIPE_MOCK`                           | `true`                         | `false`                                 |
 | `CLERK_DEV_BYPASS`                      | often `true`                   | `false`                                 |
+| Clerk keys                              | single `CLERK_*` or per-portal | `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_*` in Doppler |
 | `FLEETBASE_DISPATCH_BRIDGE`             | `true` (local Fleetbase :8000) | `false` until prod Fleetbase + secrets  |
 | `FLEETBASE_API_URL`                     | `http://localhost:8000`        | Fleetbase prod URL (not localhost)      |
 | `PORTERCHAIN_PUSH_SEND`                 | often `false` / log-only       | `true` (GitHub var)                     |
@@ -317,9 +376,26 @@ pnpm validate:p0        # full local G1–G9 including E2E phases
 | `DATABASE_URL`                          | `localhost:5432`               | in-compose `postgres:5432`              |
 | `REDIS_URL`                             | `localhost:6379`               | in-compose `redis:6379`                 |
 | Worker                                  | `pnpm dev:worker` (optional)   | `pcd-worker` container + heartbeat      |
-| Valhalla / OSRM                         | local `:8002` or mock          | not in prod compose yet (§0.1.6)        |
+| Valhalla / OSRM                         | local `:8002` (profile `routing`) | `pcd-valhalla` in compose; `VALHALLA_BASE_URL=http://valhalla:8002` |
+| `ROUTING_ENGINE`                        | `valhalla` (API)                  | `valhalla` (API + website)                                            |
 
-Templates: [`env/`](./env/README.md) · deploy secrets: [infrastructure/deploy/README.md](./infrastructure/deploy/README.md).
+Templates: [`env/`](./env/README.md) · deploy secrets: [infrastructure/deploy/SECRETS.md](./infrastructure/deploy/SECRETS.md).
+
+---
+
+## Secret manager (DD-14)
+
+| Store | Purpose |
+| ----- | ------- |
+| **Doppler** (`pcd` / `prd`) | Production runtime secrets SSOT |
+| **GitHub Actions** | `DEPLOY_*`, `DOPPLER_TOKEN`, build-time public keys |
+| **Droplet** | Generated `/opt/porterchain/.env` (mode `600`) — do not edit by hand |
+
+Each deploy runs `bash sync-secrets.sh` on the droplet. To rotate a secret: update Doppler → re-run Deploy workflow.
+
+```bash
+gh secret set DOPPLER_TOKEN -b "dp.st.prd.xxxx"
+```
 
 ---
 

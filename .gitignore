@@ -4,6 +4,7 @@
 !.env.example
 !env/*.env.example
 env/.env
+env/clerk.env
 
 # Credentials and key material
 secrets/
@@ -17,6 +18,7 @@ apps/mobile-*/credentials/
 
 # Docker local secrets
 infrastructure/docker/.env
+infrastructure/deploy/scripts/clerk-keys.local.env
 
 # Python
 .venv/

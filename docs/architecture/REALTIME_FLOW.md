@@ -2,22 +2,31 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-06
 
 **Source:** `routers/operations.py`, `admin_engine/live_map_service.py`, `apps/admin/src/lib/maps.ts`  
 **See also:** [DISPATCH_FLOW.md](./DISPATCH_FLOW.md) · [REALTIME_COMMUNICATION_REPORT.md](../../REALTIME_COMMUNICATION_REPORT.md)
 
 ---
 
-## WebSocket (Only One)
+## WebSocket endpoints
 
-| Path                                                    | Auth                  | Behavior                                                  |
-| ------------------------------------------------------- | --------------------- | --------------------------------------------------------- |
-| `WS /v1/admin/operations/live-map/ws?token=<clerk_jwt>` | Clerk JWT query param | Push `{"type":"snapshot","data":...}` every **5 seconds** |
+| Path | Auth | Multi-instance |
+| ---- | ---- | -------------- |
+| `WS /v1/admin/operations/live-map/ws?token=<clerk_jwt>` | Clerk JWT query param | Each replica polls independently every 5s |
+| `WS /v1/notifications/ws` | Clerk JWT (header/cookie) | **Redis pub/sub** fanout across replicas (DD-11) |
+
+### Admin live map
+
+Push `{"type":"snapshot","data":...}` every **5 seconds**.
 
 Implementation: `operations.py` `@router.websocket("/live-map/ws")` under prefix `/v1/admin/operations` → `LiveMapService.snapshot()`.
 
 Close codes: `4401` auth failure, `1011` server error.
+
+### In-app notifications
+
+`routers/notifications.py` `@router.websocket("/ws")` → `RealtimeHub`. On broadcast, the origin replica delivers locally and publishes to Redis channel `porterchain:notifications:realtime`; other replicas subscribe and deliver to their connected clients. See [ADR-012-scaling.md](./ADR-012-scaling.md).
 
 ## Admin Client
 

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadMonorepoEnv, nextPublicEnv } from "@porterchain/config/monorepo-env.mjs";
+import { driverPublicEnv, loadMonorepoEnv } from "@porterchain/config/monorepo-env.mjs";
 
 loadMonorepoEnv(process.cwd());
 
@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
   },
   transpilePackages: ["@porterchain/config"],
-  env: nextPublicEnv(),
+  env: driverPublicEnv(),
   async rewrites() {
     return [{ source: "/favicon.ico", destination: "/icon.svg" }];
   },

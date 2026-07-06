@@ -1,11 +1,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-/** Load monorepo `env/.env` (does not override vars already set in process.env). */
-export function loadMonorepoEnv(cwd, relativeEnvPath = "../../env/.env") {
-  const envPath = path.resolve(cwd, relativeEnvPath);
-  if (!existsSync(envPath)) return envPath;
-  for (const line of readFileSync(envPath, "utf8").split("\n")) {
+/** Porterchain Clerk application per user class (§0.5). */
+export const CLERK_PORTALS = ["customer", "merchant", "admin", "driver"];
+
+function parseEnvLines(content) {
+  for (const line of content.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
     const eq = trimmed.indexOf("=");
@@ -21,6 +21,20 @@ export function loadMonorepoEnv(cwd, relativeEnvPath = "../../env/.env") {
     }
     process.env[key] = value;
   }
+}
+
+function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) return false;
+  parseEnvLines(readFileSync(filePath, "utf8"));
+  return true;
+}
+
+/** Load monorepo env files (does not override vars already set in process.env). */
+export function loadMonorepoEnv(cwd, relativeEnvPath = "../../env/.env") {
+  const envPath = path.resolve(cwd, relativeEnvPath);
+  const clerkPath = path.resolve(cwd, "../../env/clerk.env");
+  loadEnvFile(envPath);
+  loadEnvFile(clerkPath);
   return envPath;
 }
 
@@ -32,6 +46,32 @@ function pick(...keys) {
   return "";
 }
 
+/** Resolve Clerk keys for one portal (customer | merchant | admin | driver). */
+export function clerkKeysForPortal(portal) {
+  const p = portal.toUpperCase();
+  return {
+    publishable: pick(
+      `CLERK_${p}_PUBLISHABLE_KEY`,
+      "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+      "CLERK_PUBLISHABLE_KEY"
+    ),
+    secret: pick(`CLERK_${p}_SECRET_KEY`, "CLERK_SECRET_KEY"),
+    jwks: pick(`CLERK_${p}_JWKS_URL`, "CLERK_JWKS_URL"),
+  };
+}
+
+/** Next.js env block for a portal — maps CLERK_{PORTAL}_* into runtime vars. */
+export function portalPublicEnv(portal, extras = {}) {
+  const clerk = clerkKeysForPortal(portal);
+  const base = nextPublicEnv();
+  return {
+    ...base,
+    ...extras,
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: clerk.publishable || base.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    CLERK_SECRET_KEY: clerk.secret,
+  };
+}
+
 /** Shared NEXT_PUBLIC_* vars injected into Next.js client bundles. */
 export function nextPublicEnv() {
   return {
@@ -41,6 +81,7 @@ export function nextPublicEnv() {
     ),
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pick(
       "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+      "CLERK_CUSTOMER_PUBLISHABLE_KEY",
       "CLERK_PUBLISHABLE_KEY"
     ),
     NEXT_PUBLIC_PORTERCHAIN_API_URL: pick(
@@ -57,19 +98,41 @@ export function nextPublicEnv() {
   };
 }
 
+/** Website — shares porterchain-customer Clerk app. */
+export function websitePublicEnv() {
+  return portalPublicEnv("customer", {
+    NEXT_PUBLIC_ADMIN_PORTAL_URL:
+      pick("NEXT_PUBLIC_ADMIN_PORTAL_URL") || "http://localhost:3002",
+    NEXT_PUBLIC_MERCHANT_PORTAL_URL:
+      pick("NEXT_PUBLIC_MERCHANT_PORTAL_URL") || "http://localhost:3001",
+    NEXT_PUBLIC_CUSTOMER_PORTAL_URL:
+      pick("NEXT_PUBLIC_CUSTOMER_PORTAL_URL") || "http://localhost:3004",
+    NEXT_PUBLIC_DRIVER_PORTAL_URL:
+      pick("NEXT_PUBLIC_DRIVER_PORTAL_URL") || "http://localhost:3003",
+  });
+}
+
 /** Admin portal extras. */
 export function adminPublicEnv() {
-  return {
-    ...nextPublicEnv(),
+  return portalPublicEnv("admin", {
     NEXT_PUBLIC_APP_ENV: pick("NEXT_PUBLIC_APP_ENV", "APP_ENV") || "local",
     NEXT_PUBLIC_CLERK_DEV_BYPASS: pick("NEXT_PUBLIC_CLERK_DEV_BYPASS", "CLERK_DEV_BYPASS"),
-  };
+  });
+}
+
+/** Merchant portal. */
+export function merchantPublicEnv() {
+  return portalPublicEnv("merchant");
+}
+
+/** Driver web portal. */
+export function driverPublicEnv() {
+  return portalPublicEnv("driver");
 }
 
 /** Customer portal extras. */
 export function customerPublicEnv() {
-  return {
-    ...nextPublicEnv(),
+  return portalPublicEnv("customer", {
     NEXT_PUBLIC_WEBSITE_URL: pick("NEXT_PUBLIC_WEBSITE_URL", "WEBSITE_URL"),
-  };
+  });
 }

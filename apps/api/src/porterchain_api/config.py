@@ -133,6 +133,24 @@ class Settings(BaseSettings):
                 )
         return self
 
+    @model_validator(mode="after")
+    def require_clerk_in_production(self) -> Self:
+        if is_local_env(self.app_env) or self.clerk_dev_bypass:
+            return self
+        from porterchain_api.auth.clerk_registry import (
+            ALL_CLERK_APP_KINDS,
+            clerk_configuration_mode,
+        )
+
+        mode = clerk_configuration_mode(self)
+        if mode in ("enterprise", "legacy"):
+            return self
+        missing = ", ".join(f"clerk_{k}" for k in ALL_CLERK_APP_KINDS)
+        raise ValueError(
+            "Production requires Clerk: set all CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_* "
+            f"keys or legacy CLERK_SECRET_KEY + CLERK_JWKS_URL (missing: {missing})"
+        )
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

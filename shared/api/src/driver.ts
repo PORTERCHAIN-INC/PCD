@@ -5,6 +5,7 @@ import type {
   DriverCommunicationsSnapshot,
   DriverDashboard,
   DriverEarningsSnapshot,
+  DriverEarningsStatement,
   DriverJobDetail,
   DriverJobsList,
   DriverNavigationSession,
@@ -107,6 +108,8 @@ export function createDriverApi(client: ApiClient) {
       client.post<{ otp: string }>(`${base}/orders/${encodeURIComponent(orderId)}/otp`),
 
     earningsSnapshot: () => client.get<DriverEarningsSnapshot>(`${base}/earnings`),
+    earningsStatements: () =>
+      client.get<{ statements: DriverEarningsStatement[] }>(`${base}/earnings/statements`),
     earningsToday: () =>
       client.get<{ today_cents: number; week_cents: number; month_cents: number }>(
         `${base}/earnings/today`

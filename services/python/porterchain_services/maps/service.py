@@ -23,7 +23,13 @@ class MapsService(BaseService):
         destination: tuple[float, float],
     ) -> dict[str, Any] | None:
         if self.engine == "valhalla" and self.settings.valhalla_url:
-            return self._valhalla_route(origin, destination)
+            leg = self._valhalla_route(origin, destination)
+            if leg is not None:
+                return leg
+            if self.settings.osrm_url:
+                logger.warning("Valhalla unavailable — falling back to OSRM")
+                return self._osrm_route(origin, destination)
+            return None
         if self.settings.osrm_url:
             return self._osrm_route(origin, destination)
         return None

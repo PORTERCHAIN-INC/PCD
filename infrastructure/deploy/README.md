@@ -65,6 +65,7 @@ Internet ──443──▶ Caddy (pcd-caddy)
 Internal: postgres:16, redis:7.2 (Docker network `edge`)
 ```
 
+- **API replicas:** deploy defaults to **2** (`API_REPLICAS` repo variable or droplet `.env`). Caddy load-balances `api:8001` across replicas. See [ADR-012-scaling.md](../../docs/architecture/ADR-012-scaling.md).
 - **Caddy** (`infrastructure/deploy/Caddyfile`) — TLS (Let's Encrypt), HTTP→HTTPS, `www`→apex, security headers.
 - Portal/API containers are **not** published to the host — only Caddy exposes 80/443.
 - Stack: `infrastructure/deploy/docker-compose.prod.yml` in `/opt/porterchain`.
@@ -100,6 +101,7 @@ Settings → Secrets and variables → Actions → Secrets:
 | `DEPLOY_USER`                     | SSH user (`root` or `deploy`)               |
 | `DEPLOY_SSH_KEY`                  | Private SSH key (PEM) authorized on droplet |
 | `DEPLOY_PORT`                     | _(optional)_ SSH port, default `22`         |
+| `DOPPLER_TOKEN`                   | _(recommended)_ Doppler service token for `prd` config (DD-14) |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser Maps key (build-time)               |
 | `GOOGLE_MAPS_SERVER_API_KEY`      | Server-side Maps key for geocoding          |
 | `POSTGRES_PASSWORD`               | PostgreSQL password for `porterchain` DB    |
@@ -140,12 +142,22 @@ pnpm fleetbase:replay
 
 | Variable                   | Default | Description                                        |
 | -------------------------- | ------- | -------------------------------------------------- |
+| `API_REPLICAS`             | `2`     | API containers behind Caddy (ADR-012 / DD-03)      |
 | `PORTERCHAIN_PUSH_ENABLED` | `false` | Enable FCM push pipeline                           |
 | `PORTERCHAIN_PUSH_SEND`    | `false` | When `true`, send real pushes (not dry-run) §0.1.3 |
 
-**Still missing in repo (optional / blocked):** `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, all `FLEETBASE_*` secrets (bridge stays off until Fleetbase prod is ready).
+**Still missing in repo (optional / blocked):** `DOPPLER_TOKEN` (recommended — see [SECRETS.md](./SECRETS.md)), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, all `FLEETBASE_*` secrets (bridge stays off until Fleetbase prod is ready).
 
 Set `PORTERCHAIN_PUSH_ENABLED=true` and `PORTERCHAIN_PUSH_SEND=true` when Firebase secrets are configured.
+
+### Secret manager (DD-14)
+
+Production secrets sync via **`infrastructure/deploy/sync-secrets.sh`** on each deploy:
+
+- **Recommended:** set `DOPPLER_TOKEN` in GitHub Actions → secrets pulled from Doppler project `pcd` / config `prd`.
+- **Legacy:** individual GitHub secrets still work when `DOPPLER_TOKEN` is unset.
+
+Full setup: [SECRETS.md](./SECRETS.md) · [ADR-013-secrets.md](../../docs/architecture/ADR-013-secrets.md).
 
 **Stripe webhook URL:** `https://porterchain.com/webhooks/stripe` (via Caddy → API)
 
@@ -169,10 +181,19 @@ gh secret set CLERK_JWKS_URL -b "https://…/.well-known/jwks.json"
 
 ## Deploy-Time Migrations
 
-After `docker compose up`, the workflow runs Alembic inside `pcd-api`:
+After `docker compose up`, the workflow runs Alembic inside one API replica:
 
 ```bash
-docker exec -w /app/apps/api pcd-api python scripts/repair_and_migrate.py
+docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \
+  -e PYTHONPATH=/app/apps/api/src:/app/apps/api \
+  api python scripts/repair_and_migrate.py
+```
+
+Scale API without downtime (same image tag):
+
+```bash
+export API_REPLICAS=2   # or 1 to roll back
+docker compose -f docker-compose.prod.yml up -d --scale api=$API_REPLICAS
 ```
 
 Head revision: `n2o3p4q5r6s7` (13 revisions). See [apps/api/alembic/README.md](../../apps/api/alembic/README.md).

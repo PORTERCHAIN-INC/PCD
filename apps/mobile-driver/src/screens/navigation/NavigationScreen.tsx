@@ -5,14 +5,15 @@ import type { RouteProp } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import { useForegroundAwarePolling } from "@porterchain/mobile-performance";
 import { useTheme } from "@porterchain/mobile-theme";
-import { Body, Button, Card, Screen } from "@porterchain/mobile-ui";
-import { EnterpriseMap, driverSessionToMapSession, formatEta } from "@porterchain/mobile-maps";
+import { Body, Button, Card, Screen, Title } from "@porterchain/mobile-ui";
+import { EnterpriseMap, driverSessionToMapSession, formatEta, useMapsConfig } from "@porterchain/mobile-maps";
 import { useDriverApi } from "../../api/DriverApiContext";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import type { NavigationStackParamList } from "../../navigation/types";
 
 export function NavigationScreen() {
   const { theme } = useTheme();
+  const { enabled: mapsEnabled } = useMapsConfig();
   const api = useDriverApi();
   const route = useRoute<RouteProp<NavigationStackParamList, "Navigation">>();
   const orderId = route.params?.orderId;
@@ -27,6 +28,7 @@ export function NavigationScreen() {
   });
 
   const mapSession = data ? driverSessionToMapSession(data) : null;
+  const isIdle = !orderId && (data?.state === "idle" || data?.idle);
 
   return (
     <Screen>
@@ -34,8 +36,14 @@ export function NavigationScreen() {
         title="Navigation"
         subtitle={data?.tracking_number ?? "Fleetbase GPS via API"}
       />
-      <ScrollView contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.lg }}>
-        {mapSession ? (
+      <ScrollView
+        contentContainerStyle={{
+          padding: theme.spacing.lg,
+          gap: theme.spacing.lg,
+          paddingBottom: theme.layout.tabBarHeight + theme.spacing.lg,
+        }}
+      >
+        {mapSession && mapsEnabled && !isIdle ? (
           <EnterpriseMap
             session={mapSession}
             height={360}
@@ -45,7 +53,32 @@ export function NavigationScreen() {
             replayIndex={replayIndex}
             onReplayIndexChange={setReplayIndex}
           />
-        ) : null}
+        ) : (
+          <View
+            style={{
+              height: 360,
+              borderRadius: theme.radii.lg,
+              backgroundColor: theme.colors.surface,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              alignItems: "center",
+              justifyContent: "center",
+              padding: theme.spacing.xl,
+              gap: theme.spacing.sm,
+            }}
+          >
+            <Title style={{ textAlign: "center" }}>
+              {isIdle ? "No active route" : mapsEnabled ? "Route unavailable" : "Map not configured"}
+            </Title>
+            <Body muted style={{ textAlign: "center" }}>
+              {isIdle
+                ? "Accept a job from the Jobs tab to start turn-by-turn navigation."
+                : mapsEnabled
+                  ? "Pull to refresh or tap Refresh route below."
+                  : "Set EXPO_PUBLIC_GOOGLE_MAPS_API_KEY in apps/mobile-driver/.env and restart Metro."}
+            </Body>
+          </View>
+        )}
         <Card>
           <Body>State: {data?.state ?? "—"}</Body>
           <Body muted>
