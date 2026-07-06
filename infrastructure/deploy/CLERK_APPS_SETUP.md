@@ -77,11 +77,29 @@ For **each** of the 4 applications:
 
 ### Admin app (`porterchain-admin`)
 
-| Setting | Values |
-| ------- | ------ |
-| **Home URL** | `https://admin.porterchain.com` |
-| **Allowed redirect URLs** | `https://admin.porterchain.com/*` |
-| **Sign-in** | `https://admin.porterchain.com/sign-in` |
+Clerk **Paths** only shows **Component paths** (where `<SignIn />`, `<SignUp />`, etc. live). There is **no** “After sign-in URL” in the dashboard (removed in Core 2). Post-login redirect is set in app env — see `adminPublicEnv()`.
+
+**Configure → Paths → Component paths** (production — full `https://` URLs on your app domain):
+
+| Component | Value |
+| --------- | ----- |
+| `<SignIn />` | `https://admin.porterchain.com/sign-in` |
+| `<SignUp />` | `https://admin.porterchain.com/sign-in` (invite-only — same as sign-in) |
+| Signing out | `https://admin.porterchain.com/sign-in` |
+| `<OAuthConsent />` | leave default unless you use custom OAuth consent |
+
+Pointing SignIn at **your app** (not `accounts.admin…`) keeps auth on `admin.porterchain.com` and avoids Account Portal bounce. Alternatively keep Account Portal and rely on code redirects below.
+
+**After sign-in redirect (code only):**
+
+```bash
+NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard
+```
+
+Baked in `packages/config/monorepo-env.mjs` → `adminPublicEnv()`. Redeploy admin image for prod.
+
+Ensure DNS CNAMEs for `clerk.admin.porterchain.com` and `accounts.admin.porterchain.com` are verified in Clerk → **Domains**.
 
 Restrict sign-ups: **Configure → Restrictions** → disable public sign-up; invite staff only.
 

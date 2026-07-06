@@ -117,12 +117,24 @@ export function adminPublicEnv() {
   return portalPublicEnv("admin", {
     NEXT_PUBLIC_APP_ENV: pick("NEXT_PUBLIC_APP_ENV", "APP_ENV") || "local",
     NEXT_PUBLIC_CLERK_DEV_BYPASS: pick("NEXT_PUBLIC_CLERK_DEV_BYPASS", "CLERK_DEV_BYPASS"),
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL: pick("NEXT_PUBLIC_CLERK_SIGN_IN_URL") || "/sign-in",
+    NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL:
+      pick("NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL") || "/dashboard",
+    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL:
+      pick("NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL") || "/dashboard",
+    NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL: pick("NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL") || "/sign-in",
   });
 }
 
 /** Merchant portal. */
 export function merchantPublicEnv() {
-  return portalPublicEnv("merchant");
+  return portalPublicEnv("merchant", {
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL: pick("NEXT_PUBLIC_CLERK_SIGN_IN_URL") || "/sign-in",
+    NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL:
+      pick("NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL") || "/onboarding",
+    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL:
+      pick("NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL") || "/onboarding",
+  });
 }
 
 /** Driver web portal. */
@@ -134,5 +146,10 @@ export function driverPublicEnv() {
 export function customerPublicEnv() {
   return portalPublicEnv("customer", {
     NEXT_PUBLIC_WEBSITE_URL: pick("NEXT_PUBLIC_WEBSITE_URL", "WEBSITE_URL"),
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL: pick("NEXT_PUBLIC_CLERK_SIGN_IN_URL") || "/sign-in",
+    NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL:
+      pick("NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL") || "/dashboard",
+    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL:
+      pick("NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL") || "/dashboard",
   });
 }

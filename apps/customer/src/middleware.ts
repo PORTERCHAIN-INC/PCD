@@ -4,11 +4,18 @@ const isPublicRoute = createRouteMatcher(["/sign-in(.*)"]);
 
 const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim());
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isPublicRoute(req)) return;
-  if (!clerkConfigured) return;
-  await auth.protect();
-});
+export default clerkMiddleware(
+  async (auth, req) => {
+    if (isPublicRoute(req)) return;
+    if (!clerkConfigured) return;
+    // Force the in-app /sign-in page; otherwise auth.protect() redirects to Clerk's
+    // hosted Account Portal (accounts.customer.porterchain.com) which can loop.
+    await auth.protect({
+      unauthenticatedUrl: new URL("/sign-in", req.url).toString(),
+    });
+  },
+  { signInUrl: "/sign-in" }
+);
 
 export const config = {
   matcher: [

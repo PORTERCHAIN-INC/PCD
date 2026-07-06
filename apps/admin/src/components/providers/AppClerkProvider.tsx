@@ -14,6 +14,11 @@ export default function AppClerkProvider({ children }: { children: React.ReactNo
       signInUrl="/sign-in"
       afterSignOutUrl="/sign-in"
       signInFallbackRedirectUrl="/dashboard"
+      signInForceRedirectUrl="/dashboard"
+      allowedRedirectOrigins={[
+        "https://admin.porterchain.com",
+        "https://accounts.admin.porterchain.com",
+      ]}
     >
       {children}
     </ClerkProvider>

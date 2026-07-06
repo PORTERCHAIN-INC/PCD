@@ -1,11 +1,38 @@
 "use client";
 
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
-import { SignIn } from "@clerk/nextjs";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SignIn, useAuth } from "@clerk/nextjs";
 import { Shield } from "lucide-react";
 import { isClerkConfigured } from "@/lib/env";
 
 export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-bg">
+          <p className="text-sm text-muted">Loading…</p>
+        </div>
+      }
+    >
+      <SignInContent />
+    </Suspense>
+  );
+}
+
+function SignInContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isLoaded, isSignedIn } = useAuth();
+  const redirectUrl = searchParams.get("redirect_url") ?? "/dashboard";
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.replace(redirectUrl.startsWith("/") ? redirectUrl : "/dashboard");
+    }
+  }, [isLoaded, isSignedIn, redirectUrl, router]);
+
   if (!isClerkConfigured()) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-bg p-4">
@@ -27,6 +54,14 @@ export default function SignInPage() {
     );
   }
 
+  if (!isLoaded || isSignedIn) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-bg">
+        <p className="text-sm text-muted">Loading…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-bg p-4">
       <div className="mb-6 max-w-md text-center">
@@ -40,7 +75,10 @@ export default function SignInPage() {
         </p>
       </div>
       <SignIn
-        routing="hash"
+        routing="path"
+        path="/sign-in"
+        forceRedirectUrl="/dashboard"
+        fallbackRedirectUrl="/dashboard"
         appearance={{
           elements: {
             footerAction: { display: "none" },
