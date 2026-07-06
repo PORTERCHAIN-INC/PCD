@@ -1,0 +1,4 @@
+[bandit]
+exclude = /tests/,/alembic/
+# B608: admin e2e cleanup uses fixed table names from an allowlist, not user input.
+skips = B608

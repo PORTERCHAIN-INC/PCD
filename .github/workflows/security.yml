@@ -13,7 +13,7 @@ concurrency:
 jobs:
   bandit:
     name: Bandit (Python)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: apps/api
@@ -28,17 +28,12 @@ jobs:
       - name: Run Bandit
         run: |
           python -m pip install --upgrade pip bandit
-          bandit -r src/porterchain_api \
-            -x '*/tests/*,*/alembic/*' \
-            -ll \
-            --format json -o bandit-report.json || true
-          bandit -r src/porterchain_api \
-            -x '*/tests/*,*/alembic/*' \
-            -ll
+          bandit -r src/porterchain_api -c .bandit -ll --format json -o bandit-report.json || true
+          bandit -r src/porterchain_api -c .bandit -ll
 
   trivy:
     name: Trivy (containers)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       security-events: write
@@ -60,7 +55,7 @@ jobs:
           docker build -f ${{ matrix.dockerfile }} -t pcd-scan:${{ matrix.name }} .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: pcd-scan:${{ matrix.name }}
           format: table

@@ -28,7 +28,7 @@ env:
 jobs:
   deploy:
     name: Build & deploy Porterchain stack
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Skip when triggered by a failed CI run (manual dispatch always runs).
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     permissions:
@@ -190,7 +190,7 @@ jobs:
 
       - name: Copy deploy manifests to droplet
         if: steps.check.outputs.ready == 'true'
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -202,7 +202,7 @@ jobs:
 
       - name: Deploy to droplet over SSH
         if: steps.check.outputs.ready == 'true'
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
