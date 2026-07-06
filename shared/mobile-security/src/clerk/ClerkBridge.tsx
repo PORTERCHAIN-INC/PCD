@@ -23,9 +23,7 @@ export function ClerkBridge({ children, env }: ClerkBridgeProps) {
     };
     let tokenCache: unknown;
     try {
-      tokenCache = (
-        require("@clerk/clerk-expo/token-cache") as { tokenCache: unknown }
-      ).tokenCache;
+      tokenCache = (require("@clerk/clerk-expo/token-cache") as { tokenCache: unknown }).tokenCache;
     } catch {
       tokenCache = undefined;
     }

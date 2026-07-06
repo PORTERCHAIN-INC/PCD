@@ -53,7 +53,8 @@ export function SignInScreen() {
   const clerkConfigured = isClerkConfigured();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const showDevPanel = !clerkConfigured && (process.env.EXPO_PUBLIC_APP_ENV ?? "").trim() === "local";
+  const showDevPanel =
+    !clerkConfigured && (process.env.EXPO_PUBLIC_APP_ENV ?? "").trim() === "local";
 
   async function completeDriverSession(ctx: ClerkSignInContext) {
     const clerkToken = ctx.clerkToken ?? (await getClerkBearerToken());
@@ -116,8 +117,8 @@ export function SignInScreen() {
             />
           ) : (
             <Body style={{ color: theme.colors.textMuted }}>
-              Sign-in is not configured. Set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in apps/mobile-driver/.env,
-              restart Metro, then rebuild from Xcode.
+              Sign-in is not configured. Set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in
+              apps/mobile-driver/.env, restart Metro, then rebuild from Xcode.
             </Body>
           )}
           {error ? <Body style={{ color: theme.colors.danger }}>{error}</Body> : null}
