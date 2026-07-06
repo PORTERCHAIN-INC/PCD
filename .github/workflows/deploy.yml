@@ -75,6 +75,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build and push API image
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.API_IMAGE_NAME }}:latest
+            ${{ env.API_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
       - name: Build and push website image
         if: steps.check.outputs.ready == 'true'
         uses: docker/build-push-action@v6
@@ -93,19 +106,6 @@ jobs:
             NEXT_PUBLIC_APP_ENV=production
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Build and push API image
-        if: steps.check.outputs.ready == 'true'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/api/Dockerfile
-          push: true
-          tags: |
-            ${{ env.API_IMAGE_NAME }}:latest
-            ${{ env.API_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
-          cache-from: type=gha,scope=api
-          cache-to: type=gha,mode=max,scope=api
 
       - name: Build and push admin image
         if: steps.check.outputs.ready == 'true'
