@@ -25,12 +25,25 @@ def test_jwt_secret_empty_rejected_in_production() -> None:
 
 def test_jwt_secret_custom_allowed_in_production() -> None:
     secret = "a" * 64
-    settings = Settings(app_env="production", jwt_secret=secret)
+    settings = Settings(
+        _env_file=None,
+        app_env="production",
+        jwt_secret=secret,
+        clerk_secret_key="sk_test_ci",
+        clerk_jwks_url="https://clerk.example.test/.well-known/jwks.json",
+    )
     assert settings.jwt_secret == secret
 
 
 def test_fleetbase_bridge_disabled_without_secrets_in_production() -> None:
-    settings = Settings(app_env="production", jwt_secret="a" * 64, fleetbase_dispatch_bridge=False)
+    settings = Settings(
+        _env_file=None,
+        app_env="production",
+        jwt_secret="a" * 64,
+        fleetbase_dispatch_bridge=False,
+        clerk_secret_key="sk_test_ci",
+        clerk_jwks_url="https://clerk.example.test/.well-known/jwks.json",
+    )
     assert settings.fleetbase_dispatch_bridge is False
 
 
@@ -56,5 +69,7 @@ def test_fleetbase_bridge_allowed_with_secrets_in_production() -> None:
         fleetbase_api_key="fb-key",
         fleetbase_webhook_secret="wh-secret",
         fleetbase_default_company_uuid="company-uuid-1",
+        clerk_secret_key="sk_test_ci",
+        clerk_jwks_url="https://clerk.example.test/.well-known/jwks.json",
     )
     assert settings.fleetbase_dispatch_bridge is True
