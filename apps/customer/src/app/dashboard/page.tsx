@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CustomerShell from "@/components/CustomerShell";
-import { customerApi, type CustomerDashboard } from "@/lib/api";
+import { customerApi, CUSTOMER_CANCELLABLE_STATES, type CustomerDashboard } from "@/lib/api";
 import { isClerkConfigured } from "@/lib/env";
 
 export default function DashboardPage() {
@@ -16,6 +16,8 @@ export default function DashboardPage() {
   const [supportSubject, setSupportSubject] = useState("");
   const [supportMessage, setSupportMessage] = useState("");
   const [supportSent, setSupportSent] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     if (isLoaded && !isSignedIn && isClerkConfigured()) {
@@ -23,19 +25,48 @@ export default function DashboardPage() {
     }
   }, [isLoaded, isSignedIn, router]);
 
+  const loadDashboard = async () => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+      setDashboard(await customerApi.dashboard(token));
+      setError("");
+    } catch {
+      setError("Failed to load dashboard");
+    }
+  };
+
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
-    (async () => {
-      try {
-        const token = await getToken();
-        if (!token) return;
-        setDashboard(await customerApi.dashboard(token));
-        setError("");
-      } catch {
-        setError("Failed to load dashboard");
-      }
-    })();
+    void loadDashboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, isSignedIn, getToken]);
+
+  const cancelActiveOrder = async () => {
+    const active = dashboard?.active_order;
+    if (!active) return;
+    if (!window.confirm("Cancel this delivery? Any payment will be refunded by our team.")) {
+      return;
+    }
+    setCancelling(true);
+    setError("");
+    setNotice("");
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const result = await customerApi.cancelOrder(token, active.order_id);
+      setNotice(
+        result.refund_pending
+          ? "Delivery cancelled. A refund will be processed by our team."
+          : "Delivery cancelled."
+      );
+      await loadDashboard();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not cancel delivery");
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   const submitSupport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +112,11 @@ export default function DashboardPage() {
           Support ticket submitted.
         </div>
       )}
+      {notice && (
+        <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          {notice}
+        </div>
+      )}
 
       {!dashboard?.orders.length && !dashboard?.active_order && (
         <section className="mb-8 rounded-2xl border border-dashed border-primary/15 bg-white p-10 text-center shadow-sm">
@@ -106,12 +142,24 @@ export default function DashboardPage() {
           <p className="mt-2 text-sm text-primary">
             Status: <span className="font-semibold">{dashboard.active_order.state}</span>
           </p>
-          <Link
-            href={`/track/${dashboard.active_order.tracking_number}`}
-            className="mt-4 inline-block text-sm font-semibold text-secondary hover:underline"
-          >
-            View tracking details →
-          </Link>
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            <Link
+              href={`/track/${dashboard.active_order.tracking_number}`}
+              className="text-sm font-semibold text-secondary hover:underline"
+            >
+              View tracking details →
+            </Link>
+            {CUSTOMER_CANCELLABLE_STATES.includes(dashboard.active_order.state) && (
+              <button
+                type="button"
+                onClick={cancelActiveOrder}
+                disabled={cancelling}
+                className="rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {cancelling ? "Cancelling…" : "Cancel delivery"}
+              </button>
+            )}
+          </div>
         </section>
       )}
 

@@ -18,6 +18,16 @@ export interface CustomerDashboard {
   payments: Array<{ payment_id: string; status: string; amount_cents: number; currency: string }>;
 }
 
+export interface CancelOrderResult {
+  order_id: string;
+  tracking_number: string;
+  state: string;
+  refund_pending: boolean;
+}
+
+/** Order states in which a customer may self-cancel (mirrors the API guard). */
+export const CUSTOMER_CANCELLABLE_STATES = ["BOOKED", "DISPATCH_READY", "DRIVER_ASSIGNED"];
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -43,4 +53,17 @@ export const customerApi = {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     }),
+  // Cancel consumes the standardized {success,data}/{error} envelope.
+  cancelOrder: async (token: string, orderId: string): Promise<CancelOrderResult> => {
+    const res = await fetch(`${API_BASE}/v1/customers/me/orders/${orderId}/cancel`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    });
+    const body = await res.json().catch(() => null);
+    if (!res.ok) {
+      const message = body?.error?.message ?? body?.detail ?? "Unable to cancel order";
+      throw new Error(typeof message === "string" ? message : "Unable to cancel order");
+    }
+    return (body?.data ?? body) as CancelOrderResult;
+  },
 };
