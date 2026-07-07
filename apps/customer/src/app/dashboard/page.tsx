@@ -56,9 +56,11 @@ export default function DashboardPage() {
       if (!token) return;
       const result = await customerApi.cancelOrder(token, active.order_id);
       setNotice(
-        result.refund_pending
-          ? "Delivery cancelled. A refund will be processed by our team."
-          : "Delivery cancelled."
+        result.refunded
+          ? "Delivery cancelled and your payment has been refunded."
+          : result.refund_pending
+            ? "Delivery cancelled. A refund will be processed by our team shortly."
+            : "Delivery cancelled."
       );
       await loadDashboard();
     } catch (e) {

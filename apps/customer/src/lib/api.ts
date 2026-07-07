@@ -22,7 +22,9 @@ export interface CancelOrderResult {
   order_id: string;
   tracking_number: string;
   state: string;
+  refunded: boolean;
   refund_pending: boolean;
+  refund_amount_cents: number;
 }
 
 /** Order states in which a customer may self-cancel (mirrors the API guard). */
