@@ -14,6 +14,7 @@ CUSTOMER_AUTHENTICATED = "customer.authenticated"
 PAYMENT_STARTED = "payment.started"
 PAYMENT_SUCCEEDED = "payment.succeeded"
 PAYMENT_FAILED = "payment.failed"
+PAYMENT_REFUNDED = "payment.refunded"
 
 # Booking & order
 BOOKING_CREATED = "booking.created"

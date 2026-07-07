@@ -22,6 +22,7 @@ class PaymentStatus(StrEnum):
     SUCCEEDED = "SUCCEEDED"
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
+    REFUNDED = "REFUNDED"
 
 
 class OrderState(StrEnum):

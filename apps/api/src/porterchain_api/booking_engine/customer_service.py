@@ -238,17 +238,19 @@ class CustomerService:
     # en route to pickup. Later stages require support (see cancel_order).
     CUSTOMER_CANCELLABLE_STATES = frozenset({"BOOKED", "DISPATCH_READY", "DRIVER_ASSIGNED"})
 
-    def cancel_order(self, db: Session, customer_id: str, order_id: str) -> dict:
+    def cancel_order(self, db: Session, settings, customer_id: str, order_id: str) -> dict:
         """Customer-initiated cancellation of an owned, pre-pickup order.
 
-        Mirrors the merchant cancel path (audited state transition + event) and
-        deliberately does NOT auto-refund: refunds for paid orders are handled
-        as a separate step, so the response/event carry ``refund_pending`` for
-        downstream processing. Raises:
+        Transitions the order to CANCELLED via the audited transition path, then
+        refunds the captured payment (real Stripe in prod, simulated in local
+        mock mode). ``refund_pending`` is True only when a payment exists but the
+        refund could not be issued automatically (needs finance follow-up).
+        Raises:
           * ``LookupError`` — order not found / not owned by this customer (404)
           * ``ValueError`` — order not in a customer-cancellable state (409)
         """
         from porterchain_api.booking_engine.order_transitions import transition_order_state
+        from porterchain_api.booking_engine.refund_service import PaymentRefundService
         from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
         from porterchain_api.domain.states import OrderState
 
@@ -259,10 +261,6 @@ class CustomerService:
         if order.state not in self.CUSTOMER_CANCELLABLE_STATES:
             raise ValueError("order_not_cancellable")
 
-        # Retail orders reach these states only after payment is captured, so a
-        # cancellation always implies a pending refund (processed separately).
-        refund_pending = True
-
         transition_order_state(
             db,
             order,
@@ -270,11 +268,17 @@ class CustomerService:
             event_type="order.cancelled",
             actor_type="customer",
             actor_id=customer_id,
-            payload={"reason": "customer_cancelled", "refund_pending": refund_pending},
+            payload={"reason": "customer_cancelled"},
+        )
+
+        refund = PaymentRefundService().refund_order(
+            db, settings, order, actor_type="customer", actor_id=customer_id
         )
         return {
             "order_id": order.id,
             "tracking_number": order.tracking_number,
             "state": OrderState.CANCELLED.value,
-            "refund_pending": refund_pending,
+            "refunded": refund.refunded,
+            "refund_pending": refund.pending,
+            "refund_amount_cents": refund.amount_cents,
         }

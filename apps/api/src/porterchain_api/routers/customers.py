@@ -117,7 +117,7 @@ def cancel_my_order(
 
     customer = require_customer(db, claims, settings)
     try:
-        result = _customers.cancel_order(db, customer.id, order_id)
+        result = _customers.cancel_order(db, settings, customer.id, order_id)
     except LookupError:
         raise HTTPException(status_code=404, detail="order_not_found") from None
     except ValueError as exc:
