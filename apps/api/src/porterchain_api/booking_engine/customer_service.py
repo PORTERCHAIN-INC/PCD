@@ -233,3 +233,48 @@ class CustomerService:
             "source_order_id": order.id,
             "tracking_number": order.tracking_number,
         }
+
+    # States a customer may self-cancel: only before a driver has accepted / is
+    # en route to pickup. Later stages require support (see cancel_order).
+    CUSTOMER_CANCELLABLE_STATES = frozenset({"BOOKED", "DISPATCH_READY", "DRIVER_ASSIGNED"})
+
+    def cancel_order(self, db: Session, customer_id: str, order_id: str) -> dict:
+        """Customer-initiated cancellation of an owned, pre-pickup order.
+
+        Mirrors the merchant cancel path (audited state transition + event) and
+        deliberately does NOT auto-refund: refunds for paid orders are handled
+        as a separate step, so the response/event carry ``refund_pending`` for
+        downstream processing. Raises:
+          * ``LookupError`` — order not found / not owned by this customer (404)
+          * ``ValueError`` — order not in a customer-cancellable state (409)
+        """
+        from porterchain_api.booking_engine.order_transitions import transition_order_state
+        from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
+        from porterchain_api.domain.states import OrderState
+
+        order = OrderRepository().get_for_customer(db, customer_id, order_id)
+        if not order:
+            raise LookupError("order_not_found")
+
+        if order.state not in self.CUSTOMER_CANCELLABLE_STATES:
+            raise ValueError("order_not_cancellable")
+
+        # Retail orders reach these states only after payment is captured, so a
+        # cancellation always implies a pending refund (processed separately).
+        refund_pending = True
+
+        transition_order_state(
+            db,
+            order,
+            OrderState.CANCELLED,
+            event_type="order.cancelled",
+            actor_type="customer",
+            actor_id=customer_id,
+            payload={"reason": "customer_cancelled", "refund_pending": refund_pending},
+        )
+        return {
+            "order_id": order.id,
+            "tracking_number": order.tracking_number,
+            "state": OrderState.CANCELLED.value,
+            "refund_pending": refund_pending,
+        }

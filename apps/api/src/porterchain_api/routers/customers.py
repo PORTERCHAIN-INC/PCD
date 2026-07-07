@@ -99,3 +99,27 @@ def rebook_from_order(
     except LookupError:
         raise HTTPException(status_code=404, detail="order_not_found") from None
     return CustomerRebookResponse(**payload)
+
+
+@router.post("/me/orders/{order_id}/cancel")
+def cancel_my_order(
+    order_id: str,
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Customer self-cancel for an owned pre-pickup order.
+
+    Returns the standardized success envelope. Later-stage orders are rejected
+    with 409 (`order_not_cancellable`) — those require support.
+    """
+    from porterchain_api.responses import success
+
+    customer = require_customer(db, claims, settings)
+    try:
+        result = _customers.cancel_order(db, customer.id, order_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="order_not_found") from None
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return success(result)
