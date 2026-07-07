@@ -101,29 +101,59 @@ def create_app() -> FastAPI:
     app.include_router(driver.router)
     app.include_router(driver.legacy_router)
 
-    from fastapi import HTTPException, Request
+    from fastapi import Request
+    from fastapi.exceptions import RequestValidationError
     from fastapi.responses import JSONResponse
+    from starlette.exceptions import HTTPException as StarletteHTTPException
 
     from porterchain_api.fleetbase_engine import BookingValidationError
+    from porterchain_api.responses import error_payload
     import logging
 
     _logger = logging.getLogger(__name__)
 
+    def _code_from_detail(detail: object, fallback: str) -> str:
+        """Use a snake_case string detail as the machine-readable code."""
+        if isinstance(detail, str) and detail:
+            return detail
+        return fallback
+
     @app.exception_handler(BookingValidationError)
     async def _booking_validation_handler(_request: Request, exc: BookingValidationError) -> JSONResponse:
-        return JSONResponse(status_code=422, content={"detail": exc.message, "code": exc.code})
+        return JSONResponse(
+            status_code=422,
+            content=error_payload(exc.code, exc.message, detail=exc.message),
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def _request_validation_handler(_request: Request, exc: RequestValidationError) -> JSONResponse:
+        # Preserve FastAPI's structured `detail` array for backward compatibility.
+        errors = exc.errors()
+        return JSONResponse(
+            status_code=422,
+            content=error_payload("validation_error", "Request validation failed", detail=errors),
+        )
+
+    @app.exception_handler(StarletteHTTPException)
+    async def _http_exception_handler(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
+        # Explicit handler so HTTPExceptions get the standard envelope instead of
+        # Starlette's default {"detail": ...}. `detail` is preserved for clients.
+        code = _code_from_detail(exc.detail, f"http_{exc.status_code}")
+        message = exc.detail if isinstance(exc.detail, str) else code
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=error_payload(code, message, detail=exc.detail),
+            headers=getattr(exc, "headers", None),
+        )
 
     @app.exception_handler(Exception)
     async def _unhandled_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
-        if isinstance(exc, HTTPException):
-            return JSONResponse(
-                status_code=exc.status_code,
-                content={"detail": exc.detail},
-                headers=exc.headers,
-            )
         _logger.exception("unhandled error: %s", exc)
-        detail = str(exc) if settings.app_env != "production" else "internal_server_error"
-        return JSONResponse(status_code=500, content={"detail": detail})
+        message = str(exc) if settings.app_env != "production" else "internal_server_error"
+        return JSONResponse(
+            status_code=500,
+            content=error_payload("internal_server_error", message, detail=message),
+        )
 
     @app.get("/health")
     def health() -> dict[str, str]:
