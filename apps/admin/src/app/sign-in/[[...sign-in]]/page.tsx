@@ -1,11 +1,44 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { SignIn, useAuth } from "@clerk/nextjs";
-import { Shield } from "lucide-react";
+import { SignIn, SignOutButton, useAuth } from "@clerk/nextjs";
+import { Shield, ShieldAlert } from "lucide-react";
 import { isClerkConfigured } from "@/lib/env";
+
+// Detects the sign-in <-> dashboard flicker: browser has a Clerk session but
+// the server middleware can't verify it, so /dashboard bounces back to
+// /sign-in?redirect_url=/dashboard and we redirect again, forever. Counts
+// bounces within a short window so we can stop and surface the real cause.
+const REDIRECT_GUARD_KEY = "pc_admin_signin_redirects";
+const REDIRECT_GUARD_WINDOW_MS = 8000;
+const REDIRECT_GUARD_MAX = 3;
+
+function recordRedirectAttempt(): number {
+  try {
+    const now = Date.now();
+    const raw = sessionStorage.getItem(REDIRECT_GUARD_KEY);
+    let count = 0;
+    if (raw) {
+      const parsed = JSON.parse(raw) as { count: number; at: number };
+      if (now - parsed.at < REDIRECT_GUARD_WINDOW_MS) count = parsed.count;
+    }
+    count += 1;
+    sessionStorage.setItem(REDIRECT_GUARD_KEY, JSON.stringify({ count, at: now }));
+    return count;
+  } catch {
+    return 1; // sessionStorage unavailable — allow the redirect.
+  }
+}
+
+function clearRedirectGuard(): void {
+  try {
+    sessionStorage.removeItem(REDIRECT_GUARD_KEY);
+  } catch {
+    // ignore
+  }
+}
 
 export default function SignInPage() {
   return (
@@ -38,13 +71,61 @@ function SignInContent() {
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
   const redirectUrl = resolvePostSignInTarget(searchParams.get("redirect_url"));
+  const [loopDetected, setLoopDetected] = useState(false);
+
+  useEffect(() => {
+    // A fresh, unauthenticated visit means any prior flicker is over.
+    if (isLoaded && !isSignedIn) clearRedirectGuard();
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
+    if (recordRedirectAttempt() > REDIRECT_GUARD_MAX) {
+      // Server middleware keeps rejecting the session — stop looping and show why.
+      setLoopDetected(true);
+      return;
+    }
     // Hard navigation so middleware receives the Clerk session cookie. Client-side
     // router.replace() can loop back to /sign-in with an infinite Loading state.
     window.location.assign(redirectUrl);
   }, [isLoaded, isSignedIn, redirectUrl]);
+
+  if (isClerkConfigured() && loopDetected) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-bg p-4">
+        <div className="w-full max-w-md rounded-2xl border border-amber-200 bg-white p-8 text-center shadow-sm">
+          <ShieldAlert className="mx-auto h-12 w-12 text-amber-600" />
+          <h1 className="mt-4 text-xl font-bold text-primary">Sign-in couldn’t complete</h1>
+          <p className="mt-2 text-sm text-muted">
+            You’re signed in, but the server couldn’t verify your session, so it kept returning to
+            this page. This usually means the admin app’s <code>CLERK_SECRET_KEY</code> is missing
+            at runtime or doesn’t match the <code>NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code> it was
+            built with (they must be the same Clerk application).
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              clearRedirectGuard();
+              setLoopDetected(false);
+              window.location.assign(redirectUrl);
+            }}
+            className="mt-6 w-full rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white hover:bg-secondary/90"
+          >
+            Try again
+          </button>
+          <SignOutButton redirectUrl="/sign-in">
+            <button
+              type="button"
+              onClick={clearRedirectGuard}
+              className="mt-2 w-full text-xs text-muted hover:text-secondary"
+            >
+              Sign out
+            </button>
+          </SignOutButton>
+        </div>
+      </div>
+    );
+  }
 
   if (!isClerkConfigured()) {
     return (
