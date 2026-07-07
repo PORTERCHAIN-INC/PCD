@@ -35,11 +35,11 @@ Production deploy: see [infrastructure/deploy/README.md](./infrastructure/deploy
 
 Published API latency SLOs (local/staging baseline; tune after first prod run):
 
-| Endpoint              | p95 target | k6 script              |
-| --------------------- | ---------- | ---------------------- |
-| `GET /health`         | < 200 ms   | `tests/load/booking.js` |
-| `POST /v1/quotes`     | < 3 s      | `tests/load/booking.js` |
-| `POST /webhooks/stripe` | < 1 s    | `tests/load/webhooks.js` |
+| Endpoint                | p95 target | k6 script                |
+| ----------------------- | ---------- | ------------------------ |
+| `GET /health`           | < 200 ms   | `tests/load/booking.js`  |
+| `POST /v1/quotes`       | < 3 s      | `tests/load/booking.js`  |
+| `POST /webhooks/stripe` | < 1 s      | `tests/load/webhooks.js` |
 
 ```bash
 brew install k6
@@ -362,22 +362,22 @@ pnpm validate:p0        # full local G1–G9 including E2E phases
 
 ## Prod vs local environment (§0.1.11)
 
-| Variable / setting                      | Local (default)                | Production (droplet)                    |
-| --------------------------------------- | ------------------------------ | --------------------------------------- |
-| `APP_ENV`                               | `local`                        | `production`                            |
-| `STRIPE_MOCK`                           | `true`                         | `false`                                 |
-| `CLERK_DEV_BYPASS`                      | often `true`                   | `false`                                 |
-| Clerk keys                              | single `CLERK_*` or per-portal | `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_*` in Doppler |
-| `FLEETBASE_DISPATCH_BRIDGE`             | `true` (local Fleetbase :8000) | `false` until prod Fleetbase + secrets  |
-| `FLEETBASE_API_URL`                     | `http://localhost:8000`        | Fleetbase prod URL (not localhost)      |
-| `PORTERCHAIN_PUSH_SEND`                 | often `false` / log-only       | `true` (GitHub var)                     |
-| `JWT_SECRET`                            | dev default allowed            | must be non-default (boot guard)        |
-| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | optional                       | set in GitHub secrets for API + portals |
-| `DATABASE_URL`                          | `localhost:5432`               | in-compose `postgres:5432`              |
-| `REDIS_URL`                             | `localhost:6379`               | in-compose `redis:6379`                 |
-| Worker                                  | `pnpm dev:worker` (optional)   | `pcd-worker` container + heartbeat      |
+| Variable / setting                      | Local (default)                   | Production (droplet)                                                |
+| --------------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
+| `APP_ENV`                               | `local`                           | `production`                                                        |
+| `STRIPE_MOCK`                           | `true`                            | `false`                                                             |
+| `CLERK_DEV_BYPASS`                      | often `true`                      | `false`                                                             |
+| Clerk keys                              | single `CLERK_*` or per-portal    | `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_*` in Doppler               |
+| `FLEETBASE_DISPATCH_BRIDGE`             | `true` (local Fleetbase :8000)    | `false` until prod Fleetbase + secrets                              |
+| `FLEETBASE_API_URL`                     | `http://localhost:8000`           | Fleetbase prod URL (not localhost)                                  |
+| `PORTERCHAIN_PUSH_SEND`                 | often `false` / log-only          | `true` (GitHub var)                                                 |
+| `JWT_SECRET`                            | dev default allowed               | must be non-default (boot guard)                                    |
+| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | optional                          | set in GitHub secrets for API + portals                             |
+| `DATABASE_URL`                          | `localhost:5432`                  | in-compose `postgres:5432`                                          |
+| `REDIS_URL`                             | `localhost:6379`                  | in-compose `redis:6379`                                             |
+| Worker                                  | `pnpm dev:worker` (optional)      | `pcd-worker` container + heartbeat                                  |
 | Valhalla / OSRM                         | local `:8002` (profile `routing`) | `pcd-valhalla` in compose; `VALHALLA_BASE_URL=http://valhalla:8002` |
-| `ROUTING_ENGINE`                        | `valhalla` (API)                  | `valhalla` (API + website)                                            |
+| `ROUTING_ENGINE`                        | `valhalla` (API)                  | `valhalla` (API + website)                                          |
 
 Templates: [`env/`](./env/README.md) · deploy secrets: [infrastructure/deploy/SECRETS.md](./infrastructure/deploy/SECRETS.md).
 
@@ -385,11 +385,11 @@ Templates: [`env/`](./env/README.md) · deploy secrets: [infrastructure/deploy/S
 
 ## Secret manager (DD-14)
 
-| Store | Purpose |
-| ----- | ------- |
-| **Doppler** (`pcd` / `prd`) | Production runtime secrets SSOT |
-| **GitHub Actions** | `DEPLOY_*`, `DOPPLER_TOKEN`, build-time public keys |
-| **Droplet** | Generated `/opt/porterchain/.env` (mode `600`) — do not edit by hand |
+| Store                       | Purpose                                                              |
+| --------------------------- | -------------------------------------------------------------------- |
+| **Doppler** (`pcd` / `prd`) | Production runtime secrets SSOT                                      |
+| **GitHub Actions**          | `DEPLOY_*`, `DOPPLER_TOKEN`, build-time public keys                  |
+| **Droplet**                 | Generated `/opt/porterchain/.env` (mode `600`) — do not edit by hand |
 
 Each deploy runs `bash sync-secrets.sh` on the droplet. To rotate a secret: update Doppler → re-run Deploy workflow.
 

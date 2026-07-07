@@ -31,11 +31,7 @@ function formatDate(iso: string | null | undefined) {
 
 function MetricRow({ children }: { children: ReactNode }) {
   const { theme } = useTheme();
-  return (
-    <View style={{ flexDirection: "row", gap: theme.spacing.md }}>
-      {children}
-    </View>
-  );
+  return <View style={{ flexDirection: "row", gap: theme.spacing.md }}>{children}</View>;
 }
 
 function MetricCell({ children }: { children: ReactNode }) {
@@ -192,10 +188,7 @@ export function EarningsScreen() {
             </Card>
 
             <Card>
-              <CardHeader
-                title="Statements"
-                subtitle="Monthly earnings from Finance Engine"
-              />
+              <CardHeader title="Statements" subtitle="Monthly earnings from Finance Engine" />
               {statements.length === 0 ? (
                 <Body muted>No monthly statements yet.</Body>
               ) : (

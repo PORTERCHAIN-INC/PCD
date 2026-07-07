@@ -7,11 +7,10 @@ const extra = (Constants.expoConfig?.extra ?? {}) as {
 };
 
 export const mobileEnv = {
-  apiBaseUrl: (
-    process.env.EXPO_PUBLIC_API_URL ??
-    extra.apiUrl ??
-    "http://localhost:8001"
-  ).replace(/\/$/, ""),
+  apiBaseUrl: (process.env.EXPO_PUBLIC_API_URL ?? extra.apiUrl ?? "http://localhost:8001").replace(
+    /\/$/,
+    ""
+  ),
   googleMapsApiKey: (process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? "").trim(),
   clerkPublishableKey: (
     process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ??

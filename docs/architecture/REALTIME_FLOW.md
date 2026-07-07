@@ -11,10 +11,10 @@
 
 ## WebSocket endpoints
 
-| Path | Auth | Multi-instance |
-| ---- | ---- | -------------- |
-| `WS /v1/admin/operations/live-map/ws?token=<clerk_jwt>` | Clerk JWT query param | Each replica polls independently every 5s |
-| `WS /v1/notifications/ws` | Clerk JWT (header/cookie) | **Redis pub/sub** fanout across replicas (DD-11) |
+| Path                                                    | Auth                      | Multi-instance                                   |
+| ------------------------------------------------------- | ------------------------- | ------------------------------------------------ |
+| `WS /v1/admin/operations/live-map/ws?token=<clerk_jwt>` | Clerk JWT query param     | Each replica polls independently every 5s        |
+| `WS /v1/notifications/ws`                               | Clerk JWT (header/cookie) | **Redis pub/sub** fanout across replicas (DD-11) |
 
 ### Admin live map
 

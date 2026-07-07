@@ -35,11 +35,11 @@ export default {
 
 ### Functions
 
-| Function                                 | Returns                                                                                                         |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Function                                 | Returns                                                                          |
+| ---------------------------------------- | -------------------------------------------------------------------------------- |
 | `loadMonorepoEnv(cwd, relativeEnvPath?)` | Loads `env/.env` + `env/clerk.env`; does **not** override existing `process.env` |
 | `clerkKeysForPortal(portal)`             | `customer` \| `merchant` \| `admin` \| `driver` → publishable, secret, jwks      |
-| `portalPublicEnv(portal, extras?)`       | Per-portal `NEXT_PUBLIC_CLERK_*` + `CLERK_SECRET_KEY` for Next.js `env`        |
+| `portalPublicEnv(portal, extras?)`       | Per-portal `NEXT_PUBLIC_CLERK_*` + `CLERK_SECRET_KEY` for Next.js `env`          |
 | `websitePublicEnv()`                     | Customer Clerk + portal URL defaults                                             |
 | `adminPublicEnv()`                       | Admin Clerk + dev bypass flags                                                   |
 | `merchantPublicEnv()`                    | Merchant Clerk                                                                   |

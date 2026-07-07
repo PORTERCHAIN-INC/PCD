@@ -6,7 +6,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useForegroundAwarePolling } from "@porterchain/mobile-performance";
 import { useTheme } from "@porterchain/mobile-theme";
 import { Body, Button, Card, Screen, Title } from "@porterchain/mobile-ui";
-import { EnterpriseMap, driverSessionToMapSession, formatEta, useMapsConfig } from "@porterchain/mobile-maps";
+import {
+  EnterpriseMap,
+  driverSessionToMapSession,
+  formatEta,
+  useMapsConfig,
+} from "@porterchain/mobile-maps";
 import { useDriverApi } from "../../api/DriverApiContext";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import type { NavigationStackParamList } from "../../navigation/types";
@@ -68,7 +73,11 @@ export function NavigationScreen() {
             }}
           >
             <Title style={{ textAlign: "center" }}>
-              {isIdle ? "No active route" : mapsEnabled ? "Route unavailable" : "Map not configured"}
+              {isIdle
+                ? "No active route"
+                : mapsEnabled
+                  ? "Route unavailable"
+                  : "Map not configured"}
             </Title>
             <Body muted style={{ textAlign: "center" }}>
               {isIdle

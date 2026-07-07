@@ -95,26 +95,26 @@ Ensure the deploy user can log in with the SSH key referenced by `DEPLOY_SSH_KEY
 
 Settings → Secrets and variables → Actions → Secrets:
 
-| Secret                            | Description                                 |
-| --------------------------------- | ------------------------------------------- |
-| `DEPLOY_HOST`                     | Droplet IP                                  |
-| `DEPLOY_USER`                     | SSH user (`root` or `deploy`)               |
-| `DEPLOY_SSH_KEY`                  | Private SSH key (PEM) authorized on droplet |
-| `DEPLOY_PORT`                     | _(optional)_ SSH port, default `22`         |
+| Secret                            | Description                                                    |
+| --------------------------------- | -------------------------------------------------------------- |
+| `DEPLOY_HOST`                     | Droplet IP                                                     |
+| `DEPLOY_USER`                     | SSH user (`root` or `deploy`)                                  |
+| `DEPLOY_SSH_KEY`                  | Private SSH key (PEM) authorized on droplet                    |
+| `DEPLOY_PORT`                     | _(optional)_ SSH port, default `22`                            |
 | `DOPPLER_TOKEN`                   | _(recommended)_ Doppler service token for `prd` config (DD-14) |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser Maps key (build-time)               |
-| `GOOGLE_MAPS_SERVER_API_KEY`      | Server-side Maps key for geocoding          |
-| `POSTGRES_PASSWORD`               | PostgreSQL password for `porterchain` DB    |
-| `CLERK_PUBLISHABLE_KEY`           | Clerk publishable key (`pk_live_…` in prod) |
-| `CLERK_SECRET_KEY`                | Clerk secret key                            |
-| `CLERK_JWKS_URL`                  | Clerk JWKS endpoint                         |
-| `STRIPE_SECRET`                   | Stripe secret key                           |
-| `STRIPE_WEBHOOK_SECRET`           | Stripe webhook signing secret               |
-| `JWT_SECRET`                      | SSO token secret (`openssl rand -hex 32`)   |
-| `SENTRY_DSN`                      | _(optional)_ API error tracking (DD-02)     |
-| `FIREBASE_PROJECT_ID`             | _(optional)_ GCP Firebase project           |
-| `FIREBASE_CREDENTIALS_JSON`       | _(optional)_ Service account JSON inline    |
-| `FIREBASE_WEB_VAPID_KEY`          | _(optional)_ Web push VAPID key             |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser Maps key (build-time)                                  |
+| `GOOGLE_MAPS_SERVER_API_KEY`      | Server-side Maps key for geocoding                             |
+| `POSTGRES_PASSWORD`               | PostgreSQL password for `porterchain` DB                       |
+| `CLERK_PUBLISHABLE_KEY`           | Clerk publishable key (`pk_live_…` in prod)                    |
+| `CLERK_SECRET_KEY`                | Clerk secret key                                               |
+| `CLERK_JWKS_URL`                  | Clerk JWKS endpoint                                            |
+| `STRIPE_SECRET`                   | Stripe secret key                                              |
+| `STRIPE_WEBHOOK_SECRET`           | Stripe webhook signing secret                                  |
+| `JWT_SECRET`                      | SSO token secret (`openssl rand -hex 32`)                      |
+| `SENTRY_DSN`                      | _(optional)_ API error tracking (DD-02)                        |
+| `FIREBASE_PROJECT_ID`             | _(optional)_ GCP Firebase project                              |
+| `FIREBASE_CREDENTIALS_JSON`       | _(optional)_ Service account JSON inline                       |
+| `FIREBASE_WEB_VAPID_KEY`          | _(optional)_ Web push VAPID key                                |
 
 **Fleetbase (DD-05b)** — optional until dispatch bridge is enabled:
 

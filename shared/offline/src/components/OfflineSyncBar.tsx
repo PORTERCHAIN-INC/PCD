@@ -10,8 +10,7 @@ export function OfflineSyncBar() {
   const { online, syncing, localPending, localFailed, gpsPending, uploadPending, syncNow } =
     useOfflineSync();
 
-  const hasQueue =
-    localPending > 0 || localFailed > 0 || uploadPending > 0 || gpsPending > 0;
+  const hasQueue = localPending > 0 || localFailed > 0 || uploadPending > 0 || gpsPending > 0;
 
   // Only surface the bar when offline or there is real queue work to show.
   if (online && !hasQueue) return null;

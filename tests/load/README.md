@@ -13,10 +13,10 @@ pnpm dev:api   # separate terminal — needs Redis for webhook idempotency
 
 ## Scenarios
 
-| Script        | Endpoints                         | SLO (p95) |
-| ------------- | --------------------------------- | --------- |
-| `booking.js`  | `GET /health`, `POST /v1/quotes`  | quote < 3s |
-| `webhooks.js` | `POST /webhooks/stripe` (signed)  | < 1s      |
+| Script        | Endpoints                        | SLO (p95)  |
+| ------------- | -------------------------------- | ---------- |
+| `booking.js`  | `GET /health`, `POST /v1/quotes` | quote < 3s |
+| `webhooks.js` | `POST /webhooks/stripe` (signed) | < 1s       |
 
 ## Run
 

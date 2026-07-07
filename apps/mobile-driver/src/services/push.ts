@@ -3,8 +3,7 @@ import { getFcmToken } from "@porterchain/mobile-notifications";
 import type { DriverApi } from "@porterchain/mobile-api";
 
 export type PushRegisterResult =
-  | { ok: true }
-  | { ok: false; reason: "permission_denied" | "api_error" };
+  { ok: true } | { ok: false; reason: "permission_denied" | "api_error" };
 
 export async function registerDriverPush(api: DriverApi): Promise<PushRegisterResult> {
   const token = await getFcmToken();

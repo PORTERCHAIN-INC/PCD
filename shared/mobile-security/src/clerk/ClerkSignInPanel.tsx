@@ -103,7 +103,8 @@ export function DevEmailSignInPanel({
 }
 
 function isSessionAlreadyExistsError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+  const message =
+    error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
   if (message.includes("already signed in") || message.includes("session_exists")) {
     return true;
   }
@@ -111,8 +112,7 @@ function isSessionAlreadyExistsError(error: unknown): boolean {
   if (Array.isArray(clerkErrors)) {
     return clerkErrors.some(
       (e) =>
-        e.code === "session_exists" ||
-        (e.message ?? "").toLowerCase().includes("already signed in")
+        e.code === "session_exists" || (e.message ?? "").toLowerCase().includes("already signed in")
     );
   }
   return false;
