@@ -45,15 +45,25 @@ from porterchain_api.schemas_driver import (
     SupportTicketRequest,
 )
 from porterchain_api.driver_engine.api_service import DriverApiService
-from porterchain_api.driver_engine.mappers import driver_profile, guard_portal_ready, route_response, stop_response
+from porterchain_api.driver_engine.mappers import (
+    driver_profile,
+    guard_portal_ready as _mapper_guard_portal_ready,
+    route_response,
+    stop_response,
+)
 
 router = APIRouter(prefix="/driver-api/v1", tags=["driver"])
 svc = DriverApiService()
 
 
 def guard_portal_ready(ctx: DriverContext, settings: Settings) -> None:
+    """Convert the mapper's onboarding gate (PermissionError) into an HTTP 403.
+
+    Note: this wraps ``mappers.guard_portal_ready`` (imported aliased) — it must
+    not call itself, or driver dashboard/jobs endpoints recurse infinitely.
+    """
     try:
-        guard_portal_ready(ctx, settings)
+        _mapper_guard_portal_ready(ctx, settings)
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
 
