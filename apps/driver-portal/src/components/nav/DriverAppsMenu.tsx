@@ -40,7 +40,10 @@ function getDriverAppLinks(): AppLink[] {
       id: "admin",
       label: "Admin",
       description: "Operations console",
-      href: process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3002",
+      href:
+        process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL ??
+        process.env.NEXT_PUBLIC_ADMIN_URL ??
+        "http://localhost:3002",
       port: 3002,
     },
     {
