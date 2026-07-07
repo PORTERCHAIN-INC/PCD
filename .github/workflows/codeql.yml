@@ -38,7 +38,6 @@ jobs:
         if: matrix.language == 'javascript-typescript'
         with:
           node-version-file: .nvmrc
-          cache: pnpm
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
