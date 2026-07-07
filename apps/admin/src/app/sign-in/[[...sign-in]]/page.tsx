@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { SignIn, useAuth } from "@clerk/nextjs";
 import { Shield } from "lucide-react";
 import { isClerkConfigured } from "@/lib/env";
@@ -21,17 +21,30 @@ export default function SignInPage() {
   );
 }
 
+function resolvePostSignInTarget(raw: string | null): string {
+  const fallback = "/dashboard";
+  if (!raw) return fallback;
+  if (raw.startsWith("/") && !raw.startsWith("/sign-in")) return raw;
+  try {
+    const url = new URL(raw, "https://admin.porterchain.com");
+    if (url.pathname.startsWith("/sign-in")) return fallback;
+    return `${url.pathname}${url.search}${url.hash}` || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function SignInContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
-  const redirectUrl = searchParams.get("redirect_url") ?? "/dashboard";
+  const redirectUrl = resolvePostSignInTarget(searchParams.get("redirect_url"));
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.replace(redirectUrl.startsWith("/") ? redirectUrl : "/dashboard");
-    }
-  }, [isLoaded, isSignedIn, redirectUrl, router]);
+    if (!isLoaded || !isSignedIn) return;
+    // Hard navigation so middleware receives the Clerk session cookie. Client-side
+    // router.replace() can loop back to /sign-in with an infinite Loading state.
+    window.location.assign(redirectUrl);
+  }, [isLoaded, isSignedIn, redirectUrl]);
 
   if (!isClerkConfigured()) {
     return (
