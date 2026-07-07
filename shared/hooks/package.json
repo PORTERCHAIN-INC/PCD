@@ -1,0 +1,18 @@
+{
+  "name": "@porterchain/mobile-hooks",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./mobile/index.ts",
+  "types": "./mobile/index.ts",
+  "exports": {
+    ".": "./mobile/index.ts"
+  },
+  "peerDependencies": {
+    "@react-native-community/netinfo": ">=11.0.0",
+    "react": ">=18.0.0",
+    "react-native": ">=0.76.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}

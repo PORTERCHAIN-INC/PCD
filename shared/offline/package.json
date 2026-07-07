@@ -1,0 +1,38 @@
+{
+  "name": "@porterchain/mobile-offline",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "@porterchain/mobile-api": "*",
+    "@porterchain/mobile-hooks": "*",
+    "@porterchain/mobile-performance": "*",
+    "@porterchain/mobile-storage": "*",
+    "@porterchain/mobile-theme": "*",
+    "@porterchain/mobile-ui": "*",
+    "@tanstack/react-query": ">=5.0.0",
+    "expo-location": ">=18.0.0",
+    "expo-task-manager": ">=12.0.0",
+    "react": ">=18.0.0",
+    "react-native": ">=0.76.0"
+  },
+  "devDependencies": {
+    "@porterchain/mobile-api": "workspace:*",
+    "@porterchain/mobile-hooks": "workspace:*",
+    "@porterchain/mobile-performance": "workspace:*",
+    "@porterchain/mobile-storage": "workspace:*",
+    "@porterchain/mobile-theme": "workspace:*",
+    "@porterchain/mobile-ui": "workspace:*",
+    "@tanstack/react-query": "^5.90.2",
+    "@types/react": "^18.3.0",
+    "expo-location": "~18.0.10",
+    "expo-task-manager": "~12.0.3",
+    "react": "18.3.1",
+    "react-native": "0.76.3",
+    "typescript": "^5.9.0"
+  }
+}

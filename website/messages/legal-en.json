@@ -1,0 +1,204 @@
+{
+  "privacy": {
+    "metadata": {
+      "title": "Privacy Policy | Porterchain",
+      "description": "How Porterchain collects, uses, and protects your personal information. PIPEDA-compliant practices for Canadian customers.",
+      "ogTitle": "Porterchain Privacy Policy",
+      "ogDescription": "Your privacy matters. Learn how Porterchain handles personal data across booking, merchant accounts, and delivery operations."
+    },
+    "title": "Privacy Policy",
+    "updated": "Last updated: June 29, 2026",
+    "intro": "Porterchain Inc. (\"Porterchain\", \"we\", \"us\") is a commercial logistics company based in Toronto, Ontario. This Privacy Policy explains how we collect, use, disclose, and protect personal information when you use our website, book deliveries, operate a merchant account, or interact with our support channels.",
+    "sections": [
+      {
+        "title": "Information we collect",
+        "paragraphs": [
+          "We collect information necessary to quote, dispatch, track, and complete deliveries, and to operate merchant and driver partner accounts."
+        ],
+        "list": [
+          "Contact details: name, email, phone number, and company information",
+          "Addresses: pickup and delivery locations for routing and proof of delivery",
+          "Shipment details: weight, dimensions, photos, references, and special instructions",
+          "Payment information: billing details processed through Stripe (card data is handled by Stripe, not stored by Porterchain)",
+          "Account and compliance data: merchant onboarding documents, tax identifiers, and insurance details",
+          "Location data: GPS coordinates for driver tracking and proof of delivery",
+          "Communications: support inquiries, chat messages via Zoho SalesIQ, and email correspondence",
+          "Technical data: cookies and session identifiers from authentication and third-party services"
+        ]
+      },
+      {
+        "title": "How we use your information",
+        "paragraphs": [
+          "We use personal information to operate our logistics services, comply with legal obligations, and improve the customer experience."
+        ],
+        "list": [
+          "Provide quotes, bookings, dispatch, tracking, and proof of delivery",
+          "Process payments, invoices, and merchant billing",
+          "Verify merchant accounts and maintain compliance records",
+          "Respond to support requests and operational emergencies",
+          "Send service-related notifications (booking confirmations, delivery updates, billing notices)",
+          "Improve routing, capacity planning, and platform reliability",
+          "Detect fraud, abuse, and security incidents"
+        ]
+      },
+      {
+        "title": "Third-party service providers",
+        "paragraphs": [
+          "We share information with trusted processors only as needed to deliver our services. These providers are contractually required to protect your data."
+        ],
+        "list": [
+          "Clerk — merchant and customer authentication",
+          "Stripe — payment processing",
+          "Google Maps — address autocomplete and mapping",
+          "Zoho SalesIQ — live chat support",
+          "Zoho Mail — transactional email delivery",
+          "Fleetbase and Porterchain API — dispatch, routing, and shipment operations"
+        ]
+      },
+      {
+        "title": "Retention and security",
+        "paragraphs": [
+          "We retain personal information for as long as needed to fulfill deliveries, meet legal and tax requirements, resolve disputes, and enforce agreements. Shipment and billing records may be retained for several years as required by commercial and regulatory practice.",
+          "We implement administrative, technical, and operational safeguards including access controls, encrypted connections, and documented compliance procedures. No method of transmission over the internet is 100% secure; we continuously work to protect your information."
+        ]
+      },
+      {
+        "title": "Your rights (Canada)",
+        "paragraphs": [
+          "Under Canada's Personal Information Protection and Electronic Documents Act (PIPEDA) and applicable provincial laws, you may request access to, correction of, or deletion of your personal information, subject to legal exceptions.",
+          "To exercise your rights or ask questions about this policy, contact us using the details below. We will respond within a reasonable timeframe."
+        ]
+      },
+      {
+        "title": "Contact us",
+        "paragraphs": [
+          "Privacy inquiries: ravi@porterchain.com",
+          "Operations: ops@porterchain.com",
+          "Phone: +1 (647) 619-7951",
+          "Mailing address: 100 King Street West, Toronto, ON M5X 1A9, Canada"
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "metadata": {
+      "title": "Terms of Service | Porterchain",
+      "description": "Terms governing bookings, merchant accounts, deliveries, and use of Porterchain commercial logistics services in Ontario and across Canada.",
+      "ogTitle": "Porterchain Terms of Service",
+      "ogDescription": "Commercial shipping terms, service expectations, and customer responsibilities for Porterchain deliveries."
+    },
+    "title": "Terms of Service",
+    "updated": "Last updated: June 29, 2026",
+    "intro": "These Terms of Service (\"Terms\") govern your use of Porterchain Inc.'s website, booking tools, merchant portal, and commercial delivery services. By requesting a quote, placing a booking, or operating a merchant account, you agree to these Terms.",
+    "sections": [
+      {
+        "title": "Services",
+        "paragraphs": [
+          "Porterchain provides commercial logistics services including same-day and scheduled delivery, route optimization, live tracking, and proof of delivery across the Greater Toronto Area and Ontario.",
+          "Porterchain is a structured logistics operator — not an ad-hoc driver marketplace. Services are subject to vehicle availability, operational capacity, weather, traffic, and compliance requirements."
+        ]
+      },
+      {
+        "title": "Bookings and quotes",
+        "paragraphs": [
+          "Quotes displayed on the website are estimates based on the information you provide. Final pricing may change if shipment details, access requirements, wait times, or route conditions differ from the original quote.",
+          "You are responsible for providing accurate pickup and delivery addresses, contact information, shipment dimensions, weight, and handling instructions. Incorrect information may result in delays, additional charges, or refusal of service."
+        ]
+      },
+      {
+        "title": "Merchant accounts",
+        "paragraphs": [
+          "Business customers may be required to complete merchant onboarding including company profile, compliance documents, and acceptance of commercial shipping terms before dashboard access is granted.",
+          "Merchant billing terms (including Net 30/45 or card payment) are established during onboarding and reflected on invoices. Overdue accounts may be suspended until payment is received."
+        ]
+      },
+      {
+        "title": "Prohibited goods and conduct",
+        "paragraphs": [
+          "You may not use Porterchain to transport illegal goods, hazardous materials without prior written approval, items that violate carrier insurance terms, or shipments that endanger drivers or the public.",
+          "We reserve the right to refuse, hold, or return any shipment that violates these Terms or applicable law."
+        ]
+      },
+      {
+        "title": "Liability and claims",
+        "paragraphs": [
+          "Porterchain maintains commercial insurance and WSIB registration for its operations. Liability for loss or damage is limited as set out in your quote, merchant agreement, or applicable tariff, except where prohibited by law.",
+          "Claims for loss, damage, or service issues must be reported promptly with shipment references and supporting documentation. Contact ops@porterchain.com for claims assistance."
+        ]
+      },
+      {
+        "title": "Cancellations and refunds",
+        "paragraphs": [
+          "Cancellations before dispatch may be eligible for a full or partial refund depending on timing and operational costs incurred. Cancellations after a driver is dispatched may incur fees.",
+          "Retail payments processed through Stripe on the tracking page are subject to the refund policies communicated at checkout."
+        ]
+      },
+      {
+        "title": "Governing law",
+        "paragraphs": [
+          "These Terms are governed by the laws of the Province of Ontario and the federal laws of Canada applicable therein. Disputes shall be resolved in the courts of Ontario, unless otherwise agreed in a merchant agreement.",
+          "Questions about these Terms: ravi@porterchain.com · +1 (647) 619-7951"
+        ]
+      }
+    ]
+  },
+  "cookies": {
+    "metadata": {
+      "title": "Cookie Policy | Porterchain",
+      "description": "How Porterchain uses cookies and similar technologies on porterchain.com, including third-party services for maps, chat, authentication, and payments.",
+      "ogTitle": "Porterchain Cookie Policy",
+      "ogDescription": "Learn about cookies used by Porterchain and our third-party partners."
+    },
+    "title": "Cookie Policy",
+    "updated": "Last updated: June 29, 2026",
+    "intro": "This Cookie Policy explains how Porterchain Inc. uses cookies and similar technologies on porterchain.com and related web applications. It should be read together with our Privacy Policy.",
+    "sections": [
+      {
+        "title": "What are cookies?",
+        "paragraphs": [
+          "Cookies are small text files stored on your device when you visit a website. They help sites remember preferences, keep you signed in, and understand how services are used."
+        ]
+      },
+      {
+        "title": "Cookies we use",
+        "paragraphs": [
+          "Porterchain and our integrated partners may set the following types of cookies:"
+        ],
+        "list": [
+          "Essential cookies — required for site functionality, security, and session management",
+          "Authentication cookies — set by Clerk when you sign in or verify your account",
+          "Preference cookies — such as language selection (English / French)",
+          "Analytics and chat cookies — set by Zoho SalesIQ when the live chat widget is enabled",
+          "Payment cookies — set by Stripe during checkout on tracking and billing pages",
+          "Maps cookies — set by Google Maps when using address autocomplete or map features"
+        ]
+      },
+      {
+        "title": "Third-party services",
+        "paragraphs": [
+          "The following third-party services may load scripts or set cookies when you use our website:"
+        ],
+        "list": [
+          "Zoho SalesIQ (salesiq.zohopublic.com) — live chat support",
+          "Clerk — authentication for retail booking, merchant portal, admin, and driver portals",
+          "Google Maps (maps.googleapis.com) — address autocomplete and maps",
+          "Stripe (stripe.com) — payment processing"
+        ]
+      },
+      {
+        "title": "Managing cookies",
+        "paragraphs": [
+          "You can control cookies through your browser settings. Blocking essential or authentication cookies may prevent you from booking deliveries, signing in, or completing payments.",
+          "To disable the Zoho SalesIQ chat widget, do not initiate a chat session or use browser extensions that block third-party scripts. You can always contact us by email or phone instead."
+        ]
+      },
+      {
+        "title": "Updates and contact",
+        "paragraphs": [
+          "We may update this Cookie Policy from time to time. The \"Last updated\" date at the top reflects the most recent revision.",
+          "Questions: ravi@porterchain.com · ops@porterchain.com · +1 (647) 619-7951"
+        ]
+      }
+    ]
+  }
+}

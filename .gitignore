@@ -1,0 +1,57 @@
+# Local environment — never commit secrets
+.env
+.env.*
+!.env.example
+!env/*.env.example
+env/.env
+env/clerk.env
+
+# Credentials and key material
+secrets/
+apps/api/.secrets/
+**/firebase-service-account.json
+*firebase-adminsdk*.json
+/GoogleService-Info*.plist
+/google-services*.json
+/*.p8
+apps/mobile-*/credentials/
+
+# Docker local secrets
+infrastructure/docker/.env
+infrastructure/deploy/scripts/clerk-keys.local.env
+
+# Python
+.venv/
+**/.venv/
+*.db
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Legacy secret dump
+details.md.local
+
+# Dependencies
+node_modules/
+
+# Build outputs
+.next
+out
+dist
+build
+coverage
+.turbo
+
+# OS / IDE
+.DS_Store
+*.pem
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Fleetbase OSS — clone via `pnpm docker:fleetbase:install` (do not commit upstream tree)
+apps/fleetbase/

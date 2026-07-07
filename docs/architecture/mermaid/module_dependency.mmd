@@ -1,0 +1,53 @@
+flowchart TB
+  subgraph UI["Frontends"]
+    WEB[website]
+    ADMIN[apps/admin]
+    MERCH[apps/merchant-portal]
+    DRV[apps/driver-portal]
+    CUST[apps/customer]
+  end
+
+  subgraph API["apps/api/porterchain_api"]
+    R[routers]
+    BE[booking_engine]
+    ME[merchant_engine]
+    AE[admin_engine]
+    FE[fleetbase_engine]
+    DE[driver_engine]
+    PE[pricing_engine]
+    BLE[billing_engine]
+    NE[notification_engine]
+  end
+
+  subgraph Libs["services/ + shared/"]
+    FBA[fleetbase-adapter]
+    EB[event-bus]
+    PRICING[pricing-engine]
+    DRVPLAT[driver-platform]
+    PSVC[porterchain_services]
+    SHARED[porterchain_shared]
+  end
+
+  subgraph PKGS["packages/"]
+    MAPS[@porterchain/maps]
+    AUTH[@porterchain/auth]
+    EVENTS[@porterchain/events]
+  end
+
+  WEB & ADMIN & MERCH & CUST --> R
+  DRV --> R
+  R --> BE & ME & AE & DE
+  BE --> PE & BLE & NE & FE
+  ME --> PE & FE & BLE
+  AE --> PE & BLE & NE & FE
+  DE --> FE & DRVPLAT
+  PE --> PRICING
+  BE & AE & ME --> PSVC
+  FE & DE --> FBA
+  BE & ME & AE --> EB
+  EB --> SHARED
+  PSVC --> SHARED
+  FBA --> SHARED
+  WEB & ADMIN & MERCH --> MAPS
+  WEB & ADMIN & MERCH --> AUTH
+  WEB & ADMIN & MERCH --> EVENTS

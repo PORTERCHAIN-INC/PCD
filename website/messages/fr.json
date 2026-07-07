@@ -1,0 +1,664 @@
+{
+  "metadata": {
+    "title": "Porterchain | Logistique commerciale — Livraison RGT",
+    "description": "Réservez des livraisons le jour même dans le RGT. Colis, fret LTL, chargements FTL, meubles, médical, distribution alimentaire et plus. Devis instantanés, suivi en temps réel, preuve de livraison.",
+    "ogTitle": "Porterchain | Partenaire logistique commercial",
+    "ogDescription": "Livrez n'importe quoi, n'importe où dans le RGT. Réservez des livraisons en quelques minutes pour entreprises ou particuliers."
+  },
+  "nav": {
+    "solutions": "Solutions",
+    "industries": "Industries",
+    "pricing": "Tarification",
+    "business": "Entreprises",
+    "resources": "Ressources",
+    "about": "À propos",
+    "contact": "Contact",
+    "login": "Connexion",
+    "bookNow": "Réserver",
+    "toggleMenu": "Basculer le menu",
+    "solutionItems": {
+      "sameDay": "Livraison le jour même",
+      "ltl": "Fret LTL",
+      "ftl": "Chargements FTL",
+      "recurring": "Routes récurrentes"
+    }
+  },
+  "login": {
+    "title": "Connexion",
+    "subtitle": "Utilisez votre compte Porterchain. Nous vous dirigerons vers le bon portail selon votre rôle.",
+    "roleNote": "Clients, marchands, chauffeurs et personnel — une seule connexion pour tous.",
+    "redirecting": "Connexion en cours, ouverture de votre portail…",
+    "notProvisioned": "Ce courriel n'est pas encore configuré sur Porterchain. Si vous avez reçu une invitation, utilisez le lien dans le courriel ou contactez-nous.",
+    "identityConflict": "Ce compte est lié à plusieurs types de portail. Utilisez des courriels distincts pour le personnel et les clients, ou contactez le soutien.",
+    "error": "Impossible de vous connecter. Vérifiez votre connexion et réessayez.",
+    "missingToken": "Clerk n'a pas renvoyé de jeton de session. Déconnectez-vous et réessayez.",
+    "apiUnreachable": "L'API Porterchain est inaccessible. Assurez-vous que l'API tourne sur le port 8001.",
+    "signOut": "Se déconnecter et réessayer",
+    "devModeNote": "Clerk n'est pas configuré dans cet environnement.",
+    "backHome": "Retour à l'accueil",
+    "contactSupport": "Contacter le soutien"
+  },
+  "hero": {
+    "badge": "Partenaire logistique commercial",
+    "titleLine1": "Livrez tout.",
+    "titleLine2": "Partout dans le RGT.",
+    "subtitle": "Réservez des livraisons personnelles en quelques minutes dans le RGT.",
+    "tags": {
+      "looseParcels": "Colis",
+      "ltlFreight": "Fret LTL",
+      "ftlLoads": "Chargements FTL",
+      "furniture": "Meubles",
+      "construction": "Matériaux de construction",
+      "medical": "Livraisons médicales",
+      "food": "Distribution alimentaire",
+      "wholesale": "Livraisons en gros"
+    },
+    "bookNow": "Réserver",
+    "businessAccount": "Compte entreprise",
+    "watchDemo": "Voir la démo"
+  },
+  "booking": {
+    "title": "Réservez votre livraison",
+    "subtitle": "Remplissez les détails ci-dessous — obtenez un devis instantané en quelques secondes.",
+    "tabs": {
+      "oneTime": "Ponctuel",
+      "business": "Entreprise",
+      "recurring": "Récurrent"
+    },
+    "pickupAddress": "Adresse de ramassage",
+    "dropoffAddress": "Adresse de livraison",
+    "pickupPlaceholder": "Entrez le lieu de ramassage",
+    "dropoffPlaceholder": "Entrez le lieu de livraison",
+    "deliveryType": "Type de livraison",
+    "vehicleType": "Type de véhicule",
+    "schedule": "Horaire",
+    "packageDetails": "Détails du colis",
+    "weight": "Poids",
+    "dimensions": "L × l × H (pouces)",
+    "instantQuote": "Obtenir un devis instantané",
+    "deliverNow": "Livrer maintenant",
+    "scheduleLater": "Planifier",
+    "swapAddresses": "Inverser les adresses",
+    "quoteNote": "Aucun paiement requis pour le devis",
+    "schedulePicker": {
+      "pickDate": "Choisir la date de livraison",
+      "pickTime": "Choisir l'heure de livraison",
+      "timezoneNote": "Heures affichées en heure de l'Est (Toronto)"
+    },
+    "deliveryOptions": {
+      "looseParcel": "Colis",
+      "documents": "Documents",
+      "medical": "Médical",
+      "furniture": "Meubles",
+      "foodBeverage": "Aliments et boissons",
+      "construction": "Construction",
+      "ltlPallet": "Palette LTL",
+      "ftlLoad": "Chargement FTL"
+    },
+    "vehicleOptions": {
+      "sedan": "Berline",
+      "suv": "VUS",
+      "pickup": "Camionnette",
+      "cargoVan": "Fourgonnette",
+      "highRoof": "Fourgon haut",
+      "box16": "Camion 16 pi",
+      "box20": "Camion 20 pi"
+    },
+    "quoteResult": "Total estimé : {amount}",
+    "quoteDistance": "Distance du trajet : {distance} km",
+    "quoteVehicle": "Véhicule recommandé : {vehicle}",
+    "quoteExpires": "Devis valide jusqu'à {time}",
+    "continueBooking": "Continuer la réservation",
+    "quoteError": "Impossible de calculer le devis. Vérifiez les adresses.",
+    "quoteLoading": "Calcul en cours…",
+    "checkout": {
+      "title": "Finaliser votre réservation",
+      "subtitle": "Connectez-vous pour confirmer votre livraison et passer au paiement.",
+      "continuePayment": "Continuer vers le paiement",
+      "processing": "Traitement…",
+      "missingEmail": "Impossible de lire le courriel de votre compte. Mettez à jour votre profil et réessayez.",
+      "error": "Une erreur s'est produite. Réessayez.",
+      "noQuote": "Aucun devis trouvé. Utilisez le formulaire sur l'accueil.",
+      "clerkNote": "La connexion est gérée par Clerk avant le paiement.",
+      "signInPrompt": "Connectez-vous ou créez un compte pour passer au paiement.",
+      "staffAccountBlocked": "Vous êtes connecté avec un compte {portal}. Les réservations personnelles nécessitent un compte client distinct.",
+      "staffAccountHint": "Déconnectez-vous, puis connectez-vous avec un courriel client (pas votre compte personnel/staff) pour finaliser cette livraison.",
+      "staffSignOut": "Se déconnecter et utiliser un compte client",
+      "cancelBooking": "Annuler la réservation",
+      "cancelConfirm": "Annuler cette réservation et retourner à l'accueil ? Votre devis sera abandonné.",
+      "cancelError": "Impossible d'annuler cette réservation. Veuillez réessayer."
+    },
+    "success": {
+      "title": "Réservation confirmée",
+      "subtitle": "Votre livraison est planifiée. Conservez vos numéros de référence.",
+      "track": "Suivre l'envoi",
+      "dashboard": "Tableau de bord client",
+      "home": "Retour à l'accueil",
+      "trackingLabel": "Suivi",
+      "orderLabel": "Commande",
+      "bookingLabel": "Réservation",
+      "invoiceLabel": "Facture"
+    },
+    "track": {
+      "title": "Suivre votre envoi",
+      "status": "Statut",
+      "pickup": "Ramassage",
+      "dropoff": "Livraison",
+      "notFound": "Envoi introuvable."
+    }
+  },
+  "portal": {
+    "customer": {
+      "title": "Vos livraisons",
+      "subtitle": "Suivez vos envois, consultez vos factures et réservez.",
+      "signInTitle": "Portail client",
+      "signInSubtitle": "Connectez-vous pour voir l'historique, télécharger vos reçus et contacter le soutien.",
+      "signInBenefitHistory": "Consultez toutes vos livraisons passées et en cours",
+      "signInBenefitInvoices": "Téléchargez vos factures et reçus de paiement",
+      "signInBenefitSupport": "Ouvrez des demandes de soutien liées à vos envois",
+      "signInBusinessNote": "Expédition pour votre entreprise?",
+      "signInBusinessLink": "Utilisez le portail marchand",
+      "signedInAs": "Connecté en tant que {email}",
+      "devModeNote": "Clerk n'est pas configuré. Le mode dev utilise l'API en contournement.",
+      "continueDev": "Continuer vers le tableau de bord",
+      "emptyTitle": "Aucune livraison pour le moment",
+      "emptySubtitle": "Réservez votre première livraison et elle apparaîtra ici avec suivi, factures et soutien.",
+      "emptyCta": "Réserver une livraison",
+      "guestTrackTitle": "Suivre sans connexion",
+      "guestTrackSubtitle": "Entrez votre numéro de suivi pour une consultation unique.",
+      "guestTrackPlaceholder": "PC-XXXXXXXX",
+      "guestTrackSubmit": "Suivre l'envoi",
+      "trackPortalPrompt": "Vous voulez l'historique complet, les factures et le soutien?",
+      "trackPortalCta": "Connexion au portail client",
+      "activeShipment": "Envoi en cours",
+      "status": "Statut",
+      "track": "Suivi en direct",
+      "history": "Historique",
+      "invoices": "Factures",
+      "noOrders": "Aucune commande.",
+      "noInvoices": "Aucune facture.",
+      "rebook": "Réserver à nouveau",
+      "support": "Contacter le soutien",
+      "signInRequired": "Connectez-vous pour voir votre tableau de bord.",
+      "loadError": "Impossible de charger le tableau de bord.",
+      "payments": "Paiements",
+      "noPayments": "Aucun paiement.",
+      "receipt": "Voir le reçu",
+      "supportSubject": "Sujet",
+      "supportMessage": "Comment pouvons-nous vous aider?",
+      "submitSupport": "Envoyer",
+      "supportSent": "Demande envoyée.",
+      "supportError": "Échec de l'envoi.",
+      "rebookError": "Impossible de relancer la réservation.",
+      "newBooking": "Nouvelle réservation"
+    }
+  },
+  "deliveryTypes": {
+    "label": "Types de livraison",
+    "title": "Qu'expédiez-vous?",
+    "subtitle": "D'un simple document à un chargement complet — nous avons la solution adaptée à chaque livraison.",
+    "items": {
+      "loose-parcel": "Colis",
+      "documents": "Documents",
+      "medical": "Médical",
+      "coffee": "Café",
+      "food-beverage": "Aliments et boissons",
+      "wholesale": "Vente en gros",
+      "construction": "Matériaux de construction",
+      "electrical": "Électrique",
+      "plumbing": "Plomberie",
+      "furniture": "Meubles",
+      "pallet-ltl": "Palette (LTL)",
+      "full-truck-ftl": "Camion complet (FTL)",
+      "fragile": "Fragile",
+      "temperature": "Température contrôlée"
+    }
+  },
+  "vehicles": {
+    "label": "Flotte",
+    "title": "Choisissez votre véhicule",
+    "subtitle": "Des berlines aux camions de 20 pi — adaptés à votre cargaison.",
+    "capacity": "Capacité",
+    "weight": "Poids",
+    "bestFor": "Idéal pour",
+    "selectVehicle": "Sélectionner",
+    "vehicleSelected": "Sélectionné",
+    "scrollLeft": "Défiler à gauche",
+    "scrollRight": "Défiler à droite",
+    "swipeHint": "Glissez pour parcourir les véhicules →",
+    "licenceNote": "Véhicules permis G uniquement.",
+    "licenceDetail": "Nous n'exploitons pas actuellement de camions permis DZ ou AZ. Tous les véhicules sont conduits par des chauffeurs détenteurs d'un permis G valide de l'Ontario.",
+    "items": {
+      "sedan": {
+        "name": "Berline",
+        "capacity": "2–3 boîtes",
+        "weight": "Jusqu'à 50 lb",
+        "bestFor": "Documents, petits colis, articles urgents"
+      },
+      "suv": {
+        "name": "VUS",
+        "capacity": "4–6 boîtes",
+        "weight": "Jusqu'à 150 lb",
+        "bestFor": "Colis moyens, ramassages détail"
+      },
+      "pickup": {
+        "name": "Camionnette",
+        "capacity": "8–10 boîtes",
+        "weight": "Jusqu'à 500 lb",
+        "bestFor": "Meubles, fournitures de construction"
+      },
+      "cargo-van": {
+        "name": "Fourgonnette",
+        "capacity": "12–15 boîtes",
+        "weight": "Jusqu'à 1 000 lb",
+        "bestFor": "Vente en gros, distribution restauration"
+      },
+      "high-roof": {
+        "name": "Fourgon haut",
+        "capacity": "20+ boîtes",
+        "weight": "Jusqu'à 2 000 lb",
+        "bestFor": "LTL palettisé, détail en vrac"
+      },
+      "box-16": {
+        "name": "Camion 16 pi",
+        "capacity": "10 palettes",
+        "weight": "Jusqu'à 5 000 lb",
+        "bestFor": "Fret LTL, courses d'entrepôt"
+      },
+      "box-20": {
+        "name": "Camion 20 pi",
+        "capacity": "12 palettes",
+        "weight": "Jusqu'à 8 000 lb",
+        "bestFor": "Chargements FTL, grande construction"
+      }
+    }
+  },
+  "whoCanUse": {
+    "label": "Qui nous utilisons",
+    "title": "Conçu pour les livraisons personnelles",
+    "subtitle": "Envoyez colis, meubles, documents et plus — sans tracas.",
+    "individuals": {
+      "title": "Pour les particuliers",
+      "subtitle": "Livraisons personnelles simplifiées",
+      "items": [
+        "Livraison urgente d'ordinateur",
+        "Déménagement de meubles",
+        "Ramassage marketplace",
+        "Colis aéroport",
+        "Livraison à domicile",
+        "Livraison de cadeaux",
+        "Documents oubliés",
+        "Colis d'urgence"
+      ]
+    },
+    "businessCta": {
+      "title": "Vous expédiez pour votre entreprise?",
+      "subtitle": "Logistique d'entreprise, simplifiée",
+      "description": "Routes récurrentes, distribution en gros, tableau de bord marchand, intégration API et soutien dédié — tout sur notre page entreprise.",
+      "cta": "Découvrir les solutions entreprise"
+    }
+  },
+  "howItWorks": {
+    "label": "Comment ça marche",
+    "title": "De la réservation à la livraison en 6 étapes",
+    "subtitle": "Une expérience fluide conçue pour la rapidité, la transparence et la fiabilité.",
+    "steps": {
+      "book": {
+        "title": "Réserver",
+        "description": "Entrez les adresses et les détails du colis. Obtenez un devis instantané."
+      },
+      "assigned": {
+        "title": "Chauffeur assigné",
+        "description": "Un chauffeur vérifié est assigné et envoyé à votre emplacement."
+      },
+      "pickup": {
+        "title": "Ramassage",
+        "description": "Votre chauffeur arrive à l'heure et récupère votre envoi."
+      },
+      "tracking": {
+        "title": "Suivi en direct",
+        "description": "Suivez votre livraison en temps réel avec mises à jour de l'ETA."
+      },
+      "proof": {
+        "title": "Preuve de livraison",
+        "description": "Photo, signature et code-barres confirmés à la livraison."
+      },
+      "invoice": {
+        "title": "Facture",
+        "description": "Facture numérique envoyée instantanément. Payez en ligne en toute sécurité."
+      }
+    }
+  },
+  "liveMap": {
+    "label": "Suivi en direct",
+    "title": "Suivez votre livraison en temps réel",
+    "subtitle": "Chaque envoi est suivi par GPS avec ETA en direct, détails du chauffeur et mises à jour de statut.",
+    "liveTracking": "Suivi en direct",
+    "inTransit": "En transit",
+    "eta": "ETA",
+    "driver": "Chauffeur",
+    "vehicle": "Véhicule",
+    "etaValue": "12 min",
+    "driverName": "Alex M.",
+    "vehicleType": "Fourgonnette",
+    "orderLabel": "Commande #PC-48291",
+    "orderRoute": "Fournitures médicales → Centre-ville de Toronto"
+  },
+  "whyPorterchain": {
+    "label": "Pourquoi Porterchain",
+    "title": "La logistique réinventée pour le Canada",
+    "subtitle": "Tout ce dont vous avez besoin pour déplacer vos marchandises plus vite, plus intelligemment et en toute transparence.",
+    "features": {
+      "simplicity": {
+        "title": "Simplicité intuitive",
+        "description": "Réservez en moins de 60 secondes"
+      },
+      "tracking": {
+        "title": "Suivi en temps réel",
+        "description": "GPS en direct sur chaque livraison"
+      },
+      "proof": { "title": "Preuve de livraison", "description": "Photo, signature et code-barres" },
+      "dashboard": { "title": "Tableau de bord", "description": "Portail marchand complet" },
+      "recurring": {
+        "title": "Livraisons récurrentes",
+        "description": "Planification automatisée des routes"
+      },
+      "api": { "title": "Intégration API", "description": "API REST pour vos systèmes" },
+      "csv": { "title": "Téléversement CSV", "description": "Import de commandes en masse" },
+      "fleet": {
+        "title": "Optimisation de flotte",
+        "description": "Planification intelligente des routes"
+      },
+      "pricing": { "title": "Tarification transparente", "description": "Aucuns frais cachés" },
+      "sameDay": {
+        "title": "Livraison le jour même",
+        "description": "Service le jour même dans le RGT"
+      },
+      "notifications": {
+        "title": "Notifications instantanées",
+        "description": "Alertes SMS et push"
+      },
+      "invoices": { "title": "Factures numériques", "description": "Facturation automatisée" }
+    }
+  },
+  "industries": {
+    "label": "Industries",
+    "title": "La confiance de tous les secteurs",
+    "subtitle": "Logistique sur mesure pour les industries qui font avancer le Canada.",
+    "items": {
+      "coffee": { "name": "Café", "description": "Torréfacteur au café, fraîcheur le jour même" },
+      "medical": { "name": "Médical", "description": "Services de messagerie conformes" },
+      "pharmacy": {
+        "name": "Pharmacie",
+        "description": "Livraison d'ordonnances et produits en vente libre"
+      },
+      "restaurant": {
+        "name": "Restauration",
+        "description": "Fournisseur à la cuisine, à l'heure"
+      },
+      "food-distribution": {
+        "name": "Distribution alimentaire",
+        "description": "Chaîne du froid et distribution en vrac"
+      },
+      "wholesale": { "name": "Vente en gros", "description": "Exécution de commandes B2B" },
+      "construction": { "name": "Construction", "description": "Matériaux sur le chantier" },
+      "electrical": { "name": "Électrique", "description": "Pièces et équipements" },
+      "hvac": { "name": "CVC", "description": "Unités, conduits et composants" },
+      "auto-parts": {
+        "name": "Pièces auto",
+        "description": "Approvisionnement concessionnaires et ateliers"
+      },
+      "retail": {
+        "name": "Commerce de détail",
+        "description": "Réapprovisionnement et transferts"
+      },
+      "ecommerce": { "name": "Commerce en ligne", "description": "Livraison du dernier kilomètre" },
+      "manufacturing": {
+        "name": "Fabrication",
+        "description": "Matières premières et produits finis"
+      },
+      "laboratories": {
+        "name": "Laboratoires",
+        "description": "Échantillons et fournitures de labo"
+      },
+      "print-shops": { "name": "Imprimeries", "description": "Tirages et matériel marketing" }
+    }
+  },
+  "businessPlatform": {
+    "label": "Plateforme entreprise",
+    "title": "Votre centre de commande logistique",
+    "subtitle": "Gérez les commandes, suivez les chauffeurs, analysez les performances et développez vos opérations — le tout depuis un seul tableau de bord.",
+    "dashboardOverview": "Aperçu du tableau de bord",
+    "today": "Aujourd'hui",
+    "active": "Actives",
+    "delivered": "Livrées",
+    "drivers": "Chauffeurs",
+    "weeklyDeliveries": "Livraisons hebdomadaires",
+    "onTime": "98 % à l'heure",
+    "orderStatuses": {
+      "medical": "Médical → Centre-ville",
+      "coffee": "Café → Mississauga",
+      "parts": "Pièces → Brampton",
+      "delivered": "Livrée"
+    },
+    "features": {
+      "merchantPortal": "Portail marchand",
+      "orderManagement": "Gestion des commandes",
+      "invoices": "Factures",
+      "analytics": "Analytique",
+      "routeOptimization": "Optimisation des routes",
+      "driverTracking": "Suivi des chauffeurs",
+      "csvUpload": "Téléversement CSV",
+      "api": "API",
+      "paymentTerms": "Conditions de paiement"
+    },
+    "cta": "Créer un compte entreprise"
+  },
+  "mobileApp": {
+    "label": "Applications mobiles",
+    "title": "La logistique dans votre poche",
+    "subtitle": "Réservez, suivez et gérez vos livraisons — où que vous soyez.",
+    "apps": {
+      "customer": {
+        "name": "App client",
+        "description": "Réservez des livraisons, suivez en temps réel, gérez vos adresses"
+      },
+      "driver": {
+        "name": "App chauffeur",
+        "description": "Acceptez des courses, naviguez, capturez la preuve de livraison"
+      },
+      "merchant": {
+        "name": "App marchand",
+        "description": "Gérez les commandes, consultez l'analytique, expédiez en déplacement"
+      }
+    },
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "comingSoon": "Bientôt disponible",
+    "driverPortal": "Portail chauffeur"
+  },
+  "features": {
+    "label": "Fonctionnalités",
+    "title": "Tout ce dont vous avez besoin, rien de superflu",
+    "subtitle": "Une boîte à outils logistique complète conçue pour la rapidité, la fiabilité et la simplicité.",
+    "items": [
+      "Devis instantanés",
+      "Planification",
+      "Adresses enregistrées",
+      "Favoris",
+      "Preuve de livraison",
+      "Téléversement photo",
+      "Signature",
+      "Scan code-barres",
+      "Notifications push",
+      "Paiements Stripe"
+    ]
+  },
+  "trust": {
+    "customers": "Clients",
+    "deliveries": "Livraisons",
+    "onTime": "À l'heure",
+    "support": "Soutien"
+  },
+  "testimonials": {
+    "label": "Témoignages",
+    "title": "La confiance des entreprises du RGT",
+    "subtitle": "Des histoires réelles d'entreprises qui comptent sur Porterchain chaque jour.",
+    "items": {
+      "coffee": {
+        "quote": "Porterchain a transformé nos livraisons matinales de torréfaction. Livraison le jour même vers plus de 40 cafés dans le RGT — nos grains arrivent plus frais que jamais.",
+        "author": "Sarah Chen",
+        "role": "Directrice des opérations",
+        "company": "Lakeview Coffee Roasters",
+        "industry": "Torréfacteur"
+      },
+      "medical": {
+        "quote": "La documentation de chaîne de custody et le suivi de température nous donnent une confiance totale. Porterchain est notre messagerie médicale de référence.",
+        "author": "Dr James Okonkwo",
+        "role": "Gestionnaire de la chaîne d'approvisionnement",
+        "company": "MedCore Supplies",
+        "industry": "Fournisseur médical"
+      },
+      "restaurant": {
+        "quote": "Les routes récurrentes vers nos fournisseurs ont réduit nos coûts logistiques de 30 %. Le portail marchand rend les réapprovisionnements sans effort.",
+        "author": "Marco Di Luca",
+        "role": "Propriétaire",
+        "company": "Trattoria Bella",
+        "industry": "Restaurant"
+      },
+      "electrical": {
+        "quote": "Quand un entrepreneur a besoin de pièces sur le chantier avant midi, Porterchain livre. Leurs camions gèrent parfaitement notre inventaire palettisé.",
+        "author": "Priya Sharma",
+        "role": "Gestionnaire de distribution",
+        "company": "VoltLine Electrical",
+        "industry": "Distributeur électrique"
+      }
+    }
+  },
+  "faq": {
+    "label": "FAQ",
+    "title": "Questions fréquemment posées",
+    "subtitle": "Tout ce que vous devez savoir sur la logistique Porterchain.",
+    "items": [
+      {
+        "question": "Quelles régions Porterchain dessert-il?",
+        "answer": "Porterchain opère dans la région du Grand Toronto (RGT), incluant Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville et les municipalités environnantes."
+      },
+      {
+        "question": "En combien de temps puis-je obtenir une livraison?",
+        "answer": "La plupart des livraisons le jour même peuvent être réservées en quelques minutes. Un chauffeur est généralement assigné dans les 15 à 30 minutes."
+      },
+      {
+        "question": "Quels types d'articles puis-je expédier?",
+        "answer": "Nous gérons les colis, documents, meubles, achats marketplace, cadeaux et plus. Les matières dangereuses et articles illégaux ne sont pas permis."
+      },
+      {
+        "question": "Quels types de véhicules sont disponibles?",
+        "answer": "Berline, VUS, camionnette, fourgonnette, fourgon haut, camion 16 pi et camion 20 pi. Tous requièrent un permis G."
+      },
+      {
+        "question": "Comment fonctionne la tarification?",
+        "answer": "La tarification est transparente et basée sur la distance, le type de véhicule, le poids et l'urgence. Utilisez notre outil de devis instantané sur la page d'accueil."
+      },
+      {
+        "question": "Le suivi en temps réel est-il disponible?",
+        "answer": "Oui. Chaque livraison inclut le suivi GPS en direct, les mises à jour d'ETA et les notifications push."
+      },
+      {
+        "question": "Quelle preuve de livraison fournissez-vous?",
+        "answer": "Nous capturons une preuve photo, des signatures numériques et des scans de codes-barres à la livraison."
+      },
+      {
+        "question": "Puis-je planifier une livraison pour plus tard?",
+        "answer": "Oui. Choisissez une date et une plage horaire lors de la réservation."
+      },
+      {
+        "question": "Quels modes de paiement acceptez-vous?",
+        "answer": "Nous acceptons toutes les cartes de crédit principales via Stripe pour les livraisons personnelles."
+      },
+      {
+        "question": "Y a-t-il une application mobile?",
+        "answer": "Oui. L'application client Porterchain est disponible sur iOS et Android pour réserver, suivre et gérer vos livraisons."
+      },
+      {
+        "question": "Offrez-vous la livraison de meubles?",
+        "answer": "Oui. Nos camionnettes et fourgonnettes sont idéales pour les déménagements de meubles et livraisons à domicile."
+      },
+      {
+        "question": "Comment devenir chauffeur Porterchain?",
+        "answer": "Visitez notre page Chauffeur pour postuler. Permis G valide, véhicule admissible, assurance et dossier de conduite propre requis."
+      },
+      {
+        "question": "Le soutien client est-il disponible 24/7?",
+        "answer": "Oui. Notre équipe est disponible en tout temps par téléphone, courriel et clavardage intégré."
+      },
+      {
+        "question": "En quoi Porterchain diffère-t-il des autres messageries?",
+        "answer": "Porterchain combine simplicité intuitive et logistique fiable — devis instantanés, suivi en temps réel et preuve de livraison sur une seule plateforme."
+      },
+      {
+        "question": "J'ai besoin de logistique d'entreprise ou récurrente. Où aller?",
+        "answer": "Visitez notre page Entreprise pour demander une consultation. Nous offrons routes récurrentes, distribution en gros, tableaux de bord marchands, intégration API et soutien dédié."
+      }
+    ]
+  },
+  "footer": {
+    "newsletterTitle": "Restez informé",
+    "newsletterSubtitle": "Recevez des analyses logistiques et des mises à jour produit dans votre boîte de réception.",
+    "emailPlaceholder": "Entrez votre courriel",
+    "subscribe": "S'abonner",
+    "tagline": "Partenaire logistique commercial pour les entreprises locales du RGT.",
+    "socialLink": "Lien social",
+    "copyright": "Porterchain Inc. Tous droits réservés.",
+    "iconAttribution": "Icônes de véhicules par Rooman12 sur Flaticon",
+    "driverPortal": "Portail chauffeur",
+    "merchantPortal": "Portail marchand",
+    "status": "État du service",
+    "sections": {
+      "solutions": {
+        "title": "Solutions",
+        "links": [
+          "Livraison le jour même",
+          "Fret LTL",
+          "Chargements FTL",
+          "Routes récurrentes",
+          "Devis instantanés"
+        ]
+      },
+      "industries": {
+        "title": "Industries",
+        "links": [
+          "Médical",
+          "Restauration",
+          "Construction",
+          "Vente en gros",
+          "Commerce en ligne",
+          "Café"
+        ]
+      },
+      "company": {
+        "title": "Entreprise",
+        "links": ["À propos", "Carrières", "Presse", "Blogue", "Contact"]
+      },
+      "resources": {
+        "title": "Ressources",
+        "links": [
+          "Centre d'aide",
+          "Documentation API",
+          "Guide chauffeur",
+          "Guide marchand",
+          "État du service"
+        ]
+      },
+      "legal": {
+        "title": "Mentions légales",
+        "links": [
+          "Politique de confidentialité",
+          "Conditions d'utilisation",
+          "Politique de témoins",
+          "Assurance"
+        ]
+      }
+    }
+  }
+}

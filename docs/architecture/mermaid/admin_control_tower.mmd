@@ -1,0 +1,48 @@
+flowchart TB
+  ADMIN[Admin Portal :3002] --> API["/v1/admin/*"]
+
+  subgraph ControlTower["Control Tower — operations.py"]
+    CT[ControlTowerService]
+    LM[LiveMapService]
+    STATS["/operations/stats"]
+    BOARD["/operations/board"]
+    QUEUE["/operations/queue"]
+    EXC["/operations/exceptions"]
+    SLA["/operations/sla"]
+    AI["/operations/ai"]
+    WS["WS /live-map/ws"]
+  end
+
+  subgraph Modules["Admin Engine Modules"]
+    DASH[AdminDashboardService]
+    ORD[AdminOrdersService]
+    DISP[AdminOperationsService]
+    FIN[AdminFinanceService]
+    PRC[AdminPricingService]
+    CLM[AdminClaimsService]
+    SUP[AdminSupportService]
+    CRM[CrmSalesService]
+    MER[AdminMerchantService / Merchant360]
+    DRV[AdminDriverService / Driver360]
+    SET[AdminSettingsService]
+    REP[AdminReportsService]
+    BD[AdminBookingDraftService]
+  end
+
+  subgraph Execution["Downstream"]
+    FBE[fleetbase_engine]
+    EB[Event Bus]
+    BLE[billing_engine]
+    NE[notification_engine]
+    PE[pricing_engine]
+  end
+
+  API --> DASH & ORD & DISP & CT & LM & FIN & PRC & CLM & SUP & CRM & MER & DRV & SET & REP & BD
+  CT --> ORD & FBE
+  LM --> CT & FBE
+  DISP --> ORD
+  ORD --> EB
+  FIN --> BLE
+  CLM & SUP --> NE
+  PRC --> PE
+  SET -->|"health checks"| FBE

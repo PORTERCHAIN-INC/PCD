@@ -1,0 +1,29 @@
+@startuml api_dependency
+!theme plain
+actor website
+actor merchant
+actor "merchant-api" as mapi
+actor admin
+actor driver
+actor customer
+node "Porterchain API :8001" as API
+cloud Stripe
+cloud Fleetbase
+cloud Clerk
+cloud "Google Maps" as GMAPS
+
+website --> API : /v1/*
+merchant --> API : /v1/merchant/*
+mapi --> API : /v1/merchant-api/*
+admin --> API : /v1/admin/*
+driver --> API : /driver-api/v1
+customer --> API : /v1/customers/*
+Stripe --> API : /webhooks/stripe
+Fleetbase --> API : /webhooks/fleetbase
+website --> Clerk
+merchant --> Clerk
+admin --> Clerk
+website --> GMAPS
+API --> Fleetbase : adapter only
+API --> Stripe : checkout
+@enduml

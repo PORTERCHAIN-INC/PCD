@@ -1,0 +1,259 @@
+# Deployment (CI/CD)
+
+**Type:** CANONICAL
+**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
+**Last verified:** 2026-07-05
+
+Porterchain production deployment uses GitHub Actions → GHCR → DigitalOcean droplet with Caddy TLS termination.
+
+> **See also:** [DOCKER_SETUP.md](../../DOCKER_SETUP.md) · [PORT_CONFIGURATION.md](../../PORT_CONFIGURATION.md)
+
+---
+
+## Workflows
+
+| Workflow   | File                           | Trigger                         | Purpose                              |
+| ---------- | ------------------------------ | ------------------------------- | ------------------------------------ |
+| **CI**     | `.github/workflows/ci.yml`     | push / PR to `main`             | Lint, format check, build            |
+| **Deploy** | `.github/workflows/deploy.yml` | CI success on `main`, or manual | Build images → GHCR → droplet deploy |
+
+Deploy runs only after CI passes on `main`, so broken code does not ship automatically.
+
+---
+
+## Pipeline Overview
+
+```
+push to main → CI (lint / format / build)
+                 │  on success
+                 ▼
+            Deploy workflow
+              1. docker build  (website, api, admin, merchant, driver, customer)
+              2. push images   → ghcr.io/<owner>/pcd-*:<sha> + :latest
+              3. scp manifests → docker-compose.prod.yml + Caddyfile → /opt/porterchain
+              4. ssh droplet   → docker compose pull && up -d
+              5. migrate       → repair_and_migrate.py inside pcd-api
+              6. healthcheck   → API /health + Caddy :80 + smoke quotes
+```
+
+### Images Built
+
+| Image          | Dockerfile                        | Service              |
+| -------------- | --------------------------------- | -------------------- |
+| `pcd-website`  | `website/Dockerfile`              | Marketing + booking  |
+| `pcd-api`      | `apps/api/Dockerfile`             | FastAPI orchestrator |
+| `pcd-admin`    | `apps/admin/Dockerfile`           | Admin portal         |
+| `pcd-merchant` | `apps/merchant-portal/Dockerfile` | Merchant portal      |
+| `pcd-driver`   | `apps/driver-portal/Dockerfile`   | Driver portal        |
+| `pcd-customer` | `apps/customer/Dockerfile`        | Customer portal      |
+
+**Not in prod compose (July 2026):** ~~`apps/worker`~~ — **`pcd-worker`** added to `docker-compose.prod.yml` (DD-04); uses the API image with `python run.py`.
+
+---
+
+## Runtime Architecture (Droplet)
+
+```
+Internet ──443──▶ Caddy (pcd-caddy)
+                    ├─ porterchain.com         → website :3000
+                    ├─ api.porterchain.com     → api :8001
+                    ├─ admin.porterchain.com   → admin :3002
+                    ├─ merchant.porterchain.com → merchant :3001
+                    ├─ driver.porterchain.com → driver :3003
+                    └─ customer.porterchain.com → customer :3004
+
+Internal: postgres:16, redis:7.2 (Docker network `edge`)
+```
+
+- **API replicas:** deploy defaults to **2** (`API_REPLICAS` repo variable or droplet `.env`). Caddy load-balances `api:8001` across replicas. See [ADR-012-scaling.md](../../docs/architecture/ADR-012-scaling.md).
+- **Caddy** (`infrastructure/deploy/Caddyfile`) — TLS (Let's Encrypt), HTTP→HTTPS, `www`→apex, security headers.
+- Portal/API containers are **not** published to the host — only Caddy exposes 80/443.
+- Stack: `infrastructure/deploy/docker-compose.prod.yml` in `/opt/porterchain`.
+- **PostgreSQL 16** and **Redis** run in-compose with persistent volumes.
+
+---
+
+## One-Time Droplet Setup
+
+On a fresh Ubuntu droplet:
+
+```bash
+# 1. Install Docker + open firewall (22/80/443)
+ssh root@<DROPLET_IP> 'bash -s' < infrastructure/deploy/bootstrap-droplet.sh
+
+# 2. Security hardening: fail2ban, automatic updates, key-only SSH
+ssh root@<DROPLET_IP> 'bash -s' < infrastructure/deploy/harden-droplet.sh
+```
+
+Ensure the deploy user can log in with the SSH key referenced by `DEPLOY_SSH_KEY`.
+
+**DNS (required before first deploy):** `porterchain.com`, `www.porterchain.com`, `api.porterchain.com`, `admin.porterchain.com`, `merchant.porterchain.com`, `driver.porterchain.com`, `customer.porterchain.com` → droplet IP.
+
+---
+
+## Required GitHub Secrets
+
+**Canonical map:** [docs/SECRETS_MAP.md](../../docs/SECRETS_MAP.md) — four stores, one owner per secret.
+
+Verify: `pnpm secrets:verify`
+
+### Tier 1 — Deploy (always required)
+
+| Secret | Description |
+| ------ | ----------- |
+| `DEPLOY_HOST` | Droplet IP |
+| `DEPLOY_USER` | SSH user (`root` or `deploy`) |
+| `DEPLOY_SSH_KEY` | Private SSH key (PEM) authorized on droplet |
+| `DEPLOY_PORT` | _(optional)_ SSH port, default `22` |
+| `DOPPLER_TOKEN` | Doppler service token for `pcd`/`prd` (runtime SSOT) |
+
+### Tier 2 — Docker build (public keys baked into images)
+
+| Secret | Description |
+| ------ | ----------- |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser Maps key |
+| `CLERK_CUSTOMER_PUBLISHABLE_KEY` | Customer `pk_live_…` (website + customer portal) |
+| `CLERK_MERCHANT_PUBLISHABLE_KEY` | Merchant `pk_live_…` |
+| `CLERK_ADMIN_PUBLISHABLE_KEY` | Admin `pk_live_…` |
+| `CLERK_DRIVER_PUBLISHABLE_KEY` | Driver `pk_live_…` |
+| `CLERK_PUBLISHABLE_KEY` | Legacy fallback (same as customer pk) |
+| `NEXT_PUBLIC_SENTRY_DSN` | _(optional)_ Portal error tracking |
+
+### Tier 3 — Doppler only (do not duplicate in GitHub when `DOPPLER_TOKEN` is set)
+
+Runtime secrets: `POSTGRES_PASSWORD`, all `sk_*` / JWKS, `STRIPE_*`, `JWT_SECRET`, Firebase JSON, push flags, Fleetbase.
+
+**Optional gaps:** `SENTRY_DSN` (API), `FLEETBASE_*` (blocked DD-05b).
+
+**Legacy GitHub secrets** (`CLERK_SECRET_KEY`, `POSTGRES_PASSWORD`, etc.) removed 2026-07-07 — `DOPPLER_TOKEN` is required.
+
+**Fleetbase (DD-05b)** — optional until dispatch bridge is enabled:
+
+| Secret / variable                | Description                                      |
+| -------------------------------- | ------------------------------------------------ |
+| `FLEETBASE_DISPATCH_BRIDGE`      | Set to `true` to enable outbound sync + webhooks |
+| `FLEETBASE_API_URL`              | Fleetbase API base URL                           |
+| `FLEETBASE_API_KEY`              | Fleetbase API key                                |
+| `FLEETBASE_WEBHOOK_SECRET`       | HMAC secret for inbound Fleetbase webhooks       |
+| `FLEETBASE_DEFAULT_COMPANY_UUID` | Default Fleetbase company UUID                   |
+| `FLEETBASE_SSO_ENABLED`          | _(optional)_ SSO bridge, default `false`         |
+
+When `FLEETBASE_DISPATCH_BRIDGE=true`, the API **refuses to boot** in production unless API key, webhook secret, and company UUID are set. Sync health is exposed on `GET /health/ready` (`fleetbase_sync.link_pct` must stay ≥95%).
+
+**Fleetbase webhook URL:** `https://api.porterchain.com/webhooks/fleetbase`
+
+Replay unsynced orders after enablement:
+
+```bash
+pnpm fleetbase:replay
+# or: cd apps/api && PYTHONPATH=src python scripts/replay_fleetbase_sync.py
+```
+
+**Repository variables:**
+
+| Variable                   | Default | Description                                        |
+| -------------------------- | ------- | -------------------------------------------------- |
+| `API_REPLICAS`             | `2`     | API containers behind Caddy (ADR-012 / DD-03)      |
+| `PORTERCHAIN_PUSH_ENABLED` | `false` | Enable FCM push pipeline                           |
+| `PORTERCHAIN_PUSH_SEND`    | `false` | When `true`, send real pushes (not dry-run) §0.1.3 |
+
+**Still missing (optional):** `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, all `FLEETBASE_*` secrets (bridge stays off until Fleetbase prod is ready). `DOPPLER_TOKEN` ✅ set.
+
+Set `PORTERCHAIN_PUSH_ENABLED=true` and `PORTERCHAIN_PUSH_SEND=true` when Firebase secrets are configured.
+
+### Secret manager (DD-14)
+
+Production secrets sync via **`infrastructure/deploy/sync-secrets.sh`** on each deploy:
+
+- **Recommended:** set `DOPPLER_TOKEN` in GitHub Actions → secrets pulled from Doppler project `pcd` / config `prd`.
+- **Legacy:** individual GitHub secrets still work when `DOPPLER_TOKEN` is unset.
+
+Full setup: [SECRETS.md](./SECRETS.md) · [docs/SECRETS_MAP.md](../../docs/SECRETS_MAP.md) · [ADR-013-secrets.md](../../docs/architecture/ADR-013-secrets.md).
+
+**Stripe webhook URL:** `https://porterchain.com/webhooks/stripe` (via Caddy → API)
+
+**Clerk allowed origins:** all production portal hosts.
+
+GHCR uses built-in `GITHUB_TOKEN` (no extra secret).
+
+### Quick Setup (gh CLI)
+
+```bash
+gh secret set DEPLOY_HOST -b "<droplet-ip>"
+gh secret set DEPLOY_USER -b "root"
+gh secret set DEPLOY_SSH_KEY < ~/.ssh/porterchain_deploy
+gh secret set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY -b "<your-key>"
+gh secret set CLERK_PUBLISHABLE_KEY -b "pk_live_…"
+gh secret set CLERK_SECRET_KEY -b "sk_live_…"
+gh secret set CLERK_JWKS_URL -b "https://…/.well-known/jwks.json"
+```
+
+---
+
+## Deploy-Time Migrations
+
+After `docker compose up`, the workflow runs Alembic inside one API replica:
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \
+  -e PYTHONPATH=/app/apps/api/src:/app/apps/api \
+  api python scripts/repair_and_migrate.py
+```
+
+Scale API without downtime (same image tag):
+
+```bash
+export API_REPLICAS=2   # or 1 to roll back
+docker compose -f docker-compose.prod.yml up -d --scale api=$API_REPLICAS
+```
+
+Head revision: `n2o3p4q5r6s7` (13 revisions). See [apps/api/alembic/README.md](../../apps/api/alembic/README.md).
+
+---
+
+## Manual Deploy / Rollback
+
+- **Manual deploy:** Actions → _Deploy_ → _Run workflow_
+- **Rollback:** SSH to droplet and pin a previous image tag:
+
+```bash
+cd /opt/porterchain
+export WEB_IMAGE=ghcr.io/<owner>/pcd-website:<previous-sha>
+export API_IMAGE=ghcr.io/<owner>/pcd-api:<previous-sha>
+# … other images …
+docker compose -f docker-compose.prod.yml up -d
+```
+
+---
+
+## Security Posture
+
+| Control        | Status                                           |
+| -------------- | ------------------------------------------------ |
+| Firewall (UFW) | Default-deny; 22/80/443 only                     |
+| TLS            | Let's Encrypt via Caddy; HSTS                    |
+| Database       | PostgreSQL 16 in Docker (`postgres-data` volume) |
+| Redis          | In-compose; not exposed to host                  |
+| Payments       | `STRIPE_MOCK=false`; real Stripe Checkout        |
+| Auth           | `CLERK_DEV_BYPASS=false`; Clerk JWT verification |
+| SSH            | Key-only; fail2ban; unattended-upgrades          |
+| Containers     | `no-new-privileges`; internal network only       |
+
+Re-run `harden-droplet.sh` any time (idempotent).
+
+---
+
+## Notes
+
+- GHCR packages are **private** by default; droplet authenticates at deploy time.
+- Fleetbase dispatch bridge is **off by default** (`FLEETBASE_DISPATCH_BRIDGE=false`). Enable via GitHub secrets when Fleetbase prod credentials are ready (see Fleetbase table above).
+- Mobile apps (Expo) deploy via EAS separately — not part of this droplet stack.
+
+---
+
+## Governance
+
+| Document                                         | Role              |
+| ------------------------------------------------ | ----------------- |
+| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
+| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

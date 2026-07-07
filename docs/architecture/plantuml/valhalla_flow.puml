@@ -1,0 +1,11 @@
+@startuml valhalla_flow
+!theme plain
+participant "QuoteService" as QS
+participant "MapsService" as MS
+cloud "Valhalla :8002" as VAL
+
+QS -> MS: route_distance_meters
+MS -> VAL: POST /route
+VAL --> MS: trip.summary.length + time
+MS --> QS: meters, seconds
+@enduml

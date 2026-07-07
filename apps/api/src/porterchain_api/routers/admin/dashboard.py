@@ -1,0 +1,63 @@
+"""admin routes — dashboard."""
+
+from porterchain_api.routers.admin._deps import *  # noqa: F403
+
+@router.get("/dashboard", response_model=AdminDashboardResponse)
+def admin_dashboard(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> AdminDashboardResponse:
+    require_module(ctx, "dashboard")
+    return AdminDashboardResponse(**_dashboard.get_dashboard(db))
+
+
+@router.get("/dashboard/center")
+def dashboard_center(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    require_module(ctx, "dashboard")
+    return _dashboard.get_center(db, settings, role=ctx.role.value)
+
+
+@router.get("/dashboard/search")
+def dashboard_search(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    q: str = Query(min_length=2),
+):
+    require_module(ctx, "dashboard")
+    return _dashboard.global_search(db, q)
+
+
+@router.get("/dispatch/queue", response_model=list[OrderAdminItem])
+def dispatch_queue(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> list[OrderAdminItem]:
+    require_module(ctx, "dispatch_read")
+    return [_order_item(o) for o in _ops.dispatch_queue(db)]
+
+
+@router.post("/dispatch/orders/{order_id}/assign", response_model=OrderAdminItem)
+def assign_driver(
+    order_id: str,
+    body: AssignDriverRequest,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> OrderAdminItem:
+    require_module(ctx, "dispatch")
+    try:
+        o = _ops.assign_driver(db, settings, ctx, order_id, body.driver_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return _order_item(o)
+
+
+@router.get("/map/live")
+def live_map(ctx: Annotated[AdminContext, Depends(get_admin_context)], db: Session = Depends(get_db)):
+    require_module(ctx, "map")
+    return _ops.live_map_snapshot(db)
+

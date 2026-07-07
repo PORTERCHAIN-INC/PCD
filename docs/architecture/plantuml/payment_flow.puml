@@ -1,0 +1,22 @@
+@startuml payment_flow
+!theme plain
+actor Website as UI
+participant "PaymentService" as API
+cloud "Stripe Checkout" as Stripe
+participant "StripeWebhookService" as SWS
+participant "BookingConfirmationService" as CF
+queue "Event Bus" as Bus
+participant "Worker" as W
+participant "SettlementService" as BLE
+
+UI -> API: POST /v1/bookings
+API -> Stripe: create_checkout_session
+Stripe --> UI: redirect
+Stripe -> SWS: checkout.session.completed
+SWS -> API: mark_succeeded
+SWS -> CF: complete_payment_and_create_order
+API -> Bus: payment.succeeded
+Bus -> W: billing queue
+W -> BLE: payment_settled
+CF -> CF: Invoice + receipt.generated
+@enduml

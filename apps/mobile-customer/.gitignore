@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+dist/
+ios/
+android/
+credentials/
+*.p8
+*.json
+!package.json
+!package-lock.json
+!eas.json
+!tsconfig.json
+.env
+.env.local

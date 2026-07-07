@@ -1,0 +1,22 @@
+@startuml authentication_flow
+!theme plain
+actor User
+cloud Clerk
+participant "clerk.py JWKS" as API
+participant "get_admin_context" as ADMIN
+participant "get_merchant_context" as MERCH
+participant "get_clerk_user_id" as CUST
+participant "DriverAuthService" as DRV
+participant "merchant_api X-Api-Key" as MAPI
+
+User -> Clerk: Sign in
+Clerk --> User: JWT
+User -> API: Bearer token
+API -> ADMIN : admin routes
+API -> MERCH : merchant routes + org headers
+API -> CUST : customer/booking routes
+User -> DRV: login + clerkToken
+DRV --> User: Porterchain driver JWT
+User -> MAPI: X-Api-Key
+MAPI -> MERCH : merchant-api routes
+@enduml

@@ -1,0 +1,211 @@
+import uuid
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import JSON
+
+from porterchain_api.db import Base
+from porterchain_api.domain.merchant_states import MerchantStatus
+
+
+def _uuid() -> str:
+    return str(uuid.uuid4())
+
+
+class Merchant(Base):
+    __tablename__ = "merchants"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    status: Mapped[str] = mapped_column(String(32), default=MerchantStatus.PENDING.value, index=True)
+    company_name: Mapped[str] = mapped_column(String(255))
+    legal_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    clerk_org_id: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
+    email: Mapped[str] = mapped_column(String(320), index=True)
+    phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    payment_terms: Mapped[str] = mapped_column(String(16), default="NET_30")
+    billing_cycle: Mapped[str] = mapped_column(String(16), default="MONTHLY")
+    credit_limit_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    hst_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    business_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    billing_address: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    profile: Mapped[dict] = mapped_column(JSON, default=dict)
+    pricing_config: Mapped[dict] = mapped_column(JSON, default=dict)
+    preferred_vehicles: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    delivery_zones: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    activated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    users: Mapped[list["MerchantUser"]] = relationship(back_populates="merchant")
+    saved_addresses: Mapped[list["SavedAddress"]] = relationship(back_populates="merchant")
+    recipients: Mapped[list["MerchantRecipient"]] = relationship(back_populates="merchant")
+    api_keys: Mapped[list["MerchantApiKey"]] = relationship(back_populates="merchant")
+    webhooks: Mapped[list["MerchantWebhook"]] = relationship(back_populates="merchant")
+    bulk_imports: Mapped[list["BulkImportJob"]] = relationship(back_populates="merchant")
+    audit_logs: Mapped[list["MerchantAuditLog"]] = relationship(back_populates="merchant")
+
+
+class MerchantUser(Base):
+    __tablename__ = "merchant_users"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    clerk_user_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    email: Mapped[str] = mapped_column(String(320))
+    role: Mapped[str] = mapped_column(String(32), default="merchant_ops")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    merchant: Mapped[Merchant] = relationship(back_populates="users")
+
+
+class SavedAddress(Base):
+    __tablename__ = "saved_addresses"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    label: Mapped[str] = mapped_column(String(128))
+    address_type: Mapped[str] = mapped_column(String(32), default="pickup")
+    formatted: Mapped[str] = mapped_column(String(512))
+    place_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    lat: Mapped[float | None] = mapped_column(nullable=True)
+    lng: Mapped[float | None] = mapped_column(nullable=True)
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    merchant: Mapped[Merchant] = relationship(back_populates="saved_addresses")
+
+
+class MerchantRecipient(Base):
+    __tablename__ = "merchant_recipients"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    email: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    company: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    default_address: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    merchant: Mapped[Merchant] = relationship(back_populates="recipients")
+
+
+class MerchantApiKey(Base):
+    __tablename__ = "merchant_api_keys"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    name: Mapped[str] = mapped_column(String(128))
+    key_prefix: Mapped[str] = mapped_column(String(16), index=True)
+    key_hash: Mapped[str] = mapped_column(String(128))
+    scopes: Mapped[list] = mapped_column(JSON, default=list)
+    environment: Mapped[str] = mapped_column(String(16), default="sandbox")
+    rate_limit_per_minute: Mapped[int] = mapped_column(Integer, default=60)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    merchant: Mapped[Merchant] = relationship(back_populates="api_keys")
+
+
+class MerchantWebhook(Base):
+    __tablename__ = "merchant_webhooks"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    url: Mapped[str] = mapped_column(String(512))
+    events: Mapped[list] = mapped_column(JSON, default=list)
+    secret_hash: Mapped[str] = mapped_column(String(128))
+    encrypted_signing_secret: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    merchant: Mapped[Merchant] = relationship(back_populates="webhooks")
+    deliveries: Mapped[list["MerchantWebhookDelivery"]] = relationship(back_populates="webhook")
+
+
+class MerchantApiUsageLog(Base):
+    __tablename__ = "merchant_api_usage_logs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    api_key_id: Mapped[str] = mapped_column(ForeignKey("merchant_api_keys.id"), index=True)
+    method: Mapped[str] = mapped_column(String(16))
+    path: Mapped[str] = mapped_column(String(255), index=True)
+    status_code: Mapped[int] = mapped_column(Integer, default=200)
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+    environment: Mapped[str] = mapped_column(String(16), default="sandbox")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class MerchantWebhookDelivery(Base):
+    __tablename__ = "merchant_webhook_deliveries"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    webhook_id: Mapped[str] = mapped_column(ForeignKey("merchant_webhooks.id"), index=True)
+    event_type: Mapped[str] = mapped_column(String(128), index=True)
+    request_body: Mapped[dict] = mapped_column(JSON, default=dict)
+    response_status: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    response_body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attempt: Mapped[int] = mapped_column(Integer, default=1)
+    success: Mapped[bool] = mapped_column(Boolean, default=False)
+    error_message: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+    next_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    webhook: Mapped[MerchantWebhook] = relationship(back_populates="deliveries")
+
+
+class BulkImportJob(Base):
+    __tablename__ = "bulk_import_jobs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    status: Mapped[str] = mapped_column(String(32), default="UPLOADED", index=True)
+    filename: Mapped[str] = mapped_column(String(255))
+    total_rows: Mapped[int] = mapped_column(Integer, default=0)
+    valid_rows: Mapped[int] = mapped_column(Integer, default=0)
+    error_rows: Mapped[int] = mapped_column(Integer, default=0)
+    duplicate_rows: Mapped[int] = mapped_column(Integer, default=0)
+    preview: Mapped[list] = mapped_column(JSON, default=list)
+    errors: Mapped[list] = mapped_column(JSON, default=list)
+    order_ids: Mapped[list] = mapped_column(JSON, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    merchant: Mapped[Merchant] = relationship(back_populates="bulk_imports")
+
+
+class MerchantAuditLog(Base):
+    __tablename__ = "merchant_audit_logs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    actor_user_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    action: Mapped[str] = mapped_column(String(64), index=True)
+    resource_type: Mapped[str] = mapped_column(String(32))
+    resource_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    merchant: Mapped[Merchant] = relationship(back_populates="audit_logs")
+
+
+class MerchantBookingTemplate(Base):
+    __tablename__ = "merchant_booking_templates"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    name: Mapped[str] = mapped_column(String(128))
+    payload: Mapped[dict] = mapped_column(JSON)
+    is_recurring: Mapped[bool] = mapped_column(Boolean, default=False)
+    recurrence_rule: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

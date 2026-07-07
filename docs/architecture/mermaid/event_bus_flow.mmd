@@ -1,0 +1,43 @@
+flowchart TB
+  subgraph Producers["Event Producers (emit_event)"]
+    QS[QuoteService]
+    BS[BookingService]
+    PS[PaymentService]
+    CF[ConfirmationService]
+    OT[order_transitions]
+    BDS[BookingDraftService]
+    CS[CustomerService]
+    SWS[StripeWebhookService]
+    WIS[WebhookIngressService]
+    NH[notification_handler]
+  end
+
+  subgraph Bus["Redis Event Bus"]
+    REG[Handler Registry<br/>register_default_handlers]
+  end
+
+  subgraph Handlers["Subscribed Handlers"]
+    H1[order.dispatch_ready → sync_order_from_event]
+    H2[order.driver_assigned → sync_driver_assignment]
+    H3[order.booked → notify_order_booked]
+    H4[booking.confirmed → notify_booking_confirmed]
+    H5[payment.succeeded → billing queue]
+    H6[webhook.received → Fleetbase webhook + webhooks queue]
+    H7[notification.queued → emails/sms/push queues]
+    H8[claim.opened → notify_claim_opened]
+    H9[support.ticket_created → notify_support_ticket]
+    H10[order.* → merchant webhook fanout]
+  end
+
+  subgraph Worker["apps/worker"]
+    NQ[notifications processor]
+    BQ[billing processor]
+    WQ[webhooks processor stub]
+  end
+
+  QS & BS & PS & CF & OT & BDS & CS & SWS & WIS & NH --> Bus
+  Bus --> REG
+  REG --> H1 & H2 & H3 & H4 & H5 & H6 & H7 & H8 & H9 & H10
+  H5 --> BQ
+  H7 --> NQ
+  H6 & H10 --> WQ

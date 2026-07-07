@@ -1,0 +1,64 @@
+{
+  "metadata": {
+    "title": "Blogue | Porterchain — Perspectives logistique commerciale",
+    "description": "Idées sur la répartition, le routage, la visibilité de la chaîne d'approvisionnement et les opérations de livraison commerciale.",
+    "ogTitle": "Blogue Porterchain",
+    "ogDescription": "Logistique commerciale, opérations et perspectives sectorielles."
+  },
+  "nav": {
+    "blog": "Blogue",
+    "allPosts": "Tous les articles",
+    "categories": "Catégories"
+  },
+  "home": {
+    "badge": "Blogue Porterchain",
+    "title": "Idées pour les opérations logistiques modernes",
+    "subtitle": "Répartition, routage, chaîne d'approvisionnement et preuve de livraison — pour les opérateurs qui bâtissent une livraison fiable.",
+    "featured": "À la une",
+    "latest": "Derniers articles",
+    "trending": "Tendances",
+    "popularCategories": "Catégories populaires",
+    "searchPlaceholder": "Rechercher des articles…",
+    "noResults": "Aucun article ne correspond à votre recherche.",
+    "readArticle": "Lire l'article",
+    "minRead": "{minutes} min de lecture"
+  },
+  "article": {
+    "writtenBy": "Écrit par",
+    "published": "Publié",
+    "related": "Articles connexes",
+    "share": "Partager",
+    "copyLink": "Copier le lien",
+    "copied": "Copié!",
+    "tableOfContents": "Sur cette page"
+  },
+  "sidebar": {
+    "newsletterTitle": "Restez informé",
+    "newsletterSubtitle": "Perspectives logistique commerciale et opérationnelles — mensuel, sans spam.",
+    "emailPlaceholder": "Courriel professionnel",
+    "subscribe": "S'abonner",
+    "subscribed": "Inscription confirmée. Merci."
+  },
+  "category": {
+    "articlesIn": "Articles dans",
+    "articleCount": "{count} articles"
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "page": "Page {current} sur {total}"
+  },
+  "categories": {
+    "logistics": "Logistique",
+    "technology": "Opérations",
+    "business": "Affaires",
+    "route-optimization": "Optimisation d'itinéraires",
+    "supply-chain": "Chaîne d'approvisionnement",
+    "same-day-delivery": "Livraison le jour même",
+    "wholesale": "Gros",
+    "construction": "Construction",
+    "medical": "Médical",
+    "retail": "Détail",
+    "coffee": "Café"
+  }
+}

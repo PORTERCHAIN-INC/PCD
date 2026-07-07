@@ -1,0 +1,22 @@
+{
+  "name": "@porterchain/auth",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Porterchain RBAC — Clerk is the sole authentication provider",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@porterchain/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@porterchain/config": "workspace:*",
+    "typescript": "^5"
+  }
+}

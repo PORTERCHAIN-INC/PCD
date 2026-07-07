@@ -1,0 +1,16 @@
+@startuml realtime_flow
+!theme plain
+actor "Admin Portal :3002" as Admin
+participant "WS /v1/admin/operations/live-map/ws" as WS
+participant "LiveMapService" as LMS
+database "PostgreSQL 16" as DB
+cloud Fleetbase
+
+Admin -> WS: connect ?token=clerk_jwt
+loop every 5s
+  WS -> LMS: snapshot()
+  LMS -> DB: orders/drivers
+  LMS -> Fleetbase: tracking
+  WS --> Admin: snapshot JSON
+end
+@enduml

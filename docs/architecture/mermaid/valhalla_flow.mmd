@@ -1,0 +1,22 @@
+flowchart LR
+  subgraph Callers["API Callers"]
+    QS[QuoteService]
+    PS[PricingService]
+    MBS[MerchantBookingService]
+  end
+
+  subgraph MapsSvc["MapsService"]
+    ENG{"routing_engine<br/>== valhalla?"}
+    VR[_valhalla_route]
+    RDM[route_distance_meters]
+  end
+
+  subgraph Valhalla["Valhalla :8002"]
+    POST["POST /route<br/>locations + costing:auto"]
+  end
+
+  QS & PS & MBS --> RDM
+  RDM --> ENG
+  ENG -->|yes| VR
+  VR --> POST
+  ENG -->|no| OSRM[OSRM fallback]

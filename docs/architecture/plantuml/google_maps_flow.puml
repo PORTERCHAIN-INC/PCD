@@ -1,0 +1,29 @@
+@startuml google_maps_flow
+!theme plain
+package "@porterchain/maps" {
+  [GoogleMapsProvider]
+  [AddressAutocomplete]
+}
+package "@porterchain/mobile-maps" {
+  [EnterpriseMap]
+}
+actor "website :3000" as website
+actor "customer :3004" as customer
+actor merchant
+actor admin
+actor "mobile-driver" as mobile
+cloud "Google Maps JS API" as GMAPS
+node "website /api/quote" as PREVIEW
+cloud "Google Geocode API" as GEO
+
+website --> [GoogleMapsProvider]
+customer --> [GoogleMapsProvider]
+merchant --> [GoogleMapsProvider]
+admin --> [GoogleMapsProvider]
+mobile --> [EnterpriseMap]
+[GoogleMapsProvider] --> GMAPS
+[EnterpriseMap] --> GMAPS
+website --> PREVIEW
+PREVIEW --> GEO
+note right of GMAPS : Visualization + autocomplete only\nNOT routing/pricing
+@enduml

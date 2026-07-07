@@ -1,0 +1,179 @@
+# Porterchain local infrastructure
+# Usage:
+#   cp .env.example .env   # fill secrets
+#   docker compose --profile core up -d
+#   docker compose --profile core --profile routing up -d
+#
+# Profiles:
+#   core     — MySQL, Redis, Mailhog (always safe to start)
+#   routing  — Valhalla (large image; first start downloads tiles)
+#   fleetbase — Fleetbase API + console (requires Fleetbase images)
+#   proxy    — Nginx dev proxy
+
+name: porterchain
+
+services:
+  database:
+    profiles: [core, fleetbase]
+    image: mysql:8.0
+    container_name: porterchain-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-fleetbase}
+      MYSQL_USER: ${MYSQL_USER:-fleetbase}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me-fleetbase}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - porterchain-data
+      - porterchain-internal
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p${MYSQL_ROOT_PASSWORD:-change-me-root}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  cache:
+    profiles: [core, fleetbase]
+    image: redis:7.2-alpine
+    container_name: porterchain-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - porterchain-data
+      - porterchain-internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  postgres:
+    profiles: [core]
+    image: postgres:16-alpine
+    container_name: porterchain-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-porterchain}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-porterchain}
+      POSTGRES_DB: ${POSTGRES_DB:-porterchain}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - porterchain-data
+      - porterchain-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-porterchain}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    profiles: [core]
+    image: mailhog/mailhog:v1.0.1
+    container_name: porterchain-mailhog
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    networks:
+      - porterchain-internal
+
+  valhalla:
+    profiles: [routing]
+    image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
+    container_name: porterchain-valhalla
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8002:8002"
+    volumes:
+      - valhalla-tiles:/custom_files
+    networks:
+      - porterchain-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # Fleetbase images — enable when images are available in your registry.
+  # fleetbase-api:
+  #   profiles: [fleetbase]
+  #   image: fleetbase/api:latest
+  #   container_name: porterchain-fleetbase-api
+  #   restart: unless-stopped
+  #   env_file:
+  #     - ../../env/fleetbase.env.example
+  #   ports:
+  #     - "127.0.0.1:8000:8000"
+  #   depends_on:
+  #     database:
+  #       condition: service_healthy
+  #     cache:
+  #       condition: service_healthy
+  #   volumes:
+  #     - fleetbase-storage:/fleetbase/api/storage
+  #   networks:
+  #     - porterchain-internal
+
+  # fleetbase-console:
+  #   profiles: [fleetbase]
+  #   image: fleetbase/console:latest
+  #   container_name: porterchain-console
+  #   restart: unless-stopped
+  #   ports:
+  #     - "127.0.0.1:4200:4200"
+  #   depends_on:
+  #     - fleetbase-api
+  #   networks:
+  #     - porterchain-internal
+
+  proxy:
+    profiles: [proxy]
+    image: nginx:1.27-alpine
+    container_name: porterchain-proxy
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - porterchain-internal
+
+networks:
+  porterchain-internal:
+    driver: bridge
+  porterchain-data:
+    driver: bridge
+    internal: true
+
+volumes:
+  mysql-data:
+  postgres-data:
+  redis-data:
+  valhalla-tiles:
+  fleetbase-storage:
+  api-storage:

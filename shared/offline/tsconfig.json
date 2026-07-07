@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "paths": {
+      "@porterchain/mobile-api": ["../api/src/index.ts"],
+      "@porterchain/mobile-hooks": ["../hooks/src/index.ts"],
+      "@porterchain/mobile-storage": ["../storage/src/index.ts"],
+      "@porterchain/mobile-theme": ["../theme/src/index.ts"],
+      "@porterchain/mobile-ui": ["../mobile-ui/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"]
+}

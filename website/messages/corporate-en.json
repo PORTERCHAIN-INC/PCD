@@ -1,0 +1,948 @@
+{
+  "metadata": {
+    "home": {
+      "title": "Porterchain | Logistics Technology Platform for Growing Businesses",
+      "description": "The operating system for commercial logistics. Dispatch, route optimization, live visibility, and proof of delivery — built for businesses that need reliability at scale.",
+      "ogTitle": "Porterchain — Logistics Technology Platform",
+      "ogDescription": "Run your logistics operation with enterprise-grade software. Dispatch controls, real-time visibility, and compliance-ready workflows."
+    },
+    "platform": {
+      "title": "Platform | Porterchain Logistics Technology",
+      "description": "Explore Porterchain's dispatch OS, routing engine, tracking layer, and integrations. One platform for planning, execution, and audit-ready delivery.",
+      "ogTitle": "Porterchain Platform",
+      "ogDescription": "Dispatch, routing, tracking, and compliance in a single logistics technology stack."
+    },
+    "solutions": {
+      "title": "Solutions | Porterchain for Every Industry",
+      "description": "Purpose-built logistics technology for wholesale, medical, food distribution, construction, and recurring route operations across Ontario.",
+      "ogTitle": "Porterchain Solutions",
+      "ogDescription": "Industry workflows powered by structured dispatch, SLA execution, and complete shipment visibility."
+    },
+    "company": {
+      "title": "Company | Porterchain",
+      "description": "Porterchain is a professional commercial logistics company helping local businesses across the GTA and Ontario — mission, vision, and the team behind every shipment.",
+      "ogTitle": "About Porterchain",
+      "ogDescription": "Commercial logistics company helping businesses grow without building their own logistics department."
+    },
+    "contact": {
+      "title": "Contact | Porterchain",
+      "description": "Let's talk logistics. Reach Porterchain by phone, email, WhatsApp, or our inquiry form. Response within one business day.",
+      "ogTitle": "Contact Porterchain",
+      "ogDescription": "Head office in Toronto. Sales, support, API, and emergency dispatch — we're here to help."
+    },
+    "careers": {
+      "title": "Careers | Porterchain",
+      "description": "Join Porterchain and help build the future of commercial logistics across Canada. Open roles in engineering, operations, sales, and more.",
+      "ogTitle": "Careers at Porterchain",
+      "ogDescription": "Build the future of logistics. Remote-friendly roles with growth, learning, and modern tools."
+    }
+  },
+  "nav": {
+    "company": "Company",
+    "careers": "Careers",
+    "blog": "Blog",
+    "contact": "Contact",
+    "book": "Book delivery",
+    "business": "Business",
+    "myOrders": "My orders",
+    "businessLogin": "Business login",
+    "login": "Sign in",
+    "getQuote": "Get a quote",
+    "bookNow": "Book Now",
+    "toggleMenu": "Toggle navigation menu"
+  },
+  "footer": {
+    "tagline": "Logistics technology for businesses that can't afford operational blind spots.",
+    "platform": "Platform",
+    "solutions": "Solutions",
+    "company": "Company",
+    "legal": "Legal",
+    "dispatch": "Dispatch OS",
+    "routing": "Routing Engine",
+    "visibility": "Live Visibility",
+    "integrations": "Integrations",
+    "wholesale": "Wholesale",
+    "medical": "Medical",
+    "food": "Food & Beverage",
+    "about": "About",
+    "careers": "Careers",
+    "blog": "Blog",
+    "contact": "Contact",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "copyright": "© {year} Porterchain Inc. All rights reserved.",
+    "address": "100 King Street West, Toronto, ON M5X 1A9"
+  },
+  "home": {
+    "hero": {
+      "badge": "Logistics Technology Platform",
+      "title": "The operating system for commercial logistics",
+      "subtitle": "Porterchain gives growing businesses the dispatch controls, route intelligence, and shipment visibility of a full logistics department — without building one.",
+      "primaryCta": "Get a demo",
+      "secondaryCta": "Explore platform"
+    },
+    "logos": {
+      "label": "Trusted by operations teams across Ontario"
+    },
+    "stats": {
+      "onTime": { "value": "99.2%", "label": "SLA execution rate" },
+      "visibility": { "value": "100%", "label": "Shipments with live status" },
+      "exceptions": { "value": "47%", "label": "Fewer avoidable exceptions" },
+      "audit": { "value": "Full", "label": "Audit-ready proof chain" }
+    },
+    "bento": {
+      "label": "Platform",
+      "title": "Everything your logistics operation needs",
+      "subtitle": "One connected stack from dispatch planning to delivery confirmation — designed for business-critical shipments.",
+      "dispatch": {
+        "title": "Dispatch OS",
+        "description": "Centralized control for planners. Assign routes, manage capacity, and enforce SLAs from a single command layer."
+      },
+      "routing": {
+        "title": "Routing Engine",
+        "description": "Intelligent route optimization that reduces empty miles, fuel use, and idle time across your network."
+      },
+      "visibility": {
+        "title": "Live Visibility",
+        "description": "Real-time shipment status, ETA updates, and exception alerts for your team and your customers."
+      },
+      "compliance": {
+        "title": "Compliance Layer",
+        "description": "Photo, signature, GPS, and reference-linked proof of delivery with audit-ready status history."
+      },
+      "integrations": {
+        "title": "Open Integrations",
+        "description": "Connect Porterchain to your ERP, WMS, and billing tools through APIs and webhooks."
+      },
+      "analytics": {
+        "title": "Operations Analytics",
+        "description": "Performance dashboards for on-time rates, route efficiency, and exception trends."
+      }
+    },
+    "timeline": {
+      "label": "How it works",
+      "title": "From order to proof in four steps",
+      "subtitle": "Structured workflows replace ad-hoc coordination with repeatable, accountable execution.",
+      "steps": {
+        "0": {
+          "title": "Ingest & validate",
+          "description": "Orders enter the platform with address validation, capacity checks, and service-level assignment."
+        },
+        "1": {
+          "title": "Plan & optimize",
+          "description": "Routes are built with intelligent sequencing, vehicle-class matching, and dispatch verification."
+        },
+        "2": {
+          "title": "Execute & monitor",
+          "description": "Drivers receive clear instructions while operations tracks live progress and exceptions."
+        },
+        "3": {
+          "title": "Confirm & audit",
+          "description": "Proof of delivery is captured and linked to shipment records for billing and compliance."
+        }
+      }
+    },
+    "features": {
+      "label": "Capabilities",
+      "title": "Built for operations that scale",
+      "subtitle": "Enterprise-grade logistics technology without enterprise complexity.",
+      "items": {
+        "0": {
+          "title": "SLA-based execution",
+          "description": "Managed dispatch with defined service levels — not marketplace guesswork."
+        },
+        "1": {
+          "title": "Pre-dispatch checks",
+          "description": "Address validation, vehicle-class verification, and capacity gates before wheels roll."
+        },
+        "2": {
+          "title": "Exception controls",
+          "description": "Controlled escalations instead of reactive firefighting across your network."
+        },
+        "3": {
+          "title": "Partner network",
+          "description": "Vetted driver partners with predictable workflows and operational support."
+        },
+        "4": {
+          "title": "Sustainability metrics",
+          "description": "Route optimization that measurably reduces fuel, emissions, and empty miles."
+        },
+        "5": {
+          "title": "Multi-stop routing",
+          "description": "Complex recurring routes and multi-drop sequences handled in one plan."
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to modernize your logistics stack?",
+      "subtitle": "See how Porterchain replaces spreadsheets, phone trees, and blind spots with a platform your team can trust.",
+      "primary": "Schedule a demo",
+      "secondary": "View solutions"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Common questions",
+      "items": {
+        "0": {
+          "q": "Is Porterchain a courier app?",
+          "a": "No. Porterchain is a logistics technology platform with structured dispatch, compliance procedures, and accountable workflows — built for businesses that need reliability, not ad-hoc drivers."
+        },
+        "1": {
+          "q": "Who is Porterchain for?",
+          "a": "Growing businesses in Ontario that move goods regularly — wholesale distributors, medical suppliers, food operations, and construction supply chains that need operational visibility without building an in-house logistics team."
+        },
+        "2": {
+          "q": "What proof does each shipment include?",
+          "a": "Photo, signature, GPS coordinates, shipment references, and a complete audit-ready status history for every delivery."
+        },
+        "3": {
+          "q": "Can Porterchain integrate with our systems?",
+          "a": "Yes. Porterchain offers APIs and webhooks to connect with ERP, WMS, and billing platforms your business already uses."
+        }
+      }
+    },
+    "resources": {
+      "label": "Resources",
+      "title": "Continue exploring",
+      "items": {
+        "0": {
+          "title": "Business programs",
+          "description": "Recurring routes and enterprise delivery.",
+          "href": "/business"
+        },
+        "1": { "title": "Blog", "description": "Commercial logistics insights.", "href": "/blog" },
+        "2": {
+          "title": "Talk to our team",
+          "description": "Request a personalized walkthrough.",
+          "href": "/contact"
+        }
+      }
+    }
+  },
+  "platform": {
+    "hero": {
+      "badge": "Platform",
+      "title": "One stack for planning, execution, and proof",
+      "subtitle": "Porterchain unifies dispatch, routing, tracking, and compliance into a single logistics technology layer your operations team can run every day.",
+      "primaryCta": "Get a demo",
+      "secondaryCta": "See integrations"
+    },
+    "timeline": {
+      "label": "Architecture",
+      "title": "How the platform layers connect",
+      "subtitle": "Each layer builds on the last — from data ingestion to audit-ready delivery records.",
+      "steps": {
+        "0": {
+          "title": "Data layer",
+          "description": "Orders, addresses, and constraints flow in through APIs, portals, and structured imports."
+        },
+        "1": {
+          "title": "Planning layer",
+          "description": "Routing engine sequences stops, matches vehicle classes, and validates capacity."
+        },
+        "2": {
+          "title": "Execution layer",
+          "description": "Dispatch OS assigns work, monitors progress, and manages exceptions in real time."
+        },
+        "3": {
+          "title": "Proof layer",
+          "description": "Delivery confirmation, media capture, and status history close the loop for billing and audit."
+        }
+      }
+    },
+    "features": {
+      "label": "Modules",
+      "title": "Purpose-built for logistics operators",
+      "items": {
+        "0": {
+          "title": "Dispatch command center",
+          "description": "A single pane for planners to assign routes, monitor active jobs, and enforce service levels across the network."
+        },
+        "1": {
+          "title": "Intelligent routing",
+          "description": "Valhalla-powered route optimization with multi-stop support, time windows, and fuel-efficient sequencing."
+        },
+        "2": {
+          "title": "Customer visibility portal",
+          "description": "Branded tracking experiences with live ETA, status events, and delivery confirmation for your clients."
+        },
+        "3": {
+          "title": "Driver partner app",
+          "description": "Clear trip instructions, navigation, and proof-of-delivery capture for every job in the field."
+        }
+      }
+    },
+    "cards": {
+      "label": "Integrations",
+      "title": "Connects to your existing stack",
+      "subtitle": "Porterchain fits into your workflow — not the other way around.",
+      "items": {
+        "0": {
+          "title": "REST APIs",
+          "description": "Programmatic access to orders, routes, tracking, and delivery events."
+        },
+        "1": {
+          "title": "Webhooks",
+          "description": "Real-time event streams for status changes, exceptions, and proof capture."
+        },
+        "2": {
+          "title": "Billing sync",
+          "description": "Stripe-powered invoicing with delivery-linked charge records."
+        },
+        "3": {
+          "title": "Maps & geocoding",
+          "description": "Google Maps integration for address validation and live location services."
+        }
+      }
+    },
+    "cta": {
+      "title": "See the platform in action",
+      "subtitle": "Walk through dispatch, routing, and live tracking with our team.",
+      "primary": "Request a demo",
+      "secondary": "Contact sales"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Platform questions",
+      "items": {
+        "0": {
+          "q": "Is the platform cloud-hosted?",
+          "a": "Yes. Porterchain runs as a managed cloud platform with secure access for dispatchers, drivers, and your customers."
+        },
+        "1": {
+          "q": "What routing engine does Porterchain use?",
+          "a": "Porterchain uses Valhalla for route optimization with OSRM fallback, supporting multi-stop and time-window constraints."
+        },
+        "2": {
+          "q": "Can we white-label tracking?",
+          "a": "Customer-facing tracking can reflect your brand while powered by Porterchain's visibility layer."
+        },
+        "3": {
+          "q": "How is data secured?",
+          "a": "Role-based access, encrypted transport, and audit trails protect shipment data across every workflow."
+        }
+      }
+    },
+    "resources": {
+      "label": "Resources",
+      "title": "Related",
+      "items": {
+        "0": {
+          "title": "Business programs",
+          "description": "See how teams use Porterchain delivery services.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "About Porterchain",
+          "description": "Mission, vision, and company story.",
+          "href": "/company"
+        },
+        "2": {
+          "title": "Get started",
+          "description": "Talk to our team about onboarding.",
+          "href": "/contact"
+        }
+      }
+    }
+  },
+  "solutions": {
+    "hero": {
+      "badge": "Solutions",
+      "title": "Logistics technology for your industry",
+      "subtitle": "Every vertical has different constraints. Porterchain adapts dispatch, routing, and compliance to how your business actually moves goods.",
+      "primaryCta": "Talk to sales",
+      "secondaryCta": "View platform"
+    },
+    "cards": {
+      "label": "Industries",
+      "title": "Built for business-critical delivery",
+      "items": {
+        "0": {
+          "title": "Wholesale distribution",
+          "description": "Recurring routes, multi-stop sequencing, and real-time visibility for B2B fulfillment across the GTA."
+        },
+        "1": {
+          "title": "Medical & healthcare",
+          "description": "Chain-of-custody documentation, time-sensitive routing, and audit-ready proof for regulated shipments."
+        },
+        "2": {
+          "title": "Food & beverage",
+          "description": "Temperature-aware scheduling, tight delivery windows, and exception alerts for perishable goods."
+        },
+        "3": {
+          "title": "Construction supply",
+          "description": "Heavy-capacity vehicle matching, site delivery coordination, and proof for high-value materials."
+        }
+      }
+    },
+    "timeline": {
+      "label": "Workflow",
+      "title": "How teams adopt Porterchain",
+      "subtitle": "A structured onboarding path from discovery to full operational deployment.",
+      "steps": {
+        "0": {
+          "title": "Discovery",
+          "description": "Map your routes, volumes, SLAs, and integration requirements with our team."
+        },
+        "1": {
+          "title": "Configuration",
+          "description": "Set up dispatch rules, vehicle classes, proof standards, and customer visibility."
+        },
+        "2": {
+          "title": "Pilot",
+          "description": "Run a controlled pilot on select routes with full monitoring and feedback loops."
+        },
+        "3": {
+          "title": "Scale",
+          "description": "Expand across your network with analytics, recurring routes, and API integrations."
+        }
+      }
+    },
+    "features": {
+      "label": "Outcomes",
+      "title": "What changes when you switch",
+      "items": {
+        "0": {
+          "title": "Reliable SLAs",
+          "description": "Managed dispatch replaces manual coordination with defined execution standards."
+        },
+        "1": {
+          "title": "Fewer exceptions",
+          "description": "Pre-dispatch validation catches issues before they become customer-facing problems."
+        },
+        "2": {
+          "title": "Complete visibility",
+          "description": "Every stakeholder sees the same live status — no more phone tag."
+        },
+        "3": {
+          "title": "Audit confidence",
+          "description": "Proof chains that satisfy compliance, billing, and customer dispute resolution."
+        }
+      }
+    },
+    "cta": {
+      "title": "Find the right solution for your operation",
+      "subtitle": "Our team will map Porterchain to your routes, volumes, and compliance needs.",
+      "primary": "Schedule a call",
+      "secondary": "Explore platform"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Solutions FAQ",
+      "items": {
+        "0": {
+          "q": "Do you support recurring routes?",
+          "a": "Yes. Porterchain handles recurring route templates, multi-stop sequences, and schedule-based dispatch for regular delivery patterns."
+        },
+        "1": {
+          "q": "Can we start with a pilot?",
+          "a": "Most enterprise customers begin with a scoped pilot on select routes before full network deployment."
+        },
+        "2": {
+          "q": "What regions do you serve?",
+          "a": "Porterchain operates across the GTA and Ontario, with route optimization tuned for Canadian address and road networks."
+        },
+        "3": {
+          "q": "How does pricing work?",
+          "a": "Pricing is based on your operational volume, service requirements, and integration scope. Contact our team for a tailored quote."
+        }
+      }
+    },
+    "resources": {
+      "label": "Resources",
+      "title": "Go deeper",
+      "items": {
+        "0": {
+          "title": "Business programs",
+          "description": "Recurring routes and enterprise delivery for growing teams.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "About us",
+          "description": "The team behind Porterchain commercial logistics.",
+          "href": "/company"
+        },
+        "2": {
+          "title": "Contact",
+          "description": "Start a conversation with our team.",
+          "href": "/contact"
+        }
+      }
+    }
+  },
+  "company": {
+    "hero": {
+      "badge": "Company",
+      "title": "Building Canada's most trusted commercial logistics partner",
+      "subtitle": "Porterchain helps local businesses grow without building their own logistics department — with structured dispatch, compliance, and accountable execution.",
+      "primaryCta": "Join our network",
+      "secondaryCta": "View careers"
+    },
+    "mission": {
+      "label": "Mission",
+      "title": "Why we exist",
+      "items": {
+        "0": {
+          "title": "Mission",
+          "description": "Help local businesses grow without building their own logistics department."
+        },
+        "1": {
+          "title": "Vision",
+          "description": "Build the most trusted local-business logistics platform in Canada."
+        },
+        "2": {
+          "title": "Goal",
+          "description": "Deliver every shipment safely, on time, and with complete operational visibility."
+        }
+      }
+    },
+    "timeline": {
+      "label": "Journey",
+      "title": "How Porterchain evolved",
+      "subtitle": "From operational excellence to a full-service commercial logistics operation.",
+      "steps": {
+        "0": {
+          "title": "Operations first",
+          "description": "Built on real dispatch experience with WSIB registration, commercial insurance, and compliance procedures."
+        },
+        "1": {
+          "title": "Managed dispatch",
+          "description": "Structured route planning, live tracking, and proof of delivery to replace manual coordination."
+        },
+        "2": {
+          "title": "Partner network",
+          "description": "Grew a vetted driver partner network with predictable workflows and operational support."
+        },
+        "3": {
+          "title": "Business programs",
+          "description": "Expanded recurring routes, merchant onboarding, and enterprise delivery programs across Ontario."
+        }
+      }
+    },
+    "values": {
+      "label": "Principles",
+      "title": "How we operate",
+      "items": {
+        "0": {
+          "title": "Compliance-first",
+          "description": "Documented processes, insurance coverage, and audit-ready workflows on every shipment."
+        },
+        "1": {
+          "title": "Accountability",
+          "description": "Clear ownership from dispatch through proof — no handoffs into a black box."
+        },
+        "2": {
+          "title": "Sustainability",
+          "description": "Route optimization that reduces fuel use, emissions, and empty miles across the network."
+        },
+        "3": {
+          "title": "Partner success",
+          "description": "Fair payouts, clear instructions, and operational support for driver partners in the field."
+        }
+      }
+    },
+    "cta": {
+      "title": "Partner with Porterchain",
+      "subtitle": "Whether you're a business scaling delivery or a driver partner joining our network — we'd like to hear from you.",
+      "primary": "Contact us",
+      "secondary": "Driver partners"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Company FAQ",
+      "items": {
+        "0": {
+          "q": "Where is Porterchain headquartered?",
+          "a": "Porterchain Inc. is headquartered at 100 King Street West, Toronto, ON M5X 1A9, Canada."
+        },
+        "1": {
+          "q": "Is Porterchain hiring?",
+          "a": "We're growing our technology and operations teams. Reach out through our contact page to learn about current opportunities."
+        },
+        "2": {
+          "q": "How do driver partners join?",
+          "a": "Driver partners apply through our network program. We focus on predictable work, fair compensation, and operational support."
+        },
+        "3": {
+          "q": "What makes Porterchain different?",
+          "a": "We're a structured commercial logistics company — not a marketplace. Every shipment runs through dispatch controls, compliance checks, and accountable workflows."
+        }
+      }
+    },
+    "resources": {
+      "label": "Resources",
+      "title": "Learn more",
+      "items": {
+        "0": {
+          "title": "Business programs",
+          "description": "Recurring routes and enterprise delivery for growing teams.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "Blog",
+          "description": "Commercial logistics insights and operations guidance.",
+          "href": "/blog"
+        },
+        "2": { "title": "Contact", "description": "Reach our team directly.", "href": "/contact" }
+      }
+    }
+  },
+  "contact": {
+    "hero": {
+      "badge": "Contact",
+      "title": "Let's Talk Logistics",
+      "subtitle": "Whether you're scaling delivery operations, setting up a business account, or need dispatch support — our team is ready to help."
+    },
+    "info": {
+      "headOfficeLabel": "Head Office",
+      "address": "100 King Street West, Toronto, ON M5X 1A9, Canada",
+      "phoneLabel": "Phone",
+      "phone": "+1 (647) 619-7951",
+      "phoneHref": "tel:+16476197951",
+      "emailLabel": "Email",
+      "email": "ravi@porterchain.com",
+      "emailHref": "mailto:ravi@porterchain.com",
+      "whatsappLabel": "WhatsApp",
+      "whatsapp": "+1 (647) 619-7951",
+      "whatsappHref": "https://wa.me/16476197951",
+      "hoursLabel": "Business Hours",
+      "hours": "Monday – Friday, 8:00 AM – 6:00 PM ET",
+      "emergencyLabel": "Emergency Dispatch",
+      "emergency": "+1 (647) 619-7951",
+      "emergencyDetail": "Active shipment exceptions · ops@porterchain.com",
+      "mapTitle": "Porterchain head office on Google Maps"
+    },
+    "form": {
+      "title": "Send us a message",
+      "subtitle": "Fill in the form and we'll route your inquiry to the right team.",
+      "name": "Name",
+      "businessName": "Business Name",
+      "email": "Email",
+      "phone": "Phone",
+      "message": "Message",
+      "inquiryType": "Inquiry Type",
+      "inquiryTypes": {
+        "sales": "Sales",
+        "support": "Support",
+        "partnership": "Partnership",
+        "careers": "Careers",
+        "api": "API"
+      },
+      "submit": "Send Message",
+      "sending": "Sending…",
+      "responseLabel": "Average response:",
+      "responseTime": "< 1 Business Day",
+      "successTitle": "Message sent",
+      "successMessage": "Thank you. A member of our team will respond within one business day."
+    },
+    "departments": {
+      "label": "Direct lines",
+      "title": "Reach the right team",
+      "items": {
+        "0": {
+          "title": "Sales",
+          "description": "Quotes, pricing, and enterprise onboarding for growing businesses.",
+          "contact": "ravi@porterchain.com"
+        },
+        "1": {
+          "title": "Support",
+          "description": "Active shipment questions, tracking, and operational assistance.",
+          "contact": "ops@porterchain.com"
+        },
+        "2": {
+          "title": "Business Accounts",
+          "description": "Account setup, billing, recurring routes, and SLA configuration.",
+          "contact": "ravi@porterchain.com"
+        },
+        "3": {
+          "title": "Driver Support",
+          "description": "Partner onboarding, route instructions, and field operations help.",
+          "contact": "ops@porterchain.com"
+        },
+        "4": {
+          "title": "Developer Support",
+          "description": "API access, webhooks, integrations, and technical documentation.",
+          "contact": "ravi@porterchain.com"
+        }
+      }
+    },
+    "social": {
+      "label": "Connect",
+      "title": "Follow Porterchain"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Common questions",
+      "items": {
+        "0": {
+          "q": "How quickly will someone respond?",
+          "a": "We respond to all inquiries within one business day. Emergency dispatch lines are monitored during active operations."
+        },
+        "1": {
+          "q": "Can I visit your Toronto office?",
+          "a": "Yes. Meetings can be arranged at our Financial District headquarters or held virtually — whichever works best."
+        },
+        "2": {
+          "q": "Who should I contact for API access?",
+          "a": "Select API as your inquiry type or email ravi@porterchain.com with your integration requirements."
+        },
+        "3": {
+          "q": "How do I report an active shipment issue?",
+          "a": "Call our emergency dispatch line or email ops@porterchain.com with your shipment reference for fastest resolution."
+        },
+        "4": {
+          "q": "How do I request a business quote?",
+          "a": "Select Sales as your inquiry type and our team will follow up with pricing and onboarding options for your delivery program."
+        }
+      }
+    }
+  },
+  "careers": {
+    "hero": {
+      "badge": "Careers",
+      "title": "Build the Future of Logistics",
+      "subtitle": "Join Porterchain and help transform commercial logistics across Canada.",
+      "primaryCta": "View open positions",
+      "secondaryCta": "Our mission"
+    },
+    "mission": {
+      "label": "Mission",
+      "title": "Help businesses grow without building a logistics department",
+      "description": "We're building the operating system for commercial logistics — dispatch intelligence, route optimization, and complete shipment visibility. Every role at Porterchain connects to that mission."
+    },
+    "why": {
+      "label": "Why Porterchain",
+      "title": "Work on problems that matter",
+      "description": "Local businesses across Ontario depend on reliable logistics every day. You'll build technology and operations that replace blind spots with accountability — not another marketplace app, but infrastructure businesses can trust.",
+      "points": {
+        "0": "Real operational impact across wholesale, medical, food, and construction supply chains",
+        "1": "A platform mindset — software, data, and field operations working as one system",
+        "2": "Room to grow as we scale Canada's most trusted logistics technology company"
+      }
+    },
+    "culture": {
+      "label": "Our Culture",
+      "title": "Built for builders and operators",
+      "description": "We move with urgency and care. High standards, clear ownership, and respect for the people who run routes and write code. We celebrate shipped work, learned lessons, and customers who trust us with business-critical delivery.",
+      "traits": {
+        "0": {
+          "title": "Ownership",
+          "description": "You own outcomes end-to-end — from idea to production to the field."
+        },
+        "1": {
+          "title": "Clarity",
+          "description": "Direct communication, documented decisions, and no mystery handoffs."
+        },
+        "2": {
+          "title": "Craft",
+          "description": "We sweat details in dispatch, code, and customer experience alike."
+        }
+      }
+    },
+    "values": {
+      "label": "Core Values",
+      "title": "What we stand for",
+      "items": {
+        "0": {
+          "title": "Compliance-first",
+          "description": "We build trust through documented processes, insurance, and audit-ready workflows."
+        },
+        "1": {
+          "title": "Accountability",
+          "description": "Every shipment has a clear owner from dispatch through proof of delivery."
+        },
+        "2": {
+          "title": "Sustainability",
+          "description": "Route optimization that measurably reduces fuel, emissions, and empty miles."
+        },
+        "3": {
+          "title": "Partner success",
+          "description": "Driver partners deserve fair work, clear instructions, and operational support."
+        }
+      }
+    },
+    "benefits": {
+      "label": "Benefits",
+      "title": "How we support your growth",
+      "subtitle": "Competitive packages designed for people who do their best work with flexibility and the right tools.",
+      "items": {
+        "0": {
+          "title": "Remote Friendly",
+          "description": "Work from anywhere in Canada with periodic team gatherings in Toronto."
+        },
+        "1": {
+          "title": "Flexible Hours",
+          "description": "Core collaboration windows with autonomy to structure your day."
+        },
+        "2": {
+          "title": "Learning Budget",
+          "description": "Annual stipend for courses, conferences, books, and certifications."
+        },
+        "3": {
+          "title": "Modern Equipment",
+          "description": "Latest laptop, monitors, and software to do your best work."
+        },
+        "4": {
+          "title": "Career Growth",
+          "description": "Clear progression paths, mentorship, and expanding scope as we scale."
+        },
+        "5": {
+          "title": "Health & Wellness",
+          "description": "Comprehensive health benefits and wellness support for you and your family."
+        }
+      }
+    },
+    "positions": {
+      "label": "Open Positions",
+      "title": "Find your role",
+      "subtitle": "We're hiring across operations, engineering, go-to-market, and field teams.",
+      "all": "All teams",
+      "apply": "Apply now",
+      "departments": {
+        "operations": "Operations",
+        "engineering": "Engineering",
+        "sales": "Sales",
+        "marketing": "Marketing",
+        "customerSuccess": "Customer Success",
+        "driverSuccess": "Driver Success",
+        "dispatch": "Dispatch"
+      },
+      "logistics-operations-manager": {
+        "title": "Logistics Operations Manager",
+        "location": "Toronto, ON · Hybrid",
+        "employmentType": "Full-time",
+        "experience": "5+ years",
+        "description": "Lead day-to-day logistics operations across the GTA. Own SLA execution, partner network performance, and continuous improvement of dispatch workflows. You'll work closely with dispatch, driver success, and engineering to scale reliable delivery."
+      },
+      "senior-software-engineer": {
+        "title": "Senior Software Engineer",
+        "location": "Canada · Remote",
+        "employmentType": "Full-time",
+        "experience": "5+ years",
+        "description": "Build core platform services — dispatch, routing integrations, tracking, and APIs. You'll design systems that handle business-critical shipments with high reliability, observability, and clean abstractions."
+      },
+      "platform-engineer": {
+        "title": "Platform Engineer",
+        "location": "Canada · Remote",
+        "employmentType": "Full-time",
+        "experience": "3+ years",
+        "description": "Own infrastructure, CI/CD, and platform reliability for Porterchain's logistics stack. Improve deployment velocity, monitoring, and security across our cloud environment."
+      },
+      "account-executive": {
+        "title": "Account Executive",
+        "location": "Toronto, ON · Hybrid",
+        "employmentType": "Full-time",
+        "experience": "3+ years",
+        "description": "Bring Porterchain to growing businesses across Ontario. Run discovery, demos, and pilots with operations leaders who need structured logistics — not ad-hoc couriers."
+      },
+      "growth-marketing-manager": {
+        "title": "Growth Marketing Manager",
+        "location": "Canada · Remote",
+        "employmentType": "Full-time",
+        "experience": "4+ years",
+        "description": "Drive demand for a logistics technology platform. Own content, campaigns, and pipeline programs that speak to operations teams, not consumers."
+      },
+      "customer-success-manager": {
+        "title": "Customer Success Manager",
+        "location": "Toronto, ON · Hybrid",
+        "employmentType": "Full-time",
+        "experience": "3+ years",
+        "description": "Ensure customers achieve SLA outcomes on Porterchain. Onboard new accounts, monitor health metrics, and partner with operations to resolve exceptions before they escalate."
+      },
+      "driver-partner-success-lead": {
+        "title": "Driver Partner Success Lead",
+        "location": "GTA · On-site / Hybrid",
+        "employmentType": "Full-time",
+        "experience": "4+ years",
+        "description": "Grow and support Porterchain's driver partner network. Define onboarding, quality standards, and field support so every route runs with predictable workflows and fair compensation."
+      },
+      "dispatch-coordinator": {
+        "title": "Dispatch Coordinator",
+        "location": "Toronto, ON · On-site",
+        "employmentType": "Full-time",
+        "experience": "2+ years",
+        "description": "Run live dispatch from Porterchain's command layer. Assign routes, monitor active jobs, manage exceptions, and enforce pre-departure verification on every shipment."
+      }
+    },
+    "hiringProcess": {
+      "label": "Hiring Process",
+      "title": "What to expect",
+      "subtitle": "A respectful, transparent process — typically two to three weeks from application to offer.",
+      "steps": {
+        "0": {
+          "title": "Application",
+          "description": "Submit your resume and a short note on why Porterchain. We review every application."
+        },
+        "1": {
+          "title": "Review",
+          "description": "Our team evaluates fit for the role, mission, and stage of growth."
+        },
+        "2": {
+          "title": "Interview",
+          "description": "Conversations with your future manager and cross-functional partners."
+        },
+        "3": {
+          "title": "Offer",
+          "description": "Competitive package with clear role scope, start date, and onboarding plan."
+        },
+        "4": {
+          "title": "Onboarding",
+          "description": "Structured first 30 days with tools, mentors, and early wins."
+        }
+      }
+    },
+    "testimonials": {
+      "label": "Team voices",
+      "title": "What it's like here",
+      "items": {
+        "0": {
+          "quote": "I've worked in logistics for a decade. Porterchain is the first place where technology and operations actually talk to each other — you see the impact of your work on every route.",
+          "name": "Sarah Chen",
+          "role": "Dispatch Operations"
+        },
+        "1": {
+          "quote": "We're building real infrastructure, not features for a pitch deck. The problems are hard, the team is sharp, and there's genuine room to shape the platform.",
+          "name": "Marcus Okonkwo",
+          "role": "Engineering"
+        },
+        "2": {
+          "quote": "Customers trust us with business-critical shipments. That responsibility pushes everyone to higher standards — and it's rewarding when we deliver.",
+          "name": "Elena Vasquez",
+          "role": "Customer Success"
+        }
+      }
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Careers FAQ",
+      "items": {
+        "0": {
+          "q": "Do you hire remotely?",
+          "a": "Yes. Many roles are remote-friendly across Canada. Field and dispatch roles may require GTA presence."
+        },
+        "1": {
+          "q": "What is your interview process?",
+          "a": "Typically a recruiter screen, hiring manager conversation, and team interview. Technical roles include a practical exercise."
+        },
+        "2": {
+          "q": "Do you sponsor work permits?",
+          "a": "We consider sponsorship case-by-case for exceptional candidates in critical roles."
+        },
+        "3": {
+          "q": "Can I apply to multiple roles?",
+          "a": "Yes. Apply to each role that fits your experience, or send a general application if you're unsure."
+        },
+        "4": {
+          "q": "How fast do you respond?",
+          "a": "We aim to respond to all applications within five business days."
+        }
+      }
+    },
+    "cta": {
+      "title": "Didn't find your role?",
+      "subtitle": "We're always looking for exceptional people. Send us your resume and tell us how you'd help build the future of logistics.",
+      "primary": "Send us your resume",
+      "secondary": "Get in touch"
+    }
+  }
+}

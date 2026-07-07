@@ -1,0 +1,39 @@
+flowchart LR
+  subgraph Clients
+    W[website :3000]
+    M[merchant :3001]
+    A[admin :3002]
+    D[driver :3003]
+    C[customer :3004]
+    MOB[mobile-driver]
+  end
+
+  subgraph API["Porterchain API :8001"]
+    PUB["/v1/quotes, /orders, /booking-drafts"]
+    CUST_API["/v1/customers"]
+    MERCH_API["/v1/merchant"]
+    ADMIN_API["/v1/admin/*"]
+    DRV_API["/driver-api/v1"]
+    WH["/webhooks/stripe, /webhooks/fleetbase"]
+    WS["WS /v1/admin/operations/live-map/ws"]
+  end
+
+  subgraph External
+    STRIPE[Stripe API]
+    FB_WH[Fleetbase Webhooks]
+    CLERK[Clerk JWKS]
+    GMAPS[Google Maps JS API]
+  end
+
+  W --> PUB & CUST_API
+  C --> CUST_API
+  M --> MERCH_API
+  A --> ADMIN_API & WS
+  D -->|"Next proxy /api/driver"| DRV_API
+  MOB --> DRV_API
+  W & M & A --> GMAPS
+  W & M & A & C & D --> CLERK
+  STRIPE --> WH
+  FB_WH --> WH
+  API --> STRIPE
+  API -->|"fleetbase-adapter"| FB_API[Fleetbase :8000]

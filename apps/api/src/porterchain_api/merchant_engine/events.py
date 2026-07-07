@@ -1,0 +1,11 @@
+"""Merchant API events per EVENT_FLOW.md."""
+
+MERCHANT_CREATED = "merchant.created"
+MERCHANT_APPROVED = "merchant.approved"
+MERCHANT_ACTIVATED = "merchant.activated"
+MERCHANT_SUSPENDED = "merchant.suspended"
+MERCHANT_BOOKING_CREATED = "merchant.booking_created"
+MERCHANT_BULK_BOOKING_CREATED = "merchant.bulk_booking_created"
+MERCHANT_INVOICE_GENERATED = "merchant.invoice_generated"
+MERCHANT_PAYMENT_RECEIVED = "merchant.payment_received"
+API_KEY_GENERATED = "merchant.api_key_generated"

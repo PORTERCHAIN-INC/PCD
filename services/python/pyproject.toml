@@ -1,0 +1,16 @@
+[project]
+name = "porterchain-services"
+version = "0.1.0"
+description = "Porterchain internal service layer — gateway, fleetbase, stripe, maps, notifications"
+requires-python = ">=3.12"
+dependencies = [
+  "httpx>=0.28.0",
+  "stripe>=11.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["porterchain_services"]

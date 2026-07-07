@@ -1,0 +1,49 @@
+{
+  "tagline": "Commercial logistics partner for local businesses across the GTA.",
+  "corporateTagline": "Professional commercial delivery for businesses that need reliability at scale.",
+  "businessTagline": "Enterprise logistics for growing businesses.",
+  "address": "100 King Street West, Toronto, ON M5X 1A9",
+  "copyright": "© {year} Porterchain Inc. All rights reserved.",
+  "contactLine": "ravi@porterchain.com · +1 (647) 619-7951",
+  "driverPortal": "Driver Portal",
+  "merchantPortal": "Merchant Portal",
+  "support": "Customer Support",
+  "status": "Status",
+  "sections": {
+    "products": {
+      "title": "Services",
+      "links": {
+        "book": "Book a Delivery",
+        "business": "Business",
+        "customerPortal": "My Orders"
+      }
+    },
+    "company": {
+      "title": "Company",
+      "links": {
+        "about": "About",
+        "careers": "Careers",
+        "blog": "Blog",
+        "contact": "Contact"
+      }
+    },
+    "resources": {
+      "title": "Resources",
+      "links": {
+        "blogHome": "Blog Home",
+        "logistics": "Logistics",
+        "routeOptimization": "Route Optimization",
+        "supplyChain": "Supply Chain",
+        "sameDay": "Same-Day Delivery"
+      }
+    },
+    "legal": {
+      "title": "Legal",
+      "links": {
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service",
+        "cookies": "Cookie Policy"
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #0a1628;
+  --secondary: #2563eb;
+  --gray-bg: #f0f4f8;
+  --foreground: #0a1628;
+  --muted: #64748b;
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-gray-bg: var(--gray-bg);
+  --color-muted: var(--muted);
+}
+
+body {
+  background: var(--gray-bg);
+  color: var(--foreground);
+  font-family: "Inter", system-ui, sans-serif;
+}

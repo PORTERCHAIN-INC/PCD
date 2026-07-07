@@ -1,0 +1,25 @@
+@startuml booking_flow
+!theme plain
+start
+:Visitor;
+:POST /v1/quotes (QuoteService);
+:BookingDraft DRAFT → QUOTE_GENERATED;
+:Clerk Sign-In;
+:CUSTOMER_IDENTIFIED / AUTHENTICATED;
+:POST /v1/bookings (BookingService);
+:PaymentService.start_payment;
+:PAYMENT_PENDING draft;
+:Stripe Checkout (or mock);
+:POST /webhooks/stripe;
+:PaymentService.mark_succeeded;
+:BookingConfirmationService.complete_payment_and_create_order;
+:Order BOOKED + Invoice;
+:Emit booking.confirmed, order.booked;
+:transition_to_dispatch_ready → DISPATCH_READY;
+:Event order.dispatch_ready;
+:BookingSyncService.push_order → Fleetbase;
+:Fleetbase Dispatch;
+:Webhook status → WebhookProcessor;
+:POD_COMPLETED → INVOICED → CLOSED;
+stop
+@enduml

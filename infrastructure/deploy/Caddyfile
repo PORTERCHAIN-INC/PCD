@@ -1,0 +1,74 @@
+# Porterchain production reverse proxy.
+# DNS A/AAAA records → droplet for:
+#   porterchain.com, www.porterchain.com
+#   api.porterchain.com
+#   admin.porterchain.com, merchant.porterchain.com
+#   driver.porterchain.com, customer.porterchain.com
+{
+	email admin@porterchain.com
+}
+
+(common) {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+		-Server
+		-X-Powered-By
+	}
+}
+
+# Dedicated API host — used by all portals (CORS).
+api.porterchain.com {
+	import common
+	reverse_proxy api:8001
+}
+
+admin.porterchain.com {
+	import common
+	reverse_proxy admin:3002
+}
+
+merchant.porterchain.com {
+	import common
+	reverse_proxy merchant:3001
+}
+
+driver.porterchain.com {
+	import common
+	reverse_proxy driver:3003
+}
+
+customer.porterchain.com {
+	import common
+	reverse_proxy customer:3004
+}
+
+# Public marketing site + same-origin API paths for the website.
+porterchain.com {
+	import common
+
+	handle /v1/* {
+		reverse_proxy api:8001
+	}
+	handle /health {
+		reverse_proxy api:8001
+	}
+	handle /internal/* {
+		reverse_proxy api:8001
+	}
+	handle /webhooks/* {
+		reverse_proxy api:8001
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+}
+
+www.porterchain.com {
+	import common
+	redir https://porterchain.com{uri} permanent
+}

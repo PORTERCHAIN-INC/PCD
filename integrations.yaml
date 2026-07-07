@@ -1,0 +1,50 @@
+# Porterchain integrations reference
+# See INTEGRATIONS.md for full documentation.
+
+integrations:
+  google_maps:
+    status: implemented
+    package: "@vis.gl/react-google-maps@1.8.3"
+    env:
+      - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+      - GOOGLE_MAPS_SERVER_API_KEY
+    code:
+      - website/src/lib/maps.ts
+      - website/src/lib/env.ts
+      - website/src/components/maps/
+
+  porterchain_api:
+    status: implemented
+    env:
+      - NEXT_PUBLIC_PORTERCHAIN_API_URL
+    default_port: 8001
+
+  fleetbase:
+    status: external
+    env_template: env/fleetbase.env.example
+    ports:
+      api: 8000
+      console: 4200
+
+  stripe:
+    status: external
+    env_template: env/api.env.example
+    note: Server-only — never in website .env
+
+  clerk:
+    status: external
+    env_template: env/merchant-portal.env.example
+    note: Sole authentication provider for Porterchain users
+
+  valhalla:
+    status: docker
+    profile: routing
+    port: 8002
+
+  osrm:
+    status: fallback
+    env: OSRM_HOST
+
+  firebase_fcm:
+    status: partial
+    note: mobile-driver registers FCM token; API send requires prod credentials

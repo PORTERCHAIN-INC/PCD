@@ -1,0 +1,13 @@
+"""Admin platform domain events."""
+
+MERCHANT_APPROVED = "merchant.approved"
+MERCHANT_SUSPENDED = "merchant.suspended"
+DRIVER_CREATED = "driver.created"
+DRIVER_APPROVED = "driver.approved"
+DRIVER_SUSPENDED = "driver.suspended"
+CLAIM_OPENED = "claim.opened"
+CLAIM_RESOLVED = "claim.resolved"
+TICKET_CREATED = "support.ticket_created"
+DISPATCH_ASSIGNED = "dispatch.assigned"
+PRICING_UPDATED = "pricing.updated"
+REFUND_APPROVED = "refund.approved"

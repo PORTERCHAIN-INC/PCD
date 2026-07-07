@@ -1,0 +1,920 @@
+{
+  "metadata": {
+    "home": {
+      "title": "Porterchain | Plateforme technologique logistique pour entreprises en croissance",
+      "description": "Le système d'exploitation de la logistique commerciale. Répartition, optimisation d'itinéraires, visibilité en direct et preuve de livraison.",
+      "ogTitle": "Porterchain — Plateforme technologique logistique",
+      "ogDescription": "Gérez vos opérations logistiques avec un logiciel de calibre entreprise."
+    },
+    "platform": {
+      "title": "Plateforme | Technologie logistique Porterchain",
+      "description": "Découvrez le système de répartition, le moteur de routage, le suivi et les intégrations Porterchain.",
+      "ogTitle": "Plateforme Porterchain",
+      "ogDescription": "Répartition, routage, suivi et conformité dans une seule pile technologique."
+    },
+    "solutions": {
+      "title": "Solutions | Porterchain pour chaque secteur",
+      "description": "Technologie logistique pour la distribution, la santé, l'alimentation et la construction en Ontario.",
+      "ogTitle": "Solutions Porterchain",
+      "ogDescription": "Flux de travail sectoriels avec répartition structurée et visibilité complète."
+    },
+    "company": {
+      "title": "Entreprise | Porterchain",
+      "description": "Porterchain est une entreprise de logistique commerciale professionnelle au service des entreprises locales du RGT et de l'Ontario.",
+      "ogTitle": "À propos de Porterchain",
+      "ogDescription": "Entreprise de logistique commerciale aidant les entreprises à croître sans département logistique interne."
+    },
+    "contact": {
+      "title": "Contact | Porterchain",
+      "description": "Contactez Porterchain pour un devis, un compte entreprise ou un partenariat.",
+      "ogTitle": "Contactez Porterchain",
+      "ogDescription": "Demandez un devis ou parlez à notre équipe."
+    },
+    "careers": {
+      "title": "Carrières | Porterchain",
+      "description": "Rejoignez Porterchain et contribuez à transformer la logistique commerciale au Canada.",
+      "ogTitle": "Carrières chez Porterchain",
+      "ogDescription": "Construisez l'avenir de la logistique. Postes télétravail avec croissance et outils modernes."
+    }
+  },
+  "nav": {
+    "company": "Entreprise",
+    "careers": "Carrières",
+    "blog": "Blogue",
+    "contact": "Contact",
+    "book": "Réserver",
+    "business": "Entreprise",
+    "myOrders": "Mes commandes",
+    "businessLogin": "Connexion entreprise",
+    "login": "Connexion",
+    "getQuote": "Obtenir un devis",
+    "bookNow": "Réserver",
+    "toggleMenu": "Ouvrir le menu"
+  },
+  "footer": {
+    "tagline": "Technologie logistique pour les entreprises qui ne peuvent pas se permettre d'angles morts opérationnels.",
+    "platform": "Plateforme",
+    "solutions": "Solutions",
+    "company": "Entreprise",
+    "legal": "Mentions légales",
+    "dispatch": "Répartition",
+    "routing": "Routage",
+    "visibility": "Visibilité",
+    "integrations": "Intégrations",
+    "wholesale": "Gros",
+    "medical": "Médical",
+    "food": "Alimentation",
+    "about": "À propos",
+    "careers": "Carrières",
+    "blog": "Blogue",
+    "contact": "Contact",
+    "privacy": "Confidentialité",
+    "terms": "Conditions",
+    "copyright": "© {year} Porterchain Inc. Tous droits réservés.",
+    "address": "100 King Street West, Toronto, ON M5X 1A9"
+  },
+  "home": {
+    "hero": {
+      "badge": "Plateforme technologique logistique",
+      "title": "Le système d'exploitation de la logistique commerciale",
+      "subtitle": "Porterchain offre aux entreprises en croissance les contrôles de répartition, l'intelligence d'itinéraire et la visibilité d'un département logistique complet.",
+      "primaryCta": "Demander une démo",
+      "secondaryCta": "Explorer la plateforme"
+    },
+    "logos": { "label": "Approuvé par des équipes opérationnelles en Ontario" },
+    "stats": {
+      "onTime": { "value": "99,2 %", "label": "Taux d'exécution SLA" },
+      "visibility": { "value": "100 %", "label": "Expéditions avec statut en direct" },
+      "exceptions": { "value": "47 %", "label": "Moins d'exceptions évitables" },
+      "audit": { "value": "Complet", "label": "Chaîne de preuve prête pour audit" }
+    },
+    "bento": {
+      "label": "Plateforme",
+      "title": "Tout ce dont votre opération logistique a besoin",
+      "subtitle": "Une pile connectée de la planification de répartition à la confirmation de livraison.",
+      "dispatch": {
+        "title": "Système de répartition",
+        "description": "Contrôle centralisé pour les planificateurs avec gestion de capacité et SLA."
+      },
+      "routing": {
+        "title": "Moteur de routage",
+        "description": "Optimisation intelligente réduisant les kilomètres à vide et la consommation."
+      },
+      "visibility": {
+        "title": "Visibilité en direct",
+        "description": "Statut en temps réel, ETA et alertes d'exception pour votre équipe."
+      },
+      "compliance": {
+        "title": "Couche de conformité",
+        "description": "Photo, signature, GPS et historique de statut prêt pour audit."
+      },
+      "integrations": {
+        "title": "Intégrations ouvertes",
+        "description": "Connectez Porterchain à votre ERP, WMS et outils de facturation."
+      },
+      "analytics": {
+        "title": "Analytique opérationnelle",
+        "description": "Tableaux de bord pour ponctualité, efficacité et tendances d'exceptions."
+      }
+    },
+    "timeline": {
+      "label": "Comment ça fonctionne",
+      "title": "De la commande à la preuve en quatre étapes",
+      "subtitle": "Des flux structurés remplacent la coordination ad hoc par une exécution reproductible.",
+      "steps": {
+        "0": {
+          "title": "Réception et validation",
+          "description": "Les commandes entrent avec validation d'adresse et vérification de capacité."
+        },
+        "1": {
+          "title": "Planification",
+          "description": "Itinéraires optimisés avec correspondance de classe de véhicule."
+        },
+        "2": {
+          "title": "Exécution",
+          "description": "Instructions claires et suivi en direct des exceptions."
+        },
+        "3": {
+          "title": "Confirmation",
+          "description": "Preuve de livraison liée aux dossiers pour facturation et conformité."
+        }
+      }
+    },
+    "features": {
+      "label": "Capacités",
+      "title": "Conçu pour des opérations qui évoluent",
+      "subtitle": "Technologie logistique de calibre entreprise sans la complexité.",
+      "items": {
+        "0": {
+          "title": "Exécution basée sur SLA",
+          "description": "Répartition gérée avec niveaux de service définis."
+        },
+        "1": {
+          "title": "Vérifications pré-départ",
+          "description": "Validation d'adresse et de capacité avant le départ."
+        },
+        "2": {
+          "title": "Contrôle des exceptions",
+          "description": "Escalades contrôlées au lieu de réactions en urgence."
+        },
+        "3": {
+          "title": "Réseau de partenaires",
+          "description": "Partenaires chauffeurs vérifiés avec flux prévisibles."
+        },
+        "4": {
+          "title": "Métriques durabilité",
+          "description": "Optimisation réduisant carburant, émissions et kilomètres à vide."
+        },
+        "5": {
+          "title": "Routage multi-arrêts",
+          "description": "Itinéraires récurrents et séquences complexes en un plan."
+        }
+      }
+    },
+    "cta": {
+      "title": "Prêt à moderniser votre pile logistique?",
+      "subtitle": "Découvrez comment Porterchain remplace les angles morts par une plateforme fiable.",
+      "primary": "Planifier une démo",
+      "secondary": "Voir les solutions"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Questions fréquentes",
+      "items": {
+        "0": {
+          "q": "Porterchain est-il une application de messagerie?",
+          "a": "Non. Porterchain est une plateforme technologique logistique avec répartition structurée et flux reproductibles."
+        },
+        "1": {
+          "q": "Pour qui est Porterchain?",
+          "a": "Entreprises en Ontario qui déplacent régulièrement des marchandises et ont besoin de visibilité opérationnelle."
+        },
+        "2": {
+          "q": "Quelle preuve pour chaque expédition?",
+          "a": "Photo, signature, GPS, références et historique de statut prêt pour audit."
+        },
+        "3": {
+          "q": "Intégration avec nos systèmes?",
+          "a": "Oui. APIs et webhooks pour ERP, WMS et facturation."
+        }
+      }
+    },
+    "resources": {
+      "label": "Ressources",
+      "title": "Continuer l'exploration",
+      "items": {
+        "0": {
+          "title": "Programmes entreprise",
+          "description": "Routes récurrentes et livraison entreprise.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "Blogue",
+          "description": "Conseils logistique commerciale.",
+          "href": "/blog"
+        },
+        "2": {
+          "title": "Parler à notre équipe",
+          "description": "Demandez une visite personnalisée.",
+          "href": "/contact"
+        }
+      }
+    }
+  },
+  "platform": {
+    "hero": {
+      "badge": "Plateforme",
+      "title": "Une pile pour planifier, exécuter et prouver",
+      "subtitle": "Porterchain unifie répartition, routage, suivi et conformité en une seule couche technologique.",
+      "primaryCta": "Demander une démo",
+      "secondaryCta": "Voir les intégrations"
+    },
+    "timeline": {
+      "label": "Architecture",
+      "title": "Comment les couches se connectent",
+      "subtitle": "De l'ingestion de données aux dossiers de livraison prêts pour audit.",
+      "steps": {
+        "0": {
+          "title": "Couche données",
+          "description": "Commandes et contraintes via APIs et portails."
+        },
+        "1": {
+          "title": "Couche planification",
+          "description": "Moteur de routage avec séquençage et capacité."
+        },
+        "2": {
+          "title": "Couche exécution",
+          "description": "Répartition, suivi et gestion d'exceptions en direct."
+        },
+        "3": {
+          "title": "Couche preuve",
+          "description": "Confirmation, capture média et historique de statut."
+        }
+      }
+    },
+    "features": {
+      "label": "Modules",
+      "title": "Conçu pour les opérateurs logistiques",
+      "items": {
+        "0": {
+          "title": "Centre de commande",
+          "description": "Vue unique pour assigner routes et SLA."
+        },
+        "1": {
+          "title": "Routage intelligent",
+          "description": "Optimisation Valhalla avec multi-arrêts et fenêtres horaires."
+        },
+        "2": {
+          "title": "Portail de visibilité",
+          "description": "Suivi en marque blanche avec ETA en direct."
+        },
+        "3": {
+          "title": "App partenaire chauffeur",
+          "description": "Instructions, navigation et preuve de livraison."
+        }
+      }
+    },
+    "cards": {
+      "label": "Intégrations",
+      "title": "Se connecte à votre pile existante",
+      "subtitle": "Porterchain s'intègre à votre flux de travail.",
+      "items": {
+        "0": {
+          "title": "APIs REST",
+          "description": "Accès programmatique aux commandes et événements."
+        },
+        "1": { "title": "Webhooks", "description": "Flux d'événements en temps réel." },
+        "2": {
+          "title": "Sync facturation",
+          "description": "Facturation Stripe liée aux livraisons."
+        },
+        "3": {
+          "title": "Cartes et géocodage",
+          "description": "Google Maps pour validation et localisation."
+        }
+      }
+    },
+    "cta": {
+      "title": "Voir la plateforme en action",
+      "subtitle": "Parcourez répartition, routage et suivi avec notre équipe.",
+      "primary": "Demander une démo",
+      "secondary": "Contacter les ventes"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Questions plateforme",
+      "items": {
+        "0": {
+          "q": "Plateforme infonuagique?",
+          "a": "Oui. Accès sécurisé pour répartiteurs, chauffeurs et clients."
+        },
+        "1": {
+          "q": "Quel moteur de routage?",
+          "a": "Valhalla avec repli OSRM, multi-arrêts et fenêtres horaires."
+        },
+        "2": {
+          "q": "Suivi en marque blanche?",
+          "a": "Le suivi client peut refléter votre marque."
+        },
+        "3": {
+          "q": "Sécurité des données?",
+          "a": "Accès par rôle, transport chiffré et pistes d'audit."
+        }
+      }
+    },
+    "resources": {
+      "label": "Ressources",
+      "title": "Connexes",
+      "items": {
+        "0": {
+          "title": "Programmes entreprise",
+          "description": "Services par secteur.",
+          "href": "/business"
+        },
+        "1": { "title": "À propos", "description": "Mission et vision.", "href": "/company" },
+        "2": { "title": "Commencer", "description": "Parler à notre équipe.", "href": "/contact" }
+      }
+    }
+  },
+  "solutions": {
+    "hero": {
+      "badge": "Solutions",
+      "title": "Technologie logistique pour votre secteur",
+      "subtitle": "Chaque vertical a des contraintes différentes. Porterchain adapte répartition et conformité à votre réalité.",
+      "primaryCta": "Parler aux ventes",
+      "secondaryCta": "Voir la plateforme"
+    },
+    "cards": {
+      "label": "Secteurs",
+      "title": "Conçu pour la livraison critique",
+      "items": {
+        "0": {
+          "title": "Distribution en gros",
+          "description": "Routes récurrentes et visibilité B2B dans le RGT."
+        },
+        "1": {
+          "title": "Médical et santé",
+          "description": "Chaîne de custody et preuve pour expéditions réglementées."
+        },
+        "2": {
+          "title": "Alimentation",
+          "description": "Fenêtres serrées et alertes pour produits périssables."
+        },
+        "3": {
+          "title": "Construction",
+          "description": "Correspondance de capacité et preuve pour matériaux."
+        }
+      }
+    },
+    "timeline": {
+      "label": "Flux",
+      "title": "Comment les équipes adoptent Porterchain",
+      "subtitle": "De la découverte au déploiement opérationnel complet.",
+      "steps": {
+        "0": {
+          "title": "Découverte",
+          "description": "Cartographie de routes, volumes et intégrations."
+        },
+        "1": {
+          "title": "Configuration",
+          "description": "Règles de répartition et standards de preuve."
+        },
+        "2": { "title": "Pilote", "description": "Pilote contrôlé sur routes sélectionnées." },
+        "3": { "title": "Échelle", "description": "Expansion avec analytique et intégrations API." }
+      }
+    },
+    "features": {
+      "label": "Résultats",
+      "title": "Ce qui change",
+      "items": {
+        "0": { "title": "SLA fiables", "description": "Répartition gérée avec standards définis." },
+        "1": {
+          "title": "Moins d'exceptions",
+          "description": "Validation pré-départ avant problèmes clients."
+        },
+        "2": { "title": "Visibilité complète", "description": "Même statut en direct pour tous." },
+        "3": {
+          "title": "Confiance audit",
+          "description": "Chaînes de preuve pour conformité et facturation."
+        }
+      }
+    },
+    "cta": {
+      "title": "Trouvez la solution pour votre opération",
+      "subtitle": "Notre équipe adaptera Porterchain à vos besoins.",
+      "primary": "Planifier un appel",
+      "secondary": "Explorer la plateforme"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "FAQ solutions",
+      "items": {
+        "0": {
+          "q": "Routes récurrentes?",
+          "a": "Oui. Modèles récurrents et séquences multi-arrêts."
+        },
+        "1": {
+          "q": "Commencer par un pilote?",
+          "a": "La plupart des clients entreprise commencent par un pilote ciblé."
+        },
+        "2": {
+          "q": "Régions desservies?",
+          "a": "RGT et Ontario avec optimisation pour réseaux canadiens."
+        },
+        "3": {
+          "q": "Tarification?",
+          "a": "Basée sur volume, exigences de service et intégrations."
+        }
+      }
+    },
+    "resources": {
+      "label": "Ressources",
+      "title": "Aller plus loin",
+      "items": {
+        "0": {
+          "title": "Programmes entreprise",
+          "description": "Routes récurrentes et livraison entreprise.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "À propos",
+          "description": "L'équipe derrière Porterchain.",
+          "href": "/company"
+        },
+        "2": { "title": "Contact", "description": "Démarrer une conversation.", "href": "/contact" }
+      }
+    }
+  },
+  "company": {
+    "hero": {
+      "badge": "Entreprise",
+      "title": "Construire le partenaire logistique commercial le plus fiable du Canada",
+      "subtitle": "Porterchain aide les entreprises locales à croître avec répartition structurée, conformité et exécution responsable.",
+      "primaryCta": "Rejoindre notre réseau",
+      "secondaryCta": "Carrières"
+    },
+    "mission": {
+      "label": "Mission",
+      "title": "Pourquoi nous existons",
+      "items": {
+        "0": {
+          "title": "Mission",
+          "description": "Aider les entreprises locales à croître sans département logistique interne."
+        },
+        "1": {
+          "title": "Vision",
+          "description": "Devenir le partenaire logistique le plus fiable pour les entreprises locales au Canada."
+        },
+        "2": {
+          "title": "Objectif",
+          "description": "Livrer chaque expédition en sécurité, à temps, avec visibilité complète."
+        }
+      }
+    },
+    "timeline": {
+      "label": "Parcours",
+      "title": "L'évolution de Porterchain",
+      "subtitle": "De l'excellence opérationnelle à une entreprise logistique commerciale à service complet.",
+      "steps": {
+        "0": {
+          "title": "Opérations d'abord",
+          "description": "Expérience réelle avec WSIB, assurance et conformité."
+        },
+        "1": {
+          "title": "Répartition gérée",
+          "description": "Planification d'itinéraires, suivi en direct et preuve de livraison."
+        },
+        "2": {
+          "title": "Réseau partenaires",
+          "description": "Chauffeurs vérifiés avec flux prévisibles."
+        },
+        "3": {
+          "title": "Programmes entreprise",
+          "description": "Routes récurrentes et intégration marchands en Ontario."
+        }
+      }
+    },
+    "values": {
+      "label": "Principes",
+      "title": "Comment nous opérons",
+      "items": {
+        "0": {
+          "title": "Conformité d'abord",
+          "description": "Processus documentés et flux prêts pour audit."
+        },
+        "1": {
+          "title": "Responsabilité",
+          "description": "Propriété claire de la répartition à la preuve."
+        },
+        "2": {
+          "title": "Durabilité",
+          "description": "Optimisation réduisant carburant et émissions."
+        },
+        "3": {
+          "title": "Succès partenaires",
+          "description": "Rémunération équitable et support opérationnel."
+        }
+      }
+    },
+    "cta": {
+      "title": "Partenariat avec Porterchain",
+      "subtitle": "Entreprise en croissance ou partenaire chauffeur — contactez-nous.",
+      "primary": "Nous contacter",
+      "secondary": "Partenaires chauffeurs"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "FAQ entreprise",
+      "items": {
+        "0": { "q": "Siège social?", "a": "100 King Street West, Toronto, ON M5X 1A9, Canada." },
+        "1": {
+          "q": "Recrutement?",
+          "a": "Nous grandissons nos équipes technologie et opérations."
+        },
+        "2": {
+          "q": "Rejoindre comme chauffeur?",
+          "a": "Programme réseau avec travail prévisible et support."
+        },
+        "3": {
+          "q": "Qu'est-ce qui nous distingue?",
+          "a": "Entreprise logistique structurée — pas une place de marché."
+        }
+      }
+    },
+    "resources": {
+      "label": "Ressources",
+      "title": "En savoir plus",
+      "items": {
+        "0": {
+          "title": "Programmes entreprise",
+          "description": "Routes récurrentes et livraison pour équipes en croissance.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "Blogue",
+          "description": "Conseils logistique commerciale et opérations.",
+          "href": "/blog"
+        },
+        "2": { "title": "Contact", "description": "Joindre notre équipe.", "href": "/contact" }
+      }
+    }
+  },
+  "contact": {
+    "hero": {
+      "badge": "Contact",
+      "title": "Parlons logistique",
+      "subtitle": "Que vous développiez vos livraisons, ouvriez un compte entreprise ou ayez besoin de support répartition — notre équipe est prête."
+    },
+    "info": {
+      "headOfficeLabel": "Siège social",
+      "address": "100 King Street West, Toronto, ON M5X 1A9, Canada",
+      "phoneLabel": "Téléphone",
+      "phone": "+1 (647) 619-7951",
+      "phoneHref": "tel:+16476197951",
+      "emailLabel": "Courriel",
+      "email": "ravi@porterchain.com",
+      "emailHref": "mailto:ravi@porterchain.com",
+      "whatsappLabel": "WhatsApp",
+      "whatsapp": "+1 (647) 619-7951",
+      "whatsappHref": "https://wa.me/16476197951",
+      "hoursLabel": "Heures d'ouverture",
+      "hours": "Lundi – vendredi, 8 h – 18 h HE",
+      "emergencyLabel": "Répartition d'urgence",
+      "emergency": "+1 (647) 619-7951",
+      "emergencyDetail": "Exceptions actives · ops@porterchain.com",
+      "mapTitle": "Siège Porterchain sur Google Maps"
+    },
+    "form": {
+      "title": "Envoyez-nous un message",
+      "subtitle": "Remplissez le formulaire et nous acheminerons votre demande à la bonne équipe.",
+      "name": "Nom",
+      "businessName": "Nom de l'entreprise",
+      "email": "Courriel",
+      "phone": "Téléphone",
+      "message": "Message",
+      "inquiryType": "Type de demande",
+      "inquiryTypes": {
+        "sales": "Ventes",
+        "support": "Support",
+        "partnership": "Partenariat",
+        "careers": "Carrières",
+        "api": "API"
+      },
+      "submit": "Envoyer le message",
+      "sending": "Envoi…",
+      "responseLabel": "Réponse moyenne :",
+      "responseTime": "< 1 jour ouvrable",
+      "successTitle": "Message envoyé",
+      "successMessage": "Merci. Un membre de notre équipe répondra sous un jour ouvrable."
+    },
+    "departments": {
+      "label": "Lignes directes",
+      "title": "Joindre la bonne équipe",
+      "items": {
+        "0": {
+          "title": "Ventes",
+          "description": "Démos, tarification et intégration entreprise.",
+          "contact": "ravi@porterchain.com"
+        },
+        "1": {
+          "title": "Support",
+          "description": "Expéditions actives, suivi et assistance opérationnelle.",
+          "contact": "ops@porterchain.com"
+        },
+        "2": {
+          "title": "Comptes entreprise",
+          "description": "Configuration, facturation et routes récurrentes.",
+          "contact": "ravi@porterchain.com"
+        },
+        "3": {
+          "title": "Support chauffeurs",
+          "description": "Intégration partenaires et aide terrain.",
+          "contact": "ops@porterchain.com"
+        },
+        "4": {
+          "title": "Support développeurs",
+          "description": "API, webhooks et intégrations techniques.",
+          "contact": "ravi@porterchain.com"
+        }
+      }
+    },
+    "social": {
+      "label": "Réseaux",
+      "title": "Suivez Porterchain"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Questions fréquentes",
+      "items": {
+        "0": {
+          "q": "Délai de réponse?",
+          "a": "Sous un jour ouvrable. La ligne d'urgence est surveillée pendant les opérations actives."
+        },
+        "1": {
+          "q": "Visite au bureau Toronto?",
+          "a": "Oui. Rendez-vous au siège ou virtuellement — selon votre préférence."
+        },
+        "2": {
+          "q": "Accès API?",
+          "a": "Sélectionnez API comme type ou écrivez à ravi@porterchain.com avec vos besoins d'intégration."
+        },
+        "3": {
+          "q": "Problème d'expédition active?",
+          "a": "Appelez la ligne d'urgence ou écrivez à ops@porterchain.com avec votre référence."
+        },
+        "4": {
+          "q": "Comment demander un devis entreprise?",
+          "a": "Sélectionnez Ventes et notre équipe vous contactera avec tarification et options d'intégration pour votre programme de livraison."
+        }
+      }
+    }
+  },
+  "careers": {
+    "hero": {
+      "badge": "Carrières",
+      "title": "Construisez l'avenir de la logistique",
+      "subtitle": "Rejoignez Porterchain et contribuez à transformer la logistique commerciale au Canada.",
+      "primaryCta": "Voir les postes ouverts",
+      "secondaryCta": "Notre mission"
+    },
+    "mission": {
+      "label": "Mission",
+      "title": "Aider les entreprises à croître sans département logistique interne",
+      "description": "Nous construisons le système d'exploitation de la logistique commerciale — intelligence de répartition, optimisation d'itinéraires et visibilité complète."
+    },
+    "why": {
+      "label": "Pourquoi Porterchain",
+      "title": "Travaillez sur des problèmes qui comptent",
+      "description": "Les entreprises locales en Ontario dépendent d'une logistique fiable chaque jour. Vous construirez une infrastructure de confiance — pas une autre application de messagerie.",
+      "points": {
+        "0": "Impact opérationnel réel dans la distribution, la santé et la construction",
+        "1": "Mentalité plateforme — logiciel, données et opérations terrain unifiés",
+        "2": "Place pour grandir avec la plateforme logistique la plus fiable du Canada"
+      }
+    },
+    "culture": {
+      "label": "Notre culture",
+      "title": "Conçu pour les bâtisseurs et opérateurs",
+      "description": "Nous avançons avec urgence et soin. Standards élevés, propriété claire et respect pour ceux qui roulent et codent.",
+      "traits": {
+        "0": {
+          "title": "Propriété",
+          "description": "Vous possédez les résultats de l'idée au terrain."
+        },
+        "1": {
+          "title": "Clarté",
+          "description": "Communication directe et décisions documentées."
+        },
+        "2": {
+          "title": "Artisanat",
+          "description": "Nous soignons les détails en répartition, code et expérience client."
+        }
+      }
+    },
+    "values": {
+      "label": "Valeurs",
+      "title": "Ce qui nous guide",
+      "items": {
+        "0": {
+          "title": "Conformité d'abord",
+          "description": "Confiance par processus documentés et flux prêts pour audit."
+        },
+        "1": {
+          "title": "Responsabilité",
+          "description": "Propriétaire clair de la répartition à la preuve de livraison."
+        },
+        "2": {
+          "title": "Durabilité",
+          "description": "Optimisation réduisant carburant, émissions et kilomètres à vide."
+        },
+        "3": {
+          "title": "Succès partenaires",
+          "description": "Travail équitable et support opérationnel pour les chauffeurs."
+        }
+      }
+    },
+    "benefits": {
+      "label": "Avantages",
+      "title": "Comment nous soutenons votre croissance",
+      "subtitle": "Forfaits compétitifs avec flexibilité et bons outils.",
+      "items": {
+        "0": {
+          "title": "Télétravail",
+          "description": "Travaillez de partout au Canada avec rencontres périodiques à Toronto."
+        },
+        "1": {
+          "title": "Horaires flexibles",
+          "description": "Fenêtres de collaboration avec autonomie sur votre journée."
+        },
+        "2": {
+          "title": "Budget formation",
+          "description": "Allocation annuelle pour cours, conférences et certifications."
+        },
+        "3": {
+          "title": "Équipement moderne",
+          "description": "Ordinateur, écrans et logiciels récents."
+        },
+        "4": {
+          "title": "Croissance de carrière",
+          "description": "Parcours clairs, mentorat et portée croissante."
+        },
+        "5": {
+          "title": "Santé et bien-être",
+          "description": "Avantages santé complets pour vous et votre famille."
+        }
+      }
+    },
+    "positions": {
+      "label": "Postes ouverts",
+      "title": "Trouvez votre rôle",
+      "subtitle": "Nous recrutons en opérations, ingénierie, commercial et terrain.",
+      "all": "Toutes les équipes",
+      "apply": "Postuler",
+      "departments": {
+        "operations": "Opérations",
+        "engineering": "Ingénierie",
+        "sales": "Ventes",
+        "marketing": "Marketing",
+        "customerSuccess": "Succès client",
+        "driverSuccess": "Succès chauffeurs",
+        "dispatch": "Répartition"
+      },
+      "logistics-operations-manager": {
+        "title": "Gestionnaire des opérations logistiques",
+        "location": "Toronto, ON · Hybride",
+        "employmentType": "Temps plein",
+        "experience": "5+ ans",
+        "description": "Dirigez les opérations logistiques quotidiennes dans le RGT. Possédez l'exécution SLA et l'amélioration des flux de répartition."
+      },
+      "senior-software-engineer": {
+        "title": "Ingénieur logiciel senior",
+        "location": "Canada · Télétravail",
+        "employmentType": "Temps plein",
+        "experience": "5+ ans",
+        "description": "Construisez les services centraux — répartition, routage, suivi et APIs pour expéditions critiques."
+      },
+      "platform-engineer": {
+        "title": "Ingénieur plateforme",
+        "location": "Canada · Télétravail",
+        "employmentType": "Temps plein",
+        "experience": "3+ ans",
+        "description": "Possédez l'infrastructure, CI/CD et la fiabilité de la pile logistique Porterchain."
+      },
+      "account-executive": {
+        "title": "Directeur des comptes",
+        "location": "Toronto, ON · Hybride",
+        "employmentType": "Temps plein",
+        "experience": "3+ ans",
+        "description": "Amenez Porterchain aux entreprises en croissance en Ontario avec démos et pilotes structurés."
+      },
+      "growth-marketing-manager": {
+        "title": "Gestionnaire marketing croissance",
+        "location": "Canada · Télétravail",
+        "employmentType": "Temps plein",
+        "experience": "4+ ans",
+        "description": "Générez la demande pour une plateforme technologique logistique auprès des équipes opérationnelles."
+      },
+      "customer-success-manager": {
+        "title": "Gestionnaire succès client",
+        "location": "Toronto, ON · Hybride",
+        "employmentType": "Temps plein",
+        "experience": "3+ ans",
+        "description": "Assurez les résultats SLA. Intégrez les comptes et résolvez les exceptions avant escalade."
+      },
+      "driver-partner-success-lead": {
+        "title": "Responsable succès partenaires chauffeurs",
+        "location": "RGT · Sur place / Hybride",
+        "employmentType": "Temps plein",
+        "experience": "4+ ans",
+        "description": "Développez le réseau de partenaires chauffeurs avec normes de qualité et support terrain."
+      },
+      "dispatch-coordinator": {
+        "title": "Coordonnateur répartition",
+        "location": "Toronto, ON · Sur place",
+        "employmentType": "Temps plein",
+        "experience": "2+ ans",
+        "description": "Gérez la répartition en direct. Assignez routes, surveillez les missions et gérez les exceptions."
+      }
+    },
+    "hiringProcess": {
+      "label": "Processus",
+      "title": "À quoi s'attendre",
+      "subtitle": "Processus respectueux et transparent — typiquement deux à trois semaines.",
+      "steps": {
+        "0": {
+          "title": "Candidature",
+          "description": "Soumettez CV et courte note sur Porterchain."
+        },
+        "1": {
+          "title": "Examen",
+          "description": "Évaluation de l'adéquation au rôle et à la mission."
+        },
+        "2": {
+          "title": "Entrevue",
+          "description": "Conversations avec le gestionnaire et l'équipe."
+        },
+        "3": {
+          "title": "Offre",
+          "description": "Forfait compétitif avec portée claire et date de début."
+        },
+        "4": {
+          "title": "Intégration",
+          "description": "Premiers 30 jours structurés avec mentors et victoires rapides."
+        }
+      }
+    },
+    "testimonials": {
+      "label": "Voix d'équipe",
+      "title": "L'ambiance ici",
+      "items": {
+        "0": {
+          "quote": "Après dix ans en logistique, Porterchain est le premier endroit où technologie et opérations se parlent vraiment.",
+          "name": "Sarah Chen",
+          "role": "Opérations répartition"
+        },
+        "1": {
+          "quote": "Nous construisons une vraie infrastructure. Les problèmes sont difficiles et l'équipe est solide.",
+          "name": "Marcus Okonkwo",
+          "role": "Ingénierie"
+        },
+        "2": {
+          "quote": "Les clients nous confient des expéditions critiques. Cette responsabilité élève les standards de tous.",
+          "name": "Elena Vasquez",
+          "role": "Succès client"
+        }
+      }
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "FAQ carrières",
+      "items": {
+        "0": {
+          "q": "Recrutez-vous à distance?",
+          "a": "Oui. Beaucoup de rôles sont télétravail au Canada. Certains rôles terrain exigent le RGT."
+        },
+        "1": {
+          "q": "Processus d'entrevue?",
+          "a": "Filtrage, gestionnaire et entrevue d'équipe. Rôles techniques incluent un exercice pratique."
+        },
+        "2": {
+          "q": "Parrainage de permis?",
+          "a": "Étudié au cas par cas pour candidats exceptionnels."
+        },
+        "3": {
+          "q": "Plusieurs candidatures?",
+          "a": "Oui. Postulez à chaque rôle pertinent ou envoyez une candidature générale."
+        },
+        "4": {
+          "q": "Délai de réponse?",
+          "a": "Nous visons cinq jours ouvrables pour toutes les candidatures."
+        }
+      }
+    },
+    "cta": {
+      "title": "Vous n'avez pas trouvé votre rôle?",
+      "subtitle": "Nous cherchons toujours des personnes exceptionnelles. Envoyez votre CV et dites-nous comment vous aideriez à construire l'avenir de la logistique.",
+      "primary": "Envoyez votre CV",
+      "secondary": "Nous contacter"
+    }
+  }
+}
