@@ -36,6 +36,11 @@ async def lifespan(_app: FastAPI):
     from porterchain_shared.redis_health import require_redis_for_production
 
     settings = get_settings()
+    from porterchain_api.startup_checks import validate_required_settings
+
+    # Fail fast on incomplete production config before serving any traffic.
+    validate_required_settings(settings)
+
     from porterchain_api.platform.observability import init_observability, instrument_app
 
     init_observability(sentry_dsn=settings.sentry_dsn, app_env=settings.app_env)
