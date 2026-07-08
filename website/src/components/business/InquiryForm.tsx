@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { publicEnv } from "@/lib/env";
+import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 
 const COUNTRY_CODES = [
   { code: "+1", label: "CA +1" },
@@ -53,6 +54,7 @@ export default function InquiryForm({
     );
 
     window.location.href = `mailto:${publicEnv.contactEmail}?subject=${subject}&body=${body}`;
+    track(ANALYTICS_EVENTS.BUSINESS_INQUIRY_SUBMIT, { source_section: variant });
     await new Promise((r) => setTimeout(r, 400));
     setSubmitting(false);
     setSubmitted(true);

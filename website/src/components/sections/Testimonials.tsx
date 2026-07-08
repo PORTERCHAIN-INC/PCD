@@ -6,7 +6,7 @@ import { Star, Quote } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Container from "@/components/ui/Container";
 
-const TESTIMONIAL_KEYS = ["coffee", "medical", "restaurant", "electrical"] as const;
+const TESTIMONIAL_KEYS = ["construction", "electrical", "plumbing", "coffee"] as const;
 
 export default function Testimonials() {
   const t = useTranslations("testimonials");

@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
 import { OrganizedFooterLinks } from "@/components/layout/OrganizedFooterLinks";
 import SocialLinks from "@/components/layout/SocialLinks";
+import GoogleBusinessProfileLink from "@/components/integrations/GoogleBusinessProfileLink";
 import { driverPortalUrl, merchantPortalUrl } from "@/data/portal-links";
 import type { FooterSectionId } from "@/data/footer-navigation";
 
@@ -76,8 +77,14 @@ export default function SiteFooter() {
               <span className="text-xl font-bold">Porterchain</span>
             </Link>
             <p className="text-white/50 type-small leading-relaxed mb-6">{t("tagline")}</p>
-            <div className="flex gap-3 justify-center sm:justify-start">
+            <div className="flex gap-3 justify-center sm:justify-start flex-wrap items-center">
               <SocialLinks variant="footer" />
+              <GoogleBusinessProfileLink
+                variant="footer"
+                label={t("googleBusiness")}
+                reviewLabel={t("googleReview")}
+                showReview
+              />
             </div>
           </div>
 

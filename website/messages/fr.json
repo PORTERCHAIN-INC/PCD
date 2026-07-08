@@ -597,6 +597,20 @@
         "role": "Gestionnaire de distribution",
         "company": "VoltLine Electrical",
         "industry": "Distributeur électrique"
+      },
+      "construction": {
+        "quote": "Les livraisons de matériaux le jour même vers les chantiers étaient un casse-tête. Maintenant, un clic dans le tableau de bord — nos contremaîtres savent quand les palettes arrivent.",
+        "author": "James O'Brien",
+        "role": "Chef de projet",
+        "company": "Toronto Build Partners",
+        "industry": "Construction"
+      },
+      "plumbing": {
+        "quote": "Les livraisons matinales de tuyaux et de robinetterie à Mississauga et Vaughan restent à l'heure. La preuve de livraison à chaque arrêt rassure nos clients grossistes.",
+        "author": "Lisa Nguyen",
+        "role": "Responsable des opérations",
+        "company": "Northline Plumbing Supply",
+        "industry": "Fournitures plomberie"
       }
     }
   },

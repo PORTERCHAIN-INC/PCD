@@ -59,4 +59,26 @@ export const ANALYTICS_EVENTS = {
   /** Contact page form */
   CONTACT_FORM_SUBMIT_SUCCESS: "contact_form_submit_success",
   CONTACT_FORM_SUBMIT_ERROR: "contact_form_submit_error",
+  /** Booking widget (homepage / book flow) */
+  BOOKING_QUOTE_REQUEST: "booking_quote_request",
+  BOOKING_QUOTE_SUCCESS: "booking_quote_success",
+  BOOKING_CONTINUE: "booking_continue",
+  /** Business page inquiry */
+  BUSINESS_INQUIRY_SUBMIT: "business_inquiry_submit",
+  /** Zoho SalesIQ */
+  ZOHO_CHAT_READY: "zoho_chat_ready",
+  ZOHO_CHAT_OPEN: "zoho_chat_open",
+  /** Google Business Profile */
+  GBP_PROFILE_CLICK: "gbp_profile_click",
+  GBP_REVIEW_CLICK: "gbp_review_click",
 } as const;
+
+/** Mark these as conversions in GA4 Admin → Events → Mark as conversion. */
+export const GA4_CONVERSION_EVENTS: readonly string[] = [
+  ANALYTICS_EVENTS.CONTACT_FORM_SUBMIT_SUCCESS,
+  ANALYTICS_EVENTS.BUSINESS_INQUIRY_SUBMIT,
+  ANALYTICS_EVENTS.BOOKING_QUOTE_SUCCESS,
+  ANALYTICS_EVENTS.BOOKING_CONTINUE,
+  ANALYTICS_EVENTS.ZOHO_CHAT_OPEN,
+  ANALYTICS_EVENTS.GBP_REVIEW_CLICK,
+];

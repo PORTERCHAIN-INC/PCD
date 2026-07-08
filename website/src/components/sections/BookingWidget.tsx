@@ -47,6 +47,7 @@ import ScheduleDateTimePicker, {
 import BookingSelectField from "@/components/booking/BookingSelectField";
 import type { BookingVehicleKey } from "@/lib/vehicle-keys";
 import { cn } from "@/lib/utils";
+import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 
 const TAB_KEYS = ["oneTime", "business"] as const;
 const TAB_ICONS = { oneTime: Zap, business: Building2 };
@@ -168,6 +169,11 @@ export default function BookingWidget({ variant = "default", className }: Bookin
     setQuoteLoading(true);
     setQuoteError(null);
     setQuote(null);
+    track(ANALYTICS_EVENTS.BOOKING_QUOTE_REQUEST, {
+      source_section: variant ?? "default",
+      vehicle_class: selectedVehicle,
+      package_type: delivery,
+    });
     try {
       const scheduled = scheduleMode === "now" ? new Date() : scheduledAt;
       const weightRaw = weight ? parseFloat(weight.replace(/[^\d.]/g, "")) : undefined;
@@ -221,6 +227,11 @@ export default function BookingWidget({ variant = "default", className }: Bookin
       );
       setQuote(result);
       markBookingDraftHint();
+      track(ANALYTICS_EVENTS.BOOKING_QUOTE_SUCCESS, {
+        source_section: variant ?? "default",
+        vehicle_class: selectedVehicle,
+        quote_id: result.quote_id,
+      });
     } catch (err) {
       setQuoteError(err instanceof Error ? err.message : t("quoteError"));
     } finally {
@@ -231,6 +242,10 @@ export default function BookingWidget({ variant = "default", className }: Bookin
   function handleContinueBooking() {
     if (!quote) return;
     markBookingDraftHint();
+    track(ANALYTICS_EVENTS.BOOKING_CONTINUE, {
+      source_section: variant ?? "default",
+      quote_id: quote.quote_id,
+    });
     router.push(`/book/continue?quote_id=${quote.quote_id}`);
   }
 

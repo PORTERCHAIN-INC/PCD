@@ -591,7 +591,9 @@
       "hours": "Lundi – vendredi, 8 h – 18 h HE",
       "emergencyLabel": "Répartition d'urgence",
       "emergency": "+1 (647) 619-7951",
-      "emergencyDetail": "Exceptions actives · ops@porterchain.com"
+      "emergencyDetail": "Exceptions actives · ops@porterchain.com",
+      "googleBusinessLabel": "Nous trouver sur Google",
+      "googleReviewLabel": "Laisser un avis Google"
     },
     "form": {
       "title": "Envoyez-nous un message",

@@ -616,7 +616,9 @@
       "hours": "Monday – Friday, 8:00 AM – 6:00 PM ET",
       "emergencyLabel": "Emergency Dispatch",
       "emergency": "+1 (647) 619-7951",
-      "emergencyDetail": "Active shipment exceptions · ops@porterchain.com"
+      "emergencyDetail": "Active shipment exceptions · ops@porterchain.com",
+      "googleBusinessLabel": "Find us on Google",
+      "googleReviewLabel": "Review us on Google"
     },
     "form": {
       "title": "Send us a message",

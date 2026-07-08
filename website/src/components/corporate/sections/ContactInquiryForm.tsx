@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Check, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { publicEnv } from "@/lib/env";
+import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 
 const INQUIRY_TYPES = ["sales", "support", "partnership", "careers", "api"] as const;
 type InquiryType = (typeof INQUIRY_TYPES)[number];
@@ -44,6 +45,10 @@ export default function ContactInquiryForm() {
     );
 
     window.location.href = `mailto:${publicEnv.contactEmail}?subject=${subject}&body=${body}`;
+    track(ANALYTICS_EVENTS.CONTACT_FORM_SUBMIT_SUCCESS, {
+      inquiry_type: inquiryType,
+      source_section: "contact_page",
+    });
     await new Promise((r) => setTimeout(r, 400));
     setLoading(false);
     setSubmitted(true);

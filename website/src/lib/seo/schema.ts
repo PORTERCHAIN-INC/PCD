@@ -5,6 +5,7 @@
  */
 
 import { siteConfig } from "./config";
+import { buildGoogleSameAsLinks, PUBLIC_CONTACT_PHONE_E164 } from "@/lib/google-business";
 
 const BASE = siteConfig.baseUrl.replace(/\/$/, "");
 
@@ -219,9 +220,9 @@ export const SCHEMA_DELIVERY_SERVICE_TYPES = [
   "Parcel delivery",
 ] as const;
 
-/** Description for LocalBusiness schema: delivery-focused for rich results. */
+/** Description for LocalBusiness schema: delivery-focused for rich results + GBP alignment. */
 const LOCAL_BUSINESS_DESCRIPTION =
-  "Porterchain provides local courier and same-day delivery for merchants in the GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, and Ontario. Recurring and on-demand parcel delivery with tracking.";
+  "Porterchain provides same-day and recurring courier delivery for GTA merchants — construction materials, electrical and plumbing supply, e-commerce, and B2B freight across Toronto, Mississauga, Brampton, and Ontario. Tracking and proof of delivery included.";
 
 export type OrganizationSchema = {
   "@context": "https://schema.org";
@@ -234,12 +235,29 @@ export type OrganizationSchema = {
 
 export type LocalBusinessSchema = {
   "@context": "https://schema.org";
-  "@type": "LocalBusiness";
+  "@type": ["LocalBusiness", "DeliveryService"];
+  "@id"?: string;
   name: string;
   url: string;
   description?: string;
+  telephone?: string;
+  image?: string;
+  sameAs?: string[];
+  hasMap?: string;
   areaServed: SchemaPlace[] | readonly SchemaPlace[];
   serviceType?: string | string[];
+  address?: {
+    "@type": "PostalAddress";
+    addressLocality: string;
+    addressRegion: string;
+    addressCountry: string;
+  };
+  openingHoursSpecification?: Array<{
+    "@type": "OpeningHoursSpecification";
+    dayOfWeek: string[];
+    opens: string;
+    closes: string;
+  }>;
 };
 
 export type ServiceSchema = {
@@ -310,15 +328,43 @@ export function buildOrganizationSchema(options?: { baseUrl?: string }): Organiz
  */
 export function buildLocalBusinessSchema(options?: { baseUrl?: string }): LocalBusinessSchema {
   const base = (options?.baseUrl ?? BASE).replace(/\/$/, "");
-  return {
+  const sameAs = buildGoogleSameAsLinks();
+  const schema: LocalBusinessSchema = {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
+    "@type": ["LocalBusiness", "DeliveryService"],
+    "@id": `${base}/#localbusiness`,
     name: siteConfig.name,
     url: base,
     description: LOCAL_BUSINESS_DESCRIPTION,
+    telephone: PUBLIC_CONTACT_PHONE_E164,
+    image: `${base}/icon.svg`,
     areaServed: [...SCHEMA_SERVICE_AREAS],
     serviceType: [...SCHEMA_DELIVERY_SERVICE_TYPES],
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Toronto",
+      addressRegion: "ON",
+      addressCountry: "CA",
+    },
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        opens: "08:00",
+        closes: "18:00",
+      },
+    ],
   };
+  if (sameAs.length > 0) {
+    schema.sameAs = sameAs;
+    const profileUrl = sameAs.find(
+      (url) => url.includes("google.com/maps") || url.includes("g.page") || url.includes("goo.gl/maps")
+    );
+    if (profileUrl) {
+      schema.hasMap = profileUrl;
+    }
+  }
+  return schema;
 }
 
 /**

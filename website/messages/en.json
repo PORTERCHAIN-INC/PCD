@@ -597,6 +597,20 @@
         "role": "Distribution Manager",
         "company": "VoltLine Electrical",
         "industry": "Electrical Distributor"
+      },
+      "construction": {
+        "quote": "Same-day material runs to jobsites used to be a nightmare. Now it's one click in the dashboard — our supers know exactly when pallets arrive.",
+        "author": "James O'Brien",
+        "role": "Project Manager",
+        "company": "Toronto Build Partners",
+        "industry": "Construction"
+      },
+      "plumbing": {
+        "quote": "Morning pipe and fixture runs across Mississauga and Vaughan stay on schedule. Proof of delivery on every stop keeps our wholesale customers happy.",
+        "author": "Lisa Nguyen",
+        "role": "Operations Lead",
+        "company": "Northline Plumbing Supply",
+        "industry": "Plumbing Supply"
       }
     }
   },

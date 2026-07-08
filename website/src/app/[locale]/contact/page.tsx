@@ -7,6 +7,7 @@ import ContactInfoPanel from "@/components/corporate/sections/ContactInfoPanel";
 import ContactInquiryForm from "@/components/corporate/sections/ContactInquiryForm";
 import ContactDepartmentCards from "@/components/corporate/sections/ContactDepartmentCards";
 import ContactSocialBar from "@/components/corporate/sections/ContactSocialBar";
+import GoogleBusinessProfileLink from "@/components/integrations/GoogleBusinessProfileLink";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import Container from "@/components/ui/Container";
 import FadeIn from "@/components/corporate/motion/FadeIn";
@@ -71,6 +72,12 @@ export default async function ContactPage({ params }: Props) {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
             <FadeIn>
               <ContactInfoPanel info={contactInfo} />
+              <GoogleBusinessProfileLink
+                variant="contact"
+                className="mt-6"
+                label={tInfo("googleBusinessLabel")}
+                reviewLabel={tInfo("googleReviewLabel")}
+              />
             </FadeIn>
             <FadeIn delay={0.1}>
               <ContactInquiryForm />

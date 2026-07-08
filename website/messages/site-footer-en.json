@@ -8,6 +8,8 @@
   "merchantPortal": "Merchant Portal",
   "support": "Customer Support",
   "status": "Status",
+  "googleBusiness": "Google Business Profile",
+  "googleReview": "Review on Google",
   "sections": {
     "products": {
       "title": "Services",

@@ -38,6 +38,11 @@ export const publicEnv = {
   zohoSalesIqWidgetCode: (process.env.NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE ?? "").trim(),
   gaMeasurementId: (process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "").trim(),
   googleSiteVerification: (process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ?? "").trim(),
+  /** Google Business Profile (Maps) public URL — set after claiming GBP. */
+  googleBusinessProfileUrl: (process.env.NEXT_PUBLIC_GOOGLE_BUSINESS_PROFILE_URL ?? "").trim(),
+  /** Optional direct “Write a review” URL from GBP dashboard. */
+  googleBusinessReviewUrl: (process.env.NEXT_PUBLIC_GOOGLE_BUSINESS_REVIEW_URL ?? "").trim(),
+  contactPhone: (process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "+16476197951").trim(),
   socialLinkedIn: (
     process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN ?? "https://www.linkedin.com/company/porterchain"
   ).trim(),

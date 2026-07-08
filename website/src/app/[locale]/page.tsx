@@ -12,6 +12,7 @@ import WhyPorterchain from "@/components/sections/WhyPorterchain";
 import MobileApp from "@/components/sections/MobileApp";
 import Features from "@/components/sections/Features";
 import Trust from "@/components/sections/Trust";
+import Testimonials from "@/components/sections/Testimonials";
 import FAQ from "@/components/sections/FAQ";
 import HomePageShell from "@/components/home/HomePageShell";
 import { routing } from "@/i18n/routing";
@@ -43,6 +44,7 @@ export default async function HomePage({ params }: Props) {
         <MobileApp />
         <Features />
         <Trust />
+        <Testimonials />
         <FAQ />
       </SiteShell>
     </HomePageShell>

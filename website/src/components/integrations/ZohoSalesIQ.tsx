@@ -3,6 +3,18 @@
 import { useEffect, useState } from "react";
 import Script from "next/script";
 import { publicEnv } from "@/lib/env";
+import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
+
+declare global {
+  interface Window {
+    $zoho?: {
+      salesiq?: {
+        ready?: () => void;
+        floatwindow?: { on?: (event: string, cb: () => void) => void };
+      };
+    };
+  }
+}
 
 const ZOHO_SALESIQ_INIT_SCRIPT = `
 window.$zoho=window.$zoho||{};
@@ -20,6 +32,27 @@ export default function ZohoSalesIQ() {
   useEffect(() => {
     setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (!hydrated || !zohoSalesIqEnabled || !zohoSalesIqWidgetCode) return;
+
+    const priorReady = window.$zoho?.salesiq?.ready;
+    window.$zoho = window.$zoho ?? {};
+    window.$zoho.salesiq = window.$zoho.salesiq ?? {};
+    window.$zoho.salesiq.ready = function zohoSalesIqReady() {
+      if (typeof priorReady === "function") {
+        priorReady();
+      }
+      track(ANALYTICS_EVENTS.ZOHO_CHAT_READY, { source_section: "salesiq_widget" });
+      try {
+        window.$zoho?.salesiq?.floatwindow?.on?.("open", () => {
+          track(ANALYTICS_EVENTS.ZOHO_CHAT_OPEN, { source_section: "salesiq_widget" });
+        });
+      } catch {
+        /* widget API varies by plan */
+      }
+    };
+  }, [hydrated, zohoSalesIqEnabled, zohoSalesIqWidgetCode]);
 
   if (!zohoSalesIqEnabled || !zohoSalesIqWidgetCode || !hydrated) {
     return null;

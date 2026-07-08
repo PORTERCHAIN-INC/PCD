@@ -8,6 +8,8 @@
   "merchantPortal": "Portail marchand",
   "support": "Support client",
   "status": "État du service",
+  "googleBusiness": "Profil Google Business",
+  "googleReview": "Avis sur Google",
   "sections": {
     "products": {
       "title": "Services",
