@@ -1,0 +1,125 @@
+name: Deploy Website
+
+# Website-only production deploy (builds web image, recreates `web` service on droplet).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-website-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-website
+  PROD_SITE_URL: https://porterchain.com
+
+jobs:
+  deploy-website:
+    name: Build & deploy website
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Check deploy secrets are configured
+        id: check
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -n "$DEPLOY_HOST" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Deploy secrets not configured (DEPLOY_HOST missing). Skipping deploy."
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.check.outputs.ready == 'true'
+
+      - name: Set up Docker Buildx
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push website image
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: website/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_CUSTOMER_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
+            NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED=${{ vars.NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED || 'true' }}
+            NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE=${{ secrets.NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+            NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=${{ secrets.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
+          cache-from: type=gha,scope=website
+          cache-to: type=gha,mode=max,scope=website
+
+      - name: Check Doppler token for runtime secrets
+        if: steps.check.outputs.ready == 'true'
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: |
+          if [ -z "$DOPPLER_TOKEN" ]; then
+            echo "::error::DOPPLER_TOKEN is required. Runtime secrets are in Doppler, not GitHub."
+            exit 1
+          fi
+
+      - name: Deploy website to droplet over SSH
+        if: steps.check.outputs.ready == 'true'
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          envs: IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DOPPLER_TOKEN,DOPPLER_PROJECT,DOPPLER_CONFIG
+          script: |
+            set -e
+            cd /opt/porterchain
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
+            bash sync-secrets.sh
+            if [ -n "${DOPPLER_TOKEN:-}" ]; then
+              set -a
+              # shellcheck disable=SC1091
+              source .env
+              set +a
+            fi
+            docker pull "$WEB_IMAGE"
+            docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate web
+            docker compose -f docker-compose.prod.yml restart caddy
+            curl -fsS -o /dev/null -w "%{http_code}" http://localhost:80/en | grep -q 200
+            echo "Website container recreated with $WEB_IMAGE"
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
+          DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG || 'prd' }}
+
+      - name: Prod website smoke
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          set -e
+          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en | grep -q 200
+          curl -fsS https://porterchain.com/sitemap.xml | grep -q '<urlset'
+          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en/toronto/van-delivery | grep -q 200
+          echo "Website prod smoke passed"
