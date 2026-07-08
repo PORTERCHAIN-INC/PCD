@@ -1,0 +1,144 @@
+{
+  "meta": {
+    "title": "Vehicle Partner Portal | Join the Porterchain driver network",
+    "description": "Partner with Porterchain using your sedan, SUV, pickup truck, van, or box truck. Ontario G licence. Structured routes, clear workflows, and operational support across the GTA."
+  },
+  "hero": {
+    "badge": "Vehicle Partner Portal",
+    "title": "Partner with Porterchain using the vehicles you already operate",
+    "subtitle": "A structured driver partner program for Ontario operators with eligible sedan, SUV, pickup truck, van, or box truck capacity. Clear instructions, predictable workflows, and route opportunities aligned to merchant demand — without building your own dispatch operation.",
+    "primaryCta": "Start partner application",
+    "secondaryCta": "Questions? Contact us"
+  },
+  "vehicles": {
+    "label": "Eligible vehicles",
+    "title": "G-licence vehicle types we partner with",
+    "subtitle": "Porterchain focuses on commercial light- and medium-duty vehicles commonly used for local delivery across the GTA and Ontario metros we serve. Vehicle eligibility is confirmed during onboarding.",
+    "items": {
+      "sedan": {
+        "title": "Sedan",
+        "description": "Urban and suburban runs for smaller parcels, documents, and time-sensitive local delivery where a car is the right fit."
+      },
+      "suv": {
+        "title": "SUV",
+        "description": "Additional cargo space for multi-stop routes and medium-sized deliveries without stepping up to a van."
+      },
+      "pickup": {
+        "title": "Pickup truck",
+        "description": "Open-bed and mixed loads for merchants that need flexible local freight within standard G-licence limits."
+      },
+      "van": {
+        "title": "Cargo van",
+        "description": "Enclosed capacity for recurring B2B routes, trade deliveries, and multi-stop work across our service areas."
+      },
+      "boxTruck": {
+        "title": "Box truck (16 ft)",
+        "description": "Palletized and heavier local freight where GVWR remains within partner program guidelines. Confirmed at onboarding."
+      }
+    },
+    "licenceNote": "An Ontario Class G licence (or equivalent eligibility for the vehicle operated) is required. Additional documentation may be requested as part of partner onboarding."
+  },
+  "pillars": {
+    "label": "Why partners work with us",
+    "title": "Built to simplify how you run delivery capacity",
+    "subtitle": "Porterchain is a logistics technology platform — not a gig app. We focus on structured operations, clear communication, and workflows that respect your time on the road.",
+    "items": {
+      "routes": {
+        "title": "Recurring route opportunities",
+        "description": "When merchant volume supports it, partners may receive recurring local routes rather than one-off, unpredictable dispatches. Availability depends on service area, vehicle fit, and network demand."
+      },
+      "earnings": {
+        "title": "Transparent partner terms",
+        "description": "Compensation structures and payout timing are outlined in partner agreements before you accept work. We avoid vague promises — you review terms that apply to your operating model."
+      },
+      "support": {
+        "title": "Operational support",
+        "description": "Route details, pickup and delivery instructions, and status tools are provided through the partner workflow so you spend less time coordinating and more time completing runs."
+      },
+      "multiple": {
+        "title": "Operate one or multiple vehicles",
+        "description": "If you manage more than one eligible vehicle, our onboarding process can account for multiple units subject to program guidelines and documentation review."
+      }
+    }
+  },
+  "workflow": {
+    "label": "How it works",
+    "title": "A straightforward partner onboarding path",
+    "subtitle": "From application to accepted routes — designed to be clear at each step.",
+    "steps": {
+      "step1": {
+        "title": "Apply with your vehicle details",
+        "stepDescription": "Share vehicle type, service area, and availability. We confirm G-licence eligibility and whether your vehicle fits current merchant demand."
+      },
+      "step2": {
+        "title": "Complete onboarding review",
+        "stepDescription": "Documentation, insurance, and program terms are reviewed before partner access is granted. No work is assigned until onboarding requirements are met."
+      },
+      "step3": {
+        "title": "Accept routes through the partner workflow",
+        "stepDescription": "When routes match your vehicle and zone, you receive structured assignments with instructions, tracking, and completion steps in one place."
+      }
+    }
+  },
+  "ease": {
+    "label": "Designed for operators",
+    "title": "Making your day-to-day operations easier",
+    "subtitle": "Whether you run a single van or a small fleet, Porterchain aims to reduce administrative friction so you can focus on safe, reliable delivery.",
+    "items": {
+      "clarity": {
+        "title": "Clear route instructions",
+        "description": "Pickup windows, delivery details, and completion requirements are presented up front — fewer mid-route surprises."
+      },
+      "tools": {
+        "title": "Partner workflow tools",
+        "description": "Status updates and route visibility through the partner portal — designed to keep field work and dispatch aligned."
+      },
+      "fleet": {
+        "title": "Room to grow with multiple vehicles",
+        "description": "Operators with several eligible vehicles can discuss fleet onboarding during application. Each unit is reviewed against program and insurance requirements."
+      },
+      "local": {
+        "title": "Local Ontario focus",
+        "description": "We operate across GTA and select Ontario metros. Partners work within defined service areas rather than open-ended national roaming."
+      }
+    }
+  },
+  "faq": {
+    "label": "FAQ",
+    "title": "Frequently asked questions",
+    "subtitle": "General information about the Vehicle Partner Portal. Program details are confirmed during onboarding.",
+    "items": [
+      {
+        "question": "What vehicles are eligible for the partner program?",
+        "answer": "We partner with operators using sedan, SUV, pickup truck, cargo van, and box truck (typically up to 16 ft) capacity, subject to Ontario G-licence requirements and onboarding review. Vehicle fit is confirmed for your service area and the types of routes available."
+      },
+      {
+        "question": "Do I need an Ontario G licence?",
+        "answer": "Yes. Partners must hold a valid Ontario Class G licence (or equivalent eligibility for the vehicle operated). Additional credentials may be required depending on vehicle class and route type."
+      },
+      {
+        "question": "Can I register more than one vehicle?",
+        "answer": "Yes. If you operate multiple eligible vehicles, indicate this in your application. Each vehicle may be reviewed for insurance, documentation, and program fit before being added to your partner profile."
+      },
+      {
+        "question": "Are routes guaranteed or is income promised?",
+        "answer": "No. Route availability depends on merchant demand, your vehicle type, service area, and program participation. Compensation terms are described in partner agreements — we do not publish guaranteed earnings or minimum income on this page."
+      },
+      {
+        "question": "Are partners employees of Porterchain?",
+        "answer": "Driver partners are engaged under independent contractor terms described in partner agreements and applicable policies. This page is for general information only and does not replace contractual documents."
+      },
+      {
+        "question": "How do I start the application?",
+        "answer": "Use the partner application link below to access the Vehicle Partner Portal. You will be guided through vehicle details, documentation, and onboarding steps. Our team may follow up if additional information is needed."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to explore the Vehicle Partner Portal?",
+    "subtitle": "Start your application to see current onboarding requirements, eligible vehicle types, and service areas for your operation.",
+    "primary": "Continue to partner application",
+    "secondary": "Contact partner support"
+  },
+  "disclaimer": "Information on this page is general in nature and may change as programs evolve. Partner participation is subject to onboarding approval, documentation review, and executed partner terms."
+}

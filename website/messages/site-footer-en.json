@@ -2,9 +2,8 @@
   "tagline": "Commercial logistics partner for local businesses across the GTA.",
   "corporateTagline": "Professional commercial delivery for businesses that need reliability at scale.",
   "businessTagline": "Enterprise logistics for growing businesses.",
-  "address": "100 King Street West, Toronto, ON M5X 1A9",
   "copyright": "© {year} Porterchain Inc. All rights reserved.",
-  "contactLine": "ravi@porterchain.com · +1 (647) 619-7951",
+  "contactLine": "driver@porterchain.com · +1 (647) 619-7951",
   "driverPortal": "Driver Portal",
   "merchantPortal": "Merchant Portal",
   "support": "Customer Support",
@@ -15,25 +14,50 @@
       "links": {
         "book": "Book a Delivery",
         "business": "Business",
-        "customerPortal": "My Orders"
+        "customerPortal": "My Orders",
+        "getQuote": "Get a Quote"
+      }
+    },
+    "solutions": {
+      "title": "Solutions",
+      "links": {
+        "industry": "Industries",
+        "constructionMaterials": "Construction materials",
+        "electricalDistribution": "Electrical distribution",
+        "plumbingSupply": "Plumbing supply",
+        "serviceAreas": "Service areas",
+        "pricing": "Pricing",
+        "localDelivery": "Local delivery",
+        "integrations": "Integrations",
+        "enterprise": "Enterprise",
+        "vanDelivery": "Van delivery",
+        "mediumTruck": "Box truck delivery"
       }
     },
     "company": {
       "title": "Company",
       "links": {
         "about": "About",
-        "careers": "Careers",
+        "contact": "Contact",
         "blog": "Blog",
-        "contact": "Contact"
+        "careers": "Careers",
+        "drive": "Drive with us",
+        "vehiclePartnerPortal": "Vehicle Partner Portal"
       }
     },
     "resources": {
       "title": "Resources",
       "links": {
+        "developers": "Developers",
+        "faq": "FAQ",
+        "guides": "Guides",
+        "compare": "Compare",
+        "successStories": "Success stories",
+        "onboardingEducation": "Onboarding",
+        "campaigns": "Campaigns",
         "blogHome": "Blog Home",
         "logistics": "Logistics",
-        "routeOptimization": "Route Optimization",
-        "supplyChain": "Supply Chain",
+        "constructionBlog": "Construction",
         "sameDay": "Same-Day Delivery"
       }
     },

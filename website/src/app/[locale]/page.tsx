@@ -2,6 +2,8 @@ import { setRequestLocale } from "next-intl/server";
 import SiteShell from "@/components/layout/SiteShell";
 import Hero from "@/components/sections/Hero";
 import DeliveryTypes from "@/components/sections/DeliveryTypes";
+import GtaFramedSection from "@/components/sections/GtaFramedSection";
+import Industries from "@/components/sections/Industries";
 import Vehicles from "@/components/sections/Vehicles";
 import WhoCanUse from "@/components/sections/WhoCanUse";
 import HowItWorks from "@/components/sections/HowItWorks";
@@ -31,6 +33,8 @@ export default async function HomePage({ params }: Props) {
       <SiteShell>
         <Hero />
         <DeliveryTypes />
+        <GtaFramedSection />
+        <Industries />
         <Vehicles />
         <WhoCanUse />
         <HowItWorks />

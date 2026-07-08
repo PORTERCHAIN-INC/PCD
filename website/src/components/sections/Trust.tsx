@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import Container from "@/components/ui/Container";
 import LogisticsPattern from "@/components/illustrations/LogisticsPattern";
+import SiteImage from "@/components/ui/SiteImage";
+import { siteImages } from "@/data/site-images";
 
 const STATS = [
   { value: 1000, suffix: "+", labelKey: "customers" as const },
@@ -18,6 +20,12 @@ export default function Trust() {
 
   return (
     <section className="relative py-12 sm:py-16 md:py-20 bg-primary overflow-hidden">
+      <SiteImage
+        image={siteImages.sections.gta}
+        fill
+        className="object-cover object-[center_40%] opacity-25"
+        sizes="100vw"
+      />
       <LogisticsPattern className="absolute inset-0 w-full h-full opacity-40 pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-r from-primary via-transparent to-primary" />
       <Container className="relative">

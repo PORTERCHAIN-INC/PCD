@@ -7,14 +7,30 @@ packages:
   - "apps/mobile-driver"
   - "apps/mobile-customer"
   - "packages/*"
-  - "shared/api"
-  - "shared/theme"
-  - "shared/hooks"
-  - "shared/storage"
-  - "shared/maps"
-  - "shared/notifications"
-  - "shared/offline"
-  - "shared/mobile-security"
-  - "shared/mobile-performance"
-  - "shared/components"
-  - "shared/mobile-ui"
+allowBuilds:
+  '@clerk/shared': true
+  '@parcel/watcher': true
+  '@sentry/cli': true
+  '@swc/core': true
+  browser-tabs-lock: true
+  core-js: true
+  sharp: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@clerk/backend@3.11.1'
+  - '@clerk/nextjs@7.5.14'
+  - '@clerk/react@6.12.0'
+  - '@clerk/shared@4.25.0'
+  - '@sentry/browser-utils@10.64.0'
+  - '@sentry/browser@10.64.0'
+  - '@sentry/core@10.64.0'
+  - '@sentry/feedback@10.64.0'
+  - '@sentry/nextjs@10.64.0'
+  - '@sentry/node-core@10.64.0'
+  - '@sentry/node@10.64.0'
+  - '@sentry/opentelemetry@10.64.0'
+  - '@sentry/react@10.64.0'
+  - '@sentry/replay-canvas@10.64.0'
+  - '@sentry/replay@10.64.0'
+  - '@sentry/server-utils@10.64.0'
+  - '@sentry/vercel-edge@10.64.0'

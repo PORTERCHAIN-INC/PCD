@@ -75,8 +75,7 @@ export default function SiteFooter() {
               </div>
               <span className="text-xl font-bold">Porterchain</span>
             </Link>
-            <p className="text-white/50 type-small leading-relaxed mb-4">{t("tagline")}</p>
-            <p className="text-white/40 type-caption leading-relaxed mb-6">{t("address")}</p>
+            <p className="text-white/50 type-small leading-relaxed mb-6">{t("tagline")}</p>
             <div className="flex gap-3 justify-center sm:justify-start">
               <SocialLinks variant="footer" />
             </div>
@@ -95,7 +94,6 @@ export default function SiteFooter() {
         <div className="pt-8 border-t border-white/10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="text-center sm:text-left space-y-1">
             <p className="text-white/40 type-small">{t("copyright", { year })}</p>
-            <p className="text-white/30 type-caption">{tLegacy("iconAttribution")}</p>
             <p className="text-white/40 type-caption">{t("contactLine")}</p>
           </div>
           <div className="flex flex-wrap justify-center lg:justify-end gap-4 sm:gap-6">

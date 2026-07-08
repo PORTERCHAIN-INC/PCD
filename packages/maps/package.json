@@ -6,18 +6,19 @@
     ".": "./src/index.ts",
     "./provider": "./src/GoogleMapsProvider.tsx",
     "./address-autocomplete": "./src/AddressAutocompleteInput.tsx",
+    "./track-map": "./src/TrackRouteMap.tsx",
     "./types": "./src/types.ts"
   },
   "dependencies": {
-    "@vis.gl/react-google-maps": "^1.8.3"
+    "@vis.gl/react-google-maps": "^1.9.0"
   },
   "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@types/google.maps": "^3.65.2",
     "@types/react": "^19",
-    "typescript": "^5"
+    "typescript": "^6.0.3"
   }
 }

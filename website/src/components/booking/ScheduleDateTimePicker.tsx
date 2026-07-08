@@ -48,12 +48,14 @@ interface ScheduleDateTimePickerProps {
   value: Date;
   onChange: (value: Date) => void;
   compact?: boolean;
+  hero?: boolean;
 }
 
 export default function ScheduleDateTimePicker({
   value,
   onChange,
   compact = false,
+  hero = false,
 }: ScheduleDateTimePickerProps) {
   const t = useTranslations("booking.schedulePicker");
   const locale = useLocale();
@@ -109,15 +111,20 @@ export default function ScheduleDateTimePicker({
   };
 
   return (
-    <div ref={rootRef} className={cn(compact ? "space-y-1.5" : "space-y-2")}>
+    <div ref={rootRef} className={cn(hero ? "space-y-1" : compact ? "space-y-1.5" : "space-y-2")}>
       <div
         className={cn(
           "grid gap-2",
-          compact ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-[1.2fr_1fr]"
+          compact || hero ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-[1.2fr_1fr]"
         )}
       >
-        {compact ? (
-          <label className="booking-schedule-field booking-schedule-field-compact cursor-pointer">
+        {compact || hero ? (
+          <label
+            className={cn(
+              "booking-schedule-field booking-schedule-field-compact cursor-pointer",
+              hero && "booking-schedule-field-hero"
+            )}
+          >
             <Calendar className="w-3.5 h-3.5 text-secondary shrink-0" />
             <input
               type="date"
@@ -200,17 +207,18 @@ export default function ScheduleDateTimePicker({
         <label
           className={cn(
             "booking-schedule-field cursor-pointer",
-            compact && "booking-schedule-field-compact"
+            (compact || hero) && "booking-schedule-field-compact",
+            hero && "booking-schedule-field-hero"
           )}
         >
-          <Clock className="w-4 h-4 text-secondary shrink-0" />
+          <Clock className={cn("text-secondary shrink-0", hero ? "w-3 h-3" : "w-4 h-4")} />
           <select
             value={displayTime}
             onChange={(e) => handleTimeChange(e.target.value)}
             aria-label={t("pickTime")}
             className={cn(
               "w-full min-w-0 bg-transparent text-primary outline-none cursor-pointer appearance-none",
-              compact ? "text-sm" : "text-base"
+              hero ? "text-xs" : compact ? "text-sm" : "text-base"
             )}
           >
             {availableTimeSlots.map((slot) => (

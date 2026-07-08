@@ -1,6 +1,9 @@
+"use client";
+
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
+import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 
 type LinkButtonVariant = "primary" | "secondary" | "outline" | "ghost";
 type LinkButtonSize = "sm" | "md" | "lg";
@@ -13,6 +16,9 @@ interface LinkButtonProps {
   className?: string;
   showArrow?: boolean;
   external?: boolean;
+  trackEvent?: string;
+  trackLabel?: string;
+  trackSource?: string;
 }
 
 const variants: Record<LinkButtonVariant, string> = {
@@ -38,6 +44,9 @@ export default function LinkButton({
   className,
   showArrow = false,
   external = false,
+  trackEvent,
+  trackLabel,
+  trackSource,
 }: LinkButtonProps) {
   const classes = cn(
     "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200",
@@ -46,9 +55,24 @@ export default function LinkButton({
     className
   );
 
-  if (external || href.startsWith("mailto:") || href.startsWith("tel:")) {
+  function handleTrackClick() {
+    if (!trackEvent && !trackLabel) return;
+    track(trackEvent ?? ANALYTICS_EVENTS.CTA_CLICK, {
+      cta_label: trackLabel ?? (typeof children === "string" ? children : undefined),
+      cta_source: trackSource,
+      href,
+    });
+  }
+
+  if (
+    external ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:") ||
+    href.startsWith("http://") ||
+    href.startsWith("https://")
+  ) {
     return (
-      <a href={href} className={classes}>
+      <a href={href} className={classes} onClick={handleTrackClick}>
         {children}
         {showArrow && <ArrowRight className="w-4 h-4" />}
       </a>
@@ -56,7 +80,7 @@ export default function LinkButton({
   }
 
   return (
-    <Link href={href} className={classes}>
+    <Link href={href} className={classes} onClick={handleTrackClick}>
       {children}
       {showArrow && <ArrowRight className="w-4 h-4" />}
     </Link>

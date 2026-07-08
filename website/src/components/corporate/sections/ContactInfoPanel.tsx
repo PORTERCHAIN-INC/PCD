@@ -1,10 +1,7 @@
-import { MapPin, Phone, Mail, MessageCircle, Clock, AlertCircle } from "lucide-react";
+import { Phone, Mail, MessageCircle, Clock, AlertCircle } from "lucide-react";
 import FadeIn from "@/components/corporate/motion/FadeIn";
-import ContactMap from "@/components/corporate/sections/ContactMap";
 
 export interface ContactInfoData {
-  headOfficeLabel: string;
-  address: string;
   phoneLabel: string;
   phone: string;
   phoneHref: string;
@@ -19,7 +16,6 @@ export interface ContactInfoData {
   emergencyLabel: string;
   emergency: string;
   emergencyDetail: string;
-  mapTitle: string;
 }
 
 interface ContactInfoPanelProps {
@@ -28,13 +24,6 @@ interface ContactInfoPanelProps {
 
 export default function ContactInfoPanel({ info }: ContactInfoPanelProps) {
   const items = [
-    {
-      icon: MapPin,
-      label: info.headOfficeLabel,
-      value: info.address,
-      href: `https://maps.google.com/?q=${encodeURIComponent(info.address)}`,
-      external: true,
-    },
     {
       icon: Phone,
       label: info.phoneLabel,
@@ -104,9 +93,6 @@ export default function ContactInfoPanel({ info }: ContactInfoPanelProps) {
           </FadeIn>
         ))}
       </div>
-      <FadeIn delay={0.35}>
-        <ContactMap title={info.mapTitle} />
-      </FadeIn>
     </div>
   );
 }

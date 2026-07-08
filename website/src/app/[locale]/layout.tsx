@@ -5,8 +5,14 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
+import { publicEnv } from "@/lib/env";
 import AppClerkProvider from "@/components/providers/AppClerkProvider";
 import ZohoSalesIQ from "@/components/integrations/ZohoSalesIQ";
+import AttributionCapture from "@/components/seo/AttributionCapture";
+import GoogleAnalytics from "@/components/seo/GoogleAnalytics";
+import { JsonLd } from "@/components/seo";
+import { siteConfig } from "@/lib/seo/config";
+import { buildOrganizationSchema, buildLocalBusinessSchema } from "@/lib/seo/schema";
 import "../globals.css";
 
 const inter = Inter({
@@ -29,21 +35,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "metadata" });
 
   const alternateLocale = locale === "en" ? "fr" : "en";
+  const googleVerification = publicEnv.googleSiteVerification;
 
   return {
     title: t("title"),
     description: t("description"),
+    metadataBase: new URL(siteConfig.baseUrl),
+    ...(googleVerification ? { verification: { google: googleVerification } } : {}),
     keywords: [
+      "Construction Material Delivery GTA",
+      "Jobsite Delivery Toronto",
+      "Electrical Distributor Delivery",
+      "Plumbing Supply Delivery Ontario",
+      "Building Supply Courier",
+      "Livraison matériaux construction",
+      "Livraison chantier Toronto",
       "Local Delivery GTA",
       "Same Day Delivery Toronto",
-      "Livraison RGT",
-      "Livraison le jour même Toronto",
-      "Courier Mississauga",
-      "Messagerie Mississauga",
-      "LTL Shipping Ontario",
-      "FTL Ontario",
-      "Furniture Delivery Toronto",
-      "Medical Courier",
       "Porterchain",
     ],
     openGraph: {
@@ -80,9 +88,12 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <html lang={locale} className={`${inter.variable} scroll-smooth`}>
       <body className="min-h-screen bg-white font-sans antialiased">
+        <JsonLd data={[buildOrganizationSchema(), buildLocalBusinessSchema()]} />
         <AppClerkProvider>
           <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
           <ZohoSalesIQ />
+          <GoogleAnalytics />
+          <AttributionCapture />
         </AppClerkProvider>
       </body>
     </html>

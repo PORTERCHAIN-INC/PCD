@@ -1,26 +1,17 @@
-import Image from "next/image";
+import SiteImage from "@/components/ui/SiteImage";
+import { getVehicleImage } from "@/data/site-images";
+import { cn } from "@/lib/utils";
 
 export type VehicleIllustrationType =
   "sedan" | "suv" | "pickup" | "cargo-van" | "high-roof" | "box-16" | "box-20";
-
-type VehicleVariant = "light" | "dark";
 
 interface VehicleIllustrationProps {
   type: VehicleIllustrationType;
   className?: string;
   id?: string;
-  variant?: VehicleVariant;
+  variant?: "light" | "dark";
+  mode?: "photo" | "icon";
 }
-
-const VEHICLE_ICON_SRC: Record<VehicleIllustrationType, string> = {
-  sedan: "/icons/vehicles/sedan.png",
-  suv: "/icons/vehicles/suv.png",
-  pickup: "/icons/vehicles/pickup.png",
-  "cargo-van": "/icons/vehicles/cargo-van.png",
-  "high-roof": "/icons/vehicles/high-roof.png",
-  "box-16": "/icons/vehicles/box-16.png",
-  "box-20": "/icons/vehicles/box-20.png",
-};
 
 export function resolveVehicleIllustration(key: string): VehicleIllustrationType {
   const map: Record<string, VehicleIllustrationType> = {
@@ -42,19 +33,30 @@ export function resolveVehicleIllustration(key: string): VehicleIllustrationType
 export default function VehicleIllustration({
   type,
   className = "",
-  variant = "light",
+  mode = "photo",
 }: VehicleIllustrationProps) {
-  const filter = variant === "light" ? "brightness(0) invert(1)" : "brightness(0) saturate(100%)";
+  const image = getVehicleImage(type);
 
-  return (
-    <Image
-      src={VEHICLE_ICON_SRC[type]}
-      alt=""
-      width={512}
-      height={512}
-      aria-hidden
-      className={className}
-      style={{ filter, objectFit: "contain" }}
-    />
-  );
+  if (mode === "photo") {
+    return (
+      <div className={cn("relative overflow-hidden", className)}>
+        <SiteImage
+          image={image}
+          fill
+          className="object-cover"
+          sizes="(max-width: 640px) 80vw, 320px"
+        />
+      </div>
+    );
+  }
+
+  if (mode === "icon") {
+    return (
+      <span className={cn("relative inline-block overflow-hidden rounded", className)}>
+        <SiteImage image={image} fill className="object-cover" sizes="48px" />
+      </span>
+    );
+  }
+
+  return null;
 }

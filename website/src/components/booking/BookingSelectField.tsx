@@ -11,12 +11,13 @@ export type BookingSelectOption = {
 
 type BookingSelectFieldProps = {
   id: string;
-  label: string;
+  label?: string;
   icon?: LucideIcon;
   value: string;
   options: BookingSelectOption[];
   onChange: (value: string) => void;
   compact?: boolean;
+  hero?: boolean;
   className?: string;
 };
 
@@ -28,17 +29,20 @@ export default function BookingSelectField({
   options,
   onChange,
   compact = false,
+  hero = false,
   className,
 }: BookingSelectFieldProps) {
   return (
     <div className={cn("min-w-0", className)}>
-      <label
-        htmlFor={id}
-        className="type-caption font-bold text-muted mb-1 flex items-center gap-1.5"
-      >
-        {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
-        {label}
-      </label>
+      {label && (
+        <label
+          htmlFor={id}
+          className="type-caption font-bold text-muted mb-1 flex items-center gap-1.5"
+        >
+          {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
+          {label}
+        </label>
+      )}
       <div className="relative">
         <select
           id={id}
@@ -46,7 +50,8 @@ export default function BookingSelectField({
           onChange={(e) => onChange(e.target.value)}
           className={cn(
             "booking-select-field w-full appearance-none pr-9",
-            compact && "booking-select-field-compact"
+            (compact || hero) && "booking-select-field-compact",
+            hero && "booking-select-field-hero"
           )}
         >
           {options.map((opt) => (

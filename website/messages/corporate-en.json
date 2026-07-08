@@ -20,21 +20,27 @@
     },
     "company": {
       "title": "Company | Porterchain",
-      "description": "Porterchain is a professional commercial logistics company helping local businesses across the GTA and Ontario — mission, vision, and the team behind every shipment.",
+      "description": "Porterchain builds logistics orchestration software for businesses across the GTA and Ontario — mission, vision, and the team behind every shipment.",
       "ogTitle": "About Porterchain",
-      "ogDescription": "Commercial logistics company helping businesses grow without building their own logistics department."
+      "ogDescription": "Logistics technology platform helping businesses grow without building their own dispatch stack."
     },
     "contact": {
       "title": "Contact | Porterchain",
       "description": "Let's talk logistics. Reach Porterchain by phone, email, WhatsApp, or our inquiry form. Response within one business day.",
       "ogTitle": "Contact Porterchain",
-      "ogDescription": "Head office in Toronto. Sales, support, API, and emergency dispatch — we're here to help."
+      "ogDescription": "Sales, support, API, and emergency dispatch — we're here to help."
     },
     "careers": {
       "title": "Careers | Porterchain",
       "description": "Join Porterchain and help build the future of commercial logistics across Canada. Open roles in engineering, operations, sales, and more.",
       "ogTitle": "Careers at Porterchain",
       "ogDescription": "Build the future of logistics. Remote-friendly roles with growth, learning, and modern tools."
+    },
+    "developers": {
+      "title": "Developers | Porterchain API",
+      "description": "Integrate with Porterchain — OpenAPI reference, Postman collection, webhooks, and merchant API keys for quote-to-delivery automation.",
+      "ogTitle": "Porterchain Developer Portal",
+      "ogDescription": "REST API, webhooks, and partner docs for B2B logistics integrations."
     }
   },
   "nav": {
@@ -42,8 +48,12 @@
     "careers": "Careers",
     "blog": "Blog",
     "contact": "Contact",
-    "book": "Book delivery",
+    "industries": "Industries",
+    "constructionMaterials": "Construction",
+    "serviceAreas": "Service areas",
+    "pricing": "Pricing",
     "business": "Business",
+    "vehiclePartnerPortal": "Vehicle Partner Portal",
     "myOrders": "My orders",
     "businessLogin": "Business login",
     "login": "Sign in",
@@ -70,8 +80,7 @@
     "contact": "Contact",
     "privacy": "Privacy",
     "terms": "Terms",
-    "copyright": "© {year} Porterchain Inc. All rights reserved.",
-    "address": "100 King Street West, Toronto, ON M5X 1A9"
+    "copyright": "© {year} Porterchain Inc. All rights reserved."
   },
   "home": {
     "hero": {
@@ -553,7 +562,7 @@
       "items": {
         "0": {
           "q": "Where is Porterchain headquartered?",
-          "a": "Porterchain Inc. is headquartered at 100 King Street West, Toronto, ON M5X 1A9, Canada."
+          "a": "Porterchain Inc. is based in Toronto, ON, Canada, serving the GTA and Ontario metros."
         },
         "1": {
           "q": "Is Porterchain hiring?",
@@ -565,7 +574,7 @@
         },
         "3": {
           "q": "What makes Porterchain different?",
-          "a": "We're a structured commercial logistics company — not a marketplace. Every shipment runs through dispatch controls, compliance checks, and accountable workflows."
+          "a": "We're a structured logistics orchestration platform — not a marketplace. Every shipment runs through dispatch controls, compliance checks, and accountable workflows."
         }
       }
     },
@@ -594,14 +603,12 @@
       "subtitle": "Whether you're scaling delivery operations, setting up a business account, or need dispatch support — our team is ready to help."
     },
     "info": {
-      "headOfficeLabel": "Head Office",
-      "address": "100 King Street West, Toronto, ON M5X 1A9, Canada",
       "phoneLabel": "Phone",
       "phone": "+1 (647) 619-7951",
       "phoneHref": "tel:+16476197951",
       "emailLabel": "Email",
-      "email": "ravi@porterchain.com",
-      "emailHref": "mailto:ravi@porterchain.com",
+      "email": "driver@porterchain.com",
+      "emailHref": "mailto:driver@porterchain.com",
       "whatsappLabel": "WhatsApp",
       "whatsapp": "+1 (647) 619-7951",
       "whatsappHref": "https://wa.me/16476197951",
@@ -609,8 +616,7 @@
       "hours": "Monday – Friday, 8:00 AM – 6:00 PM ET",
       "emergencyLabel": "Emergency Dispatch",
       "emergency": "+1 (647) 619-7951",
-      "emergencyDetail": "Active shipment exceptions · ops@porterchain.com",
-      "mapTitle": "Porterchain head office on Google Maps"
+      "emergencyDetail": "Active shipment exceptions · ops@porterchain.com"
     },
     "form": {
       "title": "Send us a message",
@@ -642,7 +648,7 @@
         "0": {
           "title": "Sales",
           "description": "Quotes, pricing, and enterprise onboarding for growing businesses.",
-          "contact": "ravi@porterchain.com"
+          "contact": "driver@porterchain.com"
         },
         "1": {
           "title": "Support",
@@ -652,17 +658,17 @@
         "2": {
           "title": "Business Accounts",
           "description": "Account setup, billing, recurring routes, and SLA configuration.",
-          "contact": "ravi@porterchain.com"
+          "contact": "driver@porterchain.com"
         },
         "3": {
           "title": "Driver Support",
           "description": "Partner onboarding, route instructions, and field operations help.",
-          "contact": "ops@porterchain.com"
+          "contact": "driver@porterchain.com"
         },
         "4": {
           "title": "Developer Support",
           "description": "API access, webhooks, integrations, and technical documentation.",
-          "contact": "ravi@porterchain.com"
+          "contact": "driver@porterchain.com"
         }
       }
     },
@@ -679,12 +685,12 @@
           "a": "We respond to all inquiries within one business day. Emergency dispatch lines are monitored during active operations."
         },
         "1": {
-          "q": "Can I visit your Toronto office?",
-          "a": "Yes. Meetings can be arranged at our Financial District headquarters or held virtually — whichever works best."
+          "q": "Can I meet with your team in person?",
+          "a": "Yes. We can arrange virtual meetings or in-person sessions in the GTA by appointment — contact us to schedule."
         },
         "2": {
           "q": "Who should I contact for API access?",
-          "a": "Select API as your inquiry type or email ravi@porterchain.com with your integration requirements."
+          "a": "Select API as your inquiry type or email driver@porterchain.com with your integration requirements."
         },
         "3": {
           "q": "How do I report an active shipment issue?",
@@ -943,6 +949,91 @@
       "subtitle": "We're always looking for exceptional people. Send us your resume and tell us how you'd help build the future of logistics.",
       "primary": "Send us your resume",
       "secondary": "Get in touch"
+    }
+  },
+  "developers": {
+    "hero": {
+      "badge": "Developer portal",
+      "title": "Build on Porterchain logistics APIs",
+      "subtitle": "Quote, book, track, and receive webhooks through a single orchestration API. OpenAPI is the contract — import Postman and ship integrations without guessing routes.",
+      "primaryCta": "OpenAPI reference",
+      "secondaryCta": "Get API keys"
+    },
+    "quickstart": {
+      "label": "Quick start",
+      "title": "Three steps to your first call",
+      "apiHost": "API host: {host} — set NEXT_PUBLIC_PORTERCHAIN_API_URL for local (http://localhost:8001).",
+      "steps": {
+        "0": {
+          "step": "Step 1",
+          "title": "Read the partner guide",
+          "description": "Authentication, base URLs, and Phase 1 core endpoints for quote → booking → track."
+        },
+        "1": {
+          "step": "Step 2",
+          "title": "Import Postman",
+          "description": "Use the v2.1 collection with base_url, Bearer token (dev locally), and X-Api-Key for merchant-api."
+        },
+        "2": {
+          "step": "Step 3",
+          "title": "Create keys in merchant portal",
+          "description": "Generate sandbox API keys, configure webhooks, and review rate limits per tier."
+        }
+      }
+    },
+    "resources": {
+      "label": "Documentation",
+      "title": "Everything you need to integrate",
+      "items": {
+        "guide": {
+          "title": "Partner API guide",
+          "description": "Canonical markdown guide — auth, versioning, and core Phase 1 flows.",
+          "cta": "Read guide"
+        },
+        "postman": {
+          "title": "Postman collection",
+          "description": "porterchain.postman.json — quote, booking, merchant, driver, admin ops, and webhooks.",
+          "cta": "Download JSON"
+        },
+        "openapi": {
+          "title": "Live OpenAPI",
+          "description": "Interactive /docs and machine-readable openapi.json — route truth for all environments.",
+          "cta": "Open /docs"
+        },
+        "webhooks": {
+          "title": "Webhooks & HMAC",
+          "description": "Outbound event signing, retry behavior, and merchant webhook configuration.",
+          "cta": "Webhook docs"
+        },
+        "keys": {
+          "title": "API keys & sandbox",
+          "description": "Create scoped keys and toggle sandbox mode from the merchant integrations page.",
+          "cta": "Merchant API settings"
+        }
+      }
+    },
+    "flows": {
+      "label": "Phase 1",
+      "title": "Core integration paths",
+      "columns": {
+        "flow": "Flow",
+        "method": "Method",
+        "path": "Path"
+      },
+      "openApiJson": "OpenAPI JSON",
+      "changelog": "API changelog",
+      "items": {
+        "quote": { "name": "Instant quote", "method": "POST", "path": "/v1/quotes" },
+        "booking": { "name": "Create booking", "method": "POST", "path": "/v1/bookings" },
+        "track": { "name": "Public track", "method": "GET", "path": "/v1/orders/{tracking}/track" },
+        "webhook": { "name": "Merchant API", "method": "GET", "path": "/v1/merchant-api/orders" }
+      }
+    },
+    "cta": {
+      "title": "Need a partner integration review?",
+      "subtitle": "Our team helps with scoping, sandbox keys, and webhook verification before you go live.",
+      "contact": "Contact integrations",
+      "keys": "Open API settings"
     }
   }
 }

@@ -3,11 +3,14 @@ import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
 import FadeIn from "@/components/corporate/motion/FadeIn";
 import type { LucideIcon } from "lucide-react";
+import type { SiteImageRef } from "@/data/site-images";
+import SiteImage from "@/components/ui/SiteImage";
 
 export interface FeatureItem {
   title: string;
   description: string;
   icon?: LucideIcon;
+  image?: SiteImageRef;
 }
 
 interface FeatureSectionProps {
@@ -85,16 +88,28 @@ export default function FeatureSection({
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {items.map((item, i) => (
             <FadeIn key={i} delay={i * 0.06}>
-              <div className="card-surface card-surface-hover p-6 h-full">
-                {item.icon && (
-                  <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
-                    <item.icon className="w-5 h-5 text-secondary" aria-hidden />
+              <div className="card-surface card-surface-hover overflow-hidden h-full flex flex-col">
+                {item.image && (
+                  <div className="relative h-40 sm:h-44">
+                    <SiteImage
+                      image={item.image}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, 33vw"
+                    />
                   </div>
                 )}
-                <h3 className="text-base font-semibold text-primary tracking-tight">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm text-muted leading-relaxed">{item.description}</p>
+                <div className="p-6 flex flex-col flex-1">
+                  {item.icon && (
+                    <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+                      <item.icon className="w-5 h-5 text-secondary" aria-hidden />
+                    </div>
+                  )}
+                  <h3 className="text-base font-semibold text-primary tracking-tight">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted leading-relaxed">{item.description}</p>
+                </div>
               </div>
             </FadeIn>
           ))}

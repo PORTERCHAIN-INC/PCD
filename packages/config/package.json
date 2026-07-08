@@ -22,6 +22,6 @@
     "tsconfig.base.json"
   ],
   "dependencies": {
-    "@sentry/nextjs": "^10"
+    "@sentry/nextjs": "^10.64.0"
   }
 }

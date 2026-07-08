@@ -16,6 +16,11 @@ import {
   getCategoryPostCounts,
 } from "@/lib/blog";
 import { isBlogCategory, type BlogCategory } from "@/data/blog-categories";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
+import { buildBlogInternalLinks } from "@/lib/seo/blog-seo";
+import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
+import HeroPhoto from "@/components/ui/HeroPhoto";
+import { getBlogCoverImage } from "@/data/site-images";
 import { publicEnv } from "@/lib/env";
 import { Clock } from "lucide-react";
 
@@ -36,21 +41,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = getPost(locale as Locale, slug);
   if (!post) return { title: "Article" };
 
-  return {
-    title: `${post.title} | Porterchain Blog`,
-    description: post.description,
-    openGraph: {
-      title: post.title,
-      description: post.description,
-      type: "article",
-      publishedTime: post.date,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: post.title,
-      description: post.description,
-    },
-  };
+  return buildPageMetadata(
+    locale,
+    `blog/${slug}`,
+    `${post.title} | Porterchain Blog`,
+    post.description
+  );
 }
 
 export default async function BlogArticlePage({ params }: Props) {
@@ -76,6 +72,8 @@ export default async function BlogArticlePage({ params }: Props) {
     locale === "fr" ? "fr-CA" : "en-CA",
     { year: "numeric", month: "long", day: "numeric" }
   );
+
+  const seoLinks = buildBlogInternalLinks(loc, post);
 
   const siteUrl = publicEnv.siteUrl;
   const articleUrl = `${siteUrl}/${locale}/blog/${slug}`;
@@ -132,9 +130,19 @@ export default async function BlogArticlePage({ params }: Props) {
                 </div>
               </header>
 
+              <div className="mt-10 max-w-3xl">
+                <HeroPhoto image={getBlogCoverImage(post.category)} aspect="cinematic" />
+              </div>
+
               <div className="mt-12 max-w-3xl">
                 <MarkdownContent content={post.content} />
               </div>
+
+              {seoLinks.length > 0 && (
+                <div className="mt-12 max-w-3xl">
+                  <InternalLinksBlock title={t("seoLinksTitle")} links={seoLinks} />
+                </div>
+              )}
 
               <div className="mt-12 max-w-3xl">
                 <AuthorCard authorId={post.authorId} writtenByLabel={t("writtenBy")} />

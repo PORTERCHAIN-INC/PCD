@@ -2,9 +2,8 @@
   "tagline": "Partenaire logistique commercial pour les entreprises locales du RGT.",
   "corporateTagline": "Livraison commerciale professionnelle pour les entreprises qui exigent la fiabilité.",
   "businessTagline": "Logistique d'entreprise pour les entreprises en croissance.",
-  "address": "100 King Street West, Toronto, ON M5X 1A9",
   "copyright": "© {year} Porterchain Inc. Tous droits réservés.",
-  "contactLine": "ravi@porterchain.com · +1 (647) 619-7951",
+  "contactLine": "driver@porterchain.com · +1 (647) 619-7951",
   "driverPortal": "Portail chauffeur",
   "merchantPortal": "Portail marchand",
   "support": "Support client",
@@ -15,25 +14,50 @@
       "links": {
         "book": "Réserver une livraison",
         "business": "Entreprise",
-        "customerPortal": "Mes commandes"
+        "customerPortal": "Mes commandes",
+        "getQuote": "Obtenir un devis"
+      }
+    },
+    "solutions": {
+      "title": "Solutions",
+      "links": {
+        "industry": "Industries",
+        "constructionMaterials": "Matériaux de construction",
+        "electricalDistribution": "Distribution électrique",
+        "plumbingSupply": "Fournitures plomberie",
+        "serviceAreas": "Zones desservies",
+        "pricing": "Tarification",
+        "localDelivery": "Livraison locale",
+        "integrations": "Intégrations",
+        "enterprise": "Entreprise",
+        "vanDelivery": "Livraison fourgonnette",
+        "mediumTruck": "Camion boîte"
       }
     },
     "company": {
       "title": "Entreprise",
       "links": {
         "about": "À propos",
-        "careers": "Carrières",
+        "contact": "Contact",
         "blog": "Blogue",
-        "contact": "Contact"
+        "careers": "Carrières",
+        "drive": "Conduire avec nous",
+        "vehiclePartnerPortal": "Portail partenaire véhicule"
       }
     },
     "resources": {
       "title": "Ressources",
       "links": {
+        "developers": "Développeurs",
+        "faq": "FAQ",
+        "guides": "Guides",
+        "compare": "Comparer",
+        "successStories": "Réussites",
+        "onboardingEducation": "Intégration",
+        "campaigns": "Campagnes",
         "blogHome": "Accueil blogue",
         "logistics": "Logistique",
-        "routeOptimization": "Optimisation d'itinéraires",
-        "supplyChain": "Chaîne d'approvisionnement",
+        "constructionBlog": "Construction",
         "sameDay": "Livraison le jour même"
       }
     },

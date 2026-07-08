@@ -12,6 +12,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const blogMessages = (await import(`../../messages/blog-${locale}.json`)).default;
   const siteFooterMessages = (await import(`../../messages/site-footer-${locale}.json`)).default;
   const legalMessages = (await import(`../../messages/legal-${locale}.json`)).default;
+  const vehiclePartnerMessages = (await import(`../../messages/vehicle-partner-${locale}.json`))
+    .default;
 
   return {
     locale,
@@ -22,6 +24,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       blog: blogMessages,
       siteFooter: siteFooterMessages,
       legal: legalMessages,
+      vehiclePartner: vehiclePartnerMessages,
     },
   };
 });

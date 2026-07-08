@@ -19,8 +19,18 @@ function isClerkConfigured(): boolean {
   );
 }
 
+function shouldBypassIntl(pathname: string): boolean {
+  return (
+    pathname.startsWith("/api") ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/robots.txt" ||
+    pathname === "/ravi" ||
+    pathname.startsWith("/ravi/")
+  );
+}
+
 function handleRequest(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith("/api")) {
+  if (shouldBypassIntl(req.nextUrl.pathname)) {
     return NextResponse.next();
   }
   return intlMiddleware(req);

@@ -12,6 +12,7 @@ interface CtaSectionProps {
   secondaryHref?: string;
   variant?: "light" | "dark" | "gradient";
   className?: string;
+  trackSource?: string;
 }
 
 export default function CtaSection({
@@ -23,6 +24,7 @@ export default function CtaSection({
   secondaryHref,
   variant = "dark",
   className,
+  trackSource,
 }: CtaSectionProps) {
   const isDark = variant === "dark" || variant === "gradient";
 
@@ -61,7 +63,13 @@ export default function CtaSection({
               </p>
             )}
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <LinkButton href={primaryHref} variant={isDark ? "primary" : "primary"} size="lg">
+              <LinkButton
+                href={primaryHref}
+                variant={isDark ? "primary" : "primary"}
+                size="lg"
+                trackLabel={primaryLabel}
+                trackSource={trackSource}
+              >
                 {primaryLabel}
               </LinkButton>
               {secondaryLabel && secondaryHref && (
@@ -70,6 +78,8 @@ export default function CtaSection({
                   variant={isDark ? "outline" : "outline"}
                   size="lg"
                   className={isDark ? "border-white/25 text-white hover:bg-white/10" : undefined}
+                  trackLabel={secondaryLabel}
+                  trackSource={trackSource}
                 >
                   {secondaryLabel}
                 </LinkButton>

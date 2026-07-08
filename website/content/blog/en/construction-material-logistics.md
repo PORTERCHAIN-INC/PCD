@@ -28,3 +28,5 @@ Photo, signature, and GPS-backed proof tied to shipment references gives project
 ## Why Porterchain fits construction
 
 Porterchain treats construction as a first-class vertical: structured dispatch, routing tuned for Ontario roads, and compliance workflows our operations team runs daily — so you do not need to build your own logistics department.
+
+Explore our [construction materials delivery](/en/industry/construction-materials), [electrical distribution](/en/industry/electrical-distribution), and [plumbing supply](/en/industry/plumbing-supply) industry pages, or read about [box truck delivery](/en/medium-truck) for palletized jobsite freight.

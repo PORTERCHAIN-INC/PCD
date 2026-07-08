@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 import type { BookingAddress } from "./types";
 
 /** GTA + southern Ontario bias for Porterchain service area. */
@@ -14,6 +15,18 @@ export const GTA_LOCATION_BIAS: google.maps.LatLngBoundsLiteral = {
   north: GTA_MAP_BOUNDS.north,
   east: GTA_MAP_BOUNDS.east,
 };
+
+export const GTA_CENTER = { lat: 43.6532, lng: -79.3832 };
+
+export function coordsFromAddress(
+  addr?: Record<string, unknown> | null
+): google.maps.LatLngLiteral | null {
+  if (!addr) return null;
+  const lat = addr.lat;
+  const lng = addr.lng;
+  if (typeof lat !== "number" || typeof lng !== "number") return null;
+  return { lat, lng };
+}
 
 export function resolveGoogleMapsApiKey(explicit?: string): string {
   return (explicit ?? process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "").trim();

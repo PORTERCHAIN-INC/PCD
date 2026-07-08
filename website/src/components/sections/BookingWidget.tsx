@@ -77,12 +77,13 @@ const VEHICLE_OPTIONS = [
 ] as const;
 
 type BookingWidgetProps = {
-  variant?: "default" | "compact";
+  variant?: "default" | "compact" | "hero";
   className?: string;
 };
 
 export default function BookingWidget({ variant = "default", className }: BookingWidgetProps) {
-  const compact = variant === "compact";
+  const isHero = variant === "hero";
+  const compact = variant === "compact" || isHero;
   const t = useTranslations("booking");
   const {
     selectedVehicle,
@@ -245,29 +246,41 @@ export default function BookingWidget({ variant = "default", className }: Bookin
   return (
     <Wrapper
       {...wrapperMotionProps}
-      className={cn("w-full", compact && "booking-widget-compact flex flex-col min-h-0", className)}
+      className={cn(
+        "w-full",
+        compact && "booking-widget-compact flex flex-col min-h-0",
+        isHero && "booking-widget-hero",
+        className
+      )}
     >
       <div
         className={cn(
           "relative flex flex-col min-h-0 overflow-hidden",
           compact
-            ? "booking-widget-panel rounded-xl sm:rounded-2xl flex-1 bg-white border border-gray-200/80 shadow-[0_4px_24px_-4px_rgba(10,22,40,0.22)]"
+            ? isHero
+              ? "booking-widget-panel rounded-2xl bg-white/98 border border-white/80 shadow-[0_8px_40px_-8px_rgba(10,22,40,0.35)] backdrop-blur-sm"
+              : "booking-widget-panel rounded-xl sm:rounded-2xl flex-1 bg-white border border-gray-200/80 shadow-[0_4px_24px_-4px_rgba(10,22,40,0.22)]"
             : "bg-white/95 backdrop-blur-2xl border border-white/70 shadow-[0_24px_80px_-16px_rgba(10,22,40,0.4)] rounded-2xl sm:rounded-[1.75rem] md:rounded-[2rem]"
         )}
       >
-        {!compact && (
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/40 to-transparent" />
+        {(isHero || !compact) && (
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/50 to-transparent" />
         )}
 
         {/* Header + tabs */}
         <div
           className={cn(
             "flex shrink-0",
-            compact
-              ? "flex-row items-center justify-stretch px-3 pt-2 pb-1 sm:px-4"
-              : "flex-col gap-4 px-4 pt-5 pb-4 sm:px-7 sm:pt-7 md:flex-row md:items-center md:justify-between"
+            isHero
+              ? "flex-col gap-2 px-3.5 pt-3 pb-1 sm:px-4"
+              : compact
+                ? "flex-row items-center justify-stretch px-3 pt-2 pb-1 sm:px-4"
+                : "flex-col gap-4 px-4 pt-5 pb-4 sm:px-7 sm:pt-7 md:flex-row md:items-center md:justify-between"
           )}
         >
+          {isHero && (
+            <h2 className="text-sm font-bold text-primary tracking-tight">{t("title")}</h2>
+          )}
           {!compact && (
             <div className="min-w-0">
               <h2 className="type-h3 font-bold text-primary tracking-tight">{t("title")}</h2>
@@ -276,28 +289,40 @@ export default function BookingWidget({ variant = "default", className }: Bookin
               </p>
             </div>
           )}
-          <WidgetTabs activeTab={activeTab} setActiveTab={setActiveTab} t={t} compact={compact} />
+          <WidgetTabs
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            t={t}
+            compact={compact}
+            hero={isHero}
+          />
         </div>
 
         <div
           className={cn(
-            compact
-              ? "px-3 pb-3 space-y-2 sm:px-4 sm:pb-4"
-              : "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-5 space-y-4 sm:px-7 sm:pb-7 sm:space-y-5"
+            isHero
+              ? "px-3.5 pb-3.5 space-y-2.5 sm:px-4 sm:pb-4"
+              : compact
+                ? "px-3 pb-3 space-y-2 sm:px-4 sm:pb-4"
+                : "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-5 space-y-4 sm:px-7 sm:pb-7 sm:space-y-5"
           )}
         >
           {/* Main row: addresses + options */}
           <div
             className={cn(
-              "grid gap-2 sm:gap-3",
-              compact ? "grid-cols-1" : "md:grid-cols-2 gap-4 md:gap-5"
+              "grid gap-2",
+              isHero
+                ? "grid-cols-1"
+                : compact
+                  ? "grid-cols-1 sm:gap-3"
+                  : "md:grid-cols-2 gap-4 md:gap-5"
             )}
           >
             {/* Uber-style address route */}
             <div
               className={cn(
                 "relative rounded-xl bg-gray-bg/80 border border-gray-200/60",
-                compact ? "p-2.5 sm:p-3" : "rounded-2xl p-4 sm:p-5"
+                isHero ? "p-2" : compact ? "p-2.5 sm:p-3" : "rounded-2xl p-4 sm:p-5"
               )}
             >
               <button
@@ -306,37 +331,47 @@ export default function BookingWidget({ variant = "default", className }: Bookin
                 aria-label={t("swapAddresses")}
                 className={cn(
                   "absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 z-10 touch-target rounded-full bg-white border border-gray-200/80 flex items-center justify-center text-muted hover:text-secondary hover:border-secondary/40 hover:shadow-md transition-all cursor-pointer",
-                  compact ? "w-9 h-9" : "w-11 h-11 right-2 sm:right-3"
+                  isHero ? "w-8 h-8" : compact ? "w-9 h-9" : "w-11 h-11 right-2 sm:right-3"
                 )}
               >
-                <ArrowUpDown className="w-3.5 h-3.5" />
+                <ArrowUpDown className="w-3 h-3" />
               </button>
 
               <div
-                className={cn("flex gap-2", compact ? "pr-10 sm:pr-11" : "gap-3 pr-12 sm:pr-14")}
+                className={cn(
+                  "flex gap-2",
+                  isHero ? "pr-9" : compact ? "pr-10 sm:pr-11" : "gap-3 pr-12 sm:pr-14"
+                )}
               >
                 {/* Route line */}
-                <div className="flex flex-col items-center pt-2 pb-2 shrink-0">
+                <div className="flex flex-col items-center pt-1.5 pb-1.5 shrink-0">
                   <div className="booking-icon-badge bg-secondary/15 text-secondary">
                     <Circle
                       className={cn(
-                        compact ? "w-3 h-3" : "w-4 h-4",
+                        isHero ? "w-2.5 h-2.5" : compact ? "w-3 h-3" : "w-4 h-4",
                         "fill-secondary text-secondary"
                       )}
                     />
                   </div>
-                  <div className="w-0.5 flex-1 min-h-[1.25rem] my-1 bg-gradient-to-b from-secondary/50 to-primary/30 rounded-full" />
+                  <div className="w-0.5 flex-1 min-h-[0.85rem] my-0.5 bg-gradient-to-b from-secondary/50 to-primary/30 rounded-full" />
                   <div className="booking-icon-badge bg-primary/10 text-primary">
-                    <MapPin className={compact ? "w-3 h-3" : "w-4 h-4"} />
+                    <MapPin className={isHero ? "w-2.5 h-2.5" : compact ? "w-3 h-3" : "w-4 h-4"} />
                   </div>
                 </div>
 
                 {/* Inputs */}
-                <div className={cn("flex-1 flex flex-col min-w-0", compact ? "gap-2" : "gap-3")}>
+                <div
+                  className={cn(
+                    "flex-1 flex flex-col min-w-0",
+                    isHero ? "gap-1.5" : compact ? "gap-2" : "gap-3"
+                  )}
+                >
                   <div className="group">
-                    <label className="type-caption font-bold text-muted mb-1 block normal-case">
-                      {t("pickupAddress")}
-                    </label>
+                    {!isHero && (
+                      <label className="type-caption font-bold text-muted mb-1 block normal-case">
+                        {t("pickupAddress")}
+                      </label>
+                    )}
                     <AddressAutocompleteInput
                       id="booking-pickup"
                       value={pickup?.formatted ?? ""}
@@ -346,9 +381,11 @@ export default function BookingWidget({ variant = "default", className }: Bookin
                     />
                   </div>
                   <div className="group">
-                    <label className="type-caption font-bold text-muted mb-1 block normal-case">
-                      {t("dropoffAddress")}
-                    </label>
+                    {!isHero && (
+                      <label className="type-caption font-bold text-muted mb-1 block normal-case">
+                        {t("dropoffAddress")}
+                      </label>
+                    )}
                     <AddressAutocompleteInput
                       id="booking-dropoff"
                       value={dropoff?.formatted ?? ""}
@@ -364,6 +401,7 @@ export default function BookingWidget({ variant = "default", className }: Bookin
             {compact && (
               <DeliveryVehicleFields
                 compact
+                hero={isHero}
                 delivery={delivery}
                 setDelivery={setDelivery}
                 selectedVehicle={selectedVehicle}
@@ -373,18 +411,20 @@ export default function BookingWidget({ variant = "default", className }: Bookin
             )}
 
             {/* Schedule + package */}
-            <div className={cn("flex flex-col", compact ? "gap-2" : "gap-4")}>
+            <div className={cn("flex flex-col", isHero ? "gap-2" : compact ? "gap-2" : "gap-4")}>
               <div
                 className={cn(
                   "rounded-xl bg-gray-bg/80 border border-gray-200/60",
-                  compact ? "p-2.5 sm:p-3" : "rounded-2xl p-4 sm:p-5"
+                  isHero ? "p-2" : compact ? "p-2.5 sm:p-3" : "rounded-2xl p-4 sm:p-5"
                 )}
               >
-                <span className="type-caption font-bold text-muted mb-2 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  {t("schedule")}
-                </span>
-                <div className="flex gap-1.5 mb-2">
+                {!isHero && (
+                  <span className="type-caption font-bold text-muted mb-2 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    {t("schedule")}
+                  </span>
+                )}
+                <div className={cn("flex gap-1.5", isHero ? "mb-1.5" : "mb-2")}>
                   <button
                     type="button"
                     onClick={() => setScheduleMode("now")}
@@ -413,36 +453,51 @@ export default function BookingWidget({ variant = "default", className }: Bookin
                     value={scheduledAt}
                     onChange={setScheduledAt}
                     compact={compact}
+                    hero={isHero}
                   />
                 )}
 
-                <div className={cn(compact ? "mt-2 pt-2 border-t border-gray-200/60" : "mt-0")}>
+                <div
+                  className={cn(
+                    isHero
+                      ? "mt-1.5 pt-1.5 border-t border-gray-200/50"
+                      : compact
+                        ? "mt-2 pt-2 border-t border-gray-200/60"
+                        : "mt-0"
+                  )}
+                >
                   {!compact && (
                     <span className="type-caption font-bold text-muted mb-2 block">
                       {t("packageDetails")}
                     </span>
                   )}
-                  <div className="flex gap-1.5 sm:gap-2">
-                    <div className="flex items-center gap-1.5 flex-1 bg-white rounded-full pl-3 pr-1 py-2 border border-gray-200/60 focus-within:border-secondary/40 focus-within:ring-2 focus-within:ring-secondary/15 transition-all">
-                      <Scale className="w-3.5 h-3.5 text-secondary shrink-0" />
+                  <div className="flex gap-1.5">
+                    <div className="flex items-center gap-1 flex-1 bg-white rounded-lg pl-2.5 pr-1 py-1.5 border border-gray-200/60 focus-within:border-secondary/40 focus-within:ring-2 focus-within:ring-secondary/15 transition-all">
+                      <Scale className="w-3 h-3 text-secondary shrink-0" />
                       <input
                         type="text"
                         inputMode="decimal"
                         placeholder={t("weight")}
                         value={weight}
                         onChange={(e) => setWeight(e.target.value)}
-                        className="w-full min-w-0 bg-transparent text-sm text-primary placeholder:text-muted/50 outline-none"
+                        className={cn(
+                          "w-full min-w-0 bg-transparent text-primary placeholder:text-muted/50 outline-none",
+                          isHero ? "text-xs" : "text-sm"
+                        )}
                       />
-                      <WeightUnitToggle unit={weightUnit} onChange={setWeightUnit} />
+                      <WeightUnitToggle unit={weightUnit} onChange={setWeightUnit} hero={isHero} />
                     </div>
-                    <div className="flex items-center gap-1.5 flex-[1.4] bg-white rounded-full px-3 py-2 border border-gray-200/60 focus-within:border-secondary/40 focus-within:ring-2 focus-within:ring-secondary/15 transition-all">
-                      <Ruler className="w-3.5 h-3.5 text-secondary shrink-0" />
+                    <div className="flex items-center gap-1 flex-[1.2] bg-white rounded-lg px-2.5 py-1.5 border border-gray-200/60 focus-within:border-secondary/40 focus-within:ring-2 focus-within:ring-secondary/15 transition-all">
+                      <Ruler className="w-3 h-3 text-secondary shrink-0" />
                       <input
                         type="text"
                         placeholder={t("dimensions")}
                         value={dimensions}
                         onChange={(e) => setDimensions(e.target.value)}
-                        className="w-full bg-transparent text-sm text-primary placeholder:text-muted/50 outline-none"
+                        className={cn(
+                          "w-full bg-transparent text-primary placeholder:text-muted/50 outline-none",
+                          isHero ? "text-xs" : "text-sm"
+                        )}
                       />
                     </div>
                   </div>
@@ -497,24 +552,26 @@ export default function BookingWidget({ variant = "default", className }: Bookin
           {/* CTA */}
           <Button
             shape="pill"
-            size={compact ? "md" : "lg"}
+            size={isHero ? "sm" : compact ? "md" : "lg"}
             type="button"
             disabled={quoteLoading}
             onClick={handleInstantQuote}
             className={cn(
               "w-full font-bold gap-2 bg-gradient-to-r from-secondary to-[#1d4ed8] hover:from-[#1d4ed8] hover:to-[#1e40af] shadow-lg shadow-secondary/25 group",
-              compact
-                ? "min-h-10 text-sm"
-                : "min-h-[3.5rem] sm:min-h-[3.75rem] text-base gap-3 shadow-xl shadow-secondary/30"
+              isHero
+                ? "min-h-9 text-xs shadow-md"
+                : compact
+                  ? "min-h-10 text-sm"
+                  : "min-h-[3.5rem] sm:min-h-[3.75rem] text-base gap-3 shadow-xl shadow-secondary/30"
             )}
           >
             <span
               className={cn(
                 "flex items-center justify-center rounded-full bg-white/20",
-                compact ? "w-7 h-7" : "w-9 h-9"
+                isHero ? "w-6 h-6" : compact ? "w-7 h-7" : "w-9 h-9"
               )}
             >
-              <Sparkles className={compact ? "w-4 h-4" : "w-5 h-5"} />
+              <Sparkles className={isHero ? "w-3.5 h-3.5" : compact ? "w-4 h-4" : "w-5 h-5"} />
             </span>
             {quoteLoading ? t("quoteLoading") : t("instantQuote")}
             <ArrowRight
@@ -641,6 +698,7 @@ export default function BookingWidget({ variant = "default", className }: Bookin
 
 function DeliveryVehicleFields({
   compact,
+  hero = false,
   delivery,
   setDelivery,
   selectedVehicle,
@@ -648,6 +706,7 @@ function DeliveryVehicleFields({
   t,
 }: {
   compact: boolean;
+  hero?: boolean;
   delivery: string;
   setDelivery: (value: string) => void;
   selectedVehicle: BookingVehicleKey;
@@ -665,24 +724,26 @@ function DeliveryVehicleFields({
 
   if (compact) {
     return (
-      <div className="grid grid-cols-2 gap-2">
+      <div className={cn("grid gap-2", hero ? "grid-cols-1" : "grid-cols-2")}>
         <BookingSelectField
           id="booking-delivery-type"
-          label={t("deliveryType")}
+          label={hero ? undefined : t("deliveryType")}
           icon={Package}
           value={delivery}
           options={deliveryOptions}
           onChange={setDelivery}
           compact
+          hero={hero}
         />
         <BookingSelectField
           id="booking-vehicle-type"
-          label={t("vehicleType")}
+          label={hero ? undefined : t("vehicleType")}
           icon={Truck}
           value={selectedVehicle}
           options={vehicleOptions}
           onChange={(value) => setSelectedVehicle(value as BookingVehicleKey)}
           compact
+          hero={hero}
         />
       </div>
     );
@@ -752,8 +813,8 @@ function DeliveryVehicleFields({
                 <VehicleIllustration
                   type={resolveVehicleIllustration(key)}
                   id={`chip-${key}`}
-                  variant="dark"
-                  className="w-[1.1rem] h-[0.55rem] shrink-0 opacity-80"
+                  mode="icon"
+                  className="w-7 h-5 shrink-0 rounded object-cover opacity-90"
                 />
                 {t(`vehicleOptions.${key}`)}
               </button>
@@ -768,9 +829,11 @@ function DeliveryVehicleFields({
 function WeightUnitToggle({
   unit,
   onChange,
+  hero = false,
 }: {
   unit: WeightUnit;
   onChange: (unit: WeightUnit) => void;
+  hero?: boolean;
 }) {
   return (
     <div
@@ -785,7 +848,8 @@ function WeightUnitToggle({
           aria-pressed={unit === u}
           onClick={() => onChange(u)}
           className={cn(
-            "px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wide transition-all cursor-pointer",
+            "rounded-full font-bold uppercase tracking-wide transition-all cursor-pointer",
+            hero ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-xs",
             unit === u ? "bg-secondary text-white shadow-sm" : "text-muted hover:text-primary"
           )}
         >
@@ -801,11 +865,13 @@ function WidgetTabs({
   setActiveTab,
   t,
   compact = false,
+  hero = false,
 }: {
   activeTab: (typeof TAB_KEYS)[number];
   setActiveTab: (tab: (typeof TAB_KEYS)[number]) => void;
   t: (key: string) => string;
   compact?: boolean;
+  hero?: boolean;
 }) {
   const router = useRouter();
 
@@ -832,7 +898,11 @@ function WidgetTabs({
             }}
             className={cn(
               "relative flex flex-1 sm:flex-none items-center justify-center gap-1.5 type-nav-strong rounded-full transition-all cursor-pointer whitespace-nowrap",
-              compact ? "px-3 py-1.5 min-h-8 text-xs" : "gap-2 px-4 sm:px-5 py-2.5 min-h-[2.75rem]",
+              hero
+                ? "px-2.5 py-1 min-h-7 text-[11px]"
+                : compact
+                  ? "px-3 py-1.5 min-h-8 text-xs"
+                  : "gap-2 px-4 sm:px-5 py-2.5 min-h-[2.75rem]",
               isActive
                 ? "bg-white text-secondary font-bold shadow-md shadow-secondary/10"
                 : "text-muted hover:text-primary hover:font-bold"

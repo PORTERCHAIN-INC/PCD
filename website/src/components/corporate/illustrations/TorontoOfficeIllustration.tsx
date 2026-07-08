@@ -80,7 +80,7 @@ export default function TorontoOfficeIllustration() {
             fontWeight="600"
             opacity="0.75"
           >
-            100 King Street West · Toronto
+            Toronto · Greater Toronto Area
           </text>
 
           {/* P marker */}
@@ -93,7 +93,7 @@ export default function TorontoOfficeIllustration() {
           <div className="flex items-center gap-2 rounded-xl bg-white/[0.06] border border-white/[0.08] px-3 py-2.5">
             <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
             <span className="text-[10px] font-medium text-white/55 uppercase tracking-wider">
-              Toronto HQ · Financial District
+              Serving the GTA & Ontario
             </span>
           </div>
         </div>

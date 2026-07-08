@@ -35,6 +35,12 @@
       "description": "Rejoignez Porterchain et contribuez à transformer la logistique commerciale au Canada.",
       "ogTitle": "Carrières chez Porterchain",
       "ogDescription": "Construisez l'avenir de la logistique. Postes télétravail avec croissance et outils modernes."
+    },
+    "developers": {
+      "title": "Développeurs | API Porterchain",
+      "description": "Intégrez Porterchain — référence OpenAPI, collection Postman, webhooks et clés API marchandes pour automatiser devis à livraison.",
+      "ogTitle": "Portail développeur Porterchain",
+      "ogDescription": "API REST, webhooks et documentation partenaire pour les intégrations logistiques B2B."
     }
   },
   "nav": {
@@ -42,8 +48,12 @@
     "careers": "Carrières",
     "blog": "Blogue",
     "contact": "Contact",
-    "book": "Réserver",
+    "industries": "Industries",
+    "constructionMaterials": "Construction",
+    "serviceAreas": "Zones desservies",
+    "pricing": "Tarification",
     "business": "Entreprise",
+    "vehiclePartnerPortal": "Portail partenaire véhicule",
     "myOrders": "Mes commandes",
     "businessLogin": "Connexion entreprise",
     "login": "Connexion",
@@ -70,8 +80,7 @@
     "contact": "Contact",
     "privacy": "Confidentialité",
     "terms": "Conditions",
-    "copyright": "© {year} Porterchain Inc. Tous droits réservés.",
-    "address": "100 King Street West, Toronto, ON M5X 1A9"
+    "copyright": "© {year} Porterchain Inc. Tous droits réservés."
   },
   "home": {
     "hero": {
@@ -526,7 +535,10 @@
       "label": "FAQ",
       "title": "FAQ entreprise",
       "items": {
-        "0": { "q": "Siège social?", "a": "100 King Street West, Toronto, ON M5X 1A9, Canada." },
+        "0": {
+          "q": "Siège social?",
+          "a": "Porterchain Inc. est basée à Toronto, ON, Canada, et dessert le RGT et les régions métropolitaines de l'Ontario."
+        },
         "1": {
           "q": "Recrutement?",
           "a": "Nous grandissons nos équipes technologie et opérations."
@@ -566,14 +578,12 @@
       "subtitle": "Que vous développiez vos livraisons, ouvriez un compte entreprise ou ayez besoin de support répartition — notre équipe est prête."
     },
     "info": {
-      "headOfficeLabel": "Siège social",
-      "address": "100 King Street West, Toronto, ON M5X 1A9, Canada",
       "phoneLabel": "Téléphone",
       "phone": "+1 (647) 619-7951",
       "phoneHref": "tel:+16476197951",
       "emailLabel": "Courriel",
-      "email": "ravi@porterchain.com",
-      "emailHref": "mailto:ravi@porterchain.com",
+      "email": "driver@porterchain.com",
+      "emailHref": "mailto:driver@porterchain.com",
       "whatsappLabel": "WhatsApp",
       "whatsapp": "+1 (647) 619-7951",
       "whatsappHref": "https://wa.me/16476197951",
@@ -581,8 +591,7 @@
       "hours": "Lundi – vendredi, 8 h – 18 h HE",
       "emergencyLabel": "Répartition d'urgence",
       "emergency": "+1 (647) 619-7951",
-      "emergencyDetail": "Exceptions actives · ops@porterchain.com",
-      "mapTitle": "Siège Porterchain sur Google Maps"
+      "emergencyDetail": "Exceptions actives · ops@porterchain.com"
     },
     "form": {
       "title": "Envoyez-nous un message",
@@ -614,7 +623,7 @@
         "0": {
           "title": "Ventes",
           "description": "Démos, tarification et intégration entreprise.",
-          "contact": "ravi@porterchain.com"
+          "contact": "driver@porterchain.com"
         },
         "1": {
           "title": "Support",
@@ -624,17 +633,17 @@
         "2": {
           "title": "Comptes entreprise",
           "description": "Configuration, facturation et routes récurrentes.",
-          "contact": "ravi@porterchain.com"
+          "contact": "driver@porterchain.com"
         },
         "3": {
           "title": "Support chauffeurs",
           "description": "Intégration partenaires et aide terrain.",
-          "contact": "ops@porterchain.com"
+          "contact": "driver@porterchain.com"
         },
         "4": {
           "title": "Support développeurs",
           "description": "API, webhooks et intégrations techniques.",
-          "contact": "ravi@porterchain.com"
+          "contact": "driver@porterchain.com"
         }
       }
     },
@@ -651,12 +660,12 @@
           "a": "Sous un jour ouvrable. La ligne d'urgence est surveillée pendant les opérations actives."
         },
         "1": {
-          "q": "Visite au bureau Toronto?",
-          "a": "Oui. Rendez-vous au siège ou virtuellement — selon votre préférence."
+          "q": "Rencontre en personne?",
+          "a": "Oui. Nous pouvons organiser des rencontres virtuelles ou en personne dans le RGT sur rendez-vous — contactez-nous pour planifier."
         },
         "2": {
           "q": "Accès API?",
-          "a": "Sélectionnez API comme type ou écrivez à ravi@porterchain.com avec vos besoins d'intégration."
+          "a": "Sélectionnez API comme type ou écrivez à driver@porterchain.com avec vos besoins d'intégration."
         },
         "3": {
           "q": "Problème d'expédition active?",
@@ -915,6 +924,91 @@
       "subtitle": "Nous cherchons toujours des personnes exceptionnelles. Envoyez votre CV et dites-nous comment vous aideriez à construire l'avenir de la logistique.",
       "primary": "Envoyez votre CV",
       "secondary": "Nous contacter"
+    }
+  },
+  "developers": {
+    "hero": {
+      "badge": "Portail développeur",
+      "title": "Intégrez les API logistiques Porterchain",
+      "subtitle": "Devis, réservation, suivi et webhooks via une API d'orchestration unique. OpenAPI est le contrat — importez Postman et livrez sans deviner les routes.",
+      "primaryCta": "Référence OpenAPI",
+      "secondaryCta": "Obtenir des clés API"
+    },
+    "quickstart": {
+      "label": "Démarrage rapide",
+      "title": "Trois étapes pour votre premier appel",
+      "apiHost": "Hôte API : {host} — définissez NEXT_PUBLIC_PORTERCHAIN_API_URL en local (http://localhost:8001).",
+      "steps": {
+        "0": {
+          "step": "Étape 1",
+          "title": "Lire le guide partenaire",
+          "description": "Authentification, URL de base et points de terminaison Phase 1 pour devis → réservation → suivi."
+        },
+        "1": {
+          "step": "Étape 2",
+          "title": "Importer Postman",
+          "description": "Collection v2.1 avec base_url, jeton Bearer (dev en local) et X-Api-Key pour merchant-api."
+        },
+        "2": {
+          "step": "Étape 3",
+          "title": "Créer des clés dans le portail marchand",
+          "description": "Générez des clés sandbox, configurez les webhooks et consultez les limites par palier."
+        }
+      }
+    },
+    "resources": {
+      "label": "Documentation",
+      "title": "Tout pour intégrer",
+      "items": {
+        "guide": {
+          "title": "Guide API partenaire",
+          "description": "Guide markdown canonique — auth, versionnement et flux Phase 1.",
+          "cta": "Lire le guide"
+        },
+        "postman": {
+          "title": "Collection Postman",
+          "description": "porterchain.postman.json — devis, réservation, marchand, chauffeur et webhooks.",
+          "cta": "Télécharger JSON"
+        },
+        "openapi": {
+          "title": "OpenAPI en direct",
+          "description": "/docs interactif et openapi.json — vérité des routes pour tous les environnements.",
+          "cta": "Ouvrir /docs"
+        },
+        "webhooks": {
+          "title": "Webhooks et HMAC",
+          "description": "Signature des événements sortants, nouvelles tentatives et configuration marchande.",
+          "cta": "Docs webhooks"
+        },
+        "keys": {
+          "title": "Clés API et sandbox",
+          "description": "Créez des clés à portée et basculez le mode sandbox depuis les intégrations marchandes.",
+          "cta": "Paramètres API marchand"
+        }
+      }
+    },
+    "flows": {
+      "label": "Phase 1",
+      "title": "Chemins d'intégration principaux",
+      "columns": {
+        "flow": "Flux",
+        "method": "Méthode",
+        "path": "Chemin"
+      },
+      "openApiJson": "OpenAPI JSON",
+      "changelog": "Journal des API",
+      "items": {
+        "quote": { "name": "Devis instantané", "method": "POST", "path": "/v1/quotes" },
+        "booking": { "name": "Créer une réservation", "method": "POST", "path": "/v1/bookings" },
+        "track": { "name": "Suivi public", "method": "GET", "path": "/v1/orders/{tracking}/track" },
+        "webhook": { "name": "API marchande", "method": "GET", "path": "/v1/merchant-api/orders" }
+      }
+    },
+    "cta": {
+      "title": "Besoin d'une revue d'intégration?",
+      "subtitle": "Notre équipe aide au cadrage, aux clés sandbox et à la vérification des webhooks avant la mise en production.",
+      "contact": "Contacter intégrations",
+      "keys": "Ouvrir les paramètres API"
     }
   }
 }

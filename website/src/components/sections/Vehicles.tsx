@@ -74,24 +74,14 @@ export default function Vehicles() {
                     : "border-gray-200/80 hover:shadow-lg hover:border-secondary/20"
                 )}
               >
-                <div className="h-44 bg-gradient-to-br from-slate-800 via-[#0f2744] to-[#0a1628] relative flex items-center justify-center overflow-hidden">
-                  <div className="absolute inset-0 opacity-[0.07]">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage:
-                          "linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)",
-                        backgroundSize: "24px 24px",
-                      }}
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />
+                <div className="h-44 relative overflow-hidden">
                   <VehicleIllustration
                     type={vehicle.illustration}
                     id={vehicle.id}
-                    variant="light"
-                    className="relative z-10 w-[6.6rem] h-auto opacity-[0.97] group-hover:scale-[1.03] transition-transform duration-500"
+                    mode="photo"
+                    className="absolute inset-0"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent" />
                 </div>
 
                 <div className="p-5 space-y-4">

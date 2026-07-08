@@ -104,6 +104,10 @@ jobs:
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_CUSTOMER_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
             NEXT_PUBLIC_APP_ENV=production
+            NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED=${{ vars.NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED || 'true' }}
+            NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE=${{ secrets.NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+            NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=${{ secrets.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -17,6 +17,7 @@ interface HeroSectionProps {
   variant?: "dark-split" | "light-centered" | "minimal" | "contact-split";
   illustration?: React.ReactNode;
   className?: string;
+  trackSource?: string;
 }
 
 export default function HeroSection({
@@ -30,6 +31,7 @@ export default function HeroSection({
   variant = "dark-split",
   illustration,
   className,
+  trackSource,
 }: HeroSectionProps) {
   if (variant === "light-centered") {
     return (
@@ -49,11 +51,22 @@ export default function HeroSection({
             </h1>
             <p className="mt-5 text-lg text-muted leading-relaxed max-w-2xl mx-auto">{subtitle}</p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <LinkButton href={primaryHref} size="lg">
+              <LinkButton
+                href={primaryHref}
+                size="lg"
+                trackLabel={primaryCta}
+                trackSource={trackSource}
+              >
                 {primaryCta}
               </LinkButton>
               {secondaryCta && secondaryHref && (
-                <LinkButton href={secondaryHref} variant="outline" size="lg">
+                <LinkButton
+                  href={secondaryHref}
+                  variant="outline"
+                  size="lg"
+                  trackLabel={secondaryCta}
+                  trackSource={trackSource}
+                >
                   {secondaryCta}
                 </LinkButton>
               )}
@@ -91,9 +104,16 @@ export default function HeroSection({
             </h1>
             <p className="mt-5 text-lg text-muted leading-relaxed">{subtitle}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <LinkButton href={primaryHref}>{primaryCta}</LinkButton>
+              <LinkButton href={primaryHref} trackLabel={primaryCta} trackSource={trackSource}>
+                {primaryCta}
+              </LinkButton>
               {secondaryCta && secondaryHref && (
-                <LinkButton href={secondaryHref} variant="outline">
+                <LinkButton
+                  href={secondaryHref}
+                  variant="outline"
+                  trackLabel={secondaryCta}
+                  trackSource={trackSource}
+                >
                   {secondaryCta}
                 </LinkButton>
               )}
@@ -174,7 +194,12 @@ export default function HeroSection({
             </h1>
             <p className="mt-5 text-lg text-white/65 leading-relaxed max-w-xl">{subtitle}</p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <LinkButton href={primaryHref} size="lg">
+              <LinkButton
+                href={primaryHref}
+                size="lg"
+                trackLabel={primaryCta}
+                trackSource={trackSource}
+              >
                 {primaryCta}
               </LinkButton>
               {secondaryCta && secondaryHref && (
@@ -183,6 +208,8 @@ export default function HeroSection({
                   variant="outline"
                   size="lg"
                   className="border-white/30 text-white hover:bg-white/10"
+                  trackLabel={secondaryCta}
+                  trackSource={trackSource}
                 >
                   {secondaryCta}
                 </LinkButton>

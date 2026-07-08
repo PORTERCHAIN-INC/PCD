@@ -178,10 +178,24 @@ export interface OrderResult {
   amount_cents: number;
   currency: string;
   scheduled_at: string;
-  pickup: { formatted?: string };
-  dropoff: { formatted?: string };
+  pickup: AddressPayload;
+  dropoff: AddressPayload;
   booking_number?: string | null;
   invoice_number?: string | null;
+}
+
+export interface OrderLiveTracking {
+  order_id: string;
+  tracking_number: string;
+  state: string;
+  fleetbase_order_id?: string | null;
+  live_tracking?: {
+    pickup?: AddressPayload;
+    dropoff?: AddressPayload;
+    driver_location?: { lat: number; lng: number };
+    optimized_route?: { polyline?: string };
+    eta?: { polyline?: string };
+  } | null;
 }
 
 export function mockCompleteCheckout(quoteId: string) {
@@ -193,6 +207,10 @@ export function mockCompleteCheckout(quoteId: string) {
 
 export function getOrderByTracking(trackingNumber: string) {
   return apiFetch<OrderResult>(`/v1/orders/${trackingNumber}`);
+}
+
+export function getOrderLiveTracking(trackingNumber: string) {
+  return apiFetch<OrderLiveTracking>(`/v1/orders/${trackingNumber}/tracking`);
 }
 
 export interface CustomerDashboard {

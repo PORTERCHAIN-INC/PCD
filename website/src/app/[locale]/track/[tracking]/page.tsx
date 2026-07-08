@@ -4,10 +4,17 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
+import { TrackRouteMap } from "@porterchain/maps";
 import SiteShell from "@/components/layout/SiteShell";
 import Container from "@/components/ui/Container";
 import GuestTrackLookup from "@/components/portal/GuestTrackLookup";
-import { getOrderByTracking, type OrderResult } from "@/lib/api";
+import {
+  getOrderByTracking,
+  getOrderLiveTracking,
+  type OrderLiveTracking,
+  type OrderResult,
+} from "@/lib/api";
 
 export default function TrackPage() {
   const t = useTranslations("booking.track");
@@ -15,6 +22,7 @@ export default function TrackPage() {
   const params = useParams();
   const tracking = typeof params.tracking === "string" ? params.tracking : "";
   const [order, setOrder] = useState<OrderResult | null>(null);
+  const [live, setLive] = useState<OrderLiveTracking | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,7 +30,16 @@ export default function TrackPage() {
     getOrderByTracking(tracking)
       .then(setOrder)
       .catch(() => setError(t("notFound")));
+    getOrderLiveTracking(tracking)
+      .then(setLive)
+      .catch(() => setLive(null));
   }, [tracking, t]);
+
+  const liveData = live?.live_tracking;
+  const pickup = liveData?.pickup ?? order?.pickup;
+  const dropoff = liveData?.dropoff ?? order?.dropoff;
+  const driverLocation = liveData?.driver_location ?? null;
+  const routePolyline = liveData?.optimized_route?.polyline ?? liveData?.eta?.polyline ?? null;
 
   return (
     <SiteShell>
@@ -31,24 +48,32 @@ export default function TrackPage() {
         <p className="type-caption text-muted font-mono mb-8">{tracking}</p>
         {error && <p className="text-red-600 mb-6">{error}</p>}
         {order && (
-          <dl className="space-y-3 rounded-2xl bg-gray-bg p-6 mb-8">
-            <div className="flex justify-between">
-              <dt className="text-muted type-small">{t("status")}</dt>
-              <dd className="font-semibold type-small">{order.state}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted type-small">{t("pickup")}</dt>
-              <dd className="type-small text-right max-w-[60%]">
-                {(order.pickup as { formatted?: string }).formatted}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted type-small">{t("dropoff")}</dt>
-              <dd className="type-small text-right max-w-[60%]">
-                {(order.dropoff as { formatted?: string }).formatted}
-              </dd>
-            </div>
-          </dl>
+          <>
+            <GoogleMapsProvider>
+              <TrackRouteMap
+                pickup={pickup as Record<string, unknown> | null | undefined}
+                dropoff={dropoff as Record<string, unknown> | null | undefined}
+                driverLocation={driverLocation}
+                routePolyline={routePolyline}
+                height="min(50vw, 320px)"
+                className="mb-8"
+              />
+            </GoogleMapsProvider>
+            <dl className="space-y-3 rounded-2xl bg-gray-bg p-6 mb-8">
+              <div className="flex justify-between">
+                <dt className="text-muted type-small">{t("status")}</dt>
+                <dd className="font-semibold type-small">{order.state}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted type-small">{t("pickup")}</dt>
+                <dd className="type-small text-right max-w-[60%]">{pickup?.formatted}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted type-small">{t("dropoff")}</dt>
+                <dd className="type-small text-right max-w-[60%]">{dropoff?.formatted}</dd>
+              </div>
+            </dl>
+          </>
         )}
 
         <div className="rounded-2xl border border-primary/10 bg-white p-5 mb-6">

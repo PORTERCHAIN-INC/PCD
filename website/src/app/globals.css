@@ -710,6 +710,33 @@ p {
   font-size: 0.8125rem !important;
 }
 
+/* Hero homepage booking card — ultra-compact */
+.booking-widget-hero .booking-chip {
+  padding: 0.3125rem 0.5rem;
+  min-height: 1.75rem;
+  font-size: 0.6875rem;
+  gap: 0.25rem;
+}
+
+.booking-widget-hero .booking-icon-badge {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.booking-widget-hero .booking-address-autocomplete gmp-place-autocomplete,
+.booking-widget-hero .booking-address-autocomplete .booking-place-autocomplete {
+  min-height: 2rem;
+  font-size: 0.75rem;
+}
+
+.booking-select-field-hero,
+.booking-schedule-field-hero {
+  min-height: 2rem !important;
+  font-size: 0.75rem !important;
+  padding: 0.3125rem 0.5rem !important;
+  border-radius: 0.5rem !important;
+}
+
 /* Google Places API (New) autocomplete widget */
 .booking-address-autocomplete,
 .booking-address-fallback {

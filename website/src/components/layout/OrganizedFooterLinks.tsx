@@ -1,6 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { customerPortalDashboardUrl } from "@/data/portal-links";
+import { customerPortalDashboardUrl, driverPortalUrl } from "@/data/portal-links";
 import {
   footerNavigation,
   footerSectionOrder,
@@ -27,13 +27,18 @@ export function OrganizedFooterLinks({
   titleClassName,
 }: OrganizedFooterLinksProps) {
   return (
-    <div className={cn("grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6", className)}>
+    <div className={cn("grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-6", className)}>
       {footerSectionOrder.map((section) => (
         <FooterColumn
           key={section}
           title={getSectionTitle(section)}
           links={footerNavigation[section].map((link) => ({
-            href: link.href === "__CUSTOMER_PORTAL__" ? customerPortalDashboardUrl : link.href,
+            href:
+              link.href === "__CUSTOMER_PORTAL__"
+                ? customerPortalDashboardUrl
+                : link.href === "__DRIVER_PORTAL__"
+                  ? driverPortalUrl
+                  : link.href,
             label: getLinkLabel(section, link.id),
           }))}
           columnClassName={columnClassName}

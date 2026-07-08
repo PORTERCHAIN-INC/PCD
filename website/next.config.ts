@@ -30,13 +30,28 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@porterchain/config"],
   env: websitePublicEnv(),
   async redirects() {
-    return ["en", "fr"].flatMap((locale) =>
-      removedCorporatePaths.map((path) => ({
-        source: `/${locale}/${path}`,
-        destination: `/${locale}/business`,
+    const legacyMarketRedirects = ["en", "fr"].flatMap((locale) => [
+      {
+        source: `/ca/${locale === "en" ? "en" : "fr-ca"}/:path*`,
+        destination: `/${locale}/:path*`,
         permanent: true,
-      }))
-    );
+      },
+      {
+        source: `/ca/${locale === "en" ? "en" : "fr-ca"}`,
+        destination: `/${locale}`,
+        permanent: true,
+      },
+    ]);
+    return [
+      ...legacyMarketRedirects,
+      ...["en", "fr"].flatMap((locale) =>
+        removedCorporatePaths.map((path) => ({
+          source: `/${locale}/${path}`,
+          destination: `/${locale}/business`,
+          permanent: true,
+        }))
+      ),
+    ];
   },
   async headers() {
     return [
@@ -45,6 +60,15 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
     ];
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+    ],
   },
 };
 

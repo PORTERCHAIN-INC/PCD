@@ -1,6 +1,8 @@
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Clock, ArrowUpRight } from "lucide-react";
+import SiteImage from "@/components/ui/SiteImage";
+import { getBlogCoverImage } from "@/data/site-images";
 import type { BlogPostMeta } from "@/lib/blog";
 import type { BlogCategory } from "@/data/blog-categories";
 
@@ -30,14 +32,23 @@ export default function ArticleCard({
   locale = "en",
 }: ArticleCardProps) {
   if (variant === "horizontal") {
+    const cover = getBlogCoverImage(post.category);
     return (
       <Link
         href={`/blog/${post.slug}`}
         className={cn(
-          "group flex flex-col sm:flex-row gap-4 sm:gap-6 p-5 rounded-2xl border border-primary/[0.06] bg-white hover:border-secondary/20 hover:shadow-lg hover:shadow-secondary/5 transition-all",
+          "group flex flex-col sm:flex-row gap-4 sm:gap-6 p-5 rounded-2xl border border-primary/[0.06] bg-white hover:border-secondary/20 hover:shadow-lg hover:shadow-secondary/5 transition-all overflow-hidden",
           className
         )}
       >
+        <div className="relative w-full sm:w-40 h-32 sm:h-auto sm:min-h-[120px] shrink-0 rounded-xl overflow-hidden">
+          <SiteImage
+            image={cover}
+            fill
+            className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
+            sizes="160px"
+          />
+        </div>
         <div className="flex-1 min-w-0">
           <CategoryPill label={categoryLabel} />
           <h3 className="mt-2 text-lg font-semibold text-primary tracking-tight group-hover:text-secondary transition-colors line-clamp-2">
@@ -56,6 +67,8 @@ export default function ArticleCard({
     );
   }
 
+  const cover = getBlogCoverImage(post.category);
+
   return (
     <Link
       href={`/blog/${post.slug}`}
@@ -64,7 +77,14 @@ export default function ArticleCard({
         className
       )}
     >
-      <div className="h-1.5 bg-gradient-to-r from-secondary/80 to-secondary/30" />
+      <div className="relative h-40 overflow-hidden">
+        <SiteImage
+          image={cover}
+          fill
+          className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
+          sizes="(max-width: 640px) 100vw, 33vw"
+        />
+      </div>
       <div className="p-5 sm:p-6 flex flex-col flex-1">
         <CategoryPill label={categoryLabel} />
         <h3
@@ -138,23 +158,28 @@ export function FeaturedArticleCard({
   featuredLabel: string;
   ctaLabel: string;
 }) {
+  const cover = getBlogCoverImage(post.category);
+
   return (
     <Link
       href={`/blog/${post.slug}`}
       className="group block rounded-2xl border border-primary/[0.06] bg-white overflow-hidden hover:shadow-xl hover:shadow-secondary/10 transition-all"
     >
       <div className="grid lg:grid-cols-2">
-        <div className="relative bg-primary p-8 sm:p-10 lg:p-12 flex flex-col justify-end min-h-[280px] lg:min-h-[360px]">
-          <div className="absolute inset-0 grid-pattern opacity-20" aria-hidden />
-          <div
-            className="absolute top-0 right-0 w-64 h-64 bg-secondary/20 rounded-full blur-3xl"
-            aria-hidden
+        <div className="relative min-h-[280px] lg:min-h-[360px] overflow-hidden">
+          <SiteImage
+            image={cover}
+            fill
+            className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            priority
           />
-          <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/30 to-transparent" />
+          <div className="absolute bottom-6 left-6 right-6">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-secondary">
               {featuredLabel}
             </span>
-            <span className="ml-2 text-[10px] font-semibold uppercase tracking-wider text-white/50">
+            <span className="ml-2 text-[10px] font-semibold uppercase tracking-wider text-white/70">
               {categoryLabel}
             </span>
           </div>

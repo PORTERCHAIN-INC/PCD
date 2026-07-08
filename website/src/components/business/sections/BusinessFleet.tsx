@@ -36,23 +36,14 @@ export default function BusinessFleet() {
               transition={{ delay: i * 0.05 }}
               className="group rounded-2xl bg-[#f7f8fa] border border-[#091b1c]/6 overflow-hidden biz-card-hover"
             >
-              <div className="relative h-36 bg-gradient-to-br from-slate-800 to-[#091b1c] flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.06]">
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(rgba(255,255,255,.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.2) 1px, transparent 1px)",
-                      backgroundSize: "20px 20px",
-                    }}
-                  />
-                </div>
+              <div className="relative h-36 overflow-hidden">
                 <VehicleIllustration
                   type={FLEET_ILLUSTRATIONS[key]}
                   id={`biz-${key}`}
-                  variant="light"
-                  className="w-[5.4rem] h-auto relative z-10 opacity-[0.97] group-hover:scale-[1.03] transition-transform duration-500"
+                  mode="photo"
+                  className="absolute inset-0 group-hover:scale-[1.03] transition-transform duration-500"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#091b1c]/70 via-transparent to-transparent" />
               </div>
               <div className="p-5">
                 <h3 className="font-semibold text-[#091b1c]">{t(`items.${key}.name`)}</h3>

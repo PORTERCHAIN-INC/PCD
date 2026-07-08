@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "title": "Porterchain Business | Enterprise Logistics for Growing Companies",
-    "description": "Request a business consultation for recurring logistics, same-day delivery, LTL freight, and wholesale distribution across the GTA. Simple inquiry — no long forms.",
-    "ogTitle": "Porterchain Enterprise Logistics",
-    "ogDescription": "Modern logistics for growing businesses. Request a consultation with our team."
+    "title": "Porterchain Business | Logistics Technology for Growing Companies",
+    "description": "Request a business consultation for recurring delivery orchestration, same-day routes, LTL freight, and wholesale distribution across the GTA.",
+    "ogTitle": "Porterchain — Logistics Technology Platform",
+    "ogDescription": "Dispatch OS, live visibility, and merchant integrations — built for businesses that outgrew ad-hoc couriers."
   },
   "nav": {
     "solutions": "Solutions",
@@ -24,10 +24,10 @@
     }
   },
   "hero": {
-    "badge": "Enterprise Logistics",
-    "titleLine1": "Enterprise Logistics",
+    "badge": "Logistics Technology",
+    "titleLine1": "Logistics Orchestration",
     "titleLine2": "Built for Growing Businesses.",
-    "subtitle": "Same-day delivery, scheduled routes, wholesale distribution, LTL freight, recurring logistics and custom transportation solutions across the Greater Toronto Area.",
+    "subtitle": "Same-day delivery, scheduled routes, wholesale distribution, LTL freight, and recurring operations — one platform across the Greater Toronto Area.",
     "ctaPrimary": "Request Consultation",
     "ctaSecondary": "Schedule Meeting"
   },

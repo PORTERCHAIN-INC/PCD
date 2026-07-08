@@ -6,6 +6,8 @@ import { Calendar, ArrowRight } from "lucide-react";
 import Container from "@/components/ui/Container";
 import InquiryForm from "@/components/business/InquiryForm";
 import BusinessHeroBg from "@/components/business/illustrations/BusinessHeroBg";
+import SiteImage from "@/components/ui/SiteImage";
+import { siteImages } from "@/data/site-images";
 
 export default function BusinessHero() {
   const t = useTranslations("businessPage.hero");
@@ -16,7 +18,14 @@ export default function BusinessHero() {
 
   return (
     <section className="relative min-h-[100svh] flex items-center overflow-hidden bg-[#091b1c]">
-      <BusinessHeroBg className="absolute inset-0 w-full h-full object-cover opacity-90" />
+      <SiteImage
+        image={siteImages.hero.business}
+        fill
+        className="object-cover opacity-35"
+        sizes="100vw"
+        priority
+      />
+      <BusinessHeroBg className="absolute inset-0 w-full h-full object-cover opacity-60" />
       <div className="absolute inset-0 bg-gradient-to-b from-[#091b1c]/40 via-transparent to-[#091b1c]/90" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(255,122,0,0.12)_0%,transparent_50%)]" />
 

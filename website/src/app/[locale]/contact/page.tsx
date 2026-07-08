@@ -38,8 +38,6 @@ export default async function ContactPage({ params }: Props) {
   const tInfo = await getTranslations("corporate.contact.info");
 
   const contactInfo = {
-    headOfficeLabel: tInfo("headOfficeLabel"),
-    address: tInfo("address"),
     phoneLabel: tInfo("phoneLabel"),
     phone: tInfo("phone"),
     phoneHref: tInfo("phoneHref"),
@@ -54,7 +52,6 @@ export default async function ContactPage({ params }: Props) {
     emergencyLabel: tInfo("emergencyLabel"),
     emergency: tInfo("emergency"),
     emergencyDetail: tInfo("emergencyDetail"),
-    mapTitle: tInfo("mapTitle"),
   };
 
   const departmentCards = DEPT_ICONS.map((icon, i) => ({
