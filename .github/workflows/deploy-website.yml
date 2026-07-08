@@ -71,6 +71,29 @@ jobs:
           cache-from: type=gha,scope=website
           cache-to: type=gha,mode=max,scope=website
 
+      - name: Copy deploy manifests to droplet
+        if: steps.check.outputs.ready == 'true'
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh"
+          target: "/opt/porterchain"
+          strip_components: 2
+
+      - name: Copy Doppler config to droplet
+        if: steps.check.outputs.ready == 'true'
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          source: "doppler.yaml"
+          target: "/opt/porterchain"
+
       - name: Check Doppler token for runtime secrets
         if: steps.check.outputs.ready == 'true'
         env:
@@ -92,6 +115,7 @@ jobs:
           envs: IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DOPPLER_TOKEN,DOPPLER_PROJECT,DOPPLER_CONFIG
           script: |
             set -e
+            mkdir -p /opt/porterchain
             cd /opt/porterchain
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
