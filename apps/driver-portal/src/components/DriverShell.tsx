@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Spinner } from "@porterchain/ui/loading";
 import { cn } from "@/lib/utils";
 import Container from "@/components/ui/Container";
 import DriverAccountMenu from "@/components/nav/DriverAccountMenu";
@@ -65,7 +66,7 @@ export default function DriverShell({ children }: { children: React.ReactNode })
   if (!sessionReady || !gateReady) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-gray-bg">
-        <p className="text-sm text-muted">Verifying driver session…</p>
+        <Spinner label="Verifying driver session…" />
       </div>
     );
   }

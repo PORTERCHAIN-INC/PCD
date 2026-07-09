@@ -287,18 +287,21 @@ The API at `apps/api/` is the **Logistics Orchestrator** in the locked diagram. 
 
 ### 6.1 Engine modules (Application Services home)
 
-| Engine                 | Responsibility                                                 |
-| ---------------------- | -------------------------------------------------------------- |
-| `booking_engine/`      | Quote, booking draft, booking, payment, confirmation, tracking |
-| `billing_engine/`      | Settlement ledger, async billing queue processing              |
-| `notification_engine/` | Templates, delivery logs, email/SMS/push queueing              |
-| `merchant_engine/`     | B2B lifecycle, merchant billing, bulk, dashboard               |
-| `admin_engine/`        | Ops, CRM, finance, claims, pricing admin, RBAC                 |
-| `fleetbase_engine/`    | Outbound sync, inbound webhooks, retry, audit                  |
-| `driver_engine/`       | Driver auth and Fleetbase bridge                               |
-| `pricing_engine/`      | Bridge to `services/pricing-engine`                            |
+| Engine                 | Responsibility                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `booking_engine/`      | Quote, booking draft, booking, payment, confirmation, tracking                                                      |
+| `billing_engine/`      | Settlement ledger, async billing queue processing                                                                   |
+| `notification_engine/` | Templates, delivery logs, email/SMS/push queueing                                                                   |
+| `merchant_engine/`     | B2B lifecycle, merchant billing, bulk, dashboard                                                                    |
+| `admin_engine/`        | Ops, CRM, finance, claims, pricing admin, RBAC                                                                      |
+| `fleetbase_engine/`    | Outbound sync, inbound webhooks, retry, audit                                                                       |
+| `driver_engine/`       | Driver auth and Fleetbase bridge                                                                                    |
+| `pricing_engine/`      | Bridge to `services/pricing-engine`                                                                                 |
+| `intelligence_engine/` | **Phase 2 only** — ETA calibration, dispatch scorer, copilot read-models (`PORTERCHAIN_PHASE2_*`; ADR-010, ADR-016) |
 
 Billing and notification **engines** live in `billing_engine/` and `notification_engine/` (embedded in API monolith). Merchant-specific billing views remain in `merchant_engine/`.
+
+**Phase 2 rule:** `intelligence_engine/` must not ship scoring on the pay path until model cards document lift and feature flags are enabled. No LLM on quote pricing or route distance (ADR-016).
 
 ### 6.2 Async worker
 

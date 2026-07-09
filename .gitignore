@@ -24,6 +24,8 @@ infrastructure/deploy/scripts/clerk-keys.local.env
 .venv/
 **/.venv/
 *.db
+backups/*.sql.gz
+backups/*.sql
 __pycache__/
 **/__pycache__/
 *.py[cod]

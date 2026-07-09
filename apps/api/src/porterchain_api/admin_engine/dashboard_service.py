@@ -6,7 +6,7 @@ Orchestrates existing Application Services — does not duplicate module busines
 from __future__ import annotations
 
 import os
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, or_
@@ -20,6 +20,38 @@ from porterchain_api.merchant_models import Merchant
 from porterchain_api.models import Invoice, Order, Payment, Quote
 
 PORTERCHAIN_VERSION = os.environ.get("PORTERCHAIN_VERSION", "3.1.0")
+
+
+def _chart_trends(db: Session, revenue_trend: list[dict[str, Any]] | dict[str, Any] | None) -> dict[str, list]:
+    """Normalize finance revenue_trend rows into admin dashboard chart shape."""
+    if isinstance(revenue_trend, dict) and "labels" in revenue_trend:
+        return {
+            "labels": list(revenue_trend.get("labels") or []),
+            "orders": list(revenue_trend.get("orders") or []),
+            "revenue_cents": list(revenue_trend.get("revenue_cents") or []),
+        }
+
+    labels: list[str] = []
+    revenue_cents: list[int] = []
+    orders: list[int] = []
+    for row in revenue_trend or []:
+        day_str = str(row.get("date", ""))
+        labels.append(day_str)
+        revenue_cents.append(int(row.get("revenue_cents", 0)))
+        if day_str:
+            day_start = datetime.fromisoformat(day_str).replace(tzinfo=UTC)
+            day_end = day_start + timedelta(days=1)
+            count = (
+                db.query(func.count(Order.id))
+                .filter(Order.created_at >= day_start, Order.created_at < day_end)
+                .scalar()
+                or 0
+            )
+            orders.append(int(count))
+        else:
+            orders.append(0)
+
+    return {"labels": labels, "orders": orders, "revenue_cents": revenue_cents}
 
 
 class AdminDashboardService:
@@ -90,6 +122,7 @@ class AdminDashboardService:
         from porterchain_api.admin_engine.booking_draft_admin_service import AdminBookingDraftService
         from porterchain_api.admin_engine.claims_service import AdminClaimsService
         from porterchain_api.admin_engine.control_tower_service import ControlTowerService
+        from porterchain_api.admin_engine.finance_service import AdminFinanceService
         from porterchain_api.admin_engine.orders_service import AdminOrdersService
         from porterchain_api.admin_engine.settings_service import AdminSettingsService
         from porterchain_api.admin_engine.support_service import AdminSupportService
@@ -105,7 +138,7 @@ class AdminDashboardService:
         claims = AdminClaimsService().dashboard(db)
         support = AdminSupportService().dashboard(db)
         booking = AdminBookingDraftService().analytics(db)
-        trends = finance.get("revenue_trend", []) or {"labels": [], "orders": [], "revenue_cents": []}
+        trends = _chart_trends(db, finance.get("revenue_trend"))
         executive = {"orders": orders, "finance": finance}
         smart = {"alerts": ops_stats.get("open_exceptions", 0)}
         merchants_summary = {

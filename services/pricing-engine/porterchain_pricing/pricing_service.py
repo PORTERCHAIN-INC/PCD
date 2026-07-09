@@ -68,6 +68,7 @@ class PricingService:
             merchant_id=request.merchant_id,
             promo_code=request.promo_code,
             volume_units=request.volume_units,
+            requires_liftgate=request.requires_liftgate,
         )
         return self.calculate(merchant_request)
 

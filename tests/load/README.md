@@ -13,10 +13,10 @@ pnpm dev:api   # separate terminal — needs Redis for webhook idempotency
 
 ## Scenarios
 
-| Script        | Endpoints                         | SLO (p95) |
-| ------------- | --------------------------------- | --------- |
-| `booking.js`  | `GET /health`, `POST /v1/quotes`  | quote < 3s |
-| `webhooks.js` | `POST /webhooks/stripe` (signed)  | < 1s      |
+| Script        | Endpoints                        | SLO (p95)  |
+| ------------- | -------------------------------- | ---------- |
+| `booking.js`  | `GET /health`, `POST /v1/quotes` | quote < 3s |
+| `webhooks.js` | `POST /webhooks/stripe` (signed) | < 1s       |
 
 ## Run
 
@@ -42,3 +42,7 @@ k6 run --out json=tests/load/output/booking-$(date +%Y%m%d).json tests/load/book
 ```
 
 See [RUNBOOK.md](../../RUNBOOK.md) § Load testing for published SLOs.
+
+## Query plans (§5.4.4)
+
+After a load run, capture Postgres `EXPLAIN` plans for quote/order hot paths — see [QUERY_PLANS.md](./QUERY_PLANS.md) and `apps/api/scripts/explain_load_hot_paths.py`.

@@ -10,7 +10,7 @@ const monorepoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
-const removedCorporatePaths = ["platform", "overview", "solutions"] as const;
+const removedCorporatePaths = ["overview"] as const;
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },

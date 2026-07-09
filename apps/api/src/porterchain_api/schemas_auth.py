@@ -74,6 +74,13 @@ class PortalOnboardingResponse(BaseModel):
     can_access_portal: bool
     company_name: str | None = None
     merchant_id: str | None = None
+    vertical: str | None = None
+    vertical_label: str | None = None
+    vertical_options: list[dict[str, str]] = Field(default_factory=list)
+
+
+class MerchantVerticalRequest(BaseModel):
+    vertical: str = Field(..., description="construction | medical | food-beverage | wholesale")
 
 
 class AdminAccessResponse(BaseModel):

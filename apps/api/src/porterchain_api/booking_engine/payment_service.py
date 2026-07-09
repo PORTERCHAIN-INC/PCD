@@ -21,6 +21,8 @@ class PaymentService:
         settings: Settings,
         quote: Quote,
         customer: Customer,
+        *,
+        checkout_channel: str = "retail",
     ) -> tuple[str | None, Payment]:
         from porterchain_api.services.pricing import revalidate_retail_quote
 
@@ -65,6 +67,7 @@ class PaymentService:
                 customer,
                 payment.id,
                 booking_draft_id=draft.id if draft else None,
+                checkout_channel=checkout_channel,
             )
             payment.stripe_checkout_session_id = session_id
             payment.status = PaymentStatus.PROCESSING.value
@@ -149,12 +152,14 @@ class PaymentService:
         settings: Settings,
         quote: Quote,
         customer: Customer,
+        *,
+        checkout_channel: str = "retail",
     ) -> tuple[str | None, Payment]:
         existing = self.get_active_payment(db, quote.id)
         if existing and existing.status == PaymentStatus.FAILED.value:
             existing.retry_count += 1
             db.commit()
-        return self.start_payment(db, settings, quote, customer)
+        return self.start_payment(db, settings, quote, customer, checkout_channel=checkout_channel)
 
     def retry_payment_for_clerk(
         self,

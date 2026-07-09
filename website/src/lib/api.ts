@@ -184,6 +184,15 @@ export interface OrderResult {
   invoice_number?: string | null;
 }
 
+export interface TrackingEta {
+  source?: string;
+  duration_seconds?: number;
+  distance_meters?: number;
+  polyline?: string;
+  arrives_at?: string;
+  label?: string;
+}
+
 export interface OrderLiveTracking {
   order_id: string;
   tracking_number: string;
@@ -193,8 +202,15 @@ export interface OrderLiveTracking {
     pickup?: AddressPayload;
     dropoff?: AddressPayload;
     driver_location?: { lat: number; lng: number };
-    optimized_route?: { polyline?: string };
-    eta?: { polyline?: string };
+    optimized_route?: { polyline?: string; source?: string };
+    eta?: TrackingEta | null;
+    delivery_status?: {
+      order_state?: string;
+      label?: string;
+      in_transit?: boolean;
+      delivered?: boolean;
+    };
+    last_updated?: string;
   } | null;
 }
 

@@ -6,6 +6,8 @@ export const unifiedSignInPath = "/login";
 /** Retail customer app (:3004) — sole authenticated customer surface (masterrule §21). */
 export const customerPortalDashboardUrl = `${publicEnv.customerPortalUrl}/dashboard`;
 export const customerPortalSignInUrl = `${publicEnv.customerPortalUrl}/sign-in`;
+/** Retail booking funnel — sole on-site book surface (masterrule §21 · §1.1.4). */
+export const customerPortalBookUrl = `${publicEnv.customerPortalUrl}/book`;
 
 /** @deprecated Use customerPortalDashboardUrl — embedded website portal removed. */
 export const customerPortalPath = customerPortalDashboardUrl;

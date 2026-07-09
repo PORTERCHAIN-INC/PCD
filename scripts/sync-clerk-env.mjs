@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Sync env/clerk.env (12 keys) into each web/mobile app + API.
+ * Sync env/clerk.env (12 keys) into each web app + API.
  * Usage: pnpm clerk:sync
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -21,7 +21,12 @@ const PORTALS = ["customer", "merchant", "admin", "driver"];
 const SURFACES = [
   { name: "website", portal: "customer", file: "website/.env.local", next: true },
   { name: "customer-portal", portal: "customer", file: "apps/customer/.env.local", next: true },
-  { name: "merchant-portal", portal: "merchant", file: "apps/merchant-portal/.env.local", next: true },
+  {
+    name: "merchant-portal",
+    portal: "merchant",
+    file: "apps/merchant-portal/.env.local",
+    next: true,
+  },
   { name: "admin", portal: "admin", file: "apps/admin/.env.local", next: true },
   { name: "driver-portal", portal: "driver", file: "apps/driver-portal/.env.local", next: true },
   { name: "mobile-customer", portal: "customer", file: "apps/mobile-customer/.env", expo: true },
@@ -139,8 +144,7 @@ function main() {
   console.log(`Syncing Clerk keys from ${path.relative(ROOT, source)}...\n`);
   for (const surface of SURFACES) writeSurface(surface, env);
   writeApi(env);
-  console.log("\nDone. Restart dev servers and rebuild mobile apps if running.");
-  console.log("EAS production: set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY via eas secret (see scripts/setup-clerk-eas.sh)");
+  console.log("\nDone. Restart dev servers if running.");
 }
 
 main();

@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Porterchain Customer",
+    "slug": "porterchain-customer",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "porterchain-customer",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.porterchain.customer"
+    },
+    "android": {
+      "package": "com.porterchain.customer",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    }
+  }
+}

@@ -1,0 +1,324 @@
+{
+  "info": {
+    "name": "Porterchain API",
+    "description": "Partner-facing Postman collection for the Porterchain logistics orchestration API (Phase 1 core loop: quote -> booking -> track -> POD).\n\nCanonical reference: docs/api/PARTNER_GUIDE.md. OpenAPI truth: `{{base_url}}/docs` and `{{base_url}}/openapi.json`.\n\n## Auth\n- Portal/customer requests use a Clerk JWT via `Authorization: Bearer {{token}}`. Locally with `CLERK_DEV_BYPASS=true`, use `dev` as the token.\n- Partner integrations use `X-Api-Key: {{api_key}}` against `/v1/merchant-api/*`.\n\nSet `base_url`, `token`, and `api_key` in the environment or collection variables before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8001", "type": "string" },
+    { "key": "token", "value": "dev", "type": "string" },
+    { "key": "api_key", "value": "", "type": "string" },
+    { "key": "quote_id", "value": "", "type": "string" },
+    { "key": "tracking_number", "value": "", "type": "string" },
+    { "key": "order_id", "value": "", "type": "string" },
+    { "key": "driver_id", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Liveness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] }
+          }
+        },
+        {
+          "name": "Readiness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health/ready",
+              "host": ["{{base_url}}"],
+              "path": ["health", "ready"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public / Retail",
+      "description": "Anonymous quote + public tracking. No auth required.",
+      "item": [
+        {
+          "name": "Create quote",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  const b = pm.response.json();",
+                  "  if (b.id) pm.collectionVariables.set('quote_id', b.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickup\": { \"address\": \"100 King St W, Toronto, ON\", \"lat\": 43.6486, \"lng\": -79.3817 },\n  \"dropoff\": { \"address\": \"1 Yonge St, Toronto, ON\", \"lat\": 43.6426, \"lng\": -79.3771 },\n  \"service_level\": \"standard\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/quotes",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "quotes"]
+            }
+          }
+        },
+        {
+          "name": "Get quote",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/quotes/{{quote_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "quotes", "{{quote_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Track order (public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/orders/{{tracking_number}}/track",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "orders", "{{tracking_number}}", "track"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Booking (Clerk auth)",
+      "description": "Authenticated booking flow. Requires `Authorization: Bearer {{token}}`.",
+      "item": [
+        {
+          "name": "Create booking",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quote_id\": \"{{quote_id}}\",\n  \"contact\": { \"name\": \"Test Partner\", \"email\": \"partner@example.com\", \"phone\": \"+14165550100\" }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Mock complete (dev only)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"quote_id\": \"{{quote_id}}\"\n}" },
+            "url": {
+              "raw": "{{base_url}}/v1/bookings/mock-complete",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "bookings", "mock-complete"]
+            }
+          }
+        },
+        {
+          "name": "Sync checkout (Stripe return)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"session_id\": \"cs_test_...\"\n}" },
+            "url": {
+              "raw": "{{base_url}}/v1/bookings/sync-checkout",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "bookings", "sync-checkout"]
+            }
+          }
+        },
+        {
+          "name": "Booking confirmation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/bookings/confirmation?quote_id={{quote_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "bookings", "confirmation"],
+              "query": [{ "key": "quote_id", "value": "{{quote_id}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer portal",
+      "description": "Authenticated retail customer surface (`/v1/customers/*`).",
+      "item": [
+        {
+          "name": "Customer dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/customers/me/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "customers", "me", "dashboard"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Merchant",
+      "description": "Merchant portal surface (`/v1/merchant/*`). Clerk JWT (merchant app).",
+      "item": [
+        {
+          "name": "Merchant orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/merchant/orders?limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "merchant", "orders"],
+              "query": [{ "key": "limit", "value": "25" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Merchant API (partner key)",
+      "description": "External integrations authenticate with a scoped API key instead of a Clerk JWT.",
+      "auth": {
+        "type": "apikey",
+        "apikey": [
+          { "key": "key", "value": "X-Api-Key", "type": "string" },
+          { "key": "value", "value": "{{api_key}}", "type": "string" },
+          { "key": "in", "value": "header", "type": "string" }
+        ]
+      },
+      "item": [
+        {
+          "name": "List orders (API key)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/v1/merchant-api/orders?limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "merchant-api", "orders"],
+              "query": [{ "key": "limit", "value": "25" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Driver",
+      "description": "Driver execution surface (`/driver-api/v1/*`).",
+      "item": [
+        {
+          "name": "Driver login (Clerk -> JWT)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"clerk_token\": \"{{token}}\"\n}" },
+            "url": {
+              "raw": "{{base_url}}/driver-api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["driver-api", "v1", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin operations",
+      "description": "Ops control tower (`/v1/admin/operations/*`). Requires admin context.",
+      "item": [
+        {
+          "name": "Dispatch stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/operations/stats",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "operations", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Dispatch queue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/operations/queue",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "operations", "queue"]
+            }
+          }
+        },
+        {
+          "name": "Assign batch to driver",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_id\": \"manual\",\n  \"driver_id\": \"{{driver_id}}\",\n  \"order_ids\": [\"{{order_id}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/operations/queue/assign-batch",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "operations", "queue", "assign-batch"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "description": "Inbound webhooks from Stripe and Fleetbase. Signature-verified.",
+      "item": [
+        {
+          "name": "Stripe webhook",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Stripe-Signature", "value": "t=...,v1=..." }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"type\": \"checkout.session.completed\"\n}" },
+            "url": {
+              "raw": "{{base_url}}/webhooks/stripe",
+              "host": ["{{base_url}}"],
+              "path": ["webhooks", "stripe"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

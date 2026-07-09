@@ -1,6 +1,26 @@
 """admin routes — dashboard."""
 
-from porterchain_api.routers.admin._deps import *  # noqa: F403
+from porterchain_api.routers.admin._deps import (
+    AdminContext,
+    AdminDashboardResponse,
+    Annotated,
+    AssignDriverRequest,
+    Depends,
+    HTTPException,
+    OrderAdminItem,
+    Query,
+    Session,
+    Settings,
+    _dashboard,
+    _ops,
+    _order_item,
+    get_admin_context,
+    get_db,
+    get_settings,
+    require_module,
+    router,
+)
+
 
 @router.get("/dashboard", response_model=AdminDashboardResponse)
 def admin_dashboard(

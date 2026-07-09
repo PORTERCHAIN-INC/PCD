@@ -59,6 +59,7 @@ PURGE_TABLES = [
     "visitor_sessions",
     "leads",
     "domain_events",
+    "stripe_webhook_events",
     "billing_ledger_entries",
     "driver_shift_activities",
     "driver_shifts",

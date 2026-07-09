@@ -1,6 +1,8 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import { EmptyState } from "@porterchain/ui/empty-state";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import {
   OrdersPerformanceChart,
   PerformanceChart,
@@ -97,15 +99,16 @@ export default function ReportsClient() {
   };
 
   if (!isLoaded || (loading && !data)) {
-    return <p className="text-muted">Loading reports…</p>;
+    return <PageSkeleton rows={4} />;
   }
 
   if (error && !data) {
     return (
-      <div className="space-y-4">
-        <p className="text-red-600">{error}</p>
-        <Button onClick={() => void load()}>Retry</Button>
-      </div>
+      <EmptyState
+        title="Reports unavailable"
+        hint={error}
+        action={<Button onClick={() => void load()}>Retry</Button>}
+      />
     );
   }
 

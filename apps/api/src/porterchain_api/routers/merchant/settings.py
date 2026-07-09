@@ -1,6 +1,25 @@
 """merchant routes — settings."""
 
-from porterchain_api.routers.merchant._deps import *  # noqa: F403
+from porterchain_api.routers.merchant._deps import (
+    Annotated,
+    BillingContactRequest,
+    BusinessDocumentRequest,
+    Depends,
+    HTTPException,
+    MerchantBrandingRequest,
+    MerchantContext,
+    MerchantNotificationsRequest,
+    MerchantProfileUpdateRequest,
+    Session,
+    WarehouseRequest,
+    _profile,
+    _settings,
+    get_db,
+    get_merchant_context,
+    require_module,
+    router,
+)
+
 
 @router.get("/settings/overview")
 def settings_overview(

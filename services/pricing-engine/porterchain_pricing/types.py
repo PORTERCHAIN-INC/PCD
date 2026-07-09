@@ -38,6 +38,7 @@ class PricingRequest:
     wallet_credit_cents: int = 0
     referral_credit_cents: int = 0
     volume_units: int = 1
+    requires_liftgate: bool = False
 
 
 @dataclass

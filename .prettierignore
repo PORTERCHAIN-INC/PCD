@@ -7,3 +7,6 @@ coverage
 pnpm-lock.yaml
 package-lock.json
 *.min.js
+
+# Generated OpenAPI snapshot — regenerate with `pnpm docs:openapi`
+docs/api/openapi.json

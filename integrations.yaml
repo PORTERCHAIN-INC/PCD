@@ -1,7 +1,41 @@
 # Porterchain integrations reference
-# See INTEGRATIONS.md for full documentation.
+# Canonical matrix: INTEGRATIONS.md · verified by pnpm validate:integrations-matrix
 
 integrations:
+  porterchain_api:
+    status: implemented
+    env:
+      - NEXT_PUBLIC_PORTERCHAIN_API_URL
+    default_port: 8001
+    code:
+      - apps/api/src/porterchain_api/
+
+  postgres:
+    status: implemented
+    version: "18"
+    code:
+      - apps/api/src/porterchain_api/db.py
+      - infrastructure/docker/docker-compose.yml
+
+  redis:
+    status: implemented
+    version: "8.8"
+    code:
+      - shared/python/porterchain_shared/redis_client.py
+
+  mailpit:
+    status: implemented
+    note: Dev SMTP — not Mailhog
+
+  fleetbase:
+    status: external
+    env_template: env/fleetbase.env.example
+    ports:
+      api: 8000
+      console: 4200
+    code:
+      - apps/api/src/porterchain_api/fleetbase_engine/
+
   google_maps:
     status: implemented
     package: "@vis.gl/react-google-maps@1.8.3"
@@ -10,41 +44,67 @@ integrations:
       - GOOGLE_MAPS_SERVER_API_KEY
     code:
       - website/src/lib/maps.ts
-      - website/src/lib/env.ts
-      - website/src/components/maps/
-
-  porterchain_api:
-    status: implemented
-    env:
-      - NEXT_PUBLIC_PORTERCHAIN_API_URL
-    default_port: 8001
-
-  fleetbase:
-    status: external
-    env_template: env/fleetbase.env.example
-    ports:
-      api: 8000
-      console: 4200
-
-  stripe:
-    status: external
-    env_template: env/api.env.example
-    note: Server-only — never in website .env
-
-  clerk:
-    status: external
-    env_template: env/merchant-portal.env.example
-    note: Sole authentication provider for Porterchain users
+      - packages/maps/
 
   valhalla:
     status: docker
     profile: routing
     port: 8002
+    code:
+      - services/pricing-engine/
 
   osrm:
     status: fallback
     env: OSRM_HOST
+    code:
+      - services/pricing-engine/
+
+  stripe:
+    status: external
+    env_template: env/api.env.example
+    note: Server-only — frozen config
+
+  clerk:
+    status: external
+    env_template: env/clerk.env
+    note: Sole authentication provider
 
   firebase_fcm:
     status: partial
-    note: mobile-driver registers FCM token; API send requires prod credentials
+    note: mobile-driver FCM token; prod credentials required
+
+  smtp:
+    status: implemented
+    env:
+      - MAIL_HOST
+      - SMTP_HOST
+
+  merchant_api_keys:
+    status: implemented
+    code:
+      - apps/api/src/porterchain_api/auth/merchant_api.py
+      - apps/api/src/porterchain_api/routers/merchant_api.py
+
+  merchant_webhooks:
+    status: implemented
+    code:
+      - apps/api/src/porterchain_api/merchant_engine/webhook_delivery_service.py
+
+  oauth_third_party:
+    status: implemented
+    code:
+      - apps/api/src/porterchain_api/routers/oauth.py
+      - apps/api/src/porterchain_api/oauth_engine/
+
+  zoho_salesiq:
+    status: optional
+    code:
+      - website/src/components/integrations/ZohoSalesIQ.tsx
+
+  shopify:
+    status: planned
+    note: Merchant API + webhooks — native app deferred (§7.2.1 skipped)
+
+  woocommerce:
+    status: planned
+    note: REST hooks + CSV — connector deferred (§7.2.2)

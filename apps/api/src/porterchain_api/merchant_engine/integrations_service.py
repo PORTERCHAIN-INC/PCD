@@ -75,8 +75,46 @@ class MerchantIntegrationsService:
     def erp_readiness(self) -> dict[str, Any]:
         return {"platforms": gateway.ERP_READINESS}
 
-    def oauth_readiness(self) -> dict[str, Any]:
-        return {"providers": gateway.OAUTH_PROVIDERS, "enabled": False}
+    def oauth_readiness(self, *, enabled: bool) -> dict[str, Any]:
+        return {
+            "providers": gateway.OAUTH_PROVIDERS,
+            "enabled": enabled,
+            "authorization_endpoint": "/v1/oauth/authorize",
+            "token_endpoint": "/v1/oauth/token",
+            "metadata_endpoint": "/v1/oauth/.well-known/oauth-authorization-server",
+        }
+
+    def list_oauth_clients(self, ctx: MerchantContext) -> list[dict[str, Any]]:
+        from porterchain_api.oauth_engine.oauth_service import OAuthService
+
+        profile = ctx.merchant.profile if isinstance(ctx.merchant.profile, dict) else {}
+        return OAuthService().list_clients(profile)
+
+    def create_oauth_client(
+        self,
+        db: Session,
+        ctx: MerchantContext,
+        *,
+        name: str,
+        scopes: list[str],
+        environment: str,
+        redirect_uris: list[str] | None = None,
+    ) -> dict[str, Any]:
+        from porterchain_api.oauth_engine.oauth_service import OAuthService
+
+        profile = ctx.merchant.profile if isinstance(ctx.merchant.profile, dict) else {}
+        public, secret, updated = OAuthService().create_client(
+            profile,
+            merchant_id=ctx.merchant.id,
+            name=name,
+            scopes=scopes,
+            environment=environment,
+            redirect_uris=redirect_uris,
+        )
+        ctx.merchant.profile = updated
+        db.commit()
+        db.refresh(ctx.merchant)
+        return {**public, "client_secret": secret}
 
     def csv_templates(self) -> dict[str, Any]:
         return {"templates": gateway.CSV_IMPORT_TEMPLATES}

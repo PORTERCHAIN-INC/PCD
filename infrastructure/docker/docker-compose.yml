@@ -1,11 +1,12 @@
 # Porterchain local infrastructure
+# Image policy: exact tags or digests only — no :latest / floating minors (see .cursor/rules/dependency-freeze.mdc).
 # Usage:
 #   cp .env.example .env   # fill secrets
 #   docker compose --profile core up -d
 #   docker compose --profile core --profile routing up -d
 #
 # Profiles:
-#   core     — MySQL, Redis, Mailhog (always safe to start)
+#   core     — MySQL, Redis, Mailpit (always safe to start)
 #   routing  — Valhalla (large image; first start downloads tiles)
 #   fleetbase — Fleetbase API + console (requires Fleetbase images)
 #   proxy    — Nginx dev proxy
@@ -15,7 +16,7 @@ name: porterchain
 services:
   database:
     profiles: [core, fleetbase]
-    image: mysql:8.0
+    image: mysql:8.0.46
     container_name: porterchain-mysql
     restart: unless-stopped
     environment:
@@ -49,7 +50,7 @@ services:
 
   cache:
     profiles: [core, fleetbase]
-    image: redis:7.2-alpine
+    image: redis:8.8.0-alpine3.23
     container_name: porterchain-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
@@ -68,7 +69,7 @@ services:
 
   postgres:
     profiles: [core]
-    image: postgres:16-alpine
+    image: postgres:18-alpine3.24
     container_name: porterchain-postgres
     restart: unless-stopped
     environment:
@@ -78,7 +79,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     networks:
       - porterchain-data
       - porterchain-internal
@@ -88,26 +89,39 @@ services:
       timeout: 5s
       retries: 5
 
-  mailhog:
+  mailpit:
     profiles: [core]
-    image: mailhog/mailhog:v1.0.1
-    container_name: porterchain-mailhog
+    image: axllent/mailpit:v1.30.3
+    container_name: porterchain-mailpit
     restart: unless-stopped
     ports:
       - "127.0.0.1:1025:1025"
       - "127.0.0.1:8025:8025"
+    volumes:
+      - mailpit-data:/data
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
     networks:
       - porterchain-internal
 
   valhalla:
     profiles: [routing]
-    image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
+    image: ghcr.io/valhalla/valhalla-scripted@sha256:9ba06c00f41fabec8d3cb2e7ec3c39023be7a410d245049d76af3b494e1ce674
     container_name: porterchain-valhalla
     restart: unless-stopped
     ports:
       - "127.0.0.1:8002:8002"
     volumes:
       - valhalla-tiles:/custom_files
+    environment:
+      tile_urls: https://download.geofabrik.de/north-america/canada/ontario-latest.osm.pbf
+      use_tiles_ignore_pbf: "True"
+      build_elevation: "False"
+      build_admins: "True"
+      build_time_zones: "True"
+      server_threads: "2"
     networks:
       - porterchain-internal
     healthcheck:
@@ -151,7 +165,7 @@ services:
 
   proxy:
     profiles: [proxy]
-    image: nginx:1.27-alpine
+    image: nginx:1.31-alpine3.23
     container_name: porterchain-proxy
     restart: unless-stopped
     ports:
@@ -174,6 +188,7 @@ volumes:
   mysql-data:
   postgres-data:
   redis-data:
+  mailpit-data:
   valhalla-tiles:
   fleetbase-storage:
   api-storage:

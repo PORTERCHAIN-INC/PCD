@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
+import { StatCardsSkeleton } from "@porterchain/ui/loading";
 import DriverShell from "@/components/DriverShell";
 import { AssignmentPanel } from "@/components/dashboard/AssignmentPanel";
 import { MetricCard } from "@/components/dashboard/MetricCard";
@@ -45,14 +46,7 @@ export default function DashboardPage() {
   if (loading || !data) {
     return (
       <DriverShell>
-        <div className="animate-pulse space-y-4">
-          <div className="h-10 w-64 rounded-xl bg-white" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-28 rounded-2xl bg-white" />
-            ))}
-          </div>
-        </div>
+        <StatCardsSkeleton count={8} />
       </DriverShell>
     );
   }

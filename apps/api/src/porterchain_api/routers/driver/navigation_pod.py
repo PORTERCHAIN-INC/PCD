@@ -1,6 +1,27 @@
 """driver routes — navigation_pod."""
 
-from porterchain_api.routers.driver._deps import *  # noqa: F403
+from porterchain_api.routers.driver._deps import (
+    APIRouter,
+    Annotated,
+    Depends,
+    DriverContext,
+    HTTPException,
+    LocationPingRequest,
+    OfflineActionRequest,
+    PodBarcodeRequest,
+    PodOtpRequest,
+    PodPhotoRequest,
+    PodSignatureRequest,
+    Session,
+    Settings,
+    get_db,
+    get_driver_context,
+    get_settings,
+    require_approved_driver,
+    router,
+    svc,
+)
+
 
 @router.get("/navigation/session")
 def navigation_session(
@@ -71,8 +92,14 @@ def pod_photo(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        result = svc.platform.pod.capture_photo(db, ctx.driver, stop_id, file_url=body.file_url, fleetbase_bridge=bridge)
-        db.commit()
+        with db.begin():
+            result = svc.platform.pod.capture_photo(
+                db,
+                ctx.driver,
+                stop_id,
+                file_url=body.file_url,
+                fleetbase_bridge=bridge,
+            )
         return {"success": result.success, "fleetbase_synced": result.fleetbase_synced}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc
@@ -90,10 +117,14 @@ def pod_signature(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        result = svc.platform.pod.capture_signature(
-            db, ctx.driver, stop_id, signature_data=body.signature_data, fleetbase_bridge=bridge
-        )
-        db.commit()
+        with db.begin():
+            result = svc.platform.pod.capture_signature(
+                db,
+                ctx.driver,
+                stop_id,
+                signature_data=body.signature_data,
+                fleetbase_bridge=bridge,
+            )
         return {"success": result.success, "fleetbase_synced": result.fleetbase_synced}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc
@@ -111,8 +142,14 @@ def pod_barcode(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        result = svc.platform.pod.capture_barcode(db, ctx.driver, stop_id, barcode=body.barcode, fleetbase_bridge=bridge)
-        db.commit()
+        with db.begin():
+            result = svc.platform.pod.capture_barcode(
+                db,
+                ctx.driver,
+                stop_id,
+                barcode=body.barcode,
+                fleetbase_bridge=bridge,
+            )
         return {"success": result.success, "fleetbase_synced": result.fleetbase_synced}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc
@@ -130,10 +167,16 @@ def pod_complete(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        result = svc.platform.pod.complete_pod(db, ctx.driver, stop_id, otp=body.otp, fleetbase_bridge=bridge)
-        if not result.success:
-            raise HTTPException(status_code=400, detail=result.message)
-        db.commit()
+        with db.begin():
+            result = svc.platform.pod.complete_pod(
+                db,
+                ctx.driver,
+                stop_id,
+                otp=body.otp,
+                fleetbase_bridge=bridge,
+            )
+            if not result.success:
+                raise HTTPException(status_code=400, detail=result.message)
         return {"success": True, "state": "POD_COMPLETED"}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc
@@ -147,8 +190,8 @@ def generate_otp(
 ):
     require_approved_driver(ctx)
     try:
-        otp = svc.platform.pod.generate_otp(db, ctx.driver, order_id)
-        db.commit()
+        with db.begin():
+            otp = svc.platform.pod.generate_otp(db, ctx.driver, order_id)
         return {"otp": otp}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="order_not_found") from exc
@@ -162,14 +205,14 @@ def queue_offline(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    result = svc.platform.offline.queue_action(
-        db,
-        ctx.driver,
-        action_type=body.action_type,
-        payload=body.payload,
-        client_id=body.client_id,
-    )
-    db.commit()
+    with db.begin():
+        result = svc.platform.offline.queue_action(
+            db,
+            ctx.driver,
+            action_type=body.action_type,
+            payload=body.payload,
+            client_id=body.client_id,
+        )
     return result
 
 
@@ -207,15 +250,15 @@ def legacy_location(
 ):
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
-    result = svc.platform.location.record_ping(
-        db,
-        ctx.driver,
-        lat=body.lat,
-        lng=body.lng,
-        accuracy_m=body.accuracy_m,
-        heading=body.heading,
-        speed_mps=body.speed_mps,
-        fleetbase_bridge=bridge,
-    )
-    db.commit()
+    with db.begin():
+        result = svc.platform.location.record_ping(
+            db,
+            ctx.driver,
+            lat=body.lat,
+            lng=body.lng,
+            accuracy_m=body.accuracy_m,
+            heading=body.heading,
+            speed_mps=body.speed_mps,
+            fleetbase_bridge=bridge,
+        )
     return result

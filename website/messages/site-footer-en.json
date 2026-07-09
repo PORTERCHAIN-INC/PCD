@@ -14,6 +14,8 @@
     "products": {
       "title": "Services",
       "links": {
+        "platform": "Platform",
+        "solutions": "Solutions",
         "book": "Book a Delivery",
         "business": "Business",
         "customerPortal": "My Orders",

@@ -9,12 +9,12 @@ One Clerk **application** per user class. The API verifies JWTs from all four vi
 
 ## Current state (2026-07-07)
 
-| Store | What you have |
-| ----- | ------------- |
-| Local | `env/clerk.env` — single source; `pnpm clerk:sync` |
-| Doppler `pcd` / `prd` | Runtime secrets via `DOPPLER_TOKEN` + `sync-secrets.sh` |
-| GitHub | Deploy creds + 4× `CLERK_*_PUBLISHABLE_KEY` for Docker builds |
-| Server | Generated `/opt/porterchain/.env` — never hand-edit |
+| Store                 | What you have                                                 |
+| --------------------- | ------------------------------------------------------------- |
+| Local                 | `env/clerk.env` — single source; `pnpm clerk:sync`            |
+| Doppler `pcd` / `prd` | Runtime secrets via `DOPPLER_TOKEN` + `sync-secrets.sh`       |
+| GitHub                | Deploy creds + 4× `CLERK_*_PUBLISHABLE_KEY` for Docker builds |
+| Server                | Generated `/opt/porterchain/.env` — never hand-edit           |
 
 **Verify:** `pnpm secrets:verify` · API: `curl …/health/ready | jq '.clerk_mode, .clerk_apps'`
 
@@ -28,12 +28,12 @@ One Clerk **application** per user class. The API verifies JWTs from all four vi
 2. Open instance **`relaxing-warthog-11`** (or your prod instance)
 3. Top-left **application switcher** → **Create application** (repeat 4 times)
 
-| Application name | Suggested slug | Used by |
-| ---------------- | -------------- | ------- |
+| Application name     | Suggested slug         | Used by                                   |
+| -------------------- | ---------------------- | ----------------------------------------- |
 | Porterchain Customer | `porterchain-customer` | Website, customer portal, customer mobile |
-| Porterchain Merchant | `porterchain-merchant` | Merchant portal |
-| Porterchain Admin | `porterchain-admin` | Admin portal |
-| Porterchain Driver | `porterchain-driver` | Driver portal, driver mobile |
+| Porterchain Merchant | `porterchain-merchant` | Merchant portal                           |
+| Porterchain Admin    | `porterchain-admin`    | Admin portal                              |
+| Porterchain Driver   | `porterchain-driver`   | Driver portal, driver mobile              |
 
 ---
 
@@ -46,8 +46,8 @@ For **each** of the 4 applications:
 3. **Configure → API Keys**
    - Copy **Publishable key** (`pk_live_…`)
    - Copy **Secret key** (`sk_live_…`)
-4. **Advanced** (same page) → copy **JWKS Endpoint**  
-   - Usually `https://<instance>.clerk.accounts.dev/.well-known/jwks.json`  
+4. **Advanced** (same page) → copy **JWKS Endpoint**
+   - Usually `https://<instance>.clerk.accounts.dev/.well-known/jwks.json`
    - All four apps on the **same instance** may share the same JWKS URL — that is fine; set the same URL in all four `CLERK_*_JWKS_URL` fields.
 
 ---
@@ -58,13 +58,13 @@ For **each** of the 4 applications:
 
 **Paths:** website `/login`, customer portal `/sign-in`
 
-| Setting | Values |
-| ------- | ------ |
-| **Home URL** | `https://porterchain.com` |
+| Setting                   | Values                                                                                             |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Home URL**              | `https://porterchain.com`                                                                          |
 | **Allowed redirect URLs** | `https://porterchain.com/*`, `https://www.porterchain.com/*`, `https://customer.porterchain.com/*` |
-| **Sign-in URL** | `https://porterchain.com/login` (website); customer portal uses `/sign-in` on its host |
-| **Sign-up URL** | `https://porterchain.com/login` or customer `/sign-in` |
-| **After sign-in** | `https://customer.porterchain.com/dashboard` (portal) / website book flow |
+| **Sign-in URL**           | `https://porterchain.com/login` (website); customer portal uses `/sign-in` on its host             |
+| **Sign-up URL**           | `https://porterchain.com/login` or customer `/sign-in`                                             |
+| **After sign-in**         | `https://customer.porterchain.com/dashboard` (portal) / website book flow                          |
 
 **Customer mobile** (`apps/mobile-customer`):
 
@@ -73,11 +73,11 @@ For **each** of the 4 applications:
 
 ### Merchant app (`porterchain-merchant`)
 
-| Setting | Values |
-| ------- | ------ |
-| **Home URL** | `https://merchant.porterchain.com` |
-| **Allowed redirect URLs** | `https://merchant.porterchain.com/*` |
-| **Sign-in / sign-up** | `https://merchant.porterchain.com/sign-in`, `/sign-up` |
+| Setting                   | Values                                                 |
+| ------------------------- | ------------------------------------------------------ |
+| **Home URL**              | `https://merchant.porterchain.com`                     |
+| **Allowed redirect URLs** | `https://merchant.porterchain.com/*`                   |
+| **Sign-in / sign-up**     | `https://merchant.porterchain.com/sign-in`, `/sign-up` |
 
 ### Admin app (`porterchain-admin`)
 
@@ -85,12 +85,12 @@ Clerk **Paths** only shows **Component paths** (where `<SignIn />`, `<SignUp />`
 
 **Configure → Paths → Component paths** (production — full `https://` URLs on your app domain):
 
-| Component | Value |
-| --------- | ----- |
-| `<SignIn />` | `https://admin.porterchain.com/sign-in` |
-| `<SignUp />` | `https://admin.porterchain.com/sign-in` (invite-only — same as sign-in) |
-| Signing out | `https://admin.porterchain.com/sign-in` |
-| `<OAuthConsent />` | leave default unless you use custom OAuth consent |
+| Component          | Value                                                                   |
+| ------------------ | ----------------------------------------------------------------------- |
+| `<SignIn />`       | `https://admin.porterchain.com/sign-in`                                 |
+| `<SignUp />`       | `https://admin.porterchain.com/sign-in` (invite-only — same as sign-in) |
+| Signing out        | `https://admin.porterchain.com/sign-in`                                 |
+| `<OAuthConsent />` | leave default unless you use custom OAuth consent                       |
 
 Pointing SignIn at **your app** (not `accounts.admin…`) keeps auth on `admin.porterchain.com` and avoids Account Portal bounce. Alternatively keep Account Portal and rely on code redirects below.
 
@@ -109,11 +109,11 @@ Restrict sign-ups: **Configure → Restrictions** → disable public sign-up; in
 
 ### Driver app (`porterchain-driver`)
 
-| Setting | Values |
-| ------- | ------ |
-| **Home URL** | `https://driver.porterchain.com` |
-| **Allowed redirect URLs** | `https://driver.porterchain.com/*` |
-| **Sign-in** | `https://driver.porterchain.com/login` |
+| Setting                   | Values                                 |
+| ------------------------- | -------------------------------------- |
+| **Home URL**              | `https://driver.porterchain.com`       |
+| **Allowed redirect URLs** | `https://driver.porterchain.com/*`     |
+| **Sign-in**               | `https://driver.porterchain.com/login` |
 
 **Driver mobile** (`apps/mobile-driver`):
 
@@ -175,13 +175,13 @@ Expected: `clerk_mode: "enterprise"`, all four `clerk_apps.*: "ok"`.
 
 ## Step 7 — Smoke login (manual)
 
-| Portal | URL | Test user |
-| ------ | --- | --------- |
-| Customer | https://customer.porterchain.com/sign-in | Retail customer |
-| Merchant | https://merchant.porterchain.com/sign-in | Merchant user in DB |
-| Admin | https://admin.porterchain.com/sign-in | `admin_users` row |
-| Driver web | https://driver.porterchain.com/login | Driver with Clerk linked |
-| Website | https://porterchain.com/login | Same customer app |
+| Portal     | URL                                      | Test user                |
+| ---------- | ---------------------------------------- | ------------------------ |
+| Customer   | https://customer.porterchain.com/sign-in | Retail customer          |
+| Merchant   | https://merchant.porterchain.com/sign-in | Merchant user in DB      |
+| Admin      | https://admin.porterchain.com/sign-in    | `admin_users` row        |
+| Driver web | https://driver.porterchain.com/login     | Driver with Clerk linked |
+| Website    | https://porterchain.com/login            | Same customer app        |
 
 API must return 200 on access gates: `/v1/auth/{admin,merchant,customer}/access` with Bearer token.
 
@@ -199,8 +199,8 @@ Users created in the **old single Clerk app** do not automatically exist in the 
 
 ## Related
 
-| Doc | Role |
-| --- | ---- |
-| [AUTHENTICATION_ARCHITECTURE.md](../../AUTHENTICATION_ARCHITECTURE.md) | Auth model |
-| [SECRETS.md](./SECRETS.md) | Doppler + rotation |
-| [env/production.env.example](../../env/production.env.example) | Prod URL reference |
+| Doc                                                                    | Role               |
+| ---------------------------------------------------------------------- | ------------------ |
+| [AUTHENTICATION_ARCHITECTURE.md](../../AUTHENTICATION_ARCHITECTURE.md) | Auth model         |
+| [SECRETS.md](./SECRETS.md)                                             | Doppler + rotation |
+| [env/production.env.example](../../env/production.env.example)         | Prod URL reference |

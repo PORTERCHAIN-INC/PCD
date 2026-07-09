@@ -2,28 +2,32 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-08
 
-**Registry:** [integrations.yaml](./integrations.yaml)
+**Registry:** [integrations.yaml](./integrations.yaml) — CI guard `pnpm validate:integrations-matrix`
 
 ---
 
 ## Integration map
 
-| Integration           | Status            | Used by                  | Purpose                                |
-| --------------------- | ----------------- | ------------------------ | -------------------------------------- |
-| **Porterchain API**   | ✅ Live (`:8001`) | All apps                 | Orchestration, RBAC, events            |
-| **Fleetbase**         | ✅ Adapter        | API, admin SSO           | Dispatch, GPS, POD execution           |
-| **Google Maps**       | ✅ Implemented    | Website, portals, mobile | Autocomplete, map viz                  |
-| **Valhalla**          | ✅ Docker profile | API pricing              | Primary routing (`:8002`)              |
-| **OSRM**              | ✅ Fallback       | API                      | Route distance fallback                |
-| **Stripe**            | ✅ Live           | API, website, merchant   | Payments, checkout                     |
-| **Clerk**             | ✅ Live           | All portals + mobile     | Sole user identity provider            |
-| **Firebase FCM**      | ⚠️ Partial        | API + mobile-driver      | Push notifications (prod creds needed) |
-| **SMTP**              | ✅ Live           | API/worker               | Transactional email                    |
-| **Merchant webhooks** | ✅ Implemented    | API                      | Outbound HMAC delivery                 |
-| **Merchant API keys** | ✅ Implemented    | `/v1/merchant-api`       | B2B programmatic access                |
-| **Zoho SalesIQ**      | ✅ Optional       | Website                  | Live chat widget                       |
+| Integration           | Status            | Used by                  | Purpose                                         |
+| --------------------- | ----------------- | ------------------------ | ----------------------------------------------- |
+| **Porterchain API**   | ✅ Live (`:8001`) | All apps                 | Orchestration, RBAC, events                     |
+| **Fleetbase**         | ✅ Adapter        | API, admin SSO           | Dispatch, GPS, POD execution                    |
+| **Google Maps**       | ✅ Implemented    | Website, portals, mobile | Autocomplete, map viz                           |
+| **Valhalla**          | ✅ Docker profile | API pricing              | Primary routing (`:8002`)                       |
+| **OSRM**              | ✅ Fallback       | API                      | Route distance fallback                         |
+| **Stripe**            | ✅ Live           | API, website, merchant   | Payments, checkout                              |
+| **Clerk**             | ✅ Live           | All portals + mobile     | Sole user identity provider                     |
+| **Firebase FCM**      | ⚠️ Partial        | API + mobile-driver      | Push notifications (prod creds needed)          |
+| **SMTP**              | ✅ Live           | API/worker               | Transactional email                             |
+| **Merchant webhooks** | ✅ Implemented    | API                      | Outbound HMAC delivery                          |
+| **Merchant API keys** | ✅ Implemented    | `/v1/merchant-api`       | B2B programmatic access                         |
+| **OAuth third-party** | ✅ Implemented    | `/v1/oauth`              | Partner authorization_code + client_credentials |
+| **PostgreSQL**        | ✅ Live           | API/worker               | Primary datastore (v18)                         |
+| **Redis**             | ✅ Live           | API/worker               | Cache, OAuth tokens, rate limits                |
+| **Mailpit**           | ✅ Dev            | Docker compose           | Local transactional email                       |
+| **Zoho SalesIQ**      | ✅ Optional       | Website                  | Live chat widget                                |
 
 **Removed (do not use):** Supabase OTP, Twilio SMS OTP, `BOOKING_OTP_*` — see [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md).
 
@@ -41,7 +45,7 @@
 | Mobile driver   | Expo | `EXPO_PUBLIC_API_URL` → `:8001`                |
 | Mobile customer | Expo | `:8001/v1/customers`                           |
 
-Database: **PostgreSQL 16** (Porterchain). Fleetbase uses separate MySQL.
+Database: **PostgreSQL 18** (Porterchain). Fleetbase uses separate MySQL.
 
 ---
 

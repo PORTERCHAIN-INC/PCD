@@ -36,6 +36,9 @@ const PACKAGES = [
   { id: "foodBeverage", label: "Food & beverage" },
 ];
 
+const FOCUS_RING =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 focus-visible:ring-offset-2";
+
 type Step = "details" | "quote" | "checkout" | "confirmed";
 
 function toPayload(addr: BookingAddress) {
@@ -194,10 +197,11 @@ export default function CustomerBookDelivery() {
         </p>
       </div>
 
-      <ol className="mb-8 flex gap-2 text-xs font-medium">
+      <ol className="mb-8 flex gap-2 text-xs font-medium" aria-label="Booking steps">
         {(["details", "quote", "checkout"] as const).map((s, i) => (
           <li
             key={s}
+            aria-current={step === s ? "step" : undefined}
             className={cn(
               "rounded-full px-3 py-1 capitalize",
               step === s ? "bg-secondary text-white" : "bg-white text-muted"
@@ -209,7 +213,11 @@ export default function CustomerBookDelivery() {
       </ol>
 
       {error && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div
+          className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+          aria-live="polite"
+        >
           {error}
         </div>
       )}
@@ -242,12 +250,13 @@ export default function CustomerBookDelivery() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm">
+            <label htmlFor="customer-vehicle" className="block text-sm">
               <span className="mb-2 block font-medium text-primary">Vehicle</span>
               <select
+                id="customer-vehicle"
                 value={vehicleClass}
                 onChange={(e) => setVehicleClass(e.target.value)}
-                className="w-full rounded-xl border border-primary/10 px-4 py-3"
+                className={`w-full rounded-xl border border-primary/10 px-4 py-3 ${FOCUS_RING}`}
               >
                 {VEHICLES.map((v) => (
                   <option key={v.id} value={v.id}>
@@ -256,12 +265,13 @@ export default function CustomerBookDelivery() {
                 ))}
               </select>
             </label>
-            <label className="block text-sm">
+            <label htmlFor="customer-package" className="block text-sm">
               <span className="mb-2 block font-medium text-primary">Package type</span>
               <select
+                id="customer-package"
                 value={packageType}
                 onChange={(e) => setPackageType(e.target.value)}
-                className="w-full rounded-xl border border-primary/10 px-4 py-3"
+                className={`w-full rounded-xl border border-primary/10 px-4 py-3 ${FOCUS_RING}`}
               >
                 {PACKAGES.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -290,9 +300,11 @@ export default function CustomerBookDelivery() {
               <div className="flex gap-2">
                 <button
                   type="button"
+                  aria-pressed={scheduleMode === "now"}
                   onClick={() => setScheduleMode("now")}
                   className={cn(
                     "flex-1 rounded-xl border px-3 py-3 text-sm font-medium",
+                    FOCUS_RING,
                     scheduleMode === "now"
                       ? "border-secondary bg-secondary/10 text-secondary"
                       : "border-primary/10"
@@ -302,9 +314,11 @@ export default function CustomerBookDelivery() {
                 </button>
                 <button
                   type="button"
+                  aria-pressed={scheduleMode === "later"}
                   onClick={() => setScheduleMode("later")}
                   className={cn(
                     "flex-1 rounded-xl border px-3 py-3 text-sm font-medium",
+                    FOCUS_RING,
                     scheduleMode === "later"
                       ? "border-secondary bg-secondary/10 text-secondary"
                       : "border-primary/10"
@@ -328,7 +342,7 @@ export default function CustomerBookDelivery() {
             type="button"
             disabled={loading}
             onClick={() => void onGetQuote()}
-            className="w-full rounded-xl bg-secondary py-3 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto sm:px-8"
+            className={`w-full rounded-xl bg-secondary py-3 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto sm:px-8 ${FOCUS_RING}`}
           >
             {loading ? "Getting quote…" : "Get instant quote"}
           </button>
@@ -362,7 +376,7 @@ export default function CustomerBookDelivery() {
             <button
               type="button"
               onClick={() => setStep("checkout")}
-              className="rounded-xl bg-secondary px-6 py-3 text-sm font-semibold text-white"
+              className={`rounded-xl bg-secondary px-6 py-3 text-sm font-semibold text-white ${FOCUS_RING}`}
             >
               Continue to payment
             </button>
@@ -396,9 +410,15 @@ export default function CustomerBookDelivery() {
             />
           </label>
 
-          <div className="mt-6 space-y-3 text-sm">
+          <fieldset className="mt-6 space-y-3 text-sm">
+            <legend className="sr-only">Required declarations</legend>
             <label className="flex items-start gap-3">
-              <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={terms}
+                onChange={(e) => setTerms(e.target.checked)}
+                className={FOCUS_RING}
+              />
               <span>I agree to the Porterchain Terms of Service.</span>
             </label>
             <label className="flex items-start gap-3">
@@ -406,6 +426,7 @@ export default function CustomerBookDelivery() {
                 type="checkbox"
                 checked={privacy}
                 onChange={(e) => setPrivacy(e.target.checked)}
+                className={FOCUS_RING}
               />
               <span>I agree to the Privacy Policy.</span>
             </label>
@@ -414,10 +435,11 @@ export default function CustomerBookDelivery() {
                 type="checkbox"
                 checked={dangerous}
                 onChange={(e) => setDangerous(e.target.checked)}
+                className={FOCUS_RING}
               />
               <span>I confirm this shipment does not contain undeclared dangerous goods.</span>
             </label>
-          </div>
+          </fieldset>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <button

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import PortalOnboardingView from "@/components/onboarding/PortalOnboardingView";
-import { fetchMerchantOnboarding } from "@/lib/onboarding";
+import { fetchMerchantOnboarding, saveMerchantVertical } from "@/lib/onboarding";
 import { isClerkConfigured } from "@/lib/env";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 
@@ -103,6 +103,11 @@ export default function MerchantOnboardingPage() {
       onRefresh={() => {
         setLoading(true);
         void refresh();
+      }}
+      onSaveVertical={async (vertical) => {
+        const token = await getApiToken();
+        const status = await saveMerchantVertical(token, vertical);
+        setData(status);
       }}
     />
   );

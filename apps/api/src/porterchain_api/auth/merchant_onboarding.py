@@ -14,6 +14,12 @@ from porterchain_api.auth.portal_guard import require_clerk_app_for_portal
 from porterchain_api.auth.user_sync_service import UserSyncService, _is_pending_clerk_id
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
+from porterchain_api.merchant_engine.verticals import (
+    MERCHANT_VERTICAL_SLUGS,
+    VERTICAL_INDUSTRY,
+    VERTICAL_LABELS,
+    is_valid_merchant_vertical,
+)
 from porterchain_api.merchant_models import Merchant, MerchantUser
 from porterchain_api.admin_models import AdminUser, Driver
 
@@ -141,6 +147,8 @@ def evaluate_merchant_onboarding(
     merchant_status = merchant.status if merchant else MerchantStatus.PENDING.value
     admin_approved = merchant_status == MerchantStatus.ACTIVE.value
     company_ready = bool(merchant and merchant.company_name and merchant.email)
+    vertical_slug = (merchant.profile or {}).get("vertical") if merchant else None
+    vertical_ready = bool(vertical_slug and is_valid_merchant_vertical(str(vertical_slug)))
 
     steps: list[dict[str, Any]] = [
         {
@@ -156,6 +164,13 @@ def evaluate_merchant_onboarding(
             "description": "Your account is registered as a Porterchain merchant organization.",
             "complete": invited,
             "status": "complete" if invited else "pending",
+        },
+        {
+            "id": "business_vertical",
+            "label": "Business vertical",
+            "description": "Select your primary industry so Porterchain can tailor workflows and pricing.",
+            "complete": vertical_ready,
+            "status": "complete" if vertical_ready else "pending",
         },
         {
             "id": "admin_authorization",
@@ -209,4 +224,45 @@ def evaluate_merchant_onboarding(
         "can_access_portal": ready,
         "company_name": merchant.company_name if merchant else None,
         "merchant_id": merchant.id if merchant else None,
+        "vertical": str(vertical_slug) if vertical_slug else None,
+        "vertical_label": VERTICAL_LABELS.get(str(vertical_slug), None) if vertical_slug else None,
+        "vertical_options": [
+            {"slug": slug, "label": VERTICAL_LABELS[slug]} for slug in MERCHANT_VERTICAL_SLUGS
+        ],
     }
+
+
+def save_merchant_vertical(
+    db: Session,
+    claims: ClerkClaims,
+    vertical: str,
+    *,
+    settings: Settings | None = None,
+) -> dict[str, Any]:
+    if not is_valid_merchant_vertical(vertical):
+        raise HTTPException(status_code=400, detail="invalid_merchant_vertical")
+
+    if settings:
+        ensure_merchant_portal_signup(db, claims, settings=settings)
+
+    email = (claims.email or "").lower().strip()
+    clerk_id = claims.clerk_user_id or ""
+    merchant_user: MerchantUser | None = None
+    if clerk_id and not _is_pending_clerk_id(clerk_id):
+        merchant_user = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_id).first()
+    if not merchant_user and email:
+        merchant_user = db.query(MerchantUser).filter(MerchantUser.email == email).first()
+    if not merchant_user:
+        raise HTTPException(status_code=404, detail="merchant_user_not_found")
+
+    merchant = db.query(Merchant).filter(Merchant.id == merchant_user.merchant_id).first()
+    if not merchant:
+        raise HTTPException(status_code=404, detail="merchant_not_found")
+
+    profile = dict(merchant.profile or {})
+    profile["vertical"] = vertical
+    profile["industry"] = VERTICAL_INDUSTRY.get(vertical)
+    merchant.profile = profile
+    db.commit()
+
+    return evaluate_merchant_onboarding(db, claims, settings=settings)

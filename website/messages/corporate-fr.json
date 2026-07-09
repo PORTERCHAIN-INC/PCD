@@ -88,7 +88,9 @@
       "title": "Le système d'exploitation de la logistique commerciale",
       "subtitle": "Porterchain offre aux entreprises en croissance les contrôles de répartition, l'intelligence d'itinéraire et la visibilité d'un département logistique complet.",
       "primaryCta": "Demander une démo",
-      "secondaryCta": "Explorer la plateforme"
+      "secondaryCta": "Explorer la plateforme",
+      "bookDeliveryCta": "Réserver une livraison",
+      "trackCta": "Suivre un envoi"
     },
     "logos": { "label": "Approuvé par des équipes opérationnelles en Ontario" },
     "stats": {

@@ -1,0 +1,17 @@
+# §2.1.10 — customer mobile smoke: dev sign-in → track screen
+appId: com.porterchain.customer
+---
+- launchApp
+- assertVisible:
+    id: mobile-sign-in
+- tapOn:
+    id: dev-sign-in
+- assertVisible:
+    id: mobile-track
+- tapOn:
+    id: tracking-input
+- inputText: "TRK-SMOKE-001"
+- tapOn:
+    id: track-lookup
+- assertVisible:
+    text: "Track TRK-SMOKE-001"

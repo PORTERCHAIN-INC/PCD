@@ -4,6 +4,7 @@ import { CheckCircle2, Circle, Clock, LogOut, RefreshCw, Shield, XCircle } from 
 import { SignOutButton } from "@clerk/nextjs";
 import type { PortalOnboardingStatus } from "@/lib/onboarding";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 function stepIcon(step: PortalOnboardingStatus["steps"][number]) {
   if (step.complete) return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
@@ -33,11 +34,19 @@ export default function PortalOnboardingView({
   data,
   refreshing,
   onRefresh,
+  onSaveVertical,
 }: {
   data: PortalOnboardingStatus;
   refreshing?: boolean;
   onRefresh: () => void;
+  onSaveVertical?: (vertical: string) => Promise<void>;
 }) {
+  const [savingVertical, setSavingVertical] = useState(false);
+  const [verticalError, setVerticalError] = useState<string | null>(null);
+  const verticalStep = data.steps.find((s) => s.id === "business_vertical");
+  const showVerticalPicker =
+    verticalStep && !verticalStep.complete && (data.vertical_options?.length ?? 0) > 0;
+
   const completed = data.steps.filter((s) => s.complete).length;
   const total = data.steps.length;
   const progress = total ? Math.round((completed / total) * 100) : 0;
@@ -109,6 +118,48 @@ export default function PortalOnboardingView({
             </div>
           </div>
         </div>
+
+        {showVerticalPicker && onSaveVertical ? (
+          <div className="mt-6 rounded-2xl border border-secondary/20 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-primary">Select your business vertical</h2>
+            <p className="mt-1 text-sm text-muted">
+              Porterchain tailors booking fields, pricing, and ops workflows to your industry.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {data.vertical_options!.map((option) => (
+                <button
+                  key={option.slug}
+                  type="button"
+                  disabled={savingVertical}
+                  onClick={async () => {
+                    setVerticalError(null);
+                    setSavingVertical(true);
+                    try {
+                      await onSaveVertical(option.slug);
+                    } catch (err) {
+                      setVerticalError(err instanceof Error ? err.message : "vertical_save_failed");
+                    } finally {
+                      setSavingVertical(false);
+                    }
+                  }}
+                  className={cn(
+                    "rounded-xl border px-4 py-3 text-left text-sm transition-colors",
+                    data.vertical === option.slug
+                      ? "border-secondary bg-secondary/5 font-semibold text-primary"
+                      : "border-primary/10 hover:border-secondary/40"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {verticalError ? (
+              <p className="mt-3 text-sm text-red-600" role="alert">
+                {verticalError}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         <ol className="mt-6 space-y-3">
           {data.steps.map((step) => (

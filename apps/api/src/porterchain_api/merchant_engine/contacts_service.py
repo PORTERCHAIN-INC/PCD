@@ -7,6 +7,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.crm_models import CrmCompany, CrmContact
+from porterchain_api.collaboration_engine.repositories import CrmRepository
 from porterchain_api.domain.contacts import list_company_contacts
 from porterchain_api.domain.crm_states import CompanyMerchantStatus
 from porterchain_api.domain.merchant_states import MerchantRole
@@ -14,6 +15,7 @@ from porterchain_api.merchant_engine.rbac import ROLE_LABELS, MerchantContext
 from porterchain_api.merchant_models import Merchant, MerchantAuditLog, MerchantUser
 
 TEAM_ROLE_TAG = "portal_team"
+_crm = CrmRepository()
 
 
 def _name_from_email(email: str) -> tuple[str, str | None]:
@@ -33,7 +35,7 @@ def _role_label(role: str) -> str:
 
 class MerchantContactsService:
     def ensure_company(self, db: Session, merchant: Merchant) -> CrmCompany:
-        company = db.query(CrmCompany).filter(CrmCompany.merchant_id == merchant.id).first()
+        company = _crm.get_company_by_merchant_id(db, merchant.id)
         if company:
             return company
 

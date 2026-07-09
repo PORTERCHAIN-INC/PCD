@@ -2,6 +2,7 @@
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_engine.site_access import enrich_dropoff
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
@@ -49,6 +50,7 @@ class MerchantBookingService:
             channel="merchant",
             merchant_id=ctx.merchant.id,
             volume_units=volume_units,
+            requires_liftgate=body.requires_liftgate,
         )
 
     def create_shipment(
@@ -85,7 +87,7 @@ class MerchantBookingService:
             payment_terms=ctx.merchant.payment_terms,
             amount_cents=amount_cents,
             pickup=pickup.model_dump(),
-            dropoff=dropoff.model_dump(),
+            dropoff=enrich_dropoff(dropoff.model_dump(), body.site_access_notes),
             scheduled_at=body.scheduled_at,
             internal_reference=body.internal_reference,
             purchase_order_number=body.purchase_order_number,

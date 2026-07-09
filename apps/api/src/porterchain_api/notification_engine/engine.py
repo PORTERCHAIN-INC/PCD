@@ -24,6 +24,57 @@ class NotificationEngine:
     def __init__(self) -> None:
         self._prefs = PreferenceService()
 
+    def inbox_payload(
+        self,
+        db: Session,
+        *,
+        user_role: str,
+        user_id: str,
+        unread_only: bool = False,
+        archived: bool = False,
+        limit: int = 50,
+    ) -> dict:
+        """In-app inbox payload for notification center UI."""
+        q = db.query(NotificationRecord).filter(
+            NotificationRecord.recipient_type == user_role,
+            NotificationRecord.recipient_id == user_id,
+            NotificationRecord.channel == "in_app",
+            NotificationRecord.is_archived.is_(archived),
+        )
+        if unread_only and not archived:
+            q = q.filter(NotificationRecord.is_read.is_(False))
+        rows = q.order_by(NotificationRecord.created_at.desc()).limit(limit).all()
+
+        unread = (
+            db.query(NotificationRecord)
+            .filter(
+                NotificationRecord.recipient_type == user_role,
+                NotificationRecord.recipient_id == user_id,
+                NotificationRecord.channel == "in_app",
+                NotificationRecord.is_read.is_(False),
+                NotificationRecord.is_archived.is_(False),
+            )
+            .count()
+        )
+
+        return {
+            "unread_count": unread,
+            "items": [
+                {
+                    "id": r.id,
+                    "title": r.title,
+                    "body": r.body,
+                    "priority": r.priority,
+                    "category": r.category,
+                    "deep_link": r.deep_link,
+                    "is_read": r.is_read,
+                    "is_archived": r.is_archived,
+                    "created_at": r.created_at.isoformat(),
+                }
+                for r in rows
+            ],
+        }
+
     def dispatch(
         self,
         db: Session,

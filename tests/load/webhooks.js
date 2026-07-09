@@ -28,7 +28,7 @@ export function setup() {
   const secret = (__ENV.STRIPE_WEBHOOK_SECRET || "").trim();
   if (!secret) {
     throw new Error(
-      "STRIPE_WEBHOOK_SECRET is required — copy from apps/api/.env or stripe listen --print-secret",
+      "STRIPE_WEBHOOK_SECRET is required — copy from apps/api/.env or stripe listen --print-secret"
     );
   }
 
@@ -43,11 +43,13 @@ export function setup() {
   });
 
   if (probe.status === 503) {
-    throw new Error("API returned 503 — set STRIPE_WEBHOOK_SECRET in apps/api/.env and restart the API");
+    throw new Error(
+      "API returned 503 — set STRIPE_WEBHOOK_SECRET in apps/api/.env and restart the API"
+    );
   }
   if (probe.status === 400 && String(probe.body).includes("invalid_signature")) {
     throw new Error(
-      "Stripe signature rejected — STRIPE_WEBHOOK_SECRET must match the running API (restart pnpm dev:api after .env changes)",
+      "Stripe signature rejected — STRIPE_WEBHOOK_SECRET must match the running API (restart pnpm dev:api after .env changes)"
     );
   }
   if (probe.status !== 200) {

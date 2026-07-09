@@ -1,0 +1,55 @@
+---
+description: Porterchain 2026 stack baseline — versions, env, and coding conventions (always use)
+alwaysApply: true
+---
+
+# Porterchain stack & coding system (2026-07)
+
+**Baseline (do not regress to older docs):**
+
+| Layer | Version |
+| ----- | ------- |
+| Node | **24.18 LTS** (`.nvmrc`) · pnpm **11.10** |
+| Python API/worker | **3.14.6** · FastAPI 0.139+ · Pydantic v2 · SQLAlchemy 2 |
+| Web | **Next 16.2** · **React 19.2** · **TypeScript 6** · Tailwind 4 · ESLint 10 |
+| Mobile | **Expo SDK 57** · RN 0.86 (blank shells until feature work) |
+| Data | **Postgres 18** · **Redis 8.8** · **Mailpit** (not Mailhog) · Fleetbase cache **Valkey 8** |
+
+See also `dependency-freeze.mdc` — no drive-by frontend bumps until ~2026-10.
+
+## Checklist execution (dev vs prod)
+
+- **Dev layer first:** follow [PRIORITY_TODOS.md](../docs/PRIORITY_TODOS.md) + checklist items verifiable on localhost/CI.
+- **Prod layer later:** Doppler, droplet, Fleetbase bridge, `validate:*:prod` — after dev layer complete.
+- **Stripe frozen:** dev + prod billing complete — do not change Stripe config or webhooks.
+
+## Secrets & Clerk (local = test, prod = Doppler)
+
+- **Source of truth:** `env/clerk.env` → `pnpm clerk:sync` → API + all portals.
+- API expects `CLERK_<PORTAL>_SECRET_KEY`, `_PUBLISHABLE_KEY`, `_JWKS_URL` — never ad-hoc names like `ADMIN_CLERK_SECRET_KEY`.
+- **Local dev:** test keys in `env/clerk.env`; live keys in `env/clerk.env.prod-live.bak` and `infrastructure/deploy/scripts/clerk-keys.local.env`.
+- Local API: `CLERK_DEV_BYPASS=true`; portals: `NEXT_PUBLIC_CLERK_DEV_BYPASS=true` (Bearer `dev`).
+
+## Python (API / worker)
+
+- Type hints + Pydantic v2 settings (`BaseSettings`, `model_validator`).
+- Business logic in `*_engine/*_service.py`; routers stay thin.
+- Star imports from `_deps` **must** export names in `__all__` (including `_foo` services).
+- Postgres only (`postgresql+psycopg://`); Alembic for schema changes.
+- Contract/API shapes must match portal TypeScript types (e.g. dashboard `trends: { labels, orders, revenue_cents }`).
+
+## TypeScript / Next.js (web portals + website)
+
+- App Router; `"use client"` only when needed; fetch via portal `lib/api.ts` → `:8001`.
+- Data: **TanStack Query v5**; validation: **Zod 4**; auth: **@clerk/nextjs 7**.
+- Shared UI: `@porterchain/ui`, env: `@porterchain/config`.
+- No SocketCluster SDK in web apps; no Fleetbase HTTP from frontends.
+
+## Docker / infra
+
+- Exact image tags or digests in compose — never `:latest`.
+- Valhalla: `ghcr.io/valhalla/valhalla-scripted@sha256:…` only.
+
+## When docs disagree with repo
+
+Trust **live `package.json` / `requirements.txt` / compose / `.nvmrc`** over stale markdown (e.g. old TECH_STACK Python 3.13, Expo 52, Mailhog).

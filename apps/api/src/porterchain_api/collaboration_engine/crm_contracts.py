@@ -1,0 +1,152 @@
+"""CRM contracts and merchant conversion."""
+
+from __future__ import annotations
+
+from datetime import UTC, date, datetime, time, timedelta
+from typing import Any
+
+from sqlalchemy import func, or_
+from sqlalchemy.orm import Session
+
+from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.config import Settings
+from porterchain_api.crm_models import (
+    CrmActivity,
+    CrmCompany,
+    CrmContact,
+    CrmContract,
+    CrmDeal,
+    CrmInvoice,
+    CrmLead,
+    CrmQuotation,
+    CrmSalesTask,
+)
+from porterchain_api.domain.crm_states import (
+    PIPELINE_STAGES,
+    STAGE_PROBABILITY,
+    CompanyMerchantStatus,
+    ContractStatus,
+    DealStage,
+    LeadStatus,
+    QuotationStatus,
+    TaskStatus,
+)
+from porterchain_api.merchant_models import Merchant
+from porterchain_api.domain.merchant_states import MerchantStatus
+from porterchain_api.db_json import json_text, json_text_lower
+from porterchain_api.collaboration_engine.crm_helpers import _actor, _now, _today, _to_int
+
+
+from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
+
+class CrmContractsMixin:
+    def list_contracts(
+        self, db: Session, *, company_id: str | None = None, status: str | None = None, limit: int = 200
+    ) -> list[CrmContract]:
+        q = db.query(CrmContract)
+        if company_id:
+            q = q.filter(CrmContract.company_id == company_id)
+        if status:
+            q = q.filter(CrmContract.status == status)
+        return q.order_by(CrmContract.created_at.desc()).limit(limit).all()
+
+    def get_contract(self, db: Session, contract_id: str) -> CrmContract | None:
+        return db.get(CrmContract, contract_id)
+
+    def create_contract(self, db: Session, ctx: AdminContext | None, data: dict) -> CrmContract:
+        contract = CrmContract(
+            contract_number=self._next_number(db, CrmContract, "contract_number", "C"),
+            created_by=_actor(ctx),
+            **data,
+        )
+        db.add(contract)
+        db.commit()
+        db.refresh(contract)
+        if contract.company_id:
+            self.log_activity(
+                db, entity_type="company", entity_id=contract.company_id, activity_type="system",
+                subject=f"Contract {contract.contract_number} created", actor_id=_actor(ctx),
+            )
+        return contract
+
+    def update_contract(self, db: Session, contract_id: str, data: dict) -> CrmContract:
+        contract = db.get(CrmContract, contract_id)
+        if not contract:
+            raise LookupError("contract_not_found")
+        for key, value in data.items():
+            setattr(contract, key, value)
+        db.commit()
+        db.refresh(contract)
+        return contract
+
+    def convert_company_to_merchant(
+        self,
+        db: Session,
+        ctx: AdminContext | None,
+        company_id: str,
+        settings: Settings | None = None,
+    ) -> dict[str, Any]:
+        company = db.get(CrmCompany, company_id)
+        if not company:
+            raise LookupError("company_not_found")
+        if company.merchant_id:
+            return {"merchant_id": company.merchant_id, "created": False, "invitation_sent": False}
+
+        primary = (
+            db.query(CrmContact)
+            .filter(CrmContact.company_id == company.id, CrmContact.is_primary == True)  # noqa: E712
+            .first()
+        )
+        email = (primary.email if primary else None) or company.email or ""
+        merchant = Merchant(
+            status=MerchantStatus.PENDING.value,
+            company_name=company.operating_name or company.legal_name,
+            legal_name=company.legal_name,
+            email=email,
+            phone=company.phone,
+            hst_number=company.hst_number,
+            business_number=company.business_number,
+            billing_address=company.billing_details or company.address or {},
+            preferred_vehicles=[company.preferred_vehicle] if company.preferred_vehicle else [],
+            profile={
+                "crm_company_id": company.id,
+                "industry": company.industry,
+                "service_area": company.service_area,
+                "estimated_deliveries_per_month": company.estimated_deliveries_per_month,
+            },
+        )
+        db.add(merchant)
+        db.flush()
+
+        company.merchant_id = merchant.id
+        company.merchant_status = CompanyMerchantStatus.ACTIVE_MERCHANT.value
+        db.commit()
+        db.refresh(merchant)
+
+        invitation_sent = False
+        invitation_email = email
+        if email and settings and is_clerk_secret_configured(settings, "merchant"):
+            from porterchain_api.auth.invitation_service import InvitationService
+
+            try:
+                InvitationService().invite_merchant_owner(db, ctx, settings, merchant, email=email)
+                invitation_sent = True
+            except Exception:
+                invitation_sent = False
+
+        self.log_activity(
+            db,
+            entity_type="company",
+            entity_id=company.id,
+            activity_type="status_change",
+            subject="Converted to Porterchain merchant",
+            metadata={"merchant_id": merchant.id, "invitation_email": email},
+            actor_id=_actor(ctx),
+        )
+        return {
+            "merchant_id": merchant.id,
+            "created": True,
+            "invitation_sent": invitation_sent,
+            "invitation_email": email,
+        }
+

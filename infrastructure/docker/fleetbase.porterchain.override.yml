@@ -18,13 +18,22 @@ services:
       - fleetbase-internal
 
   cache:
+    # Upstream Fleetbase still declares redis:4-alpine; this override is the supported cache.
+    image: valkey/valkey:8.1.8-alpine
     container_name: porterchain-fleetbase-redis
+    command: valkey-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     volumes:
       - fleetbase-redis-data:/data
     networks:
       - fleetbase-internal
 
   socket:
+    image: socketcluster/socketcluster:v17.4.0
     container_name: porterchain-fleetbase-socketcluster
     networks:
       - fleetbase-internal

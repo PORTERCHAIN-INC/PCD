@@ -17,6 +17,10 @@ export interface BlogPostMeta {
   authorId: string;
   featured?: boolean;
   trending?: boolean;
+  caseStudy?: boolean;
+  onTimePercent?: string;
+  costDeltaPercent?: string;
+  volumeMetric?: string;
   tags?: string[];
   readingMinutes: number;
 }
@@ -43,6 +47,10 @@ function parsePost(slug: string, raw: string): BlogPost {
     authorId: data.author ?? "porterchain",
     featured: Boolean(data.featured),
     trending: Boolean(data.trending),
+    caseStudy: Boolean(data.caseStudy),
+    onTimePercent: typeof data.onTimePercent === "string" ? data.onTimePercent : undefined,
+    costDeltaPercent: typeof data.costDeltaPercent === "string" ? data.costDeltaPercent : undefined,
+    volumeMetric: typeof data.volumeMetric === "string" ? data.volumeMetric : undefined,
     tags: Array.isArray(data.tags) ? data.tags : [],
     readingMinutes: Math.max(1, Math.ceil(stats.minutes)),
     content,
@@ -74,6 +82,10 @@ export function getPost(locale: Locale, slug: string): BlogPost | null {
   if (!fs.existsSync(file)) return null;
   const raw = fs.readFileSync(file, "utf8");
   return parsePost(slug, raw);
+}
+
+export function getCaseStudyPosts(locale: Locale): BlogPostMeta[] {
+  return getAllPosts(locale).filter((p) => p.caseStudy);
 }
 
 export function getFeaturedPost(locale: Locale): BlogPostMeta | null {

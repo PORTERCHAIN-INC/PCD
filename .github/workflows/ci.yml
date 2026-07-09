@@ -23,7 +23,7 @@ jobs:
 
       - uses: pnpm/action-setup@v6
         with:
-          version: 9.15.4
+          version: 11.10.0
 
       - uses: actions/setup-node@v6
         with:
@@ -33,13 +33,79 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Lockfile freshness (DD-40 · §2.5.8)
+        run: pnpm validate:lockfiles
+
       - name: Lint
         run: pnpm lint
 
       - name: Format check
         run: pnpm format:check
 
-      - name: Build
+      - name: D2 contracts (includes engine import guard §0.3.10)
+        run: pnpm validate:d2
+
+      - name: D3 Phase 1 matrix (ENG-G3 · §0.4)
+        run: pnpm validate:d3
+
+      - name: List pagination guard (§2.5.6 · DD-24)
+        run: pnpm validate:pagination
+
+      - name: Router business-logic audit (§3.1.1)
+        run: pnpm validate:router-audit
+
+      - name: Architecture boundaries (§3.1.2–3.1.4)
+        run: pnpm validate:architecture
+
+      - name: Golden rules (FND-G4 / §5.3.6)
+        run: pnpm validate:golden-rules
+
+      - name: Mobile Maestro smoke structure (§2.1.10)
+        run: pnpm validate:mobile-smoke && pnpm validate:mobile-design
+
+      - name: Portal UX empty states + skeletons (§6.3.2–6.3.3)
+        run: pnpm validate:portal-ux
+
+      - name: Tracking maps on retail (§0.6.4)
+        run: pnpm validate:tracking-maps
+
+      - name: Admin tablet ops + booking a11y (§6.3.4–6.3.5)
+        run: pnpm validate:admin-tablet && pnpm validate:booking-a11y
+
+      - name: Design copy ban-list (§6.1.2 · DES-G2)
+        run: pnpm validate:design
+
+      - name: Developer portal (§7.1.6 · §7.1.8)
+        run: pnpm validate:developer-portal
+
+      - name: Customer Stripe return URLs (§0.6.5)
+        run: pnpm validate:customer-stripe-return
+
+      - name: Product vision baseline (§1.1.1 · §1.1.8 · §1.1.9)
+        run: pnpm validate:product-vision
+
+      - name: AI governance (§4.3 · AI-G2/G4)
+        run: pnpm validate:ai-governance
+
+      - name: Category positioning (§9.1)
+        run: pnpm validate:category-positioning
+
+      - name: Construction site access (§8.1.6)
+        run: pnpm validate:construction-site-access
+
+      - name: Moat vertical workflows (§8.1.7 · §8.1.12)
+        run: pnpm validate:liftgate-pricing && pnpm validate:vertical-onboarding
+
+      - name: Integration marketplace (§7.2.5)
+        run: pnpm validate:integration-marketplace
+
+      - name: Phase 2 feature flags (§1.2.4 · DD-26)
+        run: pnpm validate:phase2-flags
+
+      - name: OAuth third-party (§7.1.7)
+        run: pnpm validate:oauth
+
+      - name: Build all portals (§0.2.7)
         run: pnpm build
         env:
           NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'ci-placeholder-key' }}
@@ -50,7 +116,7 @@ jobs:
     runs-on: ubuntu-24.04
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:18-alpine3.24
         env:
           POSTGRES_USER: porterchain
           POSTGRES_PASSWORD: porterchain
@@ -72,7 +138,7 @@ jobs:
 
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.14.6"
           cache: pip
           cache-dependency-path: apps/api/requirements.txt
 
@@ -102,7 +168,14 @@ jobs:
           APP_ENV: local
         run: |
           export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform:../../apps/worker
-          pytest tests/ -v
+          pip install pytest-cov
+          pytest tests/ --cov=porterchain_api --cov-config=.coveragerc --cov-report=json -v
+
+      - name: Service coverage floor (§2.1.11)
+        run: python scripts/verify_service_coverage.py
+
+      - name: Test count regression guard (§2.1.12)
+        run: python scripts/verify_test_regression.py
 
       - name: Module validation script
         env:

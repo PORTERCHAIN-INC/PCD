@@ -144,7 +144,10 @@
       "status": "Statut",
       "pickup": "Ramassage",
       "dropoff": "Livraison",
-      "notFound": "Envoi introuvable."
+      "notFound": "Envoi introuvable.",
+      "etaTitle": "Arrivée estimée",
+      "etaArrival": "Arrivée",
+      "etaDistance": "km restants"
     }
   },
   "portal": {

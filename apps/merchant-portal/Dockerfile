@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Build: docker build -f apps/merchant-portal/Dockerfile -t pcd-merchant .
 
-FROM node:24-alpine AS base
+FROM node:24.18.0-alpine AS base
 RUN corepack enable
 WORKDIR /app
 

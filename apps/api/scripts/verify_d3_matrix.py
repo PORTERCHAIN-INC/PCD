@@ -91,7 +91,7 @@ MATRIX: tuple[Row, ...] = (
         e2e_phases=("phase_3_merchant",),
     ),
     Row(
-        feature="Driver web + iOS + Android",
+        feature="Driver web portal",
         engine="driver_engine",
         api_needles=(
             'prefix="/driver-api/v1"',
@@ -100,21 +100,19 @@ MATRIX: tuple[Row, ...] = (
             "pod-photo",
         ),
         client_checks=(
-            (Path("shared/api/src/driver.ts"), "/dashboard"),
+            (Path("apps/driver-portal/src/lib/api.ts"), "/v1/dashboard"),
             (Path("apps/driver-portal/src/app/api/driver/[...path]/route.ts"), "/driver-api/v1"),
         ),
-        extra_paths=(ROOT / "apps/mobile-driver/src/screens/jobs/PodScreen.tsx",),
+        extra_paths=(ROOT / "apps/driver-portal/src/app/jobs/[orderId]/page.tsx",),
         e2e_phases=("phase_2_forward_logistics",),
     ),
     Row(
-        feature="Customer web + iOS + Android",
+        feature="Customer web portal",
         engine="booking_engine",
         api_needles=('/me/dashboard", response_model=CustomerDashboardResponse',),
         client_checks=(
             (Path("apps/customer/src/lib/api.ts"), "/v1/customers/me/dashboard"),
-            (Path("shared/api/src/customer.ts"), "/customers/me/dashboard"),
         ),
-        extra_paths=(ROOT / "apps/mobile-customer/src/api/CustomerApiContext.tsx",),
         e2e_phases=("phase_2_forward_logistics",),
     ),
     Row(
@@ -184,6 +182,24 @@ MATRIX: tuple[Row, ...] = (
         ),
         extra_paths=(ROUTERS / "merchant_api.py",),
         e2e_phases=("phase_3_merchant",),
+    ),
+    Row(
+        feature="Driver mobile shell",
+        engine="apps/mobile-driver + mobile-theme",
+        api_needles=(),
+        client_checks=(
+            (Path("apps/mobile-driver/App.tsx"), "@porterchain/mobile-theme"),
+        ),
+        extra_paths=(ROOT / "packages/mobile-theme/src/tokens.ts",),
+    ),
+    Row(
+        feature="Customer mobile shell",
+        engine="apps/mobile-customer + mobile-theme",
+        api_needles=(),
+        client_checks=(
+            (Path("apps/mobile-customer/App.tsx"), "@porterchain/mobile-theme"),
+        ),
+        extra_paths=(ROOT / "packages/mobile-theme/src/tokens.ts",),
     ),
 )
 

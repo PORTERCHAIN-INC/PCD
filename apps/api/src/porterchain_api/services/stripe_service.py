@@ -4,12 +4,20 @@ from porterchain_api.models import Customer, Quote
 import stripe
 
 
+def _checkout_urls(settings: Settings, checkout_channel: str) -> tuple[str, str]:
+    if checkout_channel == "customer":
+        return settings.customer_checkout_success_url, settings.customer_checkout_cancel_url
+    return settings.retail_checkout_success_url, settings.retail_checkout_cancel_url
+
+
 def create_checkout_session(
     settings: Settings,
     quote: Quote,
     customer: Customer,
     payment_id: str | None = None,
     booking_draft_id: str | None = None,
+    *,
+    checkout_channel: str = "retail",
 ) -> tuple[str, str]:
     stripe.api_key = settings.stripe_secret
     metadata = {
@@ -18,7 +26,9 @@ def create_checkout_session(
         "payment_id": payment_id or "",
         "booking_draft_id": booking_draft_id or "",
         "tracking_prefix": "PC",
+        "checkout_channel": checkout_channel,
     }
+    success_base, cancel_base = _checkout_urls(settings, checkout_channel)
     session = stripe.checkout.Session.create(
         mode="payment",
         # Apple Pay & Google Pay are presented automatically by Stripe Checkout
@@ -40,8 +50,8 @@ def create_checkout_session(
                 "quantity": 1,
             }
         ],
-        success_url=f"{settings.retail_checkout_success_url}?quote_id={quote.id}",
-        cancel_url=f"{settings.retail_checkout_cancel_url}?quote_id={quote.id}",
+        success_url=f"{success_base}?quote_id={quote.id}",
+        cancel_url=f"{cancel_base}?quote_id={quote.id}",
         metadata=metadata,
         # Propagate identifiers onto the PaymentIntent for reconciliation.
         payment_intent_data={"metadata": metadata},

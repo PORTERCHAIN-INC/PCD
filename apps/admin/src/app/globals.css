@@ -20,3 +20,28 @@ body {
   color: var(--foreground);
   font-family: "Inter", system-ui, sans-serif;
 }
+
+/* §6.3.4 — admin ops tablet (768–1024px): touch scroll + min tap targets */
+@layer components {
+  .ops-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+  }
+
+  .ops-touch-target {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .ops-main {
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .ops-stat-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}

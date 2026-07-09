@@ -1,6 +1,8 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import { EmptyState } from "@porterchain/ui/empty-state";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import {
   ROLE_OPTIONS,
@@ -66,7 +68,10 @@ export default function TeamClient() {
   }, [isLoaded, isSignedIn, load]);
 
   if (!isLoaded || !overview) {
-    return <p className="text-muted">{error || "Loading team…"}</p>;
+    if (error) {
+      return <EmptyState title="Could not load team" hint={error} />;
+    }
+    return <PageSkeleton rows={4} />;
   }
 
   return (

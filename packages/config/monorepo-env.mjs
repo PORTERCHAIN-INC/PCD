@@ -101,14 +101,12 @@ export function nextPublicEnv() {
 /** Website — shares porterchain-customer Clerk app. */
 export function websitePublicEnv() {
   return portalPublicEnv("customer", {
-    NEXT_PUBLIC_ADMIN_PORTAL_URL:
-      pick("NEXT_PUBLIC_ADMIN_PORTAL_URL") || "http://localhost:3002",
+    NEXT_PUBLIC_ADMIN_PORTAL_URL: pick("NEXT_PUBLIC_ADMIN_PORTAL_URL") || "http://localhost:3002",
     NEXT_PUBLIC_MERCHANT_PORTAL_URL:
       pick("NEXT_PUBLIC_MERCHANT_PORTAL_URL") || "http://localhost:3001",
     NEXT_PUBLIC_CUSTOMER_PORTAL_URL:
       pick("NEXT_PUBLIC_CUSTOMER_PORTAL_URL") || "http://localhost:3004",
-    NEXT_PUBLIC_DRIVER_PORTAL_URL:
-      pick("NEXT_PUBLIC_DRIVER_PORTAL_URL") || "http://localhost:3003",
+    NEXT_PUBLIC_DRIVER_PORTAL_URL: pick("NEXT_PUBLIC_DRIVER_PORTAL_URL") || "http://localhost:3003",
   });
 }
 
@@ -122,7 +120,8 @@ export function adminPublicEnv() {
       pick("NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL") || "/dashboard",
     NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL:
       pick("NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL") || "/dashboard",
-    NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL: pick("NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL") || "/sign-in",
+    NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL:
+      pick("NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL") || "/sign-in",
   });
 }
 

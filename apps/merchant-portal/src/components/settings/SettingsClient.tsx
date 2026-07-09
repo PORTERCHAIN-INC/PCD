@@ -1,6 +1,8 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import { EmptyState } from "@porterchain/ui/empty-state";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { formatCents } from "@/lib/utils";
 import {
@@ -84,7 +86,10 @@ export default function SettingsClient() {
   }, [isLoaded, isSignedIn, load]);
 
   if (!isLoaded || !data) {
-    return <p className="text-muted">{error || "Loading settings…"}</p>;
+    if (error) {
+      return <EmptyState title="Could not load settings" hint={error} />;
+    }
+    return <PageSkeleton rows={5} />;
   }
 
   return (

@@ -1,6 +1,21 @@
 """merchant routes — support_claims."""
 
-from porterchain_api.routers.merchant._deps import *  # noqa: F403
+from porterchain_api.routers.merchant._deps import (
+    Annotated,
+    Depends,
+    HTTPException,
+    MerchantClaimOpenRequest,
+    MerchantContext,
+    MerchantSupportTicketRequest,
+    Query,
+    Session,
+    _support,
+    get_db,
+    get_merchant_context,
+    require_module,
+    router,
+)
+
 
 @router.get("/support/tickets")
 def support_tickets_list(

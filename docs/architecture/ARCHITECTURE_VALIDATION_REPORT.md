@@ -2,7 +2,7 @@
 
 **Type:** REPORT
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-08
 
 > **Snapshot report** — point-in-time audit. Current truth: [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) (canonical doc).
 
@@ -32,15 +32,29 @@
 
 ### July 2026 score adjustments
 
-| Change                                                            | Impact                     |
-| ----------------------------------------------------------------- | -------------------------- |
-| ✅ Merchant API (`/v1/merchant-api/*`) + gateway middleware       | API Design +4, Security +3 |
-| ✅ Event handlers for return/damage/claim sync                    | Fleetbase Integration +2   |
-| ✅ Merchant webhook fan-out delivery (`webhook_delivery_service`) | Maintainability +2         |
-| ✅ Portal rate limit middleware (production)                      | Security +2                |
-| ⚠️ Batch billing, invoice PDF, reports worker still open          | MasterRule unchanged       |
+| Change                                                             | Impact                      |
+| ------------------------------------------------------------------ | --------------------------- |
+| ✅ Merchant API (`/v1/merchant-api/*`) + gateway middleware        | API Design +4, Security +3  |
+| ✅ Event handlers for return/damage/claim sync                     | Fleetbase Integration +2    |
+| ✅ Merchant webhook fan-out delivery (`webhook_delivery_service`)  | Maintainability +2          |
+| ✅ Portal rate limit middleware (production)                       | Security +2                 |
+| ✅ CI architecture guards (`validate:architecture`, `validate:d2`) | Scalability + boundaries +8 |
+| ✅ Merchant webhook fan-out via event bus + worker                 | Maintainability +2          |
+| ✅ Fleetbase sync SLO 98% + diagnostics alerts                     | Fleetbase Integration +2    |
 
-**Revised estimate (July 2026): ~84/100**
+**Revised estimate (July 2026): ~86/100**
+
+---
+
+## P0 register (ARCH-G1)
+
+| Severity                                 | Open  | Closed                                   |
+| ---------------------------------------- | ----- | ---------------------------------------- |
+| **P0 — Critical architecture violation** | **0** | All masterrule Critical rows verified ✅ |
+
+**Open P0: 0** — No direct Fleetbase from UI/routers; adapter boundary intact; server-persisted booking drafts; event-bus dispatch path wired.
+
+Remaining backlog is **P1–P3** product gaps (billing batch, PDF, stubs) — tracked below, not architecture P0.
 
 ---
 
@@ -124,13 +138,13 @@ Diagrams: [docs/architecture/](./)
 | **Still stub** | `dispatch` and `reports` queue processors log only      |
 | **Priority**   | **P2 — Medium** (reports/dispatch)                      |
 
-### ISSUE-007: Dev Auth Bypass in Production Risk — OPEN
+### ISSUE-007: Dev Auth Bypass in Production Risk — MITIGATED
 
 | Field          | Detail                                                                 |
 | -------------- | ---------------------------------------------------------------------- |
 | **Problem**    | `clerk_dev_bypass` accepts `"dev"` token when enabled                  |
-| **Mitigation** | Default `CLERK_DEV_BYPASS=false`; skipped in production if env correct |
-| **Priority**   | **P1 — High** (misconfiguration risk)                                  |
+| **Mitigation** | `require_clerk_in_production` validator; `CLERK_DEV_BYPASS` local only |
+| **Priority**   | **P1 — High** (misconfiguration risk — not P0)                         |
 
 ### ISSUE-008: Duplicate Quote Path on Website — OPEN (documented)
 

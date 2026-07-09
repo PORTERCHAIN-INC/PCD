@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { Spinner } from "@porterchain/ui/loading";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { fetchMerchantAccess } from "@/lib/merchant-access";
 import { fetchMerchantOnboarding, isPendingMerchantPath } from "@/lib/onboarding";
@@ -65,12 +66,7 @@ export default function MerchantAccessGate({ children, onProfile }: Props) {
   }
 
   if (!isLoaded || checking) {
-    return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" />
-        <p className="text-sm text-muted">Verifying merchant access…</p>
-      </div>
-    );
+    return <Spinner label="Verifying merchant access…" />;
   }
 
   return <>{children}</>;

@@ -181,7 +181,7 @@ class CustomerService:
         order_id: str | None = None,
     ):
         from porterchain_api.admin_models import SupportTicket
-        from porterchain_api.admin_engine import events as AdminE
+        from porterchain_shared.events.catalog import DomainEventType
 
         if order_id:
             from porterchain_api.models import Order
@@ -204,7 +204,7 @@ class CustomerService:
 
         emit_event(
             db,
-            event_type=AdminE.TICKET_CREATED,
+            event_type=DomainEventType.SUPPORT_TICKET_CREATED,
             aggregate_type="support_ticket",
             aggregate_id=ticket.id,
             actor_type="customer",

@@ -23,6 +23,7 @@ from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.auth.clerk import verify_clerk_token
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import SessionLocal, get_db
+from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
 from porterchain_api.schemas_live_map import LiveMapFilters
 
 logger = logging.getLogger(__name__)
@@ -71,15 +72,30 @@ def board_move(body: BoardMoveBody, ctx: Ctx, db: Session = Depends(get_db)) -> 
 
 
 @router.get("/orders")
-def active_orders(ctx: Ctx, db: Session = Depends(get_db), search: str | None = None) -> list[dict]:
+def active_orders(
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    search: str | None = None,
+    limit: int = Query(DEFAULT_LIST_LIMIT, ge=1, le=MAX_LIST_LIMIT),
+) -> list[dict]:
     _guard(ctx, "dispatch_read")
-    return _ct.active_orders(db, search=search)
+    return _ct.active_orders(db, search=search, limit=limit)
 
 
 @router.get("/queue")
-def queue(ctx: Ctx, db: Session = Depends(get_db)) -> list[dict]:
+def queue(
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    limit: int = Query(200, ge=1, le=MAX_LIST_LIMIT),
+) -> list[dict]:
     _guard(ctx, "dispatch_read")
-    return _ct.queue(db)
+    return _ct.queue(db, limit=limit)
+
+
+class AssignBatchBody(BaseModel):
+    plan_id: str
+    driver_id: str
+    order_ids: list[str] | None = None
 
 
 @router.post("/queue/assign-batch")
@@ -112,9 +128,13 @@ def assignable_drivers(ctx: Ctx, db: Session = Depends(get_db)) -> list[dict]:
 
 
 @router.get("/exceptions")
-def exceptions(ctx: Ctx, db: Session = Depends(get_db)) -> list[dict]:
+def exceptions(
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    limit: int = Query(100, ge=1, le=MAX_LIST_LIMIT),
+) -> list[dict]:
     _guard(ctx, "dispatch_read")
-    return _ct.exceptions(db)
+    return _ct.exceptions(db, limit=limit)
 
 
 @router.get("/sla")
@@ -124,9 +144,13 @@ def sla(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
 
 
 @router.get("/activity")
-def activity(ctx: Ctx, db: Session = Depends(get_db)) -> list[dict]:
+def activity(
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    limit: int = Query(60, ge=1, le=MAX_LIST_LIMIT),
+) -> list[dict]:
     _guard(ctx, "dispatch_read")
-    return _ct.live_activity(db)
+    return _ct.live_activity(db, limit=limit)
 
 
 @router.get("/ai")
@@ -272,30 +296,7 @@ async def live_map_ws(
 @router.get("/sync/health")
 def sync_health(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     _guard(ctx, "dispatch_read")
-    from porterchain_api.fleetbase_engine import ErrorQueue
-    from porterchain_api.fleetbase_models import FleetbaseSyncAudit
-
-    recent = (
-        db.query(FleetbaseSyncAudit)
-        .order_by(FleetbaseSyncAudit.created_at.desc())
-        .limit(40)
-        .all()
-    )
-    return {
-        "queue": ErrorQueue.stats(db),
-        "dead_letters": [
-            {"id": j.id, "kind": j.kind, "direction": j.direction, "order_id": j.order_id, "attempts": j.attempts, "last_error": j.last_error}
-            for j in ErrorQueue.list_dead(db)
-        ],
-        "recent_audit": [
-            {
-                "direction": a.direction, "kind": a.kind, "status": a.status,
-                "order_id": a.order_id, "message": a.message,
-                "at": a.created_at.isoformat() if a.created_at else None,
-            }
-            for a in recent
-        ],
-    }
+    return _ct.sync_health(db)
 
 
 @router.get("/queues")

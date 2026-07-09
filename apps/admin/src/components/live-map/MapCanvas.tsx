@@ -120,39 +120,29 @@ function ClusteredMarkers({
   const map = useMap();
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const useCluster = layers.cluster && markers.length > 20;
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || !useCluster) return;
     markersRef.current.forEach((m) => {
       m.map = null;
     });
     markersRef.current = [];
     clustererRef.current?.clearMarkers();
 
-    const created = markers.map((m) => {
+    markers.forEach((m) => {
       const container = document.createElement("div");
+      container.innerHTML = `<div style="width:28px;height:28px;border-radius:9999px;background:#2563eb;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.2)"></div>`;
+      container.title = m.id;
       const marker = new google.maps.marker.AdvancedMarkerElement({
         position: { lat: m.lat, lng: m.lng },
         content: container,
       });
       marker.addListener("gmp-click", () => onSelect(m.type, m.id));
       markersRef.current.push(marker);
-      return { marker, container, m };
     });
 
-    // Render React content into marker containers via a micro-HTML fallback for clustering path
-    created.forEach(({ container, m }) => {
-      container.innerHTML = `<div style="width:28px;height:28px;border-radius:9999px;background:#2563eb;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.2)"></div>`;
-      container.title = m.id;
-    });
-
-    if (layers.cluster && markers.length > 20) {
-      clustererRef.current = new MarkerClusterer({ map, markers: markersRef.current });
-    } else {
-      markersRef.current.forEach((marker) => {
-        marker.map = map;
-      });
-    }
+    clustererRef.current = new MarkerClusterer({ map, markers: markersRef.current });
 
     return () => {
       clustererRef.current?.clearMarkers();
@@ -160,25 +150,23 @@ function ClusteredMarkers({
         m.map = null;
       });
     };
-  }, [map, markers, layers.cluster, onSelect]);
+  }, [map, markers, useCluster, onSelect]);
 
-  if (!layers.cluster || markers.length <= 20) {
-    return (
-      <>
-        {markers.map((m) => (
-          <AdvancedMarker
-            key={m.id}
-            position={{ lat: m.lat, lng: m.lng }}
-            onClick={() => onSelect(m.type, m.id)}
-          >
-            {m.content}
-          </AdvancedMarker>
-        ))}
-      </>
-    );
-  }
+  if (useCluster) return null;
 
-  return null;
+  return (
+    <>
+      {markers.map((m) => (
+        <AdvancedMarker
+          key={m.id}
+          position={{ lat: m.lat, lng: m.lng }}
+          onClick={() => onSelect(m.type, m.id)}
+        >
+          {m.content}
+        </AdvancedMarker>
+      ))}
+    </>
+  );
 }
 
 function DrawTools({

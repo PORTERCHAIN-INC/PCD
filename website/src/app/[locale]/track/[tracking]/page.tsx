@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
-import { TrackRouteMap } from "@porterchain/maps";
+import { TrackEtaPanel, TrackRouteMap } from "@porterchain/maps";
 import SiteShell from "@/components/layout/SiteShell";
 import Container from "@/components/ui/Container";
 import GuestTrackLookup from "@/components/portal/GuestTrackLookup";
@@ -40,6 +40,8 @@ export default function TrackPage() {
   const dropoff = liveData?.dropoff ?? order?.dropoff;
   const driverLocation = liveData?.driver_location ?? null;
   const routePolyline = liveData?.optimized_route?.polyline ?? liveData?.eta?.polyline ?? null;
+  const eta = liveData?.eta ?? null;
+  const delivered = Boolean(liveData?.delivery_status?.delivered);
 
   return (
     <SiteShell>
@@ -59,6 +61,14 @@ export default function TrackPage() {
                 className="mb-8"
               />
             </GoogleMapsProvider>
+            <TrackEtaPanel
+              eta={eta}
+              delivered={delivered}
+              className="mb-6"
+              title={t("etaTitle")}
+              arrivalPrefix={t("etaArrival")}
+              distanceSuffix={t("etaDistance")}
+            />
             <dl className="space-y-3 rounded-2xl bg-gray-bg p-6 mb-8">
               <div className="flex justify-between">
                 <dt className="text-muted type-small">{t("status")}</dt>

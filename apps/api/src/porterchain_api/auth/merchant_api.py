@@ -13,8 +13,10 @@ from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.api_key_service import MerchantApiKeyService
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import Merchant, MerchantApiKey, MerchantUser
+from porterchain_api.oauth_engine.oauth_service import OAuthService
 
 _api_keys = MerchantApiKeyService()
+_oauth = OAuthService()
 
 
 @dataclass(frozen=True)
@@ -44,8 +46,21 @@ def get_merchant_api_context(
     request: Request,
     db: Session = Depends(get_db),
     x_api_key: Annotated[str | None, Header(alias="X-Api-Key")] = None,
+    authorization: Annotated[str | None, Header()] = None,
 ) -> MerchantApiKeyContext:
     record = getattr(request.state, "merchant_api_key", None)
+    if record is None and authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+        payload = _oauth.resolve_bearer_token(token)
+        if payload:
+            merchant = db.query(Merchant).filter(Merchant.id == payload.get("merchant_id")).first()
+            if not merchant:
+                raise HTTPException(status_code=401, detail="oauth_token_invalid")
+            if merchant.status != MerchantStatus.ACTIVE.value:
+                raise HTTPException(status_code=403, detail="merchant_not_active")
+            shim = _oauth.api_key_shim(payload, merchant.id)
+            return MerchantApiKeyContext(merchant=merchant, api_key=shim)
+
     if record is None:
         if not x_api_key:
             raise HTTPException(status_code=401, detail="api_key_required")

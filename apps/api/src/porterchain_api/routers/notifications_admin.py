@@ -79,7 +79,6 @@ def retry(notification_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict
     _guard(ctx, "notifications")
     if not _svc.retry(db, notification_id):
         raise HTTPException(status_code=404, detail="notification_not_retryable")
-    db.commit()
     return {"ok": True}
 
 
@@ -94,5 +93,4 @@ def broadcast(body: BroadcastRequest, ctx: Ctx, db: Session = Depends(get_db)) -
         body=body.body,
         channel=body.channel,
     )
-    db.commit()
     return result

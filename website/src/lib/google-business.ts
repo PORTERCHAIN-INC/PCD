@@ -8,9 +8,7 @@ export function isGoogleBusinessProfileConfigured(): boolean {
 }
 
 export function isGoogleBusinessReviewConfigured(): boolean {
-  return (
-    publicEnv.googleBusinessReviewUrl.length > 0 || isGoogleBusinessProfileConfigured()
-  );
+  return publicEnv.googleBusinessReviewUrl.length > 0 || isGoogleBusinessProfileConfigured();
 }
 
 /** Maps / profile URL for “Find us on Google” and schema.org sameAs. */
@@ -34,6 +32,8 @@ export function buildGoogleSameAsLinks(): string[] {
     publicEnv.socialInstagram,
     publicEnv.socialYouTube,
     publicEnv.googleBusinessProfileUrl,
-  ].map((url) => url.trim()).filter(Boolean);
+  ]
+    .map((url) => url.trim())
+    .filter(Boolean);
   return [...new Set(links)];
 }

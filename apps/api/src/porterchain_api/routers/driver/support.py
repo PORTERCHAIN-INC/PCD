@@ -1,6 +1,22 @@
 """driver routes — support."""
 
-from porterchain_api.routers.driver._deps import *  # noqa: F403
+from porterchain_api.routers.driver._deps import (
+    Annotated,
+    Depends,
+    DriverClaimOpenRequest,
+    DriverContext,
+    EmergencyContactUpdateRequest,
+    EmergencyRequest,
+    HTTPException,
+    IncidentRequest,
+    Session,
+    SupportTicketRequest,
+    get_db,
+    get_driver_context,
+    router,
+    svc,
+)
+
 
 @router.get("/support")
 def list_support(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Session = Depends(get_db)):
@@ -32,14 +48,14 @@ def open_driver_claim(
     db: Session = Depends(get_db),
 ):
     try:
-        claim = svc.platform.support_hub.open_claim(
-            db,
-            ctx.driver,
-            order_id=body.order_id,
-            claim_type=body.claim_type,
-            description=body.description,
-        )
-        db.commit()
+        with db.begin():
+            claim = svc.platform.support_hub.open_claim(
+                db,
+                ctx.driver,
+                order_id=body.order_id,
+                claim_type=body.claim_type,
+                description=body.description,
+            )
         return claim
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -56,10 +72,14 @@ def update_emergency_contact(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    result = svc.platform.support_hub.update_emergency_contact(
-        db, ctx.driver, name=body.name, phone=body.phone, relationship=body.relationship
-    )
-    db.commit()
+    with db.begin():
+        result = svc.platform.support_hub.update_emergency_contact(
+            db,
+            ctx.driver,
+            name=body.name,
+            phone=body.phone,
+            relationship=body.relationship,
+        )
     return result
 
 
@@ -70,16 +90,16 @@ def create_support(
     db: Session = Depends(get_db),
 ):
     try:
-        ticket = svc.platform.support.create_ticket(
-            db,
-            ctx.driver,
-            subject=body.subject,
-            description=body.description,
-            order_id=body.order_id,
-            priority=body.priority,
-            category=body.category,
-        )
-        db.commit()
+        with db.begin():
+            ticket = svc.platform.support.create_ticket(
+                db,
+                ctx.driver,
+                subject=body.subject,
+                description=body.description,
+                order_id=body.order_id,
+                priority=body.priority,
+                category=body.category,
+            )
         return ticket
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -96,15 +116,15 @@ def report_incident(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    incident = svc.platform.incidents.report_incident(
-        db,
-        ctx.driver,
-        incident_type=body.incident_type,
-        description=body.description,
-        order_id=body.order_id,
-        location=body.location,
-    )
-    db.commit()
+    with db.begin():
+        incident = svc.platform.incidents.report_incident(
+            db,
+            ctx.driver,
+            incident_type=body.incident_type,
+            description=body.description,
+            order_id=body.order_id,
+            location=body.location,
+        )
     return incident
 
 
@@ -114,7 +134,9 @@ def emergency(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    result = svc.platform.emergency.trigger(db, ctx.driver, location=body.location, message=body.message)
-    db.commit()
+    with db.begin():
+        result = svc.platform.emergency.trigger(
+            db, ctx.driver, location=body.location, message=body.message
+        )
     return result
 

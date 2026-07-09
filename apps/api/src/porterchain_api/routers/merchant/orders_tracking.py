@@ -1,6 +1,34 @@
 """merchant routes — orders_tracking."""
 
-from porterchain_api.routers.merchant._deps import *  # noqa: F403
+from porterchain_api.routers.merchant._deps import (
+    Annotated,
+    Depends,
+    HTTPException,
+    MerchantContext,
+    MerchantLiveTrackingResponse,
+    MerchantOrder360Response,
+    MerchantOrderBulkRequest,
+    MerchantOrderFilters,
+    MerchantOrderResponse,
+    MerchantOrdersDashboardResponse,
+    MerchantTrackingDashboardResponse,
+    OrderListItem,
+    OrderTrackingResponse,
+    Query,
+    Session,
+    Settings,
+    _booking,
+    _handle_permission,
+    _order_response,
+    _orders,
+    _tracking,
+    get_db,
+    get_merchant_context,
+    get_settings,
+    require_module,
+    router,
+)
+
 
 @router.get("/orders/dashboard", response_model=MerchantOrdersDashboardResponse)
 def merchant_orders_dashboard(

@@ -1,6 +1,26 @@
 """admin routes — finance."""
 
-from porterchain_api.routers.admin._deps import *  # noqa: F403
+from porterchain_api.routers.admin._deps import (
+    AdminContext,
+    Annotated,
+    Depends,
+    FinanceCreditNoteRequest,
+    FinanceDashboardResponse,
+    FinanceFilters,
+    FinanceInvoiceDetailResponse,
+    FinanceInvoiceItem,
+    FinanceLedgerItem,
+    FinancePaymentItem,
+    FinancePayoutItem,
+    HTTPException,
+    Session,
+    _finance,
+    get_admin_context,
+    get_db,
+    require_module,
+    router,
+)
+
 
 @router.get("/finance/dashboard", response_model=FinanceDashboardResponse)
 def finance_dashboard(

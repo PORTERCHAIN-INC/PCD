@@ -1,6 +1,22 @@
 """driver routes — communications."""
 
-from porterchain_api.routers.driver._deps import *  # noqa: F403
+from porterchain_api.routers.driver._deps import (
+    Annotated,
+    Depends,
+    DriverContext,
+    HTTPException,
+    PushRegisterRequest,
+    Query,
+    Session,
+    Settings,
+    get_db,
+    get_driver_context,
+    get_settings,
+    require_approved_driver,
+    router,
+    svc,
+)
+
 
 @router.post("/push/register")
 def register_push(
@@ -8,13 +24,13 @@ def register_push(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    result = svc.platform.push.register_device(
-        db,
-        ctx.driver,
-        device_token=body.device_token,
-        platform=body.platform,
-    )
-    db.commit()
+    with db.begin():
+        result = svc.platform.push.register_device(
+            db,
+            ctx.driver,
+            device_token=body.device_token,
+            platform=body.platform,
+        )
     return result
 
 
@@ -40,9 +56,10 @@ def communications_mark_read(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    if not svc.platform.communications.mark_read(db, ctx.driver.id, notification_id):
-        raise HTTPException(status_code=404, detail="notification_not_found")
-    db.commit()
+    with db.begin():
+        ok = svc.platform.communications.mark_read(db, ctx.driver.id, notification_id)
+        if not ok:
+            raise HTTPException(status_code=404, detail="notification_not_found")
     return {"ok": True}
 
 
@@ -52,9 +69,10 @@ def communications_mark_archive(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    if not svc.platform.communications.mark_archive(db, ctx.driver.id, notification_id):
-        raise HTTPException(status_code=404, detail="notification_not_found")
-    db.commit()
+    with db.begin():
+        ok = svc.platform.communications.mark_archive(db, ctx.driver.id, notification_id)
+        if not ok:
+            raise HTTPException(status_code=404, detail="notification_not_found")
     return {"ok": True}
 
 
@@ -63,8 +81,8 @@ def communications_mark_all_read(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    count = svc.platform.communications.mark_all_read(db, ctx.driver.id)
-    db.commit()
+    with db.begin():
+        count = svc.platform.communications.mark_all_read(db, ctx.driver.id)
     return {"ok": True, "marked": count}
 
 

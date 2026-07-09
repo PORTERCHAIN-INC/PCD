@@ -21,11 +21,11 @@ Investor diligence (DD-03) requires a documented path off “one box forever” 
 
 **Scale the stateless Porterchain API horizontally** behind Caddy while keeping PostgreSQL, Redis, and the worker as shared coordination layers. Move to **managed Postgres + Redis** before adding a second droplet or Kubernetes.
 
-| Phase | Trigger | Topology | Effort |
-| ----- | ------- | -------- | ------ |
-| **A — Now** | DD-03 close; p95 headroom | Same droplet, **2 API replicas**, in-compose Postgres/Redis | 1–2 days |
-| **B — Growth** | DB CPU >60% sustained or backup SLA | **Managed Postgres 16** + **Managed Redis 7**; 2–4 API replicas | 1–2 weeks |
-| **C — Scale-out** | >500 RPS API or multi-region | DO App Platform / ECS / K8s; read replica for analytics (DD-19) | 4–8 weeks |
+| Phase             | Trigger                             | Topology                                                        | Effort    |
+| ----------------- | ----------------------------------- | --------------------------------------------------------------- | --------- |
+| **A — Now**       | DD-03 close; p95 headroom           | Same droplet, **2 API replicas**, in-compose Postgres/Redis     | 1–2 days  |
+| **B — Growth**    | DB CPU >60% sustained or backup SLA | **Managed Postgres 16** + **Managed Redis 7**; 2–4 API replicas | 1–2 weeks |
+| **C — Scale-out** | >500 RPS API or multi-region        | DO App Platform / ECS / K8s; read replica for analytics (DD-19) | 4–8 weeks |
 
 Phases are **sequential**. Do not jump to Kubernetes while still on a single droplet DB.
 
@@ -35,14 +35,14 @@ Phases are **sequential**. Do not jump to Kubernetes while still on a single dro
 
 These must remain true for every API replica:
 
-| Concern | Mechanism | Code / config |
-| ------- | --------- | ------------- |
-| HTTP sessions | None — Clerk JWT per request | `auth/clerk.py` |
-| Rate limiting | Redis-backed, fail-closed | `platform/rate_limit_middleware.py` (DD-06) |
-| In-app notification WS | Redis pub/sub fanout | `notification_engine/realtime.py` (DD-11) |
-| Stripe / Fleetbase webhooks | Idempotency store (Redis) | `stripe_webhook_service.py`, event bus |
-| Background work | Single worker fleet, Redis queues | `apps/worker/` (DD-04) |
-| DB connections | Pooled per replica | `config.py` `db_pool_size=10`, `db_max_overflow=20` |
+| Concern                     | Mechanism                         | Code / config                                       |
+| --------------------------- | --------------------------------- | --------------------------------------------------- |
+| HTTP sessions               | None — Clerk JWT per request      | `auth/clerk.py`                                     |
+| Rate limiting               | Redis-backed, fail-closed         | `platform/rate_limit_middleware.py` (DD-06)         |
+| In-app notification WS      | Redis pub/sub fanout              | `notification_engine/realtime.py` (DD-11)           |
+| Stripe / Fleetbase webhooks | Idempotency store (Redis)         | `stripe_webhook_service.py`, event bus              |
+| Background work             | Single worker fleet, Redis queues | `apps/worker/` (DD-04)                              |
+| DB connections              | Pooled per replica                | `config.py` `db_pool_size=10`, `db_max_overflow=20` |
 
 **Live-map WebSocket** (`/v1/admin/operations/live-map/ws`) is sticky by connection — Caddy round-robin is acceptable; each replica polls DB/Fleetbase independently every 5s. Notification WS (`/v1/notifications/ws`) uses Redis pub/sub so any replica can serve the connection.
 
@@ -132,13 +132,13 @@ Adopt when Phase B is saturated or compliance requires isolated networks:
 
 Before scaling past 2 replicas in production:
 
-| Gate | Target |
-| ---- | ------ |
-| `pnpm load:booking` p95 quote | < 3s (see RUNBOOK § Load testing) |
-| API p95 `/health` | < 200 ms |
-| Postgres connections | < 80% of `max_connections` |
-| Redis memory | < 70% |
-| Worker heartbeat | `porterchain:worker:heartbeat` present |
+| Gate                          | Target                                 |
+| ----------------------------- | -------------------------------------- |
+| `pnpm load:booking` p95 quote | < 3s (see RUNBOOK § Load testing)      |
+| API p95 `/health`             | < 200 ms                               |
+| Postgres connections          | < 80% of `max_connections`             |
+| Redis memory                  | < 70%                                  |
+| Worker heartbeat              | `porterchain:worker:heartbeat` present |
 
 ---
 
@@ -168,8 +168,8 @@ Before scaling past 2 replicas in production:
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [PRIORITY_TODOS.md](../PRIORITY_TODOS.md) | DD-03 tracking |
-| [RUNBOOK.md](../../RUNBOOK.md) | Ops execution |
-| [masterrule.md](../../masterrule.md) | Monolith-first policy |
+| Document                                  | Role                  |
+| ----------------------------------------- | --------------------- |
+| [PRIORITY_TODOS.md](../PRIORITY_TODOS.md) | DD-03 tracking        |
+| [RUNBOOK.md](../../RUNBOOK.md)            | Ops execution         |
+| [masterrule.md](../../masterrule.md)      | Monolith-first policy |

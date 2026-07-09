@@ -85,6 +85,50 @@ class AdminOperationsService:
         )
         return order
 
+    def assign_batch(
+        self,
+        db: Session,
+        settings: Settings,
+        ctx: AdminContext,
+        *,
+        plan_id: str,
+        driver_id: str,
+        order_ids: list[str] | None = None,
+    ) -> dict:
+        """Assign a batch of orders to one driver.
+
+        Each order is assigned inside its own savepoint so a single failure
+        (missing order, invalid transition) is reported per-order without
+        aborting the whole batch.
+        """
+        ids = order_ids or []
+        results: list[dict] = []
+        errors: list[dict] = []
+        for order_id in ids:
+            try:
+                with db.begin_nested():
+                    order = self._assign_driver_no_commit(db, ctx, order_id, driver_id)
+                results.append(
+                    {
+                        "order_id": order_id,
+                        "status": order.state,
+                        "tracking_number": getattr(order, "tracking_number", None),
+                    }
+                )
+            except (LookupError, ValueError) as exc:
+                errors.append({"order_id": order_id, "error": str(exc)})
+        if results:
+            db.commit()
+        else:
+            db.rollback()
+        return {
+            "plan_id": plan_id,
+            "driver_id": driver_id,
+            "assigned_count": len(results),
+            "results": results,
+            "errors": errors,
+        }
+
     def live_map_snapshot(self, db: Session) -> dict:
         from porterchain_api.admin_engine.live_map_service import LiveMapService
 

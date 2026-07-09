@@ -27,6 +27,64 @@ No Stripe checkout — orders are created on **net terms** (`Merchant.billing_cy
 | Billing                 | `MerchantBillingService`                                   | Statement + invoice list; batch invoice run **not implemented** |
 | API keys                | `MerchantApiKeyService` + `gateway_engine`                 | Keys stored; rate limits per key on `/v1/merchant-api/*`        |
 
+## Webhook HMAC & Rate Limits
+
+### Outbound merchant webhooks (HMAC verification)
+
+When you create a webhook via `POST /v1/merchant/integrations/webhooks`, Porterchain returns a `signing_secret` in the response. Store it and use it to verify every outbound webhook delivery.
+
+For each webhook delivery, Porterchain sends:
+
+- HTTP `Content-Type: application/json`
+- Headers:
+  - `X-Porterchain-Timestamp`: unix timestamp in seconds (base-10)
+  - `X-Porterchain-Signature`: hex-encoded HMAC-SHA256 signature
+- Body: JSON payload delivered by Porterchain (event envelope + order fields)
+
+Signature algorithm (match Porterchain exactly):
+
+1. Serialize the delivered JSON body as Porterchain does:
+   - `body_bytes = json.dumps(body, separators=(',', ':'), default=str).encode('utf-8')`
+2. Build the signed message:
+   - `signed = timestamp + '.' + body_bytes`
+3. Compute:
+   - `HMAC-SHA256(signing_secret, signed).hexdigest()`
+
+Example (Python):
+
+```python
+import hashlib, hmac
+
+timestamp = request.headers["X-Porterchain-Timestamp"]
+signature = request.headers["X-Porterchain-Signature"]
+
+body = request.json
+body_bytes = json.dumps(body, separators=(",", ":"), default=str).encode("utf-8")
+signed = f"{timestamp}.".encode("utf-8") + body_bytes
+expected = hmac.new(signing_secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
+
+assert expected == signature
+```
+
+If verification fails, treat the delivery as untrusted (do not process it).
+
+### Merchant API rate limits (per API key tier)
+
+Merchant API endpoints live under `/v1/merchant-api/*` and require an API key in `X-Api-Key`.
+
+Rate limits are enforced **per API key** (tier):
+
+- Default: `rate_limit_per_minute = 60`
+- If a key exceeds its limit, Porterchain returns:
+  - HTTP `429`
+  - JSON: `detail=rate_limit_exceeded`, `limit_per_minute`, `requests_last_minute`
+  - Header: `Retry-After: 60`
+
+Read and update limits:
+
+- `GET /v1/merchant/integrations/rate-limits`
+- `PATCH /v1/merchant/integrations/api-keys/{key_id}/rate-limit`
+
 ## Diagram
 
 ```mermaid

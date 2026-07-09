@@ -13,3 +13,5 @@ export {
 } from "./maps-core";
 export { default as TrackRouteMap } from "./TrackRouteMap";
 export type { TrackRouteMapProps } from "./TrackRouteMap";
+export { TrackEtaPanel, formatEta } from "./TrackEtaPanel";
+export type { TrackEtaPanelProps, TrackingEta } from "./TrackEtaPanel";

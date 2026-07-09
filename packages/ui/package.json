@@ -5,15 +5,17 @@
   "exports": {
     "./button": "./src/button.tsx",
     "./container": "./src/container.tsx",
+    "./empty-state": "./src/empty-state.tsx",
+    "./loading": "./src/loading.tsx",
     "./stat-card": "./src/stat-card.tsx",
     "./utils": "./src/utils.ts"
   },
   "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@types/react": "^19",
-    "typescript": "^5"
+    "typescript": "^6.0.3"
   }
 }

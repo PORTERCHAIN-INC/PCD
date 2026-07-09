@@ -30,7 +30,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "usage", label: "API Usage" },
   { id: "sandbox", label: "Sandbox" },
   { id: "docs", label: "Documentation" },
-  { id: "erp", label: "ERP" },
+  { id: "erp", label: "Marketplace" },
   { id: "console", label: "API Console" },
 ];
 
@@ -653,6 +653,13 @@ function ErpTab({
 }) {
   return (
     <div className="space-y-6">
+      <section className="rounded-2xl border border-primary/10 bg-white p-6">
+        <h2 className="font-semibold text-primary">Integration marketplace</h2>
+        <p className="mt-2 text-sm text-muted">
+          Connect Porterchain to commerce platforms and ERPs. Ready integrations use API keys and
+          webhooks; OAuth connectors show availability below.
+        </p>
+      </section>
       <div className="grid gap-4 lg:grid-cols-3">
         {platforms.map((p) => (
           <div key={p.id} className="rounded-2xl border border-primary/10 bg-white p-5">

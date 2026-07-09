@@ -8,10 +8,12 @@ export interface FooterLink {
 /** Former navbar links live here; navbar keeps Business, Sign in, Quote, Vehicle Partner Portal only. */
 export const footerNavigation: Record<FooterSectionId, FooterLink[]> = {
   products: [
-    { id: "book", href: "/" },
+    { id: "platform", href: "/platform" },
+    { id: "solutions", href: "/solutions" },
+    { id: "book", href: "/book" },
     { id: "business", href: "/business" },
     { id: "customerPortal", href: "__CUSTOMER_PORTAL__" },
-    { id: "getQuote", href: "/contact" },
+    { id: "getQuote", href: "/quote" },
   ],
   solutions: [
     { id: "industry", href: "/industry" },

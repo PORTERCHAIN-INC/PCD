@@ -122,10 +122,10 @@ export function getSystemLinks(): SystemLink[] {
       port: 8002,
     },
     {
-      id: "mailhog",
-      label: "Mailhog",
+      id: "mailpit",
+      label: "Mailpit",
       description: "Dev email inbox",
-      href: url("NEXT_PUBLIC_MAILHOG_URL", "http://localhost:8025"),
+      href: url("NEXT_PUBLIC_MAILPIT_URL", "http://localhost:8025"),
       port: 8025,
     },
   ];

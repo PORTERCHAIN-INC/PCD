@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Briefcase, CheckCircle2, Clock, History, Route } from "lucide-react";
+import { CardListSkeleton } from "@porterchain/ui/loading";
+import { EmptyState } from "@porterchain/ui/empty-state";
 import DriverShell from "@/components/DriverShell";
 import { JobCard } from "@/components/jobs/JobCard";
 import { useDriverJobs } from "@/hooks/useDriverJobs";
@@ -152,13 +154,7 @@ export default function JobsPage() {
         </section>
       )}
 
-      {loading && !data && (
-        <div className="mt-8 animate-pulse space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 rounded-2xl bg-white" />
-          ))}
-        </div>
-      )}
+      {loading && !data && <CardListSkeleton count={4} />}
 
       {error && <p className="mt-4 text-red-600">{error}</p>}
 
@@ -211,9 +207,11 @@ export default function JobsPage() {
             )}
 
             {list.length === 0 ? (
-              <p className="rounded-2xl bg-white p-8 text-center text-[var(--muted)]">
-                No jobs in this view
-              </p>
+              <EmptyState
+                title="No jobs in this view"
+                hint="Check upcoming assignments or refresh when new routes are dispatched."
+                className="mt-2"
+              />
             ) : (
               <ul className="space-y-3">
                 {list.map((job) => (

@@ -1,6 +1,32 @@
 """admin routes — settings."""
 
-from porterchain_api.routers.admin._deps import *  # noqa: F403
+from porterchain_api.routers.admin._deps import (
+    AdminContext,
+    Annotated,
+    Depends,
+    HTTPException,
+    PlatformUserCreateRequest,
+    PlatformUserDeleteRequest,
+    PlatformUserUpdateRequest,
+    PlatformUsersResponse,
+    Query,
+    Session,
+    Settings,
+    SettingsConfigUpdateRequest,
+    SettingsImportRequest,
+    StaffInviteRequest,
+    StaffInviteResponse,
+    StaffItem,
+    StaffRoleUpdateRequest,
+    _clerk_directory,
+    _settings,
+    get_admin_context,
+    get_db,
+    get_settings,
+    require_module,
+    router,
+)
+
 
 @router.get("/settings/dashboard")
 def settings_dashboard(

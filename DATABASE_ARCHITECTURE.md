@@ -2,7 +2,7 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-08
 
 **Status:** Implemented — PostgreSQL 16 + Alembic in `apps/api/`
 
@@ -111,6 +111,67 @@ Porterchain API (:8001)
 ```
 
 Merchant onboarding, contracts, and billing terms are **PostgreSQL + Clerk** — not a separate Laravel DB in this monorepo.
+
+---
+
+## Read replica (analytics — §3.4.4, DD-19)
+
+**Phase A (now):** All API and worker traffic uses the **primary** Postgres connection (`DATABASE_URL`). OLTP queries, Fleetbase sync jobs, and portal dashboards hit the primary.
+
+**Phase B/C (growth):** When analytics/reporting load competes with dispatch OLTP:
+
+| Role             | Connection                                   | Workloads                                                                                  |
+| ---------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Primary**      | `DATABASE_URL`                               | Writes, booking, dispatch, billing, webhooks, Fleetbase sync                               |
+| **Read replica** | `DATABASE_URL_REPLICA` (read-only, optional) | Heavy aggregates, CRM reports, merchant `reporting_metrics`, future `analytics_engine` ETL |
+
+### Configuration (when replica provisioned)
+
+```bash
+# Primary — required (read/write)
+DATABASE_URL=postgresql+psycopg://user:pass@primary-host:5432/porterchain?sslmode=require
+
+# Replica — optional; analytics code paths only
+DATABASE_URL_REPLICA=postgresql+psycopg://user:pass@replica-host:5432/porterchain?sslmode=require
+```
+
+**Rules:**
+
+- Never run Alembic migrations against the replica.
+- Replica lag >30s → fall back to primary for time-sensitive admin dashboards.
+- Managed Postgres (DigitalOcean, RDS) — enable replica in console; see [ADR-012 Phase C](./docs/architecture/ADR-012-scaling.md).
+
+Until `DATABASE_URL_REPLICA` is set, `merchant_engine/reporting_metrics.py` and admin report endpoints continue using the primary pool (acceptable at Phase A scale).
+
+---
+
+## Managed Postgres (production — §3.4.7, DD-19)
+
+**Phase A (current prod):** Single Postgres container in `docker-compose.prod.yml` (`pcd-postgres`, Postgres 18).
+
+**Phase B (managed primary):** Move OLTP to DigitalOcean Managed PostgreSQL 16+ before scaling past 2 API replicas.
+
+| Step | Action                                                                                                |
+| ---- | ----------------------------------------------------------------------------------------------------- |
+| 1    | Provision **Managed PostgreSQL** (primary + optional standby) in DO console                           |
+| 2    | `pg_dump` from droplet `pcd-postgres` → restore to managed cluster (`?sslmode=require`)               |
+| 3    | Set Doppler / droplet `DATABASE_URL` on **api** + **worker** to managed primary URI                   |
+| 4    | Run migrations once: `docker compose exec api python scripts/repair_and_migrate.py`                   |
+| 5    | Maintenance window cutover — stop compose `postgres` service after smoke (`pnpm validate:p0:prod` G1) |
+| 6    | Enable **read replica** in managed console; set `DATABASE_URL_REPLICA` (read-only URI)                |
+
+**Code paths:**
+
+| Variable               | Consumer                | Purpose                              |
+| ---------------------- | ----------------------- | ------------------------------------ |
+| `DATABASE_URL`         | `db.engine`, `get_db()` | All writes + OLTP reads              |
+| `DATABASE_URL_REPLICA` | `db.get_read_db()`      | Analytics/reporting reads (optional) |
+
+Replica pool defaults: `pool_size=5`, `max_overflow=10` — smaller than primary to cap analytics load.
+
+**Analytics off primary:** CRM reports, merchant `reporting_metrics`, and future `analytics_engine` ETL should use `Depends(get_read_db)` once replica is provisioned. Until then, `get_read_db()` falls back to primary.
+
+See [infrastructure/deploy/README.md](./infrastructure/deploy/README.md) and [ADR-012 Phase B](./docs/architecture/ADR-012-scaling.md).
 
 ---
 

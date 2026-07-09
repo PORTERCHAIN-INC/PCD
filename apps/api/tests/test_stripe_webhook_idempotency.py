@@ -103,6 +103,12 @@ def test_duplicate_stripe_webhook_is_no_op(db: Session, settings: Settings) -> N
     assert order_count_after_second == 1
     assert webhook_events == 1
 
+    from porterchain_api.booking_models import StripeWebhookEvent
+
+    rows = db.query(StripeWebhookEvent).filter(StripeWebhookEvent.stripe_event_id == event["id"]).all()
+    assert len(rows) == 1
+    assert rows[0].status == "processed"
+
 
 def test_stripe_webhook_missing_id_raises(db: Session, settings: Settings) -> None:
     svc = StripeWebhookService()

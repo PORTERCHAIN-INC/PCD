@@ -1,0 +1,64 @@
+name: Nightly E2E
+
+on:
+  schedule:
+    - cron: "0 11 * * *" # 06:00 ET — dev-layer behavioral proof (§2.1.8)
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-e2e
+  cancel-in-progress: true
+
+jobs:
+  d3-e2e:
+    name: D3 E2E matrix
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18-alpine3.24
+        env:
+          POSTGRES_USER: porterchain
+          POSTGRES_PASSWORD: porterchain
+          POSTGRES_DB: porterchain
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U porterchain -d porterchain"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14.6"
+          cache: pip
+          cache-dependency-path: apps/api/requirements.txt
+
+      - name: Install API dependencies
+        working-directory: apps/api
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Alembic upgrade head
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+          APP_ENV: local
+          CLERK_DEV_BYPASS: "true"
+        run: |
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          alembic upgrade head
+
+      - name: D3 static + E2E phases
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+          APP_ENV: local
+          CLERK_DEV_BYPASS: "true"
+        run: |
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          python scripts/verify_d3_matrix.py --e2e

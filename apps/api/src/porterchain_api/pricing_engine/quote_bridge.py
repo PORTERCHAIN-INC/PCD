@@ -153,6 +153,7 @@ def PricingRequest_replace(request: PricingRequest, **kwargs) -> PricingRequest:
         "wallet_credit_cents": request.wallet_credit_cents,
         "referral_credit_cents": request.referral_credit_cents,
         "volume_units": request.volume_units,
+        "requires_liftgate": request.requires_liftgate,
     }
     data.update(kwargs)
     return PricingRequest(**data)

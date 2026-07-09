@@ -143,6 +143,18 @@ def fleetbase_sync_monitor(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     return _svc.fleetbase_sync_monitor(db)
 
 
+@router.get("/merchant-webhook-delivery")
+def merchant_webhook_delivery_monitor(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+    _guard(ctx)
+    return _svc.merchant_webhook_delivery_monitor(db)
+
+
+@router.get("/execution-metrics")
+def execution_metrics(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+    _guard(ctx)
+    return _svc.execution_metrics_dashboard(db)
+
+
 @router.post("/chaos/{scenario}")
 def chaos_test(
     scenario: str,

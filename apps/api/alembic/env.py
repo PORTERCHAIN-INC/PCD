@@ -12,6 +12,7 @@ from porterchain_api.db import Base
 from porterchain_api import (  # noqa: F401
     admin_models,
     booking_draft_models,
+    booking_models,
     crm_models,
     driver_models,
     fleetbase_models,

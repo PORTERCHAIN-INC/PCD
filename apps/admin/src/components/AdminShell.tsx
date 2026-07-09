@@ -56,7 +56,12 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       </header>
 
       <AdminAccessGate onProfile={setProfile}>
-        <main className={cn("min-h-0 flex-1 overflow-auto", fullBleed ? "flex flex-col" : "py-6")}>
+        <main
+          className={cn(
+            "ops-main min-h-0 flex-1 overflow-auto",
+            fullBleed ? "flex flex-col" : "py-6"
+          )}
+        >
           {fullBleed ? children : <Container>{children}</Container>}
         </main>
       </AdminAccessGate>

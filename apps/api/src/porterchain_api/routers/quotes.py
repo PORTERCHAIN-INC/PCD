@@ -123,6 +123,7 @@ def post_booking(
                 "dangerous_goods_confirmed": body.dangerous_goods_confirmed,
                 "consent_at": body.consent_at,
             },
+            checkout_channel=body.checkout_channel,
         )
     except LookupError:
         raise HTTPException(status_code=404, detail="quote_not_found") from None

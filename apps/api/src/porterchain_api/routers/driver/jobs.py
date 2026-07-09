@@ -1,6 +1,30 @@
 """driver routes — jobs."""
 
-from porterchain_api.routers.driver._deps import *  # noqa: F403
+from porterchain_api.routers.driver._deps import (
+    AcceptRejectRequest,
+    Annotated,
+    Depends,
+    DriverContext,
+    DriverJobDetailResponse,
+    DriverJobsListResponse,
+    DriverJobsOptimizeResponse,
+    ExceptionRequest,
+    HTTPException,
+    LocationPingRequest,
+    RouteResponse,
+    Session,
+    Settings,
+    get_db,
+    get_driver_context,
+    get_settings,
+    guard_portal_ready,
+    require_approved_driver,
+    route_response,
+    router,
+    stop_response,
+    svc,
+)
+
 
 @router.post("/location")
 def location_ping(
@@ -21,7 +45,6 @@ def location_ping(
         speed_mps=body.speed_mps,
         fleetbase_bridge=bridge,
     )
-    db.commit()
     return result
 
 
@@ -44,8 +67,8 @@ def optimize_jobs(
     guard_portal_ready(ctx, settings)
     require_approved_driver(ctx)
     try:
-        result = svc.platform.jobs.optimize_route(db, ctx.driver)
-        db.commit()
+        with db.begin():
+            result = svc.platform.jobs.optimize_route(db, ctx.driver)
         return result
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -96,7 +119,6 @@ def startroute_response(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     route = svc.platform.stops.startroute_response(db, ctx.driver, route_id, fleetbase_bridge=bridge)
-    db.commit()
     return route_response(route)
 
 
@@ -133,8 +155,10 @@ def arrivestop_response(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        stop = svc.platform.stops.arrivestop_response(db, ctx.driver, stop_id, fleetbase_bridge=bridge)
-        db.commit()
+        with db.begin():
+            stop = svc.platform.stops.arrivestop_response(
+                db, ctx.driver, stop_id, fleetbase_bridge=bridge
+            )
         return stop_response(stop)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -153,14 +177,14 @@ def deliverstop_response(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        stop = svc.platform.stops.deliverstop_response(
-            db,
-            ctx.driver,
-            stop_id,
-            fleetbase_bridge=bridge,
-            auto_reoptimize=settings.enable_driver_auto_reoptimize,
-        )
-        db.commit()
+        with db.begin():
+            stop = svc.platform.stops.deliverstop_response(
+                db,
+                ctx.driver,
+                stop_id,
+                fleetbase_bridge=bridge,
+                auto_reoptimize=settings.enable_driver_auto_reoptimize,
+            )
         return stop_response(stop)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -187,7 +211,6 @@ def stop_exception(
         notes=body.notes,
         fleetbase_bridge=bridge,
     )
-    db.commit()
     return result
 
 
@@ -201,10 +224,10 @@ def accept_order(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        result = svc.platform.availability.accept_assignment(
-            db, ctx.driver, order_id, fleetbase_bridge=bridge
-        )
-        db.commit()
+        with db.begin():
+            result = svc.platform.availability.accept_assignment(
+                db, ctx.driver, order_id, fleetbase_bridge=bridge
+            )
         return result
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="order_not_found") from exc
@@ -221,10 +244,14 @@ def reject_order(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        result = svc.platform.availability.reject_assignment(
-            db, ctx.driver, order_id, reason=body.reason or "", fleetbase_bridge=bridge
-        )
-        db.commit()
+        with db.begin():
+            result = svc.platform.availability.reject_assignment(
+                db,
+                ctx.driver,
+                order_id,
+                reason=body.reason or "",
+                fleetbase_bridge=bridge,
+            )
         return result
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="order_not_found") from exc

@@ -12,8 +12,8 @@ Schema changes for Porterchain-owned **PostgreSQL 16 only** (local, staging, pro
 
 | Item      | Value                                                         |
 | --------- | ------------------------------------------------------------- |
-| Revisions | **13**                                                        |
-| Head      | `n2o3p4q5r6s7` (`orders_quote_id_unique`)                     |
+| Revisions | **14**                                                        |
+| Head      | `o3p4q5r6s7t8` (`stripe_webhook_events`)                      |
 | Driver    | `postgresql+psycopg://` via `DATABASE_URL` in `apps/api/.env` |
 
 ---
@@ -49,7 +49,7 @@ alembic history   # list revisions
 
 `alembic/env.py` imports all SQLAlchemy models so autogenerate sees the full schema:
 
-- Core models (`models`, `identity_models`, `user_models`, …)
+- Core models (`booking_models`, `models` shim, `identity_models`, `user_models`, …)
 - Domain models (`merchant_models`, `driver_models`, `crm_models`, …)
 - `billing_engine/models`
 - `notification_engine/models`

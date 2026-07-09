@@ -15,6 +15,7 @@ import argparse
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -329,8 +330,15 @@ def main() -> int:
     parser.add_argument("--api-url", default=None, help="API base URL (default: PORTERCHAIN_API_URL)")
     parser.add_argument("--prod", action="store_true", help="Treat as production gate (G1 stricter)")
     parser.add_argument("--skip-e2e", action="store_true", help="Skip G4–G9 E2E phases (faster)")
+    parser.add_argument(
+        "--max-seconds",
+        type=float,
+        default=900.0,
+        help="Fail if total runtime exceeds this budget (default 900s = 15 min, ENG-G4)",
+    )
     args = parser.parse_args()
 
+    started = time.monotonic()
     settings = get_settings()
     api_url = args.api_url or settings.porterchain_api_url
 
@@ -350,6 +358,11 @@ def main() -> int:
     warned = sum(1 for r in check.results if r["status"] == "WARN")
     failed = sum(1 for r in check.results if r["status"] == "FAIL")
     print(f"Summary: {passed} pass, {warned} warn, {failed} fail")
+    elapsed = time.monotonic() - started
+    print(f"Elapsed: {elapsed:.1f}s (budget {args.max_seconds:.0f}s)")
+    if elapsed > args.max_seconds:
+        print(f"FAIL: exceeded ENG-G4 runtime budget ({elapsed:.1f}s > {args.max_seconds:.0f}s)")
+        return 1
     return 1 if check.failed else 0
 
 

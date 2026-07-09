@@ -1,21 +1,21 @@
-fastapi>=0.115.0
-uvicorn[standard]>=0.32.0
-python-multipart>=0.0.18
-sqlalchemy>=2.0.36
-alembic>=1.14.0
-pydantic>=2.10.0
-pydantic-settings>=2.6.0
-httpx>=0.28.0
-python-jose[cryptography]>=3.3.0
-stripe>=11.0.0
-psycopg[binary]>=3.2.0
-redis>=5.2.0
-sentry-sdk[fastapi]>=2.19.0
-opentelemetry-api>=1.28.0
-opentelemetry-sdk>=1.28.0
-opentelemetry-exporter-otlp-proto-http>=1.28.0
-opentelemetry-instrumentation-fastapi>=0.49b0
-firebase-admin>=6.6.0
+fastapi>=0.139.0
+uvicorn[standard]>=0.51.0
+python-multipart>=0.0.32
+sqlalchemy>=2.0.51
+alembic>=1.18.5
+pydantic>=2.13.4
+pydantic-settings>=2.12.0
+httpx>=0.28.1
+python-jose[cryptography]>=3.5.0
+stripe>=15.3.0
+psycopg[binary]>=3.3.4
+redis>=8.0.1
+sentry-sdk[fastapi]>=2.64.0
+opentelemetry-api>=1.43.0
+opentelemetry-sdk>=1.43.0
+opentelemetry-exporter-otlp-proto-http>=1.43.0
+opentelemetry-instrumentation-fastapi>=0.64b0
+firebase-admin>=7.5.0
 
 # Platform packages (editable — install from repo root or use PYTHONPATH)
 -e ../../shared/python

@@ -16,7 +16,6 @@ from porterchain_api.merchant_engine.contacts_service import MerchantContactsSer
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.config import Settings, get_settings
-from porterchain_api.config import Settings
 from porterchain_api.db import get_db
 from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
 from porterchain_api.schemas_admin import (
@@ -51,9 +50,6 @@ def _company_id(db: Session, merchant_id: str) -> str | None:
     return company.id if company else None
 
 
-# --------------------------------------------------------------------------- #
-# List / facets / stats
-# --------------------------------------------------------------------------- #
 @router.get("")
 def list_merchants(
     ctx: Ctx,
@@ -119,9 +115,6 @@ def create_merchant(
     return {**detail, "onboarding": onboarding}
 
 
-# --------------------------------------------------------------------------- #
-# Detail + lifecycle
-# --------------------------------------------------------------------------- #
 @router.get("/{merchant_id}")
 def merchant_detail(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     _guard(ctx, "merchants_read")

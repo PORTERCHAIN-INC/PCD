@@ -2,7 +2,7 @@
 
 **Type:** README
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-08
 
 Logistics orchestrator — retail booking, merchant, driver, admin, notifications, and Fleetbase bridge. See [PRODUCT_REQUIREMENTS.md](../../PRODUCT_REQUIREMENTS.md) and [ORDER_LIFECYCLE.md](../../ORDER_LIFECYCLE.md).
 
@@ -21,7 +21,7 @@ cp .env.example .env
 From repo root:
 
 ```bash
-pnpm db:migrate    # PostgreSQL 16 — Alembic head
+pnpm db:migrate    # PostgreSQL 18 — Alembic head
 pnpm dev:api       # http://localhost:8001
 pnpm db:seed       # optional local dev data
 ```
@@ -34,10 +34,10 @@ Health: `GET /health`
 
 | Component  | Value                                               |
 | ---------- | --------------------------------------------------- |
-| Python     | ≥3.12                                               |
+| Python     | 3.14.6                                              |
 | Framework  | FastAPI                                             |
-| Database   | PostgreSQL 16 (`postgresql+psycopg://`)             |
-| Migrations | Alembic — 13 revisions, head `n2o3p4q5r6s7`         |
+| Database   | PostgreSQL 18 (`postgresql+psycopg://`)             |
+| Migrations | Alembic — head `n2o3p4q5r6s7`                       |
 | Auth       | Clerk JWT (dev bypass when `CLERK_DEV_BYPASS=true`) |
 
 ---
@@ -56,7 +56,22 @@ Health: `GET /health`
 
 Fleetbase is accessed only through `fleetbase-adapter` and engine bridges — never from client apps.
 
-**OpenAPI (local):** `http://localhost:8001/docs` — **~483** route handlers across 20 router modules (`src/porterchain_api/routers/`). Prefer OpenAPI + thin routers over duplicating route lists in markdown.
+## OpenAPI
+
+Live OpenAPI is the route contract. Markdown describes why; `/docs` lists every path.
+
+| Resource            | URL                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| Interactive (local) | [http://localhost:8001/docs](http://localhost:8001/docs)                             |
+| JSON (local)        | [http://localhost:8001/openapi.json](http://localhost:8001/openapi.json)             |
+| Interactive (prod)  | [https://api.porterchain.com/docs](https://api.porterchain.com/docs)                 |
+| JSON (prod)         | [https://api.porterchain.com/openapi.json](https://api.porterchain.com/openapi.json) |
+| Repo snapshot       | [`docs/api/openapi.json`](../../docs/api/openapi.json) — `pnpm docs:openapi`         |
+| Postman collection  | [`docs/api/porterchain.postman.json`](../../docs/api/porterchain.postman.json)       |
+| Partner guide       | [`docs/api/PARTNER_GUIDE.md`](../../docs/api/PARTNER_GUIDE.md)                       |
+| Developer portal    | [porterchain.com/developers](https://porterchain.com/en/developers) (website)        |
+
+Merchant API scopes and integration docs: [`gateway_engine/merchant_api.py`](./src/porterchain_api/gateway_engine/merchant_api.py) · live bundle at `GET /v1/merchant/integrations/documentation`.
 
 ---
 

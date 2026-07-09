@@ -222,17 +222,17 @@ def driver_action(driver_id: str, body: DriverActionRequest, ctx: Ctx, db: Sessi
             context={"message": body.message or "Message from Porterchain operations."},
         )
 
-    subject = _ACTION_LABEL.get(body.type, body.type)
-    _crm.log_activity(
-        db,
-        entity_type="driver",
-        entity_id=driver_id,
-        activity_type="email" if body.type == "email" else "system",
-        subject=subject,
-        body=body.message,
-        actor_id=ctx.user.id if ctx.user else None,
-    )
-    db.commit()
+    with db.begin():
+        subject = _ACTION_LABEL.get(body.type, body.type)
+        _crm.log_activity(
+            db,
+            entity_type="driver",
+            entity_id=driver_id,
+            activity_type="email" if body.type == "email" else "system",
+            subject=subject,
+            body=body.message,
+            actor_id=ctx.user.id if ctx.user else None,
+        )
     return {"ok": True, "action": body.type}
 
 

@@ -76,6 +76,9 @@ def create_app() -> FastAPI:
     app.add_middleware(MerchantApiGatewayMiddleware)
     app.include_router(gateway_router)
     app.include_router(auth.router)
+    from porterchain_api.routers import oauth
+
+    app.include_router(oauth.router)
     app.include_router(quotes.router)
     app.include_router(booking_drafts.router)
     app.include_router(orders.router)
@@ -97,28 +100,45 @@ def create_app() -> FastAPI:
     app.include_router(driver.legacy_router)
 
     from fastapi import HTTPException, Request
+    from fastapi.exceptions import RequestValidationError
     from fastapi.responses import JSONResponse
 
     from porterchain_api.fleetbase_engine import BookingValidationError
+    from porterchain_api.platform.errors import error_envelope
     import logging
 
     _logger = logging.getLogger(__name__)
 
     @app.exception_handler(BookingValidationError)
     async def _booking_validation_handler(_request: Request, exc: BookingValidationError) -> JSONResponse:
-        return JSONResponse(status_code=422, content={"detail": exc.message, "code": exc.code})
+        return JSONResponse(
+            status_code=422,
+            content=error_envelope(exc.message, code=exc.code),
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def _validation_handler(_request: Request, exc: RequestValidationError) -> JSONResponse:
+        return JSONResponse(
+            status_code=422,
+            content=error_envelope(exc.errors()),
+        )
+
+    @app.exception_handler(HTTPException)
+    async def _http_exception_handler(_request: Request, exc: HTTPException) -> JSONResponse:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=error_envelope(exc.detail),
+            headers=exc.headers,
+        )
 
     @app.exception_handler(Exception)
     async def _unhandled_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
-        if isinstance(exc, HTTPException):
-            return JSONResponse(
-                status_code=exc.status_code,
-                content={"detail": exc.detail},
-                headers=exc.headers,
-            )
         _logger.exception("unhandled error: %s", exc)
         detail = str(exc) if settings.app_env != "production" else "internal_server_error"
-        return JSONResponse(status_code=500, content={"detail": detail})
+        return JSONResponse(
+            status_code=500,
+            content=error_envelope(detail, code="internal_server_error"),
+        )
 
     @app.get("/health")
     def health() -> dict[str, str]:

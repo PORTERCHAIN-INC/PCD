@@ -10,6 +10,11 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_engine import BookingConfirmationService, BookingService, PaymentService
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.row_locks import lock_active_payment, lock_payment, lock_quote
+from porterchain_api.booking_engine.stripe_webhook_idempotency import (
+    claim_stripe_event,
+    complete_stripe_event,
+    release_stripe_event,
+)
 from porterchain_api.config import Settings
 from porterchain_api.models import Order, Payment, Quote
 from porterchain_api.services.stripe_service import handle_checkout_completed
@@ -32,31 +37,39 @@ class StripeWebhookService:
 
         idempotency_key = f"stripe:{stripe_event_id}"
         store = get_event_bus().idempotency
-        if store.is_processed(idempotency_key):
-            logger.info("skipping duplicate Stripe webhook %s", stripe_event_id)
+
+        event_type = event.get("type") or "unknown"
+        if not claim_stripe_event(db, stripe_event_id=stripe_event_id, event_type=event_type):
+            logger.info("skipping duplicate Stripe webhook %s (postgres)", stripe_event_id)
             return {"status": "duplicate"}
 
-        emit_event(
-            db,
-            event_type=DomainEventType.WEBHOOK_RECEIVED,
-            aggregate_type="webhook",
-            aggregate_id=stripe_event_id,
-            payload={"source": "stripe", "type": event.get("type"), "data": event.get("data")},
-        )
-        db.commit()
+        try:
+            emit_event(
+                db,
+                event_type=DomainEventType.WEBHOOK_RECEIVED,
+                aggregate_type="webhook",
+                aggregate_id=stripe_event_id,
+                payload={"source": "stripe", "type": event.get("type"), "data": event.get("data")},
+            )
+            db.commit()
 
-        event_type = event["type"]
-        data_object = event["data"]["object"]
+            data_object = event["data"]["object"]
 
-        if event_type == "checkout.session.completed":
-            self._handle_checkout_completed(db, settings, data_object)
-        elif event_type == "checkout.session.expired":
-            self._handle_checkout_expired(db, data_object)
-        elif event_type in ("payment_intent.payment_failed", "checkout.session.async_payment_failed"):
-            self._handle_payment_failed(db, data_object)
+            if event_type == "checkout.session.completed":
+                self._handle_checkout_completed(db, settings, data_object)
+            elif event_type == "checkout.session.expired":
+                self._handle_checkout_expired(db, data_object)
+            elif event_type in ("payment_intent.payment_failed", "checkout.session.async_payment_failed"):
+                self._handle_payment_failed(db, data_object)
 
-        store.mark_processed(idempotency_key)
-        return {"status": "ok"}
+            complete_stripe_event(db, stripe_event_id=stripe_event_id)
+            db.commit()
+            store.mark_processed(idempotency_key)
+            return {"status": "ok"}
+        except Exception:
+            release_stripe_event(db, stripe_event_id=stripe_event_id)
+            db.commit()
+            raise
 
     def _handle_checkout_completed(self, db: Session, settings: Settings, session: dict[str, Any]) -> None:
         meta = handle_checkout_completed(settings, session)

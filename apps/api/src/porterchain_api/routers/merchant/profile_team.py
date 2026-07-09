@@ -1,6 +1,38 @@
 """merchant routes — profile_team."""
 
-from porterchain_api.routers.merchant._deps import *  # noqa: F403
+from porterchain_api.routers.merchant._deps import (
+    Annotated,
+    Depends,
+    HTTPException,
+    MerchantContactCreateRequest,
+    MerchantContactResponse,
+    MerchantContactUpdateRequest,
+    MerchantContext,
+    MerchantProfileResponse,
+    MerchantProfileUpdateRequest,
+    MerchantTwoFactorRequest,
+    Query,
+    RecipientCreateRequest,
+    RecipientResponse,
+    SavedAddressCreateRequest,
+    SavedAddressResponse,
+    Session,
+    Settings,
+    TeamInviteRequest,
+    TeamMemberResponse,
+    TeamRoleUpdateRequest,
+    _contacts,
+    _handle_permission,
+    _profile,
+    _profile_response,
+    _team,
+    get_db,
+    get_merchant_context,
+    get_settings,
+    require_module,
+    router,
+)
+
 
 @router.get("/profile", response_model=MerchantProfileResponse)
 def get_profile(

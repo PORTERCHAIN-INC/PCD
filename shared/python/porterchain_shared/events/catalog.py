@@ -2,6 +2,9 @@
 
 from enum import StrEnum
 
+# Bump when adding/removing/renaming events (§3.3.4); keep in sync with packages/events.
+CATALOG_VERSION = "1.0.0"
+
 
 class DomainEventType(StrEnum):
     # Visitor
@@ -51,9 +54,9 @@ class DomainEventType(StrEnum):
     DRIVER_REJECTED = "order.driver_rejected"
     ORDER_NEAR_DELIVERY = "order.near_delivery"
     ORDER_LOCATION_UPDATED = "order.tracking_updated"
-    ROUTE_OPTIMIZED = "route.optimized"
 
-    # Phase 2 stubs — no consumers yet (ADR-010)
+    # Phase 2 stubs — no consumers yet (ADR-010; Route Center deferred)
+    ROUTE_OPTIMIZED = "route.optimized"
     DISPATCH_RECOMMENDATION = "dispatch.recommendation"
     ETA_PREDICTED = "eta.predicted"
 

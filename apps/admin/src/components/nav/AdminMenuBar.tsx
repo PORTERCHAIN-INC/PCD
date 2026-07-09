@@ -90,28 +90,30 @@ export default function AdminMenuBar() {
 
   return (
     <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-1" aria-label="Main menu">
-      {/* All modules — always visible, full list */}
-      <NavDropdown
-        width="xl"
-        trigger={({ open, triggerProps }) => (
-          <button
-            type="button"
-            {...triggerProps}
-            className={cn(
-              "flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium transition whitespace-nowrap",
-              open ? "bg-secondary/10 text-secondary" : "text-primary/80 hover:bg-primary/5"
-            )}
-          >
-            <LayoutGrid className="h-4 w-4" />
-            All modules
-            <ChevronDown
-              className={cn("h-3.5 w-3.5 opacity-60 transition", open && "rotate-180")}
-            />
-          </button>
-        )}
-      >
-        <AllModulesPanel pathname={pathname} />
-      </NavDropdown>
+      {/* All modules — mobile / narrow viewports only; desktop uses group menus */}
+      <div className="md:hidden">
+        <NavDropdown
+          width="xl"
+          trigger={({ open, triggerProps }) => (
+            <button
+              type="button"
+              {...triggerProps}
+              className={cn(
+                "flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium transition whitespace-nowrap",
+                open ? "bg-secondary/10 text-secondary" : "text-primary/80 hover:bg-primary/5"
+              )}
+            >
+              <LayoutGrid className="h-4 w-4" />
+              All modules
+              <ChevronDown
+                className={cn("h-3.5 w-3.5 opacity-60 transition", open && "rotate-180")}
+              />
+            </button>
+          )}
+        >
+          <AllModulesPanel pathname={pathname} />
+        </NavDropdown>
+      </div>
 
       <span className="mx-0.5 hidden h-5 w-px bg-primary/10 md:inline" />
 

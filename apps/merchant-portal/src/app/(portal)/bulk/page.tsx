@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import { BulkErrorReport, BulkPreviewTable } from "@/components/bulk/BulkUploadReport";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { confirmBulk, uploadBulkCsv } from "@/lib/api";
 import { Download } from "lucide-react";
@@ -88,17 +89,17 @@ export default function BulkPage() {
           {preview.errors.length > 0 && (
             <div>
               <h3 className="font-medium text-primary">Error report</h3>
-              <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-gray-bg p-3 text-xs">
-                {JSON.stringify(preview.errors, null, 2)}
-              </pre>
+              <div className="mt-2">
+                <BulkErrorReport errors={preview.errors} />
+              </div>
             </div>
           )}
           {preview.preview.length > 0 && (
             <div>
               <h3 className="font-medium text-primary">Preview</h3>
-              <pre className="mt-2 max-h-60 overflow-auto rounded-lg bg-gray-bg p-3 text-xs">
-                {JSON.stringify(preview.preview.slice(0, 10), null, 2)}
-              </pre>
+              <div className="mt-2">
+                <BulkPreviewTable rows={preview.preview} />
+              </div>
             </div>
           )}
           {!confirmed ? (

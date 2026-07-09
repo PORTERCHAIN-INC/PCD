@@ -10,16 +10,16 @@ Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./
 
 ## Security posture summary
 
-| Area            | Current state                                                        | Target (production)           |
-| --------------- | -------------------------------------------------------------------- | ----------------------------- |
+| Area            | Current state                                                        | Target (production)                                        |
+| --------------- | -------------------------------------------------------------------- | ---------------------------------------------------------- |
 | Secrets in git  | `details.md` **removed** (July 2026); use `env/*.example` only       | Doppler + [SECRETS.md](./infrastructure/deploy/SECRETS.md) |
-| Auth            | **Clerk-only** user identity + Porterchain RBAC + driver session JWT | MFA for admin/merchant admins |
-| Database        | **PostgreSQL 16** (Porterchain); MySQL (Fleetbase only)              | TLS, private network          |
-| HTTPS           | Assumed in production deploys                                        | Enforce HSTS                  |
-| API hardening   | Partial (Pydantic validation, RBAC)                                  | Rate limits, strict CORS      |
-| Monitoring      | Limited                                                              | Sentry + uptime checks        |
-| Backups         | Documented below; not verified in CI                                 | Automated encrypted backups   |
-| Dependency CVEs | Track via CI audit                                                   | No high/critical in release   |
+| Auth            | **Clerk-only** user identity + Porterchain RBAC + driver session JWT | MFA for admin/merchant admins                              |
+| Database        | **PostgreSQL 16** (Porterchain); MySQL (Fleetbase only)              | TLS, private network                                       |
+| HTTPS           | Assumed in production deploys                                        | Enforce HSTS                                               |
+| API hardening   | Partial (Pydantic validation, RBAC)                                  | Rate limits, strict CORS                                   |
+| Monitoring      | Limited                                                              | Sentry + uptime checks                                     |
+| Backups         | Documented below; not verified in CI                                 | Automated encrypted backups                                |
+| Dependency CVEs | Track via CI audit                                                   | No high/critical in release                                |
 
 ---
 
@@ -33,11 +33,11 @@ Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./
 
 ### Secret classification
 
-| Class        | Examples                                                        | Storage                   |
-| ------------ | --------------------------------------------------------------- | ------------------------- |
-| **Public**   | `NEXT_PUBLIC_*`, Stripe publishable key                         | Env / build args          |
-| **Internal** | `PORTERCHAIN_API_URL`, feature flags                            | Env                       |
-| **Secret**   | `STRIPE_SECRET`, `CLERK_SECRET_KEY`, DB passwords               | Secret manager            |
+| Class        | Examples                                                                                  | Storage                   |
+| ------------ | ----------------------------------------------------------------------------------------- | ------------------------- |
+| **Public**   | `NEXT_PUBLIC_*`, Stripe publishable key                                                   | Env / build args          |
+| **Internal** | `PORTERCHAIN_API_URL`, feature flags                                                      | Env                       |
+| **Secret**   | `STRIPE_SECRET`, `CLERK_SECRET_KEY`, DB passwords                                         | Secret manager            |
 | **Critical** | `STRIPE_WEBHOOK_SECRET`, `JWT_SECRET` (SSO alias: `SSO_JWT_SECRET`), service account JSON | Secret manager + rotation |
 
 ### Production storage
@@ -216,7 +216,11 @@ Separate projects per app; scrub PII in `beforeSend`.
 | Redis             | AOF snapshot             | 7 days    |
 | S3 uploads        | Cross-region replication | 1 year    |
 
-**RPO:** 1 hour · **RTO:** 4 hours · Test restore quarterly.
+**RPO:** 1 hour · **RTO:** 4 hours · Test restore quarterly — see [docs/BACKUP_RESTORE.md](./docs/BACKUP_RESTORE.md).
+
+### Rotation policy (§5.1.8)
+
+Rotate via Doppler + redeploy: `JWT_SECRET` (90d), `FLEETBASE_*` (90d), Clerk/Stripe on provider schedule. Details in [RUNBOOK.md](./RUNBOOK.md) § Secrets rotation.
 
 ---
 

@@ -31,6 +31,7 @@ class BookingService:
         clerk_user_id: str,
         anonymous_session_id: str | None,
         consent: dict | None = None,
+        checkout_channel: str = "retail",
     ) -> tuple[Quote, Customer, str | None]:
         quote = db.query(Quote).filter(Quote.id == quote_id).first()
         if not quote:
@@ -116,7 +117,9 @@ class BookingService:
             clerk_user_id=clerk_user_id,
         )
 
-        checkout_url, _payment = self._payments.start_payment(db, settings, quote, customer)
+        checkout_url, _payment = self._payments.start_payment(
+            db, settings, quote, customer, checkout_channel=checkout_channel
+        )
         db.refresh(quote)
         return quote, customer, checkout_url
 

@@ -1,6 +1,34 @@
 """admin routes — pricing."""
 
-from porterchain_api.routers.admin._deps import *  # noqa: F403
+from porterchain_api.routers.admin._deps import (
+    AdminContext,
+    Annotated,
+    Depends,
+    FuelConfigRequest,
+    HTTPException,
+    Merchant,
+    MerchantContractCreateRequest,
+    MerchantContractItem,
+    PricingBreakdownResponse,
+    PricingDashboardResponse,
+    PricingFilters,
+    PricingSimulatorRequest,
+    PricingZoneCreateRequest,
+    PricingZoneItem,
+    PromotionCreateRequest,
+    PromotionItem,
+    Session,
+    TariffCreateRequest,
+    TariffItem,
+    TariffUpdateRequest,
+    TaxConfigRequest,
+    _pricing,
+    get_admin_context,
+    get_db,
+    require_module,
+    router,
+)
+
 
 @router.get("/pricing/dashboard", response_model=PricingDashboardResponse)
 def pricing_dashboard(

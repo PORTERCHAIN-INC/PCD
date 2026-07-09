@@ -1,6 +1,42 @@
 """merchant routes — dashboard_booking."""
 
-from porterchain_api.routers.merchant._deps import *  # noqa: F403
+from porterchain_api.routers.merchant._deps import (
+    Annotated,
+    BulkUploadResponse,
+    Depends,
+    File,
+    HTTPException,
+    MerchantBookDeliveryRequest,
+    MerchantBookingConfirmRequest,
+    MerchantBookingConfirmResponse,
+    MerchantBookingDraftResponse,
+    MerchantBookingPreviewResponse,
+    MerchantBookingTemplateCreateRequest,
+    MerchantBookingTemplateResponse,
+    MerchantContext,
+    MerchantDashboardResponse,
+    MerchantMultiParcelRequest,
+    MerchantMultiParcelResponse,
+    MerchantOrderResponse,
+    Query,
+    RecipientResponse,
+    SavedAddressResponse,
+    Session,
+    Settings,
+    UploadFile,
+    _booking,
+    _booking_flow,
+    _bulk,
+    _dashboard,
+    _handle_permission,
+    _order_response,
+    get_db,
+    get_merchant_context,
+    get_settings,
+    require_module,
+    router,
+)
+
 
 @router.get("/dashboard", response_model=MerchantDashboardResponse)
 def merchant_dashboard(

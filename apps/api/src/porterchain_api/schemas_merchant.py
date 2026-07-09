@@ -25,6 +25,14 @@ class MerchantBookDeliveryRequest(BaseModel):
     scheduled_at: datetime
     schedule_mode: str = "now"
     special_instructions: str | None = None
+    site_access_notes: str | None = Field(
+        default=None,
+        description="Gate code, liftgate, foreman contact — jobsite delivery (§8.1.6)",
+    )
+    requires_liftgate: bool = Field(
+        default=False,
+        description="Liftgate required at delivery — adds construction surcharge (§8.1.7)",
+    )
     internal_reference: str | None = None
     purchase_order_number: str | None = None
     cost_centre: str | None = None

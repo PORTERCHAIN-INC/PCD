@@ -263,6 +263,19 @@ Frontends use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` or `EXPO_PUBLIC_CLERK_PUBLISHA
 | -------------- | -------- | ----------------------------------------------------------- |
 | `DATABASE_URL` | Yes      | `postgresql+psycopg://user:pass@localhost:5432/porterchain` |
 
+**Pool tuning** (per API replica — see [ADR-012](./docs/architecture/ADR-012-scaling.md)):
+
+| Variable          | Default | Description                                    |
+| ----------------- | ------- | ---------------------------------------------- |
+| `DB_POOL_SIZE`    | `10`    | SQLAlchemy pool size per process               |
+| `DB_MAX_OVERFLOW` | `20`    | Extra connections beyond pool_size under burst |
+| `DB_POOL_TIMEOUT` | `30`    | Seconds to wait for a free connection          |
+| `DB_POOL_RECYCLE` | `1800`  | Recycle connections after N seconds (30 min)   |
+
+At **2 API replicas** with defaults, budget ~60 max API DB connections (10+20 per replica). Reduce `DB_POOL_SIZE` to `5` before scaling to 4 replicas on a 100-connection Postgres instance.
+
+| `DATABASE_URL_REPLICA` | No | Optional read-only URI for analytics (`get_read_db()`); see §3.4.7 |
+
 SQLite is **not supported**. Run `pnpm db:migrate` before starting the API.
 
 ---

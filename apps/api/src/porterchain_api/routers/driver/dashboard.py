@@ -1,6 +1,25 @@
 """driver routes — dashboard."""
 
-from porterchain_api.routers.driver._deps import *  # noqa: F403
+from porterchain_api.routers.driver._deps import (
+    Annotated,
+    AvailabilityRequest,
+    Depends,
+    DriverContext,
+    DriverDashboardResponse,
+    HTTPException,
+    Response,
+    Session,
+    Settings,
+    ShiftStartRequest,
+    get_db,
+    get_driver_context,
+    get_settings,
+    guard_portal_ready,
+    require_approved_driver,
+    router,
+    svc,
+)
+
 
 @router.get("/dashboard", response_model=DriverDashboardResponse)
 def dashboard(
@@ -112,8 +131,8 @@ def claim_bonus(
     db: Session = Depends(get_db),
 ):
     try:
-        result = svc.platform.bonuses.claim_bonus(db, ctx.driver, bonus_id)
-        db.commit()
+        with db.begin():
+            result = svc.platform.bonuses.claim_bonus(db, ctx.driver, bonus_id)
         return result
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="bonus_not_found") from exc
@@ -141,16 +160,16 @@ def set_availability(
     if body.mode is None and body.online is None:
         raise HTTPException(status_code=422, detail="online or mode required")
     try:
-        if body.mode is not None:
-            result = svc.platform.shift.set_availability(
-                db, ctx.driver, body.mode, fleetbase_bridge=bridge
-            )
-        else:
-            mode = "online" if body.online else "offline"
-            result = svc.platform.shift.set_availability(
-                db, ctx.driver, mode, fleetbase_bridge=bridge
-            )
-        db.commit()
+        with db.begin():
+            if body.mode is not None:
+                result = svc.platform.shift.set_availability(
+                    db, ctx.driver, body.mode, fleetbase_bridge=bridge
+                )
+            else:
+                mode = "online" if body.online else "offline"
+                result = svc.platform.shift.set_availability(
+                    db, ctx.driver, mode, fleetbase_bridge=bridge
+                )
         return result
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
@@ -176,10 +195,10 @@ def start_shift(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        result = svc.platform.shift.start_shift(
-            db, ctx.driver, fleetbase_bridge=bridge, route_id=body.route_id
-        )
-        db.commit()
+        with db.begin():
+            result = svc.platform.shift.start_shift(
+                db, ctx.driver, fleetbase_bridge=bridge, route_id=body.route_id
+            )
         return result
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
@@ -194,8 +213,8 @@ def end_shift(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        result = svc.platform.shift.end_shift(db, ctx.driver, fleetbase_bridge=bridge)
-        db.commit()
+        with db.begin():
+            result = svc.platform.shift.end_shift(db, ctx.driver, fleetbase_bridge=bridge)
         return result
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -210,8 +229,10 @@ def shift_break(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        result = svc.platform.shift.start_break(db, ctx.driver, fleetbase_bridge=bridge)
-        db.commit()
+        with db.begin():
+            result = svc.platform.shift.start_break(
+                db, ctx.driver, fleetbase_bridge=bridge
+            )
         return result
     except (LookupError, PermissionError) as exc:
         code = 404 if isinstance(exc, LookupError) else 403
@@ -227,8 +248,10 @@ def shift_resume(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        result = svc.platform.shift.resume_shift(db, ctx.driver, fleetbase_bridge=bridge)
-        db.commit()
+        with db.begin():
+            result = svc.platform.shift.resume_shift(
+                db, ctx.driver, fleetbase_bridge=bridge
+            )
         return result
     except (LookupError, PermissionError) as exc:
         code = 404 if isinstance(exc, LookupError) else 403

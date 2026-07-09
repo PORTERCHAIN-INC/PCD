@@ -21,7 +21,7 @@ from porterchain_api.auth.enterprise_rbac import (
 )
 from porterchain_api.auth.customer import CustomerContext, get_customer_context, resolve_customer_contact
 from porterchain_api.auth.customer_onboarding import evaluate_customer_onboarding
-from porterchain_api.auth.merchant_onboarding import evaluate_merchant_onboarding
+from porterchain_api.auth.merchant_onboarding import evaluate_merchant_onboarding, save_merchant_vertical
 from porterchain_api.auth.merchant import get_merchant_context
 from porterchain_api.merchant_engine.rbac import MerchantContext, parse_merchant_role
 from porterchain_api.schemas_auth import (
@@ -30,6 +30,7 @@ from porterchain_api.schemas_auth import (
     CustomerAccessResponse,
     FleetbaseSsoResponse,
     MerchantAccessResponse,
+    MerchantVerticalRequest,
     PortalOnboardingResponse,
     RbacMatrixResponse,
 )
@@ -116,6 +117,17 @@ def merchant_onboarding(
 ) -> PortalOnboardingResponse:
     """Merchant activation checklist — does not require ACTIVE merchant."""
     return PortalOnboardingResponse(**evaluate_merchant_onboarding(db, claims, settings=settings))
+
+
+@router.patch("/merchant/onboarding/vertical", response_model=PortalOnboardingResponse)
+def merchant_onboarding_vertical(
+    body: MerchantVerticalRequest,
+    claims: Annotated[ClerkClaims, Depends(get_clerk_claims)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> PortalOnboardingResponse:
+    """§8.1.12 — Merchant selects primary business vertical during onboarding."""
+    return PortalOnboardingResponse(**save_merchant_vertical(db, claims, body.vertical, settings=settings))
 
 
 @router.get("/customer/access", response_model=CustomerAccessResponse)

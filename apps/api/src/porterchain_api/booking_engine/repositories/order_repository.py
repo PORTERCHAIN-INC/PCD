@@ -6,7 +6,7 @@ from sqlalchemy.orm import Query, Session
 
 from porterchain_api.domain.tenant_access import assert_order_visible
 from porterchain_api.domain.tenant_context import TenantKind, TenantScope
-from porterchain_api.models import Order
+from porterchain_api.booking_models import Order
 
 
 class OrderRepository:

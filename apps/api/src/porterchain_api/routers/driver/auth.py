@@ -1,6 +1,21 @@
 """driver routes — auth."""
 
-from porterchain_api.routers.driver._deps import *  # noqa: F403
+from porterchain_api.routers.driver._deps import (
+    Annotated,
+    Depends,
+    DriverLoginRequest,
+    DriverRefreshRequest,
+    DriverTokenResponse,
+    HTTPException,
+    Header,
+    Session,
+    Settings,
+    get_db,
+    get_settings,
+    router,
+    svc,
+)
+
 
 @router.post("/auth/login", response_model=DriverTokenResponse)
 async def driver_login(

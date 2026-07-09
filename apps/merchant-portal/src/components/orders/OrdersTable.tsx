@@ -1,6 +1,7 @@
 "use client";
 
 import { OrderStateBadge } from "@/components/orders/OrderStateBadge";
+import { EmptyState } from "@porterchain/ui/empty-state";
 import type { OrderRow } from "@/lib/orders";
 import { formatCents, formatDate } from "@/lib/utils";
 import Link from "next/link";
@@ -78,7 +79,11 @@ export function OrdersTable({ rows, selected, onSelect }: Props) {
         </tbody>
       </table>
       {rows.length === 0 && (
-        <p className="p-8 text-center text-sm text-muted">No orders match your filters.</p>
+        <EmptyState
+          title="No orders match your filters"
+          hint="Try clearing filters or book a new delivery."
+          className="border-0"
+        />
       )}
     </div>
   );

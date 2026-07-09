@@ -8,6 +8,11 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
+from porterchain_api.booking_engine.site_access import (
+    dropoff_address_fields,
+    enrich_dropoff,
+    extract_site_access_notes,
+)
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import BookingDraftState
 from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError, MerchantSyncService
@@ -159,10 +164,11 @@ class MerchantBookingFlowService:
     ) -> dict[str, Any]:
         preview = self.preview(db, settings, ctx, body)
         session_id = self.merchant_session_id(ctx)
+        dropoff_payload = enrich_dropoff(body.dropoff.model_dump(), body.site_access_notes)
         create_body = CreateBookingDraftRequest(
             session_id=session_id,
             pickup=body.pickup,
-            dropoff=body.dropoff,
+            dropoff=AddressInput(**dropoff_payload),
             additional_stops=body.additional_stops,
             vehicle_class=body.vehicle_class,
             package_type=body.package_type,
@@ -173,6 +179,8 @@ class MerchantBookingFlowService:
             current_step=current_step,
         )
         draft = self._drafts.create_or_update_draft(db, settings, create_body)
+        if body.site_access_notes:
+            draft.dropoff = enrich_dropoff(dict(draft.dropoff or {}), body.site_access_notes)
         draft.amount_cents = preview.get("amount_cents") if preview.get("valid") else None
         draft.pricing_breakdown = {
             **(preview.get("pricing_breakdown") or {}),
@@ -184,6 +192,8 @@ class MerchantBookingFlowService:
                 "saved_pickup_id": body.saved_pickup_id,
                 "template_id": body.template_id,
                 "scheduled_at": body.scheduled_at.isoformat() if body.scheduled_at else None,
+                "site_access_notes": body.site_access_notes,
+                "requires_liftgate": body.requires_liftgate,
             },
         }
         draft.estimated_pickup = body.scheduled_at
@@ -223,7 +233,7 @@ class MerchantBookingFlowService:
         )
         return MerchantBookDeliveryRequest(
             pickup=AddressInput(**(draft.pickup or {})),
-            dropoff=AddressInput(**(draft.dropoff or {})),
+            dropoff=AddressInput(**dropoff_address_fields(draft.dropoff)),
             additional_stops=[AddressInput(**s) for s in (draft.additional_stops or [])],
             vehicle_class=draft.vehicle_class or "cargoVan",
             package_type=draft.package_type or "looseParcel",
@@ -232,6 +242,8 @@ class MerchantBookingFlowService:
             scheduled_at=scheduled_at,
             schedule_mode=draft.schedule_mode or "now",
             special_instructions=draft.special_instructions,
+            site_access_notes=extract_site_access_notes(draft.dropoff) or meta.get("site_access_notes"),
+            requires_liftgate=bool(meta.get("requires_liftgate")),
             internal_reference=meta.get("internal_reference"),
             purchase_order_number=meta.get("purchase_order_number"),
             cost_centre=meta.get("cost_centre"),

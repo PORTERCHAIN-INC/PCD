@@ -1,6 +1,22 @@
 """driver routes — profile."""
 
-from porterchain_api.routers.driver._deps import *  # noqa: F403
+from porterchain_api.routers.driver._deps import (
+    Annotated,
+    Depends,
+    DriverContext,
+    DriverOnboardingResponse,
+    DriverProfileResponse,
+    Session,
+    Settings,
+    driver_profile,
+    evaluate_driver_onboarding,
+    get_db,
+    get_driver_context,
+    get_settings,
+    router,
+    svc,
+)
+
 
 @router.get("/me", response_model=DriverProfileResponse)
 def driver_me(ctx: Annotated[DriverContext, Depends(get_driver_context)]):

@@ -99,25 +99,28 @@ Verify: `pnpm secrets:verify`
 
 ### Tier 1 — Deploy (always required)
 
-| Secret | Description |
-| ------ | ----------- |
-| `DEPLOY_HOST` | Droplet IP |
-| `DEPLOY_USER` | SSH user (`root` or `deploy`) |
-| `DEPLOY_SSH_KEY` | Private SSH key (PEM) authorized on droplet |
-| `DEPLOY_PORT` | _(optional)_ SSH port, default `22` |
-| `DOPPLER_TOKEN` | Doppler service token for `pcd`/`prd` (runtime SSOT) |
+| Secret           | Description                                          |
+| ---------------- | ---------------------------------------------------- |
+| `DEPLOY_HOST`    | Droplet IP                                           |
+| `DEPLOY_USER`    | SSH user (`root` or `deploy`)                        |
+| `DEPLOY_SSH_KEY` | Private SSH key (PEM) authorized on droplet          |
+| `DEPLOY_PORT`    | _(optional)_ SSH port, default `22`                  |
+| `DOPPLER_TOKEN`  | Doppler service token for `pcd`/`prd` (runtime SSOT) |
 
 ### Tier 2 — Docker build (public keys baked into images)
 
-| Secret | Description |
-| ------ | ----------- |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser Maps key |
-| `CLERK_CUSTOMER_PUBLISHABLE_KEY` | Customer `pk_live_…` (website + customer portal) |
-| `CLERK_MERCHANT_PUBLISHABLE_KEY` | Merchant `pk_live_…` |
-| `CLERK_ADMIN_PUBLISHABLE_KEY` | Admin `pk_live_…` |
-| `CLERK_DRIVER_PUBLISHABLE_KEY` | Driver `pk_live_…` |
-| `CLERK_PUBLISHABLE_KEY` | Legacy fallback (same as customer pk) |
-| `NEXT_PUBLIC_SENTRY_DSN` | _(optional)_ Portal error tracking |
+| Secret                                 | Description                                      |
+| -------------------------------------- | ------------------------------------------------ |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`      | Browser Maps key                                 |
+| `CLERK_CUSTOMER_PUBLISHABLE_KEY`       | Customer `pk_live_…` (website + customer portal) |
+| `CLERK_MERCHANT_PUBLISHABLE_KEY`       | Merchant `pk_live_…`                             |
+| `CLERK_ADMIN_PUBLISHABLE_KEY`          | Admin `pk_live_…`                                |
+| `CLERK_DRIVER_PUBLISHABLE_KEY`         | Driver `pk_live_…`                               |
+| `CLERK_PUBLISHABLE_KEY`                | Legacy fallback (same as customer pk)            |
+| `NEXT_PUBLIC_SENTRY_DSN`               | _(optional)_ Portal error tracking               |
+| `NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE` | Zoho SalesIQ widget hash (live chat on website)  |
+
+**Repository variable** (not secret): `NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED` = `true` to bake chat into the website image.
 
 ### Tier 3 — Doppler only (do not duplicate in GitHub when `DOPPLER_TOKEN` is set)
 
@@ -138,7 +141,7 @@ Runtime secrets: `POSTGRES_PASSWORD`, all `sk_*` / JWKS, `STRIPE_*`, `JWT_SECRET
 | `FLEETBASE_DEFAULT_COMPANY_UUID` | Default Fleetbase company UUID                   |
 | `FLEETBASE_SSO_ENABLED`          | _(optional)_ SSO bridge, default `false`         |
 
-When `FLEETBASE_DISPATCH_BRIDGE=true`, the API **refuses to boot** in production unless API key, webhook secret, and company UUID are set. Sync health is exposed on `GET /health/ready` (`fleetbase_sync.link_pct` must stay ≥95%).
+When `FLEETBASE_DISPATCH_BRIDGE=true`, the API **refuses to boot** in production unless API key, webhook secret, and company UUID are set. Sync health is exposed on `GET /health/ready` (`fleetbase_sync.link_pct` must stay ≥98%).
 
 **Fleetbase webhook URL:** `https://api.porterchain.com/webhooks/fleetbase`
 
@@ -200,14 +203,25 @@ docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \
   api python scripts/repair_and_migrate.py
 ```
 
-Scale API without downtime (same image tag):
+## Rolling deploy (DD-27)
+
+GitHub Actions deploy (`.github/workflows/deploy.yml`) rolls API replicas with **zero fixed `container_name`** on the `api` service (see ADR-012). Flow:
+
+1. **Pull + scale** — `docker compose up -d --force-recreate --pull missing --scale api=${API_REPLICAS:-2}`
+2. **Migrate once** — `repair_and_migrate.py` inside one API container before traffic
+3. **Health gate** — loop `curl http://localhost:8001/health` until OK; fail deploy on timeout
+4. **Smoke** — `https://api.porterchain.com/health` + `/health/ready` from the workflow
+
+Set replica count via GitHub **variable** `API_REPLICAS` (default `2`). Manual scale on droplet:
 
 ```bash
 export API_REPLICAS=2   # or 1 to roll back
 docker compose -f docker-compose.prod.yml up -d --scale api=$API_REPLICAS
 ```
 
-Head revision: `n2o3p4q5r6s7` (13 revisions). See [apps/api/alembic/README.md](../../apps/api/alembic/README.md).
+**Rollback:** pin previous `IMAGE_TAG` / GHCR digest in env, set `API_REPLICAS=1`, re-run compose up (<15 minutes for API + portals). Worker and portals restart independently; API is the only horizontally scaled service in v1.
+
+Head revision: `o3p4q5r6s7t8` (14 revisions). See [apps/api/alembic/README.md](../../apps/api/alembic/README.md).
 
 ---
 

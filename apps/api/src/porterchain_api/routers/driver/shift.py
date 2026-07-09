@@ -1,6 +1,18 @@
 """driver routes — shift."""
 
-from porterchain_api.routers.driver._deps import *  # noqa: F403
+from porterchain_api.routers.driver._deps import (
+    Annotated,
+    Depends,
+    DocumentUploadRequest,
+    DriverContext,
+    HTTPException,
+    Session,
+    get_db,
+    get_driver_context,
+    router,
+    svc,
+)
+
 
 @router.get("/vehicle")
 def get_vehicle(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Session = Depends(get_db)):
@@ -24,10 +36,14 @@ def upload_document(
     db: Session = Depends(get_db),
 ):
     try:
-        doc = svc.platform.documents.upload_document(
-            db, ctx.driver, doc_type=body.doc_type, file_url=body.file_url, metadata=body.metadata
-        )
-        db.commit()
+        with db.begin():
+            doc = svc.platform.documents.upload_document(
+                db,
+                ctx.driver,
+                doc_type=body.doc_type,
+                file_url=body.file_url,
+                metadata=body.metadata,
+            )
         return doc
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -39,10 +55,10 @@ def upload_vehicle_photo(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    photo = svc.platform.documents.upload_vehicle_photo(
-        db, ctx.driver, file_url=body.file_url, metadata=body.metadata
-    )
-    db.commit()
+    with db.begin():
+        photo = svc.platform.documents.upload_vehicle_photo(
+            db, ctx.driver, file_url=body.file_url, metadata=body.metadata
+        )
     return photo
 
 
@@ -57,8 +73,8 @@ def complete_training(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    result = svc.platform.training.complete_module(db, ctx.driver, module_id)
-    db.commit()
+    with db.begin():
+        result = svc.platform.training.complete_module(db, ctx.driver, module_id)
     return result
 
 

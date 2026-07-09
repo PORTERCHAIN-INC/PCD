@@ -10,6 +10,7 @@ from porterchain_pricing.catalog import (
     DIMENSION_CENTS_PER_10K_CM3,
     DIMENSION_VOLUME_THRESHOLD_CM3,
     EXTRA_STOP_CENTS,
+    LIFTGATE_SURCHARGE_CENTS,
     PACKAGE_SURCHARGE_CENTS,
     RUSH_SURCHARGE_CENTS,
     SCHEDULED_SURCHARGE_CENTS,
@@ -71,6 +72,7 @@ class PricingEngine:
         self._apply_declared_value(request, breakdown)
         self._apply_schedule_and_rush(request, breakdown)
         self._apply_extra_stops(request, breakdown)
+        self._apply_liftgate(request, breakdown)
         self._apply_fuel_surcharge(ctx, breakdown)
 
         breakdown.subtotal_cents = sum(i.amount_cents for i in breakdown.items)
@@ -146,10 +148,16 @@ class PricingEngine:
             amount = count * EXTRA_STOP_CENTS
             breakdown.add_item("additional_stops", f"Extra stops ({count})", amount)
 
+    def _apply_liftgate(self, request: PricingRequest, breakdown: PriceBreakdown) -> None:
+        if request.requires_liftgate and LIFTGATE_SURCHARGE_CENTS:
+            breakdown.add_item("liftgate", "Liftgate service", LIFTGATE_SURCHARGE_CENTS)
+
     def _apply_fuel_surcharge(self, ctx: PricingContext, breakdown: PriceBreakdown) -> None:
         chargeable = breakdown.base_cents + breakdown.distance_cents + breakdown.vehicle_cents + breakdown.weight_cents
         chargeable += sum(
-            i.amount_cents for i in breakdown.items if i.code in ("package", "service", "rush", "scheduled", "additional_stops")
+            i.amount_cents
+            for i in breakdown.items
+            if i.code in ("package", "service", "rush", "scheduled", "additional_stops", "liftgate")
         )
         pct = ctx.fuel.surcharge_percent
         if pct and chargeable > 0:

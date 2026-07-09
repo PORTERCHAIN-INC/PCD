@@ -1,6 +1,32 @@
 """admin routes — support."""
 
-from porterchain_api.routers.admin._deps import *  # noqa: F403
+from porterchain_api.routers.admin._deps import (
+    AdminContext,
+    Annotated,
+    Depends,
+    HTTPException,
+    Query,
+    Session,
+    SupportAutomationRequest,
+    SupportFilters,
+    SupportKbArticleRequest,
+    SupportMacroRequest,
+    SupportSlaConfigRequest,
+    TicketAssignRequest,
+    TicketBulkRequest,
+    TicketCreateRequest,
+    TicketDashboardResponse,
+    TicketDetailResponse,
+    TicketListItem,
+    TicketNoteRequest,
+    TicketStatusRequest,
+    _support,
+    get_admin_context,
+    get_db,
+    require_module,
+    router,
+)
+
 
 @router.get("/support/dashboard", response_model=TicketDashboardResponse)
 def support_dashboard(

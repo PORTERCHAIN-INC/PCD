@@ -119,7 +119,7 @@ export default function OperationsPage() {
 
       {/* KPI grid */}
       {stats && (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
+        <div className="ops-stat-grid grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
           <Kpi icon={Package} label="Orders today" value={String(stats.orders_today)} />
           <Kpi
             icon={Truck}
@@ -185,7 +185,7 @@ export default function OperationsPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 overflow-x-auto rounded-2xl border border-primary/10 bg-white p-1.5">
+      <div className="ops-table-scroll flex gap-1 rounded-2xl border border-primary/10 bg-white p-1.5">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -297,7 +297,7 @@ function OrdersTab({ tick }: { tick: number }) {
         </div>
       }
     >
-      <div className="overflow-x-auto">
+      <div className="ops-table-scroll">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-primary/10 bg-gray-bg/40 text-xs uppercase text-muted">
             <tr>

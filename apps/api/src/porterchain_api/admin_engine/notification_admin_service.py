@@ -121,6 +121,7 @@ class NotificationAdminService:
                 "context": {**row.context, "title": row.title, "body": row.body, "deep_link": row.deep_link},
             },
         )
+        db.commit()
         return True
 
     def broadcast(
@@ -143,6 +144,7 @@ class NotificationAdminService:
             context={"message": body, "title": title, "body": body},
             priority="normal",
         )
+        db.commit()
         return {"ok": True, "notification_id": rec.id if rec else None}
 
     def _record_dict(self, r: NotificationRecord) -> dict[str, Any]:

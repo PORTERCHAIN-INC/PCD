@@ -8,10 +8,11 @@ Historical audit snapshots, validation reports, and superseded duplicates. **Do 
 
 ## How to use
 
-| Location                  | Purpose                                                 |
-| ------------------------- | ------------------------------------------------------- |
-| Root `*.md` pointer stubs | Short redirect to the current canonical doc             |
-| `docs/archive/*.md`       | Frozen copy preserved at consolidation time (July 2026) |
+| Location                        | Purpose                                                 |
+| ------------------------------- | ------------------------------------------------------- |
+| Root `*.md` pointer stubs (≤20) | Short redirect to the current canonical doc             |
+| `docs/archive/pointer-stubs/`   | Excess pointer stubs (E.2 consolidation)                |
+| `docs/archive/*.md`             | Frozen copy preserved at consolidation time (July 2026) |
 
 ---
 

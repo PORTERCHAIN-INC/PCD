@@ -15,6 +15,29 @@ from porterchain_api.merchant_models import Merchant, MerchantApiKey, MerchantAp
 DEFAULT_RATE_LIMIT = 60
 DEFAULT_SCOPES = ["shipments:read", "shipments:write"]
 
+MERCHANT_API_SCOPES: list[dict[str, str]] = [
+    {
+        "id": "shipments:read",
+        "description": "List orders, fetch order detail, and track by public tracking number.",
+    },
+    {
+        "id": "shipments:write",
+        "description": "Create bookings and cancel orders via the merchant API gateway.",
+    },
+]
+
+SCOPE_ENDPOINT_MAP: dict[str, list[str]] = {
+    "shipments:read": [
+        "GET /v1/merchant-api/orders",
+        "GET /v1/merchant-api/orders/{order_id}",
+        "GET /v1/merchant-api/track/{tracking_number}",
+    ],
+    "shipments:write": [
+        "POST /v1/merchant-api/bookings",
+        "POST /v1/merchant-api/orders/{order_id}/cancel",
+    ],
+}
+
 MERCHANT_API_EVENTS: list[dict[str, str]] = [
     {"event": "order.created", "description": "Order created after booking confirmation"},
     {"event": "order.booked", "description": "Merchant booking confirmed and scheduled"},
@@ -122,6 +145,14 @@ ERP_READINESS: list[dict[str, Any]] = [
 ]
 
 OAUTH_PROVIDERS: list[dict[str, Any]] = [
+    {
+        "id": "porterchain",
+        "name": "Porterchain OAuth",
+        "status": "ready",
+        "authorization_url": "/v1/oauth/authorize",
+        "token_url": "/v1/oauth/token",
+        "scopes": ["shipments:read", "shipments:write", "tracking:read"],
+    },
     {
         "id": "shopify",
         "name": "Shopify OAuth",
@@ -290,8 +321,23 @@ def documentation_bundle(*, api_base_url: str) -> dict[str, Any]:
         "sandbox_prefix": "pk_sandbox_",
         "production_prefix": "pk_production_",
         "default_rate_limit_per_minute": DEFAULT_RATE_LIMIT,
+        "rate_limit_is_per_api_key": True,
+        "rate_limit_scope": "/v1/merchant-api/*",
         "default_scopes": DEFAULT_SCOPES,
+        "scopes": MERCHANT_API_SCOPES,
+        "scope_endpoint_map": SCOPE_ENDPOINT_MAP,
+        "scope_enforcement": (
+            "Each API key stores a list of scope strings. Route handlers call require_scope(); "
+            "missing scope returns HTTP 403 with detail api_key_missing_scope:{scope}."
+        ),
         "endpoints": API_DOCUMENTATION,
         "webhook_signature_header": "X-Porterchain-Signature",
         "webhook_timestamp_header": "X-Porterchain-Timestamp",
+        "webhook_signature_verification": {
+            "algorithm": "HMAC-SHA256",
+            "message_format": "timestamp + '.' + body_bytes",
+            "body_serialization": "json.dumps(body, separators=(',', ':'), default=str).encode('utf-8')",
+            "signature_hex": "lowercase hex digest (hexdigest)",
+            "secret_source": "signing_secret returned when creating the webhook in POST /v1/merchant/integrations/webhooks",
+        },
     }

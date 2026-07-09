@@ -143,7 +143,9 @@ class ControlTowerService:
         return {m.id: m.company_name for m in db.query(Merchant).all()}
 
     def _driver_names(self, db: Session) -> dict[str, str]:
-        return {d.id: d.full_name for d in db.query(Driver).all()}
+        from porterchain_api.admin_engine.repositories import DriverRepository
+
+        return {d.id: d.full_name for d in DriverRepository().list_all(db)}
 
     def _sla_status(self, order: Order, now: datetime) -> str:
         if order.state in DONE_STATES:
@@ -361,6 +363,47 @@ class ControlTowerService:
             }
             for e in rows
         ]
+
+    def sync_health(self, db: Session, *, audit_limit: int = 40) -> dict:
+        """Fleetbase sync queue health for the ops control tower.
+
+        Reads the Porterchain retry queue + sync audit mirror; never calls
+        Fleetbase directly (masterrule §3 — adapter boundary).
+        """
+        from porterchain_api.fleetbase_engine import ErrorQueue
+        from porterchain_api.fleetbase_models import FleetbaseSyncAudit
+
+        recent = (
+            db.query(FleetbaseSyncAudit)
+            .order_by(FleetbaseSyncAudit.created_at.desc())
+            .limit(audit_limit)
+            .all()
+        )
+        return {
+            "queue": ErrorQueue.stats(db),
+            "dead_letters": [
+                {
+                    "id": j.id,
+                    "kind": j.kind,
+                    "direction": j.direction,
+                    "order_id": j.order_id,
+                    "attempts": j.attempts,
+                    "last_error": j.last_error,
+                }
+                for j in ErrorQueue.list_dead(db)
+            ],
+            "recent_audit": [
+                {
+                    "direction": a.direction,
+                    "kind": a.kind,
+                    "status": a.status,
+                    "order_id": a.order_id,
+                    "message": a.message,
+                    "at": a.created_at.isoformat() if a.created_at else None,
+                }
+                for a in recent
+            ],
+        }
 
     def ai_ops(self, db: Session) -> dict:
         now = _now()

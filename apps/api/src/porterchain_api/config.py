@@ -17,10 +17,26 @@ class Settings(BaseSettings):
     log_level: str = "debug"
     porterchain_api_url: str = "http://localhost:8001"
     database_url: str = "postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain"
-    db_pool_size: int = 10
-    db_max_overflow: int = 20
-    db_pool_timeout: int = 30
-    db_pool_recycle: int = 1800
+    database_url_replica: str = Field(
+        default="",
+        validation_alias=AliasChoices("database_url_replica", "DATABASE_URL_REPLICA"),
+    )
+    db_pool_size: int = Field(
+        default=10,
+        validation_alias=AliasChoices("db_pool_size", "DB_POOL_SIZE"),
+    )
+    db_max_overflow: int = Field(
+        default=20,
+        validation_alias=AliasChoices("db_max_overflow", "DB_MAX_OVERFLOW"),
+    )
+    db_pool_timeout: int = Field(
+        default=30,
+        validation_alias=AliasChoices("db_pool_timeout", "DB_POOL_TIMEOUT"),
+    )
+    db_pool_recycle: int = Field(
+        default=1800,
+        validation_alias=AliasChoices("db_pool_recycle", "DB_POOL_RECYCLE"),
+    )
     quote_ttl_minutes: int = 30
     booking_draft_ttl_minutes: int = 1440
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004"
@@ -91,6 +107,33 @@ class Settings(BaseSettings):
 
     retail_checkout_success_url: str = "http://localhost:3000/en/book/success"
     retail_checkout_cancel_url: str = "http://localhost:3000/en/book/continue"
+    customer_checkout_success_url: str = ""
+    customer_checkout_cancel_url: str = ""
+
+    phase2_crm: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("phase2_crm", "PORTERCHAIN_PHASE2_CRM"),
+    )
+    phase2_route_center: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("phase2_route_center", "PORTERCHAIN_PHASE2_ROUTE_CENTER"),
+    )
+    phase2_ai_dispatch: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("phase2_ai_dispatch", "PORTERCHAIN_PHASE2_AI_DISPATCH"),
+    )
+    phase2_analytics: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("phase2_analytics", "PORTERCHAIN_PHASE2_ANALYTICS"),
+    )
+    phase2_intelligence: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("phase2_intelligence", "PORTERCHAIN_PHASE2_INTELLIGENCE"),
+    )
+    oauth_third_party_enabled: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("oauth_third_party_enabled", "PORTERCHAIN_OAUTH_THIRD_PARTY_ENABLED"),
+    )
 
     # Server pricing: max drift allowed vs client website estimate (2% or $1 CAD).
     pricing_client_tolerance_cents: int = 100
@@ -116,6 +159,26 @@ class Settings(BaseSettings):
         if not value.startswith("postgresql"):
             raise ValueError("DATABASE_URL must use postgresql+psycopg:// for Porterchain")
         return value
+
+    @field_validator("database_url_replica")
+    @classmethod
+    def validate_replica_url(cls, value: str) -> str:
+        if not value:
+            return value
+        if value.startswith("sqlite"):
+            raise ValueError("DATABASE_URL_REPLICA must use postgresql+psycopg://")
+        if not value.startswith("postgresql"):
+            raise ValueError("DATABASE_URL_REPLICA must use postgresql+psycopg://")
+        return value
+
+    @model_validator(mode="after")
+    def derive_customer_checkout_urls(self) -> Self:
+        base = self.customer_portal_url.rstrip("/")
+        if not self.customer_checkout_success_url:
+            object.__setattr__(self, "customer_checkout_success_url", f"{base}/book/success")
+        if not self.customer_checkout_cancel_url:
+            object.__setattr__(self, "customer_checkout_cancel_url", f"{base}/book")
+        return self
 
     @model_validator(mode="after")
     def reject_dev_jwt_secret_in_production(self) -> Self:
@@ -171,6 +234,12 @@ class Settings(BaseSettings):
         if self.app_env != "local":
             return False
         return self.stripe_mock or not self.stripe_secret
+
+    @property
+    def phase2_flags(self) -> dict[str, bool]:
+        from porterchain_shared.config.phase2 import phase2_flags_from_mapping
+
+        return phase2_flags_from_mapping(self.model_dump()).as_dict()
 
 
 @lru_cache

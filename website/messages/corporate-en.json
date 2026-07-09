@@ -88,7 +88,9 @@
       "title": "The operating system for commercial logistics",
       "subtitle": "Porterchain gives growing businesses the dispatch controls, route intelligence, and shipment visibility of a full logistics department — without building one.",
       "primaryCta": "Get a demo",
-      "secondaryCta": "Explore platform"
+      "secondaryCta": "Explore platform",
+      "bookDeliveryCta": "Book a delivery",
+      "trackCta": "Track a shipment"
     },
     "logos": {
       "label": "Trusted by operations teams across Ontario"

@@ -2,7 +2,7 @@
 # Porterchain API (FastAPI). Build context is the repo root:
 #   docker build -f apps/api/Dockerfile -t pcd-api .
 
-FROM python:3.13-slim AS base
+FROM python:3.14.6-slim AS base
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1

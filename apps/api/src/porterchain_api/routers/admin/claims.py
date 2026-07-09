@@ -1,6 +1,32 @@
 """admin routes — claims."""
 
-from porterchain_api.routers.admin._deps import *  # noqa: F403
+from porterchain_api.routers.admin._deps import (
+    AdminContext,
+    Annotated,
+    ClaimAssignRequest,
+    ClaimBulkRequest,
+    ClaimCompensationRequest,
+    ClaimCreateRequest,
+    ClaimDashboardResponse,
+    ClaimDetailResponse,
+    ClaimEvidenceRequest,
+    ClaimFilters,
+    ClaimInsuranceRequest,
+    ClaimInvestigationRequest,
+    ClaimListItem,
+    ClaimNoteRequest,
+    ClaimStatusUpdateRequest,
+    Depends,
+    HTTPException,
+    Session,
+    _claims,
+    get_admin_context,
+    get_db,
+    log_admin_audit,
+    require_module,
+    router,
+)
+
 
 @router.get("/claims/dashboard", response_model=ClaimDashboardResponse)
 def claims_dashboard(

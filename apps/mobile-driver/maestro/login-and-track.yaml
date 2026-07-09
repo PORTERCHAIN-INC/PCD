@@ -1,0 +1,14 @@
+# §2.1.10 — driver mobile smoke: dev sign-in → route tracking
+appId: com.porterchain.driver
+---
+- launchApp
+- assertVisible:
+    id: mobile-sign-in
+- tapOn:
+    id: dev-sign-in
+- assertVisible:
+    id: mobile-track
+- assertVisible:
+    id: route-status
+- tapOn:
+    id: track-refresh

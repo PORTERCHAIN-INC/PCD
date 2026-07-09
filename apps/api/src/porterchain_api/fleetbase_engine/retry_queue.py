@@ -15,6 +15,9 @@ from porterchain_api.fleetbase_models import FleetbaseSyncJob
 
 BACKOFF_SECONDS = [30, 120, 600, 3600, 21600]  # 30s, 2m, 10m, 1h, 6h
 
+# Outbound order link rate when dispatch bridge is enabled (§3.5.5, DD-13).
+FLEETBASE_SYNC_SLO_TARGET_PCT = 98.0
+
 
 def _now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)

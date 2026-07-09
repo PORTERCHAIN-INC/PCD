@@ -144,7 +144,10 @@
       "status": "Status",
       "pickup": "Pickup",
       "dropoff": "Dropoff",
-      "notFound": "Shipment not found."
+      "notFound": "Shipment not found.",
+      "etaTitle": "Estimated arrival",
+      "etaArrival": "Arrives",
+      "etaDistance": "km remaining"
     }
   },
   "portal": {

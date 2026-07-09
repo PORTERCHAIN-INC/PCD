@@ -35,11 +35,11 @@ Production deploy: see [infrastructure/deploy/README.md](./infrastructure/deploy
 
 Published API latency SLOs (local/staging baseline; tune after first prod run):
 
-| Endpoint              | p95 target | k6 script              |
-| --------------------- | ---------- | ---------------------- |
-| `GET /health`         | < 200 ms   | `tests/load/booking.js` |
-| `POST /v1/quotes`     | < 3 s      | `tests/load/booking.js` |
-| `POST /webhooks/stripe` | < 1 s    | `tests/load/webhooks.js` |
+| Endpoint                | p95 target | k6 script                |
+| ----------------------- | ---------- | ------------------------ |
+| `GET /health`           | < 200 ms   | `tests/load/booking.js`  |
+| `POST /v1/quotes`       | < 3 s      | `tests/load/booking.js`  |
+| `POST /webhooks/stripe` | < 1 s      | `tests/load/webhooks.js` |
 
 ```bash
 brew install k6
@@ -51,6 +51,29 @@ STRIPE_WEBHOOK_SECRET=whsec_... pnpm load:webhooks   # from stripe listen --prin
 ```
 
 Details: [tests/load/README.md](./tests/load/README.md). Breached thresholds fail the run (`k6 run` exit code 99).
+
+**Prometheus:** scrape `GET /metrics` on the API for queue depth and request counters between k6 runs.
+
+---
+
+## Prod webhook secrets (§0.6.3 / §0.1.8 — set at deploy)
+
+Inbound webhooks must be signed in production. Local dev may omit secrets when bridges are disabled.
+
+| Secret                     | Endpoint                                               | Where to set                                    | Verify                                    |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------- | ----------------------------------------- |
+| `FLEETBASE_WEBHOOK_SECRET` | `POST /webhooks/fleetbase`                             | Doppler / droplet `.env`, GitHub Actions secret | `pnpm validate:p0` G3 · signed POST → 200 |
+| `STRIPE_WEBHOOK_SECRET`    | `POST /webhooks/stripe`                                | Doppler · Stripe dashboard live mode            | `pnpm validate:p0:prod` G8                |
+| `FIREBASE_WEBHOOK_SECRET`  | Firebase HTTP v1 device/webhook callbacks (if enabled) | Doppler · Firebase console                      | Signed POST → 200                         |
+
+**Cutover checklist (prod):**
+
+1. Generate Fleetbase HMAC secret; register `https://api.porterchain.com/webhooks/fleetbase` in Fleetbase console.
+2. Register Stripe live webhook → `https://porterchain.com/webhooks/stripe` (Caddy → API).
+3. Set all secrets in Doppler; redeploy API + worker; confirm `GET /health/ready` → `fleetbase_webhook: configured`.
+4. Run `pnpm validate:p0:prod` (G3/G8).
+
+Until prod cutover, items §0.6.3 and §0.1.8 remain open — this section is the **documented** path only.
 
 ---
 
@@ -281,7 +304,18 @@ curl http://localhost:8001/health
 
 ## Backup
 
-### MySQL
+Porterchain **Postgres** (orders, merchants, billing) — see [docs/BACKUP_RESTORE.md](./docs/BACKUP_RESTORE.md) for scripts and **quarterly restore drill** (DD-28).
+
+```bash
+# Prod droplet
+./infrastructure/deploy/scripts/backup-porterchain-postgres.sh /var/backups/porterchain-$(date +%F).sql.gz
+
+# Local dev
+COMPOSE_FILE=infrastructure/docker/docker-compose.yml \
+  ./infrastructure/deploy/scripts/backup-porterchain-postgres.sh
+```
+
+### Fleetbase MySQL
 
 ```bash
 docker exec porterchain-fleetbase-mysql mysqldump -uroot -p<ROOT_PASS> \
@@ -336,16 +370,23 @@ pnpm validate:p0                # G1–G9 gates
 pnpm validate:e2e:reports       # full markdown reports (optional)
 ```
 
-| Gate  | What                          | Pass criteria                                                       |
-| ----- | ----------------------------- | ------------------------------------------------------------------- |
-| G1    | API health + `booking_drafts` | `GET /health` 200; table exists; draft smoke POST                   |
-| G2    | Fleetbase sync                | ≥95% orders have `fleetbase_order_id` (excludes cancelled/refunded) |
-| G3    | Webhook secret                | `FLEETBASE_WEBHOOK_SECRET` set; signed POST `/webhooks/fleetbase`   |
-| G8    | Stripe webhook (prod)         | `STRIPE_WEBHOOK_SECRET` set; POST `/webhooks/stripe` ≠ 503          |
-| G8b   | Stripe dashboard URL          | Webhook endpoint lists `porterchain.com/webhooks/stripe`            |
-| G8c   | Stripe → invoice row          | Recent row in `invoices` after live payment (droplet SQL)           |
-| G9    | Push live (prod)              | `PORTERCHAIN_PUSH_SEND=true`; readiness `firebase: ok`              |
-| G4–G9 | E2E framework                 | `scripts/verify_p0_loop.py` (wraps `E2EValidationService`)          |
+| Gate | What                          | Pass criteria                                                                     |
+| ---- | ----------------------------- | --------------------------------------------------------------------------------- |
+| G1   | API health + `booking_drafts` | `GET /health` 200; table exists; draft smoke POST                                 |
+| G2   | Fleetbase sync                | ≥98% orders have `fleetbase_order_id` (excludes cancelled/refunded)               |
+| G2b  | Merchant webhook delivery     | ≥99% final delivery success (`merchant_webhook_deliveries`, 7-day window)         |
+| G2c  | Deploy frequency              | ≥2/week via [Deploy workflow](../.github/workflows/deploy.yml) on green CI `main` |
+| G3   | Auto-dispatch                 | ≥90% pipeline orders with driver or Fleetbase link (`business_metrics`)           |
+| G4   | On-time delivery              | ≥95% delivered within `scheduled_at` + 30m grace                                  |
+| G5   | Support first response        | <4h average on tickets with `first_response_at`                                   |
+
+See [EXECUTION_METRICS.md](./docs/EXECUTION_METRICS.md) for dashboard paths and Prometheus series.
+| G3 | Webhook secret | `FLEETBASE_WEBHOOK_SECRET` set; signed POST `/webhooks/fleetbase` |
+| G8 | Stripe webhook (prod) | `STRIPE_WEBHOOK_SECRET` set; POST `/webhooks/stripe` ≠ 503 |
+| G8b | Stripe dashboard URL | Webhook endpoint lists `porterchain.com/webhooks/stripe` |
+| G8c | Stripe → invoice row | Recent row in `invoices` after live payment (droplet SQL) |
+| G9 | Push live (prod) | `PORTERCHAIN_PUSH_SEND=true`; readiness `firebase: ok` |
+| G4–G9 | E2E framework | `scripts/verify_p0_loop.py` (wraps `E2EValidationService`) |
 
 **Prod droplet:** deploy workflow runs G1 smoke after migrate. Until `api.porterchain.com` is live, G1 prod stays open — see [infrastructure/deploy/README.md](./infrastructure/deploy/README.md).
 
@@ -362,22 +403,22 @@ pnpm validate:p0        # full local G1–G9 including E2E phases
 
 ## Prod vs local environment (§0.1.11)
 
-| Variable / setting                      | Local (default)                | Production (droplet)                    |
-| --------------------------------------- | ------------------------------ | --------------------------------------- |
-| `APP_ENV`                               | `local`                        | `production`                            |
-| `STRIPE_MOCK`                           | `true`                         | `false`                                 |
-| `CLERK_DEV_BYPASS`                      | often `true`                   | `false`                                 |
-| Clerk keys                              | single `CLERK_*` or per-portal | `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_*` in Doppler |
-| `FLEETBASE_DISPATCH_BRIDGE`             | `true` (local Fleetbase :8000) | `false` until prod Fleetbase + secrets  |
-| `FLEETBASE_API_URL`                     | `http://localhost:8000`        | Fleetbase prod URL (not localhost)      |
-| `PORTERCHAIN_PUSH_SEND`                 | often `false` / log-only       | `true` (GitHub var)                     |
-| `JWT_SECRET`                            | dev default allowed            | must be non-default (boot guard)        |
-| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | optional                       | set in GitHub secrets for API + portals |
-| `DATABASE_URL`                          | `localhost:5432`               | in-compose `postgres:5432`              |
-| `REDIS_URL`                             | `localhost:6379`               | in-compose `redis:6379`                 |
-| Worker                                  | `pnpm dev:worker` (optional)   | `pcd-worker` container + heartbeat      |
+| Variable / setting                      | Local (default)                   | Production (droplet)                                                |
+| --------------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
+| `APP_ENV`                               | `local`                           | `production`                                                        |
+| `STRIPE_MOCK`                           | `true`                            | `false`                                                             |
+| `CLERK_DEV_BYPASS`                      | often `true`                      | `false`                                                             |
+| Clerk keys                              | single `CLERK_*` or per-portal    | `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_*` in Doppler               |
+| `FLEETBASE_DISPATCH_BRIDGE`             | `true` (local Fleetbase :8000)    | `false` until prod Fleetbase + secrets                              |
+| `FLEETBASE_API_URL`                     | `http://localhost:8000`           | Fleetbase prod URL (not localhost)                                  |
+| `PORTERCHAIN_PUSH_SEND`                 | often `false` / log-only          | `true` (GitHub var)                                                 |
+| `JWT_SECRET`                            | dev default allowed               | must be non-default (boot guard)                                    |
+| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | optional                          | set in GitHub secrets for API + portals                             |
+| `DATABASE_URL`                          | `localhost:5432`                  | in-compose `postgres:5432`                                          |
+| `REDIS_URL`                             | `localhost:6379`                  | in-compose `redis:6379`                                             |
+| Worker                                  | `pnpm dev:worker` (optional)      | `pcd-worker` container + heartbeat                                  |
 | Valhalla / OSRM                         | local `:8002` (profile `routing`) | `pcd-valhalla` in compose; `VALHALLA_BASE_URL=http://valhalla:8002` |
-| `ROUTING_ENGINE`                        | `valhalla` (API)                  | `valhalla` (API + website)                                            |
+| `ROUTING_ENGINE`                        | `valhalla` (API)                  | `valhalla` (API + website)                                          |
 
 Templates: [`env/`](./env/README.md) · deploy secrets: [infrastructure/deploy/SECRETS.md](./infrastructure/deploy/SECRETS.md).
 
@@ -385,17 +426,66 @@ Templates: [`env/`](./env/README.md) · deploy secrets: [infrastructure/deploy/S
 
 ## Secret manager (DD-14)
 
-| Store | Purpose |
-| ----- | ------- |
-| **Doppler** (`pcd` / `prd`) | Production runtime secrets SSOT |
-| **GitHub Actions** | `DEPLOY_*`, `DOPPLER_TOKEN`, build-time public keys |
-| **Droplet** | Generated `/opt/porterchain/.env` (mode `600`) — do not edit by hand |
+| Store                       | Purpose                                                              |
+| --------------------------- | -------------------------------------------------------------------- |
+| **Doppler** (`pcd` / `prd`) | Production runtime secrets SSOT                                      |
+| **GitHub Actions**          | `DEPLOY_*`, `DOPPLER_TOKEN`, build-time public keys                  |
+| **Droplet**                 | Generated `/opt/porterchain/.env` (mode `600`) — do not edit by hand |
 
 Each deploy runs `bash sync-secrets.sh` on the droplet. To rotate a secret: update Doppler → re-run Deploy workflow.
 
 ```bash
 gh secret set DOPPLER_TOKEN -b "dp.st.prd.xxxx"
 ```
+
+### Secrets rotation (§5.1.8)
+
+| Secret class             | Cadence                         | Procedure                                                             |
+| ------------------------ | ------------------------------- | --------------------------------------------------------------------- |
+| `JWT_SECRET`             | 90 days                         | Doppler `prd` → Deploy workflow → verify `/health/ready`              |
+| `CLERK_*` / JWKS         | on compromise or Clerk rotation | `pnpm clerk:sync` locally; Doppler prod keys → redeploy portals + API |
+| `STRIPE_*`               | Stripe dashboard rotation       | Update Doppler + GitHub secrets; replay one test payment              |
+| `FLEETBASE_*`            | 90 days or on leak              | Rotate in Fleetbase console + Doppler; `pnpm fleetbase:replay`        |
+| `POSTGRES_PASSWORD`      | annual or on leak               | `ALTER USER` + update Doppler + rolling API restart                   |
+| Firebase service account | annual                          | New key in Firebase → mount path on droplet → redeploy API            |
+
+After any rotation: `pnpm validate:p0:prod` (when droplet live) and spot-check affected portal login.
+
+---
+
+## External uptime monitoring (§5.1.10)
+
+Configure an external probe (UptimeRobot, Better Stack, or Pingdom) — **not** only Docker healthchecks.
+
+| Probe           | URL                                        | Interval | Alert         |
+| --------------- | ------------------------------------------ | -------- | ------------- |
+| API liveness    | `https://api.porterchain.com/health`       | 1 min    | email + Slack |
+| API readiness   | `https://api.porterchain.com/health/ready` | 5 min    | email + Slack |
+| Website         | `https://porterchain.com`                  | 5 min    | email         |
+| Merchant portal | `https://merchant.porterchain.com`         | 15 min   | email         |
+
+**EXE-G2 target:** 30-day rolling uptime ≥99.5% on API liveness. Track in provider dashboard; export monthly screenshot to ops folder.
+
+Local smoke (no external monitor): `curl -fsS http://localhost:8001/health/ready`.
+
+---
+
+## Incident drill (EXE-G3)
+
+**Cadence:** semi-annual tabletop + annual live failover drill.
+
+### Tabletop (60 min)
+
+1. Scenario: API returns 502 for 10 minutes during peak dispatch.
+2. On-call acknowledges alert (uptime monitor).
+3. Walk through [Incident response](#incident-response) table + `pnpm validate:p0:fast` on staging.
+4. Document gaps in ops ticket; link post-mortem template.
+
+### Live drill (annual, staging)
+
+1. Restore latest Postgres backup per [BACKUP_RESTORE.md](./docs/BACKUP_RESTORE.md).
+2. Run `pnpm validate:p0` against restored stack.
+3. Record RTO achieved vs 4h target in [SECURITY.md](./SECURITY.md).
 
 ---
 
@@ -457,19 +547,82 @@ echo \$cred->key;
 
 Set `FLEETBASE_API_KEY`, `FLEETBASE_DEFAULT_COMPANY_UUID`, and `FLEETBASE_DISPATCH_BRIDGE=true` in `apps/api/.env`.
 
-### Dead-letter replay (G2)
+### Queue backpressure (§3.4.5)
+
+Worker queues are Redis lists (`porterchain:queue:*`). Monitor depth before consumers fall behind.
+
+| Signal                       | Threshold   | Action                                                                                             |
+| ---------------------------- | ----------- | -------------------------------------------------------------------------------------------------- |
+| **Total depth** (all queues) | **> 1,000** | Diagnostics worker probe → `warning`. Scale `pcd-worker` replicas or investigate stuck consumer.   |
+| **Single queue**             | **> 500**   | Check processor logs for that queue (`emails`, `sms`, `push`, `webhooks`, `billing`, `fleetbase`). |
+| **Fleetbase retry pending**  | **≥ 500**   | `GET /v1/admin/operations/sync/health` — replay or fix credentials before backlog grows.           |
+| **Event bus DLQ stream**     | **growing** | Inspect `porterchain:events:dlq` (Redis stream, max ~50k entries).                                 |
+
+**Monitor:**
 
 ```bash
-# CLI (all dead letters → pending, push unlinked orders, drain retry queue)
+# Prometheus (scrape API /metrics)
+porterchain_queue_depth{queue="emails"} 12
+
+# Admin control tower (Clerk admin JWT)
+GET /v1/admin/operations/queues
+
+# Diagnostics bundle (includes queue_depths + recent event DLQ entries)
+GET /v1/admin/diagnostics/workflows/event-pipeline
+```
+
+**Worker required:** queues drain only when `pnpm dev:worker` (local) or `pcd-worker` (prod) is running. API enqueue paths do not process jobs inline.
+
+See [EVENT_BUS.md](./EVENT_BUS.md) for event-bus retry → DLQ semantics.
+
+### Dead-letter replay (G2 + §2.3.6)
+
+Porterchain has **four DLQ surfaces**. Fix the root cause (credentials, SMTP/FCM, webhook URL, Fleetbase down, bad event handler) before replaying.
+
+| Surface               | Storage / signal                                 | List failed                                    | Replay                                                                                                                 |
+| --------------------- | ------------------------------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Fleetbase sync**    | `fleetbase_sync_jobs` (Postgres)                 | `GET /v1/admin/operations/sync/health`         | `pnpm fleetbase:replay` · `POST /v1/admin/operations/sync/requeue/{job_id}` · `POST /v1/admin/operations/sync/process` |
+| **Notifications**     | `notification_records` (`failed`, `dead_letter`) | `GET /v1/admin/notifications/failed`           | `POST /v1/admin/notifications/retry/{notification_id}` (re-queues via worker `emails`/`sms`/`push`)                    |
+| **Merchant webhooks** | `merchant_webhook_deliveries`                    | Merchant portal → Integrations → delivery logs | `POST /v1/merchant/integrations/webhooks/deliveries/{delivery_id}/retry`                                               |
+| **Event bus**         | Redis stream `porterchain:events:dlq`            | Diagnostics `event-pipeline` workflow          | Fix handler + redeploy; replay manually from stream entry (no auto-replay yet)                                         |
+
+**Worker required:** queued notification and webhook retries drain only when `pnpm dev:worker` (local) or `pcd-worker` (prod) is running. API inline handlers do not replace the worker loop.
+
+```bash
+# Fleetbase — CLI (all dead letters → pending, push unlinked orders, drain retry queue)
 pnpm fleetbase:replay
 
-# Admin API (requires Clerk admin JWT)
+# Fleetbase — Admin API (Clerk admin JWT)
 POST /v1/admin/operations/sync/requeue/{job_id}
 POST /v1/admin/operations/sync/process
 GET  /v1/admin/operations/sync/health
+
+# Notifications — Admin API
+GET  /v1/admin/notifications/failed
+POST /v1/admin/notifications/retry/{notification_id}
+
+# Merchant outbound webhooks — Merchant portal API (Clerk merchant session)
+POST /v1/merchant/integrations/webhooks/deliveries/{delivery_id}/retry
 ```
 
-Replay only after fixing root cause (missing API key, company UUID, or Fleetbase down). Monitor `fleetbase_sync_jobs` status counts and `GET /v1/diagnostics/fleetbase-sync` (admin).
+Monitor after replay: `GET /v1/diagnostics/fleetbase-sync` (admin), notification dashboard (`/v1/admin/notifications/dashboard`), merchant webhook delivery logs.
+
+---
+
+## Manual dispatch mode (prod — §0.1.5)
+
+When **`FLEETBASE_DISPATCH_BRIDGE=false`** (current prod default until Fleetbase host + `FLEETBASE_*` secrets):
+
+| Step                             | Owner                                              | SLA                        |
+| -------------------------------- | -------------------------------------------------- | -------------------------- |
+| Order confirmed (Stripe webhook) | API                                                | Automatic                  |
+| Assign driver                    | Admin ops via `/v1/admin/dispatch/*`               | **≤15 min** business hours |
+| Customer tracking                | Public `/track` + WS                               | Automatic after assign     |
+| POD → DELIVERED                  | Driver portal + Fleetbase webhook (when bridge on) | Same day                   |
+
+**Enable bridge when ready:** set Doppler `FLEETBASE_*`, `FLEETBASE_DISPATCH_BRIDGE=true`, redeploy API+worker. Verify `GET /health/ready` → `fleetbase: bridge_enabled` and `fleetbase_sync.meets_slo: true`.
+
+Until then: document exceptions in admin ops runbook; target **≥90%** orders manually dispatched within SLA.
 
 ---
 

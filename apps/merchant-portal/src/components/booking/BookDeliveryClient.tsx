@@ -30,6 +30,9 @@ type Step = "details" | "review" | "confirmed";
 const VEHICLES = ["sedan", "suv", "pickup", "cargoVan", "highRoof", "box16", "box20"];
 const PACKAGES = ["looseParcel", "documents", "medical", "furniture", "foodBeverage"];
 
+const FOCUS_RING =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 focus-visible:ring-offset-2";
+
 const emptyAddress = (): BookingAddress => ({ formatted: "" });
 
 function addressToPayload(addr: BookingAddress) {
@@ -66,6 +69,8 @@ export default function BookDeliveryClient() {
   const [poNumber, setPoNumber] = useState("");
   const [costCentre, setCostCentre] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [siteAccessNotes, setSiteAccessNotes] = useState("");
+  const [requiresLiftgate, setRequiresLiftgate] = useState(false);
   const [recipientId, setRecipientId] = useState("");
   const [draftId, setDraftId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -95,6 +100,8 @@ export default function BookDeliveryClient() {
       scheduled_at: new Date(scheduledAt || Date.now()).toISOString(),
       schedule_mode: "now",
       special_instructions: instructions || undefined,
+      site_access_notes: siteAccessNotes || undefined,
+      requires_liftgate: requiresLiftgate || undefined,
       internal_reference: internalRef || undefined,
       purchase_order_number: poNumber || undefined,
       cost_centre: costCentre || undefined,
@@ -108,6 +115,8 @@ export default function BookDeliveryClient() {
     weightKg,
     scheduledAt,
     instructions,
+    siteAccessNotes,
+    requiresLiftgate,
     internalRef,
     poNumber,
     costCentre,
@@ -149,6 +158,14 @@ export default function BookDeliveryClient() {
       setPackageType(draft.package_type || "looseParcel");
       setWeightKg(draft.weight_kg ? String(draft.weight_kg) : "");
       setInstructions(draft.special_instructions || "");
+      setSiteAccessNotes(
+        String(
+          (draft.dropoff as Record<string, unknown> | undefined)?.site_access_notes ||
+            draft.merchant_meta?.site_access_notes ||
+            ""
+        )
+      );
+      setRequiresLiftgate(Boolean(draft.merchant_meta?.requires_liftgate));
       const meta = draft.merchant_meta || {};
       setInternalRef(String(meta.internal_reference || ""));
       setPoNumber(String(meta.purchase_order_number || ""));
@@ -187,6 +204,8 @@ export default function BookDeliveryClient() {
     if (typeof p.purchase_order_number === "string") setPoNumber(p.purchase_order_number);
     if (typeof p.cost_centre === "string") setCostCentre(p.cost_centre);
     if (typeof p.special_instructions === "string") setInstructions(p.special_instructions);
+    if (typeof p.site_access_notes === "string") setSiteAccessNotes(p.site_access_notes);
+    if (typeof p.requires_liftgate === "boolean") setRequiresLiftgate(p.requires_liftgate);
   }
 
   async function onSaveDraft() {
@@ -479,6 +498,28 @@ export default function BookDeliveryClient() {
                 <Field label="Purchase order" value={poNumber} onChange={setPoNumber} />
                 <Field label="Cost centre" value={costCentre} onChange={setCostCentre} />
                 <div>
+                  <label className="text-sm font-medium text-primary">Site access</label>
+                  <p className="mt-0.5 text-xs text-primary/60">
+                    Gate code, liftgate, foreman contact — jobsite deliveries
+                  </p>
+                  <textarea
+                    className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
+                    rows={2}
+                    value={siteAccessNotes}
+                    onChange={(e) => setSiteAccessNotes(e.target.value)}
+                    placeholder="e.g. Gate 4 code 8821 · call Mike 416-555-0100"
+                  />
+                  <label className="mt-3 flex items-center gap-2 text-sm text-primary">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-primary/20"
+                      checked={requiresLiftgate}
+                      onChange={(e) => setRequiresLiftgate(e.target.checked)}
+                    />
+                    Liftgate required at delivery (+$45 surcharge)
+                  </label>
+                </div>
+                <div>
                   <label className="text-sm font-medium text-primary">Special instructions</label>
                   <textarea
                     className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
@@ -503,6 +544,8 @@ export default function BookDeliveryClient() {
                 <ReviewRow label="Vehicle" value={vehicleClass} />
                 <ReviewRow label="Package" value={packageType} />
                 {internalRef && <ReviewRow label="Reference" value={internalRef} />}
+                {siteAccessNotes && <ReviewRow label="Site access" value={siteAccessNotes} />}
+                {requiresLiftgate && <ReviewRow label="Liftgate" value="Required (+$45)" />}
                 {poNumber && <ReviewRow label="PO" value={poNumber} />}
                 {preview?.contract_pricing && (
                   <p className="rounded-lg bg-blue-50 px-3 py-2 text-blue-800">
@@ -522,7 +565,11 @@ export default function BookDeliveryClient() {
                 ))}
               </div>
             )}
-            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+            {error && (
+              <p className="mt-3 text-sm text-red-600" role="alert" aria-live="polite">
+                {error}
+              </p>
+            )}
             <div className="mt-6 flex flex-wrap gap-2">
               {step === "details" && (
                 <Button type="button" onClick={() => setStep("review")}>
@@ -618,7 +665,7 @@ function ModeButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-xl px-3 py-1.5 text-sm ${
+      className={`rounded-xl px-3 py-1.5 text-sm ${FOCUS_RING} ${
         active ? "bg-primary text-white" : "border border-primary/15 text-muted hover:bg-gray-bg"
       }`}
     >
@@ -630,20 +677,21 @@ function ModeButton({
 function StepTabs({ step, onStep }: { step: Step; onStep: (s: Step) => void }) {
   const items: Step[] = ["details", "review"];
   return (
-    <div className="flex gap-2 border-b border-primary/10 pb-3">
+    <nav className="flex gap-2 border-b border-primary/10 pb-3" aria-label="Booking steps">
       {items.map((s) => (
         <button
           key={s}
           type="button"
           onClick={() => onStep(s)}
-          className={`rounded-lg px-3 py-1 text-sm capitalize ${
+          aria-current={step === s ? "step" : undefined}
+          className={`rounded-lg px-3 py-1 text-sm capitalize ${FOCUS_RING} ${
             step === s ? "bg-primary/10 font-medium text-primary" : "text-muted"
           }`}
         >
           {s}
         </button>
       ))}
-    </div>
+    </nav>
   );
 }
 
@@ -711,7 +759,9 @@ function AddressField({
 }) {
   return (
     <div>
-      <label className="text-sm font-medium text-primary">{label}</label>
+      <label htmlFor={id} className="text-sm font-medium text-primary">
+        {label}
+      </label>
       <div className="mt-1">
         <AddressAutocompleteInput
           id={id}
@@ -732,18 +782,24 @@ function Field({
   value,
   onChange,
   type = "text",
+  id,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
+  id?: string;
 }) {
+  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, "-");
   return (
     <div>
-      <label className="text-sm font-medium text-primary">{label}</label>
+      <label htmlFor={fieldId} className="text-sm font-medium text-primary">
+        {label}
+      </label>
       <input
+        id={fieldId}
         type={type}
-        className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
+        className={`mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm ${FOCUS_RING}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />

@@ -2,31 +2,9 @@
 
 **Type:** README
 **masterrule:** [§21](../masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-08
 
-Reusable code consumed by Porterchain web apps, mobile apps, API, and worker. Split across **TypeScript packages** (`shared/` + `packages/`) and **Python modules** (`shared/python/`).
-
----
-
-## TypeScript — Mobile (`shared/`)
-
-pnpm workspace packages for Expo apps:
-
-| Package                             | Path                         | Purpose                                                  |
-| ----------------------------------- | ---------------------------- | -------------------------------------------------------- |
-| `@porterchain/mobile-api`           | `shared/api/`                | HTTP client, driver/customer API facades, TanStack Query |
-| `@porterchain/mobile-theme`         | `shared/theme/`              | Light/dark tokens, `ThemeProvider`                       |
-| `@porterchain/mobile-ui`            | `shared/mobile-ui/`          | Design system components                                 |
-| `@porterchain/mobile-components`    | `shared/components/`         | FlashList, offline banner                                |
-| `@porterchain/mobile-hooks`         | `shared/hooks/`              | Online status, app state, a11y                           |
-| `@porterchain/mobile-storage`       | `shared/storage/`            | MMKV, Secure Store, offline queue                        |
-| `@porterchain/mobile-maps`          | `shared/maps/`               | `EnterpriseMap`, maps provider                           |
-| `@porterchain/mobile-notifications` | `shared/notifications/`      | FCM, inbox, deep links                                   |
-| `@porterchain/mobile-offline`       | `shared/offline/`            | Offline sync provider                                    |
-| `@porterchain/mobile-security`      | `shared/mobile-security/`    | Clerk, PIN, biometric, secure API client                 |
-| `@porterchain/mobile-performance`   | `shared/mobile-performance/` | FlashList, lazy screens, metrics                         |
-
-See [MOBILE_ARCHITECTURE_REPORT.md](../MOBILE_ARCHITECTURE_REPORT.md).
+Reusable code consumed by Porterchain web apps, API, and worker. Split across **TypeScript packages** (`packages/`) and **Python modules** (`shared/python/`).
 
 ---
 
@@ -46,12 +24,11 @@ Shared by Next.js portals and website:
 
 ---
 
-## Web Hooks & Providers (`shared/`)
+## Web Providers (`shared/`)
 
-| Path                                | Purpose                                      |
-| ----------------------------------- | -------------------------------------------- |
-| `shared/hooks/useVisitorSession.ts` | Website visitor session                      |
-| `shared/providers/`                 | Shared React providers (`PlatformProviders`) |
+| Path                | Purpose                                      |
+| ------------------- | -------------------------------------------- |
+| `shared/providers/` | Shared React providers (`PlatformProviders`) |
 
 ---
 
@@ -73,25 +50,20 @@ Settings: [shared/config/README.md](./config/README.md)
 
 ---
 
-## Maps Module Doc
+## Mobile (`apps/mobile-*`)
 
-Detailed maps architecture: [shared/maps/MAP_MODULE.md](./maps/MAP_MODULE.md)
+Fresh Expo SDK 57 apps (React Native 0.86) — minimal shells for redesign:
 
----
+| App      | Package                        | Stack                        |
+| -------- | ------------------------------ | ---------------------------- |
+| Driver   | `@porterchain/mobile-driver`   | Expo 57, RN 0.86, React 19.2 |
+| Customer | `@porterchain/mobile-customer` | Expo 57, RN 0.86, React 19.2 |
 
-## Related Documents
-
-| Document                                                     | Purpose           |
-| ------------------------------------------------------------ | ----------------- |
-| [../packages/config/README.md](../packages/config/README.md) | TS tooling config |
-| [../REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md)     | Monorepo layout   |
-| [../TECH_STACK.md](../TECH_STACK.md)                         | Stack reference   |
+Run: `pnpm dev:mobile-driver` or `pnpm dev:mobile-customer`
 
 ---
 
-## Governance
+## Related Docs
 
-| Document                                                 | Role              |
-| -------------------------------------------------------- | ----------------- |
-| [../masterrule.md](../masterrule.md)                     | Architecture SSOT |
-| [../REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md) | Monorepo layout   |
+- [REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md)
+- [packages/shared/README.md](../packages/shared/README.md)

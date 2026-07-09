@@ -358,7 +358,8 @@ export function buildLocalBusinessSchema(options?: { baseUrl?: string }): LocalB
   if (sameAs.length > 0) {
     schema.sameAs = sameAs;
     const profileUrl = sameAs.find(
-      (url) => url.includes("google.com/maps") || url.includes("g.page") || url.includes("goo.gl/maps")
+      (url) =>
+        url.includes("google.com/maps") || url.includes("g.page") || url.includes("goo.gl/maps")
     );
     if (profileUrl) {
       schema.hasMap = profileUrl;

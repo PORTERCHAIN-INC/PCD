@@ -1,6 +1,34 @@
 """merchant routes — integrations."""
 
-from porterchain_api.routers.merchant._deps import *  # noqa: F403
+from porterchain_api.routers.merchant._deps import (
+    Annotated,
+    ApiKeyCreateRequest,
+    ApiKeyResponse,
+    Depends,
+    HTTPException,
+    MerchantApiKeyRateLimitRequest,
+    MerchantConsoleRequest,
+    MerchantContext,
+    MerchantSandboxRequest,
+    Query,
+    Response,
+    Session,
+    Settings,
+    WebhookCreateRequest,
+    WebhookResponse,
+    WebhookUpdateRequest,
+    _api_key_out,
+    _api_keys,
+    _integrations,
+    _webhook_out,
+    get_db,
+    get_merchant_context,
+    get_settings,
+    require_module,
+    router,
+)
+from porterchain_api.schemas_oauth import OAuthClientCreateRequest
+
 
 @router.get("/api-keys", response_model=list[ApiKeyResponse])
 def list_api_keys(
@@ -8,20 +36,7 @@ def list_api_keys(
     db: Session = Depends(get_db),
 ) -> list[ApiKeyResponse]:
     require_module(ctx, "api_keys")
-    keys = _api_keys.list_keys(db, ctx)
-    return [
-        ApiKeyResponse(
-            id=k.id,
-            name=k.name,
-            key_prefix=k.key_prefix,
-            scopes=k.scopes,
-            environment=k.environment,
-            rate_limit_per_minute=k.rate_limit_per_minute,
-            is_active=k.is_active,
-            created_at=k.created_at,
-        )
-        for k in keys
-    ]
+    return [_api_key_out(k) for k in _api_keys.list_keys(db, ctx)]
 
 
 @router.post("/api-keys", response_model=ApiKeyResponse)
@@ -34,17 +49,7 @@ def create_api_key(
     record, secret = _api_keys.create_key(
         db, ctx, name=body.name, scopes=body.scopes, environment=body.environment
     )
-    return ApiKeyResponse(
-        id=record.id,
-        name=record.name,
-        key_prefix=record.key_prefix,
-        scopes=record.scopes,
-        environment=record.environment,
-        rate_limit_per_minute=record.rate_limit_per_minute,
-        is_active=record.is_active,
-        created_at=record.created_at,
-        secret=secret,
-    )
+    return _api_key_out(record, secret=secret)
 
 
 @router.delete("/api-keys/{key_id}", status_code=204)
@@ -66,17 +71,7 @@ def list_webhooks(
     db: Session = Depends(get_db),
 ) -> list[WebhookResponse]:
     require_module(ctx, "api_keys")
-    hooks = _api_keys.list_webhooks(db, ctx)
-    return [
-        WebhookResponse(
-            id=h.id,
-            url=h.url,
-            events=h.events,
-            is_active=h.is_active,
-            created_at=h.created_at,
-        )
-        for h in hooks
-    ]
+    return [_webhook_out(h) for h in _api_keys.list_webhooks(db, ctx)]
 
 
 @router.post("/webhooks", response_model=WebhookResponse)
@@ -90,14 +85,7 @@ def create_webhook(
     record, secret = _api_keys.create_webhook(
         db, ctx, url=body.url, events=body.events, encryption_key=settings.jwt_secret
     )
-    return WebhookResponse(
-        id=record.id,
-        url=record.url,
-        events=record.events,
-        is_active=record.is_active,
-        created_at=record.created_at,
-        signing_secret=secret,
-    )
+    return _webhook_out(record, signing_secret=secret)
 
 
 @router.get("/integrations/overview")
@@ -237,13 +225,7 @@ def integrations_webhook_update(
             events=body.events,
             is_active=body.is_active,
         )
-        return WebhookResponse(
-            id=hook.id,
-            url=hook.url,
-            events=hook.events,
-            is_active=hook.is_active,
-            created_at=hook.created_at,
-        )
+        return _webhook_out(hook)
     except LookupError:
         raise HTTPException(status_code=404, detail="webhook_not_found") from None
 
@@ -273,14 +255,7 @@ def integrations_webhook_rotate(
         hook, secret = _integrations.rotate_webhook_secret(
             db, ctx, webhook_id, encryption_key=settings.jwt_secret
         )
-        return WebhookResponse(
-            id=hook.id,
-            url=hook.url,
-            events=hook.events,
-            is_active=hook.is_active,
-            created_at=hook.created_at,
-            signing_secret=secret,
-        )
+        return _webhook_out(hook, signing_secret=secret)
     except LookupError:
         raise HTTPException(status_code=404, detail="webhook_not_found") from None
 
@@ -312,9 +287,35 @@ def integrations_erp(
 @router.get("/integrations/oauth")
 def integrations_oauth(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    settings: Settings = Depends(get_settings),
 ):
     require_module(ctx, "api_keys")
-    return _integrations.oauth_readiness()
+    return _integrations.oauth_readiness(enabled=settings.oauth_third_party_enabled)
+
+
+@router.get("/integrations/oauth/clients")
+def list_oauth_clients(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+):
+    require_module(ctx, "api_keys")
+    return {"clients": _integrations.list_oauth_clients(ctx)}
+
+
+@router.post("/integrations/oauth/clients")
+def create_oauth_client(
+    body: OAuthClientCreateRequest,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    require_module(ctx, "api_keys")
+    return _integrations.create_oauth_client(
+        db,
+        ctx,
+        name=body.name,
+        scopes=body.scopes,
+        environment=body.environment,
+        redirect_uris=body.redirect_uris,
+    )
 
 
 @router.get("/integrations/csv-templates")

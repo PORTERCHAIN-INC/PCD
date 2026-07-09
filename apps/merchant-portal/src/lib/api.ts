@@ -107,6 +107,8 @@ export interface BookDeliveryPayload {
   scheduled_at: string;
   schedule_mode?: string;
   special_instructions?: string;
+  site_access_notes?: string;
+  requires_liftgate?: boolean;
   internal_reference?: string;
   purchase_order_number?: string;
   cost_centre?: string;

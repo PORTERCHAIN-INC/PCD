@@ -183,6 +183,18 @@ pnpm docker:fleetbase:verify
 ```
 
 See [SERVICE_STATUS.md](./SERVICE_STATUS.md) for last verified snapshot.
+
+---
+
+## Porterchain API health check
+
+When the API is running (`pnpm dev:api`) the simplest readiness probe is:
+
+```bash
+curl -s http://localhost:8001/health/ready | python3 -m json.tool
+```
+
+The overall `status` should be `ok` when the database is reachable (Redis/Clerk checks may be `unavailable` in some local configurations).
 ---
 
 ## Governance

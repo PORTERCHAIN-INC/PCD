@@ -148,6 +148,18 @@ def readiness(db: Session, settings: Settings) -> dict:
     }
     if fleetbase_sync:
         payload["fleetbase_sync"] = fleetbase_sync
+
+    try:
+        from porterchain_api.merchant_engine.webhook_delivery_health import assess_merchant_webhook_delivery
+
+        merchant_webhooks = assess_merchant_webhook_delivery(db)
+        checks["merchant_webhook_delivery"] = (
+            "ok" if merchant_webhooks.get("meets_slo") else f"below_slo:{merchant_webhooks.get('success_pct')}%"
+        )
+        payload["merchant_webhook_delivery"] = merchant_webhooks
+    except Exception as exc:  # noqa: BLE001
+        checks["merchant_webhook_delivery"] = f"error: {exc}"
+
     if clerk_apps:
         payload["clerk_apps"] = clerk_apps
         payload["clerk_mode"] = clerk_mode

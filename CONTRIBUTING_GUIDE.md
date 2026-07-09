@@ -17,8 +17,19 @@
 5. **Never mix business logic into Fleetbase** — no merchant contracts, Stripe, or Clerk code in Fleetbase.
 6. **Simplify before expanding** — [masterrule §21](./masterrule.md#21-simplification--essential-complexity): essential complexity only; thin routers; no `merchant_engine` → `admin_engine` imports.
 7. **Docs follow code** — update canonical docs or OpenAPI; follow [Appendix C](./masterrule.md#appendix-c--documentation-simplification-program) (39 groups × 5 files).
+8. **Refactor over rewrite** — strangler extractions only; no greenfield rewrites. Ship incremental PRs; keep production running. See [docs/api/CHANGELOG.md](./docs/api/CHANGELOG.md) for API compatibility.
 
 ---
+
+## Refactor policy (§0.3.5)
+
+| Do                                                                          | Don't                                          |
+| --------------------------------------------------------------------------- | ---------------------------------------------- |
+| Extract `*_service.py` modules ≤400 LOC                                     | Split into microservices                       |
+| Add ADR before Phase 2 surfaces                                             | Add CRM UI / Route Center before prod dispatch |
+| Run `pnpm validate:d2` + `validate:d3` before merge                         | Bypass Fleetbase via direct HTTP in apps       |
+| Run `pnpm validate:precommit` locally (auto via Husky after `pnpm install`) | Skip format/D2 checks before push              |
+| Pin Docker tags/digests (see `.cursor/rules/dependency-freeze.mdc`)         | Upgrade Next/React/TS without approval         |
 
 ## Repository layout
 

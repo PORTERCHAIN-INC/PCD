@@ -41,8 +41,38 @@ export type OrderResult = {
   amount_cents: number;
   currency: string;
   scheduled_at: string;
-  pickup: { formatted?: string };
-  dropoff: { formatted?: string };
+  pickup: AddressPayload;
+  dropoff: AddressPayload;
+};
+
+export type TrackingEta = {
+  source?: string;
+  duration_seconds?: number;
+  distance_meters?: number;
+  polyline?: string;
+  arrives_at?: string;
+  label?: string;
+};
+
+export type OrderLiveTracking = {
+  order_id: string;
+  tracking_number: string;
+  state: string;
+  fleetbase_order_id?: string | null;
+  live_tracking?: {
+    pickup?: AddressPayload;
+    dropoff?: AddressPayload;
+    driver_location?: { lat: number; lng: number };
+    optimized_route?: { polyline?: string; source?: string };
+    eta?: TrackingEta | null;
+    delivery_status?: {
+      order_state?: string;
+      label?: string;
+      in_transit?: boolean;
+      delivered?: boolean;
+    };
+    last_updated?: string;
+  } | null;
 };
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -88,12 +118,13 @@ export function startBooking(
     privacy_accepted: boolean;
     dangerous_goods_confirmed: boolean;
     consent_at: string;
+    checkout_channel?: "retail" | "customer";
   }
 ) {
   return apiFetch<BookingStartResult>("/v1/bookings", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ checkout_channel: "customer", ...payload }),
   });
 }
 
@@ -118,4 +149,8 @@ export function syncBookingCheckout(quoteId: string) {
 
 export function getOrderByTracking(trackingNumber: string) {
   return apiFetch<OrderResult>(`/v1/orders/${encodeURIComponent(trackingNumber)}`);
+}
+
+export function getOrderLiveTracking(trackingNumber: string) {
+  return apiFetch<OrderLiveTracking>(`/v1/orders/${encodeURIComponent(trackingNumber)}/tracking`);
 }

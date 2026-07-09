@@ -29,8 +29,8 @@ Path aliases: `website/` = public site (target `apps/website/`); `apps/merchant-
 ### Prerequisites
 
 - Node.js **24.18.0** (see [`.nvmrc`](.nvmrc); engines `>=24`)
-- [pnpm](https://pnpm.io) **9.15+**
-- Python **3.13** for API/worker (see [TECH_STACK.md](TECH_STACK.md))
+- [pnpm](https://pnpm.io) **11.10**
+- Python **3.14.6** for API/worker (see [TECH_STACK.md](TECH_STACK.md))
 - Docker (Postgres, Redis, Mailhog)
 
 ### Install
@@ -57,6 +57,14 @@ pnpm dev:admin          # :3002
 pnpm dev:driver         # :3003
 pnpm dev:customer       # :3004
 ```
+
+### Health check (new engineer)
+
+```bash
+curl -s http://localhost:8001/health/ready | python3 -m json.tool
+```
+
+If you want the fastest “clone → ready” walkthrough, see `docs/ONBOARDING_ENGINEER.md`.
 
 Mobile apps: `pnpm dev:mobile-driver` or `pnpm dev:mobile-customer`
 

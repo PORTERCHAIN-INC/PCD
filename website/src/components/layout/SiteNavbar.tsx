@@ -9,6 +9,7 @@ import Container from "@/components/ui/Container";
 import LinkButton from "@/components/corporate/ui/LinkButton";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import SiteNavbarAuth from "@/components/layout/SiteNavbarAuth";
+import { customerPortalBookUrl } from "@/data/portal-links";
 import { cn } from "@/lib/utils";
 
 const DARK_HERO_PATHS = new Set(["/", "/business", "/careers", "/contact"]);
@@ -34,8 +35,9 @@ export default function SiteNavbar() {
     setMobileOpen(false);
   }, [pathname]);
 
-  const quoteHref = isHome ? "/#book" : "/contact";
-  const quoteLabel = isHome ? t("bookNow") : t("getQuote");
+  const quoteHref = customerPortalBookUrl;
+  const quoteLabel = t("bookNow");
+  const quoteExternal = true;
 
   const linkClass = (active?: boolean) =>
     cn(
@@ -110,7 +112,7 @@ export default function SiteNavbar() {
           <div className="hidden lg:flex items-center gap-3 shrink-0">
             <LanguageSwitcher scrolled={navLight} />
             <SiteNavbarAuth navLight={navLight} linkClass={(href, active) => linkClass(active)} />
-            <LinkButton href={quoteHref} size="sm">
+            <LinkButton href={quoteHref} size="sm" external={quoteExternal}>
               {quoteLabel}
             </LinkButton>
           </div>
@@ -170,7 +172,11 @@ export default function SiteNavbar() {
                   onNavigate={() => setMobileOpen(false)}
                 />
                 <div onClick={() => setMobileOpen(false)}>
-                  <LinkButton href={quoteHref} className="w-full justify-center">
+                  <LinkButton
+                    href={quoteHref}
+                    className="w-full justify-center"
+                    external={quoteExternal}
+                  >
                     {quoteLabel}
                   </LinkButton>
                 </div>

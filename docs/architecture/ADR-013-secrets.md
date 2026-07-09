@@ -24,11 +24,11 @@ Local development correctly uses gitignored `.env` files from `env/*.example` te
 
 Use **Doppler** as the **system of record** for production runtime secrets on the DigitalOcean droplet.
 
-| Layer | Stores |
-| ----- | ------ |
-| **Doppler** (`pcd` / `prd`) | All prod API + compose secrets |
-| **GitHub Actions** | `DEPLOY_*`, `DOPPLER_TOKEN`, build-time `NEXT_PUBLIC_*` |
-| **Droplet disk** | Generated `.env` (mode `600`) + `secrets/firebase-service-account.json` — never hand-edited |
+| Layer                       | Stores                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| **Doppler** (`pcd` / `prd`) | All prod API + compose secrets                                                              |
+| **GitHub Actions**          | `DEPLOY_*`, `DOPPLER_TOKEN`, build-time `NEXT_PUBLIC_*`                                     |
+| **Droplet disk**            | Generated `.env` (mode `600`) + `secrets/firebase-service-account.json` — never hand-edited |
 
 `infrastructure/deploy/sync-secrets.sh` pulls from Doppler when `DOPPLER_TOKEN` is set; otherwise falls back to legacy per-secret GitHub injection for migration.
 
@@ -59,7 +59,7 @@ Use **Doppler** as the **system of record** for production runtime secrets on th
 
 ## Governance
 
-| Document | Role |
-| -------- | ---- |
-| [PRIORITY_TODOS.md](../PRIORITY_TODOS.md) | DD-14 tracking |
-| [RUNBOOK.md](../../RUNBOOK.md) | Rotation procedures |
+| Document                                  | Role                |
+| ----------------------------------------- | ------------------- |
+| [PRIORITY_TODOS.md](../PRIORITY_TODOS.md) | DD-14 tracking      |
+| [RUNBOOK.md](../../RUNBOOK.md)            | Rotation procedures |

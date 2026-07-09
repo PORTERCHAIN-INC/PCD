@@ -1,18 +1,84 @@
 """Tracking service — customer-facing shipment status."""
 
+from typing import Any
+
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_engine.public_tracking_snapshot import build_public_live_tracking
 from porterchain_api.fleetbase_engine.integration_bridge import FleetbaseIntegrationBridge
 from porterchain_api.config import Settings
-from porterchain_api.models import Booking, Invoice, Order, Payment
+from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
+from porterchain_api.models import Booking, Customer, Invoice, Order, Payment
+from porterchain_api.schemas import OrderResponse, OrderTrackingResponse
 
 
 class TrackingService:
     def __init__(self) -> None:
         self._fleetbase = FleetbaseIntegrationBridge()
+        self._orders = OrderRepository()
 
     def get_by_tracking(self, db: Session, tracking_number: str) -> Order | None:
         return db.query(Order).filter(Order.tracking_number == tracking_number).first()
+
+    def _order_response_from_order(self, db: Session, order: Order) -> OrderResponse:
+        booking = db.query(Booking).filter(Booking.order_id == order.id).first()
+        invoice = db.query(Invoice).filter(Invoice.order_id == order.id).first()
+        return OrderResponse(
+            order_id=order.id,
+            order_number=order.order_number,
+            tracking_number=order.tracking_number,
+            state=order.state,
+            amount_cents=order.amount_cents,
+            currency=order.currency,
+            scheduled_at=order.scheduled_at,
+            pickup=order.pickup,
+            dropoff=order.dropoff,
+            fleetbase_order_id=order.fleetbase_order_id,
+            booking_number=booking.booking_number if booking else None,
+            invoice_number=invoice.invoice_number if invoice else None,
+        )
+
+    def get_order_response_by_tracking(self, db: Session, tracking_number: str) -> OrderResponse | None:
+        order = self.get_by_tracking(db, tracking_number)
+        if not order:
+            return None
+        return self._order_response_from_order(db, order)
+
+    def get_order_tracking_response(
+        self,
+        db: Session,
+        settings: Settings,
+        tracking_number: str,
+    ) -> OrderTrackingResponse | None:
+        """Build OrderTrackingResponse for the public order tracking endpoint."""
+        order = self.get_by_tracking(db, tracking_number)
+        if not order:
+            return None
+        live = self.build_public_live_tracking(db, settings, order)
+        return OrderTrackingResponse(
+            order_id=order.id,
+            tracking_number=order.tracking_number,
+            state=order.state,
+            fleetbase_order_id=order.fleetbase_order_id,
+            live_tracking=live,
+        )
+
+    def list_customer_orders_response(
+        self,
+        db: Session,
+        *,
+        customer_id: str,
+        clerk_user_id: str,
+        limit: int = 50,
+    ) -> list[OrderResponse]:
+        customer = db.query(Customer).filter(Customer.id == customer_id).first()
+        if not customer:
+            raise LookupError("customer_not_found")
+        if customer.clerk_user_id != clerk_user_id:
+            raise PermissionError("forbidden")
+
+        orders = self._orders.list_for_customer(db, customer_id, limit=limit)
+        return [self._order_response_from_order(db, o) for o in orders]
 
     def get_live_tracking(
         self,
@@ -22,6 +88,16 @@ class TrackingService:
     ) -> dict | None:
         """Pull live GPS/status from Fleetbase logistics engine."""
         return self._fleetbase.fetch_tracking(settings, order)
+
+    def build_public_live_tracking(
+        self,
+        db: Session,
+        settings: Settings,
+        order: Order,
+    ) -> dict[str, Any]:
+        """Enriched public snapshot: addresses, map geometry, and ETA."""
+        live_raw = self.get_live_tracking(db, settings, order)
+        return build_public_live_tracking(order, live_raw)
 
     def get_customer_dashboard(self, db: Session, customer_id: str) -> dict:
         orders = (
