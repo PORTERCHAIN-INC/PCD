@@ -3,7 +3,7 @@
 **Type:** CANONICAL (execution — website & GTM only)  
 **Parent SSOT:** [PORTERCHAIN_CHARTER.md](./PORTERCHAIN_CHARTER.md) — company identity, product gate, review standard  
 **Style:** Martin Fowler — bounded contexts, ubiquitous language, evolutionary delivery  
-**Last updated:** 2026-07-09 (charter final · Wave 1 shipped)  
+**Last updated:** 2026-07-09 (charter final · Waves 1–2 shipped · `4a0a008`)  
 **Audience:** Founders, product, marketing, engineering (website only)  
 **Cross-refs:** [WEBSITE_SEO_STRATEGY.md](./WEBSITE_SEO_STRATEGY.md) · [ICP.md](./ICP.md) · [SILICON_VALLEY_READINESS_CHECKLIST.md](./SILICON_VALLEY_READINESS_CHECKLIST.md) · [PRIORITY_TODOS.md](./PRIORITY_TODOS.md)
 
@@ -70,38 +70,67 @@ Ops manager / owner at Ontario B2B shipper who already has vehicles and drivers 
 
 ## Implementation status (2026-07-09)
 
+**Commit:** `4a0a008` — Reposition website GTM from Dispatch OS to transportation capacity (Waves 1–2).
+
 ### Wave 1 — Capacity clarity ✅ shipped
 
 | Area                                                                             | Status                         |
 | -------------------------------------------------------------------------------- | ------------------------------ |
 | Homepage hero + metadata + body copy                                             | ✅ Capacity / network language |
-| Nav order (Services first; Platform/Developers in Resources)                     | ✅                             |
-| Global CTA `Get a quote` → `intent=quote`                                        | ✅                             |
+| Nav order (Services first; Platform/Developers in Resources dropdown)            | ✅                             |
+| Global CTA `Get a quote` → `intent=quote` (no `intent=demo` sitewide)            | ✅                             |
 | Pricing (Occasional / Recurring / Dedicated — not SaaS tiers)                    | ✅                             |
-| `/business` hero + fleet `#fleet` anchor                                         | ✅                             |
-| Lane B bridge → vehicles + quote                                                 | ✅                             |
+| `/business` capacity hero + fleet `#fleet` anchor                                | ✅                             |
+| Lane B bridge → vehicles + quote (`PlatformBridgeSection`)                       | ✅                             |
 | Homepage schema (`DeliveryService` / `LocalBusiness`, not `SoftwareApplication`) | ✅                             |
 | Guards (`verify_product_vision_pages.py`)                                        | ✅ Capacity-first              |
-| Build                                                                            | ✅ 773 routes                  |
+| Build                                                                            | ✅ ~773 routes                 |
 
-**Guards:** `verify_product_vision_pages.py`, `verify_i18n_parity.py`, `pnpm --filter @porterchain/website build` — green.
+### Wave 2 — Network reframe ✅ shipped (W2.8/W2.12 partial)
 
-### Remaining repositioning debt (Wave 2+)
+| Area                                                                 | Status                                                                 |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `/platform` → how network runs delivery (EN/FR)                      | ✅                                                                     |
+| `/company`, `/customers`, `/enterprise`, `/solutions`, `/developers` | ✅ Capacity-first copy EN/FR                                           |
+| `/business` fleet grid **above fold** (directly under hero)          | ✅                                                                     |
+| Legal intros (`legal-en.json`, `legal-fr.json`)                      | ✅ Delivery services first                                             |
+| Company FAQ: vs own driver / vs ad-hoc courier                       | ✅                                                                     |
+| Trust hub + exhibits (`/trust`, DPA, MSA, SLA, subprocessors)        | ✅ Pages live; footer/resources nav only                               |
+| Trust exhibit **body copy** (DPA/MSA/subprocessors)                  | ⚠️ Still references “dispatch OS subscription” — procurement tone only |
+| SEO views + `internal-linking.ts`                                    | ✅ Quote + fleet bridge; no “Explore dispatch OS”                      |
+| `schema.ts` / `config.ts` / site metadata                            | ✅ Capacity network language                                           |
+| Vehicle name alignment with ops                                      | ⚠️ e.g. “High Roof Van” vs “Sprinter Van” — W2.12 open                 |
 
-| Area                                                      | Status                                    |
-| --------------------------------------------------------- | ----------------------------------------- |
-| `/platform`, `/company`, `/customers`, `/enterprise` copy | ⚠️ Still software/demo language in places |
-| Trust/DPA/MSA as front-door GTM                           | ⚠️ Demote — keep pages, footer only       |
-| Lane B bulk body copy (~700 URLs)                         | ⚠️ Not bulk-rewritten                     |
-| `ICP.md`, `WEBSITE_SEO_STRATEGY.md` sync to charter       | ⚠️ G0.1 open                              |
+**Wave 2 exit gate (engineering):** ✅ No customer Lane A page sells uninvoicable software · Platform/Developers not in top nav · guards green.
+
+**Wave 2 exit gate (human):** Run 15-second test with 3 ICP personas post-deploy; trust exhibit copy refresh optional before enterprise procurement.
+
+### Remaining repositioning debt (Wave 3+)
+
+| Area                                                           | Status                                    |
+| -------------------------------------------------------------- | ----------------------------------------- |
+| Lane B bulk body copy (~700 URLs in `en.json`/`fr.json`)       | ⚠️ Not bulk-rewritten                     |
+| Trust DPA/MSA/subprocessor exhibit copy                        | ⚠️ W2.8 body — footer-only is done        |
+| `ICP.md` sync to charter                                       | ⚠️ G0.1 open                              |
+| `WEBSITE_SEO_STRATEGY.md`                                      | ⚠️ Partially updated; full G0.1 sync open |
+| Blog case study (`case-study-construction-distributor-gta.md`) | ⚠️ Still mentions “dispatch OS”           |
+| Vehicle SKU naming vs ops                                      | ⚠️ W2.12 open                             |
 
 ### What's next — execution waves
 
-| Wave                          | ID  | Scope                                                                                      | Priority                   |
-| ----------------------------- | --- | ------------------------------------------------------------------------------------------ | -------------------------- |
-| **Wave 2 — Network reframe**  | W2  | `/platform` → how network runs delivery; company/customers/enterprise; legal; demote trust | **P1 — W2.8/W2.12 remain** |
-| **Wave 3 — SEO + governance** | W3  | Lane B bulk copy, `ICP.md`, `WEBSITE_SEO_STRATEGY.md`                                      | **P2**                     |
-| **Deferred (Series A)**       | —   | Status page, investor facts sheet, portal picker, dashboard demo                           | After first 100            |
+| Wave                          | ID  | Scope                                                                       | Priority        |
+| ----------------------------- | --- | --------------------------------------------------------------------------- | --------------- |
+| **Wave 2 — Network reframe**  | W2  | Trust exhibit copy + vehicle name alignment                                 | **P1 — finish** |
+| **Wave 3 — SEO + governance** | W3  | Lane B bulk copy, `ICP.md`, `WEBSITE_SEO_STRATEGY.md`, blog, checklist §1.1 | **P2 — next**   |
+| **Deferred (Series A)**       | —   | Status page, investor facts sheet, portal picker, dashboard demo            | After first 100 |
+
+**Guards (run before deploy):**
+
+```bash
+apps/api/.venv/bin/python scripts/verify_product_vision_pages.py
+apps/api/.venv/bin/python scripts/verify_i18n_parity.py
+pnpm --filter @porterchain/website build
+```
 
 _Charter + cursor rule: `docs/PORTERCHAIN_CHARTER.md`, `.cursor/rules/porterchain-charter.mdc`_
 
@@ -116,7 +145,7 @@ Apply these before any large copy or SEO expansion.
 | **Ubiquitous language**            | Customer copy: _capacity_, _vehicle + driver_, _capacity partner_, _overflow_, _proof of delivery_. Internal code may keep `dispatch`, `merchant`, `fleet`. **Never** “Dispatch OS” or “platform subscription” on Lane A until Phase 2 revenue                               |
 | **Bounded contexts**               | **Lane A (Capacity)** = brand, nav, pricing, CTAs — what customers buy. **Lane B (SEO)** = programmatic local/industry inbound — must bridge to **quote**, not platform. **Lane C (Operations)** = how we run delivery (`/how-porterchain-works`) — demoted; not primary nav |
 | **Strangler fig**                  | Reposition homepage and nav first; bulk-rewrite Lane B incrementally — no big-bang 737 URL rewrite                                                                                                                                                                           |
-| **Evolutionary architecture**      | Wave 1: messaging + IA + pricing honesty. Wave 2: reframe platform/developers/trust. Wave 3: SEO body + schema `DeliveryService` on home                                                                                                                                     |
+| **Evolutionary architecture**      | Wave 1 ✅ messaging + IA + pricing. Wave 2 ✅ reframe platform/developers/company/customers/enterprise + `DeliveryService` on home. Wave 3: Lane B SEO body + governance docs                                                                                                |
 | **Build only what you can verify** | Remove or source all stats; no fake SaaS tiers, ACV targets, or enterprise SLAs for software not sold                                                                                                                                                                        |
 | **Simplify the decision tree**     | One primary CTA: **Get a quote** / **Request capacity**. One sales motion: **transportation request** → quote → first delivery → recurring program                                                                                                                           |
 
@@ -180,39 +209,44 @@ _Assumes excellent engineering. Failure drivers = positioning, GTM, pricing, web
 
 ## Part 3 — Audit findings (capacity platform lens)
 
-### 3.1 Positioning (15-second test: **FAIL on Lane A**)
+### 3.1 Positioning (15-second test: **PASS on Lane A** — verify with humans post-deploy)
 
-| Finding                                                | Location                                   | Status                             | Wave |
-| ------------------------------------------------------ | ------------------------------------------ | ---------------------------------- | ---- |
-| Hero sells Dispatch OS, not capacity                   | `corporate-en.json` → `home.hero`          | ❌ Wrong                           | W1   |
-| Metadata: “Dispatch OS for Regional B2B Logistics”     | `corporate.metadata.home`                  | ❌ Wrong                           | W1   |
-| Homepage body = product tour (routing, API, analytics) | `HomePlatformBody`, `corporate.home.bento` | ❌ Wrong                           | W1   |
-| Fleet SKUs only on `/business` below fold              | `business-en.json` → `fleet`               | ⚠️ Right content, wrong prominence | W2   |
-| Nav CTA “Get a demo”                                   | `SiteNavbar`, `corporate.nav.bookNow`      | ❌ Wrong                           | W1   |
-| Company mission = “dispatch OS”                        | `corporate.company`                        | ❌ Wrong                           | W2   |
-| Pricing = software-led SaaS tiers                      | `corporate.pricing`                        | ❌ Wrong                           | W1   |
+| Finding                                                | Location                                  | Status (post `4a0a008`) | Wave |
+| ------------------------------------------------------ | ----------------------------------------- | ----------------------- | ---- |
+| Hero sells Dispatch OS, not capacity                   | `corporate-en.json` → `home.hero`         | ✅ Fixed                | W1   |
+| Metadata: “Dispatch OS for Regional B2B Logistics”     | `corporate.metadata.home`                 | ✅ Fixed                | W1   |
+| Homepage body = product tour (routing, API, analytics) | `HomePlatformBody`, `corporate.home`      | ✅ Fixed                | W1   |
+| Fleet SKUs only on `/business` below fold              | `business-en.json` → `fleet`              | ✅ Above fold           | W2   |
+| Nav CTA “Get a demo”                                   | `SiteNavbar`, `corporate.nav.bookNow`     | ✅ Fixed                | W1   |
+| Company mission = “dispatch OS”                        | `corporate.company`                       | ✅ Fixed                | W2   |
+| Pricing = software-led SaaS tiers                      | `corporate.pricing`                       | ✅ Fixed                | W1   |
+| Trust exhibits still say “dispatch OS subscription”    | `corporate.trust.*` DPA/MSA/subprocessors | ⚠️ Procurement copy     | W2.8 |
 
-### 3.2 Information architecture (**INVERTED**)
+### 3.2 Information architecture (**CORRECTED** on Lane A)
 
-| Finding                                              | Target                                               | Status     |
-| ---------------------------------------------------- | ---------------------------------------------------- | ---------- |
-| Platform + Developers before Services                | Services → Industries → Vehicles → Pricing → Contact | ❌         |
-| `/business` labeled “Programs” without capacity hero | “Delivery” / “Capacity” with fleet above fold        | ⚠️         |
-| Trust Center marketed like Series C vendor           | Insurance, COI, delivery SLAs; DPA on request        | ⚠️         |
-| Lane B bridge → platform/demo                        | Bridge → quote + service area                        | ❌         |
-| Breadcrumbs on L2+                                   | Keep                                                 | ✅ partial |
+| Finding                                              | Target                                     | Status (post `4a0a008`) |
+| ---------------------------------------------------- | ------------------------------------------ | ----------------------- |
+| Platform + Developers before Services                | Services → Industries → Pricing → Contact  | ✅ Fixed                |
+| `/business` without capacity hero / fleet prominence | Capacity hero + fleet above fold           | ✅ Fixed                |
+| Trust Center in primary nav                          | Footer + Resources dropdown; COI-first hub | ✅ Nav fixed; body W2.8 |
+| Lane B bridge → platform/demo                        | Bridge → quote + `/business#fleet`         | ✅ Fixed                |
+| Breadcrumbs on L2+                                   | Keep                                       | ✅ Shipped              |
 
-### 3.3 First 100 customers (**primary optimization target**)
+### 3.3 First 100 customers (**primary optimization target — re-test post-deploy**)
 
-- Electrical supplier: cannot tell they hire **cargo van + driver** from homepage
-- Pharmacy: no “when to use PorterChain vs your own driver”
-- CTA does not lead to **requesting transportation**
-- Pricing page would disqualify small shipper or attract SaaS evaluators
+| Check                                                 | Status (post `4a0a008`)                     |
+| ----------------------------------------------------- | ------------------------------------------- |
+| Homepage shows vehicle + driver capacity              | ✅ Hero, body, `/business#fleet`            |
+| “When to use PorterChain vs your own driver”          | ✅ Company FAQ (EN/FR)                      |
+| CTA leads to **requesting transportation** (quote)    | ✅ `intent=quote` sitewide                  |
+| Pricing attracts capacity buyers, not SaaS evaluators | ✅ Occasional / Recurring / Dedicated bands |
 
-### 3.4 Investor / enterprise (**defer until Wave 1–2 pass**)
+**Next:** Run live 15-second test with construction, pharmacy, and electrical personas; log pass/fail in ops.
 
-- Trust/DPA/MSA/SLA pages exist — **keep, demote, don't lead GTM**
-- No traction metrics required for customer #47
+### 3.4 Investor / enterprise (**defer sales motion; pages exist**)
+
+- Trust/DPA/MSA/SLA pages exist — ✅ **footer/resources only**; do not lead GTM
+- Exhibit copy still procurement-oriented — acceptable for inbound enterprise; reframe in W2.8 if it confuses capacity buyers
 - Investor facts sheet, dashboard demo, status page: **Phase 4 deferred**
 
 ---
@@ -315,7 +349,7 @@ _Terminology: **Company Phase** = 1–4 evolution. **Execution Wave** = website 
 - [x] **G0.0** Rewrite this doc SSOT for Phase 1 capacity platform (2026-07-09)
 - [ ] **G0.1** Sync [ICP.md](./ICP.md) + [WEBSITE_SEO_STRATEGY.md](./WEBSITE_SEO_STRATEGY.md) + masterrule §21 to capacity positioning
 - [ ] **G0.2** Assign DRI: Lane A (capacity GTM) vs Lane B (SEO)
-- [ ] **G0.3** Update `verify_product_vision_pages.py` to enforce Capacity language (block Dispatch OS hero, require quote CTA)
+- [x] **G0.3** Update `verify_product_vision_pages.py` to enforce Capacity language (block Dispatch OS hero, require quote CTA) — shipped `4a0a008`
 
 ### Wave 1 — Capacity clarity (P0) — **do before anything else**
 
@@ -347,7 +381,8 @@ _Terminology: **Company Phase** = 1–4 evolution. **Execution Wave** = website 
 - [x] **W2.5** `/customers`: “trust us to run deliveries” not “run dispatch on OS”
 - [x] **W2.6** `/company`: mission = reduce friction moving goods; vision footnote Phases 1→4
 - [x] **W2.7** Legal intros (`legal-en.json` / `legal-fr.json`): commercial delivery services first
-- [ ] **W2.8** Trust pages: keep DPA/MSA/SLA — remove from primary nav; lead with COI + delivery commitments
+- [x] **W2.8a** Trust pages: DPA/MSA/SLA live; **removed from primary nav** (footer + Resources dropdown)
+- [ ] **W2.8b** Trust hub + exhibit copy: lead with COI + delivery commitments; reframe DPA/MSA/subprocessor body away from “dispatch OS subscription”
 - [x] **W2.9** `CapacityBridgeSection` (was `PlatformBridgeSection`): quote CTA, not demo/platform
 - [x] **W2.10** JSON-LD: `DeliveryService` on home; remove `SoftwareApplication` from homepage layout
 - [x] **W2.11** Add FAQ: PorterChain vs own employee / vs ad-hoc courier
@@ -359,7 +394,7 @@ _Terminology: **Company Phase** = 1–4 evolution. **Execution Wave** = website 
 
 - [ ] **W3.1** Bulk Lane B copy (`en.json`/`fr.json` SEO namespaces) — capacity language
 - [ ] **W3.2** Internal links: city×industry → `/business` + quote, not `/platform`
-- [ ] **W3.3** FR parity for corporate home + business + pricing
+- [x] **W3.3** FR parity for corporate home + business + pricing + platform/company/customers/enterprise/solutions/developers — shipped W1–W2 (`corporate-fr.json`)
 - [ ] **W3.4** Blog: customer stories (delivery outcomes), not platform posts
 - [ ] **W3.5** Reconcile [SILICON_VALLEY_READINESS_CHECKLIST.md](./SILICON_VALLEY_READINESS_CHECKLIST.md) §1.1
 
@@ -393,25 +428,26 @@ _Items marked [x] shipped **Dispatch OS GTM** — superseded by Waves 1–3 abov
 
 ## Part 7 — Page-by-page action matrix
 
-| Page                      | Current problem               | Target action                            | Wave |
-| ------------------------- | ----------------------------- | ---------------------------------------- | ---- |
-| `/`                       | Dispatch OS hero; no vehicles | Capacity partner hero + pain + quote CTA | W1   |
-| `/business`               | OS hero; fleet below fold     | Capacity hero; fleet above fold          | W2   |
-| `/pricing`                | Fake SaaS tiers               | Vehicle/zone/route bands                 | W1   |
-| `/platform`               | Sells uninvoicable software   | How we run your delivery                 | W2   |
-| `/developers`             | Top nav; API as product       | Footer; integrations by request          | W2   |
-| `/enterprise`             | Procurement theater           | Demote or merge into business programs   | W2   |
-| `/customers`              | “Dispatch OS” social proof    | Delivery outcome stories                 | W2   |
-| `/company`                | OS mission                    | Mission + phased vision                  | W2   |
-| `/contact`                | `intent=demo` default         | `intent=quote` default                   | W1   |
-| `/trust/*`                | Front-door enterprise GTM     | Keep; footer only; COI-first             | W2   |
-| `/industry/*`, city pages | Bridge to platform/demo       | Bridge to quote + fleet                  | W2   |
-| Legal                     | Software-first intro          | Delivery services first                  | W2   |
-| Nav/footer                | Platform, Developers, demo    | Services, quote, demoted ops links       | W1   |
+| Page                      | Was (pre-W1)                  | Target action                            | Wave | Status (`4a0a008`)    |
+| ------------------------- | ----------------------------- | ---------------------------------------- | ---- | --------------------- |
+| `/`                       | Dispatch OS hero; no vehicles | Capacity partner hero + pain + quote CTA | W1   | ✅                    |
+| `/business`               | OS hero; fleet below fold     | Capacity hero; fleet above fold          | W2   | ✅                    |
+| `/pricing`                | Fake SaaS tiers               | Vehicle/zone/route bands                 | W1   | ✅                    |
+| `/platform`               | Sells uninvoicable software   | How we run your delivery                 | W2   | ✅                    |
+| `/developers`             | Top nav; API as product       | Footer; integrations by request          | W2   | ✅                    |
+| `/enterprise`             | Procurement theater           | Dedicated capacity programs              | W2   | ✅                    |
+| `/customers`              | “Dispatch OS” social proof    | Delivery outcome stories                 | W2   | ✅                    |
+| `/company`                | OS mission                    | Mission + phased vision                  | W2   | ✅                    |
+| `/contact`                | `intent=demo` default         | `intent=quote` default                   | W1   | ✅                    |
+| `/trust/*`                | Front-door enterprise GTM     | Footer only; COI-first hub               | W2   | ⚠️ Nav ✅; body W2.8b |
+| `/industry/*`, city pages | Bridge to platform/demo       | Bridge to quote + fleet                  | W2   | ✅                    |
+| Legal                     | Software-first intro          | Delivery services first                  | W2   | ✅                    |
+| Nav/footer                | Platform, Developers, demo    | Services, quote, demoted ops links       | W1   | ✅                    |
+| Lane B SEO templates      | Dispatch OS body copy         | Capacity language at scale               | W3   | ⚠️ Open               |
 
 ---
 
-## Part 8 — Copy bank (Wave 1 targets — implement in `corporate-en.json` + `corporate-fr.json`)
+## Part 8 — Copy bank (shipped W1–W2 — reference in `corporate-en.json` + `corporate-fr.json`)
 
 ### Nav & CTAs
 
@@ -467,30 +503,33 @@ _Items marked [x] shipped **Dispatch OS GTM** — superseded by Waves 1–3 abov
 ## Part 9 — Validation commands
 
 ```bash
-# Product vision (update script in W1.8 — capacity language)
+# Product vision (capacity language — W1.8 shipped)
 apps/api/.venv/bin/python scripts/verify_product_vision_pages.py
 
-# i18n parity (corporate EN/FR)
+# i18n parity (corporate EN/FR — includes W2 FR parity)
 apps/api/.venv/bin/python scripts/verify_i18n_parity.py
 
 pnpm validate:product-vision
 pnpm --filter @porterchain/website build
 
-# Manual smoke (post Wave 1 — all should pass)
+# Manual smoke (post Waves 1–2 — all should pass)
 # 1. Open /en — title contains "Capacity" or "Delivery", NOT "Dispatch OS"
 # 2. Scroll home — vehicle classes or pain moment above fold; no SaaS product tour
 # 3. Nav CTA — "Get a quote" not "Get a demo"
-# 4. /pricing — no "$2k/mo platform" tiers
-# 5. /industry/construction-materials — bridge CTA = quote, not explore platform
-# 6. Top nav — no Developers or Platform as L1 (footer OK)
-# 7. /en/contact?intent=quote&from=industry/test — mailto/GA4 includes source
+# 4. /pricing — no "$2k/mo platform" tiers; Occasional / Recurring / Dedicated
+# 5. /business — fleet grid visible without deep scroll
+# 6. /platform — "How we run your delivery", not product SKU catalog
+# 7. /industry/construction-materials — bridge CTA = quote, not explore platform
+# 8. Top nav — no Developers or Platform as L1 (Resources dropdown OK)
+# 9. /en/contact?intent=quote&from=industry/test — GA4 `quote_request` + attribution
+# 10. /trust/dpa — optional: confirm procurement copy acceptable or schedule W2.8b
 ```
 
 ---
 
 ## Part 10 — What not to do
 
-- Do **not** optimize homepage for investors before first 100 customers pass Wave 1 gate
+- Do **not** optimize homepage for investors before first 100 customers pass the 15-second test in production
 - Do **not** sell Dispatch OS, AI, or platform subscriptions as today's product
 - Do **not** use “Get a demo” as global primary CTA
 - Do **not** lead legal/trust pages with procurement theater for seed-stage capacity sales
@@ -499,7 +538,7 @@ pnpm --filter @porterchain/website build
 - Do **not** put consumer `BookingWidget` on marketing homepage
 - Do **not** claim AI on website until a named shippable capability exists
 - Do **not** fork homepage metadata between `corporate-en.json` and `en.json`
-- Do **not** extend Dispatch OS guards — update them in W1.8
+- Do **not** extend Dispatch OS guards — ✅ updated in W1.8 (`4a0a008`)
 
 **Reject rule:** If a change makes the site look more “Silicon Valley” but reduces customer clarity in 15 seconds — **reject it**.
 
@@ -507,18 +546,18 @@ pnpm --filter @porterchain/website build
 
 ## Part 11 — Success metrics (90 days — first 100 customers)
 
-| Metric                                                      | Baseline (Jul 2026) | Target                                 |
-| ----------------------------------------------------------- | ------------------- | -------------------------------------- |
-| 15-second test pass (3 ICP personas)                        | Fail                | 3/3 can name vehicle + driver capacity |
-| Primary CTA click → quote intent                            | Demo-led            | >80% quote/capacity                    |
-| Sales disqualification: “thought you were software”         | High                | Rare                                   |
-| Sales disqualification: “thought you were consumer courier” | Medium              | Rare                                   |
-| Quote requests / month                                      | ?                   | +50% vs post-Wave-1 baseline           |
-| Repeat shipper conversion (2nd delivery within 30d)         | ?                   | Track in ops                           |
-| Lane B bridge → quote CTR                                   | ?                   | > bridge → platform (old)              |
-| `validate:product-vision`                                   | Enforces OS         | Enforces Capacity                      |
+| Metric                                                      | Baseline (pre-`4a0a008`) | Target (90d post-deploy)               |
+| ----------------------------------------------------------- | ------------------------ | -------------------------------------- |
+| 15-second test pass (3 ICP personas)                        | Fail                     | 3/3 can name vehicle + driver capacity |
+| Primary CTA click → quote intent                            | Demo-led                 | >80% quote/capacity                    |
+| Sales disqualification: “thought you were software”         | High                     | Rare                                   |
+| Sales disqualification: “thought you were consumer courier” | Medium                   | Rare                                   |
+| Quote requests / month                                      | ? (set at deploy)        | +50% vs post-deploy baseline           |
+| Repeat shipper conversion (2nd delivery within 30d)         | ?                        | Track in ops                           |
+| Lane B bridge → quote CTR                                   | ?                        | > historical bridge → platform         |
+| `validate:product-vision`                                   | Enforces OS              | ✅ Enforces Capacity (shipped)         |
 
-_Investor metrics (`/platform` organic, enterprise inbound “software”) — track but **do not optimize** until Wave 1–2 exit gates pass._
+_Investor metrics (`/platform` organic, enterprise inbound “software”) — track but **do not optimize** until 15-second test passes in production._
 
 ---
 
@@ -543,16 +582,18 @@ _Investor metrics (`/platform` organic, enterprise inbound “software”) — t
 
 ## Appendix C — Key implementation files
 
-| Area             | Primary files                                                                               |
-| ---------------- | ------------------------------------------------------------------------------------------- |
-| Homepage         | `website/src/app/[locale]/page.tsx`, `HomePlatformBody.tsx`, `Hero.tsx`, `corporate-*.json` |
-| Nav / CTA        | `SiteNavbar.tsx`, `navbar-navigation.ts`, `footer-navigation.ts`                            |
-| Business / fleet | `business-*.json`, `/business` page components                                              |
-| Pricing          | `corporate.pricing`, `PricingPageView`                                                      |
-| SEO bridge       | `PlatformBridgeSection.tsx` → reframe; industry/city/cluster views                          |
-| Schema           | `website/src/lib/seo/schema.ts`, `LaneASoftwareSchema.tsx` — **revisit W2.10**              |
-| Attribution      | `attribution.ts`, `zoho-attribution.ts`, `AttributionCapture.tsx` — keep                    |
-| Guards           | `scripts/verify_product_vision_pages.py` — **rewrite W1.8**                                 |
+| Area             | Primary files                                                                                                   |
+| ---------------- | --------------------------------------------------------------------------------------------------------------- |
+| Homepage         | `website/src/app/[locale]/page.tsx`, `HomePlatformBody.tsx`, `Hero.tsx`, `corporate-*.json`                     |
+| Nav / CTA        | `SiteNavbar.tsx`, `navbar-navigation.ts`, `footer-navigation.ts`                                                |
+| Business / fleet | `business-*.json`, `/business` page components                                                                  |
+| Pricing          | `corporate.pricing`, `PricingPageView`                                                                          |
+| SEO bridge       | `PlatformBridgeSection.tsx`, `IndustryLandingView.tsx`, `CityIndustryLandingView.tsx`, `ContentClusterView.tsx` |
+| Schema           | `schema.ts`, `HomeDeliverySchema.tsx`, `LaneASoftwareSchema.tsx` (demoted from home)                            |
+| Trust            | `website/src/app/[locale]/trust/*`, `TrustDocumentsSection.tsx` — W2.8b copy optional                           |
+| Attribution      | `attribution.ts`, `zoho-attribution.ts`, `AttributionCapture.tsx`                                               |
+| Guards           | `verify_product_vision_pages.py`, `verify_i18n_parity.py` — capacity-first ✅                                   |
+| Charter          | `docs/PORTERCHAIN_CHARTER.md`, `.cursor/rules/porterchain-charter.mdc`                                          |
 
 ---
 
