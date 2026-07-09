@@ -9,6 +9,7 @@ from porterchain_api.routers.admin._deps import (
     Depends,
     HTTPException,
     OrderBulkRequest,
+    OrderTemperatureRequest,
     OrderDashboardResponse,
     OrderDetail360Response,
     OrderListItem,
@@ -147,3 +148,63 @@ def order_timeline(
         }
         for e in events
     ]
+
+
+@router.get("/orders/{order_id}/audit-export")
+def order_audit_export(
+    order_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> dict:
+    """§8.1.4 — compliance audit trail export."""
+    require_module(ctx, "orders_read")
+    payload = _orders.audit_export(db, order_id)
+    if not payload:
+        raise HTTPException(status_code=404, detail="order_not_found")
+    return payload
+
+
+@router.post("/orders/{order_id}/temperature")
+def record_order_temperature(
+    order_id: str,
+    body: OrderTemperatureRequest,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """§8.1.3 — record cold-chain reading; alerts on excursion."""
+    require_module(ctx, "orders_write")
+    from porterchain_api.booking_engine.medical_compliance import MedicalComplianceService
+
+    try:
+        return MedicalComplianceService().record_temperature(
+            db,
+            settings,
+            order_id,
+            celsius=body.celsius,
+            actor_type="admin",
+            actor_id=ctx.user.id,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/orders/{order_id}/compliance-dossier.pdf")
+def order_compliance_dossier_pdf(
+    order_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+):
+    """§8.1.13 — compliance PDF dossier for audit / regulatory review."""
+    from fastapi.responses import Response
+
+    require_module(ctx, "orders_read")
+    result = _orders.compliance_dossier_pdf(db, order_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="order_not_found")
+    pdf, filename = result
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.auth.merchant import get_merchant_context
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
+from porterchain_api.compliance_engine.privacy_service import PrivacyService
 from porterchain_api.merchant_engine.api_key_service import MerchantApiKeyService
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
@@ -21,6 +22,7 @@ from porterchain_api.merchant_engine.profile_service import MerchantProfileServi
 from porterchain_api.merchant_engine.rbac import MerchantContext, require_module
 from porterchain_api.merchant_engine.reports_service import MerchantReportsService
 from porterchain_api.merchant_engine.settings_service import MerchantSettingsService
+from porterchain_api.merchant_engine.standing_order_service import MerchantStandingOrderService
 from porterchain_api.merchant_engine.support_bridge_service import MerchantSupportBridgeService
 from porterchain_api.merchant_engine.contacts_service import MerchantContactsService
 from porterchain_api.merchant_engine.team_service import MerchantTeamService
@@ -51,6 +53,8 @@ from porterchain_api.schemas_merchant import (
     MerchantBookingPreviewResponse,
     MerchantBookingTemplateCreateRequest,
     MerchantBookingTemplateResponse,
+    MerchantStandingOrderCreateRequest,
+    MerchantStandingOrderResponse,
     MerchantConsoleRequest,
     MerchantApiKeyRateLimitRequest,
     MerchantSandboxRequest,
@@ -105,6 +109,8 @@ _support = MerchantSupportBridgeService()
 _api_keys = MerchantApiKeyService()
 _integrations = MerchantIntegrationsService()
 _reports = MerchantReportsService()
+_privacy = PrivacyService()
+_standing_orders = MerchantStandingOrderService()
 
 
 def _order_response(order: Order) -> MerchantOrderResponse:
@@ -192,6 +198,8 @@ __all__ = [
     "MerchantBookingPreviewResponse",
     "MerchantBookingTemplateCreateRequest",
     "MerchantBookingTemplateResponse",
+    "MerchantStandingOrderCreateRequest",
+    "MerchantStandingOrderResponse",
     "MerchantBrandingRequest",
     "MerchantClaimOpenRequest",
     "MerchantConsoleRequest",
@@ -259,8 +267,10 @@ __all__ = [
     "_orders",
     "_profile",
     "_profile_response",
+    "_privacy",
     "_reports",
     "_settings",
+    "_standing_orders",
     "_support",
     "_team",
     "_tracking",

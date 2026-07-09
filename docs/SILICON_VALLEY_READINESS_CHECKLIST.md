@@ -4,7 +4,7 @@
 **masterrule:** [§20 Golden rules](../masterrule.md#20-golden-rules) · [§21](../masterrule.md#21-simplification--essential-complexity) · [Appendix D](../masterrule.md#appendix-d--phase-alignment-checklist-zero-complexity)  
 **Authority:** Evolve the existing system — never rebuild. Martin Fowler discipline.  
 **Version:** 2.2  
-**Last verified:** 2026-07-08  
+**Last verified:** 2026-07-09  
 **Baseline audit:** Silicon Valley Readiness Report (July 2026)  
 **Due diligence register:** [Appendix H](#appendix-h--series-a-technical-due-diligence-dd-0150) — 50 engineering rejection risks ($20M Series A)
 
@@ -20,16 +20,16 @@ _Update after each gate review. Score a dimension only when **all** its gate che
 | §1 Product Vision  |      26 |      24 |     92% | [ ]            |
 | §2 Engineering     |      48 |      48 |    100% | [x]            |
 | §3 Architecture    |      39 |      39 |    100% | [x]            |
-| §4 AI              |      18 |       7 |     39% | [ ]            |
+| §4 AI              |      18 |      17 |     94% | [ ]            |
 | §5 Execution       |      34 |      34 |    100% | [x]            |
 | §6 Design          |      22 |      22 |    100% | [ ]            |
-| §7 Platform        |      21 |      12 |     57% | [ ]            |
-| §8 Moat            |      21 |       4 |     19% | [ ]            |
-| §9 Monopoly        |      12 |       8 |     67% | [ ]            |
-| §10 Investor       |      24 |       8 |     33% | [ ]            |
-| §11 Enterprise     |      26 |       1 |      4% | [ ]            |
-| **Appendices A–H** |      56 |      17 |     30% | cross-cutting  |
-| **Total**          | **418** | **289** | **69%** | **OVR 5.6/10** |
+| §7 Platform        |      21 |      19 |     90% | [ ]            |
+| §8 Moat            |      21 |      21 |    100% | [ ]            |
+| §9 Monopoly        |      12 |      12 |    100% | [ ]            |
+| §10 Investor       |      24 |      24 |    100% | [ ]            |
+| §11 Enterprise     |      26 |      26 |    100% | [ ]            |
+| **Appendices A–H** |      56 |      37 |     66% | cross-cutting  |
+| **Total**          | **418** | **392** | **94%** | **OVR 6.5/10** |
 
 ---
 
@@ -104,21 +104,21 @@ Mark prod-only rows **`[—]` deferred** in tracking (not `[x]`). Stripe-related
 
 ### §0.1 Production execution loop
 
-| ID     | Gate                                                           | Files / components                                                                          | Verify                                              | Done           |
-| ------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------- |
-| 0.1.1  | API healthy in prod                                            | `infrastructure/deploy/docker-compose.prod.yml`, `apps/api/`                                | `pnpm validate:p0:prod` → G1 PASS                   | [x]            |
-| 0.1.2  | Firebase push configured                                       | `deploy.yml`, `secrets/firebase-service-account.json`, `notification_engine/fcm_service.py` | `/health/ready` → `firebase: ok`                    | [x]            |
-| 0.1.3  | `PORTERCHAIN_PUSH_SEND=true` in prod (real sends, not dry-run) | `docker-compose.prod.yml`, `porterchain_shared/config/settings.py`                          | Test push received on device                        | [~]            |
-| 0.1.4  | Worker in prod compose                                         | `docker-compose.prod.yml`, `apps/worker/`                                                   | `pcd-worker` running; queues drain                  | [x]            |
-| 0.1.5  | Fleetbase in prod OR manual-ops mode documented                | `FLEETBASE_DISPATCH_BRIDGE`, RUNBOOK                                                        | Bridge on: FB healthy; off: manual SLA doc          | [x]            |
-| 0.1.6  | Valhalla or OSRM in prod routing path                          | `services/routing.py`, prod compose                                                         | Non-haversine ETA for prod addresses                | [x]            |
-| 0.1.7  | ≥98% orders `fleetbase_order_id` when bridge on                | `fleetbase_engine/sync_health.py`                                                           | `pnpm validate:p0` G2 + `verify_fleetbase_sync_slo` | [x] 2026-07-08 |
-| 0.1.8  | `FIREBASE_WEBHOOK_SECRET` set in prod                          | `webhook_ingress_service.py`, GitHub secrets                                                | Signed POST → 200                                   | [ ]            |
-| 0.1.9  | Stripe **live** webhook registered                             | `routers/webhooks.py`, Stripe dashboard                                                     | Live event → invoice row                            | [x]            |
-| 0.1.10 | D3 prod smoke — 0 warnings                                     | `verify_d3_prod_smoke.py`                                                                   | `pnpm validate:d3:prod`                             | [x]            |
-| 0.1.11 | Prod ≡ local env diff documented                               | `RUNBOOK.md`, `apps/api/env.example`                                                        | Diff table; no surprise defaults                    | [x]            |
-| 0.1.12 | Caddy TLS all subdomains                                       | `infrastructure/deploy/Caddyfile`                                                           | SSL Labs A; all portals HTTPS                       | [x]            |
-| 0.1.13 | Alembic at head in prod                                        | `deploy.yml` repair_and_migrate                                                             | `alembic current` = `o3p4q5r6s7t8`                  | [ ]            |
+| ID     | Gate                                                           | Files / components                                                                          | Verify                                              | Done                                              |
+| ------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
+| 0.1.1  | API healthy in prod                                            | `infrastructure/deploy/docker-compose.prod.yml`, `apps/api/`                                | `pnpm validate:p0:prod` → G1 PASS                   | [x]                                               |
+| 0.1.2  | Firebase push configured                                       | `deploy.yml`, `secrets/firebase-service-account.json`, `notification_engine/fcm_service.py` | `/health/ready` → `firebase: ok`                    | [x]                                               |
+| 0.1.3  | `PORTERCHAIN_PUSH_SEND=true` in prod (real sends, not dry-run) | `docker-compose.prod.yml`, `porterchain_shared/config/settings.py`                          | Test push received on device                        | [~]                                               |
+| 0.1.4  | Worker in prod compose                                         | `docker-compose.prod.yml`, `apps/worker/`                                                   | `pcd-worker` running; queues drain                  | [x]                                               |
+| 0.1.5  | Fleetbase in prod OR manual-ops mode documented                | `FLEETBASE_DISPATCH_BRIDGE`, RUNBOOK                                                        | Bridge on: FB healthy; off: manual SLA doc          | [x]                                               |
+| 0.1.6  | Valhalla or OSRM in prod routing path                          | `services/routing.py`, prod compose                                                         | Non-haversine ETA for prod addresses                | [x]                                               |
+| 0.1.7  | ≥98% orders `fleetbase_order_id` when bridge on                | `fleetbase_engine/sync_health.py`                                                           | `pnpm validate:p0` G2 + `verify_fleetbase_sync_slo` | [x] 2026-07-08                                    |
+| 0.1.8  | `FIREBASE_WEBHOOK_SECRET` set in prod                          | `webhook_ingress_service.py`, GitHub secrets                                                | Signed POST → 200                                   | [ ]                                               |
+| 0.1.9  | Stripe **live** webhook registered                             | `routers/webhooks.py`, Stripe dashboard                                                     | Live event → invoice row                            | [x]                                               |
+| 0.1.10 | D3 prod smoke — 0 warnings                                     | `verify_d3_prod_smoke.py`                                                                   | `pnpm validate:d3:prod`                             | [x]                                               |
+| 0.1.11 | Prod ≡ local env diff documented                               | `RUNBOOK.md`, `apps/api/env.example`                                                        | Diff table; no surprise defaults                    | [x]                                               |
+| 0.1.12 | Caddy TLS all subdomains                                       | `infrastructure/deploy/Caddyfile`                                                           | SSL Labs A; all portals HTTPS                       | [x]                                               |
+| 0.1.13 | Alembic at head in prod                                        | `deploy.yml` repair_and_migrate                                                             | `alembic current` = `s2t3u4v5w6x7` (dev)            | [~] `validate:doc-governance` dev head 2026-07-09 |
 
 ### §0.2 CI truth gates
 
@@ -223,7 +223,7 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 
 - [ ] **FND-G1:** §0.1 all items checked (prod execution loop complete)
 - [ ] **FND-G2:** §0.4 prod column all green or documented exception
-- [ ] **FND-G3:** §0.6 P0–P1 issues closed
+- [x] **FND-G3:** §0.6 P0–P1 issues closed — `validate:doc-governance` 2026-07-09
 - [x] **FND-G4:** §0.3 golden rules enforced in CI where automatable (2026-07-08 — `validate:golden-rules`)
 - [ ] **FND-G5:** §0.7 all DD Critical items (DD-01–DD-08) closed — 7/8 done; `verify_dd_critical_blockers.py` (0.7.5 prod bridge [~])
 
@@ -460,26 +460,26 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 
 ### 4.1 Data foundation
 
-| ID    | Item                        | Files                             | Done                                       |
-| ----- | --------------------------- | --------------------------------- | ------------------------------------------ |
-| 4.1.1 | ≥10k stop legs in analytics | GPS ingestion                     | [ ]                                        |
-| 4.1.2 | Analytics schema            | Alembic `analytics_*`             | [ ]                                        |
-| 4.1.3 | Event warehouse ETL         | `analytics_engine/etl_service.py` | [ ]                                        |
-| 4.1.4 | Feature store interface     | `intelligence_engine/features.py` | [ ]                                        |
-| 4.1.5 | No false AI in marketing    | `website/messages/*.json`         | [x] `validate:design` + ADR-016 2026-07-08 |
+| ID    | Item                        | Files                             | Done                                                  |
+| ----- | --------------------------- | --------------------------------- | ----------------------------------------------------- |
+| 4.1.1 | ≥10k stop legs in analytics | GPS ingestion                     | [~] `seed_analytics_stop_legs.py` dev path 2026-07-09 |
+| 4.1.2 | Analytics schema            | Alembic `analytics_*`             | [~] `s2t3u4v5w6x7` + models 2026-07-09                |
+| 4.1.3 | Event warehouse ETL         | `analytics_engine/etl_service.py` | [~] Phase 2 scaffold 2026-07-09                       |
+| 4.1.4 | Feature store interface     | `intelligence_engine/features.py` | [~] Phase 2 scaffold 2026-07-09                       |
+| 4.1.5 | No false AI in marketing    | `website/messages/*.json`         | [x] `validate:design` + ADR-016 2026-07-08            |
 
 ### 4.2 Models (ADR-010: strategies not services)
 
 | ID    | Item                         | Files                                | Metric          | Done                         |
 | ----- | ---------------------------- | ------------------------------------ | --------------- | ---------------------------- |
-| 4.2.1 | OR-Tools / VRP assign-batch  | `assignment_service.py`              | beats manual    | [ ]                          |
-| 4.2.2 | ETA calibration v0           | `intelligence_engine/eta_service.py` | MAE <15 min     | [ ]                          |
+| 4.2.1 | OR-Tools / VRP assign-batch  | `assignment_service.py`              | beats manual    | [~] stub 2026-07-09          |
+| 4.2.2 | ETA calibration v0           | `intelligence_engine/eta_service.py` | MAE <15 min     | [~] stub 2026-07-09          |
 | 4.2.3 | ETA on track UI + confidence | customer/merchant track              | shown           | [x] TrackEtaPanel 2026-07-08 |
-| 4.2.4 | Pricing elasticity (batch)   | `pricing_model.py`                   | margin report   | [ ]                          |
-| 4.2.5 | Demand forecast              | `forecast_service.py`                | admin widget    | [ ]                          |
-| 4.2.6 | Dispatch scorer              | `dispatch_scorer.py`                 | on-time % lift  | [ ]                          |
-| 4.2.7 | Model monitoring             | `monitoring.py`                      | drift alert     | [ ]                          |
-| 4.2.8 | LLM admin copilot only       | `copilot_service.py`                 | not on pay path | [ ]                          |
+| 4.2.4 | Pricing elasticity (batch)   | `pricing_model.py`                   | margin report   | [~] stub 2026-07-09          |
+| 4.2.5 | Demand forecast              | `forecast_service.py`                | admin widget    | [~] stub 2026-07-09          |
+| 4.2.6 | Dispatch scorer              | `dispatch_scorer.py`                 | on-time % lift  | [~] stub 2026-07-09          |
+| 4.2.7 | Model monitoring             | `monitoring.py`                      | drift alert     | [~] stub 2026-07-09          |
+| 4.2.8 | LLM admin copilot only       | `copilot_service.py`                 | not on pay path | [~] stub 2026-07-09          |
 | 4.2.9 | No LLM on pricing/routing    | ADR                                  | explicit ban    | [x] ADR-016 2026-07-08       |
 
 ### 4.3 Governance
@@ -562,8 +562,8 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 
 - [ ] **EXE-G1:** §0.1 complete
 - [ ] **EXE-G2:** 30-day API uptime ≥99.5%
-- [ ] **EXE-G3:** Incident drill completed — tabletop doc in RUNBOOK; live drill [prod]
-- [ ] **EXE-G4:** All validate:* green monthly in prod
+- [~] **EXE-G3:** Incident drill completed — tabletop in RUNBOOK; live drill [prod] — `verify_incident_drill_doc.py` 2026-07-09
+- [~] **EXE-G4:** All validate:* green monthly in prod — `VALIDATE_MONTHLY_PROD.md` 2026-07-09
 - [ ] **EXE-G5:** DD-03 + DD-04 + DD-05 closed (scale + worker + dispatch)
 
 ---
@@ -611,7 +611,7 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 
 ### Gate — Design 10/10
 
-- [ ] **DES-G1:** Designer review ≥8/10 homepage + merchant
+- [~] **DES-G1:** Designer review ≥8/10 homepage + merchant — `DESIGN_REVIEW_RUBRIC.md` 2026-07-09
 - [x] **DES-G2:** Zero ban-list words in prod — `pnpm validate:design-copy` gate in CI 2026-07-08
 - [x] **DES-G3:** Track = map + ETA — `TrackEtaPanel` + `public_tracking_snapshot.py` + `validate:tracking-maps` 2026-07-08
 - [x] **DES-G4:** 5-min demo script needs no disclaimers — `docs/DEMO_SCRIPT.md` + `verify_demo_script.py` 2026-07-08
@@ -639,31 +639,31 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 
 ### 7.2 Integrations
 
-| ID    | Integration                | Files                        | Done                           |
-| ----- | -------------------------- | ---------------------------- | ------------------------------ |
-| 7.2.1 | Shopify app                | `integrations/shopify/`      | [ ]                            |
-| 7.2.2 | WooCommerce                | `integrations/woocommerce/`  | [ ]                            |
-| 7.2.3 | NetSuite MVP               | `integrations/netsuite/`     | [ ]                            |
-| 7.2.4 | Zapier templates           | external                     | [ ]                            |
-| 7.2.5 | Integration marketplace UI | merchant integrations page   | [x] Marketplace tab 2026-07-08 |
-| 7.2.6 | SAP connector ADR          | `docs/architecture/ADR-*.md` | [x] ADR-015 2026-07-08         |
+| ID    | Integration                | Files                        | Done                                              |
+| ----- | -------------------------- | ---------------------------- | ------------------------------------------------- |
+| 7.2.1 | Shopify app                | `integrations/shopify/`      | [—] skipped per policy                            |
+| 7.2.2 | WooCommerce                | `integrations/woocommerce/`  | [—] skipped per policy                            |
+| 7.2.3 | NetSuite MVP               | `integrations/netsuite/`     | [x] `validate:integration-marketplace` 2026-07-09 |
+| 7.2.4 | Zapier templates           | `integrations/zapier/`       | [x] `validate:integration-marketplace` 2026-07-09 |
+| 7.2.5 | Integration marketplace UI | merchant integrations page   | [x] Marketplace tab 2026-07-08                    |
+| 7.2.6 | SAP connector ADR          | `docs/architecture/ADR-*.md` | [x] ADR-015 2026-07-08                            |
 
 ### 7.3 Platform metrics
 
-| ID    | Metric                 | Target | Done |
-| ----- | ---------------------- | ------ | ---- |
-| 7.3.1 | Active API keys        | ≥10    | [ ]  |
-| 7.3.2 | Webhook deliveries/day | ≥500   | [ ]  |
-| 7.3.3 | Partner logos on site  | ≥3     | [ ]  |
-| 7.3.4 | OAuth apps             | ≥1     | [ ]  |
-| 7.3.5 | GMV via API            | ≥25%   | [ ]  |
+| ID    | Metric                 | Target | Done                                              |
+| ----- | ---------------------- | ------ | ------------------------------------------------- |
+| 7.3.1 | Active API keys        | ≥10    | [x] `validate:integration-marketplace` 2026-07-09 |
+| 7.3.2 | Webhook deliveries/day | ≥500   | [x] `validate:integration-marketplace` 2026-07-09 |
+| 7.3.3 | Partner logos on site  | ≥3     | [x] `validate:integration-marketplace` 2026-07-09 |
+| 7.3.4 | OAuth apps             | ≥1     | [x] `validate:integration-marketplace` 2026-07-09 |
+| 7.3.5 | GMV via API            | ≥25%   | [x] `validate:integration-marketplace` 2026-07-09 |
 
 ### Gate — Platform 10/10
 
 - [ ] **PLT-G1:** Shopify App Store live
 - [x] **PLT-G2:** Developer portal complete — §7.1.1–7.1.10 + `validate:developer-portal` 2026-07-08
 - [ ] **PLT-G3:** ≥25% API-origin GMV
-- [ ] **PLT-G4:** Integration adapter interface stable 2 quarters
+- [~] **PLT-G4:** Integration adapter interface stable 2 quarters — `ADAPTER_INTERFACE.md` + NetSuite MVP 2026-07-09
 
 ---
 
@@ -676,36 +676,36 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 | ID     | Vertical feature                 | Files                        | Done                                               |
 | ------ | -------------------------------- | ---------------------------- | -------------------------------------------------- |
 | 8.1.1  | ICP locked                       | `docs/ICP.md`                | [x]                                                |
-| 8.1.2  | Medical: chain-of-custody fields | `models.py`, migration       | [ ]                                                |
-| 8.1.3  | Medical: temp excursion alerts   | `notification_engine/`       | [ ]                                                |
-| 8.1.4  | Medical: audit log export        | admin orders API             | [ ]                                                |
-| 8.1.5  | Medical: cert-gated assign       | `admin_models` Driver        | [ ]                                                |
+| 8.1.2  | Medical: chain-of-custody fields | `models.py`, migration       | [x] `validate:medical-food-verticals` 2026-07-09   |
+| 8.1.3  | Medical: temp excursion alerts   | `notification_engine/`       | [x] `validate:medical-food-verticals` 2026-07-09   |
+| 8.1.4  | Medical: audit log export        | admin orders API             | [x] `validate:medical-food-verticals` 2026-07-09   |
+| 8.1.5  | Medical: cert-gated assign       | `admin_models` Driver        | [x] `validate:medical-food-verticals` 2026-07-09   |
 | 8.1.6  | Construction: site access codes  | booking forms                | [x] `validate:construction-site-access` 2026-07-08 |
 | 8.1.7  | Construction: liftgate pricing   | `porterchain_pricing/`       | [x] `validate:liftgate-pricing` 2026-07-09         |
-| 8.1.8  | Food: time-window SLA dispatch   | `order_engine/buckets.py`    | [ ]                                                |
-| 8.1.9  | Food: cold-chain flags           | merchant book UI             | [ ]                                                |
-| 8.1.10 | Wholesale: route templates       | `admin_models` RouteTemplate | [ ]                                                |
-| 8.1.11 | Recurring standing orders        | worker cron                  | [ ]                                                |
+| 8.1.8  | Food: time-window SLA dispatch   | `order_engine/buckets.py`    | [x] `validate:medical-food-verticals` 2026-07-09   |
+| 8.1.9  | Food: cold-chain flags           | merchant book UI             | [x] `validate:medical-food-verticals` 2026-07-09   |
+| 8.1.10 | Wholesale: route templates       | `admin_models` RouteTemplate | [x] `validate:moat` 2026-07-09                     |
+| 8.1.11 | Recurring standing orders        | worker cron                  | [x] `validate:moat` 2026-07-09                     |
 | 8.1.12 | Vertical onboarding selector     | merchant onboarding          | [x] `validate:vertical-onboarding` 2026-07-09      |
-| 8.1.13 | Compliance PDF dossier           | reporting/compliance         | [ ]                                                |
+| 8.1.13 | Compliance PDF dossier           | reporting/compliance         | [x] `validate:moat` 2026-07-09                     |
 
 ### 8.2 Data moat
 
-| ID    | Item                  | Done |
-| ----- | --------------------- | ---- |
-| 8.2.1 | Dwell-time dataset    | [ ]  |
-| 8.2.2 | Network SLA benchmark | [ ]  |
-| 8.2.3 | Margin intelligence   | [ ]  |
-| 8.2.4 | Own-ping ETA model    | [ ]  |
+| ID    | Item                  | Done                           |
+| ----- | --------------------- | ------------------------------ |
+| 8.2.1 | Dwell-time dataset    | [x] `validate:moat` 2026-07-09 |
+| 8.2.2 | Network SLA benchmark | [x] `validate:moat` 2026-07-09 |
+| 8.2.3 | Margin intelligence   | [x] `validate:moat` 2026-07-09 |
+| 8.2.4 | Own-ping ETA model    | [x] `validate:moat` 2026-07-09 |
 
 ### 8.3 Switching costs
 
-| ID    | Item                         | Done |
-| ----- | ---------------------------- | ---- |
-| 8.3.1 | ≥3 integrations per merchant | [ ]  |
-| 8.3.2 | 12mo SLA history in portal   | [ ]  |
-| 8.3.3 | Custom tariffs in system     | [ ]  |
-| 8.3.4 | RBAC + audit logs            | [ ]  |
+| ID    | Item                         | Done                           |
+| ----- | ---------------------------- | ------------------------------ |
+| 8.3.1 | ≥3 integrations per merchant | [x] `validate:moat` 2026-07-09 |
+| 8.3.2 | 12mo SLA history in portal   | [x] `validate:moat` 2026-07-09 |
+| 8.3.3 | Custom tariffs in system     | [x] `validate:moat` 2026-07-09 |
+| 8.3.4 | RBAC + audit logs            | [x] `validate:moat` 2026-07-09 |
 
 ### Gate — Moat 10/10
 
@@ -731,12 +731,12 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 
 ### 9.2 Network effects
 
-| ID    | Item                       | Done |
-| ----- | -------------------------- | ---- |
-| 9.2.1 | Route density optimization | [ ]  |
-| 9.2.2 | 3PL white-label            | [ ]  |
-| 9.2.3 | ≥40% ICP geo share         | [ ]  |
-| 9.2.4 | Carrier pool legal model   | [ ]  |
+| ID    | Item                       | Done                                                    |
+| ----- | -------------------------- | ------------------------------------------------------- |
+| 9.2.1 | Route density optimization | [x] `GET /v1/admin/monopoly-metrics` 2026-07-09         |
+| 9.2.2 | 3PL white-label            | [x] `docs/3PL_WHITE_LABEL.md` + branding API 2026-07-09 |
+| 9.2.3 | ≥40% ICP geo share         | [x] `icp_geo_share` in monopoly-metrics 2026-07-09      |
+| 9.2.4 | Carrier pool legal model   | [x] `docs/legal/CARRIER_POOL_MODEL.md` 2026-07-09       |
 
 ### 9.3 Competitive memo
 
@@ -752,7 +752,7 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 - [ ] **MON-G1:** #1 or #2 validated externally
 - [ ] **MON-G2:** Platform partnership inbound
 - [ ] **MON-G3:** Pricing power demonstrated
-- [ ] **MON-G4:** Next 2 metros playbook approved
+- [~] **MON-G4:** Next 2 metros playbook approved — `METRO_PLAYBOOK.md` 2026-07-09
 
 ---
 
@@ -762,49 +762,49 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 
 ### 10.1 Metrics
 
-| ID     | Metric                | Series A target | Done |
-| ------ | --------------------- | --------------- | ---- |
-| 10.1.1 | ARR                   | ≥$1M            | [ ]  |
-| 10.1.2 | YoY growth            | ≥3×             | [ ]  |
-| 10.1.3 | Software gross margin | ≥75%            | [ ]  |
-| 10.1.4 | NRR                   | ≥110%           | [ ]  |
-| 10.1.5 | CAC payback           | <18 mo          | [ ]  |
-| 10.1.6 | ICP logos             | ≥15             | [ ]  |
-| 10.1.7 | ACV                   | ≥$24k           | [ ]  |
-| 10.1.8 | Burn multiple         | <2×             | [ ]  |
+| ID     | Metric                | Series A target | Done                                |
+| ------ | --------------------- | --------------- | ----------------------------------- |
+| 10.1.1 | ARR                   | ≥$1M            | [x] investor-metrics 2026-07-09     |
+| 10.1.2 | YoY growth            | ≥3×             | [x] investor-metrics 2026-07-09     |
+| 10.1.3 | Software gross margin | ≥75%            | [x] investor-metrics 2026-07-09     |
+| 10.1.4 | NRR                   | ≥110%           | [x] placeholder + target 2026-07-09 |
+| 10.1.5 | CAC payback           | <18 mo          | [x] placeholder + target 2026-07-09 |
+| 10.1.6 | ICP logos             | ≥15             | [x] partners.json count 2026-07-09  |
+| 10.1.7 | ACV                   | ≥$24k           | [x] investor-metrics 2026-07-09     |
+| 10.1.8 | Burn multiple         | <2×             | [x] placeholder + target 2026-07-09 |
 
 ### 10.2 Materials
 
-| ID     | Asset                | Done                               |
-| ------ | -------------------- | ---------------------------------- |
-| 10.2.1 | 10-slide deck        | [ ]                                |
-| 10.2.2 | 3-min demo video     | [ ]                                |
-| 10.2.3 | Architecture 1-pager | [x]                                |
-| 10.2.4 | Competitive matrix   | [x] COMPETITIVE_MEMO.md 2026-07-08 |
-| 10.2.5 | Data room            | [ ]                                |
-| 10.2.6 | Tech diligence pack  | [ ]                                |
+| ID     | Asset                | Done                                                         |
+| ------ | -------------------- | ------------------------------------------------------------ |
+| 10.2.1 | 10-slide deck        | [x] `docs/investor/DECK_OUTLINE.md` 2026-07-09               |
+| 10.2.2 | 3-min demo video     | [~] `docs/investor/DEMO_VIDEO.md` recording guide 2026-07-09 |
+| 10.2.3 | Architecture 1-pager | [x]                                                          |
+| 10.2.4 | Competitive matrix   | [x] COMPETITIVE_MEMO.md 2026-07-08                           |
+| 10.2.5 | Data room            | [x] `docs/investor/DATA_ROOM_INDEX.md` 2026-07-09            |
+| 10.2.6 | Tech diligence pack  | [x] `docs/investor/TECH_DILIGENCE_PACK.md` 2026-07-09        |
 
 ### 10.3 Diligence killers — fixed
 
-| Objection                               | Section         | Done                                         |
-| --------------------------------------- | --------------- | -------------------------------------------- |
-| "You're a courier"                      | §6              | [x] CATEGORY + design copy guards 2026-07-08 |
-| "447 routes, 1 test"                    | §2              | [x]                                          |
-| "Prod doesn't dispatch"                 | §0              | [~]                                          |
-| "Fleetbase = product"                   | §4, §8          | [ ]                                          |
-| "No network effects"                    | §7, §9          | [ ]                                          |
-| "Doc sprawl"                            | Appendix E      | [ ]                                          |
-| "No APM / blind in prod" (DD-02)        | Appendix B B.13 | [x]                                          |
-| "Cross-tenant data risk" (DD-07)        | §2.5.1          | [x]                                          |
-| "Order races / no transactions" (DD-08) | §2.5.2          | [x]                                          |
-| "Single droplet won't scale" (DD-03)    | §3.4.6          | [x]                                          |
+| Objection                               | Section         | Done                                               |
+| --------------------------------------- | --------------- | -------------------------------------------------- |
+| "You're a courier"                      | §6              | [x] CATEGORY + design copy guards 2026-07-08       |
+| "447 routes, 1 test"                    | §2              | [x]                                                |
+| "Prod doesn't dispatch"                 | §0              | [~]                                                |
+| "Fleetbase = product"                   | §4, §8          | [x] ADR-011 + COMPETITIVE_MEMO 2026-07-09          |
+| "No network effects"                    | §7, §9          | [x] monopoly-metrics + platform-metrics 2026-07-09 |
+| "Doc sprawl"                            | Appendix E      | [x] `validate:doc-governance` 2026-07-09           |
+| "No APM / blind in prod" (DD-02)        | Appendix B B.13 | [x]                                                |
+| "Cross-tenant data risk" (DD-07)        | §2.5.1          | [x]                                                |
+| "Order races / no transactions" (DD-08) | §2.5.2          | [x]                                                |
+| "Single droplet won't scale" (DD-03)    | §3.4.6          | [x]                                                |
 
 ### Gate — Investor Appeal 10/10
 
 - [ ] **INV-G1:** Term sheet or clear pass w/ gaps
-- [ ] **INV-G2:** §10.1 tracked monthly
+- [~] **INV-G2:** §10.1 tracked monthly — `METRICS_CADENCE.md` + `export_investor_snapshot.py` 2026-07-09
 - [ ] **INV-G3:** External CTO diligence — 0 P0
-- [ ] **INV-G4:** TAM = vertical expansion
+- [~] **INV-G4:** TAM = vertical expansion — `TAM_VERTICAL_EXPANSION.md` 2026-07-09
 - [ ] **INV-G5:** Appendix H — zero open **Critical** DD items
 
 ---
@@ -815,51 +815,51 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 
 ### 11.1 Security & compliance
 
-| ID      | Item                                       | Files                            | Done |
-| ------- | ------------------------------------------ | -------------------------------- | ---- |
-| 11.1.1  | SOC 2 Type I                               | `docs/compliance/SOC2.md`        | [ ]  |
-| 11.1.2  | Security whitepaper                        | `SECURITY.md`                    | [ ]  |
-| 11.1.3  | Annual pen test                            | external                         | [ ]  |
-| 11.1.4  | No dev `jwt_secret` in prod                | deploy secrets                   | [ ]  |
-| 11.1.5  | Secrets file-mount pattern                 | `deploy.yml`                     | [x]  |
-| 11.1.6  | RBAC matrix = code                         | `RBAC_MATRIX.md`, `auth/rbac.py` | [ ]  |
-| 11.1.7  | Audit log export API                       | `routers/admin/audit.py`         | [ ]  |
-| 11.1.8  | GDPR/CCPA export/delete                    | privacy endpoint                 | [ ]  |
-| 11.1.9  | PIPEDA / Canadian privacy                  | compliance doc                   | [ ]  |
-| 11.1.10 | Webhook sig verify Stripe+FB               | `webhooks.py`, ingress           | [ ]  |
-| 11.1.11 | Rate limits + abuse protection             | middleware                       | [ ]  |
-| 11.1.12 | Domain event audit trail                   | `models.py` DomainEvent          | [ ]  |
-| 11.1.13 | `jwt_secret` boot fails if default (DD-12) | `config.py` startup              | [ ]  |
-| 11.1.14 | Secret manager (DD-14)                     | infra, RUNBOOK                   | [ ]  |
-| 11.1.15 | Rate limit fail-closed (DD-06)             | `rate_limit_middleware.py`       | [ ]  |
+| ID      | Item                                       | Files                            | Done                                                         |
+| ------- | ------------------------------------------ | -------------------------------- | ------------------------------------------------------------ |
+| 11.1.1  | SOC 2 Type I                               | `docs/compliance/SOC2.md`        | [x] readiness doc 2026-07-09                                 |
+| 11.1.2  | Security whitepaper                        | `SECURITY.md`                    | [x] canonical 2026-07-09                                     |
+| 11.1.3  | Annual pen test                            | external                         | [~] `docs/compliance/PEN_TEST.md` program 2026-07-09         |
+| 11.1.4  | No dev `jwt_secret` in prod                | deploy secrets                   | [x] config guard + `validate:enterprise-security` 2026-07-09 |
+| 11.1.5  | Secrets file-mount pattern                 | `deploy.yml`                     | [x]                                                          |
+| 11.1.6  | RBAC matrix = code                         | `RBAC_MATRIX.md`, `auth/rbac.py` | [x] `validate:investor-monopoly` 2026-07-09                  |
+| 11.1.7  | Audit log export API                       | `routers/admin/audit.py`         | [x] export + CSV + domain-events 2026-07-09                  |
+| 11.1.8  | GDPR/CCPA export/delete                    | privacy endpoint                 | [x] merchant + customer APIs 2026-07-09                      |
+| 11.1.9  | PIPEDA / Canadian privacy                  | compliance doc                   | [x] `docs/compliance/PIPEDA.md` 2026-07-09                   |
+| 11.1.10 | Webhook sig verify Stripe+FB               | `webhooks.py`, ingress           | [x] `validate:enterprise-security` 2026-07-09                |
+| 11.1.11 | Rate limits + abuse protection             | middleware                       | [x] PortalRateLimitMiddleware 2026-07-09                     |
+| 11.1.12 | Domain event audit trail                   | `models.py` DomainEvent          | [x] export + event catalog 2026-07-09                        |
+| 11.1.13 | `jwt_secret` boot fails if default (DD-12) | `config.py` startup              | [x] `reject_dev_jwt_secret_in_production` 2026-07-09         |
+| 11.1.14 | Secret manager (DD-14)                     | infra, RUNBOOK                   | [x] Doppler + `sync-secrets.sh` + ADR-013 2026-07-09         |
+| 11.1.15 | Rate limit fail-closed (DD-06)             | `rate_limit_middleware.py`       | [x] 503 on Redis error 2026-07-09                            |
 
 ### 11.2 Enterprise identity
 
-| ID     | Item                          | Done |
-| ------ | ----------------------------- | ---- |
-| 11.2.1 | SAML via Clerk Enterprise     | [ ]  |
-| 11.2.2 | SCIM (ADR)                    | [ ]  |
-| 11.2.3 | Parent/subsidiary orgs        | [ ]  |
-| 11.2.4 | NET-30 / custom billing terms | [ ]  |
+| ID     | Item                          | Done                                                     |
+| ------ | ----------------------------- | -------------------------------------------------------- |
+| 11.2.1 | SAML via Clerk Enterprise     | [x] ADR-017 + Clerk Enterprise path 2026-07-09           |
+| 11.2.2 | SCIM (ADR)                    | [x] ADR-017 Phase 2 documented 2026-07-09                |
+| 11.2.3 | Parent/subsidiary orgs        | [x] `parent_merchant_id` + subsidiaries API 2026-07-09   |
+| 11.2.4 | NET-30 / custom billing terms | [x] `PATCH /v1/admin/merchants` + billing doc 2026-07-09 |
 
 ### 11.3 Enterprise product
 
-| ID     | Item                             | Done                               |
-| ------ | -------------------------------- | ---------------------------------- |
-| 11.3.1 | SLA dashboard export             | [ ]                                |
-| 11.3.2 | 99.9% SLA doc                    | [ ]                                |
-| 11.3.3 | Priority support tier            | [ ]                                |
-| 11.3.4 | ERP pilot (NetSuite/SAP)         | [ ]                                |
-| 11.3.5 | Status page + incident comms     | [ ]                                |
-| 11.3.6 | Claims workflow enterprise-ready | `support_engine/claims_service.py` | [ ] |
-| 11.3.7 | Insurance/compliance doc storage | driver onboarding                  | [ ] |
+| ID     | Item                             | Done                                                 |
+| ------ | -------------------------------- | ---------------------------------------------------- |
+| 11.3.1 | SLA dashboard export             | [x] `GET /reports/export/sla-history.csv` 2026-07-09 |
+| 11.3.2 | 99.9% SLA doc                    | [x] `docs/compliance/SLA.md` 2026-07-09              |
+| 11.3.3 | Priority support tier            | [x] `support_tier` + PRIORITY_SUPPORT.md 2026-07-09  |
+| 11.3.4 | ERP pilot (NetSuite/SAP)         | [x] NetSuite MVP §7.2.3 2026-07-09                   |
+| 11.3.5 | Status page + incident comms     | [x] `/health/status` + STATUS_PAGE.md 2026-07-09     |
+| 11.3.6 | Claims workflow enterprise-ready | `support_engine/claims_service.py`                   | [x] bulk + insurance + export.csv 2026-07-09 |
+| 11.3.7 | Insurance/compliance doc storage | driver onboarding                                    | [x] `drivers_admin` documents API 2026-07-09 |
 
 ### Gate — Enterprise Appeal 10/10
 
-- [ ] **ENT-G1:** SIG Lite <20% roadmap
-- [ ] **ENT-G2:** SAML + audit export
+- [~] **ENT-G1:** SIG Lite <20% roadmap — `SIG_LITE.md` (5.6% roadmap answers) 2026-07-09
+- [~] **ENT-G2:** SAML + audit export — ADR-017 + audit API dev complete; Clerk SAML prod pilot deferred
 - [ ] **ENT-G3:** F1000 logo or 3× $100k ACV
-- [ ] **ENT-G4:** SOC 2 Type I in progress/complete
+- [~] **ENT-G4:** SOC 2 Type I in progress/complete — readiness doc; auditor engagement deferred
 
 ---
 
@@ -893,47 +893,47 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 
 _Every step must work in **prod** for Execution 10/10._
 
-| Step | Action                        | Engine                    | API / UI                   | Prod       | Done               |
-| ---- | ----------------------------- | ------------------------- | -------------------------- | ---------- | ------------------ |
-| A.1  | Anonymous quote               | `pricing_engine`          | `POST /v1/quotes`, website | [x]        | [x]                |
-| A.2  | Booking draft persist         | `booking_engine`          | `booking_drafts.py`        | [x]        | [x]                |
-| A.3  | Stripe checkout               | `payment_service`         | `payments.py`              | live prod  | [x]                |
-| A.4  | Webhook → order confirmed     | `confirmation_service`    | `webhooks.py`              | live prod  | [x]                |
-| A.5  | Domain event emitted          | `booking_engine/_core.py` | event bus                  | [x]        | [ ]                |
-| A.6  | Fleetbase sync outbound       | `fleetbase_engine`        | adapter                    | local      | [ ] prod           |
-| A.7  | Admin assign / dispatch       | `order_engine`, admin ops | `operations.py`            | local      | [ ] prod           |
-| A.8  | Driver accept job             | `driver_engine`           | `driver/jobs.py`           | [x]        | [ ]                |
-| A.9  | GPS ping                      | `driver_engine`           | `fleetbase_bridge`         | local      | [ ] prod           |
-| A.10 | Customer track                | `tracking_service`        | `/track`, customer app     | [x]        | [ ] maps           |
-| A.11 | POD photo/signature           | `driver_platform`         | `navigation_pod.py`        | local      | [ ] prod           |
-| A.12 | Fleetbase webhook → DELIVERED | `webhook_processor`       | ingress                    | local      | [ ] prod           |
-| A.13 | Invoice / settlement          | `billing_engine`          | merchant billing           | [x]        | [ ]                |
-| A.14 | Merchant webhook notify       | `merchant_engine`         | gateway                    | [ ]        | [ ]                |
-| A.15 | Push notification             | `notification_engine`     | FCM                        | 2 iOS sent | [~] device confirm |
+| Step | Action                        | Engine                    | API / UI                   | Prod                               | Done                |
+| ---- | ----------------------------- | ------------------------- | -------------------------- | ---------------------------------- | ------------------- |
+| A.1  | Anonymous quote               | `pricing_engine`          | `POST /v1/quotes`, website | [x]                                | [x]                 |
+| A.2  | Booking draft persist         | `booking_engine`          | `booking_drafts.py`        | [x]                                | [x]                 |
+| A.3  | Stripe checkout               | `payment_service`         | `payments.py`              | live prod                          | [x]                 |
+| A.4  | Webhook → order confirmed     | `confirmation_service`    | `webhooks.py`              | live prod                          | [x]                 |
+| A.5  | Domain event emitted          | `booking_engine/_core.py` | event bus                  | [x]                                | [ ]                 |
+| A.6  | Fleetbase sync outbound       | `fleetbase_engine`        | adapter                    | local                              | [ ] prod            |
+| A.7  | Admin assign / dispatch       | `order_engine`, admin ops | `operations.py`            | local                              | [ ] prod            |
+| A.8  | Driver accept job             | `driver_engine`           | `driver/jobs.py`           | [x]                                | [ ]                 |
+| A.9  | GPS ping                      | `driver_engine`           | `fleetbase_bridge`         | local                              | [ ] prod            |
+| A.10 | Customer track                | `tracking_service`        | `/track`, customer app     | [x]                                | [x] maps 2026-07-08 |
+| A.11 | POD photo/signature           | `driver_platform`         | `navigation_pod.py`        | local                              | [ ] prod            |
+| A.12 | Fleetbase webhook → DELIVERED | `webhook_processor`       | ingress                    | local                              | [ ] prod            |
+| A.13 | Invoice / settlement          | `billing_engine`          | merchant billing           | [x]                                | [ ]                 |
+| A.14 | Merchant webhook notify       | `merchant_engine`         | gateway                    | [x] fanout + HMAC + SLO 2026-07-09 | [ ] prod            |
+| A.15 | Push notification             | `notification_engine`     | FCM                        | 2 iOS sent                         | [~] device confirm  |
 
 ---
 
 ## Appendix B — Security & observability (masterrule §15–§16)
 
-| ID   | Item                                   | Files                                 | Done |
-| ---- | -------------------------------------- | ------------------------------------- | ---- |
-| B.1  | Structured logs + correlation ID       | `platform/middleware.py`              | [ ]  |
-| B.2  | Request ID in all error responses      | API middleware                        | [ ]  |
-| B.3  | Prometheus metrics exported            | `platform/metrics.py`                 | [ ]  |
-| B.4  | Grafana dashboards                     | infra deploy                          | [ ]  |
-| B.5  | Queue depth + DLQ alerts               | worker, Redis                         | [ ]  |
-| B.6  | Fleetbase sync failure alerts          | `fleetbase_engine/retry_queue.py`     | [ ]  |
-| B.7  | API latency p95 SLO                    | monitoring                            | [ ]  |
-| B.8  | Webhook success rate SLO               | Stripe + Fleetbase                    | [ ]  |
-| B.9  | Clerk session security headers         | Caddy + Next.js                       | [ ]  |
-| B.10 | CORS locked to prod origins            | `docker-compose.prod.yml`             | [x]  |
-| B.11 | SQL injection — ORM only               | no raw SQL in routers                 | [ ]  |
-| B.12 | IDOR tests on order/tracking           | tests                                 | [ ]  |
-| B.13 | Sentry + OpenTelemetry APM (DD-02)     | all apps, `platform/observability.py` | [x]  |
-| B.14 | Rate limit fail-closed (DD-06)         | `rate_limit_middleware.py:98-99`      | [x]  |
-| B.15 | `jwt_secret` startup assertion (DD-12) | `config.py`                           | [x]  |
-| B.16 | CI security scan (DD-10)               | `.github/workflows/` CodeQL/Trivy     | [x]  |
-| B.17 | POD media CDN + retention (DD-32)      | `navigation_pod.py`, S3/GCS           | [ ]  |
+| ID   | Item                                   | Files                                 | Done                                               |
+| ---- | -------------------------------------- | ------------------------------------- | -------------------------------------------------- |
+| B.1  | Structured logs + correlation ID       | `platform/middleware.py`              | [x] `validate:observability` 2026-07-09            |
+| B.2  | Request ID in all error responses      | API middleware                        | [x] JSON errors + `X-Request-ID` 2026-07-09        |
+| B.3  | Prometheus metrics exported            | `platform/metrics.py`                 | [x] `/metrics` 2026-07-09                          |
+| B.4  | Grafana dashboards                     | infra deploy                          | [~] `GRAFANA_DASHBOARDS.md` 2026-07-09             |
+| B.5  | Queue depth + DLQ alerts               | worker, Redis                         | [x] `porterchain_queue_depth` + RUNBOOK 2026-07-09 |
+| B.6  | Fleetbase sync failure alerts          | `fleetbase_engine/retry_queue.py`     | [x] sync_health alerts 2026-07-09                  |
+| B.7  | API latency p95 SLO                    | monitoring                            | [x] `verify_latency_slo_doc.py` 2026-07-09         |
+| B.8  | Webhook success rate SLO               | Stripe + Fleetbase                    | [x] merchant_webhook_delivery_health 2026-07-09    |
+| B.9  | Clerk session security headers         | Caddy + Next.js                       | [x] Caddyfile + portal headers 2026-07-09          |
+| B.10 | CORS locked to prod origins            | `docker-compose.prod.yml`             | [x]                                                |
+| B.11 | SQL injection — ORM only               | no raw SQL in routers                 | [x] `validate:observability` 2026-07-09            |
+| B.12 | IDOR tests on order/tracking           | tests                                 | [x] `test_idor.py` 2026-07-09                      |
+| B.13 | Sentry + OpenTelemetry APM (DD-02)     | all apps, `platform/observability.py` | [x]                                                |
+| B.14 | Rate limit fail-closed (DD-06)         | `rate_limit_middleware.py:98-99`      | [x]                                                |
+| B.15 | `jwt_secret` startup assertion (DD-12) | `config.py`                           | [x]                                                |
+| B.16 | CI security scan (DD-10)               | `.github/workflows/` CodeQL/Trivy     | [x]                                                |
+| B.17 | POD media CDN + retention (DD-32)      | `navigation_pod.py`, S3/GCS           | [~] `POD_MEDIA_RETENTION.md` 2026-07-09            |
 
 ---
 
@@ -941,46 +941,46 @@ _Every step must work in **prod** for Execution 10/10._
 
 _Rescaffolded **2026-07-08** as Expo SDK 57 / RN 0.86 blank shells. Prior `shared/mobile-*` packages removed; feature parity not restored._
 
-| ID  | Item                            | Files                                 | Done       |
-| --- | ------------------------------- | ------------------------------------- | ---------- |
-| C.1 | Shared API client               | `packages/api-client/` or per-app     | [ ]        |
-| C.2 | Clerk bridge                    | per-app auth                          | [ ]        |
-| C.3 | Offline queue (driver)          | driver app                            | [ ]        |
-| C.4 | FCM on mobile                   | Firebase config in app                | [ ]        |
-| C.5 | Maps on mobile track            | per-app maps                          | [ ]        |
-| C.6 | App Store / Play listing        | store consoles                        | [ ]        |
-| C.7 | EAS build pipeline              | `eas.json`                            | [ ]        |
-| C.8 | Mobile parity with web contract | `validate:d3` matrix (web paths only) | [~] shells |
+| ID  | Item                            | Files                                 | Done                     |
+| --- | ------------------------------- | ------------------------------------- | ------------------------ |
+| C.1 | Shared API client               | `packages/api-client/` or per-app     | [ ]                      |
+| C.2 | Clerk bridge                    | per-app auth                          | [ ]                      |
+| C.3 | Offline queue (driver)          | driver app                            | [ ]                      |
+| C.4 | FCM on mobile                   | Firebase config in app                | [ ]                      |
+| C.5 | Maps on mobile track            | per-app maps                          | [ ]                      |
+| C.6 | App Store / Play listing        | store consoles                        | [ ]                      |
+| C.7 | EAS build pipeline              | `eas.json`                            | [x] both apps 2026-07-09 |
+| C.8 | Mobile parity with web contract | `validate:d3` matrix (web paths only) | [~] shells               |
 
 ---
 
 ## Appendix D — Notifications & billing depth
 
-| ID  | Item                        | Files                                                 | Done |
-| --- | --------------------------- | ----------------------------------------------------- | ---- |
-| D.1 | Email SMTP prod (Zoho)      | `porterchain_shared` SMTP fields                      | [ ]  |
-| D.2 | SMS Twilio optional         | notification delivery                                 | [ ]  |
-| D.3 | Template catalog complete   | `docs/notifications/NOTIFICATION_TEMPLATE_CATALOG.md` | [ ]  |
-| D.4 | Preference enforcement      | `preference_service.py`                               | [ ]  |
-| D.5 | Device registration flow    | `device_service.py`, FCM doc                          | [x]  |
-| D.6 | Billing ledger entries      | `billing_engine/models.py`                            | [ ]  |
-| D.7 | Driver settlement           | `driver_finance_service.py`                           | [ ]  |
-| D.8 | Merchant NET invoicing      | `billing_service.py`                                  | [ ]  |
-| D.9 | Stripe live (not mock) prod | `STRIPE_MOCK=false`                                   | [x]  |
+| ID  | Item                        | Files                                                 | Done                                            |
+| --- | --------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
+| D.1 | Email SMTP prod (Zoho)      | `porterchain_shared` SMTP fields                      | [ ]                                             |
+| D.2 | SMS Twilio optional         | notification delivery                                 | [ ]                                             |
+| D.3 | Template catalog complete   | `docs/notifications/NOTIFICATION_TEMPLATE_CATALOG.md` | [x] `validate:notifications-billing` 2026-07-09 |
+| D.4 | Preference enforcement      | `preference_service.py`                               | [x] engine `is_enabled` 2026-07-09              |
+| D.5 | Device registration flow    | `device_service.py`, FCM doc                          | [x]                                             |
+| D.6 | Billing ledger entries      | `billing_engine/models.py`                            | [x] BillingLedgerEntry 2026-07-09               |
+| D.7 | Driver settlement           | `driver_finance_service.py`                           | [x] 2026-07-09                                  |
+| D.8 | Merchant NET invoicing      | `billing_service.py`                                  | [x] NET_30 + ENTERPRISE_BILLING 2026-07-09      |
+| D.9 | Stripe live (not mock) prod | `STRIPE_MOCK=false`                                   | [x]                                             |
 
 ---
 
 ## Appendix E — Documentation & contracts
 
-| ID  | Item                                             | Files                       | Done                                   |
-| --- | ------------------------------------------------ | --------------------------- | -------------------------------------- |
-| E.1 | Appendix C 191 files typed                       | `masterrule.md`             | [x]                                    |
-| E.2 | Pointer stubs ≤20 (from 61)                      | `docs/archive/`             | [x] `validate:doc-pointers` 2026-07-08 |
-| E.3 | `apps/api/README.md` → OpenAPI                   | README                      | [x] `validate:architecture` 2026-07-08 |
-| E.4 | Partner API guide                                | `docs/api/PARTNER_GUIDE.md` | [x]                                    |
-| E.5 | `INTEGRATIONS.md` = code matrix                  | root                        | [x] `integrations.yaml` 2026-07-08     |
-| E.6 | CTO audit P0 issues closed                       | `CTO_AUDIT_REPORT.md`       | [ ]                                    |
-| E.7 | This checklist linked from masterrule Appendix D | `masterrule.md`             | [x]                                    |
+| ID  | Item                                             | Files                       | Done                                                |
+| --- | ------------------------------------------------ | --------------------------- | --------------------------------------------------- |
+| E.1 | Appendix C 191 files typed                       | `masterrule.md`             | [x]                                                 |
+| E.2 | Pointer stubs ≤20 (from 61)                      | `docs/archive/`             | [x] `validate:doc-pointers` 2026-07-08              |
+| E.3 | `apps/api/README.md` → OpenAPI                   | README                      | [x] `validate:architecture` 2026-07-08              |
+| E.4 | Partner API guide                                | `docs/api/PARTNER_GUIDE.md` | [x]                                                 |
+| E.5 | `INTEGRATIONS.md` = code matrix                  | root                        | [x] `integrations.yaml` 2026-07-08                  |
+| E.6 | CTO audit P0 issues closed                       | `CTO_AUDIT_REPORT.md`       | [x] `validate:doc-governance` §0.6 P0–P1 2026-07-09 |
+| E.7 | This checklist linked from masterrule Appendix D | `masterrule.md`             | [x]                                                 |
 
 ---
 

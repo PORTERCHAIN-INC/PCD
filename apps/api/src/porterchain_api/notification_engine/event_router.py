@@ -218,6 +218,13 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
             add("support_ticket_created", "in_app", "driver", ticket_driver, category="support")
         add("support_ticket_created", "in_app", "support", "system")
 
+    elif event_type in (DomainEventType.ORDER_TEMP_EXCURSION, "order.temp_excursion"):
+        add("temp_excursion", "email", "admin", "system", category="orders")
+        specs[-1]["priority"] = "high"
+        if merchant_id:
+            add("temp_excursion", "in_app", "merchant", merchant_id, category="orders")
+            specs[-1]["priority"] = "high"
+
     elif event_type == "driver.emergency":
         add("driver_alert", "in_app", "admin", "system", category="security")
         specs[-1]["priority"] = "critical"
@@ -301,6 +308,7 @@ def register_notification_handlers() -> None:
         DomainEventType.CLAIM_RESOLVED,
         DomainEventType.SUPPORT_TICKET_CREATED,
         DomainEventType.FLEETBASE_STATUS_UPDATED,
+        DomainEventType.ORDER_TEMP_EXCURSION,
     ]
     for evt in watched:
         registry.subscribe(evt, handle_domain_event)

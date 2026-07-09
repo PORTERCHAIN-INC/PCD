@@ -8,6 +8,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
+from porterchain_api.booking_engine.compliance_metadata import build_compliance_metadata
 from porterchain_api.booking_engine.site_access import (
     dropoff_address_fields,
     enrich_dropoff,
@@ -194,6 +195,18 @@ class MerchantBookingFlowService:
                 "scheduled_at": body.scheduled_at.isoformat() if body.scheduled_at else None,
                 "site_access_notes": body.site_access_notes,
                 "requires_liftgate": body.requires_liftgate,
+                "custodian_name": body.custodian_name,
+                "specimen_id": body.specimen_id,
+                "seal_number": body.seal_number,
+                "requires_cold_chain": body.requires_cold_chain,
+                "temperature_min_c": body.temperature_min_c,
+                "temperature_max_c": body.temperature_max_c,
+                "delivery_window_start": body.delivery_window_start.isoformat()
+                if body.delivery_window_start
+                else None,
+                "delivery_window_end": body.delivery_window_end.isoformat()
+                if body.delivery_window_end
+                else None,
             },
         }
         draft.estimated_pickup = body.scheduled_at
@@ -231,6 +244,8 @@ class MerchantBookingFlowService:
             if scheduled_raw
             else datetime.now(UTC)
         )
+        window_start = meta.get("delivery_window_start")
+        window_end = meta.get("delivery_window_end")
         return MerchantBookDeliveryRequest(
             pickup=AddressInput(**(draft.pickup or {})),
             dropoff=AddressInput(**dropoff_address_fields(draft.dropoff)),
@@ -244,6 +259,18 @@ class MerchantBookingFlowService:
             special_instructions=draft.special_instructions,
             site_access_notes=extract_site_access_notes(draft.dropoff) or meta.get("site_access_notes"),
             requires_liftgate=bool(meta.get("requires_liftgate")),
+            custodian_name=meta.get("custodian_name"),
+            specimen_id=meta.get("specimen_id"),
+            seal_number=meta.get("seal_number"),
+            requires_cold_chain=bool(meta.get("requires_cold_chain")),
+            temperature_min_c=meta.get("temperature_min_c"),
+            temperature_max_c=meta.get("temperature_max_c"),
+            delivery_window_start=(
+                datetime.fromisoformat(str(window_start).replace("Z", "+00:00")) if window_start else None
+            ),
+            delivery_window_end=(
+                datetime.fromisoformat(str(window_end).replace("Z", "+00:00")) if window_end else None
+            ),
             internal_reference=meta.get("internal_reference"),
             purchase_order_number=meta.get("purchase_order_number"),
             cost_centre=meta.get("cost_centre"),

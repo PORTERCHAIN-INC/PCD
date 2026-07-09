@@ -8,6 +8,7 @@ from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.customer import require_customer
 from porterchain_api.auth.customer_onboarding import require_customer_portal_ready
 from porterchain_api.booking_engine import CustomerService
+from porterchain_api.compliance_engine.privacy_service import PrivacyService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.schemas import (
@@ -19,6 +20,7 @@ from porterchain_api.schemas import (
 
 router = APIRouter(prefix="/v1/customers", tags=["customers"])
 _customers = CustomerService()
+_privacy = PrivacyService()
 
 
 @router.get("/me/dashboard", response_model=CustomerDashboardResponse)
@@ -99,3 +101,23 @@ def rebook_from_order(
     except LookupError:
         raise HTTPException(status_code=404, detail="order_not_found") from None
     return CustomerRebookResponse(**payload)
+
+
+@router.get("/me/privacy/export")
+def customer_privacy_export(
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+):
+    customer = require_customer(db, claims, settings)
+    return _privacy.export_customer(db, customer)
+
+
+@router.post("/me/privacy/delete-request")
+def customer_privacy_delete_request(
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+):
+    customer = require_customer(db, claims, settings)
+    return _privacy.request_customer_deletion(db, customer)

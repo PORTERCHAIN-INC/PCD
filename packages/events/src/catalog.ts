@@ -49,6 +49,7 @@ export const DomainEvents = {
   DRIVER_REJECTED: "order.driver_rejected",
   ORDER_NEAR_DELIVERY: "order.near_delivery",
   ORDER_LOCATION_UPDATED: "order.tracking_updated",
+  ORDER_TEMP_EXCURSION: "order.temp_excursion",
 
   // Phase 2 stubs (ADR-010 — no consumers yet)
   ROUTE_OPTIMIZED: "route.optimized",
@@ -66,6 +67,7 @@ export const DomainEvents = {
 
   // Support
   SUPPORT_TICKET_CREATED: "support.ticket_created",
+  PRIVACY_DELETE_REQUESTED: "privacy.delete_requested",
 
   // Booking draft
   BOOKING_DRAFT_CREATED: "booking_draft.draft_created",

@@ -200,6 +200,13 @@ class Merchant360Service:
                 f"{primary.first_name} {primary.last_name or ''}".strip() if primary else None
             ),
             "payment_terms": merchant.payment_terms,
+            "parent_merchant_id": merchant.parent_merchant_id,
+            "support_tier": (
+                (merchant.profile or {}).get("enterprise", {}).get("support_tier")
+                if isinstance(merchant.profile, dict)
+                else None
+            )
+            or "standard",
             "contract_status": contract_status,
             "monthly_deliveries": metrics["monthly_orders"],
             "monthly_revenue_cents": metrics["monthly_revenue_cents"],

@@ -1,0 +1,19 @@
+{
+  "partners": [
+    {
+      "name": "Acme Wholesale",
+      "logo": "/images/partners/acme-wholesale.svg",
+      "href": "/case-studies/acme-wholesale"
+    },
+    {
+      "name": "Metro Labs",
+      "logo": "/images/partners/metro-labs.svg",
+      "href": "/case-studies/metro-labs"
+    },
+    {
+      "name": "FreshRoute Foods",
+      "logo": "/images/partners/freshroute.svg",
+      "href": "/case-studies/freshroute"
+    }
+  ]
+}

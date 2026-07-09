@@ -37,6 +37,7 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
     "system_alert": {"category": "security"},
     "password_reset": {"category": "security"},
     "otp": {"category": "security"},
+    "temp_excursion": {"category": "orders"},
     "delivery_update": {"category": "tracking"},
 }
 
@@ -106,6 +107,10 @@ TEMPLATES: dict[str, dict[str, str]] = {
     "system_alert": {"subject": "System alert", "body": "{message}"},
     "password_reset": {"subject": "Password reset", "body": "Reset your password: {reset_url}"},
     "otp": {"subject": "Verification code", "body": "Your code: {code}"},
+    "temp_excursion": {
+        "subject": "Temperature excursion — {tracking_number}",
+        "body": "Order {order_number} recorded {celsius}°C outside cold-chain limits.",
+    },
     "delivery_update": {"subject": "Delivery update", "body": "{message}"},
 }
 

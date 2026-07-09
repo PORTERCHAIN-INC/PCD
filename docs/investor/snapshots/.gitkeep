@@ -1,0 +1,6 @@
+# Monthly investor metric snapshots (§10.1 · INV-G2)
+#
+# Export with:
+#   cd apps/api && source .venv/bin/activate && PYTHONPATH=src python scripts/export_investor_snapshot.py
+#
+# Committed snapshots are redacted summaries for the data room — no PII.

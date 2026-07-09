@@ -36,6 +36,7 @@ class Driver(Base):
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     full_name: Mapped[str] = mapped_column(String(255))
     license_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    medical_transport_certified: Mapped[bool] = mapped_column(Boolean, default=False)
     insurance_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     vehicle_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     background_check_status: Mapped[str] = mapped_column(String(32), default="pending")
@@ -246,6 +247,8 @@ class RouteCenterPlan(Base):
 
 
 class RouteCenterTemplate(Base):
+    """Wholesale / recurring route templates (§8.1.10) — alias: RouteTemplate."""
+
     __tablename__ = "route_center_templates"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -259,6 +262,10 @@ class RouteCenterTemplate(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# Checklist §8.1.10 wholesale route templates
+RouteTemplate = RouteCenterTemplate
 
 
 class SystemConfig(Base):

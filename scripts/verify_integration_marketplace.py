@@ -24,7 +24,7 @@ def main() -> int:
 
     if GATEWAY.is_file():
         gateway = GATEWAY.read_text(encoding="utf-8")
-        for platform in ("shopify", "woocommerce"):
+        for platform in ("shopify", "woocommerce", "netsuite"):
             if f'"id": "{platform}"' not in gateway:
                 failures.append(f"gateway missing {platform} in ERP_READINESS")
 

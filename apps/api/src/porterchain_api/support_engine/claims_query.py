@@ -156,3 +156,27 @@ class ClaimsQueryMixin:
             "insurance_recovery_cents": insurance_recovery,
             "top_causes": [{"cause": k, "count": v} for k, v in top_causes],
         }
+
+    def export_csv(self, db: Session, filters: ClaimFilters) -> str:
+        import csv
+        import io
+
+        rows = self.list_enriched(db, filters)
+        buffer = io.StringIO()
+        fields = [
+            "claim_number",
+            "claim_type",
+            "status",
+            "priority",
+            "amount_cents",
+            "merchant_name",
+            "tracking_number",
+            "assigned_investigator",
+            "has_insurance",
+            "created_at",
+        ]
+        writer = csv.DictWriter(buffer, fieldnames=fields, extrasaction="ignore")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+        return buffer.getvalue()

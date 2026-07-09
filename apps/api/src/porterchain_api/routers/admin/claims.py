@@ -1,5 +1,7 @@
 """admin routes — claims."""
 
+from fastapi import Response
+
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Annotated,
@@ -44,6 +46,24 @@ def claims_reports(
 ) -> dict:
     require_module(ctx, "claims_read")
     return _claims.reports(db)
+
+
+@router.get("/claims/export.csv")
+def export_claims_csv(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    status: str | None = None,
+    claim_type: str | None = None,
+    limit: int = 2000,
+):
+    require_module(ctx, "claims_read")
+    filters = ClaimFilters(status=status, claim_type=claim_type, limit=min(limit, 5000))
+    csv_text = _claims.export_csv(db, filters)
+    return Response(
+        content=csv_text,
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="porterchain-claims.csv"'},
+    )
 
 
 @router.get("/claims", response_model=list[ClaimListItem])

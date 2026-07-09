@@ -136,6 +136,7 @@ class Order(Base):
     purchase_order_number: Mapped[str | None] = mapped_column(String(128), nullable=True)
     cost_centre: Mapped[str | None] = mapped_column(String(64), nullable=True)
     special_instructions: Mapped[str | None] = mapped_column(Text, nullable=True)
+    compliance_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -284,3 +285,28 @@ class StripeWebhookEvent(Base):
     event_type: Mapped[str] = mapped_column(String(128), index=True)
     status: Mapped[str] = mapped_column(String(32), default="processing")
     processed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AnalyticsEvent(Base):
+    """Phase 2 event warehouse fact table (§4.1.2)."""
+
+    __tablename__ = "analytics_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    event_type: Mapped[str] = mapped_column(String(128), index=True)
+    aggregate_id: Mapped[str] = mapped_column(String(36), index=True)
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class AnalyticsStopLeg(Base):
+    """GPS stop legs for analytics / feature store (§4.1.1)."""
+
+    __tablename__ = "analytics_stop_legs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    order_id: Mapped[str] = mapped_column(String(36), index=True)
+    leg_index: Mapped[int] = mapped_column()
+    lat: Mapped[float] = mapped_column()
+    lng: Mapped[float] = mapped_column()
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)

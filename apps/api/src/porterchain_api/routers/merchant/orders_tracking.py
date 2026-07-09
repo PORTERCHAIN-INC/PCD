@@ -217,3 +217,24 @@ def duplicate_order(
         _handle_permission(exc)
 
 
+@router.get("/orders/{order_id}/compliance-dossier.pdf")
+def merchant_compliance_dossier_pdf(
+    order_id: str,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    """§8.1.13 — download compliance dossier for owned orders."""
+    from fastapi.responses import Response
+
+    try:
+        require_module(ctx, "orders")
+        pdf, filename = _orders.compliance_dossier_pdf(db, ctx, order_id)
+        return Response(
+            content=pdf,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    except PermissionError as exc:
+        _handle_permission(exc)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="order_not_found") from None

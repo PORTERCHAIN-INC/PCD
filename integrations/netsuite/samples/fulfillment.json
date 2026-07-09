@@ -1,0 +1,20 @@
+{
+  "external_id": "IF-10482",
+  "tranid": "IF10482",
+  "purchase_order": "PO-7781",
+  "subsidiary": "Toronto DC",
+  "memo": "NetSuite fulfillment → Porterchain MVP",
+  "ship_date": "2026-07-09T14:00:00Z",
+  "pickup_address": {
+    "formatted": "100 King St W, Toronto, ON",
+    "lat": 43.6488,
+    "lng": -79.3817
+  },
+  "ship_address": {
+    "formatted": "200 Bay St, Toronto, ON",
+    "lat": 43.6476,
+    "lng": -79.3792
+  },
+  "weight_kg": 12.5,
+  "vehicle_class": "cargoVan"
+}

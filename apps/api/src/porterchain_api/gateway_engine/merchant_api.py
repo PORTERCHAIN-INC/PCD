@@ -136,6 +136,13 @@ ERP_READINESS: list[dict[str, Any]] = [
         "notes": "Use REST hooks or CSV bulk import for order handoff.",
     },
     {
+        "id": "netsuite",
+        "name": "NetSuite",
+        "status": "ready",
+        "capabilities": ["webhooks", "api_keys", "fulfillment_sync", "tracking"],
+        "notes": "MVP RESTlet → POST /v1/merchant/integrations/netsuite/sync. See integrations/netsuite/.",
+    },
+    {
         "id": "custom_erp",
         "name": "Custom ERP",
         "status": "ready",

@@ -43,6 +43,7 @@ from porterchain_api.schemas_admin import (
     OrderDetailResponse,
     OrderDetail360Response,
     OrderBulkRequest,
+    OrderTemperatureRequest,
     PaymentAdminItem,
     StaffItem,
     StaffInviteRequest,
@@ -97,11 +98,20 @@ from porterchain_api.schemas_admin import (
     BookingDraftCancelRequest,
     BookingDraftBulkRequest,
     BookingDraftPaymentLinkResponse,
+    RouteTemplateCreateRequest,
+    RouteTemplateItem,
+    RouteTemplateUpdateRequest,
 )
 from porterchain_api.admin_engine.booking_draft_admin_service import (
     AdminBookingDraftService,
     AdminDraftFilters,
 )
+from porterchain_api.admin_engine.audit_export_service import AdminAuditExportService
+from porterchain_api.admin_engine.data_moat_service import AdminDataMoatService
+from porterchain_api.admin_engine.investor_metrics_service import InvestorMetricsService
+from porterchain_api.admin_engine.monopoly_metrics_service import MonopolyMetricsService
+from porterchain_api.admin_engine.platform_metrics_service import PlatformMetricsService
+from porterchain_api.admin_engine.route_template_service import AdminRouteTemplateService
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
 
 _dashboard = AdminDashboardService()
@@ -114,6 +124,12 @@ _support = AdminSupportService()
 _settings = AdminSettingsService()
 _clerk_directory = ClerkDirectoryService()
 _draft_admin = AdminBookingDraftService()
+_route_templates = AdminRouteTemplateService()
+_data_moat = AdminDataMoatService()
+_platform_metrics = PlatformMetricsService()
+_investor_metrics = InvestorMetricsService()
+_monopoly_metrics = MonopolyMetricsService()
+_audit_export = AdminAuditExportService()
 
 
 def _perm(exc: PermissionError) -> None:
@@ -209,6 +225,9 @@ __all__ = [
     "BookingDraftCancelRequest",
     "BookingDraftExtendRequest",
     "BookingDraftPaymentLinkResponse",
+    "RouteTemplateCreateRequest",
+    "RouteTemplateItem",
+    "RouteTemplateUpdateRequest",
     "ClaimAssignRequest",
     "ClaimBulkRequest",
     "ClaimCompensationRequest",
@@ -238,6 +257,7 @@ __all__ = [
     "MerchantContractItem",
     "OrderAdminItem",
     "OrderBulkRequest",
+    "OrderTemperatureRequest",
     "OrderDashboardResponse",
     "OrderDetail360Response",
     "OrderListItem",
@@ -279,17 +299,23 @@ __all__ = [
     "TicketListItem",
     "TicketNoteRequest",
     "TicketStatusRequest",
+    "_audit_export",
     "_claims",
+    "_data_moat",
     "_clerk_directory",
     "_dashboard",
     "_draft_admin",
     "_finance",
+    "_investor_metrics",
+    "_monopoly_metrics",
     "_ops",
     "_order_detail",
     "_order_item",
     "_orders",
     "_perm",
+    "_platform_metrics",
     "_pricing",
+    "_route_templates",
     "_settings",
     "_support",
     "get_admin_context",

@@ -31,6 +31,8 @@ DEFAULT_BRANDING = {
     "primary_color": "#1e3a5f",
     "accent_color": "#f59e0b",
     "tracking_page_message": None,
+    "tracking_domain": None,
+    "white_label_enabled": False,
 }
 
 

@@ -77,6 +77,26 @@ pnpm clerk:sync
 - Port 8001 not reachable: check `pnpm dev:api` logs for startup failures.
 - JSON parsing errors: ensure you're hitting `.../health/ready` (not `/health`).
 
+## Dev slices (avoid `pnpm dev`)
+
+Martin Fowler / monolith-first: run **only the processes you need**, not the full Turbo graph.
+
+| Slice      | Terminals                                   | Use when                         |
+| ---------- | ------------------------------------------- | -------------------------------- |
+| API only   | `pnpm dev:api`                              | Backend, migrations, pytest      |
+| Website    | `pnpm dev:api` + `pnpm dev:website`         | Marketing site (:3000)           |
+| One portal | `pnpm dev:api` + `pnpm dev:merchant` (etc.) | Portal feature work              |
+| Worker     | `pnpm dev:worker`                           | Dispatch queue / standing orders |
+
+**Do not** leave `pnpm dev` (turbo all-apps) running overnight — six Next.js dev servers will OOM your machine.
+
+```bash
+pnpm dev:stop                              # stop all dev listeners
+pnpm dev:stop -- --keep api --keep website # stop portals + worker only
+```
+
+Ports: API `8001` · website `3000` · merchant `3001` · admin `3002` · driver `3003` · customer `3004`.
+
 ## Optional — Fleetbase dispatch stack
 
 Dispatch sync is **not required** for `/health/ready`. Enable it when you work on orders → Fleetbase → driver execution.

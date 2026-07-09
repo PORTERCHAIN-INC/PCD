@@ -2,7 +2,7 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-09
 
 Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md). This document describes security posture, controls, and pre-production checklist.
 

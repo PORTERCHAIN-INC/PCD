@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.config import get_settings
 from porterchain_api.db import get_db, init_db
 from porterchain_api.gateway.router import router as gateway_router
-from porterchain_api.platform.middleware import RequestIdMiddleware
+from porterchain_api.platform.middleware import REQUEST_ID_HEADER, RequestIdMiddleware
 from porterchain_api.routers import (
     admin,
     auth,
@@ -109,35 +109,48 @@ def create_app() -> FastAPI:
 
     _logger = logging.getLogger(__name__)
 
+    def _request_id(request: Request) -> str | None:
+        return getattr(request.state, "request_id", None)
+
     @app.exception_handler(BookingValidationError)
-    async def _booking_validation_handler(_request: Request, exc: BookingValidationError) -> JSONResponse:
+    async def _booking_validation_handler(request: Request, exc: BookingValidationError) -> JSONResponse:
+        rid = _request_id(request)
         return JSONResponse(
             status_code=422,
-            content=error_envelope(exc.message, code=exc.code),
+            content=error_envelope(exc.message, code=exc.code, request_id=rid),
+            headers={REQUEST_ID_HEADER: rid} if rid else None,
         )
 
     @app.exception_handler(RequestValidationError)
-    async def _validation_handler(_request: Request, exc: RequestValidationError) -> JSONResponse:
+    async def _validation_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+        rid = _request_id(request)
         return JSONResponse(
             status_code=422,
-            content=error_envelope(exc.errors()),
+            content=error_envelope(exc.errors(), request_id=rid),
+            headers={REQUEST_ID_HEADER: rid} if rid else None,
         )
 
     @app.exception_handler(HTTPException)
-    async def _http_exception_handler(_request: Request, exc: HTTPException) -> JSONResponse:
+    async def _http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+        rid = _request_id(request)
+        headers = dict(exc.headers or {})
+        if rid:
+            headers[REQUEST_ID_HEADER] = rid
         return JSONResponse(
             status_code=exc.status_code,
-            content=error_envelope(exc.detail),
-            headers=exc.headers,
+            content=error_envelope(exc.detail, request_id=rid),
+            headers=headers or None,
         )
 
     @app.exception_handler(Exception)
-    async def _unhandled_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
+    async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         _logger.exception("unhandled error: %s", exc)
         detail = str(exc) if settings.app_env != "production" else "internal_server_error"
+        rid = _request_id(request)
         return JSONResponse(
             status_code=500,
-            content=error_envelope(detail, code="internal_server_error"),
+            content=error_envelope(detail, code="internal_server_error", request_id=rid),
+            headers={REQUEST_ID_HEADER: rid} if rid else None,
         )
 
     @app.get("/health")
@@ -157,6 +170,12 @@ def create_app() -> FastAPI:
         from porterchain_api.platform.health import readiness
 
         return readiness(db, settings)
+
+    @app.get("/health/status")
+    def health_status(db: Session = Depends(get_db)) -> dict:
+        from porterchain_api.platform.health import public_status
+
+        return public_status(db, settings)
 
     @app.get("/metrics")
     def metrics():

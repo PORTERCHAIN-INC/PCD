@@ -2,6 +2,7 @@
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_engine.compliance_metadata import build_compliance_metadata
 from porterchain_api.booking_engine.site_access import enrich_dropoff
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
@@ -93,6 +94,7 @@ class MerchantBookingService:
             purchase_order_number=body.purchase_order_number,
             cost_centre=body.cost_centre,
             special_instructions=body.special_instructions,
+            compliance_metadata=build_compliance_metadata(body),
         )
         db.add(order)
         db.flush()

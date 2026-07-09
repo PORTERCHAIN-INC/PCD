@@ -10,5 +10,7 @@ from porterchain_api.routers.merchant import profile_team  # noqa: F401
 from porterchain_api.routers.merchant import settings  # noqa: F401
 from porterchain_api.routers.merchant import support_claims  # noqa: F401
 from porterchain_api.routers.merchant import integrations  # noqa: F401
+from porterchain_api.routers.merchant import standing_orders  # noqa: F401
+from porterchain_api.routers.merchant import privacy  # noqa: F401
 
 __all__ = ["router", "_order_response", "_profile_response"]

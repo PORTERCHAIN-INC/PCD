@@ -194,6 +194,7 @@ class AdminDriverService:
         driver_id: str,
         *,
         license_verified: bool | None = None,
+        medical_transport_certified: bool | None = None,
         insurance_verified: bool | None = None,
         vehicle_verified: bool | None = None,
         background_check_status: str | None = None,
@@ -201,6 +202,8 @@ class AdminDriverService:
         driver = self._get_or_raise(db, driver_id)
         if license_verified is not None:
             driver.license_verified = license_verified
+        if medical_transport_certified is not None:
+            driver.medical_transport_certified = medical_transport_certified
         if insurance_verified is not None:
             driver.insurance_verified = insurance_verified
         if vehicle_verified is not None:

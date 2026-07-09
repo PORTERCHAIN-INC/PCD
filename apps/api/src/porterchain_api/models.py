@@ -2,6 +2,8 @@
 
 from porterchain_api.booking_models import (
     AbandonedCheckout,
+    AnalyticsEvent,
+    AnalyticsStopLeg,
     Booking,
     Customer,
     DomainEvent,
@@ -17,6 +19,8 @@ from porterchain_api.booking_models import (
 
 __all__ = [
     "AbandonedCheckout",
+    "AnalyticsEvent",
+    "AnalyticsStopLeg",
     "Booking",
     "Customer",
     "DomainEvent",

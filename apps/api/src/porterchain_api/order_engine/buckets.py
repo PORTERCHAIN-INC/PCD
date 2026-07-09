@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+from typing import Any
+
+from porterchain_api.booking_engine.compliance_metadata import delivery_window_end
+
 # Operational order states (control tower).
 WAITING = ("DISPATCH_READY",)
 PICKUP_LEG = ("DRIVER_ASSIGNED", "DRIVER_ACCEPTED", "DRIVER_EN_ROUTE", "AT_PICKUP")
@@ -22,6 +27,23 @@ PICKED_UP_STATES = ("PICKED_UP", "IN_TRANSIT", "AT_DESTINATION", "DELIVERED", "P
 RETURNED_STATES = ("RETURN_TO_SENDER",)
 
 HIGH_PRIORITY_CENTS = 20000
+
+# Food SLA — orders inside an active delivery window surface first in dispatch (§8.1.8).
+FOOD_SLA_DISPATCH_STATES = DISPATCH_POOL + DELIVERY_ONLY_POOL
+
+
+def dispatch_queue_sort_key(order: Any, *, now: datetime | None = None) -> tuple[int, datetime]:
+    """Lower tuple sorts earlier — urgent food windows before generic FIFO."""
+    ref = now or datetime.now(UTC)
+    window_end = delivery_window_end(getattr(order, "compliance_metadata", None))
+    if window_end is not None:
+        remaining = (window_end - ref).total_seconds()
+        if remaining <= 0:
+            return (0, getattr(order, "scheduled_at", ref) or ref)
+        if remaining <= 3600:
+            return (1, window_end)
+    return (2, getattr(order, "scheduled_at", ref) or ref)
+
 
 BOARD_COLUMNS: list[tuple[str, tuple[str, ...]]] = [
     ("waiting_dispatch", ("BOOKED", "DISPATCH_READY")),

@@ -71,6 +71,14 @@ export default function BookDeliveryClient() {
   const [instructions, setInstructions] = useState("");
   const [siteAccessNotes, setSiteAccessNotes] = useState("");
   const [requiresLiftgate, setRequiresLiftgate] = useState(false);
+  const [custodianName, setCustodianName] = useState("");
+  const [specimenId, setSpecimenId] = useState("");
+  const [sealNumber, setSealNumber] = useState("");
+  const [requiresColdChain, setRequiresColdChain] = useState(false);
+  const [tempMin, setTempMin] = useState("");
+  const [tempMax, setTempMax] = useState("");
+  const [deliveryWindowStart, setDeliveryWindowStart] = useState("");
+  const [deliveryWindowEnd, setDeliveryWindowEnd] = useState("");
   const [recipientId, setRecipientId] = useState("");
   const [draftId, setDraftId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -102,6 +110,18 @@ export default function BookDeliveryClient() {
       special_instructions: instructions || undefined,
       site_access_notes: siteAccessNotes || undefined,
       requires_liftgate: requiresLiftgate || undefined,
+      custodian_name: custodianName || undefined,
+      specimen_id: specimenId || undefined,
+      seal_number: sealNumber || undefined,
+      requires_cold_chain: requiresColdChain || undefined,
+      temperature_min_c: tempMin ? Number(tempMin) : undefined,
+      temperature_max_c: tempMax ? Number(tempMax) : undefined,
+      delivery_window_start: deliveryWindowStart
+        ? new Date(deliveryWindowStart).toISOString()
+        : undefined,
+      delivery_window_end: deliveryWindowEnd
+        ? new Date(deliveryWindowEnd).toISOString()
+        : undefined,
       internal_reference: internalRef || undefined,
       purchase_order_number: poNumber || undefined,
       cost_centre: costCentre || undefined,
@@ -117,6 +137,14 @@ export default function BookDeliveryClient() {
     instructions,
     siteAccessNotes,
     requiresLiftgate,
+    custodianName,
+    specimenId,
+    sealNumber,
+    requiresColdChain,
+    tempMin,
+    tempMax,
+    deliveryWindowStart,
+    deliveryWindowEnd,
     internalRef,
     poNumber,
     costCentre,
@@ -167,6 +195,18 @@ export default function BookDeliveryClient() {
       );
       setRequiresLiftgate(Boolean(draft.merchant_meta?.requires_liftgate));
       const meta = draft.merchant_meta || {};
+      setCustodianName(String(meta.custodian_name || ""));
+      setSpecimenId(String(meta.specimen_id || ""));
+      setSealNumber(String(meta.seal_number || ""));
+      setRequiresColdChain(Boolean(meta.requires_cold_chain));
+      setTempMin(meta.temperature_min_c != null ? String(meta.temperature_min_c) : "");
+      setTempMax(meta.temperature_max_c != null ? String(meta.temperature_max_c) : "");
+      setDeliveryWindowStart(
+        meta.delivery_window_start ? String(meta.delivery_window_start).slice(0, 16) : ""
+      );
+      setDeliveryWindowEnd(
+        meta.delivery_window_end ? String(meta.delivery_window_end).slice(0, 16) : ""
+      );
       setInternalRef(String(meta.internal_reference || ""));
       setPoNumber(String(meta.purchase_order_number || ""));
       setCostCentre(String(meta.cost_centre || ""));
@@ -187,6 +227,14 @@ export default function BookDeliveryClient() {
     }
   }, [preview?.vehicle_recommendation?.recommended_vehicle, step]);
 
+  useEffect(() => {
+    if (packageType === "foodBeverage") {
+      setRequiresColdChain(true);
+      if (!tempMin) setTempMin("2");
+      if (!tempMax) setTempMax("8");
+    }
+  }, [packageType, tempMin, tempMax]);
+
   function applySavedPickup(id: string) {
     const addr = savedAddresses.find((a) => a.id === id);
     if (!addr) return;
@@ -206,6 +254,18 @@ export default function BookDeliveryClient() {
     if (typeof p.special_instructions === "string") setInstructions(p.special_instructions);
     if (typeof p.site_access_notes === "string") setSiteAccessNotes(p.site_access_notes);
     if (typeof p.requires_liftgate === "boolean") setRequiresLiftgate(p.requires_liftgate);
+    if (typeof p.custodian_name === "string") setCustodianName(p.custodian_name);
+    if (typeof p.specimen_id === "string") setSpecimenId(p.specimen_id);
+    if (typeof p.seal_number === "string") setSealNumber(p.seal_number);
+    if (typeof p.requires_cold_chain === "boolean") setRequiresColdChain(p.requires_cold_chain);
+    if (typeof p.temperature_min_c === "number") setTempMin(String(p.temperature_min_c));
+    if (typeof p.temperature_max_c === "number") setTempMax(String(p.temperature_max_c));
+    if (typeof p.delivery_window_start === "string") {
+      setDeliveryWindowStart(p.delivery_window_start.slice(0, 16));
+    }
+    if (typeof p.delivery_window_end === "string") {
+      setDeliveryWindowEnd(p.delivery_window_end.slice(0, 16));
+    }
   }
 
   async function onSaveDraft() {
@@ -519,6 +579,65 @@ export default function BookDeliveryClient() {
                     Liftgate required at delivery (+$45 surcharge)
                   </label>
                 </div>
+                {packageType === "medical" && (
+                  <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-4">
+                    <h3 className="text-sm font-semibold text-primary">Chain of custody</h3>
+                    <p className="mt-1 text-xs text-primary/60">
+                      Required for medical / lab specimens
+                    </p>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <Field
+                        label="Custodian name"
+                        value={custodianName}
+                        onChange={setCustodianName}
+                      />
+                      <Field label="Specimen ID" value={specimenId} onChange={setSpecimenId} />
+                      <Field label="Seal number" value={sealNumber} onChange={setSealNumber} />
+                    </div>
+                  </div>
+                )}
+                {packageType === "foodBeverage" && (
+                  <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
+                    <h3 className="text-sm font-semibold text-primary">
+                      Cold chain & delivery window
+                    </h3>
+                    <label className="mt-2 flex items-center gap-2 text-sm text-primary">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-primary/20"
+                        checked={requiresColdChain}
+                        onChange={(e) => setRequiresColdChain(e.target.checked)}
+                      />
+                      Refrigerated transport required
+                    </label>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <Field
+                        label="Min temp (°C)"
+                        value={tempMin}
+                        onChange={setTempMin}
+                        type="number"
+                      />
+                      <Field
+                        label="Max temp (°C)"
+                        value={tempMax}
+                        onChange={setTempMax}
+                        type="number"
+                      />
+                      <Field
+                        label="Window start"
+                        type="datetime-local"
+                        value={deliveryWindowStart}
+                        onChange={setDeliveryWindowStart}
+                      />
+                      <Field
+                        label="Window end"
+                        type="datetime-local"
+                        value={deliveryWindowEnd}
+                        onChange={setDeliveryWindowEnd}
+                      />
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="text-sm font-medium text-primary">Special instructions</label>
                   <textarea
@@ -546,6 +665,15 @@ export default function BookDeliveryClient() {
                 {internalRef && <ReviewRow label="Reference" value={internalRef} />}
                 {siteAccessNotes && <ReviewRow label="Site access" value={siteAccessNotes} />}
                 {requiresLiftgate && <ReviewRow label="Liftgate" value="Required (+$45)" />}
+                {packageType === "medical" && specimenId && (
+                  <ReviewRow label="Specimen ID" value={specimenId} />
+                )}
+                {requiresColdChain && (
+                  <ReviewRow label="Cold chain" value={`${tempMin || "?"}–${tempMax || "?"} °C`} />
+                )}
+                {deliveryWindowEnd && (
+                  <ReviewRow label="Delivery window end" value={deliveryWindowEnd} />
+                )}
                 {poNumber && <ReviewRow label="PO" value={poNumber} />}
                 {preview?.contract_pricing && (
                   <p className="rounded-lg bg-blue-50 px-3 py-2 text-blue-800">

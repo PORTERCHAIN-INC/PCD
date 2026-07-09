@@ -30,6 +30,19 @@ def settings_overview(
     return _settings.overview(db, ctx)
 
 
+@router.get("/audit-logs")
+def merchant_audit_logs(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    limit: int = 100,
+):
+    """§8.3.4 — merchant RBAC audit trail."""
+    from porterchain_api.reporting.switching_costs import rbac_and_audit_snapshot
+
+    require_module(ctx, "settings")
+    return rbac_and_audit_snapshot(db, ctx.merchant.id, limit=min(limit, 200))
+
+
 @router.patch("/settings/notifications")
 def settings_notifications(
     body: MerchantNotificationsRequest,

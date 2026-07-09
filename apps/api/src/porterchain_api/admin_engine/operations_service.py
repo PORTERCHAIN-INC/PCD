@@ -5,22 +5,24 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog, Driver
 from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.booking_engine.compliance_metadata import requires_medical_certified
 from porterchain_api.admin_engine import events as E
 from porterchain_api.booking_engine.order_transitions import transition_order_state
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
 from porterchain_api.models import Order, OrderException
+from porterchain_api.order_engine.buckets import dispatch_queue_sort_key
 
 
 class AdminOperationsService:
     def dispatch_queue(self, db: Session, *, limit: int = 50) -> list[Order]:
-        return (
+        rows = (
             db.query(Order)
             .filter(Order.state == OrderState.DISPATCH_READY.value)
-            .order_by(Order.scheduled_at.asc())
-            .limit(limit)
             .all()
         )
+        rows.sort(key=dispatch_queue_sort_key)
+        return rows[:limit]
 
     def exception_queue(self, db: Session, *, limit: int = 50) -> list[OrderException]:
         return (
@@ -54,6 +56,11 @@ class AdminOperationsService:
         order = db.query(Order).filter(Order.id == order_id).first()
         if not order:
             raise LookupError("order_not_found")
+        driver = db.query(Driver).filter(Driver.id == driver_id).first()
+        if not driver:
+            raise LookupError("driver_not_found")
+        if requires_medical_certified(order.compliance_metadata) and not driver.medical_transport_certified:
+            raise ValueError("driver_not_medical_certified")
         transition_order_state(
             db,
             order,

@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""Dev-layer Alembic head guard — §0.1.13 local."""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+VERSIONS = ROOT / "apps/api/alembic/versions"
+EXPECTED_HEAD = "s2t3u4v5w6x7"
+
+
+def find_head_revision() -> str | None:
+    revisions: dict[str, str | None] = {}
+    for path in VERSIONS.glob("*.py"):
+        text = path.read_text(encoding="utf-8")
+        rev_m = re.search(r'^revision\s*=\s*["\']([^"\']+)["\']', text, re.MULTILINE)
+        down_m = re.search(r'^down_revision\s*=\s*(.+)$', text, re.MULTILINE)
+        if not rev_m:
+            continue
+        rev = rev_m.group(1)
+        down_raw = down_m.group(1).strip() if down_m else "None"
+        if down_raw in ("None", "null"):
+            down: str | None = None
+        else:
+            down = down_raw.strip("\"'")
+        revisions[rev] = down
+
+    if not revisions:
+        return None
+
+    referenced = {d for d in revisions.values() if d}
+    heads = [r for r in revisions if r not in referenced]
+    if len(heads) != 1:
+        return None
+    return heads[0]
+
+
+def main() -> int:
+    failures: list[str] = []
+
+    head = find_head_revision()
+    if head is None:
+        failures.append("could not determine single Alembic head from versions/")
+    elif head != EXPECTED_HEAD:
+        failures.append(f"Alembic head is {head!r}, expected {EXPECTED_HEAD!r}")
+
+    head_file = VERSIONS / f"{EXPECTED_HEAD}_analytics_schema.py"
+    if not head_file.is_file():
+        failures.append(f"missing migration file for head {EXPECTED_HEAD}")
+
+    print(f"Alembic head guard (§0.1.13 dev · head={EXPECTED_HEAD})")
+    if failures:
+        for item in failures:
+            print(f"  FAIL: {item}")
+        return 1
+    print("  OK — migration chain head matches dev expectation")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -164,3 +166,23 @@ def readiness(db: Session, settings: Settings) -> dict:
         payload["clerk_apps"] = clerk_apps
         payload["clerk_mode"] = clerk_mode
     return payload
+
+
+def public_status(db: Session, settings: Settings) -> dict:
+    """Public status page payload (§11.3.5) — no auth, minimal detail."""
+    ready = readiness(db, settings)
+    overall = ready.get("status", "unknown")
+    checks = ready.get("checks") or {}
+    components = {
+        "api": "operational" if checks.get("database") == "ok" else "degraded",
+        "database": "operational" if checks.get("database") == "ok" else "outage",
+        "redis": "operational" if checks.get("redis") == "ok" else "degraded",
+        "payments": "operational" if checks.get("stripe") in ("configured", "mock_or_unconfigured") else "degraded",
+        "dispatch": "operational" if checks.get("fleetbase") else "degraded",
+    }
+    return {
+        "status": overall,
+        "service": "porterchain",
+        "components": components,
+        "updated_at": datetime.now(UTC).isoformat(),
+    }

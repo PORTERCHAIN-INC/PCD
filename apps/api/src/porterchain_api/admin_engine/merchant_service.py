@@ -298,6 +298,8 @@ class AdminMerchantService:
         payment_terms: str | None = None,
         pricing_config: dict | None = None,
         credit_limit_cents: int | None = None,
+        parent_merchant_id: str | None = None,
+        support_tier: str | None = None,
     ) -> Merchant:
         merchant = self._get_or_raise(db, merchant_id)
         if payment_terms:
@@ -306,10 +308,43 @@ class AdminMerchantService:
             merchant.pricing_config = pricing_config
         if credit_limit_cents is not None:
             merchant.credit_limit_cents = credit_limit_cents
-        self._audit(db, ctx, "merchant.terms_updated", "merchant", merchant_id, {"payment_terms": payment_terms})
+        if parent_merchant_id is not None:
+            if parent_merchant_id == merchant_id:
+                raise ValueError("parent_cannot_be_self")
+            if parent_merchant_id:
+                parent = self.get_merchant(db, parent_merchant_id)
+                if not parent:
+                    raise ValueError("parent_merchant_not_found")
+            merchant.parent_merchant_id = parent_merchant_id or None
+        if support_tier is not None:
+            profile = dict(merchant.profile or {})
+            enterprise = dict(profile.get("enterprise") or {})
+            enterprise["support_tier"] = support_tier
+            profile["enterprise"] = enterprise
+            merchant.profile = profile
+        self._audit(
+            db,
+            ctx,
+            "merchant.terms_updated",
+            "merchant",
+            merchant_id,
+            {
+                "payment_terms": payment_terms,
+                "parent_merchant_id": parent_merchant_id,
+                "support_tier": support_tier,
+            },
+        )
         db.commit()
         db.refresh(merchant)
         return merchant
+
+    def list_subsidiaries(self, db: Session, parent_merchant_id: str) -> list[Merchant]:
+        return (
+            db.query(Merchant)
+            .filter(Merchant.parent_merchant_id == parent_merchant_id)
+            .order_by(Merchant.company_name.asc())
+            .all()
+        )
 
     def _get_or_raise(self, db: Session, merchant_id: str) -> Merchant:
         merchant = self.get_merchant(db, merchant_id)

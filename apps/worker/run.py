@@ -12,8 +12,10 @@ logger = logging.getLogger("porterchain.worker")
 _running = True
 _last_fleetbase_retry_at = 0.0
 _last_draft_reconcile_at = 0.0
+_last_standing_orders_at = 0.0
 FLEETBASE_RETRY_INTERVAL_SECONDS = 60
 DRAFT_RECONCILE_INTERVAL_SECONDS = 300
+STANDING_ORDERS_INTERVAL_SECONDS = 300
 
 
 def _touch_heartbeat() -> None:
@@ -100,6 +102,32 @@ def _drain_draft_reconciliation() -> int:
     return int(result.get("expired", 0)) + int(result.get("repaired", 0))
 
 
+def _drain_standing_orders() -> int:
+    """Materialize due recurring merchant standing orders (§8.1.11)."""
+    global _last_standing_orders_at
+    now = time.monotonic()
+    if now - _last_standing_orders_at < STANDING_ORDERS_INTERVAL_SECONDS:
+        return 0
+    _last_standing_orders_at = now
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.merchant_engine.standing_order_service import MerchantStandingOrderService
+
+    settings = get_settings()
+    with SessionLocal() as db:
+        result = MerchantStandingOrderService().run_due_orders(db, settings)
+    if result.get("created") or result.get("failed"):
+        logger.info(
+            "standing orders drain: processed=%s created=%s failed=%s skipped=%s",
+            result.get("processed", 0),
+            result.get("created", 0),
+            result.get("failed", 0),
+            result.get("skipped", 0),
+        )
+    return int(result.get("created", 0))
+
+
 def main() -> None:
     from porterchain_shared.queue.names import QueueName
     from porterchain_shared.queue.publisher import get_queue_publisher
@@ -118,6 +146,7 @@ def main() -> None:
             processed = _drain_queues(publisher, timeout_seconds=1)
             processed += _drain_fleetbase_retry_queue()
             processed += _drain_draft_reconciliation()
+            processed += _drain_standing_orders()
             _touch_heartbeat()
         except Exception:
             logger.exception("worker loop error — backing off before retry")

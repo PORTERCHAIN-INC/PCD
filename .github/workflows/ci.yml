@@ -60,6 +60,27 @@ jobs:
       - name: Golden rules (FND-G4 / §5.3.6)
         run: pnpm validate:golden-rules
 
+      - name: Observability + security headers (Appendix B)
+        run: pnpm validate:observability
+
+      - name: Notifications + billing depth (Appendix D)
+        run: pnpm validate:notifications-billing
+
+      - name: Enterprise security + identity (§11)
+        run: pnpm validate:enterprise-security && pnpm validate:enterprise-identity
+
+      - name: Doc governance + Phase 2 scaffolds
+        run: pnpm validate:doc-governance && pnpm validate:phase2-scaffold
+
+      - name: Investor + monopoly metrics (§9–§10)
+        run: pnpm validate:investor-monopoly && pnpm validate:integration-adapter
+
+      - name: Enterprise SIG + TAM narrative (ENT-G1 · INV-G4)
+        run: pnpm validate:enterprise-narrative
+
+      - name: POD media + mobile appendix
+        run: pnpm validate:pod-media && pnpm validate:mobile-appendix
+
       - name: Mobile Maestro smoke structure (§2.1.10)
         run: pnpm validate:mobile-smoke && pnpm validate:mobile-design
 
@@ -93,8 +114,8 @@ jobs:
       - name: Construction site access (§8.1.6)
         run: pnpm validate:construction-site-access
 
-      - name: Moat vertical workflows (§8.1.7 · §8.1.12)
-        run: pnpm validate:liftgate-pricing && pnpm validate:vertical-onboarding
+      - name: Moat vertical workflows (§8.1.7 · §8.1.12 · §8.1.2–8.1.9)
+        run: pnpm validate:liftgate-pricing && pnpm validate:vertical-onboarding && pnpm validate:medical-food-verticals
 
       - name: Integration marketplace (§7.2.5)
         run: pnpm validate:integration-marketplace

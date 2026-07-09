@@ -155,10 +155,32 @@ def update_merchant(
             payment_terms=body.payment_terms,
             pricing_config=body.pricing_config,
             credit_limit_cents=body.credit_limit_cents,
+            parent_merchant_id=body.parent_merchant_id,
+            support_tier=body.support_tier,
         )
     except LookupError:
         raise HTTPException(status_code=404, detail="merchant_not_found") from None
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     return _m360.detail(db, merchant_id) or {}
+
+
+@router.get("/{merchant_id}/subsidiaries")
+def merchant_subsidiaries(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> list[dict]:
+    _guard(ctx, "merchants_read")
+    if not _merchants.get_merchant(db, merchant_id):
+        raise HTTPException(status_code=404, detail="merchant_not_found")
+    rows = _merchants.list_subsidiaries(db, merchant_id)
+    return [
+        {
+            "merchant_id": m.id,
+            "company_name": m.company_name,
+            "status": m.status,
+            "payment_terms": m.payment_terms,
+            "parent_merchant_id": m.parent_merchant_id,
+        }
+        for m in rows
+    ]
 
 
 # --------------------------------------------------------------------------- #

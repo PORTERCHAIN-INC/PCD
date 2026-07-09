@@ -111,6 +111,21 @@ class MerchantReportsService:
     def claims_reports(self, db: Session, ctx: MerchantContext) -> dict[str, Any]:
         return report_engine.claims_summary(db, ctx.merchant.id)
 
+    def sla_history(self, db: Session, ctx: MerchantContext) -> dict[str, Any]:
+        from porterchain_api.reporting.switching_costs import sla_history_12mo
+
+        return sla_history_12mo(db, ctx.merchant.id)
+
+    def switching_costs(self, db: Session, ctx: MerchantContext) -> dict[str, Any]:
+        from porterchain_api.reporting import switching_costs
+
+        return {
+            "integration_depth": switching_costs.integration_depth(db, ctx.merchant.id),
+            "sla_history": switching_costs.sla_history_12mo(db, ctx.merchant.id),
+            "custom_tariffs": switching_costs.custom_tariffs_summary(db, merchant_id=ctx.merchant.id),
+            "rbac_audit": switching_costs.rbac_and_audit_snapshot(db, ctx.merchant.id, limit=25),
+        }
+
     def overview(self, db: Session, ctx: MerchantContext) -> dict[str, Any]:
         return {
             "executive": self.executive(db, ctx),
@@ -162,6 +177,16 @@ class MerchantReportsService:
         if report_type == "orders":
             rows = report_engine.top_routes(db, ctx.merchant.id, limit=100)
             return rows, ["route", "count"]
+        if report_type == "sla-history":
+            data = self.sla_history(db, ctx)
+            rows = [
+                {
+                    "month": label,
+                    "sla_percent": pct,
+                }
+                for label, pct in zip(data["labels"], data["sla_percent"], strict=True)
+            ]
+            return rows, ["month", "sla_percent"]
         # executive / delivery default
         data = self.delivery_performance(db, ctx)
         rows = [data]

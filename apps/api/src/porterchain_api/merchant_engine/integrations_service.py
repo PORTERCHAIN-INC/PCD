@@ -75,6 +75,11 @@ class MerchantIntegrationsService:
     def erp_readiness(self) -> dict[str, Any]:
         return {"platforms": gateway.ERP_READINESS}
 
+    def integration_depth(self, db: Session, ctx: MerchantContext) -> dict[str, Any]:
+        from porterchain_api.reporting.switching_costs import integration_depth
+
+        return integration_depth(db, ctx.merchant.id)
+
     def oauth_readiness(self, *, enabled: bool) -> dict[str, Any]:
         return {
             "providers": gateway.OAUTH_PROVIDERS,
@@ -365,6 +370,49 @@ class MerchantIntegrationsService:
             next_retry_at=next_retry,
         )
         return self._serialize_delivery(delivery)
+
+    def netsuite_setup(self, *, api_base_url: str) -> dict[str, Any]:
+        from porterchain_api.integrations.netsuite_adapter import netsuite_setup_bundle
+
+        return netsuite_setup_bundle(api_base_url=api_base_url)
+
+    def connect_netsuite(self, db: Session, ctx: MerchantContext, *, account_id: str) -> dict[str, Any]:
+        profile = dict(ctx.merchant.profile or {})
+        integrations = dict(profile.get("integrations") or {})
+        integrations["netsuite"] = {
+            "account_id": account_id.strip(),
+            "connected": True,
+            "connected_at": datetime.now(UTC).isoformat(),
+        }
+        profile["integrations"] = integrations
+        ctx.merchant.profile = profile
+        db.commit()
+        db.refresh(ctx.merchant)
+        return integrations["netsuite"]
+
+    def sync_netsuite(
+        self,
+        db: Session,
+        settings: Settings,
+        ctx: MerchantContext,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        from porterchain_api.integrations.netsuite_adapter import map_netsuite_fulfillment
+
+        body = map_netsuite_fulfillment(payload)
+        order = self._booking.create_shipment(db, settings, ctx, body)
+        return {
+            "order_id": order.id,
+            "order_number": order.order_number,
+            "tracking_number": order.tracking_number,
+            "state": order.state,
+            "external_id": payload.get("external_id") or payload.get("tranid"),
+        }
+
+    def zapier_templates(self) -> dict[str, Any]:
+        from porterchain_api.integrations.zapier_catalog import zapier_catalog
+
+        return zapier_catalog()
 
     def _require_webhook(self, db: Session, ctx: MerchantContext, webhook_id: str) -> MerchantWebhook:
         hook = (

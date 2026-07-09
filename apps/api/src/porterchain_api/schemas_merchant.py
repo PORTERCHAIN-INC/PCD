@@ -33,6 +33,14 @@ class MerchantBookDeliveryRequest(BaseModel):
         default=False,
         description="Liftgate required at delivery — adds construction surcharge (§8.1.7)",
     )
+    custodian_name: str | None = Field(default=None, description="Medical chain-of-custody custodian (§8.1.2)")
+    specimen_id: str | None = Field(default=None, description="Medical specimen / requisition ID (§8.1.2)")
+    seal_number: str | None = Field(default=None, description="Tamper seal number (§8.1.2)")
+    requires_cold_chain: bool = Field(default=False, description="Refrigerated transport required (§8.1.9)")
+    temperature_min_c: float | None = Field(default=None, description="Cold-chain minimum °C (§8.1.9)")
+    temperature_max_c: float | None = Field(default=None, description="Cold-chain maximum °C (§8.1.9)")
+    delivery_window_start: datetime | None = Field(default=None, description="Food delivery window start (§8.1.8)")
+    delivery_window_end: datetime | None = Field(default=None, description="Food delivery window end (§8.1.8)")
     internal_reference: str | None = None
     purchase_order_number: str | None = None
     cost_centre: str | None = None
@@ -115,6 +123,24 @@ class MerchantBookingTemplateResponse(BaseModel):
     payload: dict[str, Any]
     is_recurring: bool
     recurrence_rule: str | None = None
+    created_at: datetime
+
+
+class MerchantStandingOrderCreateRequest(BaseModel):
+    booking_template_id: str
+    recurrence_rule: str = "weekly"
+    next_run_at: datetime | None = None
+
+
+class MerchantStandingOrderResponse(BaseModel):
+    id: str
+    merchant_id: str
+    booking_template_id: str
+    recurrence_rule: str
+    next_run_at: datetime
+    last_run_at: datetime | None = None
+    last_order_id: str | None = None
+    is_active: bool
     created_at: datetime
 
 
@@ -272,6 +298,24 @@ class WebhookResponse(BaseModel):
 
 class MerchantSandboxRequest(BaseModel):
     sandbox_mode: bool
+
+
+class NetSuiteConnectRequest(BaseModel):
+    account_id: str = Field(min_length=2, max_length=64)
+
+
+class NetSuiteSyncRequest(BaseModel):
+    external_id: str
+    tranid: str | None = None
+    purchase_order: str | None = None
+    subsidiary: str | None = None
+    memo: str | None = None
+    ship_date: datetime
+    ship_address: dict[str, Any]
+    pickup_address: dict[str, Any]
+    weight_kg: float | None = None
+    vehicle_class: str | None = None
+    package_type: str | None = None
 
 
 class MerchantApiKeyRateLimitRequest(BaseModel):

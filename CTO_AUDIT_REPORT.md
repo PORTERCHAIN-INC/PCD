@@ -2,19 +2,19 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-09
 
 **Method:** 12 audit bunches + **191-file rollout** in [masterrule Appendix C](./masterrule.md#appendix-c--documentation-simplification-program) (39 groups × 5).  
 **Authority:** [masterrule.md](./masterrule.md) §21
 
-| Metric                                  | Value                                                                                |
-| --------------------------------------- | ------------------------------------------------------------------------------------ |
-| Markdown files in repo                  | 283                                                                                  |
-| Pointer-only docs (`**pointer**` stubs) | 61                                                                                   |
-| Canonical platform docs audited         | 60 (12 × 5)                                                                          |
-| API route handlers (`@router.*`)        | **483** across 20 router modules                                                     |
-| Alembic head                            | `n2o3p4q5r6s7`                                                                       |
-| Local audit remediation                 | **Uncommitted** — see [Remediation log](#remediation-log); commit before next deploy |
+| Metric                                  | Value                                                                             |
+| --------------------------------------- | --------------------------------------------------------------------------------- |
+| Markdown files in repo                  | 283                                                                               |
+| Pointer-only docs (`**pointer**` stubs) | 61                                                                                |
+| Canonical platform docs audited         | 60 (12 × 5)                                                                       |
+| API route handlers (`@router.*`)        | **483** across 20 router modules                                                  |
+| Alembic head                            | `s2t3u4v5w6x7`                                                                    |
+| Local audit remediation                 | **In progress** — see [Remediation log](#remediation-log); dev-layer guards in CI |
 
 ---
 
@@ -158,19 +158,19 @@ flowchart LR
 
 ## Open issue register
 
-| ID   | Sev | Issue                         | Evidence                                          | Action                               |
-| ---- | --- | ----------------------------- | ------------------------------------------------- | ------------------------------------ |
-| O-01 | P0  | Prod droplet offline          | 0 containers; API down                            | Redeploy                             |
-| O-02 | P1  | Fleetbase sync backlog        | 1/31 linked; 20 dead letters                      | Admin replay + fix env               |
-| O-03 | P1  | Inbound Fleetbase webhooks    | `FLEETBASE_WEBHOOK_SECRET` empty                  | Set secret + Fleetbase console URL   |
-| O-04 | P1  | No worker in prod             | `docker-compose.prod.yml`                         | Add service or runbook               |
-| O-05 | P1  | FCM dry-run                   | `push_send=false`                                 | Firebase creds in PCD path           |
-| O-06 | P2  | `route.optimized` not emitted | M-009                                             | Wire Route Center → event bus        |
-| O-07 | P2  | No tracking maps (web retail) | M-006/M-007                                       | Map on `/track/*`                    |
-| O-08 | P2  | API docs thin                 | 483 routes vs README ~10                          | Link `/docs` from README             |
-| O-09 | P2  | Customer Stripe return URL    | Prod `RETAIL_CHECKOUT_SUCCESS_URL` → website only | Set customer URL for portal bookings |
-| O-10 | P3  | Model sprawl                  | 9+ model modules                                  | Bounded-context refactor             |
-| O-11 | P3  | Orphan `services/booking.py`  | Zero imports                                      | Delete                               |
+| ID   | Sev | Issue                             | Evidence                                          | Action                              |
+| ---- | --- | --------------------------------- | ------------------------------------------------- | ----------------------------------- |
+| O-01 | P0  | Prod droplet offline              | 0 containers; API down                            | Redeploy (prod layer — FND-G5)      |
+| O-02 | P1  | Fleetbase sync backlog            | 1/31 linked; 20 dead letters                      | Admin replay + fix env              |
+| O-03 | P1  | Inbound Fleetbase webhooks        | `FLEETBASE_WEBHOOK_SECRET` empty                  | Set secret + Fleetbase console URL  |
+| O-04 | P1  | ~~No worker in prod~~             | `docker-compose.prod.yml`                         | **FIXED** — worker service added    |
+| O-05 | P1  | FCM dry-run                       | `push_send=false`                                 | Firebase creds in PCD path          |
+| O-06 | P2  | ~~`route.optimized` not emitted~~ | M-009                                             | **FIXED** — §0.6.6                  |
+| O-07 | P2  | ~~No tracking maps (web retail)~~ | M-006/M-007                                       | **FIXED** — TrackRouteMap §0.6.4    |
+| O-08 | P2  | ~~API docs thin~~                 | 483 routes vs README ~10                          | **FIXED** — OpenAPI + Partner guide |
+| O-09 | P2  | ~~Customer Stripe return URL~~    | Prod `RETAIL_CHECKOUT_SUCCESS_URL` → website only | **FIXED** — §0.6.5                  |
+| O-10 | P3  | ~~Model sprawl~~                  | 9+ model modules                                  | **FIXED** — §0.6.8 strangler split  |
+| O-11 | P3  | ~~Orphan `services/booking.py`~~  | Zero imports                                      | **FIXED** — deleted §0.6.9          |
 
 ---
 
@@ -183,9 +183,10 @@ flowchart LR
 | R-03 | **FIXED** _(uncommitted)_ | `fleetbase_dispatch_bridge` default `false`; local `.env` still `true`                                 |
 | R-04 | **FIXED** _(uncommitted)_ | Customer `/book/success` + `syncBookingCheckout`                                                       |
 | R-05 | **FIXED** _(uncommitted)_ | TECH_STACK, DOCKER_*, PORT_CONFIGURATION, PRODUCTION_READINESS, CONNECTIONS, BOOKING_FLOW              |
-| R-06 | OPEN                      | Replay Fleetbase dead letters                                                                          |
-| R-07 | OPEN                      | Prod compose: worker + Firebase + Fleetbase API env                                                    |
-| R-08 | OPEN                      | Consolidate 61 pointer docs / archive duplicates                                                       |
+| R-06 | OPEN                      | Replay Fleetbase dead letters (prod)                                                                   |
+| R-07 | **FIXED**                 | Prod compose: worker + Firebase + Fleetbase API env documented in RUNBOOK                              |
+| R-08 | **FIXED** _(dev)_         | Pointer stubs ≤20 — `validate:doc-pointers` + `docs/archive/pointer-stubs/`                            |
+| R-09 | **FIXED** _(dev)_         | §0.6 P2–P3 closed; §11 enterprise security + audit export; investor/monopoly metrics                   |
 
 ---
 

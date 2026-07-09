@@ -28,6 +28,7 @@ from porterchain_api.routers.merchant._deps import (
     router,
 )
 from porterchain_api.schemas_oauth import OAuthClientCreateRequest
+from porterchain_api.schemas_merchant import NetSuiteConnectRequest, NetSuiteSyncRequest
 
 
 @router.get("/api-keys", response_model=list[ApiKeyResponse])
@@ -282,6 +283,63 @@ def integrations_erp(
 ):
     require_module(ctx, "api_keys")
     return _integrations.erp_readiness()
+
+
+@router.get("/integrations/netsuite/setup")
+def netsuite_setup(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    settings: Settings = Depends(get_settings),
+):
+    """§7.2.3 — NetSuite MVP setup bundle."""
+    require_module(ctx, "api_keys")
+    return _integrations.netsuite_setup(api_base_url=settings.porterchain_api_url)
+
+
+@router.post("/integrations/netsuite/connect")
+def netsuite_connect(
+    body: NetSuiteConnectRequest,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    require_module(ctx, "api_keys")
+    return _integrations.connect_netsuite(db, ctx, account_id=body.account_id)
+
+
+@router.post("/integrations/netsuite/sync")
+def netsuite_sync(
+    body: NetSuiteSyncRequest,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """§7.2.3 — map NetSuite fulfillment → Porterchain shipment."""
+    require_module(ctx, "api_keys")
+    try:
+        return _integrations.sync_netsuite(db, settings, ctx, body.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/integrations/zapier/templates")
+def zapier_templates(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+):
+    """§7.2.4 — Zapier template catalog."""
+    require_module(ctx, "api_keys")
+    return _integrations.zapier_templates()
+
+
+@router.get("/integrations/depth")
+def integrations_depth(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    """§8.3.1 — active integration channel count per merchant."""
+    require_module(ctx, "api_keys")
+    try:
+        return _integrations.integration_depth(db, ctx)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="merchant_not_found") from None
 
 
 @router.get("/integrations/oauth")

@@ -109,6 +109,14 @@ export interface BookDeliveryPayload {
   special_instructions?: string;
   site_access_notes?: string;
   requires_liftgate?: boolean;
+  custodian_name?: string;
+  specimen_id?: string;
+  seal_number?: string;
+  requires_cold_chain?: boolean;
+  temperature_min_c?: number;
+  temperature_max_c?: number;
+  delivery_window_start?: string;
+  delivery_window_end?: string;
   internal_reference?: string;
   purchase_order_number?: string;
   cost_centre?: string;

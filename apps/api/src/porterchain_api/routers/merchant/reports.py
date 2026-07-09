@@ -108,6 +108,26 @@ def reports_claims(
     return _reports.claims_reports(db, ctx)
 
 
+@router.get("/reports/sla-history")
+def reports_sla_history(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    """§8.3.2 — 12-month SLA history for merchant portal."""
+    require_module(ctx, "reports")
+    return _reports.sla_history(db, ctx)
+
+
+@router.get("/reports/switching-costs")
+def reports_switching_costs(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    """§8.3 — integration depth, SLA history, tariffs, RBAC audit snapshot."""
+    require_module(ctx, "reports")
+    return _reports.switching_costs(db, ctx)
+
+
 @router.get("/reports/saved")
 def reports_saved_list(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],

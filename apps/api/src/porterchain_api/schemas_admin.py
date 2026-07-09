@@ -52,6 +52,8 @@ class MerchantUpdateRequest(BaseModel):
     payment_terms: str | None = None
     pricing_config: dict[str, Any] | None = None
     credit_limit_cents: int | None = None
+    parent_merchant_id: str | None = None
+    support_tier: str | None = Field(default=None, pattern="^(standard|priority|enterprise)$")
 
 
 class MerchantInviteRequest(BaseModel):
@@ -100,6 +102,7 @@ class DriverItem(BaseModel):
 
 class DriverVerifyRequest(BaseModel):
     license_verified: bool | None = None
+    medical_transport_certified: bool | None = None
     insurance_verified: bool | None = None
     vehicle_verified: bool | None = None
     background_check_status: str | None = None
@@ -216,6 +219,10 @@ class OrderBulkRequest(BaseModel):
     order_ids: list[str]
     action: str
     driver_id: str | None = None
+
+
+class OrderTemperatureRequest(BaseModel):
+    celsius: float = Field(..., description="Recorded cargo temperature in °C")
 
 
 class PaymentAdminItem(BaseModel):
@@ -1111,3 +1118,36 @@ class BookingDraftPaymentLinkResponse(BaseModel):
     checkout_url: str | None
     payment_id: str | None
     stripe_checkout_session_id: str | None
+
+
+class RouteTemplateItem(BaseModel):
+    id: str
+    name: str
+    template_type: str
+    merchant_id: str | None = None
+    zone: str | None = None
+    schedule: dict[str, Any] = Field(default_factory=dict)
+    stops: list[dict[str, Any]] = Field(default_factory=list)
+    config: dict[str, Any] = Field(default_factory=dict)
+    is_active: bool = True
+    created_by: str | None = None
+    created_at: datetime
+
+
+class RouteTemplateCreateRequest(BaseModel):
+    name: str
+    merchant_id: str | None = None
+    zone: str | None = None
+    schedule: dict[str, Any] = Field(default_factory=dict)
+    stops: list[dict[str, Any]] = Field(default_factory=list)
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class RouteTemplateUpdateRequest(BaseModel):
+    name: str | None = None
+    merchant_id: str | None = None
+    zone: str | None = None
+    schedule: dict[str, Any] | None = None
+    stops: list[dict[str, Any]] | None = None
+    config: dict[str, Any] | None = None
+    is_active: bool | None = None

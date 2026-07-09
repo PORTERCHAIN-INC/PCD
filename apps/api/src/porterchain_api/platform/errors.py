@@ -8,8 +8,13 @@ from typing import Any
 _CODE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 
 
-def error_envelope(detail: Any, *, code: str | None = None) -> dict[str, Any]:
-    """Return consistent JSON error body: ``detail`` + optional ``code``."""
+def error_envelope(
+    detail: Any,
+    *,
+    code: str | None = None,
+    request_id: str | None = None,
+) -> dict[str, Any]:
+    """Return consistent JSON error body: ``detail`` + optional ``code`` + ``request_id``."""
     body: dict[str, Any] = {"detail": detail}
     if code:
         body["code"] = code
@@ -17,4 +22,6 @@ def error_envelope(detail: Any, *, code: str | None = None) -> dict[str, Any]:
         body["code"] = detail
     elif isinstance(detail, list):
         body["code"] = "validation_error"
+    if request_id:
+        body["request_id"] = request_id
     return body

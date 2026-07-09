@@ -276,3 +276,18 @@ class MerchantOrdersService:
 
     def get_by_tracking(self, db: Session, ctx: MerchantContext, tracking_number: str) -> Order | None:
         return self._order_repo.get_by_tracking_for_merchant(db, ctx.merchant.id, tracking_number)
+
+    def compliance_dossier_pdf(
+        self, db: Session, ctx: MerchantContext, order_id: str
+    ) -> tuple[bytes, str]:
+        """§8.1.13 — merchant-scoped compliance PDF dossier."""
+        from porterchain_api.admin_models import Driver
+        from porterchain_api.reporting.compliance_dossier import build_compliance_dossier_pdf
+
+        order = self._require_owned(db, ctx, order_id)
+        events = self._orders.order_timeline(db, order_id)
+        driver = None
+        if order.assigned_driver_id:
+            driver = db.query(Driver).filter(Driver.id == order.assigned_driver_id).first()
+        pdf = build_compliance_dossier_pdf(order, events, merchant=ctx.merchant, driver=driver)
+        return pdf, f"compliance-{order.order_number}.pdf"

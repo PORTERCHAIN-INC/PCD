@@ -3,7 +3,7 @@
 **Type:** CANONICAL  
 **Checklist:** [SILICON_VALLEY_READINESS_CHECKLIST.md](./SILICON_VALLEY_READINESS_CHECKLIST.md)  
 **Last verified:** 2026-07-09  
-**Progress:** 289/418 checklist items (~69%)
+**Progress:** 392/418 checklist items (~94%)
 
 ---
 
@@ -12,31 +12,37 @@
 | #     | ID          | Task                                                   |
 | ----- | ----------- | ------------------------------------------------------ |
 | **1** | **FND-G5**  | Close 0.7.5 prod Fleetbase bridge (DD-05) — prod layer |
-| **2** | **§0 FND**  | Foundation gates (0.1 prod, FND-G1–G3)                 |
-| **3** | **§6 DES**  | DES-G1 designer review (subjective)                    |
-| **4** | **§4 AI**   | AI-G1 prod models with lift (Phase 2 data)             |
-| **5** | **§8 MOAT** | Medical vertical §8.1.2–8.1.5 · food §8.1.8–8.1.9      |
+| **2** | **§0 FND**  | Foundation gates FND-G1–G2 (prod execution loop)       |
+| **3** | **§10.2.2** | Record 3-min MP4 from `docs/investor/DEMO_VIDEO.md`    |
+| **4** | **§4 AI**   | Train prod models with lift (AI-G1)                    |
+| **5** | **§6**      | External designer review (DES-G1 rubric ready)         |
 
-**Skipped:** §7.2.1 Shopify · §7.2.2 WooCommerce native apps
+**Skipped:** §7.2.1 Shopify · §7.2.2 WooCommerce (`[—]` in checklist)
 
 ---
 
 ## Dev verification
 
 ```bash
-pnpm validate:moat
-pnpm validate:ai-governance && pnpm validate:category-positioning
-pnpm validate:developer-portal && pnpm validate:design
-pnpm validate:product-vision && pnpm validate:architecture
+pnpm validate:notification-catalog   # via notifications-billing
+pnpm validate:pod-media
+pnpm validate:mobile-appendix
+pnpm validate:notifications-billing
+```
+
+Seed analytics legs (§4.1.1 dev):
+
+```bash
+cd apps/api && source .venv/bin/activate && PYTHONPATH=src python scripts/seed_analytics_stop_legs.py --count 10000
 ```
 
 ---
 
 ## Completed (latest)
 
-- §8.1.7 — liftgate pricing surcharge ($45) in `porterchain_pricing` + merchant booking checkbox
-- §8.1.12 — vertical onboarding selector (construction/medical/food/wholesale) on merchant portal
-- §8.1.6 — construction site access notes on merchant booking (API + UI + guard)
-- E.2 — root POINTER stubs consolidated to 20 (`docs/POINTER_STUB_INDEX.md`)
+- Medical temp excursion → event bus (fixes `verify_notification_catalog`)
+- B.17 POD retention doc · C.7 EAS config · MON-G4 metro playbook
+- DES-G1 rubric · EXE-G4 monthly prod validate doc
+- §4.1.1 analytics seed script (dev path)
 
-**Frozen:** Stripe · **Deferred:** §1.3.3 prod merchants, FND-G5 prod bridge
+**Frozen:** Stripe · **Deferred:** FND-G5 prod bridge
