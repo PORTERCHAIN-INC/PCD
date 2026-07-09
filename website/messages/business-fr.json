@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "title": "Porterchain Entreprise | Logistique pour entreprises en croissance",
-    "description": "Demandez une consultation pour la logistique récurrente, la livraison le jour même, le fret LTL et la distribution en gros dans le RGT. Formulaire simple — pas de longs formulaires.",
-    "ogTitle": "Porterchain Logistique Entreprise",
-    "ogDescription": "Logistique moderne pour entreprises en croissance. Demandez une consultation."
+    "title": "Services Porterchain | Capacité de transport pour entreprises ontariennes",
+    "description": "Demandez de la capacité véhicule et chauffeur pour urgences, débordement, routes planifiées, distribution locale et continuité d'affaires en Ontario.",
+    "ogTitle": "Porterchain — Services de capacité de transport",
+    "ogDescription": "Chauffeurs professionnels et véhicules pour les entreprises qui ont besoin de renfort, débordement, livraison même jour ou routes récurrentes."
   },
   "nav": {
     "solutions": "Solutions",
@@ -24,12 +24,12 @@
     }
   },
   "hero": {
-    "badge": "Logistique entreprise",
-    "titleLine1": "Logistique entreprise",
-    "titleLine2": "Conçue pour les entreprises en croissance.",
-    "subtitle": "Livraison le jour même, routes planifiées, distribution en gros, fret LTL, logistique récurrente et solutions de transport personnalisées dans la région du Grand Toronto.",
-    "ctaPrimary": "Demander une consultation",
-    "ctaSecondary": "Planifier une réunion"
+    "badge": "Capacité de transport",
+    "titleLine1": "Capacité véhicule et chauffeur",
+    "titleLine2": "quand votre flotte ne suffit pas.",
+    "subtitle": "Utilisez Porterchain pour urgences, débordement de flotte, routes planifiées, distribution locale, ramassages marketplace, construction, pharmacies, laboratoires et fabrication.",
+    "ctaPrimary": "Obtenir un devis",
+    "ctaSecondary": "Voir les véhicules"
   },
   "inquiry": {
     "title": "Parlons de votre logistique",

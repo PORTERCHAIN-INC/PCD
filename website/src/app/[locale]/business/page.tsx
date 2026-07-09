@@ -34,12 +34,12 @@ export default async function BusinessPage({ params }: Props) {
       <SiteShell>
         <div className="pb-24 lg:pb-0">
           <BusinessHero />
+          <BusinessFleet />
           <TrustedBy />
           <BusinessChallenges />
           <BusinessSolutions />
           <BusinessIndustries />
           <WhyChooseBusiness />
-          <BusinessFleet />
           <EnterpriseOnboarding />
           <DashboardPreview />
           <Technology />

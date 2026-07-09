@@ -1,21 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Check, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { publicEnv } from "@/lib/env";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
+import { getStoredAttribution, resolveLeadSource } from "@/lib/seo/attribution";
+import { pushAttributionToZoho } from "@/lib/seo/zoho-attribution";
 
 const INQUIRY_TYPES = ["sales", "support", "partnership", "careers", "api"] as const;
 type InquiryType = (typeof INQUIRY_TYPES)[number];
 
-export default function ContactInquiryForm() {
+interface ContactInquiryFormProps {
+  intent?: string;
+  attributionFrom?: string;
+}
+
+export default function ContactInquiryForm({ intent, attributionFrom }: ContactInquiryFormProps) {
   const t = useTranslations("corporate.contact.form");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [inquiryType, setInquiryType] = useState<InquiryType>("sales");
+  const isDemo = intent === "demo";
+  const isQuote = intent === "quote";
+
+  useEffect(() => {
+    if (isDemo || isQuote) {
+      setInquiryType("sales");
+    }
+  }, [isDemo, isQuote]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,7 +44,11 @@ export default function ContactInquiryForm() {
     const phone = String(data.get("phone") ?? "");
     const message = String(data.get("message") ?? "");
 
-    const subject = encodeURIComponent(`[${inquiryType}] Porterchain inquiry from ${name}`);
+    const leadSource = resolveLeadSource(attributionFrom);
+    const stored = getStoredAttribution();
+    const intentLabel = isQuote ? "quote" : isDemo ? "demo" : inquiryType;
+
+    const subject = encodeURIComponent(`[${intentLabel}] Porterchain inquiry from ${name}`);
     const body = encodeURIComponent(
       [
         `Name: ${name}`,
@@ -37,6 +56,11 @@ export default function ContactInquiryForm() {
         `Email: ${email}`,
         phone ? `Phone: ${phone}` : null,
         `Inquiry type: ${inquiryType}`,
+        isQuote ? "Intent: quote" : null,
+        isDemo ? "Intent: demo" : null,
+        leadSource ? `Source page: ${leadSource}` : null,
+        stored.utm_source ? `UTM source: ${stored.utm_source}` : null,
+        stored.utm_campaign ? `UTM campaign: ${stored.utm_campaign}` : null,
         "",
         message,
       ]
@@ -44,10 +68,22 @@ export default function ContactInquiryForm() {
         .join("\n")
     );
 
+    pushAttributionToZoho({ ...stored, from: leadSource });
+
     window.location.href = `mailto:${publicEnv.contactEmail}?subject=${subject}&body=${body}`;
-    track(ANALYTICS_EVENTS.CONTACT_FORM_SUBMIT_SUCCESS, {
+    const eventName = isQuote
+      ? ANALYTICS_EVENTS.QUOTE_REQUEST
+      : isDemo
+        ? ANALYTICS_EVENTS.DEMO_REQUEST
+        : ANALYTICS_EVENTS.CONTACT_FORM_SUBMIT_SUCCESS;
+    track(eventName, {
       inquiry_type: inquiryType,
       source_section: "contact_page",
+      ...(leadSource ? { source_page: leadSource, from: leadSource } : {}),
+      ...(stored.utm_source ? { utm_source: stored.utm_source } : {}),
+      ...(stored.utm_campaign ? { utm_campaign: stored.utm_campaign } : {}),
+      ...(isQuote ? { intent: "quote" } : {}),
+      ...(isDemo ? { intent: "demo" } : {}),
     });
     await new Promise((r) => setTimeout(r, 400));
     setLoading(false);

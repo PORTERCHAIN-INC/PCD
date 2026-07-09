@@ -1,9 +1,18 @@
 {
   "metadata": {
-    "title": "Porterchain | Logistique commerciale — Livraison RGT",
-    "description": "Livraison matériaux de construction, électrique et plomberie dans le RGT. Tournées récurrentes, palettes, preuve de livraison.",
-    "ogTitle": "Porterchain | Partenaire logistique commercial",
-    "ogDescription": "Livraison chantier et distributeur pour construction, électrique et plomberie en Ontario."
+    "title": "Porterchain | Système de répartition pour la logistique B2B régionale",
+    "description": "Orchestration de répartition pour les distributeurs ontariens — planification SLA, visibilité en direct et preuve prête pour audit.",
+    "ogTitle": "Porterchain | Système de répartition B2B régional",
+    "ogDescription": "Logiciel d'orchestration pour expéditeurs régionaux — répartition structurée et visibilité en temps réel.",
+    "keywords": [
+      "Logiciel répartition Ontario",
+      "Plateforme logistique B2B",
+      "Répartition distribution construction",
+      "Orchestration expéditeur régional",
+      "Gestion livraison SLA",
+      "Preuve de livraison",
+      "Porterchain"
+    ]
   },
   "nav": {
     "solutions": "Solutions",

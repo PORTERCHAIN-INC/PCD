@@ -1,9 +1,9 @@
 {
-  "tagline": "Commercial logistics partner for local businesses across the GTA.",
-  "corporateTagline": "Professional commercial delivery for businesses that need reliability at scale.",
-  "businessTagline": "Enterprise logistics for growing businesses.",
+  "tagline": "Transportation capacity for Ontario businesses — powered by software we built to run the network.",
+  "corporateTagline": "Professional drivers and vehicles when your own fleet is not enough.",
+  "businessTagline": "Urgent, overflow, recurring, and dedicated delivery capacity for growing businesses.",
   "copyright": "© {year} Porterchain Inc. All rights reserved.",
-  "contactLine": "driver@porterchain.com · +1 (647) 619-7951",
+  "contactLine": "enterprise@porterchain.com · +1 (647) 619-7951",
   "driverPortal": "Driver Portal",
   "merchantPortal": "Merchant Portal",
   "support": "Customer Support",
@@ -12,57 +12,52 @@
   "googleReview": "Review on Google",
   "sections": {
     "products": {
-      "title": "Services",
+      "title": "How we operate",
       "links": {
-        "platform": "Platform",
+        "platform": "Operations technology",
         "solutions": "Solutions",
-        "book": "Book a Delivery",
-        "business": "Business",
-        "customerPortal": "My Orders",
-        "getQuote": "Get a Quote"
+        "howItWorks": "How it works",
+        "integrations": "Integrations",
+        "developers": "Developers & API",
+        "track": "Track a shipment"
       }
     },
     "solutions": {
-      "title": "Solutions",
+      "title": "Business",
       "links": {
-        "industry": "Industries",
+        "business": "Business services",
+        "enterprise": "Enterprise",
+        "pricing": "Pricing",
+        "trust": "Trust & security",
+        "getQuote": "Get a quote",
+        "customerPortal": "My orders"
+      }
+    },
+    "company": {
+      "title": "Industries & areas",
+      "links": {
+        "industry": "All industries",
         "constructionMaterials": "Construction materials",
         "electricalDistribution": "Electrical distribution",
         "plumbingSupply": "Plumbing supply",
         "serviceAreas": "Service areas",
-        "pricing": "Pricing",
         "localDelivery": "Local delivery",
-        "integrations": "Integrations",
-        "enterprise": "Enterprise",
-        "vanDelivery": "Van delivery",
-        "mediumTruck": "Box truck delivery"
-      }
-    },
-    "company": {
-      "title": "Company",
-      "links": {
-        "about": "About",
-        "contact": "Contact",
-        "blog": "Blog",
-        "careers": "Careers",
-        "drive": "Drive with us",
-        "vehiclePartnerPortal": "Vehicle Partner Portal"
+        "vanDelivery": "Van delivery"
       }
     },
     "resources": {
-      "title": "Resources",
+      "title": "Company & resources",
       "links": {
-        "developers": "Developers",
+        "about": "About",
+        "contact": "Contact",
+        "careers": "Careers",
+        "vehiclePartner": "Vehicle partners",
+        "blog": "Blog",
         "faq": "FAQ",
         "guides": "Guides",
         "compare": "Compare",
         "successStories": "Success stories",
-        "onboardingEducation": "Onboarding",
-        "campaigns": "Campaigns",
-        "blogHome": "Blog Home",
-        "logistics": "Logistics",
-        "constructionBlog": "Construction",
-        "sameDay": "Same-Day Delivery"
+        "onboardingEducation": "Onboarding"
       }
     },
     "legal": {

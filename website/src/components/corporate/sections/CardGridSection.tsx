@@ -37,29 +37,11 @@ export default function CardGridSection({
           <div className="grid md:grid-cols-2 gap-5">
             {items.map((item, i) => (
               <FadeIn key={i} delay={i * 0.08}>
-                <article
-                  id={item.id}
-                  className={cn(
-                    "card-surface card-surface-hover p-8 h-full",
-                    i === 0 && "md:row-span-1 bg-primary text-white border-primary"
-                  )}
-                >
-                  <h3
-                    className={cn(
-                      "text-xl font-semibold tracking-tight",
-                      i === 0 ? "text-white" : "text-primary"
-                    )}
-                  >
+                <article id={item.id} className="card-surface card-surface-hover p-8 h-full">
+                  <h3 className="text-xl font-semibold tracking-tight text-primary">
                     {item.title}
                   </h3>
-                  <p
-                    className={cn(
-                      "mt-3 leading-relaxed",
-                      i === 0 ? "text-white/65" : "text-muted text-sm"
-                    )}
-                  >
-                    {item.description}
-                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-muted">{item.description}</p>
                 </article>
               </FadeIn>
             ))}

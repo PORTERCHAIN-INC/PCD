@@ -1,0 +1,43 @@
+---
+description: PorterChain company charter — identity, product gate, network-first decisions (always use)
+alwaysApply: true
+---
+
+# PorterChain charter (final)
+
+**SSOT:** [docs/PORTERCHAIN_CHARTER.md](../docs/PORTERCHAIN_CHARTER.md) · Website execution: [docs/WEBSITE_GTM_EXECUTION_PLAN.md](../docs/WEBSITE_GTM_EXECUTION_PLAN.md)
+
+## Identity
+
+PorterChain is **not** a courier, trucking co., dispatch/SaaS/fleet software, or marketplace.
+
+PorterChain **is** a **Transportation Capacity Network** powered by intelligent software.
+
+- **Transportation** = what customers pay for today (capacity: vehicle + driver)
+- **Software** = engine for the network (not the SKU)
+- **Network** = the moat
+
+## Before any feature or copy change
+
+1. Which **customer problem**?
+2. Who benefits? (merchant / driver / dispatcher / admin / receiver / partner)
+3. Increases revenue, retention, trust, utilization, automation, efficiency, or satisfaction?
+4. Strengthens moat? (network, relationships, data, trust, execution — not UI alone)
+5. **Would we build with only 10 paying customers?** If no → reject or postpone.
+6. Makes PorterChain harder to replace?
+
+**Never optimize software in isolation. Always optimize the network.**
+
+## Website / GTM
+
+15-second test: what · who · why exist · why different · why trust · what next.
+
+Problem first · technology second · AI last. Primary CTA: **get a quote / request capacity** — not demo or platform tour.
+
+Phase 1 messaging only on customer paths. Never sell Phase 3 as today.
+
+## Review behavior
+
+Validate before code. Challenge founder assumptions with evidence. Separate TODAY from VISION.
+
+Output priorities: P0 / P1 / P2 / P3 with business + technical impact.

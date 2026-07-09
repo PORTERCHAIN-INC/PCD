@@ -4,17 +4,9 @@ import { useEffect, useState } from "react";
 import Script from "next/script";
 import { publicEnv } from "@/lib/env";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
-
-declare global {
-  interface Window {
-    $zoho?: {
-      salesiq?: {
-        ready?: () => void;
-        floatwindow?: { on?: (event: string, cb: () => void) => void };
-      };
-    };
-  }
-}
+import { getStoredAttribution } from "@/lib/seo/attribution";
+import { pushAttributionToZoho } from "@/lib/seo/zoho-attribution";
+import "@/lib/seo/zoho-attribution";
 
 const ZOHO_SALESIQ_INIT_SCRIPT = `
 window.$zoho=window.$zoho||{};
@@ -43,9 +35,11 @@ export default function ZohoSalesIQ() {
       if (typeof priorReady === "function") {
         priorReady();
       }
+      pushAttributionToZoho(getStoredAttribution());
       track(ANALYTICS_EVENTS.ZOHO_CHAT_READY, { source_section: "salesiq_widget" });
       try {
         window.$zoho?.salesiq?.floatwindow?.on?.("open", () => {
+          pushAttributionToZoho(getStoredAttribution());
           track(ANALYTICS_EVENTS.ZOHO_CHAT_OPEN, { source_section: "salesiq_widget" });
         });
       } catch {

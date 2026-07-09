@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getMessages, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import IndustryLandingView from "@/components/seo/IndustryLandingView";
 import { NICHE_SLUGS, getNicheMessageKey, isValidNicheSlug } from "@/lib/seo/niche-landing";
@@ -50,6 +50,7 @@ export default async function IndustrySlugPage({ params }: Props) {
 
   const messages = await getMessages({ locale });
   const loc = locale as Locale;
+  const tBc = await getTranslations("corporate.breadcrumbs");
   const cityLinks = buildCityDeliveryLinksForIndustryPage(loc, slug, messages as never);
   const localCityLinks = buildLocalDeliveryCityLinks(loc);
 
@@ -61,6 +62,11 @@ export default async function IndustrySlugPage({ params }: Props) {
         niche={niche}
         cityLinks={cityLinks}
         localCityLinks={localCityLinks}
+        breadcrumbs={[
+          { label: tBc("home"), href: "/" },
+          { label: tBc("industry"), href: "/industry" },
+          { label: niche.hero.title },
+        ]}
       />
     </CorporateShell>
   );

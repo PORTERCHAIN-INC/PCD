@@ -1,20 +1,9 @@
-import { setRequestLocale } from "next-intl/server";
+import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import SiteShell from "@/components/layout/SiteShell";
 import Hero from "@/components/sections/Hero";
-import DeliveryTypes from "@/components/sections/DeliveryTypes";
-import GtaFramedSection from "@/components/sections/GtaFramedSection";
-import Industries from "@/components/sections/Industries";
-import Vehicles from "@/components/sections/Vehicles";
-import WhoCanUse from "@/components/sections/WhoCanUse";
-import HowItWorks from "@/components/sections/HowItWorks";
-import LiveMap from "@/components/sections/LiveMap";
-import WhyPorterchain from "@/components/sections/WhyPorterchain";
-import MobileApp from "@/components/sections/MobileApp";
-import Features from "@/components/sections/Features";
-import Trust from "@/components/sections/Trust";
-import Testimonials from "@/components/sections/Testimonials";
-import FAQ from "@/components/sections/FAQ";
-import HomePageShell from "@/components/home/HomePageShell";
+import HomePlatformBody from "@/components/home/HomePlatformBody";
+import HomeDeliverySchema from "@/components/seo/HomeDeliverySchema";
 import { routing } from "@/i18n/routing";
 
 type Props = {
@@ -25,28 +14,25 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "corporate.metadata.home" });
+  return {
+    title: t("title"),
+    description: t("description"),
+    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
+  };
+}
+
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
   return (
-    <HomePageShell>
-      <SiteShell>
-        <Hero />
-        <DeliveryTypes />
-        <GtaFramedSection />
-        <Industries />
-        <Vehicles />
-        <WhoCanUse />
-        <HowItWorks />
-        <LiveMap />
-        <WhyPorterchain />
-        <MobileApp />
-        <Features />
-        <Trust />
-        <Testimonials />
-        <FAQ />
-      </SiteShell>
-    </HomePageShell>
+    <SiteShell>
+      <HomeDeliverySchema />
+      <Hero />
+      <HomePlatformBody />
+    </SiteShell>
   );
 }

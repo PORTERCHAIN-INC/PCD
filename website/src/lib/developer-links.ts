@@ -17,9 +17,17 @@ export function getDeveloperLinks(): Record<string, DeveloperLink> {
   return {
     openApiDocs: { id: "openApiDocs", href: `${apiBase}/docs`, external: true },
     openApiJson: { id: "openApiJson", href: `${apiBase}/openapi.json`, external: true },
-    partnerGuide: { id: "partnerGuide", href: `${GITHUB_DOCS}/PARTNER_GUIDE.md`, external: true },
+    partnerGuide: {
+      id: "partnerGuide",
+      href: "/developers/docs/partner-guide",
+      external: false,
+    },
     postman: { id: "postman", href: `${GITHUB_DOCS}/porterchain.postman.json`, external: true },
-    changelog: { id: "changelog", href: `${GITHUB_DOCS}/CHANGELOG.md`, external: true },
+    changelog: {
+      id: "changelog",
+      href: "/developers/docs/changelog",
+      external: false,
+    },
     merchantFlow: {
       id: "merchantFlow",
       href: `${GITHUB_ARCH}/MERCHANT_FLOW.md`,

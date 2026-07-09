@@ -21,6 +21,7 @@ import {
 } from "./content/integrations-education";
 import { SUCCESS_STORIES } from "./content/success-stories";
 import { getAllPostSlugs } from "@/lib/blog";
+import { SOLUTION_VERTICAL_SLUGS } from "@/lib/solutions-verticals";
 import { BLOG_CATEGORIES } from "@/data/blog-categories";
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
@@ -47,6 +48,8 @@ const STATIC_PATHS: {
   freq?: SitemapEntry["changeFrequency"];
 }[] = [
   { segment: "", priority: 1, freq: "weekly" },
+  { segment: "platform", priority: 0.95, freq: "weekly" },
+  { segment: "solutions", priority: 0.9, freq: "weekly" },
   { segment: "business", priority: 0.95 },
   { segment: "contact", priority: 0.9 },
   { segment: "company", priority: 0.85 },
@@ -87,6 +90,10 @@ export function buildSitemap(): MetadataRoute.Sitemap {
   for (const locale of routing.locales) {
     for (const { segment, priority, freq } of STATIC_PATHS) {
       push(entries, locale, segment, priority, freq);
+    }
+
+    for (const vertical of SOLUTION_VERTICAL_SLUGS) {
+      push(entries, locale, `solutions/${vertical}`, 0.85);
     }
 
     for (const slug of NICHE_SLUGS) {

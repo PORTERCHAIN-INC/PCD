@@ -1,541 +1,530 @@
 # Porterchain Website SEO Strategy
 
-**Last updated:** 2026-07-08  
-**Scope:** **`website/` only** — marketing site, SEO pages, blog, i18n, and public Next.js routes. Not API, worker, portals, mobile, Fleetbase, or deploy infra (except website env vars at deploy time).  
-**Sources:** `/Users/ravi/Documents/porterchain backup/2026-06-25/` and live monorepo `website/`  
-**Primary vertical focus:** Construction materials, electrical distribution, plumbing supply, and jobsite delivery across Ontario
+**Last updated:** 2026-07-09  
+**Scope:** **`website/` only** — marketing site, SEO pages, blog, i18n, and public Next.js routes. Deploy env vars and `.github/workflows/deploy-website.yml` are referenced where they affect production SEO/analytics.  
+**Checklist cross-ref:** [SILICON_VALLEY_READINESS_CHECKLIST.md](./SILICON_VALLEY_READINESS_CHECKLIST.md) §1.1 (product vision), §6.1 (brand/i18n), §7.1.6 (developers)  
+**Primary vertical focus:** Construction materials, electrical distribution, plumbing supply, and jobsite delivery across the GTA and Ontario  
+**Positioning (canonical):** **Logistics technology platform** — not a courier operator (§1.1.1–1.1.3)  
+**Production canonical:** `https://porterchain.com` (Caddy redirects `www` → apex)
 
-This document is the single source of truth for website marketing SEO: what the June 2026 backup had, what is implemented in PCD today, what is missing, and the prioritized work list — with **construction trades** as the main growth lane.
+This document is the single source of truth for website marketing SEO **and sales discovery**: what shipped in PCD, how the programmatic engine works, how platform pages and long-tail SEO work together, production configuration, and the remaining backlog.
 
 ---
 
 ## Executive summary
 
-| Layer                                | June 2026 backup (live)                                        | Current PCD `website/`                                                                           |
-| ------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| SEO framework                        | Mature programmatic engine                                     | **Ported and improved**                                                                          |
-| Public route types                   | ~50                                                            | **~50+** (same surface + blog)                                                                   |
-| Sitemap                              | Partial (~100 URLs; many routes omitted)                       | **Complete (~341 URLs)**                                                                         |
-| `robots.txt`                         | Not in source                                                  | **Yes** (`/robots.txt`)                                                                          |
-| JSON-LD                              | Organization, LocalBusiness, Service, FAQPage, Article, Review | **Same on SEO pages**                                                                            |
-| hreflang                             | `en` + `fr-CA` + `x-default`                                   | `en` + `fr` + `x-default`                                                                        |
-| URL prefix                           | `/ca/en/...`, `/ca/fr-ca/...`                                  | `/en/...`, `/fr/...` + 301 redirects                                                             |
-| Attribution / GA4                    | UTM capture; analytics stub                                    | UTM capture + **GA4 component** (env-gated)                                                      |
-| Industry niches (routable)           | 5 (food, pharma, beauty, lab)                                  | **8** (construction trades first + legacy 5)                                                     |
-| Construction / electrical / plumbing | Not in backup                                                  | **Live** — industry LPs, city×industry, campaigns, FAQ, blog, success story, vehicle cross-links |
+| Layer                    | June 2026 backup                                               | PCD `website/` (July 2026 — live)                                                |
+| ------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Positioning**          | Courier / local delivery                                       | **Platform-first** — dispatch OS, orchestration, API (§1.1)                      |
+| SEO framework            | Mature programmatic engine                                     | **Extended** — city×industry, city×vehicle, city×delivery-intent                 |
+| **Platform pages**       | Redirected to `/business`                                      | **`/platform`**, **`/solutions`**, **4 verticals**, **`/developers`** live       |
+| Indexable URLs (sitemap) | Partial (~100)                                                 | **~737 URLs** (`/sitemap.xml` — incl. platform + solutions after 2026-07-09)     |
+| Site navigation          | Minimal (2 links)                                              | **Full IA** — Platform, Solutions ▾, Business, Pricing, Company ▾, Resources ▾   |
+| Footer IA                | Duplicates, partial coverage                                   | **5 columns** — Platform, Business, Industries, Company & resources, Legal       |
+| `robots.txt`             | Not in source                                                  | ✅ Root `/robots.txt`                                                            |
+| JSON-LD                  | Organization, LocalBusiness, Service, FAQPage, Article, Review | ✅ Same + **DeliveryService** LocalBusiness, GBP `sameAs` when configured        |
+| hreflang                 | `en` + `fr-CA` + `x-default`                                   | `en` + `fr` + `x-default`                                                        |
+| URL prefix               | `/ca/en/...`, `/ca/fr-ca/...`                                  | `/en/...`, `/fr/...` + 301 from `/ca/*`                                          |
+| Industry niches          | 5 legacy                                                       | **9** — 3 construction trades + ecommerce + 5 legacy                             |
+| City programmatic        | 11×5 industry only                                             | **11×9 industry** + **11×6 vehicle** + **11×6 delivery-intent**                  |
+| i18n guards              | None                                                           | **`verify_i18n_parity.py`** — 5 EN/FR pairs + **EN landing locale-purity** guard |
+| Attribution / GA4        | UTM capture; analytics stub                                    | UTM + **GA4 live** (`G-VWMZWJ4W4M`) + conversion events                          |
+| Live chat                | —                                                              | **Zoho SalesIQ** (prod build-arg)                                                |
+| GSC                      | —                                                              | **Domain verified**; sitemap submitted                                           |
 
-**Bottom line:** All SEO work lives in `website/`. Construction trades are the primary vertical; coffee/pharma/cosmetics remain as secondary programmatic pages.
+**Bottom line:** Porterchain runs a **dual-lane** website: (1) **platform/SaaS discovery** for investors, enterprise buyers, and integrators; (2) **programmatic SEO** for construction trades and GTA long-tail. Both lanes must stay linked via nav, footer, and internal links — not siloed.
 
-`pnpm build` in `website/` passes. Sitemap serves **~430+ URLs** (construction expansion + blog).
-
----
-
-## Investigation sources
-
-| Artifact            | Location                                                           | Notes                                  |
-| ------------------- | ------------------------------------------------------------------ | -------------------------------------- |
-| Live marketing site | `porterchain backup/2026-06-25/webapp/porterchain-web-main.tar.gz` | ~1,057 files; `web/` inside tarball    |
-| Ravi contact card   | `porterchain backup/ravi-contact/` + `website/src/app/ravi/`       | Ported                                 |
-| Current website     | `website/src/`                                                     | App Router, `next-intl`, markdown blog |
+`pnpm --filter @porterchain/website build` passes. Static sitemap (`force-static`, 24h revalidate).
 
 ---
 
-## Part 1 — Backup inventory (June 2026 production)
-
-What the live site actually shipped. Use as migration reference, not as the product roadmap — backup did **not** target construction trades.
-
-### 1.1 Technical SEO
-
-| Feature                     | Backup status                                                   | PCD status                                                       |
-| --------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Per-page `generateMetadata` | ✅ title, description, OG, canonical, hreflang                  | ✅ via `buildPageMetadata`                                       |
-| `metadataBase`              | ✅ locale layout                                                | ✅ `[locale]/layout.tsx`                                         |
-| Sitemap                     | ⚠️ Partial — omitted FAQ, guides, city×industry, blog, vehicles | ✅ Full `sitemap-entries.ts`                                     |
-| `robots.txt`                | ❌ No source file                                               | ✅ `app/robots.ts`                                               |
-| Middleware locale routing   | `/ca/en`, `/ca/fr-ca`                                           | `/en`, `/fr` + bypass for `/sitemap.xml`, `/robots.txt`, `/ravi` |
-
-### 1.2 Structured data (JSON-LD)
-
-| Schema          | Used on                               | PCD file                     |
-| --------------- | ------------------------------------- | ---------------------------- |
-| `Organization`  | Site-wide                             | `lib/seo/schema.ts` → layout |
-| `LocalBusiness` | Site-wide (17 Ontario areas)          | Same                         |
-| `Service`       | Industry, city×industry, service area | Same                         |
-| `FAQPage`       | Industry, city×industry, FAQ clusters | Same                         |
-| `Article`       | Guides, compare, success stories      | Same + blog (basic)          |
-| `Review`        | Success stories                       | Same                         |
-
-### 1.3 Programmatic routes (backup)
-
-**Industry niches** (`/industry/[slug]`) — 5 slugs:
-
-- `coffee-roasters`, `pharmacy-medical`, `cosmetics`, `chocolate`, `lab-sample-delivery`
-
-**Service areas** (`/service-areas/[slug]`) — 17 cities:
-
-`toronto`, `mississauga`, `brampton`, `vaughan`, `markham`, `oakville`, `burlington`, `oshawa`, `kitchener-waterloo`, `london`, `st-catharines`, `niagara`, `cambridge`, `guelph`, `hamilton`, `ajax`, `pickering`
-
-**City × industry** (`/[city]/[industrySlug]`) — 11 cities × 5 industries = **55 pages/locale**
-
-| City slugs                                                                                                     | Industry SEO slugs                                                                                      |
-| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| toronto, mississauga, brampton, vaughan, oakville, oshawa, kitchener, hamilton, london, st-catharines, niagara | coffee-roaster-delivery, pharmacy-delivery, cosmetics-delivery, chocolate-delivery, lab-sample-delivery |
-
-Backup also had `/delivery/[industry]/[city]` (alternate linking pattern). PCD uses city×industry SEO path only.
-
-**Vehicle pages:** `sedan-delivery`, `suv-delivery`, `van-delivery`, `medium-truck`
-
-**Content clusters:**
-
-| Cluster                | Count | Example slugs                                                            |
-| ---------------------- | ----- | ------------------------------------------------------------------------ |
-| FAQ                    | 14    | `delivery-pricing`, `coffee-roaster-delivery`, `pharmacy-delivery`       |
-| Guides                 | 5     | `how-porterchain-works`, `merchant-onboarding-guide`                     |
-| Compare                | 4     | `in-house-delivery`, `ad-hoc-courier`                                    |
-| Onboarding education   | 6     | `getting-started`, `using-csv-upload`                                    |
-| Integrations education | 4     | `api-order-ingestion`, `csv-delivery-uploads`                            |
-| Success stories        | 3     | coffee, pharmacy, beauty                                                 |
-| Campaigns              | 4     | `recurring-delivery`, `coffee-roasters`, `pharmacy-medical`, `cosmetics` |
-
-**Pillar pages:** `local-delivery`, `how-porterchain-works`, `pricing`, `integrations`, `enterprise`
-
-**Construction / electrical / plumbing in backup:** **None.** No trade slugs, no jobsite copy, no FAQ clusters. Industries hub grouped retail/food/healthcare in messages only.
-
-### 1.4 Internal linking (backup pattern)
-
-Hub-and-spoke model in `lib/internal-linking.ts`:
-
-1. Industry page → city delivery + city×industry links
-2. Service area → industry links
-3. FAQ / guides / compare → industry + service area + conversion CTAs
-4. Merchant CTAs with `?from={path}` attribution
-
-PCD ported this pattern; anchor phrases exist for the **5 legacy niches only**.
-
-### 1.5 Attribution & analytics (backup)
-
-| Feature                 | Backup                | PCD                                             |
-| ----------------------- | --------------------- | ----------------------------------------------- |
-| UTM capture             | `sessionStorage`      | ✅ `lib/seo/attribution.ts`                     |
-| Landing page / referrer | ✅                    | ✅ `AttributionCapture`                         |
-| Event taxonomy          | ✅ `lib/analytics.ts` | ✅ Ported                                       |
-| GA4 wired               | ❌ Stub only          | ✅ `GoogleAnalytics` component (needs prod env) |
-| CTA `data-track` clicks | ✅                    | ⚠️ Not wired on all CTAs                        |
-
----
-
-## Part 2 — Current PCD implementation (what we built)
-
-### 2.1 Implemented ✅
-
-| Capability                         | Location                                               | Notes                                                                       |
-| ---------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------- |
-| Sitemap (~341 URLs)                | `src/app/sitemap.ts`, `lib/seo/sitemap-entries.ts`     | Includes all clusters + blog + city×industry                                |
-| Robots                             | `src/app/robots.ts`                                    | Disallows `/api/`, `/login`, `/book/*`, `/track/*`                          |
-| hreflang + canonical               | `lib/seo/hreflang.ts`, `page-helpers.ts`               | Per SEO landing page                                                        |
-| JSON-LD                            | `lib/seo/schema.ts`, `components/seo/JsonLd.tsx`       |                                                                             |
-| Industry LPs (5)                   | `app/[locale]/industry/[slug]/`                        | `IndustryLandingView`                                                       |
-| Service area LPs (17)              | `app/[locale]/service-areas/[slug]/`                   | EN fallback via `service-area-content.ts`                                   |
-| City×industry (55/locale)          | `app/[locale]/[city]/[industrySlug]/`                  | `CityIndustryLandingView`                                                   |
-| FAQ / guides / compare / education | `app/[locale]/faq                                      | guides                                                                      | compare | ...` | `ContentClusterView` |
-| Campaign LPs (4)                   | `app/[locale]/campaigns/[slug]/`                       |                                                                             |
-| Success stories (3)                | `app/[locale]/success-stories/[slug]/`                 | Article + Review schema                                                     |
-| Vehicle pages (4)                  | `sedan-delivery`, etc.                                 |                                                                             |
-| Pillar pages                       | `local-delivery`, `pricing`, `integrations`, etc.      |                                                                             |
-| Ravi contact                       | `/ravi`, `/ravi/contact.vcf`                           | OG image, vCard                                                             |
-| Legacy redirects                   | `next.config.ts`                                       | `/ca/en/*` → `/en/*`                                                        |
-| Nav / footer SEO links             | `site-footer-*.json`, `corporate-*.json`, `SiteNavbar` | Industries, service areas, resources                                        |
-| GA4 + Search Console meta          | `GoogleAnalytics`, layout verification meta            | Set `NEXT_PUBLIC_GA_MEASUREMENT_ID`, `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` |
-| Blog                               | 12 EN + 12 FR posts, 11 categories                     | Category `construction` exists                                              |
-| Homepage FAQ                       | `messages/*/faq` namespace                             | Restored after SEO merge collision                                          |
-| EN fallback for partial FR         | `landing-content.ts`, `service-area-content.ts`        |                                                                             |
-
-### 2.2 Partial / gaps ⚠️
-
-| Item                     | Gap                                                     |
-| ------------------------ | ------------------------------------------------------- |
-| FR translations          | Several service-area and niche pages use EN fallback    |
-| Blog SEO                 | No `buildPageMetadata` hreflang; minimal Article schema |
-| CTA click tracking       | `track()` taxonomy exists; not on all landing CTAs      |
-| Root `keywords` metadata | Courier/coffee/medical — no construction terms          |
-| Quote-flow attribution   | `visitor-tracking.ts` separate from SEO attribution     |
-
-### 2.3 Construction trades — where they exist today (not SEO)
-
-| Touchpoint              |             construction              |  electrical   |  plumbing   |
-| ----------------------- | :-----------------------------------: | :-----------: | :---------: |
-| Homepage industry cards |                  ✅                   |      ✅       |     ❌      |
-| Booking cargo types     |                  ✅                   |      ✅       |     ✅      |
-| Business page copy      |                  ✅                   |      ✅       |     ❌      |
-| Homepage testimonial    |                  ❌                   | ✅ (VoltLine) |     ❌      |
-| Blog posts              | 1 (`construction-material-logistics`) | mentions only |     ❌      |
-| `/industry/[slug]` page |                  ❌                   |      ❌       |     ❌      |
-| City×industry URL       |                  ❌                   |      ❌       |     ❌      |
-| Campaign LP             |                  ❌                   |      ❌       |     ❌      |
-| FAQ cluster             |                  ❌                   |      ❌       |     ❌      |
-| Success story           |        ❌ (business page only)        |      ❌       |     ❌      |
-| Internal linking graph  |              ❌ orphaned              |  ❌ orphaned  | ❌ orphaned |
-| Vehicle page keywords   |              ❌ generic               |  ❌ generic   | ❌ generic  |
-
-**Construction is marketed in copy but not indexed as programmatic SEO.** Electrical has social proof on the homepage; plumbing is a booking label only.
-
----
-
-## Part 3 — Construction trades SEO strategy (primary focus)
-
-### 3.1 Target personas & search intent
-
-| Persona                             | Example queries                                                                                    | Money pages                                 |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| **Building materials distributor**  | "construction material delivery Toronto", "lumber delivery GTA", "drywall courier Ontario"         | Industry LP, city×industry, `/medium-truck` |
-| **Electrical wholesaler**           | "electrical distributor delivery", "wire and panel courier", "electrical supply same-day delivery" | Industry LP, city×industry, business        |
-| **Plumbing supply house**           | "plumbing supply delivery", "pipe and fixture courier", "plumbing wholesaler last mile"            | Industry LP, city×industry                  |
-| **General contractor / site super** | "jobsite delivery GTA", "construction site courier", "material delivery to job site"               | FAQ cluster, compare, blog                  |
-| **Operations manager**              | "proof of delivery construction", "pallet delivery tracking", "recurring jobsite routes"           | Guides, blog, `/business`                   |
-
-### 3.2 Recommended niche slugs (new)
-
-Add to `NICHE_SLUGS` in `lib/seo/niche-landing.ts`:
-
-| Slug                      | Message key              | Positioning                                                 |
-| ------------------------- | ------------------------ | ----------------------------------------------------------- |
-| `construction-materials`  | `constructionMaterials`  | Lumber, drywall, steel, aggregates, general building supply |
-| `electrical-distribution` | `electricalDistribution` | Electrical wholesalers, panel/wire/fixture distributors     |
-| `plumbing-supply`         | `plumbingSupply`         | Plumbing wholesalers, pipe, fixtures, waterworks            |
-
-Optional fourth (if splitting GC from distributor):
-
-| `jobsite-delivery` | `jobsiteDelivery` | GC-focused: multi-stop sites, time windows, site access |
-
-**City×industry SEO slugs** (add to `city-industry-seo.ts`):
-
-- `construction-materials-delivery`
-- `electrical-delivery`
-- `plumbing-supply-delivery`
-
-**New programmatic pages (minimum):**
-
-| Asset                      | Count (EN + FR)                       |
-| -------------------------- | ------------------------------------- |
-| Industry LPs               | 3 niches × 2 locales = **6**          |
-| City×industry              | 3 industries × 11 cities × 2 = **66** |
-| Campaign LPs               | 2–3 × 2 = **4–6**                     |
-| FAQ clusters               | 3 × 2 = **6**                         |
-| Success story              | 1 × 2 = **2**                         |
-| Blog posts (new)           | 3–5 topics × 2                        |
-| **Subtotal new indexable** | **~85–90 URLs**                       |
-
-Full sitemap would grow from ~341 to **~430 URLs**.
-
-### 3.3 Keyword themes (construction priority)
-
-**Geographic:** GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London Ontario, Oakville, Niagara
-
-**Service:** jobsite delivery, construction material courier, same-day building supply, pallet delivery, proof of delivery, recurring routes, LTL construction freight
-
-**Industry:**
-
-- construction material delivery, building supply courier, lumber delivery
-- electrical distributor delivery, electrical wholesaler courier, panel delivery
-- plumbing supply delivery, pipe and fixture courier
-- heavy freight, box truck construction delivery, jobsite time windows
-
-**Commercial:** construction delivery pricing, distributor onboarding, CSV bulk orders, delivery API for ERP
-
-Update root layout `keywords` and construction LP meta to include these terms.
-
-### 3.4 Content requirements per construction niche LP
-
-Each `nicheLanding.{key}` block needs (EN + FR):
-
-- `meta.title`, `meta.description` — city + industry long-tail
-- `hero` — jobsite / warehouse / distributor angle
-- `painPoints` — fleet cost, missed windows, no POD, multi-stop chaos
-- `solution` — Porterchain recurring routes, tracking, vehicles (van, pickup, 16ft box)
-- `workflow` — 3-step: share routes → we deliver → track/report
-- `faq` — coverage, vehicle fit, POD, same-day vs recurring, site access
-- `cta` — primary → `/business`, secondary → `/contact`
-- `onboarding` — 3 steps for distributor ops
-
-Cross-link every LP to:
-
-- `/medium-truck`, `/van-delivery` (vehicle fit)
-- Top 5 service areas (Toronto, Mississauga, Brampton, Hamilton, Kitchener)
-- Related FAQ clusters and blog posts
-
-### 3.5 Campaign & paid media
-
-| Campaign slug             | Audience                   | UTM example                            |
-| ------------------------- | -------------------------- | -------------------------------------- |
-| `construction-materials`  | Distributors, lumber yards | `utm_campaign=construction-materials`  |
-| `electrical-distribution` | Electrical wholesalers     | `utm_campaign=electrical-distribution` |
-| `plumbing-supply`         | Plumbing supply houses     | `utm_campaign=plumbing-supply`         |
-
-Point paid traffic to `/en/campaigns/{slug}` — attribution already captures UTM.
-
-### 3.6 Blog & authority backlog (construction)
-
-| Priority | Topic slug                                  | Pillar                                    |
-| -------- | ------------------------------------------- | ----------------------------------------- |
-| P0       | `construction-material-logistics`           | ✅ Exists — add internal links to new LPs |
-| P1       | `electrical-wholesaler-delivery-ontario`    | Industry delivery guides                  |
-| P1       | `plumbing-supply-last-mile-gta`             | Industry delivery guides                  |
-| P1       | `jobsite-delivery-time-windows-pod`         | Last-mile insights                        |
-| P2       | `box-truck-vs-courier-construction-freight` | Courier cost optimization                 |
-| P2       | `distributor-csv-onboarding-construction`   | Onboarding                                |
-
-Wire `buildInternalLinksForArticle()` on blog template when adding construction pages.
-
-### 3.7 Vehicle pages — construction keyword pass
-
-`/medium-truck` and `/van-delivery` are high-intent for materials freight but use generic copy today. Add:
-
-- Jobsite and pallet keywords in meta + body
-- Cross-links to `construction-materials` industry + Toronto/Mississauga city×industry pages
-- FAQ snippet: vehicle capacity, tailgate, proof of delivery
-
----
-
-## Part 4 — URL architecture
-
-### Current (live)
-
-```
-/en/                              Home + booking
-/en/business                      B2B hub
-/en/industry/{niche}              5 niches (legacy verticals)
-/en/service-areas/{city}          17 cities
-/en/{city}/{industrySlug}         55 city×industry combos
-/en/faq/{cluster}                 14 FAQ clusters
-/en/guides|compare|campaigns|...   Content clusters
-/en/blog/{slug}                   Editorial
-/sitemap.xml, /robots.txt         Root (no locale prefix)
-/ravi                             Executive contact
+## Alignment with Silicon Valley Readiness Checklist
+
+| Checklist item   | Website implication                                                                     | Status                                                        |
+| ---------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **§1.1.1–1.1.3** | Homepage hero = platform; no `BookingWidget` above fold; book → customer portal `:3004` | ✅ `corporate.home.hero`, `Hero.tsx`                          |
+| **§1.1.5**       | `/platform` live, indexed, in nav + footer                                              | ✅ sitemap 2026-07-09                                         |
+| **§1.1.6**       | `/solutions` + 4 verticals live                                                         | ✅ wholesale, medical, food-beverage, construction            |
+| **§1.1.7**       | Footer + nav links resolve                                                              | ✅ `footer-navigation.ts`, `navbar-navigation.ts`             |
+| **§1.1.10**      | Blog = SLA/dispatch narrative, not marketplace courier                                  | ✅ construction + platform posts                              |
+| **§6.1.5**       | FR/EN parity on marketing message files                                                 | ✅ 5 pairs; `en.json`/`fr.json` root [~] 428 keys gap on `fr` |
+| **§6.2.1**       | Book CTA externalized; platform CTAs primary                                            | ✅                                                            |
+| **§7.1.6**       | `/developers` — OpenAPI, Postman, API keys path                                         | ✅ in nav Resources + footer Platform                         |
+
+**CI guards (run before website deploy):**
+
+```bash
+pnpm validate:product-vision   # §1.1 pages, hero, footer, book redirect
+pnpm validate:design           # includes verify_i18n_parity.py
 ```
 
-### Target (after construction expansion)
+---
+
+## Dual-lane growth: platform SEO + programmatic SEO
+
+### Lane A — Platform & enterprise sales (high ACV)
+
+**Audience:** Ops leaders, CTOs, integrators, investors  
+**Intent:** “logistics software”, “dispatch platform”, “API delivery orchestration”
+
+| Stage         | Pages                                                               | Primary CTA                      |
+| ------------- | ------------------------------------------------------------------- | -------------------------------- |
+| Awareness     | `/`, `/platform`, `/solutions`, blog (platform posts)               | Explore platform · Get a demo    |
+| Consideration | `/solutions/{vertical}`, `/integrations`, `/developers`, `/pricing` | Talk to sales · OpenAPI          |
+| Conversion    | `/business`, `/enterprise`, `/contact`                              | Business inquiry · Schedule call |
+
+**Sales motion:** Demo-led. UTM → `/contact` or `/business?from=…`. Developer path → `/developers` → merchant API keys.
+
+### Lane B — Programmatic & trades SEO (high volume, local)
+
+**Audience:** Construction distributors, electrical/plumbing wholesalers, site supers  
+**Intent:** “construction material delivery Toronto”, “jobsite delivery GTA”, “electrical distributor delivery”
+
+| Stage         | Pages                                                                   | Primary CTA                |
+| ------------- | ----------------------------------------------------------------------- | -------------------------- |
+| Awareness     | `/industry/{niche}`, `/en/{city}/{segment}`, FAQ, blog (trades)         | Talk to us                 |
+| Consideration | `/campaigns/{slug}` (paid/outbound), `/compare/*`, `/success-stories/*` | Contact · Business inquiry |
+| Conversion    | `/business`, Zoho chat, GBP                                             | Business inquiry form      |
+
+**Sales motion:** Inbound SEO + paid exact-match → **campaign LPs** (`/en/campaigns/construction-materials`, etc.). Attribution via `lib/seo/attribution.ts`.
+
+### Lane bridge (required — do not silo)
+
+Every Lane B money page should link **up** to Lane A where relevant:
+
+- Industry LPs → `/platform` or `/solutions/construction` (construction trades)
+- `/business` inquiry captures both lanes (`?from=` path preserved)
+- Footer **Platform** column surfaces `/developers` and `/integrations` from all SEO landings
+- Homepage industry cards → `/industry/{slug}`; hero secondary → `/platform`
+
+---
+
+## Site navigation & discoverability (July 2026)
+
+**SSOT:** `website/src/data/navbar-navigation.ts`, `website/src/data/footer-navigation.ts`  
+**Labels:** `corporate.nav` (navbar), `siteFooter.sections` (footer)
+
+### Navbar (desktop dropdowns + mobile accordions)
+
+| Item            | Destinations                                       |
+| --------------- | -------------------------------------------------- |
+| **Platform**    | `/platform`                                        |
+| **Solutions** ▾ | Hub, 4 verticals, `/industry`, `/service-areas`    |
+| **Business**    | `/business`                                        |
+| **Pricing**     | `/pricing`                                         |
+| **Company** ▾   | About, careers, contact, vehicle partners          |
+| **Resources** ▾ | Developers, blog, FAQ, guides, track, how it works |
+| **Book Now**    | Customer portal `:3004/book` (retail — external)   |
+
+### Footer (5 columns)
+
+| Column                  | Purpose                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| **Platform**            | Platform, solutions, how it works, integrations, developers, track                         |
+| **Business**            | Business, enterprise, pricing, book, quote, my orders                                      |
+| **Industries & areas**  | Industry hub, top 3 trades, service areas, local/van delivery                              |
+| **Company & resources** | About, contact, careers, partners, blog, FAQ, guides, compare, success stories, onboarding |
+| **Legal**               | Privacy, terms, cookies                                                                    |
+
+**SEO impact:** Crawlers and users can reach all Tier-0/1 pages within 2 clicks from any page. Previously platform/solutions were footer-only or missing from nav.
+
+---
+
+## Production status (July 2026)
+
+### Shipped to `porterchain.com`
+
+| Area                                     | Status      | Notes                                                        |
+| ---------------------------------------- | ----------- | ------------------------------------------------------------ |
+| Website deploy                           | ✅ Live     | GitHub `Deploy Website` workflow → GHCR → droplet            |
+| Platform-first homepage                  | ✅ Live     | §1.1.3 — corporate hero, platform CTAs                       |
+| `/platform`, `/solutions`, `/developers` | ✅ Live     | §1.1.5, §1.1.6, §7.1.6                                       |
+| Full nav + footer IA                     | ✅ Live     | 2026-07-09 `navbar-navigation.ts`                            |
+| GA4                                      | ✅ Live     | Stream `porterchain` · ID `G-VWMZWJ4W4M`                     |
+| Zoho SalesIQ                             | ✅ Live     | `NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED=true`                      |
+| Google Search Console                    | ✅ Verified | DNS/domain property; sitemap submitted                       |
+| EN locale purity (trades LPs)            | ✅ Fixed    | `en.json` `nicheLanding` + `campaignLanding` — no FR leakage |
+| Sitemap: platform + solutions            | ✅ Code     | `sitemap-entries.ts` 2026-07-09 — redeploy to prod           |
+| CTA analytics                            | ✅ Partial  | `LinkButton` `outlineOnDark`; key flows tracked              |
+
+### Env vars (website production)
+
+| Variable                                  | Purpose             | Status                        |
+| ----------------------------------------- | ------------------- | ----------------------------- |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID`           | GA4                 | ✅ `G-VWMZWJ4W4M`             |
+| `NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED`        | Live chat           | ✅ `true`                     |
+| `NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE`    | Zoho widget         | ✅ Secret                     |
+| `NEXT_PUBLIC_SITE_URL`                    | Canonical / sitemap | ✅ `https://porterchain.com`  |
+| `NEXT_PUBLIC_GOOGLE_BUSINESS_PROFILE_URL` | GBP footer + schema | ⏳ Set after claiming profile |
+| `NEXT_PUBLIC_CONTACT_PHONE`               | NAP / schema        | ✅ `+16476197951`             |
+
+Local template: `env/website.env.example`
+
+---
+
+## Programmatic SEO engine (current)
+
+### Industry niches — `/[locale]/industry/[slug]`
+
+**SSOT:** `website/src/lib/seo/niche-landing.ts`  
+**Copy:** `messages/en.json` + `messages/fr.json` → `nicheLanding.*`
+
+| Slug                                      | Vertical                         | Priority    |
+| ----------------------------------------- | -------------------------------- | ----------- |
+| `construction-materials`                  | Building supply, lumber, drywall | **Primary** |
+| `electrical-distribution`                 | Electrical wholesalers           | **Primary** |
+| `plumbing-supply`                         | Plumbing wholesalers             | **Primary** |
+| `ecommerce`                               | D2C / fulfillment / last mile    | Secondary   |
+| `coffee-roasters` … `lab-sample-delivery` | Legacy niches                    | Long-tail   |
+
+**9 niches × 2 locales = 18 industry LP URLs** (+ `/industry` hub × 2)
+
+### Platform solutions — `/[locale]/solutions/[vertical]`
+
+**SSOT:** `website/src/lib/solutions-verticals.ts`  
+**Copy:** `messages/corporate-*.json` → `corporate.solutions`
+
+| Slug            | Maps to industry niche |
+| --------------- | ---------------------- |
+| `wholesale`     | ecommerce              |
+| `medical`       | pharmacy-medical       |
+| `food-beverage` | coffee-roasters        |
+| `construction`  | construction-materials |
+
+**4 verticals × 2 locales = 8 URLs** (+ `/solutions` hub × 2) — **Lane A** pages; cross-link to Lane B industry LPs.
+
+### Service areas — `/[locale]/service-areas/[slug]`
+
+**17 cities** (see `service-areas.ts`)
+
+### City × segment — `/[locale]/[city]/[segmentSlug]`
+
+**SSOT:** `city-industry-seo.ts`, `city-segment-seo.ts`, `city-local-segment-content.ts`
+
+**11 URL cities** × (9 industry + 6 vehicle + 6 delivery-intent) = **231 segment URLs/locale**
+
+**FR note:** City×vehicle and city×delivery-intent copy falls back to EN when `cityLocalSegment` keys missing in `fr.json` (~428 root keys behind EN — P1 backlog).
+
+### Vehicle pillar pages — 6 slugs
+
+`sedan-delivery` … `cargo-van-delivery`, `medium-truck` — construction cross-links via `vehicle-construction-links.ts`
+
+### Content clusters
+
+| Cluster                | Count/locale | Path                             |
+| ---------------------- | ------------ | -------------------------------- |
+| FAQ                    | 18           | `/faq/[slug]`                    |
+| Guides                 | 5            | `/guides/[slug]`                 |
+| Compare                | 4            | `/compare/[slug]`                |
+| Onboarding education   | 6            | `/onboarding-education/[slug]`   |
+| Integrations education | 4            | `/integrations-education/[slug]` |
+| Success stories        | 4            | `/success-stories/[slug]`        |
+| Campaigns              | 7            | `/campaigns/[slug]`              |
+
+**Construction campaigns (Lane B paid):** `construction-materials`, `electrical-distribution`, `plumbing-supply`
+
+### Blog
+
+**16 EN + 16 FR** posts · **11 categories** · construction/trades + platform narrative
+
+### Pillar / corporate pages (Lane A + shared)
+
+| Page                                                    | Lane   | Sitemap priority                               |
+| ------------------------------------------------------- | ------ | ---------------------------------------------- |
+| `/platform`                                             | A      | 0.95                                           |
+| `/solutions`, `/solutions/{vertical}`                   | A      | 0.9 / 0.85                                     |
+| `/developers`                                           | A      | 0.75                                           |
+| `/business`, `/enterprise`, `/pricing`, `/integrations` | A      | 0.85–0.95                                      |
+| `/how-porterchain-works`, `/local-delivery`             | Both   | 0.9                                            |
+| `/industry/*`, city segments, campaigns                 | B      | 0.72–0.8                                       |
+| `/track` (hub)                                          | Shared | 0.8 — index hub only; `/track/[id]` disallowed |
+
+### Ravi contact card
+
+`/ravi` — executive contact (no locale prefix)
+
+---
+
+## URL architecture (live)
 
 ```
-/en/industry/construction-materials
-/en/industry/electrical-distribution
-/en/industry/plumbing-supply
-/en/toronto/construction-materials-delivery
-/en/toronto/electrical-delivery
-/en/toronto/plumbing-supply-delivery
-/en/campaigns/construction-materials
-/en/faq/construction-delivery
-/en/faq/jobsite-delivery
-/en/success-stories/construction-distributor-delivery
+/en/                                    Home — platform hero (Lane A)
+/en/platform                             Platform overview (Lane A) ★
+/en/solutions                            Solutions hub (Lane A) ★
+/en/solutions/{vertical}                 4 vertical LPs (Lane A) ★
+/en/developers                           API / developer portal (Lane A)
+/en/business                             B2B hub + inquiry (conversion)
+/en/industry/{niche}                     9 niche LPs (Lane B)
+/en/{city}/{segmentSlug}                 City×industry + vehicle + intent (Lane B)
+/en/campaigns/{slug}                     7 campaign LPs (Lane B paid)
+/en/faq/{cluster} … /en/blog/{slug}       Content clusters
+/sitemap.xml                             Root (static)
+/robots.txt                              Root
 ```
 
-Legacy redirects remain: `/ca/en/*` → `/en/*`.
+★ Added to sitemap 2026-07-09 (previously live but not in `STATIC_PATHS`).
+
+**Do not index:** `/login`, `/book/continue`, `/book/success`, `/track/[tracking]`
+
+Legacy: `/ca/en/*` → `/en/*` via `next.config.ts`
 
 ---
 
-## Part 5 — Technical SEO standards
+## Technical SEO
 
-Every indexable page should have:
+### Per-page requirements
 
-- [x] Unique title + meta description
-- [x] Canonical + hreflang (`en`, `fr`, `x-default`) — SEO landings
-- [ ] hreflang on all blog posts
-- [x] Open Graph + Twitter on shareable pages
-- [x] JSON-LD appropriate to page type
-- [x] Sitemap inclusion
-- [x] `robots: index, follow` on public pages
-- [ ] CTA click events via `track()`
+| Requirement                                    | Status                                                    |
+| ---------------------------------------------- | --------------------------------------------------------- |
+| Unique title + meta description                | ✅ SEO landings via `buildPageMetadata`                   |
+| Canonical + hreflang (`en`, `fr`, `x-default`) | ✅ SEO landings                                           |
+| Locale-specific `metadata.keywords`            | ✅ `en.json` / `fr.json` — not mixed in layout            |
+| Open Graph + Twitter                           | ✅ Shareable pages                                        |
+| JSON-LD by page type                           | ✅ Organization, LocalBusiness, Service, FAQPage, Article |
+| Sitemap inclusion                              | ✅ SSOT arrays; platform/solutions added 2026-07-09       |
+| CTA `track()` events                           | ⚠️ Wired on key flows; extend to all hub CTAs             |
 
-Site-wide:
+### i18n governance
 
-- [x] `metadataBase` from site config
-- [x] `<html lang={locale}>`
-- [ ] Root keywords updated for construction trades
-- [x] Middleware bypass for sitemap, robots, `/ravi`
+| Rule                                                             | Enforcement                                                         |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------- |
+| User-facing copy in both EN + FR for corporate/site-footer pairs | `verify_i18n_parity.py` (5 pairs)                                   |
+| No French in `en.json` landing namespaces                        | `verify_i18n_parity.py` — `nicheLanding`, `campaignLanding` markers |
+| ICU paths not in JSON (API routes with `{vars}`)                 | Constants in page TSX (e.g. `FLOW_PATHS` on developers)             |
+| `corporate.nav` + `siteFooter` drive nav/footer labels           | `navbar-navigation.ts`, `footer-navigation.ts`                      |
 
----
+### Internal linking
 
-## Part 6 — TODO list
+**SSOT:** `internal-linking.ts`, `industry-home-links.ts`, `navbar-navigation.ts`, `footer-navigation.ts`
 
-Prioritized work items. Check off in PRs; update this section when shipped.
+1. **Nav/footer** — every Tier-0 page ≤2 clicks
+2. Industry LP → city delivery + local delivery links
+3. Solutions vertical → related industry LP (`solutions/[vertical]/page.tsx`)
+4. FAQ / guides / compare → industry + `/business` CTAs
+5. Blog → `buildBlogInternalLinks()`
+6. Homepage industry cards → `/industry/{slug}`
+7. Merchant CTAs with `?from={path}` — `lib/seo/attribution.ts`
 
-### P0 — Website production launch (ops)
+### Attribution & analytics
 
-Set these on the **website** deploy only (`env/website.env.example` → prod):
+| Feature           | Location                 | Status                 |
+| ----------------- | ------------------------ | ---------------------- |
+| UTM capture       | `lib/seo/attribution.ts` | ✅                     |
+| GA4 page views    | `GoogleAnalytics.tsx`    | ✅ Prod                |
+| Conversion events | `lib/seo/analytics.ts`   | ✅ — mark in GA4 Admin |
 
-- [ ] `NEXT_PUBLIC_GA_MEASUREMENT_ID`
-- [ ] `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`
-- [ ] Deploy `website/` to production
-- [ ] Submit `https://porterchain.com/sitemap.xml` in Google Search Console
-- [ ] Verify `/sitemap.xml` and `/robots.txt` return 200 at root
+**GA4 conversion events** (mark in Admin → Events → Mark as conversion):
 
-### P1 — Construction trades programmatic SEO (main focus)
-
-**Industry foundation**
-
-- [x] Add `construction-materials`, `electrical-distribution`, `plumbing-supply` to `NICHE_SLUGS` + message keys
-- [x] Write full `nicheLanding.*` in `messages/en.json` and `messages/fr.json`
-- [x] Add industry index cards + footer/nav links for 3 new niches
-
-**City × industry**
-
-- [x] Add 3 industry SEO slugs to `city-industry-seo.ts`
-- [x] Add `industryLabels` in `cityIndustryDelivery` messages
-- [x] 66 new static pages (`11 cities × 3 industries × 2 locales`)
-
-**Internal linking**
-
-- [x] Extend `internal-linking.ts` anchor phrases for construction trades
-- [x] Add 3 construction FAQ clusters
-- [x] Cross-link vehicle pages (`medium-truck`, `van-delivery`) to construction niches
-
-**Campaigns (paid / outbound)**
-
-- [x] Add `construction-materials`, `electrical-distribution`, `plumbing-supply` to `CAMPAIGN_SLUGS`
-- [x] Write `campaignLanding.*` copy
-- [ ] Document UTM conventions for sales/outbound
-
-**Sitemap**
-
-- [ ] Confirm `sitemap-entries.ts` auto-includes new slugs (via `NICHE_SLUGS` / `getCityIndustrySeoPairs`)
-- [ ] Re-count URLs; target ~430 total
-
-### P2 — Construction content authority
-
-**FAQ clusters (new)**
-
-- [x] `construction-delivery` — pricing, vehicles, POD, site access, recurring routes
-- [x] `electrical-distributor-delivery` — wire/panel handling, same-day cutoffs
-- [x] `jobsite-delivery` — time windows, multi-stop, GC coordination
-
-**Success story**
-
-- [x] `construction-distributor-jobsite-delivery` case study
-- [x] Article + Review JSON-LD; link from industry LPs
-
-**Blog**
-
-- [x] Add internal links from construction posts via `buildBlogInternalLinks()`
-- [x] Publish `electrical-wholesaler-delivery-ontario` (EN + FR)
-- [x] Publish `plumbing-supply-last-mile-gta` (EN + FR)
-- [x] Publish `jobsite-delivery-time-windows-pod` (EN + FR)
-- [x] Wire blog template to `buildPageMetadata` + internal SEO links block
-
-**Homepage / business alignment**
-
-- [ ] Add plumbing to homepage `industries.items` (parity with booking widget)
-- [ ] Link construction/electrical/plumbing cards to `/industry/{slug}` (not just `/business`)
-- [ ] Add construction testimonial to homepage (business page has James O'Brien quote)
-
-### P3 — Vehicle & pillar keyword optimization
-
-- [x] Rewrite `/medium-truck` meta + body for construction materials / pallet freight
-- [x] Rewrite `/van-delivery` for mid-size building supply
-- [x] Add construction FAQ blocks to vehicle pages (use-case sections)
-- [x] Update root layout `keywords` with construction/electrical/plumbing terms
-
-### P4 — Platform polish (all verticals)
-
-- [ ] Complete FR translations for partial service-area pages (remove EN fallback where possible)
-- [ ] Wire `track()` on primary/secondary CTAs across `IndustryLandingView`, `HubIndexView`, `CtaSection`
-- [ ] Enhance blog Article JSON-LD (publisher logo, `dateModified`, author Person)
-- [ ] Unify quote-flow attribution with `lib/seo/attribution.ts`
-- [ ] Add per-post OG images (frontmatter `image` or `opengraph-image.tsx`)
-
-### P5 — Measurement & iteration
-
-- [ ] GA4 custom dimensions: landing page, UTM source/medium/campaign, industry vertical
-- [ ] Track conversions: business inquiry, contact form, booking started from SEO LPs
-- [ ] Monthly GSC review: indexed pages, queries containing "construction", "electrical", "plumbing", "jobsite"
-- [ ] Quarterly content gap vs competitor SERPs for Ontario distributor delivery
+- `contact_form_submit_success`
+- `business_inquiry_submit`
+- `booking_quote_success`
+- `zoho_chat_open`
+- `gbp_review_click`
 
 ---
 
-## Part 7 — Sitemap inventory (current)
+## Sitemap inventory (July 2026)
 
-| Segment                                       | URLs per locale       | Notes                                  |
-| --------------------------------------------- | --------------------- | -------------------------------------- |
-| Core + corporate + pillars                    | ~20                   | home, business, contact, pricing, etc. |
-| Industry (5) + service areas (17)             | 23                    | **+3 when construction niches ship**   |
-| City × industry                               | 55                    | **+33 when 3 trades × 11 cities ship** |
-| FAQ (14) + guides (5) + compare (4)           | 23                    | **+3 construction FAQ clusters**       |
-| Education (10) + campaigns (4) + vehicles (4) | 18                    | **+3 construction campaigns**          |
-| Success stories (3)                           | 3                     | **+1 construction story**              |
-| Blog posts (12) + categories (11)             | 23                    | Growing                                |
-| `/ravi`                                       | 1                     | Root only                              |
-| **Total today**                               | **~170/locale ≈ 341** |                                        |
-| **Target after construction**                 | **~215/locale ≈ 430** |                                        |
+**Total: ~737 URLs** (after platform + solutions + 4 verticals × 2 locales)
 
----
+| Segment                               | URLs per locale         | Notes                         |
+| ------------------------------------- | ----------------------- | ----------------------------- |
+| Core + corporate + pillars + vehicles | ~36                     | incl. `platform`, `solutions` |
+| Solutions verticals                   | 4                       | `SOLUTION_VERTICAL_SLUGS`     |
+| Industry LPs                          | 9                       | `NICHE_SLUGS`                 |
+| Service areas                         | 17                      |                               |
+| City × industry                       | 99                      | 11 × 9                        |
+| City × vehicle                        | 66                      | 11 × 6                        |
+| City × delivery intent                | 66                      | 11 × 6                        |
+| Content clusters + blog               | ~90+                    |                               |
+| `/ravi`                               | 1                       | root only                     |
+| **≈ Total**                           | **~368/locale × 2 + 1** |                               |
 
-## Part 8 — Reference files
-
-### PCD (current)
-
-| File                                          | Purpose                                                 |
-| --------------------------------------------- | ------------------------------------------------------- |
-| `website/src/lib/seo/schema.ts`               | JSON-LD builders                                        |
-| `website/src/lib/seo/sitemap-entries.ts`      | Full sitemap                                            |
-| `website/src/lib/seo/niche-landing.ts`        | Industry slug SSOT                                      |
-| `website/src/lib/seo/city-industry-seo.ts`    | City×industry URL matrix                                |
-| `website/src/lib/seo/internal-linking.ts`     | Cross-link helpers                                      |
-| `website/src/lib/seo/landing-content.ts`      | Niche/campaign EN fallback                              |
-| `website/src/lib/seo/service-area-content.ts` | Service area EN fallback                                |
-| `website/src/lib/seo/content/faq-clusters.ts` | FAQ cluster config                                      |
-| `website/src/lib/seo/attribution.ts`          | UTM capture                                             |
-| `website/src/lib/seo/analytics.ts`            | Event taxonomy                                          |
-| `website/src/components/seo/`                 | Landing templates, JsonLd, GA4                          |
-| `website/messages/en.json`, `fr.json`         | `nicheLanding`, `serviceAreaLanding`, `campaignLanding` |
-| `website/messages/site-footer-*.json`         | Footer SEO links                                        |
-| `website/content/blog/`                       | Markdown posts                                          |
-
-### Backup (tarball → `web/`)
-
-| File                             | Purpose                      |
-| -------------------------------- | ---------------------------- |
-| `lib/seo.ts`                     | Original hreflang helpers    |
-| `lib/schema.ts`                  | Original JSON-LD             |
-| `lib/city-industry-seo.ts`       | URL matrix reference         |
-| `lib/internal-linking.ts`        | Linking patterns reference   |
-| `lib/seo-content/`               | Content model for generation |
-| `messages/en.json`, `fr-ca.json` | Legacy copy source           |
+Sitemap auto-includes new slugs when added to SSOT arrays — no manual URL list.
 
 ---
 
-## Part 9 — Governance
+## Construction trades strategy (Lane B — implemented)
 
-- SEO copy: update **both** `messages/en.json` and `messages/fr.json` in the same PR
-- New programmatic slug: update `NICHE_SLUGS` / `CAMPAIGN_SLUGS` / `faq-clusters.ts` + messages + verify sitemap count
-- New blog post: EN + FR pair in `content/blog/`; link to ≥1 industry LP + 1 service area + `/business`
-- Do not index: `/login`, `/book/continue`, `/book/success`, `/track/[id]`
-- Construction trades content must mention: vehicle fit, POD, recurring routes, Ontario coverage — avoid generic courier copy
+### Target personas & money pages
+
+| Persona                        | Example queries                          | Live money pages                                                                                                           |
+| ------------------------------ | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Building materials distributor | "construction material delivery Toronto" | `/industry/construction-materials`, `/toronto/construction-materials-delivery`, `/solutions/construction`, `/medium-truck` |
+| Electrical wholesaler          | "electrical distributor delivery GTA"    | `/industry/electrical-distribution`, `/toronto/electrical-delivery`                                                        |
+| Plumbing supply house          | "plumbing supply delivery Mississauga"   | `/industry/plumbing-supply`, `/campaigns/plumbing-supply`                                                                  |
+| General contractor             | "jobsite delivery GTA"                   | FAQ `construction-delivery`, blog `jobsite-delivery-time-windows-pod`                                                      |
+
+### Keyword themes (indexed)
+
+**Geographic:** GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Oakville, Niagara
+
+**Service:** jobsite delivery, same-day courier, last-mile, B2B delivery, recurring routes, proof of delivery, pallet/box truck freight
+
+**Platform (Lane A):** dispatch software, logistics orchestration, delivery API, merchant integrations
+
+### Paid / outbound (UTM)
+
+Point campaigns to `/en/campaigns/{slug}` — attribution captures UTM automatically.
+
+| Campaign slug             | Audience                   |
+| ------------------------- | -------------------------- |
+| `construction-materials`  | Distributors, lumber yards |
+| `electrical-distribution` | Electrical wholesalers     |
+| `plumbing-supply`         | Plumbing supply houses     |
+| `recurring-delivery`      | B2B recurring shippers     |
+
+Example: `utm_campaign=construction-materials&utm_source=google&utm_medium=cpc`
+
+**Platform paid (Lane A):** Point to `/platform` or `/solutions/construction` with `utm_campaign=platform-demo`.
 
 ---
 
-## Appendix — Legacy route list (backup)
+## Platform & enterprise strategy (Lane A — July 2026)
 
-Full `app/**/page.tsx` routes from June 2026 tarball for redirect mapping:
+### Target personas
+
+| Persona              | Queries / intent                                   | Money pages                             |
+| -------------------- | -------------------------------------------------- | --------------------------------------- |
+| VP Operations        | "dispatch software", "route optimization platform" | `/platform`, `/how-porterchain-works`   |
+| CTO / integrator     | "delivery API", "logistics webhooks"               | `/developers`, `/integrations`          |
+| Enterprise buyer     | "enterprise logistics software Ontario"            | `/enterprise`, `/solutions`, `/pricing` |
+| Investor / diligence | "Porterchain platform"                             | `/platform`, `/company`, blog           |
+
+### Content priorities (next 90 days)
+
+1. **Case study amplification** — link `case-study-construction-distributor-gta` from `/solutions/construction` + homepage
+2. **Developer SEO** — `/developers` ranks for "Porterchain API"; add 2 blog posts on integration patterns
+3. **Comparison pages** — `/compare/*` targeting "vs courier" / "vs in-house fleet" (platform angle, not courier fluff)
+4. **Cross-links** — every `/solutions/{vertical}` page links to matching `/industry/{niche}` + `/business`
+
+---
+
+## Local / GTA marketing (beyond on-site SEO)
+
+| Channel                 | Status                | Action                                                       |
+| ----------------------- | --------------------- | ------------------------------------------------------------ |
+| Google Search Console   | ✅ Verified + sitemap | Monthly: platform queries + construction/trades + city names |
+| Google Business Profile | ⏳ Claim + env URL    | Service-area business; NAP matches site                      |
+| GA4 conversions         | ⏳ Admin setup        | Mark conversion events; segment Lane A vs B by landing path  |
+| Google Ads              | Not started           | Lane B → campaign LPs; Lane A → platform/solutions           |
+| Reviews                 | Not started           | Merchant post-delivery; `gbp_review_click` tracking          |
+
+---
+
+## TODO backlog
+
+Prioritized. Check off in PRs; update this section when shipped.
+
+### P0 — Ship with next website deploy
+
+- [x] Add `/platform`, `/solutions`, `/solutions/{vertical}` to `sitemap-entries.ts` (2026-07-09)
+- [ ] **Redeploy website** so prod sitemap picks up +10 URLs
+- [ ] Resubmit sitemap in GSC after deploy
+- [ ] Verify GSC indexes `/en/platform` and `/en/solutions/*` within 2 weeks
+
+### P1 — i18n & locale quality
+
+- [ ] Add `cityLocalSegment` copy to `fr.json` (remove EN fallback on city×vehicle/intent)
+- [ ] Close `en.json` / `fr.json` root key gap (~428 keys on FR) — prioritize SEO landings first
+- [ ] `IndustryLandingView` section labels → i18n (`links.*` or `industryLanding.*`)
+- [ ] Document UTM conventions for sales (`utm_campaign` ↔ campaign slugs + platform campaigns)
+
+### P2 — Google Business Profile
+
+- [ ] Claim / verify GBP
+- [ ] Set `NEXT_PUBLIC_GOOGLE_BUSINESS_PROFILE_URL` + redeploy
+- [ ] GBP posts linking to `/en/platform`, `/en/toronto/van-delivery`, top trade LPs
+
+### P3 — Analytics & conversion polish
+
+- [ ] Mark GA4 conversion events in Admin
+- [ ] GA4 explorations: Lane A (`/platform`, `/developers`) vs Lane B (`/industry`, `/campaigns`) funnels
+- [ ] Wire `track()` on remaining hub CTAs (`HubIndexView`)
+- [ ] Per-post OG images for blog
+
+### P4 — Content & authority (sales-powered SEO)
+
+- [ ] 2 new blog posts: platform integration + construction ROI (EN + FR)
+- [ ] Internal links: `/platform` → top 3 industry LPs + `/developers`
+- [ ] Monthly GSC review: impressions for "dispatch", "construction delivery", "API" clusters
+- [ ] Quarterly SERP gap vs Ontario distributor/courier **and** logistics SaaS competitors
+
+---
+
+## Reference files
+
+### Website SEO core
+
+| File                                         | Purpose                        |
+| -------------------------------------------- | ------------------------------ |
+| `website/src/lib/seo/sitemap-entries.ts`     | Full sitemap generator         |
+| `website/src/lib/seo/niche-landing.ts`       | Industry slug SSOT             |
+| `website/src/lib/solutions-verticals.ts`     | Solutions vertical SSOT        |
+| `website/src/lib/seo/city-industry-seo.ts`   | City×industry matrix           |
+| `website/src/lib/seo/city-segment-seo.ts`    | City×vehicle + delivery-intent |
+| `website/src/lib/seo/internal-linking.ts`    | Cross-link helpers             |
+| `website/src/lib/seo/industry-home-links.ts` | Homepage → industry LP         |
+| `website/src/lib/seo/schema.ts`              | JSON-LD builders               |
+| `website/src/lib/seo/analytics.ts`           | Event taxonomy                 |
+| `website/src/lib/seo/attribution.ts`         | UTM capture                    |
+
+### Navigation & IA
+
+| File                                            | Purpose                                  |
+| ----------------------------------------------- | ---------------------------------------- |
+| `website/src/data/navbar-navigation.ts`         | Navbar link SSOT                         |
+| `website/src/data/footer-navigation.ts`         | Footer link SSOT                         |
+| `website/src/components/layout/SiteNavbar.tsx`  | Nav shell + dropdowns                    |
+| `website/src/components/layout/NavDropdown.tsx` | Desktop/mobile menus                     |
+| `website/messages/corporate-*.json`             | `nav`, `home`, `solutions`, `developers` |
+| `website/messages/site-footer-*.json`           | Footer column labels                     |
+
+### CI guards
+
+| Script                                   | Checklist                  |
+| ---------------------------------------- | -------------------------- |
+| `scripts/verify_product_vision_pages.py` | §1.1.3–1.1.7               |
+| `scripts/verify_i18n_parity.py`          | §6.1.5 + EN landing purity |
+| `scripts/verify_design_copy.py`          | §6.1.2–6.1.3               |
+
+### Messages & content
+
+| Path                                  | Purpose                                                                    |
+| ------------------------------------- | -------------------------------------------------------------------------- |
+| `website/messages/en.json`, `fr.json` | `nicheLanding`, `campaignLanding`, `cityLocalSegment`, `metadata.keywords` |
+| `website/messages/corporate-*.json`   | Platform, solutions, developers, nav                                       |
+| `website/content/blog/`               | Markdown posts (EN + FR)                                                   |
+
+### Deploy
+
+| File                                   | Purpose                        |
+| -------------------------------------- | ------------------------------ |
+| `.github/workflows/deploy-website.yml` | Website-only production deploy |
+| `website/Dockerfile`                   | Build args for GA, Zoho, GBP   |
+
+---
+
+## Governance
+
+- **Dual-lane discipline:** Platform copy uses orchestration/dispatch language (§1.1.2 ban list). Trades SEO copy uses vehicle fit, POD, recurring routes — not generic courier fluff.
+- SEO copy: update **both** `en.json` and `fr.json` when adding `nicheLanding` / `campaignLanding` strings.
+- New programmatic slug: update SSOT + messages + verify sitemap count increases.
+- New corporate page: add to `navbar-navigation.ts`, `footer-navigation.ts`, and `sitemap-entries.ts` in the **same PR**.
+- New blog post: EN + FR pair; link to ≥1 industry LP + 1 platform/solutions page + `/business`.
+- Do not index: `/login`, `/book/continue`, `/book/success`, `/track/[id]`.
+- No street address on public marketing surfaces.
+- Website releases: push to `main` → **Deploy Website** workflow.
+
+---
+
+## Appendix — June 2026 backup (historical)
+
+The June 2026 tarball had ~50 route types, partial sitemap, no construction trades, no platform page, minimal nav, and `/ca/en/` URL prefix. PCD ported and extended that engine; checklist work (July 2026) added platform-first positioning, full IA, developers portal, and i18n guards. This doc reflects **current production intent**, not the backup roadmap.
 
 ```
-/  → /ca/en
-/ravi, /ravi/contact.vcf
-/driver/onboarding (noindex)
-/[market]/[locale]/ + all clusters listed in Part 1
-/[market]/[locale]/[city]/[industrySlug]
-/[market]/[locale]/delivery/[industry]/[city]
+Backup:  /ca/en/industry/[slug]           →  PCD: /en/industry/[slug]
+Backup:  no /platform                     →  PCD: /en/platform (Lane A)
+Backup:  ~100 sitemap URLs                →  PCD: ~737 sitemap URLs
+Backup:  courier-first homepage           →  PCD: platform-first hero (§1.1.3)
 ```
-
-301 map in `website/next.config.ts` covers `/ca/en/*` and `/ca/fr-ca/*`.
-
----
-
-## Appendix — Current blog inventory
-
-| Slug (EN)                       | Category     | Construction relevance        |
-| ------------------------------- | ------------ | ----------------------------- |
-| construction-material-logistics | construction | **Primary** — link to new LPs |
-| sla-dispatch-vs-marketplace     | logistics    | Jobsite reliability mention   |
-| wholesale-distribution-gta      | wholesale    | Adjacent distributor audience |
-| audit-ready-proof-of-delivery   | logistics    | POD for jobsite               |
-| _(8 others)_                    | various      | Low trades relevance          |
-
-Each EN post has an FR counterpart in `content/blog/fr/`.

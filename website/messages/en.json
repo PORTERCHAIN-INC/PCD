@@ -1,9 +1,18 @@
 {
   "metadata": {
-    "title": "Porterchain | Commercial Logistics — GTA Delivery",
-    "description": "Construction material, electrical, and plumbing supply delivery across the GTA. Same-day and recurring routes, pallet freight, proof of delivery. Book online or talk to our business team.",
-    "ogTitle": "Porterchain | Commercial Logistics Partner",
-    "ogDescription": "Jobsite and distributor delivery for construction, electrical, and plumbing across Ontario."
+    "title": "Porterchain | Transportation Capacity Network for Ontario Businesses",
+    "description": "Reliable vehicle-and-driver capacity when your fleet is not enough — orchestrated through Porterchain's transportation capacity network.",
+    "ogTitle": "Porterchain | Transportation Capacity for Ontario Businesses",
+    "ogDescription": "Professional drivers and commercial vehicles for overflow, urgent delivery, and recurring distribution across Ontario.",
+    "keywords": [
+      "Dispatch Software Ontario",
+      "B2B Logistics Platform",
+      "Construction Distribution Dispatch",
+      "Regional Shipper Orchestration",
+      "SLA Delivery Management",
+      "Proof of Delivery Software",
+      "Porterchain"
+    ]
   },
   "nav": {
     "solutions": "Solutions",
@@ -841,18 +850,18 @@
   "nicheLanding": {
     "constructionMaterials": {
       "meta": {
-        "title": "Livraison de matériaux de construction | Tournées chantier et distributeurs Ontario",
-        "description": "Porterchain livre les matériaux de construction dans le RGT et l'Ontario. Bois, gypse, acier et fournitures — tournées récurrentes, palettes, preuve de livraison."
+        "title": "Construction material delivery | Jobsite & distributor routes Ontario",
+        "description": "Porterchain delivers construction materials across the GTA and Ontario. Lumber, drywall, steel, and supplies — recurring routes, pallets, proof of delivery."
       },
       "hero": {
-        "title": "Livraison pour matériaux de construction",
-        "subtitle": "Votre partenaire logistique pour distributeurs de construction et livraison chantier. Fourgonnettes, camionnettes et camions — capacité prévisible et suivi en direct."
+        "title": "Delivery for construction materials",
+        "subtitle": "Your logistics partner for construction distributors and jobsite delivery. Vans, pickups, and trucks — predictable capacity and live tracking."
       },
       "painPoints": {
-        "title": "Défis de livraison pour la construction",
-        "item1": "Livrer les chantiers à l'heure sans flotte ni coursiers multiples",
-        "item2": "Augmenter les livraisons palettes et volumes sans ajouter de véhicules",
-        "item3": "Les équipes chantier exigent visibilité, POD et créneaux fiables"
+        "title": "Construction delivery challenges",
+        "item1": "Hitting jobsite windows on time without fleet or juggling couriers",
+        "item2": "Scaling pallet and bulk deliveries without adding vehicles",
+        "item3": "Site teams expect visibility, proof of delivery, and reliable time windows"
       },
       "solution": {
         "title": "Porterchain for construction materials",
@@ -899,22 +908,22 @@
         "a3": "Every shipment includes photo proof, signatures where needed, and a shareable tracking link with real-time status."
       },
       "cta": {
-        "title": "Prêt pour une livraison fiable de matériaux de construction?",
-        "description": "Décrivez vos trajets et volumes. Nous gérons la livraison chantier et distributeur.",
-        "primary": "Nous joindre",
-        "secondary": "Contactez-nous"
+        "title": "Ready for reliable construction material delivery?",
+        "description": "Share your routes and volume. We'll run jobsite and distributor delivery for you.",
+        "primary": "Talk to us",
+        "secondary": "Contact us"
       },
       "inquiryHeading": "Get started with construction material delivery",
       "inquirySubheadline": "A few details and we'll match capacity and vehicles to your distributor or jobsite routes."
     },
     "electricalDistribution": {
       "meta": {
-        "title": "Livraison distributeur électrique | Tournées grossiste et entrepreneurs Ontario",
-        "description": "Porterchain livre pour les grossistes électriques en Ontario. Fil, panneaux et équipement — même jour et récurrent, suivi et preuve de livraison."
+        "title": "Electrical distributor delivery | Wholesale routes Ontario",
+        "description": "Porterchain delivers for electrical wholesalers in Ontario. Wire, panels, and equipment — same-day and recurring, tracking and proof of delivery."
       },
       "hero": {
-        "title": "Livraison pour distribution électrique",
-        "subtitle": "Partenaire dernier kilomètre pour grossistes électriques. Tournées récurrentes vers entrepreneurs et chantiers, avec suivi sur chaque envoi."
+        "title": "Delivery for electrical distribution",
+        "subtitle": "Last-mile partner for electrical wholesalers. Recurring routes to contractors and job sites, with tracking on every shipment."
       },
       "painPoints": {
         "title": "Delivery needs for electrical distributors",
@@ -967,22 +976,22 @@
         "a3": "Every shipment has a tracking link with live status and ETA — share it with contractors or site contacts."
       },
       "cta": {
-        "title": "Prêt pour la livraison distribution électrique?",
-        "description": "Partagez vos trajets. Nous adaptons la capacité à votre opération grossiste.",
-        "primary": "Nous joindre",
-        "secondary": "Contactez-nous"
+        "title": "Ready for electrical distributor delivery?",
+        "description": "Share your routes. We'll align capacity to your wholesale operation.",
+        "primary": "Talk to us",
+        "secondary": "Contact us"
       },
       "inquiryHeading": "Get started with electrical distributor delivery",
       "inquirySubheadline": "Tell us about your routes and we'll match capacity for your wholesale delivery."
     },
     "plumbingSupply": {
       "meta": {
-        "title": "Livraison fournitures plomberie | Grossiste et entrepreneurs Ontario",
-        "description": "Porterchain livre pour les grossistes en plomberie en Ontario. Tuyaux, fixtures et stock — tournées récurrentes et suivi complet."
+        "title": "Plumbing supply delivery | Wholesale & contractor routes Ontario",
+        "description": "Porterchain delivers for plumbing wholesalers in Ontario. Pipe, fixtures, and inventory — recurring routes and full tracking."
       },
       "hero": {
-        "title": "Livraison pour fournitures de plomberie",
-        "subtitle": "Partenaire logistique pour grossistes en plomberie. Tournées entrepreneurs, capacité même jour, visibilité complète."
+        "title": "Delivery for plumbing supply",
+        "subtitle": "Logistics partner for plumbing wholesalers. Contractor routes, same-day capacity, and complete visibility."
       },
       "painPoints": {
         "title": "Delivery challenges for plumbing supply",
@@ -1035,10 +1044,10 @@
         "a3": "Yes — photo proof, signatures, and tracking links on every shipment."
       },
       "cta": {
-        "title": "Prêt pour la livraison fournitures plomberie?",
-        "description": "Décrivez vos trajets. Nous gérons votre livraison grossiste.",
-        "primary": "Nous joindre",
-        "secondary": "Contactez-nous"
+        "title": "Ready for plumbing supply delivery?",
+        "description": "Share your routes. We'll run your wholesale delivery.",
+        "primary": "Talk to us",
+        "secondary": "Contact us"
       },
       "inquiryHeading": "Get started with plumbing supply delivery",
       "inquirySubheadline": "Share your delivery patterns and we'll align capacity for your wholesale routes."
@@ -3604,18 +3613,18 @@
     },
     "constructionMaterials": {
       "meta": {
-        "title": "Livraison de matériaux de construction | Tournées chantier et distributeurs Ontario",
-        "description": "Porterchain livre les matériaux de construction dans le RGT et l'Ontario. Bois, gypse, acier et fournitures — tournées récurrentes, palettes, preuve de livraison."
+        "title": "Construction material delivery | Jobsite & distributor routes Ontario",
+        "description": "Porterchain delivers construction materials across the GTA and Ontario. Lumber, drywall, steel, and supplies — recurring routes, pallets, proof of delivery."
       },
       "hero": {
-        "title": "Livraison pour matériaux de construction",
-        "subtitle": "Votre partenaire logistique pour distributeurs de construction et livraison chantier. Fourgonnettes, camionnettes et camions — capacité prévisible et suivi en direct."
+        "title": "Delivery for construction materials",
+        "subtitle": "Your logistics partner for construction distributors and jobsite delivery. Vans, pickups, and trucks — predictable capacity and live tracking."
       },
       "painPoints": {
-        "title": "Défis de livraison pour la construction",
-        "item1": "Livrer les chantiers à l'heure sans flotte ni coursiers multiples",
-        "item2": "Augmenter les livraisons palettes et volumes sans ajouter de véhicules",
-        "item3": "Les équipes chantier exigent visibilité, POD et créneaux fiables"
+        "title": "Construction delivery challenges",
+        "item1": "Hitting jobsite windows on time without fleet or juggling couriers",
+        "item2": "Scaling pallet and bulk deliveries without adding vehicles",
+        "item3": "Site teams expect visibility, proof of delivery, and reliable time windows"
       },
       "solution": {
         "title": "Porterchain for construction materials",
@@ -3662,22 +3671,22 @@
         "a3": "Every shipment includes photo proof, signatures where needed, and a shareable tracking link with real-time status."
       },
       "cta": {
-        "title": "Prêt pour une livraison fiable de matériaux de construction?",
-        "description": "Décrivez vos trajets et volumes. Nous gérons la livraison chantier et distributeur.",
-        "primary": "Nous joindre",
-        "secondary": "Contactez-nous"
+        "title": "Ready for reliable construction material delivery?",
+        "description": "Share your routes and volume. We'll run jobsite and distributor delivery for you.",
+        "primary": "Talk to us",
+        "secondary": "Contact us"
       },
       "inquiryHeading": "Get started with construction material delivery",
       "inquirySubheadline": "A few details and we'll match capacity and vehicles to your distributor or jobsite routes."
     },
     "electricalDistribution": {
       "meta": {
-        "title": "Livraison distributeur électrique | Tournées grossiste et entrepreneurs Ontario",
-        "description": "Porterchain livre pour les grossistes électriques en Ontario. Fil, panneaux et équipement — même jour et récurrent, suivi et preuve de livraison."
+        "title": "Electrical distributor delivery | Wholesale routes Ontario",
+        "description": "Porterchain delivers for electrical wholesalers in Ontario. Wire, panels, and equipment — same-day and recurring, tracking and proof of delivery."
       },
       "hero": {
-        "title": "Livraison pour distribution électrique",
-        "subtitle": "Partenaire dernier kilomètre pour grossistes électriques. Tournées récurrentes vers entrepreneurs et chantiers, avec suivi sur chaque envoi."
+        "title": "Delivery for electrical distribution",
+        "subtitle": "Last-mile partner for electrical wholesalers. Recurring routes to contractors and job sites, with tracking on every shipment."
       },
       "painPoints": {
         "title": "Delivery needs for electrical distributors",
@@ -3730,22 +3739,22 @@
         "a3": "Every shipment has a tracking link with live status and ETA — share it with contractors or site contacts."
       },
       "cta": {
-        "title": "Prêt pour la livraison distribution électrique?",
-        "description": "Partagez vos trajets. Nous adaptons la capacité à votre opération grossiste.",
-        "primary": "Nous joindre",
-        "secondary": "Contactez-nous"
+        "title": "Ready for electrical distributor delivery?",
+        "description": "Share your routes. We'll align capacity to your wholesale operation.",
+        "primary": "Talk to us",
+        "secondary": "Contact us"
       },
       "inquiryHeading": "Get started with electrical distributor delivery",
       "inquirySubheadline": "Tell us about your routes and we'll match capacity for your wholesale delivery."
     },
     "plumbingSupply": {
       "meta": {
-        "title": "Livraison fournitures plomberie | Grossiste et entrepreneurs Ontario",
-        "description": "Porterchain livre pour les grossistes en plomberie en Ontario. Tuyaux, fixtures et stock — tournées récurrentes et suivi complet."
+        "title": "Plumbing supply delivery | Wholesale & contractor routes Ontario",
+        "description": "Porterchain delivers for plumbing wholesalers in Ontario. Pipe, fixtures, and inventory — recurring routes and full tracking."
       },
       "hero": {
-        "title": "Livraison pour fournitures de plomberie",
-        "subtitle": "Partenaire logistique pour grossistes en plomberie. Tournées entrepreneurs, capacité même jour, visibilité complète."
+        "title": "Delivery for plumbing supply",
+        "subtitle": "Logistics partner for plumbing wholesalers. Contractor routes, same-day capacity, and complete visibility."
       },
       "painPoints": {
         "title": "Delivery challenges for plumbing supply",
@@ -3798,10 +3807,10 @@
         "a3": "Yes — photo proof, signatures, and tracking links on every shipment."
       },
       "cta": {
-        "title": "Prêt pour la livraison fournitures plomberie?",
-        "description": "Décrivez vos trajets. Nous gérons votre livraison grossiste.",
-        "primary": "Nous joindre",
-        "secondary": "Contactez-nous"
+        "title": "Ready for plumbing supply delivery?",
+        "description": "Share your routes. We'll run your wholesale delivery.",
+        "primary": "Talk to us",
+        "secondary": "Contact us"
       },
       "inquiryHeading": "Get started with plumbing supply delivery",
       "inquirySubheadline": "Share your delivery patterns and we'll align capacity for your wholesale routes."

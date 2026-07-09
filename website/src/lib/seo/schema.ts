@@ -220,9 +220,29 @@ export const SCHEMA_DELIVERY_SERVICE_TYPES = [
   "Parcel delivery",
 ] as const;
 
-/** Description for LocalBusiness schema: delivery-focused for rich results + GBP alignment. */
+/** Description for Organization schema — capacity network (Lane A). */
+const ORGANIZATION_DESCRIPTION =
+  "Porterchain is a transportation capacity network for Ontario businesses — reliable vehicle-and-driver capacity orchestrated through intelligent operations software.";
+
+/** Description for LocalBusiness schema — delivery capacity. */
 const LOCAL_BUSINESS_DESCRIPTION =
-  "Porterchain provides same-day and recurring courier delivery for GTA merchants — construction materials, electrical and plumbing supply, e-commerce, and B2B freight across Toronto, Mississauga, Brampton, and Ontario. Tracking and proof of delivery included.";
+  "Porterchain provides transportation capacity for Ontario B2B businesses — professional drivers and commercial vehicles with tracking and proof of delivery.";
+
+export type SoftwareApplicationSchema = {
+  "@context": "https://schema.org";
+  "@type": "SoftwareApplication";
+  name: string;
+  applicationCategory: string;
+  operatingSystem: string;
+  description: string;
+  url: string;
+  offers?: {
+    "@type": "Offer";
+    priceCurrency: string;
+    description: string;
+  };
+  provider: { "@type": "Organization"; name: string; url: string };
+};
 
 export type OrganizationSchema = {
   "@context": "https://schema.org";
@@ -317,13 +337,38 @@ export function buildOrganizationSchema(options?: { baseUrl?: string }): Organiz
     "@type": "Organization",
     name: siteConfig.name,
     url: base,
-    description: siteConfig.description,
+    description: ORGANIZATION_DESCRIPTION,
     logo: `${base}/icon.svg`,
   };
 }
 
 /**
- * LocalBusiness schema with geographic service areas (site-wide).
+ * SoftwareApplication schema for Lane A product pages (home, platform, developers).
+ */
+export function buildSoftwareApplicationSchema(options?: {
+  baseUrl?: string;
+}): SoftwareApplicationSchema {
+  const base = (options?.baseUrl ?? BASE).replace(/\/$/, "");
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: `${siteConfig.name} Capacity Network`,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    description: ORGANIZATION_DESCRIPTION,
+    url: `${base}/platform`,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "CAD",
+      description:
+        "Transportation capacity programs — quote-based pricing by vehicle class and route",
+    },
+    provider: { "@type": "Organization", name: siteConfig.name, url: base },
+  };
+}
+
+/**
+ * LocalBusiness schema with geographic service areas (contact / GBP pages only).
  * Defines delivery service types and areaServed so Google understands local courier coverage.
  */
 export function buildLocalBusinessSchema(options?: { baseUrl?: string }): LocalBusinessSchema {

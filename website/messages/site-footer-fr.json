@@ -1,9 +1,9 @@
 {
-  "tagline": "Partenaire logistique commercial pour les entreprises locales du RGT.",
-  "corporateTagline": "Livraison commerciale professionnelle pour les entreprises qui exigent la fiabilité.",
-  "businessTagline": "Logistique d'entreprise pour les entreprises en croissance.",
+  "tagline": "Capacité de transport pour entreprises ontariennes — propulsée par le logiciel que nous avons bâti pour opérer le réseau.",
+  "corporateTagline": "Chauffeurs professionnels et véhicules lorsque votre propre flotte ne suffit pas.",
+  "businessTagline": "Capacité urgente, débordement, récurrente et dédiée pour entreprises en croissance.",
   "copyright": "© {year} Porterchain Inc. Tous droits réservés.",
-  "contactLine": "driver@porterchain.com · +1 (647) 619-7951",
+  "contactLine": "enterprise@porterchain.com · +1 (647) 619-7951",
   "driverPortal": "Portail chauffeur",
   "merchantPortal": "Portail marchand",
   "support": "Support client",
@@ -12,57 +12,52 @@
   "googleReview": "Avis sur Google",
   "sections": {
     "products": {
-      "title": "Services",
+      "title": "Comment nous opérons",
       "links": {
-        "platform": "Plateforme",
+        "platform": "Technologie opérationnelle",
         "solutions": "Solutions",
-        "book": "Réserver une livraison",
-        "business": "Entreprise",
-        "customerPortal": "Mes commandes",
-        "getQuote": "Obtenir un devis"
+        "howItWorks": "Comment ça fonctionne",
+        "integrations": "Intégrations",
+        "developers": "Développeurs et API",
+        "track": "Suivre un envoi"
       }
     },
     "solutions": {
-      "title": "Solutions",
+      "title": "Entreprise",
       "links": {
-        "industry": "Industries",
+        "business": "Services aux entreprises",
+        "enterprise": "Grands comptes",
+        "pricing": "Tarification",
+        "trust": "Confiance et sécurité",
+        "getQuote": "Obtenir un devis",
+        "customerPortal": "Mes commandes"
+      }
+    },
+    "company": {
+      "title": "Industries et zones",
+      "links": {
+        "industry": "Toutes les industries",
         "constructionMaterials": "Matériaux de construction",
         "electricalDistribution": "Distribution électrique",
         "plumbingSupply": "Fournitures plomberie",
         "serviceAreas": "Zones desservies",
-        "pricing": "Tarification",
         "localDelivery": "Livraison locale",
-        "integrations": "Intégrations",
-        "enterprise": "Entreprise",
-        "vanDelivery": "Livraison fourgonnette",
-        "mediumTruck": "Camion boîte"
-      }
-    },
-    "company": {
-      "title": "Entreprise",
-      "links": {
-        "about": "À propos",
-        "contact": "Contact",
-        "blog": "Blogue",
-        "careers": "Carrières",
-        "drive": "Conduire avec nous",
-        "vehiclePartnerPortal": "Portail partenaire véhicule"
+        "vanDelivery": "Livraison fourgonnette"
       }
     },
     "resources": {
-      "title": "Ressources",
+      "title": "Entreprise et ressources",
       "links": {
-        "developers": "Développeurs",
+        "about": "À propos",
+        "contact": "Contact",
+        "careers": "Carrières",
+        "vehiclePartner": "Partenaires véhicule",
+        "blog": "Blogue",
         "faq": "FAQ",
         "guides": "Guides",
         "compare": "Comparer",
         "successStories": "Réussites",
-        "onboardingEducation": "Intégration",
-        "campaigns": "Campagnes",
-        "blogHome": "Accueil blogue",
-        "logistics": "Logistique",
-        "constructionBlog": "Construction",
-        "sameDay": "Livraison le jour même"
+        "onboardingEducation": "Intégration"
       }
     },
     "legal": {

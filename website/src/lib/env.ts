@@ -33,7 +33,7 @@ export const publicEnv = {
   ).replace(/\/$/, ""),
   porterchainApiUrl: (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "").trim().replace(/\/$/, ""),
   clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
-  contactEmail: (process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "driver@porterchain.com").trim(),
+  contactEmail: (process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "enterprise@porterchain.com").trim(),
   zohoSalesIqEnabled: process.env.NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED === "true",
   zohoSalesIqWidgetCode: (process.env.NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE ?? "").trim(),
   gaMeasurementId: (process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "").trim(),

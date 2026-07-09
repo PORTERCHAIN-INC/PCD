@@ -32,8 +32,16 @@ export function buildSeoMetadata(params: {
   title: string;
   description: string;
   openGraphType?: "website" | "article";
+  index?: boolean;
 }): Metadata {
-  const { locale, pathSegment, title, description, openGraphType = "website" } = params;
+  const {
+    locale,
+    pathSegment,
+    title,
+    description,
+    openGraphType = "website",
+    index = true,
+  } = params;
   return {
     title,
     description,
@@ -52,6 +60,6 @@ export function buildSeoMetadata(params: {
       title,
       description,
     },
-    robots: { index: true, follow: true },
+    robots: { index, follow: true },
   };
 }

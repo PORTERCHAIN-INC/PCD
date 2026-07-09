@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getMessages, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import CityIndustryLandingView from "@/components/seo/CityIndustryLandingView";
 import { getCityIndustryContent } from "@/lib/seo/city-industry-delivery";
@@ -102,6 +102,11 @@ export default async function CitySegmentPage({ params }: Props) {
   if (!content) notFound();
 
   const loc = locale as Locale;
+  const tBc = await getTranslations("corporate.breadcrumbs");
+  const cityLabel = city
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
   const relatedLinks =
     resolved.type === "vehicle"
       ? buildVehicleLinksForCityPage(loc, city)
@@ -117,6 +122,11 @@ export default async function CitySegmentPage({ params }: Props) {
         industryLinks={relatedLinks}
         relatedTitle={resolved.type === "vehicle" ? "Other vehicles" : "Explore by industry"}
         trackSource={`${city}/${industrySlug}`}
+        breadcrumbs={[
+          { label: tBc("home"), href: "/" },
+          { label: cityLabel, href: `/service-areas/${city}` },
+          { label: content.hero.title },
+        ]}
       />
     </CorporateShell>
   );

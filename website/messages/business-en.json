@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "title": "Porterchain Business | Logistics Technology for Growing Companies",
-    "description": "Request a business consultation for recurring delivery orchestration, same-day routes, LTL freight, and wholesale distribution across the GTA.",
-    "ogTitle": "Porterchain — Logistics Technology Platform",
-    "ogDescription": "Dispatch OS, live visibility, and merchant integrations — built for businesses that outgrew ad-hoc couriers."
+    "title": "Porterchain Services | Transportation Capacity for Ontario Businesses",
+    "description": "Request vehicle-and-driver capacity for urgent delivery, overflow, scheduled routes, local distribution, and business continuity across Ontario.",
+    "ogTitle": "Porterchain — Transportation Capacity Services",
+    "ogDescription": "Professional drivers and vehicles for businesses that need backup, overflow, same-day, or recurring delivery capacity."
   },
   "nav": {
     "solutions": "Solutions",
@@ -24,12 +24,12 @@
     }
   },
   "hero": {
-    "badge": "Logistics Technology",
-    "titleLine1": "Logistics Orchestration",
-    "titleLine2": "Built for Growing Businesses.",
-    "subtitle": "Same-day delivery, scheduled routes, wholesale distribution, LTL freight, and recurring operations — one platform across the Greater Toronto Area.",
-    "ctaPrimary": "Request Consultation",
-    "ctaSecondary": "Schedule Meeting"
+    "badge": "Transportation capacity",
+    "titleLine1": "Vehicle and driver capacity",
+    "titleLine2": "when your fleet is not enough.",
+    "subtitle": "Use Porterchain for urgent delivery, fleet overflow, scheduled routes, local distribution, marketplace pickups, construction deliveries, pharmacy deliveries, laboratory transport, and manufacturing logistics.",
+    "ctaPrimary": "Get a quote",
+    "ctaSecondary": "See vehicles"
   },
   "inquiry": {
     "title": "Let's Talk About Your Logistics",

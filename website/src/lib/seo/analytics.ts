@@ -59,6 +59,13 @@ export const ANALYTICS_EVENTS = {
   /** Contact page form */
   CONTACT_FORM_SUBMIT_SUCCESS: "contact_form_submit_success",
   CONTACT_FORM_SUBMIT_ERROR: "contact_form_submit_error",
+  /** Demo request (legacy / ops pages only) */
+  DEMO_REQUEST: "demo_request",
+  /** Quote / transportation capacity request */
+  QUOTE_REQUEST: "quote_request",
+  /** Platform bridge on Lane B SEO pages */
+  SEO_BRIDGE_CLICK: "seo_bridge_click",
+  PLATFORM_EXPLORE: "platform_explore",
   /** Booking widget (homepage / book flow) */
   BOOKING_QUOTE_REQUEST: "booking_quote_request",
   BOOKING_QUOTE_SUCCESS: "booking_quote_success",
@@ -76,6 +83,8 @@ export const ANALYTICS_EVENTS = {
 /** Mark these as conversions in GA4 Admin → Events → Mark as conversion. */
 export const GA4_CONVERSION_EVENTS: readonly string[] = [
   ANALYTICS_EVENTS.CONTACT_FORM_SUBMIT_SUCCESS,
+  ANALYTICS_EVENTS.DEMO_REQUEST,
+  ANALYTICS_EVENTS.QUOTE_REQUEST,
   ANALYTICS_EVENTS.BUSINESS_INQUIRY_SUBMIT,
   ANALYTICS_EVENTS.BOOKING_QUOTE_SUCCESS,
   ANALYTICS_EVENTS.BOOKING_CONTINUE,

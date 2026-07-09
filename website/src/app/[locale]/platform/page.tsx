@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import HeroSection from "@/components/corporate/sections/HeroSection";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import TimelineSection from "@/components/corporate/sections/TimelineSection";
@@ -39,6 +40,7 @@ export default async function PlatformPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("corporate.platform");
+  const tBc = await getTranslations("corporate.breadcrumbs");
 
   const featureItems = [
     {
@@ -65,14 +67,15 @@ export default async function PlatformPage({ params }: Props) {
 
   return (
     <CorporateShell>
+      <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: tBc("platform") }]} />
       <HeroSection
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/contact"
+        primaryHref="/contact?intent=quote&from=platform"
         secondaryCta={t("hero.secondaryCta")}
-        secondaryHref="/integrations"
+        secondaryHref="/business#fleet"
         variant="light-centered"
         illustration={<HeroPhoto image={siteImages.hero.logistics} />}
       />
@@ -102,9 +105,9 @@ export default async function PlatformPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact"
+        primaryHref="/contact?intent=quote&from=platform"
         secondaryLabel={t("cta.secondary")}
-        secondaryHref="/contact"
+        secondaryHref="/compare"
         variant="gradient"
       />
       <FaqSection

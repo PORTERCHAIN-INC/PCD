@@ -13,10 +13,14 @@ const localeLabels: Record<Locale, string> = {
 };
 
 interface LanguageSwitcherProps {
+  /** White text for primary / transparent navbar bars */
+  lightText?: boolean;
+  /** @deprecated Use lightText — inverted legacy prop */
   scrolled?: boolean;
 }
 
-export default function LanguageSwitcher({ scrolled = false }: LanguageSwitcherProps) {
+export default function LanguageSwitcher({ lightText, scrolled }: LanguageSwitcherProps) {
+  const useLightText = lightText ?? !scrolled;
   const locale = useLocale() as Locale;
   const router = useRouter();
   const pathname = usePathname();
@@ -44,9 +48,9 @@ export default function LanguageSwitcher({ scrolled = false }: LanguageSwitcherP
         onClick={() => setOpen(!open)}
         className={cn(
           "flex items-center gap-1.5 px-3 py-2.5 min-h-[2.75rem] type-nav rounded-lg transition-colors cursor-pointer",
-          scrolled
-            ? "text-primary/80 hover:text-primary hover:bg-gray-bg"
-            : "text-white/80 hover:text-white hover:bg-white/10"
+          useLightText
+            ? "text-white/80 hover:text-white hover:bg-white/10"
+            : "text-primary/80 hover:text-primary hover:bg-gray-bg"
         )}
         aria-label="Select language"
         aria-expanded={open}

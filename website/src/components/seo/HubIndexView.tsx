@@ -5,7 +5,7 @@ import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getPageHeroImage } from "@/data/site-images";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import type { Locale } from "@/i18n/routing";
-import { business, contact } from "@/lib/seo/routes";
+import { demoContact, contact } from "@/lib/seo/routes";
 
 interface HubIndexViewProps {
   locale: Locale;
@@ -28,8 +28,8 @@ export default function HubIndexView({
         badge="Resources"
         title={title}
         subtitle={description}
-        primaryCta="Talk to us"
-        primaryHref={business(locale, { from: ctaSource })}
+        primaryCta="Get a quote"
+        primaryHref={demoContact(locale, ctaSource)}
         secondaryCta="Contact"
         secondaryHref={contact(locale, { from: ctaSource })}
         variant="light-centered"
@@ -52,9 +52,9 @@ export default function HubIndexView({
         </Container>
       </section>
       <CtaSection
-        title="Need help choosing the right delivery setup?"
-        primaryLabel="Get started"
-        primaryHref={business(locale, { from: ctaSource })}
+        title="Need help choosing the right dispatch setup?"
+        primaryLabel="Get a quote"
+        primaryHref={demoContact(locale, ctaSource)}
         secondaryLabel="Contact us"
         secondaryHref={contact(locale, { from: ctaSource })}
         variant="dark"

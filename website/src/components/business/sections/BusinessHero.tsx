@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Calendar, ArrowRight } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
 import InquiryForm from "@/components/business/InquiryForm";
 import BusinessHeroBg from "@/components/business/illustrations/BusinessHeroBg";
@@ -11,10 +12,6 @@ import { siteImages } from "@/data/site-images";
 
 export default function BusinessHero() {
   const t = useTranslations("businessPage.hero");
-
-  const scrollToInquiry = () => {
-    document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth" });
-  };
 
   return (
     <section className="relative min-h-[100svh] flex items-center overflow-hidden bg-[#091b1c]">
@@ -66,15 +63,15 @@ export default function BusinessHero() {
               transition={{ delay: 0.2 }}
               className="mt-8 flex flex-wrap gap-3"
             >
-              <button
-                onClick={scrollToInquiry}
+              <Link
+                href="/contact?intent=quote&from=business"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#ff7a00] text-white font-semibold text-sm hover:bg-[#e66e00] transition-all biz-shadow-glow"
               >
                 {t("ctaPrimary")}
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </Link>
               <a
-                href="#onboarding"
+                href="#fleet"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/20 text-white font-medium text-sm hover:bg-white/10 transition-colors"
               >
                 <Calendar className="w-4 h-4" />

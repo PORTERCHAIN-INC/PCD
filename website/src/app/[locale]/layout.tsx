@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
@@ -12,7 +13,7 @@ import AttributionCapture from "@/components/seo/AttributionCapture";
 import GoogleAnalytics from "@/components/seo/GoogleAnalytics";
 import { JsonLd } from "@/components/seo";
 import { siteConfig } from "@/lib/seo/config";
-import { buildOrganizationSchema, buildLocalBusinessSchema } from "@/lib/seo/schema";
+import { buildOrganizationSchema } from "@/lib/seo/schema";
 import "../globals.css";
 
 const inter = Inter({
@@ -36,24 +37,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const alternateLocale = locale === "en" ? "fr" : "en";
   const googleVerification = publicEnv.googleSiteVerification;
+  const keywords = t.raw("keywords") as string[];
 
   return {
     title: t("title"),
     description: t("description"),
     metadataBase: new URL(siteConfig.baseUrl),
     ...(googleVerification ? { verification: { google: googleVerification } } : {}),
-    keywords: [
-      "Construction Material Delivery GTA",
-      "Jobsite Delivery Toronto",
-      "Electrical Distributor Delivery",
-      "Plumbing Supply Delivery Ontario",
-      "Building Supply Courier",
-      "Livraison matériaux construction",
-      "Livraison chantier Toronto",
-      "Local Delivery GTA",
-      "Same Day Delivery Toronto",
-      "Porterchain",
-    ],
+    keywords,
     openGraph: {
       title: t("ogTitle"),
       description: t("ogDescription"),
@@ -88,12 +79,14 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <html lang={locale} className={`${inter.variable} scroll-smooth`}>
       <body className="min-h-screen bg-white font-sans antialiased">
-        <JsonLd data={[buildOrganizationSchema(), buildLocalBusinessSchema()]} />
+        <JsonLd data={buildOrganizationSchema()} />
         <AppClerkProvider>
           <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
           <ZohoSalesIQ />
           <GoogleAnalytics />
-          <AttributionCapture />
+          <Suspense fallback={null}>
+            <AttributionCapture />
+          </Suspense>
         </AppClerkProvider>
       </body>
     </html>

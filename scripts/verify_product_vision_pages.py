@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""§1 Product Vision — platform/solutions pages, retail book routing, footer links."""
+"""§1 Product Vision — capacity-first website, quote CTA, retail book routing."""
 
 from __future__ import annotations
 
@@ -18,8 +18,18 @@ REQUIRED_PAGES = (
     "book/page.tsx",
 )
 
+HOME_FORBIDDEN_IMPORTS = (
+    "DeliveryTypes",
+    "WhoCanUse",
+    "WhyPorterchain",
+    "BookingWidget",
+)
+
 HERO_FORBIDDEN = "BookingWidget"
-HERO_REQUIRED = ("corporate.home.hero", "customerPortalBookUrl", "/platform")
+HERO_REQUIRED = ("corporate.home.hero", "/business#fleet")
+
+NAV_QUOTE_HREFS = ('quoteHref = "/contact?intent=quote"', "customerPortalBookUrl")
+TOP_NAV_FORBIDDEN_IDS = ('id: "platform"', 'id: "developers"')
 
 FOOTER_NAV = WEBSITE / "src/data/footer-navigation.ts"
 SITE_FOOTER_EN = WEBSITE / "messages/site-footer-en.json"
@@ -34,6 +44,7 @@ def _footer_hrefs() -> list[str]:
 def _route_exists(href: str) -> bool:
     if href.startswith("__"):
         return True
+    href = href.split("?", 1)[0].split("#", 1)[0]
     path = href.strip("/")
     if not path:
         return APP.joinpath("page.tsx").is_file()
@@ -74,22 +85,115 @@ def main() -> int:
     book_page = APP / "book/page.tsx"
     if book_page.is_file():
         book_text = book_page.read_text(encoding="utf-8")
-        if "customerPortalBookUrl" not in book_text and "portal-book-redirect" not in book_text:
-            failures.append("book page does not redirect to customer portal (§1.1.4)")
+        if "/business" not in book_text and "portal-book-redirect" not in book_text:
+            failures.append("book page must redirect to /business (marketing site does not link :3004/book)")
 
     navbar = WEBSITE / "src/components/layout/SiteNavbar.tsx"
     if navbar.is_file():
         nav_text = navbar.read_text(encoding="utf-8")
         if "BookingWidget" in nav_text:
             failures.append("navbar embeds BookingWidget (PV-G2)")
-        if "customerPortalBookUrl" not in nav_text:
-            failures.append("navbar Book Now must link to customer portal (PV-G2)")
+        if not any(marker in nav_text for marker in NAV_QUOTE_HREFS):
+            failures.append('navbar primary CTA must link to /contact?intent=quote (not demo or customer portal book)')
+
+    nav_data = WEBSITE / "src/data/navbar-navigation.ts"
+    if nav_data.is_file():
+        nav_items = nav_data.read_text(encoding="utf-8").split("export const navbarNavigation", 1)[-1]
+        top_level_region = nav_items.split("children:", 1)[0]
+        for marker in TOP_NAV_FORBIDDEN_IDS:
+            if marker in top_level_region:
+                failures.append(f"top-level nav must not expose {marker} before capacity services")
 
     home_page = APP / "page.tsx"
     if home_page.is_file():
         home_text = home_page.read_text(encoding="utf-8")
-        if "BookingWidget" in home_text:
-            failures.append("homepage still imports BookingWidget (PV-G2)")
+        for forbidden in HOME_FORBIDDEN_IMPORTS:
+            if forbidden in home_text:
+                failures.append(f"homepage still imports consumer section {forbidden} (PV-G2)")
+        if "HomePlatformBody" not in home_text:
+            failures.append("homepage must render HomePlatformBody (capacity-first body)")
+        if "LaneASoftwareSchema" in home_text:
+            failures.append("homepage must not emit SoftwareApplication schema during Phase 1 capacity positioning")
+        if "HomeDeliverySchema" not in home_text:
+            failures.append("homepage must emit delivery/local business schema")
+
+    for rel in (
+        "components/seo/IndustryLandingView.tsx",
+        "components/seo/ContentClusterView.tsx",
+        "components/seo/CityIndustryLandingView.tsx",
+    ):
+        path = WEBSITE / "src" / rel
+        if path.is_file():
+            text = path.read_text(encoding="utf-8")
+            if "PlatformBridgeSection" not in text:
+                failures.append(f"{rel} missing PlatformBridgeSection (Lane B bridge)")
+
+    next_text = NEXT_CONFIG.read_text(encoding="utf-8")
+    if '"platform"' in next_text and "destination: `/${locale}/business`" in next_text:
+        if re.search(r'source:\s*`/\$\{locale\}/platform`', next_text):
+            failures.append("next.config still redirects /platform to /business")
+
+    for old_hub in ("onboarding-education", "integrations-education"):
+        if (
+            old_hub not in next_text
+            or "destination: `/${locale}/guides`" not in next_text
+        ):
+            failures.append(f"next.config missing {old_hub} index redirect to /guides")
+        hub_index = APP / old_hub / "page.tsx"
+        if hub_index.is_file():
+            failures.append(f"remove stub hub page {old_hub}/page.tsx (redirect-only)")
+
+    dev_docs = APP / "developers/docs/page.tsx"
+    if not dev_docs.is_file():
+        failures.append("missing hosted developer docs hub at /developers/docs")
+
+    for trust_exhibit in ("dpa", "msa"):
+        if not (APP / "trust" / trust_exhibit / "page.tsx").is_file():
+            failures.append(f"missing trust exhibit page /trust/{trust_exhibit} (P1.14)")
+
+    corporate_en = WEBSITE / "messages/corporate-en.json"
+    if corporate_en.is_file():
+        corporate_blob = corporate_en.read_text(encoding="utf-8")
+        if "99.2%" in corporate_blob:
+            failures.append("corporate-en.json must not contain unsourced 99.2% SLA stat")
+        corporate = json.loads(corporate_blob)
+        home_blob = json.dumps(
+            {
+                "metadata": corporate.get("metadata", {}).get("home", {}),
+                "home": corporate.get("home", {}),
+            },
+            ensure_ascii=False,
+        ).lower()
+        pricing_blob = json.dumps(corporate.get("pricing", {}), ensure_ascii=False).lower()
+        for forbidden in (
+            "dispatch os",
+            "dispatch operating system",
+            "software-led pricing",
+            "platform subscription",
+            "$24k",
+            "24k+ acv",
+        ):
+            if forbidden in home_blob or forbidden in pricing_blob:
+                failures.append(f"capacity-first home/pricing copy must not contain '{forbidden}'")
+        for required in ("transportation capacity", "vehicle", "driver", "get a quote"):
+            if required not in home_blob and required not in pricing_blob:
+                failures.append(f"capacity-first home/pricing copy must mention '{required}'")
+        attribution_py = (WEBSITE / "src/lib/seo/attribution.ts").read_text(encoding="utf-8")
+        if "from?:" not in attribution_py or "resolveLeadSource" not in attribution_py:
+            failures.append("attribution.ts must capture from= for CRM tagging (P2.6)")
+        if "pushAttributionToZoho" not in (
+            WEBSITE / "src/lib/seo/zoho-attribution.ts"
+        ).read_text(encoding="utf-8"):
+            failures.append("missing Zoho attribution push (P2.6)")
+
+    if corporate_en.is_file():
+        corporate = json.loads(corporate_en.read_text(encoding="utf-8"))
+        developers = corporate.get("developers", {})
+        developer_blob = json.dumps(developers, ensure_ascii=False).lower()
+        if "phase 1" in developer_blob:
+            failures.append("corporate developers copy must not expose 'Phase 1' public API label")
+        if "api v1" not in developer_blob or "rate limits" not in developer_blob:
+            failures.append("corporate developers copy must include API v1 versioning and rate limits")
 
     phase2_py = ROOT / "shared/python/porterchain_shared/config/phase2.py"
     if phase2_py.is_file():
@@ -101,27 +205,26 @@ def main() -> int:
         if Phase2Flags().any_enabled():
             failures.append("Phase 2 flags must default off (PV-G3)")
 
-    next_text = NEXT_CONFIG.read_text(encoding="utf-8")
-    if '"platform"' in next_text and "destination: `/${locale}/business`" in next_text:
-        if re.search(r'source:\s*`/\$\{locale\}/platform`', next_text):
-            failures.append("next.config still redirects /platform to /business")
-
     for href in _footer_hrefs():
         if not _route_exists(href):
             failures.append(f"footer link {href} has no matching page route (§1.1.7)")
 
     footer_labels = json.loads(SITE_FOOTER_EN.read_text(encoding="utf-8"))
-    products = footer_labels.get("sections", {}).get("products", {}).get("links", {})
-    for key in ("platform", "solutions", "book"):
+    sections = footer_labels.get("sections", {})
+    products = sections.get("products", {}).get("links", {})
+    for key in ("platform", "solutions"):
         if key not in products:
             failures.append(f"site-footer-en.json missing products.links.{key}")
+    business = sections.get("solutions", {}).get("links", {})
+    if "trust" not in business:
+        failures.append("site-footer-en.json missing solutions.links.trust (Business column)")
 
     print("Product vision pages guard (§1.1.3–1.1.7 · PV-G2/G3)")
     if failures:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  PASS: platform-first site, retail book externalized, Phase 2 default off")
+    print("  PASS: capacity-first site, quote CTA on-site, Phase 2 default off")
     return 0
 
 

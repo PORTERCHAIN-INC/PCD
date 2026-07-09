@@ -38,7 +38,9 @@ export async function buildVehicleMetadata(
   const v = (
     messages as { vehicleDelivery?: Record<string, { pageTitle?: string; description?: string }> }
   ).vehicleDelivery?.[key];
-  return buildPageMetadata(locale, segment, v?.pageTitle ?? segment, v?.description ?? "");
+  return buildPageMetadata(locale, segment, v?.pageTitle ?? segment, v?.description ?? "", {
+    index: false,
+  });
 }
 
 type VehicleCopy = {

@@ -3,9 +3,9 @@ import { routing, type Locale } from "@/i18n/routing";
 
 export const siteConfig = {
   name: "Porterchain",
-  tagline: "Commercial Logistics — GTA Delivery",
+  tagline: "Transportation Capacity Network for Ontario Businesses",
   description:
-    "Book same-day deliveries across the GTA. Loose parcels, LTL freight, medical courier, food distribution and more. Instant quotes, real-time tracking, proof of delivery.",
+    "Reliable vehicle-and-driver capacity for Ontario businesses — overflow, urgent delivery, and recurring distribution with tracking and proof.",
   baseUrl: publicEnv.siteUrl,
 } as const;
 

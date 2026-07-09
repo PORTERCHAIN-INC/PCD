@@ -50,12 +50,7 @@ export default function CareersHero({
               >
                 {primaryCta}
               </a>
-              <LinkButton
-                href="/company"
-                variant="outline"
-                size="lg"
-                className="border-white/30 text-white hover:bg-white/10"
-              >
+              <LinkButton href="/company" variant="outlineOnDark" size="lg">
                 {secondaryCta}
               </LinkButton>
             </div>

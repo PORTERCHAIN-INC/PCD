@@ -23,6 +23,7 @@ export const PATHS = {
   PRICING: "pricing",
   INTEGRATIONS: "integrations",
   ENTERPRISE: "enterprise",
+  PLATFORM: "platform",
   DRIVE: "drive",
   TRACK: "track",
   SEDAN_DELIVERY: "sedan-delivery",
@@ -147,8 +148,17 @@ export function integrations(locale: Locale): string {
   return localePath(locale, PATHS.INTEGRATIONS);
 }
 
-export function enterprise(locale: Locale): string {
-  return localePath(locale, PATHS.ENTERPRISE);
+export function enterprise(locale: Locale, query?: RouteQuery): string {
+  return withQuery(localePath(locale, PATHS.ENTERPRISE), query);
+}
+
+export function platform(locale: Locale, query?: RouteQuery): string {
+  return withQuery(localePath(locale, PATHS.PLATFORM), query);
+}
+
+/** Demo-led sales contact with Lane B attribution. */
+export function demoContact(locale: Locale, from: string, query?: RouteQuery): string {
+  return contact(locale, { intent: "demo", from, ...query });
 }
 
 export function drive(locale: Locale, query?: RouteQuery): string {

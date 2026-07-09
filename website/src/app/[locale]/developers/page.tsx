@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BookOpen, Code2, FileJson, KeyRound, Webhook } from "lucide-react";
 import { routing } from "@/i18n/routing";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import HeroSection from "@/components/corporate/sections/HeroSection";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { siteImages } from "@/data/site-images";
@@ -32,11 +33,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const RESOURCE_ICONS = [BookOpen, FileJson, Code2, Webhook, KeyRound] as const;
 const RESOURCE_KEYS = ["guide", "postman", "openapi", "webhooks", "keys"] as const;
 const FLOW_KEYS = ["quote", "booking", "track", "webhook"] as const;
+const POLICY_KEYS = ["versioning", "rateLimits", "webhooks"] as const;
+
+/** API paths are not translated — curly braces break next-intl ICU parsing. */
+const FLOW_PATHS: Record<(typeof FLOW_KEYS)[number], string> = {
+  quote: "/v1/quotes",
+  booking: "/v1/bookings",
+  track: "/v1/orders/{tracking_number}/tracking",
+  webhook: "/v1/merchant-api/orders",
+};
+
+const RESOURCE_EXTERNAL: Record<(typeof RESOURCE_KEYS)[number], boolean> = {
+  guide: false,
+  postman: true,
+  openapi: true,
+  webhooks: true,
+  keys: true,
+};
 
 export default async function DevelopersPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("corporate.developers");
+  const tBc = await getTranslations("corporate.breadcrumbs");
   const links = getDeveloperLinks();
   const apiHost = portalDisplayHost(links.openApiDocs.href);
 
@@ -55,19 +74,21 @@ export default async function DevelopersPage({ params }: Props) {
             : key === "webhooks"
               ? links.merchantFlow.href
               : links.apiKeys.href,
+    external: RESOURCE_EXTERNAL[key],
     cta: t(`resources.items.${key}.cta`),
   }));
 
   return (
     <CorporateShell>
+      <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: tBc("developers") }]} />
       <HeroSection
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref={links.openApiDocs.href}
+        primaryHref="mailto:integrations@porterchain.com"
         secondaryCta={t("hero.secondaryCta")}
-        secondaryHref={links.apiKeys.href}
+        secondaryHref="/developers/docs"
         variant="light-centered"
         illustration={<HeroPhoto image={siteImages.blog.technology} />}
       />
@@ -150,7 +171,7 @@ export default async function DevelopersPage({ params }: Props) {
                     <td className="py-3 pr-4 font-mono text-muted">
                       {t(`flows.items.${key}.method`)}
                     </td>
-                    <td className="py-3 font-mono text-muted">{t(`flows.items.${key}.path`)}</td>
+                    <td className="py-3 font-mono text-muted">{FLOW_PATHS[key]}</td>
                   </tr>
                 ))}
               </tbody>
@@ -160,9 +181,32 @@ export default async function DevelopersPage({ params }: Props) {
             <LinkButton href={links.openApiJson.href} external variant="outline">
               {t("flows.openApiJson")}
             </LinkButton>
-            <LinkButton href={links.changelog.href} external variant="outline">
+            <LinkButton href={links.changelog.href} variant="outline">
               {t("flows.changelog")}
             </LinkButton>
+            <LinkButton href="/developers/docs" variant="outline">
+              {t("cta.docs")}
+            </LinkButton>
+          </div>
+        </Container>
+      </section>
+
+      <section className="site-section bg-gray-bg">
+        <Container>
+          <SectionHeader label={t("policies.label")} title={t("policies.title")} />
+          <div className="grid md:grid-cols-3 gap-5">
+            {POLICY_KEYS.map((key, i) => (
+              <FadeIn key={key} delay={i * 0.06}>
+                <article className="card-surface card-surface-hover p-6 h-full">
+                  <h3 className="text-lg font-semibold text-primary">
+                    {t(`policies.items.${key}.title`)}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted leading-relaxed">
+                    {t(`policies.items.${key}.description`)}
+                  </p>
+                </article>
+              </FadeIn>
+            ))}
           </div>
         </Container>
       </section>
@@ -175,13 +219,7 @@ export default async function DevelopersPage({ params }: Props) {
             <LinkButton href="/contact" variant="secondary" size="lg">
               {t("cta.contact")}
             </LinkButton>
-            <LinkButton
-              href={links.apiKeys.href}
-              external
-              variant="outline"
-              size="lg"
-              className="border-white/30 text-white hover:bg-white/10"
-            >
+            <LinkButton href={links.apiKeys.href} external variant="outlineOnDark" size="lg">
               {t("cta.keys")}
             </LinkButton>
           </div>

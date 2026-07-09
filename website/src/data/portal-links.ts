@@ -7,6 +7,7 @@ export const unifiedSignInPath = "/login";
 export const customerPortalDashboardUrl = `${publicEnv.customerPortalUrl}/dashboard`;
 export const customerPortalSignInUrl = `${publicEnv.customerPortalUrl}/sign-in`;
 /** Retail booking funnel — sole on-site book surface (masterrule §21 · §1.1.4). */
+/** @deprecated Retail book is not linked from the marketing site; use `/business` or `/pricing`. */
 export const customerPortalBookUrl = `${publicEnv.customerPortalUrl}/book`;
 
 /** @deprecated Use customerPortalDashboardUrl — embedded website portal removed. */

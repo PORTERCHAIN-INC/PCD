@@ -51,6 +51,18 @@ const nextConfig: NextConfig = {
           permanent: true,
         }))
       ),
+      ...["en", "fr"].map((locale) => ({
+        source: `/${locale}/how-porterchain-works`,
+        destination: `/${locale}/guides/how-porterchain-works`,
+        permanent: true,
+      })),
+      ...["en", "fr"].flatMap((locale) =>
+        ["onboarding-education", "integrations-education"].map((path) => ({
+          source: `/${locale}/${path}`,
+          destination: `/${locale}/guides`,
+          permanent: true,
+        }))
+      ),
     ];
   },
   async headers() {

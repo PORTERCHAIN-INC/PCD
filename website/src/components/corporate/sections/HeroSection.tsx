@@ -205,9 +205,8 @@ export default function HeroSection({
               {secondaryCta && secondaryHref && (
                 <LinkButton
                   href={secondaryHref}
-                  variant="outline"
+                  variant="outlineOnDark"
                   size="lg"
-                  className="border-white/30 text-white hover:bg-white/10"
                   trackLabel={secondaryCta}
                   trackSource={trackSource}
                 >

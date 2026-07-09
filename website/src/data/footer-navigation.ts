@@ -5,49 +5,44 @@ export interface FooterLink {
   href: string;
 }
 
-/** Former navbar links live here; navbar keeps Business, Sign in, Quote, Vehicle Partner Portal only. */
+/** Footer IA — grouped by how visitors discover Porterchain (platform → business → industries → company → resources). */
 export const footerNavigation: Record<FooterSectionId, FooterLink[]> = {
   products: [
     { id: "platform", href: "/platform" },
     { id: "solutions", href: "/solutions" },
-    { id: "book", href: "/book" },
-    { id: "business", href: "/business" },
-    { id: "customerPortal", href: "__CUSTOMER_PORTAL__" },
-    { id: "getQuote", href: "/quote" },
+    { id: "howItWorks", href: "/guides/how-porterchain-works" },
+    { id: "integrations", href: "/integrations" },
+    { id: "developers", href: "/developers" },
+    { id: "track", href: "/track" },
   ],
   solutions: [
+    { id: "business", href: "/business" },
+    { id: "enterprise", href: "/enterprise" },
+    { id: "pricing", href: "/pricing" },
+    { id: "trust", href: "/trust" },
+    { id: "getQuote", href: "/contact?intent=quote" },
+    { id: "customerPortal", href: "__CUSTOMER_PORTAL__" },
+  ],
+  company: [
     { id: "industry", href: "/industry" },
     { id: "constructionMaterials", href: "/industry/construction-materials" },
     { id: "electricalDistribution", href: "/industry/electrical-distribution" },
     { id: "plumbingSupply", href: "/industry/plumbing-supply" },
     { id: "serviceAreas", href: "/service-areas" },
-    { id: "pricing", href: "/pricing" },
     { id: "localDelivery", href: "/local-delivery" },
-    { id: "integrations", href: "/integrations" },
-    { id: "enterprise", href: "/enterprise" },
     { id: "vanDelivery", href: "/van-delivery" },
-    { id: "mediumTruck", href: "/medium-truck" },
-  ],
-  company: [
-    { id: "about", href: "/company" },
-    { id: "contact", href: "/contact" },
-    { id: "blog", href: "/blog" },
-    { id: "careers", href: "/careers" },
-    { id: "drive", href: "/vehicle-partner" },
-    { id: "vehiclePartnerPortal", href: "/vehicle-partner" },
   ],
   resources: [
-    { id: "developers", href: "/developers" },
+    { id: "about", href: "/company" },
+    { id: "contact", href: "/contact" },
+    { id: "careers", href: "/careers" },
+    { id: "vehiclePartner", href: "/vehicle-partner" },
+    { id: "blog", href: "/blog" },
     { id: "faq", href: "/faq" },
     { id: "guides", href: "/guides" },
     { id: "compare", href: "/compare" },
     { id: "successStories", href: "/success-stories" },
-    { id: "onboardingEducation", href: "/onboarding-education" },
-    { id: "campaigns", href: "/campaigns" },
-    { id: "blogHome", href: "/blog" },
-    { id: "logistics", href: "/blog/category/logistics" },
-    { id: "constructionBlog", href: "/blog/category/construction" },
-    { id: "sameDay", href: "/blog/category/same-day-delivery" },
+    { id: "onboardingEducation", href: "/guides" },
   ],
   legal: [
     { id: "privacy", href: "/privacy" },

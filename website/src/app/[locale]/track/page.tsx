@@ -6,7 +6,6 @@ import HeroSection from "@/components/corporate/sections/HeroSection";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { siteImages } from "@/data/site-images";
 import { localeStaticParams, buildPageMetadata } from "@/lib/seo/page-helpers";
-import { customerPortalBookUrl } from "@/data/portal-links";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -33,7 +32,7 @@ export default async function TrackPage({ params }: Props) {
         title="Track your shipment"
         subtitle="Enter your tracking number to see live status, ETA, and delivery confirmation."
         primaryCta="Get a quote"
-        primaryHref={customerPortalBookUrl}
+        primaryHref="/pricing"
         variant="light-centered"
         illustration={<HeroPhoto image={siteImages.sections.howItWorks} />}
       />

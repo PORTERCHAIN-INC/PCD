@@ -5,10 +5,13 @@ import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
+import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
+import PageBreadcrumbs, { type BreadcrumbItem } from "@/components/seo/PageBreadcrumbs";
 import { JsonLd } from "@/components/seo";
 import { buildFAQPageSchema, buildServiceSchema } from "@/lib/seo/schema";
 import type { Locale } from "@/i18n/routing";
-import { business, contact } from "@/lib/seo/routes";
+import { contact, demoContact, platform } from "@/lib/seo/routes";
+import { buildProductLinksForNiche } from "@/lib/seo/internal-linking";
 
 export type NicheLandingContent = {
   meta?: { title?: string; description?: string };
@@ -52,6 +55,7 @@ interface IndustryLandingViewProps {
   cityLinks: { href: string; label: string }[];
   localCityLinks: { href: string; label: string }[];
   relatedTitle?: string;
+  breadcrumbs?: BreadcrumbItem[];
 }
 
 export default function IndustryLandingView({
@@ -61,9 +65,13 @@ export default function IndustryLandingView({
   cityLinks,
   localCityLinks,
   relatedTitle = "Delivery in your city",
+  breadcrumbs,
 }: IndustryLandingViewProps) {
-  const businessHref = business(locale, { from: `industry/${slug}` });
-  const contactHref = contact(locale, { from: `industry/${slug}` });
+  const source = `industry/${slug}`;
+  const contactHref = contact(locale, { from: source });
+  const demoHref = demoContact(locale, source);
+  const platformHref = platform(locale, { from: source });
+  const productLinks = buildProductLinksForNiche(locale, slug, source);
   const heroImage = slug.startsWith("campaigns/")
     ? getPageHeroImage(slug)
     : getNicheHeroImage(slug);
@@ -95,18 +103,20 @@ export default function IndustryLandingView({
             : null,
         ].filter(Boolean)}
       />
+      {breadcrumbs && breadcrumbs.length > 0 && <PageBreadcrumbs items={breadcrumbs} />}
       <HeroSection
         badge="Industries"
         title={niche.hero.title}
         subtitle={niche.hero.subtitle}
         primaryCta={niche.cta.primary}
-        primaryHref={businessHref}
+        primaryHref={demoHref}
         secondaryCta={niche.cta.secondary}
         secondaryHref={contactHref}
         variant="light-centered"
         illustration={<HeroPhoto image={heroImage} />}
-        trackSource={`industry/${slug}`}
+        trackSource={source}
       />
+      <PlatformBridgeSection from={source} />
       <FeatureSection
         label="Challenges"
         title={niche.painPoints.title}
@@ -150,16 +160,17 @@ export default function IndustryLandingView({
       )}
       <InternalLinksBlock title={relatedTitle} links={cityLinks} />
       <InternalLinksBlock title="Local delivery by city" links={localCityLinks} />
+      <InternalLinksBlock title="Capacity & solutions" links={productLinks} />
       {faqItems.length > 0 && niche.faq && <FaqSection title={niche.faq.title} items={faqItems} />}
       <CtaSection
         title={niche.cta.title}
         subtitle={niche.cta.description}
         primaryLabel={niche.cta.primary}
-        primaryHref={businessHref}
+        primaryHref={demoHref}
         secondaryLabel={niche.cta.secondary}
-        secondaryHref={contactHref}
+        secondaryHref={platformHref}
         variant="gradient"
-        trackSource={`industry/${slug}`}
+        trackSource={source}
       />
     </>
   );

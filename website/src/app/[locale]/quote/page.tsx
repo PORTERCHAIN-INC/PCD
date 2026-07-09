@@ -1,6 +1,14 @@
-import PortalBookRedirect from "@/lib/portal-book-redirect";
+import { redirect } from "next/navigation";
+import { routing, type Locale } from "@/i18n/routing";
 
-/** Anonymous retail quote → customer portal book funnel (§1.4.1). */
-export default function QuoteRedirectPage() {
-  return <PortalBookRedirect subpath="book" />;
+type Props = { params: Promise<{ locale: string }> };
+
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
+
+/** Legacy quote funnel → on-site pricing. */
+export default async function QuoteRedirectPage({ params }: Props) {
+  const { locale } = await params;
+  redirect(`/${locale as Locale}/pricing`);
 }

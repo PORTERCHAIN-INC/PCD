@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import HeroSection from "@/components/corporate/sections/HeroSection";
 import Container from "@/components/ui/Container";
@@ -45,34 +46,41 @@ export default async function SolutionVerticalPage({ params }: Props) {
 
   const loc = locale as Locale;
   const t = await getTranslations("corporate.solutions");
+  const tBc = await getTranslations("corporate.breadcrumbs");
   const index = cardIndexForVertical(vertical);
   const industry = industrySlugForVertical(vertical);
 
   return (
     <CorporateShell>
+      <PageBreadcrumbs
+        items={[
+          { label: tBc("home"), href: "/" },
+          { label: tBc("solutions"), href: "/solutions" },
+          { label: t(`cards.items.${index}.title`) },
+        ]}
+      />
       <HeroSection
         badge={t("hero.badge")}
         title={t(`cards.items.${index}.title`)}
         subtitle={t(`cards.items.${index}.description`)}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/contact"
+        primaryHref="/contact?intent=quote&from=solutions"
         secondaryCta={t("hero.secondaryCta")}
-        secondaryHref="/platform"
+        secondaryHref="/business#fleet"
         variant="minimal"
       />
       <section className="site-section bg-gray-bg">
         <Container className="max-w-3xl text-center">
-          <p className="text-muted leading-relaxed">
-            {loc === "fr"
-              ? "Porterchain adapte la planification, le dispatch et la visibilité en direct aux contraintes de votre secteur — avec des preuves de livraison prêtes pour l'audit."
-              : "Porterchain adapts planning, dispatch, and live visibility to your sector's constraints — with audit-ready proof of delivery."}
-          </p>
+          <p className="text-muted leading-relaxed">{t("verticalDetail.body")}</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <LinkButton href={industrySlug(loc, industry)} showArrow>
-              {loc === "fr" ? "Voir l'industrie" : "Explore industry playbook"}
+              {t("verticalDetail.exploreIndustry")}
             </LinkButton>
             <LinkButton href="/platform" variant="outline">
-              {loc === "fr" ? "Voir la plateforme" : "View platform"}
+              {t("verticalDetail.viewPlatform")}
+            </LinkButton>
+            <LinkButton href="/customers" variant="outline">
+              {t("verticalDetail.viewCustomers")}
             </LinkButton>
           </div>
         </Container>
@@ -81,9 +89,9 @@ export default async function SolutionVerticalPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact"
+        primaryHref="/contact?intent=quote&from=solutions"
         secondaryLabel={t("cta.secondary")}
-        secondaryHref="/platform"
+        secondaryHref="/business#fleet"
         variant="gradient"
       />
     </CorporateShell>

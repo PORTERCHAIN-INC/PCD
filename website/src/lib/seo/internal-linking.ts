@@ -2,14 +2,16 @@
  * Internal linking between industry, service area, and city-industry SEO pages.
  */
 import type { Locale } from "@/i18n/routing";
-import { cityIndustrySeo, serviceAreaSlug, industrySlug } from "./routes";
-import { getNicheMessageKey } from "./niche-landing";
+import type { SolutionVerticalSlug } from "@/lib/solutions-verticals";
+import { cityIndustrySeo, industrySlug, localePath, platform, serviceAreaSlug } from "./routes";
 import {
   isValidCitySeoSlug,
   CITY_SEO_TO_SERVICE_AREA,
   INDUSTRY_SEO_TO_NICHE,
   type CitySeoSlug,
+  type IndustrySeoSlug,
 } from "./city-industry-seo";
+import { getNicheMessageKey } from "./niche-landing";
 import { VEHICLE_CITY_SEO_SLUGS, type VehicleCitySeoSlug } from "./city-segment-seo";
 
 export const PRIMARY_CITY_SLUGS = [
@@ -88,6 +90,23 @@ export const ANCHOR_PHRASE_BY_INDUSTRY_KEY: Record<string, string> = {
   chocolate: "Chocolate delivery",
   labSampleDelivery: "Lab sample delivery",
   ecommerce: "E-commerce delivery",
+};
+
+/** Niche slug → solutions vertical for Lane B → Lane A internal links (P3.6). */
+const NICHE_TO_SOLUTION_VERTICAL: Partial<Record<string, SolutionVerticalSlug>> = {
+  "construction-materials": "construction",
+  "electrical-distribution": "construction",
+  "plumbing-supply": "construction",
+  "pharmacy-medical": "medical",
+  "coffee-roasters": "food-beverage",
+  ecommerce: "wholesale",
+};
+
+const SOLUTION_VERTICAL_LABELS: Record<SolutionVerticalSlug, string> = {
+  wholesale: "Wholesale distribution solutions",
+  medical: "Medical & healthcare solutions",
+  "food-beverage": "Food & beverage solutions",
+  construction: "Construction supply solutions",
 };
 
 export const INDUSTRY_PAGE_LABELS: Record<string, string> = {
@@ -203,6 +222,47 @@ export function buildIndustryDeliveryLinksForCityPage(
       },
     ];
   });
+}
+
+/** Mandatory Lane B bridge links: platform, solutions vertical (when mapped), parent industry. */
+export function buildProductLinksForNiche(
+  locale: Locale,
+  nicheSlug: string,
+  from: string
+): { href: string; label: string }[] {
+  const links: { href: string; label: string }[] = [
+    {
+      href: platform(locale, { from }),
+      label: "How Porterchain operates",
+    },
+  ];
+
+  const vertical = NICHE_TO_SOLUTION_VERTICAL[nicheSlug];
+  if (vertical) {
+    links.push({
+      href: `${localePath(locale, `solutions/${vertical}`)}?from=${encodeURIComponent(from)}`,
+      label: SOLUTION_VERTICAL_LABELS[vertical],
+    });
+  }
+
+  if (INDUSTRY_PAGE_LABELS[nicheSlug]) {
+    links.push({
+      href: industrySlug(locale, nicheSlug),
+      label: `${INDUSTRY_PAGE_LABELS[nicheSlug]} overview`,
+    });
+  }
+
+  return links;
+}
+
+export function buildProductLinksForIndustrySeoSlug(
+  locale: Locale,
+  industrySeoSlug: string,
+  from: string
+): { href: string; label: string }[] {
+  const nicheSlug = INDUSTRY_SEO_TO_NICHE[industrySeoSlug as IndustrySeoSlug];
+  if (!nicheSlug) return buildProductLinksForNiche(locale, industrySeoSlug, from);
+  return buildProductLinksForNiche(locale, nicheSlug, from);
 }
 
 export function buildInternalLinksForArticle(

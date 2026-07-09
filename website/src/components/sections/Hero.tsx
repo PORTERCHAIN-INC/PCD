@@ -7,8 +7,6 @@ import Container from "@/components/ui/Container";
 import SiteImage from "@/components/ui/SiteImage";
 import LinkButton from "@/components/corporate/ui/LinkButton";
 import { siteImages } from "@/data/site-images";
-import { customerPortalBookUrl } from "@/data/portal-links";
-
 export default function Hero() {
   const t = useTranslations("corporate.home.hero");
 
@@ -64,23 +62,12 @@ export default function Hero() {
             transition={{ duration: 0.5, delay: 0.14 }}
             className="mt-8 flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3"
           >
-            <LinkButton href="/contact" size="lg">
+            <LinkButton href="/contact?intent=quote" size="lg">
               {t("primaryCta")}
             </LinkButton>
-            <LinkButton
-              href="/platform"
-              variant="outline"
-              size="lg"
-              className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:border-white/50"
-            >
+            <LinkButton href="/business#fleet" variant="outlineOnDark" size="lg">
               {t("secondaryCta")}
             </LinkButton>
-            <a
-              href={customerPortalBookUrl}
-              className="text-sm font-semibold text-white/85 hover:text-white underline underline-offset-4"
-            >
-              {t("bookDeliveryCta")}
-            </a>
             <Link href="/track" className="text-sm font-medium text-white/70 hover:text-white">
               {t("trackCta")}
             </Link>

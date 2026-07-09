@@ -7,12 +7,6 @@ import { setAnalyticsProvider } from "@/lib/seo/analytics";
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
-    $zoho?: {
-      salesiq?: {
-        ready?: () => void;
-        floatwindow?: { on?: (event: string, cb: () => void) => void };
-      };
-    };
   }
 }
 

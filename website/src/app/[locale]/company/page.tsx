@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
+import LaneASoftwareSchema from "@/components/seo/LaneASoftwareSchema";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import HeroSection from "@/components/corporate/sections/HeroSection";
 import TimelineSection from "@/components/corporate/sections/TimelineSection";
@@ -38,6 +40,7 @@ export default async function CompanyPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("corporate.company");
+  const tBc = await getTranslations("corporate.breadcrumbs");
 
   const missionItems = [
     { title: t("mission.items.0.title"), description: t("mission.items.0.description") },
@@ -62,12 +65,14 @@ export default async function CompanyPage({ params }: Props) {
 
   return (
     <CorporateShell>
+      <LaneASoftwareSchema />
+      <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: t("hero.badge") }]} />
       <HeroSection
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/contact"
+        primaryHref="/contact?intent=quote&from=company"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/careers"
         variant="minimal"
@@ -105,15 +110,15 @@ export default async function CompanyPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact"
+        primaryHref="/contact?intent=quote&from=company"
         secondaryLabel={t("cta.secondary")}
-        secondaryHref="/contact"
+        secondaryHref="/vehicle-partner"
         variant="gradient"
       />
       <FaqSection
         label={t("faq.label")}
         title={t("faq.title")}
-        items={collectFaqItems(t, "faq.items", 4)}
+        items={collectFaqItems(t, "faq.items", 5)}
       />
       <RelatedResourcesSection
         label={t("resources.label")}

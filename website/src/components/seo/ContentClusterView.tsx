@@ -5,10 +5,12 @@ import { getPageHeroImage } from "@/data/site-images";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
+import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
+import PageBreadcrumbs, { type BreadcrumbItem } from "@/components/seo/PageBreadcrumbs";
 import { JsonLd } from "@/components/seo";
 import { buildFAQPageSchema } from "@/lib/seo/schema";
 import type { Locale } from "@/i18n/routing";
-import { business, contact } from "@/lib/seo/routes";
+import { demoContact } from "@/lib/seo/routes";
 
 export type ContentClusterData = {
   title: string;
@@ -31,29 +33,36 @@ interface ContentClusterViewProps {
   locale: Locale;
   data: ContentClusterData;
   ctaSource: string;
+  breadcrumbs?: BreadcrumbItem[];
 }
 
-export default function ContentClusterView({ locale, data, ctaSource }: ContentClusterViewProps) {
-  const businessHref = business(locale, { from: ctaSource });
-  const contactHref = contact(locale, { from: ctaSource });
+export default function ContentClusterView({
+  locale,
+  data,
+  ctaSource,
+  breadcrumbs,
+}: ContentClusterViewProps) {
+  const demoHref = demoContact(locale, ctaSource);
   const faqItems = data.items ?? [];
   const faqSchema = buildFAQPageSchema(faqItems);
 
   return (
     <>
       {faqSchema && <JsonLd data={faqSchema} />}
+      {breadcrumbs && breadcrumbs.length > 0 && <PageBreadcrumbs items={breadcrumbs} />}
       <HeroSection
         badge="Porterchain"
         title={data.title}
         subtitle={data.intro}
-        primaryCta="Talk to us"
-        primaryHref={businessHref}
-        secondaryCta="Contact"
-        secondaryHref={contactHref}
+        primaryCta="Get a quote"
+        primaryHref={demoHref}
+        secondaryCta="See vehicles"
+        secondaryHref="/business#fleet"
         variant="light-centered"
         illustration={<HeroPhoto image={getPageHeroImage(ctaSource)} />}
         trackSource={ctaSource}
       />
+      <PlatformBridgeSection from={ctaSource} />
 
       {data.sections?.map((section) => (
         <section key={section.heading} className="site-section bg-white">
@@ -109,12 +118,12 @@ export default function ContentClusterView({ locale, data, ctaSource }: ContentC
       )}
 
       <CtaSection
-        title="Ready to simplify your delivery?"
-        subtitle="Tell us your volume and routes. We'll show you how Porterchain fits."
-        primaryLabel="Get started"
-        primaryHref={businessHref}
-        secondaryLabel="Contact us"
-        secondaryHref={contactHref}
+        title="Ready for transportation capacity on your lanes?"
+        subtitle="Tell us what needs to move. We'll quote the right vehicle-and-driver capacity for your operation."
+        primaryLabel="Get a quote"
+        primaryHref={demoHref}
+        secondaryLabel="See vehicles"
+        secondaryHref="/business#fleet"
         variant="gradient"
         trackSource={ctaSource}
       />

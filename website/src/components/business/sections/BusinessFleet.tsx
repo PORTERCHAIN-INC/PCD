@@ -11,7 +11,7 @@ export default function BusinessFleet() {
   const t = useTranslations("businessPage.fleet");
 
   return (
-    <section className="biz-section bg-white">
+    <section id="fleet" className="biz-section bg-white scroll-mt-24">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 16 }}

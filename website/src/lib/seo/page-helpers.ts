@@ -9,12 +9,14 @@ export function buildPageMetadata(
   locale: string,
   pathSegment: string,
   title: string,
-  description: string
+  description: string,
+  options?: { index?: boolean }
 ) {
   return buildSeoMetadata({
     locale: locale as Locale,
     pathSegment,
     title,
     description,
+    index: options?.index !== false,
   });
 }

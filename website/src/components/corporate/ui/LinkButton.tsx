@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 
-type LinkButtonVariant = "primary" | "secondary" | "outline" | "ghost";
+type LinkButtonVariant = "primary" | "secondary" | "outline" | "outlineOnDark" | "ghost";
 type LinkButtonSize = "sm" | "md" | "lg";
 
 interface LinkButtonProps {
@@ -27,6 +27,8 @@ const variants: Record<LinkButtonVariant, string> = {
   secondary: "bg-primary text-white hover:bg-[#152238] shadow-lg shadow-primary/15",
   outline:
     "border border-primary/15 text-primary bg-white hover:bg-gray-bg hover:border-secondary/30",
+  outlineOnDark:
+    "border border-white/30 text-white bg-transparent hover:bg-white/10 hover:border-white/50",
   ghost: "text-primary hover:bg-gray-bg",
 };
 

@@ -18,6 +18,42 @@ _PAIRS: tuple[tuple[str, str], ...] = (
     ("vehicle-partner-en.json", "vehicle-partner-fr.json"),
 )
 
+# Common FR leakage markers in en.json landing namespaces (regression guard).
+_EN_LANDING_NAMESPACES = ("nicheLanding", "campaignLanding")
+_FR_LEAK_MARKERS = (
+    "livraison",
+    "matériaux",
+    "chantier",
+    "prêt pour",
+    "nous joindre",
+    "contactez-nous",
+    "décrivez vos",
+    "partagez vos",
+)
+
+
+def _check_en_root_landing_locale_purity() -> list[str]:
+    en_path = MESSAGES / "en.json"
+    if not en_path.is_file():
+        return ["§6.1.5 missing en.json for landing locale purity check"]
+    en = json.loads(en_path.read_text(encoding="utf-8"))
+    failures: list[str] = []
+    for namespace in _EN_LANDING_NAMESPACES:
+        bucket = en.get(namespace)
+        if not isinstance(bucket, dict):
+            continue
+        for message_key, content in bucket.items():
+            if not isinstance(content, dict):
+                continue
+            blob = json.dumps(content, ensure_ascii=False).lower()
+            for marker in _FR_LEAK_MARKERS:
+                if marker in blob:
+                    failures.append(
+                        f"§6.1.5 en.json {namespace}.{message_key} contains French marker {marker!r}"
+                    )
+                    break
+    return failures
+
 
 def _flatten_keys(obj: object, prefix: str = "") -> set[str]:
     keys: set[str] = set()
@@ -49,6 +85,8 @@ def main() -> int:
             failures.append(f"§6.1.5 {fr_name} missing {len(missing_fr)} keys (e.g. {missing_fr[:3]})")
         if missing_en:
             failures.append(f"§6.1.5 {en_name} missing {len(missing_en)} keys (e.g. {missing_en[:3]})")
+
+    failures.extend(_check_en_root_landing_locale_purity())
 
     if failures:
         print("i18n parity guard failed:")

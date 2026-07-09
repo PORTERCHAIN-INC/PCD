@@ -39,12 +39,7 @@ export default function CareersCtaSection({
               >
                 {primaryLabel}
               </a>
-              <LinkButton
-                href="/contact"
-                variant="outline"
-                size="lg"
-                className="border-white/30 text-white hover:bg-white/10 px-10"
-              >
+              <LinkButton href="/contact" variant="outlineOnDark" size="lg" className="px-10">
                 {secondaryLabel}
               </LinkButton>
             </div>

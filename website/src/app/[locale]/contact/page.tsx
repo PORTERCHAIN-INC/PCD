@@ -12,9 +12,15 @@ import FaqSection from "@/components/corporate/sections/FaqSection";
 import Container from "@/components/ui/Container";
 import FadeIn from "@/components/corporate/motion/FadeIn";
 import { collectFaqItems } from "@/lib/corporate-content";
+import TrustDocumentsSection from "@/components/corporate/sections/TrustDocumentsSection";
 import { TrendingUp, Headphones, Building2, Truck, Code2 } from "lucide-react";
+import { JsonLd } from "@/components/seo";
+import { buildLocalBusinessSchema } from "@/lib/seo/schema";
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ intent?: string; from?: string }>;
+};
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -32,8 +38,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const DEPT_ICONS = [TrendingUp, Headphones, Building2, Truck, Code2];
 
-export default async function ContactPage({ params }: Props) {
+export default async function ContactPage({ params, searchParams }: Props) {
   const { locale } = await params;
+  const { intent, from } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("corporate.contact");
   const tInfo = await getTranslations("corporate.contact.info");
@@ -65,6 +72,7 @@ export default async function ContactPage({ params }: Props) {
 
   return (
     <CorporateShell>
+      <JsonLd data={buildLocalBusinessSchema()} />
       <ContactHero badge={t("hero.badge")} title={t("hero.title")} subtitle={t("hero.subtitle")} />
 
       <section className="site-section bg-white -mt-2 relative z-10">
@@ -80,7 +88,7 @@ export default async function ContactPage({ params }: Props) {
               />
             </FadeIn>
             <FadeIn delay={0.1}>
-              <ContactInquiryForm />
+              <ContactInquiryForm intent={intent} attributionFrom={from} />
             </FadeIn>
           </div>
         </Container>

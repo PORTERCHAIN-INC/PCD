@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { routing, type Locale } from "@/i18n/routing";
+import { routing } from "@/i18n/routing";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import HeroSection from "@/components/corporate/sections/HeroSection";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import TimelineSection from "@/components/corporate/sections/TimelineSection";
@@ -44,7 +45,7 @@ export default async function SolutionsPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("corporate.solutions");
-  const loc = locale as Locale;
+  const tBc = await getTranslations("corporate.breadcrumbs");
 
   const verticalCards = collectCardItems(
     t,
@@ -78,14 +79,15 @@ export default async function SolutionsPage({ params }: Props) {
 
   return (
     <CorporateShell>
+      <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: tBc("solutions") }]} />
       <HeroSection
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/contact"
+        primaryHref="/contact?intent=quote&from=solutions"
         secondaryCta={t("hero.secondaryCta")}
-        secondaryHref="/platform"
+        secondaryHref="/business#fleet"
         variant="light-centered"
         illustration={<HeroPhoto image={siteImages.hero.gta} />}
       />
@@ -103,7 +105,7 @@ export default async function SolutionsPage({ params }: Props) {
                   {item.id && (
                     <div className="mt-5">
                       <LinkButton href={`/solutions/${item.id}`} size="sm" showArrow>
-                        {loc === "fr" ? "Voir la solution" : "View solution"}
+                        {t("cards.viewSolution")}
                       </LinkButton>
                     </div>
                   )}
@@ -112,9 +114,9 @@ export default async function SolutionsPage({ params }: Props) {
             ))}
           </div>
           <p className="mt-8 text-sm text-muted">
-            {loc === "fr" ? "Parcourir aussi " : "Also browse "}
+            {t("cards.alsoBrowse")}
             <Link href="/industry" className="font-medium text-secondary hover:underline">
-              {loc === "fr" ? "toutes les industries" : "all industries"}
+              {t("cards.allIndustries")}
             </Link>
             .
           </p>
@@ -138,9 +140,9 @@ export default async function SolutionsPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact"
+        primaryHref="/contact?intent=quote&from=solutions"
         secondaryLabel={t("cta.secondary")}
-        secondaryHref="/platform"
+        secondaryHref="/business#fleet"
         variant="gradient"
       />
       <FaqSection

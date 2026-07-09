@@ -12,7 +12,7 @@ export default function PlatformDashboardIllustration() {
             <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
           </div>
           <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">
-            Dispatch OS
+            Operations
           </span>
         </div>
         <div className="grid grid-cols-3 gap-3 mb-4">

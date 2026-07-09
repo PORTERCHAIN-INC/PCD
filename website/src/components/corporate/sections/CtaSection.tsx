@@ -65,7 +65,7 @@ export default function CtaSection({
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <LinkButton
                 href={primaryHref}
-                variant={isDark ? "primary" : "primary"}
+                variant="primary"
                 size="lg"
                 trackLabel={primaryLabel}
                 trackSource={trackSource}
@@ -75,9 +75,8 @@ export default function CtaSection({
               {secondaryLabel && secondaryHref && (
                 <LinkButton
                   href={secondaryHref}
-                  variant={isDark ? "outline" : "outline"}
+                  variant={isDark ? "outlineOnDark" : "outline"}
                   size="lg"
-                  className={isDark ? "border-white/25 text-white hover:bg-white/10" : undefined}
                   trackLabel={secondaryLabel}
                   trackSource={trackSource}
                 >
