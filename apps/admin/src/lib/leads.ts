@@ -11,6 +11,8 @@ export const LEAD_STATUSES = [
   "converted",
 ] as const;
 
+export const LEAD_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
+
 export const LEAD_SOURCES = [
   "website_business",
   "website_contact",
