@@ -11,7 +11,9 @@ import {
   LEAD_PRIORITIES,
   LEAD_STATUSES,
   leadsApi,
+  leadForm,
   leadIntent,
+  LEAD_SOURCES,
   PRIORITY_TONES,
   STATUS_TONES,
   type LeadFilters,
@@ -87,6 +89,18 @@ export default function LeadsPage() {
               </option>
             ))}
           </select>
+          <select
+            value={filters.source ?? ""}
+            onChange={(e) => setFilters((f) => ({ ...f, source: e.target.value || undefined }))}
+            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+          >
+            <option value="">All sources</option>
+            {LEAD_SOURCES.map((s) => (
+              <option key={s} value={s}>
+                {s.replace(/_/g, " ")}
+              </option>
+            ))}
+          </select>
         </div>
 
         {isLoading ? (
@@ -110,6 +124,7 @@ export default function LeadsPage() {
               <tbody>
                 {rows.map((lead) => {
                   const intent = leadIntent(lead);
+                  const form = leadForm(lead);
                   return (
                     <tr key={lead.id} className="border-b border-primary/5 hover:bg-secondary/5">
                       <td className="px-3 py-3 text-muted whitespace-nowrap">
@@ -134,6 +149,9 @@ export default function LeadsPage() {
                       </td>
                       <td className="px-3 py-3">
                         <span className="text-primary">{lead.source.replace(/_/g, " ")}</span>
+                        {form && (
+                          <p className="mt-0.5 text-xs text-muted capitalize">Form: {form}</p>
+                        )}
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex flex-wrap gap-1">

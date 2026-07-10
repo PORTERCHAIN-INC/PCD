@@ -332,6 +332,39 @@ p {
   }
 }
 
+/* Homepage hero — soft blur merge between copy panel and photo */
+.hero-merge-panel {
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.92) 55%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.hero-merge-blur {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.55) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  mask-image: linear-gradient(to right, black 15%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 15%, transparent 100%);
+}
+
+.hero-image-fade-left {
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.75) 18%,
+    rgba(255, 255, 255, 0.2) 42%,
+    rgba(255, 255, 255, 0) 68%
+  );
+}
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -468,8 +501,9 @@ p {
     0 32px 64px -16px rgba(9, 27, 28, 0.1);
 }
 
-.biz-input {
-  width: 100%;
+.biz-input,
+.biz-select {
+  min-height: var(--touch-min);
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
   border: 1px solid rgba(9, 27, 28, 0.12);
@@ -482,13 +516,33 @@ p {
     box-shadow 0.2s;
 }
 
-.biz-input:focus {
+.biz-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235c6b6c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 1rem;
+  padding-right: 2rem;
+  cursor: pointer;
+}
+
+.biz-input:focus,
+.biz-select:focus {
   border-color: var(--biz-accent);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .biz-input::placeholder {
   color: color-mix(in srgb, var(--biz-muted) 60%, transparent);
+}
+
+/* Prevent Safari/iOS contact picker chip from appearing as a stray box on tel fields */
+input[type="tel"].biz-input::-webkit-contacts-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+  width: 0;
+  height: 0;
 }
 
 .biz-section {
@@ -916,6 +970,56 @@ button.booking-schedule-field:focus-visible {
 
 .pc-section-tight {
   padding-block: clamp(2.5rem, 6vh, 4.5rem);
+}
+
+/* Vehicle fleet — fit stage + rail in one viewport (home + business) */
+.fleet-fit--compact {
+  --fleet-fit-offset: 15rem;
+}
+
+.fleet-fit--detailed {
+  --fleet-fit-offset: 13.5rem;
+}
+
+.fleet-fit__grid {
+  max-height: min(calc(100dvh - var(--nav-height) - var(--fleet-fit-offset)), 34rem);
+}
+
+.fleet-fit__stage {
+  height: clamp(10.5rem, 30dvh, 16.5rem);
+  min-height: 10.5rem;
+}
+
+.fleet-fit__rail {
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  .fleet-fit__stage {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .fleet-fit__rail {
+    height: 100%;
+    min-height: 0;
+  }
+}
+
+.pc-section-fleet {
+  padding-block: clamp(1rem, 2.5vh, 1.75rem);
+  min-height: calc(100dvh - var(--nav-height));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pc-section-fleet .pc-section-fleet__inner {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .pc-display {

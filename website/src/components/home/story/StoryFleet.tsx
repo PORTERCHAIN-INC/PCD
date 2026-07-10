@@ -8,7 +8,7 @@ import StorySection from "@/components/home/story/StorySection";
 const FleetSelector = dynamic(() => import("@/components/shared/FleetSelector"), {
   loading: () => (
     <div
-      className="min-h-[320px] sm:min-h-[380px] rounded-3xl border border-primary/8 bg-white animate-pulse"
+      className="fleet-fit__stage rounded-2xl border border-primary/8 bg-white animate-pulse"
       aria-hidden
     />
   ),
@@ -25,13 +25,15 @@ export default function StoryFleet() {
       title={t("title")}
       subtitle={t("subtitle")}
       className="bg-gray-bg"
-      tight
+      fitViewport
     >
-      <FleetSelector detailed={false} />
-      <div className="mt-8">
-        <LinkButton href="/business#fleet" variant="outline" showArrow trackSource="home-fleet">
-          {t("cta")}
-        </LinkButton>
+      <div className="flex flex-col gap-2 sm:gap-3 min-h-0">
+        <FleetSelector detailed={false} />
+        <div className="shrink-0">
+          <LinkButton href="/business#fleet" variant="outline" showArrow trackSource="home-fleet">
+            {t("cta")}
+          </LinkButton>
+        </div>
       </div>
     </StorySection>
   );

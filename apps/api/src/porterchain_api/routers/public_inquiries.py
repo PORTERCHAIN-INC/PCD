@@ -28,19 +28,31 @@ def _verify_ingest_key(
         raise HTTPException(status_code=401, detail="invalid_ingest_key")
 
 
-def _priority_for_intent(intent: str | None) -> str:
+def _priority_for_intent(
+    intent: str | None,
+    *,
+    inquiry_type: str | None = None,
+    form: str | None = None,
+) -> str:
     if intent in ("quote", "demo"):
         return LeadPriority.HIGH.value
+    if inquiry_type == "newsletter" or form == "newsletter":
+        return LeadPriority.LOW.value
     return LeadPriority.MEDIUM.value
 
 
 def _source_label(body: PublicInquiryCreate) -> str:
-    if body.form == "business":
+    form = (body.form or "").strip()
+    if form == "business":
         return "website_business"
+    if form == "newsletter":
+        return "website_newsletter"
     if body.intent == "quote":
         return "website_quote"
     if body.intent == "demo":
         return "website_demo"
+    if form == "contact":
+        return "website_contact"
     return "website_contact"
 
 
@@ -60,6 +72,9 @@ def create_public_inquiry(
     contact_name = (body.name or "").strip() or email.split("@", 1)[0]
     company_name = (body.business_name or "").strip() or contact_name
 
+    phone_raw = (body.phone or "").strip() or None
+    phone = phone_raw[:32] if phone_raw else None
+
     custom_fields = {
         k: v
         for k, v in {
@@ -71,6 +86,7 @@ def create_public_inquiry(
             "utm_source": body.utm_source,
             "utm_campaign": body.utm_campaign,
             "utm_medium": body.utm_medium,
+            **({"phone_full": phone_raw} if phone_raw and phone_raw != phone else {}),
         }.items()
         if v
     }
@@ -82,10 +98,14 @@ def create_public_inquiry(
             "company_name": company_name,
             "primary_contact_name": contact_name,
             "email": email,
-            "phone": (body.phone or "").strip() or None,
+            "phone": phone,
             "source": _source_label(body),
             "status": LeadStatus.NEW.value,
-            "priority": _priority_for_intent(body.intent),
+            "priority": _priority_for_intent(
+                body.intent,
+                inquiry_type=body.inquiry_type,
+                form=body.form,
+            ),
             "internal_notes": (body.message or "").strip() or None,
             "custom_fields": custom_fields,
             "tags": [t for t in [body.intent, body.inquiry_type] if t],

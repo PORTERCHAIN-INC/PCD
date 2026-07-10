@@ -65,6 +65,8 @@ export const siteImages = {
     routeOptimization: ROUTE_OPTIMIZATION_HOME,
   },
   hero: {
+    /** Branded Porterchain truck — homepage welcome hero */
+    welcome: ECOMMERCE_TRUCK,
     delivery: img("photo-1766959481554-5a7bb490758a", "Delivery van on an urban route"),
     logistics: img(
       "photo-1600880292203-757bb62b4baf",

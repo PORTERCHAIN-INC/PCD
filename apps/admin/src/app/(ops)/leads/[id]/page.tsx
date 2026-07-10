@@ -10,6 +10,7 @@ import {
   LEAD_PRIORITIES,
   LEAD_STATUSES,
   leadsApi,
+  leadForm,
   leadIntent,
   leadMessage,
   PRIORITY_TONES,
@@ -82,7 +83,9 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
 
   const message = leadMessage(lead);
   const intent = leadIntent(lead);
+  const form = leadForm(lead);
   const custom = lead.custom_fields ?? {};
+  const phoneFull = typeof custom.phone_full === "string" ? custom.phone_full : lead.phone;
 
   return (
     <div className="space-y-6">
@@ -109,8 +112,9 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
           <dl className="space-y-2 text-sm">
             <Row label="Name" value={lead.primary_contact_name} />
             <Row label="Email" value={lead.email} />
-            <Row label="Phone" value={lead.phone} />
+            <Row label="Phone" value={phoneFull} />
             <Row label="Source" value={lead.source.replace(/_/g, " ")} />
+            {form && <Row label="Form" value={form} />}
             {intent && <Row label="Intent" value={intent} />}
             {typeof custom.inquiry_type === "string" && (
               <Row label="Inquiry type" value={custom.inquiry_type} />

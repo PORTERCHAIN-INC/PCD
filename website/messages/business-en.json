@@ -40,6 +40,7 @@
     "phonePlaceholder": "(416) 555-0100",
     "countryCode": "Country code",
     "extension": "Extension",
+    "extensionShort": "Ext",
     "extensionPlaceholder": "e.g. 204",
     "optional": "Optional",
     "consent": "I agree to be contacted by Porterchain regarding business logistics services.",
@@ -207,6 +208,15 @@
     "cargoSpace": "Cargo Space",
     "classLabel": "Class",
     "capacityLabel": "Relative capacity",
+    "specTitle": "Cargo specs",
+    "specHeight": "Height",
+    "specWidth": "Width",
+    "specWeight": "Weight cap.",
+    "specSkids": "Skid cap.",
+    "specSkidsNone": "—",
+    "specSkidsCount": "{count, plural, one {# skid} other {# skids}}",
+    "iconAttributionPrefix": "Vehicle icons by ",
+    "iconAttributionLink": "Rooman12 on Flaticon",
     "licenceNote": "Porterchain currently operates vehicles that can be driven with a standard Ontario G Licence. We do not currently provide DZ or AZ truck services.",
     "items": {
       "sedan": {

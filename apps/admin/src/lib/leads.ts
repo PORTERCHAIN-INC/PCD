@@ -11,7 +11,14 @@ export const LEAD_STATUSES = [
   "converted",
 ] as const;
 
-export const LEAD_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
+export const LEAD_SOURCES = [
+  "website_business",
+  "website_contact",
+  "website_quote",
+  "website_demo",
+  "website_newsletter",
+  "website_booking",
+] as const;
 
 export type LeadFilters = {
   status?: string;
@@ -89,6 +96,12 @@ export function leadIntent(lead: Lead): string | null {
   const cf = lead.custom_fields ?? {};
   const intent = cf.intent;
   return typeof intent === "string" ? intent : null;
+}
+
+export function leadForm(lead: Lead): string | null {
+  const cf = lead.custom_fields ?? {};
+  const form = cf.form;
+  return typeof form === "string" ? form : null;
 }
 
 export function leadMessage(lead: Lead): string | null {

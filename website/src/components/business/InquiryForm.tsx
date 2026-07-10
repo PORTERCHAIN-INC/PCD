@@ -51,8 +51,9 @@ export default function InquiryForm({
       await submitInquiry({
         email,
         phone: fullPhone,
+        intent: "quote",
         source: "website",
-        source_page: "/business",
+        source_page: variant === "final" ? "/business#inquiry-final" : "/business",
         form: "business",
         message: `Business inquiry from porterchain.com/business (${variant})`,
       });
@@ -118,13 +119,14 @@ export default function InquiryForm({
           </label>
           <input
             id={`${id}-email`}
+            name="email"
             type="email"
             required
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t("workEmailPlaceholder")}
-            className="biz-input"
+            className="biz-input w-full"
           />
         </div>
 
@@ -135,12 +137,12 @@ export default function InquiryForm({
           >
             {t("phone")} <span className="text-[#ff7a00]">*</span>
           </label>
-          <div className="flex gap-2">
+          <div className="flex min-w-0 items-stretch gap-2">
             <select
               aria-label={t("countryCode")}
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value)}
-              className="biz-input w-[7.5rem] shrink-0 text-sm"
+              className="biz-select shrink-0 w-[6.75rem] text-sm"
             >
               {COUNTRY_CODES.map((c) => (
                 <option key={c.label} value={c.code}>
@@ -150,30 +152,30 @@ export default function InquiryForm({
             </select>
             <input
               id={`${id}-phone`}
+              name="phone"
               type="tel"
               required
-              autoComplete="tel"
+              autoComplete="tel-national"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder={t("phonePlaceholder")}
-              className="biz-input flex-1"
+              className="biz-input min-w-0 flex-1 basis-0"
+            />
+            <input
+              id={`${id}-ext`}
+              name="extension"
+              type="text"
+              inputMode="numeric"
+              aria-label={t("extension")}
+              value={extension}
+              onChange={(e) => setExtension(e.target.value)}
+              placeholder={t("extensionShort")}
+              className="biz-input shrink-0 w-[4.75rem] sm:w-[5.25rem] px-2.5 text-center text-sm"
             />
           </div>
-        </div>
-
-        <div>
-          <label htmlFor={`${id}-ext`} className="block text-sm font-medium text-[#091b1c] mb-1.5">
-            {t("extension")} <span className="text-[#5c6b6c] font-normal">({t("optional")})</span>
-          </label>
-          <input
-            id={`${id}-ext`}
-            type="text"
-            inputMode="numeric"
-            value={extension}
-            onChange={(e) => setExtension(e.target.value)}
-            placeholder={t("extensionPlaceholder")}
-            className="biz-input"
-          />
+          <p className="mt-1.5 text-xs text-[#5c6b6c]">
+            {t("extension")} <span className="text-[#5c6b6c]/80">({t("optional")})</span>
+          </p>
         </div>
 
         <label className="flex items-start gap-3 cursor-pointer group py-1 min-h-[2.75rem]">

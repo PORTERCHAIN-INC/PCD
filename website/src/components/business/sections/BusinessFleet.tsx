@@ -7,7 +7,7 @@ import StorySection from "@/components/home/story/StorySection";
 const FleetSelector = dynamic(() => import("@/components/shared/FleetSelector"), {
   loading: () => (
     <div
-      className="min-h-[320px] sm:min-h-[380px] rounded-3xl border border-primary/8 bg-white animate-pulse"
+      className="fleet-fit__stage rounded-2xl border border-primary/8 bg-white animate-pulse"
       aria-hidden
     />
   ),
@@ -24,7 +24,7 @@ export default function BusinessFleet() {
       title={t("title")}
       subtitle={t("subtitle")}
       className="bg-gray-bg grid-pattern scroll-mt-24"
-      tight
+      fitViewport
     >
       <FleetSelector detailed />
     </StorySection>

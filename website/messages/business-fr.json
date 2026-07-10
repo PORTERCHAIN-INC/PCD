@@ -40,6 +40,7 @@
     "phonePlaceholder": "(416) 555-0100",
     "countryCode": "Indicatif pays",
     "extension": "Poste",
+    "extensionShort": "Poste",
     "extensionPlaceholder": "p. ex. 204",
     "optional": "Facultatif",
     "consent": "J'accepte d'être contacté par Porterchain concernant les services logistiques d'entreprise.",
@@ -207,6 +208,15 @@
     "cargoSpace": "Espace cargo",
     "classLabel": "Classe",
     "capacityLabel": "Capacité relative",
+    "specTitle": "Spécifications cargo",
+    "specHeight": "Hauteur",
+    "specWidth": "Largeur",
+    "specWeight": "Charge max.",
+    "specSkids": "Cap. palettes",
+    "specSkidsNone": "—",
+    "specSkidsCount": "{count, plural, one {# palette} other {# palettes}}",
+    "iconAttributionPrefix": "Icônes de véhicules par ",
+    "iconAttributionLink": "Rooman12 sur Flaticon",
     "licenceNote": "Porterchain exploite actuellement des véhicules pouvant être conduits avec un permis G standard de l'Ontario. Nous ne fournissons pas actuellement de services de camions DZ ou AZ.",
     "items": {
       "sedan": {

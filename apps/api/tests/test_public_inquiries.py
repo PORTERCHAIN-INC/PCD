@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from porterchain_api.config import Settings, get_settings
+from porterchain_api.config import get_settings
 from porterchain_api.main import create_app
 
 
@@ -30,20 +30,111 @@ def test_public_inquiry_rejects_wrong_ingest_key(client: TestClient) -> None:
     assert res.status_code == 401
 
 
-def test_public_inquiry_creates_lead(client: TestClient) -> None:
+@pytest.mark.parametrize(
+    ("payload", "expected_source", "expected_priority"),
+    [
+        (
+            {
+                "email": "ops@example.com",
+                "intent": "quote",
+                "form": "contact",
+                "name": "Pat",
+                "message": "Need a quote",
+            },
+            "website_quote",
+            "high",
+        ),
+        (
+            {
+                "email": "demo@example.com",
+                "intent": "demo",
+                "form": "contact",
+                "name": "Demo User",
+            },
+            "website_demo",
+            "high",
+        ),
+        (
+            {
+                "email": "biz@acme.com",
+                "phone": "+1 416-555-0100",
+                "intent": "quote",
+                "form": "business",
+                "message": "Business inquiry",
+            },
+            "website_business",
+            "high",
+        ),
+        (
+            {
+                "email": "reader@example.com",
+                "form": "newsletter",
+                "inquiry_type": "newsletter",
+                "message": "Blog newsletter",
+            },
+            "website_newsletter",
+            "low",
+        ),
+        (
+            {
+                "email": "sales@example.com",
+                "form": "contact",
+                "inquiry_type": "sales",
+                "name": "Sales Lead",
+                "message": "General contact",
+            },
+            "website_contact",
+            "medium",
+        ),
+    ],
+)
+def test_public_inquiry_creates_lead_with_source_and_priority(
+    client: TestClient,
+    payload: dict,
+    expected_source: str,
+    expected_priority: str,
+) -> None:
     lead = MagicMock()
     lead.id = "lead-1"
-    with patch("porterchain_api.routers.public_inquiries._crm.create_lead", return_value=lead) as create:
+    with patch(
+        "porterchain_api.routers.public_inquiries._crm.create_lead",
+        return_value=lead,
+    ) as create:
+        res = client.post(
+            "/v1/public/inquiries",
+            headers={"X-Ingest-Key": "test-ingest-key"},
+            json=payload,
+        )
+    assert res.status_code == 201
+    assert res.json()["id"] == "lead-1"
+    create.assert_called_once()
+    lead_data = create.call_args[0][2]
+    assert lead_data["source"] == expected_source
+    assert lead_data["priority"] == expected_priority
+    assert lead_data["email"] == payload["email"]
+
+
+def test_public_inquiry_stores_full_phone_in_custom_fields_when_truncated(
+    client: TestClient,
+) -> None:
+    long_phone = "+1 (416) 555-0100 ext. 204 extra digits"
+    lead = MagicMock()
+    lead.id = "lead-2"
+    with patch(
+        "porterchain_api.routers.public_inquiries._crm.create_lead",
+        return_value=lead,
+    ) as create:
         res = client.post(
             "/v1/public/inquiries",
             headers={"X-Ingest-Key": "test-ingest-key"},
             json={
                 "email": "ops@example.com",
-                "company_name": "Acme Logistics",
+                "phone": long_phone,
+                "form": "business",
                 "intent": "quote",
-                "form": "contact",
             },
         )
     assert res.status_code == 201
-    assert res.json()["id"] == "lead-1"
-    create.assert_called_once()
+    lead_data = create.call_args[0][2]
+    assert lead_data["phone"] == long_phone[:32]
+    assert lead_data["custom_fields"]["phone_full"] == long_phone
