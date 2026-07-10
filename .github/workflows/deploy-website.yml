@@ -139,8 +139,18 @@ jobs:
               source .env
               set +a
             fi
-            docker compose -f docker-compose.prod.yml pull web api admin merchant driver customer caddy
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans --force-recreate --pull missing --scale api=${API_REPLICAS:-2}
+            docker compose -f docker-compose.prod.yml pull web api admin merchant driver customer worker caddy
+            docker compose -f docker-compose.prod.yml up -d postgres redis valhalla
+            for i in $(seq 1 24); do
+              if docker exec pcd-postgres pg_isready -U porterchain -d porterchain >/dev/null 2>&1; then
+                echo "Postgres ready"
+                break
+              fi
+              sleep 5
+            done
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans --force-recreate --pull missing \
+              --scale api=${API_REPLICAS:-2} \
+              web api worker admin merchant driver customer caddy
             for i in $(seq 1 18); do
               if curl -fsS -o /dev/null http://localhost:80; then
                 echo "Caddy responding"

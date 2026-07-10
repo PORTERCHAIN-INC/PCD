@@ -259,8 +259,20 @@ jobs:
               echo "Compose env loaded from Doppler .env"
             fi
             docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans --force-recreate --pull missing --scale api=${API_REPLICAS:-2}
+            # Never force-recreate data plane (postgres/redis/valhalla) — avoids prod outages.
+            docker compose -f docker-compose.prod.yml up -d postgres redis valhalla
             echo "Waiting for Postgres..."
+            for i in $(seq 1 36); do
+              if docker exec pcd-postgres pg_isready -U porterchain -d porterchain >/dev/null 2>&1; then
+                echo "Postgres ready"
+                break
+              fi
+              sleep 5
+            done
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans --force-recreate --pull missing \
+              --scale api=${API_REPLICAS:-2} \
+              web api worker admin merchant driver customer caddy
+            echo "Waiting for Postgres (post-roll)..."
             for i in $(seq 1 24); do
               if docker exec pcd-postgres pg_isready -U porterchain -d porterchain >/dev/null 2>&1; then
                 echo "Postgres ready"
