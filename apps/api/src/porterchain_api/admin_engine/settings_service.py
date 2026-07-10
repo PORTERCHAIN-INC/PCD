@@ -16,7 +16,6 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import log_admin_audit
-from porterchain_api.admin_engine.platform_user_authorize import authorize_platform_user as _authorize_platform_user
 from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, AdminContext
 from porterchain_api.admin_models import AdminAuditLog, AdminUser, Driver, SystemConfig, Vehicle
 from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
@@ -627,7 +626,9 @@ class AdminSettingsService:
         name: str | None = None,
         reason: str | None = None,
     ) -> PlatformUserAuthorizeResponse:
-        return _authorize_platform_user(
+        from porterchain_api.admin_engine.platform_user_authorize import authorize_platform_user as _authorize
+
+        return _authorize(
             db,
             ctx,
             settings,

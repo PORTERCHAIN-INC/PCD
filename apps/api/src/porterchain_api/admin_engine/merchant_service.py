@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
-from porterchain_api.admin_engine.settings_service import _clerk_linked
+from porterchain_api.admin_engine.clerk_directory_service import _clerk_linked
 from porterchain_api.admin_models import AdminAuditLog
 from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
 from porterchain_api.auth.invitation_service import InvitationService
