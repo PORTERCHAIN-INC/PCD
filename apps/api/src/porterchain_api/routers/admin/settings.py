@@ -5,6 +5,8 @@ from porterchain_api.routers.admin._deps import (
     Annotated,
     Depends,
     HTTPException,
+    PlatformUserAuthorizeRequest,
+    PlatformUserAuthorizeResponse,
     PlatformUserCreateRequest,
     PlatformUserDeleteRequest,
     PlatformUserUpdateRequest,
@@ -259,6 +261,37 @@ def delete_platform_user(
             clerk_user_id=body.clerk_user_id,
             platform_user_id=body.platform_user_id,
         )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.post("/settings/users/{user_type}/authorize", response_model=PlatformUserAuthorizeResponse)
+def authorize_platform_user(
+    user_type: str,
+    body: PlatformUserAuthorizeRequest,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> PlatformUserAuthorizeResponse:
+    require_module(ctx, "settings")
+    if user_type not in ("staff", "driver", "customer", "merchant"):
+        raise HTTPException(400, "invalid_user_type")
+    if not body.platform_user_id and not body.clerk_user_id and not body.email:
+        raise HTTPException(400, "platform_user_id_clerk_user_id_or_email_required")
+    try:
+        return _settings.authorize_platform_user(
+            db,
+            ctx,
+            settings,
+            user_type,
+            platform_user_id=body.platform_user_id,
+            clerk_user_id=body.clerk_user_id,
+            email=body.email,
+            name=body.name,
+            reason=body.reason,
+        )
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
 

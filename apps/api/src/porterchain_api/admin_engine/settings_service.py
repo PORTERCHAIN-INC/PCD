@@ -16,6 +16,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import log_admin_audit
+from porterchain_api.admin_engine.platform_user_authorize import authorize_platform_user as _authorize_platform_user
 from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, AdminContext
 from porterchain_api.admin_models import AdminAuditLog, AdminUser, Driver, SystemConfig, Vehicle
 from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
@@ -26,7 +27,12 @@ from porterchain_api.config import Settings
 from porterchain_api.invitation_models import UserInvitation
 from porterchain_api.merchant_models import Merchant, MerchantUser
 from porterchain_api.models import Customer
-from porterchain_api.schemas_admin import PlatformUserItem, PlatformUsersFacets, PlatformUsersResponse
+from porterchain_api.schemas_admin import (
+    PlatformUserAuthorizeResponse,
+    PlatformUserItem,
+    PlatformUsersFacets,
+    PlatformUsersResponse,
+)
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_shared.auth.enterprise_roles import EnterpriseRole
@@ -607,6 +613,31 @@ class AdminSettingsService:
         db.commit()
         db.refresh(user)
         return user
+
+    def authorize_platform_user(
+        self,
+        db: Session,
+        ctx: AdminContext,
+        settings: Settings,
+        user_type: str,
+        *,
+        platform_user_id: str | None = None,
+        clerk_user_id: str | None = None,
+        email: str | None = None,
+        name: str | None = None,
+        reason: str | None = None,
+    ) -> PlatformUserAuthorizeResponse:
+        return _authorize_platform_user(
+            db,
+            ctx,
+            settings,
+            user_type,
+            platform_user_id=platform_user_id,
+            clerk_user_id=clerk_user_id,
+            email=email,
+            name=name,
+            reason=reason,
+        )
 
     def get_config(self, db: Session, key: str) -> SystemConfig | None:
         return db.query(SystemConfig).filter(SystemConfig.key == key).first()

@@ -9,6 +9,8 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.clerk_client import ClerkClient
+from porterchain_api.auth.clerk_registry import fetch_clerk_user, is_clerk_secret_configured
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.portal_guard import require_clerk_app_for_portal
 from porterchain_api.auth.user_sync_service import UserSyncService, _is_pending_clerk_id
@@ -22,8 +24,42 @@ from porterchain_api.merchant_engine.verticals import (
 )
 from porterchain_api.merchant_models import Merchant, MerchantUser
 from porterchain_api.admin_models import AdminUser, Driver
+from porterchain_api.user_models import PorterchainUser
 
 logger = logging.getLogger(__name__)
+
+
+def resolve_merchant_contact(
+    db: Session,
+    claims: ClerkClaims,
+    settings: Settings | None,
+) -> str | None:
+    """Resolve merchant email when Clerk JWT omits the email claim (common in production)."""
+    email = (claims.email or "").lower().strip() or None
+    if email:
+        return email
+
+    clerk_id = claims.clerk_user_id or ""
+    if clerk_id and not _is_pending_clerk_id(clerk_id):
+        merchant_user = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_id).first()
+        if merchant_user and merchant_user.email:
+            return merchant_user.email.lower().strip()
+
+        user = db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == clerk_id).first()
+        if user and user.email:
+            return user.email.lower().strip()
+
+    if settings and is_clerk_secret_configured(settings, "merchant"):
+        try:
+            clerk_user, _kind = fetch_clerk_user(settings, clerk_id)
+            if clerk_user:
+                resolved = ClerkClient.primary_email(clerk_user)
+                if resolved:
+                    return resolved.lower().strip()
+        except Exception:
+            logger.warning("merchant_email_clerk_lookup_failed", exc_info=True)
+
+    return None
 
 
 def _derive_company_name(claims: ClerkClaims, email: str) -> str:
@@ -50,7 +86,7 @@ def ensure_merchant_portal_signup(
     if settings:
         require_clerk_app_for_portal(claims, settings, "merchant")
 
-    email = (claims.email or "").lower().strip()
+    email = resolve_merchant_contact(db, claims, settings) or ""
     clerk_id = claims.clerk_user_id or ""
     if not email:
         raise HTTPException(status_code=400, detail="email_required")
@@ -125,7 +161,7 @@ def evaluate_merchant_onboarding(
     if settings and not allow_auth_dev_bypass(settings):
         ensure_merchant_portal_signup(db, claims, settings=settings)
 
-    email = (claims.email or "").lower().strip()
+    email = resolve_merchant_contact(db, claims, settings) or ""
     clerk_id = claims.clerk_user_id or ""
 
     merchant_user: MerchantUser | None = None
@@ -245,7 +281,7 @@ def save_merchant_vertical(
     if settings:
         ensure_merchant_portal_signup(db, claims, settings=settings)
 
-    email = (claims.email or "").lower().strip()
+    email = resolve_merchant_contact(db, claims, settings) or ""
     clerk_id = claims.clerk_user_id or ""
     merchant_user: MerchantUser | None = None
     if clerk_id and not _is_pending_clerk_id(clerk_id):

@@ -240,6 +240,29 @@ export const settingsApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  authorizeUser: (
+    token: string,
+    userType: UserDirectoryTab,
+    body: {
+      platform_user_id?: string;
+      clerk_user_id?: string;
+      email?: string;
+      name?: string;
+      reason?: string;
+    }
+  ) =>
+    adminFetch<{
+      platform_user_id: string;
+      user_type: string;
+      email: string;
+      role: string | null;
+      access_status: string;
+      modules: string[];
+      actions_taken: string[];
+    }>(`${B}/users/${userType}/authorize`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   inviteStaff: (token: string, body: { email: string; role: string; name?: string }) =>
     adminFetch<StaffUser & { clerk_action: string; invitation_status: string }>(
       `${B}/staff/invite`,

@@ -770,6 +770,24 @@ class PlatformUserDeleteRequest(BaseModel):
     platform_user_id: str | None = None
 
 
+class PlatformUserAuthorizeRequest(BaseModel):
+    platform_user_id: str | None = None
+    clerk_user_id: str | None = None
+    email: str | None = None
+    name: str | None = None
+    reason: str | None = None
+
+
+class PlatformUserAuthorizeResponse(BaseModel):
+    platform_user_id: str
+    user_type: str
+    email: str
+    role: str | None = None
+    access_status: str
+    modules: list[str] = Field(default_factory=list)
+    actions_taken: list[str] = Field(default_factory=list)
+
+
 class StaffRoleUpdateRequest(BaseModel):
     role: str
     reason: str | None = None

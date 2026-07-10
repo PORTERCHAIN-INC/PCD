@@ -3,7 +3,17 @@
 import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Mail, Search, Shield, Truck, UserPlus, Users, X } from "lucide-react";
+import {
+  Building2,
+  Mail,
+  Search,
+  Shield,
+  ShieldCheck,
+  Truck,
+  UserPlus,
+  Users,
+  X,
+} from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
@@ -737,6 +747,29 @@ function CreateUserModal({
   );
 }
 
+const AUTHORIZE_COPY: Record<UserDirectoryTab, { title: string; detail: string; role: string }> = {
+  staff: {
+    title: "Authorize all admin modules",
+    detail: "Promotes to super_admin and activates staff access for every admin portal module.",
+    role: "super_admin",
+  },
+  merchant: {
+    title: "Authorize all merchant modules",
+    detail: "Sets merchant_owner, activates the user, and approves the merchant organization.",
+    role: "merchant_owner",
+  },
+  driver: {
+    title: "Authorize driver portal",
+    detail: "Approves the driver for full driver portal and mobile access.",
+    role: "approved",
+  },
+  customer: {
+    title: "Authorize customer portal",
+    detail: "Ensures the customer record is linked and active for quote, book, and order flows.",
+    role: "customer",
+  },
+};
+
 function ManageClerkUserModal({
   user,
   tab,
@@ -753,6 +786,43 @@ function ManageClerkUserModal({
   const [name, setName] = useState(user.name ?? "");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [authorizeError, setAuthorizeError] = useState<string | null>(null);
+  const [authorizeResult, setAuthorizeResult] = useState<{
+    modules: string[];
+    actions_taken: string[];
+  } | null>(null);
+
+  const authorizeCopy = AUTHORIZE_COPY[tab];
+  const canAuthorize = user.access_status !== "authorized" || !user.provisioned;
+
+  async function authorizeAllModules() {
+    setBusy(true);
+    setAuthorizeError(null);
+    setAuthorizeResult(null);
+    try {
+      const platformId =
+        user.provisioned && !user.id.startsWith("clerk:")
+          ? user.id
+          : user.id.startsWith("clerk:")
+            ? user.id
+            : undefined;
+      const result = await settingsApi.authorizeUser(await requireApiToken(getApiToken), tab, {
+        platform_user_id: platformId,
+        clerk_user_id: user.clerk_user_id ?? undefined,
+        email: user.email,
+        name: name.trim() || user.name || undefined,
+      });
+      setAuthorizeResult({
+        modules: result.modules,
+        actions_taken: result.actions_taken,
+      });
+      onSaved();
+    } catch (e) {
+      setAuthorizeError(e instanceof Error ? e.message : "Authorization failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function save(patch: { password?: string; banned?: boolean }) {
     if (!user.clerk_user_id) return;
@@ -815,6 +885,41 @@ function ManageClerkUserModal({
         <p className="text-muted">
           Clerk ID: <code className="rounded bg-gray-bg px-1">{user.clerk_user_id}</code>
         </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-muted">Portal access:</span>
+          <Badge tone={accessTone(user.access_status)}>
+            {labelFor(user.access_status, ACCESS_STATUS_OPTIONS)}
+          </Badge>
+          {!user.provisioned && <Badge tone="amber">Not provisioned in Porterchain</Badge>}
+        </div>
+
+        <div className="rounded-xl border border-secondary/20 bg-secondary/5 p-4">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
+            <div className="min-w-0 flex-1 space-y-3">
+              <div>
+                <p className="font-semibold text-primary">{authorizeCopy.title}</p>
+                <p className="mt-1 text-muted">{authorizeCopy.detail}</p>
+                <p className="mt-2 text-xs text-muted">
+                  Target role: <code className="rounded bg-white px-1">{authorizeCopy.role}</code>
+                </p>
+              </div>
+              <Button variant="outline" disabled={busy} onClick={() => void authorizeAllModules()}>
+                {busy ? "Authorizing…" : canAuthorize ? "Authorize user" : "Re-check authorization"}
+              </Button>
+              {authorizeResult && (
+                <div className="space-y-2 text-xs">
+                  <p className="font-medium text-primary">
+                    {authorizeResult.actions_taken.join(" · ")}
+                  </p>
+                  <p className="text-muted">Modules: {authorizeResult.modules.join(", ") || "—"}</p>
+                </div>
+              )}
+              {authorizeError && <p className="text-xs text-red-600">{authorizeError}</p>}
+            </div>
+          </div>
+        </div>
+
         <Field label="Display name">
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </Field>

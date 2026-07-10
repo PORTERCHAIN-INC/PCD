@@ -49,6 +49,28 @@ def test_settings_update_staff_role(db, admin_ctx) -> None:
     assert updated.role == "support"
 
 
+def test_settings_authorize_platform_user_staff(db, admin_ctx, settings) -> None:
+    svc = AdminSettingsService()
+    staff = admin_ctx.user
+    staff.role = "read_only"
+    staff.is_active = False
+    db.commit()
+    result = svc.authorize_platform_user(
+        db,
+        admin_ctx,
+        settings,
+        "staff",
+        platform_user_id=staff.id,
+        reason="test",
+    )
+    assert result.access_status == "authorized"
+    assert result.role == "super_admin"
+    assert "settings" in result.modules
+    db.refresh(staff)
+    assert staff.role == "super_admin"
+    assert staff.is_active is True
+
+
 def test_merchant_reports_export(db, merchant_ctx) -> None:
     reports = MerchantReportsService()
     assert isinstance(reports.summary(db, merchant_ctx), dict)
