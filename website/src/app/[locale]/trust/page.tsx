@@ -72,7 +72,7 @@ export default async function TrustPage({ params }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="mailto:security@porterchain.com"
+        primaryHref="mailto:enterprise@porterchain.com"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/trust/sla"
         variant="light-centered"

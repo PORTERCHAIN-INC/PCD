@@ -40,6 +40,17 @@ export const ECOMMERCE_TRUCK = localImg(
   1024
 );
 
+/** @deprecated Homepage uses GtaAiRouteVisual — kept for blog / legacy refs. */
+export const ROUTE_OPTIMIZATION_HOME = localImg(
+  "/images/stock/toronto-gta-skyline-landscape.jpg",
+  "Greater Toronto Area skyline — Porterchain route planning across Toronto, Peel, and York",
+  1024,
+  734
+);
+
+/** @deprecated Use ROUTE_OPTIMIZATION_HOME */
+export const SMART_ROUTING_DISPATCH = ROUTE_OPTIMIZATION_HOME;
+
 /** Guaranteed-working fallback when a remote image fails to load. */
 export const FALLBACK_IMAGE = img(
   "photo-1766959481554-5a7bb490758a",
@@ -49,6 +60,10 @@ export const FALLBACK_IMAGE = img(
 );
 
 export const siteImages = {
+  home: {
+    smartRouting: ROUTE_OPTIMIZATION_HOME,
+    routeOptimization: ROUTE_OPTIMIZATION_HOME,
+  },
   hero: {
     delivery: img("photo-1766959481554-5a7bb490758a", "Delivery van on an urban route"),
     logistics: img(
@@ -165,8 +180,8 @@ export const siteImages = {
     ),
     business: img("photo-1552664730-d307ca884978", "Business team planning delivery operations"),
     "route-optimization": img(
-      "photo-1526778548025-fa2f459cd5c1",
-      "Route planning across a regional map"
+      "photo-1524661135-423995f22d0b",
+      "Digital map with delivery stops and optimized route planning"
     ),
     "supply-chain": img(
       "photo-1600880292203-757bb62b4baf",

@@ -152,6 +152,7 @@ services:
       ROUTING_ENGINE: valhalla
       VALHALLA_BASE_URL: http://valhalla:8002
       OSRM_HOST: ${OSRM_HOST:-https://router.project-osrm.org}
+      PUBLIC_INGEST_API_KEY: ${PUBLIC_INGEST_API_KEY:-}
     volumes:
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     expose:
@@ -241,6 +242,7 @@ services:
       ROUTING_ENGINE: valhalla
       VALHALLA_BASE_URL: http://valhalla:8002
       OSRM_HOST: ${OSRM_HOST:-https://router.project-osrm.org}
+      PUBLIC_INGEST_API_KEY: ${PUBLIC_INGEST_API_KEY:-}
     expose:
       - "3000"
     networks:

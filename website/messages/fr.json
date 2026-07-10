@@ -34,8 +34,31 @@
   },
   "login": {
     "title": "Connexion",
+    "eyebrow": "Accès au compte",
+    "headline": "Une connexion. Le bon portail.",
     "subtitle": "Utilisez votre compte Porterchain. Nous vous dirigerons vers le bon portail selon votre rôle.",
     "roleNote": "Clients, marchands, chauffeurs et personnel — une seule connexion pour tous.",
+    "trustLine": "Authentification sécurisée · Routage automatique par rôle",
+    "needHelp": "Besoin d'un compte?",
+    "needHelpLink": "Contacter le soutien",
+    "roles": {
+      "merchant": {
+        "title": "Marchands",
+        "description": "Réserver de la capacité, routes et factures"
+      },
+      "driver": {
+        "title": "Chauffeurs",
+        "description": "Routes assignées et preuve de livraison"
+      },
+      "customer": {
+        "title": "Clients",
+        "description": "Suivre les envois et le statut des commandes"
+      },
+      "staff": {
+        "title": "Opérations",
+        "description": "Répartition, admin et outils de flotte"
+      }
+    },
     "redirecting": "Connexion en cours, ouverture de votre portail…",
     "notProvisioned": "Ce courriel n'est pas encore configuré sur Porterchain. Si vous avez reçu une invitation, utilisez le lien dans le courriel ou contactez-nous.",
     "identityConflict": "Ce compte est lié à plusieurs types de portail. Utilisez des courriels distincts pour le personnel et les clients, ou contactez le soutien.",
@@ -44,7 +67,7 @@
     "apiUnreachable": "L'API Porterchain est inaccessible. Assurez-vous que l'API tourne sur le port 8001.",
     "signOut": "Se déconnecter et réessayer",
     "devModeNote": "Clerk n'est pas configuré dans cet environnement.",
-    "backHome": "Retour à l'accueil",
+    "backHome": "Retour à porterchain.com",
     "contactSupport": "Contacter le soutien"
   },
   "hero": {
@@ -109,7 +132,7 @@
       "suv": "VUS",
       "pickup": "Camionnette",
       "cargoVan": "Fourgonnette",
-      "highRoof": "Fourgon haut",
+      "highRoof": "Fourgon Sprinter",
       "box16": "Camion 16 pi",
       "box20": "Camion 20 pi"
     },
@@ -266,7 +289,7 @@
         "bestFor": "Vente en gros, distribution restauration"
       },
       "high-roof": {
-        "name": "Fourgon haut",
+        "name": "Fourgon Sprinter",
         "capacity": "20+ boîtes",
         "weight": "Jusqu'à 2 000 lb",
         "bestFor": "LTL palettisé, détail en vrac"
@@ -645,7 +668,7 @@
       },
       {
         "question": "Quels types de véhicules sont disponibles?",
-        "answer": "Berline, VUS, camionnette, fourgonnette, fourgon haut, camion 16 pi et camion 20 pi. Tous requièrent un permis G."
+        "answer": "Berline, VUS, camionnette, fourgonnette, fourgon Sprinter, camion 16 pi et camion 20 pi. Tous requièrent un permis G."
       },
       {
         "question": "Comment fonctionne la tarification?",
@@ -698,6 +721,9 @@
     "newsletterSubtitle": "Recevez des analyses logistiques et des mises à jour produit dans votre boîte de réception.",
     "emailPlaceholder": "Entrez votre courriel",
     "subscribe": "S'abonner",
+    "subscribing": "Inscription…",
+    "subscribed": "Inscription confirmée. Merci.",
+    "newsletterError": "Impossible de s'inscrire. Réessayez.",
     "tagline": "Partenaire logistique commercial pour les entreprises locales du RGT.",
     "socialLink": "Lien social",
     "copyright": "Porterchain Inc. Tous droits réservés.",

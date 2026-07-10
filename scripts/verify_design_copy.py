@@ -45,6 +45,11 @@ REVIEWED_EXCEPTIONS: tuple[tuple[str, str, str], ...] = (
         "flexible hours",
         "Employee careers benefit (Remote Friendly / Learning Budget block), not driver gig-economy framing.",
     ),
+    (
+        "corporate-en.json",
+        "not a consumer courier app",
+        "Rejected-misconception FAQ — explicitly denies consumer courier framing.",
+    ),
 )
 
 

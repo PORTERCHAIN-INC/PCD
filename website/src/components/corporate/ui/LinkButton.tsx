@@ -33,9 +33,9 @@ const variants: Record<LinkButtonVariant, string> = {
 };
 
 const sizes: Record<LinkButtonSize, string> = {
-  sm: "px-4 py-2 text-sm",
-  md: "px-6 py-3 text-sm",
-  lg: "px-8 py-3.5 text-base",
+  sm: "px-4 py-2 text-sm min-h-[var(--touch-min)]",
+  md: "px-5 py-2.5 sm:px-6 sm:py-3 text-sm min-h-[var(--touch-min)]",
+  lg: "px-6 py-3 sm:px-8 sm:py-3.5 text-sm sm:text-base min-h-[var(--touch-min)]",
 };
 
 export default function LinkButton({

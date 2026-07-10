@@ -44,7 +44,7 @@ export default function VehicleIllustration({
           image={image}
           fill
           className="object-cover"
-          sizes="(max-width: 640px) 80vw, 320px"
+          sizes="(max-width: 1024px) 100vw, (max-width: 1536px) 65vw, 900px"
         />
       </div>
     );

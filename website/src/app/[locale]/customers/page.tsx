@@ -4,7 +4,7 @@ import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import HeroSection from "@/components/corporate/sections/HeroSection";
 import CardGridSection from "@/components/corporate/sections/CardGridSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import CustomersPageCloser from "@/components/customers/CustomersPageCloser";
 import { collectCardItems } from "@/lib/corporate-content";
 import { localeStaticParams } from "@/lib/seo/page-helpers";
 
@@ -48,24 +48,7 @@ export default async function CustomersPage({ params }: Props) {
         variant="mosaic"
         className="bg-gray-bg"
       />
-      <CtaSection
-        title={t("caseStudy.title")}
-        subtitle={t("caseStudy.subtitle")}
-        primaryLabel={t("caseStudy.cta")}
-        primaryHref={t("caseStudy.href")}
-        secondaryLabel={t("hero.secondaryCta")}
-        secondaryHref="/business#fleet"
-        variant="dark"
-      />
-      <CtaSection
-        title={t("cta.title")}
-        subtitle={t("cta.subtitle")}
-        primaryLabel={t("cta.primary")}
-        primaryHref="/contact?intent=quote"
-        secondaryLabel={t("cta.secondary")}
-        secondaryHref="/pricing"
-        variant="gradient"
-      />
+      <CustomersPageCloser />
     </CorporateShell>
   );
 }

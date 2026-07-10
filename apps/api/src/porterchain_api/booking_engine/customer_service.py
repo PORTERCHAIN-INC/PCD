@@ -114,6 +114,16 @@ class CustomerService:
             correlation_id=quote_id,
             payload={"email": email},
         )
+        from porterchain_api.booking_engine.crm_lead_mirror import mirror_booking_lead_to_crm
+
+        mirror_booking_lead_to_crm(
+            db,
+            email=email,
+            phone=phone,
+            quote_id=quote_id,
+            customer_id=customer_id,
+            stage=lead.stage,
+        )
         db.commit()
         return lead
 

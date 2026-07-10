@@ -38,7 +38,9 @@
     "newsletterSubtitle": "Perspectives logistique commerciale et opérationnelles — mensuel, sans spam.",
     "emailPlaceholder": "Courriel professionnel",
     "subscribe": "S'abonner",
-    "subscribed": "Inscription confirmée. Merci."
+    "subscribing": "Inscription…",
+    "subscribed": "Inscription confirmée. Merci.",
+    "newsletterError": "Impossible de s'inscrire. Réessayez."
   },
   "category": {
     "articlesIn": "Articles dans",

@@ -2,7 +2,8 @@
 
 import Script from "next/script";
 import { useEffect } from "react";
-import { setAnalyticsProvider } from "@/lib/seo/analytics";
+import { useDeferUntilInteraction } from "@/lib/defer-until-interaction";
+import { flushQueuedAnalyticsEvents, setAnalyticsProvider } from "@/lib/seo/analytics";
 
 declare global {
   interface Window {
@@ -13,14 +14,17 @@ declare global {
 const measurementId = (process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "").trim();
 
 export default function GoogleAnalytics() {
+  const ready = useDeferUntilInteraction(12_000);
+
   useEffect(() => {
-    if (!measurementId) return;
+    if (!measurementId || !ready) return;
     setAnalyticsProvider((event, properties) => {
       window.gtag?.("event", event, properties);
     });
-  }, []);
+    flushQueuedAnalyticsEvents();
+  }, [ready]);
 
-  if (!measurementId) return null;
+  if (!measurementId || !ready) return null;
 
   return (
     <>

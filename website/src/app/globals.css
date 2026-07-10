@@ -10,10 +10,11 @@
   --gray-bg: #f0f4f8;
   --foreground: #0a1628;
   --muted: #64748b;
-  --page-gutter: clamp(1rem, 4vw, 4rem);
+  --page-gutter: clamp(1rem, 2.5vw, 2.75rem);
   --page-max: 90rem;
   --nav-height: 4rem;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
   --touch-min: 2.75rem;
 
   /* Professional type scale (16px base) */
@@ -29,6 +30,12 @@
   --text-6xl: 3.75rem; /* 60px — hero large */
 }
 
+@media (min-width: 768px) {
+  :root {
+    --nav-height: 4.5rem;
+  }
+}
+
 @theme inline {
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
@@ -40,7 +47,10 @@
 
 html {
   scroll-behavior: smooth;
-  font-size: 16px;
+  /* Fluid root — ~15px on laptops (matches comfortable 90% zoom feel at 100%) */
+  font-size: clamp(14.5px, calc(14px + 0.15vw), 16px);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -56,8 +66,21 @@ body {
   font-weight: 400;
   line-height: 1.6;
   overflow-x: hidden;
+  min-width: 0;
+  padding-bottom: var(--safe-bottom);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+img,
+video,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.pc-nav-offset {
+  padding-top: calc(var(--nav-height) + var(--safe-top));
 }
 
 /* Heading hierarchy — bold only where appropriate */
@@ -92,21 +115,21 @@ p {
 
 /* Typography utilities */
 .type-display {
-  font-size: clamp(2rem, 4.5vw, 3.75rem);
+  font-size: clamp(2rem, 4vw + 0.25rem, 3.75rem);
   font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.025em;
 }
 
 .type-h1 {
-  font-size: clamp(1.875rem, 3.5vw, 3rem);
+  font-size: clamp(1.75rem, 3vw + 0.25rem, 2.75rem);
   font-weight: 700;
   line-height: 1.12;
   letter-spacing: -0.02em;
 }
 
 .type-h2 {
-  font-size: clamp(1.75rem, 2.8vw, 2.5rem);
+  font-size: clamp(1.5rem, 2.4vw + 0.2rem, 2.25rem);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.018em;
@@ -277,6 +300,35 @@ p {
 @keyframes route-dash {
   to {
     stroke-dashoffset: -20;
+  }
+}
+
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-fade-up {
+  animation: hero-fade-up 0.45s ease-out both;
+}
+
+.hero-fade-up-delay-1 {
+  animation-delay: 0.08s;
+}
+
+.hero-fade-up-delay-2 {
+  animation-delay: 0.14s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-fade-up {
+    animation: none;
   }
 }
 
@@ -855,4 +907,61 @@ button.booking-schedule-field:focus-visible {
 
 .booking-day-picker .rdp-chevron {
   fill: currentColor;
+}
+
+/* ─── Homepage story (SV product marketing) ─── */
+.pc-section {
+  padding-block: clamp(3rem, 7vh, 5.5rem);
+}
+
+.pc-section-tight {
+  padding-block: clamp(2.5rem, 6vh, 4.5rem);
+}
+
+.pc-display {
+  font-size: clamp(2rem, 4.2vw + 0.2rem, 3.75rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.pc-headline {
+  font-size: clamp(1.5rem, 2.6vw + 0.2rem, 2.35rem);
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  line-height: 1.1;
+}
+
+.pc-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+
+.pc-glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(10, 22, 40, 0.06);
+}
+
+/* ─── Responsive device tuning ─── */
+@media (min-width: 640px) and (max-width: 1023px) {
+  :root {
+    --page-gutter: clamp(1.25rem, 3vw, 2rem);
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1440px) {
+  :root {
+    --page-gutter: clamp(1.5rem, 2.5vw, 2.5rem);
+  }
+}
+
+@media (min-width: 1441px) {
+  :root {
+    --page-gutter: clamp(2rem, 2vw, 3rem);
+  }
 }

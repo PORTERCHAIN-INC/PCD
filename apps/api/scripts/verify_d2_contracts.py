@@ -123,6 +123,7 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "booking_engine->notification_engine:booking_engine/notification_service.py",
         "booking_engine->pricing_engine:booking_engine/quote_service.py",
         "booking_engine->order_engine:booking_engine/public_tracking_snapshot.py",
+        "booking_engine->collaboration_engine:booking_engine/crm_lead_mirror.py",
         "collaboration_engine->admin_engine:collaboration_engine/crm_activity.py",
         "collaboration_engine->admin_engine:collaboration_engine/crm_companies.py",
         "collaboration_engine->admin_engine:collaboration_engine/crm_contacts.py",

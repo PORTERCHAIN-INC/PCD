@@ -35,27 +35,13 @@ export default function BentoSection({
               delay={i * 0.05}
               className={cn(
                 "card-surface card-surface-hover p-7",
-                item.className,
-                i === 0 && "md:col-span-2 md:row-span-1 bg-primary text-white border-primary",
-                i === 3 && "md:col-span-2"
+                i === 0 && "md:col-span-2 md:row-span-1",
+                i === 3 && "md:col-span-2",
+                item.className
               )}
             >
-              <h3
-                className={cn(
-                  "text-lg font-semibold tracking-tight",
-                  i === 0 ? "text-white" : "text-primary"
-                )}
-              >
-                {item.title}
-              </h3>
-              <p
-                className={cn(
-                  "mt-2 text-sm leading-relaxed",
-                  i === 0 ? "text-white/65" : "text-muted"
-                )}
-              >
-                {item.description}
-              </p>
+              <h3 className="text-lg font-semibold tracking-tight text-primary">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{item.description}</p>
             </FadeIn>
           ))}
         </div>

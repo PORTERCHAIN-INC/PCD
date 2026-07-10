@@ -20,6 +20,7 @@ _CONTEXT_SCHEMA_MODULES: tuple[str, ...] = (
     "schemas_merchant.py",
     "schemas_notifications.py",
     "schemas_oauth.py",
+    "schemas_public.py",
 )
 
 _CLASS_DEF_RE = re.compile(r"^class \w+\(.*BaseModel", re.MULTILINE)

@@ -3,26 +3,33 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { SignOutButton, useAuth } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
-import SiteShell from "@/components/layout/SiteShell";
-import Container from "@/components/ui/Container";
+import { Link } from "@/i18n/navigation";
+import LoginShell from "@/components/portal/LoginShell";
+import LoginBrandPanel from "@/components/portal/LoginBrandPanel";
+import LoginStatusCard from "@/components/portal/LoginStatusCard";
 import UnifiedSignIn from "@/components/portal/UnifiedSignIn";
 import { fetchAuthMe, portalHomeUrl } from "@/lib/auth";
 import { isClerkConfigured } from "@/lib/env";
-import { Link } from "@/i18n/navigation";
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <SiteShell>
-          <Container className="py-16 md:py-24 max-w-4xl">
-            <p className="type-small text-muted">Loading…</p>
-          </Container>
-        </SiteShell>
-      }
-    >
+    <Suspense fallback={<LoginPageFallback />}>
       <LoginContent />
     </Suspense>
+  );
+}
+
+function LoginPageFallback() {
+  const t = useTranslations("login");
+  return (
+    <LoginShell>
+      <div className="min-h-[calc(100dvh-var(--nav-height))] grid lg:grid-cols-2 bg-gray-bg">
+        <LoginBrandPanel />
+        <div className="flex items-center justify-center px-5 py-10">
+          <LoginStatusCard title={t("title")} loading />
+        </div>
+      </div>
+    </LoginShell>
   );
 }
 
@@ -88,77 +95,73 @@ function LoginContent() {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, t]);
 
   if (!isClerkConfigured()) {
     return (
-      <SiteShell>
-        <Container className="py-16 md:py-24 max-w-lg">
-          <h1 className="type-h2 font-bold text-primary mb-2">{t("title")}</h1>
-          <p className="type-small text-muted mb-6">{t("devModeNote")}</p>
-          <Link
-            href="/"
-            className="inline-flex rounded-xl bg-secondary px-5 py-3 text-white font-semibold type-small"
-          >
-            {t("backHome")}
-          </Link>
-        </Container>
-      </SiteShell>
+      <LoginShell>
+        <div className="min-h-[calc(100dvh-var(--nav-height))] flex items-center justify-center px-5 py-12 bg-gray-bg">
+          <LoginStatusCard title={t("title")} description={t("devModeNote")}>
+            <Link
+              href="/"
+              className="inline-flex justify-center rounded-xl bg-secondary px-5 py-3 text-white font-semibold text-sm hover:bg-[#1d4ed8] transition-colors"
+            >
+              {t("backHome")}
+            </Link>
+          </LoginStatusCard>
+        </div>
+      </LoginShell>
     );
   }
 
   if (!isLoaded) {
-    return (
-      <SiteShell>
-        <Container className="py-16 md:py-24 max-w-4xl">
-          <p className="type-small text-muted">Loading…</p>
-        </Container>
-      </SiteShell>
-    );
+    return <LoginPageFallback />;
   }
 
   if (isSignedIn && redirecting && !error) {
     return (
-      <SiteShell>
-        <Container className="py-16 md:py-24 max-w-4xl">
-          <p className="type-small text-muted">{t("redirecting")}</p>
-        </Container>
-      </SiteShell>
+      <LoginShell>
+        <div className="min-h-[calc(100dvh-var(--nav-height))] grid lg:grid-cols-2 bg-gray-bg">
+          <LoginBrandPanel />
+          <div className="flex items-center justify-center px-5 py-10">
+            <LoginStatusCard title={t("redirecting")} loading />
+          </div>
+        </div>
+      </LoginShell>
     );
   }
 
   if (isSignedIn && error) {
     return (
-      <SiteShell>
-        <Container className="py-16 md:py-24 max-w-lg">
-          <h1 className="type-h2 font-bold text-primary mb-2">{t("title")}</h1>
-          <p className="type-small text-red-700 mb-6">{error}</p>
-          <div className="flex flex-col gap-3">
-            <Link
-              href="/contact"
-              className="inline-flex justify-center rounded-xl bg-secondary px-5 py-3 text-white font-semibold type-small"
-            >
-              {t("contactSupport")}
-            </Link>
-            <SignOutButton redirectUrl="/login">
-              <button
-                type="button"
-                className="w-full rounded-xl border border-primary/10 px-5 py-3 text-sm font-medium text-primary"
+      <LoginShell>
+        <div className="min-h-[calc(100dvh-var(--nav-height))] grid lg:grid-cols-2 bg-gray-bg">
+          <LoginBrandPanel />
+          <div className="flex items-center justify-center px-5 py-10">
+            <LoginStatusCard title={t("title")} description={error} variant="error">
+              <Link
+                href="/contact"
+                className="inline-flex justify-center rounded-xl bg-secondary px-5 py-3 text-white font-semibold text-sm hover:bg-[#1d4ed8] transition-colors"
               >
-                {t("signOut")}
-              </button>
-            </SignOutButton>
+                {t("contactSupport")}
+              </Link>
+              <SignOutButton redirectUrl="/login">
+                <button
+                  type="button"
+                  className="w-full rounded-xl border border-primary/10 px-5 py-3 text-sm font-medium text-primary hover:bg-gray-bg transition-colors"
+                >
+                  {t("signOut")}
+                </button>
+              </SignOutButton>
+            </LoginStatusCard>
           </div>
-        </Container>
-      </SiteShell>
+        </div>
+      </LoginShell>
     );
   }
 
   return (
-    <SiteShell>
-      <Container className="py-16 md:py-24 max-w-4xl">
-        <UnifiedSignIn redirectUrl="/login" />
-      </Container>
-    </SiteShell>
+    <LoginShell>
+      <UnifiedSignIn redirectUrl="/login" />
+    </LoginShell>
   );
 }

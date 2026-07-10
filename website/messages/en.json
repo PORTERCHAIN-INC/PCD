@@ -34,8 +34,31 @@
   },
   "login": {
     "title": "Sign in",
+    "eyebrow": "Account access",
+    "headline": "One sign-in. The right portal.",
     "subtitle": "Use your Porterchain account. We'll send you to the right portal for your role.",
     "roleNote": "Works for customers, merchants, drivers, and staff — one sign-in for everyone.",
+    "trustLine": "Secure authentication · Automatic role routing",
+    "needHelp": "Need an account?",
+    "needHelpLink": "Contact support",
+    "roles": {
+      "merchant": {
+        "title": "Merchants",
+        "description": "Book capacity, routes, and invoices"
+      },
+      "driver": {
+        "title": "Drivers",
+        "description": "Assigned routes and proof of delivery"
+      },
+      "customer": {
+        "title": "Customers",
+        "description": "Track shipments and order status"
+      },
+      "staff": {
+        "title": "Operations",
+        "description": "Dispatch, admin, and fleet tools"
+      }
+    },
     "redirecting": "Signing you in and opening your portal…",
     "notProvisioned": "This email isn't set up on Porterchain yet. If you were invited, use the link in your invitation email, or contact us to get access.",
     "identityConflict": "This account is linked to multiple portal types. Use separate emails for staff and customer accounts, or contact support.",
@@ -44,7 +67,7 @@
     "apiUnreachable": "Porterchain API is not reachable. Ensure the API is running on port 8001.",
     "signOut": "Sign out and try again",
     "devModeNote": "Clerk is not configured in this environment.",
-    "backHome": "Back to home",
+    "backHome": "Back to porterchain.com",
     "contactSupport": "Contact support"
   },
   "hero": {
@@ -109,7 +132,7 @@
       "suv": "SUV",
       "pickup": "Pickup Truck",
       "cargoVan": "Cargo Van",
-      "highRoof": "High Roof Van",
+      "highRoof": "Sprinter Van",
       "box16": "16 ft Box Truck",
       "box20": "20 ft Box Truck"
     },
@@ -266,7 +289,7 @@
         "bestFor": "Wholesale, restaurant distribution"
       },
       "high-roof": {
-        "name": "High Roof Van",
+        "name": "Sprinter Van",
         "capacity": "20+ boxes",
         "weight": "Up to 2,000 lbs",
         "bestFor": "Palletized LTL, bulk retail"
@@ -645,7 +668,7 @@
       },
       {
         "question": "What vehicle types are available?",
-        "answer": "We offer Sedan, SUV, Pickup Truck, Cargo Van, High Roof Van, 16 ft Box Truck, and 20 ft Box Truck. All vehicles require a G Licence."
+        "answer": "We offer Sedan, SUV, Pickup Truck, Cargo Van, Sprinter Van, 16 ft Box Truck, and 20 ft Box Truck. All vehicles require a G Licence."
       },
       {
         "question": "How does pricing work?",
@@ -698,6 +721,9 @@
     "newsletterSubtitle": "Get logistics insights and product updates delivered to your inbox.",
     "emailPlaceholder": "Enter your email",
     "subscribe": "Subscribe",
+    "subscribing": "Subscribing…",
+    "subscribed": "You're subscribed. Thank you.",
+    "newsletterError": "Could not subscribe. Please try again.",
     "tagline": "Commercial logistics partner for local businesses across the GTA.",
     "socialLink": "Social link",
     "copyright": "Porterchain Inc. All rights reserved.",

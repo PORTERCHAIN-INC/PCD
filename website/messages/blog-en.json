@@ -38,7 +38,9 @@
     "newsletterSubtitle": "Commercial logistics and operations insights — monthly, no spam.",
     "emailPlaceholder": "Work email",
     "subscribe": "Subscribe",
-    "subscribed": "You're subscribed. Thank you."
+    "subscribing": "Subscribing…",
+    "subscribed": "You're subscribed. Thank you.",
+    "newsletterError": "Could not subscribe. Please try again."
   },
   "category": {
     "articlesIn": "Articles in",

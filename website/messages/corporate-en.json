@@ -50,21 +50,21 @@
     },
     "trust": {
       "title": "Trust & Security | Porterchain",
-      "description": "Security practices, compliance posture, subprocessors, and SLA commitments for enterprise logistics teams.",
+      "description": "Insurance, delivery commitments, COI, and security documentation for Ontario business shippers — procurement exhibits available on request.",
       "ogTitle": "Porterchain Trust Center",
-      "ogDescription": "How Porterchain protects merchant data, supports procurement, and documents service commitments."
+      "ogDescription": "Commercial insurance, proof-of-delivery standards, operational escalation, and security documentation for capacity programs."
     },
     "subprocessors": {
       "title": "Subprocessors | Porterchain Trust",
-      "description": "Current subprocessors used to operate Porterchain's dispatch OS, merchant portal, payments, communications, analytics, and infrastructure.",
+      "description": "Current subprocessors used to operate Porterchain's transportation capacity network, merchant portal, payments, communications, analytics, and infrastructure.",
       "ogTitle": "Porterchain Subprocessors",
       "ogDescription": "Vendor list and data-processing roles for enterprise procurement review."
     },
     "sla": {
       "title": "SLA Exhibit | Porterchain Trust",
-      "description": "Service-level bands, support response targets, credits, and escalation paths for Business and Enterprise dispatch programs.",
+      "description": "Service-level bands, support response targets, credits, and escalation paths for dedicated capacity and recurring delivery programs.",
       "ogTitle": "Porterchain SLA Summary",
-      "ogDescription": "Enterprise service commitments for platform availability, support, and operational escalation."
+      "ogDescription": "Delivery and operations commitments for recurring capacity programs — availability, support, and escalation."
     },
     "dpa": {
       "title": "Data Processing Addendum | Porterchain Trust",
@@ -74,9 +74,9 @@
     },
     "msa": {
       "title": "Master Service Agreement | Porterchain Trust",
-      "description": "Platform subscription and services framework summary for enterprise procurement teams.",
+      "description": "Commercial framework for transportation capacity programs, dedicated delivery services, and enterprise procurement.",
       "ogTitle": "Porterchain MSA Summary",
-      "ogDescription": "Commercial framework for dispatch OS subscription, optional managed capacity, and enterprise programs."
+      "ogDescription": "Commercial framework for capacity programs, optional integrations, and dedicated delivery services."
     },
     "customers": {
       "title": "Customers | Porterchain",
@@ -106,28 +106,82 @@
     "company": "Company",
     "resources": "Resources",
     "solutionsMenu": {
-      "overview": "All solutions",
-      "wholesale": "Wholesale distribution",
-      "medical": "Medical & healthcare",
-      "foodBeverage": "Food & beverage",
-      "construction": "Construction supply",
-      "industries": "All industries",
-      "serviceAreas": "Service areas"
+      "overview": {
+        "label": "All solutions",
+        "description": "Capacity programs by industry and use case across Ontario."
+      },
+      "wholesale": {
+        "label": "Wholesale distribution",
+        "description": "Recurring van and box truck routes for electrical, plumbing, and industrial distributors."
+      },
+      "medical": {
+        "label": "Medical & healthcare",
+        "description": "Pharmacy, lab, and patient runs with chain-of-custody proof on every stop."
+      },
+      "foodBeverage": {
+        "label": "Food & beverage",
+        "description": "Wholesale food, roasters, and distributors — scheduled and same-day capacity."
+      },
+      "construction": {
+        "label": "Construction supply",
+        "description": "Jobsite delivery, pallet drops, and overflow when your own fleet is full."
+      },
+      "industries": {
+        "label": "All industries",
+        "description": "Browse programs by vertical — construction, pharmacy, manufacturing, and more."
+      },
+      "serviceAreas": {
+        "label": "Service areas",
+        "description": "GTA and Ontario metros — same-day, scheduled, and recurring lanes."
+      }
     },
     "companyMenu": {
-      "about": "About us",
-      "careers": "Careers",
-      "contact": "Contact",
-      "vehiclePartner": "Vehicle partners"
+      "about": {
+        "label": "About us",
+        "description": "Mission, team, and how Porterchain runs the capacity network."
+      },
+      "careers": {
+        "label": "Careers",
+        "description": "Engineering, operations, and growth roles — remote-friendly."
+      },
+      "contact": {
+        "label": "Contact",
+        "description": "Request capacity, speak with dispatch, or reach our sales team."
+      },
+      "vehiclePartner": {
+        "label": "Vehicle partners",
+        "description": "Join the professional driver and commercial vehicle network."
+      }
     },
     "resourcesMenu": {
-      "developers": "Developers",
-      "platform": "How we operate",
-      "blog": "Blog",
-      "faq": "FAQ",
-      "guides": "Guides",
-      "track": "Track shipment",
-      "howItWorks": "How it works"
+      "developers": {
+        "label": "Developers",
+        "description": "API reference, webhooks, and partner integration docs."
+      },
+      "platform": {
+        "label": "How we operate",
+        "description": "Dispatch, tracking, proof, and billing behind every delivery."
+      },
+      "blog": {
+        "label": "Blog",
+        "description": "Capacity, operations, and industry insights for Ontario shippers."
+      },
+      "faq": {
+        "label": "FAQ",
+        "description": "When to use Porterchain vs your own fleet — straight answers."
+      },
+      "guides": {
+        "label": "Guides",
+        "description": "How quoting, dispatch, and proof of delivery work end to end."
+      },
+      "track": {
+        "label": "Track shipment",
+        "description": "Look up live status by tracking number — no login required."
+      },
+      "howItWorks": {
+        "label": "How it works",
+        "description": "Quote → dispatch → track → proof → invoice in one loop."
+      }
     },
     "careers": "Careers",
     "blog": "Blog",
@@ -195,13 +249,125 @@
   },
   "home": {
     "hero": {
-      "badge": "Transportation capacity partner",
-      "title": "Capacity for your business when logistics cannot slow down",
-      "subtitle": "Driver sick? Van down? Urgent order? Porterchain provides professional drivers and vehicles — sedan through box truck — across Ontario, with live tracking and proof of delivery.",
+      "badge": "Transportation capacity",
+      "title": "Transportation capacity. Whenever your business needs it.",
+      "subtitle": "Professional drivers and vehicles across Ontario — transportation capacity orchestration on one platform.",
       "primaryCta": "Get a quote",
       "secondaryCta": "See vehicles",
       "bookDeliveryCta": "Book a delivery",
       "trackCta": "Track a shipment"
+    },
+    "story": {
+      "problems": {
+        "label": "Problems",
+        "title": "When logistics becomes the bottleneck",
+        "cta": "Get a quote",
+        "items": {
+          "0": "Emergency delivery",
+          "1": "Fleet overflow",
+          "2": "Scheduled distribution",
+          "3": "Commercial transportation",
+          "4": "Construction logistics",
+          "5": "Pharmacy transport",
+          "6": "Laboratory transport"
+        }
+      },
+      "flow": {
+        "label": "How it works",
+        "title": "From request to proof",
+        "subtitle": "Your business requests capacity. Our platform coordinates the network. You get proof.",
+        "steps": {
+          "business": {
+            "title": "Your business",
+            "description": "Request vehicle and driver capacity."
+          },
+          "platform": {
+            "title": "Porterchain platform",
+            "description": "Dispatch, tracking, and proof."
+          },
+          "network": {
+            "title": "Transportation network",
+            "description": "Professional drivers and vehicles."
+          },
+          "complete": {
+            "title": "Delivery complete",
+            "description": "Photo, signature, GPS, and status history."
+          }
+        }
+      },
+      "fleet": {
+        "label": "Network",
+        "title": "The right vehicle for every shipment",
+        "subtitle": "Sedan through box truck — matched to your load.",
+        "cta": "View full fleet"
+      },
+      "platform": {
+        "label": "Platform",
+        "title": "Software behind every delivery",
+        "subtitle": "You buy capacity. This is what runs it.",
+        "cta": "Explore platform",
+        "items": {
+          "portal": {
+            "title": "Merchant portal",
+            "description": "Orders, routes, and team visibility."
+          },
+          "tracking": {
+            "title": "Live tracking",
+            "description": "Status and ETA for every shipment."
+          },
+          "dispatch": {
+            "title": "Dispatch",
+            "description": "Structured assignment and exception handling."
+          },
+          "pod": {
+            "title": "Proof of delivery",
+            "description": "Photo, signature, and GPS on every stop."
+          },
+          "billing": {
+            "title": "Billing",
+            "description": "Invoices tied to completed deliveries."
+          },
+          "analytics": {
+            "title": "Analytics",
+            "description": "Performance across lanes and programs."
+          }
+        }
+      },
+      "industries": {
+        "label": "Industries",
+        "title": "Built for operations that cannot stop",
+        "cta": "All industries",
+        "viewAll": "View all"
+      },
+      "enterprise": {
+        "label": "Enterprise",
+        "title": "Ready when your program scales",
+        "subtitle": "Security, compliance, and integrations for larger shippers.",
+        "items": {
+          "api": "API",
+          "security": "Security",
+          "compliance": "Compliance",
+          "integrations": "Integrations",
+          "docs": "Documentation"
+        }
+      },
+      "ai": {
+        "label": "What's next",
+        "title": "AI-designed routes across the GTA",
+        "subtitle": "Stops sequenced for fewer kilometers — Toronto, Peel, York, and Durham lanes learned from real deliveries.",
+        "body": "Porterchain learns from real GTA deliveries: corridor patterns, proof standards, and exception history. Routes are planned with AI using that network data — so capacity programs get sharper ETAs, not a separate software pitch.",
+        "note": "Today you buy transportation capacity. Tomorrow the network gets sharper. We ship intelligence when it earns trust.",
+        "aiBadge": "AI route design",
+        "regionBadge": "Greater Toronto Area",
+        "statsLabel": "14 stops → 1 optimized run · fewer km across Mississauga, Brampton, and Toronto core",
+        "imageAlt": "Optimized delivery route across the Greater Toronto Area with stops in Toronto, Mississauga, Brampton, Vaughan, Markham, and Scarborough",
+        "imageCaption": "GTA route optimization"
+      },
+      "cta": {
+        "title": "Get capacity on your lanes",
+        "subtitle": "Share your shipments and service areas. We will map the right vehicle and send a quote.",
+        "primary": "Get a quote"
+      }
     },
     "logos": {
       "label": "Trusted by operations teams across Ontario"
@@ -272,7 +438,15 @@
       "title": "Technology runs the operation behind the scenes",
       "subtitle": "Merchant portal, driver app, control tower, tracking, proof of delivery, billing, route management, and partner management make the service reliable.",
       "primary": "How it works",
-      "href": "/guides/how-porterchain-works"
+      "href": "/guides/how-porterchain-works",
+      "capabilities": {
+        "portal": "Merchant portal",
+        "driver": "Driver app",
+        "tower": "Control tower",
+        "tracking": "Live tracking",
+        "pod": "Proof of delivery",
+        "billing": "Billing"
+      }
     },
     "caseStudy": {
       "label": "Customers",
@@ -811,7 +985,8 @@
       "responseLabel": "Average response:",
       "responseTime": "< 1 Business Day",
       "successTitle": "Message sent",
-      "successMessage": "Thank you. A member of our team will respond within one business day."
+      "successMessage": "Thank you. A member of our team will respond within one business day.",
+      "errorMessage": "We couldn't send your message. Please try again or email us directly."
     },
     "departments": {
       "label": "Direct lines",
@@ -1256,16 +1431,16 @@
   },
   "trust": {
     "hero": {
-      "badge": "Trust & security",
-      "title": "Security and compliance for enterprise dispatch teams",
-      "subtitle": "Documentation for procurement, security review, and operational due diligence — with a clear roadmap for enterprise controls.",
-      "primaryCta": "Contact security",
+      "badge": "Trust & insurance",
+      "title": "Insurance, delivery commitments, and accountable execution",
+      "subtitle": "Certificate of insurance, proof-of-delivery standards, and operational escalation for Ontario capacity programs — plus security and procurement documentation on request.",
+      "primaryCta": "Request COI",
       "secondaryCta": "View SLA summary"
     },
     "summary": {
       "label": "Overview",
-      "title": "How we protect merchant operations",
-      "subtitle": "Porterchain is orchestration software for regional B2B shippers. This page summarizes our security posture and how to request deeper documentation."
+      "title": "How we protect your shipments and your business",
+      "subtitle": "Porterchain runs transportation capacity for Ontario B2B shippers. This page summarizes insurance, delivery commitments, and how to request security or procurement documentation."
     },
     "features": {
       "label": "Program",
@@ -1315,7 +1490,7 @@
         },
         "1": {
           "title": "Master Service Agreement (MSA)",
-          "description": "Platform subscription and services framework for enterprise procurement.",
+          "description": "Commercial framework for capacity programs, dedicated delivery services, and enterprise procurement.",
           "href": "/trust/msa"
         },
         "2": {
@@ -1334,7 +1509,7 @@
       "hero": {
         "badge": "Subprocessors",
         "title": "Vendor transparency for procurement",
-        "subtitle": "Porterchain uses a focused set of subprocessors to operate the dispatch OS, merchant portal, payment flows, communications, and infrastructure."
+        "subtitle": "Porterchain uses a focused set of subprocessors to operate the transportation capacity network, merchant portal, payment flows, communications, and infrastructure."
       },
       "list": {
         "label": "Current vendors",
@@ -1386,7 +1561,7 @@
         "items": {
           "0": {
             "title": "Platform availability",
-            "description": "99.5% monthly uptime target for the dispatch OS and merchant portal, excluding scheduled maintenance windows communicated in advance."
+            "description": "99.5% monthly uptime target for operations coordination tools and the merchant portal, excluding scheduled maintenance windows communicated in advance."
           },
           "1": {
             "title": "Support response",
@@ -1417,7 +1592,7 @@
       "hero": {
         "badge": "DPA",
         "title": "Data Processing Addendum summary",
-        "subtitle": "PIPEDA-aligned processing terms for merchant, shipper, and driver personal information processed through the dispatch OS."
+        "subtitle": "PIPEDA-aligned processing terms for merchant, shipper, and driver personal information processed through Porterchain capacity programs and operations systems."
       },
       "sections": {
         "label": "Coverage",
@@ -1457,7 +1632,7 @@
       "hero": {
         "badge": "MSA",
         "title": "Master Service Agreement summary",
-        "subtitle": "Commercial framework for dispatch OS subscription, implementation services, and optional managed capacity programs."
+        "subtitle": "Commercial framework for transportation capacity programs, onboarding services, and optional integrations for high-volume shippers."
       },
       "sections": {
         "label": "Framework",
@@ -1465,16 +1640,16 @@
         "subtitle": "Executed MSAs are countersigned during enterprise procurement. This summary helps legal and operations teams evaluate fit.",
         "items": {
           "0": {
-            "title": "Platform subscription",
-            "description": "Rights to use the dispatch OS, merchant portal, APIs, and standard integrations for your organization and authorized users."
+            "title": "Capacity services",
+            "description": "Rights to contracted transportation capacity programs, shipment coordination, merchant portal access, and standard integrations for your organization and authorized users."
           },
           "1": {
-            "title": "Services & capacity",
-            "description": "Optional managed dispatch capacity, onboarding, and customer success services layered on the software subscription where contracted."
+            "title": "Dedicated programs",
+            "description": "Recurring routes, overflow coverage, named dispatch support, and customer success services layered on capacity programs where contracted."
           },
           "2": {
             "title": "Commercial terms",
-            "description": "Tier structure (Growth / Business / Enterprise), volume-based dispatch fees, invoicing, and renewal mechanics tailored to program size."
+            "description": "Quote-based capacity pricing by vehicle class and route, volume commitments for recurring programs, invoicing, and renewal mechanics tailored to program size."
           },
           "3": {
             "title": "Exhibits & SLAs",
@@ -1525,13 +1700,43 @@
       "title": "Construction materials distributor",
       "subtitle": "A regional wholesaler used Porterchain capacity for jobsite deliveries when recurring routes needed overflow support — with tracking and proof their ops team could trust.",
       "cta": "Read success stories",
-      "href": "/success-stories"
+      "href": "/success-stories",
+      "detailCta": "Read the full story",
+      "detailHref": "/success-stories/construction-distributor-jobsite-delivery",
+      "quote": "We needed pallet delivery to sites with proof our GCs would accept. Porterchain made it repeatable.",
+      "quoteRole": "Operations Manager, GTA building supply distributor",
+      "metrics": {
+        "onTime": { "value": "98.7%", "label": "On-time jobsite delivery" },
+        "cost": { "value": "−22%", "label": "Per-drop logistics cost" },
+        "volume": { "value": "40+", "label": "Weekly jobsite drops" }
+      }
     },
     "cta": {
+      "badge": "Your lanes",
       "title": "See Porterchain on your lanes",
       "subtitle": "Share your shipments, vehicle needs, and service areas. We'll map the right capacity program.",
       "primary": "Get a quote",
-      "secondary": "View pricing"
+      "secondary": "View pricing",
+      "lanes": {
+        "0": "GTA corridors",
+        "1": "Peel & Toronto",
+        "2": "Ontario metros"
+      },
+      "panel": {
+        "label": "What we map for you",
+        "shipments": {
+          "title": "Shipment profile",
+          "description": "Urgency, proof requirements, and pickup windows for each lane."
+        },
+        "vehicles": {
+          "title": "Vehicle fit",
+          "description": "Sedan through box truck capacity matched to load and site access."
+        },
+        "areas": {
+          "title": "Service areas",
+          "description": "Corridor coverage across GTA and Ontario metros where you ship today."
+        }
+      }
     }
   },
   "enterprise": {

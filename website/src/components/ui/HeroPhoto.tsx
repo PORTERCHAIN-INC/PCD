@@ -7,9 +7,16 @@ type Props = {
   className?: string;
   aspect?: "wide" | "cinematic" | "card";
   priority?: boolean;
+  sizes?: string;
 };
 
-export default function HeroPhoto({ image, className, aspect = "wide", priority = false }: Props) {
+export default function HeroPhoto({
+  image,
+  className,
+  aspect = "wide",
+  priority = false,
+  sizes,
+}: Props) {
   const aspectClass = {
     wide: "aspect-[21/9] sm:aspect-[2.35/1]",
     cinematic: "aspect-[16/9]",
@@ -28,7 +35,7 @@ export default function HeroPhoto({ image, className, aspect = "wide", priority 
         image={image}
         fill
         className="object-cover"
-        sizes="(max-width: 768px) 100vw, 80vw"
+        sizes={sizes ?? "(max-width: 768px) 100vw, 80vw"}
         priority={priority}
       />
       <div

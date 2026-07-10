@@ -3,7 +3,7 @@
 **Type:** CANONICAL (execution — website & GTM only)  
 **Parent SSOT:** [PORTERCHAIN_CHARTER.md](./PORTERCHAIN_CHARTER.md) — company identity, product gate, review standard  
 **Style:** Martin Fowler — bounded contexts, ubiquitous language, evolutionary delivery  
-**Last updated:** 2026-07-09 (charter final · Waves 1–2 shipped · `4a0a008`)  
+**Last updated:** 2026-07-09 (Waves 1–2 shipped · W2.8b/W2.12 · `4a0a008`+)  
 **Audience:** Founders, product, marketing, engineering (website only)  
 **Cross-refs:** [WEBSITE_SEO_STRATEGY.md](./WEBSITE_SEO_STRATEGY.md) · [ICP.md](./ICP.md) · [SILICON_VALLEY_READINESS_CHECKLIST.md](./SILICON_VALLEY_READINESS_CHECKLIST.md) · [PRIORITY_TODOS.md](./PRIORITY_TODOS.md)
 
@@ -86,43 +86,40 @@ Ops manager / owner at Ontario B2B shipper who already has vehicles and drivers 
 | Guards (`verify_product_vision_pages.py`)                                        | ✅ Capacity-first              |
 | Build                                                                            | ✅ ~773 routes                 |
 
-### Wave 2 — Network reframe ✅ shipped (W2.8/W2.12 partial)
+### Wave 2 — Network reframe ✅ shipped
 
-| Area                                                                 | Status                                                                 |
-| -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `/platform` → how network runs delivery (EN/FR)                      | ✅                                                                     |
-| `/company`, `/customers`, `/enterprise`, `/solutions`, `/developers` | ✅ Capacity-first copy EN/FR                                           |
-| `/business` fleet grid **above fold** (directly under hero)          | ✅                                                                     |
-| Legal intros (`legal-en.json`, `legal-fr.json`)                      | ✅ Delivery services first                                             |
-| Company FAQ: vs own driver / vs ad-hoc courier                       | ✅                                                                     |
-| Trust hub + exhibits (`/trust`, DPA, MSA, SLA, subprocessors)        | ✅ Pages live; footer/resources nav only                               |
-| Trust exhibit **body copy** (DPA/MSA/subprocessors)                  | ⚠️ Still references “dispatch OS subscription” — procurement tone only |
-| SEO views + `internal-linking.ts`                                    | ✅ Quote + fleet bridge; no “Explore dispatch OS”                      |
-| `schema.ts` / `config.ts` / site metadata                            | ✅ Capacity network language                                           |
-| Vehicle name alignment with ops                                      | ⚠️ e.g. “High Roof Van” vs “Sprinter Van” — W2.12 open                 |
+| Area                                                                 | Status                       |
+| -------------------------------------------------------------------- | ---------------------------- |
+| `/platform` → how network runs delivery (EN/FR)                      | ✅                           |
+| `/company`, `/customers`, `/enterprise`, `/solutions`, `/developers` | ✅ Capacity-first copy EN/FR |
+| `/business` fleet grid **above fold** (directly under hero)          | ✅                           |
+| Legal intros (`legal-en.json`, `legal-fr.json`)                      | ✅ Delivery services first   |
+| Company FAQ: vs own driver / vs ad-hoc courier                       | ✅                           |
+| Trust hub + exhibits — COI-first copy (EN/FR)                        | ✅ W2.8b                     |
+| Trust nav demotion (footer/resources only)                           | ✅                           |
+| Vehicle SKU naming (`Sprinter Van` = ops `sprinter_van`)             | ✅ W2.12                     |
+| SEO views + `internal-linking.ts`                                    | ✅ Quote + fleet bridge      |
+| `schema.ts` / `config.ts` / site metadata                            | ✅ Capacity network language |
 
-**Wave 2 exit gate (engineering):** ✅ No customer Lane A page sells uninvoicable software · Platform/Developers not in top nav · guards green.
+**Wave 2 exit gate (engineering):** ✅ Pass — guards green, no Dispatch OS on Lane A or trust exhibits.
 
-**Wave 2 exit gate (human):** Run 15-second test with 3 ICP personas post-deploy; trust exhibit copy refresh optional before enterprise procurement.
+**Wave 2 exit gate (human):** Run 15-second test with 3 ICP personas post-deploy.
 
 ### Remaining repositioning debt (Wave 3+)
 
-| Area                                                           | Status                                    |
-| -------------------------------------------------------------- | ----------------------------------------- |
-| Lane B bulk body copy (~700 URLs in `en.json`/`fr.json`)       | ⚠️ Not bulk-rewritten                     |
-| Trust DPA/MSA/subprocessor exhibit copy                        | ⚠️ W2.8 body — footer-only is done        |
-| `ICP.md` sync to charter                                       | ⚠️ G0.1 open                              |
-| `WEBSITE_SEO_STRATEGY.md`                                      | ⚠️ Partially updated; full G0.1 sync open |
-| Blog case study (`case-study-construction-distributor-gta.md`) | ⚠️ Still mentions “dispatch OS”           |
-| Vehicle SKU naming vs ops                                      | ⚠️ W2.12 open                             |
+| Area                                                     | Status                                  |
+| -------------------------------------------------------- | --------------------------------------- |
+| Lane B bulk body copy (~700 URLs in `en.json`/`fr.json`) | ⚠️ Not bulk-rewritten                   |
+| `WEBSITE_SEO_STRATEGY.md` full sync                      | ⚠️ G0.1 partial (`ICP.md` ✅)           |
+| Blog/case studies — capacity language pass               | ⚠️ Partial (construction case study ✅) |
 
 ### What's next — execution waves
 
-| Wave                          | ID  | Scope                                                                       | Priority        |
-| ----------------------------- | --- | --------------------------------------------------------------------------- | --------------- |
-| **Wave 2 — Network reframe**  | W2  | Trust exhibit copy + vehicle name alignment                                 | **P1 — finish** |
-| **Wave 3 — SEO + governance** | W3  | Lane B bulk copy, `ICP.md`, `WEBSITE_SEO_STRATEGY.md`, blog, checklist §1.1 | **P2 — next**   |
-| **Deferred (Series A)**       | —   | Status page, investor facts sheet, portal picker, dashboard demo            | After first 100 |
+| Wave                          | ID  | Scope                                                                  | Priority        |
+| ----------------------------- | --- | ---------------------------------------------------------------------- | --------------- |
+| **Wave 2 — Network reframe**  | W2  | Complete — trust copy + vehicle names shipped                          | **Done**        |
+| **Wave 3 — SEO + governance** | W3  | Lane B bulk copy, `WEBSITE_SEO_STRATEGY.md`, blog pass, checklist §1.1 | **P2 — next**   |
+| **Deferred (Series A)**       | —   | Status page, investor facts sheet, portal picker, dashboard demo       | After first 100 |
 
 **Guards (run before deploy):**
 
@@ -347,7 +344,7 @@ _Terminology: **Company Phase** = 1–4 evolution. **Execution Wave** = website 
 ### Phase 0 — Governance (Week 0)
 
 - [x] **G0.0** Rewrite this doc SSOT for Phase 1 capacity platform (2026-07-09)
-- [ ] **G0.1** Sync [ICP.md](./ICP.md) + [WEBSITE_SEO_STRATEGY.md](./WEBSITE_SEO_STRATEGY.md) + masterrule §21 to capacity positioning
+- [ ] **G0.1** Sync [WEBSITE_SEO_STRATEGY.md](./WEBSITE_SEO_STRATEGY.md) + masterrule §21 to capacity positioning — [ICP.md](./ICP.md) ✅ synced 2026-07-09
 - [ ] **G0.2** Assign DRI: Lane A (capacity GTM) vs Lane B (SEO)
 - [x] **G0.3** Update `verify_product_vision_pages.py` to enforce Capacity language (block Dispatch OS hero, require quote CTA) — shipped `4a0a008`
 
@@ -382,11 +379,11 @@ _Terminology: **Company Phase** = 1–4 evolution. **Execution Wave** = website 
 - [x] **W2.6** `/company`: mission = reduce friction moving goods; vision footnote Phases 1→4
 - [x] **W2.7** Legal intros (`legal-en.json` / `legal-fr.json`): commercial delivery services first
 - [x] **W2.8a** Trust pages: DPA/MSA/SLA live; **removed from primary nav** (footer + Resources dropdown)
-- [ ] **W2.8b** Trust hub + exhibit copy: lead with COI + delivery commitments; reframe DPA/MSA/subprocessor body away from “dispatch OS subscription”
+- [x] **W2.8b** Trust hub + exhibit copy: COI-first hero; capacity-program framing on DPA/MSA/subprocessors/SLA (EN/FR)
 - [x] **W2.9** `CapacityBridgeSection` (was `PlatformBridgeSection`): quote CTA, not demo/platform
 - [x] **W2.10** JSON-LD: `DeliveryService` on home; remove `SoftwareApplication` from homepage layout
 - [x] **W2.11** Add FAQ: PorterChain vs own employee / vs ad-hoc courier
-- [ ] **W2.12** Align vehicle names with ops (e.g. Sprinter Van vs High Roof Van)
+- [x] **W2.12** Align vehicle names with ops (`Sprinter Van` customer-facing = `sprinter_van` in API/pricing)
 
 **Wave 2 exit gate:** No page sells uninvoicable software · platform/developers unreachable from top nav
 
@@ -428,22 +425,22 @@ _Items marked [x] shipped **Dispatch OS GTM** — superseded by Waves 1–3 abov
 
 ## Part 7 — Page-by-page action matrix
 
-| Page                      | Was (pre-W1)                  | Target action                            | Wave | Status (`4a0a008`)    |
-| ------------------------- | ----------------------------- | ---------------------------------------- | ---- | --------------------- |
-| `/`                       | Dispatch OS hero; no vehicles | Capacity partner hero + pain + quote CTA | W1   | ✅                    |
-| `/business`               | OS hero; fleet below fold     | Capacity hero; fleet above fold          | W2   | ✅                    |
-| `/pricing`                | Fake SaaS tiers               | Vehicle/zone/route bands                 | W1   | ✅                    |
-| `/platform`               | Sells uninvoicable software   | How we run your delivery                 | W2   | ✅                    |
-| `/developers`             | Top nav; API as product       | Footer; integrations by request          | W2   | ✅                    |
-| `/enterprise`             | Procurement theater           | Dedicated capacity programs              | W2   | ✅                    |
-| `/customers`              | “Dispatch OS” social proof    | Delivery outcome stories                 | W2   | ✅                    |
-| `/company`                | OS mission                    | Mission + phased vision                  | W2   | ✅                    |
-| `/contact`                | `intent=demo` default         | `intent=quote` default                   | W1   | ✅                    |
-| `/trust/*`                | Front-door enterprise GTM     | Footer only; COI-first hub               | W2   | ⚠️ Nav ✅; body W2.8b |
-| `/industry/*`, city pages | Bridge to platform/demo       | Bridge to quote + fleet                  | W2   | ✅                    |
-| Legal                     | Software-first intro          | Delivery services first                  | W2   | ✅                    |
-| Nav/footer                | Platform, Developers, demo    | Services, quote, demoted ops links       | W1   | ✅                    |
-| Lane B SEO templates      | Dispatch OS body copy         | Capacity language at scale               | W3   | ⚠️ Open               |
+| Page                      | Was (pre-W1)                  | Target action                            | Wave | Status (`4a0a008`) |
+| ------------------------- | ----------------------------- | ---------------------------------------- | ---- | ------------------ |
+| `/`                       | Dispatch OS hero; no vehicles | Capacity partner hero + pain + quote CTA | W1   | ✅                 |
+| `/business`               | OS hero; fleet below fold     | Capacity hero; fleet above fold          | W2   | ✅                 |
+| `/pricing`                | Fake SaaS tiers               | Vehicle/zone/route bands                 | W1   | ✅                 |
+| `/platform`               | Sells uninvoicable software   | How we run your delivery                 | W2   | ✅                 |
+| `/developers`             | Top nav; API as product       | Footer; integrations by request          | W2   | ✅                 |
+| `/enterprise`             | Procurement theater           | Dedicated capacity programs              | W2   | ✅                 |
+| `/customers`              | “Dispatch OS” social proof    | Delivery outcome stories                 | W2   | ✅                 |
+| `/company`                | OS mission                    | Mission + phased vision                  | W2   | ✅                 |
+| `/contact`                | `intent=demo` default         | `intent=quote` default                   | W1   | ✅                 |
+| `/trust/*`                | Front-door enterprise GTM     | Footer only; COI-first hub               | W2   | ✅                 |
+| `/industry/*`, city pages | Bridge to platform/demo       | Bridge to quote + fleet                  | W2   | ✅                 |
+| Legal                     | Software-first intro          | Delivery services first                  | W2   | ✅                 |
+| Nav/footer                | Platform, Developers, demo    | Services, quote, demoted ops links       | W1   | ✅                 |
+| Lane B SEO templates      | Dispatch OS body copy         | Capacity language at scale               | W3   | ⚠️ Open            |
 
 ---
 
@@ -577,7 +574,7 @@ _Investor metrics (`/platform` organic, enterprise inbound “software”) — t
 | **[PORTERCHAIN_CHARTER.md](./PORTERCHAIN_CHARTER.md)**                           | **Parent SSOT** — identity, mission, product gate, moat, review standard |
 | **This file**                                                                    | Website/GTM execution — waves, checklists; must align with charter       |
 | [WEBSITE_SEO_STRATEGY.md](./WEBSITE_SEO_STRATEGY.md)                             | Technical SEO — **update in G0.1** (schema, bridge, keywords)            |
-| [ICP.md](./ICP.md)                                                               | First-100-customer ICP — overflow/backup pain; not dispatch SaaS buyer   |
+| [ICP.md](./ICP.md)                                                               | First-100-customer ICP — overflow/backup capacity; synced to charter ✅  |
 | [SILICON_VALLEY_READINESS_CHECKLIST.md](./SILICON_VALLEY_READINESS_CHECKLIST.md) | Investor readiness — **defer** until customer gate                       |
 
 ## Appendix C — Key implementation files

@@ -7,7 +7,7 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-/** Legacy quote funnel → on-site pricing. */
+/** portal-book-redirect — legacy quote funnel → on-site pricing. */
 export default async function QuoteRedirectPage({ params }: Props) {
   const { locale } = await params;
   redirect(`/${locale as Locale}/pricing`);

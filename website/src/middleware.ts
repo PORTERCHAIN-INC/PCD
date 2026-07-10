@@ -1,17 +1,11 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import createMiddleware from "next-intl/middleware";
-import type { NextRequest } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { isClerkClientShellPath } from "./lib/clerk-shell";
 import { routing } from "./i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
-
-const isPublicRoute = createRouteMatcher([
-  "/:locale/login(.*)",
-  "/login(.*)",
-  "/:locale/book/success(.*)",
-  "/book/success(.*)",
-]);
 
 function isClerkConfigured(): boolean {
   return Boolean(
@@ -36,9 +30,19 @@ function handleRequest(req: NextRequest) {
   return intlMiddleware(req);
 }
 
-export default isClerkConfigured()
-  ? clerkMiddleware(async (_auth, req) => handleRequest(req))
-  : handleRequest;
+const clerkHandler = clerkMiddleware(async (_auth, req) => handleRequest(req));
+
+export default function middleware(req: NextRequest, event: NextFetchEvent) {
+  if (!isClerkConfigured()) {
+    return handleRequest(req);
+  }
+
+  if (!isClerkClientShellPath(req.nextUrl.pathname)) {
+    return handleRequest(req);
+  }
+
+  return clerkHandler(req, event);
+}
 
 export const config = {
   matcher: [

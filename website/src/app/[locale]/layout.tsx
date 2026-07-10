@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
@@ -8,9 +8,8 @@ import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { publicEnv } from "@/lib/env";
 import AppClerkProvider from "@/components/providers/AppClerkProvider";
-import ZohoSalesIQ from "@/components/integrations/ZohoSalesIQ";
+import DeferredSiteIntegrations from "@/components/integrations/DeferredSiteIntegrations";
 import AttributionCapture from "@/components/seo/AttributionCapture";
-import GoogleAnalytics from "@/components/seo/GoogleAnalytics";
 import { JsonLd } from "@/components/seo";
 import { siteConfig } from "@/lib/seo/config";
 import { buildOrganizationSchema } from "@/lib/seo/schema";
@@ -25,6 +24,13 @@ const inter = Inter({
 type Props = {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0a1628",
 };
 
 export function generateStaticParams() {
@@ -82,12 +88,11 @@ export default async function LocaleLayout({ children, params }: Props) {
         <JsonLd data={buildOrganizationSchema()} />
         <AppClerkProvider>
           <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
-          <ZohoSalesIQ />
-          <GoogleAnalytics />
-          <Suspense fallback={null}>
-            <AttributionCapture />
-          </Suspense>
         </AppClerkProvider>
+        <DeferredSiteIntegrations />
+        <Suspense fallback={null}>
+          <AttributionCapture />
+        </Suspense>
       </body>
     </html>
   );

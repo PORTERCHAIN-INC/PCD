@@ -49,22 +49,22 @@
       "ogDescription": "Documentation API canonique avec OpenAPI en direct comme source de vérité."
     },
     "trust": {
-      "title": "Confiance et sécurité | Porterchain",
-      "description": "Pratiques de sécurité, conformité, sous-traitants et engagements SLA pour les équipes logistiques d'entreprise.",
+      "title": "Confiance et assurance | Porterchain",
+      "description": "Assurance, engagements de livraison, COI et documentation sécurité pour les expéditeurs d'affaires en Ontario — annexes d'approvisionnement sur demande.",
       "ogTitle": "Centre de confiance Porterchain",
-      "ogDescription": "Comment Porterchain protège les données marchandes et documente les engagements de service."
+      "ogDescription": "Assurance commerciale, standards de preuve de livraison, escalade opérationnelle et documentation pour les programmes de capacité."
     },
     "subprocessors": {
       "title": "Sous-traitants | Confiance Porterchain",
-      "description": "Sous-traitants actuels utilisés pour exploiter le système de répartition, le portail marchand, les paiements, communications, analyses et infrastructure.",
+      "description": "Sous-traitants actuels utilisés pour exploiter le réseau de capacité de transport, le portail marchand, les paiements, communications, analyses et infrastructure.",
       "ogTitle": "Sous-traitants Porterchain",
       "ogDescription": "Liste fournisseurs et rôles de traitement pour la revue d'approvisionnement entreprise."
     },
     "sla": {
       "title": "Annexe SLA | Confiance Porterchain",
-      "description": "Bandes de niveau de service, délais de support, crédits et chemins d'escalade pour les programmes Business et Enterprise.",
+      "description": "Bandes de niveau de service, délais de support, crédits et escalade pour les programmes de capacité dédiés et routes récurrentes.",
       "ogTitle": "Résumé SLA Porterchain",
-      "ogDescription": "Engagements de service entreprise pour disponibilité plateforme, support et escalade opérationnelle."
+      "ogDescription": "Engagements de livraison et d'opérations pour les programmes de capacité récurrents — disponibilité, support et escalade."
     },
     "dpa": {
       "title": "Addendum de traitement des données | Confiance Porterchain",
@@ -74,9 +74,9 @@
     },
     "msa": {
       "title": "Entente-cadre de services | Confiance Porterchain",
-      "description": "Résumé du cadre d'abonnement plateforme et services pour l'approvisionnement entreprise.",
+      "description": "Cadre commercial pour les programmes de capacité de transport, services de livraison dédiés et approvisionnement entreprise.",
       "ogTitle": "Résumé MSA Porterchain",
-      "ogDescription": "Cadre commercial pour l'abonnement au système de répartition et programmes entreprise."
+      "ogDescription": "Cadre commercial pour programmes de capacité, intégrations optionnelles et services de livraison dédiés."
     },
     "customers": {
       "title": "Clients | Porterchain",
@@ -106,28 +106,82 @@
     "company": "Entreprise",
     "resources": "Ressources",
     "solutionsMenu": {
-      "overview": "Toutes les solutions",
-      "wholesale": "Distribution en gros",
-      "medical": "Médical et santé",
-      "foodBeverage": "Alimentation",
-      "construction": "Construction",
-      "industries": "Toutes les industries",
-      "serviceAreas": "Zones desservies"
+      "overview": {
+        "label": "Toutes les solutions",
+        "description": "Programmes de capacité par industrie et cas d'usage en Ontario."
+      },
+      "wholesale": {
+        "label": "Distribution en gros",
+        "description": "Routes récurrentes en fourgon et camion pour distributeurs industriels et B2B."
+      },
+      "medical": {
+        "label": "Médical et santé",
+        "description": "Pharmacie, laboratoire et patients — preuve de chaîne de possession à chaque arrêt."
+      },
+      "foodBeverage": {
+        "label": "Alimentation",
+        "description": "Alimentation en gros, torréfacteurs et distributeurs — capacité planifiée ou le jour même."
+      },
+      "construction": {
+        "label": "Construction",
+        "description": "Livraison chantier, palettes et débordement quand votre flotte est à pleine capacité."
+      },
+      "industries": {
+        "label": "Toutes les industries",
+        "description": "Parcourir par secteur — construction, pharmacie, fabrication et plus."
+      },
+      "serviceAreas": {
+        "label": "Zones desservies",
+        "description": "RGT et métropoles ontariennes — le jour même, planifié et récurrent."
+      }
     },
     "companyMenu": {
-      "about": "À propos",
-      "careers": "Carrières",
-      "contact": "Contact",
-      "vehiclePartner": "Partenaires véhicule"
+      "about": {
+        "label": "À propos",
+        "description": "Mission, équipe et fonctionnement du réseau de capacité Porterchain."
+      },
+      "careers": {
+        "label": "Carrières",
+        "description": "Ingénierie, opérations et croissance — télétravail possible."
+      },
+      "contact": {
+        "label": "Contact",
+        "description": "Demander de la capacité, joindre la répartition ou l'équipe commerciale."
+      },
+      "vehiclePartner": {
+        "label": "Partenaires véhicule",
+        "description": "Rejoindre le réseau de conducteurs professionnels et véhicules commerciaux."
+      }
     },
     "resourcesMenu": {
-      "developers": "Développeurs",
-      "platform": "Comment nous opérons",
-      "blog": "Blogue",
-      "faq": "FAQ",
-      "guides": "Guides",
-      "track": "Suivre un envoi",
-      "howItWorks": "Comment ça fonctionne"
+      "developers": {
+        "label": "Développeurs",
+        "description": "Référence API, webhooks et documentation d'intégration partenaire."
+      },
+      "platform": {
+        "label": "Comment nous opérons",
+        "description": "Répartition, suivi, preuve et facturation derrière chaque livraison."
+      },
+      "blog": {
+        "label": "Blogue",
+        "description": "Capacité, opérations et perspectives sectorielles pour expéditeurs ontariens."
+      },
+      "faq": {
+        "label": "FAQ",
+        "description": "Quand utiliser Porterchain plutôt que votre propre flotte — réponses directes."
+      },
+      "guides": {
+        "label": "Guides",
+        "description": "Devis, répartition et preuve de livraison — le parcours complet."
+      },
+      "track": {
+        "label": "Suivre un envoi",
+        "description": "Statut en direct par numéro de suivi — sans connexion."
+      },
+      "howItWorks": {
+        "label": "Comment ça fonctionne",
+        "description": "Devis → répartition → suivi → preuve → facture en une boucle."
+      }
     },
     "careers": "Carrières",
     "blog": "Blogue",
@@ -195,13 +249,125 @@
   },
   "home": {
     "hero": {
-      "badge": "Partenaire de capacité de transport",
-      "title": "Capacité pour votre entreprise quand la logistique ne peut pas ralentir",
-      "subtitle": "Chauffeur absent? Fourgon en panne? Commande urgente? Porterchain fournit chauffeurs professionnels et véhicules — de la berline au camion cube — en Ontario, avec suivi en direct et preuve de livraison.",
+      "badge": "Capacité de transport",
+      "title": "Capacité de transport. Dès que votre entreprise en a besoin.",
+      "subtitle": "Chauffeurs professionnels et véhicules en Ontario — orchestration de capacité de transport sur une plateforme.",
       "primaryCta": "Obtenir un devis",
       "secondaryCta": "Voir les véhicules",
       "bookDeliveryCta": "Réserver une livraison",
       "trackCta": "Suivre un envoi"
+    },
+    "story": {
+      "problems": {
+        "label": "Problèmes",
+        "title": "Quand la logistique devient le goulot",
+        "cta": "Obtenir un devis",
+        "items": {
+          "0": "Livraison urgente",
+          "1": "Débordement de flotte",
+          "2": "Distribution planifiée",
+          "3": "Transport commercial",
+          "4": "Logistique construction",
+          "5": "Transport pharmacie",
+          "6": "Transport laboratoire"
+        }
+      },
+      "flow": {
+        "label": "Comment ça marche",
+        "title": "De la demande à la preuve",
+        "subtitle": "Votre entreprise demande de la capacité. Notre plateforme coordonne le réseau. Vous obtenez la preuve.",
+        "steps": {
+          "business": {
+            "title": "Votre entreprise",
+            "description": "Demandez capacité véhicule et chauffeur."
+          },
+          "platform": {
+            "title": "Plateforme Porterchain",
+            "description": "Répartition, suivi et preuve."
+          },
+          "network": {
+            "title": "Réseau de transport",
+            "description": "Chauffeurs professionnels et véhicules."
+          },
+          "complete": {
+            "title": "Livraison terminée",
+            "description": "Photo, signature, GPS et historique."
+          }
+        }
+      },
+      "fleet": {
+        "label": "Réseau",
+        "title": "Le bon véhicule pour chaque envoi",
+        "subtitle": "De la berline au camion cube — adapté à votre charge.",
+        "cta": "Voir toute la flotte"
+      },
+      "platform": {
+        "label": "Plateforme",
+        "title": "Le logiciel derrière chaque livraison",
+        "subtitle": "Vous achetez de la capacité. Voici ce qui l'exécute.",
+        "cta": "Explorer la plateforme",
+        "items": {
+          "portal": {
+            "title": "Portail marchand",
+            "description": "Commandes, routes et visibilité équipe."
+          },
+          "tracking": {
+            "title": "Suivi en direct",
+            "description": "Statut et ETA pour chaque envoi."
+          },
+          "dispatch": {
+            "title": "Répartition",
+            "description": "Assignation structurée et exceptions."
+          },
+          "pod": {
+            "title": "Preuve de livraison",
+            "description": "Photo, signature et GPS à chaque arrêt."
+          },
+          "billing": {
+            "title": "Facturation",
+            "description": "Factures liées aux livraisons complétées."
+          },
+          "analytics": {
+            "title": "Analytique",
+            "description": "Performance par corridor et programme."
+          }
+        }
+      },
+      "industries": {
+        "label": "Industries",
+        "title": "Conçu pour les opérations qui ne s'arrêtent pas",
+        "cta": "Toutes les industries",
+        "viewAll": "Voir tout"
+      },
+      "enterprise": {
+        "label": "Entreprise",
+        "title": "Prêt quand votre programme grandit",
+        "subtitle": "Sécurité, conformité et intégrations pour les gros expéditeurs.",
+        "items": {
+          "api": "API",
+          "security": "Sécurité",
+          "compliance": "Conformité",
+          "integrations": "Intégrations",
+          "docs": "Documentation"
+        }
+      },
+      "ai": {
+        "label": "La suite",
+        "title": "Itinéraires conçus par IA dans le RGT",
+        "subtitle": "Arrêts séquencés pour moins de kilomètres — corridors Toronto, Peel, York et Durham appris sur de vraies livraisons.",
+        "body": "Porterchain apprend des livraisons réelles dans le RGT : corridors, standards de preuve et historique d'exceptions. Les routes sont planifiées avec l'IA à partir de ces données — pour des ETA plus fiables, sans argument logiciel séparé.",
+        "note": "Aujourd'hui vous achetez de la capacité de transport. Demain le réseau s'affine. Nous livrons l'intelligence quand elle mérite confiance.",
+        "aiBadge": "Conception IA",
+        "regionBadge": "Grand Toronto (RGT)",
+        "statsLabel": "14 arrêts → 1 tournée optimisée · moins de km entre Mississauga, Brampton et Toronto",
+        "imageAlt": "Itinéraire de livraison optimisé dans le Grand Toronto — Toronto, Mississauga, Brampton, Vaughan, Markham et Scarborough",
+        "imageCaption": "Optimisation RGT"
+      },
+      "cta": {
+        "title": "Obtenez de la capacité sur vos corridors",
+        "subtitle": "Partagez vos expéditions et zones de service. Nous mapperons le bon véhicule et enverrons un devis.",
+        "primary": "Obtenir un devis"
+      }
     },
     "logos": { "label": "Approuvé par des équipes opérationnelles en Ontario" },
     "stats": {
@@ -270,7 +436,15 @@
       "title": "La technologie opère en arrière-plan",
       "subtitle": "Portail marchand, app chauffeur, tour de contrôle, suivi, preuve de livraison, facturation, routes et partenaires rendent le service fiable.",
       "primary": "Comment ça fonctionne",
-      "href": "/guides/how-porterchain-works"
+      "href": "/guides/how-porterchain-works",
+      "capabilities": {
+        "portal": "Portail marchand",
+        "driver": "App chauffeur",
+        "tower": "Tour de contrôle",
+        "tracking": "Suivi en direct",
+        "pod": "Preuve de livraison",
+        "billing": "Facturation"
+      }
     },
     "caseStudy": {
       "label": "Clients",
@@ -797,7 +971,8 @@
       "responseLabel": "Réponse moyenne :",
       "responseTime": "< 1 jour ouvrable",
       "successTitle": "Message envoyé",
-      "successMessage": "Merci. Un membre de notre équipe répondra sous un jour ouvrable."
+      "successMessage": "Merci. Un membre de notre équipe répondra sous un jour ouvrable.",
+      "errorMessage": "Impossible d'envoyer votre message. Réessayez ou écrivez-nous directement."
     },
     "departments": {
       "label": "Lignes directes",
@@ -1242,16 +1417,16 @@
   },
   "trust": {
     "hero": {
-      "badge": "Confiance et sécurité",
-      "title": "Sécurité et conformité pour les équipes de répartition",
-      "subtitle": "Documentation pour l'approvisionnement, la revue de sécurité et la diligence opérationnelle.",
-      "primaryCta": "Contacter la sécurité",
+      "badge": "Confiance et assurance",
+      "title": "Assurance, engagements de livraison et exécution responsable",
+      "subtitle": "Certificat d'assurance, standards de preuve de livraison et escalade opérationnelle pour les programmes de capacité en Ontario — plus documentation sécurité et approvisionnement sur demande.",
+      "primaryCta": "Demander un COI",
       "secondaryCta": "Résumé SLA"
     },
     "summary": {
       "label": "Aperçu",
-      "title": "Comment nous protégeons les opérations marchandes",
-      "subtitle": "Porterchain est un logiciel d'orchestration pour expéditeurs B2B régionaux. Cette page résume notre posture de sécurité."
+      "title": "Comment nous protégeons vos expéditions et votre entreprise",
+      "subtitle": "Porterchain exécute de la capacité de transport pour les expéditeurs B2B ontariens. Cette page résume l'assurance, les engagements de livraison et comment demander la documentation sécurité ou approvisionnement."
     },
     "features": {
       "label": "Programme",
@@ -1301,7 +1476,7 @@
         },
         "1": {
           "title": "Entente-cadre de services (MSA)",
-          "description": "Cadre d'abonnement plateforme et services pour l'approvisionnement entreprise.",
+          "description": "Cadre commercial pour programmes de capacité, services de livraison dédiés et approvisionnement entreprise.",
           "href": "/trust/msa"
         },
         "2": {
@@ -1320,7 +1495,7 @@
       "hero": {
         "badge": "Sous-traitants",
         "title": "Transparence fournisseur pour l'approvisionnement",
-        "subtitle": "Porterchain utilise un ensemble ciblé de sous-traitants pour exploiter le système de répartition, le portail marchand, les paiements, les communications et l'infrastructure."
+        "subtitle": "Porterchain utilise un ensemble ciblé de sous-traitants pour exploiter le réseau de capacité de transport, le portail marchand, les paiements, les communications et l'infrastructure."
       },
       "list": {
         "label": "Fournisseurs actuels",
@@ -1372,7 +1547,7 @@
         "items": {
           "0": {
             "title": "Disponibilité plateforme",
-            "description": "Cible de disponibilité mensuelle de 99,5 % pour le système de répartition et le portail marchand, hors maintenance planifiée communiquée à l'avance."
+            "description": "Cible de disponibilité mensuelle de 99,5 % pour les outils de coordination opérationnelle et le portail marchand, hors maintenance planifiée communiquée à l'avance."
           },
           "1": {
             "title": "Réponse support",
@@ -1403,7 +1578,7 @@
       "hero": {
         "badge": "DPA",
         "title": "Résumé de l'addendum de traitement des données",
-        "subtitle": "Conditions de traitement alignées sur la LPRPDE pour les renseignements traités via le système de répartition."
+        "subtitle": "Conditions de traitement alignées sur la LPRPDE pour les renseignements traités via les programmes de capacité et systèmes opérationnels Porterchain."
       },
       "sections": {
         "label": "Couverture",
@@ -1443,7 +1618,7 @@
       "hero": {
         "badge": "MSA",
         "title": "Résumé de l'entente-cadre de services",
-        "subtitle": "Cadre commercial pour l'abonnement au système de répartition, l'implémentation et la capacité gérée optionnelle."
+        "subtitle": "Cadre commercial pour les programmes de capacité de transport, services d'intégration et intégrations optionnelles pour expéditeurs à fort volume."
       },
       "sections": {
         "label": "Cadre",
@@ -1451,16 +1626,16 @@
         "subtitle": "Les MSA exécutées sont signées lors de l'approvisionnement entreprise. Ce résumé aide les équipes juridiques et opérations.",
         "items": {
           "0": {
-            "title": "Abonnement plateforme",
-            "description": "Droits d'utilisation du système de répartition, portail marchand, API et intégrations standard."
+            "title": "Services de capacité",
+            "description": "Droits aux programmes de capacité de transport contractés, coordination d'expédition, accès portail marchand et intégrations standard."
           },
           "1": {
-            "title": "Services et capacité",
-            "description": "Capacité de répartition gérée optionnelle, intégration et succès client au-dessus de l'abonnement logiciel."
+            "title": "Programmes dédiés",
+            "description": "Routes récurrentes, couverture débordement, support répartition nommé et succès client pour les programmes de capacité contractés."
           },
           "2": {
             "title": "Conditions commerciales",
-            "description": "Paliers Growth / Business / Enterprise, frais de volume, facturation et renouvellement."
+            "description": "Tarification de capacité par devis selon classe de véhicule et route, engagements de volume pour programmes récurrents, facturation et renouvellement."
           },
           "3": {
             "title": "Annexes et SLA",
@@ -1511,13 +1686,43 @@
       "title": "Distributeur de matériaux de construction",
       "subtitle": "Un grossiste régional a utilisé la capacité Porterchain pour les livraisons chantier quand les routes récurrentes avaient besoin de débordement — avec suivi et preuve fiables pour son équipe ops.",
       "cta": "Lire les histoires de réussite",
-      "href": "/success-stories"
+      "href": "/success-stories",
+      "detailCta": "Lire l'histoire complète",
+      "detailHref": "/success-stories/construction-distributor-jobsite-delivery",
+      "quote": "Nous avions besoin de livraisons palette sur chantier avec une preuve acceptée par nos entrepreneurs généraux. Porterchain a rendu ça reproductible.",
+      "quoteRole": "Responsable des opérations, distributeur de matériaux GTA",
+      "metrics": {
+        "onTime": { "value": "98,7 %", "label": "Livraisons chantier à l'heure" },
+        "cost": { "value": "−22 %", "label": "Coût logistique par livraison" },
+        "volume": { "value": "40+", "label": "Livraisons chantier par semaine" }
+      }
     },
     "cta": {
+      "badge": "Vos corridors",
       "title": "Voir Porterchain sur vos corridors",
       "subtitle": "Partagez vos expéditions, besoins véhicule et zones de service. Nous mapperons le bon programme de capacité.",
       "primary": "Obtenir un devis",
-      "secondary": "Voir la tarification"
+      "secondary": "Voir la tarification",
+      "lanes": {
+        "0": "Corridors RGT",
+        "1": "Peel et Toronto",
+        "2": "Métropoles ontariennes"
+      },
+      "panel": {
+        "label": "Ce que nous cartographions",
+        "shipments": {
+          "title": "Profil d'expédition",
+          "description": "Urgence, exigences de preuve et fenêtres de ramassage pour chaque corridor."
+        },
+        "vehicles": {
+          "title": "Véhicule adapté",
+          "description": "Capacité berline à camion cube selon la charge et l'accès chantier."
+        },
+        "areas": {
+          "title": "Zones de service",
+          "description": "Couverture corridor dans le RGT et les métropoles ontariennes où vous expédiez."
+        }
+      }
     }
   },
   "enterprise": {

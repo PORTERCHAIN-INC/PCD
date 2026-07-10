@@ -1,3 +1,5 @@
+/// <reference types="google.maps" />
+
 export const LIGHT_MAP_STYLE: google.maps.MapTypeStyle[] = [];
 
 export const DARK_MAP_STYLE: google.maps.MapTypeStyle[] = [

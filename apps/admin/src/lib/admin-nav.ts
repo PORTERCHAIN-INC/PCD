@@ -14,6 +14,7 @@ import {
   Settings,
   Shield,
   Truck,
+  UserPlus,
   Zap,
 } from "lucide-react";
 
@@ -68,6 +69,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "commerce",
     label: "Commerce",
     items: [
+      {
+        href: "/leads",
+        label: "Leads",
+        description: "Website inquiries & contact forms",
+        icon: UserPlus,
+      },
       {
         href: "/merchants",
         label: "Merchants",

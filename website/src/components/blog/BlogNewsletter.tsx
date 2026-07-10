@@ -4,15 +4,34 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { submitInquiry } from "@/lib/submit-inquiry";
 
 export default function BlogNewsletter() {
   const t = useTranslations("blog.sidebar");
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setDone(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await submitInquiry({
+        email: email.trim(),
+        source: "website",
+        source_page: "/blog",
+        form: "newsletter",
+        inquiry_type: "newsletter",
+        message: "Newsletter subscription from blog sidebar",
+      });
+      setDone(true);
+    } catch {
+      setError(t("newsletterError"));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -38,13 +57,19 @@ export default function BlogNewsletter() {
           />
           <button
             type="submit"
+            disabled={loading}
             className={cn(
               "w-full py-2.5 rounded-xl bg-secondary text-white text-sm font-semibold",
-              "hover:bg-[#1d4ed8] transition-colors"
+              "hover:bg-[#1d4ed8] transition-colors disabled:opacity-50"
             )}
           >
-            {t("subscribe")}
+            {loading ? t("subscribing") : t("subscribe")}
           </button>
+          {error && (
+            <p className="text-xs text-red-600" role="alert">
+              {error}
+            </p>
+          )}
         </form>
       )}
     </div>

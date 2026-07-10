@@ -65,6 +65,10 @@ class Settings(BaseSettings):
     driver_portal_url: str = "http://localhost:3003"
     customer_portal_url: str = "http://localhost:3004"
     website_url: str = "http://localhost:3000"
+    public_ingest_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("public_ingest_api_key", "PUBLIC_INGEST_API_KEY"),
+    )
 
     stripe_secret: str = ""
     stripe_webhook_secret: str = ""

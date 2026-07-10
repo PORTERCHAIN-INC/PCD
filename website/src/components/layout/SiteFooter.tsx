@@ -8,7 +8,9 @@ import Container from "@/components/ui/Container";
 import { OrganizedFooterLinks } from "@/components/layout/OrganizedFooterLinks";
 import SocialLinks from "@/components/layout/SocialLinks";
 import GoogleBusinessProfileLink from "@/components/integrations/GoogleBusinessProfileLink";
+import PorterchainWordmark from "@/components/brand/PorterchainWordmark";
 import { driverPortalUrl, merchantPortalUrl } from "@/data/portal-links";
+import { submitInquiry } from "@/lib/submit-inquiry";
 import type { FooterSectionId } from "@/data/footer-navigation";
 
 export default function SiteFooter() {
@@ -16,18 +18,37 @@ export default function SiteFooter() {
   const tLegacy = useTranslations("footer");
   const year = new Date().getFullYear();
   const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [newsletterDone, setNewsletterDone] = useState(false);
+  const [newsletterError, setNewsletterError] = useState<string | null>(null);
 
   const getSectionTitle = (section: FooterSectionId) => t(`sections.${section}.title`);
   const getLinkLabel = (section: FooterSectionId, id: string) =>
     t(`sections.${section}.links.${id}`);
 
-  function handleNewsletterSubmit(e: React.FormEvent) {
+  async function handleNewsletterSubmit(e: React.FormEvent) {
     e.preventDefault();
     const email = newsletterEmail.trim();
     if (!email) return;
-    const subject = encodeURIComponent("Newsletter subscription");
-    const body = encodeURIComponent(`Please add me to the Porterchain newsletter:\n\n${email}`);
-    window.location.href = `mailto:ops@porterchain.com?subject=${subject}&body=${body}`;
+
+    setNewsletterLoading(true);
+    setNewsletterError(null);
+    try {
+      await submitInquiry({
+        email,
+        source: "website",
+        source_page: "/footer-newsletter",
+        form: "newsletter",
+        inquiry_type: "newsletter",
+        message: "Newsletter subscription from site footer",
+      });
+      setNewsletterDone(true);
+      setNewsletterEmail("");
+    } catch {
+      setNewsletterError(tLegacy("newsletterError"));
+    } finally {
+      setNewsletterLoading(false);
+    }
   }
 
   return (
@@ -44,25 +65,37 @@ export default function SiteFooter() {
               className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 max-w-md mx-auto sm:mx-0"
               suppressHydrationWarning
             >
-              <div className="flex items-center gap-2 flex-1 sm:w-72 md:w-80 bg-white/10 rounded-xl px-4 py-3.5 min-h-[2.75rem] border border-white/10">
-                <Mail className="w-4 h-4 text-white/40 shrink-0" />
-                <input
-                  type="email"
-                  required
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                  placeholder={tLegacy("emailPlaceholder")}
-                  className="flex-1 min-w-0 bg-transparent type-small text-white placeholder:text-white/40 outline-none"
-                />
-              </div>
-              <button
-                type="submit"
-                className="px-6 py-3.5 min-h-[2.75rem] bg-secondary text-white type-button font-bold rounded-full hover:bg-[#1d4ed8] transition-colors cursor-pointer flex items-center justify-center gap-2 shrink-0"
-              >
-                {tLegacy("subscribe")}
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {newsletterDone ? (
+                <p className="text-sm text-secondary font-medium py-3">{tLegacy("subscribed")}</p>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 flex-1 sm:w-72 md:w-80 bg-white/10 rounded-xl px-4 py-3.5 min-h-[2.75rem] border border-white/10">
+                    <Mail className="w-4 h-4 text-white/40 shrink-0" />
+                    <input
+                      type="email"
+                      required
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
+                      placeholder={tLegacy("emailPlaceholder")}
+                      className="flex-1 min-w-0 bg-transparent type-small text-white placeholder:text-white/40 outline-none"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={newsletterLoading}
+                    className="px-6 py-3.5 min-h-[2.75rem] bg-secondary text-white type-button font-bold rounded-full hover:bg-[#1d4ed8] transition-colors cursor-pointer flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+                  >
+                    {newsletterLoading ? tLegacy("subscribing") : tLegacy("subscribe")}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
             </form>
+            {newsletterError && (
+              <p className="mt-2 text-sm text-red-300 text-center sm:text-left">
+                {newsletterError}
+              </p>
+            )}
           </div>
         </Container>
       </div>
@@ -70,11 +103,8 @@ export default function SiteFooter() {
       <Container as="footer" className="py-12 md:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 mb-12">
           <div className="lg:col-span-3 text-center sm:text-left">
-            <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-secondary to-blue-600 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">P</span>
-              </div>
-              <span className="text-xl font-bold">Porterchain</span>
+            <Link href="/" className="inline-flex mb-4 transition-opacity hover:opacity-90">
+              <PorterchainWordmark tone="dark" size="lg" />
             </Link>
             <p className="text-white/50 type-small leading-relaxed mb-6">{t("tagline")}</p>
             <div className="flex gap-3 justify-center sm:justify-start flex-wrap items-center">

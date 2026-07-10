@@ -27,7 +27,7 @@
     "badge": "Transportation capacity",
     "titleLine1": "Vehicle and driver capacity",
     "titleLine2": "when your fleet is not enough.",
-    "subtitle": "Use Porterchain for urgent delivery, fleet overflow, scheduled routes, local distribution, marketplace pickups, construction deliveries, pharmacy deliveries, laboratory transport, and manufacturing logistics.",
+    "subtitle": "Urgent runs, overflow, and recurring routes — professional drivers and vehicles across Ontario.",
     "ctaPrimary": "Get a quote",
     "ctaSecondary": "See vehicles"
   },
@@ -47,6 +47,7 @@
     "submitting": "Submitting...",
     "successTitle": "Inquiry Received",
     "successMessage": "Thank you. A Porterchain logistics consultant will reach out within one business day.",
+    "errorMessage": "We couldn't submit your inquiry. Please try again or call us directly.",
     "assurances": {
       "noObligation": "No obligation",
       "noLongForms": "No long forms",
@@ -204,6 +205,8 @@
     "subtitle": "The right vehicle for every shipment — from documents to full truckloads.",
     "payload": "Payload",
     "cargoSpace": "Cargo Space",
+    "classLabel": "Class",
+    "capacityLabel": "Relative capacity",
     "licenceNote": "Porterchain currently operates vehicles that can be driven with a standard Ontario G Licence. We do not currently provide DZ or AZ truck services.",
     "items": {
       "sedan": {
@@ -231,7 +234,7 @@
         "useCase": "Bulky items, multi-piece deliveries"
       },
       "highRoof": {
-        "name": "High Roof Van",
+        "name": "Sprinter Van",
         "payload": "Up to 3,500 lbs",
         "cargo": "350 cu ft",
         "useCase": "Tall items, high-volume runs"
@@ -416,7 +419,7 @@
       },
       "vehicles": {
         "question": "What vehicles are available?",
-        "answer": "Sedan, SUV, Pickup, Cargo Van, High Roof Van, 16 ft Box Truck, and 20 ft Box Truck. All require a standard Ontario G Licence."
+        "answer": "Sedan, SUV, Pickup, Cargo Van, Sprinter Van, 16 ft Box Truck, and 20 ft Box Truck. All require a standard Ontario G Licence."
       },
       "pricing": {
         "question": "Can I negotiate pricing?",

@@ -6,7 +6,7 @@ export default function SiteShell({ children }: { children: ReactNode }) {
   return (
     <>
       <SiteNavbar />
-      <main className="overflow-x-hidden">{children}</main>
+      <main className="overflow-x-hidden min-w-0">{children}</main>
       <SiteFooter />
     </>
   );

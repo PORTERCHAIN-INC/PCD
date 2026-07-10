@@ -40,7 +40,7 @@ Ad-hoc courier marketplaces handled one-off runs, but recurring jobsite routes l
 Porterchain aligned **16 ft box truck routes** to their daily dispatch list:
 
 1. Fixed time windows encoded per jobsite (gate codes, foreman contact, lift requirements)
-2. Central dispatch OS — one dashboard for inside sales and planners
+2. Central operations coordination — one control tower for inside sales and planners
 3. Photo + GPS proof of delivery tied to shipment references on every drop
 
 ## Results (90 days)

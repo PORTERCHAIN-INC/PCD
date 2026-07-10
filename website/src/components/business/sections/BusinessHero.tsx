@@ -2,57 +2,52 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { Calendar, ArrowRight } from "lucide-react";
-import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
+import LinkButton from "@/components/corporate/ui/LinkButton";
 import InquiryForm from "@/components/business/InquiryForm";
-import BusinessHeroBg from "@/components/business/illustrations/BusinessHeroBg";
-import SiteImage from "@/components/ui/SiteImage";
-import { siteImages } from "@/data/site-images";
 
 export default function BusinessHero() {
   const t = useTranslations("businessPage.hero");
 
   return (
-    <section className="relative min-h-[100svh] flex items-center overflow-hidden bg-[#091b1c]">
-      <SiteImage
-        image={siteImages.hero.business}
-        fill
-        className="object-cover opacity-35"
-        sizes="100vw"
-        priority
+    <section className="relative overflow-hidden bg-white">
+      <div className="absolute inset-0 grid-pattern opacity-50 pointer-events-none" aria-hidden />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        aria-hidden
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(37,99,235,0.08) 0%, transparent 55%)",
+        }}
       />
-      <BusinessHeroBg className="absolute inset-0 w-full h-full object-cover opacity-60" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#091b1c]/40 via-transparent to-[#091b1c]/90" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(255,122,0,0.12)_0%,transparent_50%)]" />
 
-      <Container className="relative z-10 pt-24 pb-12 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-24">
-        <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 items-start lg:items-center">
-          <div>
-            <motion.span
+      <Container className="relative z-10 py-24 sm:py-28 lg:py-32">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+          <div className="max-w-xl">
+            <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/8 border border-white/12 text-white/90 text-xs font-semibold uppercase tracking-wider mb-6"
+              transition={{ duration: 0.45 }}
+              className="pc-eyebrow"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ff7a00] animate-pulse" />
               {t("badge")}
-            </motion.span>
+            </motion.p>
 
             <motion.h1
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08 }}
-              className="biz-heading lg:text-[3.25rem] text-white leading-[1.1] tracking-tight"
+              transition={{ duration: 0.5, delay: 0.06 }}
+              className="pc-display mt-4 text-primary text-balance"
             >
               {t("titleLine1")}
-              <span className="block mt-1 biz-gradient-text">{t("titleLine2")}</span>
+              <span className="block text-primary/90">{t("titleLine2")}</span>
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.14 }}
-              className="mt-6 text-lg text-white/70 leading-relaxed max-w-xl"
+              transition={{ duration: 0.45, delay: 0.12 }}
+              className="mt-6 text-lg text-muted leading-relaxed"
             >
               {t("subtitle")}
             </motion.p>
@@ -60,34 +55,29 @@ export default function BusinessHero() {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mt-8 flex flex-wrap gap-3"
+              transition={{ duration: 0.5, delay: 0.18 }}
+              className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3"
             >
-              <Link
+              <LinkButton
                 href="/contact?intent=quote&from=business"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#ff7a00] text-white font-semibold text-sm hover:bg-[#e66e00] transition-all biz-shadow-glow"
+                size="lg"
+                trackSource="business-hero"
               >
                 {t("ctaPrimary")}
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <a
-                href="#fleet"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/20 text-white font-medium text-sm hover:bg-white/10 transition-colors"
-              >
-                <Calendar className="w-4 h-4" />
+              </LinkButton>
+              <LinkButton href="#fleet" variant="outline" size="lg" trackSource="business-hero">
                 {t("ctaSecondary")}
-              </a>
+              </LinkButton>
             </motion.div>
           </div>
 
           <motion.div
-            initial={{ opacity: 0, y: 32, rotate: 0 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.7 }}
+            transition={{ duration: 0.55, delay: 0.22 }}
             className="relative"
           >
-            <div className="absolute -inset-4 bg-[#ff7a00]/10 rounded-3xl blur-2xl" />
-            <div className="relative animate-float">
+            <div className="rounded-3xl border border-primary/8 bg-white p-1 shadow-premium">
               <InquiryForm id="inquiry" variant="hero" />
             </div>
           </motion.div>

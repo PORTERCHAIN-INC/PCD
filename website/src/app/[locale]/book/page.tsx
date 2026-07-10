@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { routing, type Locale } from "@/i18n/routing";
+import { routing } from "@/i18n/routing";
+import { customerPortalBookUrl } from "@/data/portal-links";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -7,8 +8,8 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-/** Legacy retail `/book` → B2B business inquiry (customer portal book is not linked from marketing). */
+/** portal-book-redirect — legacy marketing `/book` → customer portal retail funnel (:3004). */
 export default async function BookRedirectPage({ params }: Props) {
-  const { locale } = await params;
-  redirect(`/${locale as Locale}/business`);
+  await params;
+  redirect(customerPortalBookUrl);
 }

@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { publicEnv } from "@/lib/env";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
+import { submitInquiry } from "@/lib/submit-inquiry";
 
 const COUNTRY_CODES = [
   { code: "+1", label: "CA +1" },
@@ -36,26 +36,33 @@ export default function InquiryForm({
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!email || !phone || !agreed) return;
 
     setSubmitting(true);
+    setError(null);
 
-    const subject = encodeURIComponent("Business inquiry — Porterchain");
-    const body = encodeURIComponent(
-      [
-        "Business inquiry from porterchain.com/business",
-        "",
-        `Email: ${email}`,
-        `Phone: ${countryCode} ${phone}${extension ? ` ext. ${extension}` : ""}`,
-      ].join("\n")
-    );
+    const fullPhone = `${countryCode} ${phone}${extension ? ` ext. ${extension}` : ""}`;
 
-    window.location.href = `mailto:${publicEnv.contactEmail}?subject=${subject}&body=${body}`;
+    try {
+      await submitInquiry({
+        email,
+        phone: fullPhone,
+        source: "website",
+        source_page: "/business",
+        form: "business",
+        message: `Business inquiry from porterchain.com/business (${variant})`,
+      });
+    } catch {
+      setError(t("errorMessage"));
+      setSubmitting(false);
+      return;
+    }
+
     track(ANALYTICS_EVENTS.BUSINESS_INQUIRY_SUBMIT, { source_section: variant });
-    await new Promise((r) => setTimeout(r, 400));
     setSubmitting(false);
     setSubmitted(true);
   };
@@ -196,6 +203,11 @@ export default function InquiryForm({
             t("submit")
           )}
         </button>
+        {error && (
+          <p className="text-sm text-red-600 text-center" role="alert">
+            {error}
+          </p>
+        )}
 
         <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1 pt-1">
           {(["noObligation", "noLongForms", "responseTime"] as const).map((key) => (

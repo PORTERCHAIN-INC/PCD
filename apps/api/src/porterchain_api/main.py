@@ -24,6 +24,7 @@ from porterchain_api.routers import (
     operations,
     orders,
     payments,
+    public_inquiries,
     quotes,
     security,
     webhooks,
@@ -80,6 +81,7 @@ def create_app() -> FastAPI:
 
     app.include_router(oauth.router)
     app.include_router(quotes.router)
+    app.include_router(public_inquiries.router)
     app.include_router(booking_drafts.router)
     app.include_router(orders.router)
     app.include_router(customers.router)

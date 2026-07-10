@@ -1,21 +1,20 @@
 "use client";
 
-import { ClerkProvider } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { publicEnv } from "@/lib/env";
+import { isClerkClientShellPath } from "@/lib/clerk-shell";
+
+const ClerkProviderShell = dynamic(() => import("@/components/providers/ClerkProviderShell"), {
+  ssr: false,
+});
 
 export default function AppClerkProvider({ children }: { children: React.ReactNode }) {
-  if (!publicEnv.clerkPublishableKey) {
+  const pathname = usePathname() ?? "";
+
+  if (!publicEnv.clerkPublishableKey || !isClerkClientShellPath(pathname)) {
     return <>{children}</>;
   }
 
-  return (
-    <ClerkProvider
-      publishableKey={publicEnv.clerkPublishableKey}
-      signInUrl="/login"
-      afterSignOutUrl="/login"
-      signInFallbackRedirectUrl="/login"
-    >
-      {children}
-    </ClerkProvider>
-  );
+  return <ClerkProviderShell>{children}</ClerkProviderShell>;
 }

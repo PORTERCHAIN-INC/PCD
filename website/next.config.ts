@@ -95,11 +95,19 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/(.*)",
-        headers: securityHeaders,
+        headers: [
+          ...securityHeaders,
+          {
+            key: "Link",
+            value: "<https://images.unsplash.com>; rel=preconnect; crossorigin",
+          },
+        ],
       },
     ];
   },
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 86_400,
     remotePatterns: [
       {
         protocol: "https",

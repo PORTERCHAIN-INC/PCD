@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Check, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { publicEnv } from "@/lib/env";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
+import { submitInquiry } from "@/lib/submit-inquiry";
 import { getStoredAttribution, resolveLeadSource } from "@/lib/seo/attribution";
 import { pushAttributionToZoho } from "@/lib/seo/zoho-attribution";
 
@@ -22,6 +22,7 @@ export default function ContactInquiryForm({ intent, attributionFrom }: ContactI
   const t = useTranslations("corporate.contact.form");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [inquiryType, setInquiryType] = useState<InquiryType>("sales");
   const isDemo = intent === "demo";
   const isQuote = intent === "quote";
@@ -35,6 +36,7 @@ export default function ContactInquiryForm({ intent, attributionFrom }: ContactI
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     const form = e.currentTarget;
     const data = new FormData(form);
@@ -48,29 +50,30 @@ export default function ContactInquiryForm({ intent, attributionFrom }: ContactI
     const stored = getStoredAttribution();
     const intentLabel = isQuote ? "quote" : isDemo ? "demo" : inquiryType;
 
-    const subject = encodeURIComponent(`[${intentLabel}] Porterchain inquiry from ${name}`);
-    const body = encodeURIComponent(
-      [
-        `Name: ${name}`,
-        businessName ? `Business: ${businessName}` : null,
-        `Email: ${email}`,
-        phone ? `Phone: ${phone}` : null,
-        `Inquiry type: ${inquiryType}`,
-        isQuote ? "Intent: quote" : null,
-        isDemo ? "Intent: demo" : null,
-        leadSource ? `Source page: ${leadSource}` : null,
-        stored.utm_source ? `UTM source: ${stored.utm_source}` : null,
-        stored.utm_campaign ? `UTM campaign: ${stored.utm_campaign}` : null,
-        "",
-        message,
-      ]
-        .filter(Boolean)
-        .join("\n")
-    );
-
     pushAttributionToZoho({ ...stored, from: leadSource });
 
-    window.location.href = `mailto:${publicEnv.contactEmail}?subject=${subject}&body=${body}`;
+    try {
+      await submitInquiry({
+        name,
+        email,
+        phone: phone || undefined,
+        business_name: businessName || undefined,
+        message,
+        intent: intentLabel,
+        inquiry_type: inquiryType,
+        source: "website",
+        source_page: leadSource,
+        form: "contact",
+        utm_source: stored.utm_source,
+        utm_campaign: stored.utm_campaign,
+        utm_medium: stored.utm_medium,
+      });
+    } catch {
+      setError(t("errorMessage"));
+      setLoading(false);
+      return;
+    }
+
     const eventName = isQuote
       ? ANALYTICS_EVENTS.QUOTE_REQUEST
       : isDemo
@@ -85,7 +88,6 @@ export default function ContactInquiryForm({ intent, attributionFrom }: ContactI
       ...(isQuote ? { intent: "quote" } : {}),
       ...(isDemo ? { intent: "demo" } : {}),
     });
-    await new Promise((r) => setTimeout(r, 400));
     setLoading(false);
     setSubmitted(true);
   }
@@ -170,6 +172,11 @@ export default function ContactInquiryForm({ intent, attributionFrom }: ContactI
         >
           {loading ? t("sending") : t("submit")}
         </button>
+        {error && (
+          <p className="text-sm text-red-600 text-center" role="alert">
+            {error}
+          </p>
+        )}
       </form>
 
       <motion.div

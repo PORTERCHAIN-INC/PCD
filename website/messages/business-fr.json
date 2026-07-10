@@ -27,7 +27,7 @@
     "badge": "Capacité de transport",
     "titleLine1": "Capacité véhicule et chauffeur",
     "titleLine2": "quand votre flotte ne suffit pas.",
-    "subtitle": "Utilisez Porterchain pour urgences, débordement de flotte, routes planifiées, distribution locale, ramassages marketplace, construction, pharmacies, laboratoires et fabrication.",
+    "subtitle": "Urgences, débordement et routes récurrentes — chauffeurs professionnels et véhicules en Ontario.",
     "ctaPrimary": "Obtenir un devis",
     "ctaSecondary": "Voir les véhicules"
   },
@@ -47,6 +47,7 @@
     "submitting": "Envoi en cours...",
     "successTitle": "Demande reçue",
     "successMessage": "Merci. Un consultant Porterchain vous contactera dans un jour ouvrable.",
+    "errorMessage": "Impossible d'envoyer votre demande. Réessayez ou appelez-nous directement.",
     "assurances": {
       "noObligation": "Sans obligation",
       "noLongForms": "Pas de longs formulaires",
@@ -204,6 +205,8 @@
     "subtitle": "Le bon véhicule pour chaque envoi — des documents aux chargements complets.",
     "payload": "Charge utile",
     "cargoSpace": "Espace cargo",
+    "classLabel": "Classe",
+    "capacityLabel": "Capacité relative",
     "licenceNote": "Porterchain exploite actuellement des véhicules pouvant être conduits avec un permis G standard de l'Ontario. Nous ne fournissons pas actuellement de services de camions DZ ou AZ.",
     "items": {
       "sedan": {
@@ -231,7 +234,7 @@
         "useCase": "Articles volumineux, livraisons multiples"
       },
       "highRoof": {
-        "name": "Fourgon toit élevé",
+        "name": "Fourgon Sprinter",
         "payload": "Jusqu'à 3 500 lb",
         "cargo": "350 pi³",
         "useCase": "Articles hauts, courses à grand volume"
@@ -421,7 +424,7 @@
       },
       "vehicles": {
         "question": "Quels véhicules sont disponibles?",
-        "answer": "Berline, VUS, Camionnette, Fourgonnette, Fourgon toit élevé, Camion 16 pi et 20 pi. Tous requièrent un permis G."
+        "answer": "Berline, VUS, Camionnette, Fourgonnette, Fourgon Sprinter, Camion 16 pi et 20 pi. Tous requièrent un permis G."
       },
       "pricing": {
         "question": "Puis-je négocier les tarifs?",

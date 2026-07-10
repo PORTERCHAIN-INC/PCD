@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Script from "next/script";
 import { publicEnv } from "@/lib/env";
+import { useDeferUntilInteraction } from "@/lib/defer-until-interaction";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 import { getStoredAttribution } from "@/lib/seo/attribution";
 import { pushAttributionToZoho } from "@/lib/seo/zoho-attribution";
@@ -14,19 +15,20 @@ $zoho.salesiq=$zoho.salesiq||{ready:function(){}};
 `;
 
 /**
- * Zoho SalesIQ live chat — loads after React hydration so the widget cannot
- * mutate SSR markup (e.g. siq_id on forms) before hydrate.
+ * Zoho SalesIQ live chat — loads after user interaction (or timeout) so the widget
+ * cannot compete with LCP / first paint on marketing pages.
  */
 export default function ZohoSalesIQ() {
   const { zohoSalesIqEnabled, zohoSalesIqWidgetCode } = publicEnv;
   const [hydrated, setHydrated] = useState(false);
+  const interactionReady = useDeferUntilInteraction(15_000);
 
   useEffect(() => {
     setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (!hydrated || !zohoSalesIqEnabled || !zohoSalesIqWidgetCode) return;
+    if (!hydrated || !interactionReady || !zohoSalesIqEnabled || !zohoSalesIqWidgetCode) return;
 
     const priorReady = window.$zoho?.salesiq?.ready;
     window.$zoho = window.$zoho ?? {};
@@ -46,9 +48,9 @@ export default function ZohoSalesIQ() {
         /* widget API varies by plan */
       }
     };
-  }, [hydrated, zohoSalesIqEnabled, zohoSalesIqWidgetCode]);
+  }, [hydrated, interactionReady, zohoSalesIqEnabled, zohoSalesIqWidgetCode]);
 
-  if (!zohoSalesIqEnabled || !zohoSalesIqWidgetCode || !hydrated) {
+  if (!zohoSalesIqEnabled || !zohoSalesIqWidgetCode || !hydrated || !interactionReady) {
     return null;
   }
 

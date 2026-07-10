@@ -9,6 +9,7 @@ import { getStoredAttribution, type Attribution } from "./attribution";
 export type AnalyticsEventProperties = Record<string, string | number | boolean | undefined>;
 
 let provider: ((event: string, properties: Record<string, unknown>) => void) | null = null;
+const queuedEvents: Array<{ event: string; properties: Record<string, unknown> }> = [];
 
 /**
  * Set the analytics provider (e.g. gtag, Segment track). Call from layout or _app.
@@ -18,6 +19,15 @@ export function setAnalyticsProvider(
   fn: (event: string, properties: Record<string, unknown>) => void
 ): void {
   provider = fn;
+}
+
+/** Replay events captured before GA/gtag finished loading. */
+export function flushQueuedAnalyticsEvents(): void {
+  if (!provider) return;
+  while (queuedEvents.length > 0) {
+    const next = queuedEvents.shift();
+    if (next) provider(next.event, next.properties);
+  }
 }
 
 /**
@@ -31,8 +41,11 @@ export function track(eventName: string, properties: AnalyticsEventProperties = 
   };
   if (provider) {
     provider(eventName, payload);
-  } else if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-    console.debug("[analytics]", eventName, payload);
+  } else if (typeof window !== "undefined") {
+    queuedEvents.push({ event: eventName, properties: payload });
+    if (process.env.NODE_ENV === "development") {
+      console.debug("[analytics]", eventName, payload);
+    }
   }
 }
 
