@@ -7,6 +7,7 @@ coverage
 pnpm-lock.yaml
 package-lock.json
 *.min.js
+**/.pytest_cache/**
 
 # Generated OpenAPI snapshot — regenerate with `pnpm docs:openapi`
 docs/api/openapi.json

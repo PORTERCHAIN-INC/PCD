@@ -6,6 +6,11 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
+    settings: {
+      react: {
+        version: "19.2",
+      },
+    },
     rules: {
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/refs": "off",
