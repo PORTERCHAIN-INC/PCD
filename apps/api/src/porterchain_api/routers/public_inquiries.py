@@ -34,7 +34,9 @@ def _priority_for_intent(
     inquiry_type: str | None = None,
     form: str | None = None,
 ) -> str:
-    if intent in ("quote", "demo"):
+    if intent in ("quote", "demo", "driver_partner"):
+        return LeadPriority.HIGH.value
+    if form in ("business", "vehicle_partner"):
         return LeadPriority.HIGH.value
     if inquiry_type == "newsletter" or form == "newsletter":
         return LeadPriority.LOW.value
@@ -43,10 +45,17 @@ def _priority_for_intent(
 
 def _source_label(body: PublicInquiryCreate) -> str:
     form = (body.form or "").strip()
+    source_page = (body.source_page or "").strip().lower()
+    if form == "vehicle_partner":
+        return "website_driver_partner"
     if form == "business":
         return "website_business"
     if form == "newsletter":
         return "website_newsletter"
+    if body.inquiry_type == "partnership" and (
+        "vehicle-partner" in source_page or source_page.endswith("/drive")
+    ):
+        return "website_driver_partner"
     if body.intent == "quote":
         return "website_quote"
     if body.intent == "demo":

@@ -20,6 +20,7 @@ export const LEAD_SOURCES = [
   "website_demo",
   "website_newsletter",
   "website_booking",
+  "website_driver_partner",
 ] as const;
 
 export type LeadFilters = {

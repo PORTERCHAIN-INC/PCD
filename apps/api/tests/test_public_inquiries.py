@@ -86,6 +86,30 @@ def test_public_inquiry_rejects_wrong_ingest_key(client: TestClient) -> None:
             "website_contact",
             "medium",
         ),
+        (
+            {
+                "email": "driver@example.com",
+                "phone": "+1 416-555-0199",
+                "name": "Alex Driver",
+                "intent": "driver_partner",
+                "form": "vehicle_partner",
+                "message": "Vehicle: van\nService area: GTA",
+            },
+            "website_driver_partner",
+            "high",
+        ),
+        (
+            {
+                "email": "partner@example.com",
+                "form": "contact",
+                "inquiry_type": "partnership",
+                "source_page": "vehicle-partner",
+                "name": "Fleet Owner",
+                "message": "Interested in partnering",
+            },
+            "website_driver_partner",
+            "medium",
+        ),
     ],
 )
 def test_public_inquiry_creates_lead_with_source_and_priority(

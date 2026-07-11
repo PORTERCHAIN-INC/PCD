@@ -137,8 +137,49 @@
   "cta": {
     "title": "Ready to explore the Vehicle Partner Portal?",
     "subtitle": "Start your application to see current onboarding requirements, eligible vehicle types, and service areas for your operation.",
-    "primary": "Continue to partner application",
+    "primary": "Start partner application",
     "secondary": "Contact partner support"
+  },
+  "inquiry": {
+    "title": "Start your partner application",
+    "subtitle": "Share your contact details and vehicle type. We'll follow up within one business day and guide you through onboarding.",
+    "name": "Full name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "emailPlaceholder": "you@email.com",
+    "phone": "Phone number",
+    "phonePlaceholder": "(416) 555-0100",
+    "countryCode": "Country code",
+    "extension": "Extension",
+    "extensionShort": "Ext",
+    "optional": "Optional",
+    "vehicleType": "Vehicle type",
+    "vehicleTypePlaceholder": "Select vehicle",
+    "serviceArea": "Primary service area",
+    "serviceAreaPlaceholder": "e.g. GTA, Mississauga, Hamilton",
+    "notes": "Additional details",
+    "notesPlaceholder": "Fleet size, availability, or questions (optional)",
+    "consent": "I agree to be contacted by Porterchain about the Vehicle Partner program and onboarding.",
+    "submit": "Submit partner interest",
+    "submitting": "Submitting...",
+    "successTitle": "Application interest received",
+    "successMessage": "Thank you. Our partner team will contact you within one business day with next steps.",
+    "portalCta": "Continue to partner portal",
+    "portalHint": "Complete vehicle details and documentation in the driver partner portal.",
+    "errorMessage": "We couldn't submit your application. Please try again or contact partner support.",
+    "assurances": {
+      "noObligation": "No obligation",
+      "gLicence": "Ontario G licence",
+      "responseTime": "Response within 1 business day"
+    },
+    "vehicles": {
+      "sedan": "Sedan",
+      "suv": "SUV",
+      "pickup": "Pickup truck",
+      "van": "Cargo van",
+      "boxTruck": "Box truck (16 ft)",
+      "unsure": "Not sure yet"
+    }
   },
   "disclaimer": "Information on this page is general in nature and may change as programs evolve. Partner participation is subject to onboarding approval, documentation review, and executed partner terms."
 }

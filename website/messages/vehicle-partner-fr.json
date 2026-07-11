@@ -137,8 +137,49 @@
   "cta": {
     "title": "Prêt à explorer le portail partenaire?",
     "subtitle": "Commencez votre demande pour voir les exigences d'intégration, véhicules admissibles et zones pour votre opération.",
-    "primary": "Continuer vers la demande",
+    "primary": "Commencer la demande partenaire",
     "secondary": "Contacter le soutien partenaire"
+  },
+  "inquiry": {
+    "title": "Commencer votre demande partenaire",
+    "subtitle": "Indiquez vos coordonnées et le type de véhicule. Nous vous contacterons dans un jour ouvrable pour les prochaines étapes.",
+    "name": "Nom complet",
+    "namePlaceholder": "Votre nom",
+    "email": "Courriel",
+    "emailPlaceholder": "vous@courriel.com",
+    "phone": "Numéro de téléphone",
+    "phonePlaceholder": "(416) 555-0100",
+    "countryCode": "Indicatif pays",
+    "extension": "Poste",
+    "extensionShort": "Poste",
+    "optional": "Facultatif",
+    "vehicleType": "Type de véhicule",
+    "vehicleTypePlaceholder": "Sélectionner un véhicule",
+    "serviceArea": "Zone de service principale",
+    "serviceAreaPlaceholder": "p. ex. RGT, Mississauga, Hamilton",
+    "notes": "Détails supplémentaires",
+    "notesPlaceholder": "Taille de flotte, disponibilité ou questions (facultatif)",
+    "consent": "J'accepte d'être contacté par Porterchain au sujet du programme partenaire véhicule et de l'intégration.",
+    "submit": "Soumettre mon intérêt partenaire",
+    "submitting": "Envoi en cours...",
+    "successTitle": "Intérêt partenaire reçu",
+    "successMessage": "Merci. Notre équipe partenaire vous contactera dans un jour ouvrable avec les prochaines étapes.",
+    "portalCta": "Continuer vers le portail partenaire",
+    "portalHint": "Complétez les détails du véhicule et la documentation dans le portail partenaire chauffeur.",
+    "errorMessage": "Impossible d'envoyer votre demande. Réessayez ou contactez le soutien partenaire.",
+    "assurances": {
+      "noObligation": "Sans obligation",
+      "gLicence": "Permis G Ontario",
+      "responseTime": "Réponse en 1 jour ouvrable"
+    },
+    "vehicles": {
+      "sedan": "Berline",
+      "suv": "VUS",
+      "pickup": "Camionnette",
+      "van": "Fourgonnette",
+      "boxTruck": "Camion boîte (16 pi)",
+      "unsure": "Pas encore certain"
+    }
   },
   "disclaimer": "Cette page est à titre informatif seulement et peut évoluer. La participation est sujette à approbation et aux ententes partenaires signées."
 }

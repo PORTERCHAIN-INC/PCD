@@ -85,12 +85,21 @@ export const ANALYTICS_EVENTS = {
   BOOKING_CONTINUE: "booking_continue",
   /** Business page inquiry */
   BUSINESS_INQUIRY_SUBMIT: "business_inquiry_submit",
+  /** Vehicle partner page inquiry */
+  DRIVER_PARTNER_INQUIRY_SUBMIT: "driver_partner_inquiry_submit",
   /** Zoho SalesIQ */
   ZOHO_CHAT_READY: "zoho_chat_ready",
   ZOHO_CHAT_OPEN: "zoho_chat_open",
   /** Google Business Profile */
   GBP_PROFILE_CLICK: "gbp_profile_click",
   GBP_REVIEW_CLICK: "gbp_review_click",
+  /** Core Web Vitals 2.0 RUM (Wave 10) */
+  WEB_VITAL: "web_vital",
+  WEB_VITAL_BUDGET_EXCEEDED: "web_vital_budget_exceeded",
+  /** WhatsApp Business Phase 1 — pre-filled quote follow-up */
+  WHATSAPP_QUOTE_CLICK: "whatsapp_quote_click",
+  /** Merchant B2B SSO bridge (Google / Microsoft) */
+  MERCHANT_SSO_CLICK: "merchant_sso_click",
 } as const;
 
 /** Mark these as conversions in GA4 Admin → Events → Mark as conversion. */
@@ -99,6 +108,7 @@ export const GA4_CONVERSION_EVENTS: readonly string[] = [
   ANALYTICS_EVENTS.DEMO_REQUEST,
   ANALYTICS_EVENTS.QUOTE_REQUEST,
   ANALYTICS_EVENTS.BUSINESS_INQUIRY_SUBMIT,
+  ANALYTICS_EVENTS.DRIVER_PARTNER_INQUIRY_SUBMIT,
   ANALYTICS_EVENTS.BOOKING_QUOTE_SUCCESS,
   ANALYTICS_EVENTS.BOOKING_CONTINUE,
   ANALYTICS_EVENTS.ZOHO_CHAT_OPEN,

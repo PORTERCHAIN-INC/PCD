@@ -1,16 +1,14 @@
 import { getTranslations } from "next-intl/server";
 import { Car, Truck, Package, Box, CarFront } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import HeroSection from "@/components/corporate/sections/HeroSection";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import Container from "@/components/ui/Container";
 import { JsonLd } from "@/components/seo";
 import { buildFAQPageSchema } from "@/lib/seo/schema";
-import HeroPhoto from "@/components/ui/HeroPhoto";
 import { siteImages, getVehiclePartnerImage } from "@/data/site-images";
-import { driverPortalUrl } from "@/data/portal-links";
+import VehiclePartnerHero from "@/components/vehicle-partner/VehiclePartnerHero";
 import type { Locale } from "@/i18n/routing";
 
 const VEHICLE_KEYS = ["sedan", "suv", "pickup", "van", "boxTruck"] as const;
@@ -32,7 +30,7 @@ export default async function VehiclePartnerLandingView({ locale }: Props) {
   const t = await getTranslations("vehiclePartner");
 
   const faqItems = t.raw("faq.items") as { question: string; answer: string }[];
-  const contactHref = `/${locale}/contact`;
+  const contactHref = `/${locale}/contact?from=vehicle-partner`;
 
   const vehicleItems = VEHICLE_KEYS.map((key) => ({
     title: t(`vehicles.items.${key}.title`),
@@ -60,17 +58,7 @@ export default async function VehiclePartnerLandingView({ locale }: Props) {
   return (
     <>
       <JsonLd data={buildFAQPageSchema(faqItems)} />
-      <HeroSection
-        badge={t("hero.badge")}
-        title={t("hero.title")}
-        subtitle={t("hero.subtitle")}
-        primaryCta={t("hero.primaryCta")}
-        primaryHref={driverPortalUrl}
-        secondaryCta={t("hero.secondaryCta")}
-        secondaryHref={contactHref}
-        variant="light-centered"
-        illustration={<HeroPhoto image={siteImages.hero.partner} priority />}
-      />
+      <VehiclePartnerHero locale={locale} />
 
       <FeatureSection
         id="vehicles"
@@ -123,7 +111,7 @@ export default async function VehiclePartnerLandingView({ locale }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref={driverPortalUrl}
+        primaryHref="#apply"
         secondaryLabel={t("cta.secondary")}
         secondaryHref={contactHref}
         variant="gradient"
