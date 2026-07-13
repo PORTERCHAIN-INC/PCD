@@ -39,10 +39,11 @@ jobs:
           cache: pip
           cache-dependency-path: apps/api/requirements.txt
 
+      # Static D2/D3 validators are mostly stdlib; fleetbase lifecycle import needs httpx.
       - name: Install API deps for contract validators
         run: |
           python -m pip install --upgrade pip
-          pip install -r apps/api/requirements.txt
+          pip install 'httpx>=0.28.1'
 
       - name: Lockfile freshness (DD-40 · §2.5.8)
         run: pnpm validate:lockfiles
