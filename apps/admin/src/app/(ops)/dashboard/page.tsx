@@ -43,7 +43,6 @@ export default function DashboardPage() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const enabled = isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
   const [now, setNow] = useState(new Date());
-  const theme = "light" as const;
   const [search, setSearch] = useState("");
   const [layoutOpen, setLayoutOpen] = useState(false);
   const [widgets, setWidgets] = useState<Record<WidgetId, boolean>>(() => loadWidgetLayout());
@@ -123,11 +122,11 @@ export default function DashboardPage() {
   if (!center) return null;
 
   return (
-    <div className={cn("space-y-5", theme === "dark" && "text-slate-100")}>
+    <div className="space-y-5">
       <CommandHeader
         center={center}
         now={now}
-        theme={theme}
+
         search={search}
         searchHits={searchHits}
         onSearch={setSearch}
@@ -145,16 +144,12 @@ export default function DashboardPage() {
         />
       )}
 
-      {widgets.kpis && <KpiGrid center={center} theme={theme} />}
+      {widgets.kpis && <KpiGrid center={center} />}
 
       <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
         <div className="space-y-5">
           {widgets.smart && center.smart && (
-            <Panel
-              title="Executive summary"
-              icon={<TrendingUp className="h-4 w-4" />}
-              theme={theme}
-            >
+            <Panel title="Executive summary" icon={<TrendingUp className="h-4 w-4" />}>
               <p className="text-sm leading-relaxed text-muted">
                 {(center.smart.ai_summary as string) ||
                   `Revenue growth ${center.executive.growth_percent ?? 0}% · SLA ${center.executive.delivery_sla_percent ?? 0}% · Forecast ${formatCents(Number(center.executive.forecast_revenue_cents ?? 0))}`}
@@ -170,7 +165,7 @@ export default function DashboardPage() {
           )}
 
           {widgets.operations && (
-            <Panel title="Operations center" icon={<Zap className="h-4 w-4" />} theme={theme}>
+            <Panel title="Operations center" icon={<Zap className="h-4 w-4" />}>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <MiniKpi
                   label="Dispatch queue"
@@ -215,34 +210,30 @@ export default function DashboardPage() {
           )}
 
           {widgets.map && (
-            <Panel title="Live map" icon={<Truck className="h-4 w-4" />} theme={theme}>
-              <DashboardEmbeddedMap theme={theme} className="h-[360px]" />
+            <Panel title="Live map" icon={<Truck className="h-4 w-4" />}>
+              <DashboardEmbeddedMap className="h-[360px]" />
             </Panel>
           )}
 
           <div className="grid gap-5 lg:grid-cols-2">
-            {widgets.orders && <OrdersPanel center={center} theme={theme} />}
-            {widgets.booking && <BookingPanel center={center} theme={theme} />}
-            {widgets.finance && <FinancePanel center={center} theme={theme} />}
-            {widgets.support && <SupportPanel center={center} theme={theme} />}
-            {widgets.claims && <ClaimsPanel center={center} theme={theme} />}
-            {widgets.merchants && <MerchantsPanel center={center} theme={theme} />}
-            {widgets.drivers && <DriversPanel center={center} theme={theme} />}
-            {widgets.fleet && <FleetPanel center={center} theme={theme} />}
+            {widgets.orders && <OrdersPanel center={center} />}
+            {widgets.booking && <BookingPanel center={center} />}
+            {widgets.finance && <FinancePanel center={center} />}
+            {widgets.support && <SupportPanel center={center} />}
+            {widgets.claims && <ClaimsPanel center={center} />}
+            {widgets.merchants && <MerchantsPanel center={center} />}
+            {widgets.drivers && <DriversPanel center={center} />}
+            {widgets.fleet && <FleetPanel center={center} />}
           </div>
 
           {widgets.reports && chartOption && (
-            <Panel
-              title="Revenue & order trends"
-              icon={<TrendingUp className="h-4 w-4" />}
-              theme={theme}
-            >
+            <Panel title="Revenue & order trends" icon={<TrendingUp className="h-4 w-4" />}>
               <ReportChart option={chartOption} height={280} />
             </Panel>
           )}
 
           {widgets.activity && (
-            <Panel title="Activity timeline" icon={<Activity className="h-4 w-4" />} theme={theme}>
+            <Panel title="Activity timeline" icon={<Activity className="h-4 w-4" />}>
               <ul className="max-h-64 space-y-2 overflow-y-auto text-sm">
                 {center.activity.map((e) => (
                   <li key={e.id} className="flex justify-between border-b border-primary/5 py-1.5">
@@ -260,12 +251,12 @@ export default function DashboardPage() {
             </Panel>
           )}
 
-          {widgets.health && <SystemHealthPanel health={center.system_health} theme={theme} />}
+          {widgets.health && <SystemHealthPanel health={center.system_health} />}
         </div>
 
         {widgets.sidebar && (
           <aside className="space-y-4">
-            <RightSidebar center={center} theme={theme} />
+            <RightSidebar center={center} />
           </aside>
         )}
       </div>
@@ -276,7 +267,6 @@ export default function DashboardPage() {
 function CommandHeader({
   center,
   now,
-  theme,
   search,
   searchHits,
   onSearch,
@@ -287,7 +277,6 @@ function CommandHeader({
 }: {
   center: DashboardCenter;
   now: Date;
-  theme: "light" | "dark";
   search: string;
   searchHits: Array<{ type: string; id: string; label: string; subtitle?: string; href?: string }>;
   onSearch: (v: string) => void;
@@ -297,12 +286,7 @@ function CommandHeader({
   updatedAt: number;
 }) {
   return (
-    <div
-      className={cn(
-        "rounded-2xl border border-primary/10 p-4",
-        theme === "dark" ? "border-slate-700 bg-slate-900" : "bg-white"
-      )}
-    >
+    <div className={cn("rounded-2xl border border-primary/10 p-4", "bg-white")}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-primary">
@@ -387,7 +371,7 @@ function CommandHeader({
   );
 }
 
-function KpiGrid({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
+function KpiGrid({ center }: { center: DashboardCenter }) {
   const k = center.kpis;
   const cards = [
     {
@@ -418,7 +402,7 @@ function KpiGrid({ center, theme }: { center: DashboardCenter; theme: "light" | 
           transition={{ delay: i * 0.03 }}
           className={cn(
             "rounded-xl border px-3 py-2.5",
-            theme === "dark" ? "border-slate-700 bg-slate-900" : "border-primary/10 bg-white",
+            "border-primary/10 bg-white",
             c.alert && Number(c.value) > 0 && "border-amber-200 bg-amber-50"
           )}
         >
@@ -434,20 +418,13 @@ function Panel({
   title,
   icon,
   children,
-  theme,
 }: {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
-  theme: "light" | "dark";
 }) {
   return (
-    <section
-      className={cn(
-        "rounded-2xl border border-primary/10 p-4",
-        theme === "dark" ? "border-slate-700 bg-slate-900" : "bg-white"
-      )}
-    >
+    <section className="rounded-2xl border border-primary/10 bg-white p-4">
       <h2 className="mb-3 flex items-center gap-2 font-semibold text-primary">
         {icon}
         {title}
@@ -471,10 +448,10 @@ function MiniKpi({ label, value, alert }: { label: string; value: number; alert?
   );
 }
 
-function OrdersPanel({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
+function OrdersPanel({ center }: { center: DashboardCenter }) {
   const o = center.orders;
   return (
-    <Panel title="Orders" icon={<Package className="h-4 w-4" />} theme={theme}>
+    <Panel title="Orders" icon={<Package className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Row label="Waiting dispatch" value={o.waiting_dispatch} />
         <Row label="Assigned" value={o.assigned} />
@@ -492,10 +469,10 @@ function OrdersPanel({ center, theme }: { center: DashboardCenter; theme: "light
   );
 }
 
-function BookingPanel({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
+function BookingPanel({ center }: { center: DashboardCenter }) {
   const b = center.booking;
   return (
-    <Panel title="Booking" icon={<Wallet className="h-4 w-4" />} theme={theme}>
+    <Panel title="Booking" icon={<Wallet className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Row label="Total drafts" value={Number(b.total_drafts ?? 0)} />
         <Row label="Confirmed" value={Number(b.confirmed_drafts ?? 0)} />
@@ -514,10 +491,10 @@ function BookingPanel({ center, theme }: { center: DashboardCenter; theme: "ligh
   );
 }
 
-function FinancePanel({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
+function FinancePanel({ center }: { center: DashboardCenter }) {
   const f = center.finance;
   return (
-    <Panel title="Finance" icon={<Wallet className="h-4 w-4" />} theme={theme}>
+    <Panel title="Finance" icon={<Wallet className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Row label="Today" value={formatCents(Number(f.today_revenue_cents ?? 0))} />
         <Row label="Outstanding" value={formatCents(Number(f.outstanding_invoices_cents ?? 0))} />
@@ -536,10 +513,10 @@ function FinancePanel({ center, theme }: { center: DashboardCenter; theme: "ligh
   );
 }
 
-function SupportPanel({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
+function SupportPanel({ center }: { center: DashboardCenter }) {
   const s = center.support;
   return (
-    <Panel title="Support" icon={<Bell className="h-4 w-4" />} theme={theme}>
+    <Panel title="Support" icon={<Bell className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Row label="Open" value={Number(s.open_tickets ?? 0)} />
         <Row label="Urgent" value={Number(s.urgent_tickets ?? 0)} />
@@ -553,10 +530,10 @@ function SupportPanel({ center, theme }: { center: DashboardCenter; theme: "ligh
   );
 }
 
-function ClaimsPanel({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
+function ClaimsPanel({ center }: { center: DashboardCenter }) {
   const c = center.claims;
   return (
-    <Panel title="Claims" icon={<AlertTriangle className="h-4 w-4" />} theme={theme}>
+    <Panel title="Claims" icon={<AlertTriangle className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Row label="Open" value={c.open_claims} />
         <Row label="Investigating" value={c.under_investigation} />
@@ -570,10 +547,10 @@ function ClaimsPanel({ center, theme }: { center: DashboardCenter; theme: "light
   );
 }
 
-function MerchantsPanel({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
+function MerchantsPanel({ center }: { center: DashboardCenter }) {
   const m = center.merchants as Record<string, unknown>;
   return (
-    <Panel title="Merchants" icon={<Building2 className="h-4 w-4" />} theme={theme}>
+    <Panel title="Merchants" icon={<Building2 className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Row label="Pending approval" value={Number(m.pending_approval ?? 0)} />
         <Row label="Active" value={Number(m.active ?? 0)} />
@@ -586,10 +563,10 @@ function MerchantsPanel({ center, theme }: { center: DashboardCenter; theme: "li
   );
 }
 
-function DriversPanel({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
+function DriversPanel({ center }: { center: DashboardCenter }) {
   const d = center.drivers as Record<string, number>;
   return (
-    <Panel title="Drivers" icon={<Truck className="h-4 w-4" />} theme={theme}>
+    <Panel title="Drivers" icon={<Truck className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Row label="Online" value={d.online ?? 0} />
         <Row label="Offline" value={d.offline ?? 0} />
@@ -603,10 +580,10 @@ function DriversPanel({ center, theme }: { center: DashboardCenter; theme: "ligh
   );
 }
 
-function FleetPanel({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
+function FleetPanel({ center }: { center: DashboardCenter }) {
   const f = center.fleet;
   return (
-    <Panel title="Fleet" icon={<Truck className="h-4 w-4" />} theme={theme}>
+    <Panel title="Fleet" icon={<Truck className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Row label="Total vehicles" value={Number(f.vehicles_total ?? 0)} />
         <Row label="Active" value={Number(f.vehicles_active ?? 0)} />
@@ -617,13 +594,7 @@ function FleetPanel({ center, theme }: { center: DashboardCenter; theme: "light"
   );
 }
 
-function SystemHealthPanel({
-  health,
-  theme,
-}: {
-  health: Record<string, unknown>;
-  theme: "light" | "dark";
-}) {
+function SystemHealthPanel({ health }: { health: Record<string, unknown> }) {
   const items: [string, unknown][] = [
     ["API", health.api],
     ["Database", health.database],
@@ -636,7 +607,7 @@ function SystemHealthPanel({
     ["Storage", health.storage],
   ];
   return (
-    <Panel title="System health" icon={<CheckCircle2 className="h-4 w-4" />} theme={theme}>
+    <Panel title="System health" icon={<CheckCircle2 className="h-4 w-4" />}>
       <div className="flex flex-wrap gap-2">
         {items.map(([label, val]) => {
           const status = healthStatus(val);
@@ -666,14 +637,14 @@ function SystemHealthPanel({
   );
 }
 
-function RightSidebar({ center, theme }: { center: DashboardCenter; theme: "light" | "dark" }) {
+function RightSidebar({ center }: { center: DashboardCenter }) {
   const p = center.pending;
   return (
     <>
-      <Panel title="Today's schedule" icon={<Calendar className="h-4 w-4" />} theme={theme}>
+      <Panel title="Today's schedule" icon={<Calendar className="h-4 w-4" />}>
         <p className="text-sm text-muted">Use merchant and driver pages for follow-ups.</p>
       </Panel>
-      <Panel title="Approvals & pending" icon={<Bell className="h-4 w-4" />} theme={theme}>
+      <Panel title="Approvals & pending" icon={<Bell className="h-4 w-4" />}>
         <ul className="space-y-2 text-sm">
           <PendingRow label="Merchant approvals" count={p.merchant_approvals} href="/merchants" />
           <PendingRow label="Open claims" count={p.claims_open} href="/claims" />
@@ -681,7 +652,7 @@ function RightSidebar({ center, theme }: { center: DashboardCenter; theme: "ligh
           <PendingRow label="Quotes" count={p.quotes} href="/booking-drafts" />
         </ul>
       </Panel>
-      <Panel title="Notifications" icon={<Bell className="h-4 w-4" />} theme={theme}>
+      <Panel title="Notifications" icon={<Bell className="h-4 w-4" />}>
         <p className="text-sm text-muted">
           Live updates via polling and live map WebSocket. Open Operations for real-time dispatch
           feed.
