@@ -1,0 +1,71 @@
+name: Set Public Ingest Key
+
+# One-shot ops: ensure PUBLIC_INGEST_API_KEY exists in Doppler and roll api + website.
+# Contact / quote forms POST /api/inquiries → API /v1/public/inquiries → admin CRM leads.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: set-ingest-key
+  cancel-in-progress: false
+
+jobs:
+  ensure-ingest-key:
+    name: Doppler + droplet roll
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Doppler CLI
+        run: curl -sLf --retry 3 https://cli.doppler.com/install.sh | sh
+
+      - name: Ensure PUBLIC_INGEST_API_KEY in Doppler
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
+          DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG || 'prd' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DOPPLER_TOKEN:-}" ]; then
+            echo "::error::DOPPLER_TOKEN is required"
+            exit 1
+          fi
+          existing="$(doppler secrets get PUBLIC_INGEST_API_KEY --project "$DOPPLER_PROJECT" --config "$DOPPLER_CONFIG" --plain 2>/dev/null || true)"
+          if [ -n "$existing" ]; then
+            echo "PUBLIC_INGEST_API_KEY already present in Doppler (not rotated)."
+          else
+            key="$(openssl rand -hex 32)"
+            echo "::add-mask::$key"
+            doppler secrets set "PUBLIC_INGEST_API_KEY=${key}" --project "$DOPPLER_PROJECT" --config "$DOPPLER_CONFIG"
+            echo "Uploaded new PUBLIC_INGEST_API_KEY to Doppler ${DOPPLER_PROJECT}/${DOPPLER_CONFIG}."
+          fi
+
+      - name: Sync secrets and recreate api + web
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          envs: DOPPLER_TOKEN,DOPPLER_PROJECT,DOPPLER_CONFIG
+          script: |
+            set -euo pipefail
+            cd /opt/porterchain
+            export DOPPLER_TOKEN DOPPLER_PROJECT DOPPLER_CONFIG
+            bash sync-secrets.sh
+            if ! grep -qE '^PUBLIC_INGEST_API_KEY=.+' .env; then
+              echo "::error::PUBLIC_INGEST_API_KEY missing from synced .env"
+              exit 1
+            fi
+            set -a
+            # shellcheck disable=SC1091
+            source .env
+            set +a
+            docker compose -f docker-compose.prod.yml up -d --force-recreate --no-deps api web
+            sleep 8
+            docker compose -f docker-compose.prod.yml exec -T api curl -fsS http://localhost:8001/health
+            echo "api + web recreated with ingest key"
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
+          DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG || 'prd' }}
