@@ -71,22 +71,23 @@ GitHub Deploy workflow
 
 ### Doppler (`pcd` / `prd`) — prod runtime
 
-| Secret                                                                         | Notes                                          |
-| ------------------------------------------------------------------------------ | ---------------------------------------------- |
-| `POSTGRES_PASSWORD`                                                            | DB password                                    |
-| `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_{SECRET_KEY,PUBLISHABLE_KEY,JWKS_URL}` | 12 keys (enterprise)                           |
-| `STRIPE_SECRET`                                                                | `sk_live_…`                                    |
-| `STRIPE_WEBHOOK_SECRET`                                                        | `whsec_…`                                      |
-| `JWT_SECRET`                                                                   | `openssl rand -hex 32` — driver sessions + SSO |
-| `GOOGLE_MAPS_SERVER_API_KEY`                                                   | Server geocoding                               |
-| `FIREBASE_PROJECT_ID`                                                          | e.g. `porterchain-55313`                       |
-| `FIREBASE_CREDENTIALS_JSON`                                                    | Extracted to file on sync                      |
-| `FIREBASE_WEB_VAPID_KEY`                                                       | Web push                                       |
-| `SENTRY_DSN`                                                                   | API errors (optional)                          |
-| `PORTERCHAIN_PUSH_ENABLED`                                                     | `true`                                         |
-| `PORTERCHAIN_PUSH_SEND`                                                        | `true`                                         |
-| `API_REPLICAS`                                                                 | `2`                                            |
-| `FLEETBASE_*`                                                                  | When bridge enabled (blocked)                  |
+| Secret                                                                         | Notes                                              |
+| ------------------------------------------------------------------------------ | -------------------------------------------------- |
+| `POSTGRES_PASSWORD`                                                            | DB password                                        |
+| `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_{SECRET_KEY,PUBLISHABLE_KEY,JWKS_URL}` | 12 keys (enterprise)                               |
+| `STRIPE_SECRET`                                                                | `sk_live_…`                                        |
+| `STRIPE_WEBHOOK_SECRET`                                                        | `whsec_…`                                          |
+| `JWT_SECRET`                                                                   | `openssl rand -hex 32` — driver sessions + SSO     |
+| `PUBLIC_INGEST_API_KEY`                                                        | Website inquiries → API CRM leads (`X-Ingest-Key`) |
+| `GOOGLE_MAPS_SERVER_API_KEY`                                                   | Server geocoding                                   |
+| `FIREBASE_PROJECT_ID`                                                          | e.g. `porterchain-55313`                           |
+| `FIREBASE_CREDENTIALS_JSON`                                                    | Extracted to file on sync                          |
+| `FIREBASE_WEB_VAPID_KEY`                                                       | Web push                                           |
+| `SENTRY_DSN`                                                                   | API errors (optional)                              |
+| `PORTERCHAIN_PUSH_ENABLED`                                                     | `true`                                             |
+| `PORTERCHAIN_PUSH_SEND`                                                        | `true`                                             |
+| `API_REPLICAS`                                                                 | `2`                                                |
+| `FLEETBASE_*`                                                                  | When bridge enabled (blocked)                      |
 
 **Legacy (remove after enterprise verified):** `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_JWKS_URL`
 
