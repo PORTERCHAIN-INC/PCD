@@ -1,5 +1,6 @@
 """driver routes — dashboard."""
 
+from porterchain_api.db import db_transaction
 from porterchain_api.routers.driver._deps import (
     Annotated,
     AvailabilityRequest,
@@ -131,7 +132,7 @@ def claim_bonus(
     db: Session = Depends(get_db),
 ):
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.bonuses.claim_bonus(db, ctx.driver, bonus_id)
         return result
     except LookupError as exc:
@@ -155,12 +156,12 @@ def set_availability(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
-    require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     if body.mode is None and body.online is None:
         raise HTTPException(status_code=422, detail="online or mode required")
     try:
-        with db.begin():
+        require_approved_driver(ctx)
+        with db_transaction(db):
             if body.mode is not None:
                 result = svc.platform.shift.set_availability(
                     db, ctx.driver, body.mode, fleetbase_bridge=bridge
@@ -195,7 +196,7 @@ def start_shift(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.shift.start_shift(
                 db, ctx.driver, fleetbase_bridge=bridge, route_id=body.route_id
             )
@@ -213,7 +214,7 @@ def end_shift(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.shift.end_shift(db, ctx.driver, fleetbase_bridge=bridge)
         return result
     except LookupError as exc:
@@ -229,7 +230,7 @@ def shift_break(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.shift.start_break(
                 db, ctx.driver, fleetbase_bridge=bridge
             )
@@ -248,7 +249,7 @@ def shift_resume(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.shift.resume_shift(
                 db, ctx.driver, fleetbase_bridge=bridge
             )

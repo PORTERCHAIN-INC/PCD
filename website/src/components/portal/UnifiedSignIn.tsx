@@ -8,8 +8,14 @@ import GuestTrackLookup from "@/components/portal/GuestTrackLookup";
 import LoginBrandPanel from "@/components/portal/LoginBrandPanel";
 import { porterchainClerkAppearance } from "@/lib/clerk-appearance";
 
-export default function UnifiedSignIn({ redirectUrl = "/login" }: { redirectUrl?: string }) {
+type UnifiedSignInProps = {
+  redirectUrl?: string;
+  intent?: "merchant";
+};
+
+export default function UnifiedSignIn({ redirectUrl = "/login", intent }: UnifiedSignInProps) {
   const t = useTranslations("login");
+  const isMerchant = intent === "merchant";
 
   return (
     <div className="min-h-[calc(100dvh-var(--nav-height))] grid lg:grid-cols-2 bg-gray-bg">
@@ -24,8 +30,12 @@ export default function UnifiedSignIn({ redirectUrl = "/login" }: { redirectUrl?
 
           <div className="rounded-2xl border border-primary/8 bg-white p-5 sm:p-6 md:p-8 shadow-premium">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold tracking-tight text-primary">{t("title")}</h2>
-              <p className="mt-1.5 text-sm text-muted">{t("roleNote")}</p>
+              <h2 className="text-xl font-semibold tracking-tight text-primary">
+                {isMerchant ? t("merchantSso.title") : t("title")}
+              </h2>
+              <p className="mt-1.5 text-sm text-muted">
+                {isMerchant ? t("merchantSso.subtitle") : t("roleNote")}
+              </p>
             </div>
 
             <SignIn

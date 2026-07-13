@@ -114,12 +114,15 @@ services:
     ports:
       - "127.0.0.1:8002:8002"
     volumes:
-      - valhalla-tiles:/custom_files
+      # Local GTA ~150 km extract only (see scripts/prepare-valhalla-gta.sh) — not full Ontario
+      - ./valhalla/data:/custom_files
     environment:
-      tile_urls: https://download.geofabrik.de/north-america/canada/ontario-latest.osm.pbf
+      # Build from bind-mounted gta-150km.osm.pbf only (prepare-valhalla-gta.sh). No Ontario URL.
+      tile_urls: ""
       use_tiles_ignore_pbf: "True"
       build_elevation: "False"
-      build_admins: "True"
+      # Admins need planet-scale extract; skip for GTA clip
+      build_admins: "False"
       build_time_zones: "True"
       server_threads: "2"
     networks:
@@ -189,6 +192,5 @@ volumes:
   postgres-data:
   redis-data:
   mailpit-data:
-  valhalla-tiles:
   fleetbase-storage:
   api-storage:

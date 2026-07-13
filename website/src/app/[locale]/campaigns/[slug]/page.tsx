@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import IndustryLandingView from "@/components/seo/IndustryLandingView";
 import {
@@ -8,7 +8,7 @@ import {
   getCampaignMessageKey,
   isValidCampaignSlug,
 } from "@/lib/seo/campaign-landing";
-import { getLandingContent } from "@/lib/seo/landing-content";
+import { getLandingContent, resolveLandingContent } from "@/lib/seo/landing-content";
 import { buildLocalDeliveryCityLinks } from "@/lib/seo/internal-linking";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import { CAMPAIGN_KEY_TO_NICHE_SLUG } from "@/lib/seo/industry-home-links";
@@ -31,13 +31,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isValidCampaignSlug(slug)) return {};
   const key = getCampaignMessageKey(slug);
-  const campaign = await getLandingContent(locale, "campaignLanding", key ?? "");
+  const { content: campaign, indexable } = await resolveLandingContent(
+    locale,
+    "campaignLanding",
+    key ?? ""
+  );
   if (!campaign?.meta) return {};
   return buildPageMetadata(
     locale,
     `campaigns/${slug}`,
     campaign.meta.title ?? "",
-    campaign.meta.description ?? ""
+    campaign.meta.description ?? "",
+    { index: indexable }
   );
 }
 
@@ -53,6 +58,7 @@ export default async function CampaignPage({ params }: Props) {
   if (!campaign) notFound();
 
   const loc = locale as Locale;
+  const tSeo = await getTranslations("corporate.seo.sectionLabels");
   const industryNiche = CAMPAIGN_KEY_TO_NICHE_SLUG[key];
   const cityLinks = industryNiche
     ? [{ href: industrySlug(loc, industryNiche), label: "Industry page" }]
@@ -66,6 +72,26 @@ export default async function CampaignPage({ params }: Props) {
         niche={campaign}
         cityLinks={cityLinks}
         localCityLinks={buildLocalDeliveryCityLinks(loc)}
+        sectionLabels={{
+          industries: tSeo("industries"),
+          challenges: tSeo("challenges"),
+          solution: tSeo("solution"),
+          workflow: tSeo("workflow"),
+          onboarding: tSeo("onboarding"),
+          deliveryInCity: tSeo("deliveryInCity"),
+          localDeliveryByCity: tSeo("localDeliveryByCity"),
+          capacitySolutions: tSeo("capacitySolutions"),
+          serviceAreas: tSeo("serviceAreas"),
+          industryDeliveryInArea: tSeo("industryDeliveryInArea"),
+          exploreByIndustry: tSeo("exploreByIndustry"),
+          localDelivery: tSeo("localDelivery"),
+          localChallenges: tSeo("localChallenges"),
+          industryFit: tSeo("industryFit"),
+          howItWorks: tSeo("howItWorks"),
+          otherVehicles: tSeo("otherVehicles"),
+          vehicles: tSeo("vehicles"),
+          painPoints: tSeo("painPoints"),
+        }}
       />
     </CorporateShell>
   );

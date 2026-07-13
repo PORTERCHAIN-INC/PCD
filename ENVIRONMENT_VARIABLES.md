@@ -396,16 +396,25 @@ No Google Analytics or PostHog vars documented yet. Add when adopted.
 
 ## Email (platform SMTP)
 
-| Variable            | Required | Description           |
-| ------------------- | -------- | --------------------- |
-| `MAIL_MAILER`       | Yes      | `smtp`                |
-| `MAIL_HOST`         | Yes      | `smtp.zohocloud.ca`   |
-| `MAIL_PORT`         | Yes      | `465`                 |
-| `MAIL_USERNAME`     | Yes      | SMTP user             |
-| `MAIL_PASSWORD`     | Yes      | SMTP password         |
-| `MAIL_ENCRYPTION`   | Yes      | `ssl`                 |
-| `MAIL_FROM_ADDRESS` | Yes      | `ops@porterchain.com` |
-| `MAIL_FROM_NAME`    | Yes      | Display name          |
+**SSOT:** [docs/notifications/ZOHO_MAIL.md](docs/notifications/ZOHO_MAIL.md) (Zoho Canada · Mailpit local · aliases)
+
+| Variable                 | Required | Dev (Mailpit)           | Production (Zoho CA)                 |
+| ------------------------ | -------- | ----------------------- | ------------------------------------ |
+| `MAIL_MAILER`            | Yes      | `smtp`                  | `smtp`                               |
+| `MAIL_HOST`              | Yes      | `localhost`             | `smtp.zohocloud.ca`                  |
+| `MAIL_PORT`              | Yes      | `1025`                  | `465` (SSL; API uses `SMTP_SSL`)     |
+| `MAIL_USERNAME`          | Prod     | empty                   | e.g. `ops@porterchain.com`           |
+| `MAIL_PASSWORD`          | Prod     | empty                   | Zoho app-specific password (Doppler) |
+| `MAIL_ENCRYPTION`        | Prod     | empty                   | `ssl`                                |
+| `MAIL_FROM_ADDRESS`      | Yes      | `ops@porterchain.com`   | Default From                         |
+| `MAIL_FROM_ADDRESS2`     | No       | `sales@porterchain.com` | `from_alias=sales`                   |
+| `MAIL_FROM_ADDRESS3`     | No       | `ravi@porterchain.com`  | Personal / founder From              |
+| `MAIL_FROM_NAME`         | Yes      | `Porterchain (local)`   | `Porterchain`                        |
+| `PORTERCHAIN_OPS_EMAILS` | No       | `ops@porterchain.com`   | Ops distribution                     |
+
+**Aliases on `porterchain.com`:** `peter@`, `ravi@`, `billing@`, `no-reply@`, `ops@`, `sales@`, `support@`.
+
+**IMAP / POP (clients only — not API):** `imap.zohocloud.ca:993` · `pop.zohocloud.ca:995` (SSL). See Zoho Mail doc.
 
 ---
 

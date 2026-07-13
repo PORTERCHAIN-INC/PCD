@@ -1,12 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { industries } from "@/data/industries";
 import { HOME_INDUSTRY_TO_NICHE_SLUG } from "@/lib/seo/industry-home-links";
 import LinkButton from "@/components/corporate/ui/LinkButton";
+import MagicCard from "@/components/magic/magic-card";
+import BlurFade from "@/components/magic/blur-fade";
 import StorySection from "./StorySection";
 
 const FEATURED_IDS = [
@@ -39,31 +40,26 @@ export default function StoryIndustries() {
           const nicheSlug = HOME_INDUSTRY_TO_NICHE_SLUG[id];
           const href = nicheSlug ? `/industry/${nicheSlug}` : "/industry";
           return (
-            <motion.div
-              key={id}
-              initial={{ opacity: 0, scale: 0.98 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.03 }}
-            >
-              <Link
-                href={href}
-                className="group flex items-center gap-3 rounded-2xl border border-primary/6 bg-white px-4 py-4 shadow-premium hover:border-secondary/25 transition-all"
-              >
-                {Icon && (
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
-                    <Icon className="h-4 w-4" aria-hidden />
-                  </span>
-                )}
-                <span className="text-sm font-semibold text-primary group-hover:text-secondary transition-colors">
-                  {tInd(`items.${id}.name`)}
-                </span>
+            <BlurFade key={id} delay={i * 0.03} inView>
+              <Link href={href} className="block h-full">
+                <MagicCard className="h-full px-4 py-4 hover:border-secondary/25">
+                  <div className="flex items-center gap-3">
+                    {Icon && (
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+                        <Icon className="h-4 w-4" aria-hidden />
+                      </span>
+                    )}
+                    <span className="text-sm font-semibold text-primary group-hover:text-secondary transition-colors">
+                      {tInd(`items.${id}.name`)}
+                    </span>
+                  </div>
+                </MagicCard>
               </Link>
-            </motion.div>
+            </BlurFade>
           );
         })}
       </div>
-      <div className="mt-8 flex items-center gap-4">
+      <BlurFade inView className="mt-8 flex items-center gap-4">
         <LinkButton href="/industry" variant="outline" trackSource="home-industries">
           {t("cta")}
         </LinkButton>
@@ -74,7 +70,7 @@ export default function StoryIndustries() {
           {t("viewAll")}
           <ArrowRight className="h-4 w-4" />
         </Link>
-      </div>
+      </BlurFade>
     </StorySection>
   );
 }

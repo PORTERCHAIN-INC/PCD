@@ -1,4 +1,4 @@
-import { getAuthorForPost } from "@/lib/blog";
+import { getAuthor } from "@/data/blog-authors";
 import { cn } from "@/lib/utils";
 
 interface AuthorCardProps {
@@ -14,7 +14,7 @@ export default function AuthorCard({
   variant = "default",
   className,
 }: AuthorCardProps) {
-  const author = getAuthorForPost(authorId);
+  const author = getAuthor(authorId);
   const initials = author.name
     .split(" ")
     .map((n) => n[0])

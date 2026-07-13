@@ -1,5 +1,5 @@
 {
-  "tagline": "Transportation capacity for Ontario businesses — powered by software we built to run the network.",
+  "tagline": "Moving Commerce On-Chain",
   "corporateTagline": "Professional drivers and vehicles when your own fleet is not enough.",
   "businessTagline": "Urgent, overflow, recurring, and dedicated delivery capacity for growing businesses.",
   "copyright": "© {year} Porterchain Inc. All rights reserved.",
@@ -12,52 +12,47 @@
   "googleReview": "Review on Google",
   "sections": {
     "products": {
-      "title": "How we operate",
+      "title": "Delivery services",
       "links": {
-        "platform": "Operations technology",
+        "business": "Business delivery",
         "solutions": "Solutions",
         "howItWorks": "How it works",
-        "integrations": "Integrations",
-        "developers": "Developers & API",
+        "pricing": "Pricing",
+        "getQuote": "Get a quote",
         "track": "Track a shipment"
       }
     },
     "solutions": {
-      "title": "Business",
-      "links": {
-        "business": "Business services",
-        "enterprise": "Enterprise",
-        "pricing": "Pricing",
-        "trust": "Trust & security",
-        "getQuote": "Get a quote",
-        "customerPortal": "My orders"
-      }
-    },
-    "company": {
-      "title": "Industries & areas",
+      "title": "Industries & capacity",
       "links": {
         "industry": "All industries",
         "constructionMaterials": "Construction materials",
         "electricalDistribution": "Electrical distribution",
         "plumbingSupply": "Plumbing supply",
         "serviceAreas": "Service areas",
-        "localDelivery": "Local delivery",
-        "vanDelivery": "Van delivery"
+        "enterprise": "Enterprise"
       }
     },
-    "resources": {
-      "title": "Company & resources",
+    "company": {
+      "title": "Company",
       "links": {
         "about": "About",
         "contact": "Contact",
         "careers": "Careers",
         "vehiclePartner": "Vehicle partners",
+        "trust": "Trust center"
+      }
+    },
+    "resources": {
+      "title": "Resources",
+      "links": {
         "blog": "Blog",
         "faq": "FAQ",
         "guides": "Guides",
-        "compare": "Compare",
-        "successStories": "Success stories",
-        "onboardingEducation": "Onboarding"
+        "platform": "How we operate",
+        "integrations": "Integrations",
+        "developers": "Developers & API",
+        "customerPortal": "Customer portal"
       }
     },
     "legal": {

@@ -32,9 +32,6 @@ const StoryIndustries = dynamic(() => import("@/components/home/story/StoryIndus
 const StoryEnterprise = dynamic(() => import("@/components/home/story/StoryEnterprise"), {
   loading: () => <SectionSkeleton />,
 });
-const StoryAi = dynamic(() => import("@/components/home/story/StoryAi"), {
-  loading: () => <SectionSkeleton minHeight="440px" />,
-});
 const StoryCta = dynamic(() => import("@/components/home/story/StoryCta"), {
   loading: () => <SectionSkeleton minHeight="280px" />,
 });
@@ -59,9 +56,6 @@ export default function HomeDeferredStorySections() {
       </LazyWhenVisible>
       <LazyWhenVisible>
         <StoryEnterprise />
-      </LazyWhenVisible>
-      <LazyWhenVisible minHeight="440px">
-        <StoryAi />
       </LazyWhenVisible>
       <LazyWhenVisible minHeight="280px">
         <StoryCta />

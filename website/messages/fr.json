@@ -1,16 +1,18 @@
 {
   "metadata": {
-    "title": "Porterchain | Système de répartition pour la logistique B2B régionale",
-    "description": "Orchestration de répartition pour les distributeurs ontariens — planification SLA, visibilité en direct et preuve prête pour audit.",
-    "ogTitle": "Porterchain | Système de répartition B2B régional",
-    "ogDescription": "Logiciel d'orchestration pour expéditeurs régionaux — répartition structurée et visibilité en temps réel.",
+    "title": "Porterchain | Capacité de transport B2B dans le RGT et l'Ontario",
+    "description": "Capacité véhicule et chauffeur pour entreprises du RGT — livraison le jour même, débordement de flotte, routes récurrentes, logistique de chantier et distribution du dernier kilomètre à Toronto, Peel, York et Durham.",
+    "ogTitle": "Porterchain | Capacité de transport B2B — RGT et Ontario",
+    "ogDescription": "Chauffeurs professionnels et véhicules commerciaux pour débordement, urgence, routes de gros récurrentes et continuité d'affaires dans la région du Grand Toronto.",
     "keywords": [
-      "Logiciel répartition Ontario",
-      "Plateforme logistique B2B",
-      "Répartition distribution construction",
-      "Orchestration expéditeur régional",
-      "Gestion livraison SLA",
-      "Preuve de livraison",
+      "livraison B2B Toronto",
+      "livraison dernier kilomètre RGT",
+      "livraison jour même entreprise Toronto",
+      "capacité débordement flotte RGT",
+      "service livraison commerciale Ontario",
+      "livraison chantier Toronto",
+      "distribution gros RGT",
+      "réseau capacité transport",
       "Porterchain"
     ]
   },
@@ -68,13 +70,21 @@
     "signOut": "Se déconnecter et réessayer",
     "devModeNote": "Clerk n'est pas configuré dans cet environnement.",
     "backHome": "Retour à porterchain.com",
-    "contactSupport": "Contacter le soutien"
+    "contactSupport": "Contacter le soutien",
+    "merchantSso": {
+      "title": "Connexion portail marchand",
+      "subtitle": "Utilisez votre compte d'entreprise approuvé. Google et Microsoft s'affichent lorsque Clerk les active.",
+      "google": "Continuer avec Google",
+      "microsoft": "Continuer avec Microsoft",
+      "emailFallback": "Ou connexion par courriel ci-dessous",
+      "orDivider": "Ou continuer par courriel"
+    }
   },
   "hero": {
-    "badge": "Partenaire logistique commercial",
-    "titleLine1": "Livrez tout.",
-    "titleLine2": "Partout dans le RGT.",
-    "subtitle": "Réservez des livraisons personnelles en quelques minutes dans le RGT.",
+    "badge": "Capacité de transport · RGT et Ontario",
+    "titleLine1": "Capacité de livraison B2B",
+    "titleLine2": "dans la région du Grand Toronto.",
+    "subtitle": "Capacité véhicule et chauffeur le jour même, récurrente et de débordement pour grossistes, distributeurs, manufacturiers et construction — sans gérer votre propre flotte.",
     "tags": {
       "looseParcels": "Colis",
       "ltlFreight": "Fret LTL",
@@ -309,9 +319,9 @@
     }
   },
   "gtaFrame": {
-    "label": "Grand Toronto",
-    "title": "Livraison locale conçue pour le GTA",
-    "subtitle": "Porterchain opère dans le Grand Toronto — tournées structurées, chauffeurs locaux et processus prévisibles pour les marchands qui ont besoin d'une livraison même jour et récurrente fiable, sans gérer leur propre flotte.",
+    "label": "Région du Grand Toronto",
+    "title": "Capacité de livraison B2B dans le RGT",
+    "subtitle": "Toronto, Mississauga, Brampton, Vaughan, Markham et Durham — routes le jour même, planifiées et récurrentes avec chauffeurs professionnels et véhicules commerciaux adaptés à votre fret. Débordement de flotte, livraison chantier, distribution en gros et réapprovisionnement du dernier kilomètre.",
     "caption": "Toronto · GTA",
     "cta": "Voir toutes les zones desservies",
     "cities": [
@@ -327,20 +337,20 @@
   },
   "whoCanUse": {
     "label": "Qui nous utilisons",
-    "title": "Conçu pour les livraisons personnelles",
-    "subtitle": "Envoyez colis, meubles, documents et plus — sans tracas.",
+    "title": "Conçu pour les opérations B2B du RGT",
+    "subtitle": "Grossistes, distributeurs, manufacturiers et entrepreneurs comptent sur Porterchain quand leur flotte est pleine, un chauffeur est absent ou un chantier a besoin de matériel aujourd'hui.",
     "individuals": {
-      "title": "Pour les particuliers",
-      "subtitle": "Livraisons personnelles simplifiées",
+      "title": "Pour les entreprises",
+      "subtitle": "Capacité de transport quand vous en avez le plus besoin",
       "items": [
-        "Livraison urgente d'ordinateur",
-        "Déménagement de meubles",
-        "Ramassage marketplace",
-        "Colis aéroport",
-        "Livraison à domicile",
-        "Livraison de cadeaux",
-        "Documents oubliés",
-        "Colis d'urgence"
+        "Débordement de flotte et chauffeurs de secours",
+        "Livraison urgente le jour même",
+        "Routes récurrentes de gros",
+        "Livraison de matériaux sur chantier",
+        "Réapprovisionnement du dernier kilomètre",
+        "Messagerie médicale et pharmacie",
+        "Livraison fournitures construction",
+        "Distribution B2B multi-arrêts"
       ]
     },
     "businessCta": {
@@ -398,12 +408,12 @@
   },
   "whyPorterchain": {
     "label": "Pourquoi Porterchain",
-    "title": "La logistique réinventée pour le Canada",
-    "subtitle": "Tout ce dont vous avez besoin pour déplacer vos marchandises plus vite, plus intelligemment et en toute transparence.",
+    "title": "Capacité de transport conçue pour le B2B ontarien",
+    "subtitle": "Capacité véhicule et chauffeur garantie avec suivi en direct, preuve de livraison et responsabilité opérationnelle — pas une autre place de marché de coursiers.",
     "features": {
       "simplicity": {
-        "title": "Simplicité intuitive",
-        "description": "Réservez en moins de 60 secondes"
+        "title": "Demandes de capacité rapides",
+        "description": "Du devis à la répartition en un flux d'affaires"
       },
       "tracking": {
         "title": "Suivi en temps réel",
@@ -601,118 +611,47 @@
     "support": "Soutien"
   },
   "testimonials": {
-    "label": "Témoignages",
-    "title": "La confiance des entreprises du RGT",
-    "subtitle": "Des histoires réelles d'entreprises qui comptent sur Porterchain chaque jour.",
-    "items": {
-      "coffee": {
-        "quote": "Porterchain a transformé nos livraisons matinales de torréfaction. Livraison le jour même vers plus de 40 cafés dans le RGT — nos grains arrivent plus frais que jamais.",
-        "author": "Sarah Chen",
-        "role": "Directrice des opérations",
-        "company": "Lakeview Coffee Roasters",
-        "industry": "Torréfacteur"
-      },
-      "medical": {
-        "quote": "La documentation de chaîne de custody et le suivi de température nous donnent une confiance totale. Porterchain est notre messagerie médicale de référence.",
-        "author": "Dr James Okonkwo",
-        "role": "Gestionnaire de la chaîne d'approvisionnement",
-        "company": "MedCore Supplies",
-        "industry": "Fournisseur médical"
-      },
-      "restaurant": {
-        "quote": "Les routes récurrentes vers nos fournisseurs ont réduit nos coûts logistiques de 30 %. Le portail marchand rend les réapprovisionnements sans effort.",
-        "author": "Marco Di Luca",
-        "role": "Propriétaire",
-        "company": "Trattoria Bella",
-        "industry": "Restaurant"
-      },
-      "electrical": {
-        "quote": "Quand un entrepreneur a besoin de pièces sur le chantier avant midi, Porterchain livre. Leurs camions gèrent parfaitement notre inventaire palettisé.",
-        "author": "Priya Sharma",
-        "role": "Gestionnaire de distribution",
-        "company": "VoltLine Electrical",
-        "industry": "Distributeur électrique"
-      },
-      "construction": {
-        "quote": "Les livraisons de matériaux le jour même vers les chantiers étaient un casse-tête. Maintenant, un clic dans le tableau de bord — nos contremaîtres savent quand les palettes arrivent.",
-        "author": "James O'Brien",
-        "role": "Chef de projet",
-        "company": "Toronto Build Partners",
-        "industry": "Construction"
-      },
-      "plumbing": {
-        "quote": "Les livraisons matinales de tuyaux et de robinetterie à Mississauga et Vaughan restent à l'heure. La preuve de livraison à chaque arrêt rassure nos clients grossistes.",
-        "author": "Lisa Nguyen",
-        "role": "Responsable des opérations",
-        "company": "Northline Plumbing Supply",
-        "industry": "Fournitures plomberie"
-      }
-    }
+    "label": "Histoires marchands",
+    "title": "Ce que disent les marchands",
+    "subtitle": "Études de cas et citations autorisées publiées ici lorsqu'elles sont disponibles.",
+    "placeholder": "D'autres témoignages de nos marchands à venir."
   },
   "faq": {
     "label": "FAQ",
-    "title": "Questions fréquemment posées",
-    "subtitle": "Tout ce que vous devez savoir sur la logistique Porterchain.",
+    "title": "FAQ livraison B2B",
+    "subtitle": "Questions fréquentes des entreprises ontariennes qui évaluent une capacité de transport.",
     "items": [
       {
-        "question": "Quelles régions Porterchain dessert-il?",
-        "answer": "Porterchain opère dans la région du Grand Toronto (RGT), incluant Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville et les municipalités environnantes."
+        "question": "Offrez-vous la livraison le jour même à Toronto et dans le RGT?",
+        "answer": "Oui. La livraison jour même et urgente est disponible dans nos zones du RGT selon les heures limites, la classe de véhicule et la capacité. Demandez un devis et nous confirmons la fenêtre."
       },
       {
-        "question": "En combien de temps puis-je obtenir une livraison?",
-        "answer": "La plupart des livraisons le jour même peuvent être réservées en quelques minutes. Un chauffeur est généralement assigné dans les 15 à 30 minutes."
+        "question": "Pouvez-vous gérer une livraison d'urgence quand notre chauffeur est indisponible?",
+        "answer": "Oui. La livraison d'urgence et le débordement de flotte sont des services centraux — nous déployons capacité véhicule et chauffeur adaptée, souvent le jour même."
       },
       {
-        "question": "Quels types d'articles puis-je expédier?",
-        "answer": "Nous gérons les colis, documents, meubles, achats marketplace, cadeaux et plus. Les matières dangereuses et articles illégaux ne sont pas permis."
+        "question": "Qu'est-ce que la logistique intra-urbaine et la proposez-vous?",
+        "answer": "La logistique intra-urbaine déplace le fret entre sites dans le RGT — entrepôts, chantiers, magasins et cliniques. Nous exécutons routes intra-urbaines à arrêt unique, multi-arrêts et récurrentes."
       },
       {
-        "question": "Quels types de véhicules sont disponibles?",
-        "answer": "Berline, VUS, camionnette, fourgonnette, fourgon Sprinter, camion 16 pi et camion 20 pi. Tous requièrent un permis G."
+        "question": "Offrez-vous une livraison rapide ou express pour les entreprises?",
+        "answer": "Oui. La livraison B2B rapide et express est disponible pour fret sensible au temps avec suivi en direct et preuve de livraison."
+      },
+      {
+        "question": "Quelles régions servez-vous?",
+        "answer": "Nous opérons dans la région du Grand Toronto — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener-Waterloo, London et Niagara — avec expertise sur les couloirs 401, 427 et 407."
+      },
+      {
+        "question": "Quels véhicules sont disponibles?",
+        "answer": "Berline, VUS, Camionnette, Fourgonnette, Fourgon Sprinter, Camion 16 pi et 20 pi. Tous requièrent un permis G ontarien."
+      },
+      {
+        "question": "La preuve de livraison est-elle incluse?",
+        "answer": "Chaque livraison inclut preuve photo, signature numérique au besoin, GPS et liens de suivi partageables."
       },
       {
         "question": "Comment fonctionne la tarification?",
-        "answer": "La tarification est transparente et basée sur la distance, le type de véhicule, le poids et l'urgence. Utilisez notre outil de devis instantané sur la page d'accueil."
-      },
-      {
-        "question": "Le suivi en temps réel est-il disponible?",
-        "answer": "Oui. Chaque livraison inclut le suivi GPS en direct, les mises à jour d'ETA et les notifications push."
-      },
-      {
-        "question": "Quelle preuve de livraison fournissez-vous?",
-        "answer": "Nous capturons une preuve photo, des signatures numériques et des scans de codes-barres à la livraison."
-      },
-      {
-        "question": "Puis-je planifier une livraison pour plus tard?",
-        "answer": "Oui. Choisissez une date et une plage horaire lors de la réservation."
-      },
-      {
-        "question": "Quels modes de paiement acceptez-vous?",
-        "answer": "Nous acceptons toutes les cartes de crédit principales via Stripe pour les livraisons personnelles."
-      },
-      {
-        "question": "Y a-t-il une application mobile?",
-        "answer": "Oui. L'application client Porterchain est disponible sur iOS et Android pour réserver, suivre et gérer vos livraisons."
-      },
-      {
-        "question": "Offrez-vous la livraison de meubles?",
-        "answer": "Oui. Nos camionnettes et fourgonnettes sont idéales pour les déménagements de meubles et livraisons à domicile."
-      },
-      {
-        "question": "Comment devenir chauffeur Porterchain?",
-        "answer": "Visitez notre page Chauffeur pour postuler. Permis G valide, véhicule admissible, assurance et dossier de conduite propre requis."
-      },
-      {
-        "question": "Le soutien client est-il disponible 24/7?",
-        "answer": "Oui. Notre équipe est disponible en tout temps par téléphone, courriel et clavardage intégré."
-      },
-      {
-        "question": "En quoi Porterchain diffère-t-il des autres messageries?",
-        "answer": "Porterchain combine simplicité intuitive et logistique fiable — devis instantanés, suivi en temps réel et preuve de livraison sur une seule plateforme."
-      },
-      {
-        "question": "J'ai besoin de logistique d'entreprise ou récurrente. Où aller?",
-        "answer": "Visitez notre page Entreprise pour demander une consultation. Nous offrons routes récurrentes, distribution en gros, tableaux de bord marchands, intégration API et soutien dédié."
+        "answer": "Sur devis selon classe de véhicule, distance, arrêts, urgence (jour même vs planifié) et manutention. Pas de frais plateforme cachés."
       }
     ]
   },
@@ -814,10 +753,14 @@
       "ctaLabel": "Commencer"
     },
     "van": {
-      "pageTitle": "Livraison fourgonnette | Matériaux construction et multi-arrêts | Porterchain",
-      "description": "Fourgonnettes pour matériaux de construction, plomberie et tournées B2B multi-arrêts dans le RGT. Palettes, tuyaux, fixtures et colis volumineux avec preuve de livraison.",
-      "headline": "Fourgonnette pour construction et tournées multi-arrêts",
-      "subheadline": "Matériaux de construction, stock plomberie, palettes et tournées distributeur. Capacité adaptée avec suivi et preuve de livraison chantier.",
+      "pageTitle": "Livraison fourgonnette métier | Matériaux construction et multi-arrêts | Porterchain",
+      "description": "Fourgonnettes métier pour matériaux de construction, plomberie et tournées B2B multi-arrêts dans le RGT. Palettes, tuyaux, fixtures et colis volumineux avec preuve de livraison.",
+      "headline": "Fourgonnette métier pour construction et tournées multi-arrêts",
+      "subheadline": "Matériaux de construction, stock plomberie, palettes et tournées distributeur dans le RGT — avec suivi et preuve de livraison chantier. Sur devis, sans frais plateforme.",
+      "whenYouNeedTitle": "Quand appeler pour une fourgonnette métier",
+      "whenYouNeed": "Appelez quand votre fourgon ou chauffeur est absent, que le matériel chantier doit partir aujourd'hui, ou que vos routes dépassent votre flotte. Nous déployons une capacité fourgon adaptée avec suivi et preuve — jour même ou récurrent dans le RGT.",
+      "faqPricingQ": "Comment fonctionne la tarification pour la fourgonnette métier?",
+      "faqPricingA": "Sur devis selon la classe de véhicule, la distance, les arrêts et l'urgence (jour même vs planifié). Sans frais plateforme — demandez un devis et nous confirmons la capacité pour vos routes du RGT par écrit avant l'expédition.",
       "useCasesTitle": "Cas d'usage",
       "useCases": "Livraison matériaux vers chantiers et clients professionnels : bois, gypse, fixtures. Tournées grossistes plomberie et électrique. Réapprovisionnement B2B multi-arrêts quand une voiture ou VUS ne suffit pas.",
       "volumeTitle": "Volume adapté",
@@ -834,7 +777,11 @@
       "pageTitle": "Camion 16 pi | Matériaux construction et fret palettes | Porterchain",
       "description": "Camion 16 pi pour matériaux de construction, distribution électrique et fret palettes en Ontario. Livraison chantier, preuve de livraison, PTAC sous 11 000 kg.",
       "headline": "Camion boîte pour construction et palettes",
-      "subheadline": "Camions 16 pi pour bois, gypse, acier, palettes électriques et charges B2B lourdes. Tournées chantier récurrentes avec suivi et preuve.",
+      "subheadline": "Camions 16 pi pour bois, gypse, acier, palettes électriques et charges B2B lourdes dans le RGT et en Ontario. Tournées chantier récurrentes avec suivi et preuve. Sur devis, sans frais plateforme.",
+      "whenYouNeedTitle": "Quand appeler pour un camion boîte",
+      "whenYouNeed": "Appelez quand le fret palettisé ne rentre pas dans un fourgon, que votre camion est en panne, ou qu'une échéance chantier ne peut glisser. Nous déployons un camion 16 pi avec créneaux, notes d'accès et preuve photo à chaque livraison.",
+      "faqPricingQ": "Comment fonctionne la tarification pour le camion cube?",
+      "faqPricingA": "Sur devis selon la classe de véhicule, la distance, les arrêts, la manutention et l'urgence. Sans frais plateforme — nous confirmons capacité et accès chantier par écrit avant l'expédition.",
       "supportingText": "PTAC sous 11 000 kg · boîte 16 pi",
       "useCasesTitle": "Cas d'usage",
       "useCases": "Matériaux palettes vers chantiers : bois, gypse, acier, agrégats. Tournées grossistes électriques. Fret lourd quand la fourgonnette ne suffit pas.",
@@ -846,6 +793,48 @@
       "serviceAreaRelevance": "RGT, Hamilton, Kitchener-Waterloo, London, Niagara, Durham. Accès quai et contraintes chantier confirmés à l'intégration.",
       "ctaTitle": "Prêt pour la livraison camion?",
       "ctaDescription": "Partagez vos routes palettes et exigences chantier.",
+      "ctaLabel": "Commencer"
+    },
+    "pickupTruck": {
+      "pageTitle": "Livraison camionnette | Chantier et fret B2B léger | Porterchain",
+      "description": "Camionnettes pour matériaux chantier, fret B2B léger et chargements polyvalents dans le RGT et en Ontario. Benne ouverte avec suivi complet.",
+      "headline": "Camionnette pour chantier et fret B2B léger",
+      "subheadline": "Matériaux chantier, équipement et fret B2B nécessitant benne ouverte dans le RGT — même suivi et fiabilité que notre flotte fourgons. Sur devis, sans frais plateforme.",
+      "whenYouNeedTitle": "Quand appeler pour une camionnette",
+      "whenYouNeed": "Appelez quand un fourgon est trop fermé, un camion boîte trop grand, ou que votre chauffeur est absent sur une course légère. Nous déployons une camionnette pour chantier, entrepreneurs et fret B2B irrégulier dans le RGT.",
+      "faqPricingQ": "Comment fonctionne la tarification pour la camionnette?",
+      "faqPricingA": "Sur devis selon la classe de véhicule, la distance, les arrêts et l'urgence. Sans frais plateforme — demandez un devis et nous confirmons la capacité pour vos routes du RGT par écrit.",
+      "useCasesTitle": "Cas d'usage les plus adaptés",
+      "useCases": "Matériaux chantier et courses construction légères, livraison équipement, fret B2B benne ouverte et livraisons site où l'accès hayon compte.",
+      "volumeTitle": "Adéquation du volume",
+      "volumeSuitability": "Idéal pour tournées à arrêt unique ou multi-arrêts avec articles volumineux, charges mixtes ou livraisons chantier où l'accès hayon compte. Augmentez avec des routes pickup supplémentaires selon le volume.",
+      "whoForTitle": "Pour qui la livraison pickup",
+      "whoFor": "Marques e-commerce meubles, détaillants électroménagers, vendeurs marketplace, entrepreneurs avec courses matériaux légères et marchands avec fret volumineux irrégulier dans le GTA.",
+      "serviceAreaTitle": "Pertinence des zones desservies",
+      "serviceAreaRelevance": "Routes pickup dans le GTA, Hamilton, Kitchener-Waterloo, London, Niagara et Durham. Adaptées aux accès urbains, suburbains et chantier.",
+      "ctaTitle": "Prêt pour la livraison camionnette?",
+      "ctaDescription": "Décrivez votre profil de fret et vos trajets. Nous confirmerons véhicule et capacité.",
+      "ctaLabel": "Commencer"
+    },
+    "cargoVan": {
+      "pageTitle": "Livraison fourgon cargo | E-commerce et routes wholesale | Porterchain",
+      "description": "Fourgons cargo toit haut pour e-commerce, wholesale et tournées B2B multi-arrêts dans le GTA. Plus de capacité qu'un VUS, accès plus agile qu'un camion boîte.",
+      "headline": "Fourgon cargo pour tournées colis à fort volume",
+      "subheadline": "Fourgons cargo toit haut pour fulfillment e-commerce, réapprovisionnement wholesale et tournées multi-arrêts dans le RGT — capacité fermée sans camion boîte complet. Sur devis, sans frais plateforme.",
+      "whenYouNeedTitle": "Quand appeler pour un fourgon cargo",
+      "whenYouNeed": "Appelez quand le volume de colis dépasse berline et VUS, que votre flotte est pleine, ou que vos routes wholesale ont besoin de capacité fermée aujourd'hui. Nous déployons des fourgons cargo toit haut avec suivi multi-arrêts dans le RGT.",
+      "faqPricingQ": "Comment fonctionne la tarification pour le fourgon cargo?",
+      "faqPricingA": "Sur devis selon la classe de véhicule, la distance, les arrêts et l'urgence. Sans frais plateforme — nous confirmons la capacité pour vos routes du RGT par écrit avant l'expédition.",
+      "useCasesTitle": "Cas d'usage les plus adaptés",
+      "useCases": "Tournées e-commerce et D2C multi-arrêts, livraisons wholesale aux détaillants, stock comptoir plomberie et électrique, boîtes abonnement et réapprovisionnement B2B récurrent dans le GTA.",
+      "volumeTitle": "Adéquation du volume",
+      "volumeSuitability": "Adapté à fort nombre d'arrêts avec fret fermé — dizaines de colis par tournée, chariots cage ou boîtes empilées. Passez aux camions boîte quand le fret palettes domine.",
+      "whoForTitle": "Pour qui le fourgon cargo",
+      "whoFor": "Marques e-commerce, distributeurs et marchands qui augmentent le volume colis à Toronto et dans le GTA sans posséder une flotte de fourgons.",
+      "serviceAreaTitle": "Pertinence des zones desservies",
+      "serviceAreaRelevance": "Fourgons cargo à Toronto, Mississauga, Brampton, Vaughan, Hamilton et métros ontariennes — mêmes normes de suivi et POD que toute notre gamme de véhicules.",
+      "ctaTitle": "Prêt pour la livraison fourgon cargo?",
+      "ctaDescription": "Décrivez vos trajets et profil colis. Nous alignerons la capacité fourgon à votre programme.",
       "ctaLabel": "Commencer"
     }
   },
@@ -860,12 +849,12 @@
   "nicheLanding": {
     "constructionMaterials": {
       "meta": {
-        "title": "Livraison de matériaux de construction | Tournées chantier et distributeurs Ontario",
-        "description": "Porterchain livre les matériaux de construction dans le RGT et l'Ontario. Bois, gypse, acier et fournitures — tournées récurrentes, palettes, preuve de livraison."
+        "title": "Livraison matériaux construction RGT | Chantier pour entrepreneurs et distributeurs",
+        "description": "Livraison chantier et distributeur pour fournisseurs construction, entrepreneurs, chargés de projet et contremaîtres dans le RGT. Urgence jour même, palettes, créneaux chantier et preuve photo à chaque arrêt."
       },
       "hero": {
-        "title": "Livraison pour matériaux de construction",
-        "subtitle": "Votre partenaire logistique pour distributeurs de construction et livraison chantier. Fourgonnettes, camionnettes et camions — capacité prévisible et suivi en direct."
+        "title": "Livraison de matériaux de construction dans le RGT",
+        "subtitle": "Pour distributeurs de construction, entrepreneurs généraux, chargés de projet et contremaîtres — urgence jour même, tournées récurrentes cour-chantier et débordement de flotte avec créneaux horaires, accès chantier et preuve à chaque livraison. Capacité sur devis — demandez un devis écrit."
       },
       "painPoints": {
         "title": "Défis de livraison pour la construction",
@@ -874,11 +863,11 @@
         "item3": "Les équipes chantier exigent visibilité, POD et créneaux fiables"
       },
       "solution": {
-        "title": "Porterchain for construction materials",
-        "description": "One partner for distributor runs and jobsite delivery across Ontario. Local drivers, vehicles matched to pallet weight and site access, and full tracking from warehouse to site.",
-        "bullet1": "Scheduled and same-day routes for distributors, yards, and job sites",
-        "bullet2": "Pickups, cargo vans, and 16 ft box trucks for materials and pallet freight",
-        "bullet3": "Photo proof, signatures, and tracking links for every shipment"
+        "title": "Porterchain pour matériaux de construction",
+        "description": "Un partenaire pour tournées distributeur et livraison chantier en Ontario. Chauffeurs locaux, véhicules adaptés au poids des palettes et à l'accès chantier, suivi complet de l'entrepôt au site.",
+        "bullet1": "Tournées planifiées et jour même pour distributeurs, cours et chantiers",
+        "bullet2": "Camionnettes, fourgonnettes et camions 16 pi pour matériaux et fret palette",
+        "bullet3": "Preuve photo, signatures et liens de suivi pour chaque envoi"
       },
       "vehicleFit": {
         "title": "Vehicle fit for construction delivery",
@@ -909,31 +898,75 @@
         "step3Description": "Track every shipment, see ETAs, and get clear reporting for ops and billing."
       },
       "faq": {
-        "title": "Frequently asked questions — construction delivery",
-        "q1": "Do you deliver to job sites and trade customers?",
-        "a1": "Yes. We deliver to job sites, contractors, and trade accounts from distributors and yards. Share zones and access requirements and we'll confirm coverage.",
-        "q2": "What vehicles do you use for building materials?",
-        "a2": "Pickups and vans for smaller loads; 16 ft box trucks for palletized freight. We match the vehicle to your materials and site access.",
-        "q3": "Do you provide proof of delivery?",
-        "a3": "Every shipment includes photo proof, signatures where needed, and a shareable tracking link with real-time status."
+        "title": "FAQ — livraison construction",
+        "q1": "Pouvez-vous assurer nos tournées comptoir-entrepreneur quand nos chauffeurs sont à pleine capacité?",
+        "a1": "Oui. Le débordement de flotte et la capacité de secours sont au cœur de notre offre — véhicule et chauffeur adaptés pour tournées distributeur et cour, souvent le jour même.",
+        "q2": "Livrez-vous bois, gypse, acier et matériaux palettisés sur chantier?",
+        "a2": "Oui. Camionnettes, fourgonnettes et camions 16 pi pour bois, gypse, acier et volumes en vrac — adaptés au poids, aux dimensions et à l'accès chantier.",
+        "q3": "Livrez-vous quand notre fournisseur ne peut pas respecter le créneau chantier d'aujourd'hui?",
+        "a3": "Oui. Livraison d'urgence et jour même quand un camion fournisseur ne se présente pas — partagez le créneau et les notes d'accès et nous confirmons la capacité.",
+        "q4": "Le chauffeur peut-il coordonner avec notre contremaître à l'approche?",
+        "a4": "Oui. Indiquez le contact chantier, les consignes de porte et les créneaux à la réservation. Preuve photo utilisable pour échéancier et facturation.",
+        "q5": "Gérez-vous l'accès chantier serré au centre-ville de Toronto?",
+        "a5": "Nous adaptons la classe de véhicule à l'accès — berline au camion cube — et planifions dans Toronto, Peel et York. Partagez les contraintes avant le déploiement.",
+        "q6": "La preuve de livraison est-elle incluse pour facturation et litiges?",
+        "a6": "Chaque arrêt inclut photo, signature numérique si requis, horodatage GPS et lien de suivi — documentation pour finance et juridique.",
+        "q7": "Quelles zones RGT desservez-vous pour la construction?",
+        "a7": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener–Waterloo et métropoles ontariennes en expansion."
       },
       "cta": {
-        "title": "Prêt pour une livraison fiable de matériaux de construction?",
-        "description": "Décrivez vos trajets et volumes. Nous gérons la livraison chantier et distributeur.",
-        "primary": "Nous joindre",
+        "title": "Obtenir un devis pour vos corridors chantier",
+        "description": "Indiquez matériaux, urgence et zones RGT. Jour même, urgent ou récurrent — réponse dans un jour ouvrable avec véhicule adapté et devis écrit.",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Get started with construction material delivery",
-      "inquirySubheadline": "A few details and we'll match capacity and vehicles to your distributor or jobsite routes."
+      "inquirySubheadline": "A few details and we'll match capacity and vehicles to your distributor or jobsite routes.",
+      "personas": {
+        "label": "Pour qui",
+        "title": "Conçu pour fournisseurs, entrepreneurs et équipes chantier",
+        "subtitle": "Que vous gériez la cour, l'échéancier chantier ou l'approvisionnement — Porterchain déplace les matériaux avec une capacité fiable.",
+        "trustLinkLabel": "Confiance et documentation pour approvisionnement",
+        "items": {
+          "vendor": {
+            "title": "Fournisseurs et distributeurs de construction",
+            "description": "Tournées comptoir-chantier quand vos chauffeurs sont à capacité, les cut-offs dérapent ou la haute saison exige des camions de secours — sans embaucher de chauffeurs permanents. Preuve photo liée au bon ou PO pour vos comptes clients."
+          },
+          "contractor": {
+            "title": "Entrepreneurs généraux et sous-traitants",
+            "description": "Quand le camion du fournisseur ne se présente pas ou envoie le mauvais véhicule, votre équipe a quand même une coulée, inspection ou préparation demain. Créneaux chantier, notes d'accès et véhicule adapté du pickup au camion cube."
+          },
+          "projectManager": {
+            "title": "Chargés de projet et contremaîtres",
+            "description": "Votre échéancier suppose que le matériel arrive avant le prochain corps de métier. ETA sans courir après le chauffeur, preuve photo horodatée pour le donneur d'ouvrage, escalade quand une course jour même est critique."
+          },
+          "operations": {
+            "title": "Gestionnaires des opérations et logistique",
+            "description": "Capacité de débordement sans investissement en flotte. Tournées multi-arrêts distributeur dans Peel, York et Toronto — un partenaire pour urgent et récurrent."
+          },
+          "tradePartner": {
+            "title": "Partenaires métiers électrique et plomberie",
+            "description": "Livraison entrepôt-chantier et comptoir-entrepreneur pour bois, gypse, acier et matériaux palettisés — coordonnée avec les échéanciers électrique et plomberie."
+          },
+          "architect": {
+            "title": "Architectes et bureaux de design",
+            "description": "Quand menuiserie sur mesure, luminaires ou échantillons doivent arriver avant inspection ou visite du propriétaire — livraison à heure fixe avec preuve pour le GC et le fournisseur."
+          },
+          "legalProcurement": {
+            "title": "Juridique, approvisionnement et finance",
+            "description": "Preuve photo et signature avec référence d'envoi, horodatage GPS, assurance commerciale et COI sur demande, annexes SLA ou MSA pour programmes construction entreprise."
+          }
+        }
+      }
     },
     "electricalDistribution": {
       "meta": {
-        "title": "Livraison distributeur électrique | Tournées grossiste et entrepreneurs Ontario",
-        "description": "Porterchain livre pour les grossistes électriques en Ontario. Fil, panneaux et équipement — même jour et récurrent, suivi et preuve de livraison."
+        "title": "Livraison distributeur électrique RGT | Tournées entrepreneurs et chantier",
+        "description": "Livraison grossiste électrique pour distributeurs, entrepreneurs, chargés de projet et contremaîtres dans le RGT. Fil et panneaux jour même, cut-offs comptoir, créneaux chantier et preuve à chaque arrêt."
       },
       "hero": {
-        "title": "Livraison pour distribution électrique",
-        "subtitle": "Partenaire dernier kilomètre pour grossistes électriques. Tournées récurrentes vers entrepreneurs et chantiers, avec suivi sur chaque envoi."
+        "title": "Livraison distribution électrique dans le RGT",
+        "subtitle": "Pour grossistes électriques, entrepreneurs électriciens, chargés de projet et contremaîtres — tournées récurrentes comptoir-chantier, capacité jour même pour fil et panneaux, et débordement de flotte avec suivi et preuve. Sur devis — demandez un devis écrit."
       },
       "painPoints": {
         "title": "Delivery needs for electrical distributors",
@@ -942,11 +975,11 @@
         "item3": "Trade customers expect tracking, ETAs, and proof on every run"
       },
       "solution": {
-        "title": "Porterchain for electrical wholesalers",
-        "description": "One partner for counter, contractor, and jobsite delivery. Local drivers, flexible vehicles, and a single dashboard for ops and customer visibility.",
-        "bullet1": "Recurring routes and same-day capacity for wire, panel, and equipment",
-        "bullet2": "Cars, vans, and trucks sized for your typical electrical freight",
-        "bullet3": "Live tracking and proof of delivery for contractors and inside sales"
+        "title": "Porterchain pour grossistes électriques",
+        "description": "Un partenaire pour livraison comptoir, entrepreneur et chantier. Chauffeurs locaux, véhicules flexibles et tableau de bord unique pour opérations et visibilité client.",
+        "bullet1": "Tournées récurrentes et capacité jour même pour fil, panneaux et équipement",
+        "bullet2": "Voitures, fourgonnettes et camions adaptés à votre fret électrique",
+        "bullet3": "Suivi en direct et preuve de livraison pour entrepreneurs et ventes internes"
       },
       "vehicleFit": {
         "title": "Vehicle fit for electrical supply",
@@ -977,31 +1010,75 @@
         "step3Description": "Add volume and zones as you grow — one partner, one dashboard."
       },
       "faq": {
-        "title": "Frequently asked questions — electrical delivery",
-        "q1": "Do you work with electrical wholesalers and distributors?",
-        "a1": "Yes. We run recurring and same-day delivery for electrical supply houses and distributors across our Ontario service areas.",
-        "q2": "Can you meet same-day cut-offs?",
-        "a2": "Same-day is available subject to cut-off times and capacity. We confirm windows when we set up your account.",
-        "q3": "How do contractors track deliveries?",
-        "a3": "Every shipment has a tracking link with live status and ETA — share it with contractors or site contacts."
+        "title": "FAQ — livraison électrique",
+        "q1": "Travaillez-vous avec grossistes et distributeurs électriques?",
+        "a1": "Oui. Livraison récurrente et jour même pour maisons électriques et distributeurs dans nos zones ontariennes.",
+        "q2": "Pouvez-vous respecter les cut-offs jour même pour entrepreneurs?",
+        "a2": "Le jour même est disponible selon cut-off et capacité. Nous confirmons les fenêtres à l'ouverture de compte et sur demandes urgentes.",
+        "q3": "Livrez-vous fil, panneaux et équipement sur chantier?",
+        "a3": "Oui. Voitures, fourgonnettes et camions adaptés — du comptoir au fil palettisé et équipement sur chantier.",
+        "q4": "Pouvez-vous couvrir quand notre chauffeur est absent ou les tournées pleines?",
+        "a4": "Oui. Débordement de flotte et capacité de secours pour comptoirs grossiste.",
+        "q5": "Comment entrepreneurs et contremaîtres suivent-ils les livraisons?",
+        "a5": "Chaque envoi a un lien de suivi avec statut et ETA en direct. Partagez-le au contremaître; preuve photo complète le dossier.",
+        "q6": "La preuve de livraison est-elle incluse pour litiges?",
+        "a6": "Photo, signatures, horodatage GPS et historique de suivi à chaque arrêt.",
+        "q7": "Quelles zones pour livraison grossiste électrique?",
+        "a7": "RGT, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo, London, Niagara et régions ontariennes."
       },
       "cta": {
-        "title": "Prêt pour la livraison distribution électrique?",
-        "description": "Partagez vos trajets. Nous adaptons la capacité à votre opération grossiste.",
-        "primary": "Nous joindre",
+        "title": "Obtenir un devis pour vos corridors électriques",
+        "description": "Partagez tournées, cut-offs et zones chantier. Nous alignons la capacité sur votre opération grossiste.",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Get started with electrical distributor delivery",
-      "inquirySubheadline": "Tell us about your routes and we'll match capacity for your wholesale delivery."
+      "inquirySubheadline": "Tell us about your routes and we'll match capacity for your wholesale delivery.",
+      "personas": {
+        "label": "Pour qui",
+        "title": "Conçu pour grossistes électriques, entrepreneurs et équipes chantier",
+        "subtitle": "Du comptoir entrepôt à l'échéancier de préparation — capacité qui respecte cut-offs et créneaux chantier.",
+        "trustLinkLabel": "Confiance et documentation pour approvisionnement",
+        "items": {
+          "vendor": {
+            "title": "Grossistes et distributeurs électriques",
+            "description": "Tournées fourgon et camion cube quand les cut-offs s'accumulent ou la flotte est saturée. Ventes internes partage des liens de suivi; opérations obtient du débordement sans embauche."
+          },
+          "contractor": {
+            "title": "Entrepreneurs électriciens et GC",
+            "description": "Fil, panneaux et équipement sur chantier avant préparation ou inspection — pas après que l'équipe arrête. Courses d'urgence jour même quand la commande était incomplète."
+          },
+          "projectManager": {
+            "title": "Chargés de projet et contremaîtres",
+            "description": "Preuve documentée quand l'arrivée du matériel électrique affecte le chemin critique. ETA et POD photo que le contremaître peut transmettre."
+          },
+          "operations": {
+            "title": "Gestionnaires des opérations et logistique",
+            "description": "Augmentez le volume livraison RGT sans effectif répartition ni camions possédés. Tournées grossiste multi-arrêts dans Peel et York."
+          },
+          "tradePartner": {
+            "title": "Partenaires métier électrique",
+            "description": "Stock comptoir, fil palettisé et équipement — voitures et fourgonnettes pour courses serrées, camions pour stock en vrac."
+          },
+          "architect": {
+            "title": "Architectes et spécificateurs",
+            "description": "Panneaux, luminaires ou équipement spécifiés alignés sur les dessins — livraison à heure fixe avec preuve pour coordination GC."
+          },
+          "legalProcurement": {
+            "title": "Juridique, approvisionnement et finance",
+            "description": "Preuve par envoi avec horodatage pour litiges facturation, assurance et COI pour revue fournisseur, annexes MSA ou SLA pour programmes électriques entreprise."
+          }
+        }
+      }
     },
     "plumbingSupply": {
       "meta": {
-        "title": "Livraison fournitures plomberie | Grossiste et entrepreneurs Ontario",
-        "description": "Porterchain livre pour les grossistes en plomberie en Ontario. Tuyaux, fixtures et stock — tournées récurrentes et suivi complet."
+        "title": "Livraison plomberie RGT | Grossiste et entrepreneurs",
+        "description": "Livraison grossiste plomberie pour distributeurs, plombiers, chargés de projet et contremaîtres dans le RGT. Tuyaux, appareils, urgence jour même et preuve à chaque arrêt."
       },
       "hero": {
-        "title": "Livraison pour fournitures de plomberie",
-        "subtitle": "Partenaire logistique pour grossistes en plomberie. Tournées entrepreneurs, capacité même jour, visibilité complète."
+        "title": "Livraison fournitures plomberie dans le RGT",
+        "subtitle": "Pour grossistes plomberie, entrepreneurs plombiers, chargés de projet et contremaîtres — tournées comptoir-plombier, courses d'urgence pour raccords, et livraison grossiste récurrente avec suivi et preuve."
       },
       "painPoints": {
         "title": "Delivery challenges for plumbing supply",
@@ -1010,11 +1087,11 @@
         "item3": "Customers expect tracking and on-time delivery to job sites and shops"
       },
       "solution": {
-        "title": "Porterchain for plumbing wholesalers",
-        "description": "One partner for trade delivery across your service area. Vans and trucks for pipe and fixtures, recurring routes aligned to your dispatch rhythm.",
-        "bullet1": "Recurring routes to contractors, renovators, and commercial accounts",
-        "bullet2": "Vans and box trucks for pipe, fixtures, and palletized inventory",
-        "bullet3": "Tracking and proof of delivery on every stop"
+        "title": "Porterchain pour grossistes plomberie",
+        "description": "Un partenaire pour livraison métier dans votre territoire. Fourgonnettes et camions pour tuyaux et appareils, tournées récurrentes alignées sur votre rythme de répartition.",
+        "bullet1": "Tournées récurrentes vers entrepreneurs, rénovateurs et comptes commerciaux",
+        "bullet2": "Fourgonnettes et camions cube pour tuyaux, appareils et stock palettisé",
+        "bullet3": "Suivi et preuve de livraison à chaque arrêt"
       },
       "vehicleFit": {
         "title": "Vehicle fit for plumbing supply",
@@ -1042,34 +1119,78 @@
         "step2Title": "We deliver",
         "step2Description": "Recurring and on-demand runs with full tracking.",
         "step3Title": "You grow",
-        "step3Description": "Scale routes and zones with one logistics partner."
+        "step3Description": "Scale routes and zones with one capacity partner."
       },
       "faq": {
-        "title": "Frequently asked questions — plumbing supply delivery",
-        "q1": "Do you deliver for plumbing wholesalers?",
-        "a1": "Yes. We support plumbing supply houses with recurring and same-day delivery to contractors and trade accounts.",
-        "q2": "Can you handle pipe and long stock?",
-        "a2": "We use vans and trucks suited to your freight. Share dimensions and weight for specialty runs.",
-        "q3": "Do you offer proof of delivery?",
-        "a3": "Yes — photo proof, signatures, and tracking links on every shipment."
+        "title": "FAQ — livraison plomberie",
+        "q1": "Livrez-vous pour grossistes et maisons de plomberie?",
+        "a1": "Oui. Livraison récurrente et jour même vers entrepreneurs plombiers, rénovateurs et comptes commerciaux.",
+        "q2": "Pouvez-vous transporter tuyaux, longueurs et chauffe-eau?",
+        "a2": "Fourgonnettes et camions adaptés à votre fret. Partagez dimensions et poids pour courses spécialisées.",
+        "q3": "Faites-vous des courses d'urgence jour même pour plombiers?",
+        "a3": "Oui. Quand un raccord ou appareil doit arriver aujourd'hui pour préparation ou inspection, nous déployons la capacité selon cut-off et disponibilité.",
+        "q4": "Livrez-vous sur chantier avec créneaux horaires?",
+        "a4": "Oui. Indiquez accès, consignes de porte et contact contremaître. Preuve photo pour chargés de projet et facturation.",
+        "q5": "Pouvez-vous couvrir quand notre flotte livraison est pleine?",
+        "a5": "Oui. Débordement de flotte et chauffeurs de secours pour comptoirs grossiste.",
+        "q6": "La preuve de livraison est-elle incluse?",
+        "a6": "Photo, signatures, horodatage GPS et liens de suivi partageables sur chaque envoi.",
+        "q7": "Quelles zones RGT pour livraison plomberie?",
+        "a7": "Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo et régions environnantes."
       },
       "cta": {
-        "title": "Prêt pour la livraison fournitures plomberie?",
-        "description": "Décrivez vos trajets. Nous gérons votre livraison grossiste.",
-        "primary": "Nous joindre",
+        "title": "Obtenir un devis pour vos corridors plomberie",
+        "description": "Partagez tournées et comptes métier. Livraison grossiste avec capacité prévisible.",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Get started with plumbing supply delivery",
-      "inquirySubheadline": "Share your delivery patterns and we'll align capacity for your wholesale routes."
+      "inquirySubheadline": "Share your delivery patterns and we'll align capacity for your wholesale routes.",
+      "personas": {
+        "label": "Pour qui",
+        "title": "Conçu pour grossistes plomberie, entrepreneurs et équipes chantier",
+        "subtitle": "Tuyaux, appareils et chauffe-eau — livrés à temps pour que préparation et inspection ne glissent pas.",
+        "trustLinkLabel": "Confiance et documentation pour approvisionnement",
+        "items": {
+          "vendor": {
+            "title": "Grossistes et distributeurs plomberie",
+            "description": "Tournées récurrentes vers plombiers et comptes commerciaux quand vos chauffeurs sont à capacité. Fourgonnettes et camions cube avec suivi que le comptoir peut partager."
+          },
+          "contractor": {
+            "title": "Entrepreneurs plombiers et sous-traitants",
+            "description": "Courses d'urgence pour raccords et chauffe-eau quand la préparation est demain et le comptoir a manqué la fenêtre. Livraisons chantier avec notes d'accès et preuve pour le GC."
+          },
+          "projectManager": {
+            "title": "Chargés de projet et contremaîtres",
+            "description": "Matériel plomberie sur chantier avant le prochain métier. Créneaux horaires, coordination avec le contremaître et preuve documentée."
+          },
+          "operations": {
+            "title": "Gestionnaires des opérations et logistique",
+            "description": "Augmentez le volume livraison grossiste sans flotte possédée. Un partenaire pour tournées métier récurrentes et débordement jour même dans le RGT."
+          },
+          "tradePartner": {
+            "title": "Partenaires métier plomberie",
+            "description": "Longs tuyaux, appareils et chauffe-eau — véhicules adaptés aux dimensions. Stock comptoir vers fourgon plombier et livraison directe chantier le jour même."
+          },
+          "architect": {
+            "title": "Architectes et bureaux de design",
+            "description": "Appareils spécifiés et composants finition plomberie avant inspection — livraison à heure fixe avec preuve pour propriétaire et GC."
+          },
+          "legalProcurement": {
+            "title": "Juridique, approvisionnement et finance",
+            "description": "Preuve de livraison avec référence d'envoi pour litiges, COI pour revue fournisseur, documentation SLA ou MSA entreprise sur demande."
+          }
+        }
+      }
     },
     "coffeeRoasters": {
       "meta": {
         "title": "Livraison torréfacteurs | Grossiste et trajets récurrents pour roasteries locales",
-        "description": "Porterchain est le partenaire logistique des marques de café locales. Livrez le café en gros aux cafés, gérez des trajets récurrents et scalez le volume sans flotte ni opérations. Même jour et planifié; vélos-cargos et fourgons où la fraîcheur compte."
+        "description": "Porterchain fournit de la capacité véhicule et chauffeur pour les marques de café locales. Livrez le café en gros aux cafés, gérez des trajets récurrents et scalez le volume sans flotte ni opérations. Fourgons jour même et planifiés dans le RGT."
       },
       "hero": {
-        "title": "Livraison conçue pour les torréfacteurs",
-        "subtitle": "Votre partenaire logistique pour le grossiste, les cafés et l'abonnement. Nous livrons grains et équipement sur des trajets récurrents pour que vous vous concentriez sur la torréfaction — nous gérons la flotte et le dernier kilomètre."
+        "title": "Capacité de livraison conçue pour les torréfacteurs",
+        "subtitle": "Routes grossiste, cafés et abonnement avec capacité adaptée et suivi — vous torréfiez; nous gérons le dernier kilomètre. Sur devis — demandez un devis écrit."
       },
       "painPoints": {
         "title": "Défis de livraison pour les torréfacteurs",
@@ -1078,7 +1199,7 @@
         "item3": "Gérer un volume de livraison croissant avec l'expansion de votre marque et de votre liste de cafés"
       },
       "solution": {
-        "title": "Porterchain pour le café : votre partenaire logistique local",
+        "title": "Porterchain pour le café : capacité de livraison locale",
         "description": "Nous nous associons aux marques de café locales pour des livraisons récurrentes et le même jour. Un partenaire pour les drops grossistes, les trajets cafés et l'abonnement — capacité prévisible et suivi que vos cafés et abonnés attendent.",
         "bullet1": "Trajets planifiés et même jour adaptés à votre cycle de torréfaction et d'expédition",
         "bullet2": "Vélos-cargos et fourgonnettes où densité et fraîcheur comptent",
@@ -1115,7 +1236,7 @@
       "faq": {
         "title": "Questions fréquentes",
         "q1": "Vous gérez abonnements et grossistes?",
-        "a1": "Oui. Trajets récurrents et ponctuels. Une plateforme, un partenaire.",
+        "a1": "Oui. Trajets récurrents et ponctuels — un partenaire de capacité pour vos couloirs.",
         "q2": "Et les livraisons sensibles au délai?",
         "a2": "Nous travaillons avec vous sur les créneaux et le même jour.",
         "q3": "Comment mes clients suivent leur commande?",
@@ -1124,7 +1245,7 @@
       "cta": {
         "title": "Prêt à gérer votre livraison café avec nous?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison torréfacteurs",
@@ -1133,11 +1254,11 @@
     "pharmacyMedical": {
       "meta": {
         "title": "Livraison pharmacie et médical | Ordonnances et trajets récurrents pour pharmacies locales",
-        "description": "Porterchain est une solution de livraison fiable pour les pharmacies locales. Livraisons d'ordonnances, logistique pharmacie-patient et trajets récurrents. Manutention conforme, traçable, conçu pour la santé."
+        "description": "Porterchain offre une capacité véhicule et chauffeur pour les pharmacies locales. Livraisons d'ordonnances, trajets pharmacie-patient et routes récurrentes — manutention traçable pour les flux santé."
       },
       "hero": {
         "title": "Livraison pour pharmacie et médical",
-        "subtitle": "Votre solution de livraison fiable pour les livraisons d'ordonnances, la logistique pharmacie-patient et les trajets récurrents. Nous gérons le dernier kilomètre avec une manutention conforme pour que vous vous concentriez sur les soins aux patients."
+        "subtitle": "Capacité véhicule et chauffeur pour les lanes pharmacie et médical du RGT — ordonnances, routes récurrentes et débordement de flotte avec preuve de chaîne de traçabilité. Sur devis; demandez un devis écrit."
       },
       "painPoints": {
         "title": "Besoins de livraison pour pharmacies et santé",
@@ -1147,14 +1268,14 @@
       },
       "solution": {
         "title": "Porterchain pour la pharmacie : livraison fiable pour les pharmacies locales",
-        "description": "Nous nous associons aux pharmacies locales et fournisseurs médicaux pour la livraison d'ordonnances et de fournitures. Manutention conforme, efficacité des trajets et visibilité complète pour vous et vos patients.",
-        "bullet1": "Manutention conforme et suivi pour traçabilité et audit",
+        "description": "Nous nous associons aux pharmacies locales et fournisseurs médicaux pour la livraison d'ordonnances et de fournitures. Manutention traçable, efficacité des trajets et visibilité complète pour vous et vos patients.",
+        "bullet1": "Manutention traçable et preuve de chaîne de possession pour des flux prêts pour l'audit",
         "bullet2": "Trajets récurrents efficaces et créneaux adaptés à vos opérations pharmacie",
         "bullet3": "Un tableau de bord pour dispatch, statut et rapports — et suivi partageable pour les patients"
       },
       "vehicleFit": {
-        "title": "Manutention conforme et véhicules adaptés",
-        "description": "Voitures et fourgonnettes pour les trajets ordonnances et médicaux standards; nous nous adaptons au température contrôlée et à la manutention spéciale au besoin. Véhicules et processus alignés sur vos exigences de conformité."
+        "title": "Véhicules adaptés à la livraison pharmacie et médical",
+        "description": "Voitures et fourgonnettes pour les trajets ordonnances et médicaux standards; nous travaillons avec vous sur la température contrôlée et la manutention spéciale au besoin. Véhicules et processus alignés sur vos flux opérationnels."
       },
       "workflow": {
         "title": "Efficacité des trajets et flux de livraison",
@@ -1187,12 +1308,14 @@
         "q2": "Comment est gérée la traçabilité?",
         "a2": "Chaque envoi est suivi du ramassage à la livraison. Piste d'audit et statut dans un tableau de bord.",
         "q3": "Les patients ou partenaires peuvent-ils suivre?",
-        "a3": "Oui. Chaque envoi a un lien de suivi partageable avec statut et ETA."
+        "a3": "Oui. Chaque envoi a un lien de suivi partageable avec statut et ETA.",
+        "q4": "Comment fonctionne la tarification pour la livraison pharmacie et médical?",
+        "a4": "Sur devis selon classe de véhicule, distance, arrêts et urgence. Pas de frais plateforme — demandez un devis et nous confirmons la capacité pour vos couloirs."
       },
       "cta": {
         "title": "Prêt à gérer votre livraison pharmacie avec nous?",
         "description": "Décrivez votre volume et exigences. Nous vous montrerons comment gérer votre livraison ordonnances et récurrente — de façon fiable et simple.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison pharmacie et médical",
@@ -1260,7 +1383,7 @@
       "cta": {
         "title": "Prêt à gérer votre livraison beauté avec nous?",
         "description": "Décrivez votre volume et zones. Nous vous montrerons comment gérer votre livraison D2C et détaillants — de façon fiable et simple.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison cosmétiques et beauté",
@@ -1283,16 +1406,65 @@
         "step2Description": "Nos chauffeurs récupèrent et livrent. Chaque envoi a un lien de suivi.",
         "step3Title": "Détaillants et partenaires informés",
         "step3Description": "Statut et ETA en temps réel. Moins de « où est ma commande » et remises fiables."
-      }
+      },
+      "meta": {
+        "title": "Livraison chocolat et confiserie | Trajets locaux et récurrents pour artisans et détaillants",
+        "description": "Porterchain livre pour chocolatiers et confiseurs. Trajets récurrents et même jour vers détaillants, cafés et partenaires. Manutention adaptée, traçable, un partenaire."
+      },
+      "hero": {
+        "title": "Livraison pour chocolat et confiserie",
+        "subtitle": "Mettez vos produits chez détaillants, cafés et partenaires à l'heure. Nous gérons le dernier kilomètre pour que vous vous concentriez sur l'artisanat — manutention adaptée et livraison traçable."
+      },
+      "painPoints": {
+        "title": "Défis de livraison pour les chocolatiers",
+        "item1": "Livrer détaillants et cafés à l'heure sans flotte interne",
+        "item2": "Manutention et température qui protègent la qualité en transit",
+        "item3": "Trajets récurrents et livraisons même jour qui suivent la demande saisonnière"
+      },
+      "coverage": {
+        "title": "Zones desservies pour chocolat et confiserie",
+        "description": "Couverture croissante dans les grandes métros canadiennes. Même fiabilité et opérations locales pour que vos routes détaillants et cafés tournent de façon constante."
+      },
+      "vehicleFit": {
+        "title": "Véhicules adaptés au chocolat et à la confiserie",
+        "description": "Fourgons cargo et berlines pour livraisons cafés et réapprovisionnement détaillant; manutention soignée pour produits sensibles à la température en transit."
+      },
+      "onboarding": {
+        "title": "Intégration simple pour chocolatiers",
+        "description": "Trois étapes vers une livraison locale prévisible. Pas de flotte à gérer.",
+        "step1Title": "Connecter",
+        "step1Description": "Partagez volume, trajets et exigences de manutention. Nous alignons capacité et SLA.",
+        "step2Title": "Nous livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent avec suivi sur chaque envoi.",
+        "step3Title": "Vous gardez le contrôle",
+        "step3Description": "Suivez chaque livraison, ETA et rapports clairs pour opérations et facturation."
+      },
+      "faq": {
+        "title": "Questions fréquentes — livraison chocolat",
+        "q1": "Gérez-vous des trajets récurrents vers détaillants et cafés?",
+        "a1": "Oui. Trajets récurrents et même jour sont au cœur de nos services pour chocolatiers et confiseurs.",
+        "q2": "Pouvez-vous protéger la qualité du produit en transit?",
+        "a2": "Nous travaillons avec vous sur les exigences de manutention et fournissons suivi et preuve à chaque arrêt.",
+        "q3": "Comment obtenir un devis?",
+        "a3": "Partagez vos trajets, volume et urgence. Nous répondons sous un jour ouvrable avec véhicule adapté et tarification."
+      },
+      "cta": {
+        "title": "Obtenir un devis pour capacité livraison chocolat",
+        "description": "Décrivez vos trajets, volume et exigences de manutention. Nous alignerons capacité véhicule-chauffeur pour vos routes détaillants et cafés.",
+        "primary": "Obtenir un devis",
+        "secondary": "Contactez-nous"
+      },
+      "inquiryHeading": "Démarrez avec la livraison chocolat et confiserie",
+      "inquirySubheadline": "Partagez vos trajets et volume saisonnier. Nous quoterons la capacité adaptée à votre programme détaillants et cafés."
     },
     "labSampleDelivery": {
       "meta": {
         "title": "Livraison d'échantillons de laboratoire | Transport de spécimens et trajets récurrents",
-        "description": "Porterchain supporte le transport d'échantillons de labo et la livraison de spécimens. Ramassage planifié, trajets récurrents et transport fiable. Une plateforme logistique conçue pour ces flux."
+        "description": "Porterchain supporte le transport d'échantillons de labo et la livraison de spécimens. Ramassage planifié, trajets récurrents et transport fiable avec preuve de chaîne de possession."
       },
       "hero": {
         "title": "Livraison pour le transport d'échantillons de labo et de spécimens",
-        "subtitle": "Votre plateforme logistique pour le transport d'échantillons de labo et la livraison de spécimens. Ramassage planifié, trajets récurrents et transport fiable — nous supportons les flux dont dépendent les labos et partenaires santé."
+        "subtitle": "Ramassage planifié, trajets récurrents et transport fiable de spécimens — avec suivi et preuve pour les labos et partenaires santé."
       },
       "painPoints": {
         "title": "Besoins opérationnels pour la livraison d'échantillons de labo",
@@ -1301,8 +1473,8 @@
         "item3": "Transport fiable avec suivi et remise claire"
       },
       "solution": {
-        "title": "Porterchain pour la livraison d'échantillons de labo : une plateforme logistique pour vos flux",
-        "description": "Nous offrons une plateforme logistique capable de supporter la livraison d'échantillons et de spécimens. Ramassage planifié, trajets récurrents et transport fiable avec visibilité complète.",
+        "title": "Porterchain pour la livraison d'échantillons de labo",
+        "description": "Capacité véhicule et chauffeur pour la livraison d'échantillons et de spécimens. Ramassage planifié, trajets récurrents et transport fiable avec visibilité complète.",
         "bullet1": "Ramassage planifié et trajets récurrents alignés à votre horaire labo ou prélèvement",
         "bullet2": "Transport fiable avec suivi et statut à chaque étape",
         "bullet3": "Un tableau de bord pour dispatch, statut et rapports"
@@ -1342,16 +1514,88 @@
         "q2": "Comment sont gérés la fiabilité du transport et le suivi?",
         "a2": "Chaque envoi est suivi du ramassage à la livraison. Vous avez le statut en temps réel et des rapports clairs dans un tableau de bord.",
         "q3": "Pouvons-nous avoir des trajets récurrents pour plusieurs sites de prélèvement?",
-        "a3": "Oui. Nous alignons la capacité à vos trajets récurrents et zones. Une plateforme, un partenaire pour vos flux d'échantillons de labo."
+        "a3": "Oui. Nous alignons la capacité à vos trajets récurrents et zones — un partenaire pour vos flux d'échantillons de labo.",
+        "q4": "Comment fonctionne la tarification pour la livraison d'échantillons de labo?",
+        "a4": "Sur devis selon classe de véhicule, distance, arrêts et urgence. Pas de frais plateforme — demandez un devis et nous confirmons la capacité pour vos routes de spécimens."
       },
       "cta": {
         "title": "Prêt à gérer votre livraison d'échantillons de labo avec nous?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment supporter votre livraison de spécimens et d'échantillons — de façon fiable et simple.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison d'échantillons de labo",
       "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à vos flux d'échantillons et spécimens."
+    },
+    "ecommerce": {
+      "meta": {
+        "title": "Livraison commerce en ligne Toronto et RGT | Dernier kilomètre B2B | Porterchain",
+        "description": "Capacité de livraison du dernier kilomètre pour marques en ligne dans le RGT et l'Ontario. Jour même, routes récurrentes, fourgons et camions, suivi complet — un partenaire de capacité pour la distribution B2B et D2C. Sur devis — demandez un devis écrit."
+      },
+      "hero": {
+        "title": "Livraison commerce en ligne conçue pour le RGT",
+        "subtitle": "Exécution du dernier kilomètre pour marques en ligne — jour même, planifié et récurrent avec fourgons et camions adaptés à vos colis. Un partenaire, suivi complet, sans flotte à gérer."
+      },
+      "painPoints": {
+        "title": "Défis du dernier kilomètre pour le commerce en ligne",
+        "item1": "Augmenter le volume de colis sans embaucher de chauffeurs ni jongler avec plusieurs coursiers",
+        "item2": "Répondre aux attentes jour même et lendemain à Toronto et dans le RGT",
+        "item3": "Les clients exigent suivi, ETA et remises fiables à chaque commande"
+      },
+      "solution": {
+        "title": "Porterchain pour l'exécution commerce en ligne",
+        "description": "Nous gérons le dernier kilomètre pour marques D2C, places de marché et détaillants en ligne en Ontario. De la berline au camion cube — adapté à la taille de vos colis et au nombre d'arrêts.",
+        "bullet1": "Routes jour même et récurrentes dans le RGT, Peel, York et métropoles ontariennes",
+        "bullet2": "Berlines, VUS, fourgons, pickups et camions cube pour chaque profil de colis",
+        "bullet3": "Suivi en direct et preuve de livraison sur chaque envoi"
+      },
+      "vehicleFit": {
+        "title": "Le bon véhicule pour chaque commande",
+        "description": "Berlines et VUS pour petits colis; fourgons cargo pour D2C multi-arrêts; pickups et camions cube pour meubles, appareils et exécution en volume."
+      },
+      "workflow": {
+        "title": "Comment fonctionne la livraison commerce en ligne",
+        "description": "De votre entrepôt ou 3PL à la porte du client — prévisible et traçable.",
+        "step1Title": "Partagez volume et zones",
+        "step1Description": "Volume de commandes, tailles de colis, heures limites et zones de livraison dans le RGT. Nous alignons véhicules et capacité.",
+        "step2Title": "Nous récupérons et livrons",
+        "step2Description": "Les chauffeurs complètent les routes avec lien de suivi par commande. Les clients voient statut et ETA en temps réel.",
+        "step3Title": "Vous évoluez avec un seul partenaire",
+        "step3Description": "Ajoutez volume, zones ou capacité jour même sans construire une flotte. Un tableau de bord pour opérations et rapports."
+      },
+      "coverage": {
+        "title": "Couverture RGT et Ontario",
+        "description": "Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara et régions avoisinantes."
+      },
+      "onboarding": {
+        "title": "Intégration pour marques commerce en ligne",
+        "description": "Opérationnel en jours — CSV, courriel ou API pour la prise de commandes.",
+        "step1Title": "Connecter",
+        "step1Description": "Partagez volume, profil de colis et zones. Nous confirmons véhicules et tarification.",
+        "step2Title": "Nous livrons",
+        "step2Description": "Trajets récurrents et jour même avec suivi sur chaque commande.",
+        "step3Title": "Vous grandissez",
+        "step3Description": "Évoluez routes et capacité avec un seul partenaire de capacité."
+      },
+      "faq": {
+        "title": "FAQ livraison commerce en ligne",
+        "q1": "Offrez-vous la livraison jour même pour le commerce en ligne à Toronto?",
+        "a1": "Oui. La livraison le jour même est disponible dans nos zones RGT selon heures limites et capacité. Nous confirmons les créneaux lors de l'intégration.",
+        "q2": "Quels véhicules utilisez-vous pour le commerce en ligne?",
+        "a2": "Berlines et VUS pour petits colis; fourgons cargo pour D2C multi-arrêts; pickups et camions cube pour articles volumineux comme meubles et appareils.",
+        "q3": "Pouvons-nous intégrer par API ou CSV?",
+        "a3": "Oui. Commencez par CSV ou courriel et passez à l'API quand vous êtes prêt. Nous supportons la prise de commandes structurée pour trajets récurrents et à la demande.",
+        "q4": "Comment fonctionne la tarification pour la livraison commerce en ligne?",
+        "a4": "Sur devis selon classe de véhicule, distance, arrêts et urgence. Pas de frais plateforme — demandez un devis et nous confirmons la capacité pour vos lanes RGT."
+      },
+      "cta": {
+        "title": "Prêt pour une livraison commerce en ligne fiable?",
+        "description": "Décrivez votre volume et vos zones. Nous alignerons véhicules et capacité pour votre exécution RGT.",
+        "primary": "Obtenir un devis",
+        "secondary": "Nous contacter"
+      },
+      "inquiryHeading": "Démarrez avec la livraison commerce en ligne",
+      "inquirySubheadline": "Partagez votre profil de colis et zones de livraison — nous confirmerons véhicules et tarification."
     }
   },
   "merchantOnboarding": {
@@ -1394,7 +1638,7 @@
     "cta": {
       "title": "Prêt à démarrer?",
       "description": "Soumettez une demande et nous vous guiderons pour les prochaines étapes. Aucun engagement avant d'avoir confirmé l'adéquation et la tarification.",
-      "primary": "Nous joindre",
+      "primary": "Obtenir un devis",
       "secondary": "Contactez-nous"
     }
   },
@@ -1442,7 +1686,7 @@
     "cta": {
       "title": "Vous ne savez pas quelle option convient?",
       "description": "Décrivez-nous comment vous gérez les opérations aujourd'hui. Nous recommanderons la bonne méthode de connexion et vous mettrons en place.",
-      "primary": "Nous joindre",
+      "primary": "Obtenir un devis",
       "secondary": "Contactez-nous"
     }
   },
@@ -1480,7 +1724,7 @@
     "cta": {
       "title": "Obtenir une discussion tarifaire ou une mise en place",
       "description": "Décrivez-nous votre volume, vos zones et comment vous expédiez. Nous recommanderons un modèle de tarification et vous guiderons pour les prochaines étapes.",
-      "primary": "Nous joindre",
+      "primary": "Obtenir un devis",
       "secondary": "Contactez-nous"
     }
   },
@@ -1504,7 +1748,7 @@
       "subtitle": "Guide pratique pour préparer vos commandes, organiser les arrêts, choisir le bon véhicule, mettre en place des livraisons récurrentes et vous intégrer en douceur avec Porterchain."
     },
     "ctaTitle": "Prêt à commencer?",
-    "ctaPrimary": "Nous contacter",
+    "ctaPrimary": "Obtenir un devis",
     "relatedTitle": "Voir aussi"
   },
   "knowledge": {
@@ -1562,8 +1806,8 @@
     "talkToUs": "Nous joindre"
   },
   "localDelivery": {
-    "metaTitle": "Livraison locale pour marchands | Livraison récurrente GTA, Toronto, Ontario | Porterchain",
-    "metaDescription": "Livraison locale récurrente pour les marchands dans le GTA, Toronto et l'Ontario. Industries desservies, zones de service, véhicules adaptés, intégration flexible et visibilité complète des tournées. Un partenaire pour votre logistique locale.",
+    "metaTitle": "Livraison locale B2B RGT | Routes jour même et récurrentes Toronto, Mississauga, Brampton | Porterchain",
+    "metaDescription": "Livraison locale B2B dans le RGT — capacité le jour même, récurrente et de débordement pour grossistes, distributeurs, construction, médical et commerce de détail. Toronto, Peel, York, Durham. Véhicules adaptés, preuve de livraison et intégration en jours.",
     "ctaTitle": "Prêt à commencer?",
     "ctaPrimary": "Nous joindre",
     "relatedTitle": "Liens utiles",
@@ -1610,26 +1854,182 @@
       "title": "Où nous livrons | Couverture logistique locale — Toronto, Mississauga, Brampton, Vaughan, Oshawa, Kitchener, Waterloo, London, St. Catharines, Niagara",
       "description": "Couverture logistique locale Porterchain en Ontario : Toronto, Mississauga, Brampton, Vaughan, Oshawa, Kitchener, Waterloo, London, St. Catharines, Niagara. Livraison récurrente et même jour avec voitures, fourgons, camions et vélos-cargos. Un partenaire, traçable."
     },
+    "breadcrumb": "Zones desservies",
     "title": "Où nous livrons",
     "description": "Notre couverture logistique locale couvre les grandes régions de l'Ontario. Chaque ville ou région ci-dessous a une page dédiée avec les détails de livraison, les options de véhicules et comment démarrer.",
     "regionsListTitle": "Régions principales desservies",
     "hubIntro": "Nous assurons la livraison récurrente et le même jour avec des opérations locales dans chaque zone. Choisissez une ville ou une région pour voir la couverture, les options de véhicules et les prochaines étapes.",
     "hero": {
       "title": "Couverture logistique locale où vous opérez",
-      "subtitle": "Livraison récurrente et même jour à Toronto, dans le GTA, Niagara, Kitchener-Waterloo, London, Oshawa et environs. Chaque région a une page dédiée — choisissez la vôtre ci-dessous."
+      "subtitle": "Livraison récurrente et même jour à Toronto, dans le GTA, Niagara, Kitchener-Waterloo, London, Oshawa et environs. Chaque région a une page dédiée — choisissez la vôtre ci-dessous.",
+      "badge": "Zones desservies"
     },
     "coverage": {
       "title": "Couverture logistique locale et opérations",
       "description": "Notre couverture logistique locale comprend le GTA (Toronto, Mississauga, Brampton, Vaughan et environs), Oshawa et Durham, Kitchener-Waterloo, London, et la région de Niagara (St. Catharines, Niagara Falls, Niagara-on-the-Lake). Même fiabilité et opérations locales dans chaque zone — trajets récurrents, ramassage planifié et livraison traçable pour que vous et vos clients restiez informés."
     },
+    "regions": {
+      "gta": {
+        "label": "Greater Toronto Area",
+        "description": "Core GTA — construction jobsite, wholesale counter, and intra-city logistics across Toronto, Peel, and York."
+      },
+      "peelHalton": {
+        "label": "Halton & west GTA",
+        "description": "Warehouse corridors and industrial parks — van and box truck capacity for distributors."
+      },
+      "durham": {
+        "label": "Durham Region",
+        "description": "East GTA — construction, industrial, and recurring B2B lanes."
+      },
+      "southwest": {
+        "label": "Southwestern Ontario",
+        "description": "Kitchener–Waterloo, Hamilton, London, Cambridge, and Guelph — manufacturing, food, and medical freight."
+      },
+      "niagara": {
+        "label": "Niagara",
+        "description": "St. Catharines and Niagara Region — trade, food, and distribution."
+      }
+    },
+    "cities": {
+      "toronto": {
+        "title": "Toronto",
+        "tagline": "GTA core — same-day B2B, jobsite, and wholesale routes",
+        "region": "GTA"
+      },
+      "mississauga": {
+        "title": "Mississauga",
+        "tagline": "Pearson corridor distribution & fleet overflow",
+        "region": "Peel"
+      },
+      "brampton": {
+        "title": "Brampton",
+        "tagline": "Warehouse hub — pallet and multi-stop freight",
+        "region": "Peel"
+      },
+      "vaughan": {
+        "title": "Vaughan",
+        "tagline": "Industrial and trade distribution across York",
+        "region": "York"
+      },
+      "markham": {
+        "title": "Markham",
+        "tagline": "Tech corridor B2B and recurring replenishment",
+        "region": "York"
+      },
+      "oakville": {
+        "title": "Oakville",
+        "tagline": "Halton B2B and suburban multi-stop routes",
+        "region": "Halton"
+      },
+      "burlington": {
+        "title": "Burlington",
+        "tagline": "Halton–Hamilton bridge lanes",
+        "region": "Halton"
+      },
+      "oshawa": {
+        "title": "Oshawa",
+        "tagline": "Durham construction and industrial delivery",
+        "region": "Durham"
+      },
+      "kitchener-waterloo": {
+        "title": "Kitchener–Waterloo",
+        "tagline": "Manufacturing and roaster routes",
+        "region": "SW Ontario"
+      },
+      "london": {
+        "title": "London",
+        "tagline": "Southwestern wholesale and medical lanes",
+        "region": "SW Ontario"
+      },
+      "st-catharines": {
+        "title": "St. Catharines",
+        "tagline": "Niagara trade and food distribution",
+        "region": "Niagara"
+      },
+      "niagara": {
+        "title": "Niagara Region",
+        "tagline": "Cross-corridor B2B capacity",
+        "region": "Niagara"
+      },
+      "cambridge": {
+        "title": "Cambridge",
+        "tagline": "Manufacturing and industrial freight",
+        "region": "SW Ontario"
+      },
+      "guelph": {
+        "title": "Guelph",
+        "tagline": "Food and agri-business distribution",
+        "region": "SW Ontario"
+      },
+      "hamilton": {
+        "title": "Hamilton",
+        "tagline": "Port city industrial and medical routes",
+        "region": "Hamilton"
+      },
+      "ajax": {
+        "title": "Ajax",
+        "tagline": "Durham east GTA B2B delivery",
+        "region": "Durham"
+      },
+      "pickering": {
+        "title": "Pickering",
+        "tagline": "Durham same-day and recurring routes",
+        "region": "Durham"
+      },
+      "viewCity": "Voir la livraison ville"
+    },
+    "outcomes": {
+      "label": "Capacity",
+      "items": {
+        "0": {
+          "title": "Same-day & urgent",
+          "description": "Emergency freight when your fleet cannot cover the lane."
+        },
+        "1": {
+          "title": "Recurring routes",
+          "description": "Fixed multi-stop programs with predictable capacity."
+        },
+        "2": {
+          "title": "Vehicle-matched",
+          "description": "Sedan through box truck — matched to weight and access."
+        },
+        "3": {
+          "title": "Proof every stop",
+          "description": "Photo, signature, GPS, and shareable tracking."
+        }
+      }
+    },
     "vehicles": {
       "title": "Options de véhicules",
-      "description": "Voitures, fourgons, camions et vélos-cargos où vous en avez besoin. Nous adaptons le véhicule à votre volume et zone — même jour urbain, trajets multi-arrêts ou B2B. Un partenaire, un tableau de bord, une capacité prévisible."
+      "description": "Voitures, fourgons, camions et vélos-cargos où vous en avez besoin. Nous adaptons le véhicule à votre volume et zone — même jour urbain, trajets multi-arrêts ou B2B. Un partenaire, un tableau de bord, une capacité prévisible.",
+      "label": "Flotte"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Service areas FAQ",
+      "items": {
+        "0": {
+          "q": "Do you offer same-day delivery in every city?",
+          "a": "Same-day is available across listed metros subject to cut-off, vehicle class, and capacity. See each city page for local detail."
+        },
+        "1": {
+          "q": "How do I confirm coverage for my postal codes?",
+          "a": "Request a quote with your zones — we confirm within one business day."
+        },
+        "2": {
+          "q": "Can I start with one city and expand?",
+          "a": "Yes. Most customers pilot one metro before adding recurring routes."
+        },
+        "3": {
+          "q": "What industries run in these cities?",
+          "a": "Construction, wholesale, medical, food, e-commerce, and manufacturing — see industries and solutions hubs."
+        }
+      }
     },
     "cta": {
       "title": "Prêt à gérer votre livraison avec nous?",
       "description": "Décrivez votre volume et zone. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-      "primary": "Nous joindre",
+      "primary": "Obtenir un devis",
       "secondary": "Contactez-nous"
     }
   },
@@ -1700,7 +2100,7 @@
       "cta": {
         "title": "Prêt pour une livraison locale fiable?",
         "description": "Décrivez votre volume et zone. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison dans votre région",
@@ -1708,29 +2108,29 @@
     },
     "toronto": {
       "meta": {
-        "title": "Livraison à Toronto | Même jour et récurrent last-mile",
-        "description": "Porterchain livre à Toronto et dans le GTA. Livraison de colis récurrente et même jour pour marchands. Flotte et chauffeurs locaux."
+        "title": "Livraison B2B Toronto et RGT | Jour même, récurrent et débordement | Porterchain",
+        "description": "Livraison B2B à Toronto et dans le RGT. Routes récurrentes, livraison chantier, distribution en gros et débordement de flotte pour entreprises. Fourgons cargo, pickups et camions cube avec suivi. Obtenir un devis."
       },
       "hero": {
-        "title": "Livraison à Toronto qui fonctionne",
-        "subtitle": "Du centre aux banlieues — nous gérons la flotte et le dernier kilomètre dans le GTA. Livraison prévisible et traçable pour votre volume de colis."
+        "title": "Capacité de livraison B2B à Toronto et dans le RGT",
+        "subtitle": "Du centre-ville aux banlieues — capacité véhicule et chauffeur pour grossistes, distributeurs, construction et détail à Toronto, Etobicoke, North York et Scarborough. Jour même, planifié et récurrent sans gérer votre flotte."
       },
       "painPoints": {
-        "title": "Pourquoi les marchands de Toronto choisissent la livraison locale",
-        "item1": "Le trafic et la densité rendent les coursiers ad hoc peu fiables pour les trajets récurrents",
-        "item2": "Augmenter la livraison même jour et planifiée sans flotte",
-        "item3": "Les clients du GTA s'attendent à la visibilité et à la livraison à l'heure"
+        "title": "Pourquoi les entreprises du RGT ont besoin de capacité fiable",
+        "item1": "Congestion 401/427 et densité rendent les coursiers ad hoc peu fiables pour routes B2B récurrentes",
+        "item2": "Augmenter livraison jour même, chantier et gros sans embaucher chauffeurs ni acheter camions",
+        "item3": "Clients métier et CD détaillants exigent rendez-vous, suivi et preuve à chaque arrêt"
       },
       "solution": {
-        "title": "Porterchain à Toronto et dans le GTA",
-        "description": "Un partenaire pour le centre-ville, les banlieues et le volume cross-GTA. Chauffeurs locaux qui connaissent les rues et capacité adaptée au rythme de Toronto.",
-        "bullet1": "Trajets planifiés et même jour du centre à Etobicoke, North York, Scarborough et au-delà",
-        "bullet2": "Voitures, fourgons et vélos-cargos pour la densité urbaine et les arrêts banlieusards",
-        "bullet3": "Suivi en direct et ETA pour vous et vos clients du Grand Toronto"
+        "title": "Porterchain à Toronto et dans le RGT",
+        "description": "Un partenaire de capacité pour centre-ville, couloirs Peel-York cross-RGT et distribution multi-arrêts banlieue. Chauffeurs professionnels, véhicules adaptés au poids palette et accès chantier, suivi complet entrepôt-chantier ou magasin.",
+        "bullet1": "Urgence jour même, récurrent planifié et débordement flotte à Toronto, Mississauga, Brampton, Vaughan et Markham",
+        "bullet2": "Berlines au camion cube 20 pi pour documents, fret métier, matériaux construction et réapprovisionnement détaillant",
+        "bullet3": "Suivi en direct, preuve photo et signatures numériques sur chaque envoi B2B"
       },
       "industries": {
-        "title": "Industries que nous servons dans le GTA",
-        "description": "E-commerce, détail, abonnements et B2B à Toronto et dans le GTA. Conçu pour le volume de colis récurrent dans le plus grand marché canadien."
+        "title": "Industries desservies dans le RGT",
+        "description": "Livraison chantier construction, gros électrique et plomberie, messagerie pharmacie, distribution alimentaire et réappro détaillant — pour distributeurs, entrepreneurs, chargés de projet et opérations à Toronto et the GTA."
       },
       "workflow": {
         "title": "Comment ça marche à Toronto",
@@ -1763,42 +2163,50 @@
         "q2": "Comment gérez-vous le trafic et les créneaux à Toronto?",
         "a2": "Nous planifions les trajets et la capacité en fonction de la réalité torontoise. Indiquez vos créneaux et nous nous alignons. Même jour et planifié sont tous deux supportés.",
         "q3": "Mes clients peuvent-ils suivre leur livraison à Toronto?",
-        "a3": "Chaque envoi a un lien de suivi partageable avec statut et ETA en temps réel."
+        "a3": "Chaque envoi a un lien de suivi partageable avec statut et ETA en temps réel.",
+        "q4": "Livrez-vous des matériaux de construction sur chantier à Toronto?",
+        "a4": "Oui. Livraison chantier pour distributeurs construction, entrepreneurs, chargés de projet et contremaîtres à Toronto et the GTA — créneaux horaires, notes d'accès et preuve photo à chaque arrêt.",
+        "q5": "Les entrepreneurs et contremaîtres peuvent-ils suivre les livraisons à Toronto?",
+        "a5": "Chaque envoi inclut un lien de suivi en direct et une preuve photo — partagez avec le contremaître ou le chargé de projet sans courir après le chauffeur."
       },
       "cta": {
         "title": "Prêt pour une livraison fiable à Toronto?",
         "description": "Décrivez votre volume et trajets GTA. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Toronto et dans le GTA",
-      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise dans la région de Toronto."
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise dans la région de Toronto.",
+      "vehicles": {
+        "title": "Options de véhicules à Toronto",
+        "description": "Voitures, fourgons, camions et vélos-cargos dans le GTA. Nous adaptons le véhicule à votre volume — même jour centre-ville, tournées multi-arrêts suburbaines ou B2B cross-GTA. Un partenaire, un tableau de bord, une capacité prévisible."
+      }
     },
     "mississauga": {
       "meta": {
-        "title": "Livraison à Mississauga | Last-mile récurrent pour marchands",
-        "description": "Porterchain livre à Mississauga et Peel. Livraison de colis récurrente et même jour avec chauffeurs et flotte locaux."
+        "title": "Livraison B2B Mississauga et Peel | Distribution, débordement et jour même | Porterchain",
+        "description": "Livraison B2B à Mississauga et dans Peel. Entrepôt-magasin, distribution en gros, débordement de flotte et capacité jour même près de Pearson et du corridor 401. Fourgons cargo et camions cube. Obtenir un devis."
       },
       "hero": {
-        "title": "Livraison à Mississauga et Peel qui s'adapte",
-        "subtitle": "De Meadowvale à Port Credit — nous gérons la flotte et le dernier kilomètre à Mississauga. Livraison prévisible et traçable pour votre volume de colis."
+        "title": "Capacité de livraison B2B à Mississauga et Peel",
+        "subtitle": "Pôle logistique de l'Ontario — capacité véhicule et chauffeur pour distributeurs, manufacturiers et grossistes de Meadowvale au corridor aéroportuaire. Routes récurrentes, débordement jour même et distribution dernier kilomètre sans ajouter de flotte."
       },
       "painPoints": {
-        "title": "Pourquoi les marchands de Mississauga choisissent la livraison locale",
-        "item1": "Gérer le last-mile entre parcs d'affaires, corridors logistiques et zones résidentielles",
-        "item2": "Augmenter la livraison sans ajouter de véhicules ni dépendre de coursiers ponctuels",
-        "item3": "Les clients à Peel s'attendent à des ETA fiables et à la visibilité, pas aux devinettes"
+        "title": "Pourquoi les entreprises de Peel ont besoin de capacité dédiée",
+        "item1": "CD et parcs d'affaires le long 401/403 exigent rendez-vous et routes multi-arrêts fiables",
+        "item2": "Saison de pointe et absences de chauffeurs cassent les plans de flotte interne sans capacité de secours",
+        "item3": "Clients B2B exigent suivi, preuve de livraison et performance à l'heure à chaque tournée"
       },
       "solution": {
         "title": "Porterchain à Mississauga et Peel",
-        "description": "Un partenaire pour les trajets à Mississauga et dans la région de Peel. Chauffeurs locaux et capacité conçus pour la densité suburbaine et commerciale.",
-        "bullet1": "Trajets planifiés et même jour à Mississauga, du corridor 403 au bord du lac",
-        "bullet2": "Voitures et fourgons adaptés aux parcs d'affaires, commerces et livraisons résidentielles",
-        "bullet3": "Suivi en direct et ETA pour vous et vos clients dans la région de Peel"
+        "description": "Un partenaire de capacité pour distribution entrepôt, livraison métier comptoir-chantier et couloirs cross-Peel. Chauffeurs professionnels qui connaissent parcs d'affaires, quais de chargement et congestion suburbaine.",
+        "bullet1": "Routes gros récurrentes, urgence jour même et débordement flotte à Mississauga, Brampton et Peel",
+        "bullet2": "Fourgons cargo, Sprinter, pickups et camions cube pour fret palette, stock métier et réapprovisionnement détaillant",
+        "bullet3": "Suivi en direct et preuve de livraison pour équipes opérations et ETA clients"
       },
       "industries": {
-        "title": "Industries que nous servons à Mississauga",
-        "description": "E-commerce, détail, B2B et abonnements à Mississauga et Peel. Conçu pour le volume de colis récurrent au cœur logistique de l'Ontario."
+        "title": "Industries desservies à Mississauga",
+        "description": "Livraison chantier construction, gros électrique et plomberie, messagerie pharmacie, distribution alimentaire et réappro détaillant — pour distributeurs, entrepreneurs, chargés de projet et opérations à Mississauga et Peel Region."
       },
       "workflow": {
         "title": "Comment ça marche à Mississauga",
@@ -1831,42 +2239,50 @@
         "q2": "Nous sommes près de Pearson — pouvez-vous gérer nos trajets?",
         "a2": "Nous opérons dans Peel et pouvons aligner la capacité pour les trajets près de l'aéroport. Décrivez votre volume et nous vous intégrerons.",
         "q3": "Mes clients peuvent-ils suivre leur livraison à Mississauga?",
-        "a3": "Chaque envoi a un lien de suivi partageable avec statut et ETA en temps réel."
+        "a3": "Chaque envoi a un lien de suivi partageable avec statut et ETA en temps réel.",
+        "q4": "Livrez-vous des matériaux de construction sur chantier à Mississauga?",
+        "a4": "Oui. Livraison chantier pour distributeurs construction, entrepreneurs, chargés de projet et contremaîtres à Mississauga et Peel Region — créneaux horaires, notes d'accès et preuve photo à chaque arrêt.",
+        "q5": "Les entrepreneurs et contremaîtres peuvent-ils suivre les livraisons à Mississauga?",
+        "a5": "Chaque envoi inclut un lien de suivi en direct et une preuve photo — partagez avec le contremaître ou le chargé de projet sans courir après le chauffeur."
       },
       "cta": {
         "title": "Prêt pour une livraison fiable à Mississauga?",
         "description": "Décrivez votre volume et trajets Peel. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Mississauga et Peel",
-      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise dans la région de Mississauga."
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise dans la région de Mississauga.",
+      "vehicles": {
+        "title": "Options de véhicules à Mississauga",
+        "description": "Fourgons cargo, Sprinter, pickups et camions cube pour Peel. Nous adaptons le véhicule à votre volume — distribution entrepôt, fret palette ou réapprovisionnement détaillant."
+      }
     },
     "brampton": {
       "meta": {
-        "title": "Livraison à Brampton | Last-mile récurrent pour marchands",
-        "description": "Porterchain livre à Brampton et Peel. Livraison de colis récurrente avec chauffeurs et flotte locaux."
+        "title": "Livraison B2B Brampton et Peel | Gros, construction et débordement | Porterchain",
+        "description": "Livraison B2B à Brampton et Peel. Distribution en gros, fournitures construction, débordement de flotte et routes récurrentes dans l'un des couloirs logistiques à plus forte croissance au Canada. Camions cube et fourgons cargo. Obtenir un devis."
       },
       "hero": {
-        "title": "Livraison à Brampton et Peel qui grandit avec vous",
-        "subtitle": "Nous gérons la flotte et le dernier kilomètre à Brampton et dans la région de Peel. Livraison prévisible et traçable pour votre volume de colis."
+        "title": "Capacité de livraison B2B à Brampton et Peel",
+        "subtitle": "Capacité véhicule et chauffeur pour grossistes, distributeurs et fournisseurs construction à Brampton — routes récurrentes, débordement jour même et livraison chantier sans construire votre propre flotte."
       },
       "painPoints": {
-        "title": "Pourquoi les marchands de Brampton choisissent la livraison locale",
-        "item1": "Suivre la croissance du volume à Brampton et Peel sans ajouter de flotte",
-        "item2": "Coursiers et ETA incohérents pour les trajets récurrents et livraisons B2B",
-        "item3": "Clients et partenaires s'attendent à la visibilité et à la livraison à l'heure, chaque fois"
+        "title": "Pourquoi les entreprises de Brampton ont besoin de capacité de secours",
+        "item1": "Croissance rapide de Peel dépasse la capacité de flotte interne pour gros et livraison construction",
+        "item2": "Absences de chauffeurs et demande de pointe laissent le comptoir chercher des coursiers ad hoc",
+        "item3": "Entrepreneurs et clients métier exigent rendez-vous, suivi et preuve à chaque livraison"
       },
       "solution": {
         "title": "Porterchain à Brampton et Peel",
-        "description": "Un partenaire pour les trajets récurrents à Brampton et Peel. Chauffeurs locaux et capacité conçus pour un marché en forte croissance.",
-        "bullet1": "Trajets planifiés et même jour à Brampton, de Heart Lake à Sandalwood et au-delà",
-        "bullet2": "Voitures et fourgons pour le détail, l'e-commerce et le volume B2B à Peel",
-        "bullet3": "Suivi en direct et ETA pour vous et vos clients dans la région de Brampton"
+        "description": "Un partenaire de capacité pour comptoir métier, distribution entrepôt et livraison chantier à Brampton et Peel. Pickups, fourgons cargo et camions cube adaptés à tuyaux, palettes et fret construction.",
+        "bullet1": "Routes gros récurrentes, urgence jour même et débordement flotte de Heart Lake au corridor 407",
+        "bullet2": "Pickups et camions cube pour matériaux construction, électrique, plomberie et stock palettisé",
+        "bullet3": "Suivi en direct, preuve photo et signatures numériques sur chaque envoi B2B"
       },
       "industries": {
-        "title": "Industries que nous servons à Brampton",
-        "description": "E-commerce, détail, B2B et abonnements à Brampton et Peel. Conçu pour le volume de colis récurrent dans l'une des villes à la croissance la plus rapide au Canada."
+        "title": "Industries desservies à Brampton",
+        "description": "Livraison chantier construction, gros électrique et plomberie, messagerie pharmacie, distribution alimentaire et réappro détaillant — pour distributeurs, entrepreneurs, chargés de projet et opérations à Brampton et Peel Region."
       },
       "workflow": {
         "title": "Comment ça marche à Brampton",
@@ -1899,16 +2315,24 @@
         "q2": "En combien de temps pouvons-nous démarrer à Brampton?",
         "a2": "Partagez votre volume et trajets. Nous alignons la capacité et pouvons vous avoir en livraison à Brampton et Peel en jours, pas en semaines.",
         "q3": "Mes clients peuvent-ils suivre leur livraison à Brampton?",
-        "a3": "Chaque envoi a un lien de suivi partageable avec statut et ETA en temps réel."
+        "a3": "Chaque envoi a un lien de suivi partageable avec statut et ETA en temps réel.",
+        "q4": "Livrez-vous des matériaux de construction sur chantier à Brampton?",
+        "a4": "Oui. Livraison chantier pour distributeurs construction, entrepreneurs, chargés de projet et contremaîtres à Brampton et Peel Region — créneaux horaires, notes d'accès et preuve photo à chaque arrêt.",
+        "q5": "Les entrepreneurs et contremaîtres peuvent-ils suivre les livraisons à Brampton?",
+        "a5": "Chaque envoi inclut un lien de suivi en direct et une preuve photo — partagez avec le contremaître ou le chargé de projet sans courir après le chauffeur."
       },
       "cta": {
         "title": "Prêt pour une livraison fiable à Brampton?",
         "description": "Décrivez votre volume et trajets Brampton/Peel. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Brampton et Peel",
-      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise dans la région de Brampton."
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise dans la région de Brampton.",
+      "vehicles": {
+        "title": "Options de véhicules à Brampton",
+        "description": "Voitures, fourgons, camions et vélos-cargos à Brampton et Peel. Nous adaptons le véhicule à votre volume et zone — même jour, tournées multi-arrêts ou B2B."
+      }
     },
     "vaughan": {
       "meta": {
@@ -1922,6 +2346,60 @@
       "coverage": {
         "title": "Couverture Vaughan et York Region",
         "description": "Nous livrons à Vaughan et York Region. Même fiabilité et opérations locales pour votre entreprise."
+      },
+      "painPoints": {
+        "title": "Pourquoi les marchands de Vaughan choisissent la livraison locale",
+        "item1": "Desservir parcs d'affaires, détail et résidentiel à Vaughan et York sans ajouter de flotte",
+        "item2": "Trajets même jour et récurrents adaptés à votre croissance dans le corridor 400",
+        "item3": "Les clients à Vaughan et York Region s'attendent à la visibilité et à la livraison à l'heure"
+      },
+      "solution": {
+        "title": "Porterchain à Vaughan et York Region",
+        "description": "Un partenaire pour les trajets à Vaughan et York Region. Chauffeurs locaux et capacité pour livraisons suburbaines et commerciales.",
+        "bullet1": "Trajets planifiés et même jour à Vaughan et dans l'est du GTA",
+        "bullet2": "Voitures et fourgons pour parcs d'affaires, détail et livraisons résidentielles",
+        "bullet3": "Suivi en direct et ETA pour vous et vos clients à Vaughan"
+      },
+      "workflow": {
+        "title": "Comment ça marche à Vaughan",
+        "description": "Processus simple et prévisible du ramassage à la livraison dans York Region.",
+        "step1Title": "Vous partagez volume et trajets",
+        "step1Description": "Décrivez vos tournées à Vaughan ou dans York Region. Nous alignons la capacité locale et les créneaux.",
+        "step2Title": "Nous récupérons et livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent. Lien de suivi par envoi.",
+        "step3Title": "Vous et vos clients restez informés",
+        "step3Description": "Statut et ETA en temps réel dans un tableau de bord. Plus de relances pour les livraisons à Vaughan."
+      },
+      "onboarding": {
+        "title": "Intégration simple pour les marchands de Vaughan",
+        "description": "Démarrez la livraison dans York Region sans gérer de flotte. Nous gérons chauffeurs et opérations; vous obtenez une capacité prévisible.",
+        "step1Title": "Connecter",
+        "step1Description": "Partagez votre volume et zones Vaughan/York. Nous alignons la capacité et les SLA.",
+        "step2Title": "Nous livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent dans vos zones. Suivi et tableau de bord pour chaque envoi.",
+        "step3Title": "Vous gardez le contrôle",
+        "step3Description": "Suivez chaque colis, ETA et rapports. Nous gérons les opérations; vous gardez la visibilité."
+      },
+      "faq": {
+        "title": "Questions fréquentes — Livraison Vaughan",
+        "q1": "Livrez-vous dans tout York Region?",
+        "a1": "Oui. Nous couvrons Vaughan et York Region. Indiquez vos zones ou codes postaux et nous confirmerons la couverture.",
+        "q2": "En combien de temps pouvons-nous démarrer à Vaughan?",
+        "a2": "Partagez votre volume et trajets. Nous alignons la capacité et pouvons vous avoir en livraison en jours, pas en semaines.",
+        "q3": "Mes clients peuvent-ils suivre leur livraison à Vaughan?",
+        "a3": "Chaque envoi a un lien de suivi partageable avec statut et ETA en temps réel."
+      },
+      "cta": {
+        "title": "Prêt pour une livraison fiable à Vaughan?",
+        "description": "Décrivez votre volume et trajets dans York Region. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
+        "primary": "Obtenir un devis",
+        "secondary": "Contactez-nous"
+      },
+      "inquiryHeading": "Démarrez avec la livraison à Vaughan et York Region",
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise à Vaughan.",
+      "vehicles": {
+        "title": "Options de véhicules à Vaughan",
+        "description": "Voitures et fourgons pour Vaughan et York Region. Livraison même jour et récurrente — nous adaptons le véhicule à votre volume et trajets."
       }
     },
     "markham": {
@@ -1936,6 +2414,60 @@
       "coverage": {
         "title": "Couverture Markham et York Region",
         "description": "Nous livrons à Markham et York Region. Même fiabilité et opérations locales pour votre entreprise."
+      },
+      "painPoints": {
+        "title": "Pourquoi les marchands de Markham choisissent la livraison locale",
+        "item1": "Desservir corridors tech, détail et résidentiel à Markham et York sans ajouter de flotte",
+        "item2": "Trajets même jour et récurrents qui suivent votre croissance",
+        "item3": "Les clients à Markham et York Region s'attendent à la visibilité et à la livraison à l'heure"
+      },
+      "solution": {
+        "title": "Porterchain à Markham et York Region",
+        "description": "Un partenaire pour les trajets à Markham et York Region. Chauffeurs locaux et capacité pour un marché en forte croissance.",
+        "bullet1": "Trajets planifiés et même jour à Markham et dans l'est du GTA",
+        "bullet2": "Voitures et fourgons pour parcs de bureaux, détail et livraisons résidentielles",
+        "bullet3": "Suivi en direct et ETA pour vous et vos clients à Markham"
+      },
+      "workflow": {
+        "title": "Comment ça marche à Markham",
+        "description": "Processus simple et prévisible du ramassage à la livraison dans York Region.",
+        "step1Title": "Vous partagez volume et trajets",
+        "step1Description": "Décrivez vos tournées à Markham ou dans York Region. Nous alignons la capacité locale et les créneaux.",
+        "step2Title": "Nous récupérons et livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent. Lien de suivi par envoi.",
+        "step3Title": "Vous et vos clients restez informés",
+        "step3Description": "Statut et ETA en temps réel dans un tableau de bord. Plus de relances pour les livraisons à Markham."
+      },
+      "onboarding": {
+        "title": "Intégration simple pour les marchands de Markham",
+        "description": "Démarrez la livraison dans York Region sans gérer de flotte. Nous gérons chauffeurs et opérations; vous obtenez une capacité prévisible.",
+        "step1Title": "Connecter",
+        "step1Description": "Partagez votre volume et zones Markham/York. Nous alignons la capacité et les SLA.",
+        "step2Title": "Nous livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent dans vos zones. Suivi et tableau de bord pour chaque envoi.",
+        "step3Title": "Vous gardez le contrôle",
+        "step3Description": "Suivez chaque colis, ETA et rapports. Nous gérons les opérations; vous gardez la visibilité."
+      },
+      "faq": {
+        "title": "Questions fréquentes — Livraison Markham",
+        "q1": "Livrez-vous à Markham et dans tout York Region?",
+        "a1": "Oui. Nous couvrons Markham et York Region. Indiquez vos zones ou codes postaux et nous confirmerons la couverture.",
+        "q2": "En combien de temps pouvons-nous démarrer à Markham?",
+        "a2": "Partagez votre volume et trajets. Nous alignons la capacité et pouvons vous avoir en livraison en jours, pas en semaines.",
+        "q3": "Mes clients peuvent-ils suivre leur livraison à Markham?",
+        "a3": "Chaque envoi a un lien de suivi partageable avec statut et ETA en temps réel."
+      },
+      "cta": {
+        "title": "Prêt pour une livraison fiable à Markham?",
+        "description": "Décrivez votre volume et trajets dans York Region. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
+        "primary": "Obtenir un devis",
+        "secondary": "Contactez-nous"
+      },
+      "inquiryHeading": "Démarrez avec la livraison à Markham et York Region",
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise à Markham.",
+      "vehicles": {
+        "title": "Options de véhicules à Markham",
+        "description": "Voitures et fourgons pour Markham et York Region. Livraison même jour et récurrente — nous adaptons le véhicule à votre volume et trajets."
       }
     },
     "oakville": {
@@ -1950,6 +2482,60 @@
       "coverage": {
         "title": "Couverture Oakville et Halton",
         "description": "Nous livrons à Oakville et la région de Halton. Même fiabilité et opérations locales pour votre entreprise."
+      },
+      "painPoints": {
+        "title": "Pourquoi les marchands de Oakville choisissent la livraison locale",
+        "item1": "Atteindre zones commerciales et résidentielles à Oakville et Halton sans jongler avec les coursiers",
+        "item2": "Augmenter livraison même jour et récurrente le long du corridor QEW",
+        "item3": "Les clients à Oakville et Halton s'attendent à la visibilité et à la livraison à l'heure"
+      },
+      "solution": {
+        "title": "Porterchain à Oakville et Halton",
+        "description": "Un partenaire pour les trajets à Oakville et dans la région de Halton. Chauffeurs locaux et capacité pour livraisons suburbaines et commerciales.",
+        "bullet1": "Trajets planifiés et même jour à Oakville et Halton",
+        "bullet2": "Voitures et fourgons pour parcs d'affaires, détail et livraisons résidentielles",
+        "bullet3": "Suivi en direct et ETA pour vous et vos clients dans Halton"
+      },
+      "workflow": {
+        "title": "Comment ça marche à Oakville",
+        "description": "Processus simple et prévisible du ramassage à la livraison dans Halton.",
+        "step1Title": "Vous partagez volume et trajets",
+        "step1Description": "Décrivez vos tournées à Oakville ou dans Halton. Nous alignons la capacité locale et les créneaux.",
+        "step2Title": "Nous récupérons et livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent. Lien de suivi par envoi.",
+        "step3Title": "Vous et vos clients restez informés",
+        "step3Description": "Statut et ETA en temps réel dans un tableau de bord. Plus de relances pour les livraisons à Oakville."
+      },
+      "onboarding": {
+        "title": "Intégration simple pour les marchands de Oakville",
+        "description": "Démarrez la livraison à Halton sans gérer de flotte. Nous gérons chauffeurs et opérations; vous obtenez une capacité prévisible.",
+        "step1Title": "Connecter",
+        "step1Description": "Partagez votre volume et zones Oakville/Halton. Nous alignons la capacité et les SLA.",
+        "step2Title": "Nous livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent dans vos zones. Suivi et tableau de bord pour chaque envoi.",
+        "step3Title": "Vous gardez le contrôle",
+        "step3Description": "Suivez chaque colis, ETA et rapports. Nous gérons les opérations; vous gardez la visibilité."
+      },
+      "faq": {
+        "title": "Questions fréquentes — Livraison Oakville",
+        "q1": "Livrez-vous dans tout Halton?",
+        "a1": "Oui. Nous couvrons Oakville et la région de Halton. Indiquez vos zones ou codes postaux et nous confirmerons la couverture.",
+        "q2": "En combien de temps pouvons-nous démarrer à Oakville?",
+        "a2": "Partagez votre volume et trajets. Nous alignons la capacité et pouvons vous avoir en livraison en jours, pas en semaines.",
+        "q3": "Mes clients peuvent-ils suivre leur livraison à Oakville?",
+        "a3": "Chaque envoi a un lien de suivi partageable avec statut et ETA en temps réel."
+      },
+      "cta": {
+        "title": "Prêt pour une livraison fiable à Oakville?",
+        "description": "Décrivez votre volume et trajets à Halton. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
+        "primary": "Obtenir un devis",
+        "secondary": "Contactez-nous"
+      },
+      "inquiryHeading": "Démarrez avec la livraison à Oakville et Halton",
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise à Oakville.",
+      "vehicles": {
+        "title": "Options de véhicules à Oakville",
+        "description": "Voitures et fourgons pour Oakville et Halton. Livraison même jour et récurrente — nous adaptons le véhicule à votre volume et trajets."
       }
     },
     "burlington": {
@@ -1964,6 +2550,60 @@
       "coverage": {
         "title": "Couverture Burlington et Halton",
         "description": "Nous livrons à Burlington et la région de Halton. Même fiabilité et opérations locales pour votre entreprise."
+      },
+      "painPoints": {
+        "title": "Pourquoi les marchands de Burlington choisissent la livraison locale",
+        "item1": "Desservir parcs d'affaires, détail et résidentiel à Burlington et Halton sans ajouter de flotte",
+        "item2": "Trajets même jour et récurrents le long des corridors QEW et 403",
+        "item3": "Les clients à Burlington et Halton s'attendent à la visibilité et à la livraison à l'heure"
+      },
+      "solution": {
+        "title": "Porterchain à Burlington et Halton",
+        "description": "Un partenaire pour les trajets à Burlington et dans la région de Halton. Chauffeurs locaux et capacité pour livraisons suburbaines et commerciales.",
+        "bullet1": "Trajets planifiés et même jour à Burlington et Halton",
+        "bullet2": "Voitures et fourgons pour parcs d'affaires, détail et livraisons résidentielles",
+        "bullet3": "Suivi en direct et ETA pour vous et vos clients dans Halton"
+      },
+      "workflow": {
+        "title": "Comment ça marche à Burlington",
+        "description": "Processus simple et prévisible du ramassage à la livraison dans Halton.",
+        "step1Title": "Vous partagez volume et trajets",
+        "step1Description": "Décrivez vos tournées à Burlington ou dans Halton. Nous alignons la capacité locale et les créneaux.",
+        "step2Title": "Nous récupérons et livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent. Lien de suivi par envoi.",
+        "step3Title": "Vous et vos clients restez informés",
+        "step3Description": "Statut et ETA en temps réel dans un tableau de bord. Plus de relances pour les livraisons à Burlington."
+      },
+      "onboarding": {
+        "title": "Intégration simple pour les marchands de Burlington",
+        "description": "Démarrez la livraison à Halton sans gérer de flotte. Nous gérons chauffeurs et opérations; vous obtenez une capacité prévisible.",
+        "step1Title": "Connecter",
+        "step1Description": "Partagez votre volume et zones Burlington/Halton. Nous alignons la capacité et les SLA.",
+        "step2Title": "Nous livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent dans vos zones. Suivi et tableau de bord pour chaque envoi.",
+        "step3Title": "Vous gardez le contrôle",
+        "step3Description": "Suivez chaque colis, ETA et rapports. Nous gérons les opérations; vous gardez la visibilité."
+      },
+      "faq": {
+        "title": "Questions fréquentes — Livraison Burlington",
+        "q1": "Livrez-vous à Burlington et dans tout Halton?",
+        "a1": "Oui. Nous couvrons Burlington et la région de Halton. Indiquez vos zones ou codes postaux et nous confirmerons la couverture.",
+        "q2": "En combien de temps pouvons-nous démarrer à Burlington?",
+        "a2": "Partagez votre volume et trajets. Nous alignons la capacité et pouvons vous avoir en livraison en jours, pas en semaines.",
+        "q3": "Mes clients peuvent-ils suivre leur livraison à Burlington?",
+        "a3": "Chaque envoi a un lien de suivi partageable avec statut et ETA en temps réel."
+      },
+      "cta": {
+        "title": "Prêt pour une livraison fiable à Burlington?",
+        "description": "Décrivez votre volume et trajets à Halton. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
+        "primary": "Obtenir un devis",
+        "secondary": "Contactez-nous"
+      },
+      "inquiryHeading": "Démarrez avec la livraison à Burlington et Halton",
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise à Burlington.",
+      "vehicles": {
+        "title": "Options de véhicules à Burlington",
+        "description": "Voitures et fourgons pour Burlington et Halton. Livraison même jour et récurrente — nous adaptons le véhicule à votre volume et trajets."
       }
     },
     "cambridge": {
@@ -2024,7 +2664,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Cambridge?",
         "description": "Décrivez votre volume et trajets dans la région de Waterloo. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Cambridge et la région de Waterloo",
@@ -2088,7 +2728,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Guelph?",
         "description": "Décrivez votre volume et trajets à Guelph. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Guelph",
@@ -2152,7 +2792,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Hamilton?",
         "description": "Décrivez votre volume et trajets à Hamilton. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Hamilton",
@@ -2216,7 +2856,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Ajax?",
         "description": "Décrivez votre volume et trajets Durham. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Ajax et la région de Durham",
@@ -2280,7 +2920,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Pickering?",
         "description": "Décrivez votre volume et trajets Durham. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Pickering et la région de Durham",
@@ -2348,20 +2988,24 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Kitchener-Waterloo?",
         "description": "Décrivez votre volume et trajets dans la région de Waterloo. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Kitchener-Waterloo",
-      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise dans la région K-W."
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise dans la région K-W.",
+      "vehicles": {
+        "title": "Options de véhicules à Kitchener-Waterloo",
+        "description": "Voitures et fourgons pour la région de Waterloo. Livraison même jour et récurrente — nous adaptons le véhicule à votre volume et trajets."
+      }
     },
     "niagara": {
       "meta": {
-        "title": "Livraison dans la région de Niagara | Last-mile récurrent pour marchands",
-        "description": "Porterchain livre dans la région de Niagara. Livraison de colis récurrente avec chauffeurs et flotte locaux."
+        "title": "Livraison B2B Niagara | Capacité locale sur confirmation | PorterChain",
+        "description": "Capacité de transport B2B dans la région de Niagara — livraisons urgentes, récurrentes et débordement de flotte avec suivi et preuve. Couverture confirmée par devis."
       },
       "hero": {
         "title": "Livraison dans la région de Niagara",
-        "subtitle": "De St. Catharines aux chutes du Niagara et Niagara-on-the-Lake — nous gérons la flotte et le dernier kilomètre. Livraison prévisible et traçable pour votre volume de colis."
+        "subtitle": "De St. Catharines à Niagara Falls et Niagara-on-the-Lake — capacité véhicule et chauffeur pour livraisons B2B urgentes, récurrentes ou en débordement. Couverture confirmée selon route et disponibilité."
       },
       "painPoints": {
         "title": "Pourquoi les marchands de Niagara choisissent la livraison locale",
@@ -2371,14 +3015,14 @@
       },
       "solution": {
         "title": "Porterchain dans la région de Niagara",
-        "description": "Un partenaire pour les trajets récurrents dans Niagara. Chauffeurs locaux et capacité conçus pour la région — des chutes au vignoble.",
+        "description": "Un partenaire de capacité pour les routes B2B dans Niagara. Nous confirmons véhicule, chauffeur, fenêtre et preuve avant d'accepter la course.",
         "bullet1": "Trajets planifiés et même jour à St. Catharines, Niagara Falls, Niagara-on-the-Lake et au-delà",
-        "bullet2": "Voitures et fourgons pour détail, hospitality et livraisons B2B dans la région de Niagara",
+        "bullet2": "Berlines, fourgons et capacité adaptée pour fret B2B léger, distribution et approvisionnement local",
         "bullet3": "Suivi en direct et ETA pour vous et vos clients dans la région de Niagara"
       },
       "industries": {
         "title": "Industries que nous servons à Niagara",
-        "description": "Détail, hospitality, B2B, e-commerce et abonnements dans la région de Niagara. Conçu pour le volume de colis récurrent dans un marché unique."
+        "description": "Distribution alimentaire, détail, hôtellerie, construction légère et B2B local dans la région de Niagara. Conçu pour les routes qui demandent preuve et confirmation de capacité."
       },
       "workflow": {
         "title": "Comment ça marche à Niagara",
@@ -2396,7 +3040,7 @@
       },
       "onboarding": {
         "title": "Intégration simple pour les marchands de Niagara",
-        "description": "Démarrez la livraison à Niagara sans gérer de flotte. Nous gérons chauffeurs et opérations; vous obtenez une capacité prévisible.",
+        "description": "Démarrez une capacité B2B à Niagara sans gérer de flotte. Nous confirmons couverture, véhicule et preuve avant les premières routes.",
         "step1Title": "Connecter",
         "step1Description": "Partagez votre volume et zones Niagara. Nous alignons la capacité et les SLA.",
         "step2Title": "Nous livrons",
@@ -2416,67 +3060,121 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Niagara?",
         "description": "Décrivez votre volume et trajets Niagara. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison dans la région de Niagara",
-      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise dans la région de Niagara."
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise dans la région de Niagara.",
+      "vehicles": {
+        "title": "Options de véhicules dans la région de Niagara",
+        "description": "Voitures et fourgons pour Niagara. Livraison même jour et récurrente — nous adaptons le véhicule à votre volume et trajets."
+      }
     },
     "oshawa": {
       "meta": {
-        "title": "Livraison à Oshawa | Last-mile récurrent pour marchands",
-        "description": "Porterchain livre à Oshawa et la région de Durham. Livraison de colis récurrente avec chauffeurs et flotte locaux."
+        "title": "Livraison B2B Oshawa | Capacité Durham sur confirmation | PorterChain",
+        "description": "Capacité de transport B2B à Oshawa et Durham — même jour, urgence, routes récurrentes et débordement de flotte avec suivi et preuve."
       },
       "hero": {
         "title": "Livraison à Oshawa et dans la région de Durham",
-        "subtitle": "Nous gérons la flotte et le dernier kilomètre à Oshawa et Durham. Livraison prévisible et traçable pour votre volume de colis."
+        "subtitle": "Capacité véhicule et chauffeur pour entreprises à Oshawa et Durham — livraisons urgentes, récurrentes ou en débordement avec suivi et preuve. Couverture confirmée par devis."
       },
       "cta": {
         "title": "Prêt pour une livraison fiable à Oshawa?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment gérer votre livraison récurrente.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Oshawa et Durham",
-      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise à Oshawa."
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise à Oshawa.",
+      "coverage": {
+        "title": "Couverture Oshawa et Durham",
+        "description": "Nous livrons à Oshawa et dans la région de Durham — même fiabilité et opérations locales pour votre entreprise."
+      },
+      "solution": {
+        "title": "Porterchain à Oshawa et Durham",
+        "description": "Un partenaire de capacité pour les routes B2B à Oshawa, Durham et l'est du GTA. Nous confirmons véhicule, fenêtre et preuve avant répartition.",
+        "bullet1": "Trajets planifiés et même jour à Oshawa, Ajax, Pickering et Durham",
+        "bullet2": "Berlines, fourgons et véhicules adaptés pour parcs d'affaires, fournisseurs et livraisons B2B locales",
+        "bullet3": "Suivi en direct et ETA pour vous et vos clients dans Durham"
+      },
+      "onboarding": {
+        "title": "Intégration simple pour les marchands d'Oshawa",
+        "description": "Démarrez une capacité B2B à Durham sans gérer de flotte. Nous confirmons couverture, véhicule et preuve avant les premières routes.",
+        "step1Title": "Connecter",
+        "step1Description": "Partagez votre volume et zones Oshawa/Durham. Nous alignons la capacité et les SLA.",
+        "step2Title": "Nous livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent dans vos zones. Suivi et tableau de bord pour chaque envoi.",
+        "step3Title": "Vous gardez le contrôle",
+        "step3Description": "Suivez chaque colis, ETA et rapports. Nous gérons les opérations; vous gardez la visibilité."
+      },
+      "vehicles": {
+        "title": "Options de véhicules à Oshawa",
+        "description": "Voitures et fourgons pour Oshawa et Durham. Livraison même jour et récurrente — nous adaptons le véhicule à votre volume et trajets."
+      }
     },
     "london": {
       "meta": {
-        "title": "Livraison à London (Ontario) | Last-mile récurrent pour marchands",
-        "description": "Porterchain livre à London (Ontario) et environs. Livraison de colis récurrente avec chauffeurs et flotte locaux."
+        "title": "Livraison B2B London Ontario | Capacité locale sur confirmation | PorterChain",
+        "description": "Capacité de transport B2B à London, Ontario — livraisons urgentes, récurrentes et débordement de flotte avec suivi et preuve."
       },
       "hero": {
         "title": "Livraison à London, Ontario",
-        "subtitle": "Nous gérons la flotte et le dernier kilomètre à London et la région. Livraison prévisible et traçable pour votre volume de colis."
+        "subtitle": "Capacité véhicule et chauffeur à London et dans le sud-ouest ontarien — routes B2B urgentes, récurrentes ou en débordement avec suivi et preuve."
       },
       "cta": {
         "title": "Prêt pour une livraison fiable à London?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment gérer votre livraison récurrente.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à London, Ontario",
-      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise à London."
+      "inquirySubheadline": "Quelques détails et nous vous proposerons la capacité et les trajets adaptés à votre entreprise à London.",
+      "coverage": {
+        "title": "Couverture London et région",
+        "description": "Nous livrons à London, Ontario et la région avoisinante — même fiabilité et opérations locales pour votre entreprise."
+      },
+      "solution": {
+        "title": "Porterchain à London, Ontario",
+        "description": "Un partenaire de capacité pour les routes B2B à London et dans le sud-ouest de l'Ontario. Nous confirmons véhicule, fenêtre et preuve avant la répartition.",
+        "bullet1": "Trajets planifiés et même jour à London et la région",
+        "bullet2": "Berlines, fourgons et véhicules adaptés pour distribution, fournisseurs et livraisons B2B locales",
+        "bullet3": "Suivi en direct et ETA pour vous et vos clients à London"
+      },
+      "onboarding": {
+        "title": "Intégration simple pour les marchands de London",
+        "description": "Démarrez une capacité B2B à London sans gérer de flotte. Nous confirmons couverture, véhicule et preuve avant les premières routes.",
+        "step1Title": "Connecter",
+        "step1Description": "Partagez votre volume et zones London. Nous alignons la capacité et les SLA.",
+        "step2Title": "Nous livrons",
+        "step2Description": "Nos chauffeurs récupèrent et livrent dans vos zones. Suivi et tableau de bord pour chaque envoi.",
+        "step3Title": "Vous gardez le contrôle",
+        "step3Description": "Suivez chaque colis, ETA et rapports. Nous gérons les opérations; vous gardez la visibilité."
+      },
+      "vehicles": {
+        "title": "Options de véhicules à London",
+        "description": "Voitures et fourgons pour London et la région. Livraison même jour et récurrente — nous adaptons le véhicule à votre volume et trajets."
+      }
     },
     "stCatharines": {
       "meta": {
-        "title": "Livraison à St. Catharines | Last-mile récurrent pour marchands",
-        "description": "Porterchain livre à St. Catharines et la région de Niagara. Livraison de colis récurrente avec chauffeurs et flotte locaux."
+        "title": "Livraison B2B St. Catharines | Capacité Niagara sur confirmation | PorterChain",
+        "description": "Capacité de transport B2B à St. Catharines et Niagara — même jour, urgence, routes récurrentes et débordement de flotte avec suivi et preuve."
       },
       "hero": {
         "title": "Livraison à St. Catharines",
-        "subtitle": "Nous gérons la flotte et le dernier kilomètre à St. Catharines et la région de Niagara. Livraison prévisible et traçable pour votre volume de colis."
+        "subtitle": "Capacité véhicule et chauffeur pour entreprises à St. Catharines et Niagara — livraisons urgentes, récurrentes ou en débordement avec suivi et preuve."
       },
       "solution": {
         "title": "Porterchain à St. Catharines",
-        "description": "Un partenaire pour les trajets récurrents à St. Catharines et Niagara. Chauffeurs locaux et capacité pour votre volume.",
-        "bullet1": "Trajets planifiés et même jour",
-        "bullet2": "Voitures et fourgons où vous en avez besoin",
-        "bullet3": "Suivi en direct et ETA"
+        "description": "Un partenaire de capacité pour les routes B2B à St. Catharines et Niagara. Nous confirmons véhicule, fenêtre et preuve avant la répartition.",
+        "bullet1": "Routes planifiées, urgentes et même jour selon disponibilité confirmée",
+        "bullet2": "Berlines, fourgons et véhicules adaptés aux fournisseurs et routes B2B locales",
+        "bullet3": "Suivi en direct, ETA et preuve de livraison pour chaque arrêt"
       },
       "industries": {
         "title": "Industries que nous servons à St. Catharines et Niagara",
-        "description": "E-commerce, détail, abonnements et B2B à St. Catharines et la région de Niagara. Conçu pour le volume de colis récurrent."
+        "description": "Distribution alimentaire, détail, construction légère, fournisseurs et B2B local à St. Catharines et Niagara. Conçu pour les routes qui demandent preuve et confirmation de capacité."
       },
       "coverage": {
         "title": "Couverture St. Catharines et Niagara",
@@ -2488,7 +3186,7 @@
       },
       "onboarding": {
         "title": "Intégration simple",
-        "description": "Trois étapes vers une livraison prévisible. Pas de flotte à gérer, pas de chauffeurs à embaucher.",
+        "description": "Trois étapes vers une capacité B2B confirmée. Pas de flotte à gérer, pas de chauffeurs à embaucher.",
         "step1Title": "Connecter",
         "step1Description": "Partagez votre volume et zones. Nous alignons la capacité et les SLA.",
         "step2Title": "Nous livrons",
@@ -2508,7 +3206,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à St. Catharines?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à St. Catharines et Niagara",
@@ -2524,7 +3222,8 @@
       "pharmacyMedical": "Pharmacie et médical",
       "cosmetics": "Cosmétiques et beauté",
       "chocolate": "Chocolat et confiserie",
-      "labSampleDelivery": "Livraison d'échantillons de laboratoire"
+      "labSampleDelivery": "Livraison d'échantillons de laboratoire",
+      "ecommerce": "Commerce en ligne"
     },
     "areaLabels": {
       "toronto": "Toronto",
@@ -2547,11 +3246,11 @@
     },
     "meta": {
       "titlePattern": "Livraison {industryLabel} à {cityLabel} | Porterchain",
-      "descriptionPattern": "Livraison récurrente {industryLabel} à {cityLabel} et {region}. Flotte locale, livraison traçable, un partenaire. Démarrage en quelques jours."
+      "descriptionPattern": "Livraison B2B {industryLabel} à {cityLabel} et {region}. Capacité véhicule et chauffeur le jour même, urgente et récurrente avec suivi et preuve. Obtenir un devis."
     },
     "hero": {
       "titlePattern": "Livraison {industryLabel} à {cityLabel}",
-      "subtitlePattern": "Nous gérons la flotte et le dernier kilomètre à {cityLabel} et {region}. Livraison prévisible et traçable pour votre volume — sans les tracas."
+      "subtitlePattern": "Capacité véhicule et chauffeur pour {industryLabel} à {cityLabel} et {region} — débordement de flotte, urgence jour même et routes récurrentes avec suivi et preuve."
     },
     "localChallenges": {
       "titlePattern": "Défis de livraison locale pour {industryLabel} à {cityLabel}",
@@ -2560,8 +3259,8 @@
       "item3": "Obtenir la visibilité et le suivi que vos équipes et clients attendent — sans surcharge opérationnelle."
     },
     "localIntro": {
-      "paragraph1": "Nous aidons les marchands {industryLabel} à {cityLabel} et dans les environs à obtenir une livraison fiable et traçable sans gérer de flotte. Que vous livriez à des cafés, détaillants, abonnés ou partenaires, nous alignons notre capacité sur vos trajets et créneaux.",
-      "paragraph2": "Même processus partout où nous opérons : vous partagez volume et zones, nous gérons la collecte et la livraison last-mile, et vous et vos clients bénéficiez du suivi en direct et de rapports clairs. À {cityLabel}, nous gérons les opérations locales pour une livraison constante et à l'heure."
+      "paragraph1": "Nous fournissons une capacité véhicule et chauffeur B2B pour les expéditeurs {industryLabel} à {cityLabel} et les environs — urgence jour même, routes récurrentes et débordement de flotte sans embaucher de chauffeurs.",
+      "paragraph2": "Vous partagez volume, zones et urgence; nous déployons une capacité adaptée avec suivi en direct et preuve à chaque arrêt. À {cityLabel}, les routes s'exécutent sur devis, sans frais plateforme."
     },
     "faq": {
       "titlePattern": "Questions fréquentes — Livraison {industryLabel} à {cityLabel}",
@@ -2570,12 +3269,14 @@
       "q2": "En combien de temps pouvons-nous démarrer la livraison {industryLabel} à {cityLabel}?",
       "a2": "Partagez votre volume et trajets. Nous alignons la capacité locale et pouvons vous avoir en livraison à {cityLabel} et {region} en jours, pas en semaines. Pas de flotte à gérer, pas de chauffeurs à embaucher.",
       "q3": "Mes clients peuvent-ils suivre leur livraison {industryLabel} à {cityLabel}?",
-      "a3": "Chaque envoi dispose d'un lien de suivi. Vous pouvez le partager pour que les clients voient le statut et l'ETA en temps réel — même fiabilité que vous soyez à {cityLabel} ou ailleurs."
+      "a3": "Chaque envoi dispose d'un lien de suivi. Vous pouvez le partager pour que les clients voient le statut et l'ETA en temps réel — même fiabilité que vous soyez à {cityLabel} ou ailleurs.",
+      "q4": "Comment fonctionne la tarification pour la livraison {industryLabel} à {cityLabel}?",
+      "a4": "Sur devis selon classe de véhicule, distance, arrêts et urgence (jour même vs planifié). Pas de frais plateforme — demandez un devis et nous confirmons la capacité pour {cityLabel} et {region}."
     },
     "cta": {
       "titlePattern": "Prêt pour la livraison {industryLabel} à {cityLabel}?",
       "descriptionPattern": "Décrivez votre volume et trajets à {cityLabel} et {region}. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-      "primary": "Nous contacter",
+      "primary": "Obtenir un devis",
       "secondary": "Contactez-nous"
     },
     "inquiry": {
@@ -2936,19 +3637,10 @@
         "step3Title": "Vous gardez le contrôle",
         "step3Description": "Suivez chaque colis, ETA, rapports clairs. Nous gérons les opérations; vous gardez la visibilité."
       },
-      "trust": {
-        "title": "Conçu pour les opérations qui dépendent de la livraison",
-        "stat1Value": "99 %",
-        "stat1Label": "Livraison à l'heure",
-        "stat2Value": "24/7",
-        "stat2Label": "Support opérations",
-        "stat3Value": "1000+",
-        "stat3Label": "Livraisons par jour"
-      },
       "cta": {
         "title": "Prêt pour une livraison récurrente fiable?",
         "description": "Décrivez votre volume et zone. Nous vous montrerons comment gérer votre livraison — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez",
@@ -2972,7 +3664,7 @@
       "cta": {
         "title": "Obtenez une livraison prévisible",
         "description": "Décrivez votre volume et zone. Nous vous montrerons comment nous gérons la livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison récurrente",
@@ -3018,19 +3710,10 @@
         "step3Title": "Vous gardez le contrôle",
         "step3Description": "Suivez chaque livraison, ETA, rapports clairs. Nous gérons les opérations; vous gardez la visibilité."
       },
-      "trust": {
-        "title": "Conçu pour les torréfacteurs qui dépendent de la livraison",
-        "stat1Value": "99 %",
-        "stat1Label": "Livraison à l'heure",
-        "stat2Value": "24/7",
-        "stat2Label": "Support opérations",
-        "stat3Value": "1000+",
-        "stat3Label": "Livraisons par jour"
-      },
       "cta": {
         "title": "Prêt à simplifier la livraison café?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison torréfacteurs",
@@ -3039,7 +3722,7 @@
     "pharmacyMedical": {
       "meta": {
         "title": "Livraison pharmacie et médical | Porterchain",
-        "description": "Livraison fiable et conforme pour pharmacies et fournisseurs médicaux. Traçable, auditable. Démarrez en quelques jours."
+        "description": "Capacité véhicule et chauffeur fiable pour pharmacies et fournisseurs médicaux. Manutention traçable avec preuve de chaîne de possession. Démarrez en quelques jours."
       },
       "hero": {
         "title": "Livraison pour pharmacie et médical",
@@ -3053,7 +3736,7 @@
       },
       "solution": {
         "title": "Porterchain pour pharmacie et médical",
-        "description": "Un partenaire qui prend conformité et fiabilité au sérieux. Traçable, auditable, conçu pour le volume récurrent.",
+        "description": "Un partenaire de livraison axé sur la fiabilité et la manutention traçable. Preuve de chaîne de possession pour le volume récurrent.",
         "bullet1": "Processus et suivi structurés pour traçabilité et audit",
         "bullet2": "Capacité adaptée aux créneaux et besoins température quand requis",
         "bullet3": "Un tableau de bord pour dispatch, statut et rapports"
@@ -3068,7 +3751,7 @@
       },
       "onboarding": {
         "title": "Intégration simple",
-        "description": "Trois étapes vers une livraison prévisible et conforme. Pas de flotte à gérer.",
+        "description": "Trois étapes vers une livraison prévisible. Pas de flotte à gérer.",
         "step1Title": "Connecter",
         "step1Description": "Partagez volume, exigences et zones. Nous alignons capacité et processus.",
         "step2Title": "Nous livrons",
@@ -3076,19 +3759,10 @@
         "step3Title": "Vous gardez le contrôle",
         "step3Description": "Liens de suivi et ETA. Rapports clairs pour opérations et conformité. Nous gérons les opérations; vous gardez la visibilité."
       },
-      "trust": {
-        "title": "Conçu pour les opérations pharmacie et médical",
-        "stat1Value": "99 %",
-        "stat1Label": "Livraison à l'heure",
-        "stat2Value": "24/7",
-        "stat2Label": "Support opérations",
-        "stat3Value": "1000+",
-        "stat3Label": "Livraisons par jour"
-      },
       "cta": {
         "title": "Prêt à simplifier la livraison pharmacie?",
         "description": "Décrivez votre volume et exigences. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison pharmacie et médical",
@@ -3134,19 +3808,10 @@
         "step3Title": "Vous gardez le contrôle",
         "step3Description": "Suivez chaque colis, ETA, rapports clairs. Moins de « où est ma commande »."
       },
-      "trust": {
-        "title": "Conçu pour les marques beauté qui dépendent de la livraison",
-        "stat1Value": "99 %",
-        "stat1Label": "Livraison à l'heure",
-        "stat2Value": "24/7",
-        "stat2Label": "Support opérations",
-        "stat3Value": "1000+",
-        "stat3Label": "Livraisons par jour"
-      },
       "cta": {
         "title": "Prêt à simplifier la livraison beauté?",
         "description": "Décrivez votre volume et canaux. Nous vous montrerons comment gérer votre livraison abonnement et D2C — de façon fiable et simple.",
-        "primary": "Nous contacter",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison cosmétiques et beauté",
@@ -3159,7 +3824,7 @@
       },
       "hero": {
         "title": "Livraison pour matériaux de construction",
-        "subtitle": "Votre partenaire logistique pour distributeurs de construction et livraison chantier. Fourgonnettes, camionnettes et camions — capacité prévisible et suivi en direct."
+        "subtitle": "Capacité véhicule et chauffeur pour distributeurs de construction et livraison chantier. Fourgonnettes, camionnettes et camions — capacité prévisible et suivi en direct. Sur devis — demandez un devis écrit."
       },
       "painPoints": {
         "title": "Défis de livraison pour la construction",
@@ -3214,7 +3879,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable de matériaux de construction?",
         "description": "Décrivez vos trajets et volumes. Nous gérons la livraison chantier et distributeur.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Get started with construction material delivery",
@@ -3282,7 +3947,7 @@
       "cta": {
         "title": "Prêt pour la livraison distribution électrique?",
         "description": "Partagez vos trajets. Nous adaptons la capacité à votre opération grossiste.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Get started with electrical distributor delivery",
@@ -3336,7 +4001,7 @@
         "step2Title": "We deliver",
         "step2Description": "Recurring and on-demand runs with full tracking.",
         "step3Title": "You grow",
-        "step3Description": "Scale routes and zones with one logistics partner."
+        "step3Description": "Scale routes and zones with one capacity partner."
       },
       "faq": {
         "title": "Frequently asked questions — plumbing supply delivery",
@@ -3350,7 +4015,7 @@
       "cta": {
         "title": "Prêt pour la livraison fournitures plomberie?",
         "description": "Décrivez vos trajets. Nous gérons votre livraison grossiste.",
-        "primary": "Nous joindre",
+        "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Get started with plumbing supply delivery",
@@ -3406,7 +4071,8 @@
       "stat2Value": "24/7",
       "stat2Label": "Support opérations",
       "stat3Value": "1000+",
-      "stat3Label": "Livraisons par jour"
+      "stat3Label": "Livraisons par jour",
+      "description": "Suivi en direct, preuve de livraison et escalade opérationnelle quand les créneaux comptent."
     },
     "testimonials": {
       "title": "Ce que disent les marchands",
@@ -3415,7 +4081,8 @@
       "item2Quote": "Nous avions besoin d'un partenaire de livraison de confiance pour les ordonnances. Suivi et constance étaient non négociables.",
       "item2Attribution": "Opérations pharmacie, Ontario",
       "item3Quote": "Un partenaire pour D2C et abonnements — livraison prévisible et un seul endroit pour voir chaque course. On a scalé sans ajouter d'opérations.",
-      "item3Attribution": "Opérations, marque beauté"
+      "item3Attribution": "Opérations, marque beauté",
+      "placeholder": "D'autres témoignages de nos marchands à venir."
     },
     "reliability": {
       "title": "Une fiabilité sur laquelle compter",
@@ -3479,65 +4146,126 @@
       "testimonialsPlaceholder": "D'autres témoignages de nos marchands à venir."
     }
   },
-  "siteFooter": {
-    "tagline": "Partenaire logistique commercial pour les entreprises locales du RGT.",
-    "address": "Toronto, ON · Desservant le RGT et les régions métropolitaines de l'Ontario",
-    "copyright": "© {year} Porterchain Inc. Tous droits réservés.",
-    "contactLine": "sales@porterchain.com · +1 647 619 7951",
-    "merchantPortal": "Merchant Portal",
-    "driverPortal": "Driver Portal",
-    "support": "Support",
-    "sections": {
-      "products": {
-        "title": "Produits",
-        "links": {
-          "book": "Réserver",
-          "business": "Entreprise",
-          "customerPortal": "Portail client"
-        }
+  "cityLocalSegment": {
+    "vehicleLabels": {
+      "sedan": "Livraison berline",
+      "suv": "Livraison VUS",
+      "van": "Livraison fourgonnette métier",
+      "pickupTruck": "Livraison camionnette",
+      "cargoVan": "Livraison fourgon cargo",
+      "mediumTruck": "Livraison camion cube"
+    },
+    "intentLabels": {
+      "sameDay": "Livraison le jour même",
+      "localCourier": "Messagerie locale",
+      "lastMile": "Dernier kilomètre",
+      "b2b": "Livraison B2B",
+      "recurring": "Livraison récurrente",
+      "onDemand": "Livraison à la demande"
+    },
+    "cta": {
+      "primary": "Obtenir un devis",
+      "secondary": "Nous contacter"
+    },
+    "coverage": {
+      "titlePattern": "{segmentLabel} dans {region}",
+      "descriptionPattern": "Opérations locales à {cityLabel} et {region} avec capacité prévisible, suivi et preuve de livraison."
+    },
+    "inquiry": {
+      "headingPattern": "Démarrer {segmentLabel} à {cityLabel}"
+    },
+    "operationalFit": {
+      "title": "Comment {segmentLabel} fonctionne à {cityLabel}",
+      "description": "Opérations locales prévisibles de la prise en charge à la preuve de livraison.",
+      "step1Title": "Partagez vos trajets et exigences",
+      "step1Description": "Indiquez vos zones, volume, fenêtres horaires et profil de fret à {cityLabel}. Nous alignons véhicules et capacité.",
+      "step2Title": "Nous exécutons la route",
+      "step2Description": "Les chauffeurs complètent collectes et livraisons avec suivi en direct à chaque arrêt.",
+      "step3Title": "Vous obtenez visibilité et POD",
+      "step3Description": "Statut, ETA et preuve de livraison dans un tableau de bord — conçu pour les opérations en {region}."
+    },
+    "vehicle": {
+      "meta": {
+        "titlePattern": "{segmentLabel} à {cityLabel} | Porterchain",
+        "descriptionPattern": "{segmentLabel} à {cityLabel} et {region}. Routes jour même et récurrentes, suivi complet, preuve de livraison. Obtenez un devis."
       },
-      "solutions": {
-        "title": "Solutions",
-        "links": {
-          "industry": "Industries",
-          "serviceAreas": "Zones desservies",
-          "localDelivery": "Livraison locale",
-          "pricing": "Tarification",
-          "integrations": "Intégrations",
-          "enterprise": "Entreprise"
-        }
+      "hero": {
+        "titlePattern": "{segmentLabel} à {cityLabel}",
+        "subtitlePattern": "{segmentLabel} locale à {cityLabel} et {region} — capacité véhicule adaptée, suivi en direct et preuve à chaque arrêt."
       },
-      "company": {
-        "title": "Entreprise",
-        "links": {
-          "about": "À propos",
-          "careers": "Carrières",
-          "blog": "Blogue",
-          "contact": "Contact",
-          "drive": "Conduire avec nous"
-        }
+      "localChallenges": {
+        "titlePattern": "Pourquoi {segmentLabel} à {cityLabel} est difficile à faire évoluer",
+        "item1": "Trafic, stationnement et accès chantier à {cityLabel} réduisent les fenêtres de livraison.",
+        "item2": "Les coursiers ad hoc rendent les routes récurrentes imprévisibles dans {region}.",
+        "item3": "Clients et équipes ops attendent suivi et preuve — pas des appels aux chauffeurs."
       },
-      "resources": {
-        "title": "Ressources",
-        "links": {
-          "developers": "Développeurs",
-          "faq": "FAQ",
-          "guides": "Guides",
-          "compare": "Comparer",
-          "successStories": "Réussites",
-          "onboardingEducation": "Intégration",
-          "blogHome": "Blogue",
-          "logistics": "Logistique",
-          "sameDay": "Livraison le jour même"
-        }
+      "localIntro": {
+        "paragraph1": "Porterchain exécute {segmentLabel} à {cityLabel} avec chauffeurs locaux et véhicules adaptés à votre fret. Vous partagez trajets et heures limites; nous gérons l'exécution avec visibilité complète.",
+        "paragraph2": "Jour même ou routes hebdomadaires récurrentes — un partenaire couvre {cityLabel} et {region} sans que vous construisiez une flotte."
       },
-      "legal": {
-        "title": "Légal",
-        "links": {
-          "privacy": "Confidentialité",
-          "terms": "Conditions",
-          "cookies": "Témoins"
-        }
+      "industryRelevance": {
+        "titlePattern": "Conçu pour {segmentLabel} à {cityLabel}",
+        "descriptionPattern": "Adéquation véhicule, planification de route et POD pour la livraison locale dans {region}.",
+        "bullet1": "Bonne classe de véhicule pour la taille des colis et le nombre d'arrêts",
+        "bullet2": "Fenêtres horaires et ETA fiables pour vos clients",
+        "bullet3": "Preuve de livraison et rapports pour ops et facturation"
+      },
+      "faq": {
+        "titlePattern": "FAQ — {segmentLabel} à {cityLabel}",
+        "q1": "Offrez-vous {segmentLabel} à {cityLabel}?",
+        "a1": "Oui. Nous exécutons {segmentLabel} à {cityLabel} et {region} avec options jour même et récurrentes selon capacité et heures limites.",
+        "q2": "Puis-je combiner jour même et routes récurrentes?",
+        "a2": "Oui. Beaucoup de marchands ont des routes récurrentes et utilisent la capacité jour même aux pics — un partenaire, un tableau de bord.",
+        "q3": "Comment obtenir un devis pour {cityLabel}?",
+        "a3": "Partagez vos arrêts typiques, zones et profil de fret. Nous confirmerons l'adéquation véhicule et enverrons un devis écrit pour {segmentLabel} à {cityLabel}.",
+        "q4": "Comment fonctionne la tarification pour {segmentLabel} à {cityLabel}?",
+        "a4": "Sur devis selon classe de véhicule, distance, arrêts et urgence. Pas de frais plateforme — confirmé par écrit avant répartition."
+      },
+      "cta": {
+        "titlePattern": "Prêt pour {segmentLabel} à {cityLabel}?",
+        "descriptionPattern": "Décrivez vos trajets et volume. Nous alignerons la capacité pour {cityLabel} et {region}."
+      }
+    },
+    "intent": {
+      "meta": {
+        "titlePattern": "{segmentLabel} à {cityLabel} | Porterchain",
+        "descriptionPattern": "{segmentLabel} pour marchands à {cityLabel} et {region}. Flotte locale, suivi et preuve de livraison. Démarrez en jours."
+      },
+      "hero": {
+        "titlePattern": "{segmentLabel} à {cityLabel}",
+        "subtitlePattern": "{segmentLabel} à {cityLabel} et {region} — berline à camion cube, un partenaire, visibilité complète de la collecte à la livraison."
+      },
+      "localChallenges": {
+        "titlePattern": "Défis de livraison locale à {cityLabel}",
+        "item1": "Faire évoluer {segmentLabel} à {cityLabel} sans embaucher de chauffeurs ni gérer plusieurs coursiers.",
+        "item2": "Garder des fenêtres horaires fiables malgré le trafic et les arrêts denses dans {region}.",
+        "item3": "Offrir un suivi en direct aux clients et équipes ops sans construire votre propre stack."
+      },
+      "localIntro": {
+        "paragraph1": "Porterchain fournit {segmentLabel} à {cityLabel} pour marchands qui ont besoin de capacité prévisible — pas de roulette marketplace. Ops locales, routes structurées et preuve sur chaque envoi.",
+        "paragraph2": "De {cityLabel} à l'ensemble de {region}, un tableau de bord pour statut, ETA et rapports."
+      },
+      "industryRelevance": {
+        "titlePattern": "Pourquoi Porterchain pour {segmentLabel} à {cityLabel}",
+        "descriptionPattern": "Logistique structurée — pas de chauffeurs ad hoc — pour marchands en {region}.",
+        "bullet1": "Capacité récurrente et à la demande dans le même système",
+        "bullet2": "Véhicules de berline à camion cube adaptés à votre fret",
+        "bullet3": "Preuve de livraison prête pour audit et suivi en direct"
+      },
+      "faq": {
+        "titlePattern": "FAQ — {segmentLabel} à {cityLabel}",
+        "q1": "{segmentLabel} est-il disponible à {cityLabel}?",
+        "a1": "Oui. Nous desservons {cityLabel} et {region} avec {segmentLabel} selon heures limites et capacité.",
+        "q2": "Quels véhicules utilisez-vous?",
+        "a2": "Berlines, VUS, fourgons, camionnettes et camions cube — nous adaptons le véhicule à vos arrêts et profil de fret.",
+        "q3": "En combien de temps pouvons-nous démarrer?",
+        "a3": "La plupart des marchands s'intègrent en jours via CSV, courriel ou API — nous confirmons l'adéquation pour {cityLabel} lors d'un court appel.",
+        "q4": "Comment fonctionne la tarification pour {segmentLabel} à {cityLabel}?",
+        "a4": "Sur devis selon classe de véhicule, distance, arrêts et urgence. Pas de frais plateforme — confirmé par écrit avant répartition."
+      },
+      "cta": {
+        "titlePattern": "Démarrer {segmentLabel} à {cityLabel}",
+        "descriptionPattern": "Partagez volume et zones. Nous montrerons comment Porterchain convient à {cityLabel} et {region}."
       }
     }
   }

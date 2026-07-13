@@ -2,7 +2,9 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { ArrowDown, Building2, CheckCircle2, Network, Server } from "lucide-react";
+import { ArrowRight, Building2, CheckCircle2, Network, Server } from "lucide-react";
+import MagicCard from "@/components/magic/magic-card";
+import BlurFade from "@/components/magic/blur-fade";
 import StorySection from "./StorySection";
 
 const STEPS = [
@@ -17,44 +19,41 @@ export default function StoryFlow() {
 
   return (
     <StorySection id="how-it-works" label={t("label")} title={t("title")} subtitle={t("subtitle")}>
-      <div className="max-w-md mx-auto lg:max-w-none lg:grid lg:grid-cols-4 lg:gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {STEPS.map((step, i) => {
           const Icon = step.icon;
           const isLast = i === STEPS.length - 1;
           return (
-            <motion.div
-              key={step.key}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="relative flex flex-col items-center text-center"
-            >
-              <div
-                className={`flex h-14 w-14 items-center justify-center rounded-2xl border shadow-premium ${
-                  isLast
-                    ? "border-secondary/30 bg-secondary/10 text-secondary"
-                    : "border-primary/8 bg-white text-primary"
+            <BlurFade key={step.key} delay={i * 0.08} inView>
+              <MagicCard
+                className={`relative h-full p-6 text-center ${
+                  isLast ? "border-secondary/20 bg-secondary/[0.03]" : ""
                 }`}
               >
-                <Icon className="h-6 w-6" aria-hidden />
-              </div>
-              <p className="mt-4 text-base font-semibold text-primary tracking-tight">
-                {t(`steps.${step.key}.title`)}
-              </p>
-              <p className="mt-1.5 text-sm text-muted leading-relaxed max-w-[200px]">
-                {t(`steps.${step.key}.description`)}
-              </p>
-              {!isLast && (
-                <ArrowDown className="my-4 h-5 w-5 text-secondary/40 lg:hidden" aria-hidden />
-              )}
-              {!isLast && (
+                {i < STEPS.length - 1 && (
+                  <ArrowRight
+                    className="absolute -right-3 top-1/2 z-20 hidden h-5 w-5 -translate-y-1/2 text-secondary/30 lg:block"
+                    aria-hidden
+                  />
+                )}
                 <div
-                  className="hidden lg:block absolute top-7 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-px bg-gradient-to-r from-secondary/40 to-secondary/10"
-                  aria-hidden
-                />
-              )}
-            </motion.div>
+                  className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${
+                    isLast ? "bg-secondary/15 text-secondary" : "bg-primary/[0.04] text-primary"
+                  }`}
+                >
+                  <Icon className="h-6 w-6" aria-hidden />
+                </div>
+                <p className="mt-4 text-base font-semibold text-primary tracking-tight">
+                  {t(`steps.${step.key}.title`)}
+                </p>
+                <p className="mt-2 text-sm text-muted leading-relaxed">
+                  {t(`steps.${step.key}.description`)}
+                </p>
+                <span className="mt-4 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/[0.06] text-xs font-bold text-primary/70">
+                  {i + 1}
+                </span>
+              </MagicCard>
+            </BlurFade>
           );
         })}
       </div>

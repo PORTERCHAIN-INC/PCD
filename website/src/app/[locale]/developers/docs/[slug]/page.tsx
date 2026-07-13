@@ -11,7 +11,7 @@ import {
   getDeveloperDoc,
   isValidDeveloperDocSlug,
 } from "@/lib/developer-docs";
-import { localeStaticParams } from "@/lib/seo/page-helpers";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import { routing } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
@@ -29,14 +29,16 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   if (!isValidDeveloperDocSlug(slug)) return {};
   const doc = getDeveloperDoc(slug);
   if (!doc) return {};
-  return {
-    title: `${doc.title} | Porterchain Developers`,
-    description: doc.description,
-  };
+  return buildPageMetadata(
+    locale,
+    `developers/docs/${slug}`,
+    `${doc.title} | Porterchain Developers`,
+    doc.description
+  );
 }
 
 export default async function DeveloperDocPage({ params }: Props) {

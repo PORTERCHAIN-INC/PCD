@@ -29,13 +29,15 @@
 
 ## Infrastructure
 
-| Component                     | Endpoint                                                         |
-| ----------------------------- | ---------------------------------------------------------------- |
-| Docker `porterchain-valhalla` | `http://127.0.0.1:8002` (profile `routing`)                      |
-| Docker `pcd-valhalla` (prod)  | `http://valhalla:8002` (internal; Ontario tiles volume)          |
-| `VALHALLA_BASE_URL`           | Host access (`http://localhost:8002`)                            |
-| `VALHALLA_BASE_URI`           | Docker-internal (`http://valhalla:8002`)                         |
-| Fleetbase override            | Public demo URLs in `fleetbase.porterchain.override.yml` for dev |
+| Component                     | Endpoint                                                          |
+| ----------------------------- | ----------------------------------------------------------------- |
+| Docker `porterchain-valhalla` | `http://127.0.0.1:8002` (profile `routing`, **GTA ~150 km only**) |
+| Docker `pcd-valhalla` (prod)  | `http://valhalla:8002` (internal; Ontario tiles volume)           |
+| `VALHALLA_BASE_URL`           | Host access (`http://localhost:8002`)                             |
+| `VALHALLA_BASE_URI`           | Docker-internal (`http://valhalla:8002`)                          |
+| Fleetbase override            | Public demo URLs in `fleetbase.porterchain.override.yml` for dev  |
+
+**Local tiles (not full Ontario):** `pnpm docker:valhalla:prepare` fetches a BBBike extract for downtown Toronto ±150 km into `infrastructure/docker/valhalla/data/gta-150km.osm.pbf`, then `pnpm docker:up:routing` builds tiles from that file only.
 
 Start local Valhalla: `pnpm docker:up:routing` (see [DOCKER_SETUP.md](./DOCKER_SETUP.md)).
 

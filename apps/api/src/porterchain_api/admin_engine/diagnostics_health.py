@@ -57,7 +57,7 @@ class DiagnosticsHealthMixin:
 
         portal_targets = [
             ("website", "Website", settings.website_url),
-            ("customer_portal", "Customer Portal", settings.website_url),
+            ("customer_portal", "Customer Portal", settings.customer_portal_url),
             ("merchant_portal", "Merchant Portal", settings.merchant_portal_url),
             ("admin_portal", "Admin Portal", settings.admin_portal_url),
             ("driver_mobile", "Driver Mobile App", settings.driver_portal_url),
@@ -131,7 +131,7 @@ class DiagnosticsHealthMixin:
         adapter_probe = self._probe_fleetbase_adapter(settings)
         components.append(_component("fleetbase_adapter", "Fleetbase Adapter", **adapter_probe))
 
-        maps_probe = self._probe_google_maps(platform)
+        maps_probe = self._probe_google_maps(platform, app_env=settings.app_env)
         components.append(_component("google_maps", "Google Maps", **maps_probe))
 
         osrm_probe = self._probe_osrm(platform)
@@ -152,7 +152,7 @@ class DiagnosticsHealthMixin:
         sched_probe = self._probe_scheduled_jobs(db)
         components.append(_component("scheduled_jobs", "Scheduled Jobs", **sched_probe))
 
-        email_probe = self._probe_email(platform)
+        email_probe = self._probe_email(platform, settings)
         components.append(_component("email_smtp", "Email (SMTP)", **email_probe))
 
         ready_probe = self._probe_readiness(settings, db)

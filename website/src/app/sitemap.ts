@@ -5,6 +5,6 @@ import { buildSitemap } from "@/lib/seo/sitemap-entries";
 export const dynamic = "force-static";
 export const revalidate = 86_400;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return buildSitemap();
 }

@@ -3,18 +3,16 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import CtaSection from "@/components/corporate/sections/CtaSection";
 import HeroSection from "@/components/corporate/sections/HeroSection";
-import Container from "@/components/ui/Container";
-import LinkButton from "@/components/corporate/ui/LinkButton";
+import SolutionVerticalHub from "@/components/solutions/SolutionVerticalHub";
 import { routing, type Locale } from "@/i18n/routing";
 import {
   SOLUTION_VERTICAL_SLUGS,
-  cardIndexForVertical,
-  industrySlugForVertical,
   isValidSolutionVertical,
+  type SolutionVerticalSlug,
 } from "@/lib/solutions-verticals";
-import { industrySlug } from "@/lib/seo/routes";
+import { SOLUTION_MESSAGE_KEYS } from "@/lib/solutions-hub-config";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 
 type Props = { params: Promise<{ locale: string; vertical: string }> };
 
@@ -31,12 +29,19 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, vertical } = await params;
   if (!isValidSolutionVertical(vertical)) return {};
-  const t = await getTranslations({ locale, namespace: "corporate.solutions" });
-  const index = cardIndexForVertical(vertical);
-  return {
-    title: `${t(`cards.items.${index}.title`)} | Porterchain Solutions`,
-    description: t(`cards.items.${index}.description`),
-  };
+  const messageKey = SOLUTION_MESSAGE_KEYS[vertical];
+  const t = await getTranslations({ locale, namespace: `corporate.solutions.${messageKey}` });
+  return buildPageMetadata(locale, `solutions/${vertical}`, t("meta.title"), t("meta.description"));
+}
+
+const SECONDARY_INDUSTRY: Partial<Record<SolutionVerticalSlug, string>> = {
+  construction: "construction-materials",
+};
+
+function secondaryHrefForVertical(vertical: SolutionVerticalSlug): string {
+  const industryPath = SECONDARY_INDUSTRY[vertical];
+  if (industryPath) return `/industry/${industryPath}`;
+  return "/industry";
 }
 
 export default async function SolutionVerticalPage({ params }: Props) {
@@ -44,11 +49,10 @@ export default async function SolutionVerticalPage({ params }: Props) {
   setRequestLocale(locale);
   if (!isValidSolutionVertical(vertical)) notFound();
 
-  const loc = locale as Locale;
-  const t = await getTranslations("corporate.solutions");
+  const messageKey = SOLUTION_MESSAGE_KEYS[vertical];
+  const t = await getTranslations(`corporate.solutions.${messageKey}`);
   const tBc = await getTranslations("corporate.breadcrumbs");
-  const index = cardIndexForVertical(vertical);
-  const industry = industrySlugForVertical(vertical);
+  const secondaryHref = secondaryHrefForVertical(vertical);
 
   return (
     <CorporateShell>
@@ -56,44 +60,21 @@ export default async function SolutionVerticalPage({ params }: Props) {
         items={[
           { label: tBc("home"), href: "/" },
           { label: tBc("solutions"), href: "/solutions" },
-          { label: t(`cards.items.${index}.title`) },
+          { label: t("breadcrumb") },
         ]}
       />
       <HeroSection
         badge={t("hero.badge")}
-        title={t(`cards.items.${index}.title`)}
-        subtitle={t(`cards.items.${index}.description`)}
+        title={t("hero.title")}
+        subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/contact?intent=quote&from=solutions"
+        primaryHref={`/contact?intent=quote&from=solutions-${vertical}`}
         secondaryCta={t("hero.secondaryCta")}
-        secondaryHref="/business#fleet"
-        variant="minimal"
+        secondaryHref={secondaryHref}
+        variant="light-centered"
+        trackSource={`solutions/${vertical}`}
       />
-      <section className="site-section bg-gray-bg">
-        <Container className="max-w-3xl text-center">
-          <p className="text-muted leading-relaxed">{t("verticalDetail.body")}</p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <LinkButton href={industrySlug(loc, industry)} showArrow>
-              {t("verticalDetail.exploreIndustry")}
-            </LinkButton>
-            <LinkButton href="/platform" variant="outline">
-              {t("verticalDetail.viewPlatform")}
-            </LinkButton>
-            <LinkButton href="/customers" variant="outline">
-              {t("verticalDetail.viewCustomers")}
-            </LinkButton>
-          </div>
-        </Container>
-      </section>
-      <CtaSection
-        title={t("cta.title")}
-        subtitle={t("cta.subtitle")}
-        primaryLabel={t("cta.primary")}
-        primaryHref="/contact?intent=quote&from=solutions"
-        secondaryLabel={t("cta.secondary")}
-        secondaryHref="/business#fleet"
-        variant="gradient"
-      />
+      <SolutionVerticalHub vertical={vertical} />
     </CorporateShell>
   );
 }

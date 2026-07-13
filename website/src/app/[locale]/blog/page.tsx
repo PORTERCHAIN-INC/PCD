@@ -48,10 +48,10 @@ export default async function BlogHomePage({ params, searchParams }: Props) {
   const tPag = await getTranslations("blog.pagination");
 
   const loc = locale as Locale;
-  const allPosts = getAllPosts(loc);
-  const featured = getFeaturedPost(loc);
-  const trending = getTrendingPosts(loc);
-  const categoryCounts = getCategoryPostCounts(loc);
+  const allPosts = await getAllPosts(loc);
+  const featured = await getFeaturedPost(loc);
+  const trending = await getTrendingPosts(loc);
+  const categoryCounts = await getCategoryPostCounts(loc);
 
   const latestPool = featured ? allPosts.filter((p) => p.slug !== featured.slug) : allPosts;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Container from "@porterchain/ui/container";
 import { cn } from "@porterchain/ui/utils";
 import { activeNavLabel } from "@/lib/admin-nav";
@@ -13,8 +13,10 @@ import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
   const fullBleed = pathname === "/live-map" || pathname.startsWith("/live-map/");
-  const pageLabel = activeNavLabel(pathname);
+  const pageLabel = activeNavLabel(pathname, search);
   const { setProfile } = useAdminProfile();
 
   return (

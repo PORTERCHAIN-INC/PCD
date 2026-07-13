@@ -72,15 +72,20 @@ def main() -> int:
             failures.append(f"missing page {rel}")
 
     hero = WEBSITE / "src/components/sections/Hero.tsx"
-    if not hero.is_file():
-        failures.append("missing Hero.tsx")
+    hero_copy = WEBSITE / "src/components/sections/HeroCopy.tsx"
+    hero_blob = ""
+    if hero.is_file():
+        hero_blob += hero.read_text(encoding="utf-8")
+    if hero_copy.is_file():
+        hero_blob += hero_copy.read_text(encoding="utf-8")
+    if not hero_blob.strip():
+        failures.append("missing homepage Hero.tsx / HeroCopy.tsx")
     else:
-        hero_text = hero.read_text(encoding="utf-8")
-        if HERO_FORBIDDEN in hero_text:
+        if HERO_FORBIDDEN in hero_blob:
             failures.append("homepage Hero still embeds BookingWidget (§1.1.3)")
         for needle in HERO_REQUIRED:
-            if needle not in hero_text:
-                failures.append(f"Hero.tsx missing {needle}")
+            if needle not in hero_blob:
+                failures.append(f"homepage hero missing {needle}")
 
     book_page = APP / "book/page.tsx"
     if book_page.is_file():
@@ -197,13 +202,10 @@ def main() -> int:
 
     phase2_py = ROOT / "shared/python/porterchain_shared/config/phase2.py"
     if phase2_py.is_file():
-        import sys
-
-        sys.path.insert(0, str(ROOT / "shared/python"))
-        from porterchain_shared.config.phase2 import Phase2Flags
-
-        if Phase2Flags().any_enabled():
-            failures.append("Phase 2 flags must default off (PV-G3)")
+        phase2_text = phase2_py.read_text(encoding="utf-8")
+        for field in ("crm", "route_center", "ai_dispatch", "analytics", "intelligence"):
+            if not re.search(rf"^\s*{field}:\s*bool\s*=\s*False", phase2_text, re.MULTILINE):
+                failures.append(f"Phase2Flags.{field} must default off (PV-G3)")
 
     for href in _footer_hrefs():
         if not _route_exists(href):
@@ -212,12 +214,15 @@ def main() -> int:
     footer_labels = json.loads(SITE_FOOTER_EN.read_text(encoding="utf-8"))
     sections = footer_labels.get("sections", {})
     products = sections.get("products", {}).get("links", {})
-    for key in ("platform", "solutions"):
+    for key in ("business", "solutions", "getQuote"):
         if key not in products:
             failures.append(f"site-footer-en.json missing products.links.{key}")
-    business = sections.get("solutions", {}).get("links", {})
-    if "trust" not in business:
-        failures.append("site-footer-en.json missing solutions.links.trust (Business column)")
+    company_links = sections.get("company", {}).get("links", {})
+    resources_links = sections.get("resources", {}).get("links", {})
+    if "trust" not in company_links and "trust" not in sections.get("solutions", {}).get("links", {}):
+        failures.append("site-footer-en.json missing trust link (company.links.trust)")
+    if "platform" not in resources_links and "platform" not in products:
+        failures.append("site-footer-en.json missing platform link (resources.links.platform)")
 
     print("Product vision pages guard (§1.1.3–1.1.7 · PV-G2/G3)")
     if failures:

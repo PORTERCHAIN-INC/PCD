@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, LayoutGrid } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { ADMIN_NAV_GROUPS, ALL_ADMIN_NAV_ITEMS, isNavActive } from "@/lib/admin-nav";
@@ -13,6 +13,7 @@ function NavLinkItem({
   description,
   icon: Icon,
   pathname,
+  search,
   onNavigate,
 }: {
   href: string;
@@ -20,10 +21,11 @@ function NavLinkItem({
   description?: string;
   icon: (typeof ALL_ADMIN_NAV_ITEMS)[0]["icon"];
   pathname: string;
+  search: string;
   onNavigate?: () => void;
 }) {
   const router = useRouter();
-  const active = isNavActive(pathname, href);
+  const active = isNavActive(pathname, href, search);
   return (
     <Link
       href={href}
@@ -49,13 +51,27 @@ function NavLinkItem({
   );
 }
 
-function AllModulesPanel({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function AllModulesPanel({
+  pathname,
+  search,
+  onNavigate,
+}: {
+  pathname: string;
+  search: string;
+  onNavigate?: () => void;
+}) {
   return (
     <div className="max-h-[min(70dvh,520px)] overflow-y-auto p-2">
       <p className="px-3 py-2 text-xs font-semibold text-muted">All admin modules</p>
       <div className="grid gap-1 sm:grid-cols-2">
         {ALL_ADMIN_NAV_ITEMS.map((item) => (
-          <NavLinkItem key={item.href} {...item} pathname={pathname} onNavigate={onNavigate} />
+          <NavLinkItem
+            key={item.href}
+            {...item}
+            pathname={pathname}
+            search={search}
+            onNavigate={onNavigate}
+          />
         ))}
       </div>
     </div>
@@ -66,11 +82,13 @@ function GroupPanel({
   groupLabel,
   items,
   pathname,
+  search,
   onNavigate,
 }: {
   groupLabel: string;
   items: (typeof ADMIN_NAV_GROUPS)[0]["items"];
   pathname: string;
+  search: string;
   onNavigate?: () => void;
 }) {
   return (
@@ -79,7 +97,13 @@ function GroupPanel({
         {groupLabel}
       </p>
       {items.map((item) => (
-        <NavLinkItem key={item.href} {...item} pathname={pathname} onNavigate={onNavigate} />
+        <NavLinkItem
+          key={item.href}
+          {...item}
+          pathname={pathname}
+          search={search}
+          onNavigate={onNavigate}
+        />
       ))}
     </div>
   );
@@ -87,10 +111,11 @@ function GroupPanel({
 
 export default function AdminMenuBar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
   return (
     <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-1" aria-label="Main menu">
-      {/* All modules — mobile / narrow viewports only; desktop uses group menus */}
       <div className="md:hidden">
         <NavDropdown
           width="xl"
@@ -111,15 +136,14 @@ export default function AdminMenuBar() {
             </button>
           )}
         >
-          <AllModulesPanel pathname={pathname} />
+          <AllModulesPanel pathname={pathname} search={search} />
         </NavDropdown>
       </div>
 
       <span className="mx-0.5 hidden h-5 w-px bg-primary/10 md:inline" />
 
-      {/* Group menus — desktop */}
       {ADMIN_NAV_GROUPS.map((group) => {
-        const active = group.items.some((item) => isNavActive(pathname, item.href));
+        const active = group.items.some((item) => isNavActive(pathname, item.href, search));
         const single = group.items.length === 1;
 
         if (single) {
@@ -130,7 +154,7 @@ export default function AdminMenuBar() {
               href={item.href}
               className={cn(
                 "hidden shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition whitespace-nowrap md:inline-flex",
-                isNavActive(pathname, item.href)
+                isNavActive(pathname, item.href, search)
                   ? "bg-secondary/10 text-secondary"
                   : "text-primary/80 hover:bg-primary/5"
               )}
@@ -162,7 +186,12 @@ export default function AdminMenuBar() {
               </button>
             )}
           >
-            <GroupPanel groupLabel={group.label} items={group.items} pathname={pathname} />
+            <GroupPanel
+              groupLabel={group.label}
+              items={group.items}
+              pathname={pathname}
+              search={search}
+            />
           </NavDropdown>
         );
       })}

@@ -52,13 +52,31 @@ class DiagnosticsValidationMixin:
                 probe = self._probe_firebase(get_platform_settings())
                 status, logs = probe["status"], [f"Firebase: {probe['status']}"]
             elif test_id == "google_maps":
-                probe = self._probe_google_maps(get_platform_settings(), live=True)
+                probe = self._probe_google_maps(
+                    get_platform_settings(), live=True, app_env=settings.app_env
+                )
                 status = probe["status"]
-                logs = probe.get("errors", []) or ["Google Maps probe OK"]
+                logs = (
+                    probe.get("errors", [])
+                    or probe.get("warnings", [])
+                    or (
+                        [(probe.get("details") or {}).get("note") or "Google Maps skipped (local)"]
+                        if (probe.get("details") or {}).get("skipped")
+                        else ["Google Maps probe OK"]
+                    )
+                )
             elif test_id == "osrm":
                 probe = self._probe_osrm(get_platform_settings(), live=True)
                 status = probe["status"]
-                logs = probe.get("errors", []) or ["OSRM probe OK"]
+                logs = (
+                    probe.get("errors", [])
+                    or probe.get("warnings", [])
+                    or (
+                        ["OSRM unused — Valhalla is primary"]
+                        if (probe.get("details") or {}).get("role") == "fallback_unused"
+                        else ["OSRM probe OK"]
+                    )
+                )
             elif test_id == "valhalla":
                 probe = self._probe_valhalla(get_platform_settings(), live=True)
                 status = probe["status"]
@@ -66,19 +84,38 @@ class DiagnosticsValidationMixin:
             elif test_id == "fleetbase":
                 probe = self._probe_fleetbase(settings, live=True)
                 status = probe["status"]
-                logs = probe.get("errors", []) or ["Fleetbase API reachable"]
+                logs = (
+                    probe.get("errors", [])
+                    or probe.get("warnings", [])
+                    or (
+                        [(probe.get("details") or {}).get("note") or "Fleetbase skipped (local)"]
+                        if (probe.get("details") or {}).get("skipped")
+                        else ["Fleetbase API reachable"]
+                    )
+                )
             elif test_id == "fleetbase_adapter":
                 probe = self._probe_fleetbase_adapter(settings, live=True)
                 status = probe["status"]
-                logs = ["Adapter factory OK", *probe.get("warnings", [])]
+                note = (probe.get("details") or {}).get("note")
+                logs = [
+                    "Adapter factory OK",
+                    *(probe.get("warnings", []) or ([note] if note else [])),
+                ]
             elif test_id == "fleetbase_console":
                 probe = self._probe_fleetbase_console(settings)
                 status = probe["status"]
-                logs = probe.get("warnings", []) or ["Fleetbase console reachable"]
+                logs = (
+                    probe.get("warnings", [])
+                    or (
+                        [(probe.get("details") or {}).get("note") or "Console skipped (local)"]
+                        if (probe.get("details") or {}).get("skipped")
+                        else ["Fleetbase console reachable"]
+                    )
+                )
             elif test_id == "email_smtp":
-                probe = self._probe_email(get_platform_settings())
+                probe = self._probe_email(get_platform_settings(), settings)
                 status = probe["status"]
-                logs = probe.get("warnings", []) or ["SMTP configured"]
+                logs = probe.get("warnings", []) or ["SMTP / Mailpit OK"]
             elif test_id == "mailpit":
                 probe = self._probe_mailpit(settings)
                 status = probe["status"]
@@ -198,7 +235,7 @@ class DiagnosticsValidationMixin:
     def architecture_validation(self, settings: Settings) -> dict[str, Any]:
         chain = [
             {"id": "website", "label": "Website", "url": settings.website_url},
-            {"id": "customer_portal", "label": "Booking / Customer Portal", "url": settings.website_url},
+            {"id": "customer_portal", "label": "Booking / Customer Portal", "url": settings.customer_portal_url},
             {"id": "merchant_portal", "label": "Merchant Portal", "url": settings.merchant_portal_url},
             {"id": "admin_portal", "label": "Admin Portal", "url": settings.admin_portal_url},
             {"id": "porterchain_api", "label": "Porterchain API", "url": settings.porterchain_api_url},
@@ -290,7 +327,7 @@ class DiagnosticsValidationMixin:
     def module_validation(self, db: Session, settings: Settings) -> dict[str, Any]:
         modules = [
             ("website", "Website", settings.website_url),
-            ("customer", "Customer", settings.website_url),
+            ("customer", "Customer", settings.customer_portal_url),
             ("merchant", "Merchant", settings.merchant_portal_url),
             ("driver", "Driver", settings.driver_portal_url),
             ("admin", "Admin", settings.admin_portal_url),

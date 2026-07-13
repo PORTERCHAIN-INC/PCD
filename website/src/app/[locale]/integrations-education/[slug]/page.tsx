@@ -28,7 +28,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const page = getIntegrationsEducationBySlug(slug);
   if (!page) return {};
-  return buildPageMetadata(locale, `integrations-education/${slug}`, page.title, page.description);
+  return buildPageMetadata(locale, `integrations-education/${slug}`, page.title, page.description, {
+    index: locale === "en",
+  });
 }
 
 export default async function IntegrationsEducationPage({ params }: Props) {

@@ -150,12 +150,12 @@ Do **not** use legacy `CLERK_SECRET_KEY` / `CLERK_PUBLISHABLE_KEY` in new setups
 
 ## Gaps (known, optional)
 
-| Secret                                  | Status                 | Action when needed                              |
-| --------------------------------------- | ---------------------- | ----------------------------------------------- |
-| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | Not set                | Optional — add when Sentry project is created   |
-| `FLEETBASE_*`                           | Blocked (DD-05b)       | Add to Doppler when Fleetbase prod ready        |
-| SMTP (`MAIL_*` / `SMTP_*`)              | Local only today       | Add to Doppler when prod email needed           |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`    | Not in deploy workflow | Add GitHub secret when merchant Stripe UI ships |
+| Secret                                  | Status                 | Action when needed                                                                                                                                                |
+| --------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | Not set                | Optional — add when Sentry project is created                                                                                                                     |
+| `FLEETBASE_*`                           | Blocked (DD-05b)       | Add to Doppler when Fleetbase prod ready                                                                                                                          |
+| SMTP (`MAIL_*` / `SMTP_*`)              | Prod via Zoho CA       | `bash infrastructure/deploy/scripts/upload-mail-to-doppler.sh` → Doppler `pcd`/`prd` → deploy `sync-secrets.sh`. See [ZOHO_MAIL.md](./notifications/ZOHO_MAIL.md) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`    | Not in deploy workflow | Add GitHub secret when merchant Stripe UI ships                                                                                                                   |
 
 ---
 

@@ -12,10 +12,10 @@ import FaqSection from "@/components/corporate/sections/FaqSection";
 import Container from "@/components/ui/Container";
 import FadeIn from "@/components/corporate/motion/FadeIn";
 import { collectFaqItems } from "@/lib/corporate-content";
-import TrustDocumentsSection from "@/components/corporate/sections/TrustDocumentsSection";
 import { TrendingUp, Headphones, Building2, Truck, Code2 } from "lucide-react";
 import { JsonLd } from "@/components/seo";
 import { buildLocalBusinessSchema } from "@/lib/seo/schema";
+import SlaResponseCountdown from "@/components/seo/SlaResponseCountdown";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -62,6 +62,10 @@ export default async function ContactPage({ params, searchParams }: Props) {
     emergencyDetail: tInfo("emergencyDetail"),
   };
 
+  const isQuote = intent === "quote";
+  const heroTitle = isQuote ? t("heroQuote.title") : t("hero.title");
+  const heroSubtitle = isQuote ? t("heroQuote.subtitle") : t("hero.subtitle");
+
   const departmentCards = DEPT_ICONS.map((icon, i) => ({
     title: t(`departments.items.${i}.title`),
     description: t(`departments.items.${i}.description`),
@@ -73,7 +77,23 @@ export default async function ContactPage({ params, searchParams }: Props) {
   return (
     <CorporateShell>
       <JsonLd data={buildLocalBusinessSchema()} />
-      <ContactHero badge={t("hero.badge")} title={t("hero.title")} subtitle={t("hero.subtitle")} />
+      <ContactHero badge={t("hero.badge")} title={heroTitle} subtitle={heroSubtitle} />
+
+      {isQuote && (
+        <section className="site-section bg-white pt-0 pb-0">
+          <Container size="narrow">
+            <SlaResponseCountdown
+              locale={locale}
+              label={locale === "fr" ? "Réponse au devis d'ici" : "Quote response by"}
+              expiredLabel={
+                locale === "fr"
+                  ? "Prochaine fenêtre de réponse imminente"
+                  : "Next response window opens soon"
+              }
+            />
+          </Container>
+        </section>
+      )}
 
       <section className="site-section bg-white -mt-2 relative z-10">
         <Container>

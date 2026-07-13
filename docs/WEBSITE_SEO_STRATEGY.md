@@ -207,7 +207,9 @@ Local template: `env/website.env.example`
 
 ### Vehicle pillar pages — 6 slugs
 
-`sedan-delivery` … `cargo-van-delivery`, `medium-truck` — construction cross-links via `vehicle-construction-links.ts`
+`sedan-delivery`, `suv-delivery`, `trade-van-delivery`, `cargo-van-delivery`, `pickup-truck-delivery`, `box-truck-delivery` — four B2B routes (`trade-van` through `pickup-truck`) index when copy passes `vehicle-publication.ts`; sedan/SUV stay noindex. Construction cross-links via `vehicle-construction-links.ts`.
+
+**W6b city×industry (2026-07):** `chocolate-delivery`, `lab-sample-delivery`, `ecommerce-delivery` added to `W6B_PUBLISHABLE_INDUSTRY_SEO_SLUGS` in `city-segment-publication.ts`.
 
 ### Content clusters
 
@@ -348,12 +350,12 @@ Sitemap auto-includes new slugs when added to SSOT arrays — no manual URL list
 
 ### Target personas & money pages
 
-| Persona                        | Example queries                          | Live money pages                                                                                                           |
-| ------------------------------ | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Building materials distributor | "construction material delivery Toronto" | `/industry/construction-materials`, `/toronto/construction-materials-delivery`, `/solutions/construction`, `/medium-truck` |
-| Electrical wholesaler          | "electrical distributor delivery GTA"    | `/industry/electrical-distribution`, `/toronto/electrical-delivery`                                                        |
-| Plumbing supply house          | "plumbing supply delivery Mississauga"   | `/industry/plumbing-supply`, `/campaigns/plumbing-supply`                                                                  |
-| General contractor             | "jobsite delivery GTA"                   | FAQ `construction-delivery`, blog `jobsite-delivery-time-windows-pod`                                                      |
+| Persona                        | Example queries                          | Live money pages                                                                                                                 |
+| ------------------------------ | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Building materials distributor | "construction material delivery Toronto" | `/industry/construction-materials`, `/toronto/construction-materials-delivery`, `/solutions/construction`, `/box-truck-delivery` |
+| Electrical wholesaler          | "electrical distributor delivery GTA"    | `/industry/electrical-distribution`, `/toronto/electrical-delivery`                                                              |
+| Plumbing supply house          | "plumbing supply delivery Mississauga"   | `/industry/plumbing-supply`, `/campaigns/plumbing-supply`                                                                        |
+| General contractor             | "jobsite delivery GTA"                   | FAQ `construction-delivery`, blog `jobsite-delivery-time-windows-pod`                                                            |
 
 ### Keyword themes (indexed)
 
@@ -434,7 +436,7 @@ Prioritized. Check off in PRs; update this section when shipped.
 
 - [ ] Claim / verify GBP
 - [ ] Set `NEXT_PUBLIC_GOOGLE_BUSINESS_PROFILE_URL` + redeploy
-- [ ] GBP posts linking to `/en/platform`, `/en/toronto/van-delivery`, top trade LPs
+- [ ] GBP posts linking to `/en/platform`, `/en/toronto/trade-van-delivery`, top trade LPs
 
 ### P3 — Analytics & conversion polish
 

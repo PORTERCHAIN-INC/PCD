@@ -1,9 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { FileCode2, Lock, Plug, ScrollText, Shield } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import MagicCard from "@/components/magic/magic-card";
+import BlurFade from "@/components/magic/blur-fade";
 import StorySection from "./StorySection";
 
 const ITEMS = [
@@ -29,26 +30,19 @@ export default function StoryEnterprise() {
         {ITEMS.map((item, i) => {
           const Icon = item.icon;
           return (
-            <motion.div
-              key={item.key}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <Link
-                href={item.href}
-                className="group flex flex-col items-center rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-center hover:border-white/20 hover:bg-white/[0.08] transition-all"
-              >
-                <Icon
-                  className="h-6 w-6 text-accent group-hover:text-white transition-colors"
-                  aria-hidden
-                />
-                <span className="mt-3 text-sm font-semibold text-white">
-                  {t(`items.${item.key}`)}
-                </span>
+            <BlurFade key={item.key} delay={i * 0.05} inView>
+              <Link href={item.href} className="block h-full">
+                <MagicCard className="flex h-full flex-col items-center border-white/10 bg-white/[0.04] p-5 text-center hover:border-white/20 hover:bg-white/[0.08]">
+                  <Icon
+                    className="h-6 w-6 text-accent group-hover:text-white transition-colors"
+                    aria-hidden
+                  />
+                  <span className="mt-3 text-sm font-semibold text-white">
+                    {t(`items.${item.key}`)}
+                  </span>
+                </MagicCard>
               </Link>
-            </motion.div>
+            </BlurFade>
           );
         })}
       </div>

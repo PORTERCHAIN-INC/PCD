@@ -1,21 +1,17 @@
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations, getMessages } from "next-intl/server";
 import SiteShell from "@/components/layout/SiteShell";
 import StickyCta from "@/components/business/StickyCta";
-import BusinessHero from "@/components/business/sections/BusinessHero";
-import TrustedBy from "@/components/business/sections/TrustedBy";
-import BusinessChallenges from "@/components/business/sections/BusinessChallenges";
-import BusinessSolutions from "@/components/business/sections/BusinessSolutions";
-import BusinessIndustries from "@/components/business/sections/BusinessIndustries";
-import WhyChooseBusiness from "@/components/business/sections/WhyChooseBusiness";
-import BusinessFleet from "@/components/business/sections/BusinessFleet";
-import EnterpriseOnboarding from "@/components/business/sections/EnterpriseOnboarding";
-import DashboardPreview from "@/components/business/sections/DashboardPreview";
-import Technology from "@/components/business/sections/Technology";
-import BillingOptions from "@/components/business/sections/BillingOptions";
-import CustomerSuccess from "@/components/business/sections/CustomerSuccess";
-import BusinessFAQ from "@/components/business/sections/BusinessFAQ";
-import FinalCta from "@/components/business/sections/FinalCta";
-import { routing } from "@/i18n/routing";
+import { JsonLd } from "@/components/seo";
+import {
+  buildFAQPageSchema,
+  buildServiceSchema,
+  buildSpeakableWebPageSchema,
+} from "@/lib/seo/schema";
+import { siteConfig } from "@/lib/seo/config";
+import { business as businessRoute } from "@/lib/seo/routes";
+import BusinessPageSections from "@/components/business/BusinessPageSections";
+import { BUSINESS_FAQ_KEYS } from "@/data/business";
+import { routing, type Locale } from "@/i18n/routing";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -28,26 +24,38 @@ export function generateStaticParams() {
 export default async function BusinessPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "businessPage.metadata" });
+  const messages = await getMessages({ locale });
+  const faqMessages = (
+    messages as {
+      businessPage?: {
+        faq?: { items?: Record<string, { question?: string; answer?: string }> };
+      };
+    }
+  ).businessPage?.faq;
+
+  const faqItems = BUSINESS_FAQ_KEYS.map((key) => ({
+    question: faqMessages?.items?.[key]?.question ?? "",
+    answer: faqMessages?.items?.[key]?.answer ?? "",
+  })).filter((item) => item.question.trim() && item.answer.trim());
+
+  const loc = locale as Locale;
+  const businessUrl = `${siteConfig.baseUrl.replace(/\/$/, "")}${businessRoute(loc)}`;
 
   return (
     <>
+      <JsonLd
+        data={[
+          buildServiceSchema({
+            name: t("title"),
+            description: t("description"),
+          }),
+          buildFAQPageSchema(faqItems),
+          buildSpeakableWebPageSchema({ name: t("title"), url: businessUrl }),
+        ].filter(Boolean)}
+      />
       <SiteShell>
-        <div className="pb-24 lg:pb-0">
-          <BusinessHero />
-          <BusinessFleet />
-          <TrustedBy />
-          <BusinessChallenges />
-          <BusinessSolutions />
-          <BusinessIndustries />
-          <WhyChooseBusiness />
-          <EnterpriseOnboarding />
-          <DashboardPreview />
-          <Technology />
-          <BillingOptions />
-          <CustomerSuccess />
-          <BusinessFAQ />
-          <FinalCta />
-        </div>
+        <BusinessPageSections locale={loc} />
       </SiteShell>
       <StickyCta />
     </>

@@ -1,7 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import BlogNewsletter from "@/components/blog/BlogNewsletter";
 import ArticleCard from "@/components/blog/ArticleCard";
-import type { BlogPostMeta } from "@/lib/blog";
+import type { BlogPostMeta } from "@/lib/blog-meta";
 import type { BlogCategory } from "@/data/blog-categories";
 import { BLOG_CATEGORIES } from "@/data/blog-categories";
 import { cn } from "@/lib/utils";

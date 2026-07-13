@@ -51,6 +51,13 @@ coverage
 # Logs
 npm-debug.log*
 pnpm-debug.log*
+.logs/
+
+# Blog CMS uploaded media (local / API disk store)
+apps/api/data/blog-media/
+
+# Local Valhalla GTA extract + built tiles (not full Ontario)
+infrastructure/docker/valhalla/data/
 
 # TypeScript
 *.tsbuildinfo

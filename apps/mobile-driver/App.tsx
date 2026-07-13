@@ -1,12 +1,58 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
+import * as Linking from "expo-linking";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
 
-type Screen = "sign-in" | "track";
+type Screen = "sign-in" | "invite" | "route";
+
+function parseInviteUrl(url: string | null): string | null {
+  if (!url) return null;
+  const parsed = Linking.parse(url);
+  if (!(parsed.path ?? "").includes("driver-invite")) return null;
+  const query = parsed.queryParams ?? {};
+  const token = query.token;
+  return typeof token === "string" ? token : null;
+}
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("sign-in");
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    function apply(url: string | null) {
+      const token = parseInviteUrl(url);
+      if (token) {
+        setInviteToken(token);
+        setScreen("invite");
+      }
+    }
+
+    void Linking.getInitialURL().then(apply);
+    const sub = Linking.addEventListener("url", (event: { url: string }) => apply(event.url));
+    return () => sub.remove();
+  }, []);
+
+  if (screen === "invite") {
+    return (
+      <View style={styles.container} testID="mobile-driver-invite">
+        <Text style={styles.title}>Driver invite</Text>
+        <Text style={[styles.subtitle, styles.driverAccent]}>Complete setup in app</Text>
+        <Text style={styles.token} testID="invite-token">
+          Token: {inviteToken ?? "—"}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          style={styles.button}
+          testID="accept-invite-dev"
+          onPress={() => setScreen("route")}
+        >
+          <Text style={styles.buttonText}>Continue setup (dev)</Text>
+        </Pressable>
+        <StatusBar style="auto" />
+      </View>
+    );
+  }
 
   if (screen === "sign-in") {
     return (
@@ -17,7 +63,7 @@ export default function App() {
           accessibilityRole="button"
           style={styles.button}
           testID="dev-sign-in"
-          onPress={() => setScreen("track")}
+          onPress={() => setScreen("route")}
         >
           <Text style={styles.buttonText}>Continue (dev)</Text>
         </Pressable>
@@ -61,6 +107,11 @@ const styles = StyleSheet.create({
   driverAccent: {
     color: colors.driverGreen,
     fontWeight: "600",
+  },
+  token: {
+    ...typography.caption,
+    color: colors.secondary,
+    textAlign: "center",
   },
   button: {
     backgroundColor: colors.secondary,

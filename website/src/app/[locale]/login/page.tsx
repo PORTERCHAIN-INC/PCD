@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { SignOutButton, useAuth } from "@clerk/nextjs";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import LoginShell from "@/components/portal/LoginShell";
@@ -35,6 +36,9 @@ function LoginPageFallback() {
 
 function LoginContent() {
   const t = useTranslations("login");
+  const searchParams = useSearchParams();
+  const intent = searchParams.get("intent");
+  const merchantIntent = intent === "merchant";
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const [error, setError] = useState("");
   const [redirecting, setRedirecting] = useState(false);
@@ -161,7 +165,7 @@ function LoginContent() {
 
   return (
     <LoginShell>
-      <UnifiedSignIn redirectUrl="/login" />
+      <UnifiedSignIn redirectUrl="/login" intent={merchantIntent ? "merchant" : undefined} />
     </LoginShell>
   );
 }

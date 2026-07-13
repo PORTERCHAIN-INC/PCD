@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -1169,3 +1169,69 @@ class RouteTemplateUpdateRequest(BaseModel):
     stops: list[dict[str, Any]] | None = None
     config: dict[str, Any] | None = None
     is_active: bool | None = None
+
+
+class BlogPostItem(BaseModel):
+    id: str
+    slug: str
+    locale: str
+    title: str
+    description: str
+    body_md: str = ""
+    category: str
+    author_id: str
+    status: str
+    featured: bool = False
+    trending: bool = False
+    case_study: bool = False
+    on_time_percent: str | None = None
+    cost_delta_percent: str | None = None
+    volume_metric: str | None = None
+    tags: list[str] = Field(default_factory=list)
+    cover_image_url: str | None = None
+    published_at: str | None = None
+    created_by: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class BlogPostCreateRequest(BaseModel):
+    slug: str = Field(min_length=2, max_length=160)
+    locale: str = Field(min_length=2, max_length=8)
+    title: str = Field(min_length=1, max_length=512)
+    description: str = Field(default="", max_length=4000)
+    body_md: str = Field(default="")
+    category: str = Field(default="logistics", max_length=64)
+    author_id: str = Field(default="porterchain", max_length=64)
+    status: str = Field(default="draft", max_length=32)
+    featured: bool = False
+    trending: bool = False
+    case_study: bool = False
+    on_time_percent: str | None = Field(default=None, max_length=32)
+    cost_delta_percent: str | None = Field(default=None, max_length=32)
+    volume_metric: str | None = Field(default=None, max_length=128)
+    tags: list[str] = Field(default_factory=list)
+    cover_image_url: str | None = Field(default=None, max_length=1024)
+    published_at: date | None = None
+
+
+class BlogPostUpdateRequest(BaseModel):
+    slug: str | None = Field(default=None, min_length=2, max_length=160)
+    locale: str | None = Field(default=None, min_length=2, max_length=8)
+    title: str | None = Field(default=None, min_length=1, max_length=512)
+    description: str | None = Field(default=None, max_length=4000)
+    body_md: str | None = None
+    category: str | None = Field(default=None, max_length=64)
+    author_id: str | None = Field(default=None, max_length=64)
+    status: str | None = Field(default=None, max_length=32)
+    featured: bool | None = None
+    trending: bool | None = None
+    case_study: bool | None = None
+    on_time_percent: str | None = Field(default=None, max_length=32)
+    cost_delta_percent: str | None = Field(default=None, max_length=32)
+    volume_metric: str | None = Field(default=None, max_length=128)
+    tags: list[str] | None = None
+    cover_image_url: str | None = Field(default=None, max_length=1024)
+    clear_cover_image_url: bool = False
+    published_at: date | None = None
+    clear_published_at: bool = False

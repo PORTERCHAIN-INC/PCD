@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import LaneASoftwareSchema from "@/components/seo/LaneASoftwareSchema";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import HeroSection from "@/components/corporate/sections/HeroSection";
+import BrandMergeBand from "@/components/brand/BrandMergeBand";
 import TimelineSection from "@/components/corporate/sections/TimelineSection";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
@@ -18,6 +18,7 @@ import {
   collectResourceItems,
   collectTimelineSteps,
 } from "@/lib/corporate-content";
+import { siteImages } from "@/data/site-images";
 import { Shield, Scale, Leaf, Handshake } from "lucide-react";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -65,7 +66,6 @@ export default async function CompanyPage({ params }: Props) {
 
   return (
     <CorporateShell>
-      <LaneASoftwareSchema />
       <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: t("hero.badge") }]} />
       <HeroSection
         badge={t("hero.badge")}
@@ -76,6 +76,14 @@ export default async function CompanyPage({ params }: Props) {
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/careers"
         variant="minimal"
+      />
+      <BrandMergeBand
+        eyebrow={t("brandBand.eyebrow")}
+        title={t("brandBand.title")}
+        body={t("brandBand.body")}
+        imageSide="left"
+        image={siteImages.brand.depot}
+        objectPosition="center 40%"
       />
       <section className="site-section bg-gray-bg">
         <Container>

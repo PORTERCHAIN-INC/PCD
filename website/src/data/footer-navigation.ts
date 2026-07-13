@@ -5,44 +5,39 @@ export interface FooterLink {
   href: string;
 }
 
-/** Footer IA — grouped by how visitors discover Porterchain (platform → business → industries → company → resources). */
+/** Footer IA — grouped around buying capacity, service fit, and company trust. */
 export const footerNavigation: Record<FooterSectionId, FooterLink[]> = {
   products: [
-    { id: "platform", href: "/platform" },
+    { id: "business", href: "/business" },
     { id: "solutions", href: "/solutions" },
-    { id: "howItWorks", href: "/guides/how-porterchain-works" },
-    { id: "integrations", href: "/integrations" },
-    { id: "developers", href: "/developers" },
+    { id: "howItWorks", href: "/how-porterchain-works" },
+    { id: "pricing", href: "/pricing" },
+    { id: "getQuote", href: "/contact?intent=quote" },
     { id: "track", href: "/track" },
   ],
   solutions: [
-    { id: "business", href: "/business" },
-    { id: "enterprise", href: "/enterprise" },
-    { id: "pricing", href: "/pricing" },
-    { id: "trust", href: "/trust" },
-    { id: "getQuote", href: "/contact?intent=quote" },
-    { id: "customerPortal", href: "__CUSTOMER_PORTAL__" },
-  ],
-  company: [
     { id: "industry", href: "/industry" },
     { id: "constructionMaterials", href: "/industry/construction-materials" },
     { id: "electricalDistribution", href: "/industry/electrical-distribution" },
     { id: "plumbingSupply", href: "/industry/plumbing-supply" },
     { id: "serviceAreas", href: "/service-areas" },
-    { id: "localDelivery", href: "/local-delivery" },
-    { id: "vanDelivery", href: "/van-delivery" },
+    { id: "enterprise", href: "/enterprise" },
   ],
-  resources: [
+  company: [
     { id: "about", href: "/company" },
     { id: "contact", href: "/contact" },
     { id: "careers", href: "/careers" },
     { id: "vehiclePartner", href: "/vehicle-partner" },
+    { id: "trust", href: "/trust" },
+  ],
+  resources: [
     { id: "blog", href: "/blog" },
     { id: "faq", href: "/faq" },
     { id: "guides", href: "/guides" },
-    { id: "compare", href: "/compare" },
-    { id: "successStories", href: "/success-stories" },
-    { id: "onboardingEducation", href: "/guides" },
+    { id: "platform", href: "/platform" },
+    { id: "integrations", href: "/integrations" },
+    { id: "developers", href: "/developers" },
+    { id: "customerPortal", href: "__CUSTOMER_PORTAL__" },
   ],
   legal: [
     { id: "privacy", href: "/privacy" },

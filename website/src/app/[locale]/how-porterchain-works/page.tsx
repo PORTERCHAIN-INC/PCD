@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const page = getAuthorityPageBySlug(SLUG);
   if (!page) return {};
-  return buildPageMetadata(locale, SLUG, page.title, page.description);
+  return buildPageMetadata(locale, SLUG, page.title, page.description, { index: locale === "en" });
 }
 
 export default async function HowPorterchainWorksPage({ params }: Props) {

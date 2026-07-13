@@ -35,6 +35,8 @@ Review lens: Fowler · Evans · Beck · DHH · Thiel · Graham · Collison · Hu
 
 > **A Transportation Capacity Network powered by intelligent software.**
 
+**Tagline:** Moving Commerce On-Chain
+
 We orchestrate businesses, independent drivers, commercial vehicles, and logistics operations through one intelligent platform.
 
 | Layer              | Role                                                                  |

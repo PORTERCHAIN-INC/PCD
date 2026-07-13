@@ -4,13 +4,15 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
+type PanelRender = (props: { close: () => void }) => ReactNode;
+
 type Props = {
   trigger: (props: {
     open: boolean;
     toggle: () => void;
     triggerProps: { onClick: () => void; "aria-expanded": boolean; "aria-haspopup": boolean };
   }) => ReactNode;
-  children: ReactNode;
+  children: ReactNode | PanelRender;
   align?: "left" | "right";
   width?: "sm" | "md" | "lg" | "xl";
   className?: string;
@@ -73,6 +75,8 @@ export default function NavDropdown({
     };
   }, [open, close]);
 
+  const panelContent = typeof children === "function" ? children({ close }) : children;
+
   const panel =
     open && typeof document !== "undefined"
       ? createPortal(
@@ -86,7 +90,7 @@ export default function NavDropdown({
               className
             )}
           >
-            {children}
+            {panelContent}
           </div>,
           document.body
         )

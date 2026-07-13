@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import PricingPageView from "@/components/corporate/PricingPageView";
-import LaneASoftwareSchema from "@/components/seo/LaneASoftwareSchema";
 import { localeStaticParams } from "@/lib/seo/page-helpers";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -25,7 +24,6 @@ export default async function PricingPage({ params }: Props) {
 
   return (
     <CorporateShell>
-      <LaneASoftwareSchema />
       <PricingPageView />
     </CorporateShell>
   );

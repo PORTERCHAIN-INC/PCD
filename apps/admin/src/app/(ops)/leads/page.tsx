@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { DRIVER_LEAD_SOURCE } from "@/lib/admin-nav";
 import {
   LEAD_PRIORITIES,
   LEAD_STATUSES,
@@ -30,9 +32,26 @@ function formatWhen(iso: string): string {
   }
 }
 
+function sourceLabel(source: string): string {
+  if (source === DRIVER_LEAD_SOURCE) return "driver partner";
+  return source.replace(/_/g, " ");
+}
+
 export default function LeadsPage() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
-  const [filters, setFilters] = useState<LeadFilters>({});
+  const searchParams = useSearchParams();
+  const sourceFromUrl = searchParams.get("source") ?? undefined;
+  const isDriverInbox = sourceFromUrl === DRIVER_LEAD_SOURCE;
+  const [filters, setFilters] = useState<LeadFilters>(() =>
+    sourceFromUrl ? { source: sourceFromUrl } : {}
+  );
+
+  useEffect(() => {
+    setFilters((f) => {
+      if (f.source === sourceFromUrl) return f;
+      return { ...f, source: sourceFromUrl };
+    });
+  }, [sourceFromUrl]);
 
   const {
     data: rows = [],
@@ -48,8 +67,14 @@ export default function LeadsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Leads</h1>
-          <p className="text-sm text-muted">Website inquiries and contact form submissions</p>
+          <h1 className="text-2xl font-bold text-primary">
+            {isDriverInbox ? "Driver Leads" : "Merchant Leads"}
+          </h1>
+          <p className="text-sm text-muted">
+            {isDriverInbox
+              ? "Vehicle partner applications from /vehicle-partner"
+              : "Quotes, contact & business inquiries from the website"}
+          </p>
         </div>
         <Button variant="outline" onClick={() => void refetch()}>
           <RefreshCw className="h-4 w-4" /> Refresh
@@ -97,7 +122,7 @@ export default function LeadsPage() {
             <option value="">All sources</option>
             {LEAD_SOURCES.map((s) => (
               <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
+                {sourceLabel(s)}
               </option>
             ))}
           </select>
@@ -108,7 +133,9 @@ export default function LeadsPage() {
             <Spinner />
           </div>
         ) : rows.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted">No leads yet.</p>
+          <p className="py-12 text-center text-sm text-muted">
+            {isDriverInbox ? "No driver partner leads yet." : "No merchant leads yet."}
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-sm">
@@ -148,7 +175,7 @@ export default function LeadsPage() {
                         )}
                       </td>
                       <td className="px-3 py-3">
-                        <span className="text-primary">{lead.source.replace(/_/g, " ")}</span>
+                        <span className="text-primary">{sourceLabel(lead.source)}</span>
                         {form && (
                           <p className="mt-0.5 text-xs text-muted capitalize">Form: {form}</p>
                         )}

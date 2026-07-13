@@ -7,14 +7,16 @@ import { ChevronDown } from "lucide-react";
 
 interface AccordionItem {
   question: string;
-  answer: string;
+  answer: React.ReactNode;
 }
 
 interface AccordionProps {
   items: AccordionItem[];
+  /** First N items get speakable CSS classes for JSON-LD voice search. */
+  speakableCount?: number;
 }
 
-export default function Accordion({ items }: AccordionProps) {
+export default function Accordion({ items, speakableCount = 0 }: AccordionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
@@ -31,7 +33,14 @@ export default function Accordion({ items }: AccordionProps) {
               className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left cursor-pointer"
               aria-expanded={isOpen}
             >
-              <span className="type-body font-bold text-primary pr-4">{item.question}</span>
+              <span
+                className={cn(
+                  "type-body font-bold text-primary pr-4",
+                  index < speakableCount && "speakable-faq-q"
+                )}
+              >
+                {item.question}
+              </span>
               <motion.span
                 animate={{ rotate: isOpen ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
@@ -48,7 +57,12 @@ export default function Accordion({ items }: AccordionProps) {
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.25 }}
                 >
-                  <div className="px-6 pb-5 type-small text-muted leading-relaxed">
+                  <div
+                    className={cn(
+                      "px-6 pb-5 type-small text-muted leading-relaxed",
+                      index < speakableCount && "speakable-faq-a"
+                    )}
+                  >
                     {item.answer}
                   </div>
                 </motion.div>

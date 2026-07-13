@@ -52,10 +52,32 @@ const nextConfig: NextConfig = {
         }))
       ),
       ...["en", "fr"].map((locale) => ({
-        source: `/${locale}/how-porterchain-works`,
-        destination: `/${locale}/guides/how-porterchain-works`,
+        source: `/${locale}/guides/how-porterchain-works`,
+        destination: `/${locale}/how-porterchain-works`,
         permanent: true,
       })),
+      ...["en", "fr"].flatMap((locale) => [
+        {
+          source: `/${locale}/van-delivery`,
+          destination: `/${locale}/trade-van-delivery`,
+          permanent: true,
+        },
+        {
+          source: `/${locale}/medium-truck`,
+          destination: `/${locale}/box-truck-delivery`,
+          permanent: true,
+        },
+        {
+          source: `/${locale}/:city/van-delivery`,
+          destination: `/${locale}/:city/trade-van-delivery`,
+          permanent: true,
+        },
+        {
+          source: `/${locale}/:city/medium-truck`,
+          destination: `/${locale}/:city/box-truck-delivery`,
+          permanent: true,
+        },
+      ]),
       ...["en", "fr"].flatMap((locale) =>
         ["onboarding-education", "integrations-education"].map((path) => ({
           source: `/${locale}/${path}`,
@@ -108,11 +130,29 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 86_400,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 2560, 3840, 5120],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: "https",
         hostname: "images.unsplash.com",
         pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8001",
+        pathname: "/v1/public/blog/media/**",
+      },
+      {
+        protocol: "https",
+        hostname: "porterchain.com",
+        pathname: "/v1/public/blog/media/**",
+      },
+      {
+        protocol: "https",
+        hostname: "api.porterchain.com",
+        pathname: "/v1/public/blog/media/**",
       },
     ],
   },

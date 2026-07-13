@@ -60,6 +60,24 @@ See **[CLERK_APPS_SETUP.md](./CLERK_APPS_SETUP.md)** for creating 4 Clerk applic
 | `PORTERCHAIN_PUSH_ENABLED`       | `true`                                                        |
 | `PORTERCHAIN_PUSH_SEND`          | `true`                                                        |
 | `API_REPLICAS`                   | `2`                                                           |
+| `MAIL_HOST`                      | `smtp.zohocloud.ca` (Zoho Canada)                             |
+| `MAIL_PORT`                      | `465`                                                         |
+| `MAIL_USERNAME`                  | e.g. `ops@porterchain.com`                                    |
+| `MAIL_PASSWORD`                  | Zoho **app-specific** password                                |
+| `MAIL_ENCRYPTION`                | `ssl`                                                         |
+| `MAIL_FROM_ADDRESS`              | Default From (`ops@porterchain.com`)                          |
+| `MAIL_FROM_ADDRESS2`             | `sales@porterchain.com`                                       |
+| `MAIL_FROM_ADDRESS3`             | `ravi@porterchain.com`                                        |
+| `MAIL_FROM_NAME`                 | `Porterchain`                                                 |
+| `PORTERCHAIN_OPS_EMAILS`         | `ops@porterchain.com`                                         |
+
+Upload SMTP from local `apps/api/.env` (after Zoho app password is set):
+
+```bash
+bash infrastructure/deploy/scripts/upload-mail-to-doppler.sh
+```
+
+See [docs/notifications/ZOHO_MAIL.md](../../docs/notifications/ZOHO_MAIL.md).
 
 4. Create a **service token** for the droplet deploy (read-only, `prd` config).
 5. Add to GitHub Actions:

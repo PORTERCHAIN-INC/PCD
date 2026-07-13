@@ -1,5 +1,6 @@
 """driver routes — navigation_pod."""
 
+from porterchain_api.db import db_transaction
 from porterchain_api.routers.driver._deps import (
     APIRouter,
     Annotated,
@@ -92,7 +93,7 @@ def pod_photo(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.pod.capture_photo(
                 db,
                 ctx.driver,
@@ -117,7 +118,7 @@ def pod_signature(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.pod.capture_signature(
                 db,
                 ctx.driver,
@@ -142,7 +143,7 @@ def pod_barcode(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.pod.capture_barcode(
                 db,
                 ctx.driver,
@@ -167,7 +168,7 @@ def pod_complete(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.pod.complete_pod(
                 db,
                 ctx.driver,
@@ -190,7 +191,7 @@ def generate_otp(
 ):
     require_approved_driver(ctx)
     try:
-        with db.begin():
+        with db_transaction(db):
             otp = svc.platform.pod.generate_otp(db, ctx.driver, order_id)
         return {"otp": otp}
     except LookupError as exc:
@@ -205,7 +206,7 @@ def queue_offline(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         result = svc.platform.offline.queue_action(
             db,
             ctx.driver,
@@ -250,7 +251,7 @@ def legacy_location(
 ):
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
-    with db.begin():
+    with db_transaction(db):
         result = svc.platform.location.record_ping(
             db,
             ctx.driver,

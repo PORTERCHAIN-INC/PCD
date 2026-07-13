@@ -17,7 +17,7 @@ from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
-from porterchain_api.db import get_db
+from porterchain_api.db import get_db, db_transaction
 from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.schemas_admin import DriverCreateRequest, DriverDocumentInput, DriverVerifyRequest
@@ -222,7 +222,7 @@ def driver_action(driver_id: str, body: DriverActionRequest, ctx: Ctx, db: Sessi
             context={"message": body.message or "Message from Porterchain operations."},
         )
 
-    with db.begin():
+    with db_transaction(db):
         subject = _ACTION_LABEL.get(body.type, body.type)
         _crm.log_activity(
             db,

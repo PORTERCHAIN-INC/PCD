@@ -6,6 +6,7 @@
 
 import { siteConfig } from "./config";
 import { buildGoogleSameAsLinks, PUBLIC_CONTACT_PHONE_E164 } from "@/lib/google-business";
+import { getHyperlocalGeo, type HyperlocalGeo } from "./hyperlocal-geo";
 
 const BASE = siteConfig.baseUrl.replace(/\/$/, "");
 
@@ -249,8 +250,11 @@ export type OrganizationSchema = {
   "@type": "Organization";
   name: string;
   url: string;
+  slogan?: string;
   description?: string;
   logo?: string;
+  knowsAbout?: string[];
+  sameAs?: string[];
 };
 
 export type LocalBusinessSchema = {
@@ -286,8 +290,21 @@ export type ServiceSchema = {
   name: string;
   description?: string;
   provider?: { "@type": "Organization"; name: string; url: string };
-  areaServed?: string[] | SchemaPlace[] | { "@type": string; name?: string }[];
+  areaServed?: HyperlocalPlace[] | SchemaPlace[] | string[] | { "@type": string; name?: string }[];
   serviceType?: string | string[];
+};
+
+type HyperlocalPlace = {
+  "@type": "Place";
+  name: string;
+  geo?: { "@type": "GeoCoordinates"; latitude: number; longitude: number };
+  address?: {
+    "@type": "PostalAddress";
+    addressLocality: string;
+    addressRegion: string;
+    addressCountry: string;
+    postalCode?: string | string[];
+  };
 };
 
 export type FAQPageSchema = {
@@ -306,7 +323,15 @@ export type ArticleSchema = {
   "@type": "Article";
   headline: string;
   description?: string;
-  author: { "@type": "Organization"; name: string; url: string };
+  url?: string;
+  author:
+    | { "@type": "Organization"; name: string; url: string }
+    | {
+        "@type": "Person";
+        name: string;
+        jobTitle?: string;
+        worksFor?: { "@type": "Organization"; name: string; url: string };
+      };
   publisher?: {
     "@type": "Organization";
     name: string;
@@ -315,6 +340,18 @@ export type ArticleSchema = {
   };
   datePublished?: string;
   dateModified?: string;
+};
+
+/** WebPage with speakable CSS selectors for voice / AI search. */
+export type SpeakableWebPageSchema = {
+  "@context": "https://schema.org";
+  "@type": "WebPage";
+  name: string;
+  url: string;
+  speakable: {
+    "@type": "SpeakableSpecification";
+    cssSelector: string[];
+  };
 };
 
 /** Review schema for testimonial quotes (trust signal). */
@@ -332,13 +369,50 @@ export type ReviewSchema = {
  */
 export function buildOrganizationSchema(options?: { baseUrl?: string }): OrganizationSchema {
   const base = (options?.baseUrl ?? BASE).replace(/\/$/, "");
+  const sameAs = buildGoogleSameAsLinks();
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: siteConfig.name,
     url: base,
+    slogan: siteConfig.tagline,
     description: ORGANIZATION_DESCRIPTION,
     logo: `${base}/icon.svg`,
+    knowsAbout: [
+      "B2B delivery",
+      "Same-day delivery",
+      "Fleet overflow capacity",
+      "Construction jobsite delivery",
+      "Wholesale distribution delivery",
+      "Pharmacy courier delivery",
+      "Proof of delivery",
+    ],
+    ...(sameAs.length > 0 ? { sameAs } : {}),
+  };
+}
+
+function buildHyperlocalPlace(
+  geo: HyperlocalGeo,
+  label?: string,
+  postalCodes?: string[]
+): HyperlocalPlace {
+  return {
+    "@type": "Place",
+    name: label ?? `${geo.locality}, ${geo.region}`,
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: geo.latitude,
+      longitude: geo.longitude,
+    },
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: geo.locality,
+      addressRegion: geo.region,
+      addressCountry: "CA",
+      ...(postalCodes?.length
+        ? { postalCode: postalCodes.length === 1 ? postalCodes[0] : postalCodes }
+        : {}),
+    },
   };
 }
 
@@ -422,11 +496,30 @@ export function buildServiceSchema(params: {
   description?: string;
   areaServed?: string[];
   baseUrl?: string;
+  /** service-area or city URL slug for hyperlocal geo Place */
+  geoSlug?: string;
+  regionLabel?: string;
+  /** FSA / postal prefixes for near-me schema on the same city URL (not zip landings) */
+  postalCodes?: string[];
 }): ServiceSchema {
   const base = (params.baseUrl ?? BASE).replace(/\/$/, "");
-  const areaServed = params.areaServed?.length
-    ? params.areaServed.map((name) => ({ "@type": "Place" as const, name }))
-    : [...SCHEMA_SERVICE_AREAS];
+  let areaServed: ServiceSchema["areaServed"];
+  if (params.geoSlug) {
+    const geo = getHyperlocalGeo(params.geoSlug);
+    areaServed = geo
+      ? [
+          buildHyperlocalPlace(
+            geo,
+            params.regionLabel ?? `${geo.locality}, Ontario`,
+            params.postalCodes
+          ),
+        ]
+      : [...SCHEMA_SERVICE_AREAS];
+  } else if (params.areaServed?.length) {
+    areaServed = params.areaServed.map((name) => ({ "@type": "Place" as const, name }));
+  } else {
+    areaServed = [...SCHEMA_SERVICE_AREAS];
+  }
   return {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -434,7 +527,7 @@ export function buildServiceSchema(params: {
     description: params.description,
     provider: { "@type": "Organization", name: siteConfig.name, url: base },
     areaServed,
-    serviceType: "Courier service",
+    serviceType: [...SCHEMA_DELIVERY_SERVICE_TYPES],
   };
 }
 
@@ -447,14 +540,26 @@ export function buildArticleSchema(params: {
   datePublished?: string;
   dateModified?: string;
   baseUrl?: string;
+  url?: string;
+  /** Person author for E-E-A-T on guides; defaults to Organization. */
+  authorPerson?: { name: string; jobTitle?: string };
 }): ArticleSchema {
   const base = (params.baseUrl ?? BASE).replace(/\/$/, "");
+  const author = params.authorPerson
+    ? {
+        "@type": "Person" as const,
+        name: params.authorPerson.name,
+        jobTitle: params.authorPerson.jobTitle,
+        worksFor: { "@type": "Organization" as const, name: siteConfig.name, url: base },
+      }
+    : { "@type": "Organization" as const, name: siteConfig.name, url: base };
   return {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: params.headline,
     description: params.description,
-    author: { "@type": "Organization", name: siteConfig.name, url: base },
+    url: params.url,
+    author,
     publisher: {
       "@type": "Organization",
       name: siteConfig.name,
@@ -463,6 +568,26 @@ export function buildArticleSchema(params: {
     },
     datePublished: params.datePublished,
     dateModified: params.dateModified,
+  };
+}
+
+/**
+ * WebPage schema with speakable FAQ selectors (voice / AI search).
+ */
+export function buildSpeakableWebPageSchema(params: {
+  name: string;
+  url: string;
+  cssSelectors?: string[];
+}): SpeakableWebPageSchema {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: params.name,
+    url: params.url,
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: params.cssSelectors ?? [".speakable-faq-q", ".speakable-faq-a"],
+    },
   };
 }
 

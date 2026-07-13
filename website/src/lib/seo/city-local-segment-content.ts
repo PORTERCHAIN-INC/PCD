@@ -20,6 +20,8 @@ type LocalSegmentMessages = {
     intentLabels?: Record<string, string>;
     vehicle?: SegmentTemplateBlock;
     intent?: SegmentTemplateBlock;
+    coverage?: { titlePattern?: string; descriptionPattern?: string };
+    inquiry?: { headingPattern?: string };
     cta?: { primary?: string; secondary?: string };
     operationalFit?: {
       title?: string;
@@ -43,6 +45,7 @@ type LocalSegmentMessages = {
   serviceAreaLanding?: Record<
     string,
     {
+      coverage?: { title?: string; description?: string };
       onboarding?: {
         title?: string;
         description?: string;
@@ -82,6 +85,8 @@ type SegmentTemplateBlock = {
     a2?: string;
     q3?: string;
     a3?: string;
+    q4?: string;
+    a4?: string;
   };
   cta?: { titlePattern?: string; descriptionPattern?: string };
 };
@@ -114,7 +119,9 @@ function buildFromTemplate(
       }
     | undefined,
   globalCta: { primary?: string; secondary?: string } | undefined,
-  operationalFit: LocalSegmentMessages["cityLocalSegment"] | undefined
+  operationalFit: LocalSegmentMessages["cityLocalSegment"] | undefined,
+  coverageTemplates: LocalSegmentMessages["cityLocalSegment"] | undefined,
+  areaCoverage: { title?: string; description?: string } | undefined
 ): CityIndustryContent | null {
   if (!block?.meta?.titlePattern || !block?.hero?.titlePattern) return null;
 
@@ -162,7 +169,7 @@ function buildFromTemplate(
             ].filter((b): b is string => Boolean(b)),
     },
     operationalFit: {
-      title: fit?.title ? substitute(fit.title, labels) : "How it works",
+      title: fit?.title ? substitute(fit.title, labels) : "",
       description: fit?.description ? substitute(fit.description, labels) : undefined,
       steps: [
         {
@@ -192,14 +199,15 @@ function buildFromTemplate(
       ],
     },
     coverage: {
-      title: `${labels.segmentLabel} in ${labels.region}`,
-      description: substitute(
-        `Local operations in {cityLabel} and {region} with predictable capacity, tracking, and proof of delivery.`,
-        labels
-      ),
+      title: areaCoverage?.title
+        ? substitute(areaCoverage.title, labels)
+        : substitute(coverageTemplates?.coverage?.titlePattern, labels),
+      description: areaCoverage?.description
+        ? substitute(areaCoverage.description, labels)
+        : substitute(coverageTemplates?.coverage?.descriptionPattern, labels),
     },
     onboarding: {
-      title: onboarding?.title ?? "Get started",
+      title: onboarding?.title ?? "",
       description: onboarding?.description ?? "",
       steps: [
         {
@@ -217,21 +225,29 @@ function buildFromTemplate(
       ],
     },
     faq: {
-      title: substitute(block.faq?.titlePattern, labels) || "FAQ",
+      title: substitute(block.faq?.titlePattern, labels) || "",
       items: [
         { question: substitute(block.faq?.q1, labels), answer: substitute(block.faq?.a1, labels) },
         { question: substitute(block.faq?.q2, labels), answer: substitute(block.faq?.a2, labels) },
         { question: substitute(block.faq?.q3, labels), answer: substitute(block.faq?.a3, labels) },
+        ...(block.faq?.q4 && block.faq?.a4
+          ? [
+              {
+                question: substitute(block.faq.q4, labels),
+                answer: substitute(block.faq.a4, labels),
+              },
+            ]
+          : []),
       ].filter((item) => item.question && item.answer),
     },
     cta: {
       title: substitute(block.cta?.titlePattern, labels),
       description: substitute(block.cta?.descriptionPattern, labels),
-      primary: globalCta?.primary ?? "Get a quote",
-      secondary: globalCta?.secondary ?? "Contact us",
+      primary: globalCta?.primary ?? "",
+      secondary: globalCta?.secondary ?? "",
     },
     inquiry: {
-      heading: substitute(`Get started with {segmentLabel} in {cityLabel}`, labels),
+      heading: substitute(coverageTemplates?.inquiry?.headingPattern, labels),
     },
   };
 }
@@ -272,8 +288,23 @@ export function getCityLocalSegmentContent(
   const vehicleDetail =
     segmentType === "vehicle" ? messages.vehicleDelivery?.[segmentMessageKey] : undefined;
   const areaContent = messages.serviceAreaLanding?.[areaKey];
-  const defaultOnboarding = messages.serviceAreaLanding?.default?.onboarding;
-  const onboarding = areaContent?.onboarding ?? defaultOnboarding;
+  const defaultArea = messages.serviceAreaLanding?.default;
+  const onboarding = areaContent?.onboarding ?? defaultArea?.onboarding;
+  const areaCoverage = areaContent?.coverage ?? defaultArea?.coverage;
 
-  return buildFromTemplate(block, labels, vehicleDetail, onboarding, t.cta, t);
+  if (
+    !block?.meta?.titlePattern ||
+    !block?.hero?.titlePattern ||
+    !t.coverage?.titlePattern ||
+    !t.coverage?.descriptionPattern ||
+    !t.inquiry?.headingPattern ||
+    !t.cta?.primary ||
+    !t.cta?.secondary ||
+    !t.operationalFit?.title ||
+    !onboarding?.title
+  ) {
+    return null;
+  }
+
+  return buildFromTemplate(block, labels, vehicleDetail, onboarding, t.cta, t, t, areaCoverage);
 }

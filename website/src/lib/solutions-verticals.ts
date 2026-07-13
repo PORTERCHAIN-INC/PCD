@@ -1,5 +1,26 @@
 import type { NicheSlug } from "@/lib/seo/niche-landing";
 
+export const CONSTRUCTION_INDUSTRY_SLUGS = [
+  "construction-materials",
+  "electrical-distribution",
+  "plumbing-supply",
+] as const;
+
+export type ConstructionIndustrySlug = (typeof CONSTRUCTION_INDUSTRY_SLUGS)[number];
+
+export const CONSTRUCTION_PROGRAM_KEYS = ["materials", "electrical", "plumbing"] as const;
+
+export type ConstructionProgramKey = (typeof CONSTRUCTION_PROGRAM_KEYS)[number];
+
+export const CONSTRUCTION_PROGRAM_TO_INDUSTRY: Record<
+  ConstructionProgramKey,
+  ConstructionIndustrySlug
+> = {
+  materials: "construction-materials",
+  electrical: "electrical-distribution",
+  plumbing: "plumbing-supply",
+};
+
 export const SOLUTION_VERTICAL_SLUGS = [
   "wholesale",
   "medical",

@@ -52,10 +52,10 @@ export default function PlatformBridgeSection({ from }: PlatformBridgeSectionPro
                 size="lg"
                 className="w-full justify-center"
                 trackEvent={ANALYTICS_EVENTS.SEO_BRIDGE_CLICK}
-                trackLabel={t("demoCta")}
+                trackLabel={t("quoteCta")}
                 trackSource={`bridge:${from}`}
               >
-                {t("demoCta")}
+                {t("quoteCta")}
               </LinkButton>
             </div>
           </div>

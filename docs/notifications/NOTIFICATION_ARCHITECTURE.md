@@ -6,7 +6,7 @@
 
 **Authority:** `masterrule.md` §6 (Logistics Orchestrator), §11.3 (Notification Engine)  
 **Owner:** `apps/api/src/porterchain_api/notification_engine/`  
-**See also:** [NOTIFICATION_FLOW.md](../architecture/NOTIFICATION_FLOW.md) · [NOTIFICATION_REPORT.md](../../NOTIFICATION_REPORT.md)
+**See also:** [NOTIFICATION_FLOW.md](../architecture/NOTIFICATION_FLOW.md) · [NOTIFICATION_REPORT.md](../../NOTIFICATION_REPORT.md) · [ZOHO_MAIL.md](./ZOHO_MAIL.md)
 
 ---
 

@@ -98,8 +98,8 @@ export const ANALYTICS_EVENTS = {
   WEB_VITAL_BUDGET_EXCEEDED: "web_vital_budget_exceeded",
   /** WhatsApp Business Phase 1 — pre-filled quote follow-up */
   WHATSAPP_QUOTE_CLICK: "whatsapp_quote_click",
-  /** Merchant B2B SSO bridge (Google / Microsoft) */
-  MERCHANT_SSO_CLICK: "merchant_sso_click",
+  /** WhatsApp mobile live-chat FAB (phone browsers; replaces Zoho) */
+  WHATSAPP_CHAT_CLICK: "whatsapp_chat_click",
 } as const;
 
 /** Mark these as conversions in GA4 Admin → Events → Mark as conversion. */
@@ -112,5 +112,6 @@ export const GA4_CONVERSION_EVENTS: readonly string[] = [
   ANALYTICS_EVENTS.BOOKING_QUOTE_SUCCESS,
   ANALYTICS_EVENTS.BOOKING_CONTINUE,
   ANALYTICS_EVENTS.ZOHO_CHAT_OPEN,
+  ANALYTICS_EVENTS.WHATSAPP_CHAT_CLICK,
   ANALYTICS_EVENTS.GBP_REVIEW_CLICK,
 ];

@@ -1,5 +1,6 @@
 """driver routes — support."""
 
+from porterchain_api.db import db_transaction
 from porterchain_api.routers.driver._deps import (
     Annotated,
     Depends,
@@ -48,7 +49,7 @@ def open_driver_claim(
     db: Session = Depends(get_db),
 ):
     try:
-        with db.begin():
+        with db_transaction(db):
             claim = svc.platform.support_hub.open_claim(
                 db,
                 ctx.driver,
@@ -72,7 +73,7 @@ def update_emergency_contact(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         result = svc.platform.support_hub.update_emergency_contact(
             db,
             ctx.driver,
@@ -90,7 +91,7 @@ def create_support(
     db: Session = Depends(get_db),
 ):
     try:
-        with db.begin():
+        with db_transaction(db):
             ticket = svc.platform.support.create_ticket(
                 db,
                 ctx.driver,
@@ -116,7 +117,7 @@ def report_incident(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         incident = svc.platform.incidents.report_incident(
             db,
             ctx.driver,
@@ -134,7 +135,7 @@ def emergency(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         result = svc.platform.emergency.trigger(
             db, ctx.driver, location=body.location, message=body.message
         )

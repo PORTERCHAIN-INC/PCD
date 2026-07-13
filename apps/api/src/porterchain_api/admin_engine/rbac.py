@@ -153,6 +153,16 @@ MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
         }
     ),
     "routes_dispatch": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.DISPATCHER}),
+    "content": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.MARKETING}),
+    "content_read": frozenset(
+        {
+            AdminRole.SUPER_ADMIN,
+            AdminRole.ADMIN,
+            AdminRole.MARKETING,
+            AdminRole.SALES,
+            AdminRole.READ_ONLY,
+        }
+    ),
 }
 
 

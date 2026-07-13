@@ -56,3 +56,21 @@ export function getServiceAreaMessageKey(slug: string): string | null {
 export function isValidServiceAreaSlug(slug: string): slug is ServiceAreaSlug {
   return SERVICE_AREA_SLUGS.includes(slug as ServiceAreaSlug);
 }
+
+/** Playbook §4.5 — eight metros with established operational evidence. */
+export const CORE_SERVICE_AREA_SLUGS = [
+  "toronto",
+  "mississauga",
+  "brampton",
+  "vaughan",
+  "markham",
+  "oakville",
+  "hamilton",
+  "kitchener-waterloo",
+] as const;
+
+export type CoreServiceAreaSlug = (typeof CORE_SERVICE_AREA_SLUGS)[number];
+
+export function isCoreServiceArea(slug: string): slug is CoreServiceAreaSlug {
+  return (CORE_SERVICE_AREA_SLUGS as readonly string[]).includes(slug);
+}

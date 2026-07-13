@@ -1,5 +1,6 @@
 """driver routes — jobs."""
 
+from porterchain_api.db import db_transaction
 from porterchain_api.routers.driver._deps import (
     AcceptRejectRequest,
     Annotated,
@@ -67,7 +68,7 @@ def optimize_jobs(
     guard_portal_ready(ctx, settings)
     require_approved_driver(ctx)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.jobs.optimize_route(db, ctx.driver)
         return result
     except ValueError as exc:
@@ -155,7 +156,7 @@ def arrivestop_response(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             stop = svc.platform.stops.arrivestop_response(
                 db, ctx.driver, stop_id, fleetbase_bridge=bridge
             )
@@ -177,7 +178,7 @@ def deliverstop_response(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             stop = svc.platform.stops.deliverstop_response(
                 db,
                 ctx.driver,
@@ -224,7 +225,7 @@ def accept_order(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.availability.accept_assignment(
                 db, ctx.driver, order_id, fleetbase_bridge=bridge
             )
@@ -244,7 +245,7 @@ def reject_order(
     require_approved_driver(ctx)
     bridge = svc.fleetbase_bridge(settings)
     try:
-        with db.begin():
+        with db_transaction(db):
             result = svc.platform.availability.reject_assignment(
                 db,
                 ctx.driver,

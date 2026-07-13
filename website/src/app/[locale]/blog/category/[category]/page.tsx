@@ -54,9 +54,12 @@ export default async function BlogCategoryPage({ params, searchParams }: Props) 
   const tPag = await getTranslations("blog.pagination");
 
   const loc = locale as Locale;
-  const posts = getPostsByCategory(loc, category);
+  const posts = await getPostsByCategory(loc, category);
   const page = Number(pageParam) || 1;
   const { items, currentPage, totalPages } = paginatePosts(posts, page);
+
+  const trending = await getTrendingPosts(loc);
+  const categoryCounts = await getCategoryPostCounts(loc);
 
   const categoryLabel = (cat: BlogCategory) => tBlog(`categories.${cat}`);
   const readLabel = (minutes: number) => tHome("minRead", { minutes });
@@ -106,8 +109,8 @@ export default async function BlogCategoryPage({ params, searchParams }: Props) 
               />
             </div>
             <BlogSidebar
-              trending={getTrendingPosts(loc)}
-              categoryCounts={getCategoryPostCounts(loc)}
+              trending={trending}
+              categoryCounts={categoryCounts}
               trendingLabel={tHome("trending")}
               categoriesLabel={tBlog("nav.categories")}
               readLabel={readLabel}

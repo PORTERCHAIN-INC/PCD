@@ -23,6 +23,12 @@ class DiagnosticsProbesMixin:
     def _probe_fleetbase_console(self, settings: Settings) -> dict[str, Any]:
         url = settings.fleetbase_console_url or "http://localhost:4200"
         status, latency, err = _probe_http(url, local_optional=settings.app_env == "local")
+        if settings.app_env == "local" and status == "warning":
+            return {
+                "status": "healthy",
+                "latency_ms": latency,
+                "details": {"url": url, "skipped": True, "note": "Optional locally"},
+            }
         return {
             "status": status,
             "latency_ms": latency,
@@ -31,11 +37,20 @@ class DiagnosticsProbesMixin:
             "details": {"url": url},
         }
 
-    def _probe_email(self, platform: PlatformSettings) -> dict[str, Any]:
+    def _probe_email(self, platform: PlatformSettings, settings: Settings | None = None) -> dict[str, Any]:
         if platform.smtp_host and platform.smtp_user:
             return {"status": "healthy", "details": {"host": platform.smtp_host, "from": platform.smtp_from}}
         if platform.smtp_host:
             return {"status": "warning", "warnings": ["SMTP host set but credentials incomplete"]}
+        if settings is not None and settings.app_env == "local":
+            status, latency, err = _probe_http("http://localhost:8025", local_optional=True)
+            if status == "healthy":
+                return {
+                    "status": "healthy",
+                    "latency_ms": latency,
+                    "details": {"mode": "mailpit", "smtp": "localhost:1025"},
+                }
+            return {"status": "warning", "warnings": [err or "Mailpit not reachable"]}
         return {"status": "warning", "warnings": ["SMTP not configured — use Mailpit locally"]}
 
     def _probe_mailpit(self, settings: Settings) -> dict[str, Any]:
@@ -134,7 +149,12 @@ class DiagnosticsProbesMixin:
             warnings = [] if adapter.is_enabled else ["Dispatch bridge disabled"]
             details = {"enabled": adapter.is_enabled}
             if live and adapter.is_enabled:
-                status, latency, err = _probe_http(settings.fleetbase_api_url)
+                status, latency, err = _probe_http(
+                    settings.fleetbase_api_url,
+                    local_optional=settings.app_env == "local",
+                )
+                if settings.app_env == "local" and status == "warning":
+                    return {"status": "healthy", "latency_ms": latency, "details": {**details, "skipped": True}}
                 if err:
                     warnings.append(err)
                 return {
@@ -150,7 +170,16 @@ class DiagnosticsProbesMixin:
     def _probe_fleetbase(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
         if not settings.fleetbase_dispatch_bridge:
             return {"status": "warning", "warnings": ["Dispatch bridge disabled"]}
-        status, latency, err = _probe_http(settings.fleetbase_api_url)
+        status, latency, err = _probe_http(
+            settings.fleetbase_api_url,
+            local_optional=settings.app_env == "local",
+        )
+        if settings.app_env == "local" and status == "warning":
+            return {
+                "status": "healthy",
+                "latency_ms": latency,
+                "details": {"url": settings.fleetbase_api_url, "skipped": True},
+            }
         warnings: list[str] = []
         if not settings.fleetbase_api_key:
             warnings.append("Fleetbase API key not configured — outbound sync may fail")
@@ -162,8 +191,12 @@ class DiagnosticsProbesMixin:
             "details": {"url": settings.fleetbase_api_url, "authenticated": bool(settings.fleetbase_api_key)},
         }
 
-    def _probe_google_maps(self, platform: PlatformSettings, *, live: bool = False) -> dict[str, Any]:
+    def _probe_google_maps(
+        self, platform: PlatformSettings, *, live: bool = False, app_env: str | None = None
+    ) -> dict[str, Any]:
         if not platform.google_maps_api_key:
+            if (app_env or "").lower() == "local":
+                return {"status": "healthy", "details": {"skipped": True, "note": "Optional locally"}}
             return {"status": "warning", "warnings": ["API key not configured"]}
         if live:
             url = (
@@ -176,6 +209,8 @@ class DiagnosticsProbesMixin:
 
     def _probe_osrm(self, platform: PlatformSettings, *, live: bool = False) -> dict[str, Any]:
         if not platform.osrm_url:
+            if (platform.routing_engine or "valhalla").lower() == "valhalla":
+                return {"status": "healthy", "details": {"role": "fallback_unused", "primary": "valhalla"}}
             return {"status": "warning", "warnings": ["OSRM URL not configured"]}
         if live:
             base = platform.osrm_url.rstrip("/")

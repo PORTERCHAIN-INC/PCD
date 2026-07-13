@@ -1,5 +1,6 @@
 """driver routes — communications."""
 
+from porterchain_api.db import db_transaction
 from porterchain_api.routers.driver._deps import (
     Annotated,
     Depends,
@@ -24,7 +25,7 @@ def register_push(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         result = svc.platform.push.register_device(
             db,
             ctx.driver,
@@ -56,7 +57,7 @@ def communications_mark_read(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         ok = svc.platform.communications.mark_read(db, ctx.driver.id, notification_id)
         if not ok:
             raise HTTPException(status_code=404, detail="notification_not_found")
@@ -69,7 +70,7 @@ def communications_mark_archive(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         ok = svc.platform.communications.mark_archive(db, ctx.driver.id, notification_id)
         if not ok:
             raise HTTPException(status_code=404, detail="notification_not_found")
@@ -81,7 +82,7 @@ def communications_mark_all_read(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         count = svc.platform.communications.mark_all_read(db, ctx.driver.id)
     return {"ok": True, "marked": count}
 

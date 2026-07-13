@@ -1,20 +1,18 @@
 {
   "metadata": {
-    "title": "Services Porterchain | Capacité de transport pour entreprises ontariennes",
-    "description": "Demandez de la capacité véhicule et chauffeur pour urgences, débordement, routes planifiées, distribution locale et continuité d'affaires en Ontario.",
-    "ogTitle": "Porterchain — Services de capacité de transport",
-    "ogDescription": "Chauffeurs professionnels et véhicules pour les entreprises qui ont besoin de renfort, débordement, livraison même jour ou routes récurrentes."
+    "title": "Services Porterchain | Capacité de transport B2B — RGT et Ontario",
+    "description": "Services de livraison B2B dans le RGT — urgence le jour même, débordement de flotte, routes de gros récurrentes, logistique de chantier, distribution du dernier kilomètre et messagerie médicale à Toronto, Mississauga, Brampton et en Ontario.",
+    "ogTitle": "Porterchain — Services de livraison B2B pour le RGT",
+    "ogDescription": "Chauffeurs professionnels et véhicules pour fournitures construction, distribution en gros, messagerie pharmacie et continuité d'affaires quand votre flotte ne suffit pas."
   },
   "nav": {
     "solutions": "Solutions",
     "industries": "Industries",
-    "technology": "Technologie",
     "pricing": "Tarification",
     "resources": "Ressources",
     "about": "À propos",
     "contact": "Contact",
-    "bookDelivery": "Réserver une livraison",
-    "requestConsultation": "Demander une consultation",
+    "requestConsultation": "Obtenir un devis",
     "toggleMenu": "Basculer le menu",
     "solutionItems": {
       "recurring": "Livraison récurrente",
@@ -24,12 +22,17 @@
     }
   },
   "hero": {
-    "badge": "Capacité de transport",
-    "titleLine1": "Capacité véhicule et chauffeur",
-    "titleLine2": "quand votre flotte ne suffit pas.",
-    "subtitle": "Urgences, débordement et routes récurrentes — chauffeurs professionnels et véhicules en Ontario.",
+    "badge": "Services livraison B2B · RGT",
+    "titleLine1": "Quand votre flotte ne peut pas couvrir,",
+    "titleLine2": "PorterChain livre.",
+    "subtitle": "Urgence le jour même, débordement de flotte, livraison chantier et routes de gros récurrentes — chauffeurs professionnels de la berline au camion cube à Toronto, Peel, York et Durham. Suivi en direct et preuve à chaque arrêt · sur devis, sans frais plateforme.",
     "ctaPrimary": "Obtenir un devis",
     "ctaSecondary": "Voir les véhicules"
+  },
+  "brandBand": {
+    "eyebrow": "Faire avancer le commerce sur la chaîne",
+    "title": "De la capacité sur la route dès aujourd'hui",
+    "body": "Du camion cube à la remorque — capacité du réseau avec marque Porterchain quand le débordement, le jour même ou les routes récurrentes du RGT ont besoin d'un chauffeur professionnel maintenant."
   },
   "inquiry": {
     "title": "Parlons de votre logistique",
@@ -48,6 +51,8 @@
     "submitting": "Envoi en cours...",
     "successTitle": "Demande reçue",
     "successMessage": "Merci. Un consultant Porterchain vous contactera dans un jour ouvrable.",
+    "whatsappCta": "Continuer sur WhatsApp",
+    "whatsappHint": "Partagez les détails de route pour une réponse plus rapide — ouvre WhatsApp avec votre demande préremplie.",
     "errorMessage": "Impossible d'envoyer votre demande. Réessayez ou appelez-nous directement.",
     "assurances": {
       "noObligation": "Sans obligation",
@@ -75,80 +80,80 @@
     }
   },
   "challenges": {
-    "title": "Votre logistique ne devrait pas ralentir votre entreprise.",
-    "subtitle": "Les entreprises en croissance font face aux mêmes défis logistiques. Porterchain est conçu pour les résoudre.",
+    "title": "Quand votre propre logistique ne suffit plus",
+    "subtitle": "Ce sont les moments opérationnels où les expéditeurs B2B ontariens font appel à PorterChain — pas des problèmes logiciels.",
     "items": {
-      "highCosts": {
-        "title": "Coûts de livraison élevés",
-        "description": "Des tarifs imprévisibles et des frais cachés érodent vos marges."
+      "driverUnavailable": {
+        "title": "Chauffeur indisponible aujourd'hui",
+        "description": "Un chauffeur est absent et une collecte engagée doit quand même avoir lieu."
       },
-      "lateDeliveries": {
-        "title": "Livraisons en retard",
-        "description": "Les fenêtres manquées nuisent à la relation client."
+      "vehicleBreakdown": {
+        "title": "Panne de véhicule",
+        "description": "Un camion est immobilisé et le fret doit bouger avant la fin de la fenêtre."
       },
-      "manualScheduling": {
-        "title": "Planification manuelle",
-        "description": "Les feuilles de calcul et les appels gaspillent des heures précieuses."
+      "urgentOrder": {
+        "title": "Commande client urgente",
+        "description": "Une demande jour même ou d'urgence arrive quand votre équipe est déjà engagée."
       },
-      "noVisibility": {
-        "title": "Aucune visibilité",
-        "description": "Sans suivi en temps réel, vous répondez toujours à « où est ma commande? »"
+      "fleetOverflow": {
+        "title": "Débordement de flotte",
+        "description": "Le pic de volume dépasse ce que vos propres véhicules peuvent couvrir cette semaine."
       },
-      "multipleVendors": {
-        "title": "Plusieurs fournisseurs",
-        "description": "Gérer plusieurs coursiers crée de l'incohérence."
+      "peakSeason": {
+        "title": "Pression de haute saison",
+        "description": "La demande saisonnière grimpe et vous avez besoin de capacité de secours sans embaucher avant les revenus."
       },
-      "noTracking": {
-        "title": "Pas de suivi",
-        "description": "Les clients attendent des mises à jour en direct."
+      "forgottenMaterial": {
+        "title": "Matériel oublié sur chantier",
+        "description": "Un chantier a besoin de matériel aujourd'hui — pas au prochain cycle de route."
       },
-      "invoiceManagement": {
-        "title": "Gestion des factures",
-        "description": "Réconcilier des dizaines de factures chaque mois est épuisant."
+      "jobsiteEmergency": {
+        "title": "Urgence chantier",
+        "description": "Le fret construction ou métier doit atteindre le chantier dans une fenêtre horaire serrée."
       },
-      "scalingProblems": {
-        "title": "Problèmes de croissance",
-        "description": "Ce qui fonctionnait à 50 livraisons échoue à 500 sans le bon partenaire."
+      "sameDayRequest": {
+        "title": "Demande le jour même",
+        "description": "Le fret comptoir, entrepôt ou clinique doit bouger avant l'heure limite avec preuve à la livraison."
       }
     }
   },
   "solutions": {
-    "label": "Solutions",
-    "title": "Nos solutions d'affaires",
-    "subtitle": "Logistique de bout en bout pour les entreprises qui ont besoin de fiabilité et d'échelle.",
+    "label": "Services",
+    "title": "Services de livraison B2B dans le RGT",
+    "subtitle": "Les programmes de capacité les plus demandés par les entreprises ontariennes — jour même, récurrent, débordement et livraison sectorielle avec suivi et preuve à chaque arrêt.",
     "items": {
       "recurringDelivery": "Livraison récurrente",
       "dedicatedRoutes": "Routes dédiées",
       "sameDay": "Livraison le jour même",
       "multiStop": "Distribution multi-arrêts",
       "wholesale": "Livraison en gros",
-      "ltlFreight": "Fret LTL",
-      "ftlFreight": "Fret FTL",
-      "furniture": "Livraison de meubles",
-      "construction": "Matériaux de construction",
-      "medical": "Logistique médicale",
-      "retail": "Distribution au détail",
-      "reverse": "Logistique inverse"
+      "ltlFreight": "Fret LTL et palettes",
+      "urgentEmergency": "Livraison urgente et d'urgence",
+      "quickExpress": "Livraison rapide et express",
+      "construction": "Chantier et construction",
+      "medical": "Messagerie médicale et pharmacie",
+      "fleetOverflow": "Débordement et relève de flotte",
+      "lastMile": "Dernier kilomètre et détail"
     },
     "descriptions": {
-      "recurringDelivery": "Collectes et livraisons automatisées selon votre horaire.",
-      "dedicatedRoutes": "Chauffeurs et routes cohérents pour vos opérations.",
-      "sameDay": "Livraisons urgentes dans le RGT, le jour même.",
-      "multiStop": "Distribution efficace vers plusieurs destinations.",
-      "wholesale": "Livraisons B2B aux détaillants et distributeurs.",
-      "ltlFreight": "Fret palettisé sans engagement de camion complet.",
-      "ftlFreight": "Capacité de camion complet pour gros envois.",
-      "furniture": "Manutention soignée pour meubles et articles volumineux.",
-      "construction": "Livraisons sur chantier pour matériaux.",
-      "medical": "Manutention conforme pour la logistique santé.",
-      "retail": "Réapprovisionnement et distribution du dernier kilomètre.",
-      "reverse": "Retours, échanges et chaîne logistique inverse."
+      "recurringDelivery": "Livraison planifiée et trajets récurrents pour gros, réapprovisionnement détaillant et couloirs fixes.",
+      "dedicatedRoutes": "Camion et chauffeur réservés sur votre couloir — livraison dédiée sans posséder l'actif.",
+      "sameDay": "Livraison B2B urgente dans le RGT quand votre client en a besoin aujourd'hui — selon coupure et capacité.",
+      "multiStop": "Un ramassage, plusieurs livraisons — logistique intra-ville efficace pour distributeurs et cliniques.",
+      "wholesale": "Comptoir-chantier et entrepôt-entrepreneur — livraison B2B électrique, plomberie et industrielle.",
+      "ltlFreight": "Fret local palettisé — capacité camion cube 16 et 20 pi.",
+      "urgentEmergency": "Livraison d'urgence pour absence chauffeur, panne, matériel oublié sur chantier et fret à échéance.",
+      "quickExpress": "Livraison B2B rapide et express pour envois commerciaux sensibles au délai — suivi du ramassage à la preuve.",
+      "construction": "Livraison chantier avec créneaux horaires, notes d'accès et fret palettisé.",
+      "medical": "Messagerie médicale et pharmacie sensible au délai avec preuve de chaîne de possession.",
+      "fleetOverflow": "Débordement de flotte et capacité chauffeur de relève quand vos camions sont pleins ou votre chauffeur est absent.",
+      "lastMile": "Dernier kilomètre et réapprovisionnement magasins avec créneaux et POD."
     }
   },
   "industries": {
     "label": "Industries",
-    "title": "Conçu pour votre industrie",
-    "subtitle": "Expertise logistique spécialisée dans les secteurs qui alimentent l'économie du RGT.",
+    "title": "Conçu pour les opérations B2B du RGT",
+    "subtitle": "Capacité de livraison spécialisée pour les secteurs qui dynamisent la région du Grand Toronto — construction, commerce de gros, fabrication, médical et distribution détaillant.",
     "items": {
       "coffee": "Torréfacteurs de café",
       "foodBeverage": "Aliments et boissons",
@@ -169,41 +174,32 @@
     }
   },
   "whyChoose": {
-    "title": "Pourquoi les entreprises choisissent Porterchain",
-    "subtitle": "Des capacités de niveau entreprise avec la simplicité que votre équipe mérite.",
+    "title": "Preuve et responsabilité à chaque livraison",
+    "subtitle": "Une capacité de confiance — avec visibilité et documentation incluses, pas vendues comme produit logiciel séparé.",
     "items": {
-      "realTimeTracking": "Suivi en temps réel",
+      "realTimeTracking": "Suivi en direct",
       "proofOfDelivery": "Preuve de livraison",
       "photoConfirmation": "Confirmation photo",
       "digitalSignature": "Signature numérique",
-      "apiIntegration": "Intégration API",
-      "csvUpload": "Téléversement CSV",
-      "merchantDashboard": "Tableau de bord marchand",
-      "accountManager": "Gestionnaire de compte dédié",
-      "flexibleBilling": "Facturation flexible",
-      "routeOptimization": "Optimisation des routes",
-      "instantQuotes": "Devis instantanés",
-      "businessReports": "Rapports d'affaires"
+      "flexibleBilling": "Facturation sur devis",
+      "instantQuotes": "Devis transparents",
+      "accountManager": "Soutien dédié"
     },
     "descriptions": {
-      "realTimeTracking": "Suivi GPS en direct sur chaque livraison.",
-      "proofOfDelivery": "Confirmation documentée pour chaque livraison.",
-      "photoConfirmation": "Preuve visuelle capturée à la livraison.",
-      "digitalSignature": "Signatures des destinataires stockées en sécurité.",
-      "apiIntegration": "Connectez vos systèmes via API REST.",
-      "csvUpload": "Téléversement de commandes en masse en secondes.",
-      "merchantDashboard": "Visibilité complète sur vos opérations.",
-      "accountManager": "Un partenaire dédié pour votre compte.",
-      "flexibleBilling": "Paiement à l'utilisation ou facturation mensuelle.",
-      "routeOptimization": "Optimisation d'itinéraires Valhalla pour une répartition efficace.",
-      "instantQuotes": "Tarification transparente avant engagement.",
-      "businessReports": "Analytique et rapports exportables."
+      "realTimeTracking": "GPS en direct et liens de suivi partageables à chaque arrêt.",
+      "proofOfDelivery": "Confirmation documentée pour facturation et suivi client.",
+      "photoConfirmation": "Preuve photo capturée à la livraison au besoin.",
+      "digitalSignature": "Signatures des destinataires conservées avec le dossier de livraison.",
+      "flexibleBilling": "Paiement par envoi ou conditions d'affaires — sans abonnement plateforme.",
+      "instantQuotes": "Tarification sur devis selon véhicule, distance, urgence et manutention.",
+      "accountManager": "Soutien nommé pour programmes récurrents et entreprise."
     }
   },
   "fleet": {
     "label": "Flotte",
     "title": "Flotte de véhicules",
     "subtitle": "Le bon véhicule pour chaque envoi — des documents aux chargements complets.",
+    "quoteCta": "Obtenir un devis pour ce véhicule",
     "payload": "Charge utile",
     "cargoSpace": "Espace cargo",
     "classLabel": "Classe",
@@ -342,16 +338,16 @@
     "title": "Options de facturation",
     "subtitle": "Modèles de paiement flexibles qui évoluent avec votre entreprise.",
     "recommended": "Recommandé",
-    "cta": "Demander une consultation",
+    "cta": "Obtenir un devis",
     "plans": {
       "payAsYouGo": {
         "name": "Paiement à l'utilisation",
-        "description": "Parfait pour les entreprises en croissance.",
+        "description": "Parfait pour envois occasionnels et urgents.",
         "features": [
           "Pas de minimum mensuel",
-          "Devis instantanés",
+          "Devis avant engagement",
           "Paiement par carte",
-          "Accès complet à la plateforme"
+          "Suivi et preuve inclus"
         ]
       },
       "creditAccount": {
@@ -378,34 +374,9 @@
     }
   },
   "success": {
-    "label": "Succès client",
-    "title": "Ce que disent nos partenaires d'affaires",
-    "items": {
-      "coffee": {
-        "quote": "Porterchain a transformé notre distribution en gros. Les routes récurrentes et le suivi en temps réel nous ont donné une visibilité inédite.",
-        "author": "Sarah Chen",
-        "role": "Directrice des opérations, Torréfacteur RGT",
-        "initials": "SC"
-      },
-      "restaurant": {
-        "quote": "Nous sommes passés de trois coursiers à un seul partenaire. Le téléversement CSV seul économise 10 heures par semaine.",
-        "author": "Marco Di Luca",
-        "role": "Propriétaire, Fournisseur de restaurants",
-        "initials": "MD"
-      },
-      "medical": {
-        "quote": "La preuve de livraison et la documentation de chaîne de custody sont essentielles pour nous. Porterchain répond aux deux.",
-        "author": "Dre Anita Patel",
-        "role": "Directrice, Distributeur médical",
-        "initials": "AP"
-      },
-      "construction": {
-        "quote": "Les livraisons de matériaux le jour même sur chantier étaient un cauchemar. Maintenant, c'est un clic dans le tableau de bord.",
-        "author": "James O'Brien",
-        "role": "Chef de projet, Entreprise de construction",
-        "initials": "JO"
-      }
-    }
+    "label": "Histoires clients",
+    "title": "Résultats marchands",
+    "placeholder": "Des études de cas autorisées de nos marchands arrivent bientôt."
   },
   "faq": {
     "label": "FAQ",
@@ -437,8 +408,8 @@
         "answer": "Berline, VUS, Camionnette, Fourgonnette, Fourgon Sprinter, Camion 16 pi et 20 pi. Tous requièrent un permis G."
       },
       "pricing": {
-        "question": "Puis-je négocier les tarifs?",
-        "answer": "Des tarifs basés sur le volume et des taux personnalisés sont disponibles via les ententes entreprise."
+        "question": "Comment fonctionne la tarification?",
+        "answer": "Sur devis selon classe de véhicule, distance, arrêts, urgence (jour même vs planifié) et manutention. Pas de frais plateforme cachés."
       },
       "monthly": {
         "question": "Puis-je payer mensuellement?",
@@ -449,8 +420,8 @@
         "answer": "Chaque livraison inclut preuve photo, signatures numériques et confirmation par code-barres."
       },
       "sameDay": {
-        "question": "Offrez-vous la livraison le jour même?",
-        "answer": "Oui. La livraison le jour même est disponible dans le RGT pour la plupart des véhicules."
+        "question": "Offrez-vous la livraison le jour même à Toronto et dans le RGT?",
+        "answer": "Oui. La livraison jour même et urgente est disponible dans nos zones du RGT selon les heures limites, la classe de véhicule et la capacité. Demandez un devis et nous confirmons la fenêtre."
       },
       "multiStop": {
         "question": "Gérez-vous les routes multi-arrêts?",
@@ -466,7 +437,23 @@
       },
       "gta": {
         "question": "Quelles régions servez-vous?",
-        "answer": "Nous opérons dans le RGT incluant Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville et environs."
+        "answer": "Nous opérons dans la région du Grand Toronto — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener-Waterloo, London et Niagara — avec expertise sur les couloirs 401, 427 et 407."
+      },
+      "overflow": {
+        "question": "Pouvez-vous gérer une livraison d'urgence quand notre chauffeur est indisponible?",
+        "answer": "Oui. La livraison d'urgence et le débordement de flotte sont des services centraux — nous déployons capacité véhicule et chauffeur adaptée, souvent le jour même."
+      },
+      "jobsite": {
+        "question": "Livrez-vous des matériaux de construction sur chantier?",
+        "answer": "Oui. Nous assurons la livraison chantier pour distributeurs construction et entrepreneurs — pickups, fourgons cargo et camions cube avec créneaux horaires, notes d'accès et preuve photo pour contremaîtres et facturation."
+      },
+      "lastMile": {
+        "question": "Offrez-vous une livraison rapide ou express pour les entreprises?",
+        "answer": "Oui. La livraison B2B rapide et express est disponible pour fret sensible au temps avec suivi en direct et preuve de livraison."
+      },
+      "intraCity": {
+        "question": "Qu'est-ce que la logistique intra-urbaine et la proposez-vous?",
+        "answer": "La logistique intra-urbaine déplace le fret entre sites dans le RGT — entrepôts, chantiers, magasins et cliniques. Nous exécutons routes intra-urbaines à arrêt unique, multi-arrêts et récurrentes."
       },
       "onboarding": {
         "question": "Combien de temps prend l'intégration?",
@@ -474,7 +461,7 @@
       },
       "integrations": {
         "question": "Quelles plateformes e-commerce supportez-vous?",
-        "answer": "Intégrations natives Shopify et WooCommerce, plus CSV et API REST pour toute plateforme."
+        "answer": "Téléversement CSV et API REST pour les commandes; connecteurs Shopify et WooCommerce sur demande pour les programmes à fort volume."
       },
       "billing": {
         "question": "Comment fonctionne la facturation?",
@@ -503,8 +490,8 @@
     }
   },
   "finalCta": {
-    "title": "Prêt à moderniser votre logistique?",
-    "subtitle": "Indiquez-nous comment vous joindre et nous préparerons une solution adaptée à votre entreprise."
+    "title": "Obtenez de la capacité de livraison sur vos couloirs",
+    "subtitle": "Dites-nous ce qui doit bouger. Nous deviserons la bonne capacité véhicule-chauffeur pour votre opération."
   },
   "footer": {
     "tagline": "Logistique entreprise pour entreprises en croissance.",

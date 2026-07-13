@@ -8,7 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 
-from porterchain_api.db import get_db
+from porterchain_api.db import get_db, db_transaction
 from porterchain_api.notification_engine.device_service import DeviceService
 from porterchain_api.notification_engine.engine import get_notification_engine
 from porterchain_api.notification_engine.preference_service import PreferenceService
@@ -49,7 +49,7 @@ def register_device(
     user: Annotated[NotificationUser, Depends(get_notification_user)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         device = _devices.register(
             db,
             user_role=user.user_role,
@@ -72,7 +72,7 @@ def revoke_device(
     user: Annotated[NotificationUser, Depends(get_notification_user)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         ok = _devices.revoke(db, device_id, user_role=user.user_role, user_id=user.user_id)
         if not ok:
             raise HTTPException(status_code=404, detail="device_not_found")
@@ -105,7 +105,7 @@ def mark_read(
     user: Annotated[NotificationUser, Depends(get_notification_user)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         ok = _engine.mark_read(db, notification_id, user_role=user.user_role, user_id=user.user_id)
         if not ok:
             raise HTTPException(status_code=404, detail="notification_not_found")
@@ -118,7 +118,7 @@ def mark_archive(
     user: Annotated[NotificationUser, Depends(get_notification_user)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         ok = _engine.mark_archive(db, notification_id, user_role=user.user_role, user_id=user.user_id)
         if not ok:
             raise HTTPException(status_code=404, detail="notification_not_found")
@@ -130,7 +130,7 @@ def mark_all_read(
     user: Annotated[NotificationUser, Depends(get_notification_user)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         count = _engine.mark_all_read(db, user_role=user.user_role, user_id=user.user_id)
     return {"ok": True, "marked": count}
 
@@ -140,7 +140,7 @@ def get_preferences(
     user: Annotated[NotificationUser, Depends(get_notification_user)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         _prefs.ensure_defaults(db, user_role=user.user_role, user_id=user.user_id)
         rows = _prefs.get_all(db, user_role=user.user_role, user_id=user.user_id)
     return [
@@ -161,7 +161,7 @@ def update_preference(
     user: Annotated[NotificationUser, Depends(get_notification_user)],
     db: Session = Depends(get_db),
 ):
-    with db.begin():
+    with db_transaction(db):
         pref = _prefs.upsert(
             db,
             user_role=user.user_role,

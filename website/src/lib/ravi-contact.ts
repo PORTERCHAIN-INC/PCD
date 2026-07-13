@@ -5,7 +5,7 @@ export const raviContact = {
   nameDisplay: "RAVI CHAUHAN",
   role: "Head of Marketing",
   company: "Porterchain",
-  tagline: "Cognition in Motion",
+  tagline: "Moving Commerce On-Chain",
   phone: "+1 647 619 7951",
   phoneE164: "+16476197951",
   email: "sales@porterchain.com",

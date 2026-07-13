@@ -50,7 +50,7 @@ export default function VehiclePartnerHero({ locale }: Props) {
               </LinkButton>
             </div>
             <div className="mt-12 max-w-5xl">
-              <HeroPhoto image={siteImages.hero.partner} priority />
+              <HeroPhoto image={siteImages.brand.warehouseDock} priority />
             </div>
           </div>
 

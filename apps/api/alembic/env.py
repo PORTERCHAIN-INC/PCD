@@ -20,6 +20,7 @@ from porterchain_api import (  # noqa: F401
     merchant_models,
     models,
     user_models,
+    website_content_models,
     invitation_models,
 )
 from porterchain_api.billing_engine import models as billing_models  # noqa: F401

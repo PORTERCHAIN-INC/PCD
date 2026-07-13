@@ -1,132 +1,216 @@
+/* Calibri when installed (Windows/Office); Carlito is the open metric-compatible fallback */
+@import url("https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400&display=swap");
+
 .ravi-page {
-  --ravi-green: var(--porterchain-green, #124835);
-  --ravi-green-deep: #0a2f22;
-  --ravi-green-soft: rgba(255, 255, 255, 0.12);
-  --ravi-white: var(--porterchain-white, #ffffff);
-  --ravi-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  --ravi-ink: #0a1628;
+  --ravi-green: #124835;
+  --ravi-green-deep: #071a28;
+  --ravi-blue: #2563eb;
+  --ravi-white: #ffffff;
+  --ravi-shadow: 0 28px 80px -24px rgba(0, 0, 0, 0.45);
+  --ravi-font: Calibri, Carlito, Candara, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 
   min-height: 100dvh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6) var(--space-4);
+  gap: 1.25rem;
+  padding: 1.5rem 1rem 2rem;
+  font-family: var(--ravi-font);
+  -webkit-font-smoothing: antialiased;
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 42%),
-    linear-gradient(160deg, var(--ravi-green-deep) 0%, var(--ravi-green) 48%, #1a5c44 100%);
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(37, 99, 235, 0.28), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 90% 110%, rgba(18, 72, 53, 0.45), transparent 50%),
+    linear-gradient(165deg, #041018 0%, var(--ravi-green-deep) 42%, #0c2a22 100%);
   position: relative;
   overflow: hidden;
+}
+
+.ravi-page,
+.ravi-page * {
+  font-family: inherit;
 }
 
 .ravi-page__glow {
   position: absolute;
   border-radius: 50%;
-  filter: blur(60px);
+  filter: blur(72px);
   pointer-events: none;
 }
 
 .ravi-page__glow--one {
-  width: 18rem;
-  height: 18rem;
-  top: -4rem;
-  right: -3rem;
-  background: rgba(255, 255, 255, 0.08);
+  width: 22rem;
+  height: 22rem;
+  top: -6rem;
+  right: -4rem;
+  background: rgba(37, 99, 235, 0.22);
 }
 
 .ravi-page__glow--two {
-  width: 14rem;
-  height: 14rem;
-  bottom: -2rem;
-  left: -2rem;
-  background: rgba(255, 107, 53, 0.14);
+  width: 18rem;
+  height: 18rem;
+  bottom: -4rem;
+  left: -3rem;
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.ravi-page__glow--three {
+  width: 12rem;
+  height: 12rem;
+  top: 40%;
+  left: 55%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ravi-page__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent 75%);
+  pointer-events: none;
+}
+
+.ravi-page__marquee {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 28rem);
+  opacity: 0.85;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+}
+
+.ravi-page__marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 0.75rem;
+  animation: ravi-marquee 28s linear infinite;
+}
+
+.ravi-page__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@keyframes ravi-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .ravi-card {
-  width: min(100%, 26rem);
-  background: var(--ravi-white);
-  border-radius: 1.5rem;
+  width: min(100%, 26.5rem);
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 1.75rem;
   box-shadow: var(--ravi-shadow);
-  padding: var(--space-8) var(--space-6) var(--space-6);
+  padding: 2rem 1.35rem 1.5rem;
   position: relative;
   z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px);
 }
 
 .ravi-card__header {
   text-align: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: 1.35rem;
 }
 
 .ravi-card__brand {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--ravi-green);
+  color: var(--ravi-ink);
 }
 
 .ravi-card__tagline {
-  margin: var(--space-2) 0 0;
-  font-size: var(--text-sm);
-  color: rgba(18, 72, 53, 0.72);
+  margin: 0.45rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .ravi-card__profile {
   text-align: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: 1.35rem;
 }
 
 .ravi-card__avatar {
-  width: 5.5rem;
-  height: 5.5rem;
-  margin: 0 auto var(--space-4);
+  position: relative;
+  width: 5.75rem;
+  height: 5.75rem;
+  margin: 0 auto 1rem;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   color: var(--ravi-white);
-  background: linear-gradient(145deg, var(--ravi-green) 0%, #1d6b4f 100%);
-  box-shadow: 0 10px 24px rgba(18, 72, 53, 0.28);
+  background: linear-gradient(145deg, var(--ravi-ink) 0%, var(--ravi-green) 55%, #1d6b4f 100%);
+  box-shadow:
+    0 12px 28px rgba(10, 22, 40, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.ravi-card__avatar-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(37, 99, 235, 0.35);
+  pointer-events: none;
 }
 
 .ravi-card__name {
   margin: 0;
-  font-size: clamp(1.35rem, 4vw, 1.65rem);
-  line-height: 1.15;
-  letter-spacing: 0.04em;
-  color: var(--porterchain-green-text, #0d3328);
+  font-size: clamp(1.4rem, 4.2vw, 1.75rem);
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  font-weight: 800;
+  color: var(--ravi-ink);
 }
 
 .ravi-card__role {
-  margin: var(--space-2) 0 0;
+  margin: 0.4rem 0 0;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--ravi-green);
+  color: var(--ravi-blue);
 }
 
 .ravi-card__company {
-  margin: var(--space-1) 0 0;
-  font-size: var(--text-sm);
-  color: rgba(13, 51, 40, 0.72);
+  margin: 0.2rem 0 0;
+  font-size: 0.875rem;
+  color: rgba(10, 22, 40, 0.62);
 }
 
 .ravi-card__save {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  width: 100%;
-  margin-top: var(--space-5);
-  padding: var(--space-3) var(--space-4);
+  margin-top: 1.15rem;
+  padding: 0.85rem 1.15rem;
   border: none;
-  border-radius: 0.95rem;
-  font-size: 0.98rem;
-  font-weight: 800;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 700;
   text-decoration: none;
   color: var(--ravi-white);
-  background: linear-gradient(145deg, var(--ravi-green) 0%, #1d6b4f 100%);
-  box-shadow: 0 10px 24px rgba(18, 72, 53, 0.24);
+  background: linear-gradient(135deg, var(--ravi-blue) 0%, #1d4ed8 100%);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.32);
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease;
@@ -137,14 +221,9 @@
 .ravi-card__save:hover,
 .ravi-card__save:focus-visible {
   transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(18, 72, 53, 0.3);
-  outline: 2px solid rgba(18, 72, 53, 0.25);
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.4);
+  outline: 2px solid rgba(37, 99, 235, 0.3);
   outline-offset: 2px;
-}
-
-.ravi-card__save-icon {
-  display: grid;
-  place-items: center;
 }
 
 .ravi-card__links ul {
@@ -152,43 +231,41 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-3);
+  gap: 0.55rem;
+}
+
+.ravi-card__magic {
+  background: transparent !important;
 }
 
 .ravi-card__link {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-radius: 0.95rem;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 1rem;
   text-decoration: none;
-  color: var(--porterchain-green-text, #0d3328);
-  background: var(--porterchain-green-light, rgba(18, 72, 53, 0.06));
-  border: 1px solid var(--porterchain-green-border, rgba(18, 72, 53, 0.12));
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    background 0.18s ease;
+  color: var(--ravi-ink);
+  background: rgba(10, 22, 40, 0.035);
+  border: 1px solid rgba(10, 22, 40, 0.06);
+  transition: background 0.18s ease;
 }
 
 .ravi-card__link:hover,
 .ravi-card__link:focus-visible {
-  transform: translateY(-1px);
-  background: var(--ravi-white);
-  box-shadow: 0 8px 20px rgba(18, 72, 53, 0.12);
-  outline: 2px solid rgba(18, 72, 53, 0.2);
-  outline-offset: 2px;
+  background: rgba(37, 99, 235, 0.05);
+  outline: none;
 }
 
 .ravi-card__link-icon {
   flex: 0 0 auto;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.75rem;
+  width: 2.45rem;
+  height: 2.45rem;
+  border-radius: 0.8rem;
   display: grid;
   place-items: center;
   color: var(--ravi-white);
-  background: var(--ravi-green);
+  background: linear-gradient(145deg, var(--ravi-ink), var(--ravi-green));
 }
 
 .ravi-card__link-text {
@@ -196,18 +273,18 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.08rem;
 }
 
 .ravi-card__link-label {
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: 0.92rem;
+  font-weight: 700;
   line-height: 1.2;
 }
 
 .ravi-card__link-detail {
-  font-size: var(--text-xs);
-  color: rgba(13, 51, 40, 0.68);
+  font-size: 0.75rem;
+  color: rgba(10, 22, 40, 0.58);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -215,53 +292,61 @@
 
 .ravi-card__link-arrow {
   flex: 0 0 auto;
-  font-size: 1.1rem;
-  color: var(--ravi-green);
-  opacity: 0.7;
+  color: var(--ravi-blue);
+  opacity: 0.65;
 }
 
 .ravi-card__footer {
-  margin-top: var(--space-6);
+  margin-top: 1.35rem;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 0.75rem;
 }
 
 .ravi-card__footer-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-2) var(--space-4);
-  border-radius: 0.75rem;
-  font-size: var(--text-sm);
-  font-weight: 800;
+  padding: 0.8rem 1.15rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--ravi-white);
-  background: var(--ravi-green);
+  background: linear-gradient(135deg, var(--ravi-green) 0%, #1a5c44 100%);
   text-decoration: none;
+  box-shadow: 0 10px 24px rgba(18, 72, 53, 0.28);
 }
 
 .ravi-card__footer-cta:hover,
 .ravi-card__footer-cta:focus-visible {
-  opacity: 0.92;
-  outline: 2px solid rgba(18, 72, 53, 0.25);
+  outline: 2px solid rgba(18, 72, 53, 0.3);
   outline-offset: 2px;
 }
 
 .ravi-card__footer-link {
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--ravi-green);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(10, 22, 40, 0.55);
   text-decoration: none;
+  letter-spacing: 0.02em;
 }
 
 .ravi-card__footer-link:hover,
 .ravi-card__footer-link:focus-visible {
+  color: var(--ravi-blue);
   text-decoration: underline;
 }
 
 @media (min-width: 640px) {
   .ravi-card {
-    padding: var(--space-10) var(--space-8) var(--space-8);
+    padding: 2.35rem 1.85rem 1.75rem;
+  }
+
+  .ravi-page {
+    padding: 2rem 1.25rem 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ravi-page__marquee-track {
+    animation: none;
   }
 }

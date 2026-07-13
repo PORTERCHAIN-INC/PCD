@@ -26,6 +26,7 @@ export const navbarNavigation: NavbarItem[] = [
     ],
   },
   { type: "link", id: "pricing", href: "/pricing" },
+  { type: "link", id: "contact", href: "/contact?intent=quote" },
   {
     type: "dropdown",
     id: "company",
@@ -46,8 +47,6 @@ export const navbarNavigation: NavbarItem[] = [
       { id: "guides", href: "/guides" },
       { id: "track", href: "/track" },
       { id: "howItWorks", href: "/how-porterchain-works" },
-      { id: "platform", href: "/platform" },
-      { id: "developers", href: "/developers" },
     ],
   },
 ];

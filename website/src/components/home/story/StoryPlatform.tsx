@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
   BarChart3,
@@ -12,6 +11,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import LinkButton from "@/components/corporate/ui/LinkButton";
+import MagicCard from "@/components/magic/magic-card";
+import BlurFade from "@/components/magic/blur-fade";
 import StorySection from "./StorySection";
 
 const KEYS = ["portal", "tracking", "dispatch", "pod", "billing", "analytics"] as const;
@@ -33,32 +34,27 @@ export default function StoryPlatform() {
         {KEYS.map((key, i) => {
           const Icon = ICONS[key];
           return (
-            <motion.div
-              key={key}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              className="rounded-2xl border border-primary/6 bg-white p-6 shadow-premium"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10">
-                <Icon className="h-5 w-5 text-secondary" aria-hidden />
-              </div>
-              <h3 className="mt-4 text-base font-semibold text-primary">
-                {t(`items.${key}.title`)}
-              </h3>
-              <p className="mt-2 text-sm text-muted leading-relaxed">
-                {t(`items.${key}.description`)}
-              </p>
-            </motion.div>
+            <BlurFade key={key} delay={i * 0.05} inView>
+              <MagicCard className="h-full p-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10">
+                  <Icon className="h-5 w-5 text-secondary" aria-hidden />
+                </div>
+                <h3 className="mt-4 text-base font-semibold text-primary">
+                  {t(`items.${key}.title`)}
+                </h3>
+                <p className="mt-2 text-sm text-muted leading-relaxed">
+                  {t(`items.${key}.description`)}
+                </p>
+              </MagicCard>
+            </BlurFade>
           );
         })}
       </div>
-      <div className="mt-10">
+      <BlurFade inView className="mt-10">
         <LinkButton href="/platform" variant="secondary" showArrow trackSource="home-platform">
           {t("cta")}
         </LinkButton>
-      </div>
+      </BlurFade>
     </StorySection>
   );
 }

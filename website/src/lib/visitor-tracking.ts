@@ -1,5 +1,7 @@
 /** Client-side visitor tracking metadata for anonymous quote flow. */
 
+import { isMobilePhoneBrowser } from "@/lib/device";
+
 export interface VisitorTrackingPayload {
   browser?: string;
   utm_source?: string;
@@ -18,13 +20,12 @@ function getUtm(param: string): string | undefined {
 export function getVisitorTracking(): VisitorTrackingPayload {
   if (typeof window === "undefined") return {};
   const ua = navigator.userAgent;
-  const isMobile = /Mobi|Android/i.test(ua);
   return {
     browser: ua.slice(0, 120),
     utm_source: getUtm("utm_source"),
     utm_medium: getUtm("utm_medium"),
     utm_campaign: getUtm("utm_campaign"),
     referrer: document.referrer || undefined,
-    device: isMobile ? "mobile" : "desktop",
+    device: isMobilePhoneBrowser() ? "mobile" : "desktop",
   };
 }

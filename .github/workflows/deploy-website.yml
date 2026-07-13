@@ -164,5 +164,5 @@ jobs:
           set -e
           curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en | grep -q 200
           curl -fsS https://porterchain.com/sitemap.xml | grep -q '<urlset'
-          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en/toronto/van-delivery | grep -q 200
+          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en/toronto/trade-van-delivery | grep -q 200
           echo "Website prod smoke passed"

@@ -11,6 +11,7 @@ export default function AppClerkProvider({ children }: { children: React.ReactNo
     <ClerkProvider
       publishableKey={publicEnv.clerkPublishableKey}
       signInUrl="/sign-in"
+      signUpUrl="/sign-up"
       afterSignOutUrl="/sign-in"
       signInFallbackRedirectUrl="/dashboard"
     >

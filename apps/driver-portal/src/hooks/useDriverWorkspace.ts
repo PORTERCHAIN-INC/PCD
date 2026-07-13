@@ -202,8 +202,11 @@ export function useDriverWorkspace() {
       try {
         await driverApi.setOnline(online);
         await refresh(true);
+        if (mounted.current) setError("");
+      } catch (e) {
+        if (mounted.current) setError(e instanceof Error ? e.message : "availability_failed");
       } finally {
-        setActionPending(null);
+        if (mounted.current) setActionPending(null);
       }
     },
     [refresh]
@@ -215,8 +218,11 @@ export function useDriverWorkspace() {
     try {
       await driverApi.shiftStart(routeId);
       await refresh(true);
+      if (mounted.current) setError("");
+    } catch (e) {
+      if (mounted.current) setError(e instanceof Error ? e.message : "start_shift_failed");
     } finally {
-      setActionPending(null);
+      if (mounted.current) setActionPending(null);
     }
   }, [data, refresh]);
 
@@ -225,8 +231,11 @@ export function useDriverWorkspace() {
     try {
       await driverApi.shiftEnd();
       await refresh(true);
+      if (mounted.current) setError("");
+    } catch (e) {
+      if (mounted.current) setError(e instanceof Error ? e.message : "end_shift_failed");
     } finally {
-      setActionPending(null);
+      if (mounted.current) setActionPending(null);
     }
   }, [refresh]);
 
@@ -242,8 +251,11 @@ export function useDriverWorkspace() {
         );
       });
       await driverApi.emergency(location);
+      if (mounted.current) setError("");
+    } catch (e) {
+      if (mounted.current) setError(e instanceof Error ? e.message : "emergency_failed");
     } finally {
-      setActionPending(null);
+      if (mounted.current) setActionPending(null);
     }
   }, []);
 

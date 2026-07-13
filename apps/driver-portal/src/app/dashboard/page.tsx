@@ -58,6 +58,9 @@ export default function DashboardPage() {
 
   return (
     <DriverShell>
+      {error ? (
+        <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+      ) : null}
       <header className="flex flex-col gap-4 border-b border-[var(--primary)]/8 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-medium text-[var(--muted)]">Driver Workspace</p>

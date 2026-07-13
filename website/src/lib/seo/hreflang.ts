@@ -43,6 +43,7 @@ export function buildSeoMetadata(params: {
     index = true,
   } = params;
   return {
+    metadataBase: new URL(siteConfig.baseUrl),
     title,
     description,
     alternates: {

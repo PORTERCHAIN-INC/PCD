@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SignIn, useAuth } from "@clerk/nextjs";
 import { isClerkConfigured } from "@/lib/env";
+import { porterchainClerkAppearance } from "@/lib/clerk-appearance";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function SignInPage() {
   if (!isClerkConfigured()) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-bg p-4">
-        <div className="w-full max-w-md rounded-2xl border border-primary/10 bg-white p-8 shadow-sm">
+        <div className="w-full max-w-md rounded-2xl border border-primary/10 portal-surface p-8 shadow-sm">
           <h1 className="text-2xl font-bold text-primary">Porterchain Merchant Portal</h1>
           <p className="mt-2 text-sm text-muted">
             Clerk is not configured for local development, so the sign-in widget cannot load.
@@ -74,6 +75,7 @@ export default function SignInPage() {
         path="/sign-in"
         forceRedirectUrl="/onboarding"
         fallbackRedirectUrl="/onboarding"
+        appearance={porterchainClerkAppearance}
       />
       <p className="mt-6 max-w-sm text-center text-xs text-muted">
         Merchant access is invitation-only. Contact your Porterchain account manager if you need an

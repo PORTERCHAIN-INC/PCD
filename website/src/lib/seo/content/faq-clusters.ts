@@ -158,12 +158,12 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
     description:
       "How Porterchain prices recurring and same-day delivery for merchants. Stop-based, zone-based, and volume pricing.",
     intro:
-      "Porterchain pricing is designed for merchants with recurring delivery volume. We align cost to your routes, zones, and volume so you get predictable delivery without surprise fees. Below we answer common questions about how pricing works.",
+      "Porterchain prices B2B delivery capacity — not software seats. Pricing is quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Recurring routes and fleet overflow use the same model: predictable cost aligned to your lanes without hidden platform fees. Share your stops, zones, and freight profile and we confirm numbers in writing before dispatch.",
     items: [
       {
         question: "How is delivery pricing structured?",
         answer:
-          "Pricing is typically based on stops, zones, and volume. Recurring routes (e.g. weekly café drops) often use a per-stop or per-route rate. Same-day or on-demand runs may use zone-based or distance-based pricing. We confirm pricing after understanding your volume and service areas.",
+          "Quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Recurring routes often use per-stop or per-route rates; same-day runs factor zone and cut-off time. We confirm pricing in writing after understanding your volume and service areas — no hidden platform fees.",
       },
       {
         question: "Is there a minimum volume or commitment?",
@@ -423,7 +423,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Which vehicles do you use for coffee delivery?",
         answer:
-          "We use cars, vans, and cargo bikes depending on volume and density. Urban café routes often use cargo bikes; larger wholesale runs may use vans. We match the vehicle to the run.",
+          "Sedans and trade vans for smaller wholesale runs; cargo vans and box trucks for multi-stop café and restaurant supply. We match the vehicle to stop count, parcel size, and site access across the GTA.",
       },
       {
         question: "Where do you deliver for roasters?",
@@ -437,15 +437,16 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
   },
   {
     slug: "cosmetics-delivery",
-    title: "Cosmetics and beauty brand delivery",
-    description: "FAQ on D2C and subscription delivery for cosmetics and beauty brands.",
+    title: "Cosmetics and beauty brand B2B delivery",
+    description:
+      "FAQ on wholesale, retail replenishment, and promotional delivery for cosmetics and beauty brands across Ontario.",
     intro:
-      "Beauty and cosmetics brands use Porterchain for D2C and subscription fulfillment. We run recurring pickup and delivery with tracking so customers know when to expect their order. Here are common questions about cosmetics delivery.",
+      "Beauty and cosmetics brands use Porterchain for wholesale counter runs, retail replenishment, and peak promotional capacity — with tracking and proof on every stop. We run recurring routes and same-day overflow when launches or campaigns need extra vehicle capacity. Here are common questions about cosmetics and beauty delivery for Ontario merchants.",
     items: [
       {
-        question: "Do you handle D2C and subscription fulfillment?",
+        question: "Do you handle wholesale and retail replenishment?",
         answer:
-          "Yes. We support D2C and subscription box delivery with recurring pickup and delivery. You get tracking links for every shipment so customers can see status and ETA.",
+          "Yes. We support B2B delivery to retailers, distributors, and fulfillment partners with recurring pickup and multi-stop routes. Every shipment gets a tracking link with live status and ETA for your ops team and trade customers.",
       },
       {
         question: "Can you do same-day for promotions or launches?",
@@ -532,7 +533,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "What affects the cost of local delivery?",
         answer:
-          "Main factors: number of stops per run or per week, whether routes are recurring (e.g. weekly) or same-day, time windows, and vehicle fit (e.g. cargo bike vs. van). We align pricing to these so it's transparent and predictable.",
+          "Main factors: number of stops per run or per week, whether routes are recurring or same-day, time windows, and vehicle class (sedan through box truck). We align quote-based pricing to these factors so cost is transparent before dispatch.",
       },
       {
         question: "How do I get a quote for Toronto delivery?",
@@ -678,14 +679,14 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
     slug: "what-vehicle-right-for-parcel-volume",
     title: "What vehicle is right for my parcel volume?",
     description:
-      "Choose the right vehicle for your delivery volume: cars, vans, trucks, and cargo bikes. How Porterchain matches vehicle to your runs.",
+      "Choose the right vehicle for your B2B freight: sedans through box trucks. How Porterchain matches vehicle-and-driver capacity to your routes.",
     intro:
-      "The right vehicle for your parcel volume depends on stop count, parcel size, and geography. Porterchain matches the vehicle to the run: cargo bikes for dense urban routes and smaller loads, vans for multi-stop wholesale or larger parcels, trucks for heavy or bulky runs. We don't ask you to own or specify the vehicle — we assign capacity based on your volume and route type so you get the right fit without managing fleet. When you share your typical stops per week and what you're moving (e.g. coffee bags, prescriptions, beauty boxes), we'll align the right vehicle and capacity.",
+      "The right vehicle for your B2B freight depends on stop count, parcel size, and site access. Porterchain matches vehicle-and-driver capacity to the run: sedans and SUVs for documents and small parcels, trade vans and cargo vans for multi-stop wholesale, pickups and box trucks for palletized or jobsite freight. You do not manage fleet — we assign capacity from your volume and route profile. Share typical stops per week and what you move (wire, prescriptions, building materials, retail cartons) and we align the right vehicle class.",
     items: [
       {
         question: "Do I choose the vehicle or does Porterchain?",
         answer:
-          "We match the vehicle to your run based on volume, parcel size, and route density. You tell us what you're delivering and how many stops; we assign cars, vans, trucks, or cargo bikes as appropriate. You can share preferences (e.g. cargo bike for urban café drops) and we'll factor that in.",
+          "We match vehicle class to your run based on volume, freight profile, and route density. You share what you are moving and how many stops; we assign sedans, vans, pickups, or box trucks as appropriate. Site access and pallet weight are factored in before dispatch.",
       },
       {
         question: "What if my volume grows or changes?",
@@ -693,9 +694,9 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
           "Capacity can scale with your volume. If you add stops or expand zones, we'll adjust the vehicle mix and capacity so your delivery stays reliable without you managing fleet.",
       },
       {
-        question: "Are cargo bikes available in my area?",
+        question: "Are box trucks available for heavier freight?",
         answer:
-          "We use cargo bikes in dense urban areas where they're a good fit (e.g. downtown Toronto café routes). Vans and cars are used across all service areas. We'll match the vehicle to your specific routes and zones.",
+          "Yes. Pickups and 16–20 ft box trucks are used for palletized materials, construction freight, and bulk wholesale runs across our Ontario service areas. We confirm vehicle fit during onboarding for your lanes.",
       },
       {
         question: "How do I get started with the right vehicle fit?",
@@ -715,6 +716,88 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
     extraLinks: [
       { path: "onboarding", label: "How onboarding works" },
       { path: "serviceAreas", label: "Service areas" },
+    ],
+  },
+  {
+    slug: "same-day-retail-distribution",
+    title: "Same-day retail distribution: store replenishment FAQ",
+    description:
+      "FAQ on same-day retail distribution and store replenishment in the GTA — multi-stop routes, cut-offs, and fleet overflow for retailers and wholesalers.",
+    intro:
+      "Retailers and wholesale distributors need same-day store replenishment when DC trucks are full, a promo hits, or a store is out of stock. Porterchain provides vehicle-and-driver capacity for multi-stop retail distribution across the GTA — sedans through box trucks with tracking and proof on every stop. Below are common questions about same-day retail distribution.",
+    items: [
+      {
+        question: "Who can deliver store replenishment right now near me in Toronto?",
+        answer:
+          "Porterchain provides same-day vehicle-and-driver capacity for retail store replenishment across the GTA. If you need multi-stop runs or palletized freight today near Toronto, Mississauga, or Brampton, request a quote with your store list — we confirm capacity within one business day and dispatch sedan through box truck with live tracking and proof on every stop.",
+      },
+      {
+        question: "Do you handle same-day retail store replenishment?",
+        answer:
+          "Yes. We run same-day multi-stop distribution for retailers, brand partners, and wholesalers subject to cut-off times and capacity. Share your stores, SKUs, and time windows and we align vehicles and drivers.",
+      },
+      {
+        question: "Can you cover fleet overflow when our trucks are booked?",
+        answer:
+          "Fleet overflow is a core use case. When your fleet is at capacity or a driver is out, we dispatch matched vehicle-and-driver capacity — often same day — with live tracking and proof of delivery.",
+      },
+      {
+        question: "What vehicles do you use for retail distribution?",
+        answer:
+          "Sedans and trade vans for small parcel runs; cargo vans and box trucks for multi-stop replenishment and palletized freight. We match vehicle class to stop count, dock access, and freight profile.",
+      },
+      {
+        question: "Which areas do you serve for retail distribution?",
+        answer:
+          "We serve the GTA — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton — and Kitchener-Waterloo, London, Niagara, and Oshawa. Request a quote with your store list and zones.",
+      },
+    ],
+    industrySlugs: ["cosmetics", "coffee-roasters", "construction-materials"],
+    serviceAreaSlugs: ["toronto", "mississauga", "brampton", "vaughan", "markham"],
+    extraLinks: [
+      { path: "pricing", label: "Pricing" },
+      { path: "serviceAreas", label: "Service areas" },
+    ],
+  },
+  {
+    slug: "fleet-overflow-wholesale-delivery",
+    title: "Fleet overflow wholesale delivery FAQ",
+    description:
+      "FAQ on fleet overflow and backup capacity for wholesale distributors — electrical, plumbing, construction, and industrial supply across Ontario.",
+    intro:
+      "Wholesale distributors hit fleet overflow when every truck is booked, a driver calls out, or peak season exceeds in-house capacity. Porterchain provides backup vehicle-and-driver capacity for counter-to-jobsite and depot-to-customer runs — same-day urgent and recurring overflow lanes with tracking and proof. Here are common questions about fleet overflow for wholesale delivery.",
+    items: [
+      {
+        question: "Who can deliver a 50kg pallet right now near me?",
+        answer:
+          "Porterchain dispatches matched vehicle-and-driver capacity for palletized B2B freight across the GTA — cargo vans and box trucks for loads from small pallet to full truckload. Share pickup location, weight, and delivery window on a quote request; same-day overflow capacity is subject to cut-off times and availability in your zone.",
+      },
+      {
+        question: "What is fleet overflow delivery?",
+        answer:
+          "Fleet overflow is backup vehicle-and-driver capacity when your own fleet cannot cover a shipment — driver out, peak demand, or an extra jobsite drop. We dispatch matched capacity, often same day, without you hiring drivers or buying trucks.",
+      },
+      {
+        question: "Do you work with electrical and plumbing wholesalers?",
+        answer:
+          "Yes. We partner with electrical, plumbing, and building supply distributors for overflow runs from counter to contractor or jobsite. Share cut-offs, freight profile, and zones and we align vans or box trucks.",
+      },
+      {
+        question: "How quickly can you dispatch overflow capacity?",
+        answer:
+          "Same-day overflow is available in our service areas subject to cut-off times and vehicle class. Emergency and urgent runs are a core service — request a quote and we confirm the window in writing.",
+      },
+      {
+        question: "How does pricing work for overflow lanes?",
+        answer:
+          "Quote-based on vehicle class, distance, stops, and urgency. No platform fees — we confirm pricing in writing before dispatch so overflow lanes stay predictable alongside your in-house fleet costs.",
+      },
+    ],
+    industrySlugs: ["electrical-distribution", "plumbing-supply", "construction-materials"],
+    serviceAreaSlugs: ["toronto", "mississauga", "brampton", "hamilton", "kitchener-waterloo"],
+    extraLinks: [
+      { path: "pricing", label: "Pricing" },
+      { path: "onboarding", label: "How onboarding works" },
     ],
   },
 ];

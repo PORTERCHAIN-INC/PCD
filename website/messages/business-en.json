@@ -1,20 +1,18 @@
 {
   "metadata": {
-    "title": "Porterchain Services | Transportation Capacity for Ontario Businesses",
-    "description": "Request vehicle-and-driver capacity for urgent delivery, overflow, scheduled routes, local distribution, and business continuity across Ontario.",
-    "ogTitle": "Porterchain — Transportation Capacity Services",
-    "ogDescription": "Professional drivers and vehicles for businesses that need backup, overflow, same-day, or recurring delivery capacity."
+    "title": "B2B Delivery Services GTA | Same-Day, Urgent & Emergency | PorterChain",
+    "description": "GTA B2B delivery services: same-day, urgent, emergency, and quick delivery; fleet overflow; intra-city logistics; jobsite, wholesale, and last-mile routes. Cargo van to box truck. Get a quote.",
+    "ogTitle": "Porterchain — B2B Delivery Services for the GTA",
+    "ogDescription": "Professional drivers and vehicles for construction supply, wholesale distribution, pharmacy courier, and business continuity when your fleet is not enough."
   },
   "nav": {
     "solutions": "Solutions",
     "industries": "Industries",
-    "technology": "Technology",
     "pricing": "Pricing",
     "resources": "Resources",
     "about": "About",
     "contact": "Contact",
-    "bookDelivery": "Book Delivery",
-    "requestConsultation": "Request Consultation",
+    "requestConsultation": "Get a quote",
     "toggleMenu": "Toggle menu",
     "solutionItems": {
       "recurring": "Recurring Delivery",
@@ -24,16 +22,21 @@
     }
   },
   "hero": {
-    "badge": "Transportation capacity",
+    "badge": "B2B delivery services · GTA",
     "titleLine1": "Vehicle and driver capacity",
-    "titleLine2": "when your fleet is not enough.",
-    "subtitle": "Urgent runs, overflow, and recurring routes — professional drivers and vehicles across Ontario.",
+    "titleLine2": "for every delivery scenario.",
+    "subtitle": "From emergency delivery and same-day urgent runs to recurring intra-city logistics — one commercial delivery partner across Toronto, Peel, York, and Durham. Live tracking and proof on every stop · quote-based, no platform fees.",
     "ctaPrimary": "Get a quote",
     "ctaSecondary": "See vehicles"
   },
+  "brandBand": {
+    "eyebrow": "Moving Commerce On-Chain",
+    "title": "Capacity you can put on the road today",
+    "body": "Box truck to trailer — branded network capacity when overflow, same-day, or recurring GTA routes need a professional driver now."
+  },
   "inquiry": {
-    "title": "Let's Talk About Your Logistics",
-    "subtitle": "Tell us how to reach you. A Porterchain logistics consultant will contact you within one business day.",
+    "title": "Get delivery capacity on your lanes",
+    "subtitle": "Share how to reach you and what needs to move. We respond within one business day with vehicle-and-driver options.",
     "workEmail": "Work Email",
     "workEmailPlaceholder": "you@company.com",
     "phone": "Phone Number",
@@ -43,11 +46,13 @@
     "extensionShort": "Ext",
     "extensionPlaceholder": "e.g. 204",
     "optional": "Optional",
-    "consent": "I agree to be contacted by Porterchain regarding business logistics services.",
-    "submit": "Request Business Consultation",
+    "consent": "I agree to be contacted by Porterchain about delivery capacity and quotes for my business.",
+    "submit": "Get a quote",
     "submitting": "Submitting...",
-    "successTitle": "Inquiry Received",
-    "successMessage": "Thank you. A Porterchain logistics consultant will reach out within one business day.",
+    "successTitle": "Quote request received",
+    "successMessage": "Thank you. We'll respond within one business day with capacity options for your lanes.",
+    "whatsappCta": "Continue on WhatsApp",
+    "whatsappHint": "Share route details for a faster reply — opens WhatsApp with your quote summary pre-filled.",
     "errorMessage": "We couldn't submit your inquiry. Please try again or call us directly.",
     "assurances": {
       "noObligation": "No obligation",
@@ -56,11 +61,11 @@
     }
   },
   "stickyCta": {
-    "message": "Ready to streamline your logistics?",
-    "button": "Request Consultation"
+    "message": "Need same-day or emergency delivery capacity?",
+    "button": "Get a quote"
   },
   "trustedBy": {
-    "label": "Trusted by businesses across the GTA",
+    "label": "Industries we serve across the GTA",
     "items": {
       "coffee": "Coffee",
       "medical": "Medical",
@@ -75,80 +80,80 @@
     }
   },
   "challenges": {
-    "title": "Your Logistics Shouldn't Slow Your Business Down.",
-    "subtitle": "Growing companies face the same logistics challenges. Porterchain is built to solve them.",
+    "title": "When your own logistics can't keep up",
+    "subtitle": "These are the operational moments Ontario B2B shippers call PorterChain for — not software problems.",
     "items": {
-      "highCosts": {
-        "title": "High delivery costs",
-        "description": "Unpredictable pricing and hidden fees erode margins on every shipment."
+      "driverUnavailable": {
+        "title": "Driver unavailable today",
+        "description": "A driver calls in sick and a committed pickup still has to happen."
       },
-      "lateDeliveries": {
-        "title": "Late deliveries",
-        "description": "Missed windows damage customer relationships and increase support costs."
+      "vehicleBreakdown": {
+        "title": "Vehicle breakdown",
+        "description": "A truck is down and freight still needs to move before the window closes."
       },
-      "manualScheduling": {
-        "title": "Manual scheduling",
-        "description": "Spreadsheets and phone calls waste hours your team could spend growing."
+      "urgentOrder": {
+        "title": "Urgent customer order",
+        "description": "A same-day or emergency request lands when your team is already committed."
       },
-      "noVisibility": {
-        "title": "No visibility",
-        "description": "Without real-time tracking, you're always answering 'where's my order?'"
+      "fleetOverflow": {
+        "title": "Fleet overflow",
+        "description": "Peak volume exceeds what your own vehicles can cover this week."
       },
-      "multipleVendors": {
-        "title": "Multiple vendors",
-        "description": "Juggling couriers creates inconsistency and operational overhead."
+      "peakSeason": {
+        "title": "Peak season pressure",
+        "description": "Seasonal demand spikes and you need backup capacity without hiring ahead of revenue."
       },
-      "noTracking": {
-        "title": "No tracking",
-        "description": "Customers expect live updates. Legacy couriers often can't deliver."
+      "forgottenMaterial": {
+        "title": "Forgotten jobsite material",
+        "description": "A site needs material today — not next route cycle."
       },
-      "invoiceManagement": {
-        "title": "Invoice management",
-        "description": "Reconciling dozens of invoices monthly drains finance teams."
+      "jobsiteEmergency": {
+        "title": "Jobsite emergency",
+        "description": "Construction or trade freight has to reach the site on a hard time window."
       },
-      "scalingProblems": {
-        "title": "Scaling problems",
-        "description": "What worked at 50 deliveries breaks at 500 without the right partner."
+      "sameDayRequest": {
+        "title": "Same-day request",
+        "description": "Counter, warehouse, or clinic freight must move before cut-off with proof on delivery."
       }
     }
   },
   "solutions": {
-    "label": "Solutions",
-    "title": "Our Business Solutions",
-    "subtitle": "End-to-end logistics designed for companies that need reliability, visibility, and scale.",
+    "label": "Services",
+    "title": "B2B delivery services across the GTA",
+    "subtitle": "The capacity programs Ontario businesses request most — same-day, recurring, overflow, and industry-specific delivery with live tracking and proof on every stop.",
     "items": {
       "recurringDelivery": "Recurring Delivery",
       "dedicatedRoutes": "Dedicated Routes",
       "sameDay": "Same-Day Delivery",
       "multiStop": "Multi-stop Distribution",
       "wholesale": "Wholesale Delivery",
-      "ltlFreight": "LTL Freight",
-      "ftlFreight": "FTL Freight",
-      "furniture": "Furniture Delivery",
-      "construction": "Construction Material Delivery",
-      "medical": "Medical Logistics",
-      "retail": "Retail Distribution",
-      "reverse": "Reverse Logistics"
+      "ltlFreight": "Local LTL & pallets",
+      "urgentEmergency": "Urgent & emergency delivery",
+      "quickExpress": "Quick & express delivery",
+      "construction": "Construction & jobsite",
+      "medical": "Medical & pharmacy courier",
+      "fleetOverflow": "Fleet overflow & backup",
+      "lastMile": "Last-mile & retail"
     },
     "descriptions": {
-      "recurringDelivery": "Automated pickups and deliveries on your schedule.",
-      "dedicatedRoutes": "Consistent drivers and routes for your operations.",
-      "sameDay": "Urgent deliveries across the GTA, same day.",
-      "multiStop": "Efficient distribution to multiple locations per run.",
-      "wholesale": "B2B deliveries to retailers and distributors.",
-      "ltlFreight": "Palletized freight without full truckload commitment.",
-      "ftlFreight": "Full truckload capacity for large shipments.",
-      "furniture": "Careful handling for furniture and bulky items.",
-      "construction": "Jobsite deliveries for materials and supplies.",
-      "medical": "Compliant handling for healthcare logistics.",
-      "retail": "Store replenishment and last-mile distribution.",
-      "reverse": "Returns, exchanges, and reverse supply chain."
+      "recurringDelivery": "Scheduled delivery and recurring routes for wholesale, retail replenishment, and fixed lanes.",
+      "dedicatedRoutes": "Reserved truck and driver on your lane — contract-style dedicated delivery without owning the asset.",
+      "sameDay": "Urgent B2B delivery across the GTA when your customer needs it today — subject to cut-off and capacity.",
+      "multiStop": "One pickup, many drops — efficient intra-city logistics for distributors and clinics.",
+      "wholesale": "Counter-to-jobsite and warehouse-to-contractor — electrical, plumbing, and industrial B2B delivery.",
+      "ltlFreight": "Palletized local freight delivery — 16 ft and 20 ft box truck capacity.",
+      "urgentEmergency": "Emergency delivery for driver call-offs, breakdowns, forgotten jobsite material, and deadline freight.",
+      "quickExpress": "Quick and express B2B delivery for time-sensitive commercial shipments — tracked from pickup to proof.",
+      "construction": "Jobsite delivery with timed windows, site access notes, and pallet freight.",
+      "medical": "Time-sensitive medical courier and pharmacy runs with chain-of-custody proof.",
+      "fleetOverflow": "Fleet overflow and backup driver capacity when your trucks are full or your driver is out.",
+      "lastMile": "Last mile delivery and store replenishment with appointment windows and POD."
     }
   },
   "industries": {
     "label": "Industries",
-    "title": "Built for Your Industry",
-    "subtitle": "Specialized logistics expertise across the sectors that power the GTA economy.",
+    "title": "Built for GTA B2B operations",
+    "subtitle": "Specialized delivery capacity for the sectors that drive the Greater Toronto Area economy — construction, wholesale trade, manufacturing, medical, and retail distribution.",
     "items": {
       "coffee": "Coffee Roasters",
       "foodBeverage": "Food & Beverage",
@@ -169,41 +174,32 @@
     }
   },
   "whyChoose": {
-    "title": "Why Businesses Choose Porterchain",
-    "subtitle": "Enterprise-grade capabilities with the simplicity your team deserves.",
+    "title": "Proof and accountability on every delivery",
+    "subtitle": "Capacity you can trust — with visibility and documentation included, not sold as a separate software product.",
     "items": {
-      "realTimeTracking": "Real-Time Tracking",
-      "proofOfDelivery": "Proof of Delivery",
-      "photoConfirmation": "Photo Confirmation",
-      "digitalSignature": "Digital Signature",
-      "apiIntegration": "API Integration",
-      "csvUpload": "CSV Upload",
-      "merchantDashboard": "Merchant Dashboard",
-      "accountManager": "Dedicated Account Manager",
-      "flexibleBilling": "Flexible Billing",
-      "routeOptimization": "Route Optimization",
-      "instantQuotes": "Instant Quotes",
-      "businessReports": "Business Reports"
+      "realTimeTracking": "Live tracking",
+      "proofOfDelivery": "Proof of delivery",
+      "photoConfirmation": "Photo confirmation",
+      "digitalSignature": "Digital signature",
+      "flexibleBilling": "Quote-based billing",
+      "instantQuotes": "Transparent quotes",
+      "accountManager": "Dedicated support"
     },
     "descriptions": {
-      "realTimeTracking": "Live GPS tracking on every delivery.",
-      "proofOfDelivery": "Documented confirmation for every drop-off.",
-      "photoConfirmation": "Visual proof captured at delivery.",
-      "digitalSignature": "Recipient signatures stored securely.",
-      "apiIntegration": "Connect your systems via REST API.",
-      "csvUpload": "Bulk order upload in seconds.",
-      "merchantDashboard": "Full visibility into your operations.",
-      "accountManager": "A dedicated partner for your account.",
-      "flexibleBilling": "Pay as you go or monthly invoicing.",
-      "routeOptimization": "Valhalla route optimization for efficient dispatch.",
-      "instantQuotes": "Transparent pricing before you commit.",
-      "businessReports": "Analytics and exportable reports."
+      "realTimeTracking": "Live GPS and shareable tracking links on every stop.",
+      "proofOfDelivery": "Documented confirmation for billing and customer follow-up.",
+      "photoConfirmation": "Photo proof captured at delivery when required.",
+      "digitalSignature": "Recipient signatures stored with the delivery record.",
+      "flexibleBilling": "Pay per shipment or on business terms — no platform subscription.",
+      "instantQuotes": "Quote-based pricing on vehicle, distance, urgency, and handling.",
+      "accountManager": "Named support for recurring and enterprise programs."
     }
   },
   "fleet": {
     "label": "Fleet",
     "title": "Vehicle Fleet",
     "subtitle": "The right vehicle for every shipment — from documents to full truckloads.",
+    "quoteCta": "Get a quote for this vehicle",
     "payload": "Payload",
     "cargoSpace": "Cargo Space",
     "classLabel": "Class",
@@ -342,16 +338,16 @@
     "title": "Billing Options",
     "subtitle": "Flexible payment models that grow with your business.",
     "recommended": "Recommended",
-    "cta": "Request Consultation",
+    "cta": "Get a quote",
     "plans": {
       "payAsYouGo": {
         "name": "Pay As You Go",
-        "description": "Perfect for growing businesses.",
+        "description": "Perfect for occasional and urgent shipments.",
         "features": [
           "No monthly minimum",
-          "Instant quotes",
+          "Quote before you commit",
           "Credit card payments",
-          "Full platform access"
+          "Tracking and proof included"
         ]
       },
       "creditAccount": {
@@ -367,40 +363,15 @@
           "Dedicated account manager",
           "Monthly invoicing",
           "Priority support",
-          "SLA guarantees"
+          "Service-level terms by agreement"
         ]
       }
     }
   },
   "success": {
-    "label": "Customer Success",
-    "title": "What Our Business Partners Say",
-    "items": {
-      "coffee": {
-        "quote": "Porterchain transformed our wholesale distribution. Recurring routes and real-time tracking gave us visibility we never had before.",
-        "author": "Sarah Chen",
-        "role": "Operations Director, GTA Coffee Roaster",
-        "initials": "SC"
-      },
-      "restaurant": {
-        "quote": "We went from juggling three couriers to one partner. CSV upload alone saves our team 10 hours a week.",
-        "author": "Marco Di Luca",
-        "role": "Owner, Restaurant Supply Co.",
-        "initials": "MD"
-      },
-      "medical": {
-        "quote": "Proof of delivery and chain-of-custody documentation are non-negotiable for us. Porterchain delivers on both.",
-        "author": "Dr. Anita Patel",
-        "role": "Director, Medical Distributor",
-        "initials": "AP"
-      },
-      "construction": {
-        "quote": "Same-day material runs to jobsites used to be a nightmare. Now it's one click in the dashboard.",
-        "author": "James O'Brien",
-        "role": "Project Manager, Construction Firm",
-        "initials": "JO"
-      }
-    }
+    "label": "Customer stories",
+    "title": "Merchant outcomes",
+    "placeholder": "Permissioned case studies from our merchants are coming soon."
   },
   "faq": {
     "label": "FAQ",
@@ -432,8 +403,8 @@
         "answer": "Sedan, SUV, Pickup, Cargo Van, Sprinter Van, 16 ft Box Truck, and 20 ft Box Truck. All require a standard Ontario G Licence."
       },
       "pricing": {
-        "question": "Can I negotiate pricing?",
-        "answer": "Volume-based pricing and custom rates are available through enterprise agreements. Contact us for a tailored proposal."
+        "question": "How does pricing work?",
+        "answer": "Quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. No hidden platform fees."
       },
       "monthly": {
         "question": "Can I pay monthly?",
@@ -441,11 +412,11 @@
       },
       "pod": {
         "question": "Do you provide proof of delivery?",
-        "answer": "Every delivery includes photo proof, digital signatures, and barcode confirmation — all accessible in your dashboard."
+        "answer": "Photo proof, digital signatures, and status updates are provided where agreed for your lanes — visible in your dashboard."
       },
       "sameDay": {
-        "question": "Do you offer same-day delivery?",
-        "answer": "Yes. Same-day delivery is available across the GTA for most vehicle types, subject to availability and cutoff times."
+        "question": "Do you offer same-day delivery in Toronto and the GTA?",
+        "answer": "Yes. Same-day and urgent delivery are available across our GTA service areas subject to cut-off times, vehicle class, and capacity. Request a quote and we confirm the window."
       },
       "multiStop": {
         "question": "Can you handle multi-stop routes?",
@@ -461,7 +432,23 @@
       },
       "gta": {
         "question": "What areas do you serve?",
-        "answer": "We operate across the Greater Toronto Area including Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, and surrounding areas."
+        "answer": "We operate across the Greater Toronto Area — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener-Waterloo, London, and Niagara — with route expertise on 401, 427, and 407 corridors."
+      },
+      "overflow": {
+        "question": "Can you handle emergency delivery when our driver is unavailable?",
+        "answer": "Yes. Emergency delivery and fleet overflow are core services — we dispatch matched vehicle and driver capacity, often same day."
+      },
+      "jobsite": {
+        "question": "Do you deliver construction materials to job sites?",
+        "answer": "Yes. We run jobsite delivery for construction distributors and contractors — pickups, cargo vans, and box trucks with timed windows, site access notes, and photo proof for foreman and billing teams."
+      },
+      "lastMile": {
+        "question": "Do you provide quick or express delivery for businesses?",
+        "answer": "Yes. Quick and express B2B delivery is available for time-sensitive freight with live tracking and proof of delivery."
+      },
+      "intraCity": {
+        "question": "What is intra-city logistics and do you provide it?",
+        "answer": "Intra-city logistics is moving freight between locations within the GTA — warehouses, jobsites, stores, and clinics. We run single-stop, multi-stop, and recurring intra-city routes."
       },
       "onboarding": {
         "question": "How long does onboarding take?",
@@ -469,7 +456,7 @@
       },
       "integrations": {
         "question": "What e-commerce platforms do you support?",
-        "answer": "Native integrations for Shopify and WooCommerce, plus CSV upload and REST API for any platform."
+        "answer": "CSV upload and REST API for order intake; Shopify and WooCommerce connectors available by request for high-volume programs."
       },
       "billing": {
         "question": "How does billing work?",
@@ -498,8 +485,8 @@
     }
   },
   "finalCta": {
-    "title": "Ready to Modernize Your Logistics?",
-    "subtitle": "Tell us how to reach you and we'll prepare a logistics solution tailored to your business."
+    "title": "Get delivery capacity on your lanes",
+    "subtitle": "Tell us what needs to move. We'll quote the right vehicle-and-driver capacity for your operation."
   },
   "footer": {
     "tagline": "Enterprise logistics for growing businesses.",

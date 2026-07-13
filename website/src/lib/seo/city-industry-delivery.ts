@@ -61,6 +61,8 @@ type CityIndustryOverride = {
     a2?: string;
     q3?: string;
     a3?: string;
+    q4?: string;
+    a4?: string;
   };
   cta?: { title?: string; description?: string; primary?: string; secondary?: string };
   inquiry?: { heading?: string; subheadline?: string };
@@ -88,6 +90,8 @@ type MessagesShape = {
       a2?: string;
       q3?: string;
       a3?: string;
+      q4?: string;
+      a4?: string;
     };
     cta?: {
       titlePattern?: string;
@@ -228,6 +232,9 @@ export function getCityIndustryContent(
     { question: substitute(t.faq?.q1, labels), answer: substitute(t.faq?.a1, labels) },
     { question: substitute(t.faq?.q2, labels), answer: substitute(t.faq?.a2, labels) },
     { question: substitute(t.faq?.q3, labels), answer: substitute(t.faq?.a3, labels) },
+    ...(t.faq?.q4 && t.faq?.a4
+      ? [{ question: substitute(t.faq.q4, labels), answer: substitute(t.faq.a4, labels) }]
+      : []),
   ].filter((item) => item.question && item.answer);
 
   const overrideKey = `${industryKey}_${areaKey}`;
@@ -309,6 +316,7 @@ export function getCityIndustryContent(
         ov.faq.q1 != null && ov.faq.a1 != null ? { question: ov.faq.q1, answer: ov.faq.a1 } : null,
         ov.faq.q2 != null && ov.faq.a2 != null ? { question: ov.faq.q2, answer: ov.faq.a2 } : null,
         ov.faq.q3 != null && ov.faq.a3 != null ? { question: ov.faq.q3, answer: ov.faq.a3 } : null,
+        ov.faq.q4 != null && ov.faq.a4 != null ? { question: ov.faq.q4, answer: ov.faq.a4 } : null,
       ].filter((x): x is { question: string; answer: string } => x != null);
       if (ovFaqItems.length > 0) content.faq.items = ovFaqItems;
     }

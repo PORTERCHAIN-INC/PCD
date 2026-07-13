@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import Container from "@/components/ui/Container";
+import Marquee from "@/components/magic/marquee";
 import { BUSINESS_TRUSTED_KEYS } from "@/data/business";
 import {
   Coffee,
@@ -33,40 +33,33 @@ const ICONS = [
 export default function TrustedBy() {
   const t = useTranslations("businessPage.trustedBy");
 
-  return (
-    <section className="biz-section bg-white border-b border-[#091b1c]/5">
-      <Container>
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#5c6b6c] mb-10"
-        >
-          {t("label")}
-        </motion.p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6">
-          {BUSINESS_TRUSTED_KEYS.map((key, i) => {
-            const Icon = ICONS[i];
-            return (
-              <motion.div
-                key={key}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.04 }}
-                className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#f7f8fa] border border-[#091b1c]/5 biz-card-hover"
-              >
-                <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-[#091b1c] biz-shadow">
-                  <Icon className="w-5 h-5" strokeWidth={1.5} />
-                </div>
-                <span className="text-sm font-semibold text-[#091b1c] text-center leading-tight">
-                  {t(`items.${key}`)}
-                </span>
-              </motion.div>
-            );
-          })}
+  const chips = BUSINESS_TRUSTED_KEYS.map((key, i) => {
+    const Icon = ICONS[i];
+    return (
+      <div
+        key={key}
+        className="flex shrink-0 items-center gap-3 rounded-full border border-[#091b1c]/8 bg-white px-5 py-3 shadow-sm"
+      >
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f8fa] text-[#091b1c]">
+          <Icon className="h-4 w-4" strokeWidth={1.5} aria-hidden />
         </div>
+        <span className="text-sm font-semibold text-[#091b1c] whitespace-nowrap">
+          {t(`items.${key}`)}
+        </span>
+      </div>
+    );
+  });
+
+  return (
+    <section className="biz-section overflow-hidden border-b border-[#091b1c]/5 bg-white">
+      <Container>
+        <p className="mb-8 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#5c6b6c]">
+          {t("label")}
+        </p>
       </Container>
+      <Marquee speed="slow" className="py-1">
+        <div className="flex gap-4 px-2">{chips}</div>
+      </Marquee>
     </section>
   );
 }

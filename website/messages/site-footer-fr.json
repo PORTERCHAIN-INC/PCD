@@ -1,5 +1,5 @@
 {
-  "tagline": "Capacité de transport pour entreprises ontariennes — propulsée par le logiciel que nous avons bâti pour opérer le réseau.",
+  "tagline": "Faire avancer le commerce sur la chaîne",
   "corporateTagline": "Chauffeurs professionnels et véhicules lorsque votre propre flotte ne suffit pas.",
   "businessTagline": "Capacité urgente, débordement, récurrente et dédiée pour entreprises en croissance.",
   "copyright": "© {year} Porterchain Inc. Tous droits réservés.",
@@ -12,52 +12,47 @@
   "googleReview": "Avis sur Google",
   "sections": {
     "products": {
-      "title": "Comment nous opérons",
+      "title": "Services de livraison",
       "links": {
-        "platform": "Technologie opérationnelle",
+        "business": "Livraison entreprise",
         "solutions": "Solutions",
         "howItWorks": "Comment ça fonctionne",
-        "integrations": "Intégrations",
-        "developers": "Développeurs et API",
+        "pricing": "Tarification",
+        "getQuote": "Obtenir un devis",
         "track": "Suivre un envoi"
       }
     },
     "solutions": {
-      "title": "Entreprise",
-      "links": {
-        "business": "Services aux entreprises",
-        "enterprise": "Grands comptes",
-        "pricing": "Tarification",
-        "trust": "Confiance et sécurité",
-        "getQuote": "Obtenir un devis",
-        "customerPortal": "Mes commandes"
-      }
-    },
-    "company": {
-      "title": "Industries et zones",
+      "title": "Industries et capacité",
       "links": {
         "industry": "Toutes les industries",
         "constructionMaterials": "Matériaux de construction",
         "electricalDistribution": "Distribution électrique",
         "plumbingSupply": "Fournitures plomberie",
         "serviceAreas": "Zones desservies",
-        "localDelivery": "Livraison locale",
-        "vanDelivery": "Livraison fourgonnette"
+        "enterprise": "Grands comptes"
       }
     },
-    "resources": {
-      "title": "Entreprise et ressources",
+    "company": {
+      "title": "Entreprise",
       "links": {
         "about": "À propos",
         "contact": "Contact",
         "careers": "Carrières",
         "vehiclePartner": "Partenaires véhicule",
+        "trust": "Centre de confiance"
+      }
+    },
+    "resources": {
+      "title": "Ressources",
+      "links": {
         "blog": "Blogue",
         "faq": "FAQ",
         "guides": "Guides",
-        "compare": "Comparer",
-        "successStories": "Réussites",
-        "onboardingEducation": "Intégration"
+        "platform": "Notre fonctionnement",
+        "integrations": "Intégrations",
+        "developers": "Développeurs et API",
+        "customerPortal": "Portail client"
       }
     },
     "legal": {

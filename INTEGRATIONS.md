@@ -132,10 +132,19 @@ SMS notifications: **log-only** until a transactional SMS provider is selected.
 
 ## SMTP (transactional email)
 
+**SSOT:** [docs/notifications/ZOHO_MAIL.md](docs/notifications/ZOHO_MAIL.md)
+
+| Environment | Transport                               |
+| ----------- | --------------------------------------- |
+| Local       | Mailpit `localhost:1025` (UI `:8025`)   |
+| Production  | Zoho Canada `smtp.zohocloud.ca:465` SSL |
+
 | Variable                    | Purpose                     |
 | --------------------------- | --------------------------- |
 | `MAIL_*` / `SMTP_*`         | Platform transactional mail |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Public contact (not auth)   |
+
+Aliases `@porterchain.com`: `peter`, `ravi`, `billing`, `no-reply`, `ops`, `sales`, `support`.
 
 Used for invoices, ops alerts, driver invites — **not** login OTP.
 

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import ArticleCard, { categoryLabelFor } from "@/components/blog/ArticleCard";
-import type { BlogPostMeta } from "@/lib/blog";
+import type { BlogPostMeta } from "@/lib/blog-meta";
 
 interface BlogSearchProps {
   posts: BlogPostMeta[];

@@ -24,6 +24,10 @@ export type SuccessStory = {
   quote?: string;
   quoteAttribution?: string;
   outcomeMetric?: string;
+  /** Ops author for E-E-A-T (blogAuthors id) */
+  authorId?: string;
+  /** Only show metric + Review schema when true (permissioned narrative) */
+  permissioned?: boolean;
 };
 
 export const MERCHANT_TYPE_LABELS: Record<SuccessStoryMerchantType, string> = {
@@ -54,6 +58,8 @@ export const SUCCESS_STORIES: SuccessStory[] = [
       "We needed pallet delivery to sites with proof our GCs would accept. Porterchain made it repeatable.",
     quoteAttribution: "Operations Manager, GTA building supply distributor",
     outcomeMetric: "40+ jobsite drops per week",
+    authorId: "sarah-chen",
+    permissioned: true,
   },
   {
     slug: "coffee-roaster-wholesale-delivery",
@@ -73,6 +79,8 @@ export const SUCCESS_STORIES: SuccessStory[] = [
       "We needed one partner who could do recurring routes and same-day when it mattered. Porterchain made it simple.",
     quoteAttribution: "Operations, Toronto roastery",
     outcomeMetric: "50+ cafés served",
+    authorId: "sarah-chen",
+    permissioned: false,
   },
   {
     slug: "pharmacy-patient-delivery",
@@ -92,6 +100,8 @@ export const SUCCESS_STORIES: SuccessStory[] = [
       "We needed a delivery partner we could trust with prescriptions. Tracking and consistency were non-negotiable.",
     quoteAttribution: "Pharmacy operations, Ontario",
     outcomeMetric: "Same-day across GTA",
+    authorId: "sarah-chen",
+    permissioned: false,
   },
   {
     slug: "beauty-brand-d2c-fulfillment",
@@ -111,6 +121,8 @@ export const SUCCESS_STORIES: SuccessStory[] = [
       "Having one partner for recurring and same-day took the logistics guesswork out of growth.",
     quoteAttribution: "Operations, beauty brand",
     outcomeMetric: "Recurring + same-day in Ontario",
+    authorId: "sarah-chen",
+    permissioned: false,
   },
 ];
 

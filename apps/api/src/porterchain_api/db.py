@@ -1,4 +1,5 @@
-from collections.abc import Generator
+from collections.abc import Generator, Iterator
+from contextlib import contextmanager
 from functools import lru_cache
 
 from sqlalchemy import create_engine, text
@@ -66,6 +67,22 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+@contextmanager
+def db_transaction(db: Session) -> Iterator[None]:
+    """Commit a unit of work on a request session that may already be in a transaction.
+
+    SQLAlchemy 2 autobegins on the first query (e.g. auth context load). Using
+    ``with db.begin()`` after that raises ``InvalidRequestError``. Prefer this helper
+    for mutating routes that share the session with Depends(get_db).
+    """
+    try:
+        yield
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
 
 def get_read_db() -> Generator[Session, None, None]:

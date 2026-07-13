@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import SiteShell from "@/components/layout/SiteShell";
 import Hero from "@/components/sections/Hero";
+import HomeGtaMarquee from "@/components/home/HomeGtaMarquee";
 import HomePlatformBody from "@/components/home/HomePlatformBody";
 import HomeDeliverySchema from "@/components/seo/HomeDeliverySchema";
 import { routing } from "@/i18n/routing";
@@ -31,7 +32,8 @@ export default async function HomePage({ params }: Props) {
   return (
     <SiteShell>
       <HomeDeliverySchema />
-      <Hero />
+      <Hero locale={locale} />
+      <HomeGtaMarquee />
       <HomePlatformBody />
     </SiteShell>
   );

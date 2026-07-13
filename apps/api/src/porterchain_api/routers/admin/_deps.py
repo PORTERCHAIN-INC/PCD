@@ -103,6 +103,9 @@ from porterchain_api.schemas_admin import (
     RouteTemplateCreateRequest,
     RouteTemplateItem,
     RouteTemplateUpdateRequest,
+    BlogPostCreateRequest,
+    BlogPostItem,
+    BlogPostUpdateRequest,
 )
 from porterchain_api.admin_engine.booking_draft_admin_service import (
     AdminBookingDraftService,
@@ -114,6 +117,7 @@ from porterchain_api.admin_engine.investor_metrics_service import InvestorMetric
 from porterchain_api.admin_engine.monopoly_metrics_service import MonopolyMetricsService
 from porterchain_api.admin_engine.platform_metrics_service import PlatformMetricsService
 from porterchain_api.admin_engine.route_template_service import AdminRouteTemplateService
+from porterchain_api.admin_engine.blog_service import AdminBlogService
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
 
 _dashboard = AdminDashboardService()
@@ -127,6 +131,7 @@ _settings = AdminSettingsService()
 _clerk_directory = ClerkDirectoryService()
 _draft_admin = AdminBookingDraftService()
 _route_templates = AdminRouteTemplateService()
+_blog = AdminBlogService()
 _data_moat = AdminDataMoatService()
 _platform_metrics = PlatformMetricsService()
 _investor_metrics = InvestorMetricsService()
@@ -230,6 +235,9 @@ __all__ = [
     "RouteTemplateCreateRequest",
     "RouteTemplateItem",
     "RouteTemplateUpdateRequest",
+    "BlogPostCreateRequest",
+    "BlogPostItem",
+    "BlogPostUpdateRequest",
     "ClaimAssignRequest",
     "ClaimBulkRequest",
     "ClaimCompensationRequest",
@@ -320,6 +328,7 @@ __all__ = [
     "_platform_metrics",
     "_pricing",
     "_route_templates",
+    "_blog",
     "_settings",
     "_support",
     "get_admin_context",

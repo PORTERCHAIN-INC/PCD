@@ -20,16 +20,16 @@ import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import { buildBlogInternalLinks } from "@/lib/seo/blog-seo";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
 import HeroPhoto from "@/components/ui/HeroPhoto";
-import { getBlogCoverImage } from "@/data/site-images";
+import { resolveBlogCover } from "@/lib/blog";
 import { publicEnv } from "@/lib/env";
 import { Clock } from "lucide-react";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   const params: { locale: string; slug: string }[] = [];
   for (const locale of routing.locales) {
-    for (const slug of getAllPostSlugs(locale as Locale)) {
+    for (const slug of await getAllPostSlugs(locale as Locale)) {
       params.push({ locale, slug });
     }
   }
@@ -38,7 +38,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
-  const post = getPost(locale as Locale, slug);
+  const post = await getPost(locale as Locale, slug);
   if (!post) return { title: "Article" };
 
   return buildPageMetadata(
@@ -53,7 +53,7 @@ export default async function BlogArticlePage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const post = getPost(locale as Locale, slug);
+  const post = await getPost(locale as Locale, slug);
   if (!post) notFound();
 
   const t = await getTranslations("blog.article");
@@ -61,9 +61,9 @@ export default async function BlogArticlePage({ params }: Props) {
   const tBlog = await getTranslations("blog");
 
   const loc = locale as Locale;
-  const related = getRelatedPosts(loc, post);
-  const trending = getTrendingPosts(loc);
-  const categoryCounts = getCategoryPostCounts(loc);
+  const related = await getRelatedPosts(loc, post);
+  const trending = await getTrendingPosts(loc);
+  const categoryCounts = await getCategoryPostCounts(loc);
 
   const categoryLabel = (cat: BlogCategory) => tBlog(`categories.${cat}`);
   const readLabel = (minutes: number) => tHome("minRead", { minutes });
@@ -131,7 +131,7 @@ export default async function BlogArticlePage({ params }: Props) {
               </header>
 
               <div className="mt-10 max-w-3xl">
-                <HeroPhoto image={getBlogCoverImage(post.category)} aspect="cinematic" />
+                <HeroPhoto image={resolveBlogCover(post)} aspect="cinematic" />
               </div>
 
               <div className="mt-12 max-w-3xl">

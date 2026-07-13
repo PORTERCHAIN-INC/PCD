@@ -1,15 +1,16 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3,
   Building2,
   ClipboardList,
   CreditCard,
   FlaskConical,
+  HardHat,
   Headphones,
   Bell,
   HeartPulse,
   LayoutDashboard,
   Map,
+  Newspaper,
   Package,
   Settings,
   Shield,
@@ -30,6 +31,8 @@ export type AdminNavGroup = {
   label: string;
   items: AdminNavItem[];
 };
+
+export const DRIVER_LEAD_SOURCE = "website_driver_partner";
 
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
@@ -71,9 +74,21 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       {
         href: "/leads",
-        label: "Leads",
-        description: "Website inquiries & contact forms",
+        label: "Merchant Leads",
+        description: "Quotes, contact & business inquiries",
         icon: UserPlus,
+      },
+      {
+        href: `/leads?source=${DRIVER_LEAD_SOURCE}`,
+        label: "Driver Leads",
+        description: "Vehicle partner applications (/vehicle-partner)",
+        icon: HardHat,
+      },
+      {
+        href: "/blog",
+        label: "Blog",
+        description: "Create, edit & publish website posts (EN + FR)",
+        icon: Newspaper,
       },
       {
         href: "/merchants",
@@ -81,7 +96,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         description: "B2B accounts & contracts",
         icon: Building2,
       },
-      { href: "/drivers", label: "Drivers", description: "Fleet & compliance", icon: Truck },
+      {
+        href: "/drivers",
+        label: "Drivers",
+        description: "Active fleet partners & compliance",
+        icon: Truck,
+      },
     ],
   },
   {
@@ -122,11 +142,42 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
 
 export const ALL_ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((g) => g.items);
 
-export function isNavActive(pathname: string, href: string): boolean {
-  return pathname === href || pathname.startsWith(`${href}/`);
+function splitHref(href: string): { path: string; params: URLSearchParams } {
+  const q = href.indexOf("?");
+  if (q === -1) return { path: href, params: new URLSearchParams() };
+  return { path: href.slice(0, q), params: new URLSearchParams(href.slice(q + 1)) };
 }
 
-export function activeNavLabel(pathname: string): string | null {
-  const item = ALL_ADMIN_NAV_ITEMS.find((i) => isNavActive(pathname, i.href));
+/** Pathname match; when href has query params, they must match `search` (e.g. "?source=…"). */
+export function isNavActive(pathname: string, href: string, search = ""): boolean {
+  const { path, params } = splitHref(href);
+  const pathMatch = pathname === path || pathname.startsWith(`${path}/`);
+  if (!pathMatch) return false;
+
+  const current = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
+
+  if ([...params.keys()].length > 0) {
+    for (const [key, value] of params.entries()) {
+      if (current.get(key) !== value) return false;
+    }
+    return true;
+  }
+
+  // Bare /leads = merchant inbox (not the driver-partner filter).
+  if (path === "/leads" && current.get("source") === DRIVER_LEAD_SOURCE) {
+    return false;
+  }
+
+  return true;
+}
+
+export function activeNavLabel(pathname: string, search = ""): string | null {
+  // Prefer more specific query-bearing items first.
+  const ranked = [...ALL_ADMIN_NAV_ITEMS].sort((a, b) => {
+    const aq = a.href.includes("?") ? 1 : 0;
+    const bq = b.href.includes("?") ? 1 : 0;
+    return bq - aq;
+  });
+  const item = ranked.find((i) => isNavActive(pathname, i.href, search));
   return item?.label ?? null;
 }

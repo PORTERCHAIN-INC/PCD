@@ -3,7 +3,15 @@
  */
 import type { Locale } from "@/i18n/routing";
 import type { SolutionVerticalSlug } from "@/lib/solutions-verticals";
-import { cityIndustrySeo, industrySlug, localePath, platform, serviceAreaSlug } from "./routes";
+import {
+  cityIndustrySeo,
+  faqSlug,
+  industrySlug,
+  localePath,
+  platform,
+  serviceAreaSlug,
+} from "./routes";
+import { getFaqClusterBySlug } from "./content/faq-clusters";
 import {
   isValidCitySeoSlug,
   CITY_SEO_TO_SERVICE_AREA,
@@ -92,7 +100,20 @@ export const ANCHOR_PHRASE_BY_INDUSTRY_KEY: Record<string, string> = {
   ecommerce: "E-commerce delivery",
 };
 
-/** Niche slug → solutions vertical for Lane B → Lane A internal links (P3.6). */
+/** Intent-cluster FAQ hubs (Wave 9 user-intent linking). */
+export const INTENT_HUB_FAQ_SLUGS = [
+  "same-day-retail-distribution",
+  "fleet-overflow-wholesale-delivery",
+] as const;
+
+/** Max curated next links on SEO detail pages (playbook §7). */
+export const MAX_DETAIL_PAGE_LINKS = 5;
+
+function curateLinks<T>(links: readonly T[], max = MAX_DETAIL_PAGE_LINKS): T[] {
+  return links.slice(0, max);
+}
+
+/** Reverse map: niche slug → solutions vertical for internal links. */
 const NICHE_TO_SOLUTION_VERTICAL: Partial<Record<string, SolutionVerticalSlug>> = {
   "construction-materials": "construction",
   "electrical-distribution": "construction",
@@ -163,14 +184,16 @@ export function buildCityDeliveryLinksForIndustryPage(
       label: `${anchorPhrase} ${cityLabel}`,
     });
   }
-  return links;
+  return curateLinks(links);
 }
 
 export function buildLocalDeliveryCityLinks(locale: Locale): { href: string; label: string }[] {
-  return CITY_SEO_SLUGS_FOR_LINKS.map((citySeo) => ({
-    href: serviceAreaSlug(locale, CITY_SEO_TO_SERVICE_AREA[citySeo]),
-    label: `Local delivery ${LOCAL_DELIVERY_CITY_LABELS[citySeo]}`,
-  }));
+  return curateLinks(
+    CITY_SEO_SLUGS_FOR_LINKS.map((citySeo) => ({
+      href: serviceAreaSlug(locale, CITY_SEO_TO_SERVICE_AREA[citySeo]),
+      label: `Local delivery ${LOCAL_DELIVERY_CITY_LABELS[citySeo]}`,
+    }))
+  );
 }
 
 export function buildVehicleLinksForCityPage(
@@ -182,24 +205,29 @@ export function buildVehicleLinksForCityPage(
   const labels: Record<VehicleCitySeoSlug, string> = {
     "sedan-delivery": "Sedan",
     "suv-delivery": "SUV",
-    "van-delivery": "Van",
+    "trade-van-delivery": "Trade van",
     "pickup-truck-delivery": "Pickup truck",
     "cargo-van-delivery": "Cargo van",
-    "medium-truck": "Box truck",
+    "box-truck-delivery": "Box truck",
   };
-  return VEHICLE_CITY_SEO_SLUGS.map((segment) => ({
-    href: cityIndustrySeo(locale, citySeo, segment),
-    label: `${labels[segment]} delivery ${cityLabel}`,
-  }));
+  return curateLinks(
+    VEHICLE_CITY_SEO_SLUGS.map((segment) => ({
+      href: cityIndustrySeo(locale, citySeo, segment),
+      label: `${labels[segment]} delivery ${cityLabel}`,
+    })),
+    4
+  );
 }
 
 export function buildIndustryPageLinksForCityPage(
   locale: Locale
 ): { href: string; label: string }[] {
-  return INDUSTRY_SLUGS_FOR_CITY_LINKS.map((slug) => ({
-    href: industrySlug(locale, slug),
-    label: INDUSTRY_PAGE_LABELS[slug] ?? slug.replace(/-/g, " "),
-  }));
+  return curateLinks(
+    INDUSTRY_SLUGS_FOR_CITY_LINKS.map((slug) => ({
+      href: industrySlug(locale, slug),
+      label: INDUSTRY_PAGE_LABELS[slug] ?? slug.replace(/-/g, " "),
+    }))
+  );
 }
 
 export function buildIndustryDeliveryLinksForCityPage(
@@ -210,18 +238,20 @@ export function buildIndustryDeliveryLinksForCityPage(
   const citySeo = SERVICE_AREA_TO_CITY_SEO[serviceAreaSlugValue];
   if (!citySeo) return [];
   const cityLabel = LOCAL_DELIVERY_CITY_LABELS[citySeo];
-  return INDUSTRY_SLUGS_FOR_CITY_LINKS.flatMap((nicheSlug) => {
-    const industryKey = getNicheMessageKey(nicheSlug);
-    const industrySeoSlug = NICHE_TO_INDUSTRY_SEO[nicheSlug];
-    if (!industryKey || !industrySeoSlug) return [];
-    const anchorPhrase = ANCHOR_PHRASE_BY_INDUSTRY_KEY[industryKey];
-    return [
-      {
-        href: cityIndustrySeo(locale, citySeo, industrySeoSlug),
-        label: `${anchorPhrase} ${cityLabel}`,
-      },
-    ];
-  });
+  return curateLinks(
+    INDUSTRY_SLUGS_FOR_CITY_LINKS.flatMap((nicheSlug) => {
+      const industryKey = getNicheMessageKey(nicheSlug);
+      const industrySeoSlug = NICHE_TO_INDUSTRY_SEO[nicheSlug];
+      if (!industryKey || !industrySeoSlug) return [];
+      const anchorPhrase = ANCHOR_PHRASE_BY_INDUSTRY_KEY[industryKey];
+      return [
+        {
+          href: cityIndustrySeo(locale, citySeo, industrySeoSlug),
+          label: `${anchorPhrase} ${cityLabel}`,
+        },
+      ];
+    })
+  );
 }
 
 /** Mandatory Lane B bridge links: platform, solutions vertical (when mapped), parent industry. */
@@ -263,6 +293,21 @@ export function buildProductLinksForIndustrySeoSlug(
   const nicheSlug = INDUSTRY_SEO_TO_NICHE[industrySeoSlug as IndustrySeoSlug];
   if (!nicheSlug) return buildProductLinksForNiche(locale, industrySeoSlug, from);
   return buildProductLinksForNiche(locale, nicheSlug, from);
+}
+
+/** Curated links to intent FAQ hubs (same-day retail, fleet overflow). */
+export function buildIntentHubLinks(
+  locale: Locale,
+  from?: string,
+  titleBySlug?: Partial<Record<(typeof INTENT_HUB_FAQ_SLUGS)[number], string>>
+): { href: string; label: string }[] {
+  return INTENT_HUB_FAQ_SLUGS.map((slug) => {
+    const cluster = getFaqClusterBySlug(slug);
+    const label = titleBySlug?.[slug] ?? cluster?.title ?? slug.replace(/-/g, " ");
+    const baseHref = faqSlug(locale, slug);
+    const href = from ? `${baseHref}?from=${encodeURIComponent(from)}` : baseHref;
+    return { href, label };
+  });
 }
 
 export function buildInternalLinksForArticle(

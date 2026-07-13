@@ -4,7 +4,7 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import IndustryLandingView from "@/components/seo/IndustryLandingView";
 import { NICHE_SLUGS, getNicheMessageKey, isValidNicheSlug } from "@/lib/seo/niche-landing";
-import { getLandingContent } from "@/lib/seo/landing-content";
+import { getLandingContent, resolveLandingContent } from "@/lib/seo/landing-content";
 import {
   buildCityDeliveryLinksForIndustryPage,
   buildLocalDeliveryCityLinks,
@@ -27,13 +27,19 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isValidNicheSlug(slug)) return {};
-  const niche = await getLandingContent(locale, "nicheLanding", getNicheMessageKey(slug) ?? "");
+  const messageKey = getNicheMessageKey(slug) ?? "";
+  const { content: niche, indexable } = await resolveLandingContent(
+    locale,
+    "nicheLanding",
+    messageKey
+  );
   if (!niche?.meta) return {};
   return buildPageMetadata(
     locale,
     `industry/${slug}`,
     niche.meta.title ?? "Industry delivery",
-    niche.meta.description ?? ""
+    niche.meta.description ?? "",
+    { index: indexable }
   );
 }
 
@@ -51,6 +57,7 @@ export default async function IndustrySlugPage({ params }: Props) {
   const messages = await getMessages({ locale });
   const loc = locale as Locale;
   const tBc = await getTranslations("corporate.breadcrumbs");
+  const tSeo = await getTranslations("corporate.seo.sectionLabels");
   const cityLinks = buildCityDeliveryLinksForIndustryPage(loc, slug, messages as never);
   const localCityLinks = buildLocalDeliveryCityLinks(loc);
 
@@ -62,6 +69,26 @@ export default async function IndustrySlugPage({ params }: Props) {
         niche={niche}
         cityLinks={cityLinks}
         localCityLinks={localCityLinks}
+        sectionLabels={{
+          industries: tSeo("industries"),
+          challenges: tSeo("challenges"),
+          solution: tSeo("solution"),
+          workflow: tSeo("workflow"),
+          onboarding: tSeo("onboarding"),
+          deliveryInCity: tSeo("deliveryInCity"),
+          localDeliveryByCity: tSeo("localDeliveryByCity"),
+          capacitySolutions: tSeo("capacitySolutions"),
+          serviceAreas: tSeo("serviceAreas"),
+          industryDeliveryInArea: tSeo("industryDeliveryInArea"),
+          exploreByIndustry: tSeo("exploreByIndustry"),
+          localDelivery: tSeo("localDelivery"),
+          localChallenges: tSeo("localChallenges"),
+          industryFit: tSeo("industryFit"),
+          howItWorks: tSeo("howItWorks"),
+          otherVehicles: tSeo("otherVehicles"),
+          vehicles: tSeo("vehicles"),
+          painPoints: tSeo("painPoints"),
+        }}
         breadcrumbs={[
           { label: tBc("home"), href: "/" },
           { label: tBc("industry"), href: "/industry" },

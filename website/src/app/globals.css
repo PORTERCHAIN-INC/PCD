@@ -332,12 +332,13 @@ p {
   }
 }
 
-/* Homepage hero — soft blur merge between copy panel and photo */
+/* Homepage hero — soft merge between copy panel and photo */
 .hero-merge-panel {
   background: linear-gradient(
-    105deg,
+    100deg,
     rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 255, 0.92) 55%,
+    rgba(255, 255, 255, 0.97) 62%,
+    rgba(255, 255, 255, 0.55) 88%,
     rgba(255, 255, 255, 0) 100%
   );
 }
@@ -362,6 +363,325 @@ p {
     rgba(255, 255, 255, 0.75) 18%,
     rgba(255, 255, 255, 0.2) 42%,
     rgba(255, 255, 255, 0) 68%
+  );
+}
+
+/* Home hero — fleet sits on white so edge merges read cleanly */
+.hero-fleet-stage {
+  background: #ffffff;
+}
+
+/*
+ * Dissolve photo into white page bg.
+ * White overlays only — keeps the JPEG sharp (no blur filter).
+ */
+.hero-fleet-merge {
+  background:
+    /* left → copy column */
+    linear-gradient(
+      to right,
+      #ffffff 0%,
+      rgba(255, 255, 255, 0.92) 6%,
+      rgba(255, 255, 255, 0.45) 16%,
+      rgba(255, 255, 255, 0.12) 26%,
+      transparent 38%
+    ),
+    /* right edge */
+    linear-gradient(to left, #ffffff 0%, rgba(255, 255, 255, 0.7) 5%, transparent 16%),
+    /* top edge */
+    linear-gradient(to bottom, #ffffff 0%, rgba(255, 255, 255, 0.55) 8%, transparent 22%),
+    /* bottom edge */
+    linear-gradient(to top, #ffffff 0%, rgba(255, 255, 255, 0.65) 10%, transparent 26%);
+}
+
+@media (max-width: 1023px) {
+  .hero-fleet-merge {
+    background:
+      linear-gradient(to right, #ffffff 0%, rgba(255, 255, 255, 0.5) 8%, transparent 22%),
+      linear-gradient(to left, #ffffff 0%, rgba(255, 255, 255, 0.5) 8%, transparent 22%),
+      linear-gradient(to bottom, #ffffff 0%, rgba(255, 255, 255, 0.45) 10%, transparent 24%),
+      linear-gradient(to top, #ffffff 0%, rgba(255, 255, 255, 0.85) 12%, transparent 32%);
+  }
+}
+
+.hero-fleet-fade-left {
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.35) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* 5% larger fleet photo — merge overlays scale with it */
+.hero-fleet-scale {
+  transform: scale(1.05);
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* Keep hero fleet crisp — no CSS blur / soft filters on the photo */
+.hero-fleet-photo {
+  image-rendering: auto;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Business / services hero — Open Road photo merges into white */
+.biz-hero-merge {
+  background:
+    /* left readability panel → soft into truck */
+    linear-gradient(
+      105deg,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 0.97) 28%,
+      rgba(255, 255, 255, 0.78) 46%,
+      rgba(255, 255, 255, 0.28) 64%,
+      transparent 82%
+    ),
+    /* top under nav */ linear-gradient(to bottom, rgba(255, 255, 255, 0.75) 0%, transparent 18%),
+    /* bottom into page */
+    linear-gradient(
+        to top,
+        #ffffff 0%,
+        rgba(255, 255, 255, 0.85) 8%,
+        rgba(255, 255, 255, 0.35) 22%,
+        transparent 42%
+      ),
+    /* right edge soften */ linear-gradient(to left, rgba(255, 255, 255, 0.35) 0%, transparent 14%);
+}
+
+.biz-hero-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  line-height: 1.3;
+}
+
+.biz-hero-title {
+  font-size: clamp(1.75rem, 1.1vw + 1.35rem, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.032em;
+  line-height: 1.1;
+}
+
+.biz-hero-subtitle {
+  max-width: 34rem;
+  font-size: clamp(0.9375rem, 0.2vw + 0.9rem, 1.0625rem);
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.biz-hero-form {
+  background: rgba(255, 255, 255, 0.94) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 24px 60px -20px rgba(10, 22, 40, 0.28),
+    0 0 0 1px rgba(10, 22, 40, 0.06) !important;
+}
+
+@media (max-width: 1023px) {
+  .biz-hero-merge {
+    background:
+      linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.55) 0%,
+        rgba(255, 255, 255, 0.2) 18%,
+        transparent 38%
+      ),
+      linear-gradient(
+        to top,
+        #ffffff 0%,
+        rgba(255, 255, 255, 0.96) 28%,
+        rgba(255, 255, 255, 0.55) 48%,
+        transparent 72%
+      ),
+      linear-gradient(to right, rgba(255, 255, 255, 0.35) 0%, transparent 40%);
+  }
+}
+
+/* Home hero copy — sized for the 45% column (professional type scale) */
+.hero-copy {
+  max-width: 36rem;
+}
+
+.hero-copy__eyebrow {
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  line-height: 1.3;
+}
+
+.hero-copy__title {
+  margin-top: 0.75rem;
+  font-size: clamp(1.625rem, 0.85vw + 1.25rem, 2.375rem); /* 26–38px */
+  font-weight: 700;
+  letter-spacing: -0.032em;
+  line-height: 1.12;
+}
+
+.hero-copy__highlight {
+  display: inline;
+}
+
+.hero-copy__subtitle {
+  margin-top: 1rem;
+  max-width: 34rem;
+  font-size: clamp(0.9375rem, 0.15vw + 0.9rem, 1.0625rem); /* 15–17px */
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.hero-copy__actions {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.hero-copy__cta {
+  font-size: 0.875rem !important; /* 14px */
+  padding-top: 0.7rem !important;
+  padding-bottom: 0.7rem !important;
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
+}
+
+.hero-copy__trust {
+  margin-top: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.4;
+  color: var(--muted);
+  list-style: none;
+  padding: 0;
+}
+
+.hero-copy__trust li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.hero-copy__trust-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+  color: var(--secondary);
+}
+
+.hero-copy__sla {
+  margin-top: 1rem;
+  max-width: 22rem;
+}
+
+.hero-copy__sla > div {
+  font-size: 0.8125rem; /* 13px */
+  padding: 0.65rem 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .hero-copy__actions {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .hero-copy__trust {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 1.15rem;
+    row-gap: 0.4rem;
+  }
+
+  .hero-copy__trust li {
+    align-items: center;
+  }
+
+  .hero-copy__trust-icon {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hero-copy {
+    max-width: 40rem;
+  }
+
+  .hero-copy__title {
+    font-size: clamp(1.875rem, 0.7vw + 1.4rem, 2.5rem); /* up to 40px */
+  }
+}
+
+/* BrandMergeBand — content ↔ fleet photo soft merge */
+.brand-merge-panel {
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.94) 58%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.brand-merge-panel--from-left {
+  background: linear-gradient(
+    -105deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.94) 58%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.brand-merge-blur {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.5) 48%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  mask-image: linear-gradient(to right, black 12%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 12%, transparent 100%);
+}
+
+.brand-merge-blur--from-left {
+  background: linear-gradient(
+    to left,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.5) 48%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  mask-image: linear-gradient(to left, black 12%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 12%, transparent 100%);
+}
+
+.brand-image-fade-left {
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.7) 22%,
+    rgba(255, 255, 255, 0.15) 48%,
+    rgba(255, 255, 255, 0) 72%
+  );
+}
+
+.brand-image-fade-right {
+  background: linear-gradient(
+    to left,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.7) 22%,
+    rgba(255, 255, 255, 0.15) 48%,
+    rgba(255, 255, 255, 0) 72%
   );
 }
 
@@ -972,37 +1292,25 @@ button.booking-schedule-field:focus-visible {
   padding-block: clamp(2.5rem, 6vh, 4.5rem);
 }
 
-/* Vehicle fleet — fit stage + rail in one viewport (home + business) */
-.fleet-fit--compact {
-  --fleet-fit-offset: 15rem;
-}
-
-.fleet-fit--detailed {
-  --fleet-fit-offset: 13.5rem;
-}
-
-.fleet-fit__grid {
-  max-height: min(calc(100dvh - var(--nav-height) - var(--fleet-fit-offset)), 34rem);
-}
-
+/* Vehicle fleet — preview stage + icon card picker */
 .fleet-fit__stage {
-  height: clamp(10.5rem, 30dvh, 16.5rem);
-  min-height: 10.5rem;
+  height: clamp(11.5rem, 32dvh, 18rem);
+  min-height: 11.5rem;
 }
 
-.fleet-fit__rail {
+.fleet-fit__picker {
   flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .fleet-fit__stage {
+    height: clamp(12rem, 28dvh, 17rem);
+  }
 }
 
 @media (min-width: 1024px) {
   .fleet-fit__stage {
-    height: 100%;
-    min-height: 0;
-  }
-
-  .fleet-fit__rail {
-    height: 100%;
-    min-height: 0;
+    height: clamp(13rem, 30dvh, 19rem);
   }
 }
 
@@ -1068,4 +1376,121 @@ button.booking-schedule-field:focus-visible {
   :root {
     --page-gutter: clamp(2rem, 2vw, 3rem);
   }
+}
+
+/* ─── Magic UI–style motion (framer + CSS) ─── */
+:root {
+  --marquee-duration: 42s;
+  --marquee-duration-slow: 56s;
+  --marquee-duration-fast: 28s;
+}
+
+@keyframes gradient-text-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-text {
+  animation: gradient-text-shift 4s ease infinite;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee-scroll var(--marquee-duration, 42s) linear infinite;
+  width: max-content;
+}
+
+.marquee-reverse {
+  animation-direction: reverse;
+}
+
+@keyframes border-beam-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.border-beam-spin::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    var(--beam-from, #2563eb) 60deg,
+    var(--beam-to, #38bdf8) 120deg,
+    transparent 180deg
+  );
+  animation: border-beam-rotate var(--beam-duration, 12s) linear infinite;
+}
+
+.magic-card-spotlight {
+  background: radial-gradient(
+    var(--magic-size, 280px) circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(37, 99, 235, 0.08),
+    transparent 65%
+  );
+}
+
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-100%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-12deg);
+  }
+}
+
+.shimmer-button {
+  position: relative;
+  isolation: isolate;
+}
+
+.shimmer-button-glow {
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 60%
+  );
+  animation: shimmer-slide 3s ease-in-out infinite;
+}
+
+/* Pause decorative motion while the user is typing in a form field */
+.motion-paused .animate-gradient-text,
+.motion-paused .shimmer-button-glow,
+.motion-paused .border-beam-spin::before,
+.motion-paused .marquee-track {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient-text,
+  .marquee-track,
+  .border-beam-spin::before,
+  .shimmer-button-glow {
+    animation: none;
+  }
+}
+
+/* Wave 10 w10-1 — defer paint cost of below-fold matrix / business sections (INP). */
+.perf-defer-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 800px;
 }

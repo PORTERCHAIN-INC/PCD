@@ -40,6 +40,65 @@ export const ECOMMERCE_TRUCK = localImg(
   1024
 );
 
+/** Full fleet lineup — sedan through box truck (MAIN brand image, ~5K source). */
+export const BRAND_FLEET_LINEUP = localImg(
+  "/images/brand/fleet-lineup.jpg",
+  "Porterchain green fleet — sedan, SUV, van, and box truck — moving commerce on chain",
+  5408,
+  3072
+);
+
+/** Brand fleet at the dock — box truck + trailer (legacy dock pair). */
+export const BRAND_DOCK_PAIR = localImg(
+  "/images/brand/moving-commerce-on-chain.jpg",
+  "Porterchain box truck and trailer at a warehouse — moving commerce on chain",
+  2048,
+  1176
+);
+
+/** Overhead fleet lined at the depot — network capacity at scale. */
+export const BRAND_FLEET_DEPOT = localImg(
+  "/images/brand/fleet-depot.jpg",
+  "Porterchain green delivery fleet parked at the depot — moving commerce on chain",
+  2048,
+  1162
+);
+
+/** Dock briefing — drivers with clipboard beside branded truck. */
+export const BRAND_WAREHOUSE_DOCK = localImg(
+  "/images/brand/warehouse-dock.jpg",
+  "Porterchain drivers reviewing a delivery clipboard beside a branded truck at the warehouse dock",
+  2048,
+  1176
+);
+
+/** Urban same-day run — truck in motion through the city. */
+export const BRAND_URBAN_DELIVERY = localImg(
+  "/images/brand/urban-delivery.jpg",
+  "Porterchain green box truck on an urban delivery route — moving commerce on chain",
+  2048,
+  1176
+);
+
+/** Warehouse loading — team loading freight into a branded truck. */
+export const BRAND_WAREHOUSE_LOADING = localImg(
+  "/images/brand/warehouse-loading.jpg",
+  "Porterchain team loading boxes into a branded green truck inside the warehouse",
+  2048,
+  1176
+);
+
+/** Open road — branded box truck on the highway (business / services hero). */
+export const BRAND_OPEN_ROAD = localImg(
+  "/images/brand/open-road.jpg",
+  "Porterchain green box truck on the open highway — moving commerce on chain",
+  5408,
+  3072
+);
+
+/** @deprecated Prefer BRAND_DOCK_PAIR / BRAND_FLEET_DEPOT */
+export const BRAND_FLEET = BRAND_DOCK_PAIR;
+
 /** @deprecated Homepage uses GtaAiRouteVisual — kept for blog / legacy refs. */
 export const ROUTE_OPTIMIZATION_HOME = localImg(
   "/images/stock/toronto-gta-skyline-landscape.jpg",
@@ -60,13 +119,30 @@ export const FALLBACK_IMAGE = img(
 );
 
 export const siteImages = {
+  brand: {
+    /** MAIN brand image — full fleet lineup */
+    main: BRAND_FLEET_LINEUP,
+    lineup: BRAND_FLEET_LINEUP,
+    /** Exclusive page owners — do not reuse across surfaces. */
+    dockPair: BRAND_DOCK_PAIR,
+    depot: BRAND_FLEET_DEPOT,
+    warehouseDock: BRAND_WAREHOUSE_DOCK,
+    urban: BRAND_URBAN_DELIVERY,
+    loading: BRAND_WAREHOUSE_LOADING,
+    /** Business / services hero — exclusive */
+    openRoad: BRAND_OPEN_ROAD,
+    /** @deprecated alias — prefer dockPair */
+    fleet: BRAND_DOCK_PAIR,
+    /** @deprecated alias — prefer main */
+    tagline: BRAND_FLEET_LINEUP,
+  },
   home: {
     smartRouting: ROUTE_OPTIMIZATION_HOME,
     routeOptimization: ROUTE_OPTIMIZATION_HOME,
   },
   hero: {
-    /** Branded Porterchain truck — homepage welcome hero */
-    welcome: ECOMMERCE_TRUCK,
+    /** Home only — MAIN fleet lineup */
+    welcome: BRAND_FLEET_LINEUP,
     delivery: img("photo-1766959481554-5a7bb490758a", "Delivery van on an urban route"),
     logistics: img(
       "photo-1600880292203-757bb62b4baf",
@@ -79,6 +155,7 @@ export const siteImages = {
       "photo-1600880292203-757bb62b4baf",
       "Operations team reviewing logistics in a warehouse"
     ),
+    /** Vehicle partner uses brand.warehouseDock explicitly — keep stock here as unused alias */
     partner: img("photo-1449965408869-eaa3f722e40d", "Driver partner preparing a delivery vehicle"),
   },
   vehicles: {
@@ -276,7 +353,8 @@ export function getBlogCoverImage(category: string): SiteImageRef {
 
 export function getPageHeroImage(source: string): SiteImageRef {
   const lower = source.toLowerCase();
-  if (lower.includes("vehicle-partner") || lower.includes("drive")) return siteImages.hero.partner;
+  if (lower.includes("vehicle-partner") || lower.includes("drive"))
+    return siteImages.brand.warehouseDock;
   if (lower.includes("sedan")) return siteImages.vehicles.sedan;
   if (lower.includes("suv")) return siteImages.vehicles.suv;
   if (lower.includes("pickup")) return siteImages.vehicles.pickup;
@@ -287,10 +365,10 @@ export function getPageHeroImage(source: string): SiteImageRef {
   if (lower.includes("electrical")) return siteImages.industries.electrical;
   if (lower.includes("plumbing")) return siteImages.industries.plumbing;
   if (lower.includes("ecommerce")) return siteImages.industries.ecommerce;
-  if (lower.includes("business")) return siteImages.hero.business;
   if (lower.includes("service-area") || lower.includes("local-delivery"))
     return siteImages.hero.toronto;
-  if (lower.includes("campaign")) return siteImages.hero.delivery;
   if (lower.includes("success")) return siteImages.industries.construction;
+  // Brand photos are page-exclusive (home / company / business / partner / platform).
+  // Do not map SEO hubs onto them — use GTA stock instead.
   return siteImages.hero.gta;
 }

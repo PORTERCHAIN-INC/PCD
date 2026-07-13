@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
-import { Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -10,16 +9,10 @@ import { publicEnv } from "@/lib/env";
 import AppClerkProvider from "@/components/providers/AppClerkProvider";
 import DeferredSiteIntegrations from "@/components/integrations/DeferredSiteIntegrations";
 import AttributionCapture from "@/components/seo/AttributionCapture";
+import HtmlLang from "@/components/i18n/HtmlLang";
 import { JsonLd } from "@/components/seo";
 import { siteConfig } from "@/lib/seo/config";
 import { buildOrganizationSchema } from "@/lib/seo/schema";
-import "../globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
 
 type Props = {
   children: React.ReactNode;
@@ -31,6 +24,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: "#0a1628",
+  colorScheme: "light",
 };
 
 export function generateStaticParams() {
@@ -83,17 +77,18 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${inter.variable} scroll-smooth`}>
-      <body className="min-h-screen bg-white font-sans antialiased">
-        <JsonLd data={buildOrganizationSchema()} />
-        <AppClerkProvider>
-          <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
-        </AppClerkProvider>
-        <DeferredSiteIntegrations />
-        <Suspense fallback={null}>
-          <AttributionCapture />
-        </Suspense>
-      </body>
-    </html>
+    <>
+      <HtmlLang locale={locale} />
+      <JsonLd data={buildOrganizationSchema()} />
+      <AppClerkProvider>
+        <NextIntlClientProvider messages={messages}>
+          {children}
+          <DeferredSiteIntegrations />
+        </NextIntlClientProvider>
+      </AppClerkProvider>
+      <Suspense fallback={null}>
+        <AttributionCapture />
+      </Suspense>
+    </>
   );
 }

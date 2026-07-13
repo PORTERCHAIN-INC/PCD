@@ -28,8 +28,13 @@ export const PATHS = {
   TRACK: "track",
   SEDAN_DELIVERY: "sedan-delivery",
   SUV_DELIVERY: "suv-delivery",
-  VAN_DELIVERY: "van-delivery",
-  MEDIUM_TRUCK: "medium-truck",
+  TRADE_VAN_DELIVERY: "trade-van-delivery",
+  CARGO_VAN_DELIVERY: "cargo-van-delivery",
+  BOX_TRUCK_DELIVERY: "box-truck-delivery",
+  /** @deprecated Use TRADE_VAN_DELIVERY — kept for redirect targets */
+  VAN_DELIVERY: "trade-van-delivery",
+  /** @deprecated Use BOX_TRUCK_DELIVERY */
+  MEDIUM_TRUCK: "box-truck-delivery",
 } as const;
 
 export type RouteQuery = Record<string, string>;
@@ -156,7 +161,12 @@ export function platform(locale: Locale, query?: RouteQuery): string {
   return withQuery(localePath(locale, PATHS.PLATFORM), query);
 }
 
-/** Demo-led sales contact with Lane B attribution. */
+/** Capacity quote request — primary customer CTA across SEO and marketing pages. */
+export function quoteContact(locale: Locale, from: string, query?: RouteQuery): string {
+  return contact(locale, { intent: "quote", from, ...query });
+}
+
+/** @deprecated Use quoteContact for customer acquisition paths. */
 export function demoContact(locale: Locale, from: string, query?: RouteQuery): string {
   return contact(locale, { intent: "demo", from, ...query });
 }
@@ -185,10 +195,10 @@ export function vehicleDeliveryPath(
   segment:
     | "sedan-delivery"
     | "suv-delivery"
-    | "van-delivery"
+    | "trade-van-delivery"
     | "pickup-truck-delivery"
     | "cargo-van-delivery"
-    | "medium-truck"
+    | "box-truck-delivery"
 ): string {
   return localePath(locale, segment);
 }

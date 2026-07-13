@@ -59,6 +59,37 @@ export default async function PricingPageView() {
       <section className="site-section bg-white">
         <Container>
           <SectionHeader
+            label={t("factors.label")}
+            title={t("factors.title")}
+            subtitle={t("factors.subtitle")}
+          />
+          <div className="mt-8 overflow-x-auto rounded-2xl border border-primary/10">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead className="bg-gray-bg text-xs uppercase tracking-wide text-muted">
+                <tr>
+                  <th className="px-4 py-3 font-medium">{t("factors.colVehicle")}</th>
+                  <th className="px-4 py-3 font-medium">{t("factors.colSameDay")}</th>
+                  <th className="px-4 py-3 font-medium">{t("factors.colScheduled")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[0, 1, 2].map((i) => (
+                  <tr key={i} className="border-t border-primary/8">
+                    <td className="px-4 py-3 font-medium text-primary">
+                      {t(`factors.rows.${i}.vehicle`)}
+                    </td>
+                    <td className="px-4 py-3 text-muted">{t(`factors.rows.${i}.sameDay`)}</td>
+                    <td className="px-4 py-3 text-muted">{t(`factors.rows.${i}.scheduled`)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Container>
+      </section>
+      <section className="site-section bg-gray-bg">
+        <Container>
+          <SectionHeader
             label={t("tiers.label")}
             title={t("tiers.title")}
             subtitle={t("tiers.subtitle")}
@@ -104,7 +135,7 @@ export default async function PricingPageView() {
         label={t("faq.label")}
         title={t("faq.title")}
         items={collectFaqItems(t, "faq.items", 3)}
-        className="bg-gray-bg"
+        className="bg-white"
       />
       <CtaSection
         title={t("cta.title")}

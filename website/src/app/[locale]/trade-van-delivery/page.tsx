@@ -12,15 +12,15 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  return buildVehicleMetadata(locale, "medium-truck");
+  return buildVehicleMetadata(locale, "trade-van-delivery");
 }
 
-export default async function MediumTruckPage({ params }: Props) {
+export default async function TradeVanDeliveryPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   return (
     <CorporateShell>
-      <VehicleDeliveryPageContent locale={locale as Locale} segment="medium-truck" />
+      <VehicleDeliveryPageContent locale={locale as Locale} segment="trade-van-delivery" />
     </CorporateShell>
   );
 }

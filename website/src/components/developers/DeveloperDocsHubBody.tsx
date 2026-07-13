@@ -2,7 +2,7 @@ import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import type { Locale } from "@/i18n/routing";
-import { demoContact } from "@/lib/seo/routes";
+import { contact } from "@/lib/seo/routes";
 
 type DocsHubItem = {
   href: string;
@@ -68,7 +68,7 @@ export default function DeveloperDocsHubBody({
         title="Need integration support?"
         subtitle="Our partner engineering team helps with ERP, WMS, and webhook rollouts."
         primaryLabel="Get a quote"
-        primaryHref={demoContact(locale, "developers-docs")}
+        primaryHref={contact(locale, { from: "developers-docs" })}
         secondaryLabel="Back to developers"
         secondaryHref="/developers"
         variant="gradient"

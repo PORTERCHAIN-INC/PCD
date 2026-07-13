@@ -2,8 +2,8 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Clock, ArrowUpRight } from "lucide-react";
 import SiteImage from "@/components/ui/SiteImage";
-import { getBlogCoverImage } from "@/data/site-images";
-import type { BlogPostMeta } from "@/lib/blog";
+import type { BlogPostMeta } from "@/lib/blog-meta";
+import { resolveBlogCover } from "@/lib/blog-meta";
 import type { BlogCategory } from "@/data/blog-categories";
 
 interface ArticleCardProps {
@@ -32,7 +32,7 @@ export default function ArticleCard({
   locale = "en",
 }: ArticleCardProps) {
   if (variant === "horizontal") {
-    const cover = getBlogCoverImage(post.category);
+    const cover = resolveBlogCover(post);
     return (
       <Link
         href={`/blog/${post.slug}`}
@@ -67,7 +67,7 @@ export default function ArticleCard({
     );
   }
 
-  const cover = getBlogCoverImage(post.category);
+  const cover = resolveBlogCover(post);
 
   return (
     <Link
@@ -158,7 +158,7 @@ export function FeaturedArticleCard({
   featuredLabel: string;
   ctaLabel: string;
 }) {
-  const cover = getBlogCoverImage(post.category);
+  const cover = resolveBlogCover(post);
 
   return (
     <Link

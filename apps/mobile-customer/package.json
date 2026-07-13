@@ -15,6 +15,7 @@
   "dependencies": {
     "@porterchain/mobile-theme": "workspace:*",
     "expo": "~57.0.4",
+    "expo-linking": "~7.0.5",
     "expo-status-bar": "~57.0.0",
     "react": "19.2.3",
     "react-native": "0.86.0"

@@ -77,7 +77,7 @@ export default async function PlatformPage({ params }: Props) {
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/business#fleet"
         variant="light-centered"
-        illustration={<HeroPhoto image={siteImages.hero.logistics} />}
+        illustration={<HeroPhoto image={siteImages.brand.dockPair} />}
       />
       <TimelineSection
         label={t("timeline.label")}

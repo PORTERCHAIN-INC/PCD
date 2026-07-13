@@ -19,10 +19,10 @@ export { getCityIndustrySeoPairs };
 export const VEHICLE_CITY_SEO_SLUGS = [
   "sedan-delivery",
   "suv-delivery",
-  "van-delivery",
+  "trade-van-delivery",
   "pickup-truck-delivery",
   "cargo-van-delivery",
-  "medium-truck",
+  "box-truck-delivery",
 ] as const;
 
 export type VehicleCitySeoSlug = (typeof VEHICLE_CITY_SEO_SLUGS)[number];
@@ -41,10 +41,10 @@ export type DeliveryIntentCitySeoSlug = (typeof DELIVERY_INTENT_CITY_SEO_SLUGS)[
 export const VEHICLE_SEO_TO_MESSAGE_KEY: Record<VehicleCitySeoSlug, string> = {
   "sedan-delivery": "sedan",
   "suv-delivery": "suv",
-  "van-delivery": "van",
+  "trade-van-delivery": "van",
   "pickup-truck-delivery": "pickupTruck",
   "cargo-van-delivery": "cargoVan",
-  "medium-truck": "mediumTruck",
+  "box-truck-delivery": "mediumTruck",
 };
 
 export const DELIVERY_INTENT_SEO_TO_MESSAGE_KEY: Record<DeliveryIntentCitySeoSlug, string> = {

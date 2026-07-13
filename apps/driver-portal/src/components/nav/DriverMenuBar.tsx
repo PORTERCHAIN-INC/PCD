@@ -105,7 +105,7 @@ export default function DriverMenuBar() {
             </button>
           )}
         >
-          <AllModulesPanel pathname={pathname} />
+          {({ close }) => <AllModulesPanel pathname={pathname} onNavigate={close} />}
         </NavDropdown>
       </div>
 
@@ -155,7 +155,14 @@ export default function DriverMenuBar() {
               </button>
             )}
           >
-            <GroupPanel groupLabel={group.label} items={group.items} pathname={pathname} />
+            {({ close }) => (
+              <GroupPanel
+                groupLabel={group.label}
+                items={group.items}
+                pathname={pathname}
+                onNavigate={close}
+              />
+            )}
           </NavDropdown>
         );
       })}

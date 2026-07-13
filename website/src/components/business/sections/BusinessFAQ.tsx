@@ -30,7 +30,7 @@ export default function BusinessFAQ() {
           <p className="mt-4 text-[#5c6b6c]">{t("subtitle")}</p>
         </motion.div>
 
-        <Accordion items={items} />
+        <Accordion items={items} speakableCount={4} />
       </Container>
     </section>
   );

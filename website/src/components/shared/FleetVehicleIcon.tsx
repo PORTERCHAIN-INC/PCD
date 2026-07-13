@@ -1,4 +1,3 @@
-import Image from "next/image";
 import type { FleetVehicleKey } from "@/data/fleet-specs";
 import { cn } from "@/lib/utils";
 
@@ -17,17 +16,40 @@ type Props = {
   vehicle: FleetVehicleKey;
   className?: string;
   size?: number;
+  active?: boolean;
 };
 
-export default function FleetVehicleIcon({ vehicle, className, size = 32 }: Props) {
+export default function FleetVehicleIcon({ vehicle, className, size = 56, active = false }: Props) {
+  const src = FLEET_VEHICLE_ICONS[vehicle];
+
   return (
-    <Image
-      src={FLEET_VEHICLE_ICONS[vehicle]}
-      alt=""
-      width={size}
-      height={size}
-      aria-hidden
-      className={cn("shrink-0 object-contain", className)}
-    />
+    <span
+      className={cn(
+        "fleet-vehicle-icon inline-flex shrink-0 items-center justify-center transition-all duration-200 drop-shadow-sm",
+        active && "scale-110",
+        className
+      )}
+      style={{ width: size, height: size }}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "fleet-vehicle-icon__glyph block shrink-0 transition-colors duration-200",
+          active ? "bg-white" : "bg-white/90 group-hover:bg-white"
+        )}
+        style={{
+          width: size,
+          height: size,
+          WebkitMaskImage: `url(${src})`,
+          maskImage: `url(${src})`,
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+        }}
+      />
+    </span>
   );
 }

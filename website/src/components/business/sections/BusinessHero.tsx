@@ -1,86 +1,74 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Container from "@/components/ui/Container";
-import LinkButton from "@/components/corporate/ui/LinkButton";
+import SiteImage from "@/components/ui/SiteImage";
+import AnimatedGradientText from "@/components/magic/animated-gradient-text";
+import BlurFade from "@/components/magic/blur-fade";
 import InquiryForm from "@/components/business/InquiryForm";
+import { siteImages } from "@/data/site-images";
+import { cn } from "@/lib/utils";
 
+/**
+ * Business / services hero — Open Road brand photo as full-bleed bg,
+ * soft white merge on the left for copy + quote form in front.
+ */
 export default function BusinessHero() {
   const t = useTranslations("businessPage.hero");
+  const [formActive, setFormActive] = useState(false);
+  const openRoad = siteImages.brand.openRoad;
 
   return (
-    <section className="relative overflow-hidden bg-white">
-      <div className="absolute inset-0 grid-pattern opacity-50 pointer-events-none" aria-hidden />
-      <div
-        className="absolute inset-0 pointer-events-none"
-        aria-hidden
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(37,99,235,0.08) 0%, transparent 55%)",
-        }}
-      />
+    <section
+      className={cn(
+        "relative isolate min-h-[min(100svh,52rem)] overflow-hidden bg-white",
+        formActive && "motion-paused"
+      )}
+    >
+      {/* Full-bleed brand photo */}
+      <div className="absolute inset-0" aria-hidden>
+        <SiteImage
+          image={openRoad}
+          fill
+          priority
+          unoptimized
+          className="object-cover object-[72%_center] sm:object-[68%_center] lg:object-[62%_center]"
+          sizes="100vw"
+        />
+        {/* Soft dissolve into white — left for copy readability, edges + bottom into page */}
+        <div className="biz-hero-merge pointer-events-none absolute inset-0" />
+      </div>
 
-      <Container className="relative z-10 py-24 sm:py-28 lg:py-32">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+      <Container className="relative z-10 flex min-h-[min(100svh,52rem)] flex-col justify-center pt-[calc(var(--nav-height)+2rem)] pb-16 sm:pb-20 lg:pb-24">
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-12 xl:gap-16">
           <div className="max-w-xl">
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
-              className="pc-eyebrow"
-            >
-              {t("badge")}
-            </motion.p>
+            <BlurFade>
+              <p className="biz-hero-eyebrow">{t("badge")}</p>
+            </BlurFade>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.06 }}
-              className="pc-display mt-4 text-primary text-balance"
-            >
-              {t("titleLine1")}
-              <span className="block text-primary/90">{t("titleLine2")}</span>
-            </motion.h1>
+            <BlurFade delay={0.06}>
+              <h1 className="biz-hero-title mt-4 text-primary text-balance">
+                {t("titleLine1")}
+                <span className="block">
+                  <AnimatedGradientText>{t("titleLine2")}</AnimatedGradientText>
+                </span>
+              </h1>
+            </BlurFade>
 
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.12 }}
-              className="mt-6 text-lg text-muted leading-relaxed"
-            >
-              {t("subtitle")}
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.18 }}
-              className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3"
-            >
-              <LinkButton
-                href="/contact?intent=quote&from=business"
-                size="lg"
-                trackSource="business-hero"
-              >
-                {t("ctaPrimary")}
-              </LinkButton>
-              <LinkButton href="#fleet" variant="outline" size="lg" trackSource="business-hero">
-                {t("ctaSecondary")}
-              </LinkButton>
-            </motion.div>
+            <BlurFade delay={0.12}>
+              <p className="biz-hero-subtitle mt-5">{t("subtitle")}</p>
+            </BlurFade>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.22 }}
-            className="relative"
-          >
-            <div className="rounded-3xl border border-primary/8 bg-white p-1 shadow-premium">
-              <InquiryForm id="inquiry" variant="hero" />
-            </div>
-          </motion.div>
+          <BlurFade delay={0.18}>
+            <InquiryForm
+              id="inquiry"
+              variant="hero"
+              className="biz-hero-form"
+              onInteractionChange={setFormActive}
+            />
+          </BlurFade>
         </div>
       </Container>
     </section>

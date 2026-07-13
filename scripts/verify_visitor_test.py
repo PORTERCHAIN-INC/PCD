@@ -14,14 +14,26 @@ PLATFORM_PAGE = ROOT / "website/src/app/[locale]/platform/page.tsx"
 ICP = ROOT / "docs/ICP.md"
 
 WHAT_NEEDLES = (
-    "operating system",
-    "orchestration",
+    "capacity",
+    "delivery",
     "logistics",
-    "système d'exploitation",
-    "logistique",
-    "orchestration",
+    "vehicle",
+    "driver",
+    "livraison",
+    "capacité",
+    "chauffeur",
+    "véhicule",
 )
-WHOM_NEEDLES = ("business", "merchant", "operations", "entreprise", "équipes", "entreprises")
+WHOM_NEEDLES = (
+    "business",
+    "b2b",
+    "merchant",
+    "fleet",
+    "operations",
+    "entreprise",
+    "entreprises",
+    "flotte",
+)
 
 
 def _hero_text(path: Path) -> tuple[str, str]:
@@ -47,9 +59,9 @@ def main() -> int:
         title, subtitle = _hero_text(path)
         combined = f"{title} {subtitle}"
         if not any(needle in combined for needle in WHAT_NEEDLES):
-            failures.append(f"{label} hero missing clear WHAT (platform/orchestration)")
+            failures.append(f"{label} hero missing clear WHAT (capacity/delivery)")
         if not any(needle in combined for needle in WHOM_NEEDLES):
-            failures.append(f"{label} hero missing clear FOR WHOM (business/operations)")
+            failures.append(f"{label} hero missing clear FOR WHOM (B2B/fleet)")
 
     if PLATFORM_PAGE.is_file():
         platform_text = PLATFORM_PAGE.read_text(encoding="utf-8").lower()
@@ -61,7 +73,7 @@ def main() -> int:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  PASS: homepage hero states what (orchestration OS) + for whom (business ops)")
+    print("  PASS: homepage hero states what (capacity/delivery) + for whom (B2B buyers)")
     return 0
 
 

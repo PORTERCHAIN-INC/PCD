@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={inter.variable}>
+    <html lang="en" suppressHydrationWarning style={{ colorScheme: "light dark" }}>
+      <body className={`${inter.variable} min-h-dvh bg-gray-bg text-primary antialiased`}>
         <AppClerkProvider>
           <MerchantAuthProvider>{children}</MerchantAuthProvider>
         </AppClerkProvider>

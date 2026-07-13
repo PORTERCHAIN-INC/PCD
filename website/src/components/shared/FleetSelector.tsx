@@ -14,7 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import VehicleIllustration from "@/components/illustrations/VehicleIllustration";
-import FleetVehicleIcon from "@/components/shared/FleetVehicleIcon";
+import FleetVehicleCard from "@/components/shared/FleetVehicleCard";
 import { BUSINESS_FLEET_KEYS, FLEET_ILLUSTRATIONS } from "@/data/business";
 import {
   FLEET_VEHICLE_SPECS,
@@ -23,10 +23,13 @@ import {
   type FleetVehicleKey,
 } from "@/data/fleet-specs";
 import { cn } from "@/lib/utils";
+import { useFormFieldFocus } from "@/hooks/use-form-field-focus";
 
 interface FleetSelectorProps {
-  /** Show licence note (capacity ladder removed — rail covers vehicle scale) */
+  /** Show payload/cargo spec tiles, capacity ladder, and licence note */
   detailed?: boolean;
+  /** Large photo preview stage above the vehicle cards */
+  showPreview?: boolean;
   className?: string;
 }
 
@@ -34,48 +37,33 @@ function FleetSpecTile({
   icon: Icon,
   label,
   value,
-  compact,
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
-  compact?: boolean;
 }) {
-  if (compact) {
-    return (
-      <div className="rounded-lg border border-secondary/15 bg-white/75 px-2 py-1.5 text-center min-w-0">
-        <div className="flex items-center justify-center gap-1 text-secondary">
-          <Icon className="h-3 w-3 shrink-0" aria-hidden />
-          <p className="text-[8px] font-semibold uppercase tracking-[0.12em] text-secondary/75 truncate">
-            {label}
-          </p>
-        </div>
-        <p className="mt-0.5 text-[11px] sm:text-xs font-semibold text-primary tabular-nums truncate">
-          {value}
+  return (
+    <div className="rounded-lg border border-secondary/15 bg-white/75 px-2 py-1.5 text-center min-w-0">
+      <div className="flex items-center justify-center gap-1 text-secondary">
+        <Icon className="h-3 w-3 shrink-0" aria-hidden />
+        <p className="text-[8px] font-semibold uppercase tracking-[0.12em] text-secondary/75 truncate">
+          {label}
         </p>
       </div>
-    );
-  }
-
-  return (
-    <div className="rounded-xl border border-secondary/15 bg-white/70 px-3 py-2.5">
-      <div className="flex items-center gap-2">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary/12 text-secondary">
-          <Icon className="h-4 w-4" aria-hidden />
-        </span>
-        <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary/75">
-            {label}
-          </p>
-          <p className="text-sm font-semibold text-primary tabular-nums">{value}</p>
-        </div>
-      </div>
+      <p className="mt-0.5 text-[11px] sm:text-xs font-semibold text-primary tabular-nums truncate">
+        {value}
+      </p>
     </div>
   );
 }
 
-export default function FleetSelector({ detailed = true, className }: FleetSelectorProps) {
+export default function FleetSelector({
+  detailed = true,
+  showPreview = true,
+  className,
+}: FleetSelectorProps) {
   const t = useTranslations("businessPage.fleet");
+  const formFieldFocused = useFormFieldFocus();
   const total = BUSINESS_FLEET_KEYS.length;
   const [active, setActive] = useState(0);
   const activeKey = BUSINESS_FLEET_KEYS[active] as FleetVehicleKey;
@@ -93,6 +81,10 @@ export default function FleetSelector({ detailed = true, className }: FleetSelec
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      if (formFieldFocused) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+
       if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
         event.preventDefault();
         goPrev();
@@ -104,23 +96,32 @@ export default function FleetSelector({ detailed = true, className }: FleetSelec
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [goNext, goPrev]);
+  }, [formFieldFocused, goNext, goPrev]);
 
   const skidValue =
     activeSpec.skidCapacity > 0
       ? t("specSkidsCount", { count: activeSpec.skidCapacity })
       : t("specSkidsNone");
 
+  const specLabels = {
+    height: t("specHeight"),
+    width: t("specWidth"),
+    weight: t("specWeight"),
+    skids: t("specSkids"),
+  };
+
+  const motionFast = formFieldFocused ? { duration: 0 } : undefined;
+
   return (
     <div
       className={cn(
-        "fleet-fit flex flex-col gap-2 sm:gap-2.5 min-h-0",
-        detailed ? "fleet-fit--detailed" : "fleet-fit--compact",
+        "fleet-fit flex flex-col gap-3 sm:gap-4 min-h-0",
+        formFieldFocused && "motion-paused",
         className
       )}
     >
-      <div className="fleet-fit__grid grid min-h-0 gap-2 sm:gap-3 lg:grid-cols-[minmax(0,1fr)_9.75rem] xl:grid-cols-[minmax(0,1fr)_10.75rem] lg:items-stretch">
-        {/* Photo stage */}
+      {/* Preview stage */}
+      {showPreview && (
         <div className="fleet-fit__stage relative min-h-0 rounded-2xl sm:rounded-3xl overflow-hidden border border-primary/8 bg-primary shadow-premium ring-1 ring-primary/[0.04]">
           <AnimatePresence mode="wait">
             <motion.div
@@ -128,7 +129,7 @@ export default function FleetSelector({ detailed = true, className }: FleetSelec
               initial={{ opacity: 0, scale: 1.03 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              transition={motionFast ?? { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const }}
               className="absolute inset-0"
             >
               <VehicleIllustration
@@ -145,7 +146,7 @@ export default function FleetSelector({ detailed = true, className }: FleetSelec
             aria-hidden
           />
           <div
-            className="absolute inset-0 bg-gradient-to-r from-primary/40 via-transparent to-transparent lg:from-primary/25"
+            className="absolute inset-0 bg-gradient-to-r from-primary/30 via-transparent to-transparent"
             aria-hidden
           />
 
@@ -176,15 +177,14 @@ export default function FleetSelector({ detailed = true, className }: FleetSelec
             </div>
           </div>
 
-          {/* Cargo specs */}
-          <div className="absolute top-11 sm:top-12 left-2.5 right-2.5 sm:left-3 sm:right-3 lg:left-auto lg:right-3 lg:max-w-[15.5rem] z-10">
+          <div className="absolute top-11 sm:top-12 right-2.5 sm:right-3 left-2.5 sm:left-auto sm:max-w-[16rem] z-10">
             <AnimatePresence mode="wait">
               <motion.div
                 key={`specs-${activeKey}`}
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.22 }}
+                transition={motionFast ?? { duration: 0.22 }}
                 className="rounded-xl border border-secondary/25 bg-secondary/[0.12] p-2 sm:p-2.5 backdrop-blur-md shadow-lg shadow-primary/10"
               >
                 <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-secondary">
@@ -192,24 +192,21 @@ export default function FleetSelector({ detailed = true, className }: FleetSelec
                 </p>
                 <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
                   <FleetSpecTile
-                    compact
                     icon={ArrowUpDown}
                     label={t("specHeight")}
                     value={formatFleetDimension(activeSpec.heightIn)}
                   />
                   <FleetSpecTile
-                    compact
                     icon={ArrowLeftRight}
                     label={t("specWidth")}
                     value={formatFleetDimension(activeSpec.widthIn)}
                   />
                   <FleetSpecTile
-                    compact
                     icon={Weight}
                     label={t("specWeight")}
                     value={formatFleetWeightLbs(activeSpec.weightLbs)}
                   />
-                  <FleetSpecTile compact icon={Layers} label={t("specSkids")} value={skidValue} />
+                  <FleetSpecTile icon={Layers} label={t("specSkids")} value={skidValue} />
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -220,7 +217,7 @@ export default function FleetSelector({ detailed = true, className }: FleetSelec
               key={`meta-${activeKey}`}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, delay: 0.04 }}
+              transition={motionFast ?? { duration: 0.28, delay: formFieldFocused ? 0 : 0.04 }}
             >
               <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-white tracking-tight leading-tight">
                 {t(`items.${activeKey}.name`)}
@@ -236,60 +233,37 @@ export default function FleetSelector({ detailed = true, className }: FleetSelec
             </motion.div>
           </div>
         </div>
+      )}
 
-        {/* Vehicle rail */}
-        <div
-          className="fleet-fit__rail flex gap-1.5 overflow-x-auto pb-0.5 snap-x snap-mandatory scrollbar-hide lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0 lg:min-h-0"
-          role="tablist"
-          aria-label={t("title")}
-        >
-          {BUSINESS_FLEET_KEYS.map((key, i) => {
-            const isActive = i === active;
-            const fleetKey = key as FleetVehicleKey;
-            return (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setActive(i)}
-                className={cn(
-                  "group relative flex shrink-0 snap-start items-center gap-2 rounded-xl border p-2 text-left transition-all duration-200",
-                  "min-w-[7.25rem] sm:min-w-[8rem] lg:min-w-0 lg:w-full",
-                  isActive
-                    ? "border-secondary/30 bg-white shadow-premium ring-1 ring-secondary/10"
-                    : "border-primary/8 bg-white/90 hover:border-secondary/20 hover:bg-white"
-                )}
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="fleet-active-rail"
-                    className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full bg-gradient-to-b from-secondary to-accent"
-                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                  />
-                )}
-                <span
-                  className={cn(
-                    "relative ml-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors",
-                    isActive
-                      ? "border-secondary/25 bg-secondary/[0.08]"
-                      : "border-primary/8 bg-primary/[0.03] group-hover:border-secondary/15"
-                  )}
-                >
-                  <FleetVehicleIcon vehicle={fleetKey} size={28} />
-                </span>
-                <span className="min-w-0 flex-1 pr-0.5">
-                  <span className="block truncate text-xs font-semibold text-primary">
-                    {t(`items.${key}.name`)}
-                  </span>
-                  <span className="mt-0.5 block truncate text-[10px] text-muted">
-                    {t(`items.${key}.payload`)}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      {/* Vehicle selection cards */}
+      <div
+        className="fleet-fit__picker flex gap-3 sm:gap-3.5 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide sm:grid sm:grid-cols-4 md:grid-cols-7 sm:overflow-visible sm:pb-0"
+        role="tablist"
+        aria-label={t("title")}
+      >
+        {BUSINESS_FLEET_KEYS.map((key, i) => {
+          const fleetKey = key as FleetVehicleKey;
+          const spec = FLEET_VEHICLE_SPECS[fleetKey];
+          const skidDisplay =
+            spec.skidCapacity > 0
+              ? t("specSkidsCount", { count: spec.skidCapacity })
+              : t("specSkidsNone");
+          return (
+            <FleetVehicleCard
+              key={key}
+              fleetKey={fleetKey}
+              isActive={i === active}
+              onSelect={() => setActive(i)}
+              name={t(`items.${key}.name`)}
+              payload={t(`items.${key}.payload`)}
+              cargo={t(`items.${key}.cargo`)}
+              useCase={t(`items.${key}.useCase`)}
+              specLabels={specLabels}
+              skidDisplay={skidDisplay}
+              reduceMotion={formFieldFocused}
+            />
+          );
+        })}
       </div>
 
       <div className="fleet-fit__footer flex flex-wrap items-start gap-x-3 gap-y-1 text-[10px] sm:text-[11px] text-muted/75 shrink-0">

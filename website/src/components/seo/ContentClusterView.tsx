@@ -8,9 +8,9 @@ import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
 import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
 import PageBreadcrumbs, { type BreadcrumbItem } from "@/components/seo/PageBreadcrumbs";
 import { JsonLd } from "@/components/seo";
-import { buildFAQPageSchema } from "@/lib/seo/schema";
+import { buildFAQPageSchema, buildServiceSchema } from "@/lib/seo/schema";
 import type { Locale } from "@/i18n/routing";
-import { demoContact } from "@/lib/seo/routes";
+import { quoteContact } from "@/lib/seo/routes";
 
 export type ContentClusterData = {
   title: string;
@@ -42,20 +42,24 @@ export default function ContentClusterView({
   ctaSource,
   breadcrumbs,
 }: ContentClusterViewProps) {
-  const demoHref = demoContact(locale, ctaSource);
+  const quoteHref = quoteContact(locale, ctaSource);
   const faqItems = data.items ?? [];
   const faqSchema = buildFAQPageSchema(faqItems);
+  const serviceSchema =
+    faqItems.length > 0
+      ? buildServiceSchema({ name: data.title, description: data.description })
+      : null;
 
   return (
     <>
-      {faqSchema && <JsonLd data={faqSchema} />}
+      <JsonLd data={[faqSchema, serviceSchema].filter(Boolean)} />
       {breadcrumbs && breadcrumbs.length > 0 && <PageBreadcrumbs items={breadcrumbs} />}
       <HeroSection
         badge="Porterchain"
         title={data.title}
         subtitle={data.intro}
         primaryCta="Get a quote"
-        primaryHref={demoHref}
+        primaryHref={quoteHref}
         secondaryCta="See vehicles"
         secondaryHref="/business#fleet"
         variant="light-centered"
@@ -63,6 +67,8 @@ export default function ContentClusterView({
         trackSource={ctaSource}
       />
       <PlatformBridgeSection from={ctaSource} />
+
+      {faqItems.length > 0 && <FaqSection title="Frequently asked questions" items={faqItems} />}
 
       {data.sections?.map((section) => (
         <section key={section.heading} className="site-section bg-white">
@@ -108,8 +114,6 @@ export default function ContentClusterView({
         </section>
       )}
 
-      {faqItems.length > 0 && <FaqSection title="Frequently asked questions" items={faqItems} />}
-
       {data.relatedLinks && data.relatedLinks.length > 0 && (
         <InternalLinksBlock
           title={data.relatedTitle ?? "Related pages"}
@@ -121,7 +125,7 @@ export default function ContentClusterView({
         title="Ready for transportation capacity on your lanes?"
         subtitle="Tell us what needs to move. We'll quote the right vehicle-and-driver capacity for your operation."
         primaryLabel="Get a quote"
-        primaryHref={demoHref}
+        primaryHref={quoteHref}
         secondaryLabel="See vehicles"
         secondaryHref="/business#fleet"
         variant="gradient"

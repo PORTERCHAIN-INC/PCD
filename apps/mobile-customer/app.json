@@ -9,7 +9,8 @@
     "scheme": "porterchain-customer",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.porterchain.customer"
+      "bundleIdentifier": "com.porterchain.customer",
+      "associatedDomains": ["applinks:porterchain.com", "applinks:www.porterchain.com"]
     },
     "android": {
       "package": "com.porterchain.customer",
@@ -19,7 +20,21 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            { "scheme": "https", "host": "porterchain.com", "pathPrefix": "/track" },
+            { "scheme": "https", "host": "www.porterchain.com", "pathPrefix": "/track" },
+            { "scheme": "https", "host": "porterchain.com", "pathPrefix": "/en/track" },
+            { "scheme": "https", "host": "porterchain.com", "pathPrefix": "/fr/track" },
+            { "scheme": "https", "host": "porterchain.com", "pathPrefix": "/login" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     }
   }
 }

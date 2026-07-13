@@ -1,0 +1,939 @@
+{
+  "hubs": {
+    "compare": {
+      "title": "Comparer les options de livraison | Porterchain",
+      "description": "Comparez Porterchain à la livraison interne, aux coursiers ponctuels et à la répartition par feuille de calcul."
+    },
+    "faq": {
+      "title": "FAQ livraison pour marchands | Porterchain",
+      "description": "Réponses sur la tarification, l'intégration, les CSV, les API, les zones desservies et la livraison par secteur."
+    },
+    "guides": {
+      "title": "Guides livraison locale | Porterchain",
+      "description": "Guides pratiques sur le fonctionnement de Porterchain, l'intégration, le suivi et le soutien pour les marchands du RGT."
+    },
+    "successStories": {
+      "title": "Histoires de réussite marchands | Porterchain",
+      "description": "Comment torréfacteurs, pharmacies et marques beauté développent leur livraison avec Porterchain."
+    }
+  },
+  "compare": {
+    "in-house-delivery": {
+      "title": "Porterchain vs livraison interne",
+      "description": "Comparez la livraison gérée avec Porterchain à une flotte interne. Visibilité, coûts prévisibles et un partenaire pour livraison récurrente et le jour même.",
+      "intro": "Beaucoup de marchands commencent par une livraison interne quand le volume est faible. En grandissant, les coûts de flotte, l'embauche, l'entretien et la planification peuvent devenir une distraction. Porterchain offre un partenaire et un tableau de bord pour livraison récurrente et le jour même — sans flotte ni chauffeurs à gérer. Vous gardez le contrôle des zones et des plages horaires; nous gérons la capacité, le routage et l'exécution du dernier kilomètre.",
+      "alternativeLabel": "Livraison interne",
+      "comparisonRows": [
+        {
+          "dimension": "Visibilité et suivi",
+          "porterchain": "Un tableau de bord pour statut et ETA; visibilité complète de la collecte à la livraison.",
+          "alternative": "Dépend de vos outils et chauffeurs. Souvent téléphones et feuilles de calcul — visibilité manuelle et tardive."
+        },
+        {
+          "dimension": "Prévisibilité des coûts",
+          "porterchain": "Tarification alignée sur arrêts, zones et volume. Coût prévisible sans véhicules, entretien ni paie chauffeurs.",
+          "alternative": "Coûts fixes et variables: véhicules, carburant, assurance, salaires, entretien. Difficile d'ajuster à la demande."
+        },
+        {
+          "dimension": "Récurrent et jour même",
+          "porterchain": "Tournées récurrentes et options jour même au même endroit. Un partenaire pour les deux modèles.",
+          "alternative": "Vous planifiez et affectez pour les deux. Le jour même implique souvent heures supplémentaires ou courses ponctuelles."
+        },
+        {
+          "dimension": "Mise à l'échelle",
+          "porterchain": "Nous alignons la capacité à votre volume. Ajoutez arrêts ou zones sans nouveaux véhicules ni embauches.",
+          "alternative": "La croissance signifie plus de véhicules et de chauffeurs. Capital et recrutement deviennent le goulot."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Comment fonctionne l'intégration"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "ad-hoc-courier": {
+      "title": "Porterchain vs coursier ponctuel",
+      "description": "Comparez la livraison récurrente et jour même gérée par Porterchain à la réservation de coursiers course par course.",
+      "intro": "Réserver un coursier pour chaque course convient aux envois occasionnels. Pour livraison récurrente ou régulière le jour même, le ponctuel apporte souvent tarifs variables, peu de visibilité et du temps à coordonner chaque course. Porterchain est conçu pour les marchands à volume récurrent: un partenaire, capacité stable et une vue sur chaque course.",
+      "alternativeLabel": "Coursier ponctuel",
+      "comparisonRows": [
+        {
+          "dimension": "Tarification et prévisibilité",
+          "porterchain": "Tarification liée à votre volume et zones. Une facture, coût prévisible par arrêt ou tournée.",
+          "alternative": "Tarifs par réservation variables selon demande, distance et fournisseur."
+        },
+        {
+          "dimension": "Visibilité",
+          "porterchain": "Un tableau de bord pour toutes les courses. Statut et ETA au même endroit.",
+          "alternative": "Suivi selon le coursier utilisé. Plusieurs apps ou liens; pas de vue unique."
+        },
+        {
+          "dimension": "Tournées récurrentes",
+          "porterchain": "Tournées récurrentes au cœur du modèle. Même capacité, même partenaire, même processus.",
+          "alternative": "Récurrent = re-réserver à chaque fois. Coordination et variabilité augmentent avec le volume."
+        },
+        {
+          "dimension": "Temps opérationnel",
+          "porterchain": "Soumettez commandes ou arrêts (CSV ou API); nous exécutons. Pas de réservation quotidienne.",
+          "alternative": "Chaque course exige disponibilité, réservation et communication. Le temps s'accumule."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Comment fonctionne l'intégration"
+        },
+        {
+          "path": "pricing",
+          "label": "Tarification"
+        }
+      ]
+    },
+    "unmanaged-same-day": {
+      "title": "Porterchain vs livraison jour même non gérée",
+      "description": "Comparez la livraison jour même gérée par Porterchain aux flux manuels. Visibilité, heures limites et un partenaire pour récurrent et à la demande.",
+      "intro": "La livraison jour même non gérée coordonne souvent chauffeurs ou coursiers manuellement, avec peu de visibilité avant la livraison. Porterchain offre du jour même géré dans nos zones: vous fixez heures limites et plages; nous gérons capacité et exécution avec statut et ETA dans un tableau de bord.",
+      "alternativeLabel": "Flux jour même non gérés",
+      "comparisonRows": [
+        {
+          "dimension": "Heures limites et plages",
+          "porterchain": "Heures limites et plages convenues. Nous alignons la capacité pour des promesses réalistes.",
+          "alternative": "Souvent ad hoc: vous savez au moment de la course si la plage est tenable."
+        },
+        {
+          "dimension": "Visibilité",
+          "porterchain": "Statut et ETA en temps réel pour vous et vos clients.",
+          "alternative": "Mises à jour manuelles ou après coup. Moins de capacité à informer les clients."
+        },
+        {
+          "dimension": "Récurrent + jour même",
+          "porterchain": "Tournées récurrentes et jour même au même endroit. Un partenaire, un processus, une vue.",
+          "alternative": "Récurrent et jour même sont souvent séparés. Plus de coordination et de lacunes."
+        },
+        {
+          "dimension": "Cohérence",
+          "porterchain": "Un processus et un SLA. Même qualité et visibilité à chaque course.",
+          "alternative": "Dépend de qui exécute chaque course. Qualité et communication variables."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Comment fonctionne l'intégration"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "spreadsheet-dispatch": {
+      "title": "Porterchain vs répartition par feuille de calcul seule",
+      "description": "Comparez la visibilité et livraison gérée de Porterchain à une répartition uniquement par tableur. Un tableau de bord, suivi et soutien CSV ou API.",
+      "intro": "Les feuilles de calcul listent les arrêts et les partagent avec chauffeurs ou coursiers. La lacune est la visibilité: une fois la liste transmise, le statut en temps réel manque souvent. Porterchain accepte CSV pour démarrer, mais chaque course a suivi complet et un tableau de bord unique.",
+      "alternativeLabel": "Répartition par feuille de calcul seule",
+      "comparisonRows": [
+        {
+          "dimension": "Visibilité après répartition",
+          "porterchain": "Chaque course a statut et ETA dans un tableau de bord.",
+          "alternative": "Arrêts dans une feuille; exécution ailleurs. Statut souvent manuel ou absent."
+        },
+        {
+          "dimension": "Soumission",
+          "porterchain": "Téléversement CSV ou API. Même format pour tournées récurrentes; nous exécutons avec suivi.",
+          "alternative": "Feuille envoyée au chauffeur ou coursier. Pas de suivi intégré ni vue globale."
+        },
+        {
+          "dimension": "Mise à l'échelle",
+          "porterchain": "Ajoutez volume ou zones sans changer la soumission. Nous gérons capacité et routage.",
+          "alternative": "Plus de volume = plus de feuilles et coordination, même lacune de visibilité."
+        },
+        {
+          "dimension": "Tournées récurrentes",
+          "porterchain": "Tournées récurrentes avec le même CSV ou API. Un partenaire, processus constant.",
+          "alternative": "Récurrent = feuilles mises à jour à chaque fois. Pas de vue unifiée historique."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Comment fonctionne l'intégration"
+        },
+        {
+          "path": "integrations",
+          "label": "Intégrations"
+        }
+      ]
+    }
+  },
+  "faq": {
+    "construction-delivery": {
+      "title": "Livraison matériaux construction: FAQ chantier et distributeur",
+      "description": "FAQ sur livraison matériaux en Ontario — chantiers, palettes, preuve de livraison et tournées récurrentes.",
+      "intro": "Distributeurs et entrepreneurs ont besoin de livraison respectant plages chantier, fret palettisé et preuve à chaque arrêt. Porterchain exécute tournées récurrentes et jour même dans le RGT avec véhicules adaptés.",
+      "items": [
+        {
+          "question": "Livrez-vous matériaux sur chantier?",
+          "answer": "Oui. Bois, gypse, acier, agrégats et matériaux généraux vers chantiers et clients professionnels. Partagez tournées, accès chantier et plages; nous alignons capacité et véhicules."
+        },
+        {
+          "question": "Quels véhicules pour fret construction?",
+          "answer": "Camionnettes et fourgons cargo pour petites courses; camions cube 16 pi pour palettes et charges plus lourdes. Véhicule adapté au poids, dimensions et accès."
+        },
+        {
+          "question": "Preuve de livraison sur chantier?",
+          "answer": "Photo preuve, signatures numériques si requis et lien de suivi. Statut et ETA en temps réel pour vous et équipes chantier."
+        },
+        {
+          "question": "Quelles zones pour construction?",
+          "answer": "RGT, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara, Oshawa et régions ontariennes environnantes."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        },
+        {
+          "path": "pricing",
+          "label": "Tarification"
+        }
+      ]
+    },
+    "electrical-distributor-delivery": {
+      "title": "Livraison distributeur électrique: FAQ grossiste et entrepreneur",
+      "description": "FAQ livraison pour grossistes électriques — jour même, fil et panneaux, tournées récurrentes en Ontario.",
+      "intro": "Distributeurs électriques ont besoin de dernier kilomètre fiable vers entrepreneurs, chantiers et comptes comptoir. Porterchain exécute tournées récurrentes et jour même avec suivi.",
+      "items": [
+        {
+          "question": "Livrez-vous pour grossistes électriques?",
+          "answer": "Oui. Tournées récurrentes vers entrepreneurs, chantiers et comptes professionnels. Partagez volume, zones et heures limites; nous alignons capacité locale."
+        },
+        {
+          "question": "Courses jour même pour fournitures électriques?",
+          "answer": "Jour même disponible dans nos zones selon heures limites et capacité. Plages convenues pour que entrepreneurs reçoivent matériaux à temps."
+        },
+        {
+          "question": "Comment les entrepreneurs suivent la livraison?",
+          "answer": "Lien de suivi avec statut et ETA en direct. Partagez avec entrepreneurs ou contacts chantier."
+        },
+        {
+          "question": "Quelles villes pour livraison électrique?",
+          "answer": "RGT, Hamilton, Kitchener-Waterloo, London, Niagara et autres régions ontariennes."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "plumbing-supply-delivery": {
+      "title": "Livraison plomberie: FAQ grossiste et entrepreneur",
+      "description": "FAQ livraison plomberie — tuyaux, fixtures et tournées grossistes en Ontario.",
+      "intro": "Maisons de plomberie ont besoin de livraison prévisible vers entrepreneurs et sites commerciaux. Porterchain exécute tournées récurrentes avec véhicules adaptés.",
+      "items": [
+        {
+          "question": "Livrez-vous pour grossistes plomberie?",
+          "answer": "Oui. Tournées récurrentes vers entrepreneurs et comptes professionnels. Indiquez routes, volume et plages; nous alignons capacité."
+        },
+        {
+          "question": "Que transportez-vous pour plomberie?",
+          "answer": "Fourgons et camions cube pour tuyaux, fixtures, raccords et stock palettisé. Poids et dimensions pour courses spécialisées."
+        },
+        {
+          "question": "Tournées récurrentes aux mêmes entrepreneurs?",
+          "answer": "Oui. Tournées récurrentes au cœur du modèle. Chauffeurs et véhicules alignés à vos motifs hebdomadaires ou quotidiens."
+        },
+        {
+          "question": "Où livrez-vous plomberie?",
+          "answer": "RGT, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo et autres zones ontariennes."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "delivery-pricing": {
+      "title": "Tarification livraison: comment les marchands sont tarifés",
+      "description": "Comment Porterchain tarifie livraison récurrente et jour même. Tarification par arrêt, zone et volume.",
+      "intro": "La tarification Porterchain est conçue pour marchands à volume récurrent. Coût aligné à routes, zones et volume — prévisible sans frais surprises.",
+      "items": [
+        {
+          "question": "Comment la tarification est-elle structurée?",
+          "answer": "Généralement par arrêts, zones et volume. Tournées récurrentes souvent tarif par arrêt ou par tournée. Jour même peut être par zone ou distance. Confirmation après analyse de votre volume et zones."
+        },
+        {
+          "question": "Volume minimum ou engagement?",
+          "answer": "Nous travaillons avec marchands à besoins récurrents ou réguliers. Minimums et engagement discutés à l'intégration. Pas d'engagement long terme avant confirmation d'adéquation et tarification."
+        },
+        {
+          "question": "Tarification par industrie?",
+          "answer": "Oui. Patterns et exigences diffèrent (grossiste vs abonnement, pharmacie vs détail). Tarification adaptée à votre flux et zones."
+        },
+        {
+          "question": "Voir tarification pour ma zone?",
+          "answer": "Nous desservons RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa et autres régions. Contactez-nous avec volume et zones pour tarification."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "pricing",
+          "label": "Tarification"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "onboarding": {
+      "title": "Intégration marchand: comment démarrer",
+      "description": "Comment fonctionne l'intégration Porterchain. Étapes, délais et attentes.",
+      "intro": "Démarrer avec Porterchain est conçu pour être rapide. Nous ciblons volume, zones et flux pour aligner capacité et SLA sans longs formulaires.",
+      "items": [
+        {
+          "question": "Combien de temps prend l'intégration?",
+          "answer": "La plupart des marchands sont prêts en jours, pas semaines. Confirmation couverture, alignement capacité, accès suivi et rapports. Intégrations API peuvent prendre plus longtemps — nous le précisons dès le départ."
+        },
+        {
+          "question": "Que dois-je fournir pour démarrer?",
+          "answer": "Volume (arrêts par semaine), zones de livraison et plages ou exigences. Feuilles de calcul ou courriel pour commencer; pas d'intégration complète le jour un."
+        },
+        {
+          "question": "Contrat ou engagement?",
+          "answer": "Nous confirmons adéquation et tarification avant engagement. Objectif: mise en service rapide pour voir comment la livraison fonctionne avec un partenaire."
+        },
+        {
+          "question": "Démarrer dans ma ville?",
+          "answer": "Nous opérons RGT, Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, London, St. Catharines et Niagara."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Comment fonctionne l'intégration"
+        }
+      ]
+    },
+    "csv-uploads": {
+      "title": "Téléversements CSV et commandes en lot",
+      "description": "Comment utiliser CSV pour commandes récurrentes ou en lot avec Porterchain.",
+      "intro": "Beaucoup de marchands gèrent arrêts en feuilles de calcul. Nous acceptons CSV pour envoyer tournées sans intégration immédiate.",
+      "items": [
+        {
+          "question": "Supportez-vous CSV pour commandes?",
+          "answer": "Oui. Soumettez commandes ou arrêts par CSV pour exécuter vos tournées. Utile pour courses récurrentes ou lots ponctuels. Format et colonnes confirmés à l'intégration."
+        },
+        {
+          "question": "Quel format CSV?",
+          "answer": "Modèle avec adresse, contact, plage horaire et champs référence. Même format réutilisable pour téléversements récurrents."
+        },
+        {
+          "question": "Passer de CSV à API plus tard?",
+          "answer": "Oui. Beaucoup commencent par CSV ou courriel puis ajoutent API. Nous aidons à la transition sans rupture."
+        },
+        {
+          "question": "Quelles industries utilisent CSV?",
+          "answer": "Torréfacteurs, pharmacies, marques beauté et autres marchands à tournées récurrentes utilisent souvent CSV dans nos zones."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Comment fonctionne l'intégration"
+        }
+      ]
+    },
+    "api-integrations": {
+      "title": "API et intégrations pour la livraison",
+      "description": "Comment intégrer Porterchain via API et quelles intégrations nous supportons.",
+      "intro": "Porterchain offre accès API pour pousser commandes, récupérer suivi et automatiser depuis vos systèmes.",
+      "items": [
+        {
+          "question": "Avez-vous une API commandes et suivi?",
+          "answer": "Oui. Création commandes, mises à jour statut et suivi pour intégrer livraison dans e-commerce, ERP ou outils ops. Documentation et soutien à l'intégration."
+        },
+        {
+          "question": "Avec quoi puis-je intégrer?",
+          "answer": "Vos systèmes via API. Nous travaillons avec marchands sur plateformes e-commerce, abonnements et outils internes."
+        },
+        {
+          "question": "Durée intégration API?",
+          "answer": "Dépend de votre système. Portée et délais définis à l'intégration. Beaucoup commencent par CSV puis ajoutent API."
+        },
+        {
+          "question": "API dans toutes les zones?",
+          "answer": "Oui. Même couverture que CSV ou autres méthodes dans toutes nos zones ontariennes."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "integrations",
+          "label": "Intégrations"
+        }
+      ]
+    },
+    "local-service-areas": {
+      "title": "Zones desservies: où nous livrons",
+      "description": "Couverture Porterchain: RGT, Toronto, Mississauga, Kitchener-Waterloo, London, Niagara, Oshawa et plus.",
+      "intro": "Nous exécutons livraison récurrente et jour même dans des zones locales définies en Ontario. Chaque région a couverture dédiée pour livraison fiable.",
+      "items": [
+        {
+          "question": "Quelles villes et régions desservez-vous?",
+          "answer": "RGT (Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington), Oshawa et Durham, Kitchener-Waterloo, London, St. Catharines et Niagara. Page dédiée par zone."
+        },
+        {
+          "question": "Livrez-vous à mon adresse?",
+          "answer": "Consultez nos pages zones. En zone listée, nous pouvons généralement vous servir. Contactez-nous avec adresse ou code postal pour confirmation."
+        },
+        {
+          "question": "Hors du RGT?",
+          "answer": "Oui. Kitchener-Waterloo, London, Niagara, St. Catharines, Oshawa et autres régions. Voir le hub zones desservies."
+        },
+        {
+          "question": "Jour même dans ma zone?",
+          "answer": "Disponible selon heures limites et capacité. Voir page zone ou contactez-nous avec volume et zones typiques."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "serviceAreas",
+          "label": "Voir toutes les zones desservies"
+        }
+      ]
+    },
+    "pharmacy-delivery": {
+      "title": "Livraison pharmacie: conformité et patients",
+      "description": "FAQ livraison pharmacie et ordonnances: conformité, chaîne de custody et zones.",
+      "intro": "Porterchain soutient livraison pharmacie et patients avec suivi et visibilité chaîne de custody.",
+      "items": [
+        {
+          "question": "Livrez-vous ordonnances?",
+          "answer": "Oui. Tournées avec manutention et suivi appropriés de la collecte à la livraison."
+        },
+        {
+          "question": "Chaîne de custody et conformité?",
+          "answer": "Suivi complet et visibilité statut pour chaque course. Besoins conformité discutés à l'intégration."
+        },
+        {
+          "question": "Zones pour pharmacie?",
+          "answer": "RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa, St. Catharines et autres régions."
+        },
+        {
+          "question": "Tournées récurrentes cliniques ou patients?",
+          "answer": "Oui. Tournées récurrentes alignées à votre horaire avec plages constantes si nécessaire."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "coffee-roaster-delivery": {
+      "title": "Livraison torréfacteur: grossiste et cafés",
+      "description": "FAQ livraison torréfacteurs: grossiste, cafés, abonnement et jour même.",
+      "intro": "Torréfacteurs utilisent Porterchain pour grossiste vers cafés, boîtes abonnement et jour même quand la fraîcheur compte.",
+      "items": [
+        {
+          "question": "Livraison grossiste vers cafés?",
+          "answer": "Oui. Tournées grossiste récurrentes avec suivi pour que cafés sachent quand attendre la livraison."
+        },
+        {
+          "question": "Jour même pour torréfaction fraîche?",
+          "answer": "Disponible dans nos zones. Heures limites et plages convenues pour comptes clés ou abonnés."
+        },
+        {
+          "question": "Quels véhicules pour café?",
+          "answer": "Voitures, fourgons ou vélos cargo selon volume et densité urbaine."
+        },
+        {
+          "question": "Où livrez-vous pour torréfacteurs?",
+          "answer": "RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa et autres régions."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "cosmetics-delivery": {
+      "title": "Livraison cosmétiques et marques beauté",
+      "description": "FAQ fulfillment D2C et abonnement pour marques beauté.",
+      "intro": "Marques beauté utilisent Porterchain pour D2C et abonnements avec collecte et livraison récurrentes et liens de suivi.",
+      "items": [
+        {
+          "question": "D2C et abonnements?",
+          "answer": "Oui. Collecte et livraison récurrentes avec lien de suivi par envoi."
+        },
+        {
+          "question": "Jour même pour promotions?",
+          "answer": "Disponible dans nos zones. Capacité adaptable pour lancements ou pics."
+        },
+        {
+          "question": "Suivi pour clients?",
+          "answer": "Lien de suivi par envoi. Réduit soutien « où est ma commande? »."
+        },
+        {
+          "question": "Régions pour beauté?",
+          "answer": "RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa et autres zones."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "same-day-delivery": {
+      "title": "Livraison jour même: heures limites, zones et fiabilité",
+      "description": "FAQ jour même: fonctionnement, heures limites et disponibilité.",
+      "intro": "Jour même disponible dans nos zones. Heures limites, plages et capacité convenues pour fiabilité.",
+      "items": [
+        {
+          "question": "Comment fonctionne le jour même?",
+          "answer": "Soumission avant heure limite convenue; collecte et livraison le même jour. Plages et ETA via suivi."
+        },
+        {
+          "question": "Quelles heures limites?",
+          "answer": "Varient par zone et volume. Confirmées à l'ouverture du compte."
+        },
+        {
+          "question": "Jour même dans ma ville?",
+          "answer": "Offert dans RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa, St. Catharines et autres."
+        },
+        {
+          "question": "Mélanger jour même et récurrent?",
+          "answer": "Oui. Tournées récurrentes et jour même pour pics — un partenaire, un tableau de bord."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "how-much-does-local-delivery-cost-toronto": {
+      "title": "Combien coûte la livraison locale à Toronto?",
+      "description": "Tarification livraison locale Toronto et RGT. Comment Porterchain tarifie récurrent et jour même — et obtenir un devis.",
+      "intro": "Le coût dépend du volume, type de tournée (récurrent vs jour même) et zones. Porterchain tarifie généralement par arrêts, zones et volume. Partagez arrêts typiques par semaine et zones pour un devis Toronto/RGT.",
+      "items": [
+        {
+          "question": "Tarification différente Toronto vs autres villes RGT?",
+          "answer": "Peut varier par zone dans le RGT. Tarification pour vos zones précises quand vous partagez volume et routes."
+        },
+        {
+          "question": "Qu'est-ce qui affecte le coût?",
+          "answer": "Nombre d'arrêts, récurrent vs jour même, plages horaires et véhicule (vélo cargo vs fourgon)."
+        },
+        {
+          "question": "Obtenir un devis Toronto?",
+          "answer": "Contactez-nous avec volume, zones et exigences horaires. Confirmation couverture et tarification — sans engagement avant adéquation."
+        },
+        {
+          "question": "Ailleurs en Ontario?",
+          "answer": "Oui. Kitchener-Waterloo, London, Niagara, St. Catharines, Oshawa et autres. Page zone par région."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "pricing",
+          "label": "Tarification"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "how-to-set-up-recurring-deliveries-coffee-roaster": {
+      "title": "Comment configurer livraisons récurrentes pour un torréfacteur",
+      "description": "Configurer livraison récurrente torréfaction: grossiste cafés, abonnements et jour même avec Porterchain.",
+      "intro": "Partagez volume et routes (ex. livraisons cafés hebdomadaires); nous confirmons couverture et capacité; vous êtes opérationnel avec un partenaire et un tableau de bord. CSV ou feuille de calcul pour démarrer.",
+      "items": [
+        {
+          "question": "Que fournir pour démarrer?",
+          "answer": "Volume hebdomadaire, zones et plages (ex. matin pour cafés). Feuille de calcul ou modèle CSV. Confirmation capacité et SLA."
+        },
+        {
+          "question": "Grossiste et abonnement avec un partenaire?",
+          "answer": "Oui. Beaucoup de torréfacteurs combinent grossiste cafés et abonnements/D2C avec Porterchain."
+        },
+        {
+          "question": "Jour même pour torréfaction fraîche?",
+          "answer": "Disponible dans nos zones avec heures limites et plages convenues."
+        },
+        {
+          "question": "Zones pour torréfacteurs?",
+          "answer": "RGT, Kitchener-Waterloo, London, Niagara, Oshawa et autres régions ontariennes."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Comment fonctionne l'intégration"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "how-pharmacy-courier-delivery-works-gta": {
+      "title": "Comment fonctionne la livraison pharmacie dans le RGT",
+      "description": "Comment Porterchain exécute livraison pharmacie et patients dans le RGT: conformité, suivi, tournées récurrentes.",
+      "intro": "Vous partagez besoins (patients, cliniques, récurrent); nous confirmons couverture RGT et configurons tournées avec suivi et chaîne de custody. Nous gérons flotte et dernier kilomètre; vous avez un tableau de bord.",
+      "items": [
+        {
+          "question": "Suivi et chaîne de custody?",
+          "answer": "Suivi complet collecte à livraison. Visibilité pour audit; besoins conformité à l'intégration."
+        },
+        {
+          "question": "Tournées récurrentes patients ou cliniques?",
+          "answer": "Oui. Quotidien ou hebdomadaire avec plages constantes si nécessaire."
+        },
+        {
+          "question": "Zones RGT pharmacie?",
+          "answer": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa et RGT élargi. Aussi Kitchener-Waterloo, London, Niagara."
+        },
+        {
+          "question": "Démarrer livraison pharmacie?",
+          "answer": "Contactez-nous avec volume, zones et exigences conformité ou plages. Confirmation couverture et intégration."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Comment fonctionne l'intégration"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "how-to-onboard-merchant-csv-upload": {
+      "title": "Comment intégrer un marchand avec téléversement CSV",
+      "description": "Intégration marchand par CSV: format, processus et passage à l'API.",
+      "intro": "Nous confirmons zones et volume, fournissons modèle CSV (adresse, contact, plage, référence); le marchand téléverse ou envoie par courriel; nous exécutons la tournée. Intégration en jours. Passage API possible plus tard.",
+      "items": [
+        {
+          "question": "Colonnes ou format CSV?",
+          "answer": "Modèle avec champs requis: adresse livraison, contact, plage ou ID référence. Format confirmé à l'intégration."
+        },
+        {
+          "question": "CSV pour tournées récurrentes?",
+          "answer": "Oui. Fichier mis à jour chaque cycle; même format réutilisable avec suivi."
+        },
+        {
+          "question": "Passer à l'API plus tard?",
+          "answer": "Oui. Nous aidons la transition CSV vers API sans interruption."
+        },
+        {
+          "question": "Quelles industries utilisent CSV?",
+          "answer": "Torréfacteurs, pharmacies, beauté et autres marchands récurrents ou en lot."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Comment fonctionne l'intégration"
+        },
+        {
+          "path": "integrations",
+          "label": "Intégrations"
+        }
+      ]
+    },
+    "what-vehicle-right-for-parcel-volume": {
+      "title": "Quel véhicule pour mon volume de colis?",
+      "description": "Choisir véhicule Porterchain selon volume, dimensions et type de marchandise — voiture, fourgon, camion cube.",
+      "intro": "Le bon véhicule dépend du volume, dimensions colis, accès et type de marchandise. Porterchain aligne capacité sans que vous gériez une flotte.",
+      "items": [
+        {
+          "question": "Comment choisir le véhicule?",
+          "answer": "Partagez volume typique, dimensions/poids et accès (chantier, comptoir, entrepôt). Nous recommandons voiture, fourgon métier, fourgon cargo ou camion cube."
+        },
+        {
+          "question": "Petit volume ou colis légers?",
+          "answer": "Voitures ou vélos cargo pour densité urbaine et petits colis (cafés, pharmacie légère, D2C)."
+        },
+        {
+          "question": "Palettes ou matériaux construction?",
+          "answer": "Camionnettes, fourgons cargo ou camions cube 16 pi selon charge et accès chantier."
+        },
+        {
+          "question": "Changer de véhicule en grandissant?",
+          "answer": "Oui. Nous ajustons capacité et véhicule quand volume ou mix de marchandises évolue — sans embauche ni achat véhicule de votre côté."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        },
+        {
+          "path": "pricing",
+          "label": "Tarification"
+        }
+      ]
+    },
+    "same-day-retail-distribution": {
+      "title": "Distribution retail jour même: FAQ réapprovisionnement magasin",
+      "description": "FAQ sur la distribution retail jour même et réapprovisionnement magasin dans le RGT — routes multi-arrêts, heures limites et débordement de flotte.",
+      "intro": "Détaillants et grossistes ont besoin de réapprovisionnement magasin le jour même quand les camions du CD sont pleins, une promo frappe ou un magasin est en rupture. Porterchain fournit capacité véhicule et chauffeur pour distribution retail multi-arrêts dans le RGT avec suivi et preuve à chaque arrêt.",
+      "items": [
+        {
+          "question": "Qui peut livrer le réapprovisionnement magasin tout de suite près de moi à Toronto?",
+          "answer": "Porterchain fournit capacité véhicule et chauffeur jour même pour réapprovisionnement magasin dans le RGT. Pour routes multi-arrêts ou palettes aujourd'hui près de Toronto, Mississauga ou Brampton, demandez un devis avec votre liste de magasins — confirmation sous un jour ouvrable, berline à camion cube avec suivi et preuve."
+        },
+        {
+          "question": "Gérez-vous le réapprovisionnement magasin le jour même?",
+          "answer": "Oui. Nous exécutons distribution multi-arrêts jour même pour détaillants et grossistes selon heures limites et capacité. Partagez magasins, SKU et fenêtres horaires."
+        },
+        {
+          "question": "Pouvez-vous couvrir le débordement de flotte?",
+          "answer": "Le débordement de flotte est un cas d'usage central — capacité véhicule et chauffeur, souvent le jour même, avec suivi et preuve de livraison."
+        },
+        {
+          "question": "Quels véhicules pour la distribution retail?",
+          "answer": "Berlines et fourgons métier pour petits colis; fourgons cargo et camions cube pour réappro multi-arrêts et fret palettisé."
+        },
+        {
+          "question": "Quelles zones pour la distribution retail?",
+          "answer": "RGT — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton — plus Kitchener-Waterloo, London, Niagara et Oshawa. Demandez un devis avec votre liste de magasins."
+        }
+      ],
+      "extraLinks": [
+        { "path": "pricing", "label": "Tarification" },
+        { "path": "serviceAreas", "label": "Zones desservies" }
+      ]
+    },
+    "fleet-overflow-wholesale-delivery": {
+      "title": "FAQ livraison gros débordement de flotte",
+      "description": "FAQ sur capacité de secours et débordement de flotte pour grossistes — électrique, plomberie, construction et fournitures industrielles en Ontario.",
+      "intro": "Les grossistes font face au débordement quand chaque camion est réservé, un chauffeur est absent ou la haute saison dépasse la flotte interne. Porterchain fournit capacité véhicule et chauffeur de secours pour comptoir-chantier et dépôt-client.",
+      "items": [
+        {
+          "question": "Qui peut livrer une palette de 50 kg tout de suite près de moi?",
+          "answer": "Porterchain répartit capacité véhicule et chauffeur pour fret B2B palettisé dans le RGT — fourgons cargo et camions cube pour charges de petite palette à chargement complet. Indiquez lieu de ramassage, poids et fenêtre sur un devis; capacité overflow jour même selon heures limites et disponibilité dans votre zone."
+        },
+        {
+          "question": "Qu'est-ce que la livraison débordement de flotte?",
+          "answer": "Capacité véhicule et chauffeur de secours quand votre flotte ne peut pas couvrir un envoi — chauffeur absent, pic de demande ou arrêt chantier supplémentaire."
+        },
+        {
+          "question": "Travaillez-vous avec grossistes électrique et plomberie?",
+          "answer": "Oui. Partenaire pour gros électrique, plomberie et matériaux construction — comptoir vers entrepreneur ou chantier avec fourgons ou camions cube."
+        },
+        {
+          "question": "En combien de temps répartissez-vous la capacité overflow?",
+          "answer": "Jour même disponible selon heures limites et classe de véhicule. Urgence et overflow sont des services centraux — devis écrit avant répartition."
+        },
+        {
+          "question": "Comment fonctionne la tarification overflow?",
+          "answer": "Sur devis selon véhicule, distance, arrêts et urgence. Pas de frais plateforme — confirmé par écrit avant répartition."
+        }
+      ],
+      "extraLinks": [
+        { "path": "pricing", "label": "Tarification" },
+        { "path": "onboarding", "label": "Intégration" }
+      ]
+    }
+  },
+  "guides": {
+    "delivery-operations-model": {
+      "title": "Modèle d'opérations de livraison",
+      "description": "Comment fonctionnent les opérations Porterchain: capacité, routage, plages horaires et exécution locale dans le RGT et l'Ontario.",
+      "intro": "Les opérations Porterchain sont bâties autour de l'exécution locale. Nous alignons la capacité à votre volume et zones, planifions les tournées pour efficacité et plages horaires, et exécutons collecte et livraison avec visibilité complète.",
+      "sections": [
+        {
+          "heading": "Capacité alignée à votre volume et zones",
+          "body": "Nous ne traitons pas chaque course comme un one-shot. Pour tournées récurrentes, nous alignons chauffeurs et véhicules à votre horaire et zones. Le jour même utilise la même flotte locale; heures limites et plages sont convenues. Capacité planifiée par région — Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara."
+        },
+        {
+          "heading": "Routage et plages horaires",
+          "body": "Les tournées sont construites autour de vos arrêts, plages et véhicule adapté. Courses multi-arrêts optimisées pour les zones desservies; trafic et géographie pour des ETA réalistes. Vous fixez les exigences; nous exécutons dans ces plages."
+        },
+        {
+          "heading": "De la collecte à la livraison, une chaîne",
+          "body": "De la collecte chez vous à la remise à destination, chaque arrêt est suivi. Chauffeurs formés sur manutention et plages; statut et ETA tout au long. Pour industries avec conformité (pharmacie, température), nous travaillons avec vous à l'intégration."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "workflow",
+          "label": "Comment fonctionne la livraison"
+        },
+        {
+          "path": "onboarding",
+          "label": "Intégration marchands"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "merchant-onboarding-guide": {
+      "title": "Guide d'intégration marchand",
+      "description": "Comment intégrer un marchand Porterchain: volume, zones, CSV ou API et à quoi s'attendre. Opérationnel en jours, pas en semaines.",
+      "intro": "L'intégration Porterchain est conçue pour être rapide. Nous ciblons volume, zones et flux pour confirmer couverture, aligner capacité et vous donner suivi et rapports. La plupart des marchands sont prêts en quelques jours.",
+      "sections": [
+        {
+          "heading": "Ce dont nous avons besoin",
+          "body": "Volume typique (arrêts par semaine ou par course), zones de livraison et plages ou exigences particulières. Vous pouvez commencer par feuille de calcul ou CSV; nous confirmons le format. Pas d'intégration complète le jour un — CSV ou courriel suffisent souvent."
+        },
+        {
+          "heading": "Couverture et capacité",
+          "body": "Nous confirmons que nous desservons vos zones: RGT, Kitchener-Waterloo, London, Niagara, Oshawa et autres régions ontariennes. Une fois la couverture confirmée, nous alignons capacité et SLA. Vous savez où nous livrons avant de vous engager."
+        },
+        {
+          "heading": "Mise en service",
+          "body": "Accès au tableau de bord et soumission de commandes ou arrêts. Tournées récurrentes configurées à votre cadence. Options jour même où nous opérons. Suivi et ETA dès la première course."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "workflow",
+          "label": "Comment fonctionne la livraison"
+        },
+        {
+          "path": "integrations",
+          "label": "Intégrations"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "route-and-tracking-overview": {
+      "title": "Aperçu routage et suivi",
+      "description": "Comment fonctionnent routage et suivi Porterchain: statut, ETA et visibilité de la collecte à la livraison dans le RGT et l'Ontario.",
+      "intro": "Chaque course Porterchain a un suivi complet de la collecte à la livraison. Statut et ETA dans votre tableau de bord; liens partageables avec clients ou partenaires.",
+      "sections": [
+        {
+          "heading": "Comment les tournées sont construites et exécutées",
+          "body": "Vous soumettez arrêts (CSV, API ou nos outils); nous construisons la tournée selon plages, véhicule et zones. Courses multi-arrêts optimisées localement. Chauffeurs reçoivent la tournée avec mises à jour temps réel."
+        },
+        {
+          "heading": "Statut et ETA",
+          "body": "Dès la collecte, vous voyez statut et heure estimée. Tableau de bord sur toutes les courses; détail par arrêt. ETA mis à jour au fil de la tournée."
+        },
+        {
+          "heading": "Partager le suivi avec les clients",
+          "body": "Chaque livraison peut avoir un lien de suivi partageable. Réduit les appels « où est ma commande? » et aligne tout le monde. Même expérience dans le RGT, Kitchener-Waterloo, London, Niagara et au-delà."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "workflow",
+          "label": "Comment fonctionne la livraison"
+        },
+        {
+          "path": "onboarding",
+          "label": "Intégration marchands"
+        },
+        {
+          "path": "support",
+          "label": "Soutien"
+        }
+      ]
+    },
+    "support-and-issue-handling": {
+      "title": "Soutien et gestion des problèmes",
+      "description": "Comment fonctionnent le soutien et la gestion des problèmes Porterchain: quand nous joindre, résolution et soutien opérationnel.",
+      "intro": "Quand quelque chose ne va pas ou vous avez une question, nous sommes là. Le soutien Porterchain est orienté opérations: livraison, routage et réalités de la logistique locale.",
+      "sections": [
+        {
+          "heading": "Quand contacter le soutien",
+          "body": "Pour tout ce qui affecte la livraison: plage manquée, colis endommagé ou perdu, question chauffeur ou routage, changement de course. Aussi intégration et rapports. Mieux vaut clarifier tôt qu'escalader un problème."
+        },
+        {
+          "heading": "Comment nous traitons les problèmes",
+          "body": "Chaque problème est enregistré et suivi jusqu'à résolution. Pour échecs de service, nous enquêtons et proposons prochaines étapes: crédits, reprises ou changements de processus. Mises à jour et chemin clair vers résolution."
+        },
+        {
+          "heading": "Signalement et escalade",
+          "body": "Signalez via notre canal de soutien ou le flux de signalement. Incluez la référence course ou arrêt. Pour problèmes récurrents, nous travaillons sur cause racine et prévention."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "support",
+          "label": "Soutien"
+        },
+        {
+          "path": "workflow",
+          "label": "Comment fonctionne la livraison"
+        },
+        {
+          "path": "onboarding",
+          "label": "Intégration marchands"
+        }
+      ]
+    }
+  },
+  "successStories": {
+    "construction-distributor-jobsite-delivery": {
+      "title": "Comment un distributeur de matériaux du RGT a développé la livraison chantier",
+      "description": "Un distributeur régional a remplacé coursiers ponctuels par tournées récurrentes en camion cube vers chantiers — avec preuve de livraison à chaque arrêt.",
+      "headline": "Livraison chantier récurrente sans ajouter de flotte",
+      "challenge": "Livraison de bois, gypse et fixtures vers des dizaines de chantiers actifs par semaine. Coursiers ponctuels: plages manquées, peu de preuve pour litiges avec entrepreneurs généraux, ops à relancer les chauffeurs.",
+      "solution": "Tournées camion cube 16 pi alignées à la liste quotidienne — plages fixes, notes d'accès chantier, photo preuve à chaque livraison. Un tableau de bord pour ventes internes et répartition.",
+      "outcome": "Plus de 40 livraisons chantier par semaine avec un partenaire. Moins de retards chantier, POD clair pour facturation, répartition sans jongler plusieurs apps coursiers.",
+      "quote": "Il nous fallait livraison palette sur chantier avec preuve acceptée par nos EG. Porterchain l'a rendu répétable.",
+      "quoteAttribution": "Gestionnaire des opérations, distributeur matériaux RGT",
+      "outcomeMetric": "40+ livraisons chantier par semaine"
+    },
+    "coffee-roaster-wholesale-delivery": {
+      "title": "Comment un torréfacteur torontois a développé la livraison grossiste",
+      "description": "Un torréfacteur spécialisé dessert plus de 50 cafés dans le RGT avec tournées récurrentes et fraîcheur jour même. Sans flotte, un partenaire.",
+      "headline": "Développer la livraison grossiste sans casse-tête opérationnel",
+      "challenge": "Café fraîchement torréfié vers cafés et abonnés du RGT sur horaire prévisible, sans flotte interne ni plusieurs coursiers.",
+      "solution": "Tournées récurrentes et plages jour même alignées au cycle de torréfaction. Un partenaire pour grossiste et abonnements, avec suivi pour cafés et abonnés.",
+      "outcome": "Plus de 50 cafés et volume abonnement croissant avec un partenaire. Ops concentrées sur la torréfaction; nous gérons le dernier kilomètre.",
+      "quote": "Il nous fallait un partenaire pour récurrent et jour même quand ça compte. Porterchain a simplifié.",
+      "quoteAttribution": "Opérations, torréfacteur Toronto",
+      "outcomeMetric": "50+ cafés desservis"
+    },
+    "pharmacy-patient-delivery": {
+      "title": "Livraison pharmacie: conformité et rapidité",
+      "description": "Une pharmacie locale a développé livraison patients et ordonnances avec logistique traçable et conforme. Jour même et tournées récurrentes.",
+      "headline": "Livraison patients fiable sans ajouter de flotte",
+      "challenge": "Étendre livraison patients et cliniques sans compromettre conformité ni ajouter véhicules et chauffeurs internes.",
+      "solution": "Tournées récurrentes et à la demande avec suivi complet et visibilité chaîne de custody. Jour même où nécessaire, un tableau de bord pour répartition et statut.",
+      "outcome": "Couverture élargie avec conformité maintenue. Patients et cliniques ont des ETA fiables; l'équipe pharmacie voit chaque course au même endroit.",
+      "quote": "Il nous fallait un partenaire de confiance pour ordonnances. Suivi et constance étaient non négociables.",
+      "quoteAttribution": "Opérations pharmacie, Ontario",
+      "outcomeMetric": "Jour même dans le RGT"
+    },
+    "beauty-brand-d2c-fulfillment": {
+      "title": "Comment une marque beauté a développé D2C et abonnements",
+      "description": "Une marque cosmétiques a développé fulfillment D2C et boîtes abonnement avec livraison locale en Ontario. Un partenaire récurrent et jour même.",
+      "headline": "Fulfillment D2C et abonnement qui scale",
+      "challenge": "Dépassement des coursiers ponctuels; besoin de livraison prévisible et traçable pour D2C et abonnés sans fulfillment interne.",
+      "solution": "Capacité alignée au volume et zones. Collecte et livraison récurrentes avec manutention soignée, plus jour même pour promotions. Lien de suivi par envoi.",
+      "outcome": "Volume abonnement et D2C développé avec un partenaire. Moins de plages manquées et expérience client constante.",
+      "quote": "Un partenaire pour récurrent et jour même a éliminé l'incertitude logistique de la croissance.",
+      "quoteAttribution": "Opérations, marque beauté",
+      "outcomeMetric": "Récurrent + jour même en Ontario"
+    }
+  }
+}

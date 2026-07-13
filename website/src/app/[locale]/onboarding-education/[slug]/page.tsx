@@ -28,7 +28,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const page = getOnboardingEducationBySlug(slug);
   if (!page) return {};
-  return buildPageMetadata(locale, `onboarding-education/${slug}`, page.title, page.description);
+  return buildPageMetadata(locale, `onboarding-education/${slug}`, page.title, page.description, {
+    index: locale === "en",
+  });
 }
 
 export default async function OnboardingEducationPage({ params }: Props) {

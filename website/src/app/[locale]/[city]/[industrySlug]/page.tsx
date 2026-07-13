@@ -6,11 +6,13 @@ import CityIndustryLandingView from "@/components/seo/CityIndustryLandingView";
 import { getCityIndustryContent } from "@/lib/seo/city-industry-delivery";
 import { getCityLocalSegmentContent } from "@/lib/seo/city-local-segment-content";
 import { getAllCitySegmentPairs, resolveCitySegment } from "@/lib/seo/city-segment-seo";
+import { CITY_SEO_TO_SERVICE_AREA } from "@/lib/seo/city-industry-seo";
 import {
   buildIndustryPageLinksForCityPage,
   buildVehicleLinksForCityPage,
 } from "@/lib/seo/internal-linking";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
+import { isPublishableCitySegment } from "@/lib/seo/city-segment-publication";
 import { routing, type Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: string; city: string; industrySlug: string }> };
@@ -33,6 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const messages = await getMessages({ locale });
   let content;
+  let usesEnglishFallback = false;
   if (resolved.type === "industry") {
     content = getCityIndustryContent(
       resolved.nicheSlug,
@@ -55,14 +58,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         resolved.serviceAreaSlug,
         enMessages as never
       );
+      usesEnglishFallback = Boolean(content);
     }
   }
   if (!content) return {};
+
+  const publishable =
+    isPublishableCitySegment(locale as Locale, city, industrySlug, messages as never) &&
+    !usesEnglishFallback;
+
   return buildPageMetadata(
     locale,
     `${city}/${industrySlug}`,
     content.meta.title,
-    content.meta.description
+    content.meta.description,
+    { index: publishable }
   );
 }
 
@@ -112,19 +122,35 @@ export default async function CitySegmentPage({ params }: Props) {
       ? buildVehicleLinksForCityPage(loc, city)
       : buildIndustryPageLinksForCityPage(loc);
 
+  const serviceAreaSlug =
+    CITY_SEO_TO_SERVICE_AREA[city as keyof typeof CITY_SEO_TO_SERVICE_AREA] ?? city;
+  const tSeo = await getTranslations("corporate.seo.sectionLabels");
+
   return (
     <CorporateShell>
       <CityIndustryLandingView
         locale={loc}
         city={city}
         industrySlug={industrySlug}
+        serviceAreaSlug={serviceAreaSlug}
         content={content}
         industryLinks={relatedLinks}
-        relatedTitle={resolved.type === "vehicle" ? "Other vehicles" : "Explore by industry"}
+        relatedTitle={
+          resolved.type === "vehicle" ? tSeo("otherVehicles") : tSeo("exploreByIndustry")
+        }
+        sectionLabels={{
+          localDelivery: tSeo("localDelivery"),
+          localChallenges: tSeo("localChallenges"),
+          industryFit: tSeo("industryFit"),
+          howItWorks: tSeo("howItWorks"),
+          onboarding: tSeo("onboarding"),
+          capacitySolutions: tSeo("capacitySolutions"),
+          intentGuides: tSeo("intentGuides"),
+        }}
         trackSource={`${city}/${industrySlug}`}
         breadcrumbs={[
           { label: tBc("home"), href: "/" },
-          { label: cityLabel, href: `/service-areas/${city}` },
+          { label: cityLabel, href: `/service-areas/${serviceAreaSlug}` },
           { label: content.hero.title },
         ]}
       />

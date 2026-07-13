@@ -484,7 +484,7 @@ _Items marked [x] shipped **Dispatch OS GTM** — superseded by Waves 1–3 abov
 
 ### Footer tagline
 
-**Target:** `Transportation capacity for Ontario businesses — powered by software we built to run the network.`
+**Target:** `Moving Commerce On-Chain`
 
 ### Explicitly retired (do not use customer-facing)
 

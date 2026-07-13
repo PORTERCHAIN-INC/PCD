@@ -7,6 +7,8 @@ import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 import { submitInquiry } from "@/lib/submit-inquiry";
+import WhatsAppQuoteLink from "@/components/seo/WhatsAppQuoteLink";
+import { buildQuoteWhatsAppMessage } from "@/lib/whatsapp";
 
 const COUNTRY_CODES = [
   { code: "+1", label: "CA +1" },
@@ -21,12 +23,14 @@ interface InquiryFormProps {
   id?: string;
   variant?: "hero" | "inline" | "final";
   className?: string;
+  onInteractionChange?: (active: boolean) => void;
 }
 
 export default function InquiryForm({
   id = "inquiry",
   variant = "hero",
   className,
+  onInteractionChange,
 }: InquiryFormProps) {
   const t = useTranslations("businessPage.inquiry");
   const [email, setEmail] = useState("");
@@ -80,6 +84,13 @@ export default function InquiryForm({
         </div>
         <h3 className="text-xl font-semibold text-[#091b1c] mb-2">{t("successTitle")}</h3>
         <p className="text-[#5c6b6c] text-sm leading-relaxed">{t("successMessage")}</p>
+        <WhatsAppQuoteLink
+          className="mt-6"
+          message={buildQuoteWhatsAppMessage({ source: "/business" })}
+          label={t("whatsappCta")}
+          hint={t("whatsappHint")}
+          sourceSection="business_inquiry_success"
+        />
       </motion.div>
     );
   }
@@ -87,12 +98,8 @@ export default function InquiryForm({
   const isCompact = variant === "inline";
 
   return (
-    <motion.div
+    <div
       id={id}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
       className={cn(
         "rounded-2xl bg-white p-6 sm:p-8 biz-shadow-lg border border-[#091b1c]/5",
         variant === "hero" && "lg:p-9",
@@ -109,7 +116,17 @@ export default function InquiryForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4"
+        noValidate
+        onFocusCapture={() => onInteractionChange?.(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            onInteractionChange?.(false);
+          }
+        }}
+      >
         <div>
           <label
             htmlFor={`${id}-email`}
@@ -220,6 +237,6 @@ export default function InquiryForm({
           ))}
         </ul>
       </form>
-    </motion.div>
+    </div>
   );
 }
