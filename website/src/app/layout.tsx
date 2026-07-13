@@ -21,7 +21,12 @@ type Props = {
 /** Root layout — Next.js requires html/body here (covers /ravi and [locale]). */
 export default function RootLayout({ children }: Props) {
   return (
-    <html lang="en" className={`${inter.variable} scroll-smooth`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.variable} scroll-smooth`}
+      style={{ colorScheme: "light" }}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-white font-sans antialiased" suppressHydrationWarning>
         {children}
       </body>

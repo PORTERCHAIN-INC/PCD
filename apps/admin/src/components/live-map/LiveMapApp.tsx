@@ -18,8 +18,6 @@ import {
   Ruler,
   Search,
   Square,
-  Sun,
-  Moon,
   Truck,
   Users,
   X,
@@ -65,7 +63,7 @@ export default function LiveMapApp() {
 
   const [layers, setLayers] = useState<MapLayers>(DEFAULT_LAYERS);
   const [mapMode, setMapMode] = useState<MapMode>("roadmap");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const theme = "light" as const;
   const [heatMetric, setHeatMetric] = useState<
     "orders" | "pickups" | "deliveries" | "drivers" | "revenue"
   >("orders");
@@ -265,11 +263,6 @@ export default function LiveMapApp() {
               <option value="hybrid">Hybrid</option>
               <option value="terrain">Terrain</option>
             </select>
-            <ToolbarBtn
-              icon={theme === "dark" ? Sun : Moon}
-              label={theme === "dark" ? "Light" : "Dark"}
-              onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-            />
             <ToolbarBtn
               icon={Ruler}
               label="Measure"

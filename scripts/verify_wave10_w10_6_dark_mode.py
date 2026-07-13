@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Wave 10 w10-6 guard — merchant portal system dark-mode tokens only.
+"""Wave 10 w10-6 guard — entire web surface is light-mode only.
 
-Marketing website stays light-only permanently (no prefers-color-scheme dark).
+No prefers-color-scheme dark on website or portals; html colorScheme stays light.
 """
 
 from __future__ import annotations
@@ -9,41 +9,66 @@ from __future__ import annotations
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PORTAL_GLOBALS = ROOT / "apps/merchant-portal/src/app/globals.css"
-PORTAL_LAYOUT = ROOT / "apps/merchant-portal/src/app/layout.tsx"
-WEB_GLOBALS = ROOT / "website/src/app/globals.css"
-WEB_LAYOUT = ROOT / "website/src/app/[locale]/layout.tsx"
+
+TARGETS: tuple[tuple[Path, Path], ...] = (
+    (ROOT / "apps/merchant-portal/src/app/globals.css", ROOT / "apps/merchant-portal/src/app/layout.tsx"),
+    (ROOT / "apps/admin/src/app/globals.css", ROOT / "apps/admin/src/app/layout.tsx"),
+    (ROOT / "apps/customer/src/app/globals.css", ROOT / "apps/customer/src/app/layout.tsx"),
+    (ROOT / "apps/driver-portal/src/app/globals.css", ROOT / "apps/driver-portal/src/app/layout.tsx"),
+    (ROOT / "website/src/app/globals.css", ROOT / "website/src/app/layout.tsx"),
+)
 
 
 def main() -> int:
     failures: list[str] = []
 
-    portal_css = PORTAL_GLOBALS.read_text(encoding="utf-8")
-    if "prefers-color-scheme: dark" not in portal_css:
-        failures.append("merchant-portal globals.css missing dark media query")
+    for css_path, layout_path in TARGETS:
+        label = css_path.relative_to(ROOT).parts[0] if "website" not in str(css_path) else "website"
+        if "website" in str(css_path):
+            label = "website"
+        elif "merchant" in str(css_path):
+            label = "merchant-portal"
+        elif "admin" in str(css_path):
+            label = "admin"
+        elif "customer" in str(css_path):
+            label = "customer"
+        else:
+            label = "driver-portal"
+
+        if css_path.is_file():
+            css = css_path.read_text(encoding="utf-8")
+            if "prefers-color-scheme: dark" in css:
+                failures.append(f"{label} globals.css must stay light-only (no dark media query)")
+        else:
+            failures.append(f"missing {css_path.relative_to(ROOT)}")
+
+        if layout_path.is_file():
+            layout = layout_path.read_text(encoding="utf-8")
+            if 'colorScheme: "light dark"' in layout or "colorScheme: 'light dark'" in layout:
+                failures.append(f"{label} layout must not use light dark colorScheme")
+            if 'colorScheme: "dark"' in layout or "colorScheme: 'dark'" in layout:
+                failures.append(f"{label} layout must not force dark colorScheme")
+            if 'colorScheme: "light"' not in layout and "colorScheme: 'light'" not in layout:
+                failures.append(f"{label} layout must force colorScheme light")
+        else:
+            failures.append(f"missing {layout_path.relative_to(ROOT)}")
+
+    portal_css = (ROOT / "apps/merchant-portal/src/app/globals.css").read_text(encoding="utf-8")
     if "portal-surface" not in portal_css:
         failures.append("merchant-portal globals.css missing portal-surface utility")
 
-    portal_layout = PORTAL_LAYOUT.read_text(encoding="utf-8")
-    if "colorScheme" not in portal_layout:
-        failures.append("merchant-portal layout missing color-scheme meta/style")
+    web_locale = ROOT / "website/src/app/[locale]/layout.tsx"
+    if web_locale.is_file():
+        text = web_locale.read_text(encoding="utf-8")
+        if 'colorScheme: "light dark"' in text or 'colorScheme: "dark"' in text:
+            failures.append("website locale layout must stay light-only")
 
-    web_css = WEB_GLOBALS.read_text(encoding="utf-8")
-    if "prefers-color-scheme: dark" in web_css:
-        failures.append("website globals.css must stay light-only (no dark media query)")
-
-    web_layout = WEB_LAYOUT.read_text(encoding="utf-8")
-    if 'colorScheme: "light dark"' in web_layout or "colorScheme: 'light dark'" in web_layout:
-        failures.append("website locale layout must not use light dark colorScheme")
-    if 'colorScheme: "dark"' in web_layout:
-        failures.append("website locale layout must not force dark colorScheme")
-
-    print("Wave 10 w10-6 guard (portal dark mode; marketing light-only)")
+    print("Wave 10 w10-6 guard (light-mode only across website + portals)")
     if failures:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  PASS: system dark on merchant portal; marketing website light-only")
+    print("  PASS: light-only color scheme on website, admin, merchant, customer, driver")
     return 0
 
 

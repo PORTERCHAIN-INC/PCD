@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ colorScheme: "light" }}>
       <body className={inter.className}>
         <AppClerkProvider>{children}</AppClerkProvider>
       </body>

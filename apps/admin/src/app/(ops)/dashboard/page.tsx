@@ -14,12 +14,10 @@ import {
   Clock,
   LayoutGrid,
   Maximize2,
-  Moon,
   Package,
   RefreshCw,
   Search,
   Settings2,
-  Sun,
   TrendingUp,
   Truck,
   Wallet,
@@ -45,7 +43,7 @@ export default function DashboardPage() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const enabled = isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
   const [now, setNow] = useState(new Date());
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const theme = "light" as const;
   const [search, setSearch] = useState("");
   const [layoutOpen, setLayoutOpen] = useState(false);
   const [widgets, setWidgets] = useState<Record<WidgetId, boolean>>(() => loadWidgetLayout());
@@ -133,7 +131,6 @@ export default function DashboardPage() {
         search={search}
         searchHits={searchHits}
         onSearch={setSearch}
-        onTheme={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
         onRefresh={() => void refetch()}
         onFullscreen={toggleFullscreen}
         onLayout={() => setLayoutOpen((o) => !o)}
@@ -283,7 +280,6 @@ function CommandHeader({
   search,
   searchHits,
   onSearch,
-  onTheme,
   onRefresh,
   onFullscreen,
   onLayout,
@@ -295,7 +291,6 @@ function CommandHeader({
   search: string;
   searchHits: Array<{ type: string; id: string; label: string; subtitle?: string; href?: string }>;
   onSearch: (v: string) => void;
-  onTheme: () => void;
   onRefresh: () => void;
   onFullscreen: () => void;
   onLayout: () => void;
@@ -336,9 +331,6 @@ function CommandHeader({
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={onRefresh}>
             <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" onClick={onTheme}>
-            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
           </Button>
           <Button variant="outline" onClick={onFullscreen}>
             <Maximize2 className="h-4 w-4" />

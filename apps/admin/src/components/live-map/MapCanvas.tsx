@@ -56,9 +56,9 @@ function MapLayersController({
     if (!map) return;
     // mapId maps: use colorScheme (styles are controlled in Cloud Console).
     map.setOptions({
-      colorScheme: theme === "dark" ? google.maps.ColorScheme.DARK : google.maps.ColorScheme.LIGHT,
+      colorScheme: google.maps.ColorScheme.LIGHT,
     });
-  }, [map, theme]);
+  }, [map]);
 
   useEffect(() => {
     if (!map) return;
