@@ -2,13 +2,14 @@
 
 from typing import Annotated
 
-from fastapi import Depends, File, HTTPException, UploadFile
+from fastapi import Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.blog_media import save_blog_image
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.db import get_db
+from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
 from porterchain_api.routers.admin._deps import (
     BlogPostCreateRequest,
     BlogPostItem,
@@ -32,13 +33,14 @@ def list_blog_posts(
     status: str | None = None,
     category: str | None = None,
     search: str | None = None,
+    limit: int = Query(DEFAULT_LIST_LIMIT, ge=1, le=MAX_LIST_LIMIT),
 ) -> list[BlogPostItem]:
     try:
         require_module(ctx, "content_read")
     except PermissionError as exc:
         _perm(exc)
     rows = _blog.list_posts(
-        db, locale=locale, status=status, category=category, search=search
+        db, locale=locale, status=status, category=category, search=search, limit=limit
     )
     return [_serialize(row) for row in rows]
 

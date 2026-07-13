@@ -99,7 +99,7 @@ function apiRowToPost(row: ApiBlogRow): BlogPost {
 async function fetchApiPosts(locale: Locale): Promise<BlogPostMeta[]> {
   try {
     const base = getPorterchainApiBase();
-    const res = await fetch(`${base}/v1/public/blog/posts?locale=${locale}`, {
+    const res = await fetch(`${base}/v1/public/blog/posts?locale=${locale}&limit=500`, {
       next: { revalidate: 60 },
     });
     if (!res.ok) return [];

@@ -40,6 +40,7 @@ class AdminBlogService:
         category: str | None = None,
         search: str | None = None,
         published_only: bool = False,
+        limit: int = 100,
     ) -> list[BlogPost]:
         q = db.query(BlogPost)
         if published_only:
@@ -57,7 +58,11 @@ class AdminBlogService:
                 | (BlogPost.slug.ilike(term))
                 | (BlogPost.description.ilike(term))
             )
-        return q.order_by(BlogPost.published_at.desc().nullslast(), BlogPost.updated_at.desc()).all()
+        return (
+            q.order_by(BlogPost.published_at.desc().nullslast(), BlogPost.updated_at.desc())
+            .limit(max(1, limit))
+            .all()
+        )
 
     def get_post(self, db: Session, post_id: str) -> BlogPost | None:
         return db.query(BlogPost).filter(BlogPost.id == post_id).first()

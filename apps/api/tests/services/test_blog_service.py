@@ -65,8 +65,10 @@ def test_create_list_get_and_serialize(db: Session) -> None:
     assert post.published_at is not None
     assert post.slug == slug
 
-    listed = svc.list_posts(db, locale="en", published_only=True)
+    listed = svc.list_posts(db, locale="en", published_only=True, limit=50)
     assert any(p.id == post.id for p in listed)
+    capped = svc.list_posts(db, locale="en", limit=1)
+    assert len(capped) == 1
 
     by_id = svc.get_post(db, post.id)
     assert by_id is not None

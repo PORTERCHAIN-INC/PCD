@@ -58,8 +58,10 @@ _LEGACY_UNPAGINATED_LISTS: frozenset[str] = frozenset(
         "admin/finance.py:finance_list_payments",
         "admin/finance.py:finance_list_payouts",
         "admin/finance.py:finance_ledger",
-        "admin/orders.py:booking_draft_abandoned",
-        "admin/orders.py:list_booking_drafts",
+        # Moved from admin/orders.py — still service-capped / bounded drafts.
+        "admin/booking_drafts.py:booking_draft_abandoned",
+        "admin/booking_drafts.py:list_booking_drafts",
+        "admin/route_templates.py:list_route_templates",
         "admin/pricing.py:pricing_conflicts",
         "admin/pricing.py:list_tariffs",
         "admin/pricing.py:list_promotions",
@@ -67,6 +69,8 @@ _LEGACY_UNPAGINATED_LISTS: frozenset[str] = frozenset(
         "admin/pricing.py:list_merchant_contracts",
         "admin/settings.py:list_staff",
         "collaboration.py:list_tasks",
+        "merchant/standing_orders.py:list_standing_orders",
+        "merchants.py:merchant_subsidiaries",
     }
 )
 

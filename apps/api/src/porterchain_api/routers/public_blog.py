@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.blog_media import resolve_media_file
 from porterchain_api.admin_engine.blog_service import AdminBlogService
 from porterchain_api.db import get_db
+from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
 from porterchain_api.schemas_public import PublicBlogPostItem, PublicBlogPostMeta
 
 router = APIRouter(prefix="/v1/public/blog", tags=["public-blog"])
@@ -38,9 +39,14 @@ def list_published_posts(
     db: Session = Depends(get_db),
     locale: Annotated[str, Query(min_length=2, max_length=8)] = "en",
     category: str | None = None,
+    limit: int = Query(DEFAULT_LIST_LIMIT, ge=1, le=MAX_LIST_LIMIT),
 ) -> list[PublicBlogPostMeta]:
     rows = _blog.list_posts(
-        db, locale=locale.strip().lower(), category=category, published_only=True
+        db,
+        locale=locale.strip().lower(),
+        category=category,
+        published_only=True,
+        limit=limit,
     )
     return [_meta(row) for row in rows]
 

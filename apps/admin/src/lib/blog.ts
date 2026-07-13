@@ -75,8 +75,8 @@ function qs(filters: BlogFilters): string {
   if (filters.status) params.set("status", filters.status);
   if (filters.category) params.set("category", filters.category);
   if (filters.search) params.set("search", filters.search);
-  const q = params.toString();
-  return q ? `?${q}` : "";
+  params.set("limit", "500");
+  return `?${params.toString()}`;
 }
 
 export const blogApi = {
