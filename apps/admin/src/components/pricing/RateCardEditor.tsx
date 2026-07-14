@@ -32,10 +32,10 @@ export default function RateCardEditor({
 
   useEffect(() => {
     setCard({
-      driver_payout_mode: "flat",
-      driver_flat_per_delivery_cents: 850,
-      driver_minimum_payout_cents: 0,
       ...initial,
+      driver_payout_mode: initial.driver_payout_mode ?? "flat",
+      driver_flat_per_delivery_cents: initial.driver_flat_per_delivery_cents ?? 850,
+      driver_minimum_payout_cents: initial.driver_minimum_payout_cents ?? 0,
     });
   }, [initial]);
 
