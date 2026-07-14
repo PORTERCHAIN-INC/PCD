@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function AdminSystemTestsRedirect() {
-  redirect("/system-tests");
+export default function LegacyAdminSystemTestsPage() {
+  redirect("/system?tab=tests");
 }

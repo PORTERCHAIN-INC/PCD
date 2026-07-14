@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+
+type PanelRender = (props: { close: () => void }) => ReactNode;
 
 type Props = {
   trigger: (props: {
@@ -10,7 +13,7 @@ type Props = {
     toggle: () => void;
     triggerProps: { onClick: () => void; "aria-expanded": boolean; "aria-haspopup": boolean };
   }) => ReactNode;
-  children: ReactNode;
+  children: ReactNode | PanelRender;
   align?: "left" | "right";
   width?: "sm" | "md" | "lg" | "xl";
   className?: string;
@@ -25,6 +28,7 @@ export default function NavDropdown({
   width = "md",
   className,
 }: Props) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -33,6 +37,10 @@ export default function NavDropdown({
 
   const close = useCallback(() => setOpen(false), []);
   const toggle = useCallback(() => setOpen((v) => !v), []);
+
+  useEffect(() => {
+    close();
+  }, [pathname, close]);
 
   const updatePosition = useCallback(() => {
     const el = triggerRef.current;
@@ -73,6 +81,20 @@ export default function NavDropdown({
     };
   }, [open, close]);
 
+  useEffect(() => {
+    if (!open) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    function onClick(e: MouseEvent) {
+      const el = e.target as HTMLElement | null;
+      if (el?.closest("a[href]")) close();
+    }
+    panel.addEventListener("click", onClick);
+    return () => panel.removeEventListener("click", onClick);
+  }, [open, close]);
+
+  const panelContent = typeof children === "function" ? children({ close }) : children;
+
   const panel =
     open && typeof document !== "undefined"
       ? createPortal(
@@ -86,7 +108,7 @@ export default function NavDropdown({
               className
             )}
           >
-            {children}
+            {panelContent}
           </div>,
           document.body
         )

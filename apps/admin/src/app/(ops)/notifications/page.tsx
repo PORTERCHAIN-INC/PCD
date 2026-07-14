@@ -1,14 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { Bell, RefreshCw, Send, Smartphone, FileText, AlertTriangle, Layers } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  Bell,
+  RefreshCw,
+  Send,
+  Smartphone,
+  FileText,
+  AlertTriangle,
+  Layers,
+  Inbox,
+} from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
-import { notificationsApi, type NotificationRecord } from "@/lib/notifications";
+import {
+  notificationsApi,
+  type InboxNotification,
+  type NotificationRecord,
+} from "@/lib/notifications";
 import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
 import { shortDate, titleCase } from "@/lib/crmFormat";
+import { cn } from "@porterchain/ui/utils";
 
-type Tab = "dashboard" | "queue" | "history" | "failed" | "templates" | "devices";
+type Tab = "inbox" | "dashboard" | "queue" | "history" | "failed" | "templates" | "devices";
 
 const STATUS_TONE: Record<string, string> = {
   queued: "amber",
@@ -18,14 +33,40 @@ const STATUS_TONE: Record<string, string> = {
   dead_letter: "red",
 };
 
+const TAB_IDS = new Set<Tab>([
+  "inbox",
+  "dashboard",
+  "queue",
+  "history",
+  "failed",
+  "templates",
+  "devices",
+]);
+
 export default function NotificationsPage() {
+  const searchParams = useSearchParams();
   const { getApiToken } = useAdminAuth();
-  const [tab, setTab] = useState<Tab>("dashboard");
+  const initial = searchParams.get("tab");
+  const [tab, setTab] = useState<Tab>(
+    initial && TAB_IDS.has(initial as Tab) ? (initial as Tab) : "inbox"
+  );
   const [version, setVersion] = useState(0);
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
 
-  const { data: dashboard } = useApiData((t) => notificationsApi.dashboard(t), [version]);
+  useEffect(() => {
+    const q = searchParams.get("tab");
+    if (q && TAB_IDS.has(q as Tab)) setTab(q as Tab);
+  }, [searchParams]);
+
+  const { data: inbox } = useApiData(
+    (t) => (tab === "inbox" ? notificationsApi.inbox(t) : Promise.resolve(null)),
+    [tab, version]
+  );
+  const { data: dashboard } = useApiData(
+    (t) => (tab === "dashboard" ? notificationsApi.dashboard(t) : Promise.resolve(null)),
+    [tab, version]
+  );
   const { data: queue } = useApiData(
     (t) =>
       tab === "queue" ? notificationsApi.queue(t, search ? { search } : {}) : Promise.resolve([]),
@@ -62,7 +103,30 @@ export default function NotificationsPage() {
     }
   }
 
+  async function markRead(id: string) {
+    setBusy(id);
+    try {
+      const token = await getApiToken();
+      await notificationsApi.markRead(token, id);
+      setVersion((v) => v + 1);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function markAllRead() {
+    setBusy("all");
+    try {
+      const token = await getApiToken();
+      await notificationsApi.markAllRead(token);
+      setVersion((v) => v + 1);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { id: "inbox", label: "My alerts", icon: Inbox },
     { id: "dashboard", label: "Dashboard", icon: Layers },
     { id: "queue", label: "Queue", icon: Send },
     { id: "history", label: "History", icon: Bell },
@@ -71,13 +135,22 @@ export default function NotificationsPage() {
     { id: "devices", label: "Devices", icon: Smartphone },
   ];
 
+  const unread = inbox?.unread_count ?? 0;
+
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">Notification Center</h1>
-        <p className="text-sm text-muted">
-          Enterprise notification engine — queue, delivery, templates, and device tokens.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Notification Center</h1>
+          <p className="text-sm text-muted">
+            Your alerts, plus delivery queue, templates, and devices.
+          </p>
+        </div>
+        {tab === "inbox" && unread > 0 ? (
+          <Button variant="outline" disabled={busy === "all"} onClick={() => void markAllRead()}>
+            Mark all read
+          </Button>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -89,6 +162,11 @@ export default function NotificationsPage() {
             className="gap-2"
           >
             <Icon className="h-4 w-4" /> {label}
+            {id === "inbox" && unread > 0 ? (
+              <span className="rounded-full bg-white/20 px-1.5 text-[10px] font-bold">
+                {unread}
+              </span>
+            ) : null}
           </Button>
         ))}
       </div>
@@ -100,6 +178,17 @@ export default function NotificationsPage() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search recipient, template, title…"
           className="w-full max-w-md rounded-xl border border-primary/15 px-3 py-2 text-sm"
+        />
+      )}
+
+      {tab === "inbox" && (
+        <InboxPanel
+          data={inbox}
+          busy={busy}
+          onOpen={(item) => {
+            if (!item.is_read) void markRead(item.id);
+            if (item.deep_link) window.location.href = item.deep_link;
+          }}
         />
       )}
 
@@ -189,6 +278,49 @@ export default function NotificationsPage() {
         </SectionCard>
       )}
     </div>
+  );
+}
+
+function InboxPanel({
+  data,
+  busy,
+  onOpen,
+}: {
+  data: { unread_count: number; items: InboxNotification[] } | null | undefined;
+  busy: string | null;
+  onOpen: (item: InboxNotification) => void;
+}) {
+  if (!data) return <Spinner label="Loading alerts…" />;
+  if (data.items.length === 0) {
+    return <EmptyState title="No alerts yet" hint="You’re all caught up." />;
+  }
+  return (
+    <SectionCard title={`My alerts (${data.unread_count} unread)`}>
+      <ul className="divide-y divide-primary/5">
+        {data.items.map((n) => (
+          <li key={n.id}>
+            <button
+              type="button"
+              disabled={busy === n.id}
+              onClick={() => onOpen(n)}
+              className={cn(
+                "flex w-full flex-col gap-1 px-5 py-3.5 text-left transition hover:bg-gray-bg/80",
+                !n.is_read && "bg-secondary/5"
+              )}
+            >
+              <span className="flex items-center justify-between gap-2">
+                <span className="font-medium text-primary">{n.title || "Update"}</span>
+                <span className="flex items-center gap-2">
+                  {!n.is_read ? <Badge tone="sky">New</Badge> : null}
+                  <span className="text-xs text-muted">{shortDate(n.created_at)}</span>
+                </span>
+              </span>
+              <span className="text-sm text-muted">{n.body}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </SectionCard>
   );
 }
 

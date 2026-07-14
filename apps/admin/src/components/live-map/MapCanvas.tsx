@@ -15,7 +15,7 @@ function overlaySetMap(overlay: unknown, map: google.maps.Map | null) {
 }
 
 type MapMode = "roadmap" | "satellite" | "hybrid" | "terrain";
-type Theme = "light" | "dark";
+type Theme = "light";
 
 type Props = {
   data: LiveMapSnapshot;
@@ -46,15 +46,13 @@ function MapLayersController({
   data: LiveMapSnapshot;
 }) {
   const map = useMap();
-  const visualization = useMapsLibrary("visualization");
-  const heatmapRef = useRef<google.maps.visualization.HeatmapLayer | null>(null);
+  const heatCirclesRef = useRef<google.maps.Circle[]>([]);
   const trafficRef = useRef<google.maps.TrafficLayer | null>(null);
   const transitRef = useRef<google.maps.TransitLayer | null>(null);
   const bikeRef = useRef<google.maps.BicyclingLayer | null>(null);
 
   useEffect(() => {
     if (!map) return;
-    // mapId maps: use colorScheme (styles are controlled in Cloud Console).
     map.setOptions({
       colorScheme: google.maps.ColorScheme.LIGHT,
     });
@@ -83,27 +81,32 @@ function MapLayersController({
   }, [map, layers.traffic]);
 
   useEffect(() => {
-    if (!map || !visualization) return;
-    if (heatmapRef.current) {
-      overlaySetMap(heatmapRef.current, null);
-    }
+    if (!map) return;
+    heatCirclesRef.current.forEach((c) => c.setMap(null));
+    heatCirclesRef.current = [];
     if (!layers.heatMap) return;
+
     const pts = (data.heat_maps[heatMetric] ?? []).map((p) => new google.maps.LatLng(p.lat, p.lng));
     if (!pts.length) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const layer = new (google.maps.visualization.HeatmapLayer as any)({
-      data: pts,
-      map,
-      radius: 28,
-      opacity: 0.65,
-    }) as google.maps.visualization.HeatmapLayer;
-    heatmapRef.current = layer;
+
+    heatCirclesRef.current = pts.map(
+      (center) =>
+        new google.maps.Circle({
+          map,
+          center,
+          radius: 420,
+          fillColor: "#2563eb",
+          fillOpacity: 0.18,
+          strokeWeight: 0,
+          clickable: false,
+        })
+    );
+
     return () => {
-      if (heatmapRef.current) {
-        overlaySetMap(heatmapRef.current, null);
-      }
+      heatCirclesRef.current.forEach((c) => c.setMap(null));
+      heatCirclesRef.current = [];
     };
-  }, [map, visualization, layers.heatMap, heatMetric, data.heat_maps]);
+  }, [map, layers.heatMap, heatMetric, data.heat_maps]);
 
   return null;
 }
@@ -169,6 +172,13 @@ function ClusteredMarkers({
   );
 }
 
+const DRAW_STYLE = {
+  fillColor: "#2563eb",
+  fillOpacity: 0.15,
+  strokeColor: "#2563eb",
+  strokeWeight: 2,
+};
+
 function DrawTools({
   mode,
   onComplete,
@@ -177,51 +187,158 @@ function DrawTools({
   onComplete?: (shape: google.maps.Polygon | google.maps.Circle | google.maps.Rectangle) => void;
 }) {
   const map = useMap();
-  const drawing = useMapsLibrary("drawing");
-  const managerRef = useRef<google.maps.drawing.DrawingManager | null>(null);
+  const geometry = useMapsLibrary("geometry");
+  const previewRef = useRef<
+    google.maps.Polygon | google.maps.Circle | google.maps.Rectangle | null
+  >(null);
 
   useEffect(() => {
-    if (!map || !drawing || mode === "none") {
-      overlaySetMap(managerRef.current, null);
-      return;
-    }
-    const overlay =
-      mode === "rectangle"
-        ? google.maps.drawing.OverlayType.RECTANGLE
-        : mode === "circle"
-          ? google.maps.drawing.OverlayType.CIRCLE
-          : google.maps.drawing.OverlayType.POLYGON;
-    managerRef.current = new (
-      drawing.DrawingManager as new (opts?: object) => google.maps.drawing.DrawingManager
-    )({
-      drawingMode: overlay,
-      drawingControl: false,
-      rectangleOptions: { fillColor: "#2563eb", fillOpacity: 0.15, strokeColor: "#2563eb" },
-      circleOptions: { fillColor: "#2563eb", fillOpacity: 0.15, strokeColor: "#2563eb" },
-      polygonOptions: { fillColor: "#2563eb", fillOpacity: 0.15, strokeColor: "#2563eb" },
-    });
-    overlaySetMap(managerRef.current, map);
-    const listener = managerRef.current.addListener(
-      "overlaycomplete",
-      (e: { overlay: google.maps.Polygon | google.maps.Circle | google.maps.Rectangle }) => {
-        const shape = e.overlay as google.maps.Polygon | google.maps.Circle | google.maps.Rectangle;
-        onComplete?.(shape);
-        (managerRef.current as unknown as { setDrawingMode: (m: null) => void })?.setDrawingMode(
-          null
-        );
-      }
-    );
-    return () => {
-      google.maps.event.removeListener(listener);
-      overlaySetMap(managerRef.current, null);
-    };
-  }, [map, drawing, mode, onComplete]);
+    if (!map || mode === "none") return;
+    if (mode === "circle" && !geometry) return;
 
-  return null;
+    const listeners: google.maps.MapsEventListener[] = [];
+    let start: google.maps.LatLng | null = null;
+    const polygonPath: google.maps.LatLng[] = [];
+
+    function clearPreview() {
+      overlaySetMap(previewRef.current, null);
+      previewRef.current = null;
+    }
+
+    function finish(shape: google.maps.Polygon | google.maps.Circle | google.maps.Rectangle) {
+      clearPreview();
+      onComplete?.(shape);
+    }
+
+    if (mode === "polygon") {
+      const polyline = new google.maps.Polyline({
+        map,
+        strokeColor: DRAW_STYLE.strokeColor,
+        strokeWeight: DRAW_STYLE.strokeWeight,
+      });
+      listeners.push(
+        map.addListener("click", (e: google.maps.MapMouseEvent) => {
+          if (!e.latLng) return;
+          polygonPath.push(e.latLng);
+          polyline.setPath(polygonPath);
+        })
+      );
+      listeners.push(
+        map.addListener("dblclick", (e: google.maps.MapMouseEvent) => {
+          e.stop();
+          if (polygonPath.length < 3) return;
+          const polygon = new google.maps.Polygon({
+            paths: polygonPath,
+            map,
+            ...DRAW_STYLE,
+          });
+          polyline.setMap(null);
+          finish(polygon);
+        })
+      );
+      return () => {
+        listeners.forEach((l) => google.maps.event.removeListener(l));
+        polyline.setMap(null);
+        clearPreview();
+      };
+    }
+
+    if (mode === "circle") {
+      listeners.push(
+        map.addListener("click", (e: google.maps.MapMouseEvent) => {
+          if (!e.latLng) return;
+          if (!start) {
+            start = e.latLng;
+            previewRef.current = new google.maps.Circle({
+              map,
+              center: start,
+              radius: 1,
+              ...DRAW_STYLE,
+            });
+            return;
+          }
+          const radius = google.maps.geometry.spherical.computeDistanceBetween(start, e.latLng);
+          const circle = new google.maps.Circle({
+            map,
+            center: start,
+            radius,
+            ...DRAW_STYLE,
+          });
+          finish(circle);
+        })
+      );
+      listeners.push(
+        map.addListener("mousemove", (e: google.maps.MapMouseEvent) => {
+          if (!start || !e.latLng || !(previewRef.current instanceof google.maps.Circle)) return;
+          const radius = google.maps.geometry.spherical.computeDistanceBetween(start, e.latLng);
+          previewRef.current.setRadius(radius);
+        })
+      );
+      return () => {
+        listeners.forEach((l) => google.maps.event.removeListener(l));
+        clearPreview();
+      };
+    }
+
+    // rectangle: two corner clicks
+    listeners.push(
+      map.addListener("click", (e: google.maps.MapMouseEvent) => {
+        if (!e.latLng) return;
+        if (!start) {
+          start = e.latLng;
+          previewRef.current = new google.maps.Rectangle({
+            map,
+            bounds: new google.maps.LatLngBounds(start, start),
+            ...DRAW_STYLE,
+          });
+          return;
+        }
+        const bounds = new google.maps.LatLngBounds(start, e.latLng);
+        const rect = new google.maps.Rectangle({
+          map,
+          bounds,
+          ...DRAW_STYLE,
+        });
+        finish(rect);
+      })
+    );
+    listeners.push(
+      map.addListener("mousemove", (e: google.maps.MapMouseEvent) => {
+        if (!start || !e.latLng || !(previewRef.current instanceof google.maps.Rectangle)) return;
+        previewRef.current.setBounds(new google.maps.LatLngBounds(start, e.latLng));
+      })
+    );
+
+    return () => {
+      listeners.forEach((l) => google.maps.event.removeListener(l));
+      clearPreview();
+    };
+  }, [map, mode, onComplete, geometry]);
+
+  if (mode === "none") return null;
+
+  if (mode === "circle" && !geometry) {
+    return (
+      <div className="pointer-events-none absolute bottom-24 left-1/2 z-20 -translate-x-1/2 rounded-xl bg-white/95 px-4 py-2 text-xs text-muted shadow-lg">
+        Loading draw tools…
+      </div>
+    );
+  }
+
+  return (
+    <div className="pointer-events-none absolute bottom-24 left-1/2 z-20 max-w-sm -translate-x-1/2 rounded-xl bg-white/95 px-4 py-2 text-center text-xs font-medium text-primary shadow-lg">
+      {mode === "polygon"
+        ? "Click points, double-click to finish polygon"
+        : mode === "circle"
+          ? "Click center, then click edge for radius"
+          : "Click opposite corners for rectangle"}
+    </div>
+  );
 }
 
 function MeasureTool({ active }: { active: boolean }) {
   const map = useMap();
+  const geometry = useMapsLibrary("geometry");
   const [path, setPath] = useState<google.maps.LatLng[]>([]);
   const lineRef = useRef<google.maps.Polyline | null>(null);
 
@@ -252,7 +369,7 @@ function MeasureTool({ active }: { active: boolean }) {
     });
   }, [map, path]);
 
-  if (!active || path.length < 2) return null;
+  if (!active || path.length < 2 || !geometry) return null;
   let meters = 0;
   for (let i = 1; i < path.length; i++) {
     meters += google.maps.geometry.spherical.computeDistanceBetween(path[i - 1], path[i]);

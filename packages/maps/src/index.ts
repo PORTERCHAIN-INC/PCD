@@ -11,6 +11,7 @@ export {
   placeDetailsToBookingAddress,
   resolveGoogleMapsApiKey,
 } from "./maps-core";
+export { decodePolyline, resolveRoutePolylineEncoding } from "./polyline";
 export { default as TrackRouteMap } from "./TrackRouteMap";
 export type { TrackRouteMapProps } from "./TrackRouteMap";
 export { TrackEtaPanel, formatEta } from "./TrackEtaPanel";

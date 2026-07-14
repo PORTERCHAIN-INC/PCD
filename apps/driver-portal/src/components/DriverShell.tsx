@@ -9,6 +9,7 @@ import Container from "@/components/ui/Container";
 import DriverAccountMenu from "@/components/nav/DriverAccountMenu";
 import DriverAppsMenu from "@/components/nav/DriverAppsMenu";
 import DriverMenuBar from "@/components/nav/DriverMenuBar";
+import NotificationBell from "@/components/nav/NotificationBell";
 import { DriverProfileProvider } from "@/components/nav/DriverProfileContext";
 import { activeNavLabel } from "@/lib/driver-nav";
 import { hasDriverSession } from "@/lib/api";
@@ -120,6 +121,7 @@ export default function DriverShell({ children }: { children: React.ReactNode })
             </div>
 
             <div className="flex shrink-0 items-center gap-2 border-l border-primary/10 pl-2">
+              <NotificationBell viewAllHref="/communications" />
               <DriverAppsMenu />
               <DriverAccountMenu />
             </div>

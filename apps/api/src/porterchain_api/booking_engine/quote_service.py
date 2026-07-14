@@ -118,11 +118,12 @@ class QuoteService:
         if body.additional_stops:
             stops = [GeoPoint(lat=s.lat, lng=s.lng, formatted=s.formatted) for s in body.additional_stops]
             request = PricingRequest_replace(request, additional_stops=stops)
-            distance, duration_seconds = resolve_route_distance(request.pickup, request.dropoff, stops)
+            distance, duration_seconds, routing_source = resolve_route_distance(request.pickup, request.dropoff, stops)
             request = PricingRequest_replace(
                 request,
                 distance_meters=distance,
                 estimated_duration_minutes=int(duration_seconds / 60) if duration_seconds else None,
+                routing_source=routing_source,
             )
 
         pricing = get_pricing_service(db)

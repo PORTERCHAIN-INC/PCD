@@ -1,6 +1,11 @@
 "use client";
 
-import { coordsFromAddress, decodePolyline, GTA_CENTER } from "@/lib/navigation-map";
+import {
+  coordsFromAddress,
+  decodePolyline,
+  GTA_CENTER,
+  resolveRoutePolylineEncoding,
+} from "@/lib/navigation-map";
 import type { DriverNavigationSession } from "@/lib/navigation";
 import { AdvancedMarker, Map, Polyline, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { useEffect, useMemo, useRef } from "react";
@@ -93,16 +98,14 @@ export function DriverNavigationMap({
 
   const pickupPath = useMemo(() => {
     const poly = session.pickup_route?.polyline;
-    return poly ? decodePolyline(poly) : [];
-  }, [session.pickup_route?.polyline]);
+    return poly ? decodePolyline(poly, resolveRoutePolylineEncoding(session.pickup_route)) : [];
+  }, [session.pickup_route]);
 
   const deliveryPath = useMemo(() => {
-    const poly =
-      session.delivery_route?.polyline ??
-      session.optimized_route?.polyline ??
-      session.eta?.polyline;
-    return poly ? decodePolyline(poly) : [];
-  }, [session.delivery_route?.polyline, session.optimized_route?.polyline, session.eta?.polyline]);
+    const route = session.delivery_route ?? session.optimized_route ?? session.eta;
+    const poly = route?.polyline;
+    return poly ? decodePolyline(poly, resolveRoutePolylineEncoding(route)) : [];
+  }, [session.delivery_route, session.optimized_route, session.eta]);
 
   const replayFrames = session.replay ?? [];
   const replayPoint =

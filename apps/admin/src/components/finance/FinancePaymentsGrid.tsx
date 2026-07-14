@@ -102,34 +102,44 @@ export default function FinancePaymentsGrid({ rows }: Props) {
         value={globalFilter}
         onChange={(e) => setGlobalFilter(e.target.value)}
         placeholder="Filter payments…"
-        className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+        className="w-full max-w-sm rounded-xl border border-primary/10 px-3 py-2 text-sm"
       />
-      <div className="overflow-x-auto rounded-2xl border border-primary/10 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-primary/10 bg-gray-bg/50">
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
-                {hg.headers.map((header) => (
-                  <th key={header.id} className="px-3 py-3 font-medium">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b border-primary/5 hover:bg-secondary/5">
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-3 py-2.5">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {!rows.length ? (
+        <div className="rounded-xl border border-dashed border-primary/15 px-6 py-12 text-center">
+          <p className="text-sm font-medium text-primary">No payments</p>
+          <p className="mt-1 text-xs text-muted">Stripe and offline payments will list here.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-primary/10">
+          <table className="w-full min-w-[48rem] text-left text-sm">
+            <thead className="border-b border-primary/10 bg-gray-bg/60">
+              {table.getHeaderGroups().map((hg) => (
+                <tr key={hg.id}>
+                  {hg.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted"
+                    >
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map((row) => (
+                <tr key={row.id} className="border-b border-primary/5 hover:bg-secondary/[0.04]">
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id} className="px-3 py-2.5">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

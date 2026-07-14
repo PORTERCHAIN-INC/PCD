@@ -1,7 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { DiagnosticsTestCenter } from "@/components/diagnostics/DiagnosticsTestCenter";
-
-export default function SystemTestsPage() {
-  return <DiagnosticsTestCenter />;
+/** Merged into /system?tab=tests. */
+export default function SystemTestsRedirectPage() {
+  redirect("/system?tab=tests");
 }

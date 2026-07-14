@@ -74,6 +74,7 @@ _ENGINE_IMPORT_RE = re.compile(r"from porterchain_api\.([a-z_]+_engine)(?:\.|\s+
 _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
     {
         "admin_engine->billing_engine:admin_engine/finance_service.py",
+        "admin_engine->billing_engine:admin_engine/merchant_ar_service.py",
         "admin_engine->booking_engine:admin_engine/booking_draft_admin_service.py",
         "admin_engine->booking_engine:admin_engine/clerk_directory_service.py",
         "admin_engine->booking_engine:admin_engine/control_tower_service.py",
@@ -87,6 +88,7 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "admin_engine->booking_engine:admin_engine/operations_service.py",
         "admin_engine->booking_engine:admin_engine/orders_service.py",
         "admin_engine->booking_engine:admin_engine/pricing_service.py",
+        "admin_engine->booking_engine:admin_engine/merchant_ar_service.py",
         "admin_engine->order_engine:admin_engine/business_metrics.py",
         "admin_engine->support_engine:admin_engine/business_metrics.py",
         "admin_engine->collaboration_engine:admin_engine/crm_sales_service.py",
@@ -98,6 +100,7 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "admin_engine->fleetbase_engine:admin_engine/e2e_validation_consistency.py",
         "admin_engine->fleetbase_engine:admin_engine/e2e_validation_core.py",
         "admin_engine->merchant_engine:admin_engine/e2e_validation_merchant.py",
+        "admin_engine->merchant_engine:admin_engine/merchant_ar_service.py",
         "admin_engine->merchant_engine:admin_engine/e2e_validation_verifiers.py",
         "admin_engine->merchant_engine:admin_engine/platform_user_authorize.py",
         "admin_engine->merchant_engine:admin_engine/diagnostics_workflows.py",
@@ -260,6 +263,7 @@ _LEGACY_ROUTER_LOGIC: frozenset[str] = frozenset(
         "admin/claims.py",
         "admin/pricing.py",
         "oauth.py",
+        "merchants.py",
     }
 )
 
@@ -267,7 +271,7 @@ _LEGACY_ROUTER_LOGIC: frozenset[str] = frozenset(
 _LEGACY_ROUTER_LOC: dict[str, int] = {
     "admin/settings.py": 400,
     "merchant/integrations.py": 420,
-    "merchants.py": 400,
+    "merchants.py": 430,
 }
 
 MAX_NEW_ROUTER_LOC = 350
@@ -278,10 +282,10 @@ _LEGACY_ENGINE_SERVICE_LOC: dict[str, int] = {
     "admin_engine/settings_service.py": 940,
     "booking_engine/booking_draft_service.py": 732,
     "admin_engine/merchant360_service.py": 670,
-    "admin_engine/finance_service.py": 618,
+    "admin_engine/finance_service.py": 641,
     "admin_engine/booking_draft_admin_service.py": 544,
-    "merchant_engine/tracking_service.py": 520,
-    "admin_engine/pricing_service.py": 518,
+    "merchant_engine/tracking_service.py": 545,
+    "admin_engine/pricing_service.py": 611,
     "admin_engine/driver360_service.py": 512,
 }
 

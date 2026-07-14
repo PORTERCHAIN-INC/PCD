@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog, Driver, DriverPayout
+from porterchain_api.billing_engine.merchant_service import invoice_due_date as merchant_invoice_due_date
 from porterchain_api.billing_engine.models import BillingLedgerEntry
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_models import Merchant
@@ -81,8 +82,16 @@ class AdminFinanceService:
                 return "pending"
             if payment.status == "FAILED":
                 return "pending"
-        created = invoice.created_at.replace(tzinfo=None) if invoice.created_at.tzinfo else invoice.created_at
-        if self._now() - created > timedelta(days=30):
+        terms = order.payment_terms if order else None
+        due = None
+        if getattr(invoice, "due_at", None):
+            due = invoice.due_at.replace(tzinfo=None) if invoice.due_at.tzinfo else invoice.due_at
+        else:
+            due = merchant_invoice_due_date(
+                invoice.created_at.replace(tzinfo=None) if invoice.created_at and invoice.created_at.tzinfo else invoice.created_at,
+                terms,
+            )
+        if due and self._now() > due:
             return "overdue"
         return "sent"
 
@@ -246,22 +255,31 @@ class AdminFinanceService:
     # ------------------------------------------------------------------ #
     def _invoice_row(self, db: Session, invoice: Invoice) -> dict[str, Any]:
         order = db.query(Order).filter(Order.id == invoice.order_id).first()
-        customer = db.query(Customer).filter(Customer.id == invoice.customer_id).first()
-        booking = db.query(Booking).filter(Booking.order_id == invoice.order_id).first()
-        payment = self._payment_for_order(db, invoice.order_id)
-        merchant = (
-            db.query(Merchant).filter(Merchant.id == order.merchant_id).first()
-            if order and order.merchant_id
+        customer = (
+            db.query(Customer).filter(Customer.id == invoice.customer_id).first()
+            if invoice.customer_id
             else None
         )
+        booking = db.query(Booking).filter(Booking.order_id == invoice.order_id).first()
+        payment = self._payment_for_order(db, invoice.order_id)
+        mid = invoice.merchant_id or (order.merchant_id if order else None)
+        merchant = db.query(Merchant).filter(Merchant.id == mid).first() if mid else None
         status = self._invoice_status(invoice, order, payment)
         outstanding = self._outstanding_cents(invoice, status)
+        terms = (order.payment_terms if order else None) or (merchant.payment_terms if merchant else None) or "IMMEDIATE"
+        if getattr(invoice, "due_at", None):
+            due_date = invoice.due_at
+        else:
+            due_date = merchant_invoice_due_date(
+                invoice.created_at.replace(tzinfo=None) if invoice.created_at and invoice.created_at.tzinfo else invoice.created_at,
+                terms,
+            )
         return {
             "invoice_id": invoice.id,
             "invoice_number": invoice.invoice_number,
             "receipt_number": invoice.receipt_number,
             "status": status,
-            "merchant_id": order.merchant_id if order else None,
+            "merchant_id": mid,
             "merchant_name": merchant.company_name if merchant else None,
             "customer_id": invoice.customer_id,
             "customer_email": customer.email if customer else None,
@@ -274,8 +292,8 @@ class AdminFinanceService:
             "fees_cents": invoice.fees_cents,
             "outstanding_cents": outstanding,
             "currency": invoice.currency,
-            "payment_terms": order.payment_terms if order else "IMMEDIATE",
-            "due_date": (invoice.created_at + timedelta(days=30)) if invoice.created_at else None,
+            "payment_terms": terms,
+            "due_date": due_date,
             "pdf_url": invoice.pdf_url,
             "receipt_url": invoice.stripe_receipt_url,
             "created_at": invoice.created_at,
@@ -495,7 +513,12 @@ class AdminFinanceService:
             st = self._invoice_status(inv, order, payment)
             if st in ("overdue", "sent", "pending") and self._outstanding_cents(inv, st) > 0:
                 row = self._invoice_row(db, inv)
-                row["days_overdue"] = max(0, (self._now() - (inv.created_at.replace(tzinfo=None) if inv.created_at.tzinfo else inv.created_at)).days - 30)
+                due = row.get("due_date")
+                if due is not None:
+                    due_n = due.replace(tzinfo=None) if getattr(due, "tzinfo", None) else due
+                    row["days_overdue"] = max(0, (self._now() - due_n).days) if st == "overdue" else 0
+                else:
+                    row["days_overdue"] = 0
                 overdue.append(row)
         return overdue
 

@@ -4,12 +4,14 @@
 import { AdvancedMarker, Map, Polyline, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { useEffect, useMemo } from "react";
 import { GTA_CENTER, coordsFromAddress, isGoogleMapsConfigured } from "./maps-core";
+import { decodePolyline } from "./polyline";
 
 export type TrackRouteMapProps = {
   pickup?: Record<string, unknown> | null;
   dropoff?: Record<string, unknown> | null;
   driverLocation?: { lat: number; lng: number } | null;
   routePolyline?: string | null;
+  routePolylineEncoding?: "google" | "valhalla";
   height?: string;
   className?: string;
 };
@@ -28,50 +30,20 @@ function FitBounds({ points }: { points: google.maps.LatLngLiteral[] }) {
   return null;
 }
 
-function decodePolyline(encoded: string): google.maps.LatLngLiteral[] {
-  const points: google.maps.LatLngLiteral[] = [];
-  let index = 0;
-  let lat = 0;
-  let lng = 0;
-
-  while (index < encoded.length) {
-    let shift = 0;
-    let result = 0;
-    let byte: number;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lat += result & 1 ? ~(result >> 1) : result >> 1;
-
-    shift = 0;
-    result = 0;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lng += result & 1 ? ~(result >> 1) : result >> 1;
-
-    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
-  }
-  return points;
-}
-
 export default function TrackRouteMap({
   pickup,
   dropoff,
   driverLocation,
   routePolyline,
+  routePolylineEncoding = "google",
   height = "280px",
   className = "",
 }: TrackRouteMapProps) {
   const pickupPt = coordsFromAddress(pickup);
   const dropoffPt = coordsFromAddress(dropoff);
   const routePath = useMemo(
-    () => (routePolyline ? decodePolyline(routePolyline) : []),
-    [routePolyline]
+    () => (routePolyline ? decodePolyline(routePolyline, routePolylineEncoding) : []),
+    [routePolyline, routePolylineEncoding]
   );
 
   const fitPoints = useMemo(() => {

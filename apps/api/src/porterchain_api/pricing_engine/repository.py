@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_models import MerchantContract, PricingTariff, PricingZone, Promotion, SystemConfig
 from porterchain_api.db import engine
 from porterchain_api.merchant_models import Merchant
+from porterchain_pricing.rate_card import default_rate_card, merge_merchant_overlay, rate_card_from_dict
 from porterchain_pricing.types import (
     ContractRecord,
     FuelConfig,
@@ -35,6 +36,7 @@ class SqlAlchemyPricingRepository:
         ctx.zones = self._load_zones()
         ctx.tax = self._load_tax_config()
         ctx.fuel = self._load_fuel_config()
+        system_card = self._load_rate_card()
 
         if request.merchant_id:
             merchant = self.db.query(Merchant).filter(Merchant.id == request.merchant_id).first()
@@ -58,7 +60,33 @@ class SqlAlchemyPricingRepository:
                     minimum_monthly_commitment_cents=contract.minimum_monthly_commitment_cents,
                     is_active=contract.is_active,
                 )
+                # Fold contract rule knobs into merchant overlay when not already set
+                rules = dict(contract.rules or {})
+                cfg = dict(ctx.merchant_pricing_config)
+                rate_overlay = dict(cfg.get("rate_card") or {})
+                for key in ("weekend_multiplier", "holiday_multiplier", "holidays", "minimum_charge_cents"):
+                    if key in rules and key not in rate_overlay and key not in cfg:
+                        rate_overlay[key] = rules[key]
+                if rate_overlay:
+                    cfg["rate_card"] = rate_overlay
+                    ctx.merchant_pricing_config = cfg
+
+            ctx.rate_card = merge_merchant_overlay(system_card, ctx.merchant_pricing_config)
+        else:
+            ctx.rate_card = system_card
         return ctx
+
+    def _load_rate_card(self):
+        if not self._has_table("system_config"):
+            return default_rate_card()
+        try:
+            row = self.db.query(SystemConfig).filter(SystemConfig.key == "pricing_rate_card").first()
+        except ProgrammingError:
+            self.db.rollback()
+            return default_rate_card()
+        if row and isinstance(row.value, dict):
+            return rate_card_from_dict(row.value)
+        return default_rate_card()
 
     def _load_tariffs(self, request: PricingRequest) -> list[TariffRecord]:
         if not self._has_table("pricing_tariffs"):

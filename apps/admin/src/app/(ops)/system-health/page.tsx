@@ -1,7 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { DiagnosticsHealthView } from "@/components/diagnostics/DiagnosticsHealthView";
-
-export default function SystemHealthPage() {
-  return <DiagnosticsHealthView />;
+/** Merged into /system (Health tab). */
+export default function SystemHealthRedirectPage() {
+  redirect("/system");
 }

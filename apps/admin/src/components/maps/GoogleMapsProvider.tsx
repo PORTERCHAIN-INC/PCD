@@ -11,7 +11,8 @@ export default function GoogleMapsProvider({ children }: { children: ReactNode }
   return (
     <APIProvider
       apiKey={getGoogleMapsApiKey()}
-      libraries={["places", "drawing", "geometry", "visualization", "marker"]}
+      // drawing + visualization were removed from Maps JS API (May 2026) — load only supported libs.
+      libraries={["places", "geometry", "marker"]}
       language="en"
       region="CA"
     >

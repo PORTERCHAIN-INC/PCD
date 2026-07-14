@@ -13,6 +13,8 @@ from porterchain_api.routers.admin._deps import (
     FinancePaymentItem,
     FinancePayoutItem,
     HTTPException,
+    MerchantArGenerateRequest,
+    MerchantArRecordPaymentRequest,
     Session,
     _finance,
     get_admin_context,
@@ -154,6 +156,84 @@ def finance_credit_note(
         db, ctx, order_id=body.order_id, amount_cents=body.amount_cents, reason=body.reason
     )
     return {"ledger_id": entry.id, "status": entry.status}
+
+
+@router.get("/finance/merchant-ar/preview")
+def finance_merchant_ar_preview(
+    merchant_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    period_start: str | None = None,
+    period_end: str | None = None,
+) -> dict:
+    require_module(ctx, "finance_read")
+    from datetime import datetime
+
+    from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
+
+    svc = MerchantArService()
+    try:
+        return svc.preview(
+            db,
+            merchant_id=merchant_id,
+            period_start=datetime.fromisoformat(period_start) if period_start else None,
+            period_end=datetime.fromisoformat(period_end) if period_end else None,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/finance/merchant-ar/generate")
+def finance_merchant_ar_generate(
+    body: MerchantArGenerateRequest,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> dict:
+    require_module(ctx, "finance")
+    from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
+
+    svc = MerchantArService()
+    try:
+        return svc.generate(
+            db,
+            ctx,
+            merchant_id=body.merchant_id,
+            period_start=body.period_start,
+            period_end=body.period_end,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/finance/invoices/{invoice_id}/record-payment")
+def finance_record_invoice_payment(
+    invoice_id: str,
+    body: MerchantArRecordPaymentRequest,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> dict:
+    require_module(ctx, "finance")
+    from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
+
+    svc = MerchantArService()
+    try:
+        return svc.record_payment(
+            db,
+            ctx,
+            invoice_id,
+            method=body.method,
+            amount_cents=body.amount_cents,
+            reference=body.reference,
+            paid_at=body.paid_at,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/finance/summary")

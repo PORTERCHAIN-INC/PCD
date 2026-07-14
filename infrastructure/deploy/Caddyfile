@@ -6,6 +6,11 @@
 #   driver.porterchain.com, customer.porterchain.com
 {
 	email admin@porterchain.com
+	# Prefer TCP HTTP/1.1+2 only. HTTP/3 (UDP/443) can hang some client networks
+	# when QUIC is filtered while TCP still works — presents as "site not loading".
+	servers {
+		protocols h1 h2
+	}
 }
 
 (common) {

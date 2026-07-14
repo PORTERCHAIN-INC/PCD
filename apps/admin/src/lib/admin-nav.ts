@@ -1,12 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Banknote,
+  Bell,
   Building2,
   ClipboardList,
-  CreditCard,
-  FlaskConical,
   HardHat,
   Headphones,
-  Bell,
   HeartPulse,
   LayoutDashboard,
   Map,
@@ -14,6 +13,7 @@ import {
   Package,
   Settings,
   Shield,
+  Tags,
   Truck,
   UserPlus,
   Zap,
@@ -34,15 +34,19 @@ export type AdminNavGroup = {
 
 export const DRIVER_LEAD_SOURCE = "website_driver_partner";
 
+/**
+ * Admin primary nav — ordered by daily ops workflow.
+ * Top-level (ops) pages must appear here; detail/redirect routes do not.
+ */
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
-    id: "home",
-    label: "Home",
+    id: "dashboard",
+    label: "Dashboard",
     items: [
       {
         href: "/dashboard",
         label: "Dashboard",
-        description: "KPIs, alerts, and network overview",
+        description: "Network KPIs and alerts",
         icon: LayoutDashboard,
       },
     ],
@@ -54,53 +58,62 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       {
         href: "/operations",
         label: "Control Tower",
-        description: "Dispatch board & SLA",
+        description: "Dispatch board and SLA",
         icon: Zap,
       },
-      { href: "/live-map", label: "Live Map", description: "Real-time fleet map", icon: Map },
-      { href: "/orders", label: "Orders", description: "Order 360 & lifecycle", icon: Package },
+      {
+        href: "/live-map",
+        label: "Live Map",
+        description: "Fleet positions and routes",
+        icon: Map,
+      },
+      {
+        href: "/orders",
+        label: "Orders",
+        description: "Active deliveries and history",
+        icon: Package,
+      },
       {
         href: "/booking-drafts",
         label: "Booking Drafts",
-        description: "In-progress checkouts",
+        description: "Incomplete checkouts",
         icon: ClipboardList,
       },
-      { href: "/claims", label: "Claims", description: "Insurance & damage claims", icon: Shield },
+      {
+        href: "/claims",
+        label: "Claims",
+        description: "Damage and insurance cases",
+        icon: Shield,
+      },
     ],
   },
   {
-    id: "commerce",
-    label: "Commerce",
+    id: "partners",
+    label: "Partners",
     items: [
-      {
-        href: "/leads",
-        label: "Merchant Leads",
-        description: "Quotes, contact & business inquiries",
-        icon: UserPlus,
-      },
-      {
-        href: `/leads?source=${DRIVER_LEAD_SOURCE}`,
-        label: "Driver Leads",
-        description: "Vehicle partner applications (/vehicle-partner)",
-        icon: HardHat,
-      },
-      {
-        href: "/blog",
-        label: "Blog",
-        description: "Create, edit & publish website posts (EN + FR)",
-        icon: Newspaper,
-      },
       {
         href: "/merchants",
         label: "Merchants",
-        description: "B2B accounts & contracts",
+        description: "B2B accounts and contracts",
         icon: Building2,
       },
       {
         href: "/drivers",
         label: "Drivers",
-        description: "Active fleet partners & compliance",
+        description: "Fleet partners and compliance",
         icon: Truck,
+      },
+      {
+        href: "/leads",
+        label: "Merchant Leads",
+        description: "Inbound business inquiries",
+        icon: UserPlus,
+      },
+      {
+        href: `/leads?source=${DRIVER_LEAD_SOURCE}`,
+        label: "Driver Leads",
+        description: "Vehicle partner applications",
+        icon: HardHat,
       },
     ],
   },
@@ -108,39 +121,85 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "finance",
     label: "Finance",
     items: [
-      { href: "/pricing", label: "Pricing", description: "Tariffs & simulator", icon: CreditCard },
-      { href: "/finance", label: "Finance", description: "Invoices & payments", icon: CreditCard },
+      {
+        href: "/finance",
+        label: "Billing & AR",
+        description: "Invoices, payments, collections",
+        icon: Banknote,
+      },
+      {
+        href: "/pricing",
+        label: "Pricing",
+        description: "Rate card and driver payout",
+        icon: Tags,
+      },
     ],
   },
   {
     id: "support",
     label: "Support",
     items: [
-      { href: "/support", label: "Support Center", description: "Tickets & SLA", icon: Headphones },
+      {
+        href: "/support",
+        label: "Tickets",
+        description: "Support center and SLA",
+        icon: Headphones,
+      },
       {
         href: "/notifications",
         label: "Notifications",
-        description: "Queue, delivery & devices",
+        description: "Alerts, queue, templates, devices",
         icon: Bell,
       },
+    ],
+  },
+  {
+    id: "admin",
+    label: "Admin",
+    items: [
       {
-        href: "/system-health",
-        label: "System Health",
-        description: "Platform health dashboard",
+        href: "/blog",
+        label: "Blog",
+        description: "Website CMS (EN / FR)",
+        icon: Newspaper,
+      },
+      {
+        href: "/system",
+        label: "System",
+        description: "Health probes and diagnostics",
         icon: HeartPulse,
       },
       {
-        href: "/system-tests",
-        label: "System Tests",
-        description: "Validation & diagnostics",
-        icon: FlaskConical,
+        href: "/settings",
+        label: "Settings",
+        description: "Staff, vehicles, integrations",
+        icon: Settings,
       },
-      { href: "/settings", label: "Settings", description: "Integrations & RBAC", icon: Settings },
     ],
   },
 ];
 
 export const ALL_ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((g) => g.items);
+
+/** Top-level ops pages that must stay in the nav (redirects / nested details excluded). */
+export const ADMIN_TOP_LEVEL_ROUTES = [
+  "/dashboard",
+  "/operations",
+  "/live-map",
+  "/orders",
+  "/booking-drafts",
+  "/claims",
+  "/merchants",
+  "/drivers",
+  "/leads",
+  "/blog",
+  "/finance",
+  "/pricing",
+  "/support",
+  "/notifications",
+  "/system",
+  "/settings",
+] as const;
 
 function splitHref(href: string): { path: string; params: URLSearchParams } {
   const q = href.indexOf("?");
@@ -172,7 +231,6 @@ export function isNavActive(pathname: string, href: string, search = ""): boolea
 }
 
 export function activeNavLabel(pathname: string, search = ""): string | null {
-  // Prefer more specific query-bearing items first.
   const ranked = [...ALL_ADMIN_NAV_ITEMS].sort((a, b) => {
     const aq = a.href.includes("?") ? 1 : 0;
     const bq = b.href.includes("?") ? 1 : 0;
@@ -180,4 +238,10 @@ export function activeNavLabel(pathname: string, search = ""): string | null {
   });
   const item = ranked.find((i) => isNavActive(pathname, i.href, search));
   return item?.label ?? null;
+}
+
+export function navCoversAllTopLevelRoutes(): { ok: boolean; missing: string[] } {
+  const navPaths = new Set(ALL_ADMIN_NAV_ITEMS.map((i) => splitHref(i.href).path));
+  const missing = ADMIN_TOP_LEVEL_ROUTES.filter((r) => !navPaths.has(r));
+  return { ok: missing.length === 0, missing: [...missing] };
 }

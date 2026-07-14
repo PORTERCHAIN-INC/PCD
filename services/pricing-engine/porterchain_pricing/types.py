@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Literal
 
+from porterchain_pricing.rate_card import RateCard, default_rate_card
+
 
 @dataclass(frozen=True)
 class GeoPoint:
@@ -32,6 +34,8 @@ class PricingRequest:
     additional_stops: list[GeoPoint] = field(default_factory=list)
     distance_meters: int | None = None
     estimated_duration_minutes: int | None = None
+    routing_source: str | None = None
+    wait_minutes: float = 0.0
     channel: Literal["retail", "merchant"] = "retail"
     merchant_id: str | None = None
     promo_code: str | None = None
@@ -79,6 +83,7 @@ class PriceBreakdown:
         self.subtotal_cents = charges - discounts
         self.final_cents = max(0, self.subtotal_cents + self.tax_cents)
         return self
+
 
 @dataclass
 class TariffRecord:
@@ -149,3 +154,4 @@ class PricingContext:
     merchant_pricing_config: dict[str, Any] = field(default_factory=dict)
     tax: TaxConfig = field(default_factory=TaxConfig)
     fuel: FuelConfig = field(default_factory=FuelConfig)
+    rate_card: RateCard = field(default_factory=default_rate_card)

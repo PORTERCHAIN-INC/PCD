@@ -1,6 +1,11 @@
 "use client";
 
-import { coordsFromAddress, decodePolyline, GTA_CENTER } from "@/lib/tracking-map";
+import {
+  coordsFromAddress,
+  decodePolyline,
+  GTA_CENTER,
+  resolveRoutePolylineEncoding,
+} from "@/lib/tracking-map";
 import type { LiveTracking } from "@/lib/tracking";
 import { MapShell } from "@/components/tracking/MapShell";
 import { AdvancedMarker, Map, Polyline, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
@@ -91,13 +96,13 @@ export function TrackingMap({
 
   const optimizedPath = useMemo(() => {
     const poly = tracking.optimized_route?.polyline;
-    return poly ? decodePolyline(poly) : [];
-  }, [tracking.optimized_route?.polyline]);
+    return poly ? decodePolyline(poly, resolveRoutePolylineEncoding(tracking.optimized_route)) : [];
+  }, [tracking.optimized_route]);
 
   const etaPath = useMemo(() => {
     const poly = tracking.eta?.polyline;
-    return poly ? decodePolyline(poly) : [];
-  }, [tracking.eta?.polyline]);
+    return poly ? decodePolyline(poly, resolveRoutePolylineEncoding(tracking.eta)) : [];
+  }, [tracking.eta]);
 
   const replayFrames = tracking.replay ?? [];
   const replayPoint =

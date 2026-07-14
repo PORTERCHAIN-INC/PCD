@@ -11,11 +11,10 @@ import { Spinner } from "@/components/crm/primitives";
 import { cn } from "@porterchain/ui/utils";
 
 type Props = {
-  theme?: "light" | "dark";
   className?: string;
 };
 
-export default function DashboardEmbeddedMap({ theme = "light", className }: Props) {
+export default function DashboardEmbeddedMap({ className }: Props) {
   const { data, error } = useLiveMapData();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const layers = useMemo(
@@ -67,7 +66,7 @@ export default function DashboardEmbeddedMap({ theme = "light", className }: Pro
           data={data}
           layers={layers}
           mapMode="roadmap"
-          theme={theme}
+          theme="light"
           heatMetric="orders"
           selectedId={selectedId}
           onSelect={(_type, id) => setSelectedId(id)}

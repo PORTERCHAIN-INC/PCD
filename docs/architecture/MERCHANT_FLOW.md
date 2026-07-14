@@ -17,15 +17,15 @@ No Stripe checkout — orders are created on **net terms** (`Merchant.billing_cy
 
 ## Flow
 
-| Stage                   | Service                                                    | Notes                                                           |
-| ----------------------- | ---------------------------------------------------------- | --------------------------------------------------------------- |
-| Contract                | `MerchantContract` in `admin_models.py`, CRM `CrmContract` | `resolve_order_type(has_contract=True)` → `CONTRACT`            |
-| Single booking (portal) | `MerchantBookingService.create_shipment()`                 | Order at `BOOKED`, immediate `transition_to_dispatch_ready()`   |
-| Single booking (API)    | Same service via `POST /v1/merchant-api/bookings`          | `order_source=MERCHANT` (API tag TODO)                          |
-| Bulk CSV                | `MerchantBulkService` upload + confirm                     | `order_source=CSV`                                              |
-| Operations              | Admin `ControlTowerService` / dispatch                     | Same Fleetbase path as retail                                   |
-| Billing                 | `MerchantBillingService`                                   | Statement + invoice list; batch invoice run **not implemented** |
-| API keys                | `MerchantApiKeyService` + `gateway_engine`                 | Keys stored; rate limits per key on `/v1/merchant-api/*`        |
+| Stage                   | Service                                                    | Notes                                                                                    |
+| ----------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Contract                | `MerchantContract` in `admin_models.py`, CRM `CrmContract` | `resolve_order_type(has_contract=True)` → `CONTRACT`                                     |
+| Single booking (portal) | `MerchantBookingService.create_shipment()`                 | Order at `BOOKED`, immediate `transition_to_dispatch_ready()`                            |
+| Single booking (API)    | Same service via `POST /v1/merchant-api/bookings`          | `order_source=MERCHANT` (API tag TODO)                                                   |
+| Bulk CSV                | `MerchantBulkService` upload + confirm                     | `order_source=CSV`                                                                       |
+| Operations              | Admin `ControlTowerService` / dispatch                     | Same Fleetbase path as retail                                                            |
+| Billing                 | `MerchantBillingService` + `MerchantArService`             | Statement + invoice list; **admin Generate cycle invoices** + offline **Record payment** |
+| API keys                | `MerchantApiKeyService` + `gateway_engine`                 | Keys stored; rate limits per key on `/v1/merchant-api/*`                                 |
 
 ## Webhook HMAC & Rate Limits
 

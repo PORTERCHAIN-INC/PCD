@@ -627,11 +627,8 @@ function SystemHealthPanel({ health }: { health: Record<string, unknown> }) {
           );
         })}
       </div>
-      <Link
-        href="/system-health"
-        className="mt-2 inline-block text-sm text-secondary hover:underline"
-      >
-        System Health →
+      <Link href="/system" className="mt-2 inline-block text-sm text-secondary hover:underline">
+        System →
       </Link>
     </Panel>
   );

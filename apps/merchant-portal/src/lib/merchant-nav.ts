@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
+  Bell,
   CreditCard,
   FileSpreadsheet,
   Key,
@@ -79,6 +80,12 @@ export const MERCHANT_NAV_GROUPS: MerchantNavGroup[] = [
     id: "account",
     label: "Account",
     items: [
+      {
+        href: "/notifications",
+        label: "Notifications",
+        description: "Alerts and delivery updates",
+        icon: Bell,
+      },
       { href: "/api", label: "Integrations", description: "API keys, webhooks, usage", icon: Key },
       {
         href: "/team",

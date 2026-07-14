@@ -21,7 +21,13 @@ import {
   type HealthDashboard,
 } from "@/lib/diagnostics";
 
-export function DiagnosticsHealthView() {
+export function DiagnosticsHealthView({
+  embedded = false,
+  onOpenTests,
+}: {
+  embedded?: boolean;
+  onOpenTests?: () => void;
+} = {}) {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
@@ -48,29 +54,53 @@ export function DiagnosticsHealthView() {
 
   return (
     <div className="space-y-6">
-      <SettingsPageHeader
-        title="System Health"
-        description="Real-time validation of the locked Porterchain topology — portals, engines, integrations, and infrastructure per masterrule §1, §16, and Appendix B."
-        actions={
-          <>
-            <label className="flex items-center gap-2 text-sm text-muted">
-              <input
-                type="checkbox"
-                checked={autoRefresh}
-                onChange={(e) => setAutoRefresh(e.target.checked)}
-              />
-              Auto-refresh 60s
-            </label>
-            <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
-              <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-              Refresh
-            </Button>
-            <Link href="/system-tests">
+      {!embedded ? (
+        <SettingsPageHeader
+          title="System Health"
+          description="Real-time validation of the locked Porterchain topology — portals, engines, integrations, and infrastructure per masterrule §1, §16, and Appendix B."
+          actions={
+            <>
+              <label className="flex items-center gap-2 text-sm text-muted">
+                <input
+                  type="checkbox"
+                  checked={autoRefresh}
+                  onChange={(e) => setAutoRefresh(e.target.checked)}
+                />
+                Auto-refresh 60s
+              </label>
+              <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
+                <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+                Refresh
+              </Button>
+              <Link href="/system?tab=tests">
+                <Button>Run tests →</Button>
+              </Link>
+            </>
+          }
+        />
+      ) : (
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <label className="flex items-center gap-2 text-sm text-muted">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={(e) => setAutoRefresh(e.target.checked)}
+            />
+            Auto-refresh 60s
+          </label>
+          <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
+            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+            Refresh
+          </Button>
+          {onOpenTests ? (
+            <Button onClick={onOpenTests}>Run tests →</Button>
+          ) : (
+            <Link href="/system?tab=tests">
               <Button>Run tests →</Button>
             </Link>
-          </>
-        }
-      />
+          )}
+        </div>
+      )}
 
       {loading && !data && (
         <div className="flex justify-center py-16">

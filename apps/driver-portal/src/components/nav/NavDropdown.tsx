@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 type PanelRender = (props: { close: () => void }) => ReactNode;
@@ -27,6 +28,7 @@ export default function NavDropdown({
   width = "md",
   className,
 }: Props) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -74,6 +76,22 @@ export default function NavDropdown({
       document.removeEventListener("keydown", onKey);
     };
   }, [open, close]);
+
+  useEffect(() => {
+    if (!open) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    function onClick(e: MouseEvent) {
+      const el = e.target as HTMLElement | null;
+      if (el?.closest("a[href]")) close();
+    }
+    panel.addEventListener("click", onClick);
+    return () => panel.removeEventListener("click", onClick);
+  }, [open, close]);
+
+  useEffect(() => {
+    close();
+  }, [pathname, close]);
 
   const panelContent = typeof children === "function" ? children({ close }) : children;
 

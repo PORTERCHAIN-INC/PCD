@@ -75,10 +75,19 @@ async def get_notification_user(
 
         claims = await verify_clerk_token(token, settings)
         user = db.query(AdminUser).filter(AdminUser.clerk_user_id == claims.clerk_user_id).first()
+        if not user and allow_auth_dev_bypass(settings):
+            from porterchain_api.auth.admin import _ensure_dev_admin
+
+            user = _ensure_dev_admin(db, claims.clerk_user_id, None)
         if user and user.is_active:
             return NotificationUser("admin", user.id)
 
-        merchant_user = _resolve_merchant_recipient(db, settings, claims.clerk_user_id, x_merchant_org_id)
+        merchant_user = _resolve_merchant_recipient(
+            db,
+            settings,
+            claims.clerk_user_id,
+            x_merchant_org_id or claims.org_id,
+        )
         if merchant_user:
             return merchant_user
 
@@ -120,9 +129,15 @@ async def resolve_notification_ws_user(
 
             claims = await verify_clerk_token(token, settings)
             admin = db.query(AdminUser).filter(AdminUser.clerk_user_id == claims.clerk_user_id).first()
+            if not admin and allow_auth_dev_bypass(settings):
+                from porterchain_api.auth.admin import _ensure_dev_admin
+
+                admin = _ensure_dev_admin(db, claims.clerk_user_id, None)
             if admin and admin.is_active:
                 return NotificationUser("admin", admin.id)
-            merchant_user = _resolve_merchant_recipient(db, settings, claims.clerk_user_id, org_id)
+            merchant_user = _resolve_merchant_recipient(
+                db, settings, claims.clerk_user_id, org_id or claims.org_id
+            )
             if merchant_user:
                 return merchant_user
             customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()

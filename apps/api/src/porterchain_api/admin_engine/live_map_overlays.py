@@ -10,8 +10,14 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.control_tower_service import HIGH_PRIORITY_CENTS, IN_FLIGHT, WAITING
 from porterchain_api.admin_engine.live_map_helpers import _coords, _haversine_km, _parse_iso_naive
-from porterchain_api.admin_models import Claim, Driver
+from porterchain_api.admin_models import Claim, Driver, SupportTicket
+from porterchain_api.domain.claims import claim_number
+from porterchain_api.domain.support import ticket_number
 from porterchain_api.models import DomainEvent, Order, OrderException
+
+
+OPEN_TICKET_STATUSES = ("open", "in_progress", "escalated")
+OPEN_CLAIM_STATUSES = ("open", "investigating")
 
 
 class LiveMapOverlaysMixin:
@@ -102,7 +108,7 @@ class LiveMapOverlaysMixin:
                 }
             )
         # Open claims
-        for c in db.query(Claim).filter(Claim.status == "open").limit(10).all():
+        for c in db.query(Claim).filter(Claim.status.in_(OPEN_CLAIM_STATUSES)).limit(15).all():
             alerts.append(
                 {
                     "id": f"claim-{c.id}",
@@ -110,10 +116,32 @@ class LiveMapOverlaysMixin:
                     "severity": "info",
                     "title": f"Open claim: {c.claim_type}",
                     "message": c.description or "Claim requires review",
-                    "entity_type": "order",
-                    "entity_id": c.order_id,
+                    "entity_type": "claim",
+                    "entity_id": c.id,
                     "location": None,
                     "created_at": c.created_at.isoformat() if c.created_at else None,
+                }
+            )
+        # Open support tickets
+        for t in (
+            db.query(SupportTicket)
+            .filter(SupportTicket.status.in_(OPEN_TICKET_STATUSES))
+            .order_by(SupportTicket.updated_at.desc())
+            .limit(20)
+            .all()
+        ):
+            sev = "critical" if t.priority in ("urgent", "critical", "high") else "info"
+            alerts.append(
+                {
+                    "id": f"support-{t.id}",
+                    "alert_type": "support",
+                    "severity": sev,
+                    "title": ticket_number(t.id),
+                    "message": t.subject,
+                    "entity_type": "ticket",
+                    "entity_id": t.id,
+                    "location": None,
+                    "created_at": t.created_at.isoformat() if t.created_at else None,
                 }
             )
         # High priority in-flight
@@ -141,6 +169,87 @@ class LiveMapOverlaysMixin:
             seen_ids.add(aid)
             unique_alerts.append(alert)
         return unique_alerts[:100]
+
+    def _build_support_tickets(self, db: Session, *, limit: int = 40) -> list[dict]:
+        rows = (
+            db.query(SupportTicket)
+            .filter(SupportTicket.status.in_(OPEN_TICKET_STATUSES))
+            .order_by(SupportTicket.updated_at.desc())
+            .limit(limit)
+            .all()
+        )
+        out: list[dict] = []
+        for t in rows:
+            out.append(
+                {
+                    "id": t.id,
+                    "ticket_number": ticket_number(t.id),
+                    "subject": t.subject,
+                    "status": t.status,
+                    "priority": t.priority,
+                    "category": t.category,
+                    "order_id": t.order_id,
+                    "merchant_id": t.merchant_id,
+                    "customer_id": t.customer_id,
+                    "driver_id": t.driver_id,
+                    "assigned_to": t.assigned_to,
+                    "created_at": t.created_at.isoformat() if t.created_at else None,
+                    "updated_at": t.updated_at.isoformat() if t.updated_at else None,
+                }
+            )
+        return out
+
+    def _build_claims_panel(self, db: Session, *, limit: int = 30) -> list[dict]:
+        rows = (
+            db.query(Claim)
+            .filter(Claim.status.in_(OPEN_CLAIM_STATUSES))
+            .order_by(Claim.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        out: list[dict] = []
+        for c in rows:
+            order = db.query(Order).filter(Order.id == c.order_id).first()
+            out.append(
+                {
+                    "id": c.id,
+                    "claim_number": claim_number(c.id),
+                    "claim_type": c.claim_type,
+                    "status": c.status,
+                    "description": (c.description or "")[:160] or None,
+                    "order_id": c.order_id,
+                    "tracking_number": order.tracking_number if order else None,
+                    "assigned_to": c.assigned_to,
+                    "created_at": c.created_at.isoformat() if c.created_at else None,
+                }
+            )
+        return out
+
+    def _build_incidents_panel(self, db: Session, *, limit: int = 30) -> list[dict]:
+        rows = (
+            db.query(OrderException, Order)
+            .join(Order, Order.id == OrderException.order_id)
+            .filter(OrderException.status == "open")
+            .order_by(OrderException.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        out: list[dict] = []
+        for e, order in rows:
+            coords = _coords(order.dropoff) or _coords(order.pickup)
+            out.append(
+                {
+                    "id": e.id,
+                    "type": e.type,
+                    "status": e.status,
+                    "order_id": order.id,
+                    "tracking_number": order.tracking_number,
+                    "message": f"Open {e.type.replace('_', ' ')}",
+                    "location": {"lat": coords[0], "lng": coords[1]} if coords else None,
+                    "created_at": e.created_at.isoformat() if e.created_at else None,
+                }
+            )
+        return out
 
     def _build_events(self, db: Session, *, limit: int = 40) -> list[dict]:
         rows = db.query(DomainEvent).order_by(DomainEvent.occurred_at.desc()).limit(limit).all()
@@ -174,9 +283,16 @@ class LiveMapOverlaysMixin:
             "orders_waiting": stats["waiting_dispatch"],
             "late_orders": stats["delayed_orders"],
             "delayed_drivers": int(delayed_drivers),
-            "support_tickets": stats["support_tickets"],
+            "support_tickets": int(
+                db.query(func.count(SupportTicket.id))
+                .filter(SupportTicket.status.in_(OPEN_TICKET_STATUSES))
+                .scalar()
+                or 0
+            ),
             "revenue_today_cents": stats["revenue_today_cents"],
-            "open_claims": stats["open_claims"],
+            "open_claims": int(
+                db.query(func.count(Claim.id)).filter(Claim.status.in_(OPEN_CLAIM_STATUSES)).scalar() or 0
+            ),
             "open_exceptions": stats["open_exceptions"],
         }
 

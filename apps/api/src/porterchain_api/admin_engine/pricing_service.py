@@ -21,7 +21,9 @@ from porterchain_api.admin_engine import events as E
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.models import Order, Quote
 from porterchain_api.pricing_engine import get_pricing_simulator
+from porterchain_api.services.routing import resolve_route_distance
 from porterchain_pricing import GeoPoint, PricingRequest
+from porterchain_pricing.rate_card import default_rate_card, merge_merchant_overlay, rate_card_from_dict
 
 TARIFF_TYPES = frozenset({
     "public",
@@ -370,6 +372,77 @@ class AdminPricingService:
         return value
 
     # ------------------------------------------------------------------ #
+    # System / merchant rate card
+    # ------------------------------------------------------------------ #
+    def get_rate_card(self, db: Session) -> dict[str, Any]:
+        row = db.query(SystemConfig).filter(SystemConfig.key == "pricing_rate_card").first()
+        if row and isinstance(row.value, dict):
+            return rate_card_from_dict(row.value).to_dict()
+        return default_rate_card().to_dict()
+
+    def update_rate_card(self, db: Session, ctx: AdminContext | None, value: dict[str, Any]) -> dict[str, Any]:
+        card = rate_card_from_dict(value).to_dict()
+        row = db.query(SystemConfig).filter(SystemConfig.key == "pricing_rate_card").first()
+        if not row:
+            row = SystemConfig(key="pricing_rate_card", value=card)
+            db.add(row)
+        else:
+            row.value = card
+        db.flush()
+        log_admin_audit(
+            db, ctx, action="pricing.rate_card.update", resource_type="system_config", resource_id="pricing_rate_card"
+        )
+        db.commit()
+        return card
+
+    def get_merchant_rate_card(self, db: Session, merchant_id: str) -> dict[str, Any]:
+        merchant = db.query(Merchant).filter(Merchant.id == merchant_id).first()
+        if not merchant:
+            raise LookupError("Merchant not found")
+        system = rate_card_from_dict(self.get_rate_card(db))
+        overlay = dict((merchant.pricing_config or {}).get("rate_card") or {})
+        # Include legacy flat keys in the returned overlay surface
+        cfg = dict(merchant.pricing_config or {})
+        for legacy in ("minimum_charge_cents", "weekend_multiplier", "holiday_multiplier", "holidays"):
+            if legacy in cfg and legacy not in overlay:
+                overlay[legacy] = cfg[legacy]
+        effective = merge_merchant_overlay(system, cfg)
+        return {
+            "merchant_id": merchant_id,
+            "system": system.to_dict(),
+            "overlay": overlay,
+            "effective": effective.to_dict(),
+        }
+
+    def update_merchant_rate_card(
+        self, db: Session, ctx: AdminContext | None, merchant_id: str, overlay: dict[str, Any]
+    ) -> dict[str, Any]:
+        merchant = db.query(Merchant).filter(Merchant.id == merchant_id).first()
+        if not merchant:
+            raise LookupError("Merchant not found")
+        cfg = dict(merchant.pricing_config or {})
+        vehicles_in = overlay.get("vehicles") or {}
+        sparse: dict[str, Any] = {k: v for k, v in overlay.items() if k != "vehicles" and v is not None}
+        if isinstance(vehicles_in, dict) and vehicles_in:
+            sparse["vehicles"] = {
+                code: {fk: fv for fk, fv in row.items() if fv is not None}
+                for code, row in vehicles_in.items()
+                if isinstance(row, dict)
+            }
+        cfg["rate_card"] = sparse
+        merchant.pricing_config = cfg
+        db.flush()
+        log_admin_audit(
+            db,
+            ctx,
+            action="pricing.merchant_rate_card.update",
+            resource_type="merchant",
+            resource_id=merchant_id,
+        )
+        db.commit()
+        return self.get_merchant_rate_card(db, merchant_id)
+
+    # ------------------------------------------------------------------ #
     # Dashboard / reports / conflicts
     # ------------------------------------------------------------------ #
     def dashboard(self, db: Session) -> dict[str, Any]:
@@ -494,9 +567,26 @@ class AdminPricingService:
 
     def simulate(self, db: Session, body: dict) -> dict:
         simulator = get_pricing_simulator(db)
+        stops = [GeoPoint(**s) for s in body.get("additional_stops", [])]
+        pickup = GeoPoint(**body["pickup"])
+        dropoff = GeoPoint(**body["dropoff"])
+        distance_meters = body.get("distance_meters")
+        duration_seconds: int | None = None
+        routing_source: str | None = None
+
+        if (
+            pickup.lat is not None
+            and pickup.lng is not None
+            and dropoff.lat is not None
+            and dropoff.lng is not None
+        ):
+            distance_meters, duration_seconds, routing_source = resolve_route_distance(
+                pickup, dropoff, stops
+            )
+
         request = PricingRequest(
-            pickup=GeoPoint(**body["pickup"]),
-            dropoff=GeoPoint(**body["dropoff"]),
+            pickup=pickup,
+            dropoff=dropoff,
             vehicle_class=body["vehicle_class"],
             package_type=body.get("package_type", "looseParcel"),
             service_type=body.get("service_type", "same_day"),
@@ -508,7 +598,10 @@ class AdminPricingService:
             channel=body.get("channel", "retail"),  # type: ignore[arg-type]
             merchant_id=body.get("merchant_id"),
             promo_code=body.get("promo_code"),
-            distance_meters=body.get("distance_meters"),
+            additional_stops=stops,
+            distance_meters=distance_meters,
+            estimated_duration_minutes=int(duration_seconds / 60) if duration_seconds else None,
+            routing_source=routing_source,
         )
         breakdown = simulator.simulate(request, overrides=body.get("overrides"))
         from porterchain_pricing import PricingService

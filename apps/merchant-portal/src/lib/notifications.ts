@@ -18,13 +18,15 @@ async function notificationsFetch<T>(
   token: string,
   init?: RequestInit & { orgId?: string }
 ): Promise<T> {
+  const { orgId, ...rest } = init ?? {};
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
   };
-  if (init?.body) headers["Content-Type"] = "application/json";
+  if (rest.body) headers["Content-Type"] = "application/json";
+  if (orgId) headers["X-Merchant-Org-Id"] = orgId;
   const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: { ...headers, ...(init?.headers as Record<string, string>) },
+    ...rest,
+    headers: { ...headers, ...(rest.headers as Record<string, string>) },
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -40,9 +42,16 @@ export const notificationsApi = {
       orgId,
     }),
 
-  inbox: (token: string, orgId?: string) =>
+  markAllRead: (token: string, orgId?: string) =>
+    notificationsFetch<{ ok: boolean; marked: number }>(
+      "/v1/notifications/inbox/mark-all-read",
+      token,
+      { method: "POST", orgId }
+    ),
+
+  inbox: (token: string, orgId?: string, limit = 20) =>
     notificationsFetch<{ unread_count: number; items: InboxNotification[] }>(
-      "/v1/notifications/inbox",
+      `/v1/notifications/inbox?limit=${limit}`,
       token,
       { orgId }
     ),

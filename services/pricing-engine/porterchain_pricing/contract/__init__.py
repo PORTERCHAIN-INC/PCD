@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-
-from porterchain_pricing.catalog import VEHICLE_BASE_CENTS_PER_KM, VEHICLE_MINIMUM_CENTS
 from porterchain_pricing.types import (
-    ContractRecord,
     PriceBreakdown,
     PricingContext,
     PricingRequest,
@@ -65,11 +61,16 @@ class ContractService:
         contract = ctx.contract
         config = ctx.merchant_pricing_config
 
+        card = ctx.rate_card
+        vehicle_rate = card.vehicle(request.vehicle_class) if card else None
+        default_per_km = vehicle_rate.per_km_cents if vehicle_rate else 100
+        default_min = vehicle_rate.minimum_cents if vehicle_rate else 100
+
         tariff = self.select_tariff(ctx, request, zone_code=zone_code, lane_code=lane_code)
         if tariff:
             breakdown.contract_id = tariff.id
-            per_km = tariff.per_km_cents or VEHICLE_BASE_CENTS_PER_KM.get(request.vehicle_class, 145)
-            base = tariff.base_cents or VEHICLE_MINIMUM_CENTS.get(request.vehicle_class, 3499)
+            per_km = tariff.per_km_cents or default_per_km
+            base = tariff.base_cents or default_min
             distance_charge = int(distance_km * per_km)
             raw_base = max(distance_charge, base)
             breakdown.base_cents = raw_base
@@ -129,25 +130,4 @@ class ContractService:
                             breakdown.add_item("volume_discount", f"Volume discount ({pct}%)", -discount)
                     break
 
-        self._apply_time_multipliers(request, ctx, breakdown)
-
-    def _apply_time_multipliers(self, request: PricingRequest, ctx: PricingContext, breakdown: PriceBreakdown) -> None:
-        config = ctx.merchant_pricing_config
-        contract_rules = ctx.contract.rules if ctx.contract else {}
-
-        scheduled_at = request.scheduled_at or datetime.now()
-        is_weekend = scheduled_at.weekday() >= 5
-        is_holiday = scheduled_at.strftime("%m-%d") in set(config.get("holidays", contract_rules.get("holidays", [])))
-
-        weekend_mult = float(config.get("weekend_multiplier", contract_rules.get("weekend_multiplier", 1.0)))
-        holiday_mult = float(config.get("holiday_multiplier", contract_rules.get("holiday_multiplier", 1.0)))
-
-        if is_weekend and weekend_mult > 1.0:
-            surcharge = int((breakdown.base_cents + breakdown.distance_cents) * (weekend_mult - 1.0))
-            if surcharge:
-                breakdown.add_item("weekend", "Weekend pricing", surcharge)
-
-        if is_holiday and holiday_mult > 1.0:
-            surcharge = int((breakdown.base_cents + breakdown.distance_cents) * (holiday_mult - 1.0))
-            if surcharge:
-                breakdown.add_item("holiday", "Holiday pricing", surcharge)
+        # Weekend / holiday / night multipliers applied once in PricingEngine from merged rate_card.

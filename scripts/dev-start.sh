@@ -86,6 +86,20 @@ print(proc.pid)
 PY
 }
 
+# Ambient shell may still export Doppler/live CLERK_* from a prior session.
+# Local slices must use env/clerk.env + app .env.local (pk_test) — strip live exports.
+while IFS= read -r key; do
+  [[ -n "$key" ]] || continue
+  unset "$key" 2>/dev/null || true
+done < <(env | awk -F= '/^(CLERK_|NEXT_PUBLIC_CLERK_)/ {print $1}')
+if [[ -f "$ROOT/env/clerk.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT/env/clerk.env"
+  set +a
+  echo "  clerk: using env/clerk.env (test keys for local)"
+fi
+
 echo "Porterchain dev-start (detached local slices)"
 for svc in "${SERVICES[@]}"; do
   port="$(port_for "$svc")"

@@ -8,6 +8,7 @@ from typing import Any
 from porterchain_api.fleetbase_engine.tracking_translator import TrackingTranslator
 from porterchain_api.models import Order
 from porterchain_api.order_engine.buckets import IN_FLIGHT
+from porterchain_services.maps.route_helpers import optimized_route_from_valhalla
 from porterchain_services.maps.service import MapsService
 
 DELIVERED_STATES = frozenset({"DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"})
@@ -92,17 +93,7 @@ def _valhalla_route(
     if not origin or not destination:
         return None
     result = maps._valhalla_route(origin, destination)
-    if not result or "trip" not in result:
-        return None
-    summary = result.get("trip", {}).get("summary", {})
-    legs = result.get("trip", {}).get("legs") or []
-    polyline = legs[0].get("shape") if legs else None
-    return {
-        "source": "valhalla",
-        "duration_seconds": int(summary.get("time", 0)),
-        "distance_meters": int(float(summary.get("length", 0)) * 1000),
-        "polyline": polyline,
-    }
+    return optimized_route_from_valhalla(result)
 
 
 def _scheduled_eta(order: Order) -> dict[str, Any]:

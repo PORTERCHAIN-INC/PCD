@@ -12,11 +12,11 @@ type Props = {
   }) => ReactNode;
   children: ReactNode;
   align?: "left" | "right";
-  width?: "sm" | "md" | "lg" | "xl";
+  width?: "sm" | "md" | "lg" | "xl" | "2xl";
   className?: string;
 };
 
-const WIDTH = { sm: 224, md: 288, lg: 320, xl: 384 };
+const WIDTH = { sm: 224, md: 288, lg: 320, xl: 384, "2xl": 420 };
 
 /** Account / apps menus in the top-right — portal dropdown, same fix as NavDropdown. */
 export default function HeaderDropdown({
@@ -72,6 +72,18 @@ export default function HeaderDropdown({
       document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("keydown", onKey);
     };
+  }, [open, close]);
+
+  useEffect(() => {
+    if (!open) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    function onClick(e: MouseEvent) {
+      const el = e.target as HTMLElement | null;
+      if (el?.closest("a[href]")) close();
+    }
+    panel.addEventListener("click", onClick);
+    return () => panel.removeEventListener("click", onClick);
   }, [open, close]);
 
   const panel =

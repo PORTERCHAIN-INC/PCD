@@ -28,7 +28,9 @@ import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { merchants, healthTone, type MerchantDetail } from "@/lib/merchants";
+import { pricingApi } from "@/lib/pricing";
 import MerchantTeamPanel from "@/components/merchants/MerchantTeamPanel";
+import RateCardEditor from "@/components/pricing/RateCardEditor";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
 import {
@@ -223,7 +225,7 @@ export default function MerchantDetailPage() {
         {tab === "orders" && <OrdersTab id={id} />}
         {tab === "invoices" && <InvoicesTab id={id} />}
         {tab === "contracts" && <ContractsTab id={id} />}
-        {tab === "pricing" && <PricingTab m={m} />}
+        {tab === "pricing" && <PricingTab m={m} onSaved={refresh} />}
         {tab === "api" && <ApiTab id={id} />}
         {tab === "team" && <MerchantTeamPanel merchant={m} />}
         {tab === "activities" &&
@@ -596,44 +598,50 @@ function ContractsTab({ id }: { id: string }) {
   );
 }
 
-function PricingTab({ m }: { m: MerchantDetail }) {
-  const cfg = m.pricing_config ?? {};
-  const entries = Object.entries(cfg);
+function PricingTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => void }) {
+  const { getApiToken } = useAdminAuth();
+  const { data, error, loading } = useApiData((t) => pricingApi.merchantRateCard(t, m.id), [m.id]);
+
+  if (loading || !data) {
+    return (
+      <div className="flex justify-center py-16">
+        <Spinner />
+      </div>
+    );
+  }
+  if (error) {
+    return <p className="p-5 text-sm text-red-600">{String(error)}</p>;
+  }
+
   return (
-    <div className="grid gap-5 md:grid-cols-2">
-      <SectionCard title="Pricing configuration">
+    <div className="space-y-5">
+      <SectionCard title="Merchant rate card override">
+        <div className="p-5">
+          <p className="mb-4 text-sm text-muted">
+            Blank or unchanged fields inherit the system rate card. Saving stores only this
+            merchant&apos;s overrides under{" "}
+            <code className="text-xs">pricing_config.rate_card</code>.
+          </p>
+          <RateCardEditor
+            initial={data.effective}
+            title={`${m.company_name} rates`}
+            subtitle="Effective rates after merging system defaults with merchant overrides."
+            onSave={async (card) => {
+              const token = await getApiToken();
+              await pricingApi.updateMerchantRateCard(token, m.id, card);
+              onSaved();
+            }}
+          />
+        </div>
+      </SectionCard>
+      <SectionCard title="Terms">
         <dl className="grid grid-cols-2 gap-4 p-5">
           <Detail label="Payment terms" value={titleCase(m.payment_terms)} />
           <Detail
             label="Credit limit"
             value={m.credit_limit_cents != null ? money(m.credit_limit_cents) : null}
           />
-          <Detail
-            label="Preferred vehicles"
-            value={(m.preferred_vehicles ?? []).map(titleCase).join(", ") || null}
-          />
-          <Detail
-            label="Delivery zones"
-            value={((m.delivery_zones as string[]) ?? []).join(", ") || null}
-          />
         </dl>
-        {entries.length > 0 && (
-          <div className="border-t border-primary/10 p-5">
-            <p className="mb-2 text-xs font-semibold uppercase text-muted">Contract rates</p>
-            <dl className="grid grid-cols-2 gap-3">
-              {entries.map(([k, v]) => (
-                <Detail key={k} label={titleCase(k)} value={String(v)} />
-              ))}
-            </dl>
-          </div>
-        )}
-      </SectionCard>
-      <SectionCard title="Notes">
-        <p className="p-5 text-sm text-muted">
-          Contract pricing, zones, vehicle rates, fuel surcharge and taxes are owned by the
-          Porterchain pricing engine. Manage global tariffs under Pricing; merchant-specific
-          overrides live in the linked contract.
-        </p>
       </SectionCard>
     </div>
   );

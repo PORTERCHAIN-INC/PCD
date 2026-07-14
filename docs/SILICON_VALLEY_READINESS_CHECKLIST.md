@@ -956,17 +956,17 @@ _Rescaffolded **2026-07-08** as Expo SDK 57 / RN 0.86 blank shells. Prior `share
 
 ## Appendix D — Notifications & billing depth
 
-| ID  | Item                        | Files                                                 | Done                                            |
-| --- | --------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
-| D.1 | Email SMTP prod (Zoho)      | `porterchain_shared` SMTP fields                      | [ ]                                             |
-| D.2 | SMS Twilio optional         | notification delivery                                 | [ ]                                             |
-| D.3 | Template catalog complete   | `docs/notifications/NOTIFICATION_TEMPLATE_CATALOG.md` | [x] `validate:notifications-billing` 2026-07-09 |
-| D.4 | Preference enforcement      | `preference_service.py`                               | [x] engine `is_enabled` 2026-07-09              |
-| D.5 | Device registration flow    | `device_service.py`, FCM doc                          | [x]                                             |
-| D.6 | Billing ledger entries      | `billing_engine/models.py`                            | [x] BillingLedgerEntry 2026-07-09               |
-| D.7 | Driver settlement           | `driver_finance_service.py`                           | [x] 2026-07-09                                  |
-| D.8 | Merchant NET invoicing      | `billing_service.py`                                  | [x] NET_30 + ENTERPRISE_BILLING 2026-07-09      |
-| D.9 | Stripe live (not mock) prod | `STRIPE_MOCK=false`                                   | [x]                                             |
+| ID  | Item                        | Files                                                 | Done                                                                           |
+| --- | --------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ |
+| D.1 | Email SMTP prod (Zoho)      | `porterchain_shared` SMTP fields                      | [ ]                                                                            |
+| D.2 | SMS Twilio optional         | notification delivery                                 | [ ]                                                                            |
+| D.3 | Template catalog complete   | `docs/notifications/NOTIFICATION_TEMPLATE_CATALOG.md` | [x] `validate:notifications-billing` 2026-07-09                                |
+| D.4 | Preference enforcement      | `preference_service.py`                               | [x] engine `is_enabled` 2026-07-09                                             |
+| D.5 | Device registration flow    | `device_service.py`, FCM doc                          | [x]                                                                            |
+| D.6 | Billing ledger entries      | `billing_engine/models.py`                            | [x] BillingLedgerEntry 2026-07-09                                              |
+| D.7 | Driver settlement           | `driver_finance_service.py`                           | [x] 2026-07-09                                                                 |
+| D.8 | Merchant NET invoicing      | `merchant_ar_service.py` + billing                    | [x] Admin cycle Generate + offline Record payment (v1; no cron/Stripe Invoice) |
+| D.9 | Stripe live (not mock) prod | `STRIPE_MOCK=false`                                   | [x]                                                                            |
 
 ---
 

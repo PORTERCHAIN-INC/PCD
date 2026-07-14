@@ -7,6 +7,7 @@ import Container from "@/components/ui/Container";
 import MerchantAccessGate from "@/components/MerchantAccessGate";
 import MerchantAccountMenu from "@/components/nav/MerchantAccountMenu";
 import MerchantMenuBar from "@/components/nav/MerchantMenuBar";
+import NotificationBell from "@/components/nav/NotificationBell";
 import { useMerchantProfile } from "@/components/nav/MerchantProfileContext";
 import { activeNavLabel } from "@/lib/merchant-nav";
 
@@ -47,6 +48,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex shrink-0 items-center gap-2 border-l border-primary/10 pl-2">
+            <NotificationBell viewAllHref="/notifications" />
             <MerchantAccountMenu />
           </div>
         </div>

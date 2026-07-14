@@ -39,7 +39,7 @@ export default function AdminAppsMenu() {
           type="button"
           {...triggerProps}
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-full border border-primary/10 bg-white text-primary shadow-sm transition hover:bg-gray-bg",
+            "group relative flex h-10 w-10 items-center justify-center rounded-full border border-primary/10 bg-white text-primary shadow-sm transition hover:bg-gray-bg",
             open && "bg-gray-bg ring-2 ring-secondary/20"
           )}
           aria-label="Open apps and systems"

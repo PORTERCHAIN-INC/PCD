@@ -133,6 +133,8 @@ DEFAULTS: dict[str, Any] = {
         "booking_draft_ttl_minutes": 1440,
         "default_currency": "cad",
         "default_vehicle_class": "sedan",
+        # ASAP / INSTANT promise window used by order SLA (not the same as scheduled_at).
+        "instant_delivery_sla_hours": 4,
     },
     "settings_merchant": {
         "default_payment_terms": "NET_30",
@@ -690,6 +692,7 @@ class AdminSettingsService:
             "support_automation",
             "pricing_tax",
             "pricing_fuel",
+            "pricing_rate_card",
             "reports_center_saved",
             "reports_center_scheduled",
         ]

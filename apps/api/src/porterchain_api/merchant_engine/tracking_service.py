@@ -6,6 +6,7 @@ OSRM provides ETA. Valhalla provides optimized route geometry.
 
 from __future__ import annotations
 
+import time
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -18,9 +19,12 @@ from porterchain_api.config import Settings
 from porterchain_api.fleetbase_engine.tracking_translator import TrackingTranslator
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.models import Order, OrderEvent
+from porterchain_services.maps.route_helpers import optimized_route_from_valhalla
 from porterchain_services.maps.service import MapsService
 
 IN_FLIGHT_STATES = IN_FLIGHT
+_ETA_CACHE_TTL_SECONDS = 90
+_eta_cache: dict[str, tuple[float, dict[str, Any]]] = {}
 
 
 def _coords_from_address(addr: dict[str, Any] | None) -> tuple[float, float] | None:
@@ -128,7 +132,7 @@ class MerchantTrackingService:
         translated = self._translate_live(live_raw)
         driver_loc = translated.get("location")
         dropoff = _coords_from_address(order.dropoff if isinstance(order.dropoff, dict) else None)
-        eta = self._osrm_eta(driver_loc, dropoff) if driver_loc and dropoff else None
+        eta = self._osrm_eta(driver_loc, dropoff, order_id=order.id) if driver_loc and dropoff else None
 
         driver = self._driver_info(db, order, live_raw)
         vehicle = self._vehicle_info(db, order, live_raw)
@@ -162,7 +166,7 @@ class MerchantTrackingService:
         driver_loc = translated.get("location")
 
         eta_origin = driver_loc or pickup
-        eta = self._osrm_eta(eta_origin, dropoff) if eta_origin and dropoff else None
+        eta = self._osrm_eta(eta_origin, dropoff, order_id=order.id) if eta_origin and dropoff else None
         optimized_route = self._valhalla_route(pickup, dropoff) if pickup and dropoff else None
 
         proofs = self._extract_proofs(live_raw)
@@ -238,6 +242,8 @@ class MerchantTrackingService:
         self,
         origin: dict[str, float] | tuple[float, float] | None,
         destination: tuple[float, float] | None,
+        *,
+        order_id: str | None = None,
     ) -> dict[str, Any] | None:
         if not origin or not destination:
             return None
@@ -249,6 +255,17 @@ class MerchantTrackingService:
         else:
             origin_pt = origin
 
+        cache_key = (
+            f"{order_id}:{origin_pt[0]:.4f},{origin_pt[1]:.4f}:"
+            f"{destination[0]:.4f},{destination[1]:.4f}"
+            if order_id
+            else None
+        )
+        if cache_key:
+            cached = _get_cached_eta(cache_key)
+            if cached is not None:
+                return cached
+
         result = self._maps._osrm_route(origin_pt, destination)
         if not result or result.get("code") != "Ok" or not result.get("routes"):
             return None
@@ -256,7 +273,7 @@ class MerchantTrackingService:
         duration = int(route.get("duration", 0))
         distance = int(route.get("distance", 0))
         arrives_at = (datetime.now(UTC) + timedelta(seconds=duration)).isoformat()
-        return {
+        eta = {
             "source": "osrm",
             "duration_seconds": duration,
             "distance_meters": distance,
@@ -264,6 +281,9 @@ class MerchantTrackingService:
             "arrives_at": arrives_at,
             "label": self._format_eta_label(duration),
         }
+        if cache_key:
+            _set_cached_eta(cache_key, eta)
+        return eta
 
     def _valhalla_route(
         self,
@@ -273,17 +293,7 @@ class MerchantTrackingService:
         if not origin or not destination:
             return None
         result = self._maps._valhalla_route(origin, destination)
-        if not result or "trip" not in result:
-            return None
-        summary = result.get("trip", {}).get("summary", {})
-        legs = result.get("trip", {}).get("legs") or []
-        polyline = legs[0].get("shape") if legs else None
-        return {
-            "source": "valhalla",
-            "duration_seconds": int(summary.get("time", 0)),
-            "distance_meters": int(float(summary.get("length", 0)) * 1000),
-            "polyline": polyline,
-        }
+        return optimized_route_from_valhalla(result)
 
     def _driver_info(
         self,
@@ -518,3 +528,18 @@ class MerchantTrackingService:
             return f"{minutes} min"
         hours, rem = divmod(minutes, 60)
         return f"{hours}h {rem}m"
+
+
+def _get_cached_eta(cache_key: str) -> dict[str, Any] | None:
+    entry = _eta_cache.get(cache_key)
+    if not entry:
+        return None
+    expires_at, eta = entry
+    if time.time() > expires_at:
+        _eta_cache.pop(cache_key, None)
+        return None
+    return eta
+
+
+def _set_cached_eta(cache_key: str, eta: dict[str, Any]) -> None:
+    _eta_cache[cache_key] = (time.time() + _ETA_CACHE_TTL_SECONDS, eta)

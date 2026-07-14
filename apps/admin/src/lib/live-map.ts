@@ -115,6 +115,54 @@ export const liveMapSnapshotSchema = z.object({
       created_at: z.string().nullable().optional(),
     })
   ),
+  support_tickets: z
+    .array(
+      z.object({
+        id: z.string(),
+        ticket_number: z.string(),
+        subject: z.string(),
+        status: z.string(),
+        priority: z.string(),
+        category: z.string(),
+        order_id: z.string().nullable().optional(),
+        merchant_id: z.string().nullable().optional(),
+        customer_id: z.string().nullable().optional(),
+        driver_id: z.string().nullable().optional(),
+        assigned_to: z.string().nullable().optional(),
+        created_at: z.string().nullable().optional(),
+        updated_at: z.string().nullable().optional(),
+      })
+    )
+    .default([]),
+  claims: z
+    .array(
+      z.object({
+        id: z.string(),
+        claim_number: z.string(),
+        claim_type: z.string(),
+        status: z.string(),
+        description: z.string().nullable().optional(),
+        order_id: z.string(),
+        tracking_number: z.string().nullable().optional(),
+        assigned_to: z.string().nullable().optional(),
+        created_at: z.string().nullable().optional(),
+      })
+    )
+    .default([]),
+  incidents: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.string(),
+        status: z.string(),
+        order_id: z.string(),
+        tracking_number: z.string(),
+        message: z.string(),
+        location: coordSchema.nullable().optional(),
+        created_at: z.string().nullable().optional(),
+      })
+    )
+    .default([]),
   events: z.array(
     z.object({
       id: z.string(),
@@ -234,7 +282,12 @@ function qs(filters?: LiveMapFilters): string {
 export const liveMapApi = {
   snapshot: async (token: string, filters?: LiveMapFilters) => {
     const raw = await adminFetch<unknown>(`${B}${qs(filters)}`, token);
-    return liveMapSnapshotSchema.parse(raw);
+    return liveMapSnapshotSchema.parse({
+      support_tickets: [],
+      claims: [],
+      incidents: [],
+      ...(typeof raw === "object" && raw ? raw : {}),
+    });
   },
   search: (token: string, q: string) =>
     adminFetch<

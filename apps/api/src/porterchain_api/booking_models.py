@@ -155,7 +155,8 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    quote_id: Mapped[str] = mapped_column(ForeignKey("quotes.id"), index=True)
+    # Nullable for merchant offline AR settlements (no retail quote).
+    quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id"), nullable=True, index=True)
     order_id: Mapped[str | None] = mapped_column(ForeignKey("orders.id"), nullable=True, index=True)
     customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id"), nullable=True, index=True)
     status: Mapped[str] = mapped_column(String(32), default="PENDING", index=True)
@@ -174,7 +175,7 @@ class Payment(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    quote: Mapped[Quote] = relationship()
+    quote: Mapped[Quote | None] = relationship()
     order: Mapped[Order | None] = relationship(back_populates="payments")
     customer: Mapped[Customer | None] = relationship(back_populates="payments")
 
@@ -186,17 +187,22 @@ class Invoice(Base):
     invoice_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     receipt_number: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     order_id: Mapped[str] = mapped_column(ForeignKey("orders.id"), index=True)
-    customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id"), index=True)
+    # Nullable for merchant net-terms invoices (no retail customer).
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id"), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id"), nullable=True, index=True)
     amount_cents: Mapped[int] = mapped_column(Integer)
     tax_cents: Mapped[int] = mapped_column(Integer, default=0)
     fees_cents: Mapped[int] = mapped_column(Integer, default=0)
     currency: Mapped[str] = mapped_column(String(8), default="cad")
     stripe_receipt_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     pdf_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    billing_period_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    billing_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     order: Mapped[Order] = relationship(back_populates="invoices")
-    customer: Mapped[Customer] = relationship(back_populates="invoices")
+    customer: Mapped[Customer | None] = relationship(back_populates="invoices")
 
 
 class OrderEvent(Base):

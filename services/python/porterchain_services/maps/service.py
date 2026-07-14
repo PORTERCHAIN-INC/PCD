@@ -22,36 +22,50 @@ class MapsService(BaseService):
         origin: tuple[float, float],
         destination: tuple[float, float],
     ) -> dict[str, Any] | None:
+        leg, _source = self.route_with_source(origin, destination)
+        return leg
+
+    def route_with_source(
+        self,
+        origin: tuple[float, float],
+        destination: tuple[float, float],
+    ) -> tuple[dict[str, Any] | None, str | None]:
         if self.engine == "valhalla" and self.settings.valhalla_url:
             leg = self._valhalla_route(origin, destination)
             if leg is not None:
-                return leg
+                return leg, "valhalla"
             if self.settings.osrm_url:
                 logger.warning("Valhalla unavailable — falling back to OSRM")
-                return self._osrm_route(origin, destination)
-            return None
+                leg = self._osrm_route(origin, destination)
+                if leg is not None:
+                    return leg, "osrm"
+            return None, None
         if self.settings.osrm_url:
-            return self._osrm_route(origin, destination)
-        return None
+            leg = self._osrm_route(origin, destination)
+            if leg is not None:
+                return leg, "osrm"
+        return None, None
 
     def route_distance_meters(
         self,
         points: list[tuple[float, float]],
-    ) -> tuple[int | None, int | None]:
-        """Sum leg distances across waypoints. Returns (meters, duration_seconds)."""
+    ) -> tuple[int | None, int | None, str | None]:
+        """Sum leg distances across waypoints. Returns (meters, duration_seconds, routing_source)."""
         if len(points) < 2:
-            return None, None
+            return None, None, None
         total_m = 0
         total_s = 0
+        source: str | None = None
         for i in range(len(points) - 1):
-            leg = self.route(points[i], points[i + 1])
+            leg, leg_source = self.route_with_source(points[i], points[i + 1])
             parsed = self._parse_leg(leg)
             if parsed is None:
-                return None, None
+                return None, None, None
             meters, seconds = parsed
             total_m += meters
             total_s += seconds
-        return total_m, total_s
+            source = leg_source
+        return total_m, total_s, source
 
     def _parse_leg(self, leg: dict[str, Any] | None) -> tuple[int, int] | None:
         if not leg:

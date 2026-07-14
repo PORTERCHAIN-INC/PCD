@@ -157,6 +157,47 @@ export type SimulateResult = {
   metadata?: Record<string, unknown>;
 };
 
+export type VehicleRate = {
+  per_km_cents: number;
+  minimum_cents: number;
+  surcharge_cents: number;
+};
+
+export type RateCard = {
+  vehicles: Record<string, VehicleRate>;
+  base_fee_cents: number;
+  per_minute_cents: number;
+  wait_cents_per_minute: number;
+  extra_stop_cents: number;
+  liftgate_cents: number;
+  rush_surcharge_cents: number;
+  scheduled_surcharge_cents: number;
+  weight_threshold_kg: number;
+  weight_cents_per_kg: number;
+  declared_value_threshold_cents: number;
+  declared_value_rate: number;
+  weekend_multiplier: number;
+  holiday_multiplier: number;
+  holidays: string[];
+  night_multiplier: number;
+  night_start_hour: number;
+  night_end_hour: number;
+  driver_payout_mode: "flat" | "percent";
+  driver_flat_per_delivery_cents: number;
+  driver_minimum_payout_cents: number;
+  driver_share_pct: number;
+  platform_share_pct: number;
+  package_surcharges?: Record<string, number>;
+  service_surcharges?: Record<string, number>;
+};
+
+export type MerchantRateCardResponse = {
+  merchant_id: string;
+  system: RateCard;
+  overlay: Partial<RateCard>;
+  effective: RateCard;
+};
+
 const B = "/v1/admin/pricing";
 
 function qs(filters?: TariffFilters): string {
@@ -202,6 +243,19 @@ export const pricingApi = {
   fuel: (token: string) => adminFetch<Record<string, unknown>>(`${B}/fuel`, token),
   updateFuel: (token: string, body: Record<string, unknown>) =>
     adminFetch<Record<string, unknown>>(`${B}/fuel`, token, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+  rateCard: (token: string) => adminFetch<RateCard>(`${B}/rate-card`, token),
+  updateRateCard: (token: string, body: Partial<RateCard>) =>
+    adminFetch<RateCard>(`${B}/rate-card`, token, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+  merchantRateCard: (token: string, merchantId: string) =>
+    adminFetch<MerchantRateCardResponse>(`${B}/merchants/${merchantId}/rate-card`, token),
+  updateMerchantRateCard: (token: string, merchantId: string, body: Partial<RateCard>) =>
+    adminFetch<MerchantRateCardResponse>(`${B}/merchants/${merchantId}/rate-card`, token, {
       method: "PUT",
       body: JSON.stringify(body),
     }),

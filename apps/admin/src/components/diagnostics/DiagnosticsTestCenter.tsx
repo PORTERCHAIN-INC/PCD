@@ -65,7 +65,13 @@ const TABS: { id: Tab; label: string; icon: React.ComponentType<{ className?: st
   { id: "reports", label: "Reports", icon: FileText },
 ];
 
-export function DiagnosticsTestCenter() {
+export function DiagnosticsTestCenter({
+  embedded = false,
+  onOpenHealth,
+}: {
+  embedded?: boolean;
+  onOpenHealth?: () => void;
+} = {}) {
   const { getApiToken } = useAdminAuth();
   const [tab, setTab] = useState<Tab>("tests");
   const [busy, setBusy] = useState<string | null>(null);
@@ -196,15 +202,29 @@ export function DiagnosticsTestCenter() {
 
   return (
     <div className="space-y-5">
-      <SettingsPageHeader
-        title="System Tests & Diagnostics"
-        description="29 automated checks across integrations, engines, infrastructure, and masterrule ADRs — run individually or as full platform validation."
-        actions={
-          <Link href="/system-health">
-            <Button variant="outline">System health →</Button>
-          </Link>
-        }
-      />
+      {!embedded ? (
+        <SettingsPageHeader
+          title="System Tests & Diagnostics"
+          description="29 automated checks across integrations, engines, infrastructure, and masterrule ADRs — run individually or as full platform validation."
+          actions={
+            <Link href="/system">
+              <Button variant="outline">System health →</Button>
+            </Link>
+          }
+        />
+      ) : (
+        <div className="flex justify-end">
+          {onOpenHealth ? (
+            <Button variant="outline" onClick={onOpenHealth}>
+              View health →
+            </Button>
+          ) : (
+            <Link href="/system">
+              <Button variant="outline">View health →</Button>
+            </Link>
+          )}
+        </div>
+      )}
 
       {health && (
         <HealthSummaryBar

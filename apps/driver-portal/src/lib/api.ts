@@ -286,6 +286,10 @@ export const driverApi = {
   communicationsHub: () => driverFetch<DriverCommunicationsSnapshot>("/v1/communications"),
   markNotificationRead: (notificationId: string) =>
     driverFetch(`/v1/communications/notifications/${notificationId}/read`, { method: "POST" }),
+  markAllNotificationsRead: () =>
+    driverFetch<{ ok: boolean; marked: number }>("/v1/communications/notifications/mark-all-read", {
+      method: "POST",
+    }),
   queueOffline: (actionType: string, payload: Record<string, unknown>) =>
     driverFetch("/v1/offline/queue", {
       method: "POST",

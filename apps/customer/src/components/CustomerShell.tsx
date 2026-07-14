@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { isClerkConfigured } from "@/lib/env";
+import NotificationBell from "@/components/nav/NotificationBell";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/book", label: "Book delivery" },
+  { href: "/notifications", label: "Notifications" },
 ] as const;
 
 export default function CustomerShell({ children }: { children: React.ReactNode }) {
@@ -52,6 +54,7 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
             >
               Book
             </Link>
+            <NotificationBell />
             {isClerkConfigured() && <UserButton />}
           </div>
         </div>

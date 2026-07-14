@@ -73,6 +73,18 @@ export default function HeaderDropdown({
     };
   }, [open, close]);
 
+  useEffect(() => {
+    if (!open) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    function onClick(e: MouseEvent) {
+      const el = e.target as HTMLElement | null;
+      if (el?.closest("a[href]")) close();
+    }
+    panel.addEventListener("click", onClick);
+    return () => panel.removeEventListener("click", onClick);
+  }, [open, close]);
+
   const panel =
     open && typeof document !== "undefined"
       ? createPortal(

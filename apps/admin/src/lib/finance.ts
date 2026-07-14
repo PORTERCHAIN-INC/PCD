@@ -19,7 +19,7 @@ const invoiceSchema = z.object({
   status: z.string(),
   merchant_id: z.string().nullable().optional(),
   merchant_name: z.string().nullable().optional(),
-  customer_id: z.string(),
+  customer_id: z.string().nullable().optional(),
   customer_email: z.string().nullable().optional(),
   order_id: z.string(),
   order_number: z.string().nullable().optional(),
@@ -155,6 +155,67 @@ export const financeApi = {
   ledger: (token: string) => adminFetch<Array<Record<string, unknown>>>(`${B}/ledger`, token),
   creditNote: (token: string, body: { order_id: string; amount_cents: number; reason: string }) =>
     adminFetch<{ ledger_id: string }>(`${B}/credit-notes`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  merchantArPreview: (
+    token: string,
+    params: { merchant_id: string; period_start?: string; period_end?: string }
+  ) => {
+    const p = new URLSearchParams({ merchant_id: params.merchant_id });
+    if (params.period_start) p.set("period_start", params.period_start);
+    if (params.period_end) p.set("period_end", params.period_end);
+    return adminFetch<{
+      merchant_id: string;
+      merchant_name: string | null;
+      payment_terms: string | null;
+      billing_cycle: string | null;
+      period_start: string;
+      period_end: string;
+      order_count: number;
+      uninvoiced_cents: number;
+      order_ids: string[];
+      orders: Array<{
+        order_id: string;
+        order_number: string;
+        tracking_number: string;
+        state: string;
+        amount_cents: number;
+      }>;
+    }>(`${B}/merchant-ar/preview?${p.toString()}`, token);
+  },
+  merchantArGenerate: (
+    token: string,
+    body: { merchant_id: string; period_start?: string; period_end?: string }
+  ) =>
+    adminFetch<{
+      merchant_id: string;
+      period_start: string;
+      period_end: string;
+      created_count: number;
+      skipped_count: number;
+      invoices: Array<{
+        invoice_id: string;
+        invoice_number: string;
+        order_id: string;
+        amount_cents: number;
+      }>;
+    }>(`${B}/merchant-ar/generate`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  recordPayment: (
+    token: string,
+    invoiceId: string,
+    body: { method: string; amount_cents?: number; reference?: string }
+  ) =>
+    adminFetch<{
+      invoice_id: string;
+      payment_id: string;
+      amount_cents: number;
+      status: string;
+      method: string;
+    }>(`${B}/invoices/${invoiceId}/record-payment`, token, {
       method: "POST",
       body: JSON.stringify(body),
     }),

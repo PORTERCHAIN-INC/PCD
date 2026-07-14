@@ -73,7 +73,10 @@ def invoice_status(
             return "void"
         if payment.status in ("PENDING", "PROCESSING", "FAILED"):
             return "pending"
-    due = invoice_due_date(invoice.created_at, terms or (order.payment_terms if order else None))
+    if getattr(invoice, "due_at", None):
+        due = invoice.due_at.replace(tzinfo=None) if invoice.due_at.tzinfo else invoice.due_at
+    else:
+        due = invoice_due_date(invoice.created_at, terms or (order.payment_terms if order else None))
     if due and now > due:
         return "overdue"
     return "sent"
@@ -137,6 +140,8 @@ def serialize_invoice_row(
 ) -> dict[str, Any]:
     status = invoice_status(invoice, order, payment, terms=terms)
     due = invoice_due_date(invoice.created_at, terms or (order.payment_terms if order else None))
+    if getattr(invoice, "due_at", None):
+        due = invoice.due_at.replace(tzinfo=None) if invoice.due_at.tzinfo else invoice.due_at
     outstanding = outstanding_cents(invoice, status)
     row = {
         "invoice_id": invoice.id,

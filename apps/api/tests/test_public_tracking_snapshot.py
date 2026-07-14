@@ -5,8 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
-import pytest
-
+from porterchain_services.maps.polyline import encode_polyline
 from porterchain_api.booking_engine.public_tracking_snapshot import build_public_live_tracking
 from porterchain_api.models import Order
 
@@ -46,8 +45,9 @@ def test_build_public_live_tracking_osrm_eta():
         "code": "Ok",
         "routes": [{"duration": 600, "distance": 2500, "geometry": "abc"}],
     }
+    valhalla_shape = encode_polyline([(43.6487, -79.3817), (43.6532, -79.3832)], precision=6)
     maps._valhalla_route.return_value = {
-        "trip": {"summary": {"time": 700, "length": 2.5}, "legs": [{"shape": "xyz"}]},
+        "trip": {"summary": {"time": 700, "length": 2.5}, "legs": [{"shape": valhalla_shape}]},
     }
 
     live_raw = {
@@ -59,7 +59,8 @@ def test_build_public_live_tracking_osrm_eta():
     assert snapshot["eta"]["source"] == "osrm"
     assert snapshot["eta"]["label"] == "10 min"
     assert snapshot["driver_location"] == {"lat": 43.65, "lng": -79.38}
-    assert snapshot["optimized_route"]["polyline"] == "xyz"
+    assert snapshot["optimized_route"]["polyline_encoding"] == "google"
+    assert snapshot["optimized_route"]["polyline"] is not None
 
 
 def test_build_public_live_tracking_hides_eta_when_delivered():

@@ -41,10 +41,13 @@ class PricingService:
             additional_stops=request.additional_stops,
             distance_meters=request.distance_meters,
             estimated_duration_minutes=request.estimated_duration_minutes,
+            routing_source=request.routing_source,
             channel="retail",
             promo_code=request.promo_code,
             wallet_credit_cents=request.wallet_credit_cents,
             referral_credit_cents=request.referral_credit_cents,
+            wait_minutes=request.wait_minutes,
+            requires_liftgate=request.requires_liftgate,
         )
         return self.calculate(retail_request)
 
@@ -64,6 +67,8 @@ class PricingService:
             additional_stops=request.additional_stops,
             distance_meters=request.distance_meters,
             estimated_duration_minutes=request.estimated_duration_minutes,
+            routing_source=request.routing_source,
+            wait_minutes=request.wait_minutes,
             channel="merchant",
             merchant_id=request.merchant_id,
             promo_code=request.promo_code,

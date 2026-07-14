@@ -66,7 +66,91 @@ class LiveMapEntitiesMixin:
             return self._customer_detail(db, entity_id)
         if entity_type == "order":
             return self._order_detail(db, entity_id)
+        if entity_type == "ticket":
+            return self._ticket_detail(db, entity_id)
+        if entity_type == "claim":
+            return self._claim_detail(db, entity_id)
         raise LookupError("entity_not_found")
+
+    def _ticket_detail(self, db: Session, ticket_id: str) -> dict:
+        from porterchain_api.admin_models import SupportTicket
+        from porterchain_api.domain.support import ticket_number
+
+        t = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
+        if not t:
+            raise LookupError("entity_not_found")
+        return {
+            "entity_type": "ticket",
+            "entity_id": t.id,
+            "title": ticket_number(t.id),
+            "subtitle": t.subject,
+            "status": t.status,
+            "location": None,
+            "contact": {},
+            "current_job": {"order_id": t.order_id} if t.order_id else None,
+            "timeline": [
+                {
+                    "label": "Ticket created",
+                    "at": t.created_at.isoformat() if t.created_at else None,
+                },
+                {
+                    "label": f"Priority · {t.priority}",
+                    "at": t.updated_at.isoformat() if t.updated_at else None,
+                },
+            ],
+            "eta": None,
+            "notes": [{"body": t.description}] if t.description else [],
+            "actions": [
+                {"key": "open_ticket", "label": "Open Support", "href": f"/support/{t.id}"},
+                *(
+                    [{"key": "open_order", "label": "Open Order", "href": f"/orders/{t.order_id}"}]
+                    if t.order_id
+                    else []
+                ),
+            ],
+            "meta": {
+                "category": t.category,
+                "priority": t.priority,
+                "merchant_id": t.merchant_id,
+                "customer_id": t.customer_id,
+                "driver_id": t.driver_id,
+            },
+        }
+
+    def _claim_detail(self, db: Session, claim_id: str) -> dict:
+        from porterchain_api.admin_models import Claim
+        from porterchain_api.domain.claims import claim_number
+
+        c = db.query(Claim).filter(Claim.id == claim_id).first()
+        if not c:
+            raise LookupError("entity_not_found")
+        order = db.query(Order).filter(Order.id == c.order_id).first()
+        return {
+            "entity_type": "claim",
+            "entity_id": c.id,
+            "title": claim_number(c.id),
+            "subtitle": c.claim_type.replace("_", " ").title(),
+            "status": c.status,
+            "location": None,
+            "contact": {},
+            "current_job": {
+                "order_id": c.order_id,
+                "tracking_number": order.tracking_number if order else None,
+            },
+            "timeline": [
+                {
+                    "label": "Claim opened",
+                    "at": c.created_at.isoformat() if c.created_at else None,
+                }
+            ],
+            "eta": None,
+            "notes": [{"body": c.description}] if c.description else [],
+            "actions": [
+                {"key": "open_claim", "label": "Open Claim", "href": f"/claims/{c.id}"},
+                {"key": "open_order", "label": "Open Order", "href": f"/orders/{c.order_id}"},
+            ],
+            "meta": {"claim_type": c.claim_type, "assigned_to": c.assigned_to},
+        }
 
     def _driver_detail(self, db: Session, driver_id: str) -> dict:
         d = db.query(Driver).filter(Driver.id == driver_id).first()

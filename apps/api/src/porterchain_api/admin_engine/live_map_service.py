@@ -51,6 +51,9 @@ class LiveMapService(
         geofences = self._build_geofences(db)
         alerts = self._build_alerts(db, now)
         events = self._build_events(db)
+        support_tickets = self._build_support_tickets(db)
+        claims = self._build_claims_panel(db)
+        incidents = self._build_incidents_panel(db)
         command_center = self._command_center(db)
         heat_maps = self._heat_maps(orders, drivers)
         smart = self._smart_insights(db, drivers, orders, now)
@@ -68,6 +71,9 @@ class LiveMapService(
             "geofences": geofences,
             "alerts": alerts,
             "events": events,
+            "support_tickets": support_tickets,
+            "claims": claims,
+            "incidents": incidents,
             "command_center": command_center,
             "heat_maps": heat_maps,
             "smart": smart,

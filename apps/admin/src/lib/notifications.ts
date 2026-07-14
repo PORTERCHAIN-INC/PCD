@@ -44,6 +44,17 @@ export type NotificationTemplate = {
   subject: string;
 };
 
+export type InboxNotification = {
+  id: string;
+  title: string;
+  body: string;
+  priority: string;
+  category: string;
+  deep_link?: string | null;
+  is_read: boolean;
+  created_at: string;
+};
+
 const B = "/v1/admin/notifications";
 
 export const notificationsApi = {
@@ -61,9 +72,15 @@ export const notificationsApi = {
   devices: (t: string) => adminFetch<NotificationDevice[]>(`${B}/devices`, t),
   retry: (t: string, id: string) =>
     adminFetch<{ ok: boolean }>(`${B}/retry/${id}`, t, { method: "POST" }),
-  inbox: (t: string) =>
-    adminFetch<{ unread_count: number; items: Array<Record<string, unknown>> }>(
-      "/v1/notifications/inbox",
+  inbox: (t: string, limit = 100) =>
+    adminFetch<{ unread_count: number; items: InboxNotification[] }>(
+      `/v1/notifications/inbox?limit=${limit}`,
       t
     ),
+  markRead: (t: string, id: string) =>
+    adminFetch<{ ok: boolean }>(`/v1/notifications/inbox/${id}/read`, t, { method: "POST" }),
+  markAllRead: (t: string) =>
+    adminFetch<{ ok: boolean; marked: number }>("/v1/notifications/inbox/mark-all-read", t, {
+      method: "POST",
+    }),
 };

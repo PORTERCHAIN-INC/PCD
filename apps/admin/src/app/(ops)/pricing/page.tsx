@@ -7,6 +7,7 @@ import { cn, formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import PricingTariffsGrid from "@/components/pricing/PricingTariffsGrid";
 import PricingSimulator from "@/components/pricing/PricingSimulator";
+import RateCardEditor from "@/components/pricing/RateCardEditor";
 import { Button, Spinner } from "@/components/crm/primitives";
 import {
   pricingApi,
@@ -17,12 +18,13 @@ import {
 } from "@/lib/pricing";
 import { relativeTime } from "@/lib/crmFormat";
 
-type Tab = "rules" | "zones" | "contracts" | "promotions" | "tax" | "simulator" | "reports";
+type Tab =
+  "ratecard" | "rules" | "zones" | "contracts" | "promotions" | "tax" | "simulator" | "reports";
 
 export default function PricingPage() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<Tab>("rules");
+  const [tab, setTab] = useState<Tab>("ratecard");
   const [filters, setFilters] = useState<TariffFilters>({});
 
   const enabled = isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
@@ -31,6 +33,12 @@ export default function PricingPage() {
     queryKey: ["pricing-dashboard"],
     enabled,
     queryFn: async () => pricingApi.dashboard(await getApiToken()),
+  });
+
+  const { data: rateCard, isLoading: rateCardLoading } = useQuery({
+    queryKey: ["pricing-rate-card"],
+    enabled: enabled && tab === "ratecard",
+    queryFn: async () => pricingApi.rateCard(await getApiToken()),
   });
 
   const {
@@ -109,6 +117,7 @@ export default function PricingPage() {
   }
 
   const TABS: { id: Tab; label: string }[] = [
+    { id: "ratecard", label: "Rate card" },
     { id: "rules", label: "Pricing rules" },
     { id: "zones", label: "Zones" },
     { id: "contracts", label: "Contracts" },
@@ -201,21 +210,40 @@ export default function PricingPage() {
       </nav>
 
       <div className="rounded-2xl border border-primary/10 bg-white p-4">
+        {tab === "ratecard" &&
+          (rateCardLoading || !rateCard ? (
+            <div className="flex justify-center py-12">
+              <Spinner />
+            </div>
+          ) : (
+            <RateCardEditor
+              initial={rateCard}
+              title="System rate card"
+              subtitle="Edits apply to retail quotes and merchants without an override. Amounts in CAD cents unless marked %."
+              onSave={async (card) => {
+                const token = await getApiToken();
+                await pricingApi.updateRateCard(token, card);
+                await qc.invalidateQueries({ queryKey: ["pricing-rate-card"] });
+                await qc.invalidateQueries({ queryKey: ["pricing-dashboard"] });
+              }}
+            />
+          ))}
+
         {tab === "rules" && (
           <>
-            <div className="mb-4 flex flex-wrap gap-2">
+            <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <input
                 placeholder="Search rules…"
                 value={filters.search ?? ""}
                 onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))}
-                className="min-w-[180px] flex-1 rounded-xl border border-primary/10 px-3 py-2 text-sm"
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm sm:col-span-2 lg:col-span-1"
               />
               <select
                 value={filters.tariff_type ?? ""}
                 onChange={(e) =>
                   setFilters((f) => ({ ...f, tariff_type: e.target.value || undefined }))
                 }
-                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm"
               >
                 <option value="">All types</option>
                 {TARIFF_TYPES.map((t) => (
@@ -229,7 +257,7 @@ export default function PricingPage() {
                 onChange={(e) =>
                   setFilters((f) => ({ ...f, vehicle_class: e.target.value || undefined }))
                 }
-                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm"
               >
                 <option value="">All vehicles</option>
                 {VEHICLE_CLASSES.map((v) => (
@@ -241,7 +269,7 @@ export default function PricingPage() {
               <select
                 value={filters.status ?? ""}
                 onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value || undefined }))}
-                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-primary/10 px-3 py-2 text-sm"
               >
                 <option value="">All statuses</option>
                 {RULE_STATUSES.map((s) => (
@@ -256,7 +284,11 @@ export default function PricingPage() {
                 <Spinner />
               </div>
             ) : (
-              <PricingTariffsGrid rows={tariffs} onPublish={(id) => void publishRule(id)} />
+              <PricingTariffsGrid
+                rows={tariffs}
+                hideToolbar
+                onPublish={(id) => void publishRule(id)}
+              />
             )}
           </>
         )}

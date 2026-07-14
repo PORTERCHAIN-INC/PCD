@@ -35,7 +35,7 @@ class MerchantBookingService:
         pickup_geo = GeoPoint(lat=pickup.lat, lng=pickup.lng, formatted=pickup.formatted)
         dropoff_geo = GeoPoint(lat=dropoff.lat, lng=dropoff.lng, formatted=dropoff.formatted)
         stops = [GeoPoint(lat=s.lat, lng=s.lng, formatted=s.formatted) for s in (body.additional_stops or [])]
-        distance, duration_seconds = resolve_route_distance(pickup_geo, dropoff_geo, stops)
+        distance, duration_seconds, routing_source = resolve_route_distance(pickup_geo, dropoff_geo, stops)
         return PricingRequest(
             pickup=pickup_geo,
             dropoff=dropoff_geo,
@@ -48,6 +48,7 @@ class MerchantBookingService:
             additional_stops=stops,
             distance_meters=distance,
             estimated_duration_minutes=int(duration_seconds / 60) if duration_seconds else None,
+            routing_source=routing_source,
             channel="merchant",
             merchant_id=ctx.merchant.id,
             volume_units=volume_units,

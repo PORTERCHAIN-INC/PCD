@@ -134,8 +134,43 @@ class E2EValidationMerchantMixin:
 
         record("Dispatch", lambda: "PASS")
         record("Delivery", lambda: "PASS")
-        record("Billing Run", lambda: "PASS", layer="billing_engine")
-        record("Invoice", lambda: "PASS", layer="finance_engine")
+
+        def do_billing_run():
+            if not order_ids:
+                return "FAIL"
+            from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
+            from porterchain_api.models import Invoice
+
+            admin_ctx = self._resolve_admin_context(db)
+            if not admin_ctx:
+                return "WARNING"
+            start = datetime.now(UTC) - timedelta(days=1)
+            end = datetime.now(UTC) + timedelta(days=1)
+            result = MerchantArService().generate(
+                db,
+                admin_ctx,
+                merchant_id=merchant_ctx.merchant.id,
+                period_start=start,
+                period_end=end,
+            )
+            created = int(result.get("created_count") or 0)
+            has_inv = (
+                db.query(Invoice).filter(Invoice.order_id.in_(order_ids)).count() > 0
+            )
+            if created > 0 or has_inv:
+                return {"created_count": created, "invoiced": has_inv}
+            return "FAIL"
+
+        def do_invoice_assert():
+            from porterchain_api.models import Invoice
+
+            if not order_ids:
+                return "FAIL"
+            inv = db.query(Invoice).filter(Invoice.order_id == order_ids[0]).first()
+            return "PASS" if inv else "FAIL"
+
+        record("Billing Run", do_billing_run, layer="billing_engine")
+        record("Invoice", do_invoice_assert, layer="finance_engine")
         record("Statement", lambda: "PASS", layer="finance_engine")
         record("Reports", lambda: "PASS", layer="merchant_engine.reporting_metrics")
 

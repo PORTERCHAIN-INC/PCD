@@ -1,16 +1,47 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { cn, formatCents } from "@porterchain/ui/utils";
-import { INVOICE_STATUS_STYLES, PAYMENT_STATUS_STYLES, type InvoiceDetail } from "@/lib/finance";
+import {
+  INVOICE_STATUS_STYLES,
+  PAYMENT_STATUS_STYLES,
+  financeApi,
+  type InvoiceDetail,
+} from "@/lib/finance";
 import { relativeTime } from "@/lib/crmFormat";
-import { Spinner } from "@/components/crm/primitives";
+import { Button, Spinner } from "@/components/crm/primitives";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 type Props = { detail: InvoiceDetail | null; loading: boolean };
 
 export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
+  const { getApiToken } = useAdminAuth();
+  const qc = useQueryClient();
+  const [method, setMethod] = useState("wire");
+  const [reference, setReference] = useState("");
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const payMut = useMutation({
+    mutationFn: async () => {
+      if (!detail) throw new Error("no_invoice");
+      return financeApi.recordPayment(await getApiToken(), detail.invoice_id, {
+        method,
+        reference: reference || undefined,
+      });
+    },
+    onSuccess: async () => {
+      setMsg("Payment recorded.");
+      await qc.invalidateQueries({ queryKey: ["finance-invoice", detail?.invoice_id] });
+      await qc.invalidateQueries({ queryKey: ["finance-invoices"] });
+      await qc.invalidateQueries({ queryKey: ["finance-collections"] });
+    },
+    onError: (e: Error) => setMsg(e.message || "Record payment failed"),
+  });
+
   if (loading)
     return (
       <div className="flex justify-center py-20">
@@ -20,6 +51,8 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
   if (!detail) return <p className="py-12 text-center text-muted">Invoice not found</p>;
 
   const payment = detail.payment as Record<string, unknown> | null | undefined;
+  const canRecord =
+    detail.outstanding_cents > 0 && detail.status !== "paid" && detail.status !== "void";
 
   return (
     <div className="space-y-6">
@@ -100,6 +133,34 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
             </>
           ) : (
             <p className="text-sm text-muted">No payment linked</p>
+          )}
+
+          {canRecord && (
+            <div className="mt-4 space-y-2 border-t border-primary/10 pt-4">
+              <p className="text-sm font-medium text-primary">Record offline payment</p>
+              <select
+                className="w-full rounded-lg border border-primary/15 px-3 py-2 text-sm"
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+              >
+                <option value="wire">Wire</option>
+                <option value="ach">ACH</option>
+                <option value="cheque">Cheque</option>
+                <option value="other">Other</option>
+              </select>
+              <input
+                className="w-full rounded-lg border border-primary/15 px-3 py-2 text-sm"
+                placeholder="Reference (optional)"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+              />
+              <Button disabled={payMut.isPending} onClick={() => payMut.mutate()}>
+                {payMut.isPending
+                  ? "Recording…"
+                  : `Record ${formatCents(detail.outstanding_cents)}`}
+              </Button>
+              {msg && <p className="text-xs text-secondary">{msg}</p>}
+            </div>
           )}
         </motion.div>
       </div>

@@ -9,7 +9,7 @@ export async function calculateRoute(waypoints: Coordinates[]): Promise<RouteRes
     throw new Error("At least pickup and dropoff are required");
   }
 
-  const engine = (process.env.ROUTING_ENGINE ?? "osrm").toLowerCase();
+  const engine = (process.env.ROUTING_ENGINE ?? "valhalla").toLowerCase();
 
   if (engine === "valhalla") {
     const valhallaResult = await calculateValhallaRoute(waypoints);

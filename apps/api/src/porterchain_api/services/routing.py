@@ -20,17 +20,17 @@ def resolve_route_distance(
     pickup: GeoPoint,
     dropoff: GeoPoint,
     stops: list[GeoPoint] | None = None,
-) -> tuple[int | None, int | None]:
+) -> tuple[int | None, int | None, str]:
     """Road-network distance via Valhalla/OSRM; haversine fallback when routing unavailable."""
     stops = stops or []
     haversine = total_route_meters(pickup, dropoff, stops)
 
     points = _points_from_geo(pickup, dropoff, stops)
     if not points:
-        return haversine, None
+        return haversine, None, "haversine"
 
     maps = MapsService()
-    meters, seconds = maps.route_distance_meters(points)
+    meters, seconds, source = maps.route_distance_meters(points)
     if meters is None:
-        return haversine, None
-    return meters, seconds
+        return haversine, None, "haversine"
+    return meters, seconds, source or "haversine"

@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any
 from porterchain_api.booking_engine.tracking_service import TrackingService
 from porterchain_api.config import Settings
 from porterchain_api.fleetbase_engine.tracking_translator import TrackingTranslator
+from porterchain_services.maps.route_helpers import optimized_route_from_valhalla
 from porterchain_services.maps.service import MapsService
 
 if TYPE_CHECKING:
@@ -351,18 +352,13 @@ class NavigationService:
         if not origin or not destination:
             return None
         result = self._maps._valhalla_route(origin, destination)
-        if not result or "trip" not in result:
+        route = optimized_route_from_valhalla(result)
+        if not route:
             return None
-        summary = result.get("trip", {}).get("summary", {})
-        legs = result.get("trip", {}).get("legs") or []
-        polyline = legs[0].get("shape") if legs else None
-        duration = int(summary.get("time", 0))
+        duration = route["duration_seconds"]
         return {
-            "source": "valhalla",
+            **route,
             "label": "optimized",
-            "duration_seconds": duration,
-            "distance_meters": int(float(summary.get("length", 0)) * 1000),
-            "polyline": polyline,
             "eta_label": _format_eta_label(duration),
         }
 

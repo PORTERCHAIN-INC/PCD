@@ -85,6 +85,7 @@ from porterchain_api.schemas_admin import (
     PricingBreakdownResponse,
     TaxConfigRequest,
     FuelConfigRequest,
+    RateCardRequest,
     FinanceDashboardResponse,
     FinanceInvoiceItem,
     FinanceInvoiceDetailResponse,
@@ -92,6 +93,8 @@ from porterchain_api.schemas_admin import (
     FinancePayoutItem,
     FinanceLedgerItem,
     FinanceCreditNoteRequest,
+    MerchantArGenerateRequest,
+    MerchantArRecordPaymentRequest,
     BookingDraftAdminItem,
     BookingDraftAdminDetailResponse,
     BookingDraftAnalyticsResponse,
@@ -126,6 +129,9 @@ _orders = AdminOrdersService()
 _claims = AdminClaimsService()
 _pricing = AdminPricingService()
 _finance = AdminFinanceService()
+_merchant_ar = __import__(
+    "porterchain_api.admin_engine.merchant_ar_service", fromlist=["MerchantArService"]
+).MerchantArService()
 _support = AdminSupportService()
 _settings = AdminSettingsService()
 _clerk_directory = ClerkDirectoryService()
@@ -253,6 +259,8 @@ __all__ = [
     "ClaimStatusUpdateRequest",
     "Depends",
     "FinanceCreditNoteRequest",
+    "MerchantArGenerateRequest",
+    "MerchantArRecordPaymentRequest",
     "FinanceDashboardResponse",
     "FinanceFilters",
     "FinanceInvoiceDetailResponse",
@@ -261,6 +269,7 @@ __all__ = [
     "FinancePaymentItem",
     "FinancePayoutItem",
     "FuelConfigRequest",
+    "RateCardRequest",
     "HTTPException",
     "Merchant",
     "MerchantContractCreateRequest",

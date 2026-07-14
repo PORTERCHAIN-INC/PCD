@@ -347,10 +347,66 @@ def merchant_contracts(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)
 
 @router.get("/{merchant_id}/invoices", response_model=list[InvoiceOut])
 def merchant_invoices(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> list[InvoiceOut]:
+    """Ops invoices for this merchant (AR SSOT) — not CRM sales invoices."""
     _guard(ctx, "merchants_read")
-    cid = _company_id(db, merchant_id)
-    rows = _crm.list_invoices(db, company_id=cid) if cid else []
-    return [InvoiceOut.model_validate(i) for i in rows]
+    from datetime import date as date_cls
+
+    from porterchain_api.billing_engine.merchant_service import invoice_status
+    from porterchain_api.merchant_models import Merchant
+    from porterchain_api.models import Invoice, Order, Payment
+
+    merchant = db.query(Merchant).filter(Merchant.id == merchant_id).first()
+    if not merchant:
+        raise HTTPException(status_code=404, detail="merchant_not_found")
+    rows = (
+        db.query(Invoice, Order)
+        .join(Order, Invoice.order_id == Order.id)
+        .filter(Order.merchant_id == merchant_id)
+        .order_by(Invoice.created_at.desc())
+        .limit(200)
+        .all()
+    )
+    out: list[InvoiceOut] = []
+    for inv, order in rows:
+        payment = (
+            db.query(Payment)
+            .filter(Payment.order_id == order.id)
+            .order_by(Payment.created_at.desc())
+            .first()
+        )
+        status = invoice_status(inv, order, payment, terms=merchant.payment_terms or order.payment_terms)
+        due = inv.due_at.date() if inv.due_at else None
+        paid_at = payment.created_at if payment and payment.status == "SUCCEEDED" else None
+        out.append(
+            InvoiceOut(
+                id=inv.id,
+                invoice_number=inv.invoice_number,
+                company_id=None,
+                deal_id=None,
+                contract_id=None,
+                status=status,
+                amount_cents=inv.amount_cents,
+                tax_cents=inv.tax_cents,
+                total_cents=inv.amount_cents,
+                currency=inv.currency,
+                net_terms=merchant.payment_terms or order.payment_terms or "NET_30",
+                line_items=[
+                    {
+                        "label": order.order_number or order.tracking_number or "Delivery",
+                        "quantity": 1,
+                        "unit_price_cents": inv.amount_cents,
+                        "amount_cents": inv.amount_cents,
+                    }
+                ],
+                notes=None,
+                issue_date=inv.created_at.date() if inv.created_at else date_cls.today(),
+                due_date=due,
+                paid_at=paid_at,
+                created_at=inv.created_at,
+                updated_at=inv.created_at,
+            )
+        )
+    return out
 
 
 @router.get("/{merchant_id}/activities", response_model=list[ActivityOut])

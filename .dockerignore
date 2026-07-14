@@ -16,5 +16,9 @@
 **/.env
 **/.env.*
 !**/.env.example
+# Never bake local Clerk test keys into production images (next.config loads env/clerk.env).
+env/clerk.env
+env/clerk.env.*
+!env/clerk.env.example
 apps/fleetbase
 terminals

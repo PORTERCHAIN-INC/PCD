@@ -23,7 +23,7 @@ def _request_from_quote_body(body: CreateQuoteRequest, *, channel: str = "retail
     stops = [_geo(s) for s in (body.additional_stops or [])]
     pickup = _geo(body.pickup)
     dropoff = _geo(body.dropoff)
-    distance, duration_seconds = resolve_route_distance(pickup, dropoff, stops)
+    distance, duration_seconds, routing_source = resolve_route_distance(pickup, dropoff, stops)
     service_type = body.service_type or ("scheduled" if body.schedule_mode == "later" else "same_day")
     return PricingRequest(
         pickup=pickup,
@@ -40,6 +40,7 @@ def _request_from_quote_body(body: CreateQuoteRequest, *, channel: str = "retail
         additional_stops=stops,
         distance_meters=distance,
         estimated_duration_minutes=int(duration_seconds / 60) if duration_seconds else None,
+        routing_source=routing_source,
         channel=channel,  # type: ignore[arg-type]
         merchant_id=merchant_id,
         promo_code=body.promo_code,
@@ -122,11 +123,12 @@ def _request_from_quote(quote: Quote) -> PricingRequest:
     request = _request_from_quote_body(body)
     if stops:
         request = PricingRequest_replace(request, additional_stops=stops)
-        distance, duration_seconds = resolve_route_distance(request.pickup, request.dropoff, stops)
+        distance, duration_seconds, routing_source = resolve_route_distance(request.pickup, request.dropoff, stops)
         request = PricingRequest_replace(
             request,
             distance_meters=distance,
             estimated_duration_minutes=int(duration_seconds / 60) if duration_seconds else None,
+            routing_source=routing_source,
         )
     return request
 
@@ -147,6 +149,7 @@ def PricingRequest_replace(request: PricingRequest, **kwargs) -> PricingRequest:
         "additional_stops": request.additional_stops,
         "distance_meters": request.distance_meters,
         "estimated_duration_minutes": request.estimated_duration_minutes,
+        "routing_source": request.routing_source,
         "channel": request.channel,
         "merchant_id": request.merchant_id,
         "promo_code": request.promo_code,

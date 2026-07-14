@@ -33,6 +33,7 @@ from porterchain_api.order_engine.buckets import (
     PICKUP_LEG,
     WAITING,
 )
+from porterchain_api.booking_engine.order_sla import DEFAULT_INSTANT_SLA_HOURS, order_sla_status
 CARD_CAP = 60
 
 # Canonical order state when an order is dropped on a board column.
@@ -147,19 +148,41 @@ class ControlTowerService:
 
         return {d.id: d.full_name for d in DriverRepository().list_all(db)}
 
-    def _sla_status(self, order: Order, now: datetime) -> str:
-        if order.state in DONE_STATES:
-            return "met"
-        if not order.scheduled_at:
-            return "ok"
-        sched = order.scheduled_at.replace(tzinfo=None) if order.scheduled_at.tzinfo else order.scheduled_at
-        if now > sched:
-            return "breached"
-        if (sched - now) <= timedelta(minutes=30):
-            return "at_risk"
-        return "ok"
+    def _instant_sla_hours(self, db: Session) -> float:
+        from porterchain_api.admin_engine.settings_service import AdminSettingsService
 
-    def _order_card(self, o: Order, merchants: dict, drivers: dict, now: datetime) -> dict:
+        cfg = AdminSettingsService().get_config_value(db, "settings_booking")
+        if isinstance(cfg, dict) and cfg.get("instant_delivery_sla_hours") is not None:
+            try:
+                return max(float(cfg["instant_delivery_sla_hours"]), 0.25)
+            except (TypeError, ValueError):
+                pass
+        return float(DEFAULT_INSTANT_SLA_HOURS)
+
+    def _sla_status(
+        self,
+        order: Order,
+        now: datetime,
+        *,
+        instant_sla_hours: float | None = None,
+    ) -> str:
+        return order_sla_status(
+            order,
+            now,
+            instant_sla_hours=instant_sla_hours
+            if instant_sla_hours is not None
+            else DEFAULT_INSTANT_SLA_HOURS,
+        )
+
+    def _order_card(
+        self,
+        o: Order,
+        merchants: dict,
+        drivers: dict,
+        now: datetime,
+        *,
+        instant_sla_hours: float | None = None,
+    ) -> dict:
         pickup = o.pickup or {}
         dropoff = o.dropoff or {}
         has_pickup = _has_coords(pickup)
@@ -180,7 +203,7 @@ class ControlTowerService:
             "has_dropoff_coords": has_dropoff,
             "stop_phase": stop_phase,
             "eta": o.scheduled_at.isoformat() if o.scheduled_at else None,
-            "sla": self._sla_status(o, now),
+            "sla": self._sla_status(o, now, instant_sla_hours=instant_sla_hours),
             "high_priority": o.amount_cents >= HIGH_PRIORITY_CENTS,
             "created_at": o.created_at.isoformat() if o.created_at else None,
         }
@@ -192,11 +215,15 @@ class ControlTowerService:
         now = _now()
         merchants = self._merchant_names(db)
         drivers = self._driver_names(db)
+        hours = self._instant_sla_hours(db)
         columns = []
         for key, states in BOARD_COLUMNS:
             q = db.query(Order).filter(Order.state.in_(states)).order_by(Order.scheduled_at.asc())
             total = q.count()
-            cards = [self._order_card(o, merchants, drivers, now) for o in q.limit(CARD_CAP).all()]
+            cards = [
+                self._order_card(o, merchants, drivers, now, instant_sla_hours=hours)
+                for o in q.limit(CARD_CAP).all()
+            ]
             columns.append(
                 {
                     "key": key,
@@ -231,6 +258,7 @@ class ControlTowerService:
                 self._merchant_names(db),
                 self._driver_names(db),
                 now,
+                instant_sla_hours=self._instant_sla_hours(db),
             )
 
         from_state = OrderState(order.state)
@@ -258,18 +286,20 @@ class ControlTowerService:
             self._merchant_names(db),
             self._driver_names(db),
             now,
+            instant_sla_hours=self._instant_sla_hours(db),
         )
 
     def active_orders(self, db: Session, *, search: str | None = None, limit: int = 500) -> list[dict]:
         now = _now()
         merchants = self._merchant_names(db)
         drivers = self._driver_names(db)
+        hours = self._instant_sla_hours(db)
         q = db.query(Order).filter(Order.state.in_(WAITING + IN_FLIGHT))
         if search:
             like = f"%{search}%"
             q = q.filter(Order.tracking_number.ilike(like) | Order.order_number.ilike(like))
         rows = q.order_by(Order.scheduled_at.asc()).limit(limit).all()
-        return [self._order_card(o, merchants, drivers, now) for o in rows]
+        return [self._order_card(o, merchants, drivers, now, instant_sla_hours=hours) for o in rows]
 
     def queue(self, db: Session, *, limit: int = 200) -> list[dict]:
         return self.dispatch_pool(db, limit=limit)
@@ -279,6 +309,7 @@ class ControlTowerService:
         now = _now()
         merchants = self._merchant_names(db)
         drivers = self._driver_names(db)
+        hours = self._instant_sla_hours(db)
         pool_states = DISPATCH_POOL + DELIVERY_ONLY_POOL
         rows = (
             db.query(Order)
@@ -290,7 +321,7 @@ class ControlTowerService:
             .limit(limit)
             .all()
         )
-        return [self._order_card(o, merchants, drivers, now) for o in rows]
+        return [self._order_card(o, merchants, drivers, now, instant_sla_hours=hours) for o in rows]
 
     def assignable_drivers(self, db: Session) -> list[dict]:
         rows = (
@@ -336,12 +367,13 @@ class ControlTowerService:
         now = _now()
         merchants = self._merchant_names(db)
         drivers = self._driver_names(db)
+        hours = self._instant_sla_hours(db)
         rows = db.query(Order).filter(Order.state.in_(WAITING + IN_FLIGHT)).all()
         at_risk: list[dict] = []
         breached: list[dict] = []
         for o in rows:
-            status = self._sla_status(o, now)
-            card = self._order_card(o, merchants, drivers, now)
+            status = self._sla_status(o, now, instant_sla_hours=hours)
+            card = self._order_card(o, merchants, drivers, now, instant_sla_hours=hours)
             if status == "breached":
                 breached.append(card)
             elif status == "at_risk":
@@ -409,10 +441,11 @@ class ControlTowerService:
         now = _now()
         merchants = self._merchant_names(db)
         drivers = self._driver_names(db)
+        hours = self._instant_sla_hours(db)
         rows = db.query(Order).filter(Order.state.in_(WAITING + IN_FLIGHT)).all()
         risk_orders: list[dict] = []
         for o in rows:
-            sla = self._sla_status(o, now)
+            sla = self._sla_status(o, now, instant_sla_hours=hours)
             score = 0
             reasons = []
             if sla == "breached":
@@ -431,7 +464,7 @@ class ControlTowerService:
                 score += 10
                 reasons.append("No driver assigned")
             if score >= 35:
-                card = self._order_card(o, merchants, drivers, now)
+                card = self._order_card(o, merchants, drivers, now, instant_sla_hours=hours)
                 card["risk_score"] = min(100, score)
                 card["reasons"] = reasons
                 risk_orders.append(card)

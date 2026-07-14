@@ -22,6 +22,7 @@ from porterchain_api.routers.admin._deps import (
     TariffItem,
     TariffUpdateRequest,
     TaxConfigRequest,
+    RateCardRequest,
     _pricing,
     get_admin_context,
     get_db,
@@ -251,5 +252,60 @@ def update_fuel_config(
 ):
     require_module(ctx, "pricing")
     return _pricing.update_fuel_config(db, ctx, body.model_dump())
+
+
+@router.get("/pricing/rate-card")
+def get_rate_card(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+):
+    require_module(ctx, "pricing_read")
+    return _pricing.get_rate_card(db)
+
+
+@router.put("/pricing/rate-card")
+def update_rate_card(
+    body: RateCardRequest,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+):
+    require_module(ctx, "pricing")
+    # Full system card: merge request onto defaults so omitted keys stay as defaults
+    payload = body.model_dump(exclude_none=True)
+    current = _pricing.get_rate_card(db)
+    current.update({k: v for k, v in payload.items() if k != "vehicles"})
+    if "vehicles" in payload and isinstance(payload["vehicles"], dict):
+        vehicles = dict(current.get("vehicles") or {})
+        for code, row in payload["vehicles"].items():
+            vehicles[code] = {**(vehicles.get(code) or {}), **{k: v for k, v in row.items() if v is not None}}
+        current["vehicles"] = vehicles
+    return _pricing.update_rate_card(db, ctx, current)
+
+
+@router.get("/pricing/merchants/{merchant_id}/rate-card")
+def get_merchant_rate_card(
+    merchant_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+):
+    require_module(ctx, "pricing_read")
+    try:
+        return _pricing.get_merchant_rate_card(db, merchant_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.put("/pricing/merchants/{merchant_id}/rate-card")
+def update_merchant_rate_card(
+    merchant_id: str,
+    body: RateCardRequest,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+):
+    require_module(ctx, "pricing")
+    try:
+        return _pricing.update_merchant_rate_card(db, ctx, merchant_id, body.model_dump(exclude_none=True))
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 

@@ -938,6 +938,43 @@ class FuelConfigRequest(BaseModel):
     current_fuel_price_cents: int = 158
 
 
+class VehicleRateRequest(BaseModel):
+    per_km_cents: int | None = None
+    minimum_cents: int | None = None
+    surcharge_cents: int | None = None
+
+
+class RateCardRequest(BaseModel):
+    """System or merchant rate-card body — all fields optional for sparse merchant overlays."""
+
+    vehicles: dict[str, VehicleRateRequest] | None = None
+    base_fee_cents: int | None = None
+    per_minute_cents: int | None = None
+    wait_cents_per_minute: int | None = None
+    extra_stop_cents: int | None = None
+    liftgate_cents: int | None = None
+    rush_surcharge_cents: int | None = None
+    scheduled_surcharge_cents: int | None = None
+    weight_threshold_kg: float | None = None
+    weight_cents_per_kg: int | None = None
+    declared_value_threshold_cents: int | None = None
+    declared_value_rate: float | None = None
+    weekend_multiplier: float | None = None
+    holiday_multiplier: float | None = None
+    holidays: list[str] | None = None
+    night_multiplier: float | None = None
+    night_start_hour: int | None = None
+    night_end_hour: int | None = None
+    driver_payout_mode: str | None = None
+    driver_flat_per_delivery_cents: int | None = None
+    driver_minimum_payout_cents: int | None = None
+    driver_share_pct: float | None = None
+    platform_share_pct: float | None = None
+    package_surcharges: dict[str, int] | None = None
+    service_surcharges: dict[str, int] | None = None
+    minimum_charge_cents: int | None = None
+
+
 class FinanceDashboardResponse(BaseModel):
     today_revenue_cents: int
     month_revenue_cents: int
@@ -970,7 +1007,7 @@ class FinanceInvoiceItem(BaseModel):
     status: str
     merchant_id: str | None = None
     merchant_name: str | None = None
-    customer_id: str
+    customer_id: str | None = None
     customer_email: str | None = None
     order_id: str
     order_number: str | None = None
@@ -1040,6 +1077,19 @@ class FinanceCreditNoteRequest(BaseModel):
     order_id: str
     amount_cents: int
     reason: str
+
+
+class MerchantArGenerateRequest(BaseModel):
+    merchant_id: str
+    period_start: datetime | None = None
+    period_end: datetime | None = None
+
+
+class MerchantArRecordPaymentRequest(BaseModel):
+    amount_cents: int | None = None
+    method: str = "wire"
+    reference: str | None = None
+    paid_at: datetime | None = None
 
 
 class BookingDraftAdminItem(BaseModel):

@@ -7,7 +7,7 @@ import {
   AlertTriangle,
   Boxes,
   Circle,
-  Compass,
+  Filter,
   Hexagon,
   Layers,
   MapPin,
@@ -198,7 +198,7 @@ export default function LiveMapApp() {
     <GoogleMapsProvider>
       <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gray-bg">
         {/* Top toolbar */}
-        <header className="z-30 flex shrink-0 flex-wrap items-center gap-2 border-b border-primary/10 bg-white px-3 py-2 shadow-sm">
+        <header className="relative z-30 flex shrink-0 flex-wrap items-center gap-2 border-b border-primary/10 bg-white px-3 py-2 shadow-sm">
           <div className="flex items-center gap-2">
             <MapPin className="h-5 w-5 text-secondary" />
             <h1 className="text-sm font-bold text-primary">Live Operations Map</h1>
@@ -247,7 +247,7 @@ export default function LiveMapApp() {
               onClick={() => setLayersOpen((v) => !v)}
             />
             <ToolbarBtn
-              icon={FilterIcon}
+              icon={Filter}
               label="Filters"
               active={filtersOpen}
               onClick={() => setFiltersOpen((v) => !v)}
@@ -289,102 +289,106 @@ export default function LiveMapApp() {
             />
             <ToolbarBtn icon={RefreshCw} label="Refresh" onClick={() => void refresh()} />
           </div>
-        </header>
 
-        {/* Layers popover */}
-        <AnimatePresence>
-          {layersOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="absolute left-3 top-14 z-40 w-56 rounded-2xl border border-primary/10 bg-white p-3 shadow-xl"
-            >
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                Layers
-              </p>
-              {(Object.keys(DEFAULT_LAYERS) as Array<keyof MapLayers>).map((key) => (
-                <label key={key} className="flex cursor-pointer items-center gap-2 py-1 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={layers[key]}
-                    onChange={(e) => setLayers((l) => ({ ...l, [key]: e.target.checked }))}
-                    className="rounded border-primary/20 text-secondary"
-                  />
-                  {LAYER_LABELS[key]}
-                </label>
-              ))}
-              {layers.heatMap && (
-                <select
-                  value={heatMetric}
-                  onChange={(e) => setHeatMetric(e.target.value as typeof heatMetric)}
-                  className="mt-2 w-full rounded-lg border border-primary/10 px-2 py-1 text-xs"
-                >
-                  <option value="orders">Order density</option>
-                  <option value="pickups">Pickup density</option>
-                  <option value="deliveries">Delivery density</option>
-                  <option value="drivers">Driver density</option>
-                  <option value="revenue">Revenue density</option>
-                </select>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+          {/* Layers popover */}
+          <AnimatePresence>
+            {layersOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="absolute left-3 top-full z-50 mt-1 w-56 rounded-2xl border border-primary/10 bg-white p-3 shadow-xl"
+              >
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                  Layers
+                </p>
+                {(Object.keys(DEFAULT_LAYERS) as Array<keyof MapLayers>).map((key) => (
+                  <label key={key} className="flex cursor-pointer items-center gap-2 py-1 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={layers[key]}
+                      onChange={(e) => setLayers((l) => ({ ...l, [key]: e.target.checked }))}
+                      className="rounded border-primary/20 text-secondary"
+                    />
+                    {LAYER_LABELS[key]}
+                  </label>
+                ))}
+                {layers.heatMap && (
+                  <select
+                    value={heatMetric}
+                    onChange={(e) => setHeatMetric(e.target.value as typeof heatMetric)}
+                    className="mt-2 w-full rounded-lg border border-primary/10 px-2 py-1 text-xs"
+                  >
+                    <option value="orders">Order density</option>
+                    <option value="pickups">Pickup density</option>
+                    <option value="deliveries">Delivery density</option>
+                    <option value="drivers">Driver density</option>
+                    <option value="revenue">Revenue density</option>
+                  </select>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        {/* Filters popover */}
-        <AnimatePresence>
-          {filtersOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="absolute left-64 top-14 z-40 w-72 rounded-2xl border border-primary/10 bg-white p-4 shadow-xl"
-            >
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                Filters
-              </p>
-              <div className="space-y-2 text-sm">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={!!filters.online_only}
+          {/* Filters popover */}
+          <AnimatePresence>
+            {filtersOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="absolute left-28 top-full z-50 mt-1 w-72 rounded-2xl border border-primary/10 bg-white p-4 shadow-xl sm:left-36"
+              >
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
+                  Filters
+                </p>
+                <div className="space-y-2 text-sm">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={!!filters.online_only}
+                      onChange={(e) =>
+                        setFilters((f) => ({ ...f, online_only: e.target.checked || undefined }))
+                      }
+                    />
+                    Online drivers only
+                  </label>
+                  <select
+                    value={filters.priority ?? "all"}
                     onChange={(e) =>
-                      setFilters((f) => ({ ...f, online_only: e.target.checked || undefined }))
+                      setFilters((f) => ({
+                        ...f,
+                        priority: e.target.value as LiveMapFilters["priority"],
+                      }))
                     }
+                    className="w-full rounded-lg border border-primary/10 px-2 py-1.5"
+                  >
+                    <option value="all">All priorities</option>
+                    <option value="high">High priority</option>
+                    <option value="normal">Normal</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="City"
+                    value={filters.city ?? ""}
+                    onChange={(e) =>
+                      setFilters((f) => ({ ...f, city: e.target.value || undefined }))
+                    }
+                    className="w-full rounded-lg border border-primary/10 px-2 py-1.5"
                   />
-                  Online drivers only
-                </label>
-                <select
-                  value={filters.priority ?? "all"}
-                  onChange={(e) =>
-                    setFilters((f) => ({
-                      ...f,
-                      priority: e.target.value as LiveMapFilters["priority"],
-                    }))
-                  }
-                  className="w-full rounded-lg border border-primary/10 px-2 py-1.5"
-                >
-                  <option value="all">All priorities</option>
-                  <option value="high">High priority</option>
-                  <option value="normal">Normal</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder="City"
-                  value={filters.city ?? ""}
-                  onChange={(e) => setFilters((f) => ({ ...f, city: e.target.value || undefined }))}
-                  className="w-full rounded-lg border border-primary/10 px-2 py-1.5"
-                />
-                <input
-                  type="date"
-                  value={filters.date ?? ""}
-                  onChange={(e) => setFilters((f) => ({ ...f, date: e.target.value || undefined }))}
-                  className="w-full rounded-lg border border-primary/10 px-2 py-1.5"
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  <input
+                    type="date"
+                    value={filters.date ?? ""}
+                    onChange={(e) =>
+                      setFilters((f) => ({ ...f, date: e.target.value || undefined }))
+                    }
+                    className="w-full rounded-lg border border-primary/10 px-2 py-1.5"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </header>
 
         {/* Command center widgets */}
         {data && (
@@ -413,7 +417,7 @@ export default function LiveMapApp() {
                 initial={{ x: -280 }}
                 animate={{ x: 0 }}
                 exit={{ x: -280 }}
-                className="absolute bottom-0 left-0 top-0 z-20 flex w-72 flex-col border-r border-primary/10 bg-white/95 shadow-lg backdrop-blur"
+                className="absolute bottom-0 left-0 top-0 z-20 flex w-80 flex-col border-r border-primary/10 bg-white/95 shadow-lg backdrop-blur"
               >
                 <div className="flex gap-1 overflow-x-auto border-b border-primary/5 p-2">
                   {(
@@ -449,7 +453,7 @@ export default function LiveMapApp() {
           </AnimatePresence>
 
           {/* Map */}
-          <div className={cn("h-full", leftOpen && "lg:pl-72", rightOpen && "lg:pr-96")}>
+          <div className={cn("h-full", leftOpen && "lg:pl-80", rightOpen && "lg:pr-96")}>
             {data ? (
               <MapCanvas
                 data={data}
@@ -461,6 +465,7 @@ export default function LiveMapApp() {
                 onSelect={loadDetail}
                 measureActive={measureActive}
                 drawMode={drawMode}
+                onDrawComplete={() => setDrawMode("none")}
                 playbackFrames={playbackFrames}
                 playbackIndex={playbackIndex}
               />
@@ -623,10 +628,6 @@ export default function LiveMapApp() {
   );
 }
 
-function FilterIcon({ className }: { className?: string }) {
-  return <Compass className={className} />;
-}
-
 function ToolbarBtn({
   icon: Icon,
   label,
@@ -664,16 +665,25 @@ function LeftPanelContent({
   onSelect: (type: string, id: string) => void;
 }) {
   if (tab === "drivers") {
+    if (!data.drivers.length) {
+      return <EmptyHint>No drivers in this view</EmptyHint>;
+    }
     return (
       <ul className="space-y-1">
         {data.drivers.map((d) => (
           <li key={d.id}>
             <button
               type="button"
-              className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm hover:bg-gray-bg"
+              className="flex w-full items-start justify-between gap-2 rounded-lg px-2 py-2 text-left text-sm hover:bg-gray-bg"
               onClick={() => onSelect("driver", d.id)}
             >
-              <span className="font-medium">{d.name}</span>
+              <span className="min-w-0">
+                <span className="block truncate font-medium text-primary">{d.name}</span>
+                <span className="block text-[11px] text-muted">
+                  {d.vehicle_type || "No vehicle"}
+                  {d.current_order_id ? " · on job" : ""}
+                </span>
+              </span>
               <Badge tone={d.online ? "green" : "slate"}>{d.availability}</Badge>
             </button>
           </li>
@@ -681,7 +691,11 @@ function LeftPanelContent({
       </ul>
     );
   }
+
   if (tab === "vehicles") {
+    if (!data.vehicles.length) {
+      return <EmptyHint>No vehicles to show</EmptyHint>;
+    }
     return (
       <ul className="space-y-1">
         {data.vehicles.map((v) => (
@@ -691,45 +705,161 @@ function LeftPanelContent({
               className="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-gray-bg"
               onClick={() => onSelect("vehicle", v.id)}
             >
-              <span className="font-medium">{v.plate_number}</span>
-              <span className="ml-2 text-xs text-muted">{v.vehicle_class}</span>
+              <span className="font-medium text-primary">{v.plate_number}</span>
+              <span className="mt-0.5 block text-[11px] text-muted">
+                {v.vehicle_class}
+                {v.driver_name ? ` · ${v.driver_name}` : " · unassigned"}
+              </span>
             </button>
           </li>
         ))}
       </ul>
     );
   }
+
   if (tab === "incidents") {
-    return (
-      <ul className="space-y-1">
-        {data.alerts
+    const incidents = data.incidents?.length
+      ? data.incidents
+      : data.alerts
           .filter((a) => a.alert_type === "incident")
-          .map((a) => (
-            <li key={a.id} className="rounded-lg bg-amber-50 px-2 py-2 text-xs">
-              {a.message}
-            </li>
-          ))}
+          .map((a) => ({
+            id: a.id,
+            type: a.title,
+            status: "open",
+            order_id: a.entity_id || "",
+            tracking_number: a.message,
+            message: a.message,
+            created_at: a.created_at,
+          }));
+    if (!incidents.length) {
+      return <EmptyHint>No open incidents</EmptyHint>;
+    }
+    return (
+      <ul className="space-y-1.5">
+        {incidents.map((item) => (
+          <li key={item.id}>
+            <button
+              type="button"
+              className="w-full rounded-lg border border-amber-100 bg-amber-50/80 px-2.5 py-2 text-left hover:bg-amber-50"
+              onClick={() => item.order_id && onSelect("order", item.order_id)}
+            >
+              <span className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold capitalize text-amber-900">
+                  {String(item.type).replace(/_/g, " ")}
+                </span>
+                <Badge tone="amber">{item.status}</Badge>
+              </span>
+              <span className="mt-1 block font-mono text-[11px] text-primary">
+                {item.tracking_number}
+              </span>
+              <span className="mt-0.5 block text-[11px] text-muted">{item.message}</span>
+              {item.created_at ? (
+                <span className="mt-1 block text-[10px] text-muted">
+                  {relativeTime(item.created_at)}
+                </span>
+              ) : null}
+            </button>
+          </li>
+        ))}
       </ul>
     );
   }
+
   if (tab === "claims") {
-    return (
-      <ul className="space-y-1">
-        {data.alerts
+    const claims = data.claims?.length
+      ? data.claims
+      : data.alerts
           .filter((a) => a.alert_type === "claim")
-          .map((a) => (
-            <li key={a.id} className="rounded-lg bg-blue-50 px-2 py-2 text-xs">
-              {a.message}
-            </li>
-          ))}
+          .map((a) => ({
+            id: a.entity_id || a.id,
+            claim_number: a.title,
+            claim_type: "claim",
+            status: "open",
+            description: a.message,
+            order_id: a.entity_id || "",
+            tracking_number: null as string | null,
+            created_at: a.created_at,
+          }));
+    if (!claims.length) {
+      return <EmptyHint>No open claims</EmptyHint>;
+    }
+    return (
+      <ul className="space-y-1.5">
+        {claims.map((c) => (
+          <li key={c.id}>
+            <button
+              type="button"
+              className="w-full rounded-lg border border-sky-100 bg-sky-50/70 px-2.5 py-2 text-left hover:bg-sky-50"
+              onClick={() => onSelect("claim", c.id)}
+            >
+              <span className="flex items-center justify-between gap-2">
+                <span className="font-mono text-xs font-semibold text-sky-900">
+                  {c.claim_number}
+                </span>
+                <Badge tone="sky">{c.status.replace(/_/g, " ")}</Badge>
+              </span>
+              <span className="mt-1 block text-xs font-medium capitalize text-primary">
+                {c.claim_type.replace(/_/g, " ")}
+              </span>
+              {c.tracking_number ? (
+                <span className="mt-0.5 block font-mono text-[11px] text-muted">
+                  {c.tracking_number}
+                </span>
+              ) : null}
+              {c.description ? (
+                <span className="mt-0.5 line-clamp-2 block text-[11px] text-muted">
+                  {c.description}
+                </span>
+              ) : null}
+            </button>
+          </li>
+        ))}
       </ul>
     );
   }
+
   if (tab === "support") {
+    const tickets = data.support_tickets ?? [];
     return (
-      <p className="px-2 text-xs text-muted">{data.command_center.support_tickets} open tickets</p>
+      <div className="space-y-2">
+        <p className="px-1 text-[11px] font-medium text-muted">
+          {tickets.length || data.command_center.support_tickets} open ticket
+          {(tickets.length || data.command_center.support_tickets) === 1 ? "" : "s"}
+        </p>
+        {!tickets.length ? (
+          <EmptyHint>No open support tickets</EmptyHint>
+        ) : (
+          <ul className="space-y-1.5">
+            {tickets.map((t) => (
+              <li key={t.id}>
+                <button
+                  type="button"
+                  className="w-full rounded-lg border border-primary/8 bg-white px-2.5 py-2 text-left shadow-sm hover:bg-gray-bg"
+                  onClick={() => onSelect("ticket", t.id)}
+                >
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs font-semibold text-secondary">
+                      {t.ticket_number}
+                    </span>
+                    <PriorityBadge priority={t.priority} />
+                  </span>
+                  <span className="mt-1 line-clamp-2 block text-xs font-medium text-primary">
+                    {t.subject}
+                  </span>
+                  <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-muted">
+                    <Badge tone="slate">{t.status.replace(/_/g, " ")}</Badge>
+                    <span className="capitalize">{t.category.replace(/_/g, " ")}</span>
+                    {t.updated_at ? <span>· {relativeTime(t.updated_at)}</span> : null}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     );
   }
+
   // queue default
   const waiting = data.orders.filter(
     (o) => o.stop_type === "pickup" && ["BOOKED", "DISPATCH_READY"].includes(o.state)
@@ -743,14 +873,31 @@ function LeftPanelContent({
             className="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-gray-bg"
             onClick={() => onSelect("order", o.order_id)}
           >
-            <span className="font-mono text-xs">{o.tracking_number}</span>
+            <span className="font-mono text-xs font-semibold text-primary">
+              {o.tracking_number}
+            </span>
             <p className="text-xs text-muted">{o.merchant ?? "—"}</p>
+            <p className="text-[10px] capitalize text-muted">{o.state.replace(/_/g, " ")}</p>
           </button>
         </li>
       ))}
-      {!waiting.length && <p className="px-2 text-xs text-muted">Dispatch queue is clear</p>}
+      {!waiting.length && <EmptyHint>Dispatch queue is clear</EmptyHint>}
     </ul>
   );
+}
+
+function EmptyHint({ children }: { children: React.ReactNode }) {
+  return <p className="px-2 py-6 text-center text-xs text-muted">{children}</p>;
+}
+
+function PriorityBadge({ priority }: { priority: string }) {
+  const tone =
+    priority === "urgent" || priority === "critical" || priority === "high"
+      ? "red"
+      : priority === "low"
+        ? "slate"
+        : "amber";
+  return <Badge tone={tone}>{priority}</Badge>;
 }
 
 function DetailPanel({ detail }: { detail: Record<string, unknown> }) {
@@ -758,21 +905,66 @@ function DetailPanel({ detail }: { detail: Record<string, unknown> }) {
   const timeline = (detail.timeline as Array<{ label: string; at: string | null }>) ?? [];
   const contact = detail.contact as Record<string, string | null> | undefined;
   const currentJob = detail.current_job as Record<string, unknown> | null | undefined;
+  const notes = (detail.notes as Array<{ body?: string }>) ?? [];
+  const meta = (detail.meta as Record<string, unknown>) ?? {};
 
   return (
     <div className="space-y-4">
       <div>
         <p className="text-lg font-bold text-primary">{String(detail.title ?? "")}</p>
         {detail.subtitle ? <p className="text-sm text-muted">{String(detail.subtitle)}</p> : null}
-        {detail.status ? <Badge className="mt-2">{String(detail.status)}</Badge> : null}
+        {detail.status ? (
+          <Badge className="mt-2" tone="sky">
+            {String(detail.status).replace(/_/g, " ")}
+          </Badge>
+        ) : null}
       </div>
+
+      {Object.keys(meta).length > 0 && (
+        <section>
+          <h3 className="text-xs font-semibold uppercase text-muted">Details</h3>
+          <dl className="mt-2 space-y-1.5 text-sm">
+            {Object.entries(meta)
+              .filter(([, v]) => v != null && v !== "")
+              .map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-3">
+                  <dt className="capitalize text-muted">{k.replace(/_/g, " ")}</dt>
+                  <dd className="text-right font-medium text-primary">{String(v)}</dd>
+                </div>
+              ))}
+          </dl>
+        </section>
+      )}
 
       {currentJob && (
         <section>
-          <h3 className="text-xs font-semibold uppercase text-muted">Current job</h3>
-          <pre className="mt-1 rounded-lg bg-gray-bg p-2 text-xs">
-            {JSON.stringify(currentJob, null, 2)}
-          </pre>
+          <h3 className="text-xs font-semibold uppercase text-muted">Linked job</h3>
+          <div className="mt-1 space-y-1 rounded-lg bg-gray-bg p-2 text-xs">
+            {Object.entries(currentJob)
+              .filter(([, v]) => v != null && v !== "")
+              .map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-2">
+                  <span className="capitalize text-muted">{k.replace(/_/g, " ")}</span>
+                  <span className="font-mono text-primary">{String(v)}</span>
+                </div>
+              ))}
+          </div>
+        </section>
+      )}
+
+      {notes.length > 0 && (
+        <section>
+          <h3 className="text-xs font-semibold uppercase text-muted">Notes</h3>
+          <ul className="mt-2 space-y-2">
+            {notes.map((n, i) => (
+              <li
+                key={i}
+                className="rounded-lg border border-primary/8 px-3 py-2 text-sm text-primary"
+              >
+                {n.body || "—"}
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
@@ -807,7 +999,10 @@ function DetailPanel({ detail }: { detail: Record<string, unknown> }) {
 
       <section className="flex flex-wrap gap-2">
         {actions.map((a) => (
-          <Link key={a.key} href={a.href.startsWith("/") ? a.href : "#"}>
+          <Link
+            key={a.key}
+            href={a.href.startsWith("/") || a.href.startsWith("tel:") ? a.href : "#"}
+          >
             <Button variant="outline" className="text-xs">
               {a.label}
             </Button>

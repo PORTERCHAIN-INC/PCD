@@ -17,6 +17,7 @@ from porterchain_pricing.promotion import PromotionService
 from porterchain_pricing.repository import InMemoryPricingRepository, PricingRepository
 from porterchain_pricing.simulator import PricingSimulator
 from porterchain_pricing.tax import TaxService
+from porterchain_pricing.rate_card import RateCard, VehicleRate, default_rate_card, merge_merchant_overlay, rate_card_from_dict
 from porterchain_pricing.types import GeoPoint, PriceBreakdown, PriceLineItem, PricingContext, PricingRequest
 from porterchain_pricing.zone import ZoneService
 
@@ -34,11 +35,16 @@ __all__ = [
     "PricingService",
     "PricingSimulator",
     "PromotionService",
+    "RateCard",
     "ServiceType",
     "TaxService",
     "VehicleClass",
+    "VehicleRate",
     "ZoneService",
+    "default_rate_card",
     "estimate_duration_minutes",
     "haversine_meters",
+    "merge_merchant_overlay",
+    "rate_card_from_dict",
     "total_route_meters",
 ]

@@ -1,5 +1,9 @@
-/** Decode Google/OSRM encoded polyline to lat/lng path. */
-export function decodePolyline(encoded: string): google.maps.LatLngLiteral[] {
+/** Decode Google/OSRM (1e-5) or Valhalla (1e-6) encoded polylines. */
+export function decodePolyline(
+  encoded: string,
+  encoding: "google" | "valhalla" = "google"
+): google.maps.LatLngLiteral[] {
+  const factor = encoding === "valhalla" ? 1e6 : 1e5;
   const points: google.maps.LatLngLiteral[] = [];
   let index = 0;
   let lat = 0;
@@ -27,9 +31,17 @@ export function decodePolyline(encoded: string): google.maps.LatLngLiteral[] {
     const deltaLng = result & 1 ? ~(result >> 1) : result >> 1;
     lng += deltaLng;
 
-    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+    points.push({ lat: lat / factor, lng: lng / factor });
   }
   return points;
+}
+
+export function resolveRoutePolylineEncoding(
+  route?: { polyline_encoding?: string | null; source?: string | null } | null
+): "google" | "valhalla" {
+  if (route?.polyline_encoding === "google") return "google";
+  if (route?.source === "valhalla") return "valhalla";
+  return "google";
 }
 
 export function coordsFromAddress(

@@ -57,7 +57,7 @@ Fleetbase adapter (server-side only — never called from this UI)
 | Support        | `/support`          | Ticket management                          |
 | Notifications  | `/notifications`    | Admin notification tools                   |
 | Settings       | `/settings`         | Staff, system config                       |
-| System health  | `/system-health`    | Diagnostics                                |
+| System         | `/system`           | Health + diagnostics (tabs)                |
 
 _Phase 2 deferred:_ CRM sales pipeline UI, Route Center, BI reports center — use Fleetbase console + module dashboards.
 

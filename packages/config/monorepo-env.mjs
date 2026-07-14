@@ -46,18 +46,49 @@ function pick(...keys) {
   return "";
 }
 
-/** Resolve Clerk keys for one portal (customer | merchant | admin | driver). */
+function isLocalAppEnv() {
+  const appEnv = (process.env.NEXT_PUBLIC_APP_ENV || process.env.APP_ENV || "").toLowerCase();
+  return appEnv === "local" || appEnv === "development" || appEnv === "dev";
+}
+
+function isLiveClerkValue(value) {
+  return (
+    typeof value === "string" && (value.includes("_live_") || value.includes(".porterchain.com"))
+  );
+}
+
+/**
+ * Resolve Clerk keys for one portal (customer | merchant | admin | driver).
+ * Local safety: ambient shell/Doppler `pk_live_*` must not override `.env.local` / test keys
+ * when APP_ENV is local (localhost cannot use production Clerk domains).
+ */
 export function clerkKeysForPortal(portal) {
   const p = portal.toUpperCase();
-  return {
-    publishable: pick(
-      `CLERK_${p}_PUBLISHABLE_KEY`,
-      "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
-      "CLERK_PUBLISHABLE_KEY"
-    ),
-    secret: pick(`CLERK_${p}_SECRET_KEY`, "CLERK_SECRET_KEY"),
-    jwks: pick(`CLERK_${p}_JWKS_URL`, "CLERK_JWKS_URL"),
-  };
+  const portalPub = process.env[`CLERK_${p}_PUBLISHABLE_KEY`]?.trim() || "";
+  const nextPub = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim() || "";
+  const genericPub = process.env.CLERK_PUBLISHABLE_KEY?.trim() || "";
+  const portalSecret = process.env[`CLERK_${p}_SECRET_KEY`]?.trim() || "";
+  const nextSecret = process.env.CLERK_SECRET_KEY?.trim() || "";
+  const portalJwks = process.env[`CLERK_${p}_JWKS_URL`]?.trim() || "";
+  const genericJwks = process.env.CLERK_JWKS_URL?.trim() || "";
+
+  let publishable = portalPub || nextPub || genericPub;
+  let secret = portalSecret || nextSecret;
+  let jwks = portalJwks || genericJwks;
+
+  if (
+    isLocalAppEnv() &&
+    isLiveClerkValue(portalPub) &&
+    (nextPub.includes("pk_test") || genericPub.includes("pk_test"))
+  ) {
+    publishable = nextPub.includes("pk_test") ? nextPub : genericPub;
+    if (nextSecret.includes("sk_test")) secret = nextSecret;
+    if (jwks.includes("porterchain.com") && !jwks.includes("accounts.dev")) {
+      jwks = "";
+    }
+  }
+
+  return { publishable, secret, jwks };
 }
 
 /** Next.js env block for a portal — publishable key only (baked at build). */

@@ -331,7 +331,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "443:443/udp"
+      # HTTP/3 (QUIC) disabled — UDP/443 left unpublished intentionally.
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

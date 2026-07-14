@@ -34,7 +34,7 @@ function NavLinkItem({
       onClick={onNavigate}
       role="menuitem"
       className={cn(
-        "flex items-start gap-3 rounded-lg px-3 py-2.5 transition",
+        "flex items-start gap-3 rounded-lg px-3 py-2 transition",
         active ? "bg-secondary/10" : "hover:bg-gray-bg"
       )}
     >
@@ -45,7 +45,9 @@ function NavLinkItem({
         >
           {label}
         </span>
-        {description && <span className="block text-xs text-muted">{description}</span>}
+        {description ? (
+          <span className="mt-0.5 block text-xs leading-snug text-muted">{description}</span>
+        ) : null}
       </span>
     </Link>
   );
@@ -61,17 +63,25 @@ function AllModulesPanel({
   onNavigate?: () => void;
 }) {
   return (
-    <div className="max-h-[min(70dvh,520px)] overflow-y-auto p-2">
-      <p className="px-3 py-2 text-xs font-semibold text-muted">All admin modules</p>
-      <div className="grid gap-1 sm:grid-cols-2">
-        {ALL_ADMIN_NAV_ITEMS.map((item) => (
-          <NavLinkItem
-            key={item.href}
-            {...item}
-            pathname={pathname}
-            search={search}
-            onNavigate={onNavigate}
-          />
+    <div className="max-h-[min(70dvh,560px)] overflow-y-auto p-2">
+      <div className="space-y-3">
+        {ADMIN_NAV_GROUPS.map((group) => (
+          <div key={group.id}>
+            <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted">
+              {group.label}
+            </p>
+            <div className="grid gap-0.5 sm:grid-cols-2">
+              {group.items.map((item) => (
+                <NavLinkItem
+                  key={item.href}
+                  {...item}
+                  pathname={pathname}
+                  search={search}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>
@@ -79,13 +89,11 @@ function AllModulesPanel({
 }
 
 function GroupPanel({
-  groupLabel,
   items,
   pathname,
   search,
   onNavigate,
 }: {
-  groupLabel: string;
   items: (typeof ADMIN_NAV_GROUPS)[0]["items"];
   pathname: string;
   search: string;
@@ -93,9 +101,6 @@ function GroupPanel({
 }) {
   return (
     <div className="p-1.5">
-      <p className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-muted">
-        {groupLabel}
-      </p>
       {items.map((item) => (
         <NavLinkItem
           key={item.href}
@@ -115,7 +120,7 @@ export default function AdminMenuBar() {
   const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
   return (
-    <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-1" aria-label="Main menu">
+    <nav className="flex min-w-0 flex-1 items-center gap-0.5" aria-label="Main menu">
       <div className="md:hidden">
         <NavDropdown
           width="xl"
@@ -124,23 +129,23 @@ export default function AdminMenuBar() {
               type="button"
               {...triggerProps}
               className={cn(
-                "flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium transition whitespace-nowrap",
+                "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition whitespace-nowrap",
                 open ? "bg-secondary/10 text-secondary" : "text-primary/80 hover:bg-primary/5"
               )}
             >
               <LayoutGrid className="h-4 w-4" />
-              All modules
+              Menu
               <ChevronDown
                 className={cn("h-3.5 w-3.5 opacity-60 transition", open && "rotate-180")}
               />
             </button>
           )}
         >
-          <AllModulesPanel pathname={pathname} search={search} />
+          {({ close }) => (
+            <AllModulesPanel pathname={pathname} search={search} onNavigate={close} />
+          )}
         </NavDropdown>
       </div>
-
-      <span className="mx-0.5 hidden h-5 w-px bg-primary/10 md:inline" />
 
       {ADMIN_NAV_GROUPS.map((group) => {
         const active = group.items.some((item) => isNavActive(pathname, item.href, search));
@@ -167,7 +172,7 @@ export default function AdminMenuBar() {
         return (
           <NavDropdown
             key={group.id}
-            width="md"
+            width={group.items.length >= 4 ? "lg" : "md"}
             trigger={({ open, triggerProps }) => (
               <button
                 type="button"
@@ -186,12 +191,14 @@ export default function AdminMenuBar() {
               </button>
             )}
           >
-            <GroupPanel
-              groupLabel={group.label}
-              items={group.items}
-              pathname={pathname}
-              search={search}
-            />
+            {({ close }) => (
+              <GroupPanel
+                items={group.items}
+                pathname={pathname}
+                search={search}
+                onNavigate={close}
+              />
+            )}
           </NavDropdown>
         );
       })}

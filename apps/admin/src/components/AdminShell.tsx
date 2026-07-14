@@ -9,6 +9,7 @@ import AdminAccessGate from "@/components/AdminAccessGate";
 import AdminAccountMenu from "@/components/nav/AdminAccountMenu";
 import AdminAppsMenu from "@/components/nav/AdminAppsMenu";
 import AdminMenuBar from "@/components/nav/AdminMenuBar";
+import NotificationBell from "@/components/nav/NotificationBell";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
@@ -50,8 +51,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             <AdminMenuBar />
           </div>
 
-          <div className="flex shrink-0 items-center gap-2 border-l border-primary/10 pl-2">
+          <div className="flex shrink-0 items-center gap-1.5 border-l border-primary/10 pl-2 sm:gap-2">
             <AdminAppsMenu />
+            {/* Bell sits immediately before profile — primary Notification Center entry */}
+            <NotificationBell viewAllHref="/notifications" />
             <AdminAccountMenu />
           </div>
         </div>
