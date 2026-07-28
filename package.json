@@ -58,6 +58,7 @@
     "validate:category-positioning": "python3 scripts/verify_category_positioning.py",
     "validate:construction-site-access": "python3 scripts/verify_construction_site_access.py",
     "validate:liftgate-pricing": "python3 scripts/verify_liftgate_pricing.py",
+    "validate:vertical-onboarding": "python3 scripts/verify_vertical_onboarding.py",
     "validate:medical-food-verticals": "python3 scripts/verify_medical_food_verticals.py",
     "validate:moat": "python3 scripts/verify_construction_site_access.py && python3 scripts/verify_liftgate_pricing.py && python3 scripts/verify_vertical_onboarding.py && python3 scripts/verify_medical_food_verticals.py && python3 scripts/verify_wholesale_standing_orders.py && python3 scripts/verify_compliance_dossier.py && python3 scripts/verify_data_moat_switching.py",
     "validate:investor-monopoly": "python3 scripts/verify_monopoly_investor.py && python3 scripts/verify_rbac_audit.py && python3 scripts/verify_investor_metrics_cadence.py",
