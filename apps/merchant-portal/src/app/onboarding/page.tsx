@@ -8,7 +8,19 @@ import { fetchMerchantOnboarding, saveMerchantVertical } from "@/lib/onboarding"
 import { isClerkConfigured } from "@/lib/env";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 
+/**
+ * Onboarding must not call Clerk hooks when ClerkProvider is omitted
+ * (empty publishable key in CI / local). Split so hooks only run under
+ * a configured Clerk tree.
+ */
 export default function MerchantOnboardingPage() {
+  if (!isClerkConfigured()) {
+    return null;
+  }
+  return <MerchantOnboardingWithClerk />;
+}
+
+function MerchantOnboardingWithClerk() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
   const { getApiToken } = useMerchantAuth();
@@ -32,10 +44,6 @@ export default function MerchantOnboardingPage() {
   };
 
   useEffect(() => {
-    if (!isClerkConfigured()) {
-      router.replace("/dashboard");
-      return;
-    }
     if (!isLoaded) return;
     if (!isSignedIn) {
       router.replace("/sign-in?redirect_url=/onboarding");
@@ -62,9 +70,9 @@ export default function MerchantOnboardingPage() {
       cancelled = true;
       if (timer) window.clearInterval(timer);
     };
+    // refresh is stable enough for this gate; token getter is the dependency that matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional onboarding poll lifecycle
   }, [getApiToken, isLoaded, isSignedIn, router]);
-
-  if (!isClerkConfigured()) return null;
 
   if ((loading && !data) || !isLoaded) {
     return (

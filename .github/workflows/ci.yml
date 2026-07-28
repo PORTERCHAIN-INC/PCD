@@ -142,7 +142,8 @@ jobs:
         run: pnpm build
         env:
           NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'ci-placeholder-key' }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY || '' }}
+          # Prefer per-portal publishable keys; empty means portals render Clerk-off UI (must not call useAuth).
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_MERCHANT_PUBLISHABLE_KEY || secrets.CLERK_CUSTOMER_PUBLISHABLE_KEY || '' }}
 
   api-postgres:
     name: API (PostgreSQL)

@@ -7,7 +7,27 @@ import { useEffect } from "react";
 import { isClerkConfigured } from "@/lib/env";
 import { porterchainClerkAppearance } from "@/lib/clerk-appearance";
 
-export default function SignUpPage() {
+function ClerkUnavailable() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-bg p-4">
+      <div className="w-full max-w-md rounded-2xl border border-primary/10 bg-white p-8 shadow-sm text-center">
+        <h1 className="text-2xl font-bold text-primary">Invitation required</h1>
+        <p className="mt-3 text-sm text-muted leading-relaxed">
+          Merchant accounts are invite-only. Configure Clerk to enable Google or Microsoft sign-up
+          in local development.
+        </p>
+        <Link
+          href="/sign-in"
+          className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white hover:bg-[#1d4ed8]"
+        >
+          Back to sign in
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function SignUpWithClerk() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
 
@@ -16,26 +36,6 @@ export default function SignUpPage() {
       router.replace("/onboarding");
     }
   }, [isLoaded, isSignedIn, router]);
-
-  if (!isClerkConfigured()) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-bg p-4">
-        <div className="w-full max-w-md rounded-2xl border border-primary/10 bg-white p-8 shadow-sm text-center">
-          <h1 className="text-2xl font-bold text-primary">Invitation required</h1>
-          <p className="mt-3 text-sm text-muted leading-relaxed">
-            Merchant accounts are invite-only. Configure Clerk to enable Google or Microsoft sign-up
-            in local development.
-          </p>
-          <Link
-            href="/sign-in"
-            className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white hover:bg-[#1d4ed8]"
-          >
-            Back to sign in
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   if (!isLoaded || isSignedIn) {
     return (
@@ -69,4 +69,11 @@ export default function SignUpPage() {
       </p>
     </div>
   );
+}
+
+export default function SignUpPage() {
+  if (!isClerkConfigured()) {
+    return <ClerkUnavailable />;
+  }
+  return <SignUpWithClerk />;
 }
