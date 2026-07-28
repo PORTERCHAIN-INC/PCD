@@ -46,10 +46,18 @@ def main() -> int:
             failures.append(".env.example missing PORTERCHAIN_PHASE2_CRM=false")
 
     if PHASE2_PY.is_file():
-        from porterchain_shared.config.phase2 import Phase2Flags
+        # Load the module file directly — importing porterchain_shared pulls pydantic
+        # via package __init__, which CI website job does not install.
+        import importlib.util
 
-        if Phase2Flags().any_enabled():
-            failures.append("Phase2Flags defaults must all be false")
+        spec = importlib.util.spec_from_file_location("_phase2_flags_check", PHASE2_PY)
+        if spec is None or spec.loader is None:
+            failures.append("could not load phase2.py")
+        else:
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            if mod.Phase2Flags().any_enabled():
+                failures.append("Phase2Flags defaults must all be false")
 
     print("Phase 2 feature flags guard (§1.2.4 · DD-26)")
     if failures:
