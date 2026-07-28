@@ -25,21 +25,22 @@ def main() -> int:
     failures: list[str] = []
 
     required = (
-        ("track/page.tsx", "GuestTrackLookup"),
-        ("track/[tracking]/page.tsx", "getOrderByTracking"),
-        ("book/page.tsx", REDIRECT_MARKER),
-        ("book/continue/page.tsx", REDIRECT_MARKER),
-        ("book/success/page.tsx", REDIRECT_MARKER),
-        ("quote/page.tsx", REDIRECT_MARKER),
+        ("track/page.tsx", ("GuestTrackLookup",)),
+        ("track/[tracking]/page.tsx", ("getOrderByTracking",)),
+        ("book/page.tsx", ("portal-book-redirect",)),
+        ("book/continue/page.tsx", ("portal-book-redirect",)),
+        ("book/success/page.tsx", ("portal-book-redirect",)),
+        # Legacy /quote is a capacity CTA → contact quote (not customer-portal book).
+        ("quote/page.tsx", ("intent=quote", "portal-book-redirect")),
     )
-    for rel, needle in required:
+    for rel, needles in required:
         path = WEBSITE_APP / rel
         if not path.is_file():
             failures.append(f"missing {rel}")
             continue
         text = _read(path)
-        if needle not in text:
-            failures.append(f"{rel} missing {needle!r}")
+        if not any(needle in text for needle in needles):
+            failures.append(f"{rel} missing one of {needles!r}")
 
     portal_links = ROOT / "website/src/data/portal-links.ts"
     if "customerPortalBookUrl" not in _read(portal_links):

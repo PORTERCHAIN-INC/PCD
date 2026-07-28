@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSIONS = ROOT / "apps/api/alembic/versions"
-EXPECTED_HEAD = "s2t3u4v5w6x7"
+EXPECTED_HEAD = "v5w6x7y8z9a0"
 
 
 def find_head_revision() -> str | None:
@@ -46,7 +46,7 @@ def main() -> int:
     elif head != EXPECTED_HEAD:
         failures.append(f"Alembic head is {head!r}, expected {EXPECTED_HEAD!r}")
 
-    head_file = VERSIONS / f"{EXPECTED_HEAD}_analytics_schema.py"
+    head_file = VERSIONS / f"{EXPECTED_HEAD}_merchant_cycle_ar.py"
     if not head_file.is_file():
         failures.append(f"missing migration file for head {EXPECTED_HEAD}")
 

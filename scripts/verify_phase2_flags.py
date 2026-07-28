@@ -3,9 +3,11 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "shared/python"))
 
 PHASE2_PY = ROOT / "shared/python/porterchain_shared/config/phase2.py"
 PHASE2_MJS = ROOT / "packages/config/phase2.mjs"

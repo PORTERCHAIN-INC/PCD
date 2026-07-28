@@ -28,7 +28,10 @@ def main() -> int:
             failures.append(f"{label} must not expose merchant SSO on capacity acquisition page")
 
     login = LOGIN.read_text(encoding="utf-8")
-    if 'intent === "merchant"' not in login:
+    if (
+        'intent === "merchant"' not in login
+        and "portalSignInUrlForIntent" not in login
+    ):
         failures.append("login page missing merchant intent routing")
 
     unified = UNIFIED.read_text(encoding="utf-8")

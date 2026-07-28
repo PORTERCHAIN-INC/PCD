@@ -9,10 +9,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEPLOY_YML = ROOT / ".github/workflows/deploy.yml"
+RECOVER = ROOT / "infrastructure/deploy/scripts/recover-prod-stack.sh"
 COMPOSE = ROOT / "infrastructure/deploy/docker-compose.prod.yml"
 README = ROOT / "infrastructure/deploy/README.md"
 
-_REQUIRED: tuple[str, ...] = (
+_REQUIRED_README: tuple[str, ...] = (
     "--scale api=",
     "API_REPLICAS",
     "repair_and_migrate.py",
@@ -26,11 +27,28 @@ def main() -> int:
 
     if DEPLOY_YML.is_file():
         deploy = DEPLOY_YML.read_text(encoding="utf-8", errors="ignore")
-        for snippet in ("--scale api=", "API_REPLICAS", "repair_and_migrate.py"):
+        for snippet in ("API_REPLICAS", "repair_and_migrate.py", "recover-prod-stack.sh"):
             if snippet not in deploy:
                 failures.append(f"§2.5.7 deploy.yml missing: {snippet}")
+        # Scale may live in recover-prod-stack.sh (called by Deploy) — require one of the two.
+        if "--scale api=" not in deploy:
+            if not RECOVER.is_file() or "--scale api=" not in RECOVER.read_text(
+                encoding="utf-8", errors="ignore"
+            ):
+                failures.append(
+                    "§2.5.7 missing --scale api= in deploy.yml or recover-prod-stack.sh"
+                )
     else:
         failures.append("§2.5.7 missing deploy.yml")
+
+    if RECOVER.is_file():
+        recover = RECOVER.read_text(encoding="utf-8", errors="ignore")
+        if "--scale api=" not in recover:
+            failures.append("§2.5.7 recover-prod-stack.sh missing: --scale api=")
+        if "API_REPLICAS" not in recover:
+            failures.append("§2.5.7 recover-prod-stack.sh missing: API_REPLICAS")
+    else:
+        failures.append("§2.5.7 missing recover-prod-stack.sh")
 
     if COMPOSE.is_file():
         compose = COMPOSE.read_text(encoding="utf-8", errors="ignore")
@@ -46,7 +64,7 @@ def main() -> int:
 
     if README.is_file():
         readme = README.read_text(encoding="utf-8", errors="ignore")
-        for snippet in _REQUIRED:
+        for snippet in _REQUIRED_README:
             if snippet not in readme:
                 failures.append(f"§2.5.7 deploy README missing: {snippet}")
     else:

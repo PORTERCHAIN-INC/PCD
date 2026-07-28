@@ -17,6 +17,7 @@ import { buildProductLinksForNiche } from "@/lib/seo/internal-linking";
 import type { SeoSectionLabels } from "@/components/seo/seo-section-labels";
 import Container from "@/components/ui/Container";
 import FadeIn from "@/components/corporate/motion/FadeIn";
+import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
 
 export type NicheLandingContent = {
   meta?: { title?: string; description?: string };
@@ -258,6 +259,7 @@ export default function IndustryLandingView({
           </Container>
         </section>
       )}
+      <PlatformBridgeSection from={source} />
       <CtaSection
         title={niche.cta.title}
         subtitle={niche.cta.description}

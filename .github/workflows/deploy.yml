@@ -268,6 +268,8 @@ jobs:
               echo "Compose env loaded from Doppler .env"
             fi
             docker compose -f docker-compose.prod.yml pull
+            # Rolling API scale is applied inside recover-prod-stack.sh:
+            #   docker compose ... --scale api=${API_REPLICAS:-2}
             bash scripts/recover-prod-stack.sh
             echo "Running Alembic migrations..."
             if ! docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \

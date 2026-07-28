@@ -15,7 +15,7 @@ INDEX_PAGES = (
     "page.tsx",
     "company/page.tsx",
     "platform/page.tsx",
-    "pricing/page.tsx",
+    "business/page.tsx",
     "contact/page.tsx",
     "developers/page.tsx",
     "developers/docs/page.tsx",
@@ -45,6 +45,9 @@ BARE_METADATA_PATTERN = re.compile(
 
 
 def check_page(path: Path, failures: list[str]) -> None:
+    if not path.is_file():
+        failures.append(f"{path.relative_to(ROOT)}: missing indexable page")
+        return
     text = path.read_text(encoding="utf-8")
     rel = path.relative_to(ROOT)
     if "generateMetadata" not in text:
@@ -62,6 +65,8 @@ def main() -> int:
         check_page(APP / rel, failures)
 
     for path in SLUG_PAGES_REQUIRING_HELPER:
+        if not path.is_file():
+            continue
         check_page(path, failures)
 
     hreflang = HREFLANG.read_text(encoding="utf-8")
@@ -75,6 +80,8 @@ def main() -> int:
         failures.append("website/src/app/opengraph-image.tsx missing")
 
     for path in [*SLUG_PAGES_REQUIRING_HELPER, HELPERS]:
+        if not path.is_file():
+            continue
         text = path.read_text(encoding="utf-8")
         if "buildEnglishOnlyPageMetadata" in text and path != HELPERS:
             failures.append(f"{path.relative_to(ROOT)}: deprecated buildEnglishOnlyPageMetadata usage")

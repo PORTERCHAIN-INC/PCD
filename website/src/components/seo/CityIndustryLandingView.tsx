@@ -31,6 +31,7 @@ type CitySectionLabels = {
 import type { CityIndustryContent } from "@/lib/seo/city-industry-delivery";
 import Container from "@/components/ui/Container";
 import FadeIn from "@/components/corporate/motion/FadeIn";
+import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
 
 const PostalCoverageChecker = dynamic(() => import("@/components/seo/PostalCoverageChecker"), {
   loading: () => <div className="site-section min-h-[8rem] bg-gray-bg" aria-hidden />,
@@ -171,6 +172,7 @@ export default async function CityIndustryLandingView({
           (link, index, all) => all.findIndex((item) => item.href === link.href) === index
         )}
       />
+      <PlatformBridgeSection from={path} />
       <CtaSection
         title={content.cta.title}
         subtitle={content.cta.description}

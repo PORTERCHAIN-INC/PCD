@@ -85,14 +85,31 @@ def _get_nested(obj: object, dotted_path: str) -> object | None:
 
 
 def _check_full_root_parity() -> list[str]:
+    """Full en/fr.json key parity excluding EN-primary SEO draft namespaces."""
     en_path = MESSAGES / "en.json"
     fr_path = MESSAGES / "fr.json"
     if not en_path.is_file() or not fr_path.is_file():
         return ["§6.1.5 missing en.json / fr.json for full root parity"]
     en = json.loads(en_path.read_text(encoding="utf-8"))
     fr = json.loads(fr_path.read_text(encoding="utf-8"))
-    en_keys = _flatten_keys(en)
-    fr_keys = _flatten_keys(fr)
+    # EN-first SEO draft namespaces — purity-checked separately; FR ships via dedicated
+    # seo-programmatic-fr.json + namespace pairs above.
+    skip_roots = (
+        "nicheLanding",
+        "campaignLanding",
+        "serviceAreaLanding",
+        "cityIndustryLanding",
+    )
+    en_keys = {
+        k
+        for k in _flatten_keys(en)
+        if not any(k == p or k.startswith(p + ".") for p in skip_roots)
+    }
+    fr_keys = {
+        k
+        for k in _flatten_keys(fr)
+        if not any(k == p or k.startswith(p + ".") for p in skip_roots)
+    }
     failures: list[str] = []
     missing_fr = sorted(en_keys - fr_keys)
     if missing_fr:

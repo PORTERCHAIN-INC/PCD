@@ -11,6 +11,7 @@ import { JsonLd } from "@/components/seo";
 import { buildFAQPageSchema, buildServiceSchema } from "@/lib/seo/schema";
 import type { Locale } from "@/i18n/routing";
 import { quoteContact } from "@/lib/seo/routes";
+import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
 
 export type ContentClusterData = {
   title: string;
@@ -127,6 +128,7 @@ export default function ContentClusterView({
         />
       )}
 
+      <PlatformBridgeSection from={ctaSource} />
       <CtaSection
         title="Ready for transportation capacity on your lanes?"
         subtitle="Tell us what needs to move. We'll quote the right vehicle-and-driver capacity for your operation."

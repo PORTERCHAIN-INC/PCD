@@ -115,8 +115,10 @@ def main() -> int:
         for forbidden in HOME_FORBIDDEN_IMPORTS:
             if forbidden in home_text:
                 failures.append(f"homepage still imports consumer section {forbidden} (PV-G2)")
-        if "HomePlatformBody" not in home_text:
-            failures.append("homepage must render HomePlatformBody (capacity-first body)")
+        if "HomeChooser" not in home_text and "HomePlatformBody" not in home_text:
+            failures.append(
+                "homepage must render HomeChooser (welcome capacity guide) or HomePlatformBody"
+            )
         if "LaneASoftwareSchema" in home_text:
             failures.append("homepage must not emit SoftwareApplication schema during Phase 1 capacity positioning")
         if "HomeDeliverySchema" not in home_text:
@@ -134,16 +136,14 @@ def main() -> int:
                 failures.append(f"{rel} missing PlatformBridgeSection (Lane B bridge)")
 
     next_text = NEXT_CONFIG.read_text(encoding="utf-8")
+    redirects_ts = (WEBSITE / "src/lib/seo/redirects.ts").read_text(encoding="utf-8")
     if '"platform"' in next_text and "destination: `/${locale}/business`" in next_text:
         if re.search(r'source:\s*`/\$\{locale\}/platform`', next_text):
             failures.append("next.config still redirects /platform to /business")
 
     for old_hub in ("onboarding-education", "integrations-education"):
-        if (
-            old_hub not in next_text
-            or "destination: `/${locale}/guides`" not in next_text
-        ):
-            failures.append(f"next.config missing {old_hub} index redirect to /guides")
+        if old_hub not in redirects_ts or "/guides" not in redirects_ts:
+            failures.append(f"redirects.ts missing {old_hub} index redirect to /guides")
         hub_index = APP / old_hub / "page.tsx"
         if hub_index.is_file():
             failures.append(f"remove stub hub page {old_hub}/page.tsx (redirect-only)")
@@ -222,15 +222,25 @@ def main() -> int:
     footer_labels = json.loads(SITE_FOOTER_EN.read_text(encoding="utf-8"))
     sections = footer_labels.get("sections", {})
     products = sections.get("products", {}).get("links", {})
-    for key in ("business", "solutions", "getQuote"):
-        if key not in products:
-            failures.append(f"site-footer-en.json missing products.links.{key}")
-    company_links = sections.get("company", {}).get("links", {})
     resources_links = sections.get("resources", {}).get("links", {})
+    company_links = sections.get("company", {}).get("links", {})
+    # New IA: merchant/capacity links live under resources (or products if present).
+    capacity_links = {**products, **resources_links}
+    for key in ("business",):
+        if key not in capacity_links:
+            failures.append(f"site-footer-en.json missing capacity link '{key}' (products or resources)")
+    if "getQuote" not in products and "contact" not in company_links:
+        failures.append("site-footer-en.json missing quote path (products.getQuote or company.contact)")
     if "trust" not in company_links and "trust" not in sections.get("solutions", {}).get("links", {}):
         failures.append("site-footer-en.json missing trust link (company.links.trust)")
-    if "platform" not in resources_links and "platform" not in products:
-        failures.append("site-footer-en.json missing platform link (resources.links.platform)")
+    if (
+        "platform" not in resources_links
+        and "platform" not in products
+        and "howPorterchainWorks" not in resources_links
+    ):
+        failures.append(
+            "site-footer-en.json missing platform/how-it-works link (resources.links.platform or howPorterchainWorks)"
+        )
 
     print("Product vision pages guard (§1.1.3–1.1.7 · PV-G2/G3)")
     if failures:

@@ -57,8 +57,8 @@ def main() -> int:
             failures.append("CTO_AUDIT_REPORT missing Remediation log")
         if "Open issue register" not in cto:
             failures.append("CTO_AUDIT_REPORT missing Open issue register")
-        if "r1s2t3u4v5w6" not in cto and "s2t3u4v5w6x7" not in cto and "n2o3p4q5r6s7" in cto:
-            failures.append("CTO_AUDIT_REPORT alembic head stale (expected s2t3u4v5w6x7)")
+        if "s2t3u4v5w6x7" not in cto and "v5w6x7y8z9a0" not in cto and "n2o3p4q5r6s7" in cto:
+            failures.append("CTO_AUDIT_REPORT alembic head stale (expected v5w6x7y8z9a0)")
 
     pointer_script = ROOT / "scripts/verify_doc_pointer_stubs.py"
     if pointer_script.is_file():
