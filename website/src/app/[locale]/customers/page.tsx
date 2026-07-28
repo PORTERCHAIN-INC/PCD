@@ -6,7 +6,7 @@ import HeroSection from "@/components/corporate/sections/HeroSection";
 import CardGridSection from "@/components/corporate/sections/CardGridSection";
 import CustomersPageCloser from "@/components/customers/CustomersPageCloser";
 import { collectCardItems } from "@/lib/corporate-content";
-import { localeStaticParams } from "@/lib/seo/page-helpers";
+import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -15,11 +15,7 @@ export const generateStaticParams = localeStaticParams;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.customers" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "customers", t("title"), t("description"));
 }
 
 export default async function CustomersPage({ params }: Props) {

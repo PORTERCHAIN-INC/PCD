@@ -5,7 +5,6 @@ import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
-import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
 import PageBreadcrumbs, { type BreadcrumbItem } from "@/components/seo/PageBreadcrumbs";
 import { JsonLd } from "@/components/seo";
 import { buildFAQPageSchema, buildServiceSchema } from "@/lib/seo/schema";
@@ -27,6 +26,7 @@ type CitySectionLabels = {
   onboarding: string;
   capacitySolutions: string;
   intentGuides: string;
+  relatedPages: string;
 };
 import type { CityIndustryContent } from "@/lib/seo/city-industry-delivery";
 import Container from "@/components/ui/Container";
@@ -99,7 +99,6 @@ export default async function CityIndustryLandingView({
         illustration={<HeroPhoto image={getPageHeroImage(industrySlug)} />}
         trackSource={path}
       />
-      <PlatformBridgeSection from={path} />
       <FeatureSection
         label={sectionLabels.localChallenges}
         title={content.localChallenges.title}
@@ -166,9 +165,12 @@ export default async function CityIndustryLandingView({
           }))}
         />
       )}
-      <InternalLinksBlock title={relatedTitle ?? sectionLabels.industryFit} links={industryLinks} />
-      <InternalLinksBlock title={sectionLabels.intentGuides} links={intentLinks} />
-      <InternalLinksBlock title={sectionLabels.capacitySolutions} links={productLinks} />
+      <InternalLinksBlock
+        title={relatedTitle ?? sectionLabels.relatedPages}
+        links={[...industryLinks, ...intentLinks, ...productLinks].filter(
+          (link, index, all) => all.findIndex((item) => item.href === link.href) === index
+        )}
+      />
       <CtaSection
         title={content.cta.title}
         subtitle={content.cta.description}

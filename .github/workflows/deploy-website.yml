@@ -41,6 +41,43 @@ jobs:
       - uses: actions/checkout@v7
         if: steps.check.outputs.ready == 'true'
 
+      - name: Setup Node
+        if: steps.check.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Setup pnpm
+        if: steps.check.outputs.ready == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+
+      - name: Install dependencies
+        if: steps.check.outputs.ready == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Website SEO validation
+        if: steps.check.outputs.ready == 'true'
+        run: pnpm validate:website-seo
+
+      - name: Developer portal validation
+        if: steps.check.outputs.ready == 'true'
+        run: pnpm validate:developer-portal
+
+      - name: Website lint
+        if: steps.check.outputs.ready == 'true'
+        run: pnpm --filter @porterchain/website lint
+
+      - name: Format check (website)
+        if: steps.check.outputs.ready == 'true'
+        run: pnpm exec prettier --check "website/src/**/*.{ts,tsx}"
+
+      - name: Dependency audit (advisory)
+        if: steps.check.outputs.ready == 'true'
+        continue-on-error: true
+        run: pnpm audit --prod
+
       - name: Set up Docker Buildx
         if: steps.check.outputs.ready == 'true'
         uses: docker/setup-buildx-action@v4
@@ -77,6 +114,10 @@ jobs:
             NEXT_PUBLIC_GOOGLE_BUSINESS_PROFILE_URL=${{ vars.NEXT_PUBLIC_GOOGLE_BUSINESS_PROFILE_URL }}
             NEXT_PUBLIC_GOOGLE_BUSINESS_REVIEW_URL=${{ vars.NEXT_PUBLIC_GOOGLE_BUSINESS_REVIEW_URL }}
             NEXT_PUBLIC_CONTACT_PHONE=${{ vars.NEXT_PUBLIC_CONTACT_PHONE || '+16476197951' }}
+            NEXT_PUBLIC_MERCHANT_PORTAL_URL=https://merchant.porterchain.com
+            NEXT_PUBLIC_ADMIN_PORTAL_URL=https://admin.porterchain.com
+            NEXT_PUBLIC_CUSTOMER_PORTAL_URL=https://customer.porterchain.com
+            NEXT_PUBLIC_DRIVER_PORTAL_URL=https://driver.porterchain.com
           cache-from: type=gha,scope=website
           cache-to: type=gha,mode=max,scope=website
 

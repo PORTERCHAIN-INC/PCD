@@ -1,24 +1,48 @@
 import { publicEnv } from "@/lib/env";
 
-/** Unified Porterchain sign-in on the public website (role-based redirect). */
+/**
+ * Portal link SSOT for the marketing website.
+ *
+ * AUTH LAW (4 isolated Clerk apps — do not implement cross-portal SSO here):
+ * - Website `/login` uses the **customer** Clerk app only.
+ * - Merchant / admin / driver each have their own Clerk app + host.
+ * - Deep-link other roles to their portal sign-in URLs; never claim one password opens all portals.
+ * See AUTHENTICATION_ARCHITECTURE.md and infrastructure/deploy/CLERK_APPS_SETUP.md.
+ */
+
+/** Customer Clerk sign-in on the public website (portal picker + customer form). */
 export const unifiedSignInPath = "/login";
 
-/** Retail customer app (:3004) — sole authenticated customer surface (masterrule §21). */
+/** Retail customer app (:3004) — sole authenticated customer surface. */
 export const customerPortalDashboardUrl = `${publicEnv.customerPortalUrl}/dashboard`;
 export const customerPortalSignInUrl = `${publicEnv.customerPortalUrl}/sign-in`;
-/** Retail booking funnel — sole on-site book surface (masterrule §21 · §1.1.4). */
-/** @deprecated Retail book is not linked from the marketing site; use `/business` or `/pricing`. */
+
+/** Legacy book redirects only — marketing CTAs should use `/business` (capacity + pricing). */
 export const customerPortalBookUrl = `${publicEnv.customerPortalUrl}/book`;
 
-/** @deprecated Use customerPortalDashboardUrl — embedded website portal removed. */
-export const customerPortalPath = customerPortalDashboardUrl;
-export const customerSignInPath = customerPortalSignInUrl;
-
-/** Merchant portal sign-in (direct deep-link; prefer unifiedSignInPath from website). */
 export const merchantSignInUrl = `${publicEnv.merchantPortalUrl}/sign-in`;
+export const adminSignInUrl = `${publicEnv.adminPortalUrl}/sign-in`;
+/** Driver portal uses `/login`, not `/sign-in`. */
+export const driverSignInUrl = `${publicEnv.driverPortalUrl}/login`;
 
 export const merchantPortalUrl = publicEnv.merchantPortalUrl;
 export const driverPortalUrl = publicEnv.driverPortalUrl;
+export const adminPortalUrl = publicEnv.adminPortalUrl;
+
+/** Resolve portal sign-in URL from `?intent=` on `/login`. */
+export function portalSignInUrlForIntent(intent: string | null | undefined): string | null {
+  switch (intent) {
+    case "merchant":
+      return merchantSignInUrl;
+    case "driver":
+      return driverSignInUrl;
+    case "admin":
+    case "staff":
+      return adminSignInUrl;
+    default:
+      return null;
+  }
+}
 
 export function portalDisplayHost(url: string): string {
   try {

@@ -60,6 +60,17 @@ export const publicEnv = {
   driverAppIosUrl: (process.env.NEXT_PUBLIC_DRIVER_APP_IOS_URL ?? "").trim(),
   driverAppAndroidUrl: (process.env.NEXT_PUBLIC_DRIVER_APP_ANDROID_URL ?? "").trim(),
   allowStripeMock: process.env.NEXT_PUBLIC_ALLOW_STRIPE_MOCK === "true",
+  gtmId: (process.env.NEXT_PUBLIC_GTM_ID ?? "").trim(),
+  googleAdsId: (process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? "").trim(),
+  googleAdsQuoteLabel: (process.env.NEXT_PUBLIC_GOOGLE_ADS_QUOTE_LABEL ?? "").trim(),
+  microsoftUetId: (process.env.NEXT_PUBLIC_MICROSOFT_UET_ID ?? "").trim(),
+  linkedInPartnerId: (process.env.NEXT_PUBLIC_LINKEDIN_PARTNER_ID ?? "").trim(),
+  metaPixelId: (process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "").trim(),
+  twitterPixelId: (process.env.NEXT_PUBLIC_TWITTER_PIXEL_ID ?? "").trim(),
+  clarityId: (process.env.NEXT_PUBLIC_CLARITY_ID ?? "").trim(),
+  hotjarId: (process.env.NEXT_PUBLIC_HOTJAR_ID ?? "").trim(),
+  bingSiteVerification: (process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ?? "").trim(),
+  yandexSiteVerification: (process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION ?? "").trim(),
 } as const;
 
 export function isGoogleMapsConfigured(): boolean {

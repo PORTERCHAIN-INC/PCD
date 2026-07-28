@@ -3,9 +3,10 @@ import { notFound, redirect } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import ContentClusterView from "@/components/seo/ContentClusterView";
+import ContentViewBeacon from "@/components/seo/ContentViewBeacon";
 import { JsonLd } from "@/components/seo";
 import { buildAuthorityInternalLinks } from "@/lib/seo/content/authority-pages";
-import { buildArticleSchema } from "@/lib/seo/schema";
+import { buildArticleSchema, buildHowToSchema } from "@/lib/seo/schema";
 import { siteConfig } from "@/lib/seo/config";
 import {
   getLocalizedAuthorityPage,
@@ -55,19 +56,31 @@ export default async function GuidePage({ params }: Props) {
   const loc = locale as Locale;
   const links = buildAuthorityInternalLinks(loc, page);
   const guideUrl = `${siteConfig.baseUrl.replace(/\/$/, "")}/${loc}/guides/${slug}`;
+  const howTo =
+    page.sections?.length >= 2
+      ? buildHowToSchema({
+          name: page.title,
+          description: page.description,
+          steps: page.sections.map((s) => ({ name: s.heading, text: s.body })),
+        })
+      : null;
 
   return (
     <CorporateShell>
+      <ContentViewBeacon kind="guide" slug={slug} source={`guides/${slug}`} />
       <JsonLd
-        data={buildArticleSchema({
-          headline: page.title,
-          description: page.description,
-          url: guideUrl,
-          authorPerson: {
-            name: "PorterChain Operations",
-            jobTitle: "Network Operations",
-          },
-        })}
+        data={[
+          buildArticleSchema({
+            headline: page.title,
+            description: page.description,
+            url: guideUrl,
+            authorPerson: {
+              name: "PorterChain Operations",
+              jobTitle: "Network Operations",
+            },
+          }),
+          howTo,
+        ].filter(Boolean)}
       />
       <ContentClusterView
         locale={loc}

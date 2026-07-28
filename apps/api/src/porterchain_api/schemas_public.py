@@ -28,6 +28,79 @@ class PublicInquiryResponse(BaseModel):
     status: str = "accepted"
 
 
+# --- Capacity guide (welcome agent) ---
+
+
+class PublicGuideLeadCreate(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+    name: str | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=64)
+    business_name: str | None = Field(default=None, max_length=255)
+    intent: str | None = Field(default=None, max_length=64)
+    session_id: str | None = Field(default=None, max_length=128)
+    source_page: str | None = Field(default=None, max_length=512)
+    notes: str | None = Field(default=None, max_length=4000)
+    utm_source: str | None = Field(default=None, max_length=128)
+    utm_campaign: str | None = Field(default=None, max_length=128)
+    utm_medium: str | None = Field(default=None, max_length=128)
+
+
+class PublicGuideLeadResponse(BaseModel):
+    id: str
+    created: bool
+    status: str
+    email: str
+    phone: str | None = None
+
+
+class PublicGuideTranscriptTurn(BaseModel):
+    role: str = Field(max_length=32)
+    content: str = Field(max_length=8000)
+
+
+class PublicGuideTranscriptCreate(BaseModel):
+    lead_id: str = Field(min_length=1, max_length=64)
+    session_id: str | None = Field(default=None, max_length=128)
+    turns: list[PublicGuideTranscriptTurn] = Field(default_factory=list, max_length=40)
+    summary: str | None = Field(default=None, max_length=4000)
+
+
+class PublicGuideTranscriptResponse(BaseModel):
+    lead_id: str
+    turn_count: int
+    status: str = "saved"
+
+
+class PublicGuideSlot(BaseModel):
+    start: datetime
+    end: datetime
+    label: str
+    meeting_type: str
+
+
+class PublicGuideSlotsResponse(BaseModel):
+    timezone: str
+    meeting_type: str
+    slots: list[PublicGuideSlot]
+
+
+class PublicGuideAppointmentCreate(BaseModel):
+    lead_id: str = Field(min_length=1, max_length=64)
+    meeting_type: str = Field(default="call", max_length=32)  # call | meeting
+    start: datetime
+    session_id: str | None = Field(default=None, max_length=128)
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class PublicGuideAppointmentResponse(BaseModel):
+    task_id: str
+    lead_id: str
+    meeting_type: str
+    due_at: datetime
+    title: str
+    status: str = "booked"
+
+
 class PublicBlogPostMeta(BaseModel):
     id: str
     slug: str

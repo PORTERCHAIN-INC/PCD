@@ -1,8 +1,8 @@
-/**
- * Reusable niche landing page framework.
- * Valid slugs and mapping to message keys. SEO-friendly static params.
- * Construction trades are listed first — primary marketing vertical.
- */
+import {
+  DRAFT_NICHE_MESSAGE_KEYS,
+  DRAFT_NICHE_SLUGS,
+  type DraftNicheSlug,
+} from "./content/draft-expansions";
 
 export const CONSTRUCTION_NICHE_SLUGS = [
   "construction-materials",
@@ -20,6 +20,7 @@ export const NICHE_SLUGS = [
   "chocolate",
   "lab-sample-delivery",
   "ecommerce",
+  ...DRAFT_NICHE_SLUGS,
 ] as const;
 
 export type NicheSlug = (typeof NICHE_SLUGS)[number];
@@ -35,6 +36,7 @@ export const NICHE_MESSAGE_KEYS: Record<NicheSlug, string> = {
   chocolate: "chocolate",
   "lab-sample-delivery": "labSampleDelivery",
   ecommerce: "ecommerce",
+  ...(DRAFT_NICHE_MESSAGE_KEYS as Record<DraftNicheSlug, string>),
 };
 
 export function getNicheMessageKey(slug: string): string | null {

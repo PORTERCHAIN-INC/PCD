@@ -9,10 +9,10 @@ interface InternalLinksBlockProps {
 export default function InternalLinksBlock({ title, links }: InternalLinksBlockProps) {
   if (!links.length) return null;
   return (
-    <section className="site-section bg-gray-bg">
+    <section className="py-10 md:py-12 bg-gray-bg border-y border-primary/[0.04]">
       <Container size="narrow">
-        <h2 className="text-2xl font-semibold text-primary tracking-tight">{title}</h2>
-        <ul className="mt-6 grid sm:grid-cols-2 gap-3">
+        <h2 className="text-xl font-semibold text-primary tracking-tight">{title}</h2>
+        <ul className="mt-4 grid sm:grid-cols-2 gap-2.5">
           {links.map((link) => (
             <li key={link.href}>
               <Link

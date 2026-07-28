@@ -55,3 +55,15 @@ export function industrySlugForVertical(slug: SolutionVerticalSlug): NicheSlug {
 export function cardIndexForVertical(slug: SolutionVerticalSlug): number {
   return VERTICAL_CARD_INDEX[slug];
 }
+
+/** Public path for a solutions vertical (construction uses a short top-level URL). */
+export function solutionVerticalPath(vertical: SolutionVerticalSlug): string {
+  if (vertical === "construction") return "/construction";
+  return `/solutions/${vertical}`;
+}
+
+/** Metadata / sitemap path segment without leading slash. */
+export function solutionVerticalPathSegment(vertical: SolutionVerticalSlug): string {
+  if (vertical === "construction") return "construction";
+  return `solutions/${vertical}`;
+}

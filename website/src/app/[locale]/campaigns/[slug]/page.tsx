@@ -91,6 +91,8 @@ export default async function CampaignPage({ params }: Props) {
           otherVehicles: tSeo("otherVehicles"),
           vehicles: tSeo("vehicles"),
           painPoints: tSeo("painPoints"),
+          intentGuides: tSeo("intentGuides"),
+          relatedPages: tSeo("relatedPages"),
         }}
       />
     </CorporateShell>

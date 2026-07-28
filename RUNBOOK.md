@@ -347,14 +347,14 @@ docker run --rm -v porterchain-fleetbase-api-storage:/data -v $(pwd):/backup alp
 
 Porterchain uses **Option A** (masterrule Appendix D4):
 
-| Component                  | Role                                                                                               |
-| -------------------------- | -------------------------------------------------------------------------------------------------- |
-| **API** (`apps/api`)       | Registers domain event handlers in FastAPI lifespan; processes inline where cheap                  |
-| **Worker** (`apps/worker`) | Redis queue consumer only — retries, cron, webhook replay; **does not** duplicate handler registry |
+| Component                  | Role                                                                                                                    |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **API** (`apps/api`)       | Publishes domain events; registers handlers for in-process sync when Redis is absent                                    |
+| **Worker** (`apps/worker`) | Consumes Redis stream `porterchain:events` (group `porterchain-workers`) + drains task queues, retries, and cron drains |
 
-Local dev: run both `pnpm dev:api` and `pnpm dev:worker` when testing queues. Production compose must either (a) include the worker service for queue drains, or (b) document sync-only mode if queues are disabled.
+Local / prod: run both `pnpm dev:api` and `pnpm dev:worker` (or `pcd-worker`) so stream handlers and queue jobs run. The worker calls `ensure_handlers_registered()` then `consume_once()` each loop before draining named queues (`emails`, `billing`, `webhooks`, `dispatch`, …).
 
-Handler registration is **API-only** — the worker loop consumes named queues (`emails`, `billing`, `webhooks`, `dispatch`, …) without re-registering `porterchain_event_bus` handlers.
+Production compose must include the worker service; sync-only mode (no worker) leaves stream events and queues unprocessed when Redis is up.
 
 ---
 
@@ -518,14 +518,14 @@ pnpm validate:d3:prod   # automated prod URL + quote smoke (Sprint F)
 
 ## D4 — Async runtime (prod)
 
-Production runs a dedicated **`pcd-worker`** container (DD-04) that drains Redis queues; the API publishes jobs and reports queue depth + heartbeat on `/health/ready`.
+Production runs a dedicated **`pcd-worker`** container (DD-04) that consumes the domain event stream and drains Redis queues; the API publishes events/jobs and reports queue depth + heartbeat on `/health/ready`.
 
-| Mode      | When                                                     | Compose                                                            |
-| --------- | -------------------------------------------------------- | ------------------------------------------------------------------ |
-| **Prod**  | API + worker; worker heartbeat required for `queues: ok` | `infrastructure/deploy/docker-compose.prod.yml` — `api` + `worker` |
-| **Local** | Optional `pnpm dev:worker` alongside `pnpm dev:api`      | Same queue names as prod                                           |
+| Mode      | When                                                                     | Compose                                                            |
+| --------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| **Prod**  | API + worker; worker heartbeat required for `queues: ok`                 | `infrastructure/deploy/docker-compose.prod.yml` — `api` + `worker` |
+| **Local** | `pnpm dev:worker` alongside `pnpm dev:api` (required when Redis is used) | Same stream + queue names as prod                                  |
 
-Local dev: run `pnpm dev:worker` when testing Redis queue drains. See [infrastructure/deploy/README.md](./infrastructure/deploy/README.md).
+Local dev: run `pnpm dev:worker` whenever Redis is up so `order.dispatch_ready`, webhooks, billing enqueue, and notifications are processed. See [infrastructure/deploy/README.md](./infrastructure/deploy/README.md).
 
 ---
 

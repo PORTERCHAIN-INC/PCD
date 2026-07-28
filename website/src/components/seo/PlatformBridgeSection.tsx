@@ -15,7 +15,7 @@ interface PlatformBridgeSectionProps {
 
 export default function PlatformBridgeSection({ from }: PlatformBridgeSectionProps) {
   const t = useTranslations("corporate.platformBridge");
-  const vehiclesHref = `/business#fleet`;
+  const vehiclesHref = `/vehicles`;
   const quoteHref = `/contact?intent=quote&from=${encodeURIComponent(from)}`;
   const bullets = [t("bullets.0"), t("bullets.1"), t("bullets.2")];
 

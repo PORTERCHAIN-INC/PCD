@@ -203,7 +203,7 @@ export default function CustomersPageCloser() {
                   {t("cta.primary")}
                 </LinkButton>
                 <LinkButton
-                  href="/pricing"
+                  href="/business#pricing"
                   variant="outlineOnDark"
                   size="lg"
                   trackSource="customers-cta"

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BookOpen, Code2, FileJson, KeyRound, Webhook } from "lucide-react";
 import { routing } from "@/i18n/routing";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import HeroSection from "@/components/corporate/sections/HeroSection";
@@ -23,11 +24,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.developers" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "developers", t("title"), t("description"));
 }
 
 const RESOURCE_ICONS = [BookOpen, FileJson, Code2, Webhook, KeyRound] as const;

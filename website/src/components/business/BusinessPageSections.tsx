@@ -2,10 +2,14 @@ import dynamic from "next/dynamic";
 import { getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
 import BusinessHero from "@/components/business/sections/BusinessHero";
+import BusinessHubFacade from "@/components/business/sections/BusinessHubFacade";
 import BusinessFleet from "@/components/business/sections/BusinessFleet";
+import BusinessAnswerSection from "@/components/business/sections/BusinessAnswerSection";
 import BrandMergeBand from "@/components/brand/BrandMergeBand";
 import FinalCta from "@/components/business/sections/FinalCta";
 import BusinessIntentGuides from "@/components/business/sections/BusinessIntentGuides";
+import HubTrustStrip from "@/components/hub/HubTrustStrip";
+import HubShell from "@/components/hub/HubShell";
 import { siteImages } from "@/data/site-images";
 
 const BusinessSolutions = dynamic(() => import("@/components/business/sections/BusinessSolutions"));
@@ -27,11 +31,22 @@ type Props = {
 /** Below-fold sections code-split to protect INP on /business (Wave 10 w10-1). */
 export default async function BusinessPageSections({ locale }: Props) {
   const tBrand = await getTranslations("businessPage.brandBand");
+  const tTrust = await getTranslations("businessPage.trustStrip");
 
   return (
-    <div className="pb-24 lg:pb-0">
+    <HubShell className="pb-24 lg:pb-0">
       <BusinessHero />
+      <BusinessHubFacade locale={locale} />
       <BusinessFleet />
+      <BusinessAnswerSection locale={locale} />
+      <HubTrustStrip
+        eyebrow={tTrust("eyebrow")}
+        title={tTrust("title")}
+        body={tTrust("body")}
+        companyLabel={tTrust("company")}
+        trustLabel={tTrust("trust")}
+        contactLabel={tTrust("contact")}
+      />
       <BrandMergeBand
         eyebrow={tBrand("eyebrow")}
         title={tBrand("title")}
@@ -51,6 +66,6 @@ export default async function BusinessPageSections({ locale }: Props) {
         <BusinessFAQ />
         <FinalCta />
       </div>
-    </div>
+    </HubShell>
   );
 }

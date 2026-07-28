@@ -2,7 +2,7 @@
 
 **Type:** README
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-28
 
 Async background processor for the Porterchain event bus and task queues. Shares the API Python venv and database connection.
 
@@ -23,10 +23,11 @@ Runs alongside `pnpm dev:api`. Requires PostgreSQL; Redis required in production
 
 Each loop iteration:
 
-1. **Event bus** — `bus.consume_once()` for domain events
+1. **Event bus** — `consume_once()` on `porterchain:events` (group `porterchain-workers`) after `ensure_handlers_registered()`
 2. **Task queues** — drain Redis/in-memory queues via `process_queue_message`
 3. **Fleetbase retry** — `BookingSyncService.process_retry_queue` every 60s (when `FLEETBASE_DISPATCH_BRIDGE=true`)
 4. **Draft reconciliation** — expire/repair booking drafts every 300s
+5. **Standing orders** — materialize due merchant standing orders every 300s
 
 ---
 
@@ -66,12 +67,13 @@ PYTHONPATH includes API `src`, `shared/python`, and service packages (see root `
 
 Uses `apps/api/.env` — same `DATABASE_URL`, Redis, Fleetbase, and Stripe settings as the API.
 
-| Variable                    | Notes                                   |
-| --------------------------- | --------------------------------------- |
-| `DATABASE_URL`              | PostgreSQL 16                           |
-| `REDIS_URL`                 | Required in production                  |
-| `FLEETBASE_DISPATCH_BRIDGE` | Enables retry drain                     |
-| `APP_ENV`                   | `local` allows in-memory queue fallback |
+| Variable                    | Notes                                         |
+| --------------------------- | --------------------------------------------- |
+| `DATABASE_URL`              | PostgreSQL (dev 18 / prod 16)                 |
+| `REDIS_URL`                 | Required in production                        |
+| `WORKER_CONSUMER_NAME`      | Redis stream consumer id (default `worker-1`) |
+| `FLEETBASE_DISPATCH_BRIDGE` | Enables retry drain                           |
+| `APP_ENV`                   | `local` allows in-memory queue fallback       |
 
 ---
 

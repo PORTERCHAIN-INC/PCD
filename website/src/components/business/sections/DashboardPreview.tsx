@@ -33,7 +33,7 @@ export default function DashboardPreview() {
   const t = useTranslations("businessPage.dashboard");
 
   return (
-    <section className="biz-section bg-[#091b1c] overflow-hidden">
+    <section className="biz-section bg-[#0b1220] overflow-hidden">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -41,7 +41,7 @@ export default function DashboardPreview() {
           viewport={{ once: true }}
           className="text-center max-w-2xl mx-auto mb-12"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff7a00]">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563eb]">
             {t("label")}
           </span>
           <h2 className="mt-3 biz-heading text-white tracking-tight">{t("title")}</h2>
@@ -55,10 +55,10 @@ export default function DashboardPreview() {
           transition={{ duration: 0.6 }}
           className="relative max-w-5xl mx-auto"
         >
-          <div className="absolute -inset-8 bg-[#ff7a00]/8 rounded-3xl blur-3xl" />
+          <div className="absolute -inset-8 bg-[#2563eb]/8 rounded-3xl blur-3xl" />
           <div className="relative rounded-2xl overflow-hidden biz-shadow-lg border border-white/10">
             {/* Browser chrome */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-[#0d2526] border-b border-white/8">
+            <div className="flex items-center gap-2 px-4 py-3 bg-[#0f1b2d] border-b border-white/8">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
@@ -73,9 +73,9 @@ export default function DashboardPreview() {
 
             <div className="flex min-h-[420px]">
               {/* Sidebar */}
-              <div className="hidden sm:block w-52 bg-[#0a1e1f] border-r border-white/8 p-4">
+              <div className="hidden sm:block w-52 bg-[#0f1b2d] border-r border-white/8 p-4">
                 <div className="flex items-center gap-2 mb-6">
-                  <div className="w-8 h-8 rounded-lg bg-[#ff7a00] flex items-center justify-center text-white text-sm font-bold">
+                  <div className="w-8 h-8 rounded-lg bg-[#2563eb] flex items-center justify-center text-white text-sm font-bold">
                     P
                   </div>
                   <span className="text-white text-sm font-semibold">Porterchain</span>
@@ -85,7 +85,7 @@ export default function DashboardPreview() {
                     <div
                       key={key}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs ${
-                        i === 0 ? "bg-[#ff7a00]/15 text-[#ff7a00] font-medium" : "text-white/50"
+                        i === 0 ? "bg-[#2563eb]/15 text-[#2563eb] font-medium" : "text-white/50"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -98,24 +98,24 @@ export default function DashboardPreview() {
               {/* Main content */}
               <div className="flex-1 bg-[#f7f8fa] p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="font-semibold text-[#091b1c]">{t("overview")}</h3>
-                  <span className="text-xs text-[#5c6b6c]">{t("today")}</span>
+                  <h3 className="font-semibold text-[#0b1220]">{t("overview")}</h3>
+                  <span className="text-xs text-[#64748b]">{t("today")}</span>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
                   {(["deliveries", "onTime", "revenue", "active"] as const).map((stat) => (
-                    <div key={stat} className="p-4 rounded-xl bg-white border border-[#091b1c]/6">
-                      <p className="text-2xl font-bold text-[#091b1c]">
+                    <div key={stat} className="p-4 rounded-xl bg-white border border-[#0b1220]/6">
+                      <p className="text-2xl font-bold text-[#0b1220]">
                         {t(`stats.${stat}.value`)}
                       </p>
-                      <p className="text-xs text-[#5c6b6c] mt-1">{t(`stats.${stat}.label`)}</p>
+                      <p className="text-xs text-[#64748b] mt-1">{t(`stats.${stat}.label`)}</p>
                     </div>
                   ))}
                 </div>
-                <div className="rounded-xl bg-white border border-[#091b1c]/6 p-4 h-40 flex items-end gap-2">
+                <div className="rounded-xl bg-white border border-[#0b1220]/6 p-4 h-40 flex items-end gap-2">
                   {[40, 65, 45, 80, 55, 90, 70].map((h, i) => (
                     <div
                       key={i}
-                      className="flex-1 rounded-t-md bg-gradient-to-t from-[#ff7a00] to-[#ff7a00]/40"
+                      className="flex-1 rounded-t-md bg-gradient-to-t from-[#2563eb] to-[#2563eb]/40"
                       style={{ height: `${h}%` }}
                     />
                   ))}

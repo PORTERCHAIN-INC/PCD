@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import HeroSection from "@/components/corporate/sections/HeroSection";
@@ -10,15 +11,8 @@ import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import CardGridSection from "@/components/corporate/sections/CardGridSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import FaqSection from "@/components/corporate/sections/FaqSection";
-import { RelatedResourcesSection } from "@/components/corporate/sections/CardGridSection";
 import { siteImages } from "@/data/site-images";
-import {
-  collectCardItems,
-  collectFaqItems,
-  collectResourceItems,
-  collectTimelineSteps,
-} from "@/lib/corporate-content";
-import { Layers, Map, Radio, Truck } from "lucide-react";
+import { collectCardItems, collectFaqItems, collectTimelineSteps } from "@/lib/corporate-content";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -29,11 +23,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.platform" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "platform", t("title"), t("description"));
 }
 
 export default async function PlatformPage({ params }: Props) {
@@ -46,22 +36,22 @@ export default async function PlatformPage({ params }: Props) {
     {
       title: t("features.items.0.title"),
       description: t("features.items.0.description"),
-      icon: Layers,
+      icon: "layers" as const,
     },
     {
       title: t("features.items.1.title"),
       description: t("features.items.1.description"),
-      icon: Map,
+      icon: "map" as const,
     },
     {
       title: t("features.items.2.title"),
       description: t("features.items.2.description"),
-      icon: Radio,
+      icon: "radio" as const,
     },
     {
       title: t("features.items.3.title"),
       description: t("features.items.3.description"),
-      icon: Truck,
+      icon: "truck" as const,
     },
   ];
 
@@ -114,11 +104,6 @@ export default async function PlatformPage({ params }: Props) {
         label={t("faq.label")}
         title={t("faq.title")}
         items={collectFaqItems(t, "faq.items", 4)}
-      />
-      <RelatedResourcesSection
-        label={t("resources.label")}
-        title={t("resources.title")}
-        items={collectResourceItems(t, "resources.items", 3)}
       />
     </CorporateShell>
   );

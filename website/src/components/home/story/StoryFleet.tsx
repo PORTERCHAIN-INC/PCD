@@ -8,11 +8,11 @@ import StorySection from "@/components/home/story/StorySection";
 
 const FleetSelector = dynamic(() => import("@/components/shared/FleetSelector"), {
   loading: () => (
-    <div className="flex gap-2 overflow-hidden sm:grid sm:grid-cols-4 md:grid-cols-7" aria-hidden>
+    <div className="flex gap-3 overflow-hidden sm:grid sm:grid-cols-4 md:grid-cols-7" aria-hidden>
       {Array.from({ length: 7 }).map((_, i) => (
         <div
           key={i}
-          className="h-36 min-w-[8.5rem] shrink-0 rounded-2xl sm:rounded-3xl border border-secondary/20 bg-secondary/30 animate-pulse sm:min-w-0"
+          className="aspect-[4/3] min-w-[9.5rem] shrink-0 rounded-2xl border border-secondary/15 bg-secondary/10 animate-pulse sm:min-w-0"
         />
       ))}
     </div>

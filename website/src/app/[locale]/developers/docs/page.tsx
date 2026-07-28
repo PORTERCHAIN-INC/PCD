@@ -6,7 +6,7 @@ import HeroSection from "@/components/corporate/sections/HeroSection";
 import DeveloperDocsHubBody from "@/components/developers/DeveloperDocsHubBody";
 import { listDeveloperDocs } from "@/lib/developer-docs";
 import { getDeveloperLinks } from "@/lib/developer-links";
-import { localeStaticParams } from "@/lib/seo/page-helpers";
+import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";
 import { portalDisplayHost } from "@/data/portal-links";
 import type { Locale } from "@/i18n/routing";
 
@@ -17,11 +17,7 @@ export const generateStaticParams = localeStaticParams;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.developerDocs" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "developers/docs", t("title"), t("description"));
 }
 
 export default async function DeveloperDocsHubPage({ params }: Props) {

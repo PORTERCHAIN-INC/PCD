@@ -34,6 +34,71 @@
     "title": "Capacity you can put on the road today",
     "body": "Box truck to trailer — branded network capacity when overflow, same-day, or recurring GTA routes need a professional driver now."
   },
+  "answers": {
+    "eyebrow": "Quick answers",
+    "title": "What merchants get from Porterchain",
+    "cta": "Request capacity",
+    "what": {
+      "question": "What is Porterchain for merchants?",
+      "answer": "Vehicle-and-driver capacity for B2B delivery across the GTA and Ontario — same-day, recurring, and overflow when your own fleet is not enough."
+    },
+    "who": {
+      "question": "Who is it for?",
+      "answer": "Wholesalers, distributors, manufacturers, construction suppliers, and operations teams that need reliable capacity without buying more trucks."
+    },
+    "where": {
+      "question": "Where do you operate?",
+      "answer": "Primary coverage is the Greater Toronto Area and Ontario metros, with quote-based lanes for your pickup and delivery geographies."
+    },
+    "how": {
+      "question": "How do I get capacity?",
+      "answer": "Request a quote with your lanes and volume. Dispatch matches vehicle class and driver, then you get tracking and proof on every stop."
+    }
+  },
+  "trustStrip": {
+    "eyebrow": "Trust",
+    "title": "Know who you are working with",
+    "body": "Company details, trust center commitments, and a direct contact path — before you book capacity.",
+    "company": "About Porterchain",
+    "trust": "Trust center",
+    "contact": "Contact ops"
+  },
+  "hubFacade": {
+    "title": "Capacity overview",
+    "chip": "Illustrative",
+    "illustrativeNote": "Example capacity programs — not a live load board.",
+    "mapTitle": "Route overview",
+    "mapSubtitle": "GTA and Ontario lanes matched to vehicle class and SLAs.",
+    "timelineTitle": "How a run moves",
+    "offers": {
+      "sameDay": {
+        "title": "Same-day capacity",
+        "badge": "Urgent",
+        "meta": "Van or box truck · proof on stop",
+        "cta": "Quote for same-day"
+      },
+      "recurring": {
+        "title": "Recurring routes",
+        "badge": "Scheduled",
+        "meta": "Weekly wholesale / trade lanes",
+        "cta": "Quote for recurring"
+      },
+      "overflow": {
+        "title": "Fleet overflow",
+        "badge": "Backup",
+        "meta": "When your trucks are full",
+        "cta": "Quote for overflow"
+      }
+    },
+    "timeline": {
+      "request": {
+        "label": "Request capacity",
+        "detail": "Share lanes, windows, and vehicle needs"
+      },
+      "match": { "label": "Match & dispatch", "detail": "Network assigns vehicle + driver" },
+      "deliver": { "label": "Deliver with proof", "detail": "Tracking and POD on every stop" }
+    }
+  },
   "inquiry": {
     "title": "Get delivery capacity on your lanes",
     "subtitle": "Share how to reach you and what needs to move. We respond within one business day with vehicle-and-driver options.",
@@ -153,7 +218,8 @@
   "industries": {
     "label": "Industries",
     "title": "Built for GTA B2B operations",
-    "subtitle": "Specialized delivery capacity for the sectors that drive the Greater Toronto Area economy — construction, wholesale trade, manufacturing, medical, and retail distribution.",
+    "subtitle": "Specialized vehicle-and-driver capacity for the sectors that move the Greater Toronto Area — construction, wholesale, manufacturing, medical, and retail distribution. Open a sector for lane playbooks where we publish them.",
+    "footnote": "Same capacity network across sectors — vehicle class, proof, and urgency are confirmed on every quote.",
     "items": {
       "coffee": "Coffee Roasters",
       "foodBeverage": "Food & Beverage",
@@ -190,7 +256,7 @@
       "proofOfDelivery": "Documented confirmation for billing and customer follow-up.",
       "photoConfirmation": "Photo proof captured at delivery when required.",
       "digitalSignature": "Recipient signatures stored with the delivery record.",
-      "flexibleBilling": "Pay per shipment or on business terms — no platform subscription.",
+      "flexibleBilling": "Pay per shipment or on business terms — no software-seat fees.",
       "instantQuotes": "Quote-based pricing on vehicle, distance, urgency, and handling.",
       "accountManager": "Named support for recurring and enterprise programs."
     }
@@ -335,34 +401,57 @@
   },
   "billing": {
     "label": "Pricing",
-    "title": "Billing Options",
-    "subtitle": "Flexible payment models that grow with your business.",
-    "recommended": "Recommended",
+    "title": "How capacity pricing works",
+    "subtitle": "You pay for transportation capacity executed — not software seats. Quotes reflect vehicle class, distance, stops, and urgency (same-day vs scheduled).",
+    "recommended": "Most common",
     "cta": "Get a quote",
+    "footnote": "All pricing is confirmed in writing before dispatch. No software-seat fees.",
+    "factors": {
+      "vehicle": {
+        "title": "Vehicle class",
+        "body": "Sedan through box truck — space, weight, and driver availability change the economics."
+      },
+      "route": {
+        "title": "Route and urgency",
+        "body": "Distance, wait time, same-day urgency, and multi-stop routing all affect the quote."
+      },
+      "proof": {
+        "title": "Proof and program needs",
+        "body": "Photo, signature, GPS, recurring lanes, and dedicated capacity are confirmed before launch."
+      }
+    },
     "plans": {
       "payAsYouGo": {
-        "name": "Pay As You Go",
-        "description": "Perfect for occasional and urgent shipments.",
+        "name": "Pay as you go",
+        "price": "Quote by trip",
+        "description": "Per-run quotes for urgent, same-day, and occasional local delivery — no monthly minimum.",
         "features": [
-          "No monthly minimum",
-          "Quote before you commit",
-          "Credit card payments",
-          "Tracking and proof included"
+          "Sedan through box truck options",
+          "Live tracking and proof of delivery",
+          "Confirmed quote before dispatch",
+          "Credit card payments"
         ]
       },
       "creditAccount": {
-        "name": "Business Credit Account",
-        "description": "Streamlined billing for regular shippers.",
-        "features": ["Net 15 terms", "Net 30 terms", "Consolidated invoicing", "Volume discounts"]
+        "name": "Business account",
+        "price": "Route-based quote",
+        "description": "Net 15/30 and consolidated invoicing for regular B2B shippers.",
+        "features": [
+          "Planned vehicle and driver coverage",
+          "Multi-stop route coordination",
+          "Operational reporting and proof history",
+          "Volume-friendly terms"
+        ]
       },
       "enterprise": {
-        "name": "Enterprise Agreement",
-        "description": "Custom solutions for high-volume operations.",
+        "name": "Dedicated program",
+        "price": "Capacity program quote",
+        "description": "Recurring lanes, overflow coverage, and a named dispatch relationship for high-volume operations.",
         "features": [
-          "Custom pricing",
-          "Dedicated account manager",
+          "Custom pricing by lane",
+          "Dedicated account support",
           "Monthly invoicing",
-          "Priority support",
+          "Priority capacity",
           "Service-level terms by agreement"
         ]
       }

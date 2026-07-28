@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import ContentClusterView from "@/components/seo/ContentClusterView";
+import ContentViewBeacon from "@/components/seo/ContentViewBeacon";
 import { buildComparisonInternalLinks } from "@/lib/seo/content/comparison-pages";
 import {
   getLocalizedComparison,
@@ -50,6 +51,7 @@ export default async function ComparePage({ params }: Props) {
 
   return (
     <CorporateShell>
+      <ContentViewBeacon kind="comparison" slug={slug} source={`compare/${slug}`} />
       <ContentClusterView
         locale={loc}
         ctaSource={`compare/${slug}`}

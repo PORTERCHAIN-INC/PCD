@@ -7,8 +7,7 @@ import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { siteImages } from "@/data/site-images";
-import { localeStaticParams } from "@/lib/seo/page-helpers";
-import { Headphones, KeyRound, Plug, ShieldCheck, Target, Users } from "lucide-react";
+import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -17,11 +16,7 @@ export const generateStaticParams = localeStaticParams;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.enterprise" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "enterprise", t("title"), t("description"));
 }
 
 export default async function EnterprisePage({ params }: Props) {
@@ -34,32 +29,32 @@ export default async function EnterprisePage({ params }: Props) {
     {
       title: t("features.items.0.title"),
       description: t("features.items.0.description"),
-      icon: KeyRound,
+      icon: "keyRound" as const,
     },
     {
       title: t("features.items.1.title"),
       description: t("features.items.1.description"),
-      icon: Headphones,
+      icon: "headphones" as const,
     },
     {
       title: t("features.items.2.title"),
       description: t("features.items.2.description"),
-      icon: Target,
+      icon: "target" as const,
     },
     {
       title: t("features.items.3.title"),
       description: t("features.items.3.description"),
-      icon: Users,
+      icon: "users" as const,
     },
     {
       title: t("features.items.4.title"),
       description: t("features.items.4.description"),
-      icon: ShieldCheck,
+      icon: "shieldCheck" as const,
     },
     {
       title: t("features.items.5.title"),
       description: t("features.items.5.description"),
-      icon: Plug,
+      icon: "plug" as const,
     },
   ];
 

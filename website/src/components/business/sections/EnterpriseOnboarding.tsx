@@ -18,11 +18,11 @@ export default function EnterpriseOnboarding() {
           viewport={{ once: true }}
           className="text-center max-w-2xl mx-auto mb-14"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff7a00]">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563eb]">
             {t("label")}
           </span>
-          <h2 className="mt-3 biz-heading text-[#091b1c] tracking-tight">{t("title")}</h2>
-          <p className="mt-4 text-[#5c6b6c] leading-relaxed">{t("subtitle")}</p>
+          <h2 className="mt-3 biz-heading text-[#0b1220] tracking-tight">{t("title")}</h2>
+          <p className="mt-4 text-[#64748b] leading-relaxed">{t("subtitle")}</p>
         </motion.div>
 
         {/* Desktop horizontal timeline */}
@@ -38,13 +38,13 @@ export default function EnterpriseOnboarding() {
                 transition={{ delay: i * 0.1 }}
                 className="relative text-center"
               >
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-[#091b1c] text-white flex items-center justify-center text-xl font-bold relative z-10 biz-shadow">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-[#0b1220] text-white flex items-center justify-center text-xl font-bold relative z-10 biz-shadow">
                   {i + 1}
                 </div>
-                <h3 className="mt-4 font-semibold text-[#091b1c] text-sm">
+                <h3 className="mt-4 font-semibold text-[#0b1220] text-sm">
                   {t(`steps.${step}.title`)}
                 </h3>
-                <p className="mt-1 text-xs text-[#5c6b6c] leading-relaxed px-1">
+                <p className="mt-1 text-xs text-[#64748b] leading-relaxed px-1">
                   {t(`steps.${step}.description`)}
                 </p>
               </motion.div>
@@ -64,16 +64,16 @@ export default function EnterpriseOnboarding() {
               className="flex gap-4"
             >
               <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-xl bg-[#091b1c] text-white flex items-center justify-center font-bold shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-[#0b1220] text-white flex items-center justify-center font-bold shrink-0">
                   {i + 1}
                 </div>
                 {i < BUSINESS_ONBOARDING_STEPS.length - 1 && (
-                  <div className="w-0.5 flex-1 min-h-[2rem] bg-gradient-to-b from-[#ff7a00] to-[#ff7a00]/20 my-1" />
+                  <div className="w-0.5 flex-1 min-h-[2rem] bg-gradient-to-b from-[#2563eb] to-[#2563eb]/20 my-1" />
                 )}
               </div>
               <div className="pb-8">
-                <h3 className="font-semibold text-[#091b1c]">{t(`steps.${step}.title`)}</h3>
-                <p className="mt-1 text-sm text-[#5c6b6c]">{t(`steps.${step}.description`)}</p>
+                <h3 className="font-semibold text-[#0b1220]">{t(`steps.${step}.title`)}</h3>
+                <p className="mt-1 text-sm text-[#64748b]">{t(`steps.${step}.description`)}</p>
               </div>
             </motion.div>
           ))}
@@ -87,7 +87,7 @@ export default function EnterpriseOnboarding() {
         >
           <a
             href="#inquiry"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#ff7a00] hover:text-[#e66e00] transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#2563eb] hover:text-[#1d4ed8] transition-colors"
           >
             {t("cta")}
             <ChevronRight className="w-4 h-4" />

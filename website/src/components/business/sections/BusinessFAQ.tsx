@@ -23,11 +23,11 @@ export default function BusinessFAQ() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff7a00]">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563eb]">
             {t("label")}
           </span>
-          <h2 className="mt-3 biz-heading text-[#091b1c] tracking-tight">{t("title")}</h2>
-          <p className="mt-4 text-[#5c6b6c]">{t("subtitle")}</p>
+          <h2 className="mt-3 biz-heading text-[#0b1220] tracking-tight">{t("title")}</h2>
+          <p className="mt-4 text-[#64748b]">{t("subtitle")}</p>
         </motion.div>
 
         <Accordion items={items} speakableCount={4} />

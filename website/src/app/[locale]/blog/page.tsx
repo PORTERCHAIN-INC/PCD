@@ -18,6 +18,7 @@ import {
 } from "@/lib/blog";
 import { BLOG_CATEGORIES } from "@/data/blog-categories";
 import type { BlogCategory } from "@/data/blog-categories";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -31,11 +32,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "blog.metadata" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "blog", t("title"), t("description"));
 }
 
 export default async function BlogHomePage({ params, searchParams }: Props) {

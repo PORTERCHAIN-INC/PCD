@@ -35,8 +35,8 @@ export default function LegalDocument({ pageId }: LegalDocumentProps) {
 
         <div className="mt-12 space-y-10">
           {sections.map((section, i) => (
-            <FadeIn key={section.title} delay={i * 0.04}>
-              <section>
+            <FadeIn key={section.title} delay={Math.min(i * 0.05, 0.35)}>
+              <section className="relative border-l-2 border-secondary/20 pl-5 transition-colors hover:border-secondary/50">
                 <h2 className="text-xl font-semibold text-primary tracking-tight">
                   {section.title}
                 </h2>

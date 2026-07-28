@@ -15,7 +15,7 @@ import {
 import { getCityIndustryContent } from "./city-industry-delivery";
 import { getCityLocalSegmentContent } from "./city-local-segment-content";
 import { isPublishableNiche } from "./landing-content";
-import { isPublishableServiceArea, type ServiceAreaContent } from "./service-area-content";
+import { isPublishableServiceArea, type ServiceAreaMessageContent } from "./service-area-content";
 import { getNicheMessageKey } from "./niche-landing";
 import { getServiceAreaMessageKey, isCoreServiceArea } from "./service-areas";
 import { resolveCitySegment, type ResolvedCitySegment } from "./city-segment-seo";
@@ -72,7 +72,7 @@ type PublicationMessages = {
   cityIndustryDelivery?: Parameters<typeof getCityIndustryContent>[2]["cityIndustryDelivery"];
   cityLocalSegment?: Parameters<typeof getCityLocalSegmentContent>[3]["cityLocalSegment"];
   vehicleDelivery?: Parameters<typeof getCityLocalSegmentContent>[3]["vehicleDelivery"];
-  serviceAreaLanding?: Record<string, Partial<ServiceAreaContent>>;
+  serviceAreaLanding?: Record<string, ServiceAreaMessageContent>;
   nicheLanding?: Record<string, Partial<NicheLandingContent>>;
 };
 

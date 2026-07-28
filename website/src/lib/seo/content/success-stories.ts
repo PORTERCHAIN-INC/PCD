@@ -1,7 +1,4 @@
-/**
- * Merchant success stories framework.
- * Construction trades listed first — primary marketing vertical.
- */
+import type { PublishableContent } from "./publishable";
 
 export type SuccessStoryMerchantType =
   | "construction-materials"
@@ -11,8 +8,7 @@ export type SuccessStoryMerchantType =
   | "pharmacy-medical"
   | "cosmetics";
 
-export type SuccessStory = {
-  slug: string;
+export type SuccessStory = PublishableContent & {
   title: string;
   description: string;
   merchantType: SuccessStoryMerchantType;
@@ -28,6 +24,10 @@ export type SuccessStory = {
   authorId?: string;
   /** Only show metric + Review schema when true (permissioned narrative) */
   permissioned?: boolean;
+  /** Customer approval on file before naming or indexing */
+  customerApproved?: boolean;
+  /** Evidence notes for procurement / editorial review */
+  evidenceNotes?: string;
 };
 
 export const MERCHANT_TYPE_LABELS: Record<SuccessStoryMerchantType, string> = {
@@ -60,6 +60,11 @@ export const SUCCESS_STORIES: SuccessStory[] = [
     outcomeMetric: "40+ jobsite drops per week",
     authorId: "sarah-chen",
     permissioned: true,
+    customerApproved: true,
+    status: "published",
+    index: true,
+    publishedAt: "2025-11-01",
+    updatedAt: "2026-07-01",
   },
   {
     slug: "coffee-roaster-wholesale-delivery",
@@ -81,6 +86,9 @@ export const SUCCESS_STORIES: SuccessStory[] = [
     outcomeMetric: "50+ cafés served",
     authorId: "sarah-chen",
     permissioned: false,
+    status: "published",
+    index: false,
+    evidenceNotes: "Anonymized composite — index when customer approves naming and metrics.",
   },
   {
     slug: "pharmacy-patient-delivery",
@@ -102,6 +110,9 @@ export const SUCCESS_STORIES: SuccessStory[] = [
     outcomeMetric: "Same-day across GTA",
     authorId: "sarah-chen",
     permissioned: false,
+    status: "published",
+    index: false,
+    evidenceNotes: "Anonymized composite — index when customer approves naming and metrics.",
   },
   {
     slug: "beauty-brand-d2c-fulfillment",
@@ -123,6 +134,9 @@ export const SUCCESS_STORIES: SuccessStory[] = [
     outcomeMetric: "Recurring + same-day in Ontario",
     authorId: "sarah-chen",
     permissioned: false,
+    status: "published",
+    index: false,
+    evidenceNotes: "Anonymized composite — index when customer approves naming and metrics.",
   },
 ];
 

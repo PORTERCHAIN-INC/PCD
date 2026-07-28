@@ -1,8 +1,9 @@
-"""Admin CRM leads — list, detail, status updates."""
+"""Admin CRM leads — list, detail, status updates, appointment calendar."""
 
+from datetime import datetime
 from typing import Annotated
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Query
 from sqlalchemy.orm import Session
 
 from porterchain_api.collaboration_engine import CrmSalesService
@@ -14,7 +15,7 @@ from porterchain_api.routers.admin._deps import (
     require_module,
     router,
 )
-from porterchain_api.schemas_crm import LeadOut, LeadUpdate
+from porterchain_api.schemas_crm import LeadOut, LeadUpdate, TaskOut
 
 _crm = CrmSalesService()
 
@@ -39,6 +40,27 @@ def list_leads(
         limit=min(limit, 500),
     )
     return [LeadOut.model_validate(row) for row in rows]
+
+
+@router.get("/leads/calendar", response_model=list[TaskOut])
+def list_lead_calendar_tasks(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    due_after: datetime | None = None,
+    due_before: datetime | None = None,
+    limit: int = Query(200, le=500),
+) -> list[TaskOut]:
+    """Week/range view of call + meeting tasks linked to CRM leads."""
+    require_module(ctx, "crm_read")
+    rows = _crm.list_tasks(
+        db,
+        entity_type="lead",
+        task_types=["call", "meeting"],
+        due_after=due_after,
+        due_before=due_before,
+        limit=limit,
+    )
+    return [TaskOut.model_validate(t) for t in rows]
 
 
 @router.get("/leads/{lead_id}", response_model=LeadOut)

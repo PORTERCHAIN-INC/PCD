@@ -170,6 +170,14 @@ def main() -> int:
             ensure_ascii=False,
         ).lower()
         pricing_blob = json.dumps(corporate.get("pricing", {}), ensure_ascii=False).lower()
+        business_en = WEBSITE / "messages/business-en.json"
+        home_chooser_en = WEBSITE / "messages/en.json"
+        if business_en.is_file():
+            business = json.loads(business_en.read_text(encoding="utf-8"))
+            pricing_blob += "\n" + json.dumps(business.get("billing", {}), ensure_ascii=False).lower()
+        if home_chooser_en.is_file():
+            home_msg = json.loads(home_chooser_en.read_text(encoding="utf-8"))
+            home_blob += "\n" + json.dumps(home_msg.get("homeChooser", {}), ensure_ascii=False).lower()
         for forbidden in (
             "dispatch os",
             "dispatch operating system",

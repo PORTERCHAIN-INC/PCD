@@ -7,8 +7,8 @@ import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
-import { localeStaticParams } from "@/lib/seo/page-helpers";
-import { FileCheck, Handshake, Layers, Scale } from "lucide-react";
+import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";
+import type { FeatureIconName } from "@/components/corporate/icons/feature-icons";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -17,11 +17,7 @@ export const generateStaticParams = localeStaticParams;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.msa" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "trust/msa", t("title"), t("description"));
 }
 
 export default async function MsaPage({ params }: Props) {
@@ -30,7 +26,7 @@ export default async function MsaPage({ params }: Props) {
   const t = await getTranslations("corporate.trust.msa");
   const tBc = await getTranslations("corporate.breadcrumbs");
 
-  const icons = [Handshake, Layers, Scale, FileCheck] as const;
+  const icons = ["handshake", "layers", "scale", "fileCheck"] as const satisfies FeatureIconName[];
   const items = icons.map((icon, i) => ({
     title: t(`sections.items.${i}.title`),
     description: t(`sections.items.${i}.description`),

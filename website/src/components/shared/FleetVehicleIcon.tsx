@@ -35,7 +35,7 @@ export default function FleetVehicleIcon({ vehicle, className, size = 56, active
         aria-hidden
         className={cn(
           "fleet-vehicle-icon__glyph block shrink-0 transition-colors duration-200",
-          active ? "bg-white" : "bg-white/90 group-hover:bg-white"
+          active ? "bg-white" : "bg-primary/85 group-hover:bg-primary"
         )}
         style={{
           width: size,

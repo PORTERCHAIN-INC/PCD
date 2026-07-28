@@ -13,6 +13,8 @@ interface HubIndexViewProps {
   description: string;
   items: { href: string; title: string; description: string }[];
   ctaSource: string;
+  /** Set false when breadcrumbs already clear the fixed navbar. */
+  clearNav?: boolean;
 }
 
 export default function HubIndexView({
@@ -21,6 +23,7 @@ export default function HubIndexView({
   description,
   items,
   ctaSource,
+  clearNav = true,
 }: HubIndexViewProps) {
   return (
     <>
@@ -33,6 +36,7 @@ export default function HubIndexView({
         secondaryCta="Contact"
         secondaryHref={contact(locale, { from: ctaSource })}
         variant="light-centered"
+        clearNav={clearNav}
         illustration={<HeroPhoto image={getPageHeroImage(ctaSource)} />}
       />
       <section className="site-section bg-white">

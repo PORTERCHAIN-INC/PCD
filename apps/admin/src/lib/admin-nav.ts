@@ -3,6 +3,7 @@ import {
   Banknote,
   Bell,
   Building2,
+  CalendarDays,
   ClipboardList,
   HardHat,
   Headphones,
@@ -110,6 +111,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: UserPlus,
       },
       {
+        href: "/leads/calendar",
+        label: "Lead calendar",
+        description: "Calls and meetings from guides",
+        icon: CalendarDays,
+      },
+      {
         href: `/leads?source=${DRIVER_LEAD_SOURCE}`,
         label: "Driver Leads",
         description: "Vehicle partner applications",
@@ -192,6 +199,7 @@ export const ADMIN_TOP_LEVEL_ROUTES = [
   "/merchants",
   "/drivers",
   "/leads",
+  "/leads/calendar",
   "/blog",
   "/finance",
   "/pricing",
@@ -224,6 +232,11 @@ export function isNavActive(pathname: string, href: string, search = ""): boolea
 
   // Bare /leads = merchant inbox (not the driver-partner filter).
   if (path === "/leads" && current.get("source") === DRIVER_LEAD_SOURCE) {
+    return false;
+  }
+
+  // Dedicated calendar item — don't also highlight Merchant Leads.
+  if (path === "/leads" && pathname.startsWith("/leads/calendar")) {
     return false;
   }
 

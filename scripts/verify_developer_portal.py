@@ -16,6 +16,8 @@ PARTNER_GUIDE = ROOT / "docs/api/PARTNER_GUIDE.md"
 POSTMAN = ROOT / "docs/api/porterchain.postman.json"
 CHANGELOG = ROOT / "docs/api/CHANGELOG.md"
 OPENAPI = ROOT / "docs/api/openapi.json"
+WEBHOOKS_DOC = ROOT / "docs/api/WEBHOOKS_IDEMPOTENCY_RATE_LIMITS.md"
+STATUS_DOC = ROOT / "docs/STATUS_PAGE.md"
 
 
 def main() -> int:
@@ -54,9 +56,22 @@ def main() -> int:
         ("postman collection", POSTMAN),
         ("API CHANGELOG", CHANGELOG),
         ("openapi.json", OPENAPI),
+        ("webhooks/idempotency doc", WEBHOOKS_DOC),
+        ("STATUS_PAGE.md", STATUS_DOC),
     ):
         if not path.is_file():
             failures.append(f"missing {label} ({path.relative_to(ROOT)})")
+
+    if WEBHOOKS_DOC.is_file():
+        wh = WEBHOOKS_DOC.read_text(encoding="utf-8").lower()
+        for needle in ("webhook", "idempotenc", "rate limit", "sdk"):
+            if needle not in wh:
+                failures.append(f"WEBHOOKS_IDEMPOTENCY_RATE_LIMITS.md missing {needle}")
+
+    if "webhooks-idempotency-rate-limits" not in (
+        ROOT / "website/src/lib/developer-docs.ts"
+    ).read_text(encoding="utf-8"):
+        failures.append("developer-docs.ts missing webhooks-idempotency-rate-limits slug")
 
     if DEVELOPERS_PAGE.is_file():
         dev_text = DEVELOPERS_PAGE.read_text(encoding="utf-8")

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getMessages, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import { getMessages, getTranslations } from "next-intl/server";
 import ContentClusterView from "@/components/seo/ContentClusterView";
+import VehiclesTabNav from "@/components/vehicles/VehiclesTabNav";
 import { localePath } from "@/lib/seo/routes";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import { buildVehicleConstructionLinks } from "@/lib/seo/vehicle-construction-links";
@@ -17,6 +17,13 @@ const VEHICLE_CONFIG = {
   "cargo-van-delivery": "cargoVan",
   "box-truck-delivery": "mediumTruck",
 } as const;
+
+const TAB_NAV_SEGMENTS = new Set([
+  "trade-van-delivery",
+  "pickup-truck-delivery",
+  "cargo-van-delivery",
+  "box-truck-delivery",
+]);
 
 type VehicleSegment = keyof typeof VEHICLE_CONFIG;
 
@@ -96,6 +103,8 @@ export async function VehicleDeliveryPageContent({
   segment: VehicleSegment;
 }) {
   const messages = await getMessages({ locale });
+  const tBc = await getTranslations("corporate.breadcrumbs");
+  const tTabs = await getTranslations("corporate.nav.vehiclesTabs");
   const key = VEHICLE_CONFIG[segment];
   const v = (messages as { vehicleDelivery?: Record<string, VehicleCopy> }).vehicleDelivery?.[key];
   if (!v) notFound();
@@ -128,12 +137,33 @@ export async function VehicleDeliveryPageContent({
       ? [{ question: v.faqPricingQ, answer: v.faqPricingA }]
       : undefined;
 
+  const showVehicleTabs = TAB_NAV_SEGMENTS.has(segment);
+  const title = v.pageTitle ?? v.headline ?? segment;
+  const tabLabelKey =
+    segment === "cargo-van-delivery"
+      ? "cargoVan"
+      : segment === "trade-van-delivery"
+        ? "tradeVan"
+        : segment === "box-truck-delivery"
+          ? "boxTruck"
+          : segment === "pickup-truck-delivery"
+            ? "pickupTruck"
+            : null;
+
   return (
     <ContentClusterView
       locale={locale}
       ctaSource={segment}
+      breadcrumbs={[
+        { label: tBc("home"), href: "/" },
+        { label: tBc("vehicles"), href: "/vehicles" },
+        { label: tabLabelKey ? tTabs(tabLabelKey) : title },
+      ]}
+      topNav={showVehicleTabs ? <VehiclesTabNav /> : undefined}
+      secondaryCta={tTabs("overview")}
+      secondaryHref="/vehicles"
       data={{
-        title: v.pageTitle ?? v.headline ?? segment,
+        title,
         description: v.description ?? "",
         intro,
         items,

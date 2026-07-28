@@ -25,7 +25,9 @@
     "about": "À propos",
     "contact": "Contact",
     "login": "Connexion",
-    "bookNow": "Réserver",
+    "bookNow": "Obtenir un devis",
+    "merchants": "Marchands",
+    "drivers": "Chauffeurs",
     "toggleMenu": "Basculer le menu",
     "solutionItems": {
       "sameDay": "Livraison le jour même",
@@ -34,13 +36,151 @@
       "recurring": "Routes récurrentes"
     }
   },
+  "homeChooser": {
+    "eyebrow": "Porterchain · RGT et Ontario",
+    "headline": "Demandez la capacité dont vous avez besoin — obtenez la prochaine étape claire.",
+    "subtitle": "Pas une visite logicielle. Posez vos questions sur le débordement jour même, les véhicules, les industries ou la tarification — puis passez au devis ou au parcours marchand.",
+    "trustLine": "Sur devis · Suivi en direct et preuve · Réponse en un jour ouvrable",
+    "merchants": {
+      "title": "Marchands",
+      "body": "Demandez de la capacité pour la construction, le gros, le médical et la distribution — sur devis selon véhicule, itinéraire et urgence.",
+      "cta": "Marchands"
+    },
+    "drivers": {
+      "title": "Chauffeurs",
+      "body": "Apportez un véhicule admissible au réseau — routes structurées, instructions claires, portail dédié.",
+      "cta": "Chauffeurs"
+    },
+    "guide": {
+      "ariaLabel": "Chat guide de capacité",
+      "title": "Ligne capacité",
+      "status": "En direct · Réseau RGT",
+      "hint": "Propulsé par Groq · ancré dans la capacité Porterchain",
+      "thinking": "Réflexion…",
+      "error": "La ligne capacité est indisponible pour le moment. Réessayez, ou demandez un devis et nous vous répondrons.",
+      "guideName": "Porterchain",
+      "you": "Vous",
+      "welcome": "Posez vos questions sur la capacité de relève — débordement jour même, classes de véhicules, industries desservies ou fonctionnement des devis. Je peux aussi enregistrer vos coordonnées et réserver un appel avec l'équipe.",
+      "fallback": "Je peux aider sur la tarification, les industries, les véhicules, le débordement jour même, la capacité marchande ou l'adhésion chauffeur. Essayez une suggestion ci-dessous — ou demandez un devis écrit et nous cartographierons vos corridors.",
+      "tryAsking": "Essayez de demander",
+      "placeholder": "Demandez capacité, tarification, véhicules…",
+      "send": "Envoyer",
+      "toolContactSaved": "Coordonnées enregistrées",
+      "toolContactUpdated": "Coordonnées mises à jour",
+      "toolSlotsReady": "Créneaux disponibles",
+      "toolBooked": "Rendez-vous réservé",
+      "toolTranscriptSaved": "Notes enregistrées pour l'équipe",
+      "toolKnowledge": "Sources vérifiées",
+      "toolTracking": "Aide au suivi",
+      "toolQualified": "Détails enregistrés pour les ventes",
+      "toolStateUpdated": "Conversation mise à jour",
+      "toolApproveBook": "Confirmer la réservation",
+      "toolDenyBook": "Annuler",
+      "toolAwaitingApproval": "Confirmer cette réservation?",
+      "toolWorking": "En cours…",
+      "toolFailed": "Étape impossible — réessayez ou demandez un devis.",
+      "actions": {
+        "quote": "Demander un devis",
+        "merchants": "Capacité marchande",
+        "drivers": "Partenaires chauffeurs",
+        "pricing": "Comment fonctionne la tarification",
+        "industries": "Industries desservies",
+        "fleet": "Voir les véhicules"
+      },
+      "topics": {
+        "what": {
+          "prompt": "Qu'est-ce que Porterchain?",
+          "answer": "Porterchain est un réseau de capacité de transport pour les entreprises de l'Ontario. Vous achetez de la capacité véhicule et chauffeur pour débordement, jour même et corridors récurrents — pas un siège SaaS. Le logiciel et la répartition restent en coulisse pour que vos clients reçoivent toujours la livraison."
+        },
+        "pricing": {
+          "prompt": "Comment fonctionne la tarification?",
+          "answer": "La tarification est sur devis selon la classe de véhicule, la distance, les arrêts et l'urgence (jour même vs planifié). Vous payez la capacité exécutée — pas des sièges logiciels. Nous confirmons capacité et prix par écrit avant l'expédition."
+        },
+        "industries": {
+          "prompt": "Quelles industries desservez-vous?",
+          "answer": "Nous soutenons les opérations B2B du RGT en construction, gros, médical et pharmacie, fabrication, distribution détaillant, et plus. Ouvrez la page marchands pour les playbooks sectoriels et un devis de capacité."
+        },
+        "sameday": {
+          "prompt": "Couvrez-vous le débordement jour même?",
+          "answer": "Oui — la capacité urgente et jour même est un cas d'usage central quand un chauffeur est absent, un camion est immobilisé ou la demande explose. Indiquez ramassage, livraison, véhicule et fenêtre — nous confirmons la disponibilité."
+        },
+        "vehicles": {
+          "prompt": "Quels véhicules sont disponibles?",
+          "answer": "Berline, VUS, camionnette, fourgonnette cargo, Sprinter et camions cubes — adaptés à la charge, à l'accès et à l'urgence. Les classes actuelles roulent avec un permis G ontarien standard. Voir la flotte sur la page marchands ou demander un devis."
+        },
+        "merchants": {
+          "prompt": "J'ai besoin de capacité pour mon entreprise",
+          "answer": "La capacité marchande s'adresse aux expéditeurs qui ont besoin d'une couverture véhicule et chauffeur fiable — courses urgentes ponctuelles, routes récurrentes ou débordement de flotte. Commencez sur le hub marchands ou demandez un devis avec vos corridors."
+        },
+        "drivers": {
+          "prompt": "Comment devenir chauffeur partenaire?",
+          "answer": "Les partenaires véhicules admissibles rejoignent le réseau pour des routes structurées, des instructions claires et un portail chauffeur dédié. Ouvrez le hub chauffeurs pour postuler — nous examinerons l'adéquation du véhicule et les prochaines étapes."
+        },
+        "areas": {
+          "prompt": "Où opérez-vous?",
+          "answer": "La couverture principale est le Grand Toronto et les métropoles de l'Ontario. Indiquez vos corridors lors de la demande de devis pour confirmer l'adéquation."
+        },
+        "tracking": {
+          "prompt": "Fournissez-vous suivi et preuve?",
+          "answer": "Oui — statut en direct, suivi partageable et preuve de livraison (photo / signature selon entente) pour que les ops et vos clients restent alignés après le transfert."
+        },
+        "start": {
+          "prompt": "Comment commencer?",
+          "answer": "Demandez un devis avec quoi transporter, où et quand — ou ouvrez le hub marchands pour flotte, industries et options de facturation. Nous répondons avec des options de capacité, pas une démo logicielle."
+        }
+      }
+    },
+    "why": {
+      "eyebrow": "Pourquoi les entreprises utilisent le réseau",
+      "title": "Du débordement qui protège vos corridors — et votre réputation.",
+      "scale": {
+        "title": "Montez en charge au bon moment",
+        "body": "Ajoutez fourgonnettes et camions cubes avec chauffeurs dès que votre capacité interne est pleine — sans acheter un camion pour une semaine de pointe."
+      },
+      "care": {
+        "title": "Tenez vos promesses clients",
+        "body": "Transférez les courses de débordement sans transférer la confiance. Preuve de livraison et passations claires gardent votre marque dans la boucle."
+      },
+      "visibility": {
+        "title": "Voyez chaque kilomètre en plus",
+        "body": "Statut et suivi sur les arrêts ajoutés au réseau — pour que les ops sachent où est la capacité, pas seulement qu'elle a quitté le dépôt."
+      }
+    },
+    "serve": {
+      "eyebrow": "Industries et tarification",
+      "title": "Conçu pour le B2B du RGT — tarifé pour la capacité, pas des sièges logiciels.",
+      "industries": "Construction · gros · médical · fabrication · distribution détaillant",
+      "pricing": "Les devis cumulent classe de véhicule, distance, arrêts et urgence. Confirmés par écrit avant l'expédition.",
+      "industriesCta": "Parcourir les industries",
+      "pricingCta": "Voir comment fonctionne la tarification"
+    },
+    "ready": {
+      "title": "Besoin de capacité de relève sur vos corridors?",
+      "body": "Dites-nous quoi transporter, où et quand. Nous revenons avec des options véhicule et chauffeur — pas une démo logicielle.",
+      "cta": "Demander un devis"
+    }
+  },
+  "marketing": {
+    "consent": {
+      "title": "Préférences de témoins",
+      "description": "Nous utilisons des témoins nécessaires pour faire fonctionner le site. Les outils d'analyse, marketing et expérience optionnels se chargent seulement si vous les autorisez.",
+      "policyLink": "Politique de témoins",
+      "necessary": "Nécessaires",
+      "analytics": "Analyse",
+      "marketing": "Marketing",
+      "experience": "Expérience",
+      "reject": "Refuser les optionnels",
+      "save": "Enregistrer",
+      "accept": "Tout accepter"
+    }
+  },
   "login": {
-    "title": "Connexion",
-    "eyebrow": "Accès au compte",
-    "headline": "Une connexion. Le bon portail.",
-    "subtitle": "Utilisez votre compte Porterchain. Nous vous dirigerons vers le bon portail selon votre rôle.",
-    "roleNote": "Clients, marchands, chauffeurs et personnel — une seule connexion pour tous.",
-    "trustLine": "Authentification sécurisée · Routage automatique par rôle",
+    "title": "Connexion client",
+    "eyebrow": "Choisissez votre portail",
+    "headline": "Connectez-vous à votre portail Porterchain.",
+    "subtitle": "Les clients se connectent ici. Marchands, chauffeurs et personnel utilisent les liens ci-dessous — chaque portail a sa propre connexion sécurisée.",
+    "roleNote": "Comptes clients seulement. Utilisez le sélecteur de portail pour l'accès marchand, chauffeur ou personnel.",
+    "trustLine": "Connexions de portail isolées · Authentification sécurisée",
     "needHelp": "Besoin d'un compte?",
     "needHelpLink": "Contacter le soutien",
     "roles": {
@@ -54,15 +194,18 @@
       },
       "customer": {
         "title": "Clients",
-        "description": "Suivre les envois et le statut des commandes"
+        "description": "Connectez-vous avec le formulaire de cette page"
       },
       "staff": {
         "title": "Opérations",
         "description": "Répartition, admin et outils de flotte"
       }
     },
-    "redirecting": "Connexion en cours, ouverture de votre portail…",
-    "notProvisioned": "Ce courriel n'est pas encore configuré sur Porterchain. Si vous avez reçu une invitation, utilisez le lien dans le courriel ou contactez-nous.",
+    "redirecting": "Ouverture de votre portail…",
+    "notProvisioned": "Cette connexion du site est réservée aux clients. Le personnel se connecte au portail Admin; les marchands et chauffeurs utilisent leur propre portail. Si vous avez été invité comme client, utilisez le lien dans le courriel d'invitation.",
+    "staffSignIn": "Connexion personnel / admin",
+    "merchantSignIn": "Connexion marchand",
+    "driverSignIn": "Connexion chauffeur",
     "identityConflict": "Ce compte est lié à plusieurs types de portail. Utilisez des courriels distincts pour le personnel et les clients, ou contactez le soutien.",
     "error": "Impossible de vous connecter. Vérifiez votre connexion et réessayez.",
     "missingToken": "Clerk n'a pas renvoyé de jeton de session. Déconnectez-vous et réessayez.",
@@ -70,15 +213,7 @@
     "signOut": "Se déconnecter et réessayer",
     "devModeNote": "Clerk n'est pas configuré dans cet environnement.",
     "backHome": "Retour à porterchain.com",
-    "contactSupport": "Contacter le soutien",
-    "merchantSso": {
-      "title": "Connexion portail marchand",
-      "subtitle": "Utilisez votre compte d'entreprise approuvé. Google et Microsoft s'affichent lorsque Clerk les active.",
-      "google": "Continuer avec Google",
-      "microsoft": "Continuer avec Microsoft",
-      "emailFallback": "Ou connexion par courriel ci-dessous",
-      "orDivider": "Ou continuer par courriel"
-    }
+    "contactSupport": "Contacter le soutien"
   },
   "hero": {
     "badge": "Capacité de transport · RGT et Ontario",

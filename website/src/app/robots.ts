@@ -11,6 +11,19 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/*/login", "/*/book/continue", "/*/book/success", "/*/track/"],
       },
     ],
-    sitemap: `${base}/sitemap.xml`,
+    sitemap: [
+      `${base}/sitemap.xml`,
+      ...[
+        "static",
+        "industry",
+        "service",
+        "vehicle",
+        "location",
+        "resource",
+        "article",
+        "case-study",
+        "developer",
+      ].map((id) => `${base}/sitemap/${id}.xml`),
+    ],
   };
 }

@@ -164,10 +164,13 @@
           "Porterchain et nos partenaires intégrés peuvent définir les types de témoins suivants :"
         ],
         "list": [
-          "Témoins essentiels — nécessaires au fonctionnement, à la sécurité et à la gestion de session",
+          "Témoins essentiels — nécessaires au fonctionnement, à la sécurité et à la gestion de session (toujours actifs)",
+          "Témoins d'analyse — seulement si vous autorisez Analyse dans la bannière (Consent Mode)",
+          "Témoins marketing — pixels pub/remarketing seulement si vous autorisez Marketing et que les IDs env sont configurés",
+          "Témoins d'expérience — Clarity/Hotjar optionnels seulement si vous autorisez Expérience",
           "Témoins d'authentification — définis par Clerk lors de la connexion ou vérification du compte",
-          "Témoins de préférence — comme la sélection de langue (anglais / français)",
-          "Témoins d'analyse et de clavardage — définis par Zoho SalesIQ lorsque le widget est activé",
+          "Témoins de préférence — langue (anglais / français) et choix de la bannière de témoins",
+          "Témoins de clavardage — définis par Zoho SalesIQ lorsque le widget est activé",
           "Témoins de paiement — définis par Stripe lors du paiement",
           "Témoins de cartes — définis par Google Maps pour l'autocomplétion et les cartes"
         ]

@@ -4,6 +4,8 @@ import Script from "next/script";
 import { useEffect } from "react";
 import { useDeferUntilInteraction } from "@/lib/defer-until-interaction";
 import { flushQueuedAnalyticsEvents, setAnalyticsProvider } from "@/lib/seo/analytics";
+import { ensureGoogleConsentDefaults } from "@/lib/marketing/consent";
+import { marketingPublicEnv } from "@/lib/marketing/config";
 
 declare global {
   interface Window {
@@ -11,20 +13,30 @@ declare global {
   }
 }
 
-const measurementId = (process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "").trim();
+type Props = {
+  /** Analytics category granted via CMP */
+  enabled: boolean;
+};
 
-export default function GoogleAnalytics() {
+export default function GoogleAnalytics({ enabled }: Props) {
   const ready = useDeferUntilInteraction(12_000);
+  const measurementId = marketingPublicEnv.gaMeasurementId;
+  // Skip direct GA when GTM owns tags
+  const loadDirect = enabled && Boolean(measurementId) && !marketingPublicEnv.useGtmForMarketing;
 
   useEffect(() => {
-    if (!measurementId || !ready) return;
+    ensureGoogleConsentDefaults();
+  }, []);
+
+  useEffect(() => {
+    if (!loadDirect || !ready) return;
     setAnalyticsProvider((event, properties) => {
       window.gtag?.("event", event, properties);
     });
     flushQueuedAnalyticsEvents();
-  }, [ready]);
+  }, [loadDirect, ready]);
 
-  if (!measurementId || !ready) return null;
+  if (!loadDirect || !ready) return null;
 
   return (
     <>

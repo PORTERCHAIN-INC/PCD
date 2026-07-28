@@ -2,7 +2,7 @@
  * Internal linking between industry, service area, and city-industry SEO pages.
  */
 import type { Locale } from "@/i18n/routing";
-import type { SolutionVerticalSlug } from "@/lib/solutions-verticals";
+import { solutionVerticalPath, type SolutionVerticalSlug } from "@/lib/solutions-verticals";
 import {
   cityIndustrySeo,
   faqSlug,
@@ -140,6 +140,11 @@ export const INDUSTRY_PAGE_LABELS: Record<string, string> = {
   chocolate: "Chocolate & confectionery",
   "lab-sample-delivery": "Lab sample delivery",
   ecommerce: "E-commerce",
+  "hvac-mechanical": "HVAC & mechanical (draft)",
+  "automotive-parts": "Automotive parts (draft)",
+  manufacturing: "Manufacturing (draft)",
+  "retail-replenishment": "Retail replenishment (draft)",
+  "food-distribution": "Food distribution (draft)",
 };
 
 const LOCAL_DELIVERY_CITY_LABELS: Record<CitySeoSlug, string> = {
@@ -270,7 +275,7 @@ export function buildProductLinksForNiche(
   const vertical = NICHE_TO_SOLUTION_VERTICAL[nicheSlug];
   if (vertical) {
     links.push({
-      href: `${localePath(locale, `solutions/${vertical}`)}?from=${encodeURIComponent(from)}`,
+      href: `${localePath(locale, solutionVerticalPath(vertical).replace(/^\//, ""))}?from=${encodeURIComponent(from)}`,
       label: SOLUTION_VERTICAL_LABELS[vertical],
     });
   }

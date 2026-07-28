@@ -17,6 +17,11 @@ const LABELS: Record<NicheSlug, string> = {
   chocolate: "Chocolate & confectionery",
   "lab-sample-delivery": "Lab sample delivery",
   ecommerce: "E-commerce delivery",
+  "hvac-mechanical": "HVAC & mechanical (draft)",
+  "automotive-parts": "Automotive parts (draft)",
+  manufacturing: "Manufacturing (draft)",
+  "retail-replenishment": "Retail replenishment (draft)",
+  "food-distribution": "Food distribution (draft)",
 };
 
 const KEYWORDS: Partial<Record<NicheSlug, string[]>> = {

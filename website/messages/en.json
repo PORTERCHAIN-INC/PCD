@@ -21,11 +21,13 @@
     "industries": "Industries",
     "pricing": "Pricing",
     "business": "Business",
+    "merchants": "Merchants",
+    "drivers": "Drivers",
     "resources": "Resources",
     "about": "About",
     "contact": "Contact",
     "login": "Login",
-    "bookNow": "Book Now",
+    "bookNow": "Get a quote",
     "toggleMenu": "Toggle menu",
     "solutionItems": {
       "sameDay": "Same-Day Delivery",
@@ -35,12 +37,12 @@
     }
   },
   "login": {
-    "title": "Sign in",
-    "eyebrow": "Account access",
-    "headline": "One sign-in. The right portal.",
-    "subtitle": "Use your Porterchain account. We'll send you to the right portal for your role.",
-    "roleNote": "Works for customers, merchants, drivers, and staff — one sign-in for everyone.",
-    "trustLine": "Secure authentication · Automatic role routing",
+    "title": "Customer sign-in",
+    "eyebrow": "Choose your portal",
+    "headline": "Sign in to your Porterchain portal.",
+    "subtitle": "Customers sign in here. Merchants, drivers, and staff use the links below — each portal has its own secure login.",
+    "roleNote": "Customer accounts only. Use the portal picker if you need merchant, driver, or staff access.",
+    "trustLine": "Isolated portal logins · Secure authentication",
     "needHelp": "Need an account?",
     "needHelpLink": "Contact support",
     "roles": {
@@ -54,15 +56,18 @@
       },
       "customer": {
         "title": "Customers",
-        "description": "Track shipments and order status"
+        "description": "Sign in with the form on this page"
       },
       "staff": {
         "title": "Operations",
         "description": "Dispatch, admin, and fleet tools"
       }
     },
-    "redirecting": "Signing you in and opening your portal…",
-    "notProvisioned": "This email isn't set up on Porterchain yet. If you were invited, use the link in your invitation email, or contact us to get access.",
+    "redirecting": "Opening your portal…",
+    "notProvisioned": "This website login is for customers only. Staff sign in at the Admin portal; merchants and drivers use their own portals. If you were invited as a customer, use the link in your invitation email.",
+    "staffSignIn": "Staff / admin sign-in",
+    "merchantSignIn": "Merchant sign-in",
+    "driverSignIn": "Driver sign-in",
     "identityConflict": "This account is linked to multiple portal types. Use separate emails for staff and customer accounts, or contact support.",
     "error": "We couldn't sign you in. Check your connection and try again.",
     "missingToken": "Clerk did not return a session token. Sign out and try again.",
@@ -70,14 +75,144 @@
     "signOut": "Sign out and try again",
     "devModeNote": "Clerk is not configured in this environment.",
     "backHome": "Back to porterchain.com",
-    "contactSupport": "Contact support",
-    "merchantSso": {
-      "title": "Merchant portal sign-in",
-      "subtitle": "Use your approved business account. Google and Microsoft appear when enabled in Clerk.",
-      "google": "Continue with Google",
-      "microsoft": "Continue with Microsoft",
-      "emailFallback": "Or use email sign-in below",
-      "orDivider": "Or continue with email"
+    "contactSupport": "Contact support"
+  },
+  "homeChooser": {
+    "eyebrow": "Porterchain · GTA & Ontario",
+    "headline": "Ask what capacity you need — get a clear next step.",
+    "subtitle": "Not a software tour. Ask about same-day overflow, vehicles, industries, or pricing — then jump to a quote or the merchant path.",
+    "trustLine": "Quote-based · Live tracking and proof · Response within one business day",
+    "merchants": {
+      "title": "Merchants",
+      "body": "Request capacity for construction, wholesale, medical, and distribution lanes — quote-based by vehicle, route, and urgency.",
+      "cta": "Merchants"
+    },
+    "drivers": {
+      "title": "Drivers",
+      "body": "Bring an eligible vehicle into the network — structured routes, clear instructions, dedicated portal.",
+      "cta": "Drivers"
+    },
+    "guide": {
+      "ariaLabel": "Capacity guide chat",
+      "title": "Capacity line",
+      "status": "Live · GTA network",
+      "hint": "Powered by Groq · grounded in Porterchain capacity",
+      "thinking": "Thinking…",
+      "error": "The capacity line is unavailable right now. Try again, or request a quote and we’ll follow up.",
+      "guideName": "Porterchain",
+      "you": "You",
+      "welcome": "Ask anything about backup capacity — same-day overflow, vehicle classes, industries we serve, or how quotes work. I can also save your contact and book a call with the team.",
+      "fallback": "I can help with pricing, industries, vehicles, same-day overflow, merchant capacity, or joining as a driver partner. Try one of the prompts below — or request a written quote and we’ll map your lanes.",
+      "tryAsking": "Try asking",
+      "placeholder": "Ask about capacity, pricing, vehicles…",
+      "send": "Send",
+      "toolContactSaved": "Contact saved",
+      "toolContactUpdated": "Contact updated",
+      "toolSlotsReady": "Times available",
+      "toolBooked": "Meeting booked",
+      "toolTranscriptSaved": "Notes saved for the team",
+      "toolKnowledge": "Grounded answer sources",
+      "toolTracking": "Tracking help",
+      "toolQualified": "Details saved for sales",
+      "toolStateUpdated": "Conversation updated",
+      "toolApproveBook": "Confirm booking",
+      "toolDenyBook": "Cancel",
+      "toolAwaitingApproval": "Confirm this booking?",
+      "toolWorking": "Working…",
+      "toolFailed": "Couldn’t complete that step — try again or request a quote.",
+      "actions": {
+        "quote": "Request a quote",
+        "merchants": "Merchant capacity",
+        "drivers": "Driver partners",
+        "pricing": "How pricing works",
+        "industries": "Industries we serve",
+        "fleet": "See vehicles"
+      },
+      "topics": {
+        "what": {
+          "prompt": "What is Porterchain?",
+          "answer": "Porterchain is a transportation capacity network for Ontario businesses. You buy vehicle-and-driver capacity for overflow, same-day, and recurring lanes — not a SaaS seat. Software and dispatch stay behind the scenes so your customers still get the delivery."
+        },
+        "pricing": {
+          "prompt": "How does pricing work?",
+          "answer": "Pricing is quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). You pay for capacity executed — not software seats. We confirm capacity and price in writing before dispatch."
+        },
+        "industries": {
+          "prompt": "Which industries do you serve?",
+          "answer": "We support GTA B2B operations across construction, wholesale, medical and pharmacy, manufacturing, retail distribution, and more. Open the merchants page for sector playbooks and a capacity quote."
+        },
+        "sameday": {
+          "prompt": "Can you cover same-day overflow?",
+          "answer": "Yes — same-day and urgent backup capacity is a core use case when a driver is out, a truck is down, or demand spikes. Share pickup, drop, vehicle need, and window — we’ll confirm what’s available."
+        },
+        "vehicles": {
+          "prompt": "What vehicles are available?",
+          "answer": "Sedan, SUV, pickup, cargo van, Sprinter van, and box trucks — matched to load, access, and urgency. All current classes run on a standard Ontario G licence. See the fleet on the merchants page or ask for a quote."
+        },
+        "merchants": {
+          "prompt": "I need capacity for my business",
+          "answer": "Merchant capacity is for shippers who need reliable vehicle-and-driver coverage — one-off urgent runs, recurring routes, or fleet overflow. Start on the merchants hub or request a quote with your lanes."
+        },
+        "drivers": {
+          "prompt": "How do I join as a driver?",
+          "answer": "Eligible vehicle partners join the network for structured routes, clear instructions, and a dedicated driver portal. Open the drivers hub to apply — we’ll review vehicle fit and next steps."
+        },
+        "areas": {
+          "prompt": "Where do you operate?",
+          "answer": "Primary coverage is the Greater Toronto Area and broader Ontario metros. Tell us your corridors when you request a quote so we can confirm lane fit."
+        },
+        "tracking": {
+          "prompt": "Do you provide tracking and proof?",
+          "answer": "Yes — live status, shareable tracking, and proof of delivery (photo / signature where agreed) so ops and your customers stay aligned after the handoff."
+        },
+        "start": {
+          "prompt": "How do I get started?",
+          "answer": "Request a quote with what moves, where, and when — or open the merchants hub to see fleet, industries, and billing options. We respond with capacity options, not a software demo."
+        }
+      }
+    },
+    "why": {
+      "eyebrow": "Why businesses use the network",
+      "title": "Overflow that protects your lanes — and your reputation.",
+      "scale": {
+        "title": "Scale when you hit the wall",
+        "body": "Add vans and box trucks with professional drivers as soon as internal capacity is full — no buying another truck for a peak week."
+      },
+      "care": {
+        "title": "Keep promises to your customers",
+        "body": "Hand off overflow runs without handing off trust. Proof of delivery and clear handoffs keep your brand in the loop."
+      },
+      "visibility": {
+        "title": "See every extra mile",
+        "body": "Status and tracking on the stops you add to the network — so ops knows where capacity is, not just that it left the yard."
+      }
+    },
+    "serve": {
+      "eyebrow": "Industries & pricing",
+      "title": "Built for GTA B2B — priced for capacity, not software seats.",
+      "industries": "Construction · wholesale · medical · manufacturing · retail distribution",
+      "pricing": "Quotes stack vehicle class, distance, stops, and urgency. Confirmed in writing before dispatch.",
+      "industriesCta": "Browse industries",
+      "pricingCta": "See how pricing works"
+    },
+    "ready": {
+      "title": "Need backup capacity on your lanes?",
+      "body": "Tell us what moves, where, and when. We’ll come back with vehicle-and-driver options — not a software demo.",
+      "cta": "Request a quote"
+    }
+  },
+  "marketing": {
+    "consent": {
+      "title": "Cookie preferences",
+      "description": "We use necessary cookies to run the site. Optional analytics, marketing, and experience tools load only if you allow them.",
+      "policyLink": "Cookie policy",
+      "necessary": "Necessary",
+      "analytics": "Analytics",
+      "marketing": "Marketing",
+      "experience": "Experience",
+      "reject": "Reject optional",
+      "save": "Save choices",
+      "accept": "Accept all"
     }
   },
   "hero": {
@@ -1211,7 +1346,6 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver. You get live tracking and one dashboard for every shipment.",
         "step3Title": "You stay in control",
         "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
       },
@@ -1221,8 +1355,7 @@
         "a1": "Yes. We support recurring routes (e.g. weekly café drops) and one-off or variable volume — one partner for your lanes.",
         "q2": "What about time-sensitive deliveries?",
         "a2": "We work with you on time windows and same-day options. Our ops and drivers are built for predictable, on-time delivery.",
-        "q3": "How do my customers track their order?",
-        "a3": "Every shipment gets a tracking link. You can share it with cafés or subscribers so they see status and ETA."
+        "q3": "How do my customers track their order?"
       },
       "cta": {
         "title": "Ready to run your coffee delivery with us?",
@@ -1279,7 +1412,6 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver. You get live tracking and one dashboard for every shipment.",
         "step3Title": "You stay in control",
         "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
       },
@@ -1349,7 +1481,6 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver. You get live tracking and one dashboard for every shipment.",
         "step3Title": "You stay in control",
         "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
       },
@@ -1359,8 +1490,7 @@
         "a1": "Yes. We're built for recurring volume — subscription, D2C, and retail replenishment with one capacity partner.",
         "q2": "What about fragile or high-value items?",
         "a2": "We work with you on handling requirements. Our drivers are used to careful handling and we track every shipment.",
-        "q3": "Can my customers track their order?",
-        "a3": "Every shipment gets a tracking link. You can share it so customers see status and ETA."
+        "q3": "Can my customers track their order?"
       },
       "cta": {
         "title": "Ready to run your beauty delivery with us?",
@@ -1485,7 +1615,6 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver. You get live tracking and one dashboard for every shipment.",
         "step3Title": "You stay in control",
         "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
       },
@@ -1578,6 +1707,146 @@
       },
       "inquiryHeading": "Get started with e-commerce delivery",
       "inquirySubheadline": "Share your parcel profile and delivery zones — we'll confirm vehicle fit and pricing."
+    },
+    "hvacMechanical": {
+      "meta": {
+        "title": "HVAC & mechanical delivery GTA | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Capacity for HVAC and mechanical contractors across the GTA. Verified local copy pending before indexing."
+      },
+      "hero": {
+        "title": "HVAC & mechanical delivery capacity (draft)",
+        "subtitle": "Draft page for HVAC and mechanical contractors — not indexed until operational copy and coverage claims are verified."
+      },
+      "painPoints": {
+        "title": "When HVAC and mechanical contractors need capacity",
+        "item1": "Emergency parts and equipment to jobsite when a system is down",
+        "item2": "Fleet overflow on peak install weeks",
+        "item3": "Proof of delivery for warranty and billing disputes"
+      },
+      "solution": {
+        "title": "Porterchain capacity (draft)",
+        "description": "[DRAFT] Vehicle + driver capacity with tracking and proof — full industry narrative pending review."
+      },
+      "cta": {
+        "title": "Request a quote",
+        "description": "Share routes and vehicle needs — we confirm capacity in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      },
+      "inquiryHeading": "Get started with HVAC and mechanical contractors",
+      "inquirySubheadline": "Draft industry page — quote path is live; marketing copy is gated."
+    },
+    "automotiveParts": {
+      "meta": {
+        "title": "Automotive parts delivery GTA | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Capacity for auto parts distributors and shops across the GTA. Verified local copy pending before indexing."
+      },
+      "hero": {
+        "title": "Automotive parts delivery capacity (draft)",
+        "subtitle": "Draft page for auto parts distributors and shops — not indexed until operational copy and coverage claims are verified."
+      },
+      "painPoints": {
+        "title": "When auto parts distributors and shops need capacity",
+        "item1": "Same-day parts to keep bays productive",
+        "item2": "Counter-to-shop runs across the GTA",
+        "item3": "Tracking so service writers know ETA"
+      },
+      "solution": {
+        "title": "Porterchain capacity (draft)",
+        "description": "[DRAFT] Vehicle + driver capacity with tracking and proof — full industry narrative pending review."
+      },
+      "cta": {
+        "title": "Request a quote",
+        "description": "Share routes and vehicle needs — we confirm capacity in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      },
+      "inquiryHeading": "Get started with auto parts distributors and shops",
+      "inquirySubheadline": "Draft industry page — quote path is live; marketing copy is gated."
+    },
+    "manufacturing": {
+      "meta": {
+        "title": "Manufacturing delivery GTA | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Capacity for manufacturers and industrial shippers across the GTA. Verified local copy pending before indexing."
+      },
+      "hero": {
+        "title": "Manufacturing delivery capacity (draft)",
+        "subtitle": "Draft page for manufacturers and industrial shippers — not indexed until operational copy and coverage claims are verified."
+      },
+      "painPoints": {
+        "title": "When manufacturers and industrial shippers need capacity",
+        "item1": "Line-down parts and tooling moves",
+        "item2": "Intra-city transfers between plants and warehouses",
+        "item3": "Pallet and crate freight with proof"
+      },
+      "solution": {
+        "title": "Porterchain capacity (draft)",
+        "description": "[DRAFT] Vehicle + driver capacity with tracking and proof — full industry narrative pending review."
+      },
+      "cta": {
+        "title": "Request a quote",
+        "description": "Share routes and vehicle needs — we confirm capacity in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      },
+      "inquiryHeading": "Get started with manufacturers and industrial shippers",
+      "inquirySubheadline": "Draft industry page — quote path is live; marketing copy is gated."
+    },
+    "retailReplenishment": {
+      "meta": {
+        "title": "Retail replenishment delivery GTA | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Capacity for retailers and wholesale replenishment teams across the GTA. Verified local copy pending before indexing."
+      },
+      "hero": {
+        "title": "Retail replenishment delivery capacity (draft)",
+        "subtitle": "Draft page for retailers and wholesale replenishment teams — not indexed until operational copy and coverage claims are verified."
+      },
+      "painPoints": {
+        "title": "When retailers and wholesale replenishment teams need capacity",
+        "item1": "Store restocks that miss carrier cut-offs",
+        "item2": "Multi-stop replenishment across the GTA",
+        "item3": "Proof for inventory and receiving disputes"
+      },
+      "solution": {
+        "title": "Porterchain capacity (draft)",
+        "description": "[DRAFT] Vehicle + driver capacity with tracking and proof — full industry narrative pending review."
+      },
+      "cta": {
+        "title": "Request a quote",
+        "description": "Share routes and vehicle needs — we confirm capacity in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      },
+      "inquiryHeading": "Get started with retailers and wholesale replenishment teams",
+      "inquirySubheadline": "Draft industry page — quote path is live; marketing copy is gated."
+    },
+    "foodDistribution": {
+      "meta": {
+        "title": "Food distribution delivery GTA | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Capacity for food distributors and wholesalers across the GTA. Verified local copy pending before indexing."
+      },
+      "hero": {
+        "title": "Food distribution delivery capacity (draft)",
+        "subtitle": "Draft page for food distributors and wholesalers — not indexed until operational copy and coverage claims are verified."
+      },
+      "painPoints": {
+        "title": "When food distributors and wholesalers need capacity",
+        "item1": "Time-sensitive wholesale food drops",
+        "item2": "Recurring routes to restaurants and retail",
+        "item3": "Chain-of-custody style proof on every stop"
+      },
+      "solution": {
+        "title": "Porterchain capacity (draft)",
+        "description": "[DRAFT] Vehicle + driver capacity with tracking and proof — full industry narrative pending review."
+      },
+      "cta": {
+        "title": "Request a quote",
+        "description": "Share routes and vehicle needs — we confirm capacity in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      },
+      "inquiryHeading": "Get started with food distributors and wholesalers",
+      "inquirySubheadline": "Draft industry page — quote path is live; marketing copy is gated."
     }
   },
   "merchantOnboarding": {
@@ -2066,18 +2335,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver. You get live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions",
         "q1": "Do you deliver in my area?",
         "a1": "We operate in major Canadian metros and surrounding regions. Get in touch with your address or zone and we'll confirm coverage.",
         "q2": "How quickly can I get started?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their order?",
-        "a3": "Every shipment gets a tracking link. You can share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their order?"
       },
       "cta": {
         "title": "Ready for reliable local delivery?",
@@ -2138,9 +2403,7 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Toronto/GTA service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Toronto delivery",
@@ -2149,7 +2412,6 @@
         "q2": "How do you handle Toronto traffic and time windows?",
         "a2": "We plan routes and capacity around Toronto's reality. Share your time windows and we'll align. Same-day and scheduled runs are both supported.",
         "q3": "Can my customers track their Toronto delivery?",
-        "a3": "Every shipment gets a tracking link. Share it with your customers so they see status and ETA in real time.",
         "q4": "Do you deliver construction materials to job sites in Toronto?",
         "a4": "Yes. Jobsite delivery for building supply distributors, contractors, project managers, and supers in Toronto and the GTA — timed windows, site access notes, and photo proof on every stop.",
         "q5": "Can contractors and site supers track Toronto deliveries?",
@@ -2214,9 +2476,7 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Mississauga/Peel service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Mississauga delivery",
@@ -2225,7 +2485,6 @@
         "q2": "We're near Pearson — can you support our routes?",
         "a2": "We operate across Peel and can align capacity for routes in and around the airport corridor. Share your volume and we'll fit you in.",
         "q3": "Can my customers track their Mississauga delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time.",
         "q4": "Do you deliver construction materials to job sites in Mississauga?",
         "a4": "Yes. Jobsite delivery for building supply distributors, contractors, project managers, and supers in Mississauga and Peel Region — timed windows, site access notes, and photo proof on every stop.",
         "q5": "Can contractors and site supers track Mississauga deliveries?",
@@ -2290,9 +2549,7 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Brampton/Peel service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Brampton delivery",
@@ -2301,7 +2558,6 @@
         "q2": "How quickly can we get started in Brampton?",
         "a2": "Share your volume and routes. We align capacity and can have you shipping in Brampton and Peel within days, not weeks.",
         "q3": "Can my customers track their Brampton delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time.",
         "q4": "Do you deliver construction materials to job sites in Brampton?",
         "a4": "Yes. Jobsite delivery for building supply distributors, contractors, project managers, and supers in Brampton and Peel Region — timed windows, site access notes, and photo proof on every stop.",
         "q5": "Can contractors and site supers track Brampton deliveries?",
@@ -2358,18 +2614,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Vaughan/York service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Vaughan delivery",
         "q1": "Do you deliver across York Region?",
         "a1": "Yes. We cover Vaughan and York Region. Share your zones or postal codes and we'll confirm coverage and capacity.",
         "q2": "How quickly can we get started in Vaughan?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their Vaughan delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Vaughan delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Vaughan?",
@@ -2422,18 +2674,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Markham/York service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Markham delivery",
         "q1": "Do you deliver across Markham and York Region?",
         "a1": "Yes. We cover Markham and York Region. Share your zones or postal codes and we'll confirm coverage and capacity.",
         "q2": "How quickly can we get started in Markham?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their Markham delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Markham delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Markham?",
@@ -2486,18 +2734,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Oakville/Halton service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Oakville delivery",
         "q1": "Do you deliver across Halton?",
         "a1": "Yes. We cover Oakville and the Halton region. Share your zones or postal codes and we'll confirm coverage and capacity.",
         "q2": "How quickly can we get started in Oakville?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their Oakville delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Oakville delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Oakville?",
@@ -2550,18 +2794,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Burlington/Halton service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Burlington delivery",
         "q1": "Do you deliver across Burlington and Halton?",
         "a1": "Yes. We cover Burlington and the Halton region. Share your zones or postal codes and we'll confirm coverage and capacity.",
         "q2": "How quickly can we get started in Burlington?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their Burlington delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Burlington delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Burlington?",
@@ -2614,18 +2854,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Cambridge/Region service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Cambridge delivery",
         "q1": "Do you deliver in Cambridge and the tri-cities?",
         "a1": "Yes. We cover Cambridge, Kitchener, Waterloo, and the Region of Waterloo. Share your zones or postal codes and we'll confirm coverage.",
         "q2": "How quickly can we get started in Cambridge?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their Cambridge delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Cambridge delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Cambridge?",
@@ -2678,18 +2914,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Guelph service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Guelph delivery",
         "q1": "Do you deliver across Guelph?",
         "a1": "Yes. We cover Guelph. Share your zones or postal codes and we'll confirm coverage and capacity.",
         "q2": "How quickly can we get started in Guelph?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their Guelph delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Guelph delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Guelph?",
@@ -2742,18 +2974,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Hamilton service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Hamilton delivery",
         "q1": "Do you deliver across Hamilton?",
         "a1": "Yes. We cover Hamilton and the Golden Horseshoe. Share your zones or postal codes and we'll confirm coverage and capacity.",
         "q2": "How quickly can we get started in Hamilton?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their Hamilton delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Hamilton delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Hamilton?",
@@ -2806,18 +3034,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Ajax/Durham service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Ajax delivery",
         "q1": "Do you deliver across Ajax and Durham?",
         "a1": "Yes. We cover Ajax and Durham Region. Share your zones or postal codes and we'll confirm coverage and capacity.",
         "q2": "How quickly can we get started in Ajax?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their Ajax delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Ajax delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Ajax?",
@@ -2870,18 +3094,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Pickering/Durham service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Pickering delivery",
         "q1": "Do you deliver across Pickering and Durham?",
         "a1": "Yes. We cover Pickering and Durham Region. Share your zones or postal codes and we'll confirm coverage and capacity.",
         "q2": "How quickly can we get started in Pickering?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their Pickering delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Pickering delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Pickering?",
@@ -2942,9 +3162,7 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Kitchener-Waterloo service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Kitchener-Waterloo delivery",
@@ -2952,8 +3170,7 @@
         "a1": "Yes. We cover Kitchener, Waterloo, Cambridge, and the Region of Waterloo. Share your zones or postal codes and we'll confirm coverage.",
         "q2": "How quickly can we get started in K-W?",
         "a2": "Share your volume and routes. We align capacity and can have you shipping in the Region of Waterloo within days, not weeks.",
-        "q3": "Can my customers track their Kitchener-Waterloo delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Kitchener-Waterloo delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Kitchener-Waterloo?",
@@ -3014,9 +3231,7 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and Niagara service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver across your zones. Live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions — Niagara delivery",
@@ -3024,8 +3239,7 @@
         "a1": "Yes. We cover the Niagara region, including Niagara Falls, St. Catharines, Niagara-on-the-Lake, and surrounding areas. Share your zones and we'll confirm coverage.",
         "q2": "How quickly can we get started in Niagara?",
         "a2": "Share your volume and routes. We align local capacity and can have you shipping across the Niagara region within days, not weeks.",
-        "q3": "Can my customers track their Niagara delivery?",
-        "a3": "Every shipment gets a tracking link. Share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their Niagara delivery?"
       },
       "cta": {
         "title": "Ready for reliable delivery in Niagara?",
@@ -3066,9 +3280,7 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver. You get live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "cta": {
         "title": "Ready for reliable delivery in Oshawa?",
@@ -3109,9 +3321,7 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver. You get live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "cta": {
         "title": "Ready for reliable delivery in London?",
@@ -3156,18 +3366,14 @@
         "step1Title": "Connect",
         "step1Description": "Share your volume and service areas. We align capacity and align on service expectations.",
         "step2Title": "We deliver",
-        "step2Description": "Our drivers pick up and deliver. You get live tracking and one dashboard for every shipment.",
-        "step3Title": "You stay in control",
-        "step3Description": "Track every parcel, see ETAs, and get clear reporting. We run the ops; you keep visibility."
+        "step3Title": "You stay in control"
       },
       "faq": {
         "title": "Frequently asked questions",
         "q1": "Do you deliver in St. Catharines?",
         "a1": "Yes. We operate in St. Catharines and the Niagara region. Get in touch with your address or zone and we'll confirm coverage.",
         "q2": "How quickly can I get started?",
-        "a2": "Share your volume and routes. We align capacity and can have you shipping within days, not weeks.",
-        "q3": "Can my customers track their order?",
-        "a3": "Every shipment gets a tracking link. You can share it so customers see status and ETA in real time."
+        "q3": "Can my customers track their order?"
       },
       "cta": {
         "title": "Ready for reliable delivery in St. Catharines?",
@@ -3177,6 +3383,240 @@
       },
       "inquiryHeading": "Get started with delivery in St. Catharines and Niagara",
       "inquirySubheadline": "A few details and we'll match you with the right capacity and routes for your St. Catharines-area business."
+    },
+    "richmondHill": {
+      "meta": {
+        "title": "Richmond Hill B2B delivery | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Service area scaffold for Richmond Hill. Local copy pending verification before indexing."
+      },
+      "hero": {
+        "title": "Richmond Hill delivery (draft)",
+        "subtitle": "Draft coverage page for Richmond Hill — not indexed until local operational copy is verified."
+      },
+      "coverage": {
+        "title": "Richmond Hill coverage (draft)",
+        "description": "[DRAFT] GTA/Ontario capacity network — detailed neighbourhood copy pending review."
+      },
+      "onboarding": {
+        "title": "How to get started",
+        "description": "Request a quote with your routes and vehicle needs.",
+        "step1Title": "Share routes",
+        "step1Description": "Tell us pickup, drop, and timing.",
+        "step2Title": "We confirm capacity",
+        "step2Description": "Written quote typically within one business day.",
+        "step3Title": "We deliver",
+        "step3Description": "Tracking and proof on every stop."
+      },
+      "faq": {
+        "title": "Richmond Hill FAQ (draft)",
+        "q1": "Do you deliver in Richmond Hill?",
+        "a1": "[DRAFT] Coverage claims publish only after ops verification. Request a quote for your specific lanes.",
+        "q2": "How do I get a quote?",
+        "a2": "Use Get a quote with your routes and vehicle class needs.",
+        "q3": "Why is this page draft?",
+        "a3": "We do not index thin location pages. Full local copy ships after verification."
+      },
+      "cta": {
+        "title": "Request capacity",
+        "description": "Share your lanes — we confirm fit in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      }
+    },
+    "scarborough": {
+      "meta": {
+        "title": "Scarborough B2B delivery | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Service area scaffold for Scarborough. Local copy pending verification before indexing."
+      },
+      "hero": {
+        "title": "Scarborough delivery (draft)",
+        "subtitle": "Draft coverage page for Scarborough — not indexed until local operational copy is verified."
+      },
+      "coverage": {
+        "title": "Scarborough coverage (draft)",
+        "description": "[DRAFT] GTA/Ontario capacity network — detailed neighbourhood copy pending review."
+      },
+      "onboarding": {
+        "title": "How to get started",
+        "description": "Request a quote with your routes and vehicle needs.",
+        "step1Title": "Share routes",
+        "step1Description": "Tell us pickup, drop, and timing.",
+        "step2Title": "We confirm capacity",
+        "step2Description": "Written quote typically within one business day.",
+        "step3Title": "We deliver",
+        "step3Description": "Tracking and proof on every stop."
+      },
+      "faq": {
+        "title": "Scarborough FAQ (draft)",
+        "q1": "Do you deliver in Scarborough?",
+        "a1": "[DRAFT] Coverage claims publish only after ops verification. Request a quote for your specific lanes.",
+        "q2": "How do I get a quote?",
+        "a2": "Use Get a quote with your routes and vehicle class needs.",
+        "q3": "Why is this page draft?",
+        "a3": "We do not index thin location pages. Full local copy ships after verification."
+      },
+      "cta": {
+        "title": "Request capacity",
+        "description": "Share your lanes — we confirm fit in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      }
+    },
+    "etobicoke": {
+      "meta": {
+        "title": "Etobicoke B2B delivery | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Service area scaffold for Etobicoke. Local copy pending verification before indexing."
+      },
+      "hero": {
+        "title": "Etobicoke delivery (draft)",
+        "subtitle": "Draft coverage page for Etobicoke — not indexed until local operational copy is verified."
+      },
+      "coverage": {
+        "title": "Etobicoke coverage (draft)",
+        "description": "[DRAFT] GTA/Ontario capacity network — detailed neighbourhood copy pending review."
+      },
+      "onboarding": {
+        "title": "How to get started",
+        "description": "Request a quote with your routes and vehicle needs.",
+        "step1Title": "Share routes",
+        "step1Description": "Tell us pickup, drop, and timing.",
+        "step2Title": "We confirm capacity",
+        "step2Description": "Written quote typically within one business day.",
+        "step3Title": "We deliver",
+        "step3Description": "Tracking and proof on every stop."
+      },
+      "faq": {
+        "title": "Etobicoke FAQ (draft)",
+        "q1": "Do you deliver in Etobicoke?",
+        "a1": "[DRAFT] Coverage claims publish only after ops verification. Request a quote for your specific lanes.",
+        "q2": "How do I get a quote?",
+        "a2": "Use Get a quote with your routes and vehicle class needs.",
+        "q3": "Why is this page draft?",
+        "a3": "We do not index thin location pages. Full local copy ships after verification."
+      },
+      "cta": {
+        "title": "Request capacity",
+        "description": "Share your lanes — we confirm fit in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      }
+    },
+    "northYork": {
+      "meta": {
+        "title": "North York B2B delivery | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Service area scaffold for North York. Local copy pending verification before indexing."
+      },
+      "hero": {
+        "title": "North York delivery (draft)",
+        "subtitle": "Draft coverage page for North York — not indexed until local operational copy is verified."
+      },
+      "coverage": {
+        "title": "North York coverage (draft)",
+        "description": "[DRAFT] GTA/Ontario capacity network — detailed neighbourhood copy pending review."
+      },
+      "onboarding": {
+        "title": "How to get started",
+        "description": "Request a quote with your routes and vehicle needs.",
+        "step1Title": "Share routes",
+        "step1Description": "Tell us pickup, drop, and timing.",
+        "step2Title": "We confirm capacity",
+        "step2Description": "Written quote typically within one business day.",
+        "step3Title": "We deliver",
+        "step3Description": "Tracking and proof on every stop."
+      },
+      "faq": {
+        "title": "North York FAQ (draft)",
+        "q1": "Do you deliver in North York?",
+        "a1": "[DRAFT] Coverage claims publish only after ops verification. Request a quote for your specific lanes.",
+        "q2": "How do I get a quote?",
+        "a2": "Use Get a quote with your routes and vehicle class needs.",
+        "q3": "Why is this page draft?",
+        "a3": "We do not index thin location pages. Full local copy ships after verification."
+      },
+      "cta": {
+        "title": "Request capacity",
+        "description": "Share your lanes — we confirm fit in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      }
+    },
+    "milton": {
+      "meta": {
+        "title": "Milton B2B delivery | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Service area scaffold for Milton. Local copy pending verification before indexing."
+      },
+      "hero": {
+        "title": "Milton delivery (draft)",
+        "subtitle": "Draft coverage page for Milton — not indexed until local operational copy is verified."
+      },
+      "coverage": {
+        "title": "Milton coverage (draft)",
+        "description": "[DRAFT] GTA/Ontario capacity network — detailed neighbourhood copy pending review."
+      },
+      "onboarding": {
+        "title": "How to get started",
+        "description": "Request a quote with your routes and vehicle needs.",
+        "step1Title": "Share routes",
+        "step1Description": "Tell us pickup, drop, and timing.",
+        "step2Title": "We confirm capacity",
+        "step2Description": "Written quote typically within one business day.",
+        "step3Title": "We deliver",
+        "step3Description": "Tracking and proof on every stop."
+      },
+      "faq": {
+        "title": "Milton FAQ (draft)",
+        "q1": "Do you deliver in Milton?",
+        "a1": "[DRAFT] Coverage claims publish only after ops verification. Request a quote for your specific lanes.",
+        "q2": "How do I get a quote?",
+        "a2": "Use Get a quote with your routes and vehicle class needs.",
+        "q3": "Why is this page draft?",
+        "a3": "We do not index thin location pages. Full local copy ships after verification."
+      },
+      "cta": {
+        "title": "Request capacity",
+        "description": "Share your lanes — we confirm fit in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      }
+    },
+    "whitby": {
+      "meta": {
+        "title": "Whitby B2B delivery | Draft | Porterchain",
+        "description": "[DRAFT — NOINDEX] Service area scaffold for Whitby. Local copy pending verification before indexing."
+      },
+      "hero": {
+        "title": "Whitby delivery (draft)",
+        "subtitle": "Draft coverage page for Whitby — not indexed until local operational copy is verified."
+      },
+      "coverage": {
+        "title": "Whitby coverage (draft)",
+        "description": "[DRAFT] GTA/Ontario capacity network — detailed neighbourhood copy pending review."
+      },
+      "onboarding": {
+        "title": "How to get started",
+        "description": "Request a quote with your routes and vehicle needs.",
+        "step1Title": "Share routes",
+        "step1Description": "Tell us pickup, drop, and timing.",
+        "step2Title": "We confirm capacity",
+        "step2Description": "Written quote typically within one business day.",
+        "step3Title": "We deliver",
+        "step3Description": "Tracking and proof on every stop."
+      },
+      "faq": {
+        "title": "Whitby FAQ (draft)",
+        "q1": "Do you deliver in Whitby?",
+        "a1": "[DRAFT] Coverage claims publish only after ops verification. Request a quote for your specific lanes.",
+        "q2": "How do I get a quote?",
+        "a2": "Use Get a quote with your routes and vehicle class needs.",
+        "q3": "Why is this page draft?",
+        "a3": "We do not index thin location pages. Full local copy ships after verification."
+      },
+      "cta": {
+        "title": "Request capacity",
+        "description": "Share your lanes — we confirm fit in writing.",
+        "primary": "Get a quote",
+        "secondary": "Contact us"
+      }
     }
   },
   "cityLocalSegment": {

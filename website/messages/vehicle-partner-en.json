@@ -181,5 +181,38 @@
       "unsure": "Not sure yet"
     }
   },
-  "disclaimer": "Information on this page is general in nature and may change as programs evolve. Partner participation is subject to onboarding approval, documentation review, and executed partner terms."
+  "disclaimer": "Information on this page is general in nature and may change as programs evolve. Partner participation is subject to onboarding approval, documentation review, and executed partner terms.",
+  "hubFacade": {
+    "title": "Assignment overview",
+    "chip": "Illustrative",
+    "illustrativeNote": "Example assignment styles — not a live accept-load board. Terms are set in your partner agreement.",
+    "mapTitle": "Network lanes",
+    "mapSubtitle": "GTA routes matched to your vehicle class after onboarding.",
+    "portalCta": "Open driver portal",
+    "offers": {
+      "a": {
+        "title": "Same-day merchant run",
+        "badge": "Local",
+        "meta": "Multi-stop · proof on delivery"
+      },
+      "b": {
+        "title": "Recurring wholesale lane",
+        "badge": "Scheduled",
+        "meta": "Weekly windows · clear instructions"
+      },
+      "c": {
+        "title": "Jobsite overflow",
+        "badge": "Construction",
+        "meta": "Pickup truck / van when fleets are full"
+      }
+    }
+  },
+  "trustStrip": {
+    "eyebrow": "Trust",
+    "title": "Know the network you are joining",
+    "body": "Company background, trust commitments, and a direct contact path — before you apply.",
+    "company": "About Porterchain",
+    "trust": "Trust center",
+    "contact": "Contact us"
+  }
 }

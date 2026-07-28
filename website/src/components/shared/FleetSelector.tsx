@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
   ArrowLeftRight,
@@ -13,9 +13,11 @@ import {
   Weight,
   type LucideIcon,
 } from "lucide-react";
-import VehicleIllustration from "@/components/illustrations/VehicleIllustration";
-import FleetVehicleCard from "@/components/shared/FleetVehicleCard";
-import { BUSINESS_FLEET_KEYS, FLEET_ILLUSTRATIONS } from "@/data/business";
+import Image from "next/image";
+import BorderBeam from "@/components/magic/border-beam";
+import FleetVehicleTab from "@/components/shared/FleetVehicleTab";
+import { FLEET_VEHICLE_ICONS } from "@/components/shared/FleetVehicleIcon";
+import { BUSINESS_FLEET_KEYS } from "@/data/business";
 import {
   FLEET_VEHICLE_SPECS,
   formatFleetDimension,
@@ -23,17 +25,16 @@ import {
   type FleetVehicleKey,
 } from "@/data/fleet-specs";
 import { cn } from "@/lib/utils";
+import { springSoft, easeOutQuart } from "@/lib/motion";
 import { useFormFieldFocus } from "@/hooks/use-form-field-focus";
 
 interface FleetSelectorProps {
-  /** Show payload/cargo spec tiles, capacity ladder, and licence note */
   detailed?: boolean;
-  /** Large photo preview stage above the vehicle cards */
   showPreview?: boolean;
   className?: string;
 }
 
-function FleetSpecTile({
+function SpecStat({
   icon: Icon,
   label,
   value,
@@ -43,17 +44,72 @@ function FleetSpecTile({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-secondary/15 bg-white/75 px-2 py-1.5 text-center min-w-0">
-      <div className="flex items-center justify-center gap-1 text-secondary">
-        <Icon className="h-3 w-3 shrink-0" aria-hidden />
-        <p className="text-[8px] font-semibold uppercase tracking-[0.12em] text-secondary/75 truncate">
+    <div className="rounded-2xl border border-secondary/15 bg-white p-3 sm:p-3.5 shadow-sm min-w-0">
+      <div className="flex items-center gap-1.5 text-secondary mb-1.5">
+        <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-secondary/80 truncate">
           {label}
         </p>
       </div>
-      <p className="mt-0.5 text-[11px] sm:text-xs font-semibold text-primary tabular-nums truncate">
+      <p className="text-base sm:text-lg font-bold text-primary tabular-nums tracking-tight truncate">
         {value}
       </p>
     </div>
+  );
+}
+
+/** Compact vehicle card when preview stage is off (e.g. home teaser). */
+function FleetThumbCard({
+  fleetKey,
+  isActive,
+  onSelect,
+  name,
+  payload,
+  reduceMotion,
+}: {
+  fleetKey: FleetVehicleKey;
+  isActive: boolean;
+  onSelect: () => void;
+  name: string;
+  payload: string;
+  reduceMotion: boolean;
+}) {
+  return (
+    <motion.button
+      type="button"
+      role="tab"
+      aria-selected={isActive}
+      onClick={onSelect}
+      whileHover={reduceMotion ? undefined : { y: -4 }}
+      transition={springSoft}
+      className={cn(
+        "group relative flex min-w-[9.5rem] sm:min-w-0 snap-start flex-col overflow-hidden rounded-2xl border bg-white text-left",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 focus-visible:ring-offset-2",
+        isActive
+          ? "border-secondary/40 shadow-lg shadow-secondary/15 ring-1 ring-secondary/20"
+          : "border-primary/8 shadow-sm hover:border-secondary/25"
+      )}
+    >
+      <div className="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-[#eef4ff] via-white to-secondary/[0.08] p-4">
+        <Image
+          src={FLEET_VEHICLE_ICONS[fleetKey]}
+          alt=""
+          width={120}
+          height={120}
+          className="h-[72%] w-auto max-w-[85%] object-contain drop-shadow-md"
+        />
+        {isActive ? (
+          <span
+            className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-secondary via-accent to-secondary"
+            aria-hidden
+          />
+        ) : null}
+      </div>
+      <div className="px-3 py-2.5 border-t border-primary/6">
+        <p className="text-sm font-bold text-primary truncate">{name}</p>
+        <p className="text-xs font-semibold text-secondary tabular-nums truncate">{payload}</p>
+      </div>
+    </motion.button>
   );
 }
 
@@ -64,10 +120,12 @@ export default function FleetSelector({
 }: FleetSelectorProps) {
   const t = useTranslations("businessPage.fleet");
   const formFieldFocused = useFormFieldFocus();
+  const reduceMotion = useReducedMotion();
   const total = BUSINESS_FLEET_KEYS.length;
   const [active, setActive] = useState(0);
   const activeKey = BUSINESS_FLEET_KEYS[active] as FleetVehicleKey;
   const activeSpec = FLEET_VEHICLE_SPECS[activeKey];
+  const reduce = Boolean(formFieldFocused || reduceMotion);
 
   const goTo = useCallback(
     (index: number) => {
@@ -103,188 +161,223 @@ export default function FleetSelector({
       ? t("specSkidsCount", { count: activeSpec.skidCapacity })
       : t("specSkidsNone");
 
-  const specLabels = {
-    height: t("specHeight"),
-    width: t("specWidth"),
-    weight: t("specWeight"),
-    skids: t("specSkids"),
-  };
+  const motionFast = reduce ? { duration: 0 } : undefined;
 
-  const motionFast = formFieldFocused ? { duration: 0 } : undefined;
-
-  return (
+  const tablist = (
     <div
-      className={cn(
-        "fleet-fit flex flex-col gap-3 sm:gap-4 min-h-0",
-        formFieldFocused && "motion-paused",
-        className
-      )}
+      className="fleet-fit__picker flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide"
+      role="tablist"
+      aria-label={t("title")}
     >
-      {/* Preview stage */}
-      {showPreview && (
-        <div className="fleet-fit__stage relative min-h-0 rounded-2xl sm:rounded-3xl overflow-hidden border border-primary/8 bg-primary shadow-premium ring-1 ring-primary/[0.04]">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeKey}
-              initial={{ opacity: 0, scale: 1.03 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={motionFast ?? { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const }}
-              className="absolute inset-0"
-            >
-              <VehicleIllustration
-                type={FLEET_ILLUSTRATIONS[activeKey]}
-                id={`fleet-${activeKey}`}
-                mode="photo"
-                className="absolute inset-0"
-              />
-            </motion.div>
-          </AnimatePresence>
+      {BUSINESS_FLEET_KEYS.map((key, i) => (
+        <FleetVehicleTab
+          key={key}
+          fleetKey={key as FleetVehicleKey}
+          isActive={i === active}
+          onSelect={() => setActive(i)}
+          name={t(`items.${key}.name`)}
+          payload={t(`items.${key}.payload`)}
+          reduceMotion={reduce}
+        />
+      ))}
+    </div>
+  );
 
-          <div
-            className="absolute inset-0 bg-gradient-to-t from-primary via-primary/45 to-primary/15"
-            aria-hidden
-          />
-          <div
-            className="absolute inset-0 bg-gradient-to-r from-primary/30 via-transparent to-transparent"
-            aria-hidden
-          />
+  const footer = detailed ? (
+    <div className="fleet-fit__footer flex flex-wrap items-start gap-x-3 gap-y-1 text-[10px] sm:text-[11px] text-muted/75">
+      <p className="inline-flex items-start gap-1.5 min-w-0 flex-1">
+        <Info className="h-3.5 w-3.5 text-secondary shrink-0 mt-px" aria-hidden />
+        <span className="line-clamp-2 sm:line-clamp-1">{t("licenceNote")}</span>
+      </p>
+    </div>
+  ) : null;
 
-          <div className="absolute top-2.5 left-2.5 right-2.5 sm:top-3 sm:left-3 sm:right-3 flex items-center justify-between gap-2 z-10">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur-md">
-              <span className="text-accent">{String(active + 1).padStart(2, "0")}</span>
-              <span className="text-white/50">/</span>
-              <span>{String(total).padStart(2, "0")}</span>
-            </span>
-
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={goPrev}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-black/25 text-white backdrop-blur-md transition-colors hover:bg-white/15"
-                aria-label="Previous vehicle"
-              >
-                <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
-              </button>
-              <button
-                type="button"
-                onClick={goNext}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-black/25 text-white backdrop-blur-md transition-colors hover:bg-white/15"
-                aria-label="Next vehicle"
-              >
-                <ChevronRight className="h-3.5 w-3.5" aria-hidden />
-              </button>
-            </div>
-          </div>
-
-          <div className="absolute top-11 sm:top-12 right-2.5 sm:right-3 left-2.5 sm:left-auto sm:max-w-[16rem] z-10">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`specs-${activeKey}`}
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={motionFast ?? { duration: 0.22 }}
-                className="rounded-xl border border-secondary/25 bg-secondary/[0.12] p-2 sm:p-2.5 backdrop-blur-md shadow-lg shadow-primary/10"
-              >
-                <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-secondary">
-                  {t("specTitle")}
-                </p>
-                <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
-                  <FleetSpecTile
-                    icon={ArrowUpDown}
-                    label={t("specHeight")}
-                    value={formatFleetDimension(activeSpec.heightIn)}
-                  />
-                  <FleetSpecTile
-                    icon={ArrowLeftRight}
-                    label={t("specWidth")}
-                    value={formatFleetDimension(activeSpec.widthIn)}
-                  />
-                  <FleetSpecTile
-                    icon={Weight}
-                    label={t("specWeight")}
-                    value={formatFleetWeightLbs(activeSpec.weightLbs)}
-                  />
-                  <FleetSpecTile icon={Layers} label={t("specSkids")} value={skidValue} />
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="absolute bottom-0 left-0 right-0 z-10 p-3 sm:p-4 lg:p-5">
-            <motion.div
-              key={`meta-${activeKey}`}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={motionFast ?? { duration: 0.28, delay: formFieldFocused ? 0 : 0.04 }}
-            >
-              <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-white tracking-tight leading-tight">
-                {t(`items.${activeKey}.name`)}
-              </h3>
-              <p className="mt-1 text-xs sm:text-sm text-white/70 leading-snug line-clamp-2 max-w-xl">
-                {t(`items.${activeKey}.useCase`)}
-              </p>
-              {detailed && (
-                <p className="mt-1.5 text-[11px] sm:text-xs text-white/55">
-                  {t(`items.${activeKey}.payload`)} · {t(`items.${activeKey}.cargo`)}
-                </p>
-              )}
-            </motion.div>
-          </div>
-        </div>
-      )}
-
-      {/* Vehicle selection cards */}
+  /* Compact: photo thumbnails — used on home teaser */
+  if (!showPreview) {
+    return (
       <div
-        className="fleet-fit__picker flex gap-3 sm:gap-3.5 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide sm:grid sm:grid-cols-4 md:grid-cols-7 sm:overflow-visible sm:pb-0"
-        role="tablist"
-        aria-label={t("title")}
+        className={cn(
+          "fleet-fit flex flex-col gap-3",
+          formFieldFocused && "motion-paused",
+          className
+        )}
       >
-        {BUSINESS_FLEET_KEYS.map((key, i) => {
-          const fleetKey = key as FleetVehicleKey;
-          const spec = FLEET_VEHICLE_SPECS[fleetKey];
-          const skidDisplay =
-            spec.skidCapacity > 0
-              ? t("specSkidsCount", { count: spec.skidCapacity })
-              : t("specSkidsNone");
-          return (
-            <FleetVehicleCard
+        <div
+          className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide sm:grid sm:grid-cols-4 md:grid-cols-7 sm:overflow-visible"
+          role="tablist"
+          aria-label={t("title")}
+        >
+          {BUSINESS_FLEET_KEYS.map((key, i) => (
+            <FleetThumbCard
               key={key}
-              fleetKey={fleetKey}
+              fleetKey={key as FleetVehicleKey}
               isActive={i === active}
               onSelect={() => setActive(i)}
               name={t(`items.${key}.name`)}
               payload={t(`items.${key}.payload`)}
-              cargo={t(`items.${key}.cargo`)}
-              useCase={t(`items.${key}.useCase`)}
-              specLabels={specLabels}
-              skidDisplay={skidDisplay}
-              reduceMotion={formFieldFocused}
+              reduceMotion={reduce}
             />
-          );
-        })}
+          ))}
+        </div>
+        {footer}
+      </div>
+    );
+  }
+
+  /* Full showcase: tabs + split photo / details */
+  return (
+    <div
+      className={cn(
+        "fleet-fit flex flex-col gap-4 sm:gap-5 min-h-0",
+        formFieldFocused && "motion-paused",
+        className
+      )}
+    >
+      {tablist}
+
+      <div className="fleet-fit__showcase relative overflow-hidden rounded-3xl border border-secondary/20 bg-white shadow-premium ring-1 ring-secondary/10">
+        {!reduce ? (
+          <BorderBeam size={260} duration={16} colorFrom="#2563eb" colorTo="#93c5fd" />
+        ) : null}
+
+        <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.9fr)] min-h-0">
+          {/* Vehicle stage — local Flaticon vectors (reliable, always visible) */}
+          <div className="fleet-fit__stage relative isolate flex flex-col overflow-hidden bg-gradient-to-br from-[#eef4ff] via-white to-[#f8fafc]">
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage:
+                  "radial-gradient(ellipse 70% 55% at 50% 100%, rgba(37,99,235,0.16), transparent 70%), radial-gradient(circle at 20% 20%, rgba(59,130,246,0.1), transparent 40%)",
+              }}
+              aria-hidden
+            />
+
+            <div
+              className="pointer-events-none absolute inset-x-[12%] bottom-[14%] h-[22%] rounded-[100%] bg-secondary/20 blur-3xl"
+              aria-hidden
+            />
+
+            <div className="absolute top-3 left-3 z-10">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-secondary/20 bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary shadow-sm backdrop-blur-md">
+                <span className="text-secondary">{String(active + 1).padStart(2, "0")}</span>
+                <span className="text-muted/40">/</span>
+                <span className="text-muted">{String(total).padStart(2, "0")}</span>
+              </span>
+            </div>
+
+            <div className="relative z-[1] flex flex-1 items-center justify-center px-6 pb-14 pt-12 sm:px-10 sm:pt-14">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeKey}
+                  initial={{ opacity: 0, x: 36, scale: 0.9 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -28, scale: 0.92 }}
+                  transition={motionFast ?? { duration: 0.4, ease: easeOutQuart }}
+                  className="relative flex items-center justify-center"
+                >
+                  <Image
+                    src={FLEET_VEHICLE_ICONS[activeKey]}
+                    alt={t(`items.${activeKey}.name`)}
+                    width={420}
+                    height={420}
+                    priority
+                    className="h-auto w-[min(78vw,18rem)] sm:w-[min(42vw,22rem)] lg:w-[min(28vw,20rem)] object-contain drop-shadow-[0_18px_40px_rgba(15,23,42,0.18)]"
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={goPrev}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-secondary/20 bg-white/95 text-primary shadow-md backdrop-blur-md transition-colors hover:bg-secondary hover:text-white"
+                aria-label="Previous vehicle"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden />
+              </button>
+              <div className="flex items-center gap-1.5">
+                {BUSINESS_FLEET_KEYS.map((key, i) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setActive(i)}
+                    aria-label={t(`items.${key}.name`)}
+                    className={cn(
+                      "h-1.5 rounded-full transition-all",
+                      i === active
+                        ? "w-6 bg-secondary"
+                        : "w-1.5 bg-primary/20 hover:bg-secondary/50"
+                    )}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={goNext}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-secondary/20 bg-white/95 text-primary shadow-md backdrop-blur-md transition-colors hover:bg-secondary hover:text-white"
+                aria-label="Next vehicle"
+              >
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          </div>
+
+          {/* Details panel */}
+          <div className="relative flex flex-col justify-center gap-5 border-t lg:border-t-0 lg:border-l border-secondary/10 bg-gradient-to-b from-white to-gray-bg/60 p-5 sm:p-6 lg:p-7">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`detail-${activeKey}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={motionFast ?? { duration: 0.28, ease: easeOutQuart }}
+                className="space-y-5"
+              >
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-secondary mb-2">
+                    {t("specTitle")}
+                  </p>
+                  <h3 className="text-2xl sm:text-3xl font-semibold text-primary tracking-tight leading-tight">
+                    {t(`items.${activeKey}.name`)}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted leading-relaxed">
+                    {t(`items.${activeKey}.useCase`)}
+                  </p>
+                  {detailed ? (
+                    <p className="mt-3 inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-secondary">
+                      <span>{t(`items.${activeKey}.payload`)}</span>
+                      <span className="text-secondary/30">·</span>
+                      <span>{t(`items.${activeKey}.cargo`)}</span>
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <SpecStat
+                    icon={ArrowUpDown}
+                    label={t("specHeight")}
+                    value={formatFleetDimension(activeSpec.heightIn)}
+                  />
+                  <SpecStat
+                    icon={ArrowLeftRight}
+                    label={t("specWidth")}
+                    value={formatFleetDimension(activeSpec.widthIn)}
+                  />
+                  <SpecStat
+                    icon={Weight}
+                    label={t("specWeight")}
+                    value={formatFleetWeightLbs(activeSpec.weightLbs)}
+                  />
+                  <SpecStat icon={Layers} label={t("specSkids")} value={skidValue} />
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
-      <div className="fleet-fit__footer flex flex-wrap items-start gap-x-3 gap-y-1 text-[10px] sm:text-[11px] text-muted/75 shrink-0">
-        {detailed && (
-          <p className="inline-flex items-start gap-1.5 min-w-0 flex-1">
-            <Info className="h-3.5 w-3.5 text-secondary shrink-0 mt-px" aria-hidden />
-            <span className="line-clamp-2 sm:line-clamp-1">{t("licenceNote")}</span>
-          </p>
-        )}
-        <p className={cn(detailed ? "shrink-0" : "w-full")}>
-          {t("iconAttributionPrefix")}
-          <a
-            href="https://www.flaticon.com/authors/rooman12"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline decoration-muted/40 underline-offset-2 hover:text-secondary"
-          >
-            {t("iconAttributionLink")}
-          </a>
-        </p>
-      </div>
+      {footer}
     </div>
   );
 }

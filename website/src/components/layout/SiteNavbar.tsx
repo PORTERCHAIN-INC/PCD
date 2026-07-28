@@ -12,15 +12,28 @@ import SiteNavbarAuth from "@/components/layout/SiteNavbarAuth";
 import NavDropdown from "@/components/layout/NavDropdown";
 import PorterchainWordmark from "@/components/brand/PorterchainWordmark";
 import { navbarNavigation } from "@/data/navbar-navigation";
+import { isVehiclesNavActive } from "@/data/vehicles-navigation";
 import { cn } from "@/lib/utils";
 
 /** Pages with a dark hero at the top — navbar starts transparent with light text. */
-const DARK_HERO_PATHS = new Set(["/careers", "/contact"]);
+const DARK_HERO_PATHS = new Set(["/", "/careers", "/contact"]);
 /** Pages with a light hero — navbar starts glass with dark text. */
-const LIGHT_HERO_PATHS = new Set(["/", "/business", "/login"]);
+const LIGHT_HERO_PATHS = new Set(["/business", "/login", "/vehicle-partner"]);
 
 function isNavPathActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const pathOnly = href.split("?")[0] ?? href;
+  if (pathOnly === "/solutions") {
+    return (
+      pathname === "/solutions" ||
+      pathname.startsWith("/solutions/") ||
+      pathname === "/construction" ||
+      pathname.startsWith("/construction/")
+    );
+  }
+  if (pathOnly === "/vehicles") {
+    return isVehiclesNavActive(pathname);
+  }
+  return pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
 }
 
 export default function SiteNavbar() {

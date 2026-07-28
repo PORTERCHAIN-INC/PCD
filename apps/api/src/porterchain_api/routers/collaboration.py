@@ -24,6 +24,17 @@ def _guard(ctx: AdminContext, module: str) -> None:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
 
 
+def _guard_any(ctx: AdminContext, *modules: str) -> None:
+    last: Exception | None = None
+    for module in modules:
+        try:
+            require_module(ctx, module)
+            return
+        except PermissionError as exc:
+            last = exc
+    raise HTTPException(status_code=403, detail=str(last) if last else "forbidden")
+
+
 @router.get("/activities", response_model=list[ActivityOut])
 def list_activities(
     ctx: Ctx,
@@ -32,14 +43,14 @@ def list_activities(
     entity_id: str | None = None,
     limit: int = Query(100, le=500),
 ) -> list[ActivityOut]:
-    _guard(ctx, "merchants_read")
+    _guard_any(ctx, "merchants_read", "crm_read")
     rows = _crm.list_activities(db, entity_type=entity_type, entity_id=entity_id, limit=limit)
     return [ActivityOut(**_crm.activity_dict(a)) for a in rows]
 
 
 @router.post("/activities", response_model=ActivityOut)
 def create_activity(body: ActivityCreate, ctx: Ctx, db: Session = Depends(get_db)) -> ActivityOut:
-    _guard(ctx, "merchants")
+    _guard_any(ctx, "merchants", "crm")
     activity = _crm.log_activity(
         db,
         entity_type=body.entity_type,
@@ -62,21 +73,21 @@ def list_tasks(
     assigned_to: str | None = None,
     entity_id: str | None = None,
 ) -> list[TaskOut]:
-    _guard(ctx, "merchants_read")
+    _guard_any(ctx, "merchants_read", "crm_read")
     rows = _crm.list_tasks(db, status=status, assigned_to=assigned_to, entity_id=entity_id)
     return [TaskOut.model_validate(t) for t in rows]
 
 
 @router.post("/tasks", response_model=TaskOut)
 def create_task(body: TaskCreate, ctx: Ctx, db: Session = Depends(get_db)) -> TaskOut:
-    _guard(ctx, "merchants")
+    _guard_any(ctx, "merchants", "crm")
     task = _crm.create_task(db, ctx, body.model_dump())
     return TaskOut.model_validate(task)
 
 
 @router.patch("/tasks/{task_id}", response_model=TaskOut)
 def update_task(task_id: str, body: TaskUpdate, ctx: Ctx, db: Session = Depends(get_db)) -> TaskOut:
-    _guard(ctx, "merchants")
+    _guard_any(ctx, "merchants", "crm")
     try:
         task = _crm.update_task(db, task_id, body.model_dump(exclude_unset=True))
     except LookupError as exc:
@@ -86,7 +97,7 @@ def update_task(task_id: str, body: TaskUpdate, ctx: Ctx, db: Session = Depends(
 
 @router.delete("/tasks/{task_id}", status_code=204)
 def delete_task(task_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> None:
-    _guard(ctx, "merchants")
+    _guard_any(ctx, "merchants", "crm")
     if not _crm.get_task(db, task_id):
         raise HTTPException(status_code=404, detail="task_not_found")
     try:

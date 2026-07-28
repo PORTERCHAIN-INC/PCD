@@ -32,10 +32,10 @@ export default function TimelineSection({
           <SectionHeader label={label} title={title} subtitle={subtitle} />
           <div className="max-w-2xl mx-auto relative">
             <div className="absolute left-[1.125rem] top-2 bottom-2 w-px bg-gradient-to-b from-secondary via-secondary/30 to-transparent" />
-            <ol className="space-y-10">
+            <ol className="space-y-7">
               {steps.map((step, i) => (
                 <FadeIn key={i} as="li" delay={i * 0.08}>
-                  <div className="flex gap-5">
+                  <div className="flex gap-4">
                     <div className="relative z-10 w-9 h-9 rounded-full bg-secondary text-white text-sm font-semibold flex items-center justify-center shrink-0 shadow-md shadow-secondary/25">
                       {i + 1}
                     </div>
@@ -60,12 +60,12 @@ export default function TimelineSection({
       <section className={cn("site-section bg-gray-bg", className)}>
         <Container>
           <SectionHeader label={label} title={title} subtitle={subtitle} />
-          <div className="space-y-16 md:space-y-24">
+          <div className="space-y-10 md:space-y-12">
             {steps.map((step, i) => (
               <FadeIn key={i} delay={i * 0.06}>
                 <div
                   className={cn(
-                    "grid md:grid-cols-2 gap-8 md:gap-16 items-center",
+                    "grid md:grid-cols-2 gap-6 md:gap-10 items-center",
                     i % 2 === 1 && "md:[&>div:first-child]:order-2"
                   )}
                 >
@@ -73,14 +73,14 @@ export default function TimelineSection({
                     <span className="text-xs font-semibold text-secondary uppercase tracking-wider">
                       Step {i + 1}
                     </span>
-                    <h3 className="mt-2 text-2xl font-semibold text-primary tracking-tight">
+                    <h3 className="mt-2 text-xl font-semibold text-primary tracking-tight">
                       {step.title}
                     </h3>
-                    <p className="mt-3 text-muted leading-relaxed">{step.description}</p>
+                    <p className="mt-2 text-muted leading-relaxed">{step.description}</p>
                   </div>
-                  <div className="h-48 md:h-56 rounded-2xl bg-white border border-primary/[0.06] grid-pattern flex items-center justify-center">
-                    <div className="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center">
-                      <span className="text-2xl font-bold text-secondary">{i + 1}</span>
+                  <div className="h-40 md:h-48 rounded-2xl bg-white border border-primary/[0.06] grid-pattern flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center">
+                      <span className="text-xl font-bold text-secondary">{i + 1}</span>
                     </div>
                   </div>
                 </div>

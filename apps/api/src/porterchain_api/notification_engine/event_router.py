@@ -11,6 +11,8 @@ from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
 
+_notification_handlers_registered = False
+
 PRIORITY_MAP = {
     DomainEventType.PAYMENT_FAILED: "critical",
     DomainEventType.DRIVER_ASSIGNED: "high",
@@ -281,6 +283,11 @@ def handle_domain_event(envelope: dict[str, Any]) -> None:
 
 def register_notification_handlers() -> None:
     from porterchain_event_bus.registry import get_handler_registry
+
+    global _notification_handlers_registered
+    if _notification_handlers_registered:
+        return
+    _notification_handlers_registered = True
 
     registry = get_handler_registry()
     watched = [

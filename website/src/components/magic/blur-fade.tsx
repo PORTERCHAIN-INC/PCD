@@ -1,7 +1,8 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { easeOutQuart } from "@/lib/motion";
 
 interface BlurFadeProps {
   children: React.ReactNode;
@@ -12,26 +13,27 @@ interface BlurFadeProps {
   inView?: boolean;
 }
 
-const variants: Variants = {
-  hidden: { opacity: 0, y: 12, filter: "blur(6px)" },
-  visible: { opacity: 1, y: 0, filter: "blur(0px)" },
-};
-
 export default function BlurFade({
   children,
   className,
   delay = 0,
-  duration = 0.45,
-  yOffset = 12,
+  duration = 0.5,
+  yOffset = 14,
   inView = false,
 }: BlurFadeProps) {
+  const reduce = useReducedMotion();
+
+  if (reduce) {
+    return <div className={cn(className)}>{children}</div>;
+  }
+
   if (inView) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: yOffset, filter: "blur(6px)" }}
+        initial={{ opacity: 0, y: yOffset, filter: "blur(8px)" }}
         whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         viewport={{ once: true, margin: "-40px" }}
-        transition={{ duration, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
+        transition={{ duration, delay, ease: easeOutQuart }}
         className={cn(className)}
       >
         {children}
@@ -39,19 +41,18 @@ export default function BlurFade({
     );
   }
 
+  const variants: Variants = {
+    hidden: { opacity: 0, y: yOffset, filter: "blur(8px)" },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: { duration, delay, ease: easeOutQuart },
+    },
+  };
+
   return (
-    <motion.div
-      variants={{
-        hidden: { ...variants.hidden, y: yOffset },
-        visible: {
-          ...variants.visible,
-          transition: { duration, delay, ease: [0.21, 0.47, 0.32, 0.98] },
-        },
-      }}
-      initial="hidden"
-      animate="visible"
-      className={cn(className)}
-    >
+    <motion.div variants={variants} initial="hidden" animate="visible" className={cn(className)}>
       {children}
     </motion.div>
   );

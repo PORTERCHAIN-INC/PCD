@@ -22,7 +22,7 @@ export default function BusinessHero() {
   return (
     <section
       className={cn(
-        "relative isolate min-h-[min(100svh,52rem)] overflow-hidden bg-white",
+        "relative isolate min-h-[min(88svh,44rem)] overflow-hidden bg-white",
         formActive && "motion-paused"
       )}
     >
@@ -40,7 +40,7 @@ export default function BusinessHero() {
         <div className="biz-hero-merge pointer-events-none absolute inset-0" />
       </div>
 
-      <Container className="relative z-10 flex min-h-[min(100svh,52rem)] flex-col justify-center pt-[calc(var(--nav-height)+2rem)] pb-16 sm:pb-20 lg:pb-24">
+      <Container className="relative z-10 flex min-h-[min(88svh,44rem)] flex-col justify-center pt-[calc(var(--nav-height)+1.5rem)] pb-12 sm:pb-16 lg:pb-20">
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-12 xl:gap-16">
           <div className="max-w-xl">
             <BlurFade>

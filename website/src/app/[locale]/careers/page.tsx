@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import CareersHero from "@/components/corporate/sections/CareersHero";
 import BenefitsSection from "@/components/corporate/sections/BenefitsSection";
@@ -16,19 +17,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import FadeIn from "@/components/corporate/motion/FadeIn";
 import { collectFaqItems, collectTimelineSteps } from "@/lib/corporate-content";
 import type { CareerDepartment } from "@/data/careers";
-import {
-  Shield,
-  Scale,
-  Leaf,
-  Handshake,
-  Wifi,
-  Clock,
-  GraduationCap,
-  Laptop,
-  TrendingUp,
-  Heart,
-  CheckCircle2,
-} from "lucide-react";
+import { Wifi, Clock, GraduationCap, Laptop, TrendingUp, Heart, CheckCircle2 } from "lucide-react";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -39,11 +28,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.careers" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "careers", t("title"), t("description"));
 }
 
 export default async function CareersPage({ params }: Props) {
@@ -72,14 +57,22 @@ export default async function CareersPage({ params }: Props) {
     {
       title: t("values.items.0.title"),
       description: t("values.items.0.description"),
-      icon: Shield,
+      icon: "shield" as const,
     },
-    { title: t("values.items.1.title"), description: t("values.items.1.description"), icon: Scale },
-    { title: t("values.items.2.title"), description: t("values.items.2.description"), icon: Leaf },
+    {
+      title: t("values.items.1.title"),
+      description: t("values.items.1.description"),
+      icon: "scale" as const,
+    },
+    {
+      title: t("values.items.2.title"),
+      description: t("values.items.2.description"),
+      icon: "leaf" as const,
+    },
     {
       title: t("values.items.3.title"),
       description: t("values.items.3.description"),
-      icon: Handshake,
+      icon: "handshake" as const,
     },
   ];
 

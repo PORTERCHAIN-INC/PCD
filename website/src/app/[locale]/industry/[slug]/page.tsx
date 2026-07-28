@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import IndustryLandingView from "@/components/seo/IndustryLandingView";
+import ContentViewBeacon from "@/components/seo/ContentViewBeacon";
 import { NICHE_SLUGS, getNicheMessageKey, isValidNicheSlug } from "@/lib/seo/niche-landing";
 import { getLandingContent, resolveLandingContent } from "@/lib/seo/landing-content";
 import {
@@ -10,6 +11,7 @@ import {
   buildLocalDeliveryCityLinks,
 } from "@/lib/seo/internal-linking";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
+import { isDraftNicheSlug } from "@/lib/seo/content/draft-expansions";
 import { routing, type Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
@@ -34,12 +36,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     messageKey
   );
   if (!niche?.meta) return {};
+  const allowIndex = indexable && !isDraftNicheSlug(slug);
   return buildPageMetadata(
     locale,
     `industry/${slug}`,
     niche.meta.title ?? "Industry delivery",
     niche.meta.description ?? "",
-    { index: indexable }
+    { index: allowIndex }
   );
 }
 
@@ -63,6 +66,7 @@ export default async function IndustrySlugPage({ params }: Props) {
 
   return (
     <CorporateShell>
+      <ContentViewBeacon kind="industry" slug={slug} source={`industry/${slug}`} />
       <IndustryLandingView
         locale={loc}
         slug={slug}
@@ -88,10 +92,12 @@ export default async function IndustrySlugPage({ params }: Props) {
           otherVehicles: tSeo("otherVehicles"),
           vehicles: tSeo("vehicles"),
           painPoints: tSeo("painPoints"),
+          intentGuides: tSeo("intentGuides"),
+          relatedPages: tSeo("relatedPages"),
         }}
         breadcrumbs={[
           { label: tBc("home"), href: "/" },
-          { label: tBc("industry"), href: "/industry" },
+          { label: tBc("industry"), href: "/business#industries" },
           { label: niche.hero.title },
         ]}
       />

@@ -10,13 +10,17 @@
     "build": "next build",
     "start": "next start --port 3000",
     "lint": "eslint",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"messages/**/*.json\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"messages/**/*.json\"",
+    "eval:guide-knowledge": "tsx src/lib/home/guide-knowledge.eval.ts"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^4.0.13",
+    "@ai-sdk/react": "^4.0.40",
     "@clerk/nextjs": "^7.5.14",
     "@porterchain/maps": "workspace:*",
     "@sentry/nextjs": "^10.64.0",
     "@vis.gl/react-google-maps": "^1.9.0",
+    "ai": "^7.0.37",
     "date-fns": "^4.4.0",
     "framer-motion": "^12.42.2",
     "gray-matter": "^4.0.3",

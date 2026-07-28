@@ -66,7 +66,7 @@ export function blog(locale: Locale): string {
 }
 
 export function industry(locale: Locale): string {
-  return localePath(locale, PATHS.INDUSTRY);
+  return `${localePath(locale, PATHS.BUSINESS)}#industries`;
 }
 
 export function industrySlug(locale: Locale, slug: string): string {
@@ -146,7 +146,7 @@ export function howPorterchainWorks(locale: Locale): string {
 }
 
 export function pricing(locale: Locale): string {
-  return localePath(locale, PATHS.PRICING);
+  return `${localePath(locale, PATHS.BUSINESS)}#pricing`;
 }
 
 export function integrations(locale: Locale): string {

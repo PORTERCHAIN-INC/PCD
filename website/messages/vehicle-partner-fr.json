@@ -181,5 +181,38 @@
       "unsure": "Pas encore certain"
     }
   },
-  "disclaimer": "Cette page est à titre informatif seulement et peut évoluer. La participation est sujette à approbation et aux ententes partenaires signées."
+  "disclaimer": "Cette page est à titre informatif seulement et peut évoluer. La participation est sujette à approbation et aux ententes partenaires signées.",
+  "hubFacade": {
+    "title": "Aperçu des assignations",
+    "chip": "Illustratif",
+    "illustrativeNote": "Styles d'assignation exemples — pas un babillard d'acceptation en direct. Les conditions sont dans votre entente partenaire.",
+    "mapTitle": "Corridors du réseau",
+    "mapSubtitle": "Routes du RGT assorties à votre classe de véhicule après l'intégration.",
+    "portalCta": "Ouvrir le portail chauffeur",
+    "offers": {
+      "a": {
+        "title": "Course marchand le jour même",
+        "badge": "Local",
+        "meta": "Multi-arrêts · preuve à la livraison"
+      },
+      "b": {
+        "title": "Corridor gros récurrent",
+        "badge": "Planifié",
+        "meta": "Fenêtres hebdomadaires · instructions claires"
+      },
+      "c": {
+        "title": "Débordement de chantier",
+        "badge": "Construction",
+        "meta": "Camionnette / fourgonnette quand les flottes sont pleines"
+      }
+    }
+  },
+  "trustStrip": {
+    "eyebrow": "Confiance",
+    "title": "Connaissez le réseau que vous rejoignez",
+    "body": "Contexte d'entreprise, engagements de confiance et contact direct — avant de postuler.",
+    "company": "À propos de Porterchain",
+    "trust": "Centre de confiance",
+    "contact": "Nous joindre"
+  }
 }

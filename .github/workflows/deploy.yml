@@ -112,6 +112,10 @@ jobs:
             NEXT_PUBLIC_GOOGLE_BUSINESS_PROFILE_URL=${{ vars.NEXT_PUBLIC_GOOGLE_BUSINESS_PROFILE_URL }}
             NEXT_PUBLIC_GOOGLE_BUSINESS_REVIEW_URL=${{ vars.NEXT_PUBLIC_GOOGLE_BUSINESS_REVIEW_URL }}
             NEXT_PUBLIC_CONTACT_PHONE=${{ vars.NEXT_PUBLIC_CONTACT_PHONE || '+16476197951' }}
+            NEXT_PUBLIC_MERCHANT_PORTAL_URL=https://merchant.porterchain.com
+            NEXT_PUBLIC_ADMIN_PORTAL_URL=https://admin.porterchain.com
+            NEXT_PUBLIC_CUSTOMER_PORTAL_URL=https://customer.porterchain.com
+            NEXT_PUBLIC_DRIVER_PORTAL_URL=https://driver.porterchain.com
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

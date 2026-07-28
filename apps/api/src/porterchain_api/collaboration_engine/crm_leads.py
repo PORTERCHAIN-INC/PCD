@@ -136,6 +136,18 @@ class CrmLeadsMixin:
     def get_lead(self, db: Session, lead_id: str) -> CrmLead | None:
         return db.get(CrmLead, lead_id)
 
+    def find_lead_by_email(self, db: Session, email: str) -> CrmLead | None:
+        """Most recent lead matching email (case-insensitive)."""
+        normalized = (email or "").strip().lower()
+        if not normalized:
+            return None
+        return (
+            db.query(CrmLead)
+            .filter(func.lower(CrmLead.email) == normalized)
+            .order_by(CrmLead.created_at.desc())
+            .first()
+        )
+
     @staticmethod
     def score_lead(lead: CrmLead) -> int:
         """Heuristic logistics lead score (0-100)."""

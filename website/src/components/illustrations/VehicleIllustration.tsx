@@ -11,6 +11,8 @@ interface VehicleIllustrationProps {
   id?: string;
   variant?: "light" | "dark";
   mode?: "photo" | "icon";
+  /** Photo framing — contain suits light fleet stage; cover suits full-bleed heroes */
+  objectFit?: "cover" | "contain";
 }
 
 export function resolveVehicleIllustration(key: string): VehicleIllustrationType {
@@ -34,6 +36,7 @@ export default function VehicleIllustration({
   type,
   className = "",
   mode = "photo",
+  objectFit = "cover",
 }: VehicleIllustrationProps) {
   const image = getVehicleImage(type);
 
@@ -43,7 +46,9 @@ export default function VehicleIllustration({
         <SiteImage
           image={image}
           fill
-          className="object-cover"
+          className={cn(
+            objectFit === "contain" ? "object-contain p-6 sm:p-10 lg:p-12" : "object-cover"
+          )}
           sizes="(max-width: 1024px) 100vw, (max-width: 1536px) 65vw, 900px"
         />
       </div>

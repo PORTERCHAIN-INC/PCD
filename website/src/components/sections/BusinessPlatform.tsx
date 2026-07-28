@@ -66,7 +66,7 @@ export default function BusinessPlatform() {
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-400/80" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400/80" />
-                  <div className="w-3 h-3 rounded-full bg-green-400/80" />
+                  <div className="w-3 h-3 rounded-full bg-secondary/80" />
                 </div>
                 <div className="flex-1 mx-4">
                   <div className="bg-white/10 rounded-md px-3 py-1 text-xs text-white/50 text-center">
@@ -90,7 +90,7 @@ export default function BusinessPlatform() {
                       label: t("delivered"),
                       value: "186",
                       icon: TrendingUp,
-                      color: "text-green-600",
+                      color: "text-secondary",
                     },
                     { label: t("drivers"), value: "12", icon: Users, color: "text-blue-600" },
                   ].map((stat) => {
@@ -125,7 +125,7 @@ export default function BusinessPlatform() {
                   {ORDER_KEYS.map((key) => (
                     <div key={key} className="flex items-center justify-between text-xs">
                       <span className="text-primary/80">{t(`orderStatuses.${key}`)}</span>
-                      <span className="text-green-600 font-medium">
+                      <span className="text-secondary font-medium">
                         {t("orderStatuses.delivered")}
                       </span>
                     </div>

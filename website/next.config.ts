@@ -3,14 +3,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadMonorepoEnv, websitePublicEnv } from "@porterchain/config/monorepo-env.mjs";
 import createNextIntlPlugin from "next-intl/plugin";
+import { toNextRedirects } from "./src/lib/seo/redirects";
 
 loadMonorepoEnv(process.cwd(), "../env/.env");
 
 const monorepoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
-
-const removedCorporatePaths = ["overview"] as const;
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -30,62 +29,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@porterchain/config"],
   env: websitePublicEnv(),
   async redirects() {
-    const legacyMarketRedirects = ["en", "fr"].flatMap((locale) => [
-      {
-        source: `/ca/${locale === "en" ? "en" : "fr-ca"}/:path*`,
-        destination: `/${locale}/:path*`,
-        permanent: true,
-      },
-      {
-        source: `/ca/${locale === "en" ? "en" : "fr-ca"}`,
-        destination: `/${locale}`,
-        permanent: true,
-      },
-    ]);
-    return [
-      ...legacyMarketRedirects,
-      ...["en", "fr"].flatMap((locale) =>
-        removedCorporatePaths.map((path) => ({
-          source: `/${locale}/${path}`,
-          destination: `/${locale}/business`,
-          permanent: true,
-        }))
-      ),
-      ...["en", "fr"].map((locale) => ({
-        source: `/${locale}/guides/how-porterchain-works`,
-        destination: `/${locale}/how-porterchain-works`,
-        permanent: true,
-      })),
-      ...["en", "fr"].flatMap((locale) => [
-        {
-          source: `/${locale}/van-delivery`,
-          destination: `/${locale}/trade-van-delivery`,
-          permanent: true,
-        },
-        {
-          source: `/${locale}/medium-truck`,
-          destination: `/${locale}/box-truck-delivery`,
-          permanent: true,
-        },
-        {
-          source: `/${locale}/:city/van-delivery`,
-          destination: `/${locale}/:city/trade-van-delivery`,
-          permanent: true,
-        },
-        {
-          source: `/${locale}/:city/medium-truck`,
-          destination: `/${locale}/:city/box-truck-delivery`,
-          permanent: true,
-        },
-      ]),
-      ...["en", "fr"].flatMap((locale) =>
-        ["onboarding-education", "integrations-education"].map((path) => ({
-          source: `/${locale}/${path}`,
-          destination: `/${locale}/guides`,
-          permanent: true,
-        }))
-      ),
-    ];
+    return toNextRedirects();
   },
   async headers() {
     return [

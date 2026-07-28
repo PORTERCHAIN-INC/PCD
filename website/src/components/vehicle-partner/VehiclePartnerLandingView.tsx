@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Car, Truck, Package, Box, CarFront } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import type { FeatureIconName } from "@/components/corporate/icons/feature-icons";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
@@ -9,15 +8,22 @@ import { JsonLd } from "@/components/seo";
 import { buildFAQPageSchema } from "@/lib/seo/schema";
 import { siteImages, getVehiclePartnerImage } from "@/data/site-images";
 import VehiclePartnerHero from "@/components/vehicle-partner/VehiclePartnerHero";
+import HubShell from "@/components/hub/HubShell";
+import HubMapStage from "@/components/hub/HubMapStage";
+import HubOfferCards from "@/components/hub/HubOfferCards";
+import HubStatusChip from "@/components/hub/HubStatusChip";
+import HubTrustStrip from "@/components/hub/HubTrustStrip";
+import { driverSignInUrl } from "@/data/portal-links";
+import { HUB_FROM } from "@/lib/marketing/config";
 import type { Locale } from "@/i18n/routing";
 
 const VEHICLE_KEYS = ["sedan", "suv", "pickup", "van", "boxTruck"] as const;
-const VEHICLE_ICONS: Record<(typeof VEHICLE_KEYS)[number], LucideIcon> = {
-  sedan: Car,
-  suv: CarFront,
-  pickup: Truck,
-  van: Package,
-  boxTruck: Box,
+const VEHICLE_ICONS: Record<(typeof VEHICLE_KEYS)[number], FeatureIconName> = {
+  sedan: "car",
+  suv: "carFront",
+  pickup: "truck",
+  van: "package",
+  boxTruck: "box",
 };
 
 const PILLAR_KEYS = ["routes", "earnings", "support", "multiple"] as const;
@@ -28,9 +34,11 @@ type Props = { locale: Locale };
 
 export default async function VehiclePartnerLandingView({ locale }: Props) {
   const t = await getTranslations("vehiclePartner");
+  const tFacade = await getTranslations("vehiclePartner.hubFacade");
+  const tTrust = await getTranslations("vehiclePartner.trustStrip");
 
   const faqItems = t.raw("faq.items") as { question: string; answer: string }[];
-  const contactHref = `/${locale}/contact?from=vehicle-partner`;
+  const contactHref = `/${locale}/contact?from=${HUB_FROM.drivers}`;
 
   const vehicleItems = VEHICLE_KEYS.map((key) => ({
     title: t(`vehicles.items.${key}.title`),
@@ -55,10 +63,57 @@ export default async function VehiclePartnerLandingView({ locale }: Props) {
     description: t(`workflow.steps.${key}.stepDescription`),
   }));
 
+  const offers = [
+    {
+      id: "a1",
+      title: tFacade("offers.a.title"),
+      badge: tFacade("offers.a.badge"),
+      meta: tFacade("offers.a.meta"),
+    },
+    {
+      id: "a2",
+      title: tFacade("offers.b.title"),
+      badge: tFacade("offers.b.badge"),
+      meta: tFacade("offers.b.meta"),
+    },
+    {
+      id: "a3",
+      title: tFacade("offers.c.title"),
+      badge: tFacade("offers.c.badge"),
+      meta: tFacade("offers.c.meta"),
+    },
+  ];
+
   return (
-    <>
+    <HubShell>
       <JsonLd data={buildFAQPageSchema(faqItems)} />
       <VehiclePartnerHero locale={locale} />
+
+      <section
+        className="border-b border-primary/6 bg-[#F4F6FA]"
+        aria-labelledby="drivers-hub-facade"
+      >
+        <Container className="py-10 sm:py-12">
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <h2 id="drivers-hub-facade" className="text-lg font-semibold text-primary sm:text-xl">
+              {tFacade("title")}
+            </h2>
+            <HubStatusChip label={tFacade("chip")} tone="info" />
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <HubOfferCards items={offers} illustrativeNote={tFacade("illustrativeNote")} />
+            <div className="space-y-4">
+              <HubMapStage title={tFacade("mapTitle")} subtitle={tFacade("mapSubtitle")} />
+              <a
+                href={driverSignInUrl}
+                className="inline-flex w-full items-center justify-center rounded-xl bg-secondary px-5 py-3 text-sm font-semibold text-white hover:bg-[#1d4ed8] sm:w-auto"
+              >
+                {tFacade("portalCta")}
+              </a>
+            </div>
+          </div>
+        </Container>
+      </section>
 
       <FeatureSection
         id="vehicles"
@@ -100,6 +155,15 @@ export default async function VehiclePartnerLandingView({ locale }: Props) {
         items={easeItems}
       />
 
+      <HubTrustStrip
+        eyebrow={tTrust("eyebrow")}
+        title={tTrust("title")}
+        body={tTrust("body")}
+        companyLabel={tTrust("company")}
+        trustLabel={tTrust("trust")}
+        contactLabel={tTrust("contact")}
+      />
+
       <FaqSection
         label={t("faq.label")}
         title={t("faq.title")}
@@ -122,6 +186,6 @@ export default async function VehiclePartnerLandingView({ locale }: Props) {
           <p className="text-xs text-muted leading-relaxed">{t("disclaimer")}</p>
         </Container>
       </section>
-    </>
+    </HubShell>
   );
 }

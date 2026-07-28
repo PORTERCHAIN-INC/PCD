@@ -38,7 +38,7 @@ export default function StoryIndustries() {
           const industry = industries.find((item) => item.id === id);
           const Icon = industry?.icon;
           const nicheSlug = HOME_INDUSTRY_TO_NICHE_SLUG[id];
-          const href = nicheSlug ? `/industry/${nicheSlug}` : "/industry";
+          const href = nicheSlug ? `/industry/${nicheSlug}` : "/business#industries";
           return (
             <BlurFade key={id} delay={i * 0.03} inView>
               <Link href={href} className="block h-full">
@@ -60,11 +60,11 @@ export default function StoryIndustries() {
         })}
       </div>
       <BlurFade inView className="mt-8 flex items-center gap-4">
-        <LinkButton href="/industry" variant="outline" trackSource="home-industries">
+        <LinkButton href="/business#industries" variant="outline" trackSource="home-industries">
           {t("cta")}
         </LinkButton>
         <Link
-          href="/industry"
+          href="/business#industries"
           className="inline-flex items-center gap-1 text-sm font-semibold text-secondary hover:underline"
         >
           {t("viewAll")}

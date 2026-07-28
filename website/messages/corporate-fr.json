@@ -18,6 +18,18 @@
       "ogTitle": "Solutions livraison B2B Porterchain — RGT et Ontario",
       "ogDescription": "Capacité le jour même, récurrente et de débordement avec suivi et preuve pour les secteurs logistiques B2B les plus demandés en Ontario."
     },
+    "vehicles": {
+      "title": "Véhicules de livraison RGT | Fourgon, camion cube | Porterchain",
+      "description": "Capacité véhicule commerciale pour la livraison B2B en Ontario — fourgonnettes, camions cube et pickups avec chauffeurs professionnels, suivi et preuve.",
+      "ogTitle": "Véhicules de livraison Porterchain — RGT et Ontario",
+      "ogDescription": "Associez la bonne classe de véhicule à votre fret — capacité le jour même et récurrente dans la RGT."
+    },
+    "howPorterchainWorks": {
+      "title": "Comment PorterChain fonctionne | Capacité, flotte et couverture | Ontario",
+      "description": "Comment PorterChain fournit de la capacité de transport : demande, appariement véhicule et chauffeur, exécution avec suivi, et clôture avec preuve — plus solutions, flotte et zones de service en Ontario.",
+      "ogTitle": "Comment PorterChain fonctionne",
+      "ogDescription": "Une page pour comprendre la capacité, les véhicules, l'exploitation et les zones desservies dans la RGT et les métropoles ontariennes."
+    },
     "company": {
       "title": "Entreprise | Porterchain",
       "description": "Porterchain construit un réseau de capacité de transport pour les entreprises ontariennes — mission, équipe et comment nous éliminons les goulots logistiques.",
@@ -95,16 +107,73 @@
       "description": "Tarification transparente sur devis pour livraison B2B dans le RGT — jour même, urgence, récurrent et débordement de flotte. Classe de véhicule, route et preuve. Demandez un devis écrit.",
       "ogTitle": "Tarification Porterchain",
       "ogDescription": "Demandez un devis écrit pour berline, VUS, fourgon cargo, Sprinter et camion cube avec chauffeur professionnel."
+    },
+    "accessibility": {
+      "title": "Accessibilité | Porterchain",
+      "description": "Engagement d'accessibilité de Porterchain pour porterchain.com — améliorations orientées WCAG et contact pour signaler des obstacles."
+    },
+    "editorialPolicy": {
+      "title": "Politique éditoriale | Porterchain Trust",
+      "description": "Comment Porterchain publie le contenu du site, les études de cas et les analyses opérationnelles."
+    },
+    "researchMethodology": {
+      "title": "Méthodologie de recherche | Porterchain Trust",
+      "description": "Normes pour les rapports Porterchain Logistics Intelligence avant publication."
+    },
+    "corrections": {
+      "title": "Politique de corrections | Porterchain Trust",
+      "description": "Comment signaler et corriger les erreurs factuelles sur porterchain.com."
+    },
+    "securityOverview": {
+      "title": "Aperçu sécurité | Porterchain Trust",
+      "description": "Résumé sécurité pour approvisionnement — questionnaire complet sur demande."
+    },
+    "researchHub": {
+      "title": "Intelligence logistique | Porterchain",
+      "description": "Hub de recherche provisoire — non indexé jusqu'à publication de données vérifiées."
+    },
+    "founder": {
+      "title": "Fondateur | Porterchain",
+      "description": "Profil fondateur — non indexé jusqu'à approbation."
+    },
+    "insurance": {
+      "title": "Assurance et COI | Porterchain Trust",
+      "description": "Assurance commerciale — brouillon en attente de revue juridique."
+    },
+    "serviceStandards": {
+      "title": "Normes de service | Porterchain Trust",
+      "description": "Preuve, fenêtres et escalade — brouillon en attente d'approbation ops."
     }
   },
   "nav": {
-    "platform": "Plateforme",
+    "platform": "Technologie",
     "solutions": "Solutions",
     "business": "Services",
+    "merchants": "Marchands",
+    "drivers": "Chauffeurs",
+    "vehicles": "Véhicules",
     "pricing": "Tarification",
     "developers": "Développeurs",
     "company": "Entreprise",
     "resources": "Ressources",
+    "solutionsTabs": {
+      "ariaLabel": "Sections solutions",
+      "overview": "Aperçu",
+      "wholesale": "Gros",
+      "medical": "Médical",
+      "foodBeverage": "Alimentation",
+      "construction": "Construction",
+      "industries": "Industries",
+      "serviceAreas": "Zones de service"
+    },
+    "vehiclesTabs": {
+      "ariaLabel": "Classes de véhicules",
+      "overview": "Aperçu",
+      "cargoVan": "Fourgon cargo",
+      "tradeVan": "Fourgon métier",
+      "boxTruck": "Camion cube",
+      "pickupTruck": "Camionnette"
+    },
     "solutionsMenu": {
       "overview": {
         "label": "Toutes les solutions",
@@ -133,6 +202,24 @@
       "serviceAreas": {
         "label": "Zones desservies",
         "description": "RGT et métropoles ontariennes — le jour même, planifié et récurrent."
+      }
+    },
+    "vehiclesMenu": {
+      "cargoVan": {
+        "label": "Fourgon cargo",
+        "description": "Courses B2B le jour même et récurrentes — colis, bacs et fret léger."
+      },
+      "tradeVan": {
+        "label": "Fourgon commercial",
+        "description": "Routes grossiste et métier — comptoir au chantier avec preuve à chaque arrêt."
+      },
+      "boxTruck": {
+        "label": "Camion cube",
+        "description": "Palettes et fret chantier — construction, industriel et grossiste."
+      },
+      "pickupTruck": {
+        "label": "Camionnette",
+        "description": "Débordement léger construction et métier quand votre flotte est pleine."
       }
     },
     "companyMenu": {
@@ -223,6 +310,8 @@
     "industry": "Industries",
     "solutions": "Solutions",
     "platform": "Plateforme",
+    "vehicles": "Véhicules",
+    "howPorterchainWorks": "Comment PorterChain fonctionne",
     "guides": "Guides",
     "localDelivery": "Livraison locale",
     "compare": "Comparer",
@@ -271,6 +360,7 @@
       "coreServiceArea": "Métro principal",
       "availableByConfirmation": "Disponible sur confirmation",
       "intentGuides": "Guides livraison par intention",
+      "relatedPages": "Pages connexes",
       "pricingFaqQ": "Comment fonctionne la tarification pour la livraison dans cette zone?",
       "pricingFaqA": "Sur devis selon la classe de véhicule, la distance, les arrêts et l'urgence (jour même vs planifié). Sans frais plateforme — nous confirmons la capacité par écrit avant l'expédition.",
       "neighbourhoodCoverage": "Quartiers et districts desservis",
@@ -294,6 +384,28 @@
       "trustAreas": "Toronto · Mississauga · Brampton · Peel · York · Durham",
       "slaLabel": "Réponse au devis d'ici",
       "slaExpired": "Prochaine fenêtre de réponse imminente"
+    },
+    "answers": {
+      "eyebrow": "En bref",
+      "title": "Réponses rapides",
+      "cta": "Obtenir une soumission",
+      "secondaryCta": "Voir les véhicules",
+      "what": {
+        "question": "Qu'est-ce que PorterChain?",
+        "answer": "PorterChain est un réseau de capacité de transport B2B dans la RGT et en Ontario. Les entreprises obtiennent des chauffeurs professionnels et des véhicules commerciaux — de la fourgonnette au camion cube — avec suivi en direct et preuve de livraison à chaque arrêt."
+      },
+      "who": {
+        "question": "Qui utilise PorterChain?",
+        "answer": "Fournisseurs de construction, grossistes électriques et plomberie, pharmacies, distributeurs alimentaires et autres entreprises ontariennes qui ont besoin de capacité de livraison le jour même, urgente, récurrente ou de débordement."
+      },
+      "where": {
+        "question": "Où PorterChain opère-t-il?",
+        "answer": "Nous desservons la RGT et les métropoles ontariennes incluant Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo et London."
+      },
+      "how": {
+        "question": "Comment démarrer?",
+        "answer": "Demandez une soumission avec vos routes, horaires et besoins en véhicules. Nous confirmons la capacité et le prix par écrit — généralement en un jour ouvrable — avant l'expédition."
+      }
     },
     "brandBand": {
       "eyebrow": "Notre signature",
@@ -703,7 +815,7 @@
       }
     },
     "cta": {
-      "title": "Besoin de capacité de transport?",
+      "title": "Voir comment les opérations réseau s'adaptent à vos corridors",
       "subtitle": "Dites-nous ce qui doit bouger. Nous deviserons la bonne capacité véhicule-chauffeur pour votre corridor.",
       "primary": "Obtenir un devis",
       "secondary": "Parler à la répartition"
@@ -750,6 +862,26 @@
           "href": "/compare"
         }
       }
+    }
+  },
+  "vehiclesIndex": {
+    "hero": {
+      "badge": "Capacité flotte",
+      "title": "Véhicules commerciaux adaptés à votre fret",
+      "subtitle": "Fourgonnettes cargo, fourgons métier, camions cube et pickups — chauffeurs professionnels avec suivi et preuve à chaque arrêt dans la RGT et en Ontario.",
+      "primaryCta": "Obtenir un devis",
+      "secondaryCta": "Voir les services"
+    },
+    "cards": {
+      "label": "Classes de véhicules",
+      "title": "Choisissez la bonne capacité pour le corridor",
+      "viewVehicle": "Voir le véhicule"
+    },
+    "cta": {
+      "title": "Besoin du bon véhicule pour votre prochaine course?",
+      "subtitle": "Indiquez taille du fret, arrêts et horaire — nous confirmons la classe de véhicule et envoyons un devis écrit.",
+      "primary": "Obtenir un devis",
+      "secondary": "Parcourir les solutions"
     }
   },
   "solutions": {
@@ -2049,6 +2181,62 @@
       }
     }
   },
+  "trustScaffolds": {
+    "accessibility": {
+      "title": "Déclaration d'accessibilité",
+      "description": "Porterchain s'engage à améliorer l'accessibilité sur porterchain.com.",
+      "breadcrumb": "Accessibilité",
+      "body": "Page provisoire en attente d'un audit WCAG 2.2 AA complet.\n\nSignalez tout obstacle à support@porterchain.com avec l'URL et une brève description. Réponse en un jour ouvrable."
+    },
+    "editorialPolicy": {
+      "title": "Politique éditoriale",
+      "description": "Publication du contenu web, blog et études de cas Porterchain.",
+      "breadcrumb": "Politique éditoriale",
+      "body": "Contenu axé sur la capacité et fondé sur des preuves. Les études de cas avec noms ou chiffres nécessitent l'approbation écrite du client."
+    },
+    "researchMethodology": {
+      "title": "Méthodologie de recherche",
+      "description": "Normes pour Logistics Intelligence avant publication.",
+      "breadcrumb": "Méthodologie",
+      "body": "Les rapports futurs documenteront échantillonnage, agrégation et limites. Non indexés tant que les données ne sont pas vérifiées."
+    },
+    "corrections": {
+      "title": "Politique de corrections",
+      "description": "Correction des erreurs factuelles sur porterchain.com.",
+      "breadcrumb": "Corrections",
+      "body": "Écrivez à support@porterchain.com pour signaler une erreur. Révision en un jour ouvrable."
+    },
+    "securityOverview": {
+      "title": "Aperçu sécurité",
+      "description": "Résumé sécurité pour approvisionnement — questionnaire sur demande.",
+      "breadcrumb": "Sécurité",
+      "body": "Chiffrement en transit, accès par rôle et sous-traitants documentés. Détails via security@porterchain.com."
+    },
+    "founder": {
+      "title": "Profil du fondateur",
+      "description": "Contexte opérateur du réseau PorterChain.",
+      "breadcrumb": "Fondateur",
+      "body": "Page provisoire non indexée jusqu'à approbation de la biographie et des droits photo.\n\nPour une soumission: /contact?intent=quote."
+    },
+    "insurance": {
+      "title": "Assurance et COI",
+      "description": "Processus de certificat d'assurance pour programmes marchands.",
+      "breadcrumb": "Assurance",
+      "body": "Le COI est disponible sur demande pour les programmes actifs.\n\nPage non indexée jusqu'à validation juridique. Voir /trust."
+    },
+    "serviceStandards": {
+      "title": "Normes de service",
+      "description": "Preuve, fenêtres et escalade.",
+      "breadcrumb": "Normes de service",
+      "body": "Suivi et preuve à chaque arrêt; escalade pour exceptions. SLA détaillé: /trust/sla. Non indexé jusqu'à approbation ops."
+    }
+  },
+  "researchHub": {
+    "title": "Intelligence logistique",
+    "description": "Recherche opérationnelle — rapports provisoires non indexés jusqu'à validation des données.",
+    "breadcrumb": "Recherche",
+    "draftLabel": "Brouillon — non indexé"
+  },
   "trust": {
     "hero": {
       "badge": "Confiance et assurance",
@@ -2645,6 +2833,107 @@
       "subtitle": "Tell us your vertical and service areas — response within one business day.",
       "primary": "Get a quote",
       "secondary": "See vehicles"
+    }
+  },
+  "howPorterchainWorks": {
+    "hero": {
+      "badge": "Comment PorterChain fonctionne",
+      "title": "La capacité de transport, de bout en bout",
+      "subtitle": "PorterChain est un réseau de capacité de transport pour les entreprises ontariennes. Vous demandez un véhicule et un chauffeur — nous apparions, exécutons, suivons et prouvons la livraison. Pas de logiciel de flotte à acheter.",
+      "primaryCta": "Obtenir un devis",
+      "secondaryCta": "Programmes marchands"
+    },
+    "steps": {
+      "label": "Comment ça marche",
+      "title": "De la demande de capacité à la preuve de livraison",
+      "subtitle": "Quatre étapes pour chaque envoi — claires pour les opérations, traçables pour la finance.",
+      "items": {
+        "0": {
+          "title": "Demander de la capacité",
+          "description": "Indiquez ramassage, livraison, classe de véhicule, horaires et preuves requises. Nous confirmons la couverture et envoyons un devis écrit."
+        },
+        "1": {
+          "title": "Apparier véhicule + chauffeur",
+          "description": "La répartition assigne le bon chauffeur professionnel et la bonne classe de véhicule du réseau."
+        },
+        "2": {
+          "title": "Exécuter avec suivi",
+          "description": "La tour de contrôle suit le progrès, les exceptions et l'ETA pour vous et vos destinataires."
+        },
+        "3": {
+          "title": "Clôturer avec preuve",
+          "description": "Photo, signature, GPS et historique de statut clôturent le travail pour la facturation."
+        }
+      }
+    },
+    "solutions": {
+      "label": "Solutions",
+      "title": "Conçu pour les problèmes de capacité des entreprises de la RGT",
+      "subtitle": "Urgence le jour même, débordement de flotte, routes de gros récurrentes et livraison chantier — par industrie.",
+      "view": "Voir la solution",
+      "all": "Toutes les solutions",
+      "items": {
+        "wholesale": {
+          "title": "Distribution de gros",
+          "description": "Routes récurrentes fourgon et camion cube pour distributeurs électriques, plomberie et industriels."
+        },
+        "medical": {
+          "title": "Médical et santé",
+          "description": "Courrier pharmacie, spécimens de labo et fournitures cliniques — preuve de chaîne de possession."
+        },
+        "foodBeverage": {
+          "title": "Alimentation et boissons",
+          "description": "Alimentation de gros, torréfacteurs et fournitures restaurants — routes planifiées et débordement le jour même."
+        },
+        "construction": {
+          "title": "Fournitures de construction",
+          "description": "Livraison matériaux chantier, palettes et urgences le jour même pour le bâtiment, l'électrique et la plomberie."
+        }
+      }
+    },
+    "vehicles": {
+      "label": "Véhicules",
+      "title": "Le bon véhicule pour chaque envoi",
+      "subtitle": "Berline au camion cube — choisissez la classe selon poids, volume et skids. La capacité inclut le chauffeur professionnel.",
+      "all": "Pages véhicules",
+      "business": "Détails flotte marchands"
+    },
+    "operate": {
+      "label": "Comment nous opérons",
+      "title": "Ce qui rend la capacité fiable",
+      "subtitle": "Le logiciel renforce le réseau derrière chaque course. Vous achetez de la capacité de transport — pas un produit logiciel.",
+      "more": "Comment nous opérons en détail",
+      "items": {
+        "0": {
+          "title": "Tour de contrôle",
+          "description": "Coordination centrale des courses actives, exceptions et engagements de service."
+        },
+        "1": {
+          "title": "Routage et séquençage",
+          "description": "Séquençage des arrêts, appariement de classe de véhicule et routes multi-arrêts efficaces."
+        },
+        "2": {
+          "title": "Suivi en direct",
+          "description": "Statut et ETA pour les équipes opérations et les destinataires."
+        },
+        "3": {
+          "title": "App partenaire chauffeur",
+          "description": "Instructions claires, navigation et capture de preuve de livraison sur le terrain."
+        }
+      }
+    },
+    "areas": {
+      "label": "Zones de service",
+      "title": "Capacité locale dans les métropoles ontariennes",
+      "subtitle": "Nous nous concentrons sur les régions que nous exécutons bien — cœurs de la RGT et métropoles clés — pas une carte nationale mince.",
+      "note": "La couverture inclut les quartiers et parcs industriels environnants. Confirmez vos corridors au devis.",
+      "all": "Toutes les zones de service"
+    },
+    "cta": {
+      "title": "Besoin de capacité quand votre flotte ne suffit pas ?",
+      "subtitle": "Indiquez la classe de véhicule, les arrêts, le timing et les preuves. Nous répondons avec un parcours de capacité écrit.",
+      "primary": "Obtenir un devis",
+      "secondary": "Programmes marchands"
     }
   }
 }

@@ -1,5 +1,5 @@
 import { getPorterchainApiBase } from "@/lib/api-base";
-import { publicEnv } from "@/lib/env";
+import { customerPortalDashboardUrl } from "@/data/portal-links";
 
 export type AuthMe = {
   user_id: string;
@@ -20,18 +20,15 @@ export async function fetchAuthMe(token: string): Promise<AuthMe> {
   return res.json();
 }
 
-/** Home URL for the user's portal after unified website sign-in. */
-export function portalHomeUrl(userType: string): string {
-  const type = userType.toLowerCase();
+/**
+ * Website `/login` uses the customer Clerk app only.
+ * After sign-in, send provisioned customers to the customer portal dashboard.
+ * Non-customer types cannot receive a cross-portal Clerk session from this page.
+ */
+export function customerPortalHomeUrl(): string {
+  return customerPortalDashboardUrl;
+}
 
-  if (type === "admin" || type === "dispatcher" || type === "support" || type === "sales") {
-    return `${publicEnv.adminPortalUrl}/dashboard`;
-  }
-  if (type === "merchant") {
-    return `${publicEnv.merchantPortalUrl}/onboarding`;
-  }
-  if (type === "driver") {
-    return `${publicEnv.driverPortalUrl}/onboarding`;
-  }
-  return `${publicEnv.customerPortalUrl}/dashboard`;
+export function isCustomerUserType(userType: string): boolean {
+  return userType.toLowerCase() === "customer";
 }

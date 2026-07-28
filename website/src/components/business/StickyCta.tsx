@@ -36,7 +36,7 @@ export default function StickyCta() {
               </p>
               <button
                 onClick={scrollToInquiry}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto min-h-[2.75rem] px-5 py-2.5 rounded-xl bg-[#ff7a00] text-white text-sm font-semibold hover:bg-[#e66e00] transition-colors whitespace-nowrap sm:ml-auto"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto min-h-[2.75rem] px-5 py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-semibold hover:bg-[#1d4ed8] transition-colors whitespace-nowrap sm:ml-auto"
               >
                 {t("button")}
                 <ArrowRight className="w-4 h-4" />

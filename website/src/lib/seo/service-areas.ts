@@ -1,7 +1,8 @@
-/**
- * Reusable service area page framework.
- * Valid slugs and mapping to message keys. SEO-friendly static params.
- */
+import {
+  DRAFT_SERVICE_AREA_MESSAGE_KEYS,
+  DRAFT_SERVICE_AREA_SLUGS,
+  type DraftServiceAreaSlug,
+} from "./content/draft-expansions";
 
 export const SERVICE_AREA_SLUGS = [
   "toronto",
@@ -21,6 +22,7 @@ export const SERVICE_AREA_SLUGS = [
   "hamilton",
   "ajax",
   "pickering",
+  ...DRAFT_SERVICE_AREA_SLUGS,
 ] as const;
 
 export type ServiceAreaSlug = (typeof SERVICE_AREA_SLUGS)[number];
@@ -44,6 +46,7 @@ export const SERVICE_AREA_MESSAGE_KEYS: Record<ServiceAreaSlug, string> = {
   hamilton: "hamilton",
   ajax: "ajax",
   pickering: "pickering",
+  ...(DRAFT_SERVICE_AREA_MESSAGE_KEYS as Record<DraftServiceAreaSlug, string>),
 };
 
 export function getServiceAreaMessageKey(slug: string): string | null {

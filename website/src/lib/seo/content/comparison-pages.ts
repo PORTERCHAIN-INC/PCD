@@ -226,6 +226,174 @@ export const COMPARISON_PAGES: ComparisonPage[] = [
       { path: "integrations", label: "Integrations" },
     ],
   },
+  {
+    slug: "same-day-vs-scheduled",
+    title: "Same-day vs scheduled B2B delivery",
+    description:
+      "Compare on-demand same-day capacity with scheduled recurring routes — when each pattern fits Ontario wholesale and jobsite programs.",
+    intro:
+      "Same-day delivery covers urgent overflow, missed windows, and customer commitments that cannot wait. Scheduled routes fit predictable wholesale, pharmacy, and construction supply lanes where stops repeat weekly or daily. Porterchain runs both under one partner with shared tracking and proof standards.",
+    alternativeLabel: "Scheduled-only planning",
+    comparisonRows: [
+      {
+        dimension: "Best for",
+        porterchain:
+          "Same-day for urgent overflow; scheduled for recurring stops — one partner covers both with shared visibility.",
+        alternative:
+          "Scheduled-only planning may leave no capacity when an urgent jobsite or pharmacy run appears same day.",
+      },
+      {
+        dimension: "Visibility",
+        porterchain:
+          "One dashboard for scheduled and same-day runs with ETAs and proof on every stop.",
+        alternative:
+          "Splitting vendors splits visibility — status lives in different apps or phone calls.",
+      },
+    ],
+    industrySlugs: ["construction-materials", "pharmacy-medical", "coffee-roasters"],
+    serviceAreaSlugs: ["toronto", "mississauga", "brampton"],
+    extraLinks: [
+      { path: "pricing", label: "Pricing" },
+      { path: "onboarding", label: "How onboarding works" },
+    ],
+  },
+  {
+    slug: "cargo-van-vs-sprinter-van",
+    title: "Cargo van vs Sprinter van for B2B delivery",
+    description:
+      "Choose cargo van or Sprinter capacity for Ontario B2B runs — payload, access, and jobsite fit.",
+    intro:
+      "Cargo vans handle parcels, totes, and light trade freight across the GTA with easier urban access. Sprinter-class vans add height and payload for longer wholesale lanes and palletized freight that still needs van maneuverability. Porterchain quotes the right vehicle class for your stops.",
+    alternativeLabel: "One-size vehicle booking",
+    comparisonRows: [
+      {
+        dimension: "Payload and cube",
+        porterchain:
+          "Cargo van for lighter multi-stop B2B; Sprinter when height or payload needs exceed cargo van limits.",
+        alternative:
+          "One vehicle class for every run can mean failed loads or paying for unused capacity.",
+      },
+      {
+        dimension: "Quote process",
+        porterchain:
+          "Describe freight dimensions and stops — we confirm vehicle class in writing before dispatch.",
+        alternative:
+          "Self-serve booking without class guidance often leads to wrong vehicle on arrival.",
+      },
+    ],
+    industrySlugs: ["electrical-distribution", "plumbing-supply", "construction-materials"],
+    serviceAreaSlugs: ["toronto", "mississauga", "vaughan"],
+    extraLinks: [
+      { path: "serviceAreas", label: "Service areas" },
+      { path: "pricing", label: "Pricing" },
+    ],
+  },
+  {
+    slug: "dedicated-vs-shared-capacity",
+    title: "Dedicated vehicle vs shared courier capacity",
+    description:
+      "Compare dedicated vehicle programs with shared same-day courier capacity for Ontario B2B shippers.",
+    intro:
+      "Dedicated capacity fits predictable high-volume lanes. Shared courier capacity fits overflow and uneven demand. Porterchain can run both patterns under one partner — choose based on volume stability, not marketing labels.",
+    alternativeLabel: "Shared ad hoc courier only",
+    comparisonRows: [
+      {
+        dimension: "Best fit",
+        porterchain:
+          "Dedicated routes for recurring volume; shared capacity for overflow and spikes — one partner for both.",
+        alternative:
+          "Shared-only booking often lacks reserved capacity when volume spikes mid-week.",
+      },
+      {
+        dimension: "Cost structure",
+        porterchain:
+          "Dedicated programs quoted to lane volume; shared runs quoted per request with written confirmation.",
+        alternative: "Per-booking rates without reserved capacity can swing with demand.",
+      },
+      {
+        dimension: "Accountability",
+        porterchain:
+          "Same proof and escalation standards whether the vehicle is dedicated or shared that day.",
+        alternative: "Different couriers mean different proof quality and escalation paths.",
+      },
+    ],
+    industrySlugs: ["construction-materials", "electrical-distribution", "coffee-roasters"],
+    serviceAreaSlugs: ["toronto", "mississauga", "brampton"],
+    extraLinks: [
+      { path: "onboarding", label: "How onboarding works" },
+      { path: "pricing", label: "Pricing" },
+    ],
+  },
+  {
+    slug: "sprinter-vs-box-truck",
+    title: "Sprinter van vs box truck for B2B delivery",
+    description:
+      "When Sprinter-class vans beat box trucks — and when pallet freight needs a cube truck across the GTA.",
+    intro:
+      "Sprinter-class vans balance height and urban access. Box trucks win for pallets, construction materials, and dock freight. Porterchain quotes the class that fits your stops so you do not oversize every run.",
+    alternativeLabel: "Always booking box truck",
+    comparisonRows: [
+      {
+        dimension: "Freight profile",
+        porterchain:
+          "Sprinter for tall non-pallet freight and wholesale cases; box truck for pallets and jobsite drops.",
+        alternative: "Box truck on every run raises cost when freight would fit a van.",
+      },
+      {
+        dimension: "Access",
+        porterchain:
+          "Sprinter for tighter urban and retail access; box truck when docks and yards allow.",
+        alternative: "Oversized trucks on tight sites cause failed deliveries and redelivery.",
+      },
+      {
+        dimension: "Quote process",
+        porterchain: "Share dimensions and pallet count — we confirm class before dispatch.",
+        alternative:
+          "Guessing vehicle class without a written confirmation risks wrong capacity on arrival.",
+      },
+    ],
+    industrySlugs: ["construction-materials", "plumbing-supply", "electrical-distribution"],
+    serviceAreaSlugs: ["toronto", "vaughan", "hamilton"],
+    extraLinks: [
+      { path: "serviceAreas", label: "Service areas" },
+      { path: "pricing", label: "Pricing" },
+    ],
+  },
+  {
+    slug: "api-vs-manual-dispatch",
+    title: "API booking vs manual dispatch",
+    description:
+      "Compare Porterchain API booking with phone/email/CSV manual dispatch for Ontario volume growth.",
+    intro:
+      "Manual dispatch works early. As stop count grows, API or structured CSV reduces errors and lag. Porterchain supports both — start manual, move to API when volume justifies it.",
+    alternativeLabel: "Manual phone and email only",
+    comparisonRows: [
+      {
+        dimension: "Speed to book",
+        porterchain:
+          "API and CSV submit stops in bulk; manual intake remains available for low volume and exceptions.",
+        alternative: "Every run requires human coordination — latency grows with volume.",
+      },
+      {
+        dimension: "Error rate",
+        porterchain:
+          "Structured fields and validation reduce address and window mistakes before dispatch.",
+        alternative:
+          "Hand-typed details in chat or email are easy to mis-copy under time pressure.",
+      },
+      {
+        dimension: "Visibility",
+        porterchain: "Booked runs land in one dashboard with tracking regardless of intake path.",
+        alternative: "Manual booking often leaves status scattered across inboxes and texts.",
+      },
+    ],
+    industrySlugs: ["coffee-roasters", "pharmacy-medical", "cosmetics"],
+    serviceAreaSlugs: ["toronto", "mississauga", "kitchener-waterloo"],
+    extraLinks: [
+      { path: "integrations", label: "Integrations" },
+      { path: "onboarding", label: "Onboarding" },
+    ],
+  },
 ];
 
 export function getComparisonBySlug(slug: string): ComparisonPage | null {

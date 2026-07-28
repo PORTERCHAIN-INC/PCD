@@ -9,23 +9,11 @@ from porterchain_api.collaboration_engine import CrmSalesService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.crm_states import LeadPriority, LeadStatus
+from porterchain_api.routers.public_ingest_auth import verify_public_ingest_key
 from porterchain_api.schemas_public import PublicInquiryCreate, PublicInquiryResponse
 
 router = APIRouter(prefix="/v1/public", tags=["public"])
 _crm = CrmSalesService()
-
-
-def _verify_ingest_key(
-    settings: Settings,
-    x_ingest_key: str | None,
-) -> None:
-    key = settings.public_ingest_api_key.strip()
-    if not key:
-        if settings.app_env == "local":
-            return
-        raise HTTPException(status_code=503, detail="ingest_not_configured")
-    if x_ingest_key != key:
-        raise HTTPException(status_code=401, detail="invalid_ingest_key")
 
 
 def _priority_for_intent(
@@ -72,7 +60,7 @@ def create_public_inquiry(
     settings: Settings = Depends(get_settings),
     x_ingest_key: Annotated[str | None, Header(alias="X-Ingest-Key")] = None,
 ) -> PublicInquiryResponse:
-    _verify_ingest_key(settings, x_ingest_key)
+    verify_public_ingest_key(settings, x_ingest_key)
 
     email = body.email.strip()
     if not email:

@@ -5,7 +5,6 @@ import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
-import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
 import PageBreadcrumbs, { type BreadcrumbItem } from "@/components/seo/PageBreadcrumbs";
 import { JsonLd } from "@/components/seo";
 import { buildFAQPageSchema, buildServiceSchema } from "@/lib/seo/schema";
@@ -50,7 +49,7 @@ export type NicheLandingContent = {
     step1Title: string;
     step1Description: string;
     step2Title: string;
-    step2Description: string;
+    step2Description?: string;
     step3Title: string;
     step3Description: string;
   };
@@ -89,7 +88,7 @@ export type NicheLandingContent = {
     q2: string;
     a2: string;
     q3: string;
-    a3: string;
+    a3?: string;
     q4?: string;
     a4?: string;
     q5?: string;
@@ -173,7 +172,6 @@ export default function IndustryLandingView({
         illustration={<HeroPhoto image={heroImage} />}
         trackSource={source}
       />
-      <PlatformBridgeSection from={source} />
       <FeatureSection
         label={sectionLabels.challenges}
         title={niche.painPoints.title}
@@ -231,14 +229,20 @@ export default function IndustryLandingView({
           subtitle={onboarding.description}
           items={[
             { title: onboarding.step1Title, description: onboarding.step1Description },
-            { title: onboarding.step2Title, description: onboarding.step2Description },
+            {
+              title: onboarding.step2Title,
+              description: onboarding.step2Description ?? "",
+            },
             { title: onboarding.step3Title, description: onboarding.step3Description },
           ]}
         />
       )}
-      <InternalLinksBlock title={relatedTitle ?? sectionLabels.deliveryInCity} links={cityLinks} />
-      <InternalLinksBlock title={sectionLabels.localDeliveryByCity} links={localCityLinks} />
-      <InternalLinksBlock title={sectionLabels.capacitySolutions} links={productLinks} />
+      <InternalLinksBlock
+        title={relatedTitle ?? sectionLabels.relatedPages}
+        links={[...cityLinks, ...localCityLinks, ...productLinks].filter(
+          (link, index, all) => all.findIndex((item) => item.href === link.href) === index
+        )}
+      />
       {faqItems.length > 0 && niche.faq && <FaqSection title={niche.faq.title} items={faqItems} />}
       {(niche.inquiryHeading || niche.inquirySubheadline) && (
         <section className="site-section bg-white">

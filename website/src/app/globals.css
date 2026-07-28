@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #0a1628;
+  /* Professional white + blue system — no green/orange brand accents */
+  --primary: #0b1220;
   --secondary: #2563eb;
   --secondary-hover: #1d4ed8;
-  --accent: #38bdf8;
+  --accent: #3b82f6;
   --accent-light: #60a5fa;
   --white: #ffffff;
-  --gray-bg: #f0f4f8;
-  --foreground: #0a1628;
+  --gray-bg: #f8fafc;
+  --foreground: #0b1220;
   --muted: #64748b;
   --page-gutter: clamp(1rem, 2.5vw, 2.75rem);
   --page-max: 90rem;
@@ -222,12 +223,12 @@ p {
 }
 
 .site-section {
-  padding-block: clamp(3rem, 6vw, 7rem);
+  padding-block: clamp(2.25rem, 4vw, 4rem);
 }
 
 @media (min-width: 768px) {
   .site-section {
-    padding-block: clamp(4rem, 7vw, 7rem);
+    padding-block: clamp(2.75rem, 4.5vw, 4.5rem);
   }
 }
 
@@ -779,7 +780,7 @@ p {
 }
 
 .biz-glass-dark {
-  background: rgba(9, 27, 28, 0.82);
+  background: rgba(11, 18, 32, 0.88);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -866,12 +867,12 @@ input[type="tel"].biz-input::-webkit-contacts-auto-fill-button {
 }
 
 .biz-section {
-  padding-block: clamp(3.25rem, 6.5vw, 7.5rem);
+  padding-block: clamp(2.5rem, 4.5vw, 4.5rem);
 }
 
 @media (min-width: 768px) {
   .biz-section {
-    padding-block: clamp(4.5rem, 8vw, 7.5rem);
+    padding-block: clamp(3rem, 5vw, 5rem);
   }
 }
 
@@ -1292,25 +1293,35 @@ button.booking-schedule-field:focus-visible {
   padding-block: clamp(2.5rem, 6vh, 4.5rem);
 }
 
-/* Vehicle fleet — preview stage + icon card picker */
+/* Vehicle fleet — split showcase stage */
 .fleet-fit__stage {
-  height: clamp(11.5rem, 32dvh, 18rem);
-  min-height: 11.5rem;
+  height: clamp(17rem, 44dvh, 26rem);
+  min-height: 17rem;
 }
 
 .fleet-fit__picker {
   flex-shrink: 0;
 }
 
+.fleet-fit__showcase {
+  min-height: 0;
+}
+
 @media (min-width: 640px) {
   .fleet-fit__stage {
-    height: clamp(12rem, 28dvh, 17rem);
+    height: clamp(19rem, 42dvh, 27rem);
   }
 }
 
 @media (min-width: 1024px) {
   .fleet-fit__stage {
-    height: clamp(13rem, 30dvh, 19rem);
+    height: 100%;
+    min-height: 24rem;
+    align-self: stretch;
+  }
+
+  .fleet-fit__showcase > .grid {
+    min-height: 24rem;
   }
 }
 

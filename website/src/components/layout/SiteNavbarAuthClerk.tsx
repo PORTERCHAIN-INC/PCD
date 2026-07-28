@@ -1,5 +1,7 @@
 "use client";
 
+/** Website Clerk session = customer app only; signed-in CTA → customer dashboard. */
+
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
 import { customerPortalDashboardUrl, unifiedSignInPath } from "@/data/portal-links";

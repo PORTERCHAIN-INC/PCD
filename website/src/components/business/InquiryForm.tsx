@@ -79,11 +79,11 @@ export default function InquiryForm({
         animate={{ opacity: 1, scale: 1 }}
         className={cn("rounded-2xl bg-white p-8 sm:p-10 text-center biz-shadow-lg", className)}
       >
-        <div className="w-14 h-14 rounded-full bg-[#ff7a00]/10 flex items-center justify-center mx-auto mb-5">
-          <Check className="w-7 h-7 text-[#ff7a00]" />
+        <div className="w-14 h-14 rounded-full bg-[#2563eb]/10 flex items-center justify-center mx-auto mb-5">
+          <Check className="w-7 h-7 text-[#2563eb]" />
         </div>
-        <h3 className="text-xl font-semibold text-[#091b1c] mb-2">{t("successTitle")}</h3>
-        <p className="text-[#5c6b6c] text-sm leading-relaxed">{t("successMessage")}</p>
+        <h3 className="text-xl font-semibold text-[#0b1220] mb-2">{t("successTitle")}</h3>
+        <p className="text-[#64748b] text-sm leading-relaxed">{t("successMessage")}</p>
         <WhatsAppQuoteLink
           className="mt-6"
           message={buildQuoteWhatsAppMessage({ source: "/business" })}
@@ -101,7 +101,7 @@ export default function InquiryForm({
     <div
       id={id}
       className={cn(
-        "rounded-2xl bg-white p-6 sm:p-8 biz-shadow-lg border border-[#091b1c]/5",
+        "rounded-2xl bg-white p-6 sm:p-8 biz-shadow-lg border border-[#0b1220]/5",
         variant === "hero" && "lg:p-9",
         variant === "final" && "max-w-xl mx-auto",
         className
@@ -109,10 +109,10 @@ export default function InquiryForm({
     >
       {!isCompact && (
         <div className="mb-6">
-          <h3 className="text-xl sm:text-2xl font-semibold text-[#091b1c] tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-semibold text-[#0b1220] tracking-tight">
             {t("title")}
           </h3>
-          <p className="mt-2 text-sm text-[#5c6b6c] leading-relaxed">{t("subtitle")}</p>
+          <p className="mt-2 text-sm text-[#64748b] leading-relaxed">{t("subtitle")}</p>
         </div>
       )}
 
@@ -130,9 +130,9 @@ export default function InquiryForm({
         <div>
           <label
             htmlFor={`${id}-email`}
-            className="block text-sm font-medium text-[#091b1c] mb-1.5"
+            className="block text-sm font-medium text-[#0b1220] mb-1.5"
           >
-            {t("workEmail")} <span className="text-[#ff7a00]">*</span>
+            {t("workEmail")} <span className="text-[#2563eb]">*</span>
           </label>
           <input
             id={`${id}-email`}
@@ -150,9 +150,9 @@ export default function InquiryForm({
         <div>
           <label
             htmlFor={`${id}-phone`}
-            className="block text-sm font-medium text-[#091b1c] mb-1.5"
+            className="block text-sm font-medium text-[#0b1220] mb-1.5"
           >
-            {t("phone")} <span className="text-[#ff7a00]">*</span>
+            {t("phone")} <span className="text-[#2563eb]">*</span>
           </label>
           <div className="flex min-w-0 items-stretch gap-2">
             <select
@@ -190,8 +190,8 @@ export default function InquiryForm({
               className="biz-input shrink-0 w-[4.75rem] sm:w-[5.25rem] px-2.5 text-center text-sm"
             />
           </div>
-          <p className="mt-1.5 text-xs text-[#5c6b6c]">
-            {t("extension")} <span className="text-[#5c6b6c]/80">({t("optional")})</span>
+          <p className="mt-1.5 text-xs text-[#64748b]">
+            {t("extension")} <span className="text-[#64748b]/80">({t("optional")})</span>
           </p>
         </div>
 
@@ -200,10 +200,10 @@ export default function InquiryForm({
             type="checkbox"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 w-5 h-5 shrink-0 rounded border-[#091b1c]/20 text-[#ff7a00] focus:ring-[#ff7a00]/30"
+            className="mt-0.5 w-5 h-5 shrink-0 rounded border-[#0b1220]/20 text-[#2563eb] focus:ring-[#2563eb]/30"
             required
           />
-          <span className="text-sm text-[#5c6b6c] group-hover:text-[#091b1c] transition-colors leading-relaxed">
+          <span className="text-sm text-[#64748b] group-hover:text-[#0b1220] transition-colors leading-relaxed">
             {t("consent")}
           </span>
         </label>
@@ -211,7 +211,7 @@ export default function InquiryForm({
         <button
           type="submit"
           disabled={submitting || !agreed}
-          className="w-full flex items-center justify-center gap-2 min-h-[2.75rem] px-6 py-3.5 rounded-xl bg-[#ff7a00] text-white font-semibold text-sm hover:bg-[#e66e00] transition-all disabled:opacity-50 disabled:cursor-not-allowed biz-shadow-glow hover:scale-[1.01] active:scale-[0.99]"
+          className="w-full flex items-center justify-center gap-2 min-h-[2.75rem] px-6 py-3.5 rounded-xl bg-[#2563eb] text-white font-semibold text-sm hover:bg-[#1d4ed8] transition-all disabled:opacity-50 disabled:cursor-not-allowed biz-shadow-glow hover:scale-[1.01] active:scale-[0.99]"
         >
           {submitting ? (
             <>
@@ -230,8 +230,8 @@ export default function InquiryForm({
 
         <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1 pt-1">
           {(["noObligation", "noLongForms", "responseTime"] as const).map((key) => (
-            <li key={key} className="flex items-center gap-1.5 text-xs text-[#5c6b6c]">
-              <Check className="w-3.5 h-3.5 text-[#ff7a00]" />
+            <li key={key} className="flex items-center gap-1.5 text-xs text-[#64748b]">
+              <Check className="w-3.5 h-3.5 text-[#2563eb]" />
               {t(`assurances.${key}`)}
             </li>
           ))}

@@ -140,8 +140,8 @@ function TrackingCard({
     <>
       <div className="flex items-center justify-between gap-3">
         <span className="text-white/60 type-caption font-bold">{t("liveTracking")}</span>
-        <span className="flex items-center gap-1.5 type-caption font-bold normal-case text-green-400 shrink-0">
-          <Circle className="w-2 h-2 fill-green-400" />
+        <span className="flex items-center gap-1.5 type-caption font-bold normal-case text-secondary shrink-0">
+          <Circle className="w-2 h-2 fill-secondary" />
           {t("inTransit")}
         </span>
       </div>

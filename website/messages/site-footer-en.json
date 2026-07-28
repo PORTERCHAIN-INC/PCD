@@ -11,48 +11,34 @@
   "googleBusiness": "Google Business Profile",
   "googleReview": "Review on Google",
   "sections": {
-    "products": {
-      "title": "Delivery services",
-      "links": {
-        "business": "Business delivery",
-        "solutions": "Solutions",
-        "howItWorks": "How it works",
-        "pricing": "Pricing",
-        "getQuote": "Get a quote",
-        "track": "Track a shipment"
-      }
-    },
-    "solutions": {
-      "title": "Industries & capacity",
-      "links": {
-        "industry": "All industries",
-        "constructionMaterials": "Construction materials",
-        "electricalDistribution": "Electrical distribution",
-        "plumbingSupply": "Plumbing supply",
-        "serviceAreas": "Service areas",
-        "enterprise": "Enterprise"
-      }
-    },
     "company": {
       "title": "Company",
       "links": {
         "about": "About",
         "contact": "Contact",
         "careers": "Careers",
-        "vehiclePartner": "Vehicle partners",
         "trust": "Trust center"
       }
     },
     "resources": {
       "title": "Resources",
       "links": {
+        "business": "Merchants",
+        "vehiclePartner": "Drivers",
+        "howPorterchainWorks": "How PorterChain Works",
+        "pricing": "Pricing",
+        "industry": "Industries",
         "blog": "Blog",
         "faq": "FAQ",
         "guides": "Guides",
-        "platform": "How we operate",
-        "integrations": "Integrations",
         "developers": "Developers & API",
         "customerPortal": "Customer portal"
+      }
+    },
+    "track": {
+      "title": "Track",
+      "links": {
+        "trackShipment": "Track a shipment"
       }
     },
     "legal": {
@@ -60,7 +46,8 @@
       "links": {
         "privacy": "Privacy Policy",
         "terms": "Terms of Service",
-        "cookies": "Cookie Policy"
+        "cookies": "Cookie Policy",
+        "accessibility": "Accessibility"
       }
     }
   }

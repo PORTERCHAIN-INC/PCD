@@ -10,9 +10,16 @@ from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
 
+_default_handlers_registered = False
+
 
 def register_default_handlers() -> None:
-    """Wire cross-module reactions. Safe to call multiple times (handlers stack)."""
+    """Wire cross-module reactions. Idempotent — safe to call multiple times."""
+    global _default_handlers_registered
+    if _default_handlers_registered:
+        return
+    _default_handlers_registered = True
+
     registry = get_handler_registry()
 
     registry.subscribe(DomainEventType.ORDER_DISPATCH_READY, _handle_order_dispatch_ready)

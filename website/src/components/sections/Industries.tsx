@@ -88,7 +88,7 @@ export default function Industries() {
 
         <div className="mt-10 text-center">
           <Link
-            href="/industry"
+            href="/business#industries"
             className="inline-flex items-center gap-2 text-secondary font-semibold type-small hover:underline"
           >
             {t("viewAll")}

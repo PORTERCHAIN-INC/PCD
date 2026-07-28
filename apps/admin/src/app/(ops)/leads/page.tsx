@@ -76,9 +76,19 @@ export default function LeadsPage() {
               : "Quotes, contact & business inquiries from the website"}
           </p>
         </div>
-        <Button variant="outline" onClick={() => void refetch()}>
-          <RefreshCw className="h-4 w-4" /> Refresh
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {!isDriverInbox ? (
+            <Link
+              href="/leads/calendar"
+              className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
+            >
+              Calendar
+            </Link>
+          ) : null}
+          <Button variant="outline" onClick={() => void refetch()}>
+            <RefreshCw className="h-4 w-4" /> Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-2xl border border-primary/10 bg-white p-4">

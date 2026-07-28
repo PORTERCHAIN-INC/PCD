@@ -17,4 +17,6 @@ export type SeoSectionLabels = {
   otherVehicles: string;
   vehicles: string;
   painPoints: string;
+  intentGuides: string;
+  relatedPages: string;
 };

@@ -12,7 +12,7 @@ import {
   SOLUTION_HUB_PROGRAMS,
   SOLUTION_MESSAGE_KEYS,
 } from "@/lib/solutions-hub-config";
-import type { SolutionVerticalSlug } from "@/lib/solutions-verticals";
+import { solutionVerticalPath, type SolutionVerticalSlug } from "@/lib/solutions-verticals";
 
 interface SolutionVerticalHubProps {
   vertical: SolutionVerticalSlug;
@@ -21,25 +21,25 @@ interface SolutionVerticalHubProps {
 export default async function SolutionVerticalHub({ vertical }: SolutionVerticalHubProps) {
   const messageKey = SOLUTION_MESSAGE_KEYS[vertical];
   const t = await getTranslations(`corporate.solutions.${messageKey}`);
-  const source = `solutions/${vertical}`;
+  const source = solutionVerticalPath(vertical).replace(/^\//, "");
   const programs = SOLUTION_HUB_PROGRAMS[vertical];
   const citySlugs = SOLUTION_HUB_CITY_SLUGS[vertical];
 
   const programCards = programs.map(({ key, industrySlug, icon: Icon }) => (
     <article
       key={key}
-      className="card-surface card-surface-hover group flex h-full flex-col p-7 sm:p-8"
+      className="card-surface card-surface-hover group flex h-full flex-col p-5 sm:p-6"
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10 text-secondary transition-colors group-hover:bg-secondary/15">
-        <Icon className="h-6 w-6" aria-hidden />
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary transition-colors group-hover:bg-secondary/15">
+        <Icon className="h-5 w-5" aria-hidden />
       </div>
-      <h3 className="mt-5 text-xl font-semibold text-primary tracking-tight">
+      <h3 className="mt-4 text-lg font-semibold text-primary tracking-tight">
         {t(`programs.items.${key}.title`)}
       </h3>
-      <p className="mt-3 flex-1 text-sm text-muted leading-relaxed">
+      <p className="mt-2 flex-1 text-sm text-muted leading-relaxed">
         {t(`programs.items.${key}.description`)}
       </p>
-      <ul className="mt-4 space-y-2 text-sm text-primary/80">
+      <ul className="mt-3 space-y-1.5 text-sm text-primary/80">
         {[0, 1, 2].map((i) => (
           <li key={i} className="flex gap-2">
             <span className="text-secondary shrink-0" aria-hidden>
@@ -49,7 +49,7 @@ export default async function SolutionVerticalHub({ vertical }: SolutionVertical
           </li>
         ))}
       </ul>
-      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+      <div className="mt-5 flex flex-col sm:flex-row gap-2.5">
         <LinkButton href={`/industry/${industrySlug}`} showArrow trackSource={`${source}-${key}`}>
           {t(`programs.items.${key}.cta`)}
         </LinkButton>
@@ -89,10 +89,13 @@ export default async function SolutionVerticalHub({ vertical }: SolutionVertical
             title={t("programs.title")}
             subtitle={t("programs.subtitle")}
           />
-          <div className="grid gap-5 lg:grid-cols-3">{programCards}</div>
-          <p className="mt-8 text-center text-sm text-muted">
+          <div className="grid gap-4 lg:grid-cols-3">{programCards}</div>
+          <p className="mt-6 text-center text-sm text-muted">
             {t("programs.alsoBrowse")}{" "}
-            <Link href="/industry" className="font-semibold text-secondary hover:underline">
+            <Link
+              href="/business#industries"
+              className="font-semibold text-secondary hover:underline"
+            >
               {t("programs.allIndustries")}
             </Link>
             {" · "}
@@ -118,10 +121,10 @@ export default async function SolutionVerticalHub({ vertical }: SolutionVertical
 
       {cityLinks.length > 0 && <InternalLinksBlock title={t("cities.title")} links={cityLinks} />}
 
-      <section className="site-section bg-gray-bg border-t border-primary/6">
+      <section className="py-10 md:py-12 bg-white border-t border-primary/6">
         <Container className="max-w-3xl text-center">
           <p className="text-muted leading-relaxed">{t("bridge.body")}</p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
             <LinkButton href="/platform" variant="outline" trackSource={source}>
               {t("bridge.platform")}
             </LinkButton>

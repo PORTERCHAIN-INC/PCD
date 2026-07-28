@@ -39,7 +39,7 @@ export default function BusinessSolutions() {
   const t = useTranslations("businessPage.solutions");
 
   return (
-    <section id="solutions" className="biz-section relative overflow-hidden bg-[#091b1c]">
+    <section id="solutions" className="biz-section relative overflow-hidden bg-[#0b1220]">
       <div
         className="absolute inset-0 dot-pattern opacity-[0.12] pointer-events-none"
         aria-hidden
@@ -55,7 +55,7 @@ export default function BusinessSolutions() {
 
       <Container className="relative z-10">
         <BlurFade inView className="text-center max-w-3xl mx-auto mb-14">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff7a00]">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563eb]">
             {t("label")}
           </span>
           <h2 className="mt-3 biz-heading text-white tracking-tight text-balance">{t("title")}</h2>
@@ -67,8 +67,8 @@ export default function BusinessSolutions() {
             const Icon = ICONS[i];
             return (
               <BlurFade key={key} delay={i * 0.03} inView>
-                <MagicCard className="h-full border-white/10 bg-white/[0.04] p-6 hover:border-[#ff7a00]/35 hover:bg-white/[0.07]">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ff7a00]/15 text-[#ff7a00]">
+                <MagicCard className="h-full border-white/10 bg-white/[0.04] p-6 hover:border-[#2563eb]/35 hover:bg-white/[0.07]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#2563eb]/15 text-[#2563eb]">
                     <Icon className="h-5 w-5" aria-hidden />
                   </div>
                   <h3 className="mt-4 font-semibold text-white mb-2 leading-snug">

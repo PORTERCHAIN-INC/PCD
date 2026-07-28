@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import SiteShell from "@/components/layout/SiteShell";
-import Hero from "@/components/sections/Hero";
-import HomeGtaMarquee from "@/components/home/HomeGtaMarquee";
-import HomePlatformBody from "@/components/home/HomePlatformBody";
+import HomeChooser from "@/components/home/HomeChooser";
 import HomeDeliverySchema from "@/components/seo/HomeDeliverySchema";
 import { routing } from "@/i18n/routing";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -18,11 +17,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.home" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "", t("title"), t("description"));
 }
 
 export default async function HomePage({ params }: Props) {
@@ -32,9 +27,7 @@ export default async function HomePage({ params }: Props) {
   return (
     <SiteShell>
       <HomeDeliverySchema />
-      <Hero locale={locale} />
-      <HomeGtaMarquee />
-      <HomePlatformBody />
+      <HomeChooser />
     </SiteShell>
   );
 }

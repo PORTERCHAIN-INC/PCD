@@ -21,6 +21,7 @@ export const LEAD_SOURCES = [
   "website_newsletter",
   "website_booking",
   "website_driver_partner",
+  "website_capacity_guide",
 ] as const;
 
 export type LeadFilters = {
@@ -92,6 +93,17 @@ export const leadsApi = {
       body: JSON.stringify(patch),
     });
     return leadSchema.parse(row);
+  },
+
+  async calendar(
+    token: string,
+    params: { due_after?: string; due_before?: string } = {}
+  ): Promise<import("@/lib/crm").Task[]> {
+    const search = new URLSearchParams();
+    if (params.due_after) search.set("due_after", params.due_after);
+    if (params.due_before) search.set("due_before", params.due_before);
+    const q = search.toString();
+    return adminFetch(`/v1/admin/leads/calendar${q ? `?${q}` : ""}`, token);
   },
 };
 

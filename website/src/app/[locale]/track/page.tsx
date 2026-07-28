@@ -32,11 +32,12 @@ export default async function TrackPage({ params }: Props) {
         title="Track your shipment"
         subtitle="Enter your tracking number to see live status, ETA, and delivery confirmation."
         primaryCta="Get a quote"
-        primaryHref="/pricing"
+        primaryHref="/business#pricing"
         variant="light-centered"
+        clearNav
         illustration={<HeroPhoto image={siteImages.sections.howItWorks} />}
       />
-      <section className="site-section bg-white pb-20">
+      <section className="site-section bg-white pb-16">
         <div className="site-container max-w-xl mx-auto px-4">
           <GuestTrackLookup />
         </div>

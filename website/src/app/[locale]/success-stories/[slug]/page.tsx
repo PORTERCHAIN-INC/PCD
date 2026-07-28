@@ -82,6 +82,7 @@ export default async function SuccessStoryPage({ params }: Props) {
         secondaryCta={locale === "fr" ? "Contact" : "Contact"}
         secondaryHref={contact(loc, { from: `success-stories/${slug}` })}
         variant="light-centered"
+        clearNav
         illustration={<HeroPhoto image={getNicheHeroImage(story.industrySlug)} />}
       />
       <section className="site-section bg-white">

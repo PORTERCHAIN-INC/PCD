@@ -38,12 +38,12 @@ export default function TrustedBy() {
     return (
       <div
         key={key}
-        className="flex shrink-0 items-center gap-3 rounded-full border border-[#091b1c]/8 bg-white px-5 py-3 shadow-sm"
+        className="flex shrink-0 items-center gap-3 rounded-full border border-[#0b1220]/8 bg-white px-5 py-3 shadow-sm"
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f8fa] text-[#091b1c]">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f8fa] text-[#0b1220]">
           <Icon className="h-4 w-4" strokeWidth={1.5} aria-hidden />
         </div>
-        <span className="text-sm font-semibold text-[#091b1c] whitespace-nowrap">
+        <span className="text-sm font-semibold text-[#0b1220] whitespace-nowrap">
           {t(`items.${key}`)}
         </span>
       </div>
@@ -51,9 +51,9 @@ export default function TrustedBy() {
   });
 
   return (
-    <section className="biz-section overflow-hidden border-b border-[#091b1c]/5 bg-white">
+    <section className="biz-section overflow-hidden border-b border-[#0b1220]/5 bg-white">
       <Container>
-        <p className="mb-8 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#5c6b6c]">
+        <p className="mb-8 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#64748b]">
           {t("label")}
         </p>
       </Container>

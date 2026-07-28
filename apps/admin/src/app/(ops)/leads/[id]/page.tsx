@@ -16,6 +16,8 @@ import {
   PRIORITY_TONES,
   STATUS_TONES,
 } from "@/lib/leads";
+import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
+import { EntityTasks } from "@/components/crm/EntityTasks";
 
 function formatWhen(iso: string): string {
   try {
@@ -200,6 +202,21 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
           </dl>
         </Panel>
       )}
+
+      {typeof custom.transcript_summary === "string" && custom.transcript_summary.trim() && (
+        <Panel title="Guide summary">
+          <p className="whitespace-pre-wrap text-sm text-primary">{custom.transcript_summary}</p>
+        </Panel>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel title="Conversation">
+          <ActivityTimeline entityType="lead" entityId={id} />
+        </Panel>
+        <Panel title="Tasks & appointments">
+          <EntityTasks entityType="lead" entityId={id} />
+        </Panel>
+      </div>
     </div>
   );
 }

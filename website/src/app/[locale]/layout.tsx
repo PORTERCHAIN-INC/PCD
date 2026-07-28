@@ -11,8 +11,8 @@ import DeferredSiteIntegrations from "@/components/integrations/DeferredSiteInte
 import AttributionCapture from "@/components/seo/AttributionCapture";
 import HtmlLang from "@/components/i18n/HtmlLang";
 import { JsonLd } from "@/components/seo";
-import { siteConfig } from "@/lib/seo/config";
-import { buildOrganizationSchema } from "@/lib/seo/schema";
+import { buildOrganizationSchema, buildWebSiteSchema } from "@/lib/seo/schema";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 
 type Props = {
   children: React.ReactNode;
@@ -34,35 +34,26 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "metadata" });
-
-  const alternateLocale = locale === "en" ? "fr" : "en";
   const googleVerification = publicEnv.googleSiteVerification;
   const keywords = t.raw("keywords") as string[];
-
+  const otherVerify: Record<string, string> = {};
+  if (publicEnv.bingSiteVerification) {
+    otherVerify["msvalidate.01"] = publicEnv.bingSiteVerification;
+  }
+  if (publicEnv.yandexSiteVerification) {
+    otherVerify["yandex-verification"] = publicEnv.yandexSiteVerification;
+  }
   return {
-    title: t("title"),
-    description: t("description"),
-    metadataBase: new URL(siteConfig.baseUrl),
-    ...(googleVerification ? { verification: { google: googleVerification } } : {}),
+    ...buildPageMetadata(locale, "", t("title"), t("description")),
     keywords,
-    openGraph: {
-      title: t("ogTitle"),
-      description: t("ogDescription"),
-      type: "website",
-      locale: locale === "fr" ? "fr_CA" : "en_CA",
-      alternateLocale: [alternateLocale === "fr" ? "fr_CA" : "en_CA"],
-    },
-    alternates: {
-      canonical: `/${locale}`,
-      languages: {
-        en: "/en",
-        fr: "/fr",
-      },
-    },
-    robots: {
-      index: true,
-      follow: true,
-    },
+    ...(googleVerification || Object.keys(otherVerify).length
+      ? {
+          verification: {
+            ...(googleVerification ? { google: googleVerification } : {}),
+            ...(Object.keys(otherVerify).length ? { other: otherVerify } : {}),
+          },
+        }
+      : {}),
   };
 }
 
@@ -80,6 +71,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     <>
       <HtmlLang locale={locale} />
       <JsonLd data={buildOrganizationSchema()} />
+      <JsonLd data={buildWebSiteSchema()} />
       <AppClerkProvider>
         <NextIntlClientProvider messages={messages}>
           {children}

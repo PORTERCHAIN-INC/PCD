@@ -21,7 +21,7 @@ export default function CareersHero({
   secondaryCta,
 }: CareersHeroProps) {
   return (
-    <section className="relative min-h-[88vh] flex items-center pt-20 pb-16 overflow-hidden bg-primary">
+    <section className="relative min-h-[70vh] flex items-center pt-20 pb-14 overflow-hidden bg-primary">
       <div className="absolute inset-0 dot-pattern opacity-25 pointer-events-none" aria-hidden />
       <div
         className="absolute -top-24 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-secondary/15 blur-3xl pointer-events-none"

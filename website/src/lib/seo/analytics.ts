@@ -100,6 +100,24 @@ export const ANALYTICS_EVENTS = {
   WHATSAPP_QUOTE_CLICK: "whatsapp_quote_click",
   /** WhatsApp mobile live-chat FAB (phone browsers; replaces Zoho) */
   WHATSAPP_CHAT_CLICK: "whatsapp_chat_click",
+  /** Welcome capacity guide console */
+  CAPACITY_GUIDE_ASK: "capacity_guide_ask",
+  CAPACITY_GUIDE_SUGGESTION: "capacity_guide_suggestion",
+  CAPACITY_GUIDE_ACTION: "capacity_guide_action",
+  CAPACITY_GUIDE_LEAD_CAPTURED: "capacity_guide_lead_captured",
+  CAPACITY_GUIDE_APPOINTMENT_BOOKED: "capacity_guide_appointment_booked",
+  /** Contact and conversion micro-interactions */
+  PHONE_CLICK: "phone_click",
+  EMAIL_CLICK: "email_click",
+  CASE_STUDY_VIEWED: "case_study_viewed",
+  COMPARISON_VIEWED: "comparison_viewed",
+  GUIDE_VIEWED: "guide_viewed",
+  INDUSTRY_PAGE_VIEW: "industry_page_view",
+  LOCATION_PAGE_VIEW: "location_page_view",
+  VEHICLE_PAGE_VIEW: "vehicle_page_view",
+  INDUSTRY_PAGE_CONVERSION: "industry_page_conversion",
+  LOCATION_PAGE_CONVERSION: "location_page_conversion",
+  RETURNING_VISITOR: "returning_visitor",
 } as const;
 
 /** Mark these as conversions in GA4 Admin → Events → Mark as conversion. */

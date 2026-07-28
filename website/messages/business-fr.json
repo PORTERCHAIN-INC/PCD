@@ -34,6 +34,74 @@
     "title": "De la capacité sur la route dès aujourd'hui",
     "body": "Du camion cube à la remorque — capacité du réseau avec marque Porterchain quand le débordement, le jour même ou les routes récurrentes du RGT ont besoin d'un chauffeur professionnel maintenant."
   },
+  "answers": {
+    "eyebrow": "Réponses rapides",
+    "title": "Ce que les marchands obtiennent de Porterchain",
+    "cta": "Demander de la capacité",
+    "what": {
+      "question": "À quoi sert Porterchain pour les marchands?",
+      "answer": "Capacité véhicule et chauffeur pour la livraison B2B dans le RGT et l'Ontario — jour même, récurrent et débordement quand votre flotte ne suffit pas."
+    },
+    "who": {
+      "question": "Pour qui?",
+      "answer": "Grossistes, distributeurs, fabricants, fournisseurs de construction et équipes ops qui ont besoin de capacité fiable sans acheter plus de camions."
+    },
+    "where": {
+      "question": "Où opérez-vous?",
+      "answer": "Couverture principale: Grand Toronto et métropoles ontariennes, avec des corridors sur devis selon vos cueillettes et livraisons."
+    },
+    "how": {
+      "question": "Comment obtenir de la capacité?",
+      "answer": "Demandez un devis avec vos corridors et volumes. La répartition assigne la classe de véhicule et le chauffeur; suivi et preuve à chaque arrêt."
+    }
+  },
+  "trustStrip": {
+    "eyebrow": "Confiance",
+    "title": "Sachez avec qui vous travaillez",
+    "body": "Coordonnées d'entreprise, engagements du centre de confiance et contact direct — avant de réserver de la capacité.",
+    "company": "À propos de Porterchain",
+    "trust": "Centre de confiance",
+    "contact": "Contacter les ops"
+  },
+  "hubFacade": {
+    "title": "Aperçu de capacité",
+    "chip": "Illustratif",
+    "illustrativeNote": "Exemples de programmes de capacité — pas un babillard de charges en direct.",
+    "mapTitle": "Aperçu d'itinéraire",
+    "mapSubtitle": "Corridors RGT et Ontario assortis à la classe de véhicule et aux SLA.",
+    "timelineTitle": "Comment une course avance",
+    "offers": {
+      "sameDay": {
+        "title": "Capacité le jour même",
+        "badge": "Urgent",
+        "meta": "Fourgonnette ou camion cube · preuve à l'arrêt",
+        "cta": "Devis jour même"
+      },
+      "recurring": {
+        "title": "Routes récurrentes",
+        "badge": "Planifié",
+        "meta": "Corridors gros / métiers hebdomadaires",
+        "cta": "Devis récurrent"
+      },
+      "overflow": {
+        "title": "Débordement de flotte",
+        "badge": "Relève",
+        "meta": "Quand vos camions sont pleins",
+        "cta": "Devis débordement"
+      }
+    },
+    "timeline": {
+      "request": {
+        "label": "Demander la capacité",
+        "detail": "Partagez corridors, fenêtres et besoins véhicule"
+      },
+      "match": {
+        "label": "Appariement et répartition",
+        "detail": "Le réseau assigne véhicule + chauffeur"
+      },
+      "deliver": { "label": "Livrer avec preuve", "detail": "Suivi et POD à chaque arrêt" }
+    }
+  },
   "inquiry": {
     "title": "Parlons de votre logistique",
     "subtitle": "Indiquez-nous comment vous joindre. Un consultant Porterchain vous contactera dans un jour ouvrable.",
@@ -153,7 +221,8 @@
   "industries": {
     "label": "Industries",
     "title": "Conçu pour les opérations B2B du RGT",
-    "subtitle": "Capacité de livraison spécialisée pour les secteurs qui dynamisent la région du Grand Toronto — construction, commerce de gros, fabrication, médical et distribution détaillant.",
+    "subtitle": "Capacité véhicule et chauffeur pour les secteurs qui font avancer le Grand Toronto — construction, gros, fabrication, médical et distribution détaillant. Ouvrez un secteur pour les playbooks publiés.",
+    "footnote": "Le même réseau de capacité pour tous les secteurs — classe de véhicule, preuve et urgence confirmées à chaque devis.",
     "items": {
       "coffee": "Torréfacteurs de café",
       "foodBeverage": "Aliments et boissons",
@@ -190,7 +259,7 @@
       "proofOfDelivery": "Confirmation documentée pour facturation et suivi client.",
       "photoConfirmation": "Preuve photo capturée à la livraison au besoin.",
       "digitalSignature": "Signatures des destinataires conservées avec le dossier de livraison.",
-      "flexibleBilling": "Paiement par envoi ou conditions d'affaires — sans abonnement plateforme.",
+      "flexibleBilling": "Paiement par envoi ou conditions d'affaires — sans frais de sièges logiciels.",
       "instantQuotes": "Tarification sur devis selon véhicule, distance, urgence et manutention.",
       "accountManager": "Soutien nommé pour programmes récurrents et entreprise."
     }
@@ -335,40 +404,58 @@
   },
   "billing": {
     "label": "Tarification",
-    "title": "Options de facturation",
-    "subtitle": "Modèles de paiement flexibles qui évoluent avec votre entreprise.",
-    "recommended": "Recommandé",
+    "title": "Comment fonctionne la tarification de capacité",
+    "subtitle": "Vous payez pour la capacité de transport exécutée — pas des sièges logiciels. Les devis reflètent la classe de véhicule, la distance, les arrêts et l'urgence (jour même vs planifié).",
+    "recommended": "Le plus courant",
     "cta": "Obtenir un devis",
+    "footnote": "Toute tarification est confirmée par écrit avant l'expédition. Aucuns frais de sièges logiciels.",
+    "factors": {
+      "vehicle": {
+        "title": "Classe de véhicule",
+        "body": "De la berline au camion cube — espace, poids et disponibilité des chauffeurs changent l'économie."
+      },
+      "route": {
+        "title": "Itinéraire et urgence",
+        "body": "Distance, temps d'attente, urgence jour même et multi-arrêts influencent le devis."
+      },
+      "proof": {
+        "title": "Preuve et besoins de programme",
+        "body": "Photo, signature, GPS, corridors récurrents et capacité dédiée sont confirmés avant le lancement."
+      }
+    },
     "plans": {
       "payAsYouGo": {
         "name": "Paiement à l'utilisation",
-        "description": "Parfait pour envois occasionnels et urgents.",
+        "price": "Devis par course",
+        "description": "Devis par course pour livraisons urgentes, jour même et locales occasionnelles — sans minimum mensuel.",
         "features": [
-          "Pas de minimum mensuel",
-          "Devis avant engagement",
-          "Paiement par carte",
-          "Suivi et preuve inclus"
+          "Options berline à camion cube",
+          "Suivi en direct et preuve de livraison",
+          "Devis confirmé avant expédition",
+          "Paiement par carte"
         ]
       },
       "creditAccount": {
-        "name": "Compte de crédit d'affaires",
-        "description": "Facturation simplifiée pour expéditeurs réguliers.",
+        "name": "Compte d'affaires",
+        "price": "Devis par itinéraire",
+        "description": "Net 15/30 et facturation consolidée pour expéditeurs B2B réguliers.",
         "features": [
-          "Conditions Net 15",
-          "Conditions Net 30",
-          "Facturation consolidée",
-          "Rabais de volume"
+          "Couverture véhicule et chauffeur planifiée",
+          "Coordination multi-arrêts",
+          "Rapports opérationnels et historique de preuves",
+          "Conditions adaptées au volume"
         ]
       },
       "enterprise": {
-        "name": "Entente entreprise",
-        "description": "Solutions personnalisées pour opérations à grand volume.",
+        "name": "Programme dédié",
+        "price": "Devis de programme de capacité",
+        "description": "Corridors récurrents, couverture de débordement et relation de répartition nommée pour les opérations à grand volume.",
         "features": [
-          "Tarification personnalisée",
-          "Gestionnaire de compte dédié",
+          "Tarification personnalisée par corridor",
+          "Soutien de compte dédié",
           "Facturation mensuelle",
-          "Soutien prioritaire",
-          "Garanties SLA"
+          "Capacité prioritaire",
+          "Conditions de service sur entente"
         ]
       }
     }

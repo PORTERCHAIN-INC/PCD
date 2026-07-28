@@ -5,6 +5,8 @@
 !env/*.env.example
 env/.env
 env/clerk.env
+env/clerk.env.prod-live.bak
+env/go-live-*.local.md
 
 # Credentials and key material
 secrets/
@@ -26,6 +28,7 @@ infrastructure/deploy/scripts/clerk-keys.local.env
 *.db
 backups/*.sql.gz
 backups/*.sql
+backups/phase1-*.md
 __pycache__/
 **/__pycache__/
 *.py[cod]
@@ -64,3 +67,8 @@ infrastructure/docker/valhalla/data/
 
 # Fleetbase OSS — clone via `pnpm docker:fleetbase:install` (do not commit upstream tree)
 apps/fleetbase/
+
+# local coverage artifacts
+.coverage
+coverage.json
+**/coverage.json

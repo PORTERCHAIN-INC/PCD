@@ -1,13 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export const DEVELOPER_DOC_SLUGS = ["partner-guide", "changelog"] as const;
+export const DEVELOPER_DOC_SLUGS = [
+  "partner-guide",
+  "changelog",
+  "webhooks-idempotency-rate-limits",
+] as const;
 
 export type DeveloperDocSlug = (typeof DEVELOPER_DOC_SLUGS)[number];
 
 const DOC_FILES: Record<DeveloperDocSlug, string> = {
   "partner-guide": "PARTNER_GUIDE.md",
   changelog: "CHANGELOG.md",
+  "webhooks-idempotency-rate-limits": "WEBHOOKS_IDEMPOTENCY_RATE_LIMITS.md",
 };
 
 function apiDocsDir(): string {
@@ -35,6 +40,11 @@ const DOC_META: Record<DeveloperDocSlug, { title: string; description: string }>
   changelog: {
     title: "API changelog",
     description: "Versioning policy, breaking-change notice windows, and release history.",
+  },
+  "webhooks-idempotency-rate-limits": {
+    title: "Webhooks, idempotency & rate limits",
+    description:
+      "HMAC webhooks, duplicate-safe handlers, 429 backoff, health/status endpoints, and SDK guidance.",
   },
 };
 

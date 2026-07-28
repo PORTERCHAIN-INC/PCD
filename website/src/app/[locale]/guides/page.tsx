@@ -98,6 +98,7 @@ export default async function GuidesHubPage({ params }: Props) {
         description={hub.description}
         items={[...authorityItems, ...enOnlyItems]}
         ctaSource="guides"
+        clearNav={false}
       />
     </CorporateShell>
   );

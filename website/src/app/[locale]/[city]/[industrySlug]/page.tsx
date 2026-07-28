@@ -146,6 +146,7 @@ export default async function CitySegmentPage({ params }: Props) {
           onboarding: tSeo("onboarding"),
           capacitySolutions: tSeo("capacitySolutions"),
           intentGuides: tSeo("intentGuides"),
+          relatedPages: tSeo("relatedPages"),
         }}
         trackSource={`${city}/${industrySlug}`}
         breadcrumbs={[

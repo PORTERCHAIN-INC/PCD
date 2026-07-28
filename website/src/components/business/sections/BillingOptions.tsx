@@ -2,10 +2,12 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { Check, Star } from "lucide-react";
 import Container from "@/components/ui/Container";
 import { BUSINESS_BILLING_KEYS } from "@/data/business";
-import { Check, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const FACTOR_KEYS = ["vehicle", "route", "proof"] as const;
 
 export default function BillingOptions() {
   const t = useTranslations("businessPage.billing");
@@ -17,16 +19,34 @@ export default function BillingOptions() {
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center max-w-2xl mx-auto mb-14"
+          className="mx-auto mb-10 max-w-2xl text-center"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff7a00]">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563eb]">
             {t("label")}
           </span>
-          <h2 className="mt-3 biz-heading text-[#091b1c] tracking-tight">{t("title")}</h2>
-          <p className="mt-4 text-[#5c6b6c] leading-relaxed">{t("subtitle")}</p>
+          <h2 className="biz-heading mt-3 tracking-tight text-[#0b1220]">{t("title")}</h2>
+          <p className="mt-4 leading-relaxed text-[#64748b]">{t("subtitle")}</p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="mx-auto mb-12 grid max-w-4xl gap-6 sm:grid-cols-3">
+          {FACTOR_KEYS.map((key, i) => (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className="border-l-2 border-[#2563eb]/25 pl-4"
+            >
+              <h3 className="text-sm font-semibold text-[#0b1220]">{t(`factors.${key}.title`)}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-[#64748b]">
+                {t(`factors.${key}.body`)}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
           {BUSINESS_BILLING_KEYS.map((key, i) => {
             const isFeatured = key === "enterprise";
             const features = t.raw(`plans.${key}.features`) as string[];
@@ -41,25 +61,33 @@ export default function BillingOptions() {
                 className={cn(
                   "relative rounded-2xl p-7 biz-card-hover",
                   isFeatured
-                    ? "bg-[#091b1c] text-white biz-shadow-lg md:scale-[1.02]"
-                    : "bg-white border border-[#091b1c]/8 biz-shadow"
+                    ? "bg-[#0b1220] text-white biz-shadow-lg md:scale-[1.02]"
+                    : "border border-[#0b1220]/8 bg-white biz-shadow"
                 )}
               >
                 {isFeatured && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1 rounded-full bg-[#ff7a00] text-white text-xs font-semibold">
-                    <Star className="w-3 h-3" />
+                  <div className="absolute -top-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-[#2563eb] px-3 py-1 text-xs font-semibold text-white">
+                    <Star className="h-3 w-3" />
                     {t("recommended")}
                   </div>
                 )}
                 <h3
-                  className={cn("text-xl font-bold", isFeatured ? "text-white" : "text-[#091b1c]")}
+                  className={cn("text-xl font-bold", isFeatured ? "text-white" : "text-[#0b1220]")}
                 >
                   {t(`plans.${key}.name`)}
                 </h3>
                 <p
                   className={cn(
+                    "mt-1 text-sm font-medium",
+                    isFeatured ? "text-[#93c5fd]" : "text-[#2563eb]"
+                  )}
+                >
+                  {t(`plans.${key}.price`)}
+                </p>
+                <p
+                  className={cn(
                     "mt-2 text-sm leading-relaxed",
-                    isFeatured ? "text-white/60" : "text-[#5c6b6c]"
+                    isFeatured ? "text-white/60" : "text-[#64748b]"
                   )}
                 >
                   {t(`plans.${key}.description`)}
@@ -67,13 +95,8 @@ export default function BillingOptions() {
                 <ul className="mt-6 space-y-3">
                   {features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2.5 text-sm">
-                      <Check
-                        className={cn(
-                          "w-4 h-4 shrink-0 mt-0.5",
-                          isFeatured ? "text-[#ff7a00]" : "text-[#ff7a00]"
-                        )}
-                      />
-                      <span className={isFeatured ? "text-white/80" : "text-[#091b1c]/80"}>
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#2563eb]" />
+                      <span className={isFeatured ? "text-white/80" : "text-[#0b1220]/80"}>
                         {feature}
                       </span>
                     </li>
@@ -82,10 +105,10 @@ export default function BillingOptions() {
                 <a
                   href="#inquiry"
                   className={cn(
-                    "mt-8 block text-center px-5 py-3 rounded-xl text-sm font-semibold transition-all",
+                    "mt-8 block rounded-xl px-5 py-3 text-center text-sm font-semibold transition-all",
                     isFeatured
-                      ? "bg-[#ff7a00] text-white hover:bg-[#e66e00] biz-shadow-glow"
-                      : "bg-[#091b1c] text-white hover:bg-[#143638]"
+                      ? "bg-[#2563eb] text-white hover:bg-[#1d4ed8] biz-shadow-glow"
+                      : "bg-[#0b1220] text-white hover:bg-[#1e293b]"
                   )}
                 >
                   {t("cta")}
@@ -94,6 +117,7 @@ export default function BillingOptions() {
             );
           })}
         </div>
+        <p className="mt-8 text-center text-xs text-[#64748b]">{t("footnote")}</p>
       </Container>
     </section>
   );

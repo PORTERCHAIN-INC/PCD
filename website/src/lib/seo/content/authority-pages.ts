@@ -187,6 +187,146 @@ export const AUTHORITY_PAGES: AuthorityPage[] = [
       { path: "onboarding", label: "Merchant onboarding" },
     ],
   },
+  {
+    slug: "choose-delivery-vehicle",
+    title: "How to choose the right delivery vehicle",
+    description:
+      "Match cargo van, Sprinter, pickup, or box truck to freight size, site access, and stop count for Ontario B2B delivery.",
+    intro:
+      "Wrong vehicle class causes failed pickups, wasted capacity cost, or damaged freight. Use freight dimensions, access constraints, and stop density to choose cargo van, Sprinter-class van, pickup, or box truck — then confirm the class in a written quote before dispatch.",
+    sections: [
+      {
+        heading: "Start with freight, not the vehicle name",
+        body: "Measure longest piece, total cube, and weight. Palletized freight usually needs a box truck or liftgate-capable capacity. Loose totes and cases often fit a cargo van. Tall racks or long pipe may need Sprinter height or pickup bed length.",
+      },
+      {
+        heading: "Check site access before you lock the class",
+        body: "Jobsites, retail docks, and downtown lanes constrain vehicle size. A box truck that cannot turn into the yard fails the stop. When access is tight, prefer cargo or trade van and split pallets across runs if needed.",
+      },
+      {
+        heading: "Confirm class in the quote",
+        body: "Tell Porterchain your dimensions, stop count, and time window. We confirm vehicle class and pricing in writing — typically within one business day — so drivers arrive with the right capacity.",
+      },
+    ],
+    industrySlugs: ["construction-materials", "electrical-distribution", "plumbing-supply"],
+    serviceAreaSlugs: ["toronto", "mississauga", "brampton"],
+    extraLinks: [
+      { path: "pricing", label: "Pricing" },
+      { path: "onboarding", label: "Get started" },
+    ],
+  },
+  {
+    slug: "prepare-freight-for-pickup",
+    title: "How to prepare freight for pickup",
+    description:
+      "Practical checklist for Ontario shippers — labeling, staging, access notes, and proof requirements before the driver arrives.",
+    intro:
+      "Most same-day failures start at the dock: freight not ready, unclear labels, or missing site notes. Preparing freight before pickup protects time windows and proof of delivery for billing and customer updates.",
+    sections: [
+      {
+        heading: "Stage and label before the window opens",
+        body: "Stage freight in one pickup zone. Label each piece with destination, reference, and piece count. Note fragile or orientation requirements in the order notes — not only on the carton.",
+      },
+      {
+        heading: "Share access and contact details",
+        body: "Include gate codes, loading dock hours, forklift availability, and an on-site contact with a phone number. Jobsite deliveries need address clarity so drivers do not idle searching for the drop.",
+      },
+      {
+        heading: "Agree what counts as proof",
+        body: "Photo proof, signature, or both — set the requirement when you book. Clear POD standards reduce disputes after delivery.",
+      },
+    ],
+    industrySlugs: ["construction-materials", "coffee-roasters", "pharmacy-medical"],
+    serviceAreaSlugs: ["toronto", "mississauga", "vaughan"],
+    extraLinks: [
+      { path: "workflow", label: "How delivery works" },
+      { path: "support", label: "Support" },
+    ],
+  },
+  {
+    slug: "create-delivery-sop",
+    title: "How to create a delivery SOP",
+    description:
+      "Build a simple delivery standard operating procedure for wholesale, construction, and pharmacy teams using Porterchain capacity.",
+    intro:
+      "A short SOP keeps inside sales, warehouse, and dispatch aligned when you use overflow or recurring capacity. Document intake, cut-offs, escalation, and proof standards so every run follows the same path.",
+    sections: [
+      {
+        heading: "Define intake and cut-offs",
+        body: "Who submits orders, by what time, and in what format (CSV, portal, or API). Publish same-day cut-offs by zone so sales does not promise windows operations cannot hit.",
+      },
+      {
+        heading: "Document exceptions",
+        body: "List who to call for failed access, damaged freight, or customer not available. Include Porterchain ops contact and your internal escalation owner.",
+      },
+      {
+        heading: "Close the loop with proof and invoice",
+        body: "Require POD review before billing disputes. Keep tracking links with the order record so finance and customers share one source of truth.",
+      },
+    ],
+    industrySlugs: ["electrical-distribution", "plumbing-supply", "pharmacy-medical"],
+    serviceAreaSlugs: ["toronto", "hamilton", "kitchener-waterloo"],
+    extraLinks: [
+      { path: "onboarding", label: "Onboarding" },
+      { path: "integrations", label: "Integrations" },
+    ],
+  },
+  {
+    slug: "reduce-failed-deliveries",
+    title: "How to reduce failed deliveries",
+    description:
+      "Cut failed B2B deliveries in the GTA — access notes, windows, contacts, and proof standards that prevent redelivery cost.",
+    intro:
+      "Failed deliveries burn capacity and customer trust. Most failures are preventable: incomplete addresses, closed docks, missing contacts, or freight not ready. Fix the inputs before you add more vehicles.",
+    sections: [
+      {
+        heading: "Validate the stop before dispatch",
+        body: "Require a reachable phone, accurate suite or gate, and a delivery window the receiver confirmed. For jobsites, capture GC or site supervisor contact — not only the purchasing office.",
+      },
+      {
+        heading: "Match vehicle and freight to the site",
+        body: "Oversized vehicles on tight sites and undersized vehicles for pallets both fail. Confirm class in the quote and stage freight that matches the booked capacity.",
+      },
+      {
+        heading: "Use proof to stop repeat disputes",
+        body: "Photo and timestamped POD close loops with receivers and billing. When a stop fails, document the reason so the redelivery brief is accurate.",
+      },
+    ],
+    industrySlugs: ["construction-materials", "coffee-roasters", "cosmetics"],
+    serviceAreaSlugs: ["toronto", "mississauga", "brampton", "markham"],
+    extraLinks: [
+      { path: "workflow", label: "How delivery works" },
+      { path: "pricing", label: "Pricing" },
+    ],
+  },
+  {
+    slug: "evaluate-commercial-courier",
+    title: "How to evaluate a commercial courier",
+    description:
+      "Checklist for Ontario businesses comparing couriers and capacity partners — coverage, vehicles, proof, SLA, and quote process.",
+    intro:
+      "Choosing a commercial courier is a capacity and accountability decision — not a software tour. Evaluate coverage, vehicle classes, proof standards, escalation, and written quotes against your real lanes.",
+    sections: [
+      {
+        heading: "Coverage and vehicle fit",
+        body: "Ask which metros and vehicle classes they run today — cargo van through box truck — and whether they can cover your overflow and recurring lanes with the same partner.",
+      },
+      {
+        heading: "Visibility and proof",
+        body: "Require live tracking and photo or signature proof on every stop. If status lives only in a phone call, you will chase exceptions all day.",
+      },
+      {
+        heading: "Commercial clarity",
+        body: "Prefer written quotes, clear cut-offs, and documented escalation. Avoid vague platform fees or unnamed subcontracting you cannot explain to customers.",
+      },
+    ],
+    industrySlugs: ["construction-materials", "pharmacy-medical", "electrical-distribution"],
+    serviceAreaSlugs: ["toronto", "mississauga", "hamilton"],
+    extraLinks: [
+      { path: "onboarding", label: "Get a quote" },
+      { path: "support", label: "Contact" },
+    ],
+  },
 ];
 
 export function getAuthorityPageBySlug(slug: string): AuthorityPage | null {

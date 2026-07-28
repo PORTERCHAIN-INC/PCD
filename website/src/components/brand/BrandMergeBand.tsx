@@ -36,7 +36,7 @@ export default function BrandMergeBand({
 
   return (
     <section className={cn("relative overflow-hidden bg-white", className)}>
-      <div className="grid lg:grid-cols-2 min-h-[min(72svh,640px)]">
+      <div className="grid lg:grid-cols-2 min-h-[min(56svh,520px)]">
         <div
           className={cn(
             "relative z-20 flex items-center",
@@ -64,7 +64,7 @@ export default function BrandMergeBand({
 
           <Container
             className={cn(
-              "relative z-10 w-full py-14 sm:py-16 lg:py-20",
+              "relative z-10 w-full py-10 sm:py-12 lg:py-14",
               imageFirst ? "lg:pl-8 xl:pl-12" : "lg:pr-8 xl:pr-12"
             )}
           >
@@ -82,7 +82,7 @@ export default function BrandMergeBand({
 
         <div
           className={cn(
-            "relative order-1 min-h-[42svh] sm:min-h-[48svh] lg:min-h-0",
+            "relative order-1 min-h-[36svh] sm:min-h-[42svh] lg:min-h-0",
             imageFirst ? "lg:order-1" : "lg:order-2"
           )}
         >

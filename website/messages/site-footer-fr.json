@@ -1,66 +1,53 @@
 {
-  "tagline": "Faire avancer le commerce sur la chaîne",
-  "corporateTagline": "Chauffeurs professionnels et véhicules lorsque votre propre flotte ne suffit pas.",
-  "businessTagline": "Capacité urgente, débordement, récurrente et dédiée pour entreprises en croissance.",
+  "tagline": "Moving Commerce On-Chain",
+  "corporateTagline": "Des chauffeurs et véhicules professionnels quand votre flotte ne suffit pas.",
+  "businessTagline": "Capacité de livraison urgente, de débordement, récurrente et dédiée pour les entreprises en croissance.",
   "copyright": "© {year} Porterchain Inc. Tous droits réservés.",
   "contactLine": "enterprise@porterchain.com · +1 (647) 619-7951",
   "driverPortal": "Portail chauffeur",
   "merchantPortal": "Portail marchand",
-  "support": "Support client",
-  "status": "État du service",
-  "googleBusiness": "Profil Google Business",
+  "support": "Soutien client",
+  "status": "Statut",
+  "googleBusiness": "Fiche Google Business",
   "googleReview": "Avis sur Google",
   "sections": {
-    "products": {
-      "title": "Services de livraison",
-      "links": {
-        "business": "Livraison entreprise",
-        "solutions": "Solutions",
-        "howItWorks": "Comment ça fonctionne",
-        "pricing": "Tarification",
-        "getQuote": "Obtenir un devis",
-        "track": "Suivre un envoi"
-      }
-    },
-    "solutions": {
-      "title": "Industries et capacité",
-      "links": {
-        "industry": "Toutes les industries",
-        "constructionMaterials": "Matériaux de construction",
-        "electricalDistribution": "Distribution électrique",
-        "plumbingSupply": "Fournitures plomberie",
-        "serviceAreas": "Zones desservies",
-        "enterprise": "Grands comptes"
-      }
-    },
     "company": {
       "title": "Entreprise",
       "links": {
         "about": "À propos",
         "contact": "Contact",
         "careers": "Carrières",
-        "vehiclePartner": "Partenaires véhicule",
         "trust": "Centre de confiance"
       }
     },
     "resources": {
       "title": "Ressources",
       "links": {
+        "business": "Marchands",
+        "vehiclePartner": "Chauffeurs",
+        "howPorterchainWorks": "Comment PorterChain fonctionne",
+        "pricing": "Tarification",
+        "industry": "Industries",
         "blog": "Blogue",
         "faq": "FAQ",
         "guides": "Guides",
-        "platform": "Notre fonctionnement",
-        "integrations": "Intégrations",
         "developers": "Développeurs et API",
         "customerPortal": "Portail client"
+      }
+    },
+    "track": {
+      "title": "Suivi",
+      "links": {
+        "trackShipment": "Suivre un envoi"
       }
     },
     "legal": {
       "title": "Mentions légales",
       "links": {
         "privacy": "Confidentialité",
-        "terms": "Conditions d'utilisation",
-        "cookies": "Politique de cookies"
+        "terms": "Conditions",
+        "cookies": "Témoins",
+        "accessibility": "Accessibilité"
       }
     }
   }

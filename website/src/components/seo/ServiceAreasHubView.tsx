@@ -9,6 +9,7 @@ import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
+import SolutionsTabNav from "@/components/solutions/SolutionsTabNav";
 import { siteImages } from "@/data/site-images";
 import { SERVICE_AREA_REGIONS } from "@/lib/solutions-hub-config";
 import { SERVICE_AREA_SLUGS } from "@/lib/seo/service-areas";
@@ -38,6 +39,7 @@ export default async function ServiceAreasHubView({ locale: _locale }: ServiceAr
   return (
     <>
       <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: t("breadcrumb") }]} />
+      <SolutionsTabNav />
       <HeroSection
         badge={t("hero.badge")}
         title={t("hero.title")}

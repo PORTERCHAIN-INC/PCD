@@ -156,51 +156,91 @@ class EventBus:
                 processed += 1
             return processed
 
+        processed = self._reclaim_pending(consumer_name=consumer_name)
         try:
             messages = self._redis_client.xreadgroup(
                 CONSUMER_GROUP,
                 consumer_name,
                 {STREAM_KEY: ">"},
                 count=10,
-                block=block_ms,
+                block=0 if processed else block_ms,
             )
         except Exception as exc:
             # Idle block timeouts and transient socket errors must not crash the worker.
             exc_name = type(exc).__name__
             if exc_name in ("TimeoutError", "ConnectionError", "ConnectionResetError"):
                 logger.warning("redis stream read interrupted (%s) — will retry", exc_name)
-                return 0
+                return processed
             try:
                 import redis
 
                 if isinstance(exc, (redis.TimeoutError, redis.ConnectionError)):
                     logger.warning("redis stream read interrupted (%s) — will retry", exc_name)
-                    return 0
+                    return processed
             except ImportError:
                 pass
             raise
 
-        processed = 0
         for _stream, entries in messages or []:
             for message_id, fields in entries:
-                envelope = self._parse_stream_fields(fields)
-                try:
-                    self.dispatch(envelope)
-                    self._redis_client.xack(STREAM_KEY, CONSUMER_GROUP, message_id)
+                if self._process_stream_message(message_id, fields):
                     processed += 1
-                except Exception as exc:
-                    logger.error("failed to process stream message %s: %s", message_id, exc)
         return processed
+
+    def _reclaim_pending(
+        self,
+        *,
+        consumer_name: str,
+        min_idle_ms: int = 60_000,
+        count: int = 10,
+    ) -> int:
+        """Claim idle pending messages left by a crashed consumer (XAUTOCLAIM)."""
+        if not self._redis_client:
+            return 0
+        try:
+            result = self._redis_client.xautoclaim(
+                name=STREAM_KEY,
+                groupname=CONSUMER_GROUP,
+                consumername=consumer_name,
+                min_idle_time=min_idle_ms,
+                start_id="0-0",
+                count=count,
+            )
+        except Exception as exc:
+            # Older Redis / empty group — not fatal; new messages still flow via xreadgroup.
+            logger.debug("xautoclaim skipped: %s", exc)
+            return 0
+
+        # redis-py: (next_id, [(id, fields), ...], [deleted_ids?])
+        entries = result[1] if isinstance(result, (list, tuple)) and len(result) > 1 else []
+        processed = 0
+        for message_id, fields in entries or []:
+            if self._process_stream_message(message_id, fields):
+                processed += 1
+        if processed:
+            logger.info("reclaimed %s pending event(s) for consumer %s", processed, consumer_name)
+        return processed
+
+    def _process_stream_message(self, message_id: str, fields: dict[str, str]) -> bool:
+        assert self._redis_client is not None
+        envelope = self._parse_stream_fields(fields)
+        try:
+            self.dispatch(envelope)
+            self._redis_client.xack(STREAM_KEY, CONSUMER_GROUP, message_id)
+            return True
+        except Exception as exc:
+            logger.error("failed to process stream message %s: %s", message_id, exc)
+            return False
 
     @staticmethod
     def _parse_stream_fields(fields: dict[str, str]) -> dict[str, Any]:
         envelope: dict[str, Any] = {}
         for key, value in fields.items():
-            if key == "payload":
+            if key in ("payload", "actor"):
                 try:
                     envelope[key] = json.loads(value)
-                except json.JSONDecodeError:
-                    envelope[key] = {}
+                except (json.JSONDecodeError, TypeError):
+                    envelope[key] = {} if key == "payload" else value
             elif key == "version":
                 envelope[key] = int(value)
             elif key in ("occurred_at",):
@@ -209,8 +249,12 @@ class EventBus:
                 envelope[key] = None
             else:
                 envelope[key] = value
-        if "actor" not in envelope:
-            envelope["actor"] = {"type": fields.get("actor_type", "system"), "id": fields.get("actor_id") or None}
+        actor = envelope.get("actor")
+        if not isinstance(actor, dict):
+            envelope["actor"] = {
+                "type": fields.get("actor_type", "system"),
+                "id": fields.get("actor_id") or None,
+            }
         return envelope
 
     def recent_memory_events(self, limit: int = 100) -> list[dict[str, Any]]:

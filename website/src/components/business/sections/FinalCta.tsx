@@ -9,7 +9,7 @@ export default function FinalCta() {
   const t = useTranslations("businessPage.finalCta");
 
   return (
-    <section className="relative biz-section bg-[#091b1c] overflow-hidden">
+    <section className="relative biz-section bg-[#0b1220] overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,122,0,0.12)_0%,transparent_60%)]" />
       <Container className="relative">
         <BlurFade inView className="text-center max-w-2xl mx-auto mb-12">

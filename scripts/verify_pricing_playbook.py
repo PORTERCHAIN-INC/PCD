@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pricing page copy guard — playbook §4.4 hero, metadata, tier names."""
+"""Pricing copy guard — playbook §4.4 lives on /business#pricing (merchants billing)."""
 
 from __future__ import annotations
 
@@ -7,96 +7,89 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CORPORATE_EN = ROOT / "website/messages/corporate-en.json"
-CORPORATE_FR = ROOT / "website/messages/corporate-fr.json"
+BUSINESS_EN = ROOT / "website/messages/business-en.json"
+BUSINESS_FR = ROOT / "website/messages/business-fr.json"
+BILLING_SECTION = ROOT / "website/src/components/business/sections/BillingOptions.tsx"
 
-EN_META_TITLE = "B2B Delivery Pricing GTA | Quote-Based Capacity | PorterChain"
-EN_META_DESC = (
-    "Transparent quote-based pricing for GTA B2B delivery — same-day, urgent, recurring, "
-    "and fleet overflow. Vehicle class, route, and proof requirements. Request a written quote."
-)
-EN_HERO_TITLE = "How delivery pricing works"
-EN_HERO_SUBTITLE_MARKERS = ("transportation capacity executed", "not software seats")
+EN_TITLE = "How capacity pricing works"
+EN_SUBTITLE_MARKERS = ("transportation capacity executed", "not software seats")
 EN_TIER_NAMES = ("Pay as you go", "Business account", "Dedicated program")
-FACTOR_KEYS = ("label", "title", "subtitle", "colVehicle", "colSameDay", "colScheduled")
-
-
-def _tier_names(data: dict) -> list[str]:
-    items = data.get("pricing", {}).get("tiers", {}).get("items", {})
-    return [items.get(str(i), {}).get("name", "") for i in range(3)]
+EN_FACTOR_KEYS = ("vehicle", "route", "proof")
 
 
 def _check(locale: str, path: Path) -> list[str]:
     failures: list[str] = []
     data = json.loads(path.read_text(encoding="utf-8"))
+    billing = data.get("billing", {})
+    plans = billing.get("plans", {})
+    factors = billing.get("factors", {})
 
-    meta = data.get("metadata", {}).get("pricing", {})
-    hero = data.get("pricing", {}).get("hero", {})
-    tiers_title = data.get("pricing", {}).get("tiers", {}).get("title", "")
-    names = _tier_names(data)
-    factors = data.get("pricing", {}).get("factors", {})
+    for key in EN_FACTOR_KEYS:
+        block = factors.get(key, {})
+        if not block.get("title") or not block.get("body"):
+            failures.append(f"{locale} billing.factors.{key} missing title/body")
 
-    for key in FACTOR_KEYS:
-        if not factors.get(key):
-            failures.append(f"{locale} pricing.factors.{key} missing")
-    for i in range(3):
-        row = factors.get("rows", {}).get(str(i), {})
-        for field in ("vehicle", "sameDay", "scheduled"):
-            if not row.get(field):
-                failures.append(f"{locale} pricing.factors.rows.{i}.{field} missing")
+    names = [
+        plans.get("payAsYouGo", {}).get("name", ""),
+        plans.get("creditAccount", {}).get("name", ""),
+        plans.get("enterprise", {}).get("name", ""),
+    ]
 
     if locale == "en":
-        if meta.get("title") != EN_META_TITLE:
+        if billing.get("title") != EN_TITLE:
             failures.append(
-                f"{locale} metadata.pricing.title expected {EN_META_TITLE!r}, got {meta.get('title')!r}"
+                f"{locale} billing.title expected {EN_TITLE!r}, got {billing.get('title')!r}"
             )
-        if meta.get("description") != EN_META_DESC:
-            failures.append(f"{locale} metadata.pricing.description drift from playbook §4.4")
-        if hero.get("title") != EN_HERO_TITLE:
-            failures.append(
-                f"{locale} pricing.hero.title expected {EN_HERO_TITLE!r}, got {hero.get('title')!r}"
-            )
-        subtitle = (hero.get("subtitle") or "").lower()
-        for marker in EN_HERO_SUBTITLE_MARKERS:
+        subtitle = (billing.get("subtitle") or "").lower()
+        for marker in EN_SUBTITLE_MARKERS:
             if marker not in subtitle:
-                failures.append(f"{locale} pricing.hero.subtitle must mention {marker!r}")
+                failures.append(f"{locale} billing.subtitle must mention {marker!r}")
         for expected, got in zip(EN_TIER_NAMES, names, strict=True):
             if got != expected:
-                failures.append(f"{locale} pricing tier name expected {expected!r}, got {got!r}")
-        if "Pay as you go" not in tiers_title:
-            failures.append(f"{locale} pricing.tiers.title must list playbook tier names")
+                failures.append(f"{locale} billing plan name expected {expected!r}, got {got!r}")
+        for key in ("payAsYouGo", "creditAccount", "enterprise"):
+            if not plans.get(key, {}).get("price"):
+                failures.append(f"{locale} billing.plans.{key}.price missing")
+        if not billing.get("footnote"):
+            failures.append(f"{locale} billing.footnote missing")
     else:
-        title = meta.get("title") or ""
-        if "tarification livraison b2b" not in title.lower():
-            failures.append(f"{locale} metadata.pricing.title must be B2B pricing framing")
-        hero_title = hero.get("title") or ""
-        if "tarification" not in hero_title.lower():
-            failures.append(f"{locale} pricing.hero.title must explain how pricing works")
-        subtitle = (hero.get("subtitle") or "").lower()
+        title = (billing.get("title") or "").lower()
+        if "tarification" not in title:
+            failures.append(f"{locale} billing.title must explain how pricing works")
+        subtitle = (billing.get("subtitle") or "").lower()
         if "capacité" not in subtitle or "logiciel" not in subtitle:
-            failures.append(f"{locale} pricing.hero.subtitle must contrast capacity vs software")
-        fr_tiers = ("à l'usage", "compte entreprise", "programme dédié")
+            failures.append(f"{locale} billing.subtitle must contrast capacity vs software")
+        fr_tiers = ("à l'utilisation", "compte d'affaires", "programme dédié")
         for marker, got in zip(fr_tiers, [n.lower() for n in names], strict=True):
             if marker not in got:
-                failures.append(f"{locale} pricing tier expected {marker!r}, got {got!r}")
+                failures.append(f"{locale} billing plan expected {marker!r}, got {got!r}")
 
-    if hero.get("primaryCta") not in ("Get a quote", "Obtenir un devis"):
-        failures.append(f"{locale} pricing.hero.primaryCta must be Get a quote")
+    if billing.get("cta") not in ("Get a quote", "Obtenir un devis"):
+        failures.append(f"{locale} billing.cta must be Get a quote")
 
     return failures
 
 
 def main() -> int:
     failures: list[str] = []
-    failures.extend(_check("en", CORPORATE_EN))
-    failures.extend(_check("fr", CORPORATE_FR))
+    if not BILLING_SECTION.is_file():
+        failures.append("missing BillingOptions.tsx (merchants #pricing section)")
+    else:
+        text = BILLING_SECTION.read_text(encoding="utf-8")
+        if 'id="pricing"' not in text:
+            failures.append("BillingOptions must expose id=pricing for /business#pricing")
+        if "factors" not in text:
+            failures.append("BillingOptions must render quote factor strip")
+
+    failures.extend(_check("en", BUSINESS_EN))
+    failures.extend(_check("fr", BUSINESS_FR))
 
     print("Pricing playbook guard")
     if failures:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  PASS: /pricing hero, metadata, and tiers match playbook §4.4")
+    print("  PASS: /business#pricing billing copy matches playbook §4.4")
     return 0
 
 

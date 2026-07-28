@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import ContactHero from "@/components/corporate/sections/ContactHero";
 import ContactInfoPanel from "@/components/corporate/sections/ContactInfoPanel";
@@ -29,11 +30,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.contact" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "contact", t("title"), t("description"));
 }
 
 const DEPT_ICONS = [TrendingUp, Headphones, Building2, Truck, Code2];

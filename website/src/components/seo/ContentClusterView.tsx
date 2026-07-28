@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Container from "@/components/ui/Container";
 import HeroSection from "@/components/corporate/sections/HeroSection";
 import HeroPhoto from "@/components/ui/HeroPhoto";
@@ -5,7 +6,6 @@ import { getPageHeroImage } from "@/data/site-images";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
-import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
 import PageBreadcrumbs, { type BreadcrumbItem } from "@/components/seo/PageBreadcrumbs";
 import { JsonLd } from "@/components/seo";
 import { buildFAQPageSchema, buildServiceSchema } from "@/lib/seo/schema";
@@ -34,6 +34,9 @@ interface ContentClusterViewProps {
   data: ContentClusterData;
   ctaSource: string;
   breadcrumbs?: BreadcrumbItem[];
+  secondaryCta?: string;
+  secondaryHref?: string;
+  topNav?: ReactNode;
 }
 
 export default function ContentClusterView({
@@ -41,6 +44,9 @@ export default function ContentClusterView({
   data,
   ctaSource,
   breadcrumbs,
+  secondaryCta = "See vehicles",
+  secondaryHref = "/vehicles",
+  topNav,
 }: ContentClusterViewProps) {
   const quoteHref = quoteContact(locale, ctaSource);
   const faqItems = data.items ?? [];
@@ -54,19 +60,19 @@ export default function ContentClusterView({
     <>
       <JsonLd data={[faqSchema, serviceSchema].filter(Boolean)} />
       {breadcrumbs && breadcrumbs.length > 0 && <PageBreadcrumbs items={breadcrumbs} />}
+      {topNav}
       <HeroSection
         badge="Porterchain"
         title={data.title}
         subtitle={data.intro}
         primaryCta="Get a quote"
         primaryHref={quoteHref}
-        secondaryCta="See vehicles"
-        secondaryHref="/business#fleet"
+        secondaryCta={secondaryCta}
+        secondaryHref={secondaryHref}
         variant="light-centered"
         illustration={<HeroPhoto image={getPageHeroImage(ctaSource)} />}
         trackSource={ctaSource}
       />
-      <PlatformBridgeSection from={ctaSource} />
 
       {faqItems.length > 0 && <FaqSection title="Frequently asked questions" items={faqItems} />}
 

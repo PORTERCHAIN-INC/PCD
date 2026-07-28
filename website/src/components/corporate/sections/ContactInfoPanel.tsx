@@ -1,5 +1,8 @@
+"use client";
+
 import { Phone, Mail, MessageCircle, Clock, AlertCircle } from "lucide-react";
 import FadeIn from "@/components/corporate/motion/FadeIn";
+import TrackedContactLink from "@/components/seo/TrackedContactLink";
 
 export interface ContactInfoData {
   phoneLabel: string;
@@ -20,6 +23,12 @@ export interface ContactInfoData {
 
 interface ContactInfoPanelProps {
   info: ContactInfoData;
+}
+
+function contactEvent(href: string): "phone" | "email" | "whatsapp" {
+  if (href.startsWith("mailto:")) return "email";
+  if (href.includes("wa.me") || href.includes("whatsapp")) return "whatsapp";
+  return "phone";
 }
 
 export default function ContactInfoPanel({ info }: ContactInfoPanelProps) {
@@ -74,14 +83,15 @@ export default function ContactInfoPanel({ info }: ContactInfoPanelProps) {
                   {item.label}
                 </p>
                 {item.href ? (
-                  <a
+                  <TrackedContactLink
                     href={item.href}
-                    target={item.external ? "_blank" : undefined}
-                    rel={item.external ? "noopener noreferrer" : undefined}
+                    external={item.external}
+                    sourceSection="contact_info_panel"
+                    event={contactEvent(item.href)}
                     className="mt-1 block text-sm font-medium text-primary hover:text-secondary transition-colors leading-relaxed"
                   >
                     {item.value}
-                  </a>
+                  </TrackedContactLink>
                 ) : (
                   <p className="mt-1 text-sm font-medium text-primary leading-relaxed">
                     {item.value}

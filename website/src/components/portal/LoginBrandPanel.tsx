@@ -3,13 +3,14 @@
 import { Building2, Package, Shield, Truck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import PorterchainWordmark from "@/components/brand/PorterchainWordmark";
+import { adminSignInUrl, driverSignInUrl, merchantSignInUrl } from "@/data/portal-links";
 import { cn } from "@/lib/utils";
 
 const roles = [
-  { key: "merchant", icon: Building2 },
-  { key: "driver", icon: Truck },
-  { key: "customer", icon: Package },
-  { key: "staff", icon: Shield },
+  { key: "merchant", icon: Building2, href: merchantSignInUrl },
+  { key: "driver", icon: Truck, href: driverSignInUrl },
+  { key: "customer", icon: Package, href: null },
+  { key: "staff", icon: Shield, href: adminSignInUrl },
 ] as const;
 
 export default function LoginBrandPanel({ className }: { className?: string }) {
@@ -50,20 +51,30 @@ export default function LoginBrandPanel({ className }: { className?: string }) {
       </div>
 
       <div className="relative z-10 mt-10 grid grid-cols-2 gap-3">
-        {roles.map(({ key, icon: Icon }) => (
-          <div
-            key={key}
-            className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur-sm"
-          >
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-              <Icon className="h-4 w-4 text-white" aria-hidden />
+        {roles.map(({ key, icon: Icon, href }) => {
+          const body = (
+            <>
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
+                <Icon className="h-4 w-4 text-white" aria-hidden />
+              </div>
+              <p className="text-sm font-semibold text-white">{t(`roles.${key}.title`)}</p>
+              <p className="mt-1 text-xs leading-relaxed text-white/55">
+                {t(`roles.${key}.description`)}
+              </p>
+            </>
+          );
+          const className =
+            "rounded-2xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur-sm text-left transition-colors hover:bg-white/[0.1]";
+          return href ? (
+            <a key={key} href={href} className={className}>
+              {body}
+            </a>
+          ) : (
+            <div key={key} className={className}>
+              {body}
             </div>
-            <p className="text-sm font-semibold text-white">{t(`roles.${key}.title`)}</p>
-            <p className="mt-1 text-xs leading-relaxed text-white/55">
-              {t(`roles.${key}.description`)}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <p className="relative z-10 mt-10 text-xs text-white/45">{t("trustLine")}</p>

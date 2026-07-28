@@ -45,7 +45,11 @@ class CrmTasksMixin:
         *,
         status: str | None = None,
         assigned_to: str | None = None,
+        entity_type: str | None = None,
         entity_id: str | None = None,
+        task_type: str | None = None,
+        task_types: list[str] | None = None,
+        due_after: datetime | None = None,
         due_before: datetime | None = None,
         limit: int = 300,
     ) -> list[CrmSalesTask]:
@@ -54,8 +58,16 @@ class CrmTasksMixin:
             q = q.filter(CrmSalesTask.status == status)
         if assigned_to:
             q = q.filter(CrmSalesTask.assigned_to == assigned_to)
+        if entity_type:
+            q = q.filter(CrmSalesTask.entity_type == entity_type)
         if entity_id:
             q = q.filter(CrmSalesTask.entity_id == entity_id)
+        if task_type:
+            q = q.filter(CrmSalesTask.task_type == task_type)
+        if task_types:
+            q = q.filter(CrmSalesTask.task_type.in_(task_types))
+        if due_after:
+            q = q.filter(CrmSalesTask.due_at >= due_after)
         if due_before:
             q = q.filter(CrmSalesTask.due_at <= due_before)
         return q.order_by(CrmSalesTask.due_at.asc().nullslast()).limit(limit).all()

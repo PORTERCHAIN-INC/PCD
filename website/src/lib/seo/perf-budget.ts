@@ -36,7 +36,6 @@ const LOCALE_HUB_SLUGS = new Set([
   "guides",
   "compare",
   "platform",
-  "pricing",
   "solutions",
   "trust",
   "track",

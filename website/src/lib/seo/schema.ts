@@ -248,6 +248,7 @@ export type SoftwareApplicationSchema = {
 export type OrganizationSchema = {
   "@context": "https://schema.org";
   "@type": "Organization";
+  "@id"?: string;
   name: string;
   url: string;
   slogan?: string;
@@ -255,6 +256,39 @@ export type OrganizationSchema = {
   logo?: string;
   knowsAbout?: string[];
   sameAs?: string[];
+};
+
+export type WebSiteSchema = {
+  "@context": "https://schema.org";
+  "@type": "WebSite";
+  "@id": string;
+  name: string;
+  url: string;
+  publisher: { "@id": string };
+  inLanguage?: string[];
+};
+
+export type BreadcrumbListSchema = {
+  "@context": "https://schema.org";
+  "@type": "BreadcrumbList";
+  itemListElement: Array<{
+    "@type": "ListItem";
+    position: number;
+    name: string;
+    item?: string;
+  }>;
+};
+
+export type ItemListSchema = {
+  "@context": "https://schema.org";
+  "@type": "ItemList";
+  name?: string;
+  itemListElement: Array<{
+    "@type": "ListItem";
+    position: number;
+    name: string;
+    url?: string;
+  }>;
 };
 
 export type LocalBusinessSchema = {
@@ -287,9 +321,10 @@ export type LocalBusinessSchema = {
 export type ServiceSchema = {
   "@context": "https://schema.org";
   "@type": "Service";
+  "@id"?: string;
   name: string;
   description?: string;
-  provider?: { "@type": "Organization"; name: string; url: string };
+  provider?: { "@type": "Organization"; name: string; url: string } | { "@id": string };
   areaServed?: HyperlocalPlace[] | SchemaPlace[] | string[] | { "@type": string; name?: string }[];
   serviceType?: string | string[];
 };
@@ -364,6 +399,18 @@ export type ReviewSchema = {
   reviewRating?: { "@type": "Rating"; ratingValue: number; bestRating?: number };
 };
 
+export function organizationId(baseUrl?: string): string {
+  return `${(baseUrl ?? BASE).replace(/\/$/, "")}/#organization`;
+}
+
+export function websiteId(baseUrl?: string): string {
+  return `${(baseUrl ?? BASE).replace(/\/$/, "")}/#website`;
+}
+
+export function serviceEntityId(baseUrl?: string): string {
+  return `${(baseUrl ?? BASE).replace(/\/$/, "")}/#service`;
+}
+
 /**
  * Organization schema (site-wide).
  */
@@ -373,6 +420,7 @@ export function buildOrganizationSchema(options?: { baseUrl?: string }): Organiz
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": organizationId(base),
     name: siteConfig.name,
     url: base,
     slogan: siteConfig.tagline,
@@ -388,6 +436,36 @@ export function buildOrganizationSchema(options?: { baseUrl?: string }): Organiz
       "Proof of delivery",
     ],
     ...(sameAs.length > 0 ? { sameAs } : {}),
+  };
+}
+
+export function buildWebSiteSchema(options?: { baseUrl?: string }): WebSiteSchema {
+  const base = (options?.baseUrl ?? BASE).replace(/\/$/, "");
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": websiteId(base),
+    name: siteConfig.name,
+    url: base,
+    publisher: { "@id": organizationId(base) },
+    inLanguage: ["en-CA", "fr-CA"],
+  };
+}
+
+export function buildBreadcrumbListSchema(
+  items: Array<{ name: string; url?: string }>,
+  options?: { baseUrl?: string }
+): BreadcrumbListSchema {
+  const base = (options?.baseUrl ?? BASE).replace(/\/$/, "");
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      ...(item.url ? { item: item.url.startsWith("http") ? item.url : `${base}${item.url}` } : {}),
+    })),
   };
 }
 
@@ -523,11 +601,103 @@ export function buildServiceSchema(params: {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
+    "@id": serviceEntityId(base),
     name: params.name,
     description: params.description,
-    provider: { "@type": "Organization", name: siteConfig.name, url: base },
+    provider: { "@id": organizationId(base) },
     areaServed,
     serviceType: [...SCHEMA_DELIVERY_SERVICE_TYPES],
+  };
+}
+
+export type HowToSchema = {
+  "@context": "https://schema.org";
+  "@type": "HowTo";
+  name: string;
+  description?: string;
+  step: Array<{ "@type": "HowToStep"; name: string; text: string; position: number }>;
+};
+
+export type CorporationSchema = {
+  "@context": "https://schema.org";
+  "@type": "Corporation";
+  "@id": string;
+  name: string;
+  url: string;
+  description?: string;
+  logo?: string;
+  parentOrganization?: { "@id": string };
+};
+
+export type DatasetSchema = {
+  "@context": "https://schema.org";
+  "@type": "Dataset";
+  name: string;
+  description?: string;
+  creator?: { "@id": string };
+  license?: string;
+  isAccessibleForFree?: boolean;
+  keywords?: string[];
+};
+
+/** HowTo for operational guides with ordered steps. */
+export function buildHowToSchema(params: {
+  name: string;
+  description?: string;
+  steps: Array<{ name: string; text: string }>;
+}): HowToSchema | null {
+  const steps = params.steps.filter((s) => s.name?.trim() && s.text?.trim());
+  if (!steps.length) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: params.name,
+    description: params.description,
+    step: steps.map((s, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      name: s.name,
+      text: s.text,
+    })),
+  };
+}
+
+/** Corporation entity — use when legal entity differs from brand Organization. */
+export function buildCorporationSchema(options?: {
+  baseUrl?: string;
+  legalName?: string;
+}): CorporationSchema {
+  const base = (options?.baseUrl ?? BASE).replace(/\/$/, "");
+  return {
+    "@context": "https://schema.org",
+    "@type": "Corporation",
+    "@id": `${base}/#corporation`,
+    name: options?.legalName ?? siteConfig.name,
+    url: base,
+    description: ORGANIZATION_DESCRIPTION,
+    logo: `${base}/icon.svg`,
+    parentOrganization: { "@id": organizationId(base) },
+  };
+}
+
+/** Dataset for research/intelligence reports once published (keep draft reports unpublished). */
+export function buildDatasetSchema(params: {
+  name: string;
+  description?: string;
+  keywords?: string[];
+  baseUrl?: string;
+  license?: string;
+}): DatasetSchema {
+  const base = (params.baseUrl ?? BASE).replace(/\/$/, "");
+  return {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: params.name,
+    description: params.description,
+    creator: { "@id": organizationId(base) },
+    isAccessibleForFree: true,
+    keywords: params.keywords,
+    license: params.license,
   };
 }
 

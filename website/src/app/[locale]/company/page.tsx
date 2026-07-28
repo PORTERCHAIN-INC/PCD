@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import HeroSection from "@/components/corporate/sections/HeroSection";
@@ -19,7 +20,8 @@ import {
   collectTimelineSteps,
 } from "@/lib/corporate-content";
 import { siteImages } from "@/data/site-images";
-import { Shield, Scale, Leaf, Handshake } from "lucide-react";
+import { JsonLd } from "@/components/seo";
+import { buildCorporationSchema, buildOrganizationSchema } from "@/lib/seo/schema";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -30,11 +32,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.company" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "company", t("title"), t("description"));
 }
 
 export default async function CompanyPage({ params }: Props) {
@@ -53,19 +51,28 @@ export default async function CompanyPage({ params }: Props) {
     {
       title: t("values.items.0.title"),
       description: t("values.items.0.description"),
-      icon: Shield,
+      icon: "shield" as const,
     },
-    { title: t("values.items.1.title"), description: t("values.items.1.description"), icon: Scale },
-    { title: t("values.items.2.title"), description: t("values.items.2.description"), icon: Leaf },
+    {
+      title: t("values.items.1.title"),
+      description: t("values.items.1.description"),
+      icon: "scale" as const,
+    },
+    {
+      title: t("values.items.2.title"),
+      description: t("values.items.2.description"),
+      icon: "leaf" as const,
+    },
     {
       title: t("values.items.3.title"),
       description: t("values.items.3.description"),
-      icon: Handshake,
+      icon: "handshake" as const,
     },
   ];
 
   return (
     <CorporateShell>
+      <JsonLd data={[buildOrganizationSchema(), buildCorporationSchema()]} />
       <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: t("hero.badge") }]} />
       <HeroSection
         badge={t("hero.badge")}

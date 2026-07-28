@@ -7,8 +7,8 @@ import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
-import { localeStaticParams } from "@/lib/seo/page-helpers";
-import { Clock, Headphones, RefreshCw, ShieldCheck } from "lucide-react";
+import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";
+import type { FeatureIconName } from "@/components/corporate/icons/feature-icons";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -17,11 +17,7 @@ export const generateStaticParams = localeStaticParams;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "corporate.metadata.sla" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    openGraph: { title: t("ogTitle"), description: t("ogDescription") },
-  };
+  return buildPageMetadata(locale, "trust/sla", t("title"), t("description"));
 }
 
 export default async function SlaPage({ params }: Props) {
@@ -30,7 +26,12 @@ export default async function SlaPage({ params }: Props) {
   const t = await getTranslations("corporate.trust.sla");
   const tBc = await getTranslations("corporate.breadcrumbs");
 
-  const icons = [ShieldCheck, Headphones, Clock, RefreshCw] as const;
+  const icons = [
+    "shieldCheck",
+    "headphones",
+    "clock",
+    "refreshCw",
+  ] as const satisfies FeatureIconName[];
   const items = icons.map((icon, i) => ({
     title: t(`bands.items.${i}.title`),
     description: t(`bands.items.${i}.description`),

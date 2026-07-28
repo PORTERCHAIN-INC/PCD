@@ -21,7 +21,7 @@ import {
 import {
   getServiceAreaContent,
   isPublishableServiceArea,
-  type ServiceAreaContent,
+  type ServiceAreaMessageContent,
 } from "@/lib/seo/service-area-content";
 import {
   buildIndustryDeliveryLinksForCityPage,
@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const key = getServiceAreaMessageKey(slug);
   const area = (
     messages as {
-      serviceAreaLanding?: Record<string, Partial<ServiceAreaContent>>;
+      serviceAreaLanding?: Record<string, ServiceAreaMessageContent>;
     }
   ).serviceAreaLanding?.[key ?? ""];
   if (!area?.meta) return {};
@@ -142,6 +142,7 @@ export default async function ServiceAreaPage({ params }: Props) {
         secondaryCta={area.cta.secondary}
         secondaryHref={businessHref}
         variant="light-centered"
+        clearNav
         illustration={<HeroPhoto image={siteImages.hero.toronto} />}
       />
       {area.painPoints && (
@@ -232,9 +233,12 @@ export default async function ServiceAreaPage({ params }: Props) {
           { title: area.onboarding.step3Title, description: area.onboarding.step3Description },
         ]}
       />
-      <InternalLinksBlock title={tSeo("industryDeliveryInArea")} links={deliveryLinks} />
-      <InternalLinksBlock title={tSeo("exploreByIndustry")} links={industryLinks} />
-      <InternalLinksBlock title={tSeo("intentGuides")} links={intentLinks} />
+      <InternalLinksBlock
+        title={tSeo("relatedPages")}
+        links={[...deliveryLinks, ...industryLinks, ...intentLinks].filter(
+          (link, index, all) => all.findIndex((item) => item.href === link.href) === index
+        )}
+      />
       <FaqSection title={area.faq.title} items={faqItems} />
       <CtaSection
         title={area.cta.title}

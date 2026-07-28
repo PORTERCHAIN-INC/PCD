@@ -164,10 +164,13 @@
           "Porterchain and our integrated partners may set the following types of cookies:"
         ],
         "list": [
-          "Essential cookies — required for site functionality, security, and session management",
+          "Essential cookies — required for site functionality, security, and session management (always on)",
+          "Analytics cookies — load only if you allow Analytics in the cookie banner (Consent Mode)",
+          "Marketing cookies — ads/remarketing pixels only if you allow Marketing and the related env IDs are configured",
+          "Experience cookies — optional Clarity/Hotjar only if you allow Experience",
           "Authentication cookies — set by Clerk when you sign in or verify your account",
-          "Preference cookies — such as language selection (English / French)",
-          "Analytics and chat cookies — set by Zoho SalesIQ when the live chat widget is enabled",
+          "Preference cookies — such as language selection (English / French) and your cookie banner choices",
+          "Chat cookies — set by Zoho SalesIQ when the live chat widget is enabled",
           "Payment cookies — set by Stripe during checkout on tracking and billing pages",
           "Maps cookies — set by Google Maps when using address autocomplete or map features"
         ]
