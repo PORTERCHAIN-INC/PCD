@@ -65,7 +65,10 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+# Runtime never needs the Node-distribution npm CLI; remove it so Trivy does not
+# fail on HIGH/CRITICAL findings inside /usr/local/lib/node_modules/npm.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
+  && addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/website/public ./website/public
 COPY --from=builder --chown=nextjs:nodejs /app/website/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/website/.next/static ./website/.next/static

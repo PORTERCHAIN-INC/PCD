@@ -30,3 +30,7 @@ minimumReleaseAgeExclude:
   - "@sentry/replay@10.64.0"
   - "@sentry/server-utils@10.64.0"
   - "@sentry/vercel-edge@10.64.0"
+
+overrides:
+  next: 16.2.11
+  sharp: 0.35.0

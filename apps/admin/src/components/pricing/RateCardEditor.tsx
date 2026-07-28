@@ -18,6 +18,36 @@ function num(value: string, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function RateField({
+  label,
+  hint,
+  value,
+  onChange,
+  step = "1",
+  sparse = false,
+}: {
+  label: string;
+  hint?: string;
+  value: number | undefined;
+  onChange: (n: number) => void;
+  step?: string;
+  sparse?: boolean;
+}) {
+  return (
+    <label className="block text-sm">
+      <span className="font-medium text-primary">{label}</span>
+      {hint ? <span className="mt-0.5 block text-xs text-muted">{hint}</span> : null}
+      <input
+        type="number"
+        step={step}
+        value={value ?? (sparse ? "" : 0)}
+        onChange={(e) => onChange(num(e.target.value))}
+        className="mt-1 w-full rounded-xl border border-primary/10 px-3 py-2"
+      />
+    </label>
+  );
+}
+
 export default function RateCardEditor({
   initial,
   onSave,
@@ -76,32 +106,6 @@ export default function RateCardEditor({
       setBusy(false);
     }
   }
-
-  const Field = ({
-    label,
-    hint,
-    value,
-    onChange,
-    step = "1",
-  }: {
-    label: string;
-    hint?: string;
-    value: number | undefined;
-    onChange: (n: number) => void;
-    step?: string;
-  }) => (
-    <label className="block text-sm">
-      <span className="font-medium text-primary">{label}</span>
-      {hint ? <span className="mt-0.5 block text-xs text-muted">{hint}</span> : null}
-      <input
-        type="number"
-        step={step}
-        value={value ?? (sparse ? "" : 0)}
-        onChange={(e) => onChange(num(e.target.value))}
-        className="mt-1 w-full rounded-xl border border-primary/10 px-3 py-2"
-      />
-    </label>
-  );
 
   return (
     <div className="space-y-8">
@@ -176,98 +180,114 @@ export default function RateCardEditor({
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Field
+        <RateField
           label="Base fee (¢)"
           hint="Flat add-on on every quote"
           value={card.base_fee_cents}
           onChange={(n) => setField("base_fee_cents", n)}
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Per minute (¢)"
           hint="× estimated trip duration"
           value={card.per_minute_cents}
           onChange={(n) => setField("per_minute_cents", n)}
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Wait / minute (¢)"
           hint="× wait_minutes on the job"
           value={card.wait_cents_per_minute}
           onChange={(n) => setField("wait_cents_per_minute", n)}
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Extra stop (¢)"
           value={card.extra_stop_cents}
           onChange={(n) => setField("extra_stop_cents", n)}
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Liftgate (¢)"
           value={card.liftgate_cents}
           onChange={(n) => setField("liftgate_cents", n)}
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Rush surcharge (¢)"
           value={card.rush_surcharge_cents}
           onChange={(n) => setField("rush_surcharge_cents", n)}
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Scheduled surcharge (¢)"
           value={card.scheduled_surcharge_cents}
           onChange={(n) => setField("scheduled_surcharge_cents", n)}
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Weight threshold (kg)"
           value={card.weight_threshold_kg}
           onChange={(n) => setField("weight_threshold_kg", n)}
           step="0.1"
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Weight ¢ / kg over threshold"
           value={card.weight_cents_per_kg}
           onChange={(n) => setField("weight_cents_per_kg", n)}
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Declared value threshold (¢)"
           value={card.declared_value_threshold_cents}
           onChange={(n) => setField("declared_value_threshold_cents", n)}
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Declared value rate"
           hint="e.g. 0.01 = 1% of declared value"
           value={card.declared_value_rate}
           onChange={(n) => setField("declared_value_rate", n)}
           step="0.001"
+          sparse={sparse}
         />
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Field
+        <RateField
           label="Weekend multiplier"
           hint="1.0 = off; 1.25 = +25%"
           value={card.weekend_multiplier}
           onChange={(n) => setField("weekend_multiplier", n)}
           step="0.01"
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Holiday multiplier"
           value={card.holiday_multiplier}
           onChange={(n) => setField("holiday_multiplier", n)}
           step="0.01"
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Night multiplier"
           value={card.night_multiplier}
           onChange={(n) => setField("night_multiplier", n)}
           step="0.01"
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Night start hour (0–23)"
           value={card.night_start_hour}
           onChange={(n) => setField("night_start_hour", n)}
+          sparse={sparse}
         />
-        <Field
+        <RateField
           label="Night end hour (0–23)"
           value={card.night_end_hour}
           onChange={(n) => setField("night_end_hour", n)}
+          sparse={sparse}
         />
         <label className="block text-sm sm:col-span-2 lg:col-span-3">
           <span className="font-medium text-primary">Holidays (MM-DD, comma-separated)</span>
@@ -285,6 +305,7 @@ export default function RateCardEditor({
             }
             className="mt-1 w-full rounded-xl border border-primary/10 px-3 py-2"
             placeholder="01-01, 07-01, 12-25"
+            sparse={sparse}
           />
         </label>
       </section>
@@ -311,31 +332,35 @@ export default function RateCardEditor({
           </select>
         </label>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field
+          <RateField
             label="Flat per delivery (¢)"
             hint="Used when mode = flat (default $8.50 = 850¢)"
             value={card.driver_flat_per_delivery_cents}
             onChange={(n) => setField("driver_flat_per_delivery_cents", n)}
+            sparse={sparse}
           />
-          <Field
+          <RateField
             label="Minimum payout (¢)"
             hint="Floor after flat or percent calc"
             value={card.driver_minimum_payout_cents}
             onChange={(n) => setField("driver_minimum_payout_cents", n)}
+            sparse={sparse}
           />
-          <Field
+          <RateField
             label="Driver share %"
             hint="Used when mode = percent; also stored on quote metadata"
             value={card.driver_share_pct}
             onChange={(n) => setField("driver_share_pct", n)}
             step="0.1"
+            sparse={sparse}
           />
-          <Field
+          <RateField
             label="PorterChain / platform share %"
             hint="Reporting / margin; should typically sum toward 100 with driver share"
             value={card.platform_share_pct}
             onChange={(n) => setField("platform_share_pct", n)}
             step="0.1"
+            sparse={sparse}
           />
         </div>
       </section>

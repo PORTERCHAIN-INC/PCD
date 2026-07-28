@@ -1,5 +1,8 @@
-# Bundled inside node:24-alpine's own npm (node_modules/npm/node_modules/undici).
-# Our app dependencies already use the patched undici 6.27.0; this copy is only
-# used by npm CLI at image-build time and is not in the runtime path.
-# Remove once the base image ships a patched npm.
+# Node distribution npm CLI (not on Next request path). Also stripped in
+# website/Dockerfile runner stage; keep IDs as belt-and-suspenders for api image
+# or residual base layers.
 CVE-2026-12151
+CVE-2026-13149
+CVE-2026-14257
+CVE-2026-59873
+CVE-2026-59874
