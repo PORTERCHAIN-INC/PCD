@@ -3,11 +3,11 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "shared/python"))
 
 PHASE2_PY = ROOT / "shared/python/porterchain_shared/config/phase2.py"
 PHASE2_MJS = ROOT / "packages/config/phase2.mjs"
@@ -46,18 +46,13 @@ def main() -> int:
             failures.append(".env.example missing PORTERCHAIN_PHASE2_CRM=false")
 
     if PHASE2_PY.is_file():
-        # Load the module file directly — importing porterchain_shared pulls pydantic
-        # via package __init__, which CI website job does not install.
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("_phase2_flags_check", PHASE2_PY)
-        if spec is None or spec.loader is None:
-            failures.append("could not load phase2.py")
-        else:
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            if mod.Phase2Flags().any_enabled():
-                failures.append("Phase2Flags defaults must all be false")
+        # Static check — avoid importing porterchain_shared (pulls pydantic via __init__).
+        phase2_src = PHASE2_PY.read_text(encoding="utf-8")
+        for field in ("crm", "route_center", "ai_dispatch", "analytics", "intelligence"):
+            if not re.search(rf"^\s*{field}:\s*bool\s*=\s*False", phase2_src, re.MULTILINE):
+                failures.append(f"Phase2Flags.{field} must default to False")
+        if "def any_enabled" not in phase2_src:
+            failures.append("Phase2Flags missing any_enabled()")
 
     print("Phase 2 feature flags guard (§1.2.4 · DD-26)")
     if failures:
