@@ -15,16 +15,6 @@ export default function MerchantOAuthKickoffPage() {
   const params = useParams<{ provider: string }>();
   const provider = params.provider ?? "";
   const strategy = PROVIDER_STRATEGY[provider];
-  const { isLoaded, signIn } = useSignIn();
-
-  useEffect(() => {
-    if (!isClerkConfigured() || !isLoaded || !signIn || !strategy) return;
-    void signIn.authenticateWithRedirect({
-      strategy,
-      redirectUrl: "/sign-in/sso-callback",
-      redirectUrlComplete: "/onboarding",
-    });
-  }, [isLoaded, signIn, strategy]);
 
   if (!isClerkConfigured()) {
     return (
@@ -44,6 +34,27 @@ export default function MerchantOAuthKickoffPage() {
       </div>
     );
   }
+
+  return <OAuthKickoffWithClerk provider={provider} strategy={strategy} />;
+}
+
+function OAuthKickoffWithClerk({
+  provider,
+  strategy,
+}: {
+  provider: string;
+  strategy: "oauth_google" | "oauth_microsoft";
+}) {
+  const { isLoaded, signIn } = useSignIn();
+
+  useEffect(() => {
+    if (!isLoaded || !signIn) return;
+    void signIn.authenticateWithRedirect({
+      strategy,
+      redirectUrl: "/sign-in/sso-callback",
+      redirectUrlComplete: "/onboarding",
+    });
+  }, [isLoaded, signIn, strategy]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-bg">

@@ -305,7 +305,6 @@ export default function RateCardEditor({
             }
             className="mt-1 w-full rounded-xl border border-primary/10 px-3 py-2"
             placeholder="01-01, 07-01, 12-25"
-            sparse={sparse}
           />
         </label>
       </section>

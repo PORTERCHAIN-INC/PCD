@@ -11,8 +11,40 @@ import { customerApi, type CustomerDashboard } from "@/lib/api";
 import { isClerkConfigured } from "@/lib/env";
 
 export default function DashboardPage() {
+  if (!isClerkConfigured()) {
+    return <DashboardBody isSignedIn getToken={async () => "dev"} />;
+  }
+  return <DashboardWithClerk />;
+}
+
+function DashboardWithClerk() {
   const router = useRouter();
   const { isSignedIn, isLoaded, getToken } = useAuth();
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace("/sign-in?redirect_url=/dashboard");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (!isLoaded || !isSignedIn) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-bg">
+        <Spinner label="Loading your account…" />
+      </main>
+    );
+  }
+
+  return <DashboardBody isSignedIn={isSignedIn} getToken={getToken} />;
+}
+
+function DashboardBody({
+  isSignedIn,
+  getToken,
+}: {
+  isSignedIn: boolean;
+  getToken: () => Promise<string | null>;
+}) {
   const [dashboard, setDashboard] = useState<CustomerDashboard | null>(null);
   const [error, setError] = useState("");
   const [supportSubject, setSupportSubject] = useState("");
@@ -20,13 +52,7 @@ export default function DashboardPage() {
   const [supportSent, setSupportSent] = useState(false);
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn && isClerkConfigured()) {
-      router.replace("/sign-in?redirect_url=/dashboard");
-    }
-  }, [isLoaded, isSignedIn, router]);
-
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
+    if (!isSignedIn) return;
     (async () => {
       try {
         const token = await getToken();
@@ -37,7 +63,7 @@ export default function DashboardPage() {
         setError("Failed to load dashboard");
       }
     })();
-  }, [isLoaded, isSignedIn, getToken]);
+  }, [isSignedIn, getToken]);
 
   const submitSupport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,14 +81,6 @@ export default function DashboardPage() {
       setError("Could not submit support ticket");
     }
   };
-
-  if (isClerkConfigured() && (!isLoaded || !isSignedIn)) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-bg">
-        <Spinner label="Loading your account…" />
-      </main>
-    );
-  }
 
   const loadingDashboard = isSignedIn && !dashboard && !error;
 

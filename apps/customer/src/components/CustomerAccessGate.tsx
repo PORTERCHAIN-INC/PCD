@@ -12,15 +12,20 @@ type Props = {
 };
 
 export default function CustomerAccessGate({ children }: Props) {
+  if (!isClerkConfigured()) {
+    return <>{children}</>;
+  }
+  return <CustomerAccessGateWithClerk>{children}</CustomerAccessGateWithClerk>;
+}
+
+function CustomerAccessGateWithClerk({ children }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { isLoaded, isSignedIn, getToken } = useAuth();
-  const clerkOn = isClerkConfigured();
   const onPendingPath = isPendingCustomerPath(pathname);
-  const [checking, setChecking] = useState(clerkOn);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (!clerkOn) return;
     if (!isLoaded) return;
     if (!isSignedIn) {
       router.replace("/sign-in");
@@ -49,11 +54,7 @@ export default function CustomerAccessGate({ children }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [clerkOn, getToken, isLoaded, isSignedIn, onPendingPath, pathname, router]);
-
-  if (!clerkOn) {
-    return <>{children}</>;
-  }
+  }, [getToken, isLoaded, isSignedIn, onPendingPath, pathname, router]);
 
   if (!isLoaded || (checking && !onPendingPath)) {
     return (

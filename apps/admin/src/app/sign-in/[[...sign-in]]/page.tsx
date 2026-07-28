@@ -16,9 +16,33 @@ export default function SignInPage() {
         </div>
       }
     >
-      <SignInContent />
+      <SignInGate />
     </Suspense>
   );
+}
+
+function SignInGate() {
+  if (!isClerkConfigured()) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-bg p-4">
+        <div className="w-full max-w-md rounded-2xl border border-primary/10 bg-white p-8 shadow-sm">
+          <h1 className="text-2xl font-bold text-primary">Porterchain Admin</h1>
+          <p className="mt-2 text-sm text-muted">
+            Clerk is not configured. Local dev uses API bypass — add staff in{" "}
+            <code className="rounded bg-gray-bg px-1">admin_users</code> for production-like
+            testing.
+          </p>
+          <Link
+            href="/dashboard"
+            className="mt-6 flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white hover:bg-secondary/90"
+          >
+            Continue in dev mode
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  return <SignInContent />;
 }
 
 function resolvePostSignInTarget(raw: string | null): string {
@@ -74,27 +98,6 @@ function SignInContent() {
       cancelled = true;
     };
   }, [isLoaded, isSignedIn, redirectUrl, signOut]);
-
-  if (!isClerkConfigured()) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-bg p-4">
-        <div className="w-full max-w-md rounded-2xl border border-primary/10 bg-white p-8 shadow-sm">
-          <h1 className="text-2xl font-bold text-primary">Porterchain Admin</h1>
-          <p className="mt-2 text-sm text-muted">
-            Clerk is not configured. Local dev uses API bypass — add staff in{" "}
-            <code className="rounded bg-gray-bg px-1">admin_users</code> for production-like
-            testing.
-          </p>
-          <Link
-            href="/dashboard"
-            className="mt-6 flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white hover:bg-secondary/90"
-          >
-            Continue in dev mode
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   if (!isLoaded || !showForm) {
     return (

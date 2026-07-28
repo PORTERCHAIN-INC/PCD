@@ -15,23 +15,12 @@ export default function SignInPage() {
         </div>
       }
     >
-      <SignInContent />
+      <SignInGate />
     </Suspense>
   );
 }
 
-function SignInContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { isLoaded, isSignedIn } = useAuth();
-  const redirectUrl = searchParams.get("redirect_url") ?? "/onboarding";
-
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.replace(redirectUrl);
-    }
-  }, [isLoaded, isSignedIn, redirectUrl, router]);
-
+function SignInGate() {
   if (!isClerkConfigured()) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-bg p-4">
@@ -48,6 +37,20 @@ function SignInContent() {
       </div>
     );
   }
+  return <SignInContent />;
+}
+
+function SignInContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isLoaded, isSignedIn } = useAuth();
+  const redirectUrl = searchParams.get("redirect_url") ?? "/onboarding";
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.replace(redirectUrl);
+    }
+  }, [isLoaded, isSignedIn, redirectUrl, router]);
 
   if (!isLoaded || isSignedIn) {
     return (

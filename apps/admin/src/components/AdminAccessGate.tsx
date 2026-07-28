@@ -16,6 +16,13 @@ type Props = {
 };
 
 export default function AdminAccessGate({ children, onProfile }: Props) {
+  if (!isClerkConfigured()) {
+    return <>{children}</>;
+  }
+  return <AdminAccessGateWithClerk onProfile={onProfile}>{children}</AdminAccessGateWithClerk>;
+}
+
+function AdminAccessGateWithClerk({ children, onProfile }: Props) {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
   const { getApiToken } = useAdminAuth();
@@ -25,10 +32,6 @@ export default function AdminAccessGate({ children, onProfile }: Props) {
   const [errorDetail, setErrorDetail] = useState("");
 
   useEffect(() => {
-    if (!isClerkConfigured()) {
-      setChecking(false);
-      return;
-    }
     if (!isLoaded) return;
     if (!isSignedIn) {
       setProfile(null);
@@ -61,10 +64,6 @@ export default function AdminAccessGate({ children, onProfile }: Props) {
       cancelled = true;
     };
   }, [isLoaded, isSignedIn, getApiToken, router, setProfile, onProfile]);
-
-  if (!isClerkConfigured()) {
-    return <>{children}</>;
-  }
 
   if (!isLoaded || checking) {
     return (

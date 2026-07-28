@@ -15,7 +15,7 @@ import {
   startBooking,
   type QuoteResult,
 } from "@/lib/booking";
-import { publicEnv } from "@/lib/env";
+import { isClerkConfigured, publicEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 const VEHICLES = [
@@ -57,8 +57,28 @@ function defaultScheduledAt(): string {
 }
 
 export default function CustomerBookDelivery() {
+  if (!isClerkConfigured()) {
+    return <CustomerBookDeliveryBody getToken={async () => "dev"} userId={null} email="" />;
+  }
+  return <CustomerBookDeliveryWithClerk />;
+}
+
+function CustomerBookDeliveryWithClerk() {
   const { getToken, userId } = useAuth();
   const { user } = useUser();
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+  return <CustomerBookDeliveryBody getToken={getToken} userId={userId} email={email} />;
+}
+
+function CustomerBookDeliveryBody({
+  getToken,
+  userId,
+  email,
+}: {
+  getToken: () => Promise<string | null>;
+  userId: string | null | undefined;
+  email: string;
+}) {
   const [step, setStep] = useState<Step>("details");
   const [pickup, setPickup] = useState<BookingAddress>({ formatted: "" });
   const [dropoff, setDropoff] = useState<BookingAddress>({ formatted: "" });
@@ -75,8 +95,6 @@ export default function CustomerBookDelivery() {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
 
   async function onGetQuote() {
     if (!pickup.formatted || !dropoff.formatted) {

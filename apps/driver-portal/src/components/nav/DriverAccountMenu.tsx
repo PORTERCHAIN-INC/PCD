@@ -20,9 +20,26 @@ function statusLabel(status: string): string {
 }
 
 export default function DriverAccountMenu() {
+  if (isClerkConfigured()) {
+    return <DriverAccountMenuWithClerk />;
+  }
+  return <DriverAccountMenuBody clerkUser={null} clerkLoaded={false} />;
+}
+
+function DriverAccountMenuWithClerk() {
+  const { user, isLoaded: clerkLoaded } = useUser();
+  return <DriverAccountMenuBody clerkUser={user} clerkLoaded={clerkLoaded} />;
+}
+
+function DriverAccountMenuBody({
+  clerkUser: user,
+  clerkLoaded,
+}: {
+  clerkUser: ReturnType<typeof useUser>["user"];
+  clerkLoaded: boolean;
+}) {
   const router = useRouter();
   const { profile, setProfile } = useDriverProfile();
-  const { user, isLoaded: clerkLoaded } = useUser();
   const [authed, setAuthed] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +82,7 @@ export default function DriverAccountMenu() {
 
   const name = profile?.full_name ?? user?.fullName ?? "Driver";
   const email = profile?.email ?? user?.primaryEmailAddress?.emailAddress ?? "";
-  const avatar = isClerkConfigured() && clerkLoaded ? user?.imageUrl : undefined;
+  const avatar = clerkLoaded ? user?.imageUrl : undefined;
   const status = profile?.status ?? "pending";
   const availability = profile?.availability ?? "offline";
   const isOnline = profile?.is_online ?? false;

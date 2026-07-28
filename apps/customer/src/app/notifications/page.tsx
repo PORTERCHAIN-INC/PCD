@@ -4,10 +4,22 @@ import { useAuth } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import CustomerShell from "@/components/CustomerShell";
+import { isClerkConfigured } from "@/lib/env";
 import { notificationsApi, type InboxNotification } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 
 export default function CustomerNotificationsPage() {
+  if (!isClerkConfigured()) {
+    return (
+      <CustomerShell>
+        <p className="text-muted">Please sign in to view notifications.</p>
+      </CustomerShell>
+    );
+  }
+  return <CustomerNotificationsWithClerk />;
+}
+
+function CustomerNotificationsWithClerk() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const [items, setItems] = useState<InboxNotification[]>([]);
   const [unread, setUnread] = useState(0);

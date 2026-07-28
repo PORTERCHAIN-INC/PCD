@@ -25,14 +25,18 @@ export default function NotificationBell({
 }: {
   viewAllHref?: string;
 }) {
-  const clerkOn = isClerkConfigured();
+  if (!isClerkConfigured()) return null;
+  return <NotificationBellWithClerk viewAllHref={viewAllHref} />;
+}
+
+function NotificationBellWithClerk({ viewAllHref }: { viewAllHref: string }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const [items, setItems] = useState<InboxNotification[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    if (!clerkOn || !isSignedIn) return;
+    if (!isSignedIn) return;
     try {
       const token = await getToken();
       if (!token) return;
@@ -44,7 +48,7 @@ export default function NotificationBell({
     } finally {
       setLoading(false);
     }
-  }, [clerkOn, getToken, isSignedIn]);
+  }, [getToken, isSignedIn]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
@@ -55,7 +59,7 @@ export default function NotificationBell({
     return () => window.clearInterval(id);
   }, [isLoaded, isSignedIn, refresh]);
 
-  if (!clerkOn || !isLoaded || !isSignedIn) return null;
+  if (!isLoaded || !isSignedIn) return null;
 
   return (
     <HeaderDropdown

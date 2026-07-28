@@ -8,15 +8,26 @@ import { useCustomerOnboarding } from "@/hooks/useCustomerOnboarding";
 import { isClerkConfigured } from "@/lib/env";
 
 export default function CustomerOnboardingPage() {
+  if (!isClerkConfigured()) {
+    return <RedirectToDashboard />;
+  }
+  return <CustomerOnboardingWithClerk />;
+}
+
+function RedirectToDashboard() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/dashboard");
+  }, [router]);
+  return null;
+}
+
+function CustomerOnboardingWithClerk() {
   const router = useRouter();
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { data, loading, error, refresh, setLoading } = useCustomerOnboarding(30_000);
 
   useEffect(() => {
-    if (!isClerkConfigured()) {
-      router.replace("/dashboard");
-      return;
-    }
     if (!isLoaded) return;
     if (!isSignedIn) {
       router.replace("/sign-in?redirect_url=/onboarding");
@@ -44,8 +55,6 @@ export default function CustomerOnboardingPage() {
       if (timer) window.clearInterval(timer);
     };
   }, [getToken, isLoaded, isSignedIn, refresh, router]);
-
-  if (!isClerkConfigured()) return null;
 
   if ((loading && !data) || !isLoaded) {
     return (

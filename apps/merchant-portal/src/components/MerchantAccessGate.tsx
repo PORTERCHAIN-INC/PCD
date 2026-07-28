@@ -15,6 +15,15 @@ type Props = {
 };
 
 export default function MerchantAccessGate({ children, onProfile }: Props) {
+  if (!isClerkConfigured()) {
+    return <>{children}</>;
+  }
+  return (
+    <MerchantAccessGateWithClerk onProfile={onProfile}>{children}</MerchantAccessGateWithClerk>
+  );
+}
+
+function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { isLoaded, isSignedIn } = useAuth();
@@ -22,10 +31,6 @@ export default function MerchantAccessGate({ children, onProfile }: Props) {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (!isClerkConfigured()) {
-      setChecking(false);
-      return;
-    }
     if (!isLoaded) return;
     if (!isSignedIn) {
       router.replace("/sign-in");
@@ -60,10 +65,6 @@ export default function MerchantAccessGate({ children, onProfile }: Props) {
       cancelled = true;
     };
   }, [getApiToken, isLoaded, isSignedIn, onProfile, pathname, router]);
-
-  if (!isClerkConfigured()) {
-    return <>{children}</>;
-  }
 
   if (!isLoaded || checking) {
     return <Spinner label="Verifying merchant access…" />;
