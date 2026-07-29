@@ -34,9 +34,16 @@ REQUIRED_KEYS=(
 
 env_value() {
   local key="$1"
-  local line
+  local line value
   line="$(grep -E "^${key}=" .env 2>/dev/null | tail -n1 || true)"
-  printf '%s' "${line#*=}"
+  value="${line#*=}"
+  # Doppler env export may wrap values in single/double quotes.
+  if [[ "$value" == \"*\" && "$value" == *\" ]]; then
+    value="${value:1:${#value}-2}"
+  elif [[ "$value" == \'*\' && "$value" == *\' ]]; then
+    value="${value:1:${#value}-2}"
+  fi
+  printf '%s' "$value"
 }
 
 set_env_key() {
