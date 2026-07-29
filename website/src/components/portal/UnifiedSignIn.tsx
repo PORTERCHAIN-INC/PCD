@@ -1,7 +1,7 @@
 "use client";
 
 import { SignIn } from "@clerk/nextjs";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import PorterchainWordmark from "@/components/brand/PorterchainWordmark";
 import { porterchainClerkAppearance } from "@/lib/clerk-appearance";
@@ -14,9 +14,13 @@ type UnifiedSignInProps = {
 /**
  * Platform Clerk sign-in for signed-out users only.
  * After success Clerk goes to redirectUrl — never leave the user on #/factor-one.
+ *
+ * path routing must match the real browser path (`/{locale}/login`), not bare `/login`.
  */
 export default function UnifiedSignIn({ redirectUrl }: UnifiedSignInProps) {
   const t = useTranslations("login");
+  const locale = useLocale();
+  const signInPath = `/${locale}/login`;
 
   return (
     <div className="min-h-[calc(100dvh-var(--nav-height))] flex flex-col items-center justify-center bg-gray-bg px-4 py-10 sm:px-6">
@@ -31,7 +35,7 @@ export default function UnifiedSignIn({ redirectUrl }: UnifiedSignInProps) {
       <div className="w-full max-w-md min-w-0 rounded-2xl border border-primary/8 bg-white p-5 sm:p-6 md:p-8 shadow-premium">
         <SignIn
           routing="path"
-          path="/login"
+          path={signInPath}
           forceRedirectUrl={redirectUrl}
           signUpForceRedirectUrl={redirectUrl}
           fallbackRedirectUrl={redirectUrl}
