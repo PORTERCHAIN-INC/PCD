@@ -1,6 +1,8 @@
 # Minimal workspace for website Docker builds (avoids mobile/portal workspace deps).
 packages:
   - "website"
+  - "packages/auth"
+  - "packages/types"
   - "packages/config"
   - "packages/maps"
 allowBuilds:
