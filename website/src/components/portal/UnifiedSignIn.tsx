@@ -30,7 +30,8 @@ export default function UnifiedSignIn({ redirectUrl }: UnifiedSignInProps) {
 
       <div className="w-full max-w-md min-w-0 rounded-2xl border border-primary/8 bg-white p-5 sm:p-6 md:p-8 shadow-premium">
         <SignIn
-          routing="virtual"
+          routing="path"
+          path="/login"
           forceRedirectUrl={redirectUrl}
           signUpForceRedirectUrl={redirectUrl}
           fallbackRedirectUrl={redirectUrl}
