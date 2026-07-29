@@ -246,6 +246,8 @@
       }
     },
     "redirecting": "Ouverture de votre portail…",
+    "choosePortal": "Choisissez où continuer",
+    "choosePortalHint": "Ce compte a accès à plus d'un portail.",
     "notProvisioned": "Ce compte est connecté mais pas encore provisionné pour un portail Porterchain. Contactez le soutien si vous attendiez un accès.",
     "staffSignIn": "Connexion personnel / admin",
     "merchantSignIn": "Connexion marchand",
