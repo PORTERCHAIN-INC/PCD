@@ -9,8 +9,10 @@ from porterchain_api.config import Settings
 
 _LEGACY_CLERK_PROD = {
     "_env_file": None,
-    "clerk_secret_key": "sk_test_production_clerk",
+    "clerk_secret_key": "sk_live_production_clerk_test_fixture",
+    "clerk_publishable_key": "pk_live_production_clerk_test_fixture",
     "clerk_jwks_url": "https://clerk.example.com/.well-known/jwks.json",
+    "clerk_unified_mode": True,
 }
 
 

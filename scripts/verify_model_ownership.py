@@ -39,7 +39,12 @@ _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
         "auth/invitation_service.py",
         "auth/merchant.py",
         "auth/merchant_onboarding.py",
+        "auth/email_identity.py",
+        "auth/ensure_user_service.py",
+        "auth/identity_fk_backfill.py",
+        "auth/principal_resolution_service.py",
         "auth/user_sync_service.py",
+        "authz/tuples.py",
         "collaboration_engine/crm_companies.py",
         "collaboration_engine/crm_contacts.py",
         "collaboration_engine/crm_contracts.py",
@@ -58,10 +63,15 @@ _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
 _LEGACY_ADMIN_MODEL_WRITERS: frozenset[str] = frozenset(
     {
         "auth/admin.py",
+        "auth/email_identity.py",
+        "auth/ensure_user_service.py",
+        "auth/identity_fk_backfill.py",
         "auth/invitation_service.py",
         "auth/merchant_onboarding.py",
+        "auth/principal_resolution_service.py",
         "auth/sso_service.py",
         "auth/user_sync_service.py",
+        "authz/tuples.py",
         "booking_engine/customer_service.py",
         "driver_engine/auth_service.py",
         "fleetbase_engine/integration_bridge.py",
@@ -86,11 +96,27 @@ _LEGACY_CRM_MODEL_WRITERS: frozenset[str] = frozenset(
 _LEGACY_IDENTITY_MODEL_WRITERS: frozenset[str] = frozenset(
     {
         "auth/sso_service.py",
+        "auth/email_identity.py",
+        "auth/ensure_user_service.py",
+        "auth/identity_fk_backfill.py",
+        "auth/principal_resolution_service.py",
     }
 )
 
 _USER_SYNC_WRITER = frozenset({"auth/user_sync_service.py"})
 
+_IDENTITY_AUTH_WRITERS = frozenset(
+    {
+        "auth/user_sync_service.py",
+        "auth/email_identity.py",
+        "auth/ensure_user_service.py",
+        "auth/identity_fk_backfill.py",
+        "auth/principal_resolution_service.py",
+        "auth/admin.py",
+        "authz/tuples.py",
+        "admin_engine/platform_user_authorize.py",
+    }
+)
 _OWNERSHIP_CHECKS: tuple[dict[str, object], ...] = (
     {
         "model_module": "merchant_models",
@@ -130,7 +156,7 @@ _OWNERSHIP_CHECKS: tuple[dict[str, object], ...] = (
     {
         "model_module": "identity_models",
         "owner_prefix": "auth",
-        "owner_files": _USER_SYNC_WRITER,
+        "owner_files": _IDENTITY_AUTH_WRITERS,
         "legacy_writers": _LEGACY_IDENTITY_MODEL_WRITERS,
         "section": "§3.2.7",
         "mutation_re": _DB_MUTATION,
@@ -138,7 +164,7 @@ _OWNERSHIP_CHECKS: tuple[dict[str, object], ...] = (
     {
         "model_module": "user_models",
         "owner_prefix": "auth",
-        "owner_files": _USER_SYNC_WRITER,
+        "owner_files": _IDENTITY_AUTH_WRITERS,
         "legacy_writers": frozenset({"auth/merchant_onboarding.py"}),
         "section": "§3.2.7",
         "mutation_re": _DB_MUTATION,
