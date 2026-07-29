@@ -23,10 +23,37 @@ jobs:
         ports:
           - 5432:5432
         options: >-
+          --name porterchain-ci-postgres
           --health-cmd "pg_isready -U porterchain -d porterchain"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+      redis:
+        # Match stack pin (Redis 8.8) — not floating :latest / redis:7
+        image: redis:8.8.0-alpine3.23
+        ports:
+          - 6379:6379
+        options: >-
+          --name porterchain-ci-redis
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+      REDIS_URL: redis://127.0.0.1:6379/0
+      APP_ENV: local
+      CLERK_DEV_BYPASS: "true"
+      # Billing E2E uses in-process mock (PaymentService / mock_complete_checkout)
+      STRIPE_MOCK: "true"
+      # Primary routing: CI stub on :8002 (GTA ~150 km; no tile build)
+      VALHALLA_BASE_URL: http://127.0.0.1:8002
+      VALHALLA_BASE_URI: http://127.0.0.1:8002
+      ROUTING_ENGINE: valhalla
+      # Fallback if stub down — public OSRM covers GTA (no local PBF needed)
+      OSRM_HOST: https://router.project-osrm.org
 
     steps:
       - uses: actions/checkout@v7
@@ -43,22 +70,120 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Wait for Postgres + Redis & enable pg_stat_statements
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client redis-tools
+          export PGPASSWORD=porterchain
+          echo "Waiting for Postgres…"
+          until pg_isready -h 127.0.0.1 -U porterchain -d porterchain; do sleep 1; done
+          echo "Waiting for Redis…"
+          until redis-cli -h 127.0.0.1 ping | grep -q PONG; do sleep 1; done
+          # shared_preload_libraries requires restart (GHA services cannot pass -c)
+          psql -h 127.0.0.1 -U porterchain -d porterchain -c \
+            "ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';"
+          docker restart porterchain-ci-postgres
+          for i in $(seq 1 60); do
+            if pg_isready -h 127.0.0.1 -U porterchain -d porterchain; then break; fi
+            sleep 1
+          done
+          psql -h 127.0.0.1 -U porterchain -d porterchain -c \
+            "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+          redis-cli -h 127.0.0.1 ping
+
+      - name: Start GTA Valhalla stub
+        run: |
+          test -f scripts/ci_valhalla_stub.py || {
+            echo "Missing scripts/ci_valhalla_stub.py — was it committed?" >&2
+            exit 1
+          }
+          # Bind 0.0.0.0 so health checks and httpx both reach the stub
+          nohup python scripts/ci_valhalla_stub.py --host 0.0.0.0 --port 8002 \
+            > /tmp/ci-valhalla-stub.log 2>&1 &
+          echo $! > /tmp/ci-valhalla-stub.pid
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8002/status | grep -qi tile; then
+              echo "Valhalla stub ready (GTA ~150 km)"
+              curl -sf http://127.0.0.1:8002/status
+              exit 0
+            fi
+            sleep 0.5
+          done
+          echo "Valhalla stub failed to start:" >&2
+          cat /tmp/ci-valhalla-stub.log >&2 || true
+          exit 1
+
       - name: Alembic upgrade head
         working-directory: apps/api
-        env:
-          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
-          APP_ENV: local
-          CLERK_DEV_BYPASS: "true"
         run: |
           export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
           alembic upgrade head
 
-      - name: D3 static + E2E phases
+      - name: Seed merchant + pricing + admin for E2E
         working-directory: apps/api
-        env:
-          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
-          APP_ENV: local
-          CLERK_DEV_BYPASS: "true"
         run: |
           export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          # Retail + merchant tariffs, admin, then merchant user (phase_3 BLOCKER without these)
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+
+          from porterchain_api.db import SessionLocal, init_db
+          from porterchain_api.domain.merchant_states import MerchantStatus
+          from porterchain_api.merchant_models import Merchant, MerchantUser
+
+          path = Path("scripts/seed_local_dev.py")
+          spec = importlib.util.spec_from_file_location("seed_local_dev", path)
+          mod = importlib.util.module_from_spec(spec)
+          assert spec.loader is not None
+          spec.loader.exec_module(mod)
+
+          init_db()
+          with SessionLocal() as db:
+              mod.ensure_pricing_tariff(db)
+              mod.ensure_admin(db)
+              print("admin + pricing tariffs ready")
+          PY
+          python scripts/seed_dev_portal_users.py
+          python - <<'PY'
+          """Fail the job early if phase_3 would BLOCKER on missing merchant."""
+          from porterchain_api.db import SessionLocal
+          from porterchain_api.domain.merchant_states import MerchantStatus
+          from porterchain_api.merchant_models import Merchant, MerchantUser
+
+          with SessionLocal() as db:
+              row = (
+                  db.query(MerchantUser, Merchant)
+                  .join(Merchant, Merchant.id == MerchantUser.merchant_id)
+                  .filter(
+                      MerchantUser.is_active.is_(True),
+                      Merchant.status == MerchantStatus.ACTIVE.value,
+                  )
+                  .first()
+              )
+              if not row:
+                  raise SystemExit("SEED FAILED: no active MerchantUser — phase_3 would BLOCKER")
+              user, merchant = row
+              print(f"SEED OK: merchant={merchant.company_name} user={user.email} status={merchant.status}")
+          PY
+
+      - name: Preflight Redis + Valhalla
+        run: |
+          redis-cli -h 127.0.0.1 ping | grep -q PONG
+          curl -sf http://127.0.0.1:8002/status | grep -qi tile
+          echo "Preflight OK: Redis + Valhalla stub"
+
+      - name: D3 static + E2E phases
+        working-directory: apps/api
+        run: |
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          # Prove env reached the process (PlatformSettings / publishers)
+          python - <<'PY'
+          from porterchain_shared.config.settings import get_platform_settings
+          s = get_platform_settings()
+          print(f"platform redis_url={s.redis_url}")
+          print(f"platform valhalla_url={s.valhalla_url}")
+          print(f"platform routing_engine={s.routing_engine}")
+          print(f"platform stripe_mock={s.stripe_mock}")
+          PY
           python scripts/verify_d3_matrix.py --e2e

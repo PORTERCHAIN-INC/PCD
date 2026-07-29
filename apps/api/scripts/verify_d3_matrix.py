@@ -238,6 +238,17 @@ def main() -> int:
             result = E2EValidationService().run_full(db, settings, cleanup=True, merchant_order_count=3)
         phases = result.get("phases", {})
         print(f"E2E overall: {result.get('overall')} (production_ready={result.get('production_ready')})")
+        for key, phase in phases.items():
+            overall = phase.get("overall", "?")
+            if overall in ("PASS", "WARNING"):
+                continue
+            print(f"  {key}: {overall}")
+            for step in phase.get("steps") or []:
+                if step.get("status") in ("FAIL", "BLOCKER"):
+                    cause = step.get("root_cause") or step.get("error") or ""
+                    print(f"    - {step.get('step')}: {step.get('status')} {cause}")
+            if phase.get("error"):
+                print(f"    - error: {phase['error']}")
 
     print("D3 Phase 1 feature matrix")
     print("=" * 72)
