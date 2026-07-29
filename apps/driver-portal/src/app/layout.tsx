@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AppClerkProvider from "@/components/providers/AppClerkProvider";
+import { AppClerkProvider, SessionContextProvider } from "@porterchain/auth";
 import { CommunicationsProvider } from "@/components/providers/CommunicationsProvider";
 import { GoogleMapsProvider } from "@porterchain/maps";
 import { publicEnv } from "@/lib/env";
@@ -17,10 +17,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" style={{ colorScheme: "light" }}>
       <body>
-        <AppClerkProvider>
-          <CommunicationsProvider>
-            <GoogleMapsProvider apiKey={publicEnv.googleMapsApiKey}>{children}</GoogleMapsProvider>
-          </CommunicationsProvider>
+        <AppClerkProvider
+          publishableKey={publicEnv.clerkPublishableKey}
+          signInUrl="/login"
+          afterSignOutUrl="/login"
+          fallbackRedirect="/"
+        >
+          <SessionContextProvider>
+            <CommunicationsProvider>
+              <GoogleMapsProvider apiKey={publicEnv.googleMapsApiKey}>
+                {children}
+              </GoogleMapsProvider>
+            </CommunicationsProvider>
+          </SessionContextProvider>
         </AppClerkProvider>
       </body>
     </html>

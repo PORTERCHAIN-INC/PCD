@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SignIn, useAuth } from "@clerk/nextjs";
@@ -45,14 +45,18 @@ function SignInContent() {
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
   const redirectUrl = searchParams.get("redirect_url") ?? "/onboarding";
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.replace(redirectUrl);
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      setChecking(false);
+      return;
     }
+    router.replace(redirectUrl);
   }, [isLoaded, isSignedIn, redirectUrl, router]);
 
-  if (!isLoaded || isSignedIn) {
+  if (!isLoaded || checking) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-bg">
         <p className="text-sm text-muted">Loading…</p>

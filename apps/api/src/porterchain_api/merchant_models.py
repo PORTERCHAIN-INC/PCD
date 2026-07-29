@@ -57,6 +57,10 @@ class MerchantUser(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
     clerk_user_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    # Phase 8 — internal UUID FK (nullable until backfill); clerk_user_id retained
+    porterchain_user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     email: Mapped[str] = mapped_column(String(320))
     role: Mapped[str] = mapped_column(String(32), default="merchant_ops")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

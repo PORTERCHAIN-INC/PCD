@@ -17,6 +17,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@googlemaps/markerclusterer": "^2.6.2",
+    "@porterchain/auth": "workspace:*",
     "@porterchain/config": "workspace:*",
     "@porterchain/ui": "workspace:*",
     "@sentry/nextjs": "^10.64.0",

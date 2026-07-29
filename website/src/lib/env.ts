@@ -40,8 +40,6 @@ export const publicEnv = {
   porterchainApiUrl: envText(process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL).replace(/\/$/, ""),
   clerkPublishableKey: envText(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY),
   contactEmail: envOr(process.env.NEXT_PUBLIC_CONTACT_EMAIL, "enterprise@porterchain.com"),
-  zohoSalesIqEnabled: process.env.NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED === "true",
-  zohoSalesIqWidgetCode: envText(process.env.NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE),
   gaMeasurementId: envText(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID),
   googleSiteVerification: envText(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION),
   /** Google Business Profile (Maps) public URL — set after claiming GBP. */
@@ -92,10 +90,6 @@ export function isPorterchainApiConfigured(): boolean {
 
 export function isClerkConfigured(): boolean {
   return publicEnv.clerkPublishableKey.length > 0;
-}
-
-export function isZohoSalesIqConfigured(): boolean {
-  return publicEnv.zohoSalesIqEnabled && publicEnv.zohoSalesIqWidgetCode.length > 0;
 }
 
 export function isDriverAppConfigured(): boolean {

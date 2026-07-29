@@ -1,6 +1,6 @@
 # ICP 15-second test log
 
-**Date:** 2026-07-11  
+**Date:** 2026-07-28  
 **Gate:** Wave 8 A+ · `docs/ICP.md` §15-second test  
 **Method:** Automated above-fold copy audit (`verify_icp_15_second_human_gate.py`) + founder visual sign-off
 

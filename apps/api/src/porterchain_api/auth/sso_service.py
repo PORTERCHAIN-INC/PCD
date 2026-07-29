@@ -16,12 +16,11 @@ from porterchain_api.auth.fleetbase_roles import (
     can_access_fleetbase_console,
     fleetbase_permissions_for_admin,
 )
-from porterchain_api.auth.principal_resolver import PrincipalResolver
+from porterchain_api.auth.persona_principal import resolve_persona_principal
 from porterchain_api.auth.user_sync_service import UserSyncService
 from porterchain_api.config import Settings
 from porterchain_api.identity_models import IdentityLink
 from porterchain_shared.auth.principal import AuthPrincipal
-from porterchain_shared.auth.roles import Permission
 from porterchain_shared.types.user_types import UserType
 
 logger = logging.getLogger(__name__)
@@ -31,11 +30,8 @@ SSO_ISSUER = "porterchain"
 
 
 class SsoService:
-    def __init__(self) -> None:
-        self._resolver = PrincipalResolver()
-
     def resolve_principal(self, db: Session, claims: ClerkClaims, settings: Settings | None = None) -> AuthPrincipal | None:
-        return self._resolver.resolve(db, claims, settings=settings)
+        return resolve_persona_principal(db, claims, settings=settings)
 
     def issue_sso_token(
         self,

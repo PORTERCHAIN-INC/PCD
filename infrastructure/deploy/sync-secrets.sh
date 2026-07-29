@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Sync production secrets to /opt/porterchain/.env (DD-14).
 #
+# Clerk: ONE app only — Platform (former Admin, clerk.admin.porterchain.com).
+# Canonical keys: CLERK_SECRET_KEY, CLERK_PUBLISHABLE_KEY, CLERK_JWKS_URL, CLERK_UNIFIED_MODE=true
+# Per-portal CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_* names are stripped from runtime .env.
+#
 # Modes:
 #   DOPPLER_TOKEN set  → download from Doppler (secret manager SSOT)
-#   otherwise          → write .env from CI env vars (legacy GitHub secrets)
+#   otherwise          → write .env from CI env vars (legacy / break-glass)
 #
 # Usage (on droplet):
 #   cd /opt/porterchain && bash sync-secrets.sh
@@ -23,29 +27,86 @@ REQUIRED_KEYS=(
   STRIPE_SECRET
   STRIPE_WEBHOOK_SECRET
   JWT_SECRET
+  SPICEDB_PRESHARED_KEY
+  CLERK_SECRET_KEY
+  CLERK_JWKS_URL
 )
 
+env_value() {
+  local key="$1"
+  local line
+  line="$(grep -E "^${key}=" .env 2>/dev/null | tail -n1 || true)"
+  printf '%s' "${line#*=}"
+}
+
+set_env_key() {
+  local key="$1"
+  local value="$2"
+  if grep -qE "^${key}=" .env 2>/dev/null; then
+    grep -v -E "^${key}=" .env > .env.tmp && mv .env.tmp .env
+  fi
+  printf '%s=%s\n' "$key" "$value" >> .env
+}
+
+# Promote Admin slot → Platform triad when triad is missing (Platform = Admin app).
+promote_platform_triad_from_admin() {
+  local sk pk jwks
+  sk="$(env_value CLERK_SECRET_KEY)"
+  pk="$(env_value CLERK_PUBLISHABLE_KEY)"
+  jwks="$(env_value CLERK_JWKS_URL)"
+
+  if [ -z "$sk" ]; then
+    sk="$(env_value CLERK_ADMIN_SECRET_KEY)"
+    [ -n "$sk" ] && set_env_key CLERK_SECRET_KEY "$sk"
+  fi
+  if [ -z "$pk" ]; then
+    pk="$(env_value CLERK_ADMIN_PUBLISHABLE_KEY)"
+    [ -n "$pk" ] && set_env_key CLERK_PUBLISHABLE_KEY "$pk"
+  fi
+  if [ -z "$jwks" ]; then
+    jwks="$(env_value CLERK_ADMIN_JWKS_URL)"
+    [ -n "$jwks" ] && set_env_key CLERK_JWKS_URL "$jwks"
+  fi
+}
+
+# Drop multi-app slot names so compose only sees Platform triad.
+strip_portal_clerk_slots() {
+  if grep -qE '^CLERK_(CUSTOMER|MERCHANT|ADMIN|DRIVER)_(SECRET_KEY|PUBLISHABLE_KEY|JWKS_URL)=' .env 2>/dev/null; then
+    grep -v -E '^CLERK_(CUSTOMER|MERCHANT|ADMIN|DRIVER)_(SECRET_KEY|PUBLISHABLE_KEY|JWKS_URL)=' .env > .env.tmp && mv .env.tmp .env
+    echo "Clerk: stripped per-portal slot keys (CUSTOMER/MERCHANT/ADMIN/DRIVER)"
+  fi
+}
+
+normalize_clerk_platform() {
+  promote_platform_triad_from_admin
+  strip_portal_clerk_slots
+  set_env_key CLERK_UNIFIED_MODE true
+}
+
 verify_clerk_env() {
-  local legacy=0 enterprise=1
-  if grep -qE '^CLERK_SECRET_KEY=.+' .env && grep -qE '^CLERK_JWKS_URL=.+' .env; then
-    legacy=1
+  local sk jwks pk
+  sk="$(env_value CLERK_SECRET_KEY)"
+  jwks="$(env_value CLERK_JWKS_URL)"
+  pk="$(env_value CLERK_PUBLISHABLE_KEY)"
+
+  if [ -z "$sk" ] || [ -z "$jwks" ]; then
+    echo "::error::Clerk: set CLERK_SECRET_KEY + CLERK_JWKS_URL (Platform / admin.porterchain.com only)" >&2
+    return 1
   fi
-  for portal in CUSTOMER MERCHANT ADMIN DRIVER; do
-    if ! grep -qE "^CLERK_${portal}_SECRET_KEY=.+" .env || ! grep -qE "^CLERK_${portal}_JWKS_URL=.+" .env; then
-      enterprise=0
-      break
-    fi
-  done
-  if [ "$legacy" -eq 1 ] || [ "$enterprise" -eq 1 ]; then
-    if [ "$enterprise" -eq 1 ]; then
-      echo "Clerk: enterprise (4 isolated apps)"
-    else
-      echo "Clerk: legacy single-app (migrate to CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_*)"
-    fi
-    return 0
+  if [[ "$sk" == sk_test_* ]] || [[ "$pk" == pk_test_* ]]; then
+    echo "::error::Clerk: test keys are not allowed in production (need sk_live_ / pk_live_)" >&2
+    return 1
   fi
-  echo "::error::Clerk: set CLERK_SECRET_KEY+CLERK_JWKS_URL or all per-portal secret+JWKS keys" >&2
-  return 1
+  if [[ "$sk" != sk_live_* ]]; then
+    echo "::error::Clerk: CLERK_SECRET_KEY must be sk_live_… (Platform)" >&2
+    return 1
+  fi
+  if [ -n "$pk" ] && [[ "$pk" != pk_live_* ]]; then
+    echo "::error::Clerk: CLERK_PUBLISHABLE_KEY must be pk_live_… (Platform)" >&2
+    return 1
+  fi
+  echo "Clerk: Platform triad only (admin.porterchain.com / clerk.admin.porterchain.com)"
+  return 0
 }
 
 write_firebase_file() {
@@ -95,8 +156,9 @@ strip_inline_firebase_from_env() {
 
 verify_env() {
   local missing=0
+  local key
   for key in "${REQUIRED_KEYS[@]}"; do
-    if ! grep -q "^${key}=" .env; then
+    if ! grep -qE "^${key}=.+" .env; then
       echo "::error::missing required secret key: ${key}" >&2
       missing=1
     fi
@@ -118,34 +180,27 @@ if [ -n "${DOPPLER_TOKEN:-}" ]; then
     > .env
   extract_firebase_from_env
   strip_inline_firebase_from_env
-  # Drop legacy single-app Clerk keys from generated .env when enterprise keys are present.
-  if grep -qE '^CLERK_CUSTOMER_SECRET_KEY=.+' .env && grep -qE '^CLERK_CUSTOMER_JWKS_URL=.+' .env; then
-    grep -v -E '^(CLERK_SECRET_KEY|CLERK_PUBLISHABLE_KEY|CLERK_JWKS_URL)=' .env > .env.tmp && mv .env.tmp .env
-    echo "Clerk: stripped legacy keys from .env (prune Doppler: scripts/prune-legacy-clerk-doppler.sh)"
-  fi
+  normalize_clerk_platform
   echo "Secrets synced from Doppler (${DOPPLER_PROJECT:-pcd}/${DOPPLER_CONFIG:-prd})"
 else
+  # Break-glass: Platform triad only (optional Admin names as fallback source).
+  CLERK_SECRET_KEY="${CLERK_SECRET_KEY:-${CLERK_ADMIN_SECRET_KEY:-}}"
+  CLERK_PUBLISHABLE_KEY="${CLERK_PUBLISHABLE_KEY:-${CLERK_ADMIN_PUBLISHABLE_KEY:-}}"
+  CLERK_JWKS_URL="${CLERK_JWKS_URL:-${CLERK_ADMIN_JWKS_URL:-}}"
   cat > .env <<EOF
 GOOGLE_MAPS_SERVER_API_KEY=${GOOGLE_MAPS_SERVER_API_KEY:-}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}
+CLERK_SECRET_KEY=${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform) is required}
 CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY:-}
-CLERK_JWKS_URL=${CLERK_JWKS_URL:-}
-CLERK_CUSTOMER_SECRET_KEY=${CLERK_CUSTOMER_SECRET_KEY:-}
-CLERK_CUSTOMER_PUBLISHABLE_KEY=${CLERK_CUSTOMER_PUBLISHABLE_KEY:-}
-CLERK_CUSTOMER_JWKS_URL=${CLERK_CUSTOMER_JWKS_URL:-}
-CLERK_MERCHANT_SECRET_KEY=${CLERK_MERCHANT_SECRET_KEY:-}
-CLERK_MERCHANT_PUBLISHABLE_KEY=${CLERK_MERCHANT_PUBLISHABLE_KEY:-}
-CLERK_MERCHANT_JWKS_URL=${CLERK_MERCHANT_JWKS_URL:-}
-CLERK_ADMIN_SECRET_KEY=${CLERK_ADMIN_SECRET_KEY:-}
-CLERK_ADMIN_PUBLISHABLE_KEY=${CLERK_ADMIN_PUBLISHABLE_KEY:-}
-CLERK_ADMIN_JWKS_URL=${CLERK_ADMIN_JWKS_URL:-}
-CLERK_DRIVER_SECRET_KEY=${CLERK_DRIVER_SECRET_KEY:-}
-CLERK_DRIVER_PUBLISHABLE_KEY=${CLERK_DRIVER_PUBLISHABLE_KEY:-}
-CLERK_DRIVER_JWKS_URL=${CLERK_DRIVER_JWKS_URL:-}
+CLERK_JWKS_URL=${CLERK_JWKS_URL:?CLERK_JWKS_URL (Platform) is required}
+CLERK_UNIFIED_MODE=true
 STRIPE_SECRET=${STRIPE_SECRET:?STRIPE_SECRET is required}
 STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:?STRIPE_WEBHOOK_SECRET is required}
 JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+SPICEDB_PRESHARED_KEY=${SPICEDB_PRESHARED_KEY:?SPICEDB_PRESHARED_KEY is required}
+SPICEDB_ENABLED=${SPICEDB_ENABLED:-true}
+SPICEDB_REQUIRED=${SPICEDB_REQUIRED:-true}
+SPICEDB_ENDPOINT=${SPICEDB_ENDPOINT:-spicedb:50051}
 SENTRY_DSN=${SENTRY_DSN:-}
 CORS_ORIGINS=https://porterchain.com,https://www.porterchain.com,https://admin.porterchain.com,https://merchant.porterchain.com,https://driver.porterchain.com,https://customer.porterchain.com
 FLEETBASE_DISPATCH_BRIDGE=${FLEETBASE_DISPATCH_BRIDGE:-false}

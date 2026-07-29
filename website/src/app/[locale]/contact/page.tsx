@@ -17,6 +17,7 @@ import { TrendingUp, Headphones, Building2, Truck, Code2 } from "lucide-react";
 import { JsonLd } from "@/components/seo";
 import { buildLocalBusinessSchema } from "@/lib/seo/schema";
 import SlaResponseCountdown from "@/components/seo/SlaResponseCountdown";
+import { cn } from "@/lib/utils";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -62,6 +63,9 @@ export default async function ContactPage({ params, searchParams }: Props) {
   const isQuote = intent === "quote";
   const heroTitle = isQuote ? t("heroQuote.title") : t("hero.title");
   const heroSubtitle = isQuote ? t("heroQuote.subtitle") : t("hero.subtitle");
+  const quoteTrust = isQuote
+    ? [t("heroQuote.trust1"), t("heroQuote.trust2"), t("heroQuote.trust3")]
+    : undefined;
 
   const departmentCards = DEPT_ICONS.map((icon, i) => ({
     title: t(`departments.items.${i}.title`),
@@ -74,35 +78,78 @@ export default async function ContactPage({ params, searchParams }: Props) {
   return (
     <CorporateShell>
       <JsonLd data={buildLocalBusinessSchema()} />
-      <ContactHero badge={t("hero.badge")} title={heroTitle} subtitle={heroSubtitle} />
+      <ContactHero
+        badge={isQuote ? t("heroQuote.badge") : t("hero.badge")}
+        title={heroTitle}
+        subtitle={heroSubtitle}
+        variant={isQuote ? "quote" : "default"}
+        trustItems={quoteTrust}
+      />
 
-      {isQuote && (
-        <section className="site-section bg-white pt-0 pb-0">
+      {isQuote ? (
+        <section className="relative z-10 -mt-8 pb-4">
           <Container size="narrow">
-            <SlaResponseCountdown
-              locale={locale}
-              label={locale === "fr" ? "Réponse au devis d'ici" : "Quote response by"}
-              expiredLabel={
-                locale === "fr"
-                  ? "Prochaine fenêtre de réponse imminente"
-                  : "Next response window opens soon"
-              }
-            />
+            <div className="rounded-2xl border border-primary/8 bg-white/95 px-4 py-3 shadow-lg shadow-primary/5 backdrop-blur-md">
+              <SlaResponseCountdown
+                locale={locale}
+                label={locale === "fr" ? "Réponse au devis d'ici" : "Quote response by"}
+                expiredLabel={
+                  locale === "fr"
+                    ? "Prochaine fenêtre de réponse imminente"
+                    : "Next response window opens soon"
+                }
+              />
+            </div>
           </Container>
         </section>
-      )}
+      ) : null}
 
-      <section className="site-section bg-white -mt-2 relative z-10">
+      <section
+        className={cn(
+          "relative z-10",
+          isQuote ? "bg-[#F4F6FA] pb-16 pt-6 sm:pb-20 sm:pt-8" : "site-section bg-white -mt-2"
+        )}
+      >
         <Container>
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+          <div
+            className={cn(
+              "grid items-start gap-10 lg:gap-12",
+              isQuote
+                ? "lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"
+                : "lg:grid-cols-2 lg:gap-16"
+            )}
+          >
             <FadeIn>
-              <ContactInfoPanel info={contactInfo} />
-              <GoogleBusinessProfileLink
-                variant="contact"
-                className="mt-6"
-                label={tInfo("googleBusinessLabel")}
-                reviewLabel={tInfo("googleReviewLabel")}
-              />
+              {isQuote ? (
+                <div className="rounded-3xl border border-primary/8 bg-white p-6 shadow-sm sm:p-8">
+                  <p className="pc-eyebrow text-secondary">{t("heroQuote.sideEyebrow")}</p>
+                  <h2 className="mt-2 text-xl font-semibold tracking-tight text-primary sm:text-2xl">
+                    {t("heroQuote.sideTitle")}
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
+                    {t("heroQuote.sideBody")}
+                  </p>
+                  <div className="mt-6 border-t border-primary/6 pt-4">
+                    <ContactInfoPanel info={contactInfo} />
+                  </div>
+                  <GoogleBusinessProfileLink
+                    variant="contact"
+                    className="mt-4"
+                    label={tInfo("googleBusinessLabel")}
+                    reviewLabel={tInfo("googleReviewLabel")}
+                  />
+                </div>
+              ) : (
+                <>
+                  <ContactInfoPanel info={contactInfo} />
+                  <GoogleBusinessProfileLink
+                    variant="contact"
+                    className="mt-6"
+                    label={tInfo("googleBusinessLabel")}
+                    reviewLabel={tInfo("googleReviewLabel")}
+                  />
+                </>
+              )}
             </FadeIn>
             <FadeIn delay={0.1}>
               <ContactInquiryForm intent={intent} attributionFrom={from} />
@@ -111,17 +158,19 @@ export default async function ContactPage({ params, searchParams }: Props) {
         </Container>
       </section>
 
-      <ContactDepartmentCards
-        label={t("departments.label")}
-        title={t("departments.title")}
-        items={departmentCards}
-      />
+      {!isQuote ? (
+        <ContactDepartmentCards
+          label={t("departments.label")}
+          title={t("departments.title")}
+          items={departmentCards}
+        />
+      ) : null}
 
       <FaqSection
         label={t("faq.label")}
         title={t("faq.title")}
         items={collectFaqItems(t, "faq.items", 5)}
-        className="bg-white"
+        className={isQuote ? "bg-white" : "bg-white"}
       />
 
       <ContactSocialBar label={t("social.label")} title={t("social.title")} />

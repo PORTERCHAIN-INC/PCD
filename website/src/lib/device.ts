@@ -1,6 +1,6 @@
 /**
  * Detect phone browsers (not tablets/desktop) where WhatsApp deep links
- * are the preferred live-chat surface over Zoho SalesIQ.
+ * are the preferred live-chat surface (desktop uses the on-site Logistics line).
  */
 export function isMobilePhoneBrowser(): boolean {
   if (typeof navigator === "undefined") return false;

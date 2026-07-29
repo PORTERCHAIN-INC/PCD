@@ -1,4 +1,11 @@
-"""Admin portal RBAC per ROLE_PERMISSIONS.md § admin modules."""
+"""Admin portal module catalog + SpiceDB Check helpers.
+
+``MODULE_PERMISSIONS`` is the **role→module catalog** used to:
+- expand ``schema.zed`` platform permissions (via ``platform_roles``)
+- project UX module lists (authorize responses, nav hints)
+
+It is **not** the authorization Check SoT — ``require_module`` Checks SpiceDB only.
+"""
 
 from dataclasses import dataclass
 
@@ -167,10 +174,24 @@ MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
 
 
 def require_module(ctx: AdminContext, module: str) -> None:
-    allowed = MODULE_PERMISSIONS.get(module, frozenset())
-    if ctx.role not in allowed:
-        raise PermissionError(f"admin_forbidden:{module}")
+    """Authorize admin module via SpiceDB only — no matrix fallback, no portal bypass."""
+    from porterchain_api.authz.client import get_authz_client
+    from porterchain_api.authz.tuples import PLATFORM_ID
 
+    user_id = getattr(ctx.user, "porterchain_user_id", None)
+    if not user_id:
+        raise PermissionError(f"admin_forbidden:{module}:unlinked_user")
+
+    client = get_authz_client()
+    # Check the exact module key (e.g. finance_read) — never OR with portal ``admin``.
+    if client.check(
+        resource_type="platform",
+        resource_id=PLATFORM_ID,
+        permission=module,
+        subject_id=user_id,
+    ):
+        return
+    raise PermissionError(f"admin_forbidden:{module}")
 
 def parse_admin_role(role_str: str) -> AdminRole:
     key = role_str.lower().replace(" ", "_")

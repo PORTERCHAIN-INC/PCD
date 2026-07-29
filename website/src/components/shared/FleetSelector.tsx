@@ -16,7 +16,7 @@ import {
 import Image from "next/image";
 import BorderBeam from "@/components/magic/border-beam";
 import FleetVehicleTab from "@/components/shared/FleetVehicleTab";
-import { FLEET_VEHICLE_ICONS } from "@/components/shared/FleetVehicleIcon";
+import { FLEET_VEHICLE_PHOTOS, fleetVehicleUsesPhoto } from "@/components/shared/FleetVehicleIcon";
 import { BUSINESS_FLEET_KEYS } from "@/data/business";
 import {
   FLEET_VEHICLE_SPECS,
@@ -90,13 +90,24 @@ function FleetThumbCard({
           : "border-primary/8 shadow-sm hover:border-secondary/25"
       )}
     >
-      <div className="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-[#eef4ff] via-white to-secondary/[0.08] p-4">
+      <div
+        className={cn(
+          "relative flex aspect-[4/3] items-center justify-center overflow-hidden",
+          fleetVehicleUsesPhoto(fleetKey)
+            ? "bg-[#eef2f7]"
+            : "bg-gradient-to-br from-[#eef4ff] via-white to-secondary/[0.08] p-4"
+        )}
+      >
         <Image
-          src={FLEET_VEHICLE_ICONS[fleetKey]}
+          src={FLEET_VEHICLE_PHOTOS[fleetKey]}
           alt=""
-          width={120}
-          height={120}
-          className="h-[72%] w-auto max-w-[85%] object-contain drop-shadow-md"
+          width={fleetVehicleUsesPhoto(fleetKey) ? 320 : 120}
+          height={fleetVehicleUsesPhoto(fleetKey) ? 180 : 120}
+          className={
+            fleetVehicleUsesPhoto(fleetKey)
+              ? "h-full w-full object-cover object-center"
+              : "h-[72%] w-auto max-w-[85%] object-contain drop-shadow-md"
+          }
         />
         {isActive ? (
           <span
@@ -265,23 +276,31 @@ export default function FleetSelector({
               </span>
             </div>
 
-            <div className="relative z-[1] flex flex-1 items-center justify-center px-6 pb-14 pt-12 sm:px-10 sm:pt-14">
+            <div className="relative z-[1] flex flex-1 items-center justify-center px-4 pb-14 pt-10 sm:px-8 sm:pt-12">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeKey}
-                  initial={{ opacity: 0, x: 36, scale: 0.9 }}
+                  initial={{ opacity: 0, x: 36, scale: 0.96 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: -28, scale: 0.92 }}
+                  exit={{ opacity: 0, x: -28, scale: 0.96 }}
                   transition={motionFast ?? { duration: 0.4, ease: easeOutQuart }}
-                  className="relative flex items-center justify-center"
+                  className={cn(
+                    "relative flex items-center justify-center",
+                    fleetVehicleUsesPhoto(activeKey) &&
+                      "w-full overflow-hidden rounded-2xl border border-primary/8 bg-white shadow-sm"
+                  )}
                 >
                   <Image
-                    src={FLEET_VEHICLE_ICONS[activeKey]}
+                    src={FLEET_VEHICLE_PHOTOS[activeKey]}
                     alt={t(`items.${activeKey}.name`)}
-                    width={420}
-                    height={420}
+                    width={fleetVehicleUsesPhoto(activeKey) ? 1024 : 420}
+                    height={fleetVehicleUsesPhoto(activeKey) ? 585 : 420}
                     priority
-                    className="h-auto w-[min(78vw,18rem)] sm:w-[min(42vw,22rem)] lg:w-[min(28vw,20rem)] object-contain drop-shadow-[0_18px_40px_rgba(15,23,42,0.18)]"
+                    className={
+                      fleetVehicleUsesPhoto(activeKey)
+                        ? "h-auto w-full max-h-[min(52vw,18rem)] sm:max-h-[min(36vw,20rem)] lg:max-h-[18rem] object-cover object-center"
+                        : "h-auto w-[min(78vw,18rem)] sm:w-[min(42vw,22rem)] lg:w-[min(28vw,20rem)] object-contain drop-shadow-[0_18px_40px_rgba(15,23,42,0.18)]"
+                    }
                   />
                 </motion.div>
               </AnimatePresence>

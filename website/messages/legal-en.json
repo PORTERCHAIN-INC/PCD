@@ -22,7 +22,7 @@
           "Payment information: billing details processed through Stripe (card data is handled by Stripe, not stored by Porterchain)",
           "Account and compliance data: merchant onboarding documents, tax identifiers, and insurance details",
           "Location data: GPS coordinates for driver tracking and proof of delivery",
-          "Communications: support inquiries, chat messages via Zoho SalesIQ, and email correspondence",
+          "Communications: support inquiries, on-site logistics chat messages, WhatsApp messages, and email correspondence",
           "Technical data: cookies and session identifiers from authentication and third-party services"
         ]
       },
@@ -50,7 +50,6 @@
           "Clerk — merchant and customer authentication",
           "Stripe — payment processing",
           "Google Maps — address autocomplete and mapping",
-          "Zoho SalesIQ — live chat support",
           "Zoho Mail — transactional email delivery",
           "Fleetbase and Porterchain API — dispatch, routing, and shipment operations"
         ]
@@ -170,7 +169,6 @@
           "Experience cookies — optional Clarity/Hotjar only if you allow Experience",
           "Authentication cookies — set by Clerk when you sign in or verify your account",
           "Preference cookies — such as language selection (English / French) and your cookie banner choices",
-          "Chat cookies — set by Zoho SalesIQ when the live chat widget is enabled",
           "Payment cookies — set by Stripe during checkout on tracking and billing pages",
           "Maps cookies — set by Google Maps when using address autocomplete or map features"
         ]
@@ -181,7 +179,6 @@
           "The following third-party services may load scripts or set cookies when you use our website:"
         ],
         "list": [
-          "Zoho SalesIQ (salesiq.zohopublic.com) — live chat support",
           "Clerk — authentication for retail booking, merchant portal, admin, and driver portals",
           "Google Maps (maps.googleapis.com) — address autocomplete and maps",
           "Stripe (stripe.com) — payment processing"
@@ -191,7 +188,7 @@
         "title": "Managing cookies",
         "paragraphs": [
           "You can control cookies through your browser settings. Blocking essential or authentication cookies may prevent you from booking deliveries, signing in, or completing payments.",
-          "To disable the Zoho SalesIQ chat widget, do not initiate a chat session or use browser extensions that block third-party scripts. You can always contact us by email or phone instead."
+          "On-site logistics chat runs on PorterChain infrastructure. On phones you may also open WhatsApp. You can always contact us by email or phone instead."
         ]
       },
       {

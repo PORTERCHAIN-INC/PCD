@@ -70,24 +70,6 @@ def settings_sections(
     return SETTINGS_SECTIONS
 
 
-@router.get("/settings/permissions")
-def settings_permissions(
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-):
-    require_module(ctx, "settings")
-    return _settings.permissions_matrix()
-
-
-@router.get("/settings/rbac")
-def settings_rbac(
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-):
-    require_module(ctx, "settings")
-    from porterchain_api.auth.enterprise_rbac import rbac_matrix
-
-    return rbac_matrix()
-
-
 @router.get("/settings/audit")
 def settings_audit(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],

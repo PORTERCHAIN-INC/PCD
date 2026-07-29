@@ -114,7 +114,7 @@ Server-only secrets: `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`.
 | Mobile apps               | `@clerk/clerk-expo`                 |
 | API                       | JWKS verification (`auth/clerk.py`) |
 
-Production: separate Clerk apps per user class (`CLERK_CUSTOMER_*`, `CLERK_MERCHANT_*`, etc.).
+Local/dev/prod: **unified Platform Clerk app only** (`CLERK_MODE=unified`; single `CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` / `CLERK_JWKS_URL` shared by all portals). Per-portal `CLERK_{PORTAL}_*` names are slot aliases filled from the Platform triad — `CLERK_MODE=enterprise` is retired. See [docs/runbooks/clerk-consolidation.md](./docs/runbooks/clerk-consolidation.md).
 
 ---
 

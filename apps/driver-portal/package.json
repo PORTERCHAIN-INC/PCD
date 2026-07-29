@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.14",
+    "@porterchain/auth": "workspace:*",
     "@porterchain/config": "workspace:*",
     "@porterchain/maps": "workspace:*",
     "@porterchain/ui": "workspace:*",

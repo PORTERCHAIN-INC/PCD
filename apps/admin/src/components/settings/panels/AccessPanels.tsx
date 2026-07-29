@@ -1014,84 +1014,35 @@ function ChangeRoleModal({
 }
 
 export function RolesPanel({
-  permissions,
-  roles,
+  permissions: _permissions,
+  roles: _roles,
 }: {
   permissions: Record<string, string[]>;
   roles: string[];
 }) {
-  const [view, setView] = useState<"modules" | "roles">("modules");
-
   return (
     <div className="space-y-6">
-      <SettingsPageHeader
-        title="Roles & permissions"
-        description={SECTION_DESCRIPTIONS.roles}
-        actions={
-          <div className="flex rounded-xl border border-primary/10 p-0.5">
-            {(["modules", "roles"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => setView(v)}
-                className={cn(
-                  "rounded-lg px-3 py-1.5 text-xs font-semibold capitalize",
-                  view === v ? "bg-secondary text-white" : "text-muted hover:text-primary"
-                )}
-              >
-                By {v}
-              </button>
-            ))}
-          </div>
-        }
-      />
+      <SettingsPageHeader title="Roles & permissions" description={SECTION_DESCRIPTIONS.roles} />
 
       <SettingsCard
-        title="Enterprise RBAC"
-        description="Porterchain owns authorization — Clerk Organizations are never used for access control"
+        title="SpiceDB authorization"
+        description="Clerk authenticates. SpiceDB (Zanzibar) authorizes. Postgres holds business data only."
       >
-        <div className="mb-4 flex flex-wrap gap-2">
-          {roles.map((r) => (
-            <Badge key={r} tone="violet">
-              {r.replace(/_/g, " ")}
-            </Badge>
-          ))}
-        </div>
-
-        {view === "modules" ? (
-          <div className="max-h-[28rem] overflow-auto rounded-xl border border-primary/10">
-            <table className="w-full text-xs">
-              <thead className="sticky top-0 bg-gray-bg">
-                <tr className="border-b border-primary/10 text-left">
-                  <th className="px-3 py-2 font-semibold text-primary">Admin module</th>
-                  <th className="px-3 py-2 font-semibold text-primary">Allowed roles</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(permissions).map(([mod, allowed]) => (
-                  <tr key={mod} className="border-b border-primary/5 hover:bg-secondary/5">
-                    <td className="px-3 py-2.5 font-mono font-medium text-primary">{mod}</td>
-                    <td className="px-3 py-2.5 text-muted">{allowed.join(" · ")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-sm text-muted">
-            {roles.length} enterprise roles mapped from admin_users.role and merchant_users.role.
-            Full matrix available via{" "}
-            <code className="rounded bg-gray-bg px-1">GET /v1/auth/rbac</code>.
-          </p>
-        )}
+        <p className="text-sm text-muted">
+          Access rules live in <code className="rounded bg-gray-bg px-1">authz/schema.zed</code>.
+          Session permissions come from{" "}
+          <code className="rounded bg-gray-bg px-1">GET /v1/auth/session-context</code>. The old
+          enterprise RBAC matrix and Postgres assignment tables are removed.
+        </p>
       </SettingsCard>
 
       <div className="flex items-start gap-3 rounded-xl border border-secondary/20 bg-secondary/5 p-4 text-sm">
         <Shield className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
         <p className="text-primary/80">
-          Every protected API route calls{" "}
-          <code className="rounded bg-white px-1">require_module()</code> server-side. Portal UI
-          gates are defense in depth only.
+          Protected routes call SpiceDB Check (via{" "}
+          <code className="rounded bg-white px-1">require_relation</code> /{" "}
+          <code className="rounded bg-white px-1">require_module</code>). Portal UI gates are
+          defense in depth only.
         </p>
       </div>
     </div>

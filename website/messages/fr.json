@@ -1,18 +1,18 @@
 {
   "metadata": {
-    "title": "Porterchain | Capacité de transport B2B dans le RGT et l'Ontario",
-    "description": "Capacité véhicule et chauffeur pour entreprises du RGT — livraison le jour même, débordement de flotte, routes récurrentes, logistique de chantier et distribution du dernier kilomètre à Toronto, Peel, York et Durham.",
-    "ogTitle": "Porterchain | Capacité de transport B2B — RGT et Ontario",
-    "ogDescription": "Chauffeurs professionnels et véhicules commerciaux pour débordement, urgence, routes de gros récurrentes et continuité d'affaires dans la région du Grand Toronto.",
+    "title": "PorterChain | Plateforme de logistique locale pour le RGT",
+    "description": "Gérez la logistique locale du RGT depuis une plateforme — devis, réservation, suivi, preuve de livraison, rapports, API et soutien logistique dédié, avec chauffeurs et véhicules professionnels.",
+    "ogTitle": "PorterChain | Plateforme opérationnelle de logistique locale — RGT",
+    "ogDescription": "Un compte affaires pour simplifier, automatiser et gérer la logistique locale à Toronto, Peel, York et Durham.",
     "keywords": [
-      "livraison B2B Toronto",
-      "livraison dernier kilomètre RGT",
+      "logistique locale RGT",
+      "plateforme logistique affaires Toronto",
       "livraison jour même entreprise Toronto",
       "capacité débordement flotte RGT",
-      "service livraison commerciale Ontario",
+      "preuve de livraison RGT",
       "livraison chantier Toronto",
       "distribution gros RGT",
-      "réseau capacité transport",
+      "compte affaires PorterChain",
       "Porterchain"
     ]
   },
@@ -37,33 +37,29 @@
     }
   },
   "homeChooser": {
-    "eyebrow": "Porterchain · RGT et Ontario",
-    "headline": "Demandez la capacité dont vous avez besoin — obtenez la prochaine étape claire.",
-    "subtitle": "Pas une visite logicielle. Posez vos questions sur le débordement jour même, les véhicules, les industries ou la tarification — puis passez au devis ou au parcours marchand.",
-    "trustLine": "Sur devis · Suivi en direct et preuve · Réponse en un jour ouvrable",
-    "merchants": {
-      "title": "Marchands",
-      "body": "Demandez de la capacité pour la construction, le gros, le médical et la distribution — sur devis selon véhicule, itinéraire et urgence.",
-      "cta": "Marchands"
-    },
-    "drivers": {
-      "title": "Chauffeurs",
-      "body": "Apportez un véhicule admissible au réseau — routes structurées, instructions claires, portail dédié.",
-      "cta": "Chauffeurs"
-    },
+    "eyebrow": "PorterChain · Grand Toronto",
+    "headline": "Gérez votre logistique locale depuis une seule plateforme.",
+    "subtitle": "PorterChain aide les entreprises à gérer la logistique locale avec transport, logiciel, IA et soutien opérationnel — le tout via un compte affaires.",
+    "primaryCta": "Obtenir un compte affaires",
+    "primaryCtaHint": "Accédez aux devis instantanés, réservations, suivi, preuve de livraison, rapports et plus.",
+    "secondaryCta": "Parler à un spécialiste logistique",
+    "trustLine": "Conçu pour fabricants, distributeurs, entrepreneurs, grossistes, détaillants et entreprises en croissance dans le RGT.",
     "guide": {
       "ariaLabel": "Chat guide de capacité",
-      "title": "Ligne capacité",
-      "status": "En direct · Réseau RGT",
-      "hint": "Propulsé par Groq · ancré dans la capacité Porterchain",
+      "title": "Ligne logistique",
+      "status": "En direct · RGT",
+      "hint": "Demandez comment gérer la logistique locale sur une plateforme",
+      "launcherLabel": "Chat",
+      "launcherAria": "Ouvrir le chat logistique PorterChain",
+      "closeAria": "Fermer le chat logistique",
       "thinking": "Réflexion…",
-      "error": "La ligne capacité est indisponible pour le moment. Réessayez, ou demandez un devis et nous vous répondrons.",
-      "guideName": "Porterchain",
+      "error": "La ligne logistique est indisponible pour le moment. Réessayez, ou parlez à un spécialiste et nous vous répondrons.",
+      "guideName": "PorterChain",
       "you": "Vous",
-      "welcome": "Posez vos questions sur la capacité de relève — débordement jour même, classes de véhicules, industries desservies ou fonctionnement des devis. Je peux aussi enregistrer vos coordonnées et réserver un appel avec l'équipe.",
-      "fallback": "Je peux aider sur la tarification, les industries, les véhicules, le débordement jour même, la capacité marchande ou l'adhésion chauffeur. Essayez une suggestion ci-dessous — ou demandez un devis écrit et nous cartographierons vos corridors.",
+      "welcome": "Posez toute question sur la logistique locale du RGT — devis, réservation, suivi, preuve de livraison, véhicules avec chauffeurs, industries, tarification ou comptes affaires. Pour vous proposer des options sur vos corridors, j'aurai aussi besoin de votre courriel professionnel et de votre cellulaire.",
+      "fallback": "Je peux aider sur la tarification, les industries, les véhicules avec chauffeurs, le débordement jour même, les comptes affaires ou l'adhésion chauffeur. Indiquez votre courriel professionnel et votre cellulaire pour qu'un spécialiste vous suive — ou essayez une suggestion.",
       "tryAsking": "Essayez de demander",
-      "placeholder": "Demandez capacité, tarification, véhicules…",
+      "placeholder": "Demandez logistique locale, réservation, véhicules…",
       "send": "Envoyer",
       "toolContactSaved": "Coordonnées enregistrées",
       "toolContactUpdated": "Coordonnées mises à jour",
@@ -78,10 +74,10 @@
       "toolDenyBook": "Annuler",
       "toolAwaitingApproval": "Confirmer cette réservation?",
       "toolWorking": "En cours…",
-      "toolFailed": "Étape impossible — réessayez ou demandez un devis.",
+      "toolFailed": "Étape impossible — réessayez ou parlez à un spécialiste.",
       "actions": {
-        "quote": "Demander un devis",
-        "merchants": "Capacité marchande",
+        "quote": "Parler à un spécialiste",
+        "merchants": "Obtenir un compte affaires",
         "drivers": "Partenaires chauffeurs",
         "pricing": "Comment fonctionne la tarification",
         "industries": "Industries desservies",
@@ -89,75 +85,123 @@
       },
       "topics": {
         "what": {
-          "prompt": "Qu'est-ce que Porterchain?",
-          "answer": "Porterchain est un réseau de capacité de transport pour les entreprises de l'Ontario. Vous achetez de la capacité véhicule et chauffeur pour débordement, jour même et corridors récurrents — pas un siège SaaS. Le logiciel et la répartition restent en coulisse pour que vos clients reçoivent toujours la livraison."
+          "prompt": "Qu'est-ce que PorterChain?",
+          "answer": "PorterChain est la plateforme opérationnelle qui aide les entreprises à simplifier, automatiser et gérer la logistique locale. Derrière cette promesse : chauffeurs et véhicules professionnels, outils portail affaires, assistance IA, API et soutien logistique dédié dans le RGT."
         },
         "pricing": {
           "prompt": "Comment fonctionne la tarification?",
-          "answer": "La tarification est sur devis selon la classe de véhicule, la distance, les arrêts et l'urgence (jour même vs planifié). Vous payez la capacité exécutée — pas des sièges logiciels. Nous confirmons capacité et prix par écrit avant l'expédition."
+          "answer": "La tarification est sur devis selon la classe de véhicule, la distance, les arrêts et l'urgence (jour même vs planifié). Votre compte affaires regroupe devis, réservation, suivi et preuve — nous confirmons capacité de transport et prix par écrit avant l'expédition."
         },
         "industries": {
           "prompt": "Quelles industries desservez-vous?",
-          "answer": "Nous soutenons les opérations B2B du RGT en construction, gros, médical et pharmacie, fabrication, distribution détaillant, et plus. Ouvrez la page marchands pour les playbooks sectoriels et un devis de capacité."
+          "answer": "Fabrication, construction, fournitures industrielles, électrique, CVC, plomberie, médical, détail et gros dans le RGT. PorterChain s'adapte à la façon dont votre équipe ops travaille."
         },
         "sameday": {
           "prompt": "Couvrez-vous le débordement jour même?",
-          "answer": "Oui — la capacité urgente et jour même est un cas d'usage central quand un chauffeur est absent, un camion est immobilisé ou la demande explose. Indiquez ramassage, livraison, véhicule et fenêtre — nous confirmons la disponibilité."
+          "answer": "Oui — capacité de transport urgente et jour même dans le RGT quand un chauffeur est absent, un camion est immobilisé ou la demande explose. Réservez depuis votre compte affaires ou parlez à un spécialiste avec ramassage, livraison, véhicule et fenêtre."
         },
         "vehicles": {
           "prompt": "Quels véhicules sont disponibles?",
-          "answer": "Berline, VUS, camionnette, fourgonnette cargo, Sprinter et camions cubes — adaptés à la charge, à l'accès et à l'urgence. Les classes actuelles roulent avec un permis G ontarien standard. Voir la flotte sur la page marchands ou demander un devis."
+          "answer": "Berline, VUS, camionnette, fourgonnette cargo, Sprinter et camions cubes — chacun avec chauffeur professionnel, adaptés à la charge, à l'accès et à l'urgence. Le transport est une couche de la plateforme; voir la flotte sur la page affaires."
         },
         "merchants": {
-          "prompt": "J'ai besoin de capacité pour mon entreprise",
-          "answer": "La capacité marchande s'adresse aux expéditeurs qui ont besoin d'une couverture véhicule et chauffeur fiable — courses urgentes ponctuelles, routes récurrentes ou débordement de flotte. Commencez sur le hub marchands ou demandez un devis avec vos corridors."
+          "prompt": "J'ai besoin d'un compte affaires",
+          "answer": "Un compte affaires PorterChain permet à votre équipe ops de générer des devis, réserver des livraisons, suivre les envois, télécharger la preuve de livraison, consulter les rapports et se connecter via API — avec soutien logistique dédié. Commencez sur le hub affaires ou parlez à un spécialiste."
         },
         "drivers": {
           "prompt": "Comment devenir chauffeur partenaire?",
-          "answer": "Les partenaires véhicules admissibles rejoignent le réseau pour des routes structurées, des instructions claires et un portail chauffeur dédié. Ouvrez le hub chauffeurs pour postuler — nous examinerons l'adéquation du véhicule et les prochaines étapes."
+          "answer": "Les partenaires véhicules admissibles rejoignent le réseau du RGT pour des routes structurées, des instructions claires et un portail chauffeur dédié. Ouvrez le hub chauffeurs pour postuler — nous examinerons l'adéquation du véhicule et les prochaines étapes."
         },
         "areas": {
           "prompt": "Où opérez-vous?",
-          "answer": "La couverture principale est le Grand Toronto et les métropoles de l'Ontario. Indiquez vos corridors lors de la demande de devis pour confirmer l'adéquation."
+          "answer": "Nous nous concentrons sur le Grand Toronto — Toronto, Peel, York et Durham. Indiquez vos corridors lors de l'ouverture d'un compte affaires ou d'un appel avec un spécialiste."
         },
         "tracking": {
           "prompt": "Fournissez-vous suivi et preuve?",
-          "answer": "Oui — statut en direct, suivi partageable et preuve de livraison (photo / signature selon entente) pour que les ops et vos clients restent alignés après le transfert."
+          "answer": "Oui — suivi en direct et preuve de livraison (photo / signature selon entente) font partie de la plateforme affaires pour que les ops et vos clients restent alignés après chaque transfert."
         },
         "start": {
           "prompt": "Comment commencer?",
-          "answer": "Demandez un devis avec quoi transporter, où et quand — ou ouvrez le hub marchands pour flotte, industries et options de facturation. Nous répondons avec des options de capacité, pas une démo logicielle."
+          "answer": "Obtenez un compte affaires pour gérer la logistique locale depuis une plateforme — ou parlez à un spécialiste logistique. Nous cartographierons devis, réservation, suivi et capacité de transport sur vos corridors du RGT."
         }
       }
     },
-    "why": {
-      "eyebrow": "Pourquoi les entreprises utilisent le réseau",
-      "title": "Du débordement qui protège vos corridors — et votre réputation.",
-      "scale": {
-        "title": "Montez en charge au bon moment",
-        "body": "Ajoutez fourgonnettes et camions cubes avec chauffeurs dès que votre capacité interne est pleine — sans acheter un camion pour une semaine de pointe."
-      },
-      "care": {
-        "title": "Tenez vos promesses clients",
-        "body": "Transférez les courses de débordement sans transférer la confiance. Preuve de livraison et passations claires gardent votre marque dans la boucle."
-      },
-      "visibility": {
-        "title": "Voyez chaque kilomètre en plus",
-        "body": "Statut et suivi sur les arrêts ajoutés au réseau — pour que les ops sachent où est la capacité, pas seulement qu'elle a quitté le dépôt."
+    "ops": {
+      "eyebrow": "Boîte à outils ops",
+      "title": "Tout ce dont votre équipe opérations a besoin.",
+      "items": {
+        "quotes": "Devis instantanés",
+        "book": "Réserver des livraisons",
+        "tracking": "Suivi en direct",
+        "pod": "Preuve de livraison",
+        "dashboard": "Tableau de bord affaires",
+        "api": "Intégrations API",
+        "ai": "Assistance IA",
+        "support": "Soutien logistique dédié"
       }
     },
-    "serve": {
-      "eyebrow": "Industries et tarification",
-      "title": "Conçu pour le B2B du RGT — tarifé pour la capacité, pas des sièges logiciels.",
-      "industries": "Construction · gros · médical · fabrication · distribution détaillant",
-      "pricing": "Les devis cumulent classe de véhicule, distance, arrêts et urgence. Confirmés par écrit avant l'expédition.",
-      "industriesCta": "Parcourir les industries",
-      "pricingCta": "Voir comment fonctionne la tarification"
+    "control": {
+      "eyebrow": "Compte affaires",
+      "title": "Un compte affaires. Contrôle complet.",
+      "subtitle": "Gérez chaque envoi depuis une seule plateforme.",
+      "items": {
+        "quotes": "Générer des devis instantanés",
+        "book": "Réserver des livraisons en quelques secondes",
+        "track": "Suivre les envois en temps réel",
+        "pod": "Télécharger la preuve de livraison",
+        "reports": "Consulter factures et rapports",
+        "api": "Connecter votre entreprise via API",
+        "team": "Travailler avec une équipe logistique dédiée"
+      }
+    },
+    "pillars": {
+      "eyebrow": "Comment PorterChain fonctionne",
+      "title": "Le transport n'est que le début.",
+      "subtitle": "PorterChain combine transport, logiciel, IA, opérations et technologie — pour que votre équipe achète une capacité opérationnelle, pas seulement des camions.",
+      "transportation": {
+        "title": "Transport",
+        "body": "Chauffeurs professionnels et véhicules de la berline au camion cube."
+      },
+      "software": {
+        "title": "Logiciel",
+        "body": "Portail affaires, gestion des envois, rapports et automatisation des flux."
+      },
+      "ai": {
+        "title": "IA",
+        "body": "Assistance intelligente pour simplifier les opérations logistiques."
+      },
+      "operations": {
+        "title": "Opérations",
+        "body": "Soutien logistique dédié, conseils de conformité et expertise opérationnelle."
+      },
+      "technology": {
+        "title": "Technologie",
+        "body": "Intégrations sur mesure, API et fonctionnalités adaptées à votre entreprise."
+      }
+    },
+    "industries": {
+      "eyebrow": "Qui nous servons",
+      "title": "Conçu pour les entreprises qui bougent.",
+      "subtitle": "Que vous opériez dans l'un de ces secteurs :",
+      "closing": "PorterChain s'adapte à la façon dont votre entreprise travaille.",
+      "cta": "Parcourir les industries",
+      "items": {
+        "manufacturing": "Fabrication",
+        "construction": "Construction",
+        "industrial": "Fournitures industrielles",
+        "electrical": "Distribution électrique",
+        "hvac": "CVC",
+        "plumbing": "Plomberie",
+        "medical": "Médical",
+        "retail": "Détail",
+        "wholesale": "Gros"
+      }
     },
     "ready": {
-      "title": "Besoin de capacité de relève sur vos corridors?",
-      "body": "Dites-nous quoi transporter, où et quand. Nous revenons avec des options véhicule et chauffeur — pas une démo logicielle.",
-      "cta": "Demander un devis"
+      "title": "Prêt à moderniser votre logistique locale?",
+      "body": "Créez votre compte affaires PorterChain et commencez à gérer le transport via une plateforme intelligente.",
+      "highlight": "Une plateforme. Contrôle complet.",
+      "secondaryCta": "Parler à un spécialiste logistique"
     }
   },
   "marketing": {
@@ -175,12 +219,12 @@
     }
   },
   "login": {
-    "title": "Connexion client",
-    "eyebrow": "Choisissez votre portail",
-    "headline": "Connectez-vous à votre portail Porterchain.",
-    "subtitle": "Les clients se connectent ici. Marchands, chauffeurs et personnel utilisent les liens ci-dessous — chaque portail a sa propre connexion sécurisée.",
-    "roleNote": "Comptes clients seulement. Utilisez le sélecteur de portail pour l'accès marchand, chauffeur ou personnel.",
-    "trustLine": "Connexions de portail isolées · Authentification sécurisée",
+    "title": "Connexion",
+    "eyebrow": "Porterchain",
+    "headline": "Connectez-vous à Porterchain.",
+    "subtitle": "Utilisez votre compte Porterchain. Après la connexion, vous êtes dirigé vers le portail pour lequel vous êtes provisionné.",
+    "roleNote": "Authentifié par Clerk. L'accès est décidé par les rôles Porterchain.",
+    "trustLine": "Authentification sécurisée · Accès selon le rôle",
     "needHelp": "Besoin d'un compte?",
     "needHelpLink": "Contacter le soutien",
     "roles": {
@@ -194,7 +238,7 @@
       },
       "customer": {
         "title": "Clients",
-        "description": "Connectez-vous avec le formulaire de cette page"
+        "description": "Livraisons et factures"
       },
       "staff": {
         "title": "Opérations",
@@ -202,11 +246,11 @@
       }
     },
     "redirecting": "Ouverture de votre portail…",
-    "notProvisioned": "Cette connexion du site est réservée aux clients. Le personnel se connecte au portail Admin; les marchands et chauffeurs utilisent leur propre portail. Si vous avez été invité comme client, utilisez le lien dans le courriel d'invitation.",
+    "notProvisioned": "Ce compte est connecté mais pas encore provisionné pour un portail Porterchain. Contactez le soutien si vous attendiez un accès.",
     "staffSignIn": "Connexion personnel / admin",
     "merchantSignIn": "Connexion marchand",
     "driverSignIn": "Connexion chauffeur",
-    "identityConflict": "Ce compte est lié à plusieurs types de portail. Utilisez des courriels distincts pour le personnel et les clients, ou contactez le soutien.",
+    "identityConflict": "Ce compte nécessite de l'aide pour terminer le provisionnement. Contactez-nous avec le courriel utilisé pour vous connecter.",
     "error": "Impossible de vous connecter. Vérifiez votre connexion et réessayez.",
     "missingToken": "Clerk n'a pas renvoyé de jeton de session. Déconnectez-vous et réessayez.",
     "apiUnreachable": "L'API Porterchain est inaccessible. Assurez-vous que l'API tourne sur le port 8001.",

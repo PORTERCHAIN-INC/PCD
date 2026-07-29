@@ -1,0 +1,108 @@
+/** PorterChain access-rules schema (SpiceDB / Zanzibar).
+ *
+ * PostgreSQL holds business rows. SpiceDB holds who may touch them.
+ * Admin roles are platform relations (AdminRole.value) — not a single staff blob.
+ * Module permissions expand from MODULE_PERMISSIONS (admin_engine/rbac.py).
+ */
+
+definition user {}
+
+definition platform {
+    relation super_admin: user
+    relation admin: user
+    relation dispatcher: user
+    relation support: user
+    relation support_lead: user
+    relation sales: user
+    relation sales_manager: user
+    relation finance: user
+    relation compliance: user
+    relation developer: user
+    relation marketing: user
+    relation read_only: user
+    relation fleet_manager: user
+
+    // Portal entry — any provisioned staff role (must not reuse relation name ``admin``)
+    permission portal = super_admin + admin + dispatcher + support + support_lead + sales + sales_manager + finance + compliance + developer + marketing + read_only + fleet_manager
+    // God-mode unified permission — super_admin only
+    permission system_all = super_admin
+
+    permission dashboard = super_admin + admin + dispatcher + support + support_lead + sales + sales_manager + finance + compliance + developer + marketing + read_only + fleet_manager
+    permission crm = super_admin + admin + sales + sales_manager + marketing
+    permission crm_read = super_admin + admin + sales + sales_manager + support + support_lead + marketing
+    permission quotes = super_admin + admin + dispatcher + sales + fleet_manager
+    permission quotes_read = super_admin + admin + dispatcher + support + support_lead + sales + finance + read_only
+    permission bookings = super_admin + admin + dispatcher + support + support_lead
+    permission merchants = super_admin + admin + sales + sales_manager + compliance
+    permission merchants_read = super_admin + admin + dispatcher + support + sales + finance + compliance + read_only
+    permission drivers = super_admin + admin + dispatcher + fleet_manager + compliance
+    permission drivers_read = super_admin + admin + dispatcher + support + sales + compliance + read_only
+    permission dispatch = super_admin + admin + dispatcher + fleet_manager
+    permission dispatch_read = super_admin + admin + dispatcher + support + support_lead
+    permission orders = super_admin + admin + dispatcher + support + support_lead
+    permission orders_read = super_admin + admin + dispatcher + support + support_lead + sales + finance + compliance + read_only
+    permission pricing = super_admin + admin + sales + sales_manager
+    permission pricing_read = super_admin + admin + dispatcher + sales
+    // mod_* — SpiceDB forbids permission names that match a relation on the same definition
+    permission mod_finance = super_admin + admin + finance + support_lead
+    permission finance_read = super_admin + admin + finance + support + support_lead
+    permission claims = super_admin + admin + support_lead + finance + compliance
+    permission claims_read = super_admin + admin + dispatcher + support + support_lead
+    permission mod_support = super_admin + admin + dispatcher + support + support_lead
+    permission support_read = super_admin + admin + dispatcher + support + support_lead + sales + finance + read_only
+    permission reports = super_admin + admin + dispatcher + support + support_lead + sales + sales_manager + finance + compliance + developer + marketing + read_only + fleet_manager
+    permission settings = super_admin + admin
+    permission notifications = super_admin + admin + dispatcher + support_lead + marketing
+    permission notifications_read = super_admin + admin + dispatcher + support + support_lead + sales + sales_manager + finance + compliance + developer + marketing + read_only + fleet_manager
+    permission developers = super_admin + admin + developer
+    permission diagnostics = super_admin + admin + developer
+    permission diagnostics_write = super_admin + admin
+    permission map = super_admin + admin + dispatcher + fleet_manager + support
+    permission routes = super_admin + admin + dispatcher + fleet_manager
+    permission routes_read = super_admin + admin + dispatcher + fleet_manager + support + support_lead + read_only
+    permission routes_dispatch = super_admin + admin + dispatcher
+    permission content = super_admin + admin + marketing
+    permission content_read = super_admin + admin + marketing + sales + read_only
+}
+
+definition organization {
+    relation admin: user
+    relation member: user
+
+    permission portal = admin + member
+    permission manage = admin
+    permission dashboard = admin + member
+    permission book = admin + member
+    permission bulk = admin + member
+    permission api_keys = admin
+    permission orders = admin + member
+    permission orders_write = admin + member
+    permission tracking = admin + member
+    permission invoices = admin + member
+    permission invoices_pay = admin
+    permission statements = admin + member
+    permission reports = admin + member
+    permission billing = admin
+    permission users = admin
+    permission settings = admin + member
+    permission support = admin + member
+    permission claims = admin + member
+}
+
+definition driver_profile {
+    relation owner: user
+    permission access = owner
+}
+
+definition customer_profile {
+    relation owner: user
+    permission access = owner
+}
+
+definition order {
+    relation parent: organization
+    relation viewer: user
+
+    permission view = viewer + parent->orders
+    permission manage = parent->orders_write
+}

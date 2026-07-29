@@ -35,4 +35,20 @@ def db(db_url: str):
 def settings():
     from porterchain_api.config import Settings
 
-    return Settings(app_env="local", stripe_mock=True, jwt_secret="test-jwt-secret-local")
+    return Settings(
+        app_env="local",
+        stripe_mock=True,
+        jwt_secret="test-jwt-secret-local",
+        spicedb_enabled=False,
+        spicedb_use_memory=True,
+        spicedb_required=False,
+    )
+
+
+@pytest.fixture(autouse=True)
+def _reset_authz_client():
+    from porterchain_api.authz.client import reset_authz_client
+
+    reset_authz_client()
+    yield
+    reset_authz_client()

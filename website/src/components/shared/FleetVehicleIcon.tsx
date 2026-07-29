@@ -1,7 +1,8 @@
 import type { FleetVehicleKey } from "@/data/fleet-specs";
+import { getVehicleImage } from "@/data/site-images";
 import { cn } from "@/lib/utils";
 
-/** Rooman12 vehicle pack — https://www.flaticon.com/authors/rooman12 */
+/** Rooman12 vehicle pack — https://www.flaticon.com/authors/rooman12 (mask glyphs for tabs) */
 export const FLEET_VEHICLE_ICONS: Record<FleetVehicleKey, string> = {
   sedan: "/icons/vehicles/sedan.png",
   suv: "/icons/vehicles/suv.png",
@@ -11,6 +12,21 @@ export const FLEET_VEHICLE_ICONS: Record<FleetVehicleKey, string> = {
   box16: "/icons/vehicles/box-16.png",
   box20: "/icons/vehicles/box-20.png",
 };
+
+/** Branded photos for fleet showcase — full PorterChain liveries. */
+export const FLEET_VEHICLE_PHOTOS: Record<FleetVehicleKey, string> = {
+  sedan: getVehicleImage("sedan").src,
+  suv: getVehicleImage("suv").src,
+  pickup: getVehicleImage("pickup").src,
+  cargoVan: getVehicleImage("cargo-van").src,
+  highRoof: getVehicleImage("high-roof").src,
+  box16: getVehicleImage("box-16").src,
+  box20: getVehicleImage("box-20").src,
+};
+
+export function fleetVehicleUsesPhoto(_vehicle: FleetVehicleKey): boolean {
+  return true;
+}
 
 type Props = {
   vehicle: FleetVehicleKey;

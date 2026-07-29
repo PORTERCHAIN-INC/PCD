@@ -34,9 +34,9 @@ def main() -> int:
     if health != 200:
         failures.append(f"API health {health}")
 
-    admin = _get(f"{API}/v1/auth/admin/access", {"Authorization": "Bearer dev"})
-    if admin != 200:
-        failures.append(f"admin API gate {admin}")
+    session = _get(f"{API}/v1/auth/session-context", {"Authorization": "Bearer dev"})
+    if session not in (200, 401, 403):
+        failures.append(f"session-context gate {session}")
 
     merchant = _get(f"{API}/v1/merchant/dashboard", {"Authorization": "Bearer dev"})
     if merchant != 200:

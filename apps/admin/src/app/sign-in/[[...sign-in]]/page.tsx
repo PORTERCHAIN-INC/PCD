@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { SignIn, useAuth, useClerk } from "@clerk/nextjs";
 import { Shield } from "lucide-react";
-import { isClerkConfigured } from "@/lib/env";
+import { isClerkConfigured, publicEnv } from "@/lib/env";
+import { platformLoginUrl } from "@porterchain/auth";
 
 export default function SignInPage() {
   return (
@@ -60,7 +61,7 @@ function resolvePostSignInTarget(raw: string | null): string {
 
 function SignInContent() {
   const searchParams = useSearchParams();
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const { signOut } = useClerk();
   const redirectUrl = resolvePostSignInTarget(searchParams.get("redirect_url"));
   const [showForm, setShowForm] = useState(false);
@@ -75,9 +76,10 @@ function SignInContent() {
         return;
       }
 
-      // Client session exists — only redirect if the server middleware agrees.
-      // Mismatched CLERK_SECRET_KEY causes infinite /sign-in ↔ /dashboard flicker.
       try {
+        const token = await getToken();
+        if (!token) throw new Error("missing_token");
+
         const res = await fetch("/api/auth/session", { credentials: "include", cache: "no-store" });
         const data = (await res.json()) as { signedIn?: boolean };
         if (cancelled) return;
@@ -90,14 +92,16 @@ function SignInContent() {
       }
 
       if (!cancelled) {
-        await signOut({ redirectUrl: `/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}` });
+        await signOut({
+          redirectUrl: `/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`,
+        });
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn, redirectUrl, signOut]);
+  }, [getToken, isLoaded, isSignedIn, redirectUrl, signOut]);
 
   if (!isLoaded || !showForm) {
     return (
@@ -115,8 +119,11 @@ function SignInContent() {
         </div>
         <h1 className="text-2xl font-bold text-primary">Porterchain Admin</h1>
         <p className="mt-2 text-sm text-muted">
-          Staff-only access. You must be provisioned in Admin Settings → Staff before you can use
-          this console. Creating a Clerk account alone does not grant access.
+          Prefer Platform login at{" "}
+          <a href={platformLoginUrl(publicEnv.websiteUrl)} className="font-semibold text-secondary">
+            {platformLoginUrl(publicEnv.websiteUrl)}
+          </a>
+          .
         </p>
       </div>
       <SignIn
@@ -134,7 +141,7 @@ function SignInContent() {
         }}
       />
       <p className="mt-6 max-w-sm text-center text-xs text-muted">
-        Need access? Ask a super admin to add your work email to the staff list.
+        Need access? Ask a super admin to add your work email in Admin Settings → Staff.
       </p>
     </div>
   );

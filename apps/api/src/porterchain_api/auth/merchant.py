@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.clerk import ClerkClaims, get_clerk_claims
+from porterchain_api.auth.email_identity import EMAIL_CLERK_MISMATCH, emails_match
 from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive, require_clerk_app_for_portal
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -38,6 +39,18 @@ def get_merchant_context(
     assert_clerk_id_exclusive(db, claims, portal="merchant", settings=settings)
 
     user = _resolve_merchant_user(db, claims.clerk_user_id, x_merchant_id, settings)
+    if claims.email and not emails_match(user.email, claims.email):
+        raise HTTPException(status_code=403, detail=EMAIL_CLERK_MISMATCH)
+
+    # SpiceDB ReBAC: organization#portal required when principal is resolvable.
+    from porterchain_api.auth.dependencies import assert_organization_scope, resolve_principal_for_claims
+
+    principal = resolve_principal_for_claims(db, claims)
+    if principal:
+        assert_organization_scope(principal, user.merchant_id, db)
+        if not user.porterchain_user_id:
+            user.porterchain_user_id = principal.user_id
+
     merchant = db.query(Merchant).filter(Merchant.id == user.merchant_id).first()
     if not merchant:
         raise HTTPException(status_code=404, detail="merchant_not_found")

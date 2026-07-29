@@ -9,7 +9,8 @@ export default function ClerkProviderShell({ children }: { children: React.React
       publishableKey={publicEnv.clerkPublishableKey}
       signInUrl="/login"
       afterSignOutUrl="/login"
-      signInFallbackRedirectUrl="/login"
+      signInFallbackRedirectUrl="/login/continue"
+      signUpFallbackRedirectUrl="/login/continue"
     >
       {children}
     </ClerkProvider>

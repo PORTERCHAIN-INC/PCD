@@ -24,14 +24,6 @@ Shared by Next.js portals and website:
 
 ---
 
-## Web Providers (`shared/`)
-
-| Path                | Purpose                                      |
-| ------------------- | -------------------------------------------- |
-| `shared/providers/` | Shared React providers (`PlatformProviders`) |
-
----
-
 ## Python (`shared/python/`)
 
 ```

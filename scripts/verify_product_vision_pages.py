@@ -142,8 +142,8 @@ def main() -> int:
             failures.append("next.config still redirects /platform to /business")
 
     for old_hub in ("onboarding-education", "integrations-education"):
-        if old_hub not in redirects_ts or "/guides" not in redirects_ts:
-            failures.append(f"redirects.ts missing {old_hub} index redirect to /guides")
+        if old_hub not in redirects_ts or "/faq" not in redirects_ts:
+            failures.append(f"redirects.ts missing {old_hub} index redirect to /faq")
         hub_index = APP / old_hub / "page.tsx"
         if hub_index.is_file():
             failures.append(f"remove stub hub page {old_hub}/page.tsx (redirect-only)")

@@ -103,27 +103,13 @@ export async function hasDriverSession(): Promise<boolean> {
   return Boolean(data.authenticated);
 }
 
-export async function driverLogin(email: string, clerkToken?: string): Promise<void> {
-  const res = await fetch("/api/auth/login", {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, clerkToken }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "login_failed" }));
-    throw new Error(err.detail || "login_failed");
-  }
-}
-
 export async function driverLogout(): Promise<void> {
-  await fetch("/api/auth/login", { method: "DELETE", credentials: "include" });
+  // Clerk sign-out is handled by UI; cookie JWT minting is retired.
 }
 
 export const driverApi = {
-  login: async (email: string, clerkToken?: string) => {
-    await driverLogin(email, clerkToken);
-    return { access_token: "", refresh_token: "", driver_id: "" };
+  login: async (_email: string, _clerkToken?: string) => {
+    throw new Error("driver_cookie_jwt_retired");
   },
   onboarding: () =>
     driverFetch<import("@/lib/onboarding").DriverOnboardingStatus>("/v1/onboarding"),

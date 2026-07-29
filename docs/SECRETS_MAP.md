@@ -18,7 +18,9 @@ Every secret has **one canonical name** and **one owning store**. Other surfaces
 | **GitHub Actions**                              | Deploy SSH + `DOPPLER_TOKEN` + **build-time** public keys | `sk_*` when Doppler is active       |
 | **Server** (`/opt/porterchain/.env`)            | **Generated** on deploy — do not edit                     | Anything (read-only artifact)       |
 
-**Mobile (EAS)** is a fifth surface for store builds only — see [Clerk flow](#clerk-12-keys) below.
+**Mobile (EAS)** is a fifth surface for store builds only — see [Clerk flow](#clerk-unified-platform-triad) below.
+
+**Unified identity Phase 6:** consumer access matrix + startup validation live in [clerk-doppler-secret-matrix.md](./architecture/clerk-doppler-secret-matrix.md). Local audit: `pnpm config:audit` (names only; does not call Doppler).
 
 ---
 
@@ -71,25 +73,27 @@ GitHub Deploy workflow
 
 ### Doppler (`pcd` / `prd`) — prod runtime
 
-| Secret                                                                         | Notes                                              |
-| ------------------------------------------------------------------------------ | -------------------------------------------------- |
-| `POSTGRES_PASSWORD`                                                            | DB password                                        |
-| `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_{SECRET_KEY,PUBLISHABLE_KEY,JWKS_URL}` | 12 keys (enterprise)                               |
-| `STRIPE_SECRET`                                                                | `sk_live_…`                                        |
-| `STRIPE_WEBHOOK_SECRET`                                                        | `whsec_…`                                          |
-| `JWT_SECRET`                                                                   | `openssl rand -hex 32` — driver sessions + SSO     |
-| `PUBLIC_INGEST_API_KEY`                                                        | Website inquiries → API CRM leads (`X-Ingest-Key`) |
-| `GOOGLE_MAPS_SERVER_API_KEY`                                                   | Server geocoding                                   |
-| `FIREBASE_PROJECT_ID`                                                          | e.g. `porterchain-55313`                           |
-| `FIREBASE_CREDENTIALS_JSON`                                                    | Extracted to file on sync                          |
-| `FIREBASE_WEB_VAPID_KEY`                                                       | Web push                                           |
-| `SENTRY_DSN`                                                                   | API errors (optional)                              |
-| `PORTERCHAIN_PUSH_ENABLED`                                                     | `true`                                             |
-| `PORTERCHAIN_PUSH_SEND`                                                        | `true`                                             |
-| `API_REPLICAS`                                                                 | `2`                                                |
-| `FLEETBASE_*`                                                                  | When bridge enabled (blocked)                      |
+| Secret                                                                         | Notes                                                                           |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `POSTGRES_PASSWORD`                                                            | DB password                                                                     |
+| `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_{SECRET_KEY,PUBLISHABLE_KEY,JWKS_URL}` | Portal slot aliases (same Platform triad after sync)                            |
+| `CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` / `CLERK_JWKS_URL`                | Platform triad (canonical)                                                      |
+| `STRIPE_SECRET`                                                                | `sk_live_…`                                                                     |
+| `STRIPE_WEBHOOK_SECRET`                                                        | `whsec_…`                                                                       |
+| `JWT_SECRET`                                                                   | `openssl rand -hex 32` — driver sessions + SSO                                  |
+| `PUBLIC_INGEST_API_KEY`                                                        | Website inquiries → API CRM leads (`X-Ingest-Key`)                              |
+| `GOOGLE_MAPS_SERVER_API_KEY`                                                   | Server geocoding                                                                |
+| `FIREBASE_PROJECT_ID`                                                          | e.g. `porterchain-55313`                                                        |
+| `FIREBASE_CREDENTIALS_JSON`                                                    | Extracted to file on sync                                                       |
+| `FIREBASE_WEB_VAPID_KEY`                                                       | Web push                                                                        |
+| `SENTRY_DSN`                                                                   | API errors (optional)                                                           |
+| `PORTERCHAIN_PUSH_ENABLED`                                                     | `true`                                                                          |
+| `PORTERCHAIN_PUSH_SEND`                                                        | `true`                                                                          |
+| `API_REPLICAS`                                                                 | `2`                                                                             |
+| `FLEETBASE_*`                                                                  | When bridge enabled (blocked)                                                   |
+| `CLERK_WEBHOOK_SIGNING_SECRET`                                                 | Clerk Svix webhook (`POST /webhooks/clerk`) — add when unified webhooks enabled |
 
-**Legacy (remove after enterprise verified):** `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_JWKS_URL`
+**Retired:** divergent 4-app enterprise keys as a supported mode. Slot names remain for dual-read / compose.
 
 ### GitHub repository variables (non-secret)
 
@@ -113,26 +117,41 @@ Copy templates from `env/README.md`. Clerk keys: one file `env/clerk.env` → `p
 
 ---
 
-## Clerk (12 keys)
+## Clerk (unified Platform triad)
 
 **Single local source:** `env/clerk.env` (copy from `env/clerk.env.example`).
 
+`CLERK_MODE=enterprise` (4-app / 12-key) is **retired**. Sync is unified-only; requesting enterprise exits with an error — see [clerk-consolidation.md](./runbooks/clerk-consolidation.md).
+
 ```bash
-cp env/clerk.env.example env/clerk.env   # fill 12 keys
-pnpm clerk:sync                          # → all portals + API + mobile .env
+cp env/clerk.env.example env/clerk.env
+# unified only: CLERK_MODE=unified + CLERK_PUBLISHABLE_KEY / CLERK_SECRET_KEY / CLERK_JWKS_URL
+pnpm clerk:sync                          # → all portals + API + mobile .env (expands triad into portal slots)
+# Prod Doppler/GitHub upload remains Phase 6+ manual ops — do not run casually
 bash infrastructure/deploy/scripts/upload-clerk-to-doppler.sh
 bash infrastructure/deploy/scripts/upload-clerk-to-github.sh   # pk_* only
 # trigger Deploy workflow
 ```
 
-| Portal   | Publishable (GitHub build)       | Secret + JWKS (Doppler runtime)                        |
-| -------- | -------------------------------- | ------------------------------------------------------ |
-| Customer | `CLERK_CUSTOMER_PUBLISHABLE_KEY` | `CLERK_CUSTOMER_SECRET_KEY`, `CLERK_CUSTOMER_JWKS_URL` |
-| Merchant | `CLERK_MERCHANT_PUBLISHABLE_KEY` | `CLERK_MERCHANT_SECRET_KEY`, `CLERK_MERCHANT_JWKS_URL` |
-| Admin    | `CLERK_ADMIN_PUBLISHABLE_KEY`    | `CLERK_ADMIN_SECRET_KEY`, `CLERK_ADMIN_JWKS_URL`       |
-| Driver   | `CLERK_DRIVER_PUBLISHABLE_KEY`   | `CLERK_DRIVER_SECRET_KEY`, `CLERK_DRIVER_JWKS_URL`     |
+| Portal   | Publishable (GitHub build / slot alias) | Secret + JWKS (Doppler runtime / slot alias)           |
+| -------- | --------------------------------------- | ------------------------------------------------------ |
+| Customer | `CLERK_CUSTOMER_PUBLISHABLE_KEY`        | `CLERK_CUSTOMER_SECRET_KEY`, `CLERK_CUSTOMER_JWKS_URL` |
+| Merchant | `CLERK_MERCHANT_PUBLISHABLE_KEY`        | `CLERK_MERCHANT_SECRET_KEY`, `CLERK_MERCHANT_JWKS_URL` |
+| Admin    | `CLERK_ADMIN_PUBLISHABLE_KEY`           | `CLERK_ADMIN_SECRET_KEY`, `CLERK_ADMIN_JWKS_URL`       |
+| Driver   | `CLERK_DRIVER_PUBLISHABLE_KEY`          | `CLERK_DRIVER_SECRET_KEY`, `CLERK_DRIVER_JWKS_URL`     |
 
-Each portal container maps its `CLERK_{PORTAL}_SECRET_KEY` → `CLERK_SECRET_KEY` at runtime (`docker-compose.prod.yml`).
+**Canonical Platform triad:**
+
+| Consumer   | Names                                                                                                     |
+| ---------- | --------------------------------------------------------------------------------------------------------- |
+| Sync / API | `CLERK_MODE=unified`, `CLERK_UNIFIED_MODE`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_JWKS_URL` |
+| Next apps  | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (+ server `CLERK_SECRET_KEY`)                                         |
+| Expo       | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` only                                                                  |
+| Policy     | `CLERK_AUTHORIZED_PARTIES`, `CLERK_AUTHORIZED_ISSUERS`, `CLERK_AUDIENCE`, `CLERK_WEBHOOK_SIGNING_SECRET`  |
+
+Each portal container maps its `CLERK_{PORTAL}_SECRET_KEY` → `CLERK_SECRET_KEY` at runtime (`docker-compose.prod.yml`). Under unified sync, all portal slots hold the same Platform keys.
+
+Do **not** delete old Clerk apps in Doppler/Clerk dashboard until the retirement checklist + founder approval.
 
 ---
 
@@ -145,7 +164,7 @@ Each portal container maps its `CLERK_{PORTAL}_SECRET_KEY` → `CLERK_SECRET_KEY
 | `FIREBASE_CREDENTIALS_PATH` | —                                              | Local file path                            |
 | `FIREBASE_CREDENTIALS_JSON` | —                                              | Prod: inline in Doppler, extracted on sync |
 
-Do **not** use legacy `CLERK_SECRET_KEY` / `CLERK_PUBLISHABLE_KEY` in new setups — use per-portal keys.
+Do **not** configure divergent per-portal Clerk apps. Platform triad names (`CLERK_SECRET_KEY` / `CLERK_PUBLISHABLE_KEY` / `CLERK_JWKS_URL`) are canonical; portal slot aliases are filled from the same triad by `pnpm clerk:sync`.
 
 ---
 
@@ -177,9 +196,9 @@ curl -fsS https://api.porterchain.com/health/ready | jq '.clerk_mode, .clerk_app
 
 ## Related
 
-| Document                                                                                  | Role                        |
-| ----------------------------------------------------------------------------------------- | --------------------------- |
-| [env/README.md](../env/README.md)                                                         | Local templates             |
-| [infrastructure/deploy/SECRETS.md](../infrastructure/deploy/SECRETS.md)                   | Doppler setup + rotation    |
-| [infrastructure/deploy/CLERK_APPS_SETUP.md](../infrastructure/deploy/CLERK_APPS_SETUP.md) | Clerk 4-app dashboard steps |
-| [ENVIRONMENT_VARIABLES.md](../ENVIRONMENT_VARIABLES.md)                                   | Full variable catalog       |
+| Document                                                                  | Role                                                  |
+| ------------------------------------------------------------------------- | ----------------------------------------------------- |
+| [env/README.md](../env/README.md)                                         | Local templates                                       |
+| [infrastructure/deploy/SECRETS.md](../infrastructure/deploy/SECRETS.md)   | Doppler setup + rotation                              |
+| [docs/runbooks/clerk-consolidation.md](./runbooks/clerk-consolidation.md) | Clerk unified setup (primary) + legacy 4-app rollback |
+| [ENVIRONMENT_VARIABLES.md](../ENVIRONMENT_VARIABLES.md)                   | Full variable catalog                                 |

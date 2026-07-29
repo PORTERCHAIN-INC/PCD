@@ -100,6 +100,13 @@ class MerchantBookingService:
         db.add(order)
         db.flush()
 
+        try:
+            from porterchain_api.authz.tuples import TupleWriter
+
+            TupleWriter().link_order_to_org(order.id, ctx.merchant.id)
+        except Exception:  # noqa: BLE001
+            pass
+
         emit_event(
             db,
             event_type=E.MERCHANT_BOOKING_CREATED,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Wave 10 w10-5 guard — WhatsApp pre-filled deep links on quote confirmation."""
+"""Wave 10 w10-5 guard — WhatsApp pre-filled deep links + site logistics chat widget."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ BUSINESS = ROOT / "website/src/components/business/InquiryForm.tsx"
 ANALYTICS = ROOT / "website/src/lib/seo/analytics.ts"
 DEVICE = ROOT / "website/src/lib/device.ts"
 DEFERRED = ROOT / "website/src/components/integrations/DeferredSiteIntegrations.tsx"
+WIDGET = ROOT / "website/src/components/home/CapacityGuideWidget.tsx"
 MOBILE_CHAT = ROOT / "website/src/components/integrations/MobileWhatsAppChat.tsx"
 
 
@@ -40,29 +41,33 @@ def main() -> int:
     analytics = ANALYTICS.read_text(encoding="utf-8")
     if "WHATSAPP_QUOTE_CLICK" not in analytics:
         failures.append("analytics.ts missing WHATSAPP_QUOTE_CLICK event")
-    if "WHATSAPP_CHAT_CLICK" not in analytics:
-        failures.append("analytics.ts missing WHATSAPP_CHAT_CLICK event")
-
-    device = DEVICE.read_text(encoding="utf-8")
-    if "isMobilePhoneBrowser" not in device:
-        failures.append("device.ts missing isMobilePhoneBrowser")
+    if "CAPACITY_GUIDE_WIDGET_OPEN" not in analytics:
+        failures.append("analytics.ts missing CAPACITY_GUIDE_WIDGET_OPEN event")
 
     deferred = DEFERRED.read_text(encoding="utf-8")
-    if "MobileWhatsAppChat" not in deferred or "isMobilePhoneBrowser" not in deferred:
-        failures.append("DeferredSiteIntegrations missing mobile WhatsApp vs Zoho split")
-    if "ZohoSalesIQ" not in deferred:
-        failures.append("DeferredSiteIntegrations missing ZohoSalesIQ for non-phone")
+    if "CapacityGuideWidget" not in deferred:
+        failures.append("DeferredSiteIntegrations missing CapacityGuideWidget")
+    if "ZohoSalesIQ" in deferred:
+        failures.append("DeferredSiteIntegrations must not load ZohoSalesIQ")
 
-    mobile_chat = MOBILE_CHAT.read_text(encoding="utf-8")
-    if "buildWhatsAppDeepLink" not in mobile_chat or "WHATSAPP_CHAT_CLICK" not in mobile_chat:
-        failures.append("MobileWhatsAppChat missing deep link or tracking")
+    if not WIDGET.is_file():
+        failures.append("missing CapacityGuideWidget.tsx")
+    else:
+        widget = WIDGET.read_text(encoding="utf-8")
+        if "CapacityGuideChat" not in widget or "shouldHideLauncher" not in widget:
+            failures.append("CapacityGuideWidget must wrap CapacityGuideChat and hide on home/login")
 
-    print("Wave 10 w10-5 guard (WhatsApp quote confirmation + mobile chat)")
+    if MOBILE_CHAT.is_file():
+        mobile_chat = MOBILE_CHAT.read_text(encoding="utf-8")
+        if "buildWhatsAppDeepLink" not in mobile_chat or "WHATSAPP_CHAT_CLICK" not in mobile_chat:
+            failures.append("MobileWhatsAppChat missing deep link or tracking")
+
+    print("Wave 10 w10-5 guard (WhatsApp quote confirmation + site logistics chat)")
     if failures:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  PASS: pre-filled wa.me on contact + business quote success; phone FAB vs Zoho")
+    print("  PASS: wa.me quote CTAs; CapacityGuideWidget sitewide; no Zoho chat")
     return 0
 
 

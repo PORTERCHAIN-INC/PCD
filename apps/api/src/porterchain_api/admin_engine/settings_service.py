@@ -16,7 +16,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import log_admin_audit
-from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, AdminContext
+from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog, AdminUser, Driver, SystemConfig, Vehicle
 from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
 from porterchain_api.auth.clerk_client import ClerkUserSnapshot
@@ -34,7 +34,6 @@ from porterchain_api.schemas_admin import (
 )
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.merchant_states import MerchantStatus
-from porterchain_shared.auth.enterprise_roles import EnterpriseRole
 from porterchain_api.platform.health import readiness
 from porterchain_shared.config.settings import PlatformSettings
 
@@ -354,50 +353,69 @@ def _merge_clerk_directory(
     *,
     limit: int,
     search: str | None,
+    include_unprovisioned: bool = False,
 ) -> tuple[list[PlatformUserItem], bool, int]:
+    """Directory = live Clerk ∩ (optional) provisioned personas.
+
+    Security: never return Postgres-only ghosts. If Clerk sync fails, fail closed
+    (empty list) so deleted Clerk accounts cannot linger in Admin → Users.
+    """
     try:
         snaps = fetch_clerk_snapshots(settings, user_type, limit=limit, query=search)
     except Exception:
         logger = __import__("logging").getLogger(__name__)
-        logger.warning("clerk_directory_sync_failed", exc_info=True)
-        return items, False, 0
+        logger.warning("clerk_directory_sync_failed fail_closed", exc_info=True)
+        return [], False, 0
     if not snaps:
-        return items, False, 0
+        # Empty Clerk directory → show nothing (not local fixtures).
+        return [], True, 0
 
-    by_email = {i.email.lower(): i for i in items}
+    clerk_ids = {s.clerk_user_id for s in snaps.values() if s.clerk_user_id}
+    clerk_emails = set(snaps.keys())
+
     merged: list[PlatformUserItem] = []
     for item in items:
-        merged.append(_enrich_with_clerk(item, snaps.get(item.email.lower())))
-
-    for email, snap in snaps.items():
-        if email in by_email:
+        email = (item.email or "").lower()
+        cid = item.clerk_user_id or ""
+        if cid and cid in clerk_ids:
+            merged.append(_enrich_with_clerk(item, snaps.get(email)))
             continue
-        access = "not_authorized"
-        invite = "accepted"
-        identity = "registered"
-        name = " ".join(p for p in (snap.first_name, snap.last_name) if p) or email.split("@")[0]
-        merged.append(
-            PlatformUserItem(
-                id=f"clerk:{snap.clerk_user_id}",
-                user_type=user_type,
-                email=email,
-                name=name,
-                role=user_type if user_type != "staff" else None,
-                status=None,
-                access_status=access,
-                invite_status=invite,
-                identity_status=identity,
-                status_label=_status_label(access, invite, identity),
-                clerk_linked=True,
-                clerk_user_id=snap.clerk_user_id,
-                provisioned=False,
-                clerk_status=snap.clerk_status,
-                clerk_email_verified=snap.email_verified,
-                clerk_password_set=snap.password_set,
-                clerk_last_sign_in_at=snap.last_sign_in_at,
-                created_at=snap.created_at or datetime.now(UTC),
+        if email and email in clerk_emails:
+            merged.append(_enrich_with_clerk(item, snaps.get(email)))
+            continue
+        # DB-only / fake clerk id → drop
+    by_email = {i.email.lower(): i for i in merged}
+
+    if include_unprovisioned:
+        for email, snap in snaps.items():
+            if email in by_email:
+                continue
+            access = "not_authorized"
+            invite = "accepted"
+            identity = "registered"
+            name = " ".join(p for p in (snap.first_name, snap.last_name) if p) or email.split("@")[0]
+            merged.append(
+                PlatformUserItem(
+                    id=f"clerk:{snap.clerk_user_id}",
+                    user_type=user_type,
+                    email=email,
+                    name=name,
+                    role=user_type if user_type != "staff" else None,
+                    status=None,
+                    access_status=access,
+                    invite_status=invite,
+                    identity_status=identity,
+                    status_label=_status_label(access, invite, identity),
+                    clerk_linked=True,
+                    clerk_user_id=snap.clerk_user_id,
+                    provisioned=False,
+                    clerk_status=snap.clerk_status,
+                    clerk_email_verified=snap.email_verified,
+                    clerk_password_set=snap.password_set,
+                    clerk_last_sign_in_at=snap.last_sign_in_at,
+                    created_at=snap.created_at or datetime.now(UTC),
+                )
             )
-        )
     return merged, True, len(snaps)
 
 
@@ -547,7 +565,14 @@ class AdminSettingsService:
             raise ValueError("invalid_user_type")
 
         items, clerk_synced, clerk_total = _merge_clerk_directory(
-            items, settings, user_type, limit=limit, search=search
+            items,
+            settings,
+            user_type,
+            limit=limit,
+            search=search,
+            # Staff: allow Clerk-only rows so ops can authorize unprovisioned accounts.
+            # Other tabs: provisioned persona rows only (no fake customer/driver/merchant).
+            include_unprovisioned=(user_type == "staff"),
         )
 
         facets = _facet_counts(items)
@@ -817,15 +842,15 @@ class AdminSettingsService:
             "sections": SETTINGS_SECTIONS,
             "config": self.default_config(db),
             "module_config": self.module_config_links(db),
-            "permissions": self.permissions_matrix(),
-            "roles": [r.value for r in EnterpriseRole],
+            "permissions": {},
+            "roles": [],
+            "authz": {
+                "engine": "spicedb",
+                "docs": "docs/architecture/auth-clerk-spicedb.md",
+                "schema": "apps/api/src/porterchain_api/authz/schema.zed",
+            },
             "validation": self.validate(settings, db),
         }
-
-    def permissions_matrix(self) -> dict[str, list[str]]:
-        from porterchain_api.auth.enterprise_rbac import enterprise_permissions_matrix
-
-        return enterprise_permissions_matrix()
 
     def recent_audit(self, db: Session, *, limit: int = 50) -> list[dict[str, Any]]:
         logs = (

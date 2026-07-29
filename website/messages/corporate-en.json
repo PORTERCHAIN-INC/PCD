@@ -1,10 +1,10 @@
 {
   "metadata": {
     "home": {
-      "title": "B2B Delivery GTA | Same-Day, Urgent & Local Logistics | PorterChain",
-      "description": "Same-day, urgent, and emergency B2B delivery across the GTA. Fleet overflow, intra-city logistics, jobsite and wholesale routes — vehicle + driver capacity with tracking and proof.",
-      "ogTitle": "PorterChain — B2B Transportation Capacity in the GTA",
-      "ogDescription": "Same-day, urgent, and emergency delivery for Ontario businesses — professional drivers and commercial vehicles when your fleet cannot cover the shipment."
+      "title": "Local Logistics Platform GTA | Business Account | PorterChain",
+      "description": "Run local GTA logistics from one platform — quotes, booking, tracking, proof of delivery, reports, APIs, and dedicated logistics support backed by professional drivers and vehicles.",
+      "ogTitle": "PorterChain — Local Logistics Operating Platform for the GTA",
+      "ogDescription": "One business account to simplify, automate, and manage local logistics across Toronto, Peel, York, and Durham."
     },
     "platform": {
       "title": "How We Operate | Porterchain Capacity Network",
@@ -1769,8 +1769,15 @@
       "subtitle": "Whether you're scaling delivery operations, setting up a business account, or need dispatch support — our team is ready to help."
     },
     "heroQuote": {
-      "title": "Request delivery capacity",
-      "subtitle": "Tell us what needs to move, where, and how urgent it is. We'll respond within one business day with vehicle-and-driver options."
+      "badge": "Request capacity",
+      "title": "Tell us what needs to move.",
+      "subtitle": "Share your lanes, urgency, and vehicle needs. A logistics specialist will respond within one business day with matched vehicle-and-driver options.",
+      "trust1": "Response within 1 business day",
+      "trust2": "Quote confirmed in writing",
+      "trust3": "GTA logistics specialists",
+      "sideEyebrow": "Prefer to talk now?",
+      "sideTitle": "Reach a logistics specialist directly.",
+      "sideBody": "Call, email, or WhatsApp — or send the form and we’ll map capacity for your GTA lanes."
     },
     "info": {
       "phoneLabel": "Phone",

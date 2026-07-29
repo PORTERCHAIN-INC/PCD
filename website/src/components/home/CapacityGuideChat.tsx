@@ -11,6 +11,7 @@ import {
   Clock3,
   MapPin,
   Radio,
+  X,
 } from "lucide-react";
 import type { FormEvent } from "react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
@@ -28,6 +29,10 @@ import {
   normalizeGuideState,
   type GuideSessionState,
 } from "@/lib/home/guide-session";
+import {
+  LOGISTICS_CHAT_ANCHOR_ID,
+  OPEN_LOGISTICS_CHAT_EVENT,
+} from "@/lib/home/open-logistics-chat";
 import { HUB_FROM } from "@/lib/marketing/config";
 import { ANALYTICS_EVENTS, track } from "@/lib/seo/analytics";
 import { cn } from "@/lib/utils";
@@ -126,10 +131,19 @@ function stateFromToolOutput(
   return normalizeGuideState(output.state);
 }
 
-export default function CapacityGuideChat() {
+export default function CapacityGuideChat({
+  className,
+  onClose,
+  sourceSection = "home-capacity-guide",
+}: {
+  className?: string;
+  onClose?: () => void;
+  sourceSection?: string;
+}) {
   const t = useTranslations("homeChooser.guide");
   const reduce = useReducedMotion();
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const formId = useId();
   const [input, setInput] = useState("");
   const [sessionId, setSessionId] = useState("");
@@ -142,6 +156,14 @@ export default function CapacityGuideChat() {
     const loaded = loadGuideState();
     setGuideState(loaded);
     guideStateRef.current = loaded;
+  }, []);
+
+  useEffect(() => {
+    function onOpen() {
+      window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 320);
+    }
+    window.addEventListener(OPEN_LOGISTICS_CHAT_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_LOGISTICS_CHAT_EVENT, onOpen);
   }, []);
 
   useEffect(() => {
@@ -179,7 +201,7 @@ export default function CapacityGuideChat() {
       ],
       onFinish: ({ message }) => {
         track(ANALYTICS_EVENTS.CAPACITY_GUIDE_ASK, {
-          sourceSection: "home-capacity-guide",
+          sourceSection,
           from: HUB_FROM.chooser,
           topic: "groq",
           cta_label: messageText(message).slice(0, 80),
@@ -194,14 +216,14 @@ export default function CapacityGuideChat() {
           trackedTools.current.add(card.id);
           if (card.name === "capture_contact" && card.output.ok === true) {
             track(ANALYTICS_EVENTS.CAPACITY_GUIDE_LEAD_CAPTURED, {
-              sourceSection: "home-capacity-guide",
+              sourceSection,
               from: HUB_FROM.chooser,
               topic: "lead",
             });
           }
           if (card.name === "book_appointment" && card.output.ok === true) {
             track(ANALYTICS_EVENTS.CAPACITY_GUIDE_APPOINTMENT_BOOKED, {
-              sourceSection: "home-capacity-guide",
+              sourceSection,
               from: HUB_FROM.chooser,
               topic: "appointment",
             });
@@ -225,7 +247,7 @@ export default function CapacityGuideChat() {
     setInput("");
     if (source === "suggestion") {
       track(ANALYTICS_EVENTS.CAPACITY_GUIDE_SUGGESTION, {
-        sourceSection: "home-capacity-guide",
+        sourceSection,
         from: HUB_FROM.chooser,
         topic: matchGuideTopic(question),
         cta_label: question.slice(0, 80),
@@ -254,10 +276,12 @@ export default function CapacityGuideChat() {
 
   return (
     <div
+      id={onClose ? undefined : LOGISTICS_CHAT_ANCHOR_ID}
       className={cn(
         "relative flex h-[min(34rem,70dvh)] w-full flex-col overflow-hidden",
-        "rounded-[1.75rem] border border-white/12 bg-[#070d18]/78 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl",
-        "ring-1 ring-inset ring-white/5"
+        "rounded-[1.75rem] border border-white/12 bg-[#070d18]/92 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl",
+        "ring-1 ring-inset ring-white/5",
+        className
       )}
       role="region"
       aria-label={t("ariaLabel")}
@@ -266,15 +290,10 @@ export default function CapacityGuideChat() {
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary/20 text-accent">
             <Radio className="h-4 w-4" aria-hidden />
-            {!reduce ? (
-              <motion.span
-                className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-400"
-                animate={{ opacity: [1, 0.35, 1] }}
-                transition={{ duration: 1.8, repeat: Infinity }}
-              />
-            ) : (
-              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-400" />
-            )}
+            <span
+              className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-[#070d18]"
+              aria-hidden
+            />
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold tracking-tight text-white">{t("title")}</p>
@@ -283,7 +302,21 @@ export default function CapacityGuideChat() {
             </p>
           </div>
         </div>
-        <p className="hidden text-[11px] text-white/40 sm:block">{t("hint")}</p>
+        <div className="flex shrink-0 items-center gap-2">
+          {!onClose ? (
+            <p className="hidden text-[11px] text-white/40 sm:block">{t("hint")}</p>
+          ) : null}
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+              aria-label={t("closeAria")}
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div
@@ -405,6 +438,7 @@ export default function CapacityGuideChat() {
           {t("placeholder")}
         </label>
         <input
+          ref={inputRef}
           id={`${formId}-input`}
           value={input}
           onChange={(e) => setInput(e.target.value)}

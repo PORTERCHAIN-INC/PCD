@@ -1,6 +1,18 @@
 #!/usr/bin/env node
 /**
- * Sync env/clerk.env (12 keys) into each web app + API.
+ * Sync Clerk keys into each web/mobile app + API.
+ *
+ * Unified only (PorterChain Platform triad):
+ *   CLERK_PUBLISHABLE_KEY / CLERK_SECRET_KEY / CLERK_JWKS_URL
+ *   If triad missing, derived from CLERK_ADMIN_* (Platform rename path)
+ *   (optional aliases: CLERK_UNIFIED_*)
+ *
+ * Expands the Platform triad into per-portal CLERK_{PORTAL}_* slot aliases
+ * for dual-read / compose compat during transition.
+ *
+ * CLERK_MODE=enterprise (legacy 4-app / 12-key) is retired — see
+ * docs/runbooks/clerk-consolidation.md.
+ *
  * Usage: pnpm clerk:sync
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -60,29 +72,94 @@ function findClerkSource() {
   return null;
 }
 
+/** Platform triad: explicit unified keys, else Admin slots (ex Porterchain Admin). */
+function resolvePlatformTriad(env) {
+  const pub = (
+    env.CLERK_UNIFIED_PUBLISHABLE_KEY ||
+    env.CLERK_PUBLISHABLE_KEY ||
+    env.CLERK_ADMIN_PUBLISHABLE_KEY ||
+    ""
+  ).trim();
+  const sec = (
+    env.CLERK_UNIFIED_SECRET_KEY ||
+    env.CLERK_SECRET_KEY ||
+    env.CLERK_ADMIN_SECRET_KEY ||
+    ""
+  ).trim();
+  const jwks = (
+    env.CLERK_UNIFIED_JWKS_URL ||
+    env.CLERK_JWKS_URL ||
+    env.CLERK_ADMIN_JWKS_URL ||
+    ""
+  ).trim();
+  return { pub, sec, jwks };
+}
+
+function rejectEnterpriseMode(env) {
+  const explicit = (env.CLERK_MODE || "").trim().toLowerCase();
+  if (explicit === "enterprise") {
+    console.error(
+      "CLERK_MODE=enterprise is retired (4-app / 12-key layout is no longer supported)."
+    );
+    console.error(
+      "Use unified PorterChain Platform only. See docs/runbooks/clerk-consolidation.md"
+    );
+    process.exit(1);
+  }
+}
+
+function expandUnified(env) {
+  const { pub, sec, jwks } = resolvePlatformTriad(env);
+  if (!pub || !sec || !jwks) {
+    return {
+      ok: false,
+      missing: [
+        "CLERK_PUBLISHABLE_KEY (or CLERK_ADMIN_PUBLISHABLE_KEY)",
+        "CLERK_SECRET_KEY (or CLERK_ADMIN_SECRET_KEY)",
+        "CLERK_JWKS_URL (or CLERK_ADMIN_JWKS_URL)",
+      ],
+    };
+  }
+  const expanded = { ...env, CLERK_MODE: "unified", CLERK_UNIFIED_MODE: "true" };
+  for (const portal of PORTALS) {
+    const p = portal.toUpperCase();
+    expanded[`CLERK_${p}_PUBLISHABLE_KEY`] = pub;
+    expanded[`CLERK_${p}_SECRET_KEY`] = sec;
+    expanded[`CLERK_${p}_JWKS_URL`] = jwks;
+  }
+  expanded.CLERK_PUBLISHABLE_KEY = pub;
+  expanded.CLERK_SECRET_KEY = sec;
+  expanded.CLERK_JWKS_URL = jwks;
+  return { ok: true, env: expanded, pub, sec, jwks };
+}
+
 function portalLines(env, portal, { next = false, expo = false } = {}) {
   const p = portal.toUpperCase();
   const pub = env[`CLERK_${p}_PUBLISHABLE_KEY`] ?? "";
   const sec = env[`CLERK_${p}_SECRET_KEY`] ?? "";
-  const lines = [`# Portal: ${portal}`];
+  const lines = [`# Portal: ${portal} (mode=unified)`];
   if (expo) {
     lines.push(`EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=${pub}`);
   }
   if (next) {
     lines.push(`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${pub}`);
+    // Server-only — never NEXT_PUBLIC_
     lines.push(`CLERK_SECRET_KEY=${sec}`);
   }
   return lines;
 }
 
 function apiLines(env) {
-  const lines = ["# API — all four Clerk apps for JWT verification + Backend API"];
+  const lines = [`# API — Clerk JWT verification (mode=unified)`, `CLERK_UNIFIED_MODE=true`];
   for (const portal of PORTALS) {
     const p = portal.toUpperCase();
     lines.push(`CLERK_${p}_SECRET_KEY=${env[`CLERK_${p}_SECRET_KEY`] ?? ""}`);
     lines.push(`CLERK_${p}_PUBLISHABLE_KEY=${env[`CLERK_${p}_PUBLISHABLE_KEY`] ?? ""}`);
     lines.push(`CLERK_${p}_JWKS_URL=${env[`CLERK_${p}_JWKS_URL`] ?? ""}`);
   }
+  lines.push(`CLERK_SECRET_KEY=${env.CLERK_SECRET_KEY ?? ""}`);
+  lines.push(`CLERK_PUBLISHABLE_KEY=${env.CLERK_PUBLISHABLE_KEY ?? ""}`);
+  lines.push(`CLERK_JWKS_URL=${env.CLERK_JWKS_URL ?? ""}`);
   return lines;
 }
 
@@ -121,19 +198,17 @@ function main() {
     process.exit(1);
   }
 
-  const env = parseEnv(readFileSync(source, "utf8"));
-  const missing = [];
-  for (const portal of PORTALS) {
-    const p = portal.toUpperCase();
-    if (!env[`CLERK_${p}_PUBLISHABLE_KEY`]?.trim()) missing.push(`CLERK_${p}_PUBLISHABLE_KEY`);
-    if (!env[`CLERK_${p}_SECRET_KEY`]?.trim()) missing.push(`CLERK_${p}_SECRET_KEY`);
-    if (!env[`CLERK_${p}_JWKS_URL`]?.trim()) missing.push(`CLERK_${p}_JWKS_URL`);
-  }
-  if (missing.length) {
-    console.error(`Missing keys in ${path.relative(ROOT, source)}:`);
-    for (const key of missing) console.error(`  ${key}`);
+  let env = parseEnv(readFileSync(source, "utf8"));
+  rejectEnterpriseMode(env);
+
+  const expanded = expandUnified(env);
+  if (!expanded.ok) {
+    console.error(`CLERK_MODE=unified requires PorterChain Platform triad:`);
+    for (const key of expanded.missing) console.error(`  ${key}`);
     process.exit(1);
   }
+  env = expanded.env;
+  console.log("Mode: unified (PorterChain Platform — one publishable key for all clients)\n");
 
   if (source !== path.join(ROOT, "env/clerk.env")) {
     mkdirSync(path.join(ROOT, "env"), { recursive: true });
@@ -145,6 +220,12 @@ function main() {
   for (const surface of SURFACES) writeSurface(surface, env);
   writeApi(env);
   console.log("\nDone. Restart dev servers if running.");
+  console.log(
+    "Clients share one NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY / EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY."
+  );
+  console.log(
+    "Secrets stay server-only (CLERK_SECRET_KEY). Never put sk_ in browser/mobile bundles."
+  );
 }
 
 main();

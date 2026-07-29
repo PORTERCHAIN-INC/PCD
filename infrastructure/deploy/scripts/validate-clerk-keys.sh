@@ -1,14 +1,25 @@
 #!/usr/bin/env bash
-# Validate 4-app Clerk keys before Doppler upload (§0.5).
+# Validate Clerk keys before Doppler upload.
+# Supports:
+#   CLERK_MODE=enterprise (default) — 4 isolated apps (12 keys)
+#   CLERK_MODE=unified — one Platform triad (pk/sk/jwks)
+#
+# Phase 6: validation only. Does not mutate Doppler.
+# Production upload remains a manual human gate (upload-clerk-to-doppler.sh).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ENV_FILE="${1:-${SCRIPT_DIR}/clerk-keys.local.env}"
 
 if [ ! -f "$ENV_FILE" ]; then
-  echo "Missing ${ENV_FILE}" >&2
-  echo "Copy clerk-keys.template.env → clerk-keys.local.env and fill in keys." >&2
-  exit 1
+  # Prefer repo env/clerk.env when present
+  if [ -f "${SCRIPT_DIR}/../../../env/clerk.env" ]; then
+    ENV_FILE="${SCRIPT_DIR}/../../../env/clerk.env"
+  else
+    echo "Missing ${ENV_FILE}" >&2
+    echo "Copy env/clerk.env.example → env/clerk.env (or clerk-keys.template.env)." >&2
+    exit 1
+  fi
 fi
 
 # shellcheck disable=SC1090
@@ -18,6 +29,7 @@ set +a
 
 pass() { echo "PASS  $*"; }
 fail() { echo "FAIL  $*"; exit 1; }
+warn() { echo "WARN  $*"; }
 
 check_key() {
   local name="$1" value="$2" prefix="$3"
@@ -48,7 +60,43 @@ check_jwks() {
   pass "${portal} JWKS (${count} key(s))"
 }
 
-echo "Validating ${ENV_FILE}..."
+MODE="$(echo "${CLERK_MODE:-enterprise}" | tr '[:upper:]' '[:lower:]')"
+# Auto-detect unified triad when mode unset/enterprise but only platform keys present
+if [ "$MODE" != "unified" ]; then
+  if [ -n "${CLERK_PUBLISHABLE_KEY:-}${CLERK_UNIFIED_PUBLISHABLE_KEY:-}" ] \
+    && [ -n "${CLERK_SECRET_KEY:-}${CLERK_UNIFIED_SECRET_KEY:-}" ] \
+    && [ -n "${CLERK_JWKS_URL:-}${CLERK_UNIFIED_JWKS_URL:-}" ] \
+    && [ -z "${CLERK_CUSTOMER_PUBLISHABLE_KEY:-}" ]; then
+    MODE="unified"
+  fi
+fi
+
+echo "Validating ${ENV_FILE} (mode=${MODE})..."
+
+if [ "$MODE" = "unified" ]; then
+  PUB="${CLERK_UNIFIED_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY:-}}"
+  SEC="${CLERK_UNIFIED_SECRET_KEY:-${CLERK_SECRET_KEY:-}}"
+  JWKS="${CLERK_UNIFIED_JWKS_URL:-${CLERK_JWKS_URL:-}}"
+
+  if [[ "$PUB" == pk_test_* ]]; then
+    warn "CLERK_PUBLISHABLE_KEY is pk_test_ — use Production (pk_live_) before go-live"
+  fi
+  if [[ "$SEC" == sk_test_* ]]; then
+    warn "CLERK_SECRET_KEY is sk_test_ — use Production (sk_live_) before go-live"
+  fi
+  if [[ "$PUB" == pk_live_* && "$SEC" == sk_test_* ]]; then
+    fail "env mismatch: publishable is live but secret is test"
+  fi
+  if [[ "$PUB" == pk_test_* && "$SEC" == sk_live_* ]]; then
+    fail "env mismatch: publishable is test but secret is live"
+  fi
+
+  check_key "CLERK_PUBLISHABLE_KEY" "$PUB" "pk"
+  check_key "CLERK_SECRET_KEY" "$SEC" "sk"
+  check_jwks "PLATFORM" "$JWKS"
+  pass "Unified Platform Clerk app validated (local only — do not auto-upload to Doppler prod)"
+  exit 0
+fi
 
 for portal in CUSTOMER MERCHANT ADMIN DRIVER; do
   pub_var="CLERK_${portal}_PUBLISHABLE_KEY"
@@ -59,10 +107,16 @@ for portal in CUSTOMER MERCHANT ADMIN DRIVER; do
   jwks_val="${!jwks_var:-}"
 
   if [[ "$pub_val" == pk_test_* ]]; then
-    echo "WARN  ${pub_var} is pk_test_ — use Production (pk_live_) before go-live"
+    warn "${pub_var} is pk_test_ — use Production (pk_live_) before go-live"
   fi
   if [[ "$sec_val" == sk_test_* ]]; then
-    echo "WARN  ${sec_var} is sk_test_ — use Production (sk_live_) before go-live"
+    warn "${sec_var} is sk_test_ — use Production (sk_live_) before go-live"
+  fi
+  if [[ "$pub_val" == pk_live_* && "$sec_val" == sk_test_* ]]; then
+    fail "${portal}: env mismatch — publishable live / secret test"
+  fi
+  if [[ "$pub_val" == pk_test_* && "$sec_val" == sk_live_* ]]; then
+    fail "${portal}: env mismatch — publishable test / secret live"
   fi
 
   check_key "$pub_var" "$pub_val" "pk"
@@ -70,4 +124,4 @@ for portal in CUSTOMER MERCHANT ADMIN DRIVER; do
   check_jwks "$portal" "$jwks_val"
 done
 
-pass "All 4 Clerk apps validated — run upload-clerk-to-doppler.sh"
+pass "All 4 Clerk apps validated — upload to Doppler is a manual human gate"

@@ -28,11 +28,10 @@ def main() -> int:
             failures.append(f"{label} must not expose merchant SSO on capacity acquisition page")
 
     login = LOGIN.read_text(encoding="utf-8")
-    if (
-        'intent === "merchant"' not in login
-        and "portalSignInUrlForIntent" not in login
-    ):
-        failures.append("login page missing merchant intent routing")
+    if "PostAuthPortalRedirect" not in login and "login/continue" not in login:
+        failures.append("login page missing post-auth continue / module routing")
+    if "MerchantSsoButtons" in login or "LoginBrandPanel" in login:
+        failures.append("login page must not use portal picker / MerchantSsoButtons chrome")
 
     unified = UNIFIED.read_text(encoding="utf-8")
     if "MerchantSsoButtons" in unified:

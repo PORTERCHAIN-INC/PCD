@@ -60,6 +60,39 @@ class Settings(BaseSettings):
     clerk_driver_jwks_url: str = ""
     clerk_driver_publishable_key: str = ""
 
+    # Phase 3 — optional JWT policy (empty = skip; required after unified Clerk cutover)
+    clerk_audience: str = ""
+    clerk_authorized_parties: str = ""  # comma-separated azp allowlist
+    clerk_authorized_issuers: str = ""  # comma-separated iss allowlist
+    # Phase 4 — Clerk webhook (Svix) signing secret
+    clerk_webhook_signing_secret: str = ""
+    # Phase 5 — one Platform Clerk app for all portals (multi-role same subject)
+    clerk_unified_mode: bool = False
+
+    # SpiceDB (Zanzibar) — access-rules graph (not business data)
+    # Default off until compose SpiceDB is up; set SPICEDB_ENABLED=true locally.
+    spicedb_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("spicedb_enabled", "SPICEDB_ENABLED"),
+    )
+    spicedb_required: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("spicedb_required", "SPICEDB_REQUIRED"),
+    )
+    spicedb_endpoint: str = Field(
+        default="localhost:50051",
+        validation_alias=AliasChoices("spicedb_endpoint", "SPICEDB_ENDPOINT"),
+    )
+    spicedb_preshared_key: str = Field(
+        default="porterchain-spicedb-dev-key",
+        validation_alias=AliasChoices("spicedb_preshared_key", "SPICEDB_PRESHARED_KEY"),
+    )
+    spicedb_use_memory: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("spicedb_use_memory", "SPICEDB_USE_MEMORY"),
+        description="Force in-process relationship store (tests / no compose SpiceDB).",
+    )
+
     admin_portal_url: str = "http://localhost:3002"
     merchant_portal_url: str = "http://localhost:3001"
     driver_portal_url: str = "http://localhost:3003"
@@ -212,21 +245,14 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def require_clerk_in_production(self) -> Self:
-        if is_local_env(self.app_env) or self.clerk_dev_bypass:
+        if is_local_env(self.app_env):
             return self
-        from porterchain_api.auth.clerk_registry import (
-            ALL_CLERK_APP_KINDS,
-            clerk_configuration_mode,
-        )
+        from porterchain_api.auth.clerk_config_audit import production_clerk_errors
 
-        mode = clerk_configuration_mode(self)
-        if mode in ("enterprise", "legacy"):
-            return self
-        missing = ", ".join(f"clerk_{k}" for k in ALL_CLERK_APP_KINDS)
-        raise ValueError(
-            "Production requires Clerk: set all CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_* "
-            f"keys or legacy CLERK_SECRET_KEY + CLERK_JWKS_URL (missing: {missing})"
-        )
+        errors = production_clerk_errors(self)
+        if errors:
+            raise ValueError("; ".join(errors))
+        return self
 
     @property
     def cors_origin_list(self) -> list[str]:

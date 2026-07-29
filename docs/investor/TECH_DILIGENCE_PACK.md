@@ -16,8 +16,8 @@ Porterchain is a multi-tenant logistics orchestration platform: **Next.js portal
 
 ## Security & tenancy
 
-- RBAC enforced in API (`auth/rbac.py`, `require_module`)
-- Matrix: [RBAC_MATRIX.md](../../RBAC_MATRIX.md)
+- RBAC enforced in API (`authz/schema.zed`, `require_module` → SpiceDB Check)
+- Authz ADR: [auth-clerk-spicedb.md](../architecture/auth-clerk-spicedb.md) (RBAC_MATRIX.md retired)
 - Tenant isolation: merchant-scoped repositories (DD-07 closed)
 - Rate limits fail-closed (DD-06)
 - Audit export: `GET /v1/admin/audit-logs/export`

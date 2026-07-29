@@ -17,44 +17,118 @@ export type KnowledgeChunk = {
 const CHARTER_CHUNKS: KnowledgeChunk[] = [
   {
     id: "charter-identity",
-    title: "What Porterchain is",
-    body: "Porterchain is a Transportation Capacity Network. Customers buy vehicle-and-driver capacity for same-day overflow, urgent runs, recurring distribution, construction/jobsite, medical/pharmacy, wholesale, manufacturing, and retail. Porterchain is not a courier brand, trucking company identity, dispatch SaaS, fleet-management software SKU, or delivery marketplace.",
-    tags: ["identity", "capacity", "network", "charter"],
+    title: "What PorterChain is",
+    body: "PorterChain is the operating platform that helps businesses simplify, automate, and manage local logistics in the Greater Toronto Area. Evidence behind that promise: professional drivers and vehicles, business portal (quotes, booking, tracking, proof, reports), AI assistance, APIs, and dedicated logistics support. Not a consumer courier marketplace.",
+    tags: ["identity", "platform", "logistics", "charter", "gta", "business account", "what"],
     source: "charter",
   },
   {
     id: "charter-pricing",
     title: "How pricing works",
-    body: "Pricing is quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Never invent dollar amounts. Merchants pay for capacity executed — not software seats. Confirm capacity and price in writing before dispatch. Request a quote via /contact?intent=quote or /business.",
-    tags: ["pricing", "quote", "billing"],
+    body: "Pricing is quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Never invent dollar amounts. Business accounts bring quotes, booking, and tracking together; transportation capacity and price are confirmed in writing before dispatch. Request via /contact?intent=quote or /business.",
+    tags: ["pricing", "quote", "billing", "cost", "rate", "business account"],
     source: "charter",
   },
   {
     id: "charter-coverage",
     title: "Coverage",
-    body: "Primary coverage is the Greater Toronto Area and Ontario metros — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener-Waterloo, London, Niagara, and surrounding regions. Lanes are quote-based for pickup and delivery geographies.",
-    tags: ["coverage", "gta", "ontario", "areas", "mississauga", "toronto"],
+    body: "Service focuses on the Greater Toronto Area — Toronto, Peel (Mississauga, Brampton), York (Vaughan, Markham), and Durham. Lanes are quote-based for pickup and delivery within the GTA.",
+    tags: [
+      "coverage",
+      "gta",
+      "areas",
+      "mississauga",
+      "toronto",
+      "peel",
+      "york",
+      "durham",
+      "brampton",
+      "vaughan",
+    ],
     source: "charter",
   },
   {
     id: "charter-vehicles",
     title: "Vehicles",
-    body: "Vehicle classes include sedan, SUV, pickup, cargo van, sprinter van, 16 ft box truck, and 20 ft box truck. Ontario G licence classes apply for drivers today. Match vehicle to weight, dimensions, and site access.",
-    tags: ["vehicles", "fleet", "box truck", "van"],
+    body: "Transportation layer: sedan, SUV, pickup, cargo van, sprinter van, 16 ft box truck, and 20 ft box truck — each with a professional driver. Match vehicle to weight, dimensions, and site access across GTA lanes.",
+    tags: [
+      "vehicles",
+      "fleet",
+      "box truck",
+      "van",
+      "driver",
+      "transportation",
+      "sedan",
+      "suv",
+      "pickup",
+    ],
     source: "charter",
   },
   {
     id: "charter-tracking",
     title: "Tracking and proof of delivery",
-    body: "Shipments can include tracking links and proof of delivery (photo, signature where agreed). Guests look up status at /track. If a tracking number is known, open /track/{number}. Never invent live status — only point to the tracking page or ask for the number.",
-    tags: ["tracking", "pod", "proof", "status"],
+    body: "Business platform includes live tracking and proof of delivery (photo, signature where agreed). Guests look up status at /track. If a tracking number is known, open /track/{number}. Never invent live status — only point to the tracking page or ask for the number.",
+    tags: ["tracking", "pod", "proof", "status", "signature", "photo"],
     source: "charter",
   },
   {
     id: "charter-paths",
     title: "Next steps and paths",
-    body: "Merchants explore capacity at /business. Drivers join as vehicle partners at /vehicle-partner. Request capacity or a written quote at /contact?intent=quote. Track a shipment at /track.",
-    tags: ["cta", "merchants", "drivers", "quote"],
+    body: "Get a Business Account at /business. Talk to a Logistics Specialist or request a quote at /contact?intent=quote. Drivers join as vehicle partners at /vehicle-partner. Track a shipment at /track. Always collect work email and mobile so the team can follow up.",
+    tags: ["cta", "merchants", "drivers", "quote", "business account", "contact", "email", "phone"],
+    source: "charter",
+  },
+  {
+    id: "charter-same-day",
+    title: "Same-day and overflow capacity",
+    body: "Same-day and urgent overflow are core use cases when a driver is out, a truck is down, or demand spikes. Share pickup, drop, vehicle class, and time window. Availability depends on cut-off, zone, and vehicle class — confirmed when quoting. Recurring routes and dedicated programs are also available for predictable volume.",
+    tags: ["same-day", "overflow", "urgent", "emergency", "backup", "recurring"],
+    source: "charter",
+  },
+  {
+    id: "charter-business-account",
+    title: "Business account capabilities",
+    body: "A PorterChain Business Account lets ops generate instant quotes, book deliveries, track shipments live, download proof of delivery, view invoices and reports, connect via APIs, use AI assistance, and work with dedicated logistics support — all from one platform for local GTA logistics.",
+    tags: ["business account", "dashboard", "booking", "quotes", "api", "reports", "portal"],
+    source: "charter",
+  },
+  {
+    id: "charter-industries",
+    title: "Industries served",
+    body: "PorterChain serves GTA B2B operations across manufacturing, construction, industrial supply, electrical distribution, HVAC, plumbing, medical and pharmacy, retail, and wholesale. Capacity adapts to jobsite windows, counter-to-jobsite runs, warehouse distribution, and peak overflow.",
+    tags: [
+      "industries",
+      "manufacturing",
+      "construction",
+      "wholesale",
+      "medical",
+      "retail",
+      "hvac",
+      "plumbing",
+      "electrical",
+      "industrial",
+    ],
+    source: "charter",
+  },
+  {
+    id: "charter-api",
+    title: "APIs and integrations",
+    body: "Business accounts can connect order creation, tracking, and reporting through APIs. Documentation is provided during onboarding. Custom integrations are scoped with the logistics and technology team after account setup.",
+    tags: ["api", "integrations", "webhook", "csv", "onboarding", "technology"],
+    source: "charter",
+  },
+  {
+    id: "charter-drivers",
+    title: "Driver and vehicle partners",
+    body: "Eligible vehicle partners join the GTA network for structured routes, clear instructions, and a dedicated driver portal. Apply at /vehicle-partner. Vehicle fit and onboarding are reviewed by the team.",
+    tags: ["drivers", "vehicle partner", "partner", "join", "drive"],
+    source: "charter",
+  },
+  {
+    id: "charter-contact-followup",
+    title: "How follow-up works",
+    body: "Sharing a work email and mobile phone lets PorterChain save the conversation and have a logistics specialist follow up with written capacity options. Contact capture is required before booking a call. Visitors can also open /business or /contact?intent=quote.",
+    tags: ["contact", "email", "phone", "follow-up", "specialist", "lead"],
     source: "charter",
   },
 ];
@@ -96,7 +170,7 @@ function answerChunks(): KnowledgeChunk[] {
 
 function faqClusterChunks(): KnowledgeChunk[] {
   const out: KnowledgeChunk[] = [];
-  for (const cluster of FAQ_CLUSTERS.slice(0, 12)) {
+  for (const cluster of FAQ_CLUSTERS.slice(0, 24)) {
     out.push({
       id: `cluster-${cluster.slug}-intro`,
       title: cluster.title,
@@ -104,12 +178,12 @@ function faqClusterChunks(): KnowledgeChunk[] {
       tags: ["industry", cluster.slug, ...cluster.industrySlugs.slice(0, 3)],
       source: "faq-cluster",
     });
-    for (const [i, item] of cluster.items.slice(0, 6).entries()) {
+    for (const [i, item] of cluster.items.slice(0, 10).entries()) {
       out.push({
         id: `cluster-${cluster.slug}-${i}`,
         title: item.question,
         body: `${item.question} ${item.answer}`,
-        tags: ["industry", cluster.slug],
+        tags: ["industry", cluster.slug, "faq"],
         source: "faq-cluster",
       });
     }
@@ -181,7 +255,28 @@ export function retrieveGuideKnowledge(
     if (/\b(price|pricing|cost|quote|rate)\b/.test(q) && chunk.id.includes("pricing")) {
       score += 4;
     }
-    if (/\b(vehicle|truck|van|fleet)\b/.test(q) && chunk.id.includes("vehicle")) {
+    if (/\b(vehicle|truck|van|fleet|sedan|suv|pickup)\b/.test(q) && chunk.id.includes("vehicle")) {
+      score += 4;
+    }
+    if (
+      /\b(same.?day|overflow|urgent|emergency|backup)\b/.test(q) &&
+      chunk.id.includes("same-day")
+    ) {
+      score += 5;
+    }
+    if (
+      /\b(account|dashboard|portal|booking|api|integrat)\b/.test(q) &&
+      (chunk.id.includes("business-account") || chunk.id.includes("api"))
+    ) {
+      score += 4;
+    }
+    if (
+      /\b(industr|manufactur|construct|wholesale|medical|retail|hvac|plumb|electric)\b/.test(q) &&
+      chunk.id.includes("industries")
+    ) {
+      score += 4;
+    }
+    if (/\b(driver|partner|join|drive)\b/.test(q) && chunk.id.includes("drivers")) {
       score += 4;
     }
 
@@ -189,7 +284,7 @@ export function retrieveGuideKnowledge(
   });
 
   return scored
-    .filter((c) => c.score > 1.2)
+    .filter((c) => c.score > 1.0)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 }

@@ -30,7 +30,7 @@ Legacy path (no `DOPPLER_TOKEN`): deploy still injects secrets from individual G
 
 ## One-time Doppler setup
 
-See **[CLERK_APPS_SETUP.md](./CLERK_APPS_SETUP.md)** for creating 4 Clerk applications and uploading keys.
+See **[docs/runbooks/clerk-consolidation.md](../../docs/runbooks/clerk-consolidation.md)** (primary — unified Platform Clerk app). Legacy per-portal setup: **[CLERK_APPS_SETUP.md](./CLERK_APPS_SETUP.md)** (rollback only).
 
 1. Use project **`pcd`** at [doppler.com](https://www.doppler.com) (already created).
 2. Create config **`prd`** (production).
@@ -39,15 +39,15 @@ See **[CLERK_APPS_SETUP.md](./CLERK_APPS_SETUP.md)** for creating 4 Clerk applic
 | Doppler secret                   | Notes                                                         |
 | -------------------------------- | ------------------------------------------------------------- |
 | `POSTGRES_PASSWORD`              | DB password                                                   |
-| `CLERK_SECRET_KEY`               | Legacy single-app `sk_live_…` (migrate to per-portal)         |
-| `CLERK_PUBLISHABLE_KEY`          | Legacy `pk_live_…`                                            |
-| `CLERK_JWKS_URL`                 | Legacy JWKS URL                                               |
-| `CLERK_CUSTOMER_SECRET_KEY`      | Customer app `sk_live_…`                                      |
-| `CLERK_CUSTOMER_PUBLISHABLE_KEY` | Customer `pk_live_…` (website + customer portal builds)       |
-| `CLERK_CUSTOMER_JWKS_URL`        | Customer JWKS                                                 |
-| `CLERK_MERCHANT_*`               | Merchant portal                                               |
-| `CLERK_ADMIN_*`                  | Admin portal                                                  |
-| `CLERK_DRIVER_*`                 | Driver portal + mobile                                        |
+| `CLERK_SECRET_KEY`               | Unified Platform app `sk_live_…` (primary)                    |
+| `CLERK_PUBLISHABLE_KEY`          | Unified Platform `pk_live_…` (primary)                        |
+| `CLERK_JWKS_URL`                 | Unified Platform JWKS URL                                     |
+| `CLERK_CUSTOMER_SECRET_KEY`      | Legacy Customer app `sk_live_…` (rollback only)               |
+| `CLERK_CUSTOMER_PUBLISHABLE_KEY` | Legacy Customer `pk_live_…` (rollback only)                   |
+| `CLERK_CUSTOMER_JWKS_URL`        | Legacy Customer JWKS (rollback only)                          |
+| `CLERK_MERCHANT_*`               | Legacy Merchant portal (rollback only)                        |
+| `CLERK_ADMIN_*`                  | Legacy Admin portal (rollback only)                           |
+| `CLERK_DRIVER_*`                 | Legacy Driver portal + mobile (rollback only)                 |
 | `STRIPE_SECRET`                  | `sk_live_…`                                                   |
 | `STRIPE_WEBHOOK_SECRET`          | `whsec_…`                                                     |
 | `JWT_SECRET`                     | `openssl rand -hex 32` (alias: `SSO_JWT_SECRET` in docs only) |

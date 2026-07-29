@@ -22,7 +22,7 @@
           "Paiement : informations de facturation traitées par Stripe (les données de carte sont gérées par Stripe)",
           "Compte et conformité : documents d'intégration marchand, identifiants fiscaux et assurances",
           "Localisation : coordonnées GPS pour le suivi des chauffeurs et la preuve de livraison",
-          "Communications : demandes de support, messages via Zoho SalesIQ et courriels",
+          "Communications : demandes de support, messages via le chat logistique sur le site, WhatsApp et courriels",
           "Données techniques : témoins et identifiants de session des services d'authentification"
         ]
       },
@@ -50,7 +50,6 @@
           "Clerk — authentification marchands et clients",
           "Stripe — traitement des paiements",
           "Google Maps — autocomplétion d'adresses et cartographie",
-          "Zoho SalesIQ — clavardage en direct",
           "Zoho Mail — courriels transactionnels",
           "Fleetbase et API Porterchain — expédition, routage et opérations"
         ]
@@ -170,7 +169,6 @@
           "Témoins d'expérience — Clarity/Hotjar optionnels seulement si vous autorisez Expérience",
           "Témoins d'authentification — définis par Clerk lors de la connexion ou vérification du compte",
           "Témoins de préférence — langue (anglais / français) et choix de la bannière de témoins",
-          "Témoins de clavardage — définis par Zoho SalesIQ lorsque le widget est activé",
           "Témoins de paiement — définis par Stripe lors du paiement",
           "Témoins de cartes — définis par Google Maps pour l'autocomplétion et les cartes"
         ]
@@ -181,7 +179,6 @@
           "Les services tiers suivants peuvent charger des scripts ou définir des témoins lorsque vous utilisez notre site :"
         ],
         "list": [
-          "Zoho SalesIQ (salesiq.zohopublic.com) — clavardage en direct",
           "Clerk — authentification pour réservation, portail marchand, admin et chauffeurs",
           "Google Maps (maps.googleapis.com) — autocomplétion et cartes",
           "Stripe (stripe.com) — traitement des paiements"
@@ -191,7 +188,7 @@
         "title": "Gestion des témoins",
         "paragraphs": [
           "Vous pouvez contrôler les témoins via les paramètres de votre navigateur. Bloquer les témoins essentiels ou d'authentification peut empêcher les réservations, la connexion ou les paiements.",
-          "Pour désactiver le widget Zoho SalesIQ, n'initiez pas de session de clavardage ou utilisez des extensions bloquant les scripts tiers. Vous pouvez toujours nous joindre par courriel ou téléphone."
+          "Le chat logistique sur le site fonctionne sur l'infrastructure PorterChain. Sur mobile, vous pouvez aussi ouvrir WhatsApp. Vous pouvez toujours nous joindre par courriel ou téléphone."
         ]
       },
       {

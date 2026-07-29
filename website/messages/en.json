@@ -1,18 +1,18 @@
 {
   "metadata": {
-    "title": "Porterchain | B2B Transportation Capacity in the GTA & Ontario",
-    "description": "Vehicle-and-driver capacity for GTA businesses — same-day delivery, fleet overflow, recurring routes, jobsite logistics, and last-mile distribution across Toronto, Peel, York, and Durham.",
-    "ogTitle": "Porterchain | B2B Transportation Capacity — GTA & Ontario",
-    "ogDescription": "Professional drivers and commercial vehicles for overflow, urgent delivery, recurring wholesale routes, and business continuity across the Greater Toronto Area.",
+    "title": "PorterChain | Local Logistics Platform for the GTA",
+    "description": "Run local GTA logistics from one platform — quotes, booking, tracking, proof of delivery, reports, APIs, and dedicated logistics support backed by professional drivers and vehicles.",
+    "ogTitle": "PorterChain | Local Logistics Operating Platform — GTA",
+    "ogDescription": "One business account to simplify, automate, and manage local logistics across Toronto, Peel, York, and Durham.",
     "keywords": [
-      "B2B delivery Toronto",
-      "last mile delivery GTA",
+      "local logistics GTA",
+      "business logistics platform Toronto",
       "same day delivery business Toronto",
       "fleet overflow capacity GTA",
-      "commercial delivery service Ontario",
+      "proof of delivery GTA",
       "jobsite delivery Toronto",
       "wholesale distribution delivery GTA",
-      "transportation capacity network",
+      "PorterChain business account",
       "Porterchain"
     ]
   },
@@ -37,12 +37,12 @@
     }
   },
   "login": {
-    "title": "Customer sign-in",
-    "eyebrow": "Choose your portal",
-    "headline": "Sign in to your Porterchain portal.",
-    "subtitle": "Customers sign in here. Merchants, drivers, and staff use the links below — each portal has its own secure login.",
-    "roleNote": "Customer accounts only. Use the portal picker if you need merchant, driver, or staff access.",
-    "trustLine": "Isolated portal logins · Secure authentication",
+    "title": "Sign in",
+    "eyebrow": "Porterchain",
+    "headline": "Sign in to Porterchain.",
+    "subtitle": "Use your Porterchain account. After sign-in you go to the portal you are provisioned for.",
+    "roleNote": "Authenticated by Clerk. Access is decided by Porterchain roles.",
+    "trustLine": "Secure authentication · Role-based access",
     "needHelp": "Need an account?",
     "needHelpLink": "Contact support",
     "roles": {
@@ -56,7 +56,7 @@
       },
       "customer": {
         "title": "Customers",
-        "description": "Sign in with the form on this page"
+        "description": "Deliveries and invoices"
       },
       "staff": {
         "title": "Operations",
@@ -64,11 +64,13 @@
       }
     },
     "redirecting": "Opening your portal…",
-    "notProvisioned": "This website login is for customers only. Staff sign in at the Admin portal; merchants and drivers use their own portals. If you were invited as a customer, use the link in your invitation email.",
+    "choosePortal": "Choose where to continue",
+    "choosePortalHint": "This account has access to more than one portal.",
+    "notProvisioned": "This account is signed in but not provisioned for a Porterchain portal yet. Contact support if you expected access.",
     "staffSignIn": "Staff / admin sign-in",
     "merchantSignIn": "Merchant sign-in",
     "driverSignIn": "Driver sign-in",
-    "identityConflict": "This account is linked to multiple portal types. Use separate emails for staff and customer accounts, or contact support.",
+    "identityConflict": "This account needs support to finish provisioning. Contact us with the email you used to sign in.",
     "error": "We couldn't sign you in. Check your connection and try again.",
     "missingToken": "Clerk did not return a session token. Sign out and try again.",
     "apiUnreachable": "Porterchain API is not reachable. Ensure the API is running on port 8001.",
@@ -78,33 +80,29 @@
     "contactSupport": "Contact support"
   },
   "homeChooser": {
-    "eyebrow": "Porterchain · GTA & Ontario",
-    "headline": "Ask what capacity you need — get a clear next step.",
-    "subtitle": "Not a software tour. Ask about same-day overflow, vehicles, industries, or pricing — then jump to a quote or the merchant path.",
-    "trustLine": "Quote-based · Live tracking and proof · Response within one business day",
-    "merchants": {
-      "title": "Merchants",
-      "body": "Request capacity for construction, wholesale, medical, and distribution lanes — quote-based by vehicle, route, and urgency.",
-      "cta": "Merchants"
-    },
-    "drivers": {
-      "title": "Drivers",
-      "body": "Bring an eligible vehicle into the network — structured routes, clear instructions, dedicated portal.",
-      "cta": "Drivers"
-    },
+    "eyebrow": "PorterChain · Greater Toronto Area",
+    "headline": "Run your local logistics from one platform.",
+    "subtitle": "PorterChain helps businesses manage local logistics with transportation, software, AI, and operational support—all through one business account.",
+    "primaryCta": "Get Business Account",
+    "primaryCtaHint": "Access instant quotes, booking, tracking, proof of delivery, reports, and more.",
+    "secondaryCta": "Talk to a Logistics Specialist",
+    "trustLine": "Built for manufacturers, distributors, contractors, wholesalers, retailers, and growing businesses across the GTA.",
     "guide": {
       "ariaLabel": "Capacity guide chat",
-      "title": "Capacity line",
-      "status": "Live · GTA network",
-      "hint": "Powered by Groq · grounded in Porterchain capacity",
+      "title": "Logistics line",
+      "status": "Live · GTA",
+      "hint": "Ask how to manage local logistics on one platform",
+      "launcherLabel": "Chat",
+      "launcherAria": "Open PorterChain logistics chat",
+      "closeAria": "Close logistics chat",
       "thinking": "Thinking…",
-      "error": "The capacity line is unavailable right now. Try again, or request a quote and we’ll follow up.",
-      "guideName": "Porterchain",
+      "error": "The logistics line is unavailable right now. Try again, or talk to a specialist and we’ll follow up.",
+      "guideName": "PorterChain",
       "you": "You",
-      "welcome": "Ask anything about backup capacity — same-day overflow, vehicle classes, industries we serve, or how quotes work. I can also save your contact and book a call with the team.",
-      "fallback": "I can help with pricing, industries, vehicles, same-day overflow, merchant capacity, or joining as a driver partner. Try one of the prompts below — or request a written quote and we’ll map your lanes.",
+      "welcome": "Ask anything about local GTA logistics — quotes, booking, tracking, proof of delivery, vehicles with drivers, industries, pricing, or business accounts. To follow up with options for your lanes, I’ll also need your work email and mobile.",
+      "fallback": "I can help with pricing, industries, vehicles with drivers, same-day overflow, business accounts, or joining as a driver partner. Share your work email and mobile so a specialist can follow up — or try a prompt below.",
       "tryAsking": "Try asking",
-      "placeholder": "Ask about capacity, pricing, vehicles…",
+      "placeholder": "Ask about local logistics, booking, vehicles…",
       "send": "Send",
       "toolContactSaved": "Contact saved",
       "toolContactUpdated": "Contact updated",
@@ -119,10 +117,10 @@
       "toolDenyBook": "Cancel",
       "toolAwaitingApproval": "Confirm this booking?",
       "toolWorking": "Working…",
-      "toolFailed": "Couldn’t complete that step — try again or request a quote.",
+      "toolFailed": "Couldn’t complete that step — try again or talk to a specialist.",
       "actions": {
-        "quote": "Request a quote",
-        "merchants": "Merchant capacity",
+        "quote": "Talk to a specialist",
+        "merchants": "Get Business Account",
         "drivers": "Driver partners",
         "pricing": "How pricing works",
         "industries": "Industries we serve",
@@ -130,75 +128,123 @@
       },
       "topics": {
         "what": {
-          "prompt": "What is Porterchain?",
-          "answer": "Porterchain is a transportation capacity network for Ontario businesses. You buy vehicle-and-driver capacity for overflow, same-day, and recurring lanes — not a SaaS seat. Software and dispatch stay behind the scenes so your customers still get the delivery."
+          "prompt": "What is PorterChain?",
+          "answer": "PorterChain is the operating platform that helps businesses simplify, automate, and manage local logistics. Behind that promise: professional drivers and vehicles, business portal tools, AI assistance, APIs, and dedicated logistics support across the GTA."
         },
         "pricing": {
           "prompt": "How does pricing work?",
-          "answer": "Pricing is quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). You pay for capacity executed — not software seats. We confirm capacity and price in writing before dispatch."
+          "answer": "Pricing is quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). Your business account brings quotes, booking, tracking, and proof together — we confirm transportation capacity and price in writing before dispatch."
         },
         "industries": {
           "prompt": "Which industries do you serve?",
-          "answer": "We support GTA B2B operations across construction, wholesale, medical and pharmacy, manufacturing, retail distribution, and more. Open the merchants page for sector playbooks and a capacity quote."
+          "answer": "Manufacturing, construction, industrial supply, electrical, HVAC, plumbing, medical, retail, and wholesale across the GTA. PorterChain adapts to how your operations team works."
         },
         "sameday": {
           "prompt": "Can you cover same-day overflow?",
-          "answer": "Yes — same-day and urgent backup capacity is a core use case when a driver is out, a truck is down, or demand spikes. Share pickup, drop, vehicle need, and window — we’ll confirm what’s available."
+          "answer": "Yes — same-day and urgent transportation capacity across the GTA when a driver is out, a truck is down, or demand spikes. Book from your business account or talk to a logistics specialist with pickup, drop, vehicle need, and window."
         },
         "vehicles": {
           "prompt": "What vehicles are available?",
-          "answer": "Sedan, SUV, pickup, cargo van, Sprinter van, and box trucks — matched to load, access, and urgency. All current classes run on a standard Ontario G licence. See the fleet on the merchants page or ask for a quote."
+          "answer": "Sedan, SUV, pickup, cargo van, Sprinter van, and box trucks — each with a professional driver, matched to load, access, and urgency. Transportation is one layer of the platform; see the fleet on the business page."
         },
         "merchants": {
-          "prompt": "I need capacity for my business",
-          "answer": "Merchant capacity is for shippers who need reliable vehicle-and-driver coverage — one-off urgent runs, recurring routes, or fleet overflow. Start on the merchants hub or request a quote with your lanes."
+          "prompt": "I need a business account",
+          "answer": "A PorterChain Business Account lets your ops team generate quotes, book deliveries, track shipments, download proof of delivery, view reports, and connect via APIs — with dedicated logistics support. Start on the business hub or talk to a specialist."
         },
         "drivers": {
           "prompt": "How do I join as a driver?",
-          "answer": "Eligible vehicle partners join the network for structured routes, clear instructions, and a dedicated driver portal. Open the drivers hub to apply — we’ll review vehicle fit and next steps."
+          "answer": "Eligible vehicle partners join the GTA network for structured routes, clear instructions, and a dedicated driver portal. Open the drivers hub to apply — we’ll review vehicle fit and next steps."
         },
         "areas": {
           "prompt": "Where do you operate?",
-          "answer": "Primary coverage is the Greater Toronto Area and broader Ontario metros. Tell us your corridors when you request a quote so we can confirm lane fit."
+          "answer": "We focus on the Greater Toronto Area — Toronto, Peel, York, and Durham. Tell us your corridors when you open a business account or talk to a specialist."
         },
         "tracking": {
           "prompt": "Do you provide tracking and proof?",
-          "answer": "Yes — live status, shareable tracking, and proof of delivery (photo / signature where agreed) so ops and your customers stay aligned after the handoff."
+          "answer": "Yes — live tracking and proof of delivery (photo / signature where agreed) are part of the business platform so ops and your customers stay aligned after every handoff."
         },
         "start": {
           "prompt": "How do I get started?",
-          "answer": "Request a quote with what moves, where, and when — or open the merchants hub to see fleet, industries, and billing options. We respond with capacity options, not a software demo."
+          "answer": "Get a Business Account to manage local logistics from one platform — or talk to a logistics specialist. We’ll map quotes, booking, tracking, and transportation capacity to your GTA lanes."
         }
       }
     },
-    "why": {
-      "eyebrow": "Why businesses use the network",
-      "title": "Overflow that protects your lanes — and your reputation.",
-      "scale": {
-        "title": "Scale when you hit the wall",
-        "body": "Add vans and box trucks with professional drivers as soon as internal capacity is full — no buying another truck for a peak week."
-      },
-      "care": {
-        "title": "Keep promises to your customers",
-        "body": "Hand off overflow runs without handing off trust. Proof of delivery and clear handoffs keep your brand in the loop."
-      },
-      "visibility": {
-        "title": "See every extra mile",
-        "body": "Status and tracking on the stops you add to the network — so ops knows where capacity is, not just that it left the yard."
+    "ops": {
+      "eyebrow": "Operations toolkit",
+      "title": "Everything your operations team needs.",
+      "items": {
+        "quotes": "Instant Quotes",
+        "book": "Book Deliveries",
+        "tracking": "Live Tracking",
+        "pod": "Proof of Delivery",
+        "dashboard": "Business Dashboard",
+        "api": "API Integrations",
+        "ai": "AI Assistance",
+        "support": "Dedicated Logistics Support"
       }
     },
-    "serve": {
-      "eyebrow": "Industries & pricing",
-      "title": "Built for GTA B2B — priced for capacity, not software seats.",
-      "industries": "Construction · wholesale · medical · manufacturing · retail distribution",
-      "pricing": "Quotes stack vehicle class, distance, stops, and urgency. Confirmed in writing before dispatch.",
-      "industriesCta": "Browse industries",
-      "pricingCta": "See how pricing works"
+    "control": {
+      "eyebrow": "Business account",
+      "title": "One business account. Complete control.",
+      "subtitle": "Manage every shipment from a single platform.",
+      "items": {
+        "quotes": "Generate instant quotes",
+        "book": "Book deliveries in seconds",
+        "track": "Track shipments in real time",
+        "pod": "Download proof of delivery",
+        "reports": "View invoices and reports",
+        "api": "Connect your business through APIs",
+        "team": "Work with a dedicated logistics team"
+      }
+    },
+    "pillars": {
+      "eyebrow": "How PorterChain works",
+      "title": "Transportation is only the beginning.",
+      "subtitle": "PorterChain combines transportation, software, AI, operations, and technology — so your team buys operational capability, not just trucks.",
+      "transportation": {
+        "title": "Transportation",
+        "body": "Professional drivers and vehicles from sedan to box truck."
+      },
+      "software": {
+        "title": "Software",
+        "body": "Business portal, shipment management, reporting, and workflow automation."
+      },
+      "ai": {
+        "title": "AI",
+        "body": "Intelligent assistance to simplify logistics operations."
+      },
+      "operations": {
+        "title": "Operations",
+        "body": "Dedicated logistics support, compliance guidance, and operational expertise."
+      },
+      "technology": {
+        "title": "Technology",
+        "body": "Custom integrations, APIs, and features built around your business."
+      }
+    },
+    "industries": {
+      "eyebrow": "Who we serve",
+      "title": "Built for businesses that move.",
+      "subtitle": "Whether you operate in any of these verticals:",
+      "closing": "PorterChain adapts to the way your business works.",
+      "cta": "Browse industries",
+      "items": {
+        "manufacturing": "Manufacturing",
+        "construction": "Construction",
+        "industrial": "Industrial Supply",
+        "electrical": "Electrical Distribution",
+        "hvac": "HVAC",
+        "plumbing": "Plumbing",
+        "medical": "Medical",
+        "retail": "Retail",
+        "wholesale": "Wholesale"
+      }
     },
     "ready": {
-      "title": "Need backup capacity on your lanes?",
-      "body": "Tell us what moves, where, and when. We’ll come back with vehicle-and-driver options — not a software demo.",
-      "cta": "Request a quote"
+      "title": "Ready to modernize your local logistics?",
+      "body": "Create your PorterChain Business Account and start managing transportation through one intelligent platform.",
+      "highlight": "One platform. Complete control.",
+      "secondaryCta": "Speak with a Logistics Specialist"
     }
   },
   "marketing": {

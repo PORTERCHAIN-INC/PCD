@@ -171,12 +171,18 @@ export default function ContactInquiryForm({ intent, attributionFrom }: ContactI
 
   return (
     <div>
-      <form onSubmit={handleSubmit} className="card-surface p-6 sm:p-8 space-y-5">
+      <form
+        onSubmit={handleSubmit}
+        className={cn(
+          "space-y-5 rounded-3xl border border-primary/8 bg-white p-6 sm:p-8",
+          isQuote ? "shadow-[0_24px_60px_-20px_rgba(11,18,32,0.18)]" : "card-surface shadow-sm"
+        )}
+      >
         <div>
-          <h2 className="text-xl font-semibold text-primary tracking-tight">
+          <h2 className="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
             {isQuote ? t("quote.title") : t("title")}
           </h2>
-          <p className="mt-1.5 text-sm text-muted">
+          <p className="mt-1.5 text-sm leading-relaxed text-muted">
             {isQuote ? t("quote.subtitle") : t("subtitle")}
           </p>
         </div>
@@ -265,7 +271,7 @@ export default function ContactInquiryForm({ intent, attributionFrom }: ContactI
           type="submit"
           disabled={loading}
           className={cn(
-            "w-full py-3.5 rounded-full bg-secondary text-white font-semibold text-sm",
+            "w-full rounded-xl bg-secondary py-3.5 text-sm font-semibold text-white",
             "hover:bg-[#1d4ed8] transition-all hover:shadow-lg hover:shadow-secondary/25",
             "disabled:opacity-50 disabled:cursor-not-allowed"
           )}

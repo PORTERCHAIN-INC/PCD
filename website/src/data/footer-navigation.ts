@@ -22,9 +22,7 @@ export const footerNavigation: Record<FooterSectionId, FooterLink[]> = {
     { id: "howPorterchainWorks", href: "/how-porterchain-works" },
     { id: "blog", href: "/blog" },
     { id: "faq", href: "/faq" },
-    { id: "guides", href: "/guides" },
     { id: "developers", href: "/developers" },
-    { id: "customerPortal", href: "__CUSTOMER_PORTAL__" },
   ],
   track: [{ id: "trackShipment", href: "/track" }],
   legal: [

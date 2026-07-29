@@ -172,14 +172,16 @@ Per-class `CLERK_{CLASS}_SECRET_KEY` + `CLERK_{CLASS}_JWKS_URL` in API; frontend
 
 ### Portal access gates
 
-| Portal     | Middleware       | API gate                                          |
-| ---------- | ---------------- | ------------------------------------------------- |
-| Admin      | `auth.protect()` | `GET /v1/auth/admin/access`                       |
-| Merchant   | `auth.protect()` | `GET /v1/auth/merchant/access`                    |
-| Customer   | `auth.protect()` | `GET /v1/auth/customer/access`                    |
-| Driver web | Porterchain JWT  | Clerk at login → `POST /driver-api/v1/auth/login` |
+| Portal     | Middleware    | API gate                                       |
+| ---------- | ------------- | ---------------------------------------------- |
+| Admin      | Clerk session | `GET /v1/auth/session-context` + SpiceDB Check |
+| Merchant   | Clerk session | `GET /v1/auth/session-context` + SpiceDB Check |
+| Customer   | Clerk session | `GET /v1/auth/session-context` + SpiceDB Check |
+| Driver web | Clerk session | `GET /v1/auth/session-context` + SpiceDB Check |
 
-Authorization uses **database rows** (`admin_users`, `merchant_users`, `customers`, `drivers`) — not Clerk metadata alone in production.
+Authorization uses **SpiceDB** (relationship Checks). Persona rows (`admin_users`, `merchant_users`, `customers`, `drivers`) are **data** that feed tuples — not the Check engine. See [auth-clerk-spicedb.md](docs/architecture/auth-clerk-spicedb.md).
+
+> Removed (2026-07): `GET /v1/auth/{admin,merchant,customer,driver}/access` — do not resurrect.
 
 ### Public order tracking
 

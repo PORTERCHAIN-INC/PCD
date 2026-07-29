@@ -145,12 +145,14 @@ class CustomerService:
         if conflict:
             raise ValueError(f"identity_conflict:clerk_user_is_{conflict}")
 
+        from porterchain_api.auth.email_identity import EMAIL_CLERK_MISMATCH, emails_match, normalize_email
+
         existing = self.get_by_clerk(db, clerk_user_id)
         if existing:
-            if email and existing.email != email:
-                existing.email = email
-                db.commit()
-                db.refresh(existing)
+            clerk_email = normalize_email(email)
+            if clerk_email and not emails_match(existing.email, clerk_email):
+                # Never keep a Clerk id bound to a different system email.
+                raise ValueError(EMAIL_CLERK_MISMATCH)
             if phone and existing.phone != phone:
                 existing.phone = phone
                 db.commit()

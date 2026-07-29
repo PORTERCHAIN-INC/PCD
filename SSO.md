@@ -157,7 +157,7 @@ Porterchain calls these Fleetbase internal endpoints (implemented via `portercha
 
 ## Who cannot use SSO
 
-Merchants, customers, and drivers receive **403** from `POST /v1/auth/sso/fleetbase`. Console access is ops-only per [RBAC_MATRIX.md](./RBAC_MATRIX.md).
+Merchants, customers, and drivers receive **403** from `POST /v1/auth/sso/fleetbase`. Console access is ops-only per [auth-clerk-spicedb.md](./docs/architecture/auth-clerk-spicedb.md).
 
 ---
 
@@ -166,7 +166,7 @@ Merchants, customers, and drivers receive **403** from `POST /v1/auth/sso/fleetb
 | Step | Action                                                                             |
 | ---- | ---------------------------------------------------------------------------------- |
 | 1    | Clerk user signs into Porterchain admin                                            |
-| 2    | `PrincipalResolver` finds `admin_users` row by `clerk_user_id`                     |
+| 2    | Resolve `admin_users` by `clerk_user_id` + SpiceDB `platform#admin`                |
 | 3    | `IdentityLink` created/updated with `clerk_user_id` as canonical key               |
 | 4    | SSO exchange finds or creates Fleetbase user by `clerk_user_id` + `email`          |
 | 5    | `admin_users.fleetbase_user_uuid` and `identity_links.fleetbase_user_uuid` updated |

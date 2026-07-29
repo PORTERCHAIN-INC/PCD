@@ -22,16 +22,16 @@ Copy the relevant template(s) to a local `.env` file. **Never commit real secret
 | Fleetbase / Docker stack | `fleetbase.env.example`             | `apps/fleetbase/api/.env` or Docker `env_file` |
 | Full local stack         | `compose.env.example`               | `.env` at repo root (Docker Compose)           |
 | Production (droplet)     | `production.env.example`            | `/opt/porterchain/.env` on server              |
-| **Clerk (4 apps)**       | `clerk.env.example`                 | `env/clerk.env` then `pnpm clerk:sync`         |
+| **Clerk (unified)**      | `clerk.env.example`                 | `env/clerk.env` then `pnpm clerk:sync`         |
 
-### Clerk (4 isolated apps)
+### Clerk (unified Platform app only)
 
 1. Copy keys: `cp env/clerk.env.example env/clerk.env`
-2. Run **`pnpm clerk:sync`** — writes the correct `pk`/`sk` into each portal, mobile app, and `apps/api/.env`
+2. Run **`pnpm clerk:sync`** — unified-only; fans the Platform triad (`CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` / `CLERK_JWKS_URL`) to every portal, mobile app, and `apps/api/.env` (portal slot aliases filled for compose dual-read)
 3. Prod upload: `bash infrastructure/deploy/scripts/upload-clerk-to-doppler.sh` then `upload-clerk-to-github.sh`
 4. Mobile store builds: **`pnpm clerk:eas`** (EAS secrets per app)
 
-See [infrastructure/deploy/CLERK_APPS_SETUP.md](../infrastructure/deploy/CLERK_APPS_SETUP.md).
+See [docs/runbooks/clerk-consolidation.md](../docs/runbooks/clerk-consolidation.md) (primary). `CLERK_MODE=enterprise` is retired — see [infrastructure/deploy/CLERK_APPS_SETUP.md](../infrastructure/deploy/CLERK_APPS_SETUP.md).
 
 ```bash
 # Minimum local setup

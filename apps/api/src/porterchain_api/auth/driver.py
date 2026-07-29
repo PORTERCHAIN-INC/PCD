@@ -1,4 +1,4 @@
-"""Resolve driver context from Porterchain JWT or dev headers."""
+"""Resolve driver context from Clerk bearer (or local X-Driver-Id bypass)."""
 
 from typing import Annotated
 
@@ -16,7 +16,7 @@ from porterchain_api.driver_engine.rbac import DriverContext
 _bearer = HTTPBearer(auto_error=False)
 
 
-def get_driver_context(
+async def get_driver_context(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)] = None,
@@ -25,12 +25,13 @@ def get_driver_context(
     driver_id: str | None = None
 
     if credentials and credentials.credentials:
-        driver_id = _driver_id_from_token(credentials.credentials, settings)
+        driver_id = await _clerk_driver_id(db, credentials.credentials, settings)
     elif allow_auth_dev_bypass(settings) and x_driver_id:
         driver_id = x_driver_id
     elif allow_auth_dev_bypass(settings):
         driver = db.query(Driver).filter(Driver.status == DriverStatus.APPROVED.value).first()
         if driver:
+            _assert_driver_self_scope(db, driver)
             return DriverContext(driver=driver)
 
     if not driver_id:
@@ -41,14 +42,51 @@ def get_driver_context(
         raise HTTPException(status_code=404, detail="driver_not_found")
     if driver.status == DriverStatus.SUSPENDED.value:
         raise HTTPException(status_code=403, detail="driver_suspended")
+    _assert_driver_self_scope(db, driver)
     return DriverContext(driver=driver)
 
 
+def _assert_driver_self_scope(db: Session, driver: Driver) -> None:
+    """When self-scoped driver assignments exist, driver.id must match."""
+    from porterchain_api.auth.claims import ClerkClaims
+    from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
+
+    if not driver.clerk_user_id:
+        return
+    principal = resolve_principal_for_claims(
+        db,
+        ClerkClaims(clerk_user_id=driver.clerk_user_id, email=driver.email),
+    )
+    if principal:
+        assert_self_scope(principal, driver.id, db)
+
+
+async def _clerk_driver_id(db: Session, token: str, settings: Settings) -> str:
+    from porterchain_api.auth.clerk import verify_clerk_token
+    from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive, require_clerk_app_for_portal
+
+    try:
+        claims = await verify_clerk_token(token, settings)
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail="invalid_driver_token") from exc
+
+    require_clerk_app_for_portal(claims, settings, "driver")
+    assert_clerk_id_exclusive(db, claims, portal="driver", settings=settings)
+    driver = db.query(Driver).filter(Driver.clerk_user_id == claims.clerk_user_id).first()
+    if not driver:
+        raise HTTPException(status_code=403, detail="driver_not_found")
+    return driver.id
+
+
 def _driver_id_from_token(token: str, settings: Settings) -> str:
+    """Legacy sync helper for audit / notification callers (old driver JWT only).
+
+    Portal BFF uses Clerk bearer via get_driver_context. Cookie JWT minting is retired.
+    """
     from porterchain_driver.auth_tokens import decode_driver_token
 
     try:
         payload = decode_driver_token(token, secret=settings.jwt_secret, token_type="access")
+        return str(payload["driver_id"])
     except Exception as exc:
         raise HTTPException(status_code=401, detail="invalid_driver_token") from exc
-    return str(payload["driver_id"])

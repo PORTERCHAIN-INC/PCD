@@ -12,7 +12,6 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog, AdminUser, Driver
 from porterchain_api.auth.clerk_registry import clerk_client_for_kind
-from porterchain_api.auth.enterprise_rbac import enterprise_role_for_admin, enterprise_role_for_merchant
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.domain.merchant_states import MerchantRole
@@ -67,7 +66,6 @@ class InvitationService:
         metadata = {
             "role": role,
             "porterchain_role": role,
-            "enterprise_role": enterprise_role_for_admin(AdminRole(role)).value if role in {r.value for r in AdminRole} else role,
             "user_type": "admin",
             "invitation_only": True,
         }
@@ -129,7 +127,6 @@ class InvitationService:
         metadata = {
             "role": "driver",
             "porterchain_role": "driver",
-            "enterprise_role": "driver",
             "user_type": "driver",
             "driver_id": driver.id,
             "invitation_only": True,
@@ -169,11 +166,9 @@ class InvitationService:
 
         clerk = clerk_client_for_kind(settings, "merchant")
         redirect = f"{settings.merchant_portal_url.rstrip('/')}/sign-in"
-        m_role = MerchantRole(role_value)
         metadata = {
             "role": role_value,
             "porterchain_role": role_value,
-            "enterprise_role": enterprise_role_for_merchant(m_role).value,
             "user_type": "merchant",
             "merchant_id": ctx.merchant.id,
             "invitation_only": True,
@@ -246,11 +241,9 @@ class InvitationService:
 
         clerk = clerk_client_for_kind(settings, "merchant")
         redirect = f"{settings.merchant_portal_url.rstrip('/')}/sign-in"
-        owner_role = MerchantRole(role) if role in {r.value for r in MerchantRole} else MerchantRole.OWNER
         metadata = {
             "role": role,
             "porterchain_role": role,
-            "enterprise_role": enterprise_role_for_merchant(owner_role).value,
             "user_type": "merchant",
             "merchant_id": merchant.id,
             "invitation_only": True,
@@ -323,11 +316,9 @@ class InvitationService:
         role_value = role if role in {r.value for r in MerchantRole} else MerchantRole.OPS.value
         clerk = clerk_client_for_kind(settings, "merchant")
         redirect = f"{settings.merchant_portal_url.rstrip('/')}/sign-in"
-        m_role = MerchantRole(role_value)
         metadata = {
             "role": role_value,
             "porterchain_role": role_value,
-            "enterprise_role": enterprise_role_for_merchant(m_role).value,
             "user_type": "merchant",
             "merchant_id": merchant.id,
             "invitation_only": True,

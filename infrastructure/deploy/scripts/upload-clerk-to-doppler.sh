@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # Upload 4-app Clerk keys from clerk-keys.local.env to Doppler (§0.5).
+#
+# MANUAL HUMAN GATE — do not run against production from consolidation agents.
+# Phase 6 prepares validation + matrix only; cutover is founder/security-owned.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

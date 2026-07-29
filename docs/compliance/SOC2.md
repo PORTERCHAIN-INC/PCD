@@ -11,12 +11,12 @@ Porterchain API + portals (merchant, admin, driver, customer) + website. Fleetba
 
 ## Trust service criteria (in scope)
 
-| TSC | Control           | Evidence in repo                                              |
-| --- | ----------------- | ------------------------------------------------------------- |
-| CC6 | Logical access    | [RBAC_MATRIX.md](../../RBAC_MATRIX.md), `auth/rbac.py`, Clerk |
-| CC7 | System operations | [RUNBOOK.md](../../RUNBOOK.md), `/health/ready`, Sentry       |
-| CC8 | Change management | GitHub PR + CI `validate:*` guards                            |
-| CC9 | Risk mitigation   | [SECURITY.md](../../SECURITY.md), rate limits fail-closed     |
+| TSC | Control           | Evidence in repo                                                                            |
+| --- | ----------------- | ------------------------------------------------------------------------------------------- |
+| CC6 | Logical access    | [auth-clerk-spicedb.md](../architecture/auth-clerk-spicedb.md), SpiceDB `schema.zed`, Clerk |
+| CC7 | System operations | [RUNBOOK.md](../../RUNBOOK.md), `/health/ready`, Sentry                                     |
+| CC8 | Change management | GitHub PR + CI `validate:*` guards                                                          |
+| CC9 | Risk mitigation   | [SECURITY.md](../../SECURITY.md), rate limits fail-closed                                   |
 
 ## Implemented technical controls
 

@@ -39,7 +39,9 @@ def test_admin_dashboard_empty_db(db: Session) -> None:
 
 def test_admin_settings_read_paths(db: Session, settings) -> None:
     svc = AdminSettingsService()
-    assert svc.permissions_matrix()
+    center = svc.center(db, settings)
+    assert center.get("authz", {}).get("engine") == "spicedb"
+    assert center.get("permissions") == {}
     assert isinstance(svc.search("stripe"), list)
     assert isinstance(svc.default_config(db), dict)
     assert isinstance(svc.module_config_links(db), dict)

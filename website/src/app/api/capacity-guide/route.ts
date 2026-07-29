@@ -10,7 +10,11 @@ import {
 import { buildCapacityGuideSystem } from "@/lib/home/capacity-guide-system";
 import { retrieveGuideKnowledge } from "@/lib/home/guide-knowledge";
 import {
+  contactCapturePolicy,
+  countUserTurns,
   formatGuideStateForPrompt,
+  hasEmailAndPhone,
+  MAX_QUESTIONS_BEFORE_CONTACT,
   mergeGuideState,
   normalizeGuideState,
   stagePolicy,
@@ -83,6 +87,7 @@ export async function POST(req: Request) {
   let guideState = normalizeGuideState(body.guideState);
 
   const userText = lastUserText(messages);
+  const userTurnCount = countUserTurns(messages);
   const intentHint = await routeIntentHint(userText);
   if (intentHint === "track" && guideState.stage === "discover") {
     // soft hint only in prompt; do not force stage
@@ -96,22 +101,38 @@ export async function POST(req: Request) {
     });
   }
 
+  // Force capture stage as soon as the visitor has spoken and contact is incomplete.
+  if (
+    !hasEmailAndPhone(guideState) &&
+    userTurnCount >= MAX_QUESTIONS_BEFORE_CONTACT &&
+    guideState.stage !== "book" &&
+    guideState.stage !== "handoff"
+  ) {
+    guideState = mergeGuideState(guideState, { stage: "capture" });
+  }
+
   const system = buildCapacityGuideSystem(
     formatGuideStateForPrompt(guideState),
-    `${stagePolicy(guideState.stage)}${intentHint ? ` Router hint this turn: ${intentHint}.` : ""}`
+    [
+      stagePolicy(guideState.stage),
+      contactCapturePolicy(guideState, userTurnCount),
+      intentHint ? `Router hint this turn: ${intentHint}.` : null,
+    ]
+      .filter(Boolean)
+      .join(" ")
   );
 
   const result = streamText({
     model: groq(MODEL),
     system,
     messages: await convertToModelMessages(messages),
-    temperature: 0.4,
-    maxOutputTokens: 1000,
+    temperature: 0.35,
+    maxOutputTokens: 1200,
     stopWhen: stepCountIs(8),
     tools: {
       lookup_knowledge: tool({
         description:
-          "Retrieve grounded Porterchain capacity facts (pricing factors, vehicles, coverage, industries, FAQ). Call before factual answers.",
+          "Retrieve grounded PorterChain logistics facts (pricing factors, vehicles, coverage, industries, POD, APIs, business account, same-day). Call before factual answers to maximize accurate Q&A.",
         inputSchema: jsonSchema<{ query: string }>({
           type: "object",
           properties: {
@@ -120,21 +141,21 @@ export async function POST(req: Request) {
           required: ["query"],
         }),
         execute: async (input) => {
-          const hits = retrieveGuideKnowledge(input.query, { limit: 5 });
+          const hits = retrieveGuideKnowledge(input.query, { limit: 8 });
           return {
             ok: true as const,
             count: hits.length,
             chunks: hits.map((h) => ({
               id: h.id,
               title: h.title,
-              body: h.body.slice(0, 700),
+              body: h.body.slice(0, 900),
               source: h.source,
               score: Number(h.score.toFixed(2)),
             })),
             message:
               hits.length === 0
-                ? "No strong matches — avoid inventing facts; offer a written quote."
-                : "Ground your answer in these snippets. Do not invent prices.",
+                ? "No strong matches — avoid inventing facts; offer a written quote and ask for email + phone so the team can follow up."
+                : "Ground your answer in these snippets. Do not invent prices. After answering, ask for work email and mobile if not yet captured.",
           };
         },
       }),
@@ -286,7 +307,7 @@ export async function POST(req: Request) {
       }),
       capture_contact: tool({
         description:
-          "Save or update the visitor as a CRM lead. Call when you have a valid work email; include phone when known.",
+          "BUSINESS-CRITICAL: Save visitor as CRM lead. Call immediately when you have a work email; always pass mobile phone when known. Keep calling until both email and phone are stored (contact_complete true).",
         inputSchema: jsonSchema<{
           email: string;
           name?: string;
@@ -297,9 +318,12 @@ export async function POST(req: Request) {
         }>({
           type: "object",
           properties: {
-            email: { type: "string", description: "Visitor email" },
+            email: { type: "string", description: "Visitor work email (required)" },
             name: { type: "string" },
-            phone: { type: "string" },
+            phone: {
+              type: "string",
+              description: "Visitor mobile phone — required for complete contact",
+            },
             business_name: { type: "string" },
             intent: {
               type: "string",
@@ -321,11 +345,13 @@ export async function POST(req: Request) {
             notes: input.notes,
           });
           if (!res.ok) return { ok: false as const, error: res.error };
+          const phone = res.data.phone || input.phone || guideState.phone;
+          const complete = Boolean(res.data.email && phone);
           guideState = mergeGuideState(guideState, {
-            stage: input.phone || res.data.phone ? "capture" : "capture",
+            stage: "capture",
             leadId: res.data.id,
             email: res.data.email,
-            phone: res.data.phone || input.phone,
+            phone,
             name: input.name,
             businessName: input.business_name,
             intent: input.intent,
@@ -335,11 +361,14 @@ export async function POST(req: Request) {
             lead_id: res.data.id,
             created: res.data.created,
             email: res.data.email,
-            phone: res.data.phone,
+            phone: phone ?? null,
+            contact_complete: complete,
             state: guideState,
-            message: res.data.created
-              ? "Contact saved. Ask for mobile phone if missing before booking."
-              : "Contact updated.",
+            message: complete
+              ? "Email and phone saved. You may offer a call or point them to /contact?intent=quote."
+              : phone
+                ? "Phone saved; still need a valid work email — ask once more."
+                : "Email saved. Ask for mobile phone before booking.",
           };
         },
       }),

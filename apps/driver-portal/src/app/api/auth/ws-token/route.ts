@@ -1,11 +1,13 @@
-import { cookies } from "next/headers";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const ACCESS_COOKIE = "driver_access_token";
-
+/** Return Clerk JWT for websocket clients — no Porterchain cookie JWT. */
 export async function GET() {
-  const jar = await cookies();
-  const token = jar.get(ACCESS_COOKIE)?.value;
+  const { getToken, userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ detail: "unauthorized" }, { status: 401 });
+  }
+  const token = await getToken();
   if (!token) {
     return NextResponse.json({ detail: "unauthorized" }, { status: 401 });
   }

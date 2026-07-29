@@ -159,42 +159,47 @@ export const siteImages = {
     partner: img("photo-1449965408869-eaa3f722e40d", "Driver partner preparing a delivery vehicle"),
   },
   vehicles: {
-    sedan: img("photo-1590362891991-f776e747a588", "Sedan used for local courier runs", 1200, 800),
-    suv: img(
-      "photo-1606664515524-ed2f786a0bd6",
-      "SUV with cargo space for multi-stop delivery",
-      1200,
-      800
+    sedan: localImg(
+      "/images/brand/vehicles/sedan.jpg",
+      "PorterChain branded sedan at a GTA warehouse — moving commerce on chain",
+      1024,
+      585
     ),
-    pickup: img(
-      "photo-1559416523-140ddc3d238c",
-      "Pickup truck for flexible local freight",
-      1200,
-      800
+    suv: localImg(
+      "/images/brand/vehicles/suv.jpg",
+      "PorterChain branded SUV for multi-stop delivery — moving commerce on chain",
+      1024,
+      585
     ),
-    "cargo-van": img(
-      "photo-1558618666-fcd25c85cd64",
-      "White cargo van for B2B delivery routes",
-      1200,
-      800
+    pickup: localImg(
+      "/images/brand/vehicles/pickup.jpg",
+      "PorterChain branded pickup truck for jobsite and local freight — moving commerce on chain",
+      1024,
+      585
     ),
-    "high-roof": img(
-      "photo-1578575437130-527eed3abbec",
-      "High-roof van on a delivery route",
-      1200,
-      800
+    "cargo-van": localImg(
+      "/images/brand/vehicles/cargo-van.jpg",
+      "PorterChain branded cargo van at a GTA warehouse — moving commerce on chain",
+      1024,
+      581
     ),
-    "box-16": img(
-      "photo-1581092160562-40aa08e78837",
-      "Box truck for palletized local freight",
-      1200,
-      800
+    "high-roof": localImg(
+      "/images/brand/vehicles/cargo-van.jpg",
+      "PorterChain branded high-roof cargo van for B2B delivery — moving commerce on chain",
+      1024,
+      581
     ),
-    "box-20": img(
-      "photo-1578575437130-527eed3abbec",
-      "Medium box truck at a loading bay",
-      1200,
-      800
+    "box-16": localImg(
+      "/images/brand/vehicles/box-truck.jpg",
+      "PorterChain branded box truck at warehouse docks — moving commerce on chain",
+      1024,
+      585
+    ),
+    "box-20": localImg(
+      "/images/brand/vehicles/box-truck.jpg",
+      "PorterChain branded box truck for palletized freight — moving commerce on chain",
+      1024,
+      585
     ),
   },
   industries: {
@@ -358,9 +363,11 @@ export function getPageHeroImage(source: string): SiteImageRef {
   if (lower.includes("sedan")) return siteImages.vehicles.sedan;
   if (lower.includes("suv")) return siteImages.vehicles.suv;
   if (lower.includes("pickup")) return siteImages.vehicles.pickup;
-  if (lower.includes("cargo-van")) return siteImages.vehicles["cargo-van"];
+  if (lower.includes("cargo-van") || lower.includes("trade-van"))
+    return siteImages.vehicles["cargo-van"];
   if (lower.includes("van")) return siteImages.vehicles["cargo-van"];
-  if (lower.includes("truck") || lower.includes("medium")) return siteImages.vehicles["box-16"];
+  if (lower.includes("box-truck") || lower.includes("truck") || lower.includes("medium"))
+    return siteImages.vehicles["box-16"];
   if (lower.includes("construction")) return siteImages.industries.construction;
   if (lower.includes("electrical")) return siteImages.industries.electrical;
   if (lower.includes("plumbing")) return siteImages.industries.plumbing;

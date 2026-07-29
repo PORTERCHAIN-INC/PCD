@@ -56,6 +56,80 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # SpiceDB datastore DB (idempotent) — required before migrate/serve.
+  spicedb-db-init:
+    image: postgres:16.10-alpine3.22
+    container_name: pcd-spicedb-db-init
+    restart: "no"
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -e
+        until pg_isready -h postgres -U porterchain -d porterchain; do sleep 1; done
+        exists=$$(psql -h postgres -U porterchain -d porterchain -Atc "SELECT 1 FROM pg_database WHERE datname='spicedb'")
+        if [ "$$exists" != "1" ]; then
+          psql -h postgres -U porterchain -d porterchain -c "CREATE DATABASE spicedb"
+        fi
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  spicedb-migrate:
+    image: authzed/spicedb:v1.56.0
+    container_name: pcd-spicedb-migrate
+    restart: "no"
+    command: ["migrate", "head"]
+    environment:
+      SPICEDB_DATASTORE_ENGINE: postgres
+      SPICEDB_DATASTORE_CONN_URI: postgres://porterchain:${POSTGRES_PASSWORD}@postgres:5432/spicedb?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+      spicedb-db-init:
+        condition: service_completed_successfully
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  spicedb:
+    image: authzed/spicedb:v1.56.0
+    container_name: pcd-spicedb
+    restart: unless-stopped
+    command:
+      [
+        "serve",
+        "--grpc-preshared-key",
+        "${SPICEDB_PRESHARED_KEY:?SPICEDB_PRESHARED_KEY is required}",
+        "--datastore-engine",
+        "postgres",
+        "--datastore-conn-uri",
+        "postgres://porterchain:${POSTGRES_PASSWORD}@postgres:5432/spicedb?sslmode=disable",
+      ]
+    expose:
+      - "50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      spicedb-migrate:
+        condition: service_completed_successfully
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+
   valhalla:
     image: ghcr.io/valhalla/valhalla-scripted@sha256:9ba06c00f41fabec8d3cb2e7ec3c39023be7a410d245049d76af3b494e1ce674
     container_name: pcd-valhalla
@@ -93,6 +167,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      spicedb:
+        condition: service_healthy
       valhalla:
         condition: service_started
     environment:
@@ -125,22 +201,15 @@ services:
       FLEETBASE_WEBHOOK_SECRET: ${FLEETBASE_WEBHOOK_SECRET:-}
       FLEETBASE_DEFAULT_COMPANY_UUID: ${FLEETBASE_DEFAULT_COMPANY_UUID:-}
       CLERK_DEV_BYPASS: "false"
+      SPICEDB_ENABLED: ${SPICEDB_ENABLED:-true}
+      SPICEDB_REQUIRED: ${SPICEDB_REQUIRED:-true}
+      SPICEDB_ENDPOINT: ${SPICEDB_ENDPOINT:-spicedb:50051}
+      SPICEDB_PRESHARED_KEY: ${SPICEDB_PRESHARED_KEY}
       STRIPE_MOCK: "false"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      CLERK_UNIFIED_MODE: ${CLERK_UNIFIED_MODE:-true}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
       CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
-      CLERK_JWKS_URL: ${CLERK_JWKS_URL:-}
-      CLERK_CUSTOMER_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-}
-      CLERK_CUSTOMER_JWKS_URL: ${CLERK_CUSTOMER_JWKS_URL:-}
-      CLERK_CUSTOMER_PUBLISHABLE_KEY: ${CLERK_CUSTOMER_PUBLISHABLE_KEY:-}
-      CLERK_MERCHANT_SECRET_KEY: ${CLERK_MERCHANT_SECRET_KEY:-}
-      CLERK_MERCHANT_JWKS_URL: ${CLERK_MERCHANT_JWKS_URL:-}
-      CLERK_MERCHANT_PUBLISHABLE_KEY: ${CLERK_MERCHANT_PUBLISHABLE_KEY:-}
-      CLERK_ADMIN_SECRET_KEY: ${CLERK_ADMIN_SECRET_KEY:-}
-      CLERK_ADMIN_JWKS_URL: ${CLERK_ADMIN_JWKS_URL:-}
-      CLERK_ADMIN_PUBLISHABLE_KEY: ${CLERK_ADMIN_PUBLISHABLE_KEY:-}
-      CLERK_DRIVER_SECRET_KEY: ${CLERK_DRIVER_SECRET_KEY:-}
-      CLERK_DRIVER_JWKS_URL: ${CLERK_DRIVER_JWKS_URL:-}
-      CLERK_DRIVER_PUBLISHABLE_KEY: ${CLERK_DRIVER_PUBLISHABLE_KEY:-}
+      CLERK_JWKS_URL: ${CLERK_JWKS_URL:?CLERK_JWKS_URL is required}
       STRIPE_SECRET: ${STRIPE_SECRET}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       JWT_SECRET: ${JWT_SECRET}
@@ -175,6 +244,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      spicedb:
+        condition: service_healthy
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
@@ -192,16 +263,13 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       SENTRY_DSN: ${SENTRY_DSN:-}
       CLERK_DEV_BYPASS: "false"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
-      CLERK_JWKS_URL: ${CLERK_JWKS_URL:-}
-      CLERK_CUSTOMER_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-}
-      CLERK_CUSTOMER_JWKS_URL: ${CLERK_CUSTOMER_JWKS_URL:-}
-      CLERK_MERCHANT_SECRET_KEY: ${CLERK_MERCHANT_SECRET_KEY:-}
-      CLERK_MERCHANT_JWKS_URL: ${CLERK_MERCHANT_JWKS_URL:-}
-      CLERK_ADMIN_SECRET_KEY: ${CLERK_ADMIN_SECRET_KEY:-}
-      CLERK_ADMIN_JWKS_URL: ${CLERK_ADMIN_JWKS_URL:-}
-      CLERK_DRIVER_SECRET_KEY: ${CLERK_DRIVER_SECRET_KEY:-}
-      CLERK_DRIVER_JWKS_URL: ${CLERK_DRIVER_JWKS_URL:-}
+      SPICEDB_ENABLED: ${SPICEDB_ENABLED:-true}
+      SPICEDB_REQUIRED: ${SPICEDB_REQUIRED:-true}
+      SPICEDB_ENDPOINT: ${SPICEDB_ENDPOINT:-spicedb:50051}
+      SPICEDB_PRESHARED_KEY: ${SPICEDB_PRESHARED_KEY}
+      CLERK_UNIFIED_MODE: ${CLERK_UNIFIED_MODE:-true}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+      CLERK_JWKS_URL: ${CLERK_JWKS_URL:?CLERK_JWKS_URL is required}
       PORTERCHAIN_PUSH_ENABLED: ${PORTERCHAIN_PUSH_ENABLED:-false}
       PORTERCHAIN_PUSH_SEND: ${PORTERCHAIN_PUSH_SEND:-false}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
@@ -239,7 +307,7 @@ services:
       NODE_ENV: production
       PORT: "3000"
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
-      CLERK_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-${CLERK_SECRET_KEY:?CLERK customer or legacy CLERK_SECRET_KEY is required}}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
       ROUTING_ENGINE: valhalla
       VALHALLA_BASE_URL: http://valhalla:8002
       OSRM_HOST: ${OSRM_HOST:-https://router.project-osrm.org}
@@ -259,7 +327,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3002"
-      CLERK_SECRET_KEY: ${CLERK_ADMIN_SECRET_KEY:?Set CLERK_ADMIN_SECRET_KEY in Doppler — admin portal requires the porterchain-admin Clerk secret}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
     expose:
       - "3002"
     networks:
@@ -275,7 +343,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3001"
-      CLERK_SECRET_KEY: ${CLERK_MERCHANT_SECRET_KEY:-${CLERK_SECRET_KEY:-}}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
     expose:
       - "3001"
     networks:
@@ -291,7 +359,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3003"
-      CLERK_SECRET_KEY: ${CLERK_DRIVER_SECRET_KEY:-${CLERK_SECRET_KEY:-}}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
     expose:
       - "3003"
     networks:
@@ -307,7 +375,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3004"
-      CLERK_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-${CLERK_SECRET_KEY:-}}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
     expose:
       - "3004"
     networks:

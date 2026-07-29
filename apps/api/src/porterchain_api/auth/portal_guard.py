@@ -1,4 +1,9 @@
-"""Portal surface guards — Clerk app class + single identity per user class."""
+"""Portal surface guards — identity checks (Platform / unified only).
+
+Phase D3: enterprise 4-app Clerk is retired. Tokens are always Platform;
+multi-role same subject is allowed; portal visit does not assign roles —
+provisioning still required for staff/merchant/driver.
+"""
 
 from __future__ import annotations
 
@@ -7,12 +12,12 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.clerk_registry import ClerkAppKind, clerk_app_configs
+from porterchain_api.auth.clerk_registry import clerk_app_configs
 from porterchain_api.config import Settings
 from porterchain_api.merchant_models import MerchantUser
 from porterchain_api.models import Customer
 
-PORTAL_CLERK_APP: dict[str, ClerkAppKind] = {
+PORTAL_CLERK_APP: dict[str, str] = {
     "admin": "admin",
     "staff": "admin",
     "merchant": "merchant",
@@ -35,7 +40,7 @@ def clerk_id_staff_portal(db: Session, clerk_user_id: str) -> str | None:
 
 
 def is_legacy_shared_clerk_app(settings: Settings) -> bool:
-    """True when all user classes share one Clerk Backend API key (local dev)."""
+    """True when all user classes share one Clerk Backend API key."""
     apps = clerk_app_configs(settings)
     if not apps:
         return False
@@ -43,24 +48,29 @@ def is_legacy_shared_clerk_app(settings: Settings) -> bool:
     return len(secrets) == 1
 
 
+def is_unified_clerk_app(settings: Settings) -> bool:
+    """True for PorterChain Platform single-app mode (always preferred)."""
+    if settings.clerk_unified_mode:
+        return True
+    apps = [a for a in clerk_app_configs(settings) if a.secret_key and a.jwks_url]
+    if len(apps) < 2:
+        return is_legacy_shared_clerk_app(settings)
+    secrets = {a.secret_key for a in apps}
+    jwks = {a.jwks_url for a in apps}
+    return len(secrets) == 1 and len(jwks) == 1
+
+
 def require_clerk_app_for_portal(
     claims: ClerkClaims,
     settings: Settings,
     portal: str,
 ) -> None:
-    """Reject tokens minted for a different Clerk application (production multi-app mode)."""
-    if claims.clerk_user_id == "dev_clerk_user":
-        return
-    if is_legacy_shared_clerk_app(settings):
-        return
-    expected = PORTAL_CLERK_APP.get(portal)
-    if not expected or not claims.clerk_app:
-        return
-    if claims.clerk_app != expected:
-        raise HTTPException(
-            status_code=403,
-            detail=f"clerk_app_mismatch:expected_{expected}_got_{claims.clerk_app}",
-        )
+    """Deprecated no-op — Platform-only; retained for import stability.
+
+    Formerly rejected tokens minted for a different Clerk application under
+    enterprise multi-app mode (retired Phase D3).
+    """
+    return
 
 
 def assert_clerk_id_exclusive(
@@ -71,11 +81,15 @@ def assert_clerk_id_exclusive(
     settings: Settings,
 ) -> None:
     """
-    Block cross-portal access when the same Clerk user id is provisioned in another class.
+    Unified multi-role behavior (always): allow the same Clerk subject across
+    portals; still require portal-specific provisioning (except customer
+    auto-provision path).
 
-    Porterchain authorization is per user class — one Clerk identity must not hop portals
-    even when email addresses match across tables.
+    ``settings`` retained for call-site compatibility; enterprise exclusivity
+    (one Clerk id ⇒ one portal class) is retired.
     """
+    _ = settings  # Platform-only; unused
+
     clerk_id = claims.clerk_user_id
     if not clerk_id or clerk_id.startswith("pending:") or clerk_id == "dev_clerk_user":
         return
@@ -97,24 +111,8 @@ def assert_clerk_id_exclusive(
     if portal_norm not in membership:
         return
 
-    # Customer portal may auto-provision — only reject cross-class identities.
+    # Multi-role OK — portal visit does not grant access; provisioning does.
     if portal_norm == "customer":
-        for other_portal, is_member in membership.items():
-            if other_portal != "customer" and is_member:
-                raise HTTPException(
-                    status_code=403,
-                    detail=f"identity_conflict:clerk_user_is_{other_portal}",
-                )
         return
-
     if not membership[portal_norm]:
         raise HTTPException(status_code=403, detail=f"{portal_norm}_user_not_provisioned")
-
-    for other_portal, is_member in membership.items():
-        if other_portal == portal_norm:
-            continue
-        if is_member:
-            raise HTTPException(
-                status_code=403,
-                detail=f"identity_conflict:clerk_user_is_{other_portal}",
-            )

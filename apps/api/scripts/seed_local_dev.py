@@ -60,6 +60,8 @@ from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest
 
 SEED_MARKER = "seed-local-dev-v1"
 SEED_ADMIN_EMAIL = "seed-admin@porterchain.com"
+# Real Platform Clerk founder — kept as super_admin in local/prod data.
+FOUNDER_SUPER_ADMIN_EMAIL = "porterchaininc@gmail.com"
 
 PICKUP = AddressInput(formatted="123 King St W, Toronto ON", lat=43.6488, lng=-79.3817)
 DROPOFF = AddressInput(formatted="456 Queen St W, Toronto ON", lat=43.6479, lng=-79.3957)
@@ -147,6 +149,46 @@ def ensure_admin(db) -> AdminUser:
     db.commit()
     db.refresh(user)
     return user
+
+
+def ensure_founder_super_admin(db) -> AdminUser | None:
+    """Idempotent: porterchaininc@gmail.com is always active super_admin when present."""
+    from porterchain_api.authz.tuples import TupleWriter
+    from porterchain_api.user_models import PorterchainUser
+
+    email = FOUNDER_SUPER_ADMIN_EMAIL
+    pc = db.query(PorterchainUser).filter(PorterchainUser.email.ilike(email)).first()
+    admin = db.query(AdminUser).filter(AdminUser.email.ilike(email)).first()
+    if not admin and not pc:
+        return None
+    if not admin:
+        admin = AdminUser(
+            clerk_user_id=pc.clerk_user_id if pc else f"pending:{email}",
+            email=email,
+            name="PorterChain Founder",
+            role=AdminRole.SUPER_ADMIN.value,
+            is_active=True,
+            porterchain_user_id=pc.id if pc else None,
+        )
+        db.add(admin)
+    else:
+        admin.role = AdminRole.SUPER_ADMIN.value
+        admin.is_active = True
+        if pc:
+            admin.porterchain_user_id = pc.id
+            if pc.clerk_user_id:
+                admin.clerk_user_id = pc.clerk_user_id
+    if pc and pc.status != "active":
+        pc.status = "active"
+    db.commit()
+    db.refresh(admin)
+    if pc:
+        try:
+            TupleWriter().sync_user_from_profiles(db, pc)
+            db.commit()
+        except Exception as exc:  # noqa: BLE001
+            print(f"  warn: SpiceDB sync for founder failed: {exc}")
+    return admin
 
 
 def ensure_pricing_tariff(db) -> None:
@@ -492,6 +534,9 @@ def main() -> None:
         if seed_complete(db):
             print("Local dev seed data already present — skipping.")
             print("  Marker: BookingDraft 'seed-draft-session'")
+            founder = ensure_founder_super_admin(db)
+            if founder:
+                print(f"  Founder super_admin ensured: {founder.email}")
             return
 
         print("Seeding Porterchain local dev data...")
@@ -503,6 +548,7 @@ def main() -> None:
         seed_portal_main()
 
         admin = ensure_admin(db)
+        founder = ensure_founder_super_admin(db)
         ctx = AdminContext(user=admin, role=AdminRole.SUPER_ADMIN)
 
         merchant = db.query(Merchant).filter(Merchant.clerk_org_id == DEV_ORG).first()
@@ -531,6 +577,8 @@ def main() -> None:
         print()
         print("=== Local dev seed complete ===")
         print(f"  Admin staff : {admin.email} (role: super_admin)")
+        if founder:
+            print(f"  Founder     : {founder.email} (role: super_admin)")
         print(f"  Merchant    : {merchant.company_name} ({merchant.email})")
         print(f"  Orders      : {len(orders)}")
         print(f"  Drivers     : {len(drivers)}")

@@ -1,4 +1,9 @@
-"""Merchant portal RBAC per ROLE_PERMISSIONS.md."""
+"""Merchant portal module catalog + SpiceDB Check helpers.
+
+``MODULE_PERMISSIONS`` / ``permissions_catalog`` are UX/display matrices for
+team settings and reporting. Authorization Checks go through SpiceDB only
+(``require_module`` → organization permission).
+"""
 
 from dataclasses import dataclass
 from typing import Any
@@ -44,7 +49,7 @@ ROLE_LABELS: dict[MerchantRole, str] = {
 
 
 def permissions_catalog() -> dict[str, Any]:
-    """Expose canonical RBAC matrix — single source of truth for portal."""
+    """Expose merchant role→module matrix for portal team UI / reporting (not Check SoT)."""
     roles = [
         {
             "role": role.value,
@@ -68,10 +73,22 @@ def modules_for_role(role: MerchantRole) -> frozenset[str]:
 
 
 def require_module(ctx: MerchantContext, module: str) -> None:
-    allowed = MODULE_PERMISSIONS.get(module, frozenset())
-    if ctx.role not in allowed:
-        raise PermissionError(f"merchant_forbidden:{module}")
+    """Authorize merchant module via SpiceDB only — no matrix fallback."""
+    from porterchain_api.authz.client import get_authz_client
 
+    user_id = getattr(ctx.user, "porterchain_user_id", None)
+    if not user_id:
+        raise PermissionError(f"merchant_forbidden:{module}:unlinked_user")
+
+    client = get_authz_client()
+    if client.check(
+        resource_type="organization",
+        resource_id=ctx.merchant.id,
+        permission=module,
+        subject_id=user_id,
+    ):
+        return
+    raise PermissionError(f"merchant_forbidden:{module}")
 
 def parse_merchant_role(role_str: str) -> MerchantRole:
     for role in MerchantRole:

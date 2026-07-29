@@ -166,23 +166,23 @@ Shares most API env vars (Redis, database, event bus). No HTTP port. Start: `pnp
 
 ### Auth
 
-| Variable                | Required | Description                  |
-| ----------------------- | -------- | ---------------------------- |
-| `CLERK_PUBLISHABLE_KEY` | Yes*     | Legacy single-app public key |
-| `CLERK_SECRET_KEY`      | Yes*     | Legacy single-app secret     |
-| `CLERK_JWKS_URL`        | Yes*     | Legacy JWT verification URL  |
-| `CLERK_DEV_BYPASS`      | Local    | Requires `APP_ENV=local`     |
+| Variable                | Required | Description                           |
+| ----------------------- | -------- | ------------------------------------- |
+| `CLERK_PUBLISHABLE_KEY` | Yes      | Unified Platform Clerk app public key |
+| `CLERK_SECRET_KEY`      | Yes      | Unified Platform Clerk app secret     |
+| `CLERK_JWKS_URL`        | Yes      | Unified Platform JWT verification URL |
+| `CLERK_DEV_BYPASS`      | Local    | Requires `APP_ENV=local`              |
 
-\*Local dev: set legacy `CLERK_*` only. Production enterprise: set per-class keys below (empty fields fall back to legacy).
+Primary local/dev/prod target is **unified only** — one Platform Clerk app shared by every portal (see [docs/runbooks/clerk-consolidation.md](./docs/runbooks/clerk-consolidation.md)). `CLERK_MODE=enterprise` (divergent 4-app / 12-key) is **retired**; `pnpm clerk:sync` exits with an error if requested. Per-portal `CLERK_{PORTAL}_*` names below remain as **slot aliases** filled from the Platform triad (compose / dual-read compat) — not a supported second mode.
 
-| Variable                                                                                   | Required | Description                                                    |
-| ------------------------------------------------------------------------------------------ | -------- | -------------------------------------------------------------- |
-| `CLERK_CUSTOMER_SECRET_KEY` / `CLERK_CUSTOMER_JWKS_URL` / `CLERK_CUSTOMER_PUBLISHABLE_KEY` | Prod     | Customer Clerk app (website, customer portal, customer mobile) |
-| `CLERK_MERCHANT_SECRET_KEY` / `CLERK_MERCHANT_JWKS_URL` / `CLERK_MERCHANT_PUBLISHABLE_KEY` | Prod     | Merchant portal                                                |
-| `CLERK_ADMIN_SECRET_KEY` / `CLERK_ADMIN_JWKS_URL` / `CLERK_ADMIN_PUBLISHABLE_KEY`          | Prod     | Admin portal                                                   |
-| `CLERK_DRIVER_SECRET_KEY` / `CLERK_DRIVER_JWKS_URL` / `CLERK_DRIVER_PUBLISHABLE_KEY`       | Prod     | Driver portal + driver mobile                                  |
+| Variable                                                                                   | Required | Description                                                |
+| ------------------------------------------------------------------------------------------ | -------- | ---------------------------------------------------------- |
+| `CLERK_CUSTOMER_SECRET_KEY` / `CLERK_CUSTOMER_JWKS_URL` / `CLERK_CUSTOMER_PUBLISHABLE_KEY` | Alias    | Customer slot (same Platform keys after `pnpm clerk:sync`) |
+| `CLERK_MERCHANT_SECRET_KEY` / `CLERK_MERCHANT_JWKS_URL` / `CLERK_MERCHANT_PUBLISHABLE_KEY` | Alias    | Merchant slot (Platform triad expand)                      |
+| `CLERK_ADMIN_SECRET_KEY` / `CLERK_ADMIN_JWKS_URL` / `CLERK_ADMIN_PUBLISHABLE_KEY`          | Alias    | Admin / Platform rename path when triad empty              |
+| `CLERK_DRIVER_SECRET_KEY` / `CLERK_DRIVER_JWKS_URL` / `CLERK_DRIVER_PUBLISHABLE_KEY`       | Alias    | Driver slot (Platform triad expand)                        |
 
-Frontends use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` or `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` with the matching class publishable key — see [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
+Frontends use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` or `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` with the unified Platform publishable key — see [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
 
 ### Driver onboarding (API server)
 

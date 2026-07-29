@@ -83,11 +83,14 @@ function vehicleSlugRedirects(): WebsiteRedirect[] {
 
 function educationHubRedirects(): WebsiteRedirect[] {
   return LOCALES.flatMap((locale) =>
-    (["onboarding-education", "integrations-education"] as const).map((path) => ({
+    (["onboarding-education", "integrations-education", "guides"] as const).map((path) => ({
       source: `/${locale}/${path}`,
-      destination: `/${locale}/guides`,
+      destination: `/${locale}/faq`,
       permanent: true,
-      note: "Education hubs consolidated under guides index",
+      note:
+        path === "guides"
+          ? "Guides hub merged into FAQ"
+          : "Education hubs consolidated under FAQ index",
     }))
   );
 }
@@ -143,8 +146,26 @@ function retiredMarketingHubRedirects(): WebsiteRedirect[] {
   ]);
 }
 
+function platformSignInAliasRedirects(): WebsiteRedirect[] {
+  return [
+    {
+      source: "/sign-in",
+      destination: "/login",
+      permanent: true,
+      note: "Portal deep-links may say /sign-in; Platform login is /login",
+    },
+    ...LOCALES.map((locale) => ({
+      source: `/${locale}/sign-in`,
+      destination: `/${locale}/login`,
+      permanent: true,
+      note: "Locale alias for Platform login",
+    })),
+  ];
+}
+
 /** All website redirects — order preserved for documentation; Next.js resolves independently. */
 export const WEBSITE_REDIRECTS: WebsiteRedirect[] = [
+  ...platformSignInAliasRedirects(),
   ...legacyMarketRedirects(),
   ...corporateOverviewRedirects(),
   ...guideConsolidationRedirects(),

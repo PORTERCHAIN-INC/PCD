@@ -153,18 +153,18 @@ Mark prod-only rows **`[—]` deferred** in tracking (not `[x]`). Stripe-related
 
 **Verify:** `pnpm validate:d3` · `validate:d3:e2e` · `validate:d3:prod`
 
-| ID     | Feature                        | Owner                             | Local | Prod              | Done                                                                                 |
-| ------ | ------------------------------ | --------------------------------- | ----- | ----------------- | ------------------------------------------------------------------------------------ |
-| 0.4.1  | Merchant dashboard             | `merchant_engine`                 | [x]   | [x]               | [x]                                                                                  |
-| 0.4.2  | Driver web + mobile            | `driver_engine`                   | [x]   | portal 200        | [x] mobile-theme shell 2026-07-08                                                    |
-| 0.4.3  | Customer web + mobile          | `booking_engine`                  | [x]   | quote+sign-in     | [x] mobile-theme shell 2026-07-08                                                    |
-| 0.4.4  | Dispatch                       | `fleetbase_engine` + admin ops    | [x]   | bridge off        | [x] validate:d3 local 2026-07-08                                                     |
-| 0.4.5  | Routing Valhalla/OSRM          | `services/routing.py`             | [x]   | deployed          | [~] tiles building                                                                   |
-| 0.4.6  | Tracking public API + WS       | `booking_engine`, `operations.py` | [x]   | [x]               | [x]                                                                                  |
-| 0.4.7  | POD driver + webhook           | `driver_engine`, Fleetbase        | [x]   | no FB prod        | [x] validate:d3 + contract tests 2026-07-08                                          |
-| 0.4.8  | Billing Stripe                 | `billing_engine`                  | [x]   | live webhook      | [~]                                                                                  |
-| 0.4.9  | Partner API OpenAPI            | `gateway_engine`, `/docs`         | [x]   | [x]               | [x]                                                                                  |
-| 0.4.10 | Manual Clerk login each portal | All portals                       | [x]   | [—] prod deferred | [CLERK_PORTAL_WALKTHROUGH.md](./CLERK_PORTAL_WALKTHROUGH.md) local matrix 2026-07-08 |
+| ID     | Feature                        | Owner                             | Local | Prod              | Done                                                                                     |
+| ------ | ------------------------------ | --------------------------------- | ----- | ----------------- | ---------------------------------------------------------------------------------------- |
+| 0.4.1  | Merchant dashboard             | `merchant_engine`                 | [x]   | [x]               | [x]                                                                                      |
+| 0.4.2  | Driver web + mobile            | `driver_engine`                   | [x]   | portal 200        | [x] mobile-theme shell 2026-07-08                                                        |
+| 0.4.3  | Customer web + mobile          | `booking_engine`                  | [x]   | quote+sign-in     | [x] mobile-theme shell 2026-07-08                                                        |
+| 0.4.4  | Dispatch                       | `fleetbase_engine` + admin ops    | [x]   | bridge off        | [x] validate:d3 local 2026-07-08                                                         |
+| 0.4.5  | Routing Valhalla/OSRM          | `services/routing.py`             | [x]   | deployed          | [~] tiles building                                                                       |
+| 0.4.6  | Tracking public API + WS       | `booking_engine`, `operations.py` | [x]   | [x]               | [x]                                                                                      |
+| 0.4.7  | POD driver + webhook           | `driver_engine`, Fleetbase        | [x]   | no FB prod        | [x] validate:d3 + contract tests 2026-07-08                                              |
+| 0.4.8  | Billing Stripe                 | `billing_engine`                  | [x]   | live webhook      | [~]                                                                                      |
+| 0.4.9  | Partner API OpenAPI            | `gateway_engine`, `/docs`         | [x]   | [x]               | [x]                                                                                      |
+| 0.4.10 | Manual Clerk login each portal | All portals                       | [x]   | [—] prod deferred | local matrix 2026-07-08; see [clerk-consolidation.md](./runbooks/clerk-consolidation.md) |
 
 ### §0.5 Clerk production (4 isolated apps)
 
@@ -815,23 +815,23 @@ _Pin versions; no floating Docker tags. Policy: `.cursor/rules/dependency-freeze
 
 ### 11.1 Security & compliance
 
-| ID      | Item                                       | Files                            | Done                                                         |
-| ------- | ------------------------------------------ | -------------------------------- | ------------------------------------------------------------ |
-| 11.1.1  | SOC 2 Type I                               | `docs/compliance/SOC2.md`        | [x] readiness doc 2026-07-09                                 |
-| 11.1.2  | Security whitepaper                        | `SECURITY.md`                    | [x] canonical 2026-07-09                                     |
-| 11.1.3  | Annual pen test                            | external                         | [~] `docs/compliance/PEN_TEST.md` program 2026-07-09         |
-| 11.1.4  | No dev `jwt_secret` in prod                | deploy secrets                   | [x] config guard + `validate:enterprise-security` 2026-07-09 |
-| 11.1.5  | Secrets file-mount pattern                 | `deploy.yml`                     | [x]                                                          |
-| 11.1.6  | RBAC matrix = code                         | `RBAC_MATRIX.md`, `auth/rbac.py` | [x] `validate:investor-monopoly` 2026-07-09                  |
-| 11.1.7  | Audit log export API                       | `routers/admin/audit.py`         | [x] export + CSV + domain-events 2026-07-09                  |
-| 11.1.8  | GDPR/CCPA export/delete                    | privacy endpoint                 | [x] merchant + customer APIs 2026-07-09                      |
-| 11.1.9  | PIPEDA / Canadian privacy                  | compliance doc                   | [x] `docs/compliance/PIPEDA.md` 2026-07-09                   |
-| 11.1.10 | Webhook sig verify Stripe+FB               | `webhooks.py`, ingress           | [x] `validate:enterprise-security` 2026-07-09                |
-| 11.1.11 | Rate limits + abuse protection             | middleware                       | [x] PortalRateLimitMiddleware 2026-07-09                     |
-| 11.1.12 | Domain event audit trail                   | `models.py` DomainEvent          | [x] export + event catalog 2026-07-09                        |
-| 11.1.13 | `jwt_secret` boot fails if default (DD-12) | `config.py` startup              | [x] `reject_dev_jwt_secret_in_production` 2026-07-09         |
-| 11.1.14 | Secret manager (DD-14)                     | infra, RUNBOOK                   | [x] Doppler + `sync-secrets.sh` + ADR-013 2026-07-09         |
-| 11.1.15 | Rate limit fail-closed (DD-06)             | `rate_limit_middleware.py`       | [x] 503 on Redis error 2026-07-09                            |
+| ID      | Item                                       | Files                                 | Done                                                         |
+| ------- | ------------------------------------------ | ------------------------------------- | ------------------------------------------------------------ |
+| 11.1.1  | SOC 2 Type I                               | `docs/compliance/SOC2.md`             | [x] readiness doc 2026-07-09                                 |
+| 11.1.2  | Security whitepaper                        | `SECURITY.md`                         | [x] canonical 2026-07-09                                     |
+| 11.1.3  | Annual pen test                            | external                              | [~] `docs/compliance/PEN_TEST.md` program 2026-07-09         |
+| 11.1.4  | No dev `jwt_secret` in prod                | deploy secrets                        | [x] config guard + `validate:enterprise-security` 2026-07-09 |
+| 11.1.5  | Secrets file-mount pattern                 | `deploy.yml`                          | [x]                                                          |
+| 11.1.6  | RBAC = SpiceDB schema + require_module     | `auth-clerk-spicedb.md`, `schema.zed` | [x] `verify_rbac_audit.py` 2026-07-29                        |
+| 11.1.7  | Audit log export API                       | `routers/admin/audit.py`              | [x] export + CSV + domain-events 2026-07-09                  |
+| 11.1.8  | GDPR/CCPA export/delete                    | privacy endpoint                      | [x] merchant + customer APIs 2026-07-09                      |
+| 11.1.9  | PIPEDA / Canadian privacy                  | compliance doc                        | [x] `docs/compliance/PIPEDA.md` 2026-07-09                   |
+| 11.1.10 | Webhook sig verify Stripe+FB               | `webhooks.py`, ingress                | [x] `validate:enterprise-security` 2026-07-09                |
+| 11.1.11 | Rate limits + abuse protection             | middleware                            | [x] PortalRateLimitMiddleware 2026-07-09                     |
+| 11.1.12 | Domain event audit trail                   | `models.py` DomainEvent               | [x] export + event catalog 2026-07-09                        |
+| 11.1.13 | `jwt_secret` boot fails if default (DD-12) | `config.py` startup                   | [x] `reject_dev_jwt_secret_in_production` 2026-07-09         |
+| 11.1.14 | Secret manager (DD-14)                     | infra, RUNBOOK                        | [x] Doppler + `sync-secrets.sh` + ADR-013 2026-07-09         |
+| 11.1.15 | Rate limit fail-closed (DD-06)             | `rate_limit_middleware.py`            | [x] 503 on Redis error 2026-07-09                            |
 
 ### 11.2 Enterprise identity
 

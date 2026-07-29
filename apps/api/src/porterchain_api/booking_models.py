@@ -24,6 +24,10 @@ class Customer(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     clerk_user_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    # Phase 8 — internal UUID FK (nullable until backfill); clerk_user_id retained
+    porterchain_user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     email: Mapped[str] = mapped_column(String(320), index=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     visitor_session_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)

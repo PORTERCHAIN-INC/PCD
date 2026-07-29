@@ -34,9 +34,9 @@ admin_engine, operations, billing, fleetbase_engine, notifications
 Fleetbase adapter (server-side only — never called from this UI)
 ```
 
-**Auth:** Clerk for identity; Porterchain JWT via `GET /v1/auth/admin/access` enforces staff allowlist. Clerk login alone does not grant admin access.
+**Auth:** Clerk for identity; `GET /v1/auth/session-context` + SpiceDB Checks enforce staff access. Clerk login alone does not grant admin access. AccessGate requires `canAccessPortal(..., "admin")`.
 
-**Dev:** `Authorization: Bearer dev` when `CLERK_DEV_BYPASS=true` on API and `NEXT_PUBLIC_CLERK_DEV_BYPASS=true` in admin env.
+**Dev:** When signed in, portals send the real Clerk JWT. `Authorization: Bearer dev` only when unsigned + `CLERK_DEV_BYPASS=true` / `NEXT_PUBLIC_CLERK_DEV_BYPASS=true`.
 
 ---
 

@@ -87,7 +87,7 @@ export const ANALYTICS_EVENTS = {
   BUSINESS_INQUIRY_SUBMIT: "business_inquiry_submit",
   /** Vehicle partner page inquiry */
   DRIVER_PARTNER_INQUIRY_SUBMIT: "driver_partner_inquiry_submit",
-  /** Zoho SalesIQ */
+  /** Legacy Zoho SalesIQ (widget removed — kept for historical analytics) */
   ZOHO_CHAT_READY: "zoho_chat_ready",
   ZOHO_CHAT_OPEN: "zoho_chat_open",
   /** Google Business Profile */
@@ -106,6 +106,7 @@ export const ANALYTICS_EVENTS = {
   CAPACITY_GUIDE_ACTION: "capacity_guide_action",
   CAPACITY_GUIDE_LEAD_CAPTURED: "capacity_guide_lead_captured",
   CAPACITY_GUIDE_APPOINTMENT_BOOKED: "capacity_guide_appointment_booked",
+  CAPACITY_GUIDE_WIDGET_OPEN: "capacity_guide_widget_open",
   /** Contact and conversion micro-interactions */
   PHONE_CLICK: "phone_click",
   EMAIL_CLICK: "email_click",

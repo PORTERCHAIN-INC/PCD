@@ -14,6 +14,10 @@ class ClerkClaims:
     public_metadata: dict[str, Any] | None = None
     session_id: str | None = None
     clerk_app: str | None = None
+    # Phase 3 — framework-neutral identity fields (still populated by Clerk adapter)
+    issuer: str | None = None
+    authorized_party: str | None = None
+    auth_time: int | None = None
 
     @property
     def metadata_role(self) -> str | None:

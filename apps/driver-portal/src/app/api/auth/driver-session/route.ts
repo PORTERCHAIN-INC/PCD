@@ -1,10 +1,8 @@
-import { cookies } from "next/headers";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const ACCESS_COOKIE = "driver_access_token";
-
-/** Porterchain driver JWT cookie check — not Clerk session (see clerkMiddleware). */
+/** Clerk session presence — replaces driver_access_token cookie check. */
 export async function GET() {
-  const jar = await cookies();
-  return NextResponse.json({ authenticated: Boolean(jar.get(ACCESS_COOKIE)?.value) });
+  const { userId } = await auth();
+  return NextResponse.json({ authenticated: Boolean(userId) });
 }

@@ -93,7 +93,6 @@ const STATIC_PATHS: {
   { segment: "vehicles", priority: 0.9 },
   { segment: "service-areas", priority: 0.85 },
   { segment: "faq", priority: 0.85 },
-  { segment: "guides", priority: 0.85 },
   { segment: "compare", priority: 0.8 },
   { segment: "success-stories", priority: 0.8 },
   { segment: "campaigns", priority: 0.75 },

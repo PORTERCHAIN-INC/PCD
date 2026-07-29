@@ -7,7 +7,7 @@ import { buildChatWhatsAppMessage, buildWhatsAppDeepLink } from "@/lib/whatsapp"
 
 /**
  * Floating WhatsApp chat button for phone browsers.
- * Replaces Zoho SalesIQ on mobile so visitors open WhatsApp instead of the web widget.
+ * Desktop/tablet use the on-site Logistics / Capacity line instead of a third-party widget.
  */
 export default function MobileWhatsAppChat() {
   const t = useTranslations("corporate.contact.info.whatsappChat");

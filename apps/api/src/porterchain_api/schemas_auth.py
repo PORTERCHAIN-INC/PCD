@@ -4,11 +4,20 @@ from pydantic import BaseModel, Field
 class AuthMeResponse(BaseModel):
     user_id: str
     clerk_user_id: str | None = None
-    user_type: str
+    user_type: str  # Deprecated hint for routing; prefer permissions / session-context
     roles: list[str]
     permissions: list[str]
-    enterprise_role: str | None = None
-    enterprise_permissions: list[str] = Field(default_factory=list)
+    modules: list[str] = Field(default_factory=list)
+    workspaces: list[dict] = Field(default_factory=list)
+    # Deprecated: same as roles[0] / permissions — kept for older clients
+    enterprise_role: str | None = Field(
+        default=None,
+        description="Deprecated. Use roles from SpiceDB session-context.",
+    )
+    enterprise_permissions: list[str] = Field(
+        default_factory=list,
+        description="Deprecated. Use permissions.",
+    )
     org_id: str | None = None
     email: str | None = None
     phone: str | None = None
@@ -16,24 +25,25 @@ class AuthMeResponse(BaseModel):
     status: str | None = None
     profile: dict | None = None
     fleetbase_console_eligible: bool = False
+    organization_ids: list[str] = Field(default_factory=list)
 
 
-class RbacMatrixResponse(BaseModel):
-    matrix: dict
-    enterprise_role: str | None = None
-    enterprise_permissions: list[str] = Field(default_factory=list)
-    admin_modules: list[str] = Field(default_factory=list)
-    merchant_modules: list[str] = Field(default_factory=list)
+class SessionContextResponse(BaseModel):
+    """Unified session context — permissions/workspaces from SpiceDB."""
 
-
-class MerchantAccessResponse(BaseModel):
     user_id: str
-    merchant_id: str
-    email: str
-    merchant_role: str
-    enterprise_role: str
-    company_name: str
-    is_active: bool = True
+    status: str
+    onboarding_status: str
+    default_workspace: str | None = None
+    email: str | None = None
+    roles: list[str] = Field(default_factory=list)
+    permissions: list[str] = Field(default_factory=list)
+    modules: list[str] = Field(default_factory=list)
+    organization_ids: list[str] = Field(default_factory=list)
+    role_assignments: list[dict] = Field(default_factory=list)
+    workspaces: list[dict] = Field(default_factory=list)
+    legacy_profile_ids: dict[str, str] = Field(default_factory=dict)
+    auth: dict = Field(default_factory=dict)
 
 
 class FleetbaseSsoResponse(BaseModel):
@@ -44,15 +54,6 @@ class FleetbaseSsoResponse(BaseModel):
     roles: list[str] = Field(default_factory=list)
     permissions: list[str] = Field(default_factory=list)
     fleetbase_session: dict | None = None
-
-
-class CustomerAccessResponse(BaseModel):
-    """Customer record — auto-provisioned on first authenticated portal access."""
-
-    customer_id: str
-    email: str | None = None
-    clerk_user_id: str
-    is_active: bool = True
 
 
 class PortalOnboardingStep(BaseModel):
@@ -81,13 +82,3 @@ class PortalOnboardingResponse(BaseModel):
 
 class MerchantVerticalRequest(BaseModel):
     vertical: str = Field(..., description="construction | medical | food-beverage | wholesale")
-
-
-class AdminAccessResponse(BaseModel):
-    """Staff record — only provisioned admin_users may access the admin portal."""
-
-    user_id: str
-    email: str
-    name: str | None = None
-    role: str
-    is_active: bool = True

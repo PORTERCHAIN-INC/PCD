@@ -98,6 +98,23 @@ def _merchant_modules_for_role(role: MerchantRole) -> list[str]:
     return sorted(m for m, allowed in MERCHANT_MODULE_PERMISSIONS.items() if role in allowed)
 
 
+def _sync_authz_for_clerk(db: Session, clerk_user_id: str | None) -> None:
+    """Push persona changes into SpiceDB immediately (don't wait for next login resolve)."""
+    if not clerk_user_id or clerk_user_id.startswith("pending:"):
+        return
+    from porterchain_api.authz.tuples import TupleWriter
+    from porterchain_api.user_models import PorterchainUser
+
+    user = db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == clerk_user_id).first()
+    if not user:
+        return
+    try:
+        TupleWriter().sync_user_from_profiles(db, user)
+    except Exception:  # noqa: BLE001
+        # Soft-fail: next PrincipalResolutionService.resolve will retry sync.
+        pass
+
+
 def _authorize_staff(
     db: Session,
     ctx: AdminContext,
@@ -145,6 +162,7 @@ def _authorize_staff(
     )
     db.commit()
     db.refresh(user)
+    _sync_authz_for_clerk(db, user.clerk_user_id)
     role = parse_admin_role(user.role)
     return PlatformUserAuthorizeResponse(
         platform_user_id=user.id,
@@ -204,6 +222,7 @@ def _authorize_driver(
     )
     db.commit()
     db.refresh(driver)
+    _sync_authz_for_clerk(db, driver.clerk_user_id)
     return PlatformUserAuthorizeResponse(
         platform_user_id=driver.id,
         user_type="driver",
@@ -294,6 +313,7 @@ def _authorize_merchant(
     )
     db.commit()
     db.refresh(merchant_user)
+    _sync_authz_for_clerk(db, merchant_user.clerk_user_id)
     role = (
         MerchantRole(merchant_user.role)
         if merchant_user.role in {r.value for r in MerchantRole}
@@ -347,6 +367,7 @@ def _authorize_customer(
     )
     db.commit()
     db.refresh(customer)
+    _sync_authz_for_clerk(db, customer.clerk_user_id)
     return PlatformUserAuthorizeResponse(
         platform_user_id=customer.id,
         user_type="customer",

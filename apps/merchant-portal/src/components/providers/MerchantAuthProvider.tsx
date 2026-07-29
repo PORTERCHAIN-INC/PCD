@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { isClerkConfigured } from "@/lib/env";
+import { isClerkConfigured, useClerkDevApiBypass } from "@/lib/env";
 
 export type MerchantAuthState = {
   isLoaded: boolean;
@@ -29,22 +29,26 @@ function DevMerchantAuthProvider({ children }: { children: ReactNode }) {
 
 function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
+  const devApiBypass = useClerkDevApiBypass();
 
   const getApiToken = useCallback(async () => {
-    const token = await getToken();
-    if (token) return token;
-    if (process.env.NODE_ENV === "development") return "dev";
+    if (isSignedIn) {
+      const token = await getToken();
+      if (token) return token;
+      throw new Error("Not authenticated");
+    }
+    if (devApiBypass) return "dev";
     throw new Error("Not authenticated");
-  }, [getToken]);
+  }, [devApiBypass, getToken, isSignedIn]);
 
   const value = useMemo<MerchantAuthState>(
     () => ({
       isLoaded,
-      isSignedIn: Boolean(isSignedIn),
+      isSignedIn: Boolean(isSignedIn) || (devApiBypass && !isSignedIn),
       orgId: undefined,
       getApiToken,
     }),
-    [getApiToken, isLoaded, isSignedIn]
+    [devApiBypass, getApiToken, isLoaded, isSignedIn]
   );
 
   return <MerchantAuthContext.Provider value={value}>{children}</MerchantAuthContext.Provider>;

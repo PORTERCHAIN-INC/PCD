@@ -16,6 +16,8 @@ opentelemetry-sdk>=1.43.0
 opentelemetry-exporter-otlp-proto-http>=1.43.0
 opentelemetry-instrumentation-fastapi>=0.64b0
 firebase-admin>=7.5.0
+authzed>=1.21.0
+grpcio>=1.70.0
 
 # Platform packages (editable — install from repo root or use PYTHONPATH)
 -e ../../shared/python

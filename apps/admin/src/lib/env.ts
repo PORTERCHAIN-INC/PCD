@@ -8,6 +8,10 @@ function resolveApiUrl() {
 
 export const publicEnv = {
   porterchainApiUrl: resolveApiUrl(),
+  websiteUrl: (
+    process.env.NEXT_PUBLIC_WEBSITE_URL ??
+    (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://porterchain.com")
+  ).replace(/\/$/, ""),
   clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
   googleMapsApiKey: (
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ??

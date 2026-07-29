@@ -3,14 +3,11 @@ import { publicEnv } from "@/lib/env";
 /**
  * Portal link SSOT for the marketing website.
  *
- * AUTH LAW (4 isolated Clerk apps — do not implement cross-portal SSO here):
- * - Website `/login` uses the **customer** Clerk app only.
- * - Merchant / admin / driver each have their own Clerk app + host.
- * - Deep-link other roles to their portal sign-in URLs; never claim one password opens all portals.
- * See AUTHENTICATION_ARCHITECTURE.md and infrastructure/deploy/CLERK_APPS_SETUP.md.
+ * Platform Clerk (single app): website `/login` signs in once, then routes to the
+ * provisioned module (admin / merchant / driver / customer) via session-context.
  */
 
-/** Customer Clerk sign-in on the public website (portal picker + customer form). */
+/** Platform Clerk sign-in on the public website. */
 export const unifiedSignInPath = "/login";
 
 /** Retail customer app (:3004) — sole authenticated customer surface. */
@@ -28,21 +25,8 @@ export const driverSignInUrl = `${publicEnv.driverPortalUrl}/login`;
 export const merchantPortalUrl = publicEnv.merchantPortalUrl;
 export const driverPortalUrl = publicEnv.driverPortalUrl;
 export const adminPortalUrl = publicEnv.adminPortalUrl;
-
-/** Resolve portal sign-in URL from `?intent=` on `/login`. */
-export function portalSignInUrlForIntent(intent: string | null | undefined): string | null {
-  switch (intent) {
-    case "merchant":
-      return merchantSignInUrl;
-    case "driver":
-      return driverSignInUrl;
-    case "admin":
-    case "staff":
-      return adminSignInUrl;
-    default:
-      return null;
-  }
-}
+/** Admin ops home after Platform login (port 3002). */
+export const adminPortalDashboardUrl = `${publicEnv.adminPortalUrl}/dashboard`;
 
 export function portalDisplayHost(url: string): string {
   try {

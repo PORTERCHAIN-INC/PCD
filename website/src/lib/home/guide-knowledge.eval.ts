@@ -36,6 +36,18 @@ const CASES: Case[] = [
     query: "What is Porterchain?",
     expectIdIncludes: ["charter-identity", "identity"],
   },
+  {
+    query: "same-day overflow when my driver is sick",
+    expectIdIncludes: ["same-day", "overflow"],
+  },
+  {
+    query: "business account dashboard booking API",
+    expectIdIncludes: ["business-account", "api"],
+  },
+  {
+    query: "how do I join as a driver partner",
+    expectIdIncludes: ["drivers", "partner"],
+  },
 ];
 
 function passCase(c: Case): boolean {

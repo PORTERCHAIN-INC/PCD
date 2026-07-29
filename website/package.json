@@ -17,6 +17,7 @@
     "@ai-sdk/groq": "^4.0.13",
     "@ai-sdk/react": "^4.0.40",
     "@clerk/nextjs": "^7.5.14",
+    "@porterchain/auth": "workspace:*",
     "@porterchain/maps": "workspace:*",
     "@sentry/nextjs": "^10.64.0",
     "@vis.gl/react-google-maps": "^1.9.0",

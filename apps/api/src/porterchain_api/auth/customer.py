@@ -78,8 +78,11 @@ def require_customer(
             phone=phone,
         )
     except ValueError as exc:
-        if str(exc) == "email_required":
+        detail = str(exc)
+        if detail == "email_required":
             raise HTTPException(status_code=400, detail="email_required") from exc
+        if detail == "email_clerk_mismatch":
+            raise HTTPException(status_code=403, detail="email_clerk_mismatch") from exc
         raise
 
 
@@ -89,4 +92,11 @@ async def get_customer_context(
     settings: Settings = Depends(get_settings),
 ) -> CustomerContext:
     customer = require_customer(db, claims, settings)
+
+    from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
+
+    principal = resolve_principal_for_claims(db, claims)
+    if principal:
+        assert_self_scope(principal, customer.id, db)
+
     return CustomerContext(customer=customer, email=customer.email or claims.email)

@@ -1,10 +1,10 @@
 {
   "metadata": {
     "home": {
-      "title": "Livraison B2B RGT | Jour même, urgente et logistique locale | PorterChain",
-      "description": "Livraison B2B le jour même, urgente et d'urgence dans le RGT. Débordement de flotte, logistique intra-urbaine, chantier et gros — capacité véhicule et chauffeur avec suivi et preuve.",
-      "ogTitle": "PorterChain — Capacité de transport B2B dans le RGT",
-      "ogDescription": "Livraison le jour même, urgente et d'urgence pour entreprises ontariennes — chauffeurs professionnels quand votre flotte ne peut pas couvrir l'envoi."
+      "title": "Plateforme logistique locale RGT | Compte affaires | PorterChain",
+      "description": "Gérez la logistique locale du RGT depuis une plateforme — devis, réservation, suivi, preuve de livraison, rapports, API et soutien logistique dédié, avec chauffeurs et véhicules professionnels.",
+      "ogTitle": "PorterChain — Plateforme opérationnelle de logistique locale pour le RGT",
+      "ogDescription": "Un compte affaires pour simplifier, automatiser et gérer la logistique locale à Toronto, Peel, York et Durham."
     },
     "platform": {
       "title": "Comment nous opérons | Réseau de capacité Porterchain",
@@ -1648,8 +1648,15 @@
       "subtitle": "Que vous développiez vos livraisons, ouvriez un compte entreprise ou ayez besoin de support répartition — notre équipe est prête."
     },
     "heroQuote": {
-      "title": "Demander de la capacité de livraison",
-      "subtitle": "Dites-nous ce qui doit bouger, où et avec quelle urgence. Nous répondons sous un jour ouvrable avec des options véhicule-chauffeur."
+      "badge": "Demander de la capacité",
+      "title": "Dites-nous ce qui doit bouger.",
+      "subtitle": "Indiquez vos corridors, l'urgence et le véhicule. Un spécialiste logistique répond sous un jour ouvrable avec des options véhicule et chauffeur adaptées.",
+      "trust1": "Réponse en 1 jour ouvrable",
+      "trust2": "Devis confirmé par écrit",
+      "trust3": "Spécialistes logistique RGT",
+      "sideEyebrow": "Préférez parler maintenant?",
+      "sideTitle": "Joignez un spécialiste logistique directement.",
+      "sideBody": "Appelez, écrivez ou utilisez WhatsApp — ou envoyez le formulaire et nous cartographierons la capacité pour vos corridors du RGT."
     },
     "info": {
       "phoneLabel": "Téléphone",

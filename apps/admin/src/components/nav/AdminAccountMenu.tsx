@@ -8,9 +8,61 @@ import { initials } from "@/lib/crmFormat";
 import { isClerkConfigured } from "@/lib/env";
 import HeaderDropdown from "@/components/nav/HeaderDropdown";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
+import { useOptionalSessionContext } from "@porterchain/auth";
+
+/** Display labels for admin_users.role — never show a generic "Staff" for admins. */
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: "Super Admin",
+  admin: "Admin",
+  operations_manager: "Operations Manager",
+  dispatcher: "Dispatcher",
+  support: "Support",
+  support_lead: "Support Lead",
+  sales: "Sales",
+  sales_manager: "Sales Manager",
+  finance: "Finance",
+  compliance: "Compliance",
+  developer: "Developer",
+  marketing: "Marketing",
+  read_only: "Read Only",
+  fleet_manager: "Fleet Manager",
+};
+
+const ADMIN_ROLE_PRIORITY = [
+  "super_admin",
+  "admin",
+  "operations_manager",
+  "dispatcher",
+  "support_lead",
+  "support",
+  "sales_manager",
+  "sales",
+  "finance",
+  "fleet_manager",
+  "compliance",
+  "developer",
+  "marketing",
+  "read_only",
+] as const;
 
 function roleLabel(role: string) {
+  const key = role.trim().toLowerCase();
+  if (ROLE_LABELS[key]) return ROLE_LABELS[key];
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function resolveAdminRole(
+  profileRole: string | null | undefined,
+  sessionRoles: string[] | undefined
+): string {
+  if (profileRole && profileRole.toLowerCase() !== "staff") {
+    return profileRole;
+  }
+  const roles = (sessionRoles || []).map((r) => r.toLowerCase());
+  for (const preferred of ADMIN_ROLE_PRIORITY) {
+    if (roles.includes(preferred)) return preferred;
+  }
+  return "admin";
 }
 
 export default function AdminAccountMenu() {
@@ -32,6 +84,7 @@ export default function AdminAccountMenu() {
 function ClerkAccountMenu() {
   const { isLoaded, isSignedIn, user } = useUser();
   const { profile } = useAdminProfile();
+  const session = useOptionalSessionContext()?.session;
 
   if (!isLoaded) {
     return <div className="h-10 w-10 animate-pulse rounded-full bg-primary/10" />;
@@ -51,10 +104,11 @@ function ClerkAccountMenu() {
     );
   }
 
-  const email = profile?.email ?? user.primaryEmailAddress?.emailAddress ?? "";
+  const email = profile?.email ?? session?.email ?? user.primaryEmailAddress?.emailAddress ?? "";
   const name = profile?.name ?? user.fullName ?? user.username ?? "Admin";
   const avatar = user.imageUrl;
-  const role = profile?.role ?? "staff";
+  const role = resolveAdminRole(profile?.role, session?.roles);
+  const label = roleLabel(role);
 
   return (
     <HeaderDropdown
@@ -86,7 +140,7 @@ function ClerkAccountMenu() {
             <span className="block truncate text-xs font-semibold text-primary">
               {name.split(" ")[0]}
             </span>
-            <span className="block truncate text-[10px] text-muted">{roleLabel(role)}</span>
+            <span className="block truncate text-[10px] text-muted">{label}</span>
           </span>
           <ChevronDown
             className={cn("h-4 w-4 shrink-0 text-muted transition", open && "rotate-180")}
@@ -112,7 +166,7 @@ function ClerkAccountMenu() {
             <p className="truncate text-sm font-semibold text-primary">{name}</p>
             <p className="truncate text-xs text-muted">{email}</p>
             <span className="mt-1.5 inline-block rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary">
-              {roleLabel(role)}
+              {label}
             </span>
           </div>
         </div>
@@ -123,7 +177,7 @@ function ClerkAccountMenu() {
           href="/settings"
           icon={User}
           label="Profile"
-          hint="View your staff profile"
+          hint="View your admin profile"
         />
         <AccountMenuLink
           href="/settings"

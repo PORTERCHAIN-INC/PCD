@@ -178,13 +178,6 @@ export const MODULE_SECTION_LINKS: Record<string, { href: string; label: string 
   operations: { href: "/operations", label: "Operations control tower" },
 };
 
-export type RbacMatrixResponse = {
-  matrix: {
-    roles: Array<{ role: string; label: string; permissions: string[] }>;
-    permissions: Array<{ permission: string; roles: string[] }>;
-  };
-};
-
 export const settingsApi = {
   center: (token: string) => adminFetch<SettingsCenter>(`${B}/center`, token),
   dashboard: (token: string) => adminFetch<SettingsDashboard>(`${B}/dashboard`, token),
@@ -287,7 +280,6 @@ export const settingsApi = {
       method: "PUT",
       body: JSON.stringify({ value, reason }),
     }),
-  permissions: (token: string) => adminFetch<Record<string, string[]>>(`${B}/permissions`, token),
   audit: (token: string) => adminFetch<AuditEntry[]>(`${B}/audit`, token),
   search: (token: string, q: string) =>
     adminFetch<Array<{ type: string; id: string; label: string }>>(
@@ -302,7 +294,6 @@ export const settingsApi = {
       method: "POST",
       body: JSON.stringify({ config, reason }),
     }),
-  rbac: (token: string) => adminFetch<RbacMatrixResponse>(`${B}/rbac`, token),
   vehiclesOverview: (token: string) =>
     adminFetch<VehiclesOverview>(`${B}/vehicles/overview`, token),
 };
