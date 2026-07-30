@@ -72,12 +72,12 @@ export default async function LocaleLayout({ children, params }: Props) {
       <HtmlLang locale={locale} />
       <JsonLd data={buildOrganizationSchema()} />
       <JsonLd data={buildWebSiteSchema()} />
-      <AppClerkProvider>
-        <NextIntlClientProvider messages={messages}>
+      <NextIntlClientProvider messages={messages}>
+        <AppClerkProvider>
           {children}
           <DeferredSiteIntegrations />
-        </NextIntlClientProvider>
-      </AppClerkProvider>
+        </AppClerkProvider>
+      </NextIntlClientProvider>
       <Suspense fallback={null}>
         <AttributionCapture />
       </Suspense>
