@@ -74,6 +74,7 @@ echo "  MAIL_PORT=$MAIL_PORT"
 echo "  MAIL_USERNAME=$MAIL_USERNAME"
 echo "  MAIL_FROM_ADDRESS=$MAIL_FROM_ADDRESS"
 
+# --silent avoids printing secret values (incl. MAIL_PASSWORD) in CLI tables.
 doppler secrets set \
   "MAIL_MAILER=${MAIL_MAILER}" \
   "MAIL_HOST=${MAIL_HOST}" \
@@ -87,7 +88,8 @@ doppler secrets set \
   "MAIL_FROM_NAME=${MAIL_FROM_NAME}" \
   "PORTERCHAIN_OPS_EMAILS=${PORTERCHAIN_OPS_EMAILS}" \
   --project "$PROJECT" \
-  --config "$CONFIG"
+  --config "$CONFIG" \
+  --silent
 
 echo "Done. Next deploy (or on droplet: bash sync-secrets.sh) writes /opt/porterchain/.env"
 echo "Verify: doppler secrets --only-names --project $PROJECT --config $CONFIG | grep MAIL_"

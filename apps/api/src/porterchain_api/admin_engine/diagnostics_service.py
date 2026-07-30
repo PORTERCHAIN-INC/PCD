@@ -18,6 +18,7 @@ from porterchain_api.admin_engine.diagnostics_helpers import (
     _run_probe_batch,
     _test_result,
 )
+from porterchain_api.admin_engine.diagnostics_fleetbase_probes import DiagnosticsFleetbaseProbesMixin
 from porterchain_api.admin_engine.diagnostics_probes import DiagnosticsProbesMixin
 from porterchain_api.admin_engine.diagnostics_reports import DiagnosticsReportsMixin
 from porterchain_api.admin_engine.diagnostics_timeline import ControlTowerTimeline
@@ -31,6 +32,7 @@ class AdminDiagnosticsService(
     DiagnosticsValidationMixin,
     DiagnosticsWorkflowsMixin,
     DiagnosticsChaosMixin,
+    DiagnosticsFleetbaseProbesMixin,
     DiagnosticsProbesMixin,
     DiagnosticsReportsMixin,
 ):

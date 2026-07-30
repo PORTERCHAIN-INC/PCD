@@ -47,7 +47,14 @@ class PlatformSettings(BaseSettings):
     sso_token_ttl_seconds: int = 300
 
     # Maps / routing
-    google_maps_api_key: str = ""
+    google_maps_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "google_maps_api_key",
+            "GOOGLE_MAPS_API_KEY",
+            "GOOGLE_MAPS_SERVER_API_KEY",
+        ),
+    )
     valhalla_url: str = Field(
         default="http://localhost:8002",
         validation_alias=AliasChoices("valhalla_url", "VALHALLA_BASE_URL", "VALHALLA_BASE_URI"),

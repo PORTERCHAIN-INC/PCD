@@ -156,21 +156,35 @@ def main() -> int:
     except Exception as exc:
         err = str(exc)
         print(f"repair: alembic upgrade failed: {err}", file=sys.stderr)
-        if not _is_duplicate_table_error(err):
+        # DB may already be stamped to a revision the running image hasn't baked yet
+        # (stale layer / partial image). If critical tables exist, continue.
+        if "Can't locate revision" in err and not _missing_critical():
+            print(
+                "repair: alembic_version unknown to this image but critical schema present — continuing",
+                file=sys.stderr,
+            )
+        elif not _is_duplicate_table_error(err):
             return 1
-        print("repair: duplicate table — filling gaps with create_all(checkfirst=True)")
-        if not _ensure_schema():
-            return 1
-        if _alembic_version() is None:
-            _stamp_head(cfg)
         else:
-            try:
-                _upgrade_head(cfg)
-            except Exception as exc2:
-                if not _is_duplicate_table_error(str(exc2)):
-                    print(f"repair: upgrade after create_all failed: {exc2}", file=sys.stderr)
-                    return 1
+            print("repair: duplicate table — filling gaps with create_all(checkfirst=True)")
+            if not _ensure_schema():
+                return 1
+            if _alembic_version() is None:
                 _stamp_head(cfg)
+            else:
+                try:
+                    _upgrade_head(cfg)
+                except Exception as exc2:
+                    if "Can't locate revision" in str(exc2) and not _missing_critical():
+                        print(
+                            "repair: revision still unknown after create_all; schema OK — continuing",
+                            file=sys.stderr,
+                        )
+                    elif not _is_duplicate_table_error(str(exc2)):
+                        print(f"repair: upgrade after create_all failed: {exc2}", file=sys.stderr)
+                        return 1
+                    else:
+                        _stamp_head(cfg)
 
     if not _ensure_schema():
         return 1

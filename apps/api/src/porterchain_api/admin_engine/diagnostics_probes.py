@@ -13,30 +13,12 @@ from porterchain_api.auth.clerk_registry import clerk_jwks_urls, is_clerk_config
 from porterchain_api.config import Settings
 from porterchain_api.models import Order
 from porterchain_api.platform.health import readiness
-from porterchain_api.services.fleetbase_integration import get_fleetbase_integration
 from porterchain_shared.config.settings import PlatformSettings
 from porterchain_shared.queue.publisher import queue_depths
 from porterchain_shared.redis_health import ping_redis
 
 
 class DiagnosticsProbesMixin:
-    def _probe_fleetbase_console(self, settings: Settings) -> dict[str, Any]:
-        url = settings.fleetbase_console_url or "http://localhost:4200"
-        status, latency, err = _probe_http(url, local_optional=settings.app_env == "local")
-        if settings.app_env == "local" and status == "warning":
-            return {
-                "status": "healthy",
-                "latency_ms": latency,
-                "details": {"url": url, "skipped": True, "note": "Optional locally"},
-            }
-        return {
-            "status": status,
-            "latency_ms": latency,
-            "errors": [err] if err and status == "critical" else [],
-            "warnings": [err] if err and status == "warning" else [],
-            "details": {"url": url},
-        }
-
     def _probe_email(self, platform: PlatformSettings, settings: Settings | None = None) -> dict[str, Any]:
         if platform.smtp_host and platform.smtp_user:
             return {"status": "healthy", "details": {"host": platform.smtp_host, "from": platform.smtp_from}}
@@ -114,11 +96,28 @@ class DiagnosticsProbesMixin:
         return {"status": status, "warnings": warnings, "version": "billing_engine"}
 
     def _engine_notifications(self, db: Session) -> dict[str, Any]:
+        from datetime import datetime, timedelta, timezone
+
         from porterchain_api.admin_engine.notification_admin_service import NotificationAdminService
+        from porterchain_api.notification_engine.models import NotificationRecord
 
         dash = NotificationAdminService().dashboard(db)
-        status = "warning" if dash["failed"] > 0 else "healthy"
-        return {"status": status, "details": dash}
+        # Historical dead letters should not keep System permanently amber.
+        recent_failed = (
+            db.query(NotificationRecord)
+            .filter(
+                NotificationRecord.status.in_(["failed", "dead_letter"]),
+                NotificationRecord.created_at >= datetime.now(timezone.utc) - timedelta(hours=24),
+            )
+            .count()
+        )
+        status = "warning" if recent_failed > 0 else "healthy"
+        warnings = [f"{recent_failed} failed notifications in last 24h"] if recent_failed else []
+        return {
+            "status": status,
+            "warnings": warnings,
+            "details": {**dash, "failed_last_24h": recent_failed},
+        }
 
     def _engine_orders(self, db: Session) -> dict[str, Any]:
         count = db.query(func.count(Order.id)).scalar() or 0
@@ -141,55 +140,6 @@ class DiagnosticsProbesMixin:
 
     def _engine_support(self, db: Session) -> dict[str, Any]:
         return {"status": "healthy", "details": {"module": "admin_engine.support_service"}}
-
-    def _probe_fleetbase_adapter(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
-        try:
-            adapter = get_fleetbase_integration(settings)
-            status: HealthClass = "healthy" if adapter.is_enabled else "warning"
-            warnings = [] if adapter.is_enabled else ["Dispatch bridge disabled"]
-            details = {"enabled": adapter.is_enabled}
-            if live and adapter.is_enabled:
-                status, latency, err = _probe_http(
-                    settings.fleetbase_api_url,
-                    local_optional=settings.app_env == "local",
-                )
-                if settings.app_env == "local" and status == "warning":
-                    return {"status": "healthy", "latency_ms": latency, "details": {**details, "skipped": True}}
-                if err:
-                    warnings.append(err)
-                return {
-                    "status": status if status != "critical" else "warning",
-                    "latency_ms": latency,
-                    "warnings": warnings,
-                    "details": details,
-                }
-            return {"status": status, "warnings": warnings, "details": details}
-        except Exception as exc:  # noqa: BLE001
-            return {"status": "critical", "errors": [str(exc)]}
-
-    def _probe_fleetbase(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
-        if not settings.fleetbase_dispatch_bridge:
-            return {"status": "warning", "warnings": ["Dispatch bridge disabled"]}
-        status, latency, err = _probe_http(
-            settings.fleetbase_api_url,
-            local_optional=settings.app_env == "local",
-        )
-        if settings.app_env == "local" and status == "warning":
-            return {
-                "status": "healthy",
-                "latency_ms": latency,
-                "details": {"url": settings.fleetbase_api_url, "skipped": True},
-            }
-        warnings: list[str] = []
-        if not settings.fleetbase_api_key:
-            warnings.append("Fleetbase API key not configured — outbound sync may fail")
-        return {
-            "status": status if status != "critical" else "warning",
-            "latency_ms": latency,
-            "errors": [err] if err else [],
-            "warnings": warnings,
-            "details": {"url": settings.fleetbase_api_url, "authenticated": bool(settings.fleetbase_api_key)},
-        }
 
     def _probe_google_maps(
         self, platform: PlatformSettings, *, live: bool = False, app_env: str | None = None

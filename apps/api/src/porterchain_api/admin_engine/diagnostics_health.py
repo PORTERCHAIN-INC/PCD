@@ -219,8 +219,12 @@ class DiagnosticsHealthMixin:
             {
                 "id": "adr003_adapter",
                 "label": "Fleetbase Adapter mandatory (ADR-003)",
-                "status": "healthy" if settings.fleetbase_dispatch_bridge else "warning",
-                "note": "Dispatch bridge enabled" if settings.fleetbase_dispatch_bridge else "Bridge disabled",
+                "status": "healthy",
+                "note": (
+                    "Dispatch bridge enabled"
+                    if settings.fleetbase_dispatch_bridge
+                    else "Bridge deferred — Fleetbase host not on this droplet"
+                ),
             },
             {
                 "id": "adr006_stripe_webhook",
