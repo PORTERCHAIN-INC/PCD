@@ -15,6 +15,7 @@ from porterchain_api.db import SessionLocal, init_db
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.merchant_models import Merchant, MerchantUser
+from porterchain_api.user_models import PorterchainUser as _PorterchainUser  # noqa: F401
 
 DEV_ORG = "dev_merchant_org"
 DEV_CLERK_USER = "dev_clerk_user"
