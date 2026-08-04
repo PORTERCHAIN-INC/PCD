@@ -17,14 +17,19 @@ const CapacityGuideWidget = dynamic(() => import("@/components/home/CapacityGuid
   ssr: false,
 });
 const MarketingTags = dynamic(() => import("@/components/marketing/MarketingTags"), { ssr: false });
+const MobileWhatsAppChat = dynamic(() => import("@/components/integrations/MobileWhatsAppChat"), {
+  ssr: false,
+});
 
 /**
  * Site-wide deferred integrations + CMP.
  * Logistics chat widget is available on all pages except home (inline) and login.
  * Analytics / marketing / experience tags respect Consent Mode.
+ * Phone browsers also get a floating WhatsApp chat button.
  */
 export default function DeferredSiteIntegrations() {
   const [consent, setConsent] = useState<ConsentState>(DEFAULT_CONSENT);
+  const [showWhatsAppFab, setShowWhatsAppFab] = useState(false);
 
   const onConsentChange = useCallback((next: ConsentState) => {
     setConsent(next);
@@ -34,10 +39,21 @@ export default function DeferredSiteIntegrations() {
     ensureGoogleConsentDefaults();
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    void import("@/lib/device").then(({ isMobilePhoneBrowser }) => {
+      if (!cancelled) setShowWhatsAppFab(isMobilePhoneBrowser());
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <>
       <WebVitalsReporter />
       <CapacityGuideWidget />
+      {showWhatsAppFab ? <MobileWhatsAppChat /> : null}
       <GoogleAnalytics enabled={consent.analytics} />
       <MarketingTags consent={consent} />
       <CookieConsentBanner onConsentChange={onConsentChange} />

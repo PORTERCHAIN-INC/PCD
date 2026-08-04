@@ -32,11 +32,7 @@ export default function SiteNavbarAuthClerk(props: NavbarAuthProps) {
     const ordersLink = (
       <a
         href={customerPortalDashboardUrl}
-        className={
-          onNavigate
-            ? "text-center py-3 text-sm font-medium text-primary"
-            : linkClass(customerPortalDashboardUrl)
-        }
+        className={linkClass(customerPortalDashboardUrl)}
         onClick={onNavigate}
       >
         {t("myOrders")}
@@ -44,7 +40,7 @@ export default function SiteNavbarAuthClerk(props: NavbarAuthProps) {
     );
 
     return (
-      <div className={onNavigate ? "flex flex-col items-center gap-3" : "contents"}>
+      <div className={onNavigate ? "flex flex-col gap-2" : "contents"}>
         {ordersLink}
         <UserButton
           appearance={{

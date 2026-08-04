@@ -18,11 +18,7 @@ export default function LoginLink({
   const t = useTranslations("corporate.nav");
 
   return (
-    <Link
-      href={href}
-      className={onNavigate ? "text-center py-3 text-sm font-medium text-primary" : linkClass(href)}
-      onClick={onNavigate}
-    >
+    <Link href={href} className={linkClass(href)} onClick={onNavigate}>
       {t("login")}
     </Link>
   );

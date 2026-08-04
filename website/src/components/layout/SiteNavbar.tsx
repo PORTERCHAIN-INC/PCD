@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { FaWhatsapp } from "react-icons/fa6";
 import { Menu, X } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
@@ -13,6 +14,8 @@ import NavDropdown from "@/components/layout/NavDropdown";
 import PorterchainWordmark from "@/components/brand/PorterchainWordmark";
 import { navbarNavigation } from "@/data/navbar-navigation";
 import { isVehiclesNavActive } from "@/data/vehicles-navigation";
+import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
+import { buildChatWhatsAppMessage, buildWhatsAppDeepLink } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
 /** Pages with a dark hero at the top — navbar starts transparent with light text. */
@@ -38,6 +41,7 @@ function isNavPathActive(pathname: string, href: string) {
 
 export default function SiteNavbar() {
   const t = useTranslations("corporate.nav");
+  const locale = useLocale();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -50,6 +54,8 @@ export default function SiteNavbar() {
   const navLight = isLightHero && navTransparent;
   /** Navy bar with white text — scrolled heroes and default inner pages. */
   const navBlue = !navTransparent;
+
+  const whatsappHref = buildWhatsAppDeepLink(buildChatWhatsAppMessage(locale));
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -218,28 +224,56 @@ export default function SiteNavbar() {
               })}
               <div
                 className={cn(
-                  "pt-4 mt-2 border-t flex flex-col gap-3",
+                  "pt-4 mt-2 border-t flex flex-col gap-2.5",
                   navLight ? "border-primary/10" : "border-white/10"
                 )}
               >
                 <LanguageSwitcher lightText={!navLight} />
-                <SiteNavbarAuth
-                  navLight={navLight}
-                  linkClass={() =>
-                    navLight
-                      ? "text-center py-3 text-sm font-medium text-primary/90 hover:text-primary"
-                      : "text-center py-3 text-sm font-medium text-white/90 hover:text-white"
-                  }
-                  onNavigate={closeMobile}
-                />
-                <div onClick={closeMobile}>
-                  <LinkButton
-                    href={quoteHref}
-                    className="w-full justify-center"
-                    external={quoteExternal}
+
+                <div
+                  className={cn(
+                    "rounded-2xl border p-3 space-y-2.5",
+                    navLight ? "border-primary/10 bg-gray-bg/80" : "border-white/12 bg-white/[0.06]"
+                  )}
+                >
+                  <SiteNavbarAuth
+                    navLight={navLight}
+                    linkClass={() =>
+                      cn(
+                        "flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-colors",
+                        navLight
+                          ? "border-primary/12 bg-white text-primary hover:border-secondary/30 hover:bg-secondary/5"
+                          : "border-white/20 bg-white/10 text-white hover:bg-white/15"
+                      )
+                    }
+                    onNavigate={closeMobile}
+                  />
+
+                  <a
+                    href={whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      track(ANALYTICS_EVENTS.WHATSAPP_CHAT_CLICK, {
+                        source_section: "mobile_nav_menu",
+                      });
+                      closeMobile();
+                    }}
+                    className="flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-semibold text-white shadow-sm transition-transform active:scale-[0.99] hover:bg-[#1ebe57]"
                   >
-                    {quoteLabel}
-                  </LinkButton>
+                    <FaWhatsapp className="h-5 w-5" aria-hidden />
+                    {t("whatsappChat")}
+                  </a>
+
+                  <div onClick={closeMobile}>
+                    <LinkButton
+                      href={quoteHref}
+                      className="w-full justify-center"
+                      external={quoteExternal}
+                    >
+                      {quoteLabel}
+                    </LinkButton>
+                  </div>
                 </div>
               </div>
             </div>
