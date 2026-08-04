@@ -70,7 +70,7 @@ export default async function DpaPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact?intent=quote&from=trust-dpa"
+        primaryHref="/business?from=trust-dpa#inquiry"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/trust"
         variant="gradient"

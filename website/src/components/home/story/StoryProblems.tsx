@@ -63,7 +63,7 @@ export default function StoryProblems() {
 
       <BlurFade inView className="mt-10">
         <LinkButton
-          href="/contact?intent=quote&from=home-problems"
+          href="/business?from=home-problems#inquiry"
           size="lg"
           trackSource="home-problems"
         >

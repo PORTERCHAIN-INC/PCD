@@ -25,7 +25,7 @@ const CHARTER_CHUNKS: KnowledgeChunk[] = [
   {
     id: "charter-pricing",
     title: "How pricing works",
-    body: "Pricing is quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Never invent dollar amounts. Business accounts bring quotes, booking, and tracking together; transportation capacity and price are confirmed in writing before dispatch. Request via /contact?intent=quote or /business.",
+    body: "Pricing is quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Never invent dollar amounts. Business accounts bring quotes, booking, and tracking together; transportation capacity and price are confirmed in writing before dispatch. Request via /business#inquiry or /business.",
     tags: ["pricing", "quote", "billing", "cost", "rate", "business account"],
     source: "charter",
   },
@@ -74,7 +74,7 @@ const CHARTER_CHUNKS: KnowledgeChunk[] = [
   {
     id: "charter-paths",
     title: "Next steps and paths",
-    body: "Get a Business Account at /business. Talk to a Logistics Specialist or request a quote at /contact?intent=quote. Drivers join as vehicle partners at /vehicle-partner. Track a shipment at /track. Always collect work email and mobile so the team can follow up.",
+    body: "Get a Business Account at /business. Talk to a Logistics Specialist or request a quote at /business#inquiry. Drivers join as vehicle partners at /vehicle-partner. Track a shipment at /track. Always collect work email and mobile so the team can follow up.",
     tags: ["cta", "merchants", "drivers", "quote", "business account", "contact", "email", "phone"],
     source: "charter",
   },
@@ -127,7 +127,7 @@ const CHARTER_CHUNKS: KnowledgeChunk[] = [
   {
     id: "charter-contact-followup",
     title: "How follow-up works",
-    body: "Sharing a work email and mobile phone lets PorterChain save the conversation and have a logistics specialist follow up with written capacity options. Contact capture is required before booking a call. Visitors can also open /business or /contact?intent=quote.",
+    body: "Sharing a work email and mobile phone lets PorterChain save the conversation and have a logistics specialist follow up with written capacity options. Contact capture is required before booking a call. Visitors can also open /business or /business#inquiry.",
     tags: ["contact", "email", "phone", "follow-up", "specialist", "lead"],
     source: "charter",
   },

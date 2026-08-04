@@ -10,5 +10,5 @@ export function generateStaticParams() {
 /** portal-book-redirect — legacy confirmation → on-site contact (quote intent). */
 export default async function BookSuccessRedirectPage({ params }: Props) {
   const { locale } = await params;
-  redirect(`/${locale as Locale}/contact?intent=quote&from=book-success`);
+  redirect(`/${locale as Locale}/business?from=book-success#inquiry`);
 }

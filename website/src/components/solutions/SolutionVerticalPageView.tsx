@@ -43,7 +43,7 @@ export default async function SolutionVerticalPageView({
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref={`/contact?intent=quote&from=${path.replace(/^\//, "")}`}
+        primaryHref={`/business?from=${path.replace(/^\//, "")}#inquiry`}
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref={secondaryHref}
         variant="light-centered"

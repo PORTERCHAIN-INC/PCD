@@ -52,7 +52,7 @@ export default async function SlaPage({ params }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("cta.primary")}
-        primaryHref="/contact?intent=quote&from=trust-sla"
+        primaryHref="/business?from=trust-sla#inquiry"
         secondaryCta={t("cta.secondary")}
         secondaryHref="/trust"
         variant="light-centered"
@@ -75,7 +75,7 @@ export default async function SlaPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact?intent=quote&from=trust-sla"
+        primaryHref="/business?from=trust-sla#inquiry"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/trust"
         variant="gradient"

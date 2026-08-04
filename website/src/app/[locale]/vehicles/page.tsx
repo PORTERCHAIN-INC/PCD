@@ -55,7 +55,7 @@ export default async function VehiclesHubPage({ params }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/contact?intent=quote&from=vehicles"
+        primaryHref="/business?from=vehicles#inquiry"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/business"
         variant="light-centered"
@@ -88,7 +88,7 @@ export default async function VehiclesHubPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact?intent=quote&from=vehicles"
+        primaryHref="/business?from=vehicles#inquiry"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/solutions"
         variant="gradient"

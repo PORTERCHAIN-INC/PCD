@@ -79,7 +79,7 @@ export default async function CompanyPage({ params }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/contact?intent=quote&from=company"
+        primaryHref="/business?from=company#inquiry"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/careers"
         variant="minimal"
@@ -125,7 +125,7 @@ export default async function CompanyPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact?intent=quote&from=company"
+        primaryHref="/business?from=company#inquiry"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/vehicle-partner"
         variant="gradient"

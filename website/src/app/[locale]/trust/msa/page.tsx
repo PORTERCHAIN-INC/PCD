@@ -70,7 +70,7 @@ export default async function MsaPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact?intent=quote&from=trust-msa"
+        primaryHref="/business?from=trust-msa#inquiry"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/trust"
         variant="gradient"

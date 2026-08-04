@@ -81,12 +81,30 @@
   },
   "homeChooser": {
     "eyebrow": "PorterChain · Greater Toronto Area",
-    "headline": "Run your local logistics from one platform.",
-    "subtitle": "PorterChain helps businesses manage local logistics with transportation, software, AI, and operational support—all through one business account.",
+    "headline": "Delivery? Let's get it done.",
+    "subtitle": "AI-powered logistics and last-mile delivery management built for modern businesses.",
     "primaryCta": "Get Business Account",
     "primaryCtaHint": "Access instant quotes, booking, tracking, proof of delivery, reports, and more.",
     "secondaryCta": "Talk to a Logistics Specialist",
     "trustLine": "Built for manufacturers, distributors, contractors, wholesalers, retailers, and growing businesses across the GTA.",
+    "vehicleLead": {
+      "prompt": "Pick a vehicle to get started",
+      "continueHint": "We’ll take you to a short form — share how to reach you and what needs to move.",
+      "vehicles": {
+        "sedan": {
+          "name": "Sedan",
+          "hint": "Parcels & documents"
+        },
+        "van": {
+          "name": "Van",
+          "hint": "Boxes & multi-stop"
+        },
+        "boxTruck": {
+          "name": "Box Truck",
+          "hint": "Pallets & freight"
+        }
+      }
+    },
     "guide": {
       "ariaLabel": "Capacity guide chat",
       "title": "Logistics line",

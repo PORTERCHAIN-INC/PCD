@@ -11,7 +11,6 @@ import {
   Headphones,
   LayoutDashboard,
   MapPin,
-  MessageCircle,
   Package,
   Sparkles,
   Truck,
@@ -20,6 +19,7 @@ import {
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import CapacityGuideChat from "@/components/home/CapacityGuideChat";
+import HomeVehicleLeadCapture from "@/components/home/HomeVehicleLeadCapture";
 import AnimatedGradientText from "@/components/magic/animated-gradient-text";
 import BlurFade from "@/components/magic/blur-fade";
 import MagicCard from "@/components/magic/magic-card";
@@ -173,34 +173,8 @@ export default function HomeChooser() {
               {t("subtitle")}
             </motion.p>
 
-            <motion.div
-              variants={fadeUp}
-              transition={{ duration: 0.65, ease: easeOutExpo }}
-              className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start"
-            >
-              <div className="flex flex-col gap-2">
-                <Magnetic>
-                  <ShimmerButton
-                    href={businessHref}
-                    trackSource="home-hero-business"
-                    showArrow
-                    className="rounded-xl"
-                  >
-                    {t("primaryCta")}
-                  </ShimmerButton>
-                </Magnetic>
-                <p className="max-w-xs text-xs leading-relaxed text-white/45 sm:pl-1">
-                  {t("primaryCtaHint")}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => openSpecialistChat("specialist")}
-                className="inline-flex min-h-[var(--touch-min)] items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/12"
-              >
-                <MessageCircle className="h-4 w-4 text-accent" aria-hidden />
-                {t("secondaryCta")}
-              </button>
+            <motion.div variants={fadeUp} transition={{ duration: 0.65, ease: easeOutExpo }}>
+              <HomeVehicleLeadCapture />
             </motion.div>
 
             <motion.p

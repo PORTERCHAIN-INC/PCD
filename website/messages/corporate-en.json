@@ -733,7 +733,7 @@
         "2": {
           "title": "Talk to our team",
           "description": "Request capacity or ask our team about a delivery program.",
-          "href": "/contact?intent=quote"
+          "href": "/business#inquiry"
         }
       }
     }
@@ -1757,7 +1757,7 @@
         "2": {
           "title": "Get a quote",
           "description": "Tell us what needs to move and we'll map the right capacity.",
-          "href": "/contact?intent=quote&from=company"
+          "href": "/business?from=company#inquiry"
         }
       }
     }
@@ -1768,16 +1768,11 @@
       "title": "Let's Talk Logistics",
       "subtitle": "Whether you're scaling delivery operations, setting up a business account, or need dispatch support — our team is ready to help."
     },
-    "heroQuote": {
-      "badge": "Request capacity",
-      "title": "Tell us what needs to move.",
-      "subtitle": "Share your lanes, urgency, and vehicle needs. A logistics specialist will respond within one business day with matched vehicle-and-driver options.",
-      "trust1": "Response within 1 business day",
-      "trust2": "Quote confirmed in writing",
-      "trust3": "GTA logistics specialists",
-      "sideEyebrow": "Prefer to talk now?",
-      "sideTitle": "Reach a logistics specialist directly.",
-      "sideBody": "Call, email, or WhatsApp — or send the form and we’ll map capacity for your GTA lanes."
+    "capacityCard": {
+      "eyebrow": "Need capacity?",
+      "title": "Get delivery capacity on your lanes",
+      "body": "Share how to reach you and what needs to move. We respond within one business day with vehicle-and-driver options.",
+      "cta": "Request capacity"
     },
     "info": {
       "phoneLabel": "Phone",
@@ -2344,7 +2339,7 @@
       "title": "Founder profile",
       "description": "Operator context for PorterChain's transportation capacity network.",
       "breadcrumb": "Founder",
-      "body": "This scaffold is noindex until founder biography, photo rights, and claims are approved.\n\nFor capacity quotes, use /contact?intent=quote."
+      "body": "This scaffold is noindex until founder biography, photo rights, and claims are approved.\n\nFor capacity quotes, use /business#inquiry."
     },
     "insurance": {
       "title": "Insurance & COI",

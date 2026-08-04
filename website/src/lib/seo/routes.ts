@@ -161,14 +161,14 @@ export function platform(locale: Locale, query?: RouteQuery): string {
   return withQuery(localePath(locale, PATHS.PLATFORM), query);
 }
 
-/** Capacity quote request — primary customer CTA across SEO and marketing pages. */
+/** Capacity quote request — single merchant form on /business. */
 export function quoteContact(locale: Locale, from: string, query?: RouteQuery): string {
-  return contact(locale, { intent: "quote", from, ...query });
+  return `${business(locale, { from, ...query })}#inquiry`;
 }
 
-/** @deprecated Use quoteContact for customer acquisition paths. */
+/** @deprecated Prefer quoteContact (/business). Kept for rare support paths. */
 export function demoContact(locale: Locale, from: string, query?: RouteQuery): string {
-  return contact(locale, { intent: "demo", from, ...query });
+  return `${business(locale, { from, ...query })}#inquiry`;
 }
 
 export function drive(locale: Locale, query?: RouteQuery): string {

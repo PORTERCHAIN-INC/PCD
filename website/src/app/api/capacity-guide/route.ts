@@ -365,7 +365,7 @@ export async function POST(req: Request) {
             contact_complete: complete,
             state: guideState,
             message: complete
-              ? "Email and phone saved. You may offer a call or point them to /contact?intent=quote."
+              ? "Email and phone saved. You may offer a call or point them to /business#inquiry."
               : phone
                 ? "Phone saved; still need a valid work email — ask once more."
                 : "Email saved. Ask for mobile phone before booking.",

@@ -194,7 +194,7 @@ export default function CustomersPageCloser() {
 
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
                 <LinkButton
-                  href="/contact?intent=quote&from=customers-cta"
+                  href="/business?from=customers-cta#inquiry"
                   size="lg"
                   showArrow
                   trackSource="customers-cta"

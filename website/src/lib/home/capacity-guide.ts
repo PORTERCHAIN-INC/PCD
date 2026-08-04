@@ -253,22 +253,22 @@ export function guideActionsForTopic(
     case "drivers":
       return [
         { labelKey: "actions.drivers", href: `/vehicle-partner?${q}` },
-        { labelKey: "actions.quote", href: `/contact?intent=quote&${q}` },
+        { labelKey: "actions.quote", href: `/business?${q}#inquiry` },
       ];
     case "pricing":
       return [
         { labelKey: "actions.pricing", href: `/business?${q}#pricing` },
-        { labelKey: "actions.quote", href: `/contact?intent=quote&${q}` },
+        { labelKey: "actions.quote", href: `/business?${q}#inquiry` },
       ];
     case "industries":
       return [
         { labelKey: "actions.industries", href: `/business?${q}#industries` },
-        { labelKey: "actions.quote", href: `/contact?intent=quote&${q}` },
+        { labelKey: "actions.quote", href: `/business?${q}#inquiry` },
       ];
     case "vehicles":
       return [
         { labelKey: "actions.fleet", href: `/business?${q}#fleet` },
-        { labelKey: "actions.quote", href: `/contact?intent=quote&${q}` },
+        { labelKey: "actions.quote", href: `/business?${q}#inquiry` },
       ];
     case "merchants":
     case "sameday":
@@ -280,7 +280,7 @@ export function guideActionsForTopic(
     default:
       return [
         { labelKey: "actions.merchants", href: `/business?${q}` },
-        { labelKey: "actions.quote", href: `/contact?intent=quote&${q}` },
+        { labelKey: "actions.quote", href: `/business?${q}#inquiry` },
       ];
   }
 }

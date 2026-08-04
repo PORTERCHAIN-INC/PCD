@@ -66,7 +66,7 @@ export default async function EnterprisePage({ params }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/contact?intent=quote&from=enterprise"
+        primaryHref="/business?from=enterprise#inquiry"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/trust"
         variant="light-centered"
@@ -83,7 +83,7 @@ export default async function EnterprisePage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact?intent=quote&from=enterprise"
+        primaryHref="/business?from=enterprise#inquiry"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/compare"
         variant="gradient"

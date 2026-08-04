@@ -63,7 +63,7 @@ export default async function PlatformPage({ params }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/contact?intent=quote&from=platform"
+        primaryHref="/business?from=platform#inquiry"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/business#fleet"
         variant="light-centered"
@@ -95,7 +95,7 @@ export default async function PlatformPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact?intent=quote&from=platform"
+        primaryHref="/business?from=platform#inquiry"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/compare"
         variant="gradient"

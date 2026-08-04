@@ -77,7 +77,7 @@ export default async function SolutionsPage({ params }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/contact?intent=quote&from=solutions"
+        primaryHref="/business?from=solutions#inquiry"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/vehicles"
         variant="light-centered"
@@ -141,7 +141,7 @@ export default async function SolutionsPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref="/contact?intent=quote&from=solutions"
+        primaryHref="/business?from=solutions#inquiry"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/vehicles"
         variant="gradient"

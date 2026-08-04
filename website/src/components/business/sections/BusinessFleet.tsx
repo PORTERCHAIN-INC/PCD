@@ -47,10 +47,7 @@ export default function BusinessFleet() {
     >
       <FleetSelector detailed showPreview />
       <div className="mt-8 flex justify-center">
-        <ShimmerButton
-          href="/contact?intent=quote&from=business-fleet"
-          trackSource="business-fleet"
-        >
+        <ShimmerButton href="/business?from=business-fleet#inquiry" trackSource="business-fleet">
           {t("quoteCta")}
         </ShimmerButton>
       </div>

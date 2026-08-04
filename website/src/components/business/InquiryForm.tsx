@@ -26,6 +26,11 @@ interface InquiryFormProps {
   onInteractionChange?: (active: boolean) => void;
 }
 
+function vehicleFromUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  return new URLSearchParams(window.location.search).get("vehicle")?.trim() || null;
+}
+
 export default function InquiryForm({
   id = "inquiry",
   variant = "hero",
@@ -50,6 +55,8 @@ export default function InquiryForm({
     setError(null);
 
     const fullPhone = `${countryCode} ${phone}${extension ? ` ext. ${extension}` : ""}`;
+    const vehiclePref = vehicleFromUrl();
+    const vehicleNote = vehiclePref ? ` Preferred vehicle: ${vehiclePref}.` : "";
 
     try {
       await submitInquiry({
@@ -59,7 +66,7 @@ export default function InquiryForm({
         source: "website",
         source_page: variant === "final" ? "/business#inquiry-final" : "/business",
         form: "business",
-        message: `Business inquiry from porterchain.com/business (${variant})`,
+        message: `Business inquiry from porterchain.com/business (${variant}).${vehicleNote}`,
       });
     } catch {
       setError(t("errorMessage"));
@@ -67,7 +74,10 @@ export default function InquiryForm({
       return;
     }
 
-    track(ANALYTICS_EVENTS.BUSINESS_INQUIRY_SUBMIT, { source_section: variant });
+    track(ANALYTICS_EVENTS.BUSINESS_INQUIRY_SUBMIT, {
+      source_section: variant,
+      ...(vehiclePref ? { vehicle: vehiclePref } : {}),
+    });
     setSubmitting(false);
     setSubmitted(true);
   };

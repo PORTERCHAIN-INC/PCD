@@ -64,7 +64,7 @@ export default function SiteNavbar() {
     setScrolled(false);
   }, [pathname]);
 
-  const quoteHref = "/contact?intent=quote";
+  const quoteHref = "/business#inquiry";
   const quoteLabel = t("bookNow");
   const quoteExternal = false;
 

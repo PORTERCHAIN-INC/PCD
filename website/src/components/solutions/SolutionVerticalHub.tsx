@@ -54,7 +54,7 @@ export default async function SolutionVerticalHub({ vertical }: SolutionVertical
           {t(`programs.items.${key}.cta`)}
         </LinkButton>
         <LinkButton
-          href={`/contact?intent=quote&from=${source}-${key}`}
+          href={`/business?from=${source}-${key}#inquiry`}
           variant="outline"
           size="sm"
           trackSource={`${source}-${key}-quote`}
@@ -144,7 +144,7 @@ export default async function SolutionVerticalHub({ vertical }: SolutionVertical
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref={`/contact?intent=quote&from=${source}`}
+        primaryHref={`/business?from=${source}#inquiry`}
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/business#fleet"
         variant="gradient"

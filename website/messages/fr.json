@@ -38,12 +38,30 @@
   },
   "homeChooser": {
     "eyebrow": "PorterChain · Grand Toronto",
-    "headline": "Gérez votre logistique locale depuis une seule plateforme.",
-    "subtitle": "PorterChain aide les entreprises à gérer la logistique locale avec transport, logiciel, IA et soutien opérationnel — le tout via un compte affaires.",
+    "headline": "Livraison? On s’en occupe.",
+    "subtitle": "Logistique et livraison du dernier kilomètre propulsées par l’IA, conçues pour les entreprises modernes.",
     "primaryCta": "Obtenir un compte affaires",
     "primaryCtaHint": "Accédez aux devis instantanés, réservations, suivi, preuve de livraison, rapports et plus.",
     "secondaryCta": "Parler à un spécialiste logistique",
     "trustLine": "Conçu pour fabricants, distributeurs, entrepreneurs, grossistes, détaillants et entreprises en croissance dans le RGT.",
+    "vehicleLead": {
+      "prompt": "Choisissez un véhicule pour commencer",
+      "continueHint": "Nous vous amènerons à un court formulaire — indiquez comment vous joindre et ce qui doit bouger.",
+      "vehicles": {
+        "sedan": {
+          "name": "Berline",
+          "hint": "Colis et documents"
+        },
+        "van": {
+          "name": "Fourgon",
+          "hint": "Boîtes et multi-arrêts"
+        },
+        "boxTruck": {
+          "name": "Camion-cube",
+          "hint": "Palettes et fret"
+        }
+      }
+    },
     "guide": {
       "ariaLabel": "Chat guide de capacité",
       "title": "Ligne logistique",

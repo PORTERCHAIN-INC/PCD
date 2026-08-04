@@ -733,7 +733,7 @@
         "2": {
           "title": "Parler à notre équipe",
           "description": "Demandez de la capacité ou parlez à notre équipe.",
-          "href": "/contact?intent=quote"
+          "href": "/business#inquiry"
         }
       }
     }
@@ -1636,7 +1636,7 @@
         "2": {
           "title": "Obtenir un devis",
           "description": "Dites-nous ce qui doit bouger et nous mapperons la bonne capacité.",
-          "href": "/contact?intent=quote&from=company"
+          "href": "/business?from=company#inquiry"
         }
       }
     }
@@ -1647,16 +1647,11 @@
       "title": "Parlons logistique",
       "subtitle": "Que vous développiez vos livraisons, ouvriez un compte entreprise ou ayez besoin de support répartition — notre équipe est prête."
     },
-    "heroQuote": {
-      "badge": "Demander de la capacité",
-      "title": "Dites-nous ce qui doit bouger.",
-      "subtitle": "Indiquez vos corridors, l'urgence et le véhicule. Un spécialiste logistique répond sous un jour ouvrable avec des options véhicule et chauffeur adaptées.",
-      "trust1": "Réponse en 1 jour ouvrable",
-      "trust2": "Devis confirmé par écrit",
-      "trust3": "Spécialistes logistique RGT",
-      "sideEyebrow": "Préférez parler maintenant?",
-      "sideTitle": "Joignez un spécialiste logistique directement.",
-      "sideBody": "Appelez, écrivez ou utilisez WhatsApp — ou envoyez le formulaire et nous cartographierons la capacité pour vos corridors du RGT."
+    "capacityCard": {
+      "eyebrow": "Besoin de capacité?",
+      "title": "Obtenez de la capacité de livraison sur vos corridors",
+      "body": "Indiquez comment vous joindre et ce qui doit bouger. Nous répondons en un jour ouvrable avec des options véhicule et chauffeur.",
+      "cta": "Demander de la capacité"
     },
     "info": {
       "phoneLabel": "Téléphone",
@@ -2223,7 +2218,7 @@
       "title": "Profil du fondateur",
       "description": "Contexte opérateur du réseau PorterChain.",
       "breadcrumb": "Fondateur",
-      "body": "Page provisoire non indexée jusqu'à approbation de la biographie et des droits photo.\n\nPour une soumission: /contact?intent=quote."
+      "body": "Page provisoire non indexée jusqu'à approbation de la biographie et des droits photo.\n\nPour une soumission: /business#inquiry."
     },
     "insurance": {
       "title": "Assurance et COI",
