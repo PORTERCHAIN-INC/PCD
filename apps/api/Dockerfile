@@ -24,7 +24,9 @@ COPY apps/api ./apps/api
 COPY apps/worker ./apps/worker
 
 WORKDIR /app/apps/api
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# setuptools comes from the slim base (CVE-2025-47273 at <78.1.1); bump before deps.
+RUN pip install --upgrade pip "setuptools>=78.1.1" \
+    && pip install -r requirements.txt
 
 ENV PYTHONPATH=/app/apps/api/src:/app/apps/worker:/app/shared/python:/app/services/python:/app/services/fleetbase-adapter:/app/services/pricing-engine:/app/services/event-bus:/app/services/driver-platform \
     DATABASE_URL=sqlite:////data/porterchain.db \

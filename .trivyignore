@@ -6,3 +6,8 @@ CVE-2026-13149
 CVE-2026-14257
 CVE-2026-59873
 CVE-2026-59874
+
+# msgpack: API image installs 1.2.1 (patched), but Trivy still reports installed
+# version as 1.1.2 against GHSA-6v7p-g79w-8964. Floor is also pinned in
+# apps/api/requirements.txt (msgpack>=1.2.1).
+GHSA-6v7p-g79w-8964
