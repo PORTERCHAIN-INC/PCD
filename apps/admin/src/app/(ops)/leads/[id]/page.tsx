@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import { hasPermission, useOptionalSessionContext } from "@porterchain/auth";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { Badge, Button, Spinner } from "@/components/crm/primitives";
 import {
   LEAD_PRIORITIES,
@@ -32,10 +35,18 @@ function formatWhen(iso: string): string {
 
 export default function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
+  const { profile } = useAdminProfile();
+  const session = useOptionalSessionContext()?.session;
   const qc = useQueryClient();
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const canDelete =
+    hasPermission(session?.permissions, "system:all") || profile?.role === "super_admin";
 
   const {
     data: lead,
@@ -61,6 +72,21 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
       void refetch();
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm("Delete this lead permanently?")) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const token = await getApiToken();
+      await leadsApi.remove(token, id);
+      await qc.invalidateQueries({ queryKey: ["leads"] });
+      router.push("/leads");
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Could not delete lead");
+      setDeleting(false);
     }
   }
 
@@ -102,12 +128,21 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
           <h1 className="text-2xl font-bold text-primary">{lead.company_name}</h1>
           <p className="text-sm text-muted">{formatWhen(lead.created_at)}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge tone={STATUS_TONES[lead.status] ?? "slate"}>{lead.status}</Badge>
           <Badge tone={PRIORITY_TONES[lead.priority] ?? "slate"}>{lead.priority}</Badge>
           <Badge tone="slate">Score {lead.lead_score}</Badge>
+          {canDelete ? (
+            <Button variant="danger" onClick={() => void handleDelete()} disabled={deleting}>
+              <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
+            </Button>
+          ) : null}
         </div>
       </div>
+
+      {deleteError ? (
+        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{deleteError}</p>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Contact">

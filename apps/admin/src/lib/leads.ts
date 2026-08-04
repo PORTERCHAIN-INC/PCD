@@ -95,6 +95,10 @@ export const leadsApi = {
     return leadSchema.parse(row);
   },
 
+  async remove(token: string, id: string): Promise<void> {
+    await adminFetch<void>(`/v1/admin/leads/${id}`, token, { method: "DELETE" });
+  },
+
   async calendar(
     token: string,
     params: { due_after?: string; due_before?: string } = {}

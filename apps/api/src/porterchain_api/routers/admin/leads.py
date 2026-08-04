@@ -10,6 +10,7 @@ from porterchain_api.collaboration_engine import CrmSalesService
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Depends,
+    _perm,
     get_admin_context,
     get_db,
     require_module,
@@ -95,3 +96,20 @@ def update_lead(
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="lead_not_found") from exc
     return LeadOut.model_validate(lead)
+
+
+@router.delete("/leads/{lead_id}", status_code=204)
+def delete_lead(
+    lead_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> None:
+    """Hard-delete a CRM lead. Super_admin only (SpiceDB system_all)."""
+    try:
+        require_module(ctx, "system:all")
+    except PermissionError as exc:
+        _perm(exc)
+    try:
+        _crm.delete_lead(db, lead_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="lead_not_found") from exc
