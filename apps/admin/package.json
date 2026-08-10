@@ -22,7 +22,7 @@
     "@porterchain/ui": "workspace:*",
     "@sentry/nextjs": "^10.64.0",
     "@tanstack/react-query": "^5.101.2",
-    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-table": "^9.1.0",
     "@vis.gl/react-google-maps": "^1.9.0",
     "echarts": "^6.1.0",
     "framer-motion": "^12.42.2",
