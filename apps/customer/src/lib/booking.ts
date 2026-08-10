@@ -63,7 +63,13 @@ export type OrderLiveTracking = {
     pickup?: AddressPayload;
     dropoff?: AddressPayload;
     driver_location?: { lat: number; lng: number };
-    optimized_route?: { polyline?: string; source?: string };
+    optimized_route?: {
+      polyline?: string;
+      source?: string;
+      duration_seconds?: number;
+      distance_meters?: number;
+      polyline_encoding?: "google" | "valhalla";
+    };
     eta?: TrackingEta | null;
     delivery_status?: {
       order_state?: string;
@@ -105,6 +111,32 @@ export function createQuote(payload: {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function getQuote(quoteId: string) {
+  return apiFetch<
+    QuoteResult & {
+      pickup?: AddressPayload;
+      dropoff?: AddressPayload;
+      vehicle_class?: string;
+      package_type?: string;
+    }
+  >(`/v1/quotes/${encodeURIComponent(quoteId)}`).then((raw) => ({
+    quote_id:
+      (raw as { quote_id?: string; id?: string }).quote_id ??
+      (raw as { id?: string }).id ??
+      quoteId,
+    state: raw.state,
+    amount_cents: raw.amount_cents,
+    amount_display: raw.amount_display ?? formatCents(raw.amount_cents),
+    expires_at: raw.expires_at,
+    distance_km: raw.distance_km,
+    pricing_breakdown: raw.pricing_breakdown,
+    pickup: raw.pickup,
+    dropoff: raw.dropoff,
+    vehicle_class: raw.vehicle_class,
+    package_type: raw.package_type,
+  }));
 }
 
 export function startBooking(

@@ -7,7 +7,7 @@
 **Source:** `apps/api/src/porterchain_api/auth/`, frontend `middleware.ts` and auth providers  
 **See also:** [AUTHENTICATION_ARCHITECTURE.md](../../AUTHENTICATION_ARCHITECTURE.md) · [SSO.md](../../SSO.md) · [RBAC.md](../../RBAC.md) · [SECURITY.md](../../SECURITY.md)
 
-> **Root pointer:** [AUTHENTICATION_FLOW.md](../../AUTHENTICATION_FLOW.md) redirects here.
+> **Root pointer:** [AUTHENTICATION_FLOW.md](AUTHENTICATION_FLOW.md) redirects here.
 
 ---
 
@@ -147,10 +147,3 @@ See [plantuml/authentication_flow.puml](./plantuml/authentication_flow.puml)
 | [APPLICATION_FLOW.md](./APPLICATION_FLOW.md)                           | Router → auth mapping              |
 
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

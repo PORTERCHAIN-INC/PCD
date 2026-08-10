@@ -99,8 +99,8 @@ export const teamApi = {
       orgId,
     }),
 
-  invite: (token: string, email: string, role: string, orgId?: string) =>
-    teamFetch<TeamMember>("/v1/merchant/team/invite", token, {
+  addSeat: (token: string, email: string, role: string, orgId?: string) =>
+    teamFetch<TeamMember>("/v1/merchant/team/seats", token, {
       method: "POST",
       body: JSON.stringify({ email, role }),
       orgId,

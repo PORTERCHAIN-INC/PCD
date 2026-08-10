@@ -57,24 +57,42 @@ def _assert_driver_self_scope(db: Session, driver: Driver) -> None:
         db,
         ClerkClaims(clerk_user_id=driver.clerk_user_id, email=driver.email),
     )
-    if principal:
-        assert_self_scope(principal, driver.id, db)
+    if not principal:
+        raise HTTPException(status_code=403, detail="user_not_provisioned")
+    assert_self_scope(principal, driver.id, db)
 
 
 async def _clerk_driver_id(db: Session, token: str, settings: Settings) -> str:
     from porterchain_api.auth.clerk import verify_clerk_token
-    from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive, require_clerk_app_for_portal
+    from porterchain_api.auth.persona_bundle import load_persona_bundle
+    from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
+    from porterchain_api.auth.prepare import prepare_user_from_claims
 
     try:
         claims = await verify_clerk_token(token, settings)
     except Exception as exc:
         raise HTTPException(status_code=401, detail="invalid_driver_token") from exc
 
-    require_clerk_app_for_portal(claims, settings, "driver")
+    # Align with other portals: prepare (UserSync + SpiceDB) once, then exclusive check.
+    prepare_user_from_claims(db, claims)
     assert_clerk_id_exclusive(db, claims, portal="driver", settings=settings)
-    driver = db.query(Driver).filter(Driver.clerk_user_id == claims.clerk_user_id).first()
+    driver = load_persona_bundle(db, claims.clerk_user_id).driver
     if not driver:
         raise HTTPException(status_code=403, detail="driver_not_found")
+    from porterchain_api.auth.email_identity import (
+        CLERK_EMAIL_REQUIRED,
+        CLERK_EMAIL_UNVERIFIED,
+        EMAIL_CLERK_MISMATCH,
+        assert_portal_email_identity,
+    )
+
+    try:
+        assert_portal_email_identity(driver.email, claims.email)
+    except PermissionError as exc:
+        detail = str(exc)
+        if detail in {CLERK_EMAIL_REQUIRED, CLERK_EMAIL_UNVERIFIED, EMAIL_CLERK_MISMATCH}:
+            raise HTTPException(status_code=403, detail=detail) from exc
+        raise HTTPException(status_code=403, detail=EMAIL_CLERK_MISMATCH) from exc
     return driver.id
 
 

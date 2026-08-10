@@ -96,26 +96,42 @@ export default function MerchantsPage() {
   const router = useRouter();
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
-  const { data, error } = useApiData((t) => merchants.list(t, { limit: "500" }), [version], {
-    key: "merchants-list",
-  });
+  // M-27: push status / terms / search to the API (avoid silent truncation at limit=500).
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [terms, setTerms] = useState("");
+  const { data, error } = useApiData(
+    (t) =>
+      merchants.list(t, {
+        limit: "500",
+        status: status || undefined,
+        payment_terms: terms || undefined,
+        search: search.trim() || undefined,
+      }),
+    [version, status, terms, search],
+    { key: "merchants-list" }
+  );
   const { data: statsData } = useApiData((t) => merchants.stats(t), [version], {
     key: "merchants-stats",
   });
   const stats = statsData && typeof statsData.total === "number" ? statsData : null;
+  const { data: unprovisioned, error: unprovisionedError } = useApiData(
+    (t) => merchants.unprovisionedSignups(t),
+    [version],
+    {
+      key: "merchants-unprovisioned",
+    }
+  );
 
   const [registerOpen, setRegisterOpen] = useState(false);
   const [registerForm, setRegisterForm] = useState({ email: "", company_name: "" });
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
 
-  // Filters
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  // Client-only facets (API already applied status/terms/search)
   const [industry, setIndustry] = useState("");
   const [province, setProvince] = useState("");
   const [city, setCity] = useState("");
-  const [terms, setTerms] = useState("");
   const [contract, setContract] = useState("");
   const [health, setHealth] = useState("");
   const [apiOnly, setApiOnly] = useState("");
@@ -132,6 +148,7 @@ export default function MerchantsPage() {
   });
   const [chooserOpen, setChooserOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const chooserRef = useRef<HTMLDivElement>(null);
 
   const [views, setViews] = useState<SavedView[]>([]);
@@ -173,18 +190,9 @@ export default function MerchantsPage() {
 
   const rows = useMemo(() => {
     let r = Array.isArray(data) ? [...data] : [];
-    const q = search.toLowerCase();
-    if (q)
-      r = r.filter((m) =>
-        `${m.company_name} ${m.email} ${m.city ?? ""} ${m.primary_contact ?? ""}`
-          .toLowerCase()
-          .includes(q)
-      );
-    if (status) r = r.filter((m) => m.status === status);
     if (industry) r = r.filter((m) => m.industry === industry);
     if (province) r = r.filter((m) => m.province === province);
     if (city) r = r.filter((m) => m.city === city);
-    if (terms) r = r.filter((m) => m.payment_terms === terms);
     if (contract) r = r.filter((m) => m.contract_status === contract);
     if (apiOnly) r = r.filter((m) => (apiOnly === "yes" ? m.api_connected : !m.api_connected));
     if (health === "hot") r = r.filter((m) => m.health_score >= 70);
@@ -198,20 +206,7 @@ export default function MerchantsPage() {
       r.sort((a, b) => b.outstanding_balance_cents - a.outstanding_balance_cents);
     else if (sortBy === "name") r.sort((a, b) => a.company_name.localeCompare(b.company_name));
     return r;
-  }, [
-    data,
-    search,
-    status,
-    industry,
-    province,
-    city,
-    terms,
-    contract,
-    apiOnly,
-    health,
-    onboardingFilter,
-    sortBy,
-  ]);
+  }, [data, industry, province, city, contract, apiOnly, health, onboardingFilter, sortBy]);
 
   const activeFilters =
     [status, industry, province, city, terms, contract, health, apiOnly, onboardingFilter].filter(
@@ -246,7 +241,7 @@ export default function MerchantsPage() {
         email: email.trim(),
         company_name: companyName.trim(),
         auto_activate: true,
-        send_invite: true,
+        send_invite: false,
       });
       refresh();
       if (opts?.closeModal !== false) setRegisterOpen(false);
@@ -273,10 +268,18 @@ export default function MerchantsPage() {
     fn: (token: string) => Promise<unknown>
   ) {
     setBusy(`${merchantId}:${action}`);
+    setActionError(null);
     try {
       const token = await getApiToken();
       await fn(token);
       refresh();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : `${action} failed`;
+      setActionError(
+        msg === "owner_not_clerk_linked"
+          ? "Owner seat reserved — merchant stays ONBOARDING until the owner accepts Clerk and links."
+          : msg
+      );
     } finally {
       setBusy(null);
     }
@@ -402,7 +405,7 @@ export default function MerchantsPage() {
                   }
                 >
                   <Mail className="h-3.5 w-3.5" />
-                  Invite
+                  Add seat
                 </Button>
               )}
               {m.can_activate_user && (
@@ -548,6 +551,7 @@ export default function MerchantsPage() {
 
   async function bulk(action: "approve" | "suspend" | "activate") {
     setBusy("bulk");
+    setActionError(null);
     try {
       const token = await getApiToken();
       for (const id of selectedIds) {
@@ -560,6 +564,13 @@ export default function MerchantsPage() {
       }
       setRowSelection({});
       refresh();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : `Bulk ${action} failed`;
+      setActionError(
+        msg === "owner_not_clerk_linked"
+          ? "Owner seat reserved — merchant stays ONBOARDING until the owner accepts Clerk and links."
+          : msg
+      );
     } finally {
       setBusy(null);
     }
@@ -608,6 +619,12 @@ export default function MerchantsPage() {
         </Button>
       </div>
 
+      {actionError && (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {actionError}
+        </p>
+      )}
+
       {/* Stats */}
       {stats && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -632,10 +649,66 @@ export default function MerchantsPage() {
           />
           <StatTile
             icon={Wallet}
-            label="Outstanding"
+            label="Ops AR outstanding"
             value={money(stats.outstanding_balance_cents)}
             accent="text-red-600"
           />
+        </div>
+      )}
+
+      {(unprovisionedError || (unprovisioned && unprovisioned.length > 0)) && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 shadow-sm">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-primary">
+              Unprovisioned Clerk signups
+              {unprovisioned && unprovisioned.length > 0 ? ` (${unprovisioned.length})` : ""}
+            </h2>
+            <p className="text-xs text-muted">
+              Signed into the merchant app with no PorterChain seat — register to attach an org.
+            </p>
+          </div>
+          {unprovisionedError && (
+            <p className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-red-700">
+              Could not load Clerk directory: {unprovisionedError}
+            </p>
+          )}
+          {unprovisioned && unprovisioned.length > 0 && (
+            <div className="mt-2 divide-y divide-amber-100 rounded-xl border border-amber-100 bg-white">
+              {unprovisioned.slice(0, 8).map((u) => (
+                <div
+                  key={u.clerk_user_id}
+                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm"
+                >
+                  <div>
+                    <p className="font-medium text-primary">{u.name}</p>
+                    <p className="text-xs text-muted">
+                      {u.email}
+                      {u.last_sign_in_at ? ` · last sign-in ${shortDate(u.last_sign_in_at)}` : ""}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => {
+                      setRegisterForm({
+                        email: u.email,
+                        company_name: u.suggested_company_name || "",
+                      });
+                      setRegisterError(null);
+                      setRegisterOpen(true);
+                    }}
+                  >
+                    <UserPlus className="h-3.5 w-3.5" /> Register merchant
+                  </Button>
+                </div>
+              ))}
+              {unprovisioned.length > 8 && (
+                <p className="px-4 py-2 text-xs text-muted">
+                  +{unprovisioned.length - 8} more in Account Clerk directory
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -974,8 +1047,8 @@ export default function MerchantsPage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-muted">
-            Creates the merchant organization, links the Clerk user, sends an invitation if needed,
-            and activates portal access.
+            Creates the merchant organization and reserves an owner seat on Platform Clerk. The
+            owner signs up themselves — no Clerk invitation email is sent.
           </p>
           <Field label="Owner email">
             <Input

@@ -1,7 +1,11 @@
 # Authentication
 
-**Type:** POINTER
-**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Type:** POINTER  
+**Last verified:** 2026-08-07
 
-Pointer to **[AUTHENTICATION_ARCHITECTURE.md](AUTHENTICATION_ARCHITECTURE.md)** — Clerk topology and security
+| Topic                               | Canonical                                                                          |
+| ----------------------------------- | ---------------------------------------------------------------------------------- |
+| Portal identity (Clerk / staff IdP) | [AUTHENTICATION_ARCHITECTURE.md](AUTHENTICATION_ARCHITECTURE.md)                   |
+| Admin staff IdP + Fleetbase SSO     | [SSO.md](SSO.md)                                                                   |
+| Authorization (SpiceDB)             | [docs/architecture/auth-clerk-spicedb.md](docs/architecture/auth-clerk-spicedb.md) |
+| Invitations                         | [INVITATION_WORKFLOW.md](INVITATION_WORKFLOW.md)                                   |

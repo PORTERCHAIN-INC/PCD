@@ -16,8 +16,3 @@ def test_openapi_schema_builds() -> None:
     spec = app.openapi()
     assert spec["openapi"].startswith("3.")
     assert len(spec.get("paths", {})) > 100
-
-
-def test_assign_batch_route_documented() -> None:
-    spec = app.openapi()
-    assert "/v1/admin/operations/queue/assign-batch" in spec["paths"]

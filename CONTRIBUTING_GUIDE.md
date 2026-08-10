@@ -188,7 +188,7 @@ When making architectural changes, update:
 
 - [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)
 - [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) (if paths change)
-- [EXTENSION_GUIDE.md](./EXTENSION_GUIDE.md) (if extension patterns change)
+- [CONTRIBUTING_GUIDE.md](CONTRIBUTING_GUIDE.md) (if extension patterns change)
 - [docs/README.md](./docs/README.md) index
 
 ---
@@ -198,7 +198,7 @@ When making architectural changes, update:
 | Topic               | Document                                                                               |
 | ------------------- | -------------------------------------------------------------------------------------- |
 | System design       | [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md) |
-| Product scope       | [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md)                                   |
+| Product scope       | [PORTERCHAIN_CHARTER.md](./docs/PORTERCHAIN_CHARTER.md)                                |
 | Fleetbase internals | [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                                 |
 | Adapter design      | [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)               |
 | Upgrading Fleetbase | [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md)                                                 |
@@ -208,14 +208,7 @@ When making architectural changes, update:
 ## Related documents
 
 - [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md)
-- [EXTENSION_GUIDE.md](./EXTENSION_GUIDE.md)
+- [CONTRIBUTING_GUIDE.md](CONTRIBUTING_GUIDE.md)
 - [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md)
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

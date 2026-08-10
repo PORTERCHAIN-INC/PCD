@@ -506,27 +506,3 @@ Prioritized. Check off in PRs; update this section when shipped.
 | `website/Dockerfile`                   | Build args for GA, Zoho, GBP   |
 
 ---
-
-## Governance
-
-- **Dual-lane discipline:** Platform copy uses orchestration/dispatch language (§1.1.2 ban list). Trades SEO copy uses vehicle fit, POD, recurring routes — not generic courier fluff.
-- SEO copy: update **both** `en.json` and `fr.json` when adding `nicheLanding` / `campaignLanding` strings.
-- New programmatic slug: update SSOT + messages + verify sitemap count increases.
-- New corporate page: add to `navbar-navigation.ts`, `footer-navigation.ts`, and `sitemap-entries.ts` in the **same PR**.
-- New blog post: EN + FR pair; link to ≥1 industry LP + 1 platform/solutions page + `/business`.
-- Do not index: `/login`, `/book/continue`, `/book/success`, `/track/[id]`.
-- No street address on public marketing surfaces.
-- Website releases: push to `main` → **Deploy Website** workflow.
-
----
-
-## Appendix — June 2026 backup (historical)
-
-The June 2026 tarball had ~50 route types, partial sitemap, no construction trades, no platform page, minimal nav, and `/ca/en/` URL prefix. PCD ported and extended that engine; checklist work (July 2026) added platform-first positioning, full IA, developers portal, and i18n guards. This doc reflects **current production intent**, not the backup roadmap.
-
-```
-Backup:  /ca/en/industry/[slug]           →  PCD: /en/industry/[slug]
-Backup:  no /platform                     →  PCD: /en/platform (Lane A)
-Backup:  ~100 sitemap URLs                →  PCD: ~737 sitemap URLs
-Backup:  courier-first homepage           →  PCD: platform-first hero (§1.1.3)
-```

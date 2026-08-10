@@ -1,9 +1,9 @@
 # Clerk / Doppler secret-access matrix (Phase 6)
 
 **Type:** WORKING  
-**Status:** Phase 6 local — names + validation only; **no** production Doppler/Clerk mutations  
+**Status:** Updated 2026-08 — SoT is `platform_driver` (not unified)  
 **Date:** 2026-07-28  
-**Related:** [SECRETS_MAP.md](../SECRETS_MAP.md) · [clerk-consolidation.md](../runbooks/clerk-consolidation.md) · [unified-identity-target.md](./unified-identity-target.md)
+**Related:** [SECRETS_MAP.md](../SECRETS_MAP.md) · [SSO.md](../../SSO.md)
 
 ---
 
@@ -17,25 +17,25 @@
 
 ---
 
-## 2. Consumer access matrix (unified target)
+## 2. Consumer access matrix (`platform_driver`)
 
-| Consumer               | May hold (names)                                                                                                                                                                                                                    | Must not hold                                                        |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| API / worker           | `CLERK_SECRET_KEY`, `CLERK_JWKS_URL`, `CLERK_PUBLISHABLE_KEY` (server verify/ Bal), `CLERK_WEBHOOK_SIGNING_SECRET`, `CLERK_AUTHORIZED_PARTIES`, `CLERK_AUTHORIZED_ISSUERS`, `CLERK_AUDIENCE`, `CLERK_UNIFIED_MODE`, migration flags | Client-only redirect UX secrets that belong in Next public env only  |
-| Next portals / website | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, public redirect URL vars                                                                                                                                                                       | `CLERK_SECRET_KEY`, webhook signing secret, any `sk_*`               |
-| Expo (when wired)      | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`                                                                                                                                                                                                 | Any server secret / JWKS private material                            |
-| GitHub Actions (build) | Publishable keys only (`pk_*` / `CLERK_*_PUBLISHABLE_KEY` or unified pk)                                                                                                                                                            | `sk_*`, JWKS signing secrets, webhook secrets                        |
-| Doppler                | Per-env configs; service tokens scoped read-only for prod deploy                                                                                                                                                                    | Cross-env mixing; frontend+backend secret bags in one unmanaged file |
+| Consumer               | May hold (names)                                                                                                                                  | Must not hold                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| API / worker           | Platform triad + `CLERK_DRIVER_*`, `CLERK_WEBHOOK_SIGNING_SECRET`, azp/issuers/audience, `CLERK_MODE=platform_driver`, `CLERK_UNIFIED_MODE=false` | Client-only redirect UX secrets that belong in Next public env only  |
+| Next portals / website | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (Platform or Driver per app), public redirect URL vars                                                        | `CLERK_SECRET_KEY`, webhook signing secret, any `sk_*`               |
+| Expo (when wired)      | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`                                                                                                               | Any server secret / JWKS private material                            |
+| GitHub Actions (build) | Publishable keys only (`pk_*` / portal publishable slots)                                                                                         | `sk_*`, JWKS signing secrets, webhook secrets                        |
+| Doppler                | Per-env configs; service tokens scoped read-only for prod deploy                                                                                  | Cross-env mixing; frontend+backend secret bags in one unmanaged file |
 
 ---
 
-## 3. Unified Platform (only supported sync mode)
+## 3. Supported sync mode
 
-| Mode                 | Local source                                                    | Runtime (API)                                              | Build (Next)                                         |
-| -------------------- | --------------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------- |
-| `CLERK_MODE=unified` | `CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` + `CLERK_JWKS_URL` | Sync expands into portal slots + `CLERK_UNIFIED_MODE=true` | Same `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` on all apps |
+| Mode                         | Local source                      | Runtime (API)                                                                          | Build (Next)                                                             |
+| ---------------------------- | --------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `CLERK_MODE=platform_driver` | Platform triad + `CLERK_DRIVER_*` | Expand Platform → customer/merchant/admin; Driver separate; `CLERK_UNIFIED_MODE=false` | Platform pk on website/customer/merchant/admin; Driver pk on driver apps |
 
-`CLERK_MODE=enterprise` (divergent 4-app / 12-key) is **retired** — `pnpm clerk:sync` exits with an error. Portal slot names (`CLERK_{PORTAL}_*`) remain as dual-read aliases filled from the Platform triad. Revoke unused legacy Doppler keys only after the retirement checklist.
+`CLERK_MODE=unified` and `enterprise` are **retired** — sync/upload/validate exit.
 
 ---
 

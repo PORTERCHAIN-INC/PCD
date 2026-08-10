@@ -6,7 +6,7 @@
 
 Secure B2B portal for approved business customers. Next.js 16 on **port 3001**.
 
-> **See also:** [MERCHANT_ARCHITECTURE_REPORT.md](../../MERCHANT_ARCHITECTURE_REPORT.md)
+> **See also:** [MERCHANT_FLOW.md](../../docs/architecture/MERCHANT_FLOW.md)
 
 ---
 
@@ -78,17 +78,8 @@ See [ENVIRONMENT_VARIABLES.md](../../ENVIRONMENT_VARIABLES.md).
 
 ## Related Documents
 
-| Document                                                                         | Purpose            |
-| -------------------------------------------------------------------------------- | ------------------ |
-| [../merchant/README.md](../merchant/README.md)                                   | Path alias pointer |
-| [../../MERCHANT_PRODUCTION_READINESS.md](../../MERCHANT_PRODUCTION_READINESS.md) | Readiness          |
-| [../../RBAC.md](../../RBAC.md)                                                   | Permissions        |
+| Document                       | Purpose     |
+| ------------------------------ | ----------- |
+| [../../RBAC.md](../../RBAC.md) | Permissions |
 
 ---
-
-## Governance
-
-| Document                                                       | Role              |
-| -------------------------------------------------------------- | ----------------- |
-| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

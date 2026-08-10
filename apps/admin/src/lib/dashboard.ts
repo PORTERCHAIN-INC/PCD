@@ -56,7 +56,6 @@ export const dashboardApi = {
 export const DASHBOARD_WIDGETS = [
   { id: "kpis", label: "Executive KPIs", defaultVisible: true },
   { id: "operations", label: "Operations Center", defaultVisible: true },
-  { id: "map", label: "Live Map", defaultVisible: true },
   { id: "orders", label: "Orders", defaultVisible: true },
   { id: "booking", label: "Booking", defaultVisible: true },
   { id: "finance", label: "Finance", defaultVisible: true },

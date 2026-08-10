@@ -40,8 +40,8 @@ Check which ports are in use: `pnpm ports`
 | **8001**  | Porterchain API          | HTTP     | `pnpm dev:api` — all frontends call this                    |
 | **8002**  | Valhalla routing         | HTTP     | `pnpm docker:up:routing`                                    |
 | **8080**  | Nginx dev proxy          | HTTP     | Docker `proxy` profile (optional)                           |
-| **1025**  | Mailhog SMTP             | TCP      | `pnpm docker:up` — outbound mail capture                    |
-| **8025**  | Mailhog web UI           | HTTP     | http://localhost:8025                                       |
+| **1025**  | Mailpit SMTP             | TCP      | `pnpm docker:up` — outbound mail capture                    |
+| **8025**  | Mailpit web UI           | HTTP     | http://localhost:8025                                       |
 | **3306**  | MySQL (core stack)       | TCP      | `pnpm docker:up` — `127.0.0.1` only                         |
 | **3307**  | MySQL (Fleetbase stack)  | TCP      | `pnpm docker:fleetbase:up` — avoids 3306 conflict           |
 | **5432**  | PostgreSQL (Porterchain) | TCP      | `pnpm docker:up` — `127.0.0.1` only                         |
@@ -140,12 +140,5 @@ Register new services here before assigning a port.
 
 ---
 
-_See also: [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md), [env/README.md](./env/README.md), [DOCKER_ARCHITECTURE.md](./DOCKER_ARCHITECTURE.md)_
+_See also: [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md), [env/README.md](./env/README.md), [DOCKER_SETUP.md](DOCKER_SETUP.md)_
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

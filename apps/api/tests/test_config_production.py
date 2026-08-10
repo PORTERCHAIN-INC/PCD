@@ -12,7 +12,10 @@ _LEGACY_CLERK_PROD = {
     "clerk_secret_key": "sk_live_production_clerk_test_fixture",
     "clerk_publishable_key": "pk_live_production_clerk_test_fixture",
     "clerk_jwks_url": "https://clerk.example.com/.well-known/jwks.json",
-    "clerk_unified_mode": True,
+    "clerk_unified_mode": False,
+    "clerk_driver_secret_key": "sk_live_driver_clerk_test_fixture",
+    "clerk_driver_jwks_url": "https://clerk-driver.example.com/.well-known/jwks.json",
+    "clerk_driver_publishable_key": "pk_live_driver_clerk_test_fixture",
 }
 
 

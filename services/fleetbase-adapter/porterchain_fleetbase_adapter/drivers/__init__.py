@@ -46,6 +46,22 @@ class DriverService:
             self.errors.log_and_suppress(exc, "Fleetbase driver fetch failed")
             return None
 
+    def list_all(self, *, limit: int = 200) -> list[dict[str, Any]]:
+        """All Fleetbase drivers (online status + last known location).
+
+        Feeds read-only ops surfaces (live map, dispatch suggestions)."""
+        try:
+            response = self.client.get("/v1/drivers", params={"limit": limit})
+        except Exception as exc:
+            self.errors.log_and_suppress(exc, "Fleetbase driver list failed")
+            return []
+        if isinstance(response, dict):
+            for key in ("drivers", "data", "items"):
+                value = response.get(key)
+                if isinstance(value, list):
+                    return [v for v in value if isinstance(v, dict)]
+        return []
+
     def track_location(
         self,
         fleetbase_driver_id: str,

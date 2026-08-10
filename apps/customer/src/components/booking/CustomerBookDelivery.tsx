@@ -1,20 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
 import {
   AddressAutocompleteInput,
   GoogleMapsProvider,
   type BookingAddress,
 } from "@porterchain/maps";
+import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
 import {
   createQuote,
   formatCents,
+  getQuote,
   mockCompleteCheckout,
   startBooking,
   type QuoteResult,
 } from "@/lib/booking";
+import { REBOOK_STORAGE_KEY } from "@/lib/api";
 import { isClerkConfigured, publicEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
@@ -79,6 +83,9 @@ function CustomerBookDeliveryBody({
   userId: string | null | undefined;
   email: string;
 }) {
+  const searchParams = useSearchParams();
+  const handoffQuoteId = searchParams.get("quote_id");
+  const wantsRebook = searchParams.get("rebook") === "1";
   const [step, setStep] = useState<Step>("details");
   const [pickup, setPickup] = useState<BookingAddress>({ formatted: "" });
   const [dropoff, setDropoff] = useState<BookingAddress>({ formatted: "" });
@@ -95,6 +102,89 @@ function CustomerBookDeliveryBody({
   const [trackingNumber, setTrackingNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!wantsRebook || handoffQuoteId) return;
+    try {
+      const raw = sessionStorage.getItem(REBOOK_STORAGE_KEY);
+      if (!raw) return;
+      sessionStorage.removeItem(REBOOK_STORAGE_KEY);
+      const payload = JSON.parse(raw) as {
+        pickup?: { formatted?: string; lat?: number; lng?: number; place_id?: string };
+        dropoff?: { formatted?: string; lat?: number; lng?: number; place_id?: string };
+        vehicle_class?: string | null;
+      };
+      if (payload.pickup?.formatted) {
+        setPickup({
+          formatted: String(payload.pickup.formatted),
+          lat: payload.pickup.lat,
+          lng: payload.pickup.lng,
+          placeId: payload.pickup.place_id,
+        });
+      }
+      if (payload.dropoff?.formatted) {
+        setDropoff({
+          formatted: String(payload.dropoff.formatted),
+          lat: payload.dropoff.lat,
+          lng: payload.dropoff.lng,
+          placeId: payload.dropoff.place_id,
+        });
+      }
+      if (payload.vehicle_class) setVehicleClass(payload.vehicle_class);
+    } catch {
+      /* ignore bad rebook payload */
+    }
+  }, [wantsRebook, handoffQuoteId]);
+
+  useEffect(() => {
+    if (!handoffQuoteId) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const resumed = await getQuote(handoffQuoteId);
+        if (cancelled) return;
+        if (resumed.pickup?.formatted) {
+          setPickup({
+            formatted: resumed.pickup.formatted,
+            lat: resumed.pickup.lat,
+            lng: resumed.pickup.lng,
+            placeId: resumed.pickup.place_id,
+          });
+        }
+        if (resumed.dropoff?.formatted) {
+          setDropoff({
+            formatted: resumed.dropoff.formatted,
+            lat: resumed.dropoff.lat,
+            lng: resumed.dropoff.lng,
+            placeId: resumed.dropoff.place_id,
+          });
+        }
+        if (resumed.vehicle_class) setVehicleClass(resumed.vehicle_class);
+        if (resumed.package_type) setPackageType(resumed.package_type);
+        setQuote({
+          quote_id: resumed.quote_id,
+          state: resumed.state,
+          amount_cents: resumed.amount_cents,
+          amount_display: resumed.amount_display,
+          expires_at: resumed.expires_at,
+          distance_km: resumed.distance_km,
+          pricing_breakdown: resumed.pricing_breakdown,
+        });
+        setStep("quote");
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not resume quote");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [handoffQuoteId]);
 
   async function onGetQuote() {
     if (!pickup.formatted || !dropoff.formatted) {
@@ -345,16 +435,25 @@ function CustomerBookDeliveryBody({
                   Schedule
                 </button>
               </div>
-              {scheduleMode === "later" && (
-                <input
-                  type="datetime-local"
-                  value={scheduledAt}
-                  onChange={(e) => setScheduledAt(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-primary/10 px-4 py-3"
-                />
-              )}
             </div>
           </div>
+
+          {scheduleMode === "later" && (
+            <div className="block text-sm">
+              <span className="mb-2 block font-medium text-primary">Pickup date & time</span>
+              <DateTimePickerSeparateField
+                value={scheduledAt}
+                onChange={setScheduledAt}
+                hourFormat={12}
+                timeInterval={30}
+                minDate={new Date()}
+                minTime="06:00"
+                maxTime="22:00"
+                datePlaceholder="Pick a date"
+                timePlaceholder="Pick time"
+              />
+            </div>
+          )}
 
           <button
             type="button"

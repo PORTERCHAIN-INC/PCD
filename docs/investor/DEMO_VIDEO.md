@@ -2,7 +2,7 @@
 
 **Type:** CANONICAL  
 **Checklist:** §10.2.2  
-**Companion:** [DEMO_SCRIPT.md](../DEMO_SCRIPT.md) (5-minute spoken narrative)  
+**Companion:** [WEBSITE_GTM_EXECUTION_PLAN.md](../WEBSITE_GTM_EXECUTION_PLAN.md) (5-minute spoken narrative)  
 **Last verified:** 2026-07-09
 
 Record a **≤3 minute** screen capture for the data room. Use the beats below; trim the 5-minute script to these timestamps.

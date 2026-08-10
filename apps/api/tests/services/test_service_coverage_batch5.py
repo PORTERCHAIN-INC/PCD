@@ -10,7 +10,6 @@ import pytest
 
 from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService, fetch_clerk_snapshots
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
-from porterchain_api.admin_engine.pricing_service import AdminPricingService
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
@@ -112,31 +111,6 @@ def test_booking_draft_update(db, settings) -> None:
     assert updated.dropoff is not None
 
 
-def test_pricing_tariff_zone_simulate(db, admin_ctx) -> None:
-    svc = AdminPricingService()
-    tariff = svc.create_tariff(
-        db,
-        admin_ctx,
-        name=f"Cov Tariff {datetime.now(UTC).timestamp()}",
-        tariff_type="standard",
-        base_cents=1200,
-        per_km_cents=150,
-    )
-    assert tariff.id
-    zone = svc.create_zone(db, admin_ctx, code=f"COV{int(datetime.now(UTC).timestamp())}", name="Cov Zone")
-    assert zone.id
-    sim = svc.simulate(
-        db,
-        {
-            "pickup": {"lat": 43.65, "lng": -79.38},
-            "dropoff": {"lat": 43.64, "lng": -79.37},
-            "vehicle_class": "cargoVan",
-            "weight_kg": 10,
-        },
-    )
-    assert isinstance(sim, dict)
-
-
 @patch("porterchain_api.admin_engine.clerk_directory_service.clerk_client_for_kind")
 @patch("porterchain_api.admin_engine.clerk_directory_service.is_clerk_secret_configured", return_value=True)
 def test_fetch_clerk_snapshots(mock_configured, mock_client, settings) -> None:
@@ -147,26 +121,6 @@ def test_fetch_clerk_snapshots(mock_configured, mock_client, settings) -> None:
     with patch("porterchain_api.admin_engine.clerk_directory_service.ClerkClient.snapshot", return_value=snap):
         result = fetch_clerk_snapshots(settings, "staff", limit=10)
         assert isinstance(result, dict)
-
-
-@patch("porterchain_api.auth.invitation_service.clerk_client_for_kind")
-def test_invite_admin_staff(mock_clerk, db, admin_ctx, settings) -> None:
-    clerk_id = f"user_invite_test_{datetime.now(UTC).timestamp()}"
-    mock_clerk.return_value.invite_user.return_value = SimpleNamespace(
-        clerk_user_id=clerk_id,
-        clerk_invitation_id=f"inv_test_{datetime.now(UTC).timestamp()}",
-        action="invited",
-    )
-    user, inv = InvitationService().invite_admin_staff(
-        db,
-        admin_ctx,
-        settings,
-        email=f"staff-{datetime.now(UTC).timestamp()}@svc.test",
-        role="support",
-        name="Staff User",
-    )
-    assert user.email
-    assert inv.email == user.email
 
 
 @patch.object(BookingSyncService, "__init__", lambda self: None)

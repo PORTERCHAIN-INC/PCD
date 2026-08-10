@@ -258,6 +258,123 @@ class BulkUploadResponse(BaseModel):
     errors: list[dict[str, Any]]
 
 
+class RouteImportStopInput(BaseModel):
+    sequence: int | None = None
+    stop_type: str | None = None
+    address: str
+    unit: str | None = None
+    city: str | None = None
+    province: str | None = None
+    postal: str | None = None
+    lat: float | None = None
+    lng: float | None = None
+    contact_name: str | None = None
+    contact_phone: str | None = None
+    external_ref: str | None = None
+    notes: str | None = None
+
+
+class RouteImportCreateRequest(BaseModel):
+    schema_version: str = "route_import.v1"
+    source: str = "api"
+    idempotency_key: str | None = None
+    vehicle_class: str = "cargoVan"
+    scheduled_at: datetime | None = None
+    package_type: str = "looseParcel"
+    internal_reference: str | None = None
+    cost_centre: str | None = None
+    stops: list[RouteImportStopInput]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "schema_version": "route_import.v1",
+                    "source": "agent",
+                    "idempotency_key": "agent-run-2026-08-07-001",
+                    "vehicle_class": "highRoof",
+                    "scheduled_at": "2026-08-07T09:00:00-04:00",
+                    "stops": [
+                        {
+                            "sequence": 1,
+                            "stop_type": "pickup",
+                            "address": "100 King St W Unit 1200, Toronto, ON M5X 1A9",
+                        },
+                        {
+                            "sequence": 2,
+                            "stop_type": "drop",
+                            "address": "200 Bay St, Toronto, ON M5J 2J2",
+                        },
+                        {
+                            "sequence": 3,
+                            "stop_type": "drop",
+                            "address": "1 Dundas St E, Toronto, ON M5B 2R8",
+                        },
+                    ],
+                }
+            ]
+        }
+    }
+
+
+class RouteImportMappingField(BaseModel):
+    canonical: str
+    source: str | None = None
+    confidence: float | None = None
+    evidence: str | None = None
+
+
+class RouteImportMappingPatch(BaseModel):
+    mapping: list[RouteImportMappingField]
+
+
+class RouteImportStopPatch(BaseModel):
+    address: str | None = None
+    unit: str | None = None
+    city: str | None = None
+    province: str | None = None
+    postal: str | None = None
+    lat: float | None = None
+    lng: float | None = None
+    stop_type: str | None = None
+    notes: str | None = None
+
+
+class RouteImportResponse(BaseModel):
+    schema_version: str
+    job_id: str
+    status: str
+    source: str | None = None
+    vehicle_class: str | None = None
+    scheduled_at: str | datetime | None = None
+    mapping: list[dict[str, Any]] = Field(default_factory=list)
+    headers: list[str] = Field(default_factory=list)
+    mapping_profile_id: str | None = None
+    optimized: bool = False
+    stops: list[dict[str, Any]] = Field(default_factory=list)
+    quote: dict[str, Any] | None = None
+    route_geometry: dict[str, Any] | None = None
+    route_explanation: str | None = None
+    errors: list[dict[str, Any]] = Field(default_factory=list)
+    order_ids: list[str] = Field(default_factory=list)
+    filename: str | None = None
+    total_rows: int = 0
+    valid_rows: int = 0
+    error_rows: int = 0
+
+
+class RouteImportProfileSaveRequest(BaseModel):
+    name: str = "Default"
+
+
+class RouteImportProfileResponse(BaseModel):
+    id: str
+    name: str
+    headers: list[str] = Field(default_factory=list)
+    mapping: list[dict[str, Any]] = Field(default_factory=list)
+    created_at: str | None = None
+
+
 class ApiKeyCreateRequest(BaseModel):
     name: str
     scopes: list[str] = Field(default_factory=lambda: ["shipments:read", "shipments:write"])

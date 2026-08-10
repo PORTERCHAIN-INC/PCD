@@ -1,28 +1,18 @@
 """Resolve customer context from Clerk JWT + Porterchain customers table."""
 
-from dataclasses import dataclass
-from typing import Annotated
-
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk import ClerkClaims, get_clerk_claims
+from porterchain_api.auth.clerk import ClerkClaims
 from porterchain_api.auth.clerk_client import ClerkClient
 from porterchain_api.auth.clerk_registry import fetch_clerk_user, is_clerk_secret_configured
-from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive, require_clerk_app_for_portal
+from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
 from porterchain_api.booking_engine import CustomerService
-from porterchain_api.config import Settings, get_settings
-from porterchain_api.db import get_db
+from porterchain_api.config import Settings
 from porterchain_api.models import Customer
 from porterchain_api.user_models import PorterchainUser
 
 _customers = CustomerService()
-
-
-@dataclass
-class CustomerContext:
-    customer: Customer
-    email: str | None
 
 
 def resolve_customer_contact(
@@ -30,32 +20,40 @@ def resolve_customer_contact(
     claims: ClerkClaims,
     settings: Settings,
 ) -> tuple[str | None, str | None]:
-    email = claims.email
+    """Resolve Clerk-attested email (JWT / verified Backend). Phone may use DB fallback."""
+    from porterchain_api.auth.email_identity import normalize_email, resolve_verified_clerk_email
+
+    email = normalize_email(claims.email)
     phone = claims.phone
 
     if not email:
+        try:
+            email = resolve_verified_clerk_email(
+                jwt_email=None,
+                clerk_user_id=claims.clerk_user_id,
+                settings=settings,
+            )
+        except PermissionError:
+            email = None
+
+    if not phone:
         user = (
             db.query(PorterchainUser)
             .filter(PorterchainUser.clerk_user_id == claims.clerk_user_id)
             .first()
         )
-        if user and user.email:
-            email = user.email
-        if user and user.phone and not phone:
+        if user and user.phone:
             phone = user.phone
+        if not phone:
+            customer = _customers.get_by_clerk(db, claims.clerk_user_id)
+            if customer:
+                phone = customer.phone
 
-    if not email:
-        customer = _customers.get_by_clerk(db, claims.clerk_user_id)
-        if customer:
-            email = customer.email
-            phone = phone or customer.phone
-
-    if not email and is_clerk_secret_configured(settings):
+    if not phone and is_clerk_secret_configured(settings):
         try:
             clerk_user, _kind = fetch_clerk_user(settings, claims.clerk_user_id)
             if clerk_user:
-                email = ClerkClient.primary_email(clerk_user)
-                phone = phone or ClerkClient.primary_phone(clerk_user)
+                phone = ClerkClient.primary_phone(clerk_user)
         except Exception:
             pass
 
@@ -67,11 +65,10 @@ def require_customer(
     claims: ClerkClaims,
     settings: Settings,
 ) -> Customer:
-    require_clerk_app_for_portal(claims, settings, "customer")
     assert_clerk_id_exclusive(db, claims, portal="customer", settings=settings)
     email, phone = resolve_customer_contact(db, claims, settings)
     try:
-        return _customers.get_or_create_from_clerk(
+        customer = _customers.get_or_create_from_clerk(
             db,
             clerk_user_id=claims.clerk_user_id,
             email=email,
@@ -83,20 +80,15 @@ def require_customer(
             raise HTTPException(status_code=400, detail="email_required") from exc
         if detail == "email_clerk_mismatch":
             raise HTTPException(status_code=403, detail="email_clerk_mismatch") from exc
+        # C-23: staff/driver Clerk on customer portal must not 500.
+        if detail.startswith("identity_conflict"):
+            raise HTTPException(status_code=403, detail=detail) from exc
         raise
-
-
-async def get_customer_context(
-    claims: Annotated[ClerkClaims, Depends(get_clerk_claims)],
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> CustomerContext:
-    customer = require_customer(db, claims, settings)
 
     from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
 
     principal = resolve_principal_for_claims(db, claims)
-    if principal:
-        assert_self_scope(principal, customer.id, db)
-
-    return CustomerContext(customer=customer, email=customer.email or claims.email)
+    if not principal:
+        raise HTTPException(status_code=403, detail="user_not_provisioned")
+    assert_self_scope(principal, customer.id, db)
+    return customer

@@ -6,7 +6,13 @@ import logging
 from typing import Any
 
 from porterchain_api.db import SessionLocal
+from porterchain_api.notification_engine.context import (
+    deep_link_for,
+    hydrate_order_context,
+    merge_notification_context,
+)
 from porterchain_api.notification_engine.engine import get_notification_engine
+from porterchain_api.notification_engine.staff_fanout import expand_staff_specs, staff_sentinel
 from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
@@ -17,6 +23,10 @@ PRIORITY_MAP = {
     DomainEventType.PAYMENT_FAILED: "critical",
     DomainEventType.DRIVER_ASSIGNED: "high",
     DomainEventType.ORDER_NEAR_DELIVERY: "high",
+    DomainEventType.EXCEPTION_OPENED: "high",
+    DomainEventType.ORDER_DELAYED: "high",
+    DomainEventType.SLA_BREACHED: "critical",
+    DomainEventType.EXCEPTION_RESOLVED: "normal",
 }
 
 
@@ -36,6 +46,8 @@ def _tags(payload: dict[str, Any]) -> dict[str, Any]:
         "claim_id",
         "ticket_id",
         "invoice_number",
+        "exception_id",
+        "exception_type",
     )
     return {k: payload[k] for k in keys if payload.get(k)}
 
@@ -54,6 +66,7 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
         *,
         address: str | None = None,
         category: str | None = None,
+        pri: str | None = None,
     ) -> None:
         if not recipient_id:
             return
@@ -67,9 +80,13 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
                 "context": ctx,
                 "search_tags": tags,
                 "category": category,
-                "priority": priority,
+                "priority": pri or priority,
+                "deep_link": deep_link_for(recipient_type, payload),
             }
         )
+
+    def add_staff(template: str, channel: str, topic: str, *, category: str | None = None, pri: str | None = None) -> None:
+        add(template, channel, "admin", staff_sentinel(topic), category=category, pri=pri)  # type: ignore[arg-type]
 
     email = payload.get("email") or payload.get("contact_email")
     customer_id = payload.get("customer_id")
@@ -90,20 +107,25 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
             add("booking_confirmed", "email", "customer", customer_id, address=email)
         if merchant_id:
             add("booking_confirmed", "in_app", "merchant", merchant_id)
-        add("booking_confirmed", "in_app", "admin", "system")
+        add_staff("booking_confirmed", "in_app", "ops")
 
     elif event_type in (DomainEventType.PAYMENT_STARTED, DomainEventType.CHECKOUT_STARTED):
         if customer_id:
             add("payment_started", "in_app", "customer", customer_id)
 
-    elif event_type == DomainEventType.PAYMENT_SUCCEEDED:
+    elif event_type in (DomainEventType.PAYMENT_SUCCEEDED, "receipt.generated"):
         if customer_id:
             add("payment_receipt", "in_app", "customer", customer_id)
         if email and customer_id:
             add("payment_receipt", "email", "customer", customer_id, address=email)
+        elif email and merchant_id:
+            add("payment_receipt", "email", "merchant", merchant_id, address=email)
         if merchant_id:
             add("payment_receipt", "in_app", "merchant", merchant_id)
-        add("payment_receipt", "in_app", "finance", "system")
+            merchant_email = payload.get("merchant_email")
+            if merchant_email and merchant_email != email:
+                add("payment_receipt", "email", "merchant", merchant_id, address=merchant_email)
+        add_staff("payment_receipt", "in_app", "finance")
 
     elif event_type == DomainEventType.PAYMENT_FAILED:
         if customer_id:
@@ -119,36 +141,37 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
             add(template, "email", "customer", customer_id, address=email)
         if merchant_id:
             add(template, "in_app", "merchant", merchant_id)
-        add(template, "in_app", "admin", "system")
+        add_staff(template, "in_app", "ops")
 
     elif event_type == DomainEventType.DRIVER_ASSIGNED:
         if customer_id:
             add("driver_assigned", "in_app", "customer", customer_id)
             add("driver_assigned", "push", "customer", customer_id)
         if driver_id:
-            add("driver_assigned", "push", "driver", driver_id, category="tracking")
-            add("driver_assigned", "in_app", "driver", driver_id, category="tracking")
+            # D-13: job-facing copy for drivers (customer template stays driver_assigned).
+            add("job_assigned", "push", "driver", driver_id, category="tracking")
+            add("job_assigned", "in_app", "driver", driver_id, category="tracking")
         if merchant_id:
             add("driver_assigned", "in_app", "merchant", merchant_id)
-        add("driver_assigned", "in_app", "admin", "system")
+        add_staff("driver_assigned", "in_app", "ops")
 
     elif event_type == DomainEventType.DRIVER_ACCEPTED:
         if driver_id:
             add("driver_accepted", "in_app", "driver", driver_id)
-        add("driver_accepted", "in_app", "admin", "system")
+        add_staff("driver_accepted", "in_app", "ops")
 
     elif event_type == DomainEventType.DRIVER_REJECTED:
-        add("driver_rejected", "in_app", "admin", "system")
+        add_staff("driver_rejected", "in_app", "ops")
 
     elif event_type == DomainEventType.DRIVER_ARRIVED_PICKUP:
         if customer_id:
             add("pickup_started", "push", "customer", customer_id)
-        add("pickup_started", "in_app", "admin", "system")
+        add_staff("pickup_started", "in_app", "ops")
 
     elif event_type == DomainEventType.PARCEL_PICKED_UP:
         if customer_id:
             add("parcel_picked_up", "push", "customer", customer_id)
-        add("parcel_picked_up", "in_app", "admin", "system")
+        add_staff("parcel_picked_up", "in_app", "ops")
 
     elif event_type == DomainEventType.DELIVERY_STARTED:
         if customer_id:
@@ -164,24 +187,51 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
             add("delivered", "push", "customer", customer_id)
         if driver_id:
             add("delivered", "in_app", "driver", driver_id)
-        add("delivered", "in_app", "admin", "system")
+        add_staff("delivered", "in_app", "ops")
 
     elif event_type == DomainEventType.PROOF_COMPLETED:
-        add("pod_uploaded", "in_app", "admin", "system")
+        add_staff("pod_uploaded", "in_app", "ops")
         if driver_id:
             add("pod_uploaded", "in_app", "driver", driver_id)
 
     elif event_type == DomainEventType.INVOICE_GENERATED:
-        if customer_id:
+        if customer_id and email:
             add("invoice_ready", "email", "customer", customer_id, address=email)
+            add("invoice_ready", "in_app", "customer", customer_id)
         if merchant_id:
             add("merchant_invoice_ready", "in_app", "merchant", merchant_id)
-        add("invoice_ready", "in_app", "finance", "system")
+            merchant_email = payload.get("merchant_email") or (email if not customer_id else None)
+            if merchant_email:
+                add(
+                    "merchant_invoice_ready",
+                    "email",
+                    "merchant",
+                    merchant_id,
+                    address=merchant_email,
+                )
+        add_staff("invoice_ready", "in_app", "finance")
 
-    elif event_type == DomainEventType.MERCHANT_BILLED:
+    elif event_type in (DomainEventType.MERCHANT_BILLED, "merchant.invoice_generated"):
         if merchant_id:
             add("merchant_invoice_ready", "in_app", "merchant", merchant_id)
-        add("merchant_invoice_ready", "in_app", "finance", "system")
+            merchant_email = payload.get("merchant_email") or payload.get("email")
+            if merchant_email:
+                add(
+                    "merchant_invoice_ready",
+                    "email",
+                    "merchant",
+                    merchant_id,
+                    address=merchant_email,
+                )
+        add_staff("merchant_invoice_ready", "in_app", "finance")
+
+    elif event_type in (DomainEventType.MERCHANT_APPROVED, DomainEventType.MERCHANT_ACTIVATED):
+        add_staff("merchant_approved", "in_app", "ops", category="security")
+        add_staff("merchant_approved", "in_app", "finance", category="security")
+
+    elif event_type == DomainEventType.MERCHANT_SUSPENDED:
+        add_staff("merchant_suspended", "in_app", "ops", category="security", pri="high")
+        add_staff("merchant_suspended", "in_app", "finance", category="security", pri="high")
 
     elif event_type == DomainEventType.REFUND_ISSUED:
         if customer_id:
@@ -198,7 +248,7 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
         if reporter and payload.get("actor_type") == "driver":
             add("claim_opened", "push", "driver", reporter, category="claims")
             add("claim_opened", "in_app", "driver", reporter, category="claims")
-        add("claim_opened", "in_app", "support", "system")
+        add_staff("claim_opened", "in_app", "support")
 
     elif event_type == DomainEventType.CLAIM_RESOLVED:
         if customer_id:
@@ -207,7 +257,7 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
         if reporter:
             add("claim_updated", "push", "driver", reporter, category="claims")
             add("claim_updated", "in_app", "driver", reporter, category="claims")
-        add("claim_updated", "in_app", "support", "system")
+        add_staff("claim_updated", "in_app", "support")
 
     elif event_type == DomainEventType.SUPPORT_TICKET_CREATED:
         if customer_id:
@@ -218,18 +268,57 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
         if ticket_driver:
             add("support_ticket_created", "push", "driver", ticket_driver, category="support")
             add("support_ticket_created", "in_app", "driver", ticket_driver, category="support")
-        add("support_ticket_created", "in_app", "support", "system")
+        add_staff("support_ticket_created", "in_app", "support")
 
     elif event_type in (DomainEventType.ORDER_TEMP_EXCURSION, "order.temp_excursion"):
-        add("temp_excursion", "email", "admin", "system", category="orders")
-        specs[-1]["priority"] = "high"
+        add_staff("temp_excursion", "email", "ops", category="orders", pri="high")
         if merchant_id:
-            add("temp_excursion", "in_app", "merchant", merchant_id, category="orders")
-            specs[-1]["priority"] = "high"
+            add("temp_excursion", "in_app", "merchant", merchant_id, category="orders", pri="high")
+
+    elif event_type == DomainEventType.EXCEPTION_OPENED:
+        ctx.setdefault("message", payload.get("exception_type") or "Delivery exception")
+        ctx.setdefault("title", "Delivery exception")
+        if customer_id:
+            add("exception_opened", "in_app", "customer", customer_id, category="orders")
+            add("exception_opened", "push", "customer", customer_id, category="orders")
+        if email and customer_id:
+            add("exception_opened", "email", "customer", customer_id, address=email, category="orders")
+        if merchant_id:
+            add("exception_opened", "in_app", "merchant", merchant_id, category="orders")
+        add_staff("exception_opened", "in_app", "ops", category="orders", pri="high")
+
+    elif event_type == DomainEventType.EXCEPTION_RESOLVED:
+        if customer_id:
+            add("exception_resolved", "in_app", "customer", customer_id, category="orders")
+        if merchant_id:
+            add("exception_resolved", "in_app", "merchant", merchant_id, category="orders")
+        add_staff("exception_resolved", "in_app", "ops", category="orders")
+
+    elif event_type == DomainEventType.ORDER_DELAYED:
+        ctx.setdefault("message", payload.get("message") or "Your delivery is delayed")
+        if customer_id:
+            add("order_delayed", "in_app", "customer", customer_id, category="tracking")
+            add("order_delayed", "push", "customer", customer_id, category="tracking")
+        if email and customer_id:
+            add("order_delayed", "email", "customer", customer_id, address=email, category="tracking")
+        if merchant_id:
+            add("order_delayed", "in_app", "merchant", merchant_id, category="tracking")
+        add_staff("order_delayed", "in_app", "ops", category="orders", pri="high")
+
+    elif event_type == DomainEventType.SLA_BREACHED:
+        ctx.setdefault("message", payload.get("message") or "SLA breached")
+        ctx.setdefault("title", "SLA breached")
+        if customer_id:
+            add("sla_breached", "in_app", "customer", customer_id, category="orders")
+            add("sla_breached", "push", "customer", customer_id, category="orders")
+        if email and customer_id:
+            add("sla_breached", "email", "customer", customer_id, address=email, category="orders")
+        if merchant_id:
+            add("sla_breached", "in_app", "merchant", merchant_id, category="orders")
+        add_staff("sla_breached", "in_app", "ops", category="orders", pri="critical")
 
     elif event_type == "driver.emergency":
-        add("driver_alert", "in_app", "admin", "system", category="security")
-        specs[-1]["priority"] = "critical"
+        add_staff("driver_alert", "in_app", "ops", category="security", pri="critical")
 
     elif event_type == "driver.route_changed":
         did = payload.get("driver_id") or driver_id
@@ -241,7 +330,7 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
         did = payload.get("driver_id") or driver_id
         if did:
             add("driver_alert", "in_app", "driver", did, category="support")
-        add("driver_alert", "in_app", "admin", "system", category="support")
+        add_staff("driver_alert", "in_app", "ops", category="support")
 
     elif event_type in ("driver.shift_started", "driver.shift_ended", "driver.break_started", "driver.break_resumed"):
         did = payload.get("driver_id") or driver_id
@@ -249,23 +338,49 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
             add("driver_alert", "in_app", "driver", did, category="orders")
 
     elif event_type == DomainEventType.FLEETBASE_STATUS_UPDATED:
-        ctx.setdefault("message", payload.get("status", "Status updated"))
+        ctx.setdefault("message", payload.get("status") or payload.get("to_state") or "Status updated")
         if customer_id:
             add("tracking_update", "push", "customer", customer_id)
             add("tracking_update", "in_app", "customer", customer_id)
+        if merchant_id:
+            add("tracking_update", "in_app", "merchant", merchant_id)
+        to_state = str(payload.get("to_state") or "")
+        if to_state in ("DELIVERED", "FAILED", "CANCELLED", "POD_COMPLETED"):
+            add_staff("tracking_update", "in_app", "ops")
 
     return specs
 
 
 def handle_domain_event(envelope: dict[str, Any]) -> None:
     event_type = envelope.get("event_type", "")
-    payload = envelope.get("payload") or {}
-    specs = _specs_for_event(event_type, payload)
-    if not specs:
-        return
+    payload = dict(envelope.get("payload") or {})
+    order_id = payload.get("order_id") or (
+        envelope.get("aggregate_id") if envelope.get("aggregate_type") == "order" else None
+    )
+    if order_id and not payload.get("order_id"):
+        payload["order_id"] = order_id
+    if envelope.get("aggregate_type") == "merchant":
+        mid = envelope.get("aggregate_id")
+        if mid and not payload.get("merchant_id"):
+            payload["merchant_id"] = mid
 
     db = SessionLocal()
     try:
+        if order_id and (
+            not payload.get("customer_id")
+            or not payload.get("email")
+            or not payload.get("order_number")
+            or not payload.get("tracking_number")
+        ):
+            payload = merge_notification_context(payload, hydrate_order_context(db, order_id))
+
+        specs = _specs_for_event(event_type, payload)
+        if not specs:
+            return
+        specs = expand_staff_specs(db, specs)
+        if not specs:
+            return
+
         engine = get_notification_engine()
         engine.dispatch_multi(
             db,
@@ -310,12 +425,21 @@ def register_notification_handlers() -> None:
         DomainEventType.PROOF_COMPLETED,
         DomainEventType.INVOICE_GENERATED,
         DomainEventType.MERCHANT_BILLED,
+        "merchant.invoice_generated",
+        DomainEventType.MERCHANT_APPROVED,
+        DomainEventType.MERCHANT_ACTIVATED,
+        DomainEventType.MERCHANT_SUSPENDED,
+        "receipt.generated",
         DomainEventType.REFUND_ISSUED,
         DomainEventType.CLAIM_OPENED,
         DomainEventType.CLAIM_RESOLVED,
         DomainEventType.SUPPORT_TICKET_CREATED,
         DomainEventType.FLEETBASE_STATUS_UPDATED,
         DomainEventType.ORDER_TEMP_EXCURSION,
+        DomainEventType.EXCEPTION_OPENED,
+        DomainEventType.EXCEPTION_RESOLVED,
+        DomainEventType.ORDER_DELAYED,
+        DomainEventType.SLA_BREACHED,
     ]
     for evt in watched:
         registry.subscribe(evt, handle_domain_event)

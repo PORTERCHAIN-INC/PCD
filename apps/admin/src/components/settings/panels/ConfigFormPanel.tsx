@@ -5,22 +5,30 @@ import { Save } from "lucide-react";
 import { Button, Field, Input, Select, Textarea } from "@/components/crm/primitives";
 import {
   CONFIG_FIELD_SCHEMAS,
-  FEATURE_FLAG_LABELS,
   SECTION_DESCRIPTIONS,
   getNestedValue,
   setNestedValue,
   type ConfigFieldDef,
 } from "@/lib/settings-metadata";
-import { SettingsCard, SettingsPageHeader, Toggle } from "../ui/SettingsPrimitives";
+import { BindingBadge, SettingsCard, SettingsPageHeader, Toggle } from "../ui/SettingsPrimitives";
 
 type Props = {
   sectionId: string;
   data: unknown;
   onSave: (value: unknown, reason: string) => Promise<void>;
   saving?: boolean;
+  effect?: string;
+  envRuntime?: { quote_ttl_minutes?: number; booking_draft_ttl_minutes?: number | null };
 };
 
-export default function ConfigFormPanel({ sectionId, data, onSave, saving }: Props) {
+export default function ConfigFormPanel({
+  sectionId,
+  data,
+  onSave,
+  saving,
+  effect = "policy",
+  envRuntime,
+}: Props) {
   const schema = CONFIG_FIELD_SCHEMAS[sectionId];
   const title = sectionId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const description =
@@ -30,11 +38,13 @@ export default function ConfigFormPanel({ sectionId, data, onSave, saving }: Pro
   const [form, setForm] = useState<unknown>(initial);
   const [reason, setReason] = useState("");
   const [dirty, setDirty] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setForm(initial);
     setDirty(false);
     setReason("");
+    setError(null);
   }, [sectionId, initial]);
 
   function updateField(path: string, value: unknown) {
@@ -47,88 +57,22 @@ export default function ConfigFormPanel({ sectionId, data, onSave, saving }: Pro
   }
 
   async function handleSave() {
-    await onSave(form, reason || "Admin settings update");
-    setDirty(false);
-    setReason("");
-  }
-
-  if (sectionId === "feature_flags") {
-    const flags = (typeof form === "object" && form !== null ? form : {}) as Record<
-      string,
-      boolean
-    >;
-    return (
-      <div className="space-y-6">
-        <SettingsPageHeader
-          title="Feature flags"
-          description={description}
-          actions={
-            <Button variant="primary" disabled={!dirty || saving} onClick={() => void handleSave()}>
-              <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save changes"}
-            </Button>
-          }
-        />
-        <SettingsCard
-          title="Rollout toggles"
-          description="Gradual feature enablement — no redeploy required"
-        >
-          <div className="space-y-2">
-            {Object.entries(flags).map(([key, val]) => (
-              <Toggle
-                key={key}
-                label={FEATURE_FLAG_LABELS[key] ?? key}
-                hint={`Flag: ${key}`}
-                checked={Boolean(val)}
-                onChange={(v) => updateField(key, v)}
-              />
-            ))}
-          </div>
-        </SettingsCard>
-        <ReasonField reason={reason} onReason={setReason} />
-      </div>
-    );
-  }
-
-  if (
-    sectionId === "service_areas" ||
-    sectionId === "delivery_zones" ||
-    sectionId === "notifications"
-  ) {
-    return (
-      <JsonConfigPanel
-        title={title}
-        description={description}
-        data={form}
-        onChange={(v) => {
-          setForm(v);
-          setDirty(true);
-        }}
-        onSave={handleSave}
-        saving={saving}
-        dirty={dirty}
-        reason={reason}
-        onReason={setReason}
-      />
-    );
+    if (sectionId === "booking" && !reason.trim()) {
+      setError("Change reason required for booking (SLA)");
+      return;
+    }
+    try {
+      setError(null);
+      await onSave(form, reason.trim() || "Admin settings update");
+      setDirty(false);
+      setReason("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    }
   }
 
   if (!schema?.length) {
-    return (
-      <JsonConfigPanel
-        title={title}
-        description={description}
-        data={form}
-        onChange={(v) => {
-          setForm(v);
-          setDirty(true);
-        }}
-        onSave={handleSave}
-        saving={saving}
-        dirty={dirty}
-        reason={reason}
-        onReason={setReason}
-      />
-    );
+    return <p className="text-sm text-muted">No structured fields for this section.</p>;
   }
 
   return (
@@ -137,15 +81,44 @@ export default function ConfigFormPanel({ sectionId, data, onSave, saving }: Pro
         title={title}
         description={description}
         actions={
-          <Button variant="primary" disabled={!dirty || saving} onClick={() => void handleSave()}>
-            <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save changes"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <BindingBadge effect={effect} />
+            <Button variant="primary" disabled={!dirty || saving} onClick={() => void handleSave()}>
+              <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save changes"}
+            </Button>
+          </div>
         }
       />
-      <SettingsCard
-        title="Configuration"
-        description="Changes are audited with actor and optional reason"
-      >
+
+      {effect === "policy" && (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          Policy store — values are saved and audited but not all fields are enforced in runtime
+          yet.
+        </p>
+      )}
+
+      {sectionId === "booking" && envRuntime && (
+        <SettingsCard
+          title="Quote & draft TTL (environment)"
+          description="Runtime uses Doppler/env — not SystemConfig. Shown read-only."
+        >
+          <div className="grid gap-3 sm:grid-cols-2 text-sm">
+            <div>
+              <p className="text-xs text-muted">Quote TTL (minutes)</p>
+              <p className="font-mono font-semibold">{envRuntime.quote_ttl_minutes ?? "—"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted">Draft TTL (minutes)</p>
+              <p className="font-mono font-semibold">
+                {envRuntime.booking_draft_ttl_minutes ?? "—"}
+              </p>
+            </div>
+          </div>
+          <BindingBadge effect="env" />
+        </SettingsCard>
+      )}
+
+      <SettingsCard title="Configuration" description="Changes are audited with actor and reason">
         <div className="grid gap-4 sm:grid-cols-2">
           {schema.map((field) => (
             <ConfigField
@@ -162,7 +135,16 @@ export default function ConfigFormPanel({ sectionId, data, onSave, saving }: Pro
           ))}
         </div>
       </SettingsCard>
-      <ReasonField reason={reason} onReason={setReason} />
+
+      <SettingsCard title="Change reason" description="Recorded in audit log">
+        <Textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          rows={2}
+          placeholder={sectionId === "booking" ? "Required for SLA changes" : "Optional"}
+        />
+      </SettingsCard>
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }
@@ -203,44 +185,6 @@ function ConfigField({
     );
   }
 
-  if (field.type === "json") {
-    return (
-      <Field label={field.label} hint={field.hint} className="sm:col-span-2">
-        <Textarea
-          rows={4}
-          className="font-mono text-xs"
-          value={typeof value === "string" ? value : JSON.stringify(value ?? [], null, 2)}
-          onChange={(e) => {
-            try {
-              onChange(field.key, JSON.parse(e.target.value));
-            } catch {
-              onChange(field.key, e.target.value);
-            }
-          }}
-        />
-      </Field>
-    );
-  }
-
-  if (field.type === "color") {
-    return (
-      <Field label={field.label} hint={field.hint}>
-        <div className="flex gap-2">
-          <input
-            type="color"
-            value={String(value ?? "#2563eb")}
-            onChange={(e) => onChange(field.key, e.target.value)}
-            className="h-10 w-12 cursor-pointer rounded-lg border border-primary/15"
-          />
-          <Input
-            value={String(value ?? "")}
-            onChange={(e) => onChange(field.key, e.target.value)}
-          />
-        </div>
-      </Field>
-    );
-  }
-
   return (
     <Field label={field.label} hint={field.hint}>
       <Input
@@ -249,95 +193,15 @@ function ConfigField({
         max={field.max}
         step={field.step}
         value={value == null ? "" : String(value)}
-        onChange={(e) =>
-          onChange(field.key, field.type === "number" ? Number(e.target.value) : e.target.value)
-        }
+        onChange={(e) => {
+          if (field.type === "number") {
+            const n = Number(e.target.value);
+            onChange(field.key, e.target.value === "" || !Number.isFinite(n) ? null : n);
+          } else {
+            onChange(field.key, e.target.value);
+          }
+        }}
       />
     </Field>
-  );
-}
-
-function ReasonField({ reason, onReason }: { reason: string; onReason: (v: string) => void }) {
-  return (
-    <SettingsCard
-      title="Change reason"
-      description="Optional — recorded in audit log for compliance"
-    >
-      <Input
-        placeholder="e.g. Updated quote TTL per ops review"
-        value={reason}
-        onChange={(e) => onReason(e.target.value)}
-      />
-    </SettingsCard>
-  );
-}
-
-function JsonConfigPanel({
-  title,
-  description,
-  data,
-  onChange,
-  onSave,
-  saving,
-  dirty,
-  reason,
-  onReason,
-}: {
-  title: string;
-  description: string;
-  data: unknown;
-  onChange: (v: unknown) => void;
-  onSave: () => Promise<void>;
-  saving?: boolean;
-  dirty: boolean;
-  reason: string;
-  onReason: (v: string) => void;
-}) {
-  const [raw, setRaw] = useState(() => JSON.stringify(data, null, 2));
-  const [parseError, setParseError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setRaw(JSON.stringify(data, null, 2));
-    setParseError(null);
-  }, [data]);
-
-  return (
-    <div className="space-y-6">
-      <SettingsPageHeader
-        title={title}
-        description={description}
-        actions={
-          <Button
-            variant="primary"
-            disabled={!dirty || saving || !!parseError}
-            onClick={() => void onSave()}
-          >
-            <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save changes"}
-          </Button>
-        }
-      />
-      <SettingsCard
-        title="Structured data"
-        description="Arrays and complex objects — validated before save"
-      >
-        <Textarea
-          rows={16}
-          className="font-mono text-xs"
-          value={raw}
-          onChange={(e) => {
-            setRaw(e.target.value);
-            try {
-              const parsed = JSON.parse(e.target.value) as unknown;
-              onChange(parsed);
-              setParseError(null);
-            } catch {
-              setParseError("Invalid JSON");
-            }
-          }}
-        />
-        {parseError && <p className="mt-2 text-xs text-red-600">{parseError}</p>}
-      </SettingsCard>
-      <ReasonField reason={reason} onReason={onReason} />
-    </div>
   );
 }

@@ -36,7 +36,7 @@ Out of scope until prod live: mobile apps (Expo shells), Shopify/Woo native apps
 
 ## Pre-engagement checklist
 
-- [ ] `GET /health/status` public status page documented ([STATUS_PAGE.md](../STATUS_PAGE.md))
+- [ ] `GET /health/status` public status page documented ([PRIORITY_TODOS.md](../PRIORITY_TODOS.md))
 - [ ] RBAC matrix exported (`pnpm validate:investor-monopoly`)
 - [ ] Webhook signature verification on Stripe + Fleetbase ([SECURITY.md](../../SECURITY.md))
 - [ ] Rate limits on portal prefixes (`PortalRateLimitMiddleware`)

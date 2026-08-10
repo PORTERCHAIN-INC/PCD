@@ -1,76 +1,23 @@
 # Pointer stub index
 
-**Type:** CANONICAL
-**Last verified:** 2026-07-08
+**Type:** CANONICAL  
+**Last verified:** 2026-08-07
 
-Root-level POINTER stubs are capped at **20** (E.2). Excess stubs live under `docs/archive/pointer-stubs/`.
-Update the **canonical** doc named in each stub — not the stub or archive copy.
+Root-level POINTER stubs are capped at **5**. Everything else lives under `docs/archive/pointer-stubs/` or `docs/archive/reports-2026-08/`.  
+Update the **canonical** doc — not the stub.
 
-## Root pointers (20)
+## Root pointers (5)
 
-- [`API_FLOW_REPORT.md`](../API_FLOW_REPORT.md)
-- [`ARCHITECTURE_ALIGNMENT_REPORT.md`](../ARCHITECTURE_ALIGNMENT_REPORT.md)
-- [`ARCHITECTURE_AUDIT.md`](../ARCHITECTURE_AUDIT.md)
-- [`AUTHENTICATION.md`](../AUTHENTICATION.md)
-- [`AUTHENTICATION_FLOW.md`](../AUTHENTICATION_FLOW.md)
-- [`BOOKING_WORKFLOW_AUDIT.md`](../BOOKING_WORKFLOW_AUDIT.md)
-- [`CLERK_INTEGRATION_REPORT.md`](../CLERK_INTEGRATION_REPORT.md)
-- [`DATABASE_AUDIT.md`](../DATABASE_AUDIT.md)
-- [`DRIVER_AUDIT.md`](../DRIVER_AUDIT.md)
-- [`EVENT_BUS_AUDIT.md`](../EVENT_BUS_AUDIT.md)
-- [`FLEETBASE_USAGE.md`](../FLEETBASE_USAGE.md)
-- [`FOLDER_STRUCTURE.md`](../FOLDER_STRUCTURE.md)
-- [`INTEGRATION_AUDIT.md`](../INTEGRATION_AUDIT.md)
-- [`MERCHANT_AUDIT.md`](../MERCHANT_AUDIT.md)
-- [`RBAC.md`](../RBAC.md)
-- [`ROUTING_ENGINE_AUDIT.md`](../ROUTING_ENGINE_AUDIT.md)
-- [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md)
-- [`SERVICE_STATUS.md`](../SERVICE_STATUS.md)
-- [`SQLITE_AUDIT.md`](../SQLITE_AUDIT.md)
-- [`SYSTEM_ARCHITECTURE.md`](../SYSTEM_ARCHITECTURE.md)
+| Stub                                                  | Canonical                                                                                                                                                     |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`SYSTEM_ARCHITECTURE.md`](../SYSTEM_ARCHITECTURE.md) | [`docs/architecture/SYSTEM_ARCHITECTURE.md`](architecture/SYSTEM_ARCHITECTURE.md)                                                                             |
+| [`AUTHENTICATION.md`](../AUTHENTICATION.md)           | [`AUTHENTICATION_ARCHITECTURE.md`](../AUTHENTICATION_ARCHITECTURE.md) · [`SSO.md`](../SSO.md) · [`auth-clerk-spicedb.md`](architecture/auth-clerk-spicedb.md) |
+| [`RBAC.md`](../RBAC.md)                               | [`docs/architecture/auth-clerk-spicedb.md`](architecture/auth-clerk-spicedb.md)                                                                               |
+| [`FOLDER_STRUCTURE.md`](../FOLDER_STRUCTURE.md)       | [`REPOSITORY_STRUCTURE.md`](../REPOSITORY_STRUCTURE.md)                                                                                                       |
+| [`SERVICE_STATUS.md`](../SERVICE_STATUS.md)           | [`RUNBOOK.md`](../RUNBOOK.md)                                                                                                                                 |
 
-## Archived pointers (43)
+## Archived
 
-- [`API_DEPENDENCY_GRAPH.md`](archive/pointer-stubs/API_DEPENDENCY_GRAPH.md)
-- [`API_FLOW_DIAGRAM.md`](archive/pointer-stubs/API_FLOW_DIAGRAM.md)
-- [`API_TRACE_REPORT.md`](archive/pointer-stubs/API_TRACE_REPORT.md)
-- [`AUTHENTICATION_AUDIT.md`](archive/pointer-stubs/AUTHENTICATION_AUDIT.md)
-- [`AUTHENTICATION_CLEANUP.md`](archive/pointer-stubs/AUTHENTICATION_CLEANUP.md)
-- [`DATABASE_CONFIGURATION_REPORT.md`](archive/pointer-stubs/DATABASE_CONFIGURATION_REPORT.md)
-- [`DATABASE_VALIDATION_REPORT.md`](archive/pointer-stubs/DATABASE_VALIDATION_REPORT.md)
-- [`DRIVER_ARCHITECTURE_REPORT.md`](archive/pointer-stubs/DRIVER_ARCHITECTURE_REPORT.md)
-- [`DRIVER_INTEGRATION_MATRIX.md`](archive/pointer-stubs/DRIVER_INTEGRATION_MATRIX.md)
-- [`DRIVER_PERFORMANCE_REPORT.md`](archive/pointer-stubs/DRIVER_PERFORMANCE_REPORT.md)
-- [`DRIVER_SECURITY_REPORT.md`](archive/pointer-stubs/DRIVER_SECURITY_REPORT.md)
-- [`EVENT_BUS_REPORT.md`](archive/pointer-stubs/EVENT_BUS_REPORT.md)
-- [`EVENT_FLOW.md`](archive/pointer-stubs/EVENT_FLOW.md)
-- [`EVENT_FLOW_DIAGRAM.md`](archive/pointer-stubs/EVENT_FLOW_DIAGRAM.md)
-- [`EVENT_MATRIX.md`](archive/pointer-stubs/EVENT_MATRIX.md)
-- [`FLEETBASE_ANALYSIS.md`](archive/pointer-stubs/FLEETBASE_ANALYSIS.md)
-- [`FLEETBASE_APIS.md`](archive/pointer-stubs/FLEETBASE_APIS.md)
-- [`FLEETBASE_DATABASE.md`](archive/pointer-stubs/FLEETBASE_DATABASE.md)
-- [`FLEETBASE_EVENTS.md`](archive/pointer-stubs/FLEETBASE_EVENTS.md)
-- [`FLEETBASE_WEBHOOKS.md`](archive/pointer-stubs/FLEETBASE_WEBHOOKS.md)
-- [`GOOGLE_MAPS_REPORT.md`](archive/pointer-stubs/GOOGLE_MAPS_REPORT.md)
-- [`GOOGLE_MAPS_USAGE_REPORT.md`](archive/pointer-stubs/GOOGLE_MAPS_USAGE_REPORT.md)
-- [`MAPS_ARCHITECTURE_AUDIT.md`](archive/pointer-stubs/MAPS_ARCHITECTURE_AUDIT.md)
-- [`MASTERULE_COMPLIANCE_GAPS.md`](archive/pointer-stubs/MASTERULE_COMPLIANCE_GAPS.md)
-- [`MERCHANT_COMPONENT_MATRIX.md`](archive/pointer-stubs/MERCHANT_COMPONENT_MATRIX.md)
-- [`MERCHANT_GAP_ANALYSIS.md`](archive/pointer-stubs/MERCHANT_GAP_ANALYSIS.md)
-- [`MERCHANT_PERFORMANCE_REPORT.md`](archive/pointer-stubs/MERCHANT_PERFORMANCE_REPORT.md)
-- [`MERCHANT_SECURITY_REPORT.md`](archive/pointer-stubs/MERCHANT_SECURITY_REPORT.md)
-- [`MOBILE_PERFORMANCE_REPORT.md`](archive/pointer-stubs/MOBILE_PERFORMANCE_REPORT.md)
-- [`MOBILE_SECURITY_REPORT.md`](archive/pointer-stubs/MOBILE_SECURITY_REPORT.md)
-- [`MOBILE_UI_REPORT.md`](archive/pointer-stubs/MOBILE_UI_REPORT.md)
-- [`ORDER_LIFECYCLE_REPORT.md`](archive/pointer-stubs/ORDER_LIFECYCLE_REPORT.md)
-- [`OSRM_REPORT.md`](archive/pointer-stubs/OSRM_REPORT.md)
-- [`PERFORMANCE_AUDIT.md`](archive/pointer-stubs/PERFORMANCE_AUDIT.md)
-- [`POSTGRESQL_COMPATIBILITY_REPORT.md`](archive/pointer-stubs/POSTGRESQL_COMPATIBILITY_REPORT.md)
-- [`POSTGRESQL_PERFORMANCE.md`](archive/pointer-stubs/POSTGRESQL_PERFORMANCE.md)
-- [`PRODUCTION_DATABASE_SCORE.md`](archive/pointer-stubs/PRODUCTION_DATABASE_SCORE.md)
-- [`ROUTE_CENTER_ARCHITECTURE.md`](archive/pointer-stubs/ROUTE_CENTER_ARCHITECTURE.md)
-- [`ROUTE_CENTER_AUDIT.md`](archive/pointer-stubs/ROUTE_CENTER_AUDIT.md)
-- [`ROUTE_CENTER_INTEGRATION.md`](archive/pointer-stubs/ROUTE_CENTER_INTEGRATION.md)
-- [`ROUTE_CENTER_PERFORMANCE.md`](archive/pointer-stubs/ROUTE_CENTER_PERFORMANCE.md)
-- [`SYSTEM_VALIDATION_REPORT.md`](archive/pointer-stubs/SYSTEM_VALIDATION_REPORT.md)
-- [`VALHALLA_REPORT.md`](archive/pointer-stubs/VALHALLA_REPORT.md)
+- Prior root audits/reports → [`archive/reports-2026-08/`](archive/reports-2026-08/)
+- Excess historical stubs → [`archive/pointer-stubs/`](archive/pointer-stubs/)
+- July 2026 frozen copies → [`archive/`](archive/) (see [archive/README.md](archive/README.md))

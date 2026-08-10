@@ -149,7 +149,7 @@ def custom_tariffs_summary(db: Session, *, merchant_id: str | None = None) -> di
         "active_merchant_contracts": int(contracts),
         "active_custom_tariffs": int(tariffs),
         "custom_pricing_enabled": contracts > 0 or tariffs > 0,
-        "admin_surface": "/v1/admin/pricing/contracts",
+        "admin_surface": "/v1/admin/merchants",
         "merchant_surface": "/v1/merchant/billing/contract",
     }
 

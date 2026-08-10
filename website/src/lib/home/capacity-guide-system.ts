@@ -44,7 +44,7 @@ Flow:
 ## Paths
 - Business account → /business
 - Drivers / vehicle partners → /vehicle-partner
-- Logistics specialist / quote → /business#inquiry
+- Logistics specialist / quote → /sign-up?intent=quote&from=business
 - Tracking → /track
 
 Do not lead with "AI" alone. Sell the outcome (manage local logistics from one platform). Reply in French if the user writes in French. Never invent prices or SLAs.`;

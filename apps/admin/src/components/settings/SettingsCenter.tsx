@@ -10,25 +10,30 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Button, Spinner } from "@/components/crm/primitives";
 import {
   CONFIG_SECTION_IDS,
+  ENV_OWNED_SECTION_IDS,
   INTEGRATION_SECTION_IDS,
-  MODULE_SECTION_LINKS,
   exportSettingsJson,
   settingsApi,
+  type SettingsCenter as SettingsCenterData,
 } from "@/lib/settings";
-import { SECTION_DESCRIPTIONS, SECTION_ICONS } from "@/lib/settings-metadata";
+import { SECTION_ALIASES, SECTION_DESCRIPTIONS, SECTION_ICONS } from "@/lib/settings-metadata";
 import SettingsSidebar from "./SettingsSidebar";
 import { MasterruleCallout } from "./ui/SettingsPrimitives";
 import DashboardPanel from "./panels/DashboardPanel";
 import ConfigFormPanel from "./panels/ConfigFormPanel";
 import IntegrationPanel from "./panels/IntegrationPanel";
 import VehiclesPanel from "./panels/VehiclesPanel";
-import { RolesPanel, UsersPanel } from "./panels/AccessPanels";
-import {
-  AuditPanel,
-  EnvManagedPanel,
-  ModuleLinkPanel,
-  PlatformPanel,
-} from "./panels/PlatformPanels";
+import PricingPanel from "./panels/PricingPanel";
+import CoveragePanel from "./panels/CoveragePanel";
+import EnvOwnedPanel from "./panels/EnvOwnedPanel";
+import { RolesPanel } from "./panels/RolesPanel";
+import { UsersPanel } from "./panels/users/UsersPanel";
+import { AuditPanel, PlatformPanel } from "./panels/PlatformPanels";
+
+function resolveSection(raw: string | null): string {
+  const id = raw ?? "dashboard";
+  return SECTION_ALIASES[id] ?? id;
+}
 
 export default function SettingsCenter() {
   const router = useRouter();
@@ -37,10 +42,12 @@ export default function SettingsCenter() {
   const qc = useQueryClient();
   const enabled = isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
 
-  const initialTab = searchParams.get("section") ?? "dashboard";
-  const [tab, setTab] = useState(initialTab);
+  const [tab, setTab] = useState(() => resolveSection(searchParams.get("section")));
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [searchActive, setSearchActive] = useState(false);
 
   const {
     data: center,
@@ -63,12 +70,17 @@ export default function SettingsCenter() {
 
   const selectTab = useCallback(
     (id: string) => {
-      setTab(id);
+      const next = resolveSection(id);
+      if (dirty && next !== tab) {
+        if (!window.confirm("Discard unsaved changes in this section?")) return;
+        setDirty(false);
+      }
+      setTab(next);
       const params = new URLSearchParams(searchParams.toString());
-      params.set("section", id);
+      params.set("section", next);
       router.replace(`/settings?${params.toString()}`, { scroll: false });
     },
-    [router, searchParams]
+    [router, searchParams, dirty, tab]
   );
 
   useEffect(() => {
@@ -81,22 +93,43 @@ export default function SettingsCenter() {
   }, [selectTab]);
 
   useEffect(() => {
-    const s = searchParams.get("section");
+    const s = resolveSection(searchParams.get("section"));
     if (s && s !== tab) setTab(s);
   }, [searchParams, tab]);
+
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!dirty) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
 
   const activeSection = useMemo(
     () => center?.sections.find((s) => s.id === tab),
     [center?.sections, tab]
   );
 
+  const bindingEffect = useMemo(() => {
+    const b = center?.bindings?.bindings.find((x) => x.id === tab);
+    return b?.effect ?? "status";
+  }, [center?.bindings, tab]);
+
   const saveConfig = useCallback(
     async (key: string, value: unknown, reason: string) => {
       setSaving(true);
+      setToast(null);
       try {
         const token = await getApiToken();
         await settingsApi.updateConfig(token, key, value, reason);
         await qc.invalidateQueries({ queryKey: ["settings-center"] });
+        setDirty(false);
+        setToast("Saved");
+      } catch (e) {
+        setToast(e instanceof Error ? e.message : "Save failed");
+        throw e;
       } finally {
         setSaving(false);
       }
@@ -110,15 +143,34 @@ export default function SettingsCenter() {
   }
 
   async function handleImport() {
-    const raw = prompt("Paste configuration JSON export");
+    const raw = window.prompt("Paste configuration JSON export");
     if (!raw) return;
+    let parsed: Record<string, unknown>;
     try {
-      const parsed = JSON.parse(raw) as Record<string, unknown>;
-      const config = (parsed.config as Record<string, unknown>) ?? parsed;
-      await settingsApi.importConfig(await getApiToken(), config, "Admin UI import");
-      void refetch();
+      parsed = JSON.parse(raw) as Record<string, unknown>;
     } catch {
       window.alert("Invalid JSON");
+      return;
+    }
+    const config = (parsed.config as Record<string, unknown>) ?? parsed;
+    const token = await getApiToken();
+    const preview = await settingsApi.importConfig(token, config, undefined, true);
+    const msg = [
+      `Would write: ${preview.would_write ?? 0}`,
+      `Added: ${(preview.added ?? []).join(", ") || "—"}`,
+      `Changed: ${(preview.changed ?? []).join(", ") || "—"}`,
+      `Blocked: ${(preview.blocked ?? []).join(", ") || "—"}`,
+      "",
+      "Enter a change reason to apply, or Cancel.",
+    ].join("\n");
+    const reason = window.prompt(msg);
+    if (!reason?.trim()) return;
+    try {
+      const result = await settingsApi.importConfig(token, config, reason.trim(), false);
+      setToast(`Imported ${result.imported ?? 0} keys`);
+      void refetch();
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : "Import failed");
     }
   }
 
@@ -159,20 +211,17 @@ export default function SettingsCenter() {
 
   return (
     <div className="space-y-6">
-      {/* Hero header */}
       <div className="relative overflow-hidden rounded-2xl border border-primary/10 bg-gradient-to-br from-white via-white to-secondary/5 px-6 py-6 shadow-sm">
         <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10">
-                <Settings2 className="h-6 w-6 text-secondary" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-primary">Settings Center</h1>
-                <p className="text-sm text-muted">
-                  Enterprise configuration for the entire Porterchain platform
-                </p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10">
+              <Settings2 className="h-6 w-6 text-secondary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-primary">Settings</h1>
+              <p className="text-sm text-muted">
+                Commercial catalog, access, and connection status
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -190,6 +239,12 @@ export default function SettingsCenter() {
       </div>
 
       <MasterruleCallout />
+
+      {toast && (
+        <p className="rounded-xl border border-secondary/20 bg-secondary/5 px-3 py-2 text-sm text-primary">
+          {toast}
+        </p>
+      )}
 
       {validation && (!validation.valid || validation.warnings.length > 0) && (
         <div
@@ -215,26 +270,43 @@ export default function SettingsCenter() {
         </div>
       )}
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
         <input
           type="search"
+          role="combobox"
+          aria-expanded={searchActive && search.length >= 2}
+          aria-controls="settings-search-listbox"
+          aria-autocomplete="list"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search settings — users, fleetbase, booking, security…"
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setSearchActive(true);
+          }}
+          onFocus={() => setSearchActive(true)}
+          onBlur={() => window.setTimeout(() => setSearchActive(false), 150)}
+          placeholder="Search settings — SLA, downtown, vehicles, Fleetbase…"
           className="w-full rounded-xl border border-primary/10 bg-white py-2.5 pl-10 pr-3 text-sm shadow-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
         />
-        {searchHits.length > 0 && (
-          <ul className="absolute z-30 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-primary/10 bg-white shadow-xl">
+        {searchActive && search.length >= 2 && (
+          <ul
+            id="settings-search-listbox"
+            role="listbox"
+            className="absolute z-30 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-primary/10 bg-white shadow-xl"
+          >
+            {searchHits.length === 0 && (
+              <li className="px-4 py-3 text-sm text-muted">No matching settings</li>
+            )}
             {searchHits.map((h) => (
-              <li key={`${h.type}-${h.id}`}>
+              <li key={`${h.type}-${h.id}`} role="option">
                 <button
                   type="button"
                   className="w-full px-4 py-2.5 text-left text-sm hover:bg-secondary/5"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     selectTab(h.id);
                     setSearch("");
+                    setSearchActive(false);
                   }}
                 >
                   <span className="font-medium text-primary">{h.label}</span>
@@ -246,16 +318,16 @@ export default function SettingsCenter() {
         )}
       </div>
 
-      <div className="flex flex-col gap-6 lg:flex-row">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <aside className="hidden w-60 shrink-0 lg:block">
-          <div className="sticky top-4 rounded-2xl border border-primary/10 bg-white p-3 shadow-sm">
+          <div className="sticky top-4 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-primary/10 bg-white p-3 shadow-sm">
             {center?.sections && (
               <SettingsSidebar sections={center.sections} activeId={tab} onSelect={selectTab} />
             )}
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 overflow-hidden">
           <select
             value={tab}
             onChange={(e) => selectTab(e.target.value)}
@@ -280,7 +352,7 @@ export default function SettingsCenter() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm md:p-6 lg:p-8"
+              className="min-w-0 overflow-hidden rounded-2xl border border-primary/10 bg-white p-5 shadow-sm md:p-6 lg:p-8"
             >
               <SectionRouter
                 tab={tab}
@@ -288,6 +360,8 @@ export default function SettingsCenter() {
                 dash={dash}
                 config={config}
                 saving={saving}
+                bindingEffect={bindingEffect}
+                onDirty={() => setDirty(true)}
                 onSaveConfig={saveConfig}
                 onRefetch={() => void refetch()}
                 onExport={() => void handleExport()}
@@ -307,38 +381,49 @@ function SectionRouter({
   dash,
   config,
   saving,
+  bindingEffect,
   onSaveConfig,
   onRefetch,
   onExport,
   onImport,
 }: {
   tab: string;
-  center: Awaited<ReturnType<typeof settingsApi.center>> | undefined;
-  dash: Awaited<ReturnType<typeof settingsApi.dashboard>> | undefined;
+  center: SettingsCenterData | undefined;
+  dash: SettingsCenterData["dashboard"] | undefined;
   config: Record<string, unknown>;
   saving: boolean;
+  bindingEffect: string;
+  onDirty: () => void;
   onSaveConfig: (key: string, value: unknown, reason: string) => Promise<void>;
   onRefetch: () => void;
   onExport: () => void;
   onImport: () => void;
 }) {
-  if (tab === "dashboard" && dash) return <DashboardPanel dash={dash} />;
-  if (tab === "users" && center) return <UsersPanel onRefetch={onRefetch} />;
-  if (tab === "roles" && center)
-    return <RolesPanel permissions={center.permissions} roles={center.roles} />;
+  if (tab === "dashboard" && dash)
+    return <DashboardPanel dash={dash} validation={center?.validation} />;
+  if (tab === "users") return <UsersPanel onRefetch={onRefetch} />;
+  if (tab === "roles") return <RolesPanel />;
   if (tab === "audit") return <AuditPanel />;
   if (tab === "backup")
     return <PlatformPanel variant="backup" onExport={onExport} onImport={onImport} />;
-  if (tab === "logs")
-    return <PlatformPanel variant="logs" onExport={onExport} onImport={onImport} />;
-  if (tab === "developer")
-    return <PlatformPanel variant="developer" onExport={onExport} onImport={onImport} />;
-  if (tab === "maintenance")
-    return (
-      <PlatformPanel variant="maintenance" dash={dash} onExport={onExport} onImport={onImport} />
-    );
 
-  if (tab === "api_keys" || tab === "integrations") return <EnvManagedPanel sectionId={tab} />;
+  if ((ENV_OWNED_SECTION_IDS as readonly string[]).includes(tab)) {
+    return <EnvOwnedPanel sectionId={tab} />;
+  }
+
+  if (tab === "channels" && dash) {
+    return (
+      <IntegrationPanel
+        sectionId="channels"
+        data={{
+          email: dash.health.email,
+          sms: dash.health.sms,
+          push: dash.health.push,
+          status: "aggregated",
+        }}
+      />
+    );
+  }
 
   if ((INTEGRATION_SECTION_IDS as readonly string[]).includes(tab) && dash) {
     const health = dash.health as Record<string, unknown>;
@@ -364,19 +449,42 @@ function SectionRouter({
     );
   }
 
+  if (tab === "pricing") {
+    return (
+      <PricingPanel
+        data={config.pricing}
+        taxData={config.pricing_tax}
+        fuelData={config.pricing_fuel}
+        vehicleCatalog={config.vehicles}
+        saving={saving}
+        onSaveGta={(value, reason) => onSaveConfig("pricing", value, reason)}
+        onSaveTax={(value, reason) => onSaveConfig("pricing_tax", value, reason)}
+        onSaveFuel={(value, reason) => onSaveConfig("pricing_fuel", value, reason)}
+      />
+    );
+  }
+
+  if (tab === "coverage") {
+    return (
+      <CoveragePanel
+        data={config.coverage}
+        saving={saving}
+        onSave={(value, reason) => onSaveConfig("coverage", value, reason)}
+      />
+    );
+  }
+
   if ((CONFIG_SECTION_IDS as readonly string[]).includes(tab)) {
     return (
       <ConfigFormPanel
         sectionId={tab}
         data={config[tab]}
         saving={saving}
+        effect={bindingEffect}
+        envRuntime={center?.env_runtime}
         onSave={(value, reason) => onSaveConfig(tab, value, reason)}
       />
     );
-  }
-
-  if (tab in MODULE_SECTION_LINKS) {
-    return <ModuleLinkPanel sectionId={tab} moduleConfig={center?.module_config} />;
   }
 
   return (

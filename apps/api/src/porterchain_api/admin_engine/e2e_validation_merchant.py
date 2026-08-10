@@ -114,7 +114,6 @@ class E2EValidationMerchantMixin:
         record("100 Orders" if order_count == 100 else f"{order_count} Orders", do_orders)
         record("Contract Pricing", lambda: "PASS" if merchant_ctx.merchant else "WARNING", layer="pricing_engine")
         record("Operations Queue", lambda: self._verify_ops_queue(db, order_ids[0]) if order_ids else "FAIL")
-        record("Optimization", lambda: self._verify_route_center(db, settings), layer="route_center")
 
         if order_ids:
             o = db.get(Order, order_ids[0])

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   Activity as ActivityIcon,
@@ -10,7 +11,6 @@ import {
   CalendarClock,
   CheckCircle2,
   ClipboardList,
-  CreditCard,
   FileText,
   Gauge,
   IdCard,
@@ -29,6 +29,8 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { drivers, type DriverDetail } from "@/lib/drivers";
 import { AddDriverDocumentForm } from "@/components/drivers/AddDriverDocumentForm";
+import { EntityAlertsPanel } from "@/components/alerts/EntityAlertsPanel";
+import OpenFleetbaseButton from "@/components/nav/OpenFleetbaseButton";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
 import { Badge, Button, SectionCard, Spinner } from "@/components/crm/primitives";
@@ -39,13 +41,6 @@ const STATUS_TONE: Record<string, string> = {
   PENDING: "amber",
   SUSPENDED: "red",
   REJECTED: "slate",
-};
-const AVAIL_TONE: Record<string, string> = {
-  online: "green",
-  offline: "slate",
-  busy: "amber",
-  break: "sky",
-  vacation: "violet",
 };
 const RISK_TONE: Record<string, string> = { low: "green", medium: "amber", high: "red" };
 
@@ -88,19 +83,40 @@ export default function DriverDetailPage() {
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState<TabId>("overview");
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const { data: d, error } = useApiData((t) => drivers.detail(t, id), [id, version], {
     key: `driver-detail-${id}`,
   });
   const refresh = () => setVersion((v) => v + 1);
 
-  async function lifecycle(action: "approve" | "suspend") {
+  async function lifecycle(action: "approve" | "suspend" | "reject" | "rehire") {
     setBusy(true);
+    setActionError(null);
     try {
       const token = await getApiToken();
-      if (action === "approve") await drivers.approve(token, id);
-      else await drivers.suspend(token, id);
+      if (action === "approve") {
+        await drivers.approve(token, id);
+      } else if (action === "reject") {
+        const res = await drivers.reject(token, id);
+        if (res.fleetbase_sync_warning) {
+          setActionError(
+            "Driver rejected in PorterChain, but Fleetbase offline sync failed — verify they are not still assignable in Execution."
+          );
+        }
+      } else if (action === "rehire") {
+        await drivers.rehire(token, id);
+      } else {
+        const res = await drivers.deactivate(token, id);
+        if (res.fleetbase_sync_warning) {
+          setActionError(
+            "Driver deactivated in PorterChain, but Fleetbase offline sync failed — verify they are not still assignable in Execution."
+          );
+        }
+      }
       refresh();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : `${action} failed`);
     } finally {
       setBusy(false);
     }
@@ -132,17 +148,13 @@ export default function DriverDetailPage() {
                   .slice(0, 2)
                   .join("")
               )}
-              {d.is_online && (
-                <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-white bg-green-500" />
-              )}
             </span>
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl font-bold text-primary">{d.full_name}</h1>
                 <Badge tone={STATUS_TONE[d.status] ?? "slate"}>{titleCase(d.status)}</Badge>
-                <Badge tone={AVAIL_TONE[d.availability] ?? "slate"}>
-                  {titleCase(d.availability)}
-                </Badge>
+                {d.medical_transport_certified && <Badge tone="sky">Medical certified</Badge>}
+                {d.fleetbase_driver_id && <Badge tone="green">Fleetbase linked</Badge>}
                 {d.rating != null && (
                   <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -157,19 +169,41 @@ export default function DriverDetailPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {d.status !== "APPROVED" && (
+          <div className="flex flex-wrap items-center gap-2">
+            {d.fleetbase_driver_id && <OpenFleetbaseButton variant="toolbar" />}
+            <Link
+              href="/settings?section=users&tab=driver"
+              className="inline-flex items-center rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
+            >
+              Users directory
+            </Link>
+            {d.status !== "APPROVED" && d.status !== "REJECTED" && (
               <Button onClick={() => lifecycle("approve")} disabled={busy}>
                 <CheckCircle2 className="h-4 w-4" /> Approve
               </Button>
             )}
-            {d.status !== "SUSPENDED" && (
+            {(d.status === "REJECTED" || d.status === "SUSPENDED") && (
+              <Button onClick={() => lifecycle("rehire")} disabled={busy}>
+                Rehire
+              </Button>
+            )}
+            {d.status !== "SUSPENDED" && d.status !== "REJECTED" && (
               <Button variant="outline" onClick={() => lifecycle("suspend")} disabled={busy}>
-                Suspend
+                Deactivate
+              </Button>
+            )}
+            {d.status !== "REJECTED" && (
+              <Button variant="outline" onClick={() => lifecycle("reject")} disabled={busy}>
+                Reject
               </Button>
             )}
           </div>
         </div>
+        {actionError && (
+          <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+            {actionError}
+          </p>
+        )}
 
         <div className="mt-5 grid gap-3 lg:grid-cols-4">
           <HealthCard score={d.health} />
@@ -310,49 +344,57 @@ function Detail({ label, value }: { label: string; value: string | null | undefi
 
 function OverviewTab({ d, onGoto }: { d: DriverDetail; onGoto: (t: TabId) => void }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
-      <SectionCard title="Driver summary" className="lg:col-span-2">
-        <dl className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3">
-          <Detail label="Email" value={d.email} />
-          <Detail label="Phone" value={d.phone} />
-          <Detail label="License class" value={d.license_class} />
-          <Detail label="Service area" value={d.service_area} />
-          <Detail label="Revenue (today)" value={money(d.metrics.revenue_today_cents)} />
-          <Detail label="Revenue (week)" value={money(d.metrics.revenue_week_cents)} />
-          <Detail label="Revenue (month)" value={money(d.metrics.revenue_month_cents)} />
-          <Detail label="Cancellation rate" value={`${d.metrics.cancellation_rate}%`} />
-          <Detail label="Lifetime orders" value={String(d.metrics.lifetime_orders)} />
-        </dl>
-      </SectionCard>
-      <SectionCard title="At a glance">
-        <div className="space-y-3 p-5 text-sm">
-          <QuickRow
-            label="Vehicles"
-            value={String(d.counts.vehicles ?? 0)}
-            onClick={() => onGoto("vehicles")}
-          />
-          <QuickRow
-            label="Open incidents"
-            value={String(d.counts.incidents ?? 0)}
-            onClick={() => onGoto("incidents")}
-          />
-          <QuickRow
-            label="Payouts"
-            value={String(d.counts.payouts ?? 0)}
-            onClick={() => onGoto("wallet")}
-          />
-          <QuickRow
-            label="Open tasks"
-            value={String(d.counts.open_tasks ?? 0)}
-            onClick={() => onGoto("tasks")}
-          />
-          <QuickRow
-            label="Background check"
-            value={titleCase(d.background_check_status)}
-            onClick={() => onGoto("settings")}
-          />
-        </div>
-      </SectionCard>
+    <div className="space-y-5">
+      <div className="grid gap-5 lg:grid-cols-3">
+        <SectionCard title="Driver summary" className="lg:col-span-2">
+          <dl className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3">
+            <Detail label="Email" value={d.email} />
+            <Detail label="Phone" value={d.phone} />
+            <Detail label="License class" value={d.license_class} />
+            <Detail label="Service area" value={d.service_area} />
+            <Detail label="Revenue (today)" value={money(d.metrics.revenue_today_cents)} />
+            <Detail label="Revenue (week)" value={money(d.metrics.revenue_week_cents)} />
+            <Detail label="Revenue (month)" value={money(d.metrics.revenue_month_cents)} />
+            <Detail label="Cancellation rate" value={`${d.metrics.cancellation_rate}%`} />
+            <Detail label="Lifetime orders" value={String(d.metrics.lifetime_orders)} />
+          </dl>
+        </SectionCard>
+        <SectionCard title="At a glance">
+          <div className="space-y-3 p-5 text-sm">
+            <QuickRow
+              label="Vehicles"
+              value={String(d.counts.vehicles ?? 0)}
+              onClick={() => onGoto("vehicles")}
+            />
+            <QuickRow
+              label="Open incidents"
+              value={String(d.counts.incidents ?? 0)}
+              onClick={() => onGoto("incidents")}
+            />
+            <QuickRow
+              label="Payouts"
+              value={String(d.counts.payouts ?? 0)}
+              onClick={() => onGoto("wallet")}
+            />
+            <QuickRow
+              label="Open tasks"
+              value={String(d.counts.open_tasks ?? 0)}
+              onClick={() => onGoto("tasks")}
+            />
+            <QuickRow
+              label="Background check"
+              value={titleCase(d.background_check_status)}
+              onClick={() => onGoto("settings")}
+            />
+          </div>
+        </SectionCard>
+      </div>
+      <EntityAlertsPanel
+        recipientType="driver"
+        recipientId={d.id}
+        showDevices
+        careHref={`/drivers/${d.id}?tab=incidents`}
+      />
     </div>
   );
 }
@@ -409,7 +451,13 @@ function IdentityTab({ d }: { d: DriverDetail }) {
           label="Tax / SIN on file"
           value={raw.sin ? "Provided" : raw.tax_id ? "Provided" : null}
         />
+        <Detail label="Fleetbase driver id" value={d.fleetbase_driver_id} />
       </dl>
+      {d.fleetbase_driver_id && (
+        <div className="border-t border-primary/5 px-5 py-3">
+          <OpenFleetbaseButton variant="toolbar" />
+        </div>
+      )}
     </SectionCard>
   );
 }
@@ -593,7 +641,11 @@ function OrdersTab({ id }: { id: string }) {
           <tbody>
             {(data ?? []).map((o) => (
               <tr key={o.id} className="border-b border-primary/5">
-                <td className="px-4 py-2 font-medium text-primary">{o.order_number}</td>
+                <td className="px-4 py-2 font-medium text-primary">
+                  <Link href={`/orders/${o.id}`} className="text-secondary hover:underline">
+                    {o.order_number}
+                  </Link>
+                </td>
                 <td className="px-4 py-2">
                   <Badge tone="sky">{titleCase(o.state)}</Badge>
                 </td>
@@ -659,11 +711,51 @@ function PerformanceTab({ d }: { d: DriverDetail }) {
 }
 
 function WalletTab({ id }: { id: string }) {
-  const { data, error } = useApiData((t) => drivers.payouts(t, id), [id], {
+  const { getApiToken } = useAdminAuth();
+  const { data, error, refetch } = useApiData((t) => drivers.payouts(t, id), [id], {
     key: `driver-payouts-${id}`,
   });
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   if (!data && !error) return <Spinner />;
   const payouts = data?.payouts ?? [];
+  const wallet = data?.wallet_balance_cents ?? 0;
+
+  async function createPayout() {
+    if (wallet <= 0) {
+      setToast("Wallet has no balance to cash out.");
+      setTimeout(() => setToast(null), 2500);
+      return;
+    }
+    setBusy(true);
+    try {
+      const token = await getApiToken();
+      await drivers.createPayout(token, id);
+      await refetch();
+      setToast("Pending payout created from wallet.");
+      setTimeout(() => setToast(null), 2500);
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Payout failed");
+      setTimeout(() => setToast(null), 3500);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function markPaid(payoutId: string) {
+    setBusy(true);
+    try {
+      const token = await getApiToken();
+      await drivers.markPayoutPaid(token, id, payoutId);
+      await refetch();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Mark paid failed");
+      setTimeout(() => setToast(null), 3500);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-5">
       {error && (
@@ -672,9 +764,15 @@ function WalletTab({ id }: { id: string }) {
         </p>
       )}
       <div className="grid gap-3 sm:grid-cols-3">
-        <Metric label="Wallet balance" value={money(data?.wallet_balance_cents ?? 0)} />
+        <Metric label="Wallet balance" value={money(wallet)} />
         <Metric label="Pending payouts" value={money(data?.pending_cents ?? 0)} />
         <Metric label="Paid out" value={money(data?.paid_cents ?? 0)} />
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button onClick={createPayout} disabled={busy || wallet <= 0}>
+          <Wallet className="h-4 w-4" /> Create payout from wallet
+        </Button>
+        {toast && <span className="text-sm text-muted">{toast}</span>}
       </div>
       <SectionCard title="Payout history">
         <div className="divide-y divide-primary/5">
@@ -689,11 +787,25 @@ function WalletTab({ id }: { id: string }) {
                   {p.reference ?? "—"} · {shortDate(p.created_at)}
                 </p>
               </div>
-              <Badge tone={p.status === "paid" ? "green" : "amber"}>{titleCase(p.status)}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge tone={p.status === "paid" ? "green" : "amber"}>{titleCase(p.status)}</Badge>
+                {p.status === "pending" && (
+                  <Button
+                    variant="outline"
+                    className="px-2 py-1 text-xs"
+                    disabled={busy}
+                    onClick={() => markPaid(p.id)}
+                  >
+                    Mark paid
+                  </Button>
+                )}
+              </div>
             </div>
           ))}
           {payouts.length === 0 && (
-            <p className="px-5 py-10 text-center text-sm text-muted">No payouts yet.</p>
+            <p className="px-5 py-10 text-center text-sm text-muted">
+              No payouts yet — earnings stay in wallet until you create a cash-out.
+            </p>
           )}
         </div>
       </SectionCard>
@@ -838,6 +950,9 @@ function SettingsTab({ d, onChanged }: { d: DriverDetail; onChanged: () => void 
       const token = await getApiToken();
       await drivers.verify(token, d.id, patch);
       onChanged();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Verify failed");
+      setTimeout(() => setToast(null), 3500);
     } finally {
       setBusy(false);
     }
@@ -846,9 +961,33 @@ function SettingsTab({ d, onChanged }: { d: DriverDetail; onChanged: () => void 
     setBusy(true);
     try {
       const token = await getApiToken();
-      await drivers.action(token, d.id, { type });
-      setToast(`${titleCase(type)} recorded.`);
+      const res = await drivers.action(token, d.id, { type });
+      if (res.delivery_status === "logged") {
+        setToast(
+          `${titleCase(type)} logged only — not delivered` + (res.detail ? ` (${res.detail})` : ".")
+        );
+      } else {
+        setToast(`${titleCase(type)} queued.`);
+      }
+      setTimeout(() => setToast(null), 3500);
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Action failed");
+      setTimeout(() => setToast(null), 3500);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function resendInvite() {
+    setBusy(true);
+    try {
+      const token = await getApiToken();
+      await drivers.invite(token, d.id);
+      setToast("Invite resent.");
       setTimeout(() => setToast(null), 2500);
+      onChanged();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Invite failed");
+      setTimeout(() => setToast(null), 3500);
     } finally {
       setBusy(false);
     }
@@ -874,6 +1013,12 @@ function SettingsTab({ d, onChanged }: { d: DriverDetail; onChanged: () => void 
             label="Vehicle verified"
             value={d.vehicle_verified}
             onToggle={() => verify({ vehicle_verified: !d.vehicle_verified })}
+            busy={busy}
+          />
+          <ToggleRow
+            label="Medical transport certified"
+            value={Boolean(d.medical_transport_certified)}
+            onToggle={() => verify({ medical_transport_certified: !d.medical_transport_certified })}
             busy={busy}
           />
           <div className="flex items-center justify-between py-2">
@@ -910,13 +1055,10 @@ function SettingsTab({ d, onChanged }: { d: DriverDetail; onChanged: () => void 
           <Button variant="outline" onClick={() => action("email")} disabled={busy}>
             <Mail className="h-4 w-4" /> Email driver
           </Button>
-          <Button variant="outline" onClick={() => action("request_documents")} disabled={busy}>
-            <FileText className="h-4 w-4" /> Request documents
+          <Button variant="outline" onClick={resendInvite} disabled={busy}>
+            <Mail className="h-4 w-4" /> Resend invite
           </Button>
-          <Button variant="outline" onClick={() => action("reset_password")} disabled={busy}>
-            <CreditCard className="h-4 w-4" /> Reset password
-          </Button>
-          {toast && <span className="w-full text-sm text-green-600">{toast}</span>}
+          {toast && <span className="w-full text-sm text-muted">{toast}</span>}
         </div>
       </SectionCard>
     </div>

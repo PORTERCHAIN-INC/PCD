@@ -82,10 +82,19 @@ def invoice_status(
     return "sent"
 
 
+def invoice_total_cents(invoice: Invoice) -> int:
+    """Gross invoice total for Admin/AR serializers.
+
+    ``amount_cents`` is the charged amount (includes tax when ``tax_cents`` is a
+    breakdown of that amount). Fees are always additive.
+    """
+    return int(invoice.amount_cents or 0) + int(invoice.fees_cents or 0)
+
+
 def outstanding_cents(invoice: Invoice, status: str) -> int:
     if status in ("paid", "void", "cancelled"):
         return 0
-    return invoice.amount_cents
+    return invoice_total_cents(invoice)
 
 
 def billing_period_bounds(

@@ -37,8 +37,6 @@ from porterchain_api.db_json import json_text, json_text_lower
 from porterchain_api.collaboration_engine.crm_helpers import _actor, _now, _today, _to_int
 
 
-from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
-
 class CrmContractsMixin:
     def list_contracts(
         self, db: Session, *, company_id: str | None = None, status: str | None = None, limit: int = 200
@@ -98,8 +96,17 @@ class CrmContractsMixin:
             .first()
         )
         email = (primary.email if primary else None) or company.email or ""
+        prefs = [company.preferred_vehicle] if company.preferred_vehicle else []
+        # Prefer catalog-valid prefs only (M-6); drop unknown class rather than fail convert.
+        try:
+            from porterchain_api.admin_engine.merchant_service import AdminMerchantService
+
+            prefs = AdminMerchantService._validate_preferred_vehicles(db, prefs)
+        except ValueError:
+            prefs = []
+
         merchant = Merchant(
-            status=MerchantStatus.PENDING.value,
+            status=MerchantStatus.ONBOARDING.value,
             company_name=company.operating_name or company.legal_name,
             legal_name=company.legal_name,
             email=email,
@@ -107,7 +114,7 @@ class CrmContractsMixin:
             hst_number=company.hst_number,
             business_number=company.business_number,
             billing_address=company.billing_details or company.address or {},
-            preferred_vehicles=[company.preferred_vehicle] if company.preferred_vehicle else [],
+            preferred_vehicles=prefs,
             profile={
                 "crm_company_id": company.id,
                 "industry": company.industry,
@@ -119,20 +126,29 @@ class CrmContractsMixin:
         db.flush()
 
         company.merchant_id = merchant.id
-        company.merchant_status = CompanyMerchantStatus.ACTIVE_MERCHANT.value
+        # M-20: not bookable until merchant ACTIVE — keep CRM in negotiating.
+        company.merchant_status = CompanyMerchantStatus.NEGOTIATING.value
         db.commit()
         db.refresh(merchant)
 
-        invitation_sent = False
+        seat_added = False
         invitation_email = email
-        if email and settings and is_clerk_secret_configured(settings, "merchant"):
-            from porterchain_api.auth.invitation_service import InvitationService
+        if email:
+            from porterchain_api.domain.merchant_states import MerchantRole
+            from porterchain_api.merchant_engine.team_service import ensure_merchant_seat
 
             try:
-                InvitationService().invite_merchant_owner(db, ctx, settings, merchant, email=email)
-                invitation_sent = True
+                ensure_merchant_seat(
+                    db,
+                    merchant_id=merchant.id,
+                    email=email,
+                    role=MerchantRole.OWNER.value,
+                    actor_user_id=_actor(ctx),
+                    audit_action="merchant.owner_seat_added",
+                )
+                seat_added = True
             except Exception:
-                invitation_sent = False
+                seat_added = False
 
         self.log_activity(
             db,
@@ -140,13 +156,14 @@ class CrmContractsMixin:
             entity_id=company.id,
             activity_type="status_change",
             subject="Converted to Porterchain merchant",
-            metadata={"merchant_id": merchant.id, "invitation_email": email},
+            metadata={"merchant_id": merchant.id, "owner_seat_email": email, "seat_added": seat_added},
             actor_id=_actor(ctx),
         )
         return {
             "merchant_id": merchant.id,
             "created": True,
-            "invitation_sent": invitation_sent,
+            "seat_added": seat_added,
+            "invitation_sent": seat_added,  # legacy key — seat reserved, no Clerk invite
             "invitation_email": email,
         }
 

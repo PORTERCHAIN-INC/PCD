@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   Activity as ActivityIcon,
@@ -11,7 +12,6 @@ import {
   CheckCircle2,
   ClipboardList,
   Contact as ContactIcon,
-  CreditCard,
   FileSignature,
   Globe,
   Info,
@@ -27,10 +27,15 @@ import {
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
-import { merchants, healthTone, type MerchantDetail } from "@/lib/merchants";
-import { pricingApi } from "@/lib/pricing";
+import {
+  merchants,
+  healthTone,
+  BILLING_CYCLES,
+  RETAIL_VEHICLE_OPTIONS,
+  type MerchantDetail,
+} from "@/lib/merchants";
 import MerchantTeamPanel from "@/components/merchants/MerchantTeamPanel";
-import RateCardEditor from "@/components/pricing/RateCardEditor";
+import { EntityAlertsPanel } from "@/components/alerts/EntityAlertsPanel";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
 import {
@@ -60,7 +65,6 @@ type TabId =
   | "orders"
   | "invoices"
   | "contracts"
-  | "pricing"
   | "api"
   | "team"
   | "activities"
@@ -76,7 +80,6 @@ const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: 
   { id: "orders", label: "Orders", icon: Package },
   { id: "invoices", label: "Invoices", icon: Receipt },
   { id: "contracts", label: "Contracts", icon: FileSignature },
-  { id: "pricing", label: "Pricing", icon: CreditCard },
   { id: "api", label: "API", icon: KeyRound },
   { id: "team", label: "Team", icon: Users },
   { id: "activities", label: "Activities", icon: ActivityIcon },
@@ -94,17 +97,21 @@ export default function MerchantDetailPage() {
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState<TabId>("overview");
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const { data: m, error } = useApiData((t) => merchants.detail(t, id), [id, version]);
   const refresh = () => setVersion((v) => v + 1);
 
   async function lifecycle(action: "approve" | "suspend") {
     setBusy(true);
+    setActionError(null);
     try {
       const token = await getApiToken();
       if (action === "approve") await merchants.approve(token, id);
       else await merchants.suspend(token, id);
       refresh();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : `${action} failed`);
     } finally {
       setBusy(false);
     }
@@ -159,7 +166,25 @@ export default function MerchantDetailPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/support?merchant_id=${m.id}`}
+              className="inline-flex items-center rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
+            >
+              Support
+            </Link>
+            <Link
+              href={`/claims?merchant_id=${m.id}`}
+              className="inline-flex items-center rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
+            >
+              Claims
+            </Link>
+            <Link
+              href="/settings?section=users&tab=merchant"
+              className="inline-flex items-center rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
+            >
+              Users directory
+            </Link>
             {m.status !== "ACTIVE" && (
               <Button onClick={() => lifecycle("approve")} disabled={busy}>
                 <Rocket className="h-4 w-4" /> Approve
@@ -172,6 +197,11 @@ export default function MerchantDetailPage() {
             )}
           </div>
         </div>
+        {actionError && (
+          <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+            {actionError}
+          </p>
+        )}
 
         {/* Metric tiles + health + AI */}
         <div className="mt-5 grid gap-3 lg:grid-cols-4">
@@ -182,12 +212,14 @@ export default function MerchantDetailPage() {
             sub={`${m.metrics.monthly_orders} orders / 30d`}
           />
           <Metric
-            label="Outstanding"
+            label="AR outstanding"
             value={money(m.metrics.outstanding_balance_cents)}
             sub={
               m.metrics.overdue_balance_cents > 0
                 ? `${money(m.metrics.overdue_balance_cents)} overdue`
-                : "On track"
+                : (m.metrics.crm_outstanding_balance_cents ?? 0) > 0
+                  ? `CRM sales ${money(m.metrics.crm_outstanding_balance_cents ?? 0)}`
+                  : "Ops delivery invoices"
             }
             danger={m.metrics.overdue_balance_cents > 0}
           />
@@ -225,7 +257,6 @@ export default function MerchantDetailPage() {
         {tab === "orders" && <OrdersTab id={id} />}
         {tab === "invoices" && <InvoicesTab id={id} />}
         {tab === "contracts" && <ContractsTab id={id} />}
-        {tab === "pricing" && <PricingTab m={m} onSaved={refresh} />}
         {tab === "api" && <ApiTab id={id} />}
         {tab === "team" && <MerchantTeamPanel merchant={m} />}
         {tab === "activities" &&
@@ -329,68 +360,75 @@ function Detail({ label, value }: { label: string; value: string | null | undefi
 function OverviewTab({ m, onGoto }: { m: MerchantDetail; onGoto: (t: TabId) => void }) {
   const a = m.billing_address as Record<string, string>;
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
-      <SectionCard title="Business details" className="lg:col-span-2">
-        <dl className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3">
-          <Detail label="Legal name" value={m.legal_name} />
-          <Detail label="Industry" value={m.industry} />
-          <Detail label="Email" value={m.email} />
-          <Detail label="Phone" value={m.phone} />
-          <Detail label="HST number" value={m.hst_number} />
-          <Detail label="Business number" value={m.business_number} />
-          <Detail label="Payment terms" value={titleCase(m.payment_terms)} />
-          <Detail
-            label="Credit limit"
-            value={m.credit_limit_cents != null ? money(m.credit_limit_cents) : null}
-          />
-          <Detail label="Service area" value={m.service_area} />
-          <Detail
-            label="Billing city"
-            value={[a?.city, a?.province].filter(Boolean).join(", ") || null}
-          />
-          <Detail label="Activated" value={shortDate(m.activated_at)} />
-          <Detail label="Created" value={shortDate(m.created_at)} />
-        </dl>
-      </SectionCard>
-      <SectionCard title="At a glance">
-        <div className="space-y-3 p-5 text-sm">
-          <QuickRow
-            label="Open orders"
-            value={String(m.metrics.open_orders)}
-            onClick={() => onGoto("orders")}
-          />
-          <QuickRow
-            label="Contacts"
-            value={String(m.counts.contacts ?? 0)}
-            onClick={() => onGoto("contacts")}
-          />
-          <QuickRow
-            label="Locations"
-            value={String(m.counts.locations ?? 0)}
-            onClick={() => onGoto("locations")}
-          />
-          <QuickRow
-            label="Team members"
-            value={String(m.counts.users ?? 0)}
-            onClick={() => onGoto("team")}
-          />
-          <QuickRow
-            label="API keys"
-            value={String(m.counts.api_keys ?? 0)}
-            onClick={() => onGoto("api")}
-          />
-          <QuickRow
-            label="Open tasks"
-            value={String(m.counts.open_tasks ?? 0)}
-            onClick={() => onGoto("tasks")}
-          />
-          <QuickRow
-            label="Contract"
-            value={titleCase(m.contract_status)}
-            onClick={() => onGoto("contracts")}
-          />
-        </div>
-      </SectionCard>
+    <div className="space-y-5">
+      <div className="grid gap-5 lg:grid-cols-3">
+        <SectionCard title="Business details" className="lg:col-span-2">
+          <dl className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3">
+            <Detail label="Legal name" value={m.legal_name} />
+            <Detail label="Industry" value={m.industry} />
+            <Detail label="Email" value={m.email} />
+            <Detail label="Phone" value={m.phone} />
+            <Detail label="HST number" value={m.hst_number} />
+            <Detail label="Business number" value={m.business_number} />
+            <Detail label="Payment terms" value={titleCase(m.payment_terms)} />
+            <Detail
+              label="Credit limit"
+              value={m.credit_limit_cents != null ? money(m.credit_limit_cents) : null}
+            />
+            <Detail label="Service area" value={m.service_area} />
+            <Detail
+              label="Billing city"
+              value={[a?.city, a?.province].filter(Boolean).join(", ") || null}
+            />
+            <Detail label="Activated" value={shortDate(m.activated_at)} />
+            <Detail label="Created" value={shortDate(m.created_at)} />
+          </dl>
+        </SectionCard>
+        <SectionCard title="At a glance">
+          <div className="space-y-3 p-5 text-sm">
+            <QuickRow
+              label="Open orders"
+              value={String(m.metrics.open_orders)}
+              onClick={() => onGoto("orders")}
+            />
+            <QuickRow
+              label="Contacts"
+              value={String(m.counts.contacts ?? 0)}
+              onClick={() => onGoto("contacts")}
+            />
+            <QuickRow
+              label="Locations"
+              value={String(m.counts.locations ?? 0)}
+              onClick={() => onGoto("locations")}
+            />
+            <QuickRow
+              label="Team members"
+              value={String(m.counts.users ?? 0)}
+              onClick={() => onGoto("team")}
+            />
+            <QuickRow
+              label="API keys"
+              value={String(m.counts.api_keys ?? 0)}
+              onClick={() => onGoto("api")}
+            />
+            <QuickRow
+              label="Open tasks"
+              value={String(m.counts.open_tasks ?? 0)}
+              onClick={() => onGoto("tasks")}
+            />
+            <QuickRow
+              label="Contract"
+              value={titleCase(m.contract_status)}
+              onClick={() => onGoto("contracts")}
+            />
+          </div>
+        </SectionCard>
+      </div>
+      <EntityAlertsPanel
+        recipientType="merchant"
+        recipientId={m.id}
+        careHref={`/support?merchant_id=${m.id}`}
+      />
     </div>
   );
 }
@@ -515,7 +553,11 @@ function OrdersTab({ id }: { id: string }) {
           <tbody>
             {(data ?? []).map((o) => (
               <tr key={o.id} className="border-b border-primary/5">
-                <td className="px-4 py-2 font-medium text-primary">{o.order_number}</td>
+                <td className="px-4 py-2 font-medium text-primary">
+                  <Link href={`/orders/${o.id}`} className="text-secondary hover:underline">
+                    {o.order_number}
+                  </Link>
+                </td>
                 <td className="px-4 py-2">
                   <Badge tone="sky">{titleCase(o.state)}</Badge>
                 </td>
@@ -541,7 +583,7 @@ function InvoicesTab({ id }: { id: string }) {
     .reduce((s, i) => s + i.total_cents, 0);
   return (
     <SectionCard
-      title="Invoices"
+      title="Delivery invoices (ops AR)"
       action={
         <span className="text-sm text-muted">
           Outstanding <span className="font-bold text-primary">{money(outstanding)}</span>
@@ -574,74 +616,76 @@ function InvoicesTab({ id }: { id: string }) {
 }
 
 function ContractsTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => merchants.contracts(t, id), [id]);
-  return (
-    <SectionCard title="Contracts">
-      <div className="divide-y divide-primary/5">
-        {(data ?? []).map((c) => (
-          <div key={c.id} className="flex items-center justify-between px-5 py-3">
-            <div>
-              <p className="text-sm font-medium text-primary">{c.contract_number}</p>
-              <p className="text-xs text-muted">
-                {titleCase(c.net_terms)} · {money(c.value_cents)} · expires{" "}
-                {shortDate(c.expiry_date)}
-              </p>
-            </div>
-            <Badge tone={c.status === "active" ? "green" : "slate"}>{titleCase(c.status)}</Badge>
-          </div>
-        ))}
-        {(!data || data.length === 0) && (
-          <p className="px-5 py-10 text-center text-sm text-muted">No contracts yet.</p>
-        )}
-      </div>
-    </SectionCard>
-  );
-}
-
-function PricingTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => void }) {
   const { getApiToken } = useAdminAuth();
-  const { data, error, loading } = useApiData((t) => pricingApi.merchantRateCard(t, m.id), [m.id]);
+  const { data, refetch } = useApiData((t) => merchants.contracts(t, id), [id]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [terms, setTerms] = useState("NET_30");
+  const [value, setValue] = useState(0);
 
-  if (loading || !data) {
-    return (
-      <div className="flex justify-center py-16">
-        <Spinner />
-      </div>
-    );
-  }
-  if (error) {
-    return <p className="p-5 text-sm text-red-600">{String(error)}</p>;
+  async function createContract() {
+    setBusy(true);
+    setError(null);
+    try {
+      const token = await getApiToken();
+      await merchants.createContract(token, id, {
+        net_terms: terms,
+        value_cents: Number(value) || 0,
+      });
+      void refetch();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Create failed");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
     <div className="space-y-5">
-      <SectionCard title="Merchant rate card override">
-        <div className="p-5">
-          <p className="mb-4 text-sm text-muted">
-            Blank or unchanged fields inherit the system rate card. Saving stores only this
-            merchant&apos;s overrides under{" "}
-            <code className="text-xs">pricing_config.rate_card</code>.
+      <SectionCard title="New contract">
+        <div className="grid grid-cols-2 gap-4 p-5">
+          <Field label="Net terms">
+            <Select value={terms} onChange={(e) => setTerms(e.target.value)}>
+              {TERMS.map((t) => (
+                <option key={t} value={t}>
+                  {titleCase(t)}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Value (cents)">
+            <Input type="number" value={value} onChange={(e) => setValue(Number(e.target.value))} />
+          </Field>
+          <div className="col-span-2 flex items-center gap-3">
+            <Button onClick={() => void createContract()} disabled={busy}>
+              {busy ? "Creating…" : "Create contract"}
+            </Button>
+            {error && <span className="text-sm text-red-600">{error}</span>}
+          </div>
+          <p className="col-span-2 text-xs text-muted">
+            Requires a linked CRM company (convert lead → merchant). Draft contract is created for
+            that company.
           </p>
-          <RateCardEditor
-            initial={data.effective}
-            title={`${m.company_name} rates`}
-            subtitle="Effective rates after merging system defaults with merchant overrides."
-            onSave={async (card) => {
-              const token = await getApiToken();
-              await pricingApi.updateMerchantRateCard(token, m.id, card);
-              onSaved();
-            }}
-          />
         </div>
       </SectionCard>
-      <SectionCard title="Terms">
-        <dl className="grid grid-cols-2 gap-4 p-5">
-          <Detail label="Payment terms" value={titleCase(m.payment_terms)} />
-          <Detail
-            label="Credit limit"
-            value={m.credit_limit_cents != null ? money(m.credit_limit_cents) : null}
-          />
-        </dl>
+      <SectionCard title="Contracts">
+        <div className="divide-y divide-primary/5">
+          {(data ?? []).map((c) => (
+            <div key={c.id} className="flex items-center justify-between px-5 py-3">
+              <div>
+                <p className="text-sm font-medium text-primary">{c.contract_number}</p>
+                <p className="text-xs text-muted">
+                  {titleCase(c.net_terms)} · {money(c.value_cents)} · expires{" "}
+                  {shortDate(c.expiry_date)}
+                </p>
+              </div>
+              <Badge tone={c.status === "active" ? "green" : "slate"}>{titleCase(c.status)}</Badge>
+            </div>
+          ))}
+          {(!data || data.length === 0) && (
+            <p className="px-5 py-10 text-center text-sm text-muted">No contracts yet.</p>
+          )}
+        </div>
       </SectionCard>
     </div>
   );
@@ -794,49 +838,128 @@ function AnalyticsTab({ id }: { id: string }) {
 
 function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => void }) {
   const { getApiToken } = useAdminAuth();
+  const [companyName, setCompanyName] = useState(m.company_name);
   const [terms, setTerms] = useState(m.payment_terms);
   const [credit, setCredit] = useState(m.credit_limit_cents ?? 0);
+  const [cycle, setCycle] = useState(m.billing_cycle || "MONTHLY");
+  const [phone, setPhone] = useState(m.phone ?? "");
+  const [hst, setHst] = useState(m.hst_number ?? "");
+  const [stripeOn, setStripeOn] = useState(Boolean(m.stripe_enabled));
+  const [prefs, setPrefs] = useState<string[]>(m.preferred_vehicles ?? []);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  function togglePref(id: string) {
+    setPrefs((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
 
   async function save() {
     setBusy(true);
     try {
       const token = await getApiToken();
       await merchants.update(token, m.id, {
+        company_name: companyName.trim(),
         payment_terms: terms,
         credit_limit_cents: Number(credit) || 0,
+        billing_cycle: cycle,
+        preferred_vehicles: prefs,
+        phone: phone.trim(),
+        hst_number: hst.trim(),
+        stripe_enabled: stripeOn,
       });
       setSaved(true);
       onSaved();
       setTimeout(() => setSaved(false), 2500);
+    } catch (e) {
+      setSaved(false);
+      alert(e instanceof Error ? e.message : "Save failed");
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <SectionCard title="Billing & terms">
-      <div className="grid grid-cols-2 gap-4 p-5">
-        <Field label="Payment terms">
-          <Select value={terms} onChange={(e) => setTerms(e.target.value)}>
-            {TERMS.map((t) => (
-              <option key={t} value={t}>
-                {titleCase(t)}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label="Credit limit (cents)">
-          <Input type="number" value={credit} onChange={(e) => setCredit(Number(e.target.value))} />
-        </Field>
-        <div className="col-span-2 flex items-center gap-3">
-          <Button onClick={save} disabled={busy}>
-            Save changes
-          </Button>
-          {saved && <span className="text-sm text-green-600">Saved</span>}
+    <div className="space-y-5">
+      <SectionCard title="Billing & terms">
+        <div className="grid grid-cols-2 gap-4 p-5">
+          <div className="col-span-2">
+            <Field label="Company name">
+              <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+            </Field>
+          </div>
+          <Field label="Payment terms">
+            <Select value={terms} onChange={(e) => setTerms(e.target.value)}>
+              {TERMS.map((t) => (
+                <option key={t} value={t}>
+                  {titleCase(t)}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Billing cycle">
+            <Select value={cycle} onChange={(e) => setCycle(e.target.value)}>
+              {BILLING_CYCLES.map((c) => (
+                <option key={c} value={c}>
+                  {titleCase(c)}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Credit limit (cents)">
+            <Input
+              type="number"
+              value={credit}
+              onChange={(e) => setCredit(Number(e.target.value))}
+            />
+          </Field>
+          <Field label="Phone">
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </Field>
+          <Field label="HST number">
+            <Input value={hst} onChange={(e) => setHst(e.target.value)} />
+          </Field>
+          <label className="col-span-2 flex items-center gap-2 text-sm text-primary">
+            <input
+              type="checkbox"
+              checked={stripeOn}
+              onChange={(e) => setStripeOn(e.target.checked)}
+            />
+            Stripe checkout enabled (card / IMMEDIATE path)
+          </label>
         </div>
+      </SectionCard>
+      <SectionCard title="Preferred vehicles">
+        <div className="flex flex-wrap gap-2 p-5">
+          {RETAIL_VEHICLE_OPTIONS.map((v) => {
+            const on = prefs.includes(v);
+            return (
+              <button
+                key={v}
+                type="button"
+                onClick={() => togglePref(v)}
+                className={cn(
+                  "rounded-xl border px-3 py-1.5 text-sm font-medium transition",
+                  on
+                    ? "border-secondary bg-secondary/10 text-secondary"
+                    : "border-primary/15 text-muted hover:bg-gray-bg"
+                )}
+              >
+                {titleCase(v)}
+              </button>
+            );
+          })}
+          <p className="w-full text-xs text-muted">
+            Soft preference for capacity recommendations — must match retail-enabled vehicle
+            catalog.
+          </p>
+        </div>
+      </SectionCard>
+      <div className="flex items-center gap-3">
+        <Button onClick={save} disabled={busy}>
+          Save changes
+        </Button>
+        {saved && <span className="text-sm text-green-600">Saved</span>}
       </div>
-    </SectionCard>
+    </div>
   );
 }

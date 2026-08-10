@@ -74,34 +74,45 @@ class MerchantBookingFlowService:
         weight_kg: float | None = None,
         package_type: str | None = None,
     ) -> dict[str, Any]:
-        preferred = list(ctx.merchant.preferred_vehicles or [])
+        """Capacity-first recommendation; preferred_vehicles only soft-rank among eligible (M-23)."""
+        preferred = [str(v) for v in (ctx.merchant.preferred_vehicles or []) if v]
         candidates = list(VEHICLE_MINIMUM_CENTS.keys())
-        recommended = preferred[0] if preferred else "cargoVan"
 
-        if weight_kg:
-            if weight_kg > 1000:
-                recommended = "box20" if "box20" in candidates else "box16"
-            elif weight_kg > WEIGHT_THRESHOLD_KG:
-                recommended = "highRoof" if "highRoof" in candidates else "cargoVan"
-            elif weight_kg > 50:
-                recommended = "cargoVan"
-            else:
-                recommended = preferred[0] if preferred else "sedan"
-
+        # Hard capacity floor from weight / package — never overridden by prefs.
         if package_type in ("ltlPallet", "ftlLoad"):
-            recommended = "box20"
+            capacity_pick = "box20" if "box20" in candidates else candidates[-1]
         elif package_type == "furniture":
-            recommended = "highRoof"
+            capacity_pick = "highRoof" if "highRoof" in candidates else "cargoVan"
+        elif weight_kg and weight_kg > 1000:
+            capacity_pick = "box20" if "box20" in candidates else "box16"
+        elif weight_kg and weight_kg > WEIGHT_THRESHOLD_KG:
+            capacity_pick = "highRoof" if "highRoof" in candidates else "cargoVan"
+        elif weight_kg and weight_kg > 50:
+            capacity_pick = "cargoVan" if "cargoVan" in candidates else "highRoof"
+        else:
+            capacity_pick = preferred[0] if preferred and preferred[0] in candidates else "sedan"
+            if capacity_pick not in candidates:
+                capacity_pick = "cargoVan" if "cargoVan" in candidates else candidates[0]
 
-        if preferred and recommended not in preferred:
-            alternatives = [v for v in preferred if v in candidates]
-            if alternatives:
-                recommended = alternatives[0]
+        # Eligible = capacity class and anything larger in catalog order.
+        try:
+            floor_idx = candidates.index(capacity_pick)
+        except ValueError:
+            floor_idx = 0
+        eligible = candidates[floor_idx:]
+
+        # Soft-rank: first preferred that still meets capacity; else capacity_pick.
+        recommended = capacity_pick
+        for pref in preferred:
+            if pref in eligible:
+                recommended = pref
+                break
 
         return {
             "recommended_vehicle": recommended,
             "preferred_vehicles": preferred,
-            "alternatives": [v for v in candidates if v != recommended][:3],
+            "eligible_vehicles": eligible,
+            "alternatives": [v for v in eligible if v != recommended][:3],
         }
 
     def preview(

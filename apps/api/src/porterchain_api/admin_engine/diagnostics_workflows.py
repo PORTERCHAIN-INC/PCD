@@ -261,7 +261,7 @@ class DiagnosticsWorkflowsMixin:
             step("Stripe Sandbox Payment", settings.stripe_secret or settings.stripe_mock, "Stripe or mock", warn=settings.stripe_mock)
             step("Order Creation", True, "PaymentService webhook flow")
             step("Operations Queue", True, "Control Tower")
-            step("Route Optimization", True, "Route Center + Valhalla/OSRM")
+            step("Route Optimization", True, "Fleetbase orchestrator + Valhalla/OSRM")
             step("Fleetbase Dispatch", settings.fleetbase_dispatch_bridge, "Via adapter only")
             step("Driver Assignment", settings.fleetbase_dispatch_bridge, "Fleetbase execution")
             step("Pickup", settings.fleetbase_dispatch_bridge, "Status sync via webhooks")

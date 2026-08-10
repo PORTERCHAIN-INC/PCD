@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
-from porterchain_api.admin_engine.live_map_service import LiveMapService
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.auth.invitation_service import InvitationService, pending_clerk_id
 from porterchain_api.auth.sso_service import SsoService
@@ -13,13 +12,6 @@ from porterchain_api.booking_engine.booking_draft_service import BookingDraftSer
 from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
 from porterchain_api.merchant_engine.webhook_delivery_service import _hook_matches_event
 from porterchain_api.schemas import AddressInput, CreateBookingDraftRequest
-from porterchain_api.schemas_live_map import LiveMapFilters
-
-
-def test_live_map_snapshot(db) -> None:
-    snap = LiveMapService().snapshot(db, filters=LiveMapFilters())
-    assert "drivers" in snap
-    assert "orders" in snap
 
 
 def test_settings_config_roundtrip(db, admin_ctx) -> None:

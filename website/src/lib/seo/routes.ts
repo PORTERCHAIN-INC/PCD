@@ -161,14 +161,14 @@ export function platform(locale: Locale, query?: RouteQuery): string {
   return withQuery(localePath(locale, PATHS.PLATFORM), query);
 }
 
-/** Capacity quote request — single merchant form on /business. */
+/** Capacity quote — Platform Clerk sign-up → customer portal book. */
 export function quoteContact(locale: Locale, from: string, query?: RouteQuery): string {
-  return `${business(locale, { from, ...query })}#inquiry`;
+  return withQuery(localePath(locale, "sign-up"), { from, intent: "quote", ...query });
 }
 
-/** @deprecated Prefer quoteContact (/business). Kept for rare support paths. */
+/** @deprecated Prefer quoteContact (sign-up → book). */
 export function demoContact(locale: Locale, from: string, query?: RouteQuery): string {
-  return `${business(locale, { from, ...query })}#inquiry`;
+  return quoteContact(locale, from, query);
 }
 
 export function drive(locale: Locale, query?: RouteQuery): string {

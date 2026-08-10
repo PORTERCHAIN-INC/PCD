@@ -1,34 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { ExternalLink, Grid3X3, Loader2 } from "lucide-react";
+import { ExternalLink, Grid3X3 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { api } from "@/lib/api";
-import { getSystemLinks, type SystemLink } from "@/lib/system-links";
+import { getSystemLinks } from "@/lib/system-links";
 import HeaderDropdown from "@/components/nav/HeaderDropdown";
+import OpenFleetbaseButton from "@/components/nav/OpenFleetbaseButton";
 
 export default function AdminAppsMenu() {
-  const { getApiToken } = useAdminAuth();
-  const [ssoLoading, setSsoLoading] = useState(false);
-  const links = getSystemLinks().filter((l) => l.id !== "admin");
+  const links = getSystemLinks().filter((l) => l.id !== "admin" && !l.fleetbaseSso);
 
-  async function openLink(link: SystemLink) {
-    if (link.fleetbaseSso) {
-      setSsoLoading(true);
-      try {
-        const token = await getApiToken();
-        const session = await api.fleetbaseSso(token);
-        window.open(session.console_url, "_blank", "noopener,noreferrer");
-      } catch {
-        window.open(link.href, "_blank", "noopener,noreferrer");
-      } finally {
-        setSsoLoading(false);
-      }
-    } else {
-      window.open(link.href, "_blank", "noopener,noreferrer");
-    }
-  }
+  const portals = links.filter((l) => ["website", "merchant", "customer", "driver"].includes(l.id));
+  const tools = links.filter((l) => !["website", "merchant", "customer", "driver"].includes(l.id));
 
   return (
     <HeaderDropdown
@@ -50,35 +32,80 @@ export default function AdminAppsMenu() {
       )}
     >
       <div className="border-b border-primary/8 px-4 py-3">
-        <p className="text-sm font-semibold text-primary">Porterchain ecosystem</p>
-        <p className="text-xs text-muted">Jump to other apps & services</p>
+        <p className="text-sm font-semibold text-primary">PorterChain network</p>
+        <p className="text-xs text-muted">Portals, API, and execution tools</p>
       </div>
-      <div className="grid max-h-[60dvh] grid-cols-2 gap-1 overflow-y-auto p-2">
-        {links.map((link) => (
-          <button
-            key={link.id}
-            type="button"
-            disabled={ssoLoading && link.fleetbaseSso}
-            onClick={() => void openLink(link)}
-            className="flex flex-col items-start gap-1 rounded-xl border border-transparent px-3 py-3 text-left transition hover:border-primary/10 hover:bg-gray-bg disabled:opacity-60"
-          >
-            <span className="flex items-center gap-1.5 text-sm font-semibold text-primary">
-              {ssoLoading && link.fleetbaseSso ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-secondary" />
-              ) : (
-                <ExternalLink className="h-3.5 w-3.5 text-secondary" />
-              )}
-              {link.label}
-            </span>
-            <span className="text-[11px] leading-snug text-muted">{link.description}</span>
-            {link.port && (
-              <span className="mt-0.5 rounded-md bg-primary/5 px-1.5 py-0.5 font-mono text-[10px] text-muted">
-                :{link.port}
-              </span>
-            )}
-          </button>
-        ))}
+
+      <div className="border-b border-primary/8 p-2">
+        <OpenFleetbaseButton variant="menu" />
+      </div>
+
+      <div className="max-h-[55dvh] overflow-y-auto p-2">
+        <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+          Portals
+        </p>
+        <div className="grid grid-cols-2 gap-1">
+          {portals.map((link) => (
+            <AppTile
+              key={link.id}
+              label={link.label}
+              description={link.description}
+              host={link.host}
+              port={link.port}
+              onClick={() => window.open(link.href, "_blank", "noopener,noreferrer")}
+            />
+          ))}
+        </div>
+
+        <p className="mt-3 px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+          Tools
+        </p>
+        <div className="grid grid-cols-2 gap-1">
+          {tools.map((link) => (
+            <AppTile
+              key={link.id}
+              label={link.label}
+              description={link.description}
+              host={link.host}
+              port={link.port}
+              onClick={() => window.open(link.href, "_blank", "noopener,noreferrer")}
+            />
+          ))}
+        </div>
       </div>
     </HeaderDropdown>
+  );
+}
+
+function AppTile({
+  label,
+  description,
+  host,
+  port,
+  onClick,
+}: {
+  label: string;
+  description: string;
+  host?: string;
+  port?: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-col items-start gap-1 rounded-xl border border-transparent px-3 py-2.5 text-left transition hover:border-primary/10 hover:bg-gray-bg"
+    >
+      <span className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+        <ExternalLink className="h-3.5 w-3.5 text-secondary" />
+        {label}
+      </span>
+      <span className="text-[11px] leading-snug text-muted">{description}</span>
+      {(host || port) && (
+        <span className="mt-0.5 rounded-md bg-primary/5 px-1.5 py-0.5 font-mono text-[10px] text-muted">
+          {host ?? `:${port}`}
+        </span>
+      )}
+    </button>
   );
 }

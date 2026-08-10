@@ -245,7 +245,7 @@ export default function HomeCapacityCloser() {
 
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <LinkButton
-                href="/business?from=home-cta#inquiry"
+                href="/sign-up?intent=quote&from=home-cta"
                 size="lg"
                 showArrow
                 trackSource="home-cta"

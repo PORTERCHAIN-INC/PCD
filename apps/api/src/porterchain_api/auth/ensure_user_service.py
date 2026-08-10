@@ -8,13 +8,14 @@ from datetime import UTC, datetime
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
-from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.auth.email_identity import (
     emails_match,
     normalize_email,
     unlink_email_mismatched_bindings,
 )
 from porterchain_api.auth.identity import AuthenticatedIdentity
+from porterchain_api.auth.account_lifecycle import activate_pending_user
+from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.auth.unified_catalog import (
     AccountStatus,
     AssignableRole,
@@ -27,8 +28,6 @@ from porterchain_api.auth.unified_catalog import (
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.identity_models import IdentityLink
 from porterchain_api.merchant_engine.rbac import parse_merchant_role
-from porterchain_api.merchant_models import MerchantUser
-from porterchain_api.models import Customer
 from porterchain_api.unified_identity_models import UserEmail
 from porterchain_api.user_models import PorterchainUser
 
@@ -54,29 +53,34 @@ class EnsureUserService:
         *,
         email_verified: bool | None = None,
         commit: bool = False,
+        skip_unlink: bool = False,
+        sync_spicedb: bool = True,
     ) -> PorterchainUser:
-        unlink_email_mismatched_bindings(
-            db, clerk_user_id=identity.subject, clerk_email=identity.email
-        )
+        if not skip_unlink:
+            unlink_email_mismatched_bindings(
+                db, clerk_user_id=identity.subject, clerk_email=identity.email
+            )
         user = self._resolve_or_create_user(db, identity)
         verified = bool(email_verified if email_verified is not None else identity.email_verified)
         self._upsert_email(db, user, identity.email, verified=verified)
         self._upsert_identity_link(db, identity, user)
         self._refresh_account_role_hint(db, user, identity.subject, identity.email)
         # Authz lives in SpiceDB — sync relationship tuples from profile rows (data).
+        # Single write site on the login prepare path (principal resolve must not re-sync).
         if commit:
             db.commit()
             db.refresh(user)
         else:
             db.flush()
-        try:
-            from porterchain_api.authz.tuples import TupleWriter
+        if sync_spicedb:
+            try:
+                from porterchain_api.authz.tuples import TupleWriter
 
-            TupleWriter().sync_user_from_profiles(db, user)
-            if commit:
-                db.commit()
-        except Exception:  # noqa: BLE001
-            logger.exception("spicedb_tuple_sync_failed user_id=%s", user.id)
+                TupleWriter().sync_user_from_profiles(db, user)
+                if commit:
+                    db.commit()
+            except Exception:  # noqa: BLE001
+                logger.exception("spicedb_tuple_sync_failed user_id=%s", user.id)
         try:
             from porterchain_api.auth.principal_cache import cache_invalidate
 
@@ -181,12 +185,12 @@ class EnsureUserService:
         # Strip elevated registry role unless a real matching admin_users row exists
         try:
             if user.role and is_invite_only(user.role):
-                admin_row = (
-                    db.query(AdminUser)
-                    .filter(AdminUser.clerk_user_id == identity.subject, AdminUser.is_active.is_(True))
-                    .first()
-                )
-                if not admin_row or not emails_match(admin_row.email, email):
+                admin_row = load_persona_bundle(db, identity.subject).admin
+                if (
+                    admin_row is None
+                    or not admin_row.is_active
+                    or not emails_match(admin_row.email, email)
+                ):
                     logger.warning("ensure_user_stripped_elevated_registry_role")
                     user.role = "unprovisioned"
         except ValueError:
@@ -273,48 +277,43 @@ class EnsureUserService:
         clerk_email: str | None = None,
     ) -> None:
         """Update display role hint from profiles. Authz is SpiceDB only."""
-        admin = (
-            db.query(AdminUser)
-            .filter(AdminUser.clerk_user_id == subject, AdminUser.is_active.is_(True))
-            .first()
-        )
+        bundle = load_persona_bundle(db, subject)
+        admin = bundle.admin if bundle.admin is not None and bundle.admin.is_active else None
         if admin and emails_match(admin.email, clerk_email):
             user.role = admin_role_to_assignable(parse_admin_role(admin.role)).value
-            if user.status == AccountStatus.PENDING.value:
-                user.status = AccountStatus.ACTIVE.value
+            activate_pending_user(user)
             if not admin.porterchain_user_id:
                 admin.porterchain_user_id = user.id
             return
 
-        mu = (
-            db.query(MerchantUser)
-            .filter(MerchantUser.clerk_user_id == subject, MerchantUser.is_active.is_(True))
-            .order_by(MerchantUser.created_at)
-            .first()
+        active_merchants = sorted(
+            bundle.active_merchant_users(),
+            key=lambda row: row.created_at or datetime.min.replace(tzinfo=UTC),
         )
+        mu = active_merchants[0] if active_merchants else None
         if mu and emails_match(mu.email, clerk_email):
             user.role = merchant_role_to_assignable(parse_merchant_role(mu.role)).value
-            if user.status == AccountStatus.PENDING.value:
-                user.status = AccountStatus.ACTIVE.value
+            activate_pending_user(user)
             if not mu.porterchain_user_id:
                 mu.porterchain_user_id = user.id
             return
 
-        driver = db.query(Driver).filter(Driver.clerk_user_id == subject).first()
+        driver = bundle.driver
         if (
             driver
             and driver.status != DriverStatus.REJECTED.value
             and emails_match(driver.email, clerk_email)
         ):
             user.role = AssignableRole.DRIVER.value
-            if user.status == AccountStatus.PENDING.value:
-                user.status = AccountStatus.ACTIVE.value
+            activate_pending_user(user)
             if not driver.porterchain_user_id:
                 driver.porterchain_user_id = user.id
             return
 
-        customer = db.query(Customer).filter(Customer.clerk_user_id == subject).first()
+        customer = bundle.customer
         if customer and emails_match(customer.email, clerk_email):
             user.role = AssignableRole.CUSTOMER.value
-            if user.status == AccountStatus.PENDING.value:
-                user.status = AccountStatus.ACTIVE.value
+            activate_pending_user(user)
+            # C-17: keep Customer → PorterchainUser FK in sync (authz / directory).
+            if not getattr(customer, "porterchain_user_id", None):
+                customer.porterchain_user_id = user.id

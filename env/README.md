@@ -31,7 +31,7 @@ Copy the relevant template(s) to a local `.env` file. **Never commit real secret
 3. Prod upload: `bash infrastructure/deploy/scripts/upload-clerk-to-doppler.sh` then `upload-clerk-to-github.sh`
 4. Mobile store builds: **`pnpm clerk:eas`** (EAS secrets per app)
 
-See [docs/runbooks/clerk-consolidation.md](../docs/runbooks/clerk-consolidation.md) (primary). `CLERK_MODE=enterprise` is retired — see [infrastructure/deploy/CLERK_APPS_SETUP.md](../infrastructure/deploy/CLERK_APPS_SETUP.md).
+See [SSO.md](../SSO.md) (primary). `CLERK_MODE=enterprise` is retired — see [infrastructure/deploy/CLERK_APPS_SETUP.md](../infrastructure/deploy/CLERK_APPS_SETUP.md).
 
 ```bash
 # Minimum local setup
@@ -71,7 +71,7 @@ See [ENVIRONMENT_VARIABLES.md](../ENVIRONMENT_VARIABLES.md) for the full catalog
 | 5432        | PostgreSQL        | internal only            |
 | 3306 / 3307 | MySQL             | internal only            |
 | 6379        | Redis             | internal only            |
-| 1025 / 8025 | Mailhog SMTP / UI | dev only                 |
+| 1025 / 8025 | Mailpit SMTP / UI | dev only                 |
 
 Check live usage: `pnpm ports`
 
@@ -86,10 +86,3 @@ In each `.env.example`, variables are tagged:
 - **PRODUCTION** — required only in prod
 
 ---
-
-## Governance
-
-| Document                                      | Role              |
-| --------------------------------------------- | ----------------- |
-| [masterrule.md](../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -3,7 +3,7 @@
 **Type:** CANONICAL  
 **Checklist:** INV-G4  
 **Last verified:** 2026-07-09  
-**Companion:** [ICP.md](../ICP.md) · [CATEGORY.md](../CATEGORY.md)
+**Companion:** [ICP.md](../ICP.md) · [PORTERCHAIN_CHARTER.md](../PORTERCHAIN_CHARTER.md)
 
 ## Category (not courier)
 

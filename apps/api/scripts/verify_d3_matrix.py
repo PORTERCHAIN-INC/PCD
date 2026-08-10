@@ -121,11 +121,10 @@ MATRIX: tuple[Row, ...] = (
         api_needles=(
             'prefix="/v1/admin/operations"',
             "/sync/health",
-            "/dispatch/queue",
             "/dispatch/orders/{order_id}/assign",
         ),
         client_checks=(
-            (Path("apps/admin/src/lib/live-map.ts"), "/v1/admin/operations"),
+            (Path("apps/admin/src/lib/operations.ts"), "/v1/admin/operations"),
         ),
         extra_paths=(API_SRC / "fleetbase_engine",),
         e2e_phases=("phase_2_forward_logistics",),

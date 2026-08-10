@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_fleetbase_adapter.events.lifecycle import FleetbaseLifecycleTranslator
+from porterchain_fleetbase_adapter.events.lifecycle import (
+    PRESENCE_EVENTS,
+    FleetbaseLifecycleTranslator,
+)
 
 FLEETBASE_EVENT_TO_ORDER_STATE: dict[str, str] = {
     k: FleetbaseLifecycleTranslator.to_state_str(event=k) or v
@@ -47,6 +50,12 @@ FLEETBASE_EVENT_TO_DOMAIN_EVENT: dict[str, str] = {
     "order.failed": "order.failed",
     "order.returned": "refund.requested",
     "order.return_to_sender": "refund.requested",
+    "driver.online": "driver.presence",
+    "driver.offline": "driver.presence",
+    "driver.updated": "driver.presence",
+    "driver.toggled": "driver.presence",
+    "driver.toggled_online": "driver.presence",
+    "driver.toggle-online": "driver.presence",
 }
 
 
@@ -57,7 +66,12 @@ class EventTranslator:
         return FleetbaseLifecycleTranslator.to_state_str(event=event_name)
 
     def resolve_domain_event(self, event_name: str) -> str | None:
-        return FLEETBASE_EVENT_TO_DOMAIN_EVENT.get(event_name)
+        mapped = FLEETBASE_EVENT_TO_DOMAIN_EVENT.get(event_name)
+        if mapped:
+            return mapped
+        if (event_name or "").lower() in PRESENCE_EVENTS:
+            return "driver.presence"
+        return None
 
     def extract_porterchain_order_id(self, resource: dict[str, Any]) -> str | None:
         meta = resource.get("meta")
@@ -75,6 +89,50 @@ class EventTranslator:
             val = resource.get(key)
             if val:
                 return str(val)
+        return None
+
+    def extract_fleetbase_driver_id(self, resource: dict[str, Any]) -> str | None:
+        driver = resource.get("driver")
+        if isinstance(driver, dict):
+            for key in ("uuid", "id", "public_id"):
+                val = driver.get(key)
+                if val:
+                    return str(val)
+        for key in ("driver_uuid", "driver_id", "fleetbase_driver_id"):
+            val = resource.get(key)
+            if val:
+                return str(val)
+        # Presence payloads are often the driver resource itself.
+        if resource.get("online") is not None or resource.get("status") in {
+            "online",
+            "offline",
+            "active",
+            "inactive",
+        }:
+            for key in ("uuid", "id", "public_id"):
+                val = resource.get(key)
+                if val:
+                    return str(val)
+        return None
+
+    @staticmethod
+    def extract_online(resource: dict[str, Any], event_name: str) -> bool | None:
+        e = (event_name or "").lower()
+        if e in {"driver.online", "driver.toggled_online"}:
+            return True
+        if e == "driver.offline":
+            return False
+        body = resource.get("driver") if isinstance(resource.get("driver"), dict) else resource
+        if not isinstance(body, dict):
+            return None
+        online = body.get("online")
+        if isinstance(online, bool):
+            return online
+        status = str(body.get("status") or "").lower()
+        if status in {"online", "active"}:
+            return True
+        if status in {"offline", "inactive"}:
+            return False
         return None
 
     def translate_status(self, status: str | None) -> str | None:

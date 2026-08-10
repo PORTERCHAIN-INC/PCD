@@ -102,7 +102,7 @@ export function getSystemLinks(): SystemLink[] {
     {
       id: "fleetbase",
       label: "Fleetbase Console",
-      description: "Dispatch & GPS (SSO)",
+      description: "Execution console via staff SSO",
       href: url("NEXT_PUBLIC_FLEETBASE_CONSOLE_URL", "http://localhost:4200"),
       fleetbaseSso: true,
       port: 4200,
@@ -110,7 +110,7 @@ export function getSystemLinks(): SystemLink[] {
     {
       id: "fleetbase-api",
       label: "Fleetbase API",
-      description: "Logistics execution API",
+      description: "Adapter target (not for operators)",
       href: url("NEXT_PUBLIC_FLEETBASE_API_URL", "http://localhost:8000"),
       port: 8000,
     },

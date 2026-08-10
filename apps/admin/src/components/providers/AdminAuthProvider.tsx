@@ -1,122 +1,85 @@
 "use client";
 
+import { useInactivityTimeout } from "@porterchain/auth";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { isClerkConfigured, useClerkDevApiBypass } from "@/lib/env";
+import { publicEnv, useClerkDevApiBypass } from "@/lib/env";
+import { clearStaffSession, getStaffBearer } from "@/lib/staff-session";
 
 export type AdminAuthState = {
   isLoaded: boolean;
   isSignedIn: boolean;
-  /** True once Porterchain API calls may proceed (Clerk session or explicit local bypass). */
+  /** True once Porterchain API calls may proceed (staff session or local bypass). */
   authReady: boolean;
   getApiToken: () => Promise<string>;
 };
 
 const AdminAuthContext = createContext<AdminAuthState | null>(null);
 
-const TOKEN_CACHE_MS = 50_000;
-
-function DevAdminAuthProvider({ children }: { children: ReactNode }) {
-  // Only used when Clerk publishable key is missing — local shell without Clerk.
-  const value = useMemo<AdminAuthState>(
-    () => ({
-      isLoaded: true,
-      isSignedIn: true,
-      authReady: true,
-      getApiToken: async () => "dev",
-    }),
-    []
-  );
-  return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
-}
-
-function ClerkAdminAuthProvider({ children }: { children: ReactNode }) {
-  const { getToken, isLoaded, isSignedIn } = useAuth();
+/** Staff IdP auth only — Clerk removed from admin (canvas Phase 5). */
+export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const devApiBypass = useClerkDevApiBypass();
-  const tokenCache = useRef<{ token: string; at: number } | null>(null);
-  const [jwtReady, setJwtReady] = useState(false);
-
-  const getApiToken = useCallback(async () => {
-    // Prefer the real Clerk JWT whenever a session exists. DEV_BYPASS Bearer `dev`
-    // is only for unsigned local shells — never override a signed-in user.
-    if (isSignedIn) {
-      const cached = tokenCache.current;
-      if (cached && Date.now() - cached.at < TOKEN_CACHE_MS) {
-        return cached.token;
-      }
-
-      for (let attempt = 0; attempt < 4; attempt += 1) {
-        const token = await getToken();
-        if (token) {
-          tokenCache.current = { token, at: Date.now() };
-          return token;
-        }
-        if (attempt < 3) {
-          await new Promise((resolve) => setTimeout(resolve, 150 * (attempt + 1)));
-        }
-      }
-      throw new Error("Not authenticated");
-    }
-
-    if (devApiBypass) {
-      return "dev";
-    }
-
-    throw new Error("Not authenticated");
-  }, [devApiBypass, getToken, isSignedIn]);
+  const [staffBearer, setStaffBearerState] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!isLoaded) {
-      setJwtReady(false);
-      return;
-    }
-    if (!isSignedIn) {
-      tokenCache.current = null;
-      setJwtReady(devApiBypass);
-      return;
-    }
-    let cancelled = false;
-    void getApiToken()
-      .then(() => {
-        if (!cancelled) setJwtReady(true);
-      })
-      .catch(() => {
-        if (!cancelled) setJwtReady(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [devApiBypass, getApiToken, isLoaded, isSignedIn]);
+    setStaffBearerState(getStaffBearer());
+    setLoaded(true);
+    const onStorage = () => setStaffBearerState(getStaffBearer());
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
-  const authReady = isSignedIn ? jwtReady : Boolean(devApiBypass && isLoaded);
+  // Re-read after activate-staff sets sessionStorage in same tab.
+  useEffect(() => {
+    if (!loaded) return;
+    const id = window.setInterval(() => {
+      const next = getStaffBearer();
+      setStaffBearerState((prev) => (prev === next ? prev : next));
+    }, 1500);
+    return () => window.clearInterval(id);
+  }, [loaded]);
+
+  const getApiToken = useCallback(async () => {
+    const bearer = getStaffBearer();
+    if (bearer) return bearer;
+    if (devApiBypass) return "dev";
+    throw new Error("Not authenticated");
+  }, [devApiBypass]);
+
+  const staffReady = Boolean(staffBearer);
+  const isSignedIn = staffReady || devApiBypass;
+  const authReady = loaded && isSignedIn;
+
+  const onIdleTimeout = useCallback(async () => {
+    await clearStaffSession(publicEnv.porterchainApiUrl);
+    window.location.assign("/sign-in?reason=idle");
+  }, []);
+
+  // Real staff sessions only — do not idle-logout pure local API bypass.
+  useInactivityTimeout({
+    enabled: loaded && staffReady,
+    onTimeout: onIdleTimeout,
+  });
 
   const value = useMemo<AdminAuthState>(
     () => ({
-      isLoaded,
-      isSignedIn: Boolean(isSignedIn) || (devApiBypass && !isSignedIn),
+      isLoaded: loaded,
+      isSignedIn,
       authReady,
       getApiToken,
     }),
-    [authReady, devApiBypass, getApiToken, isLoaded, isSignedIn]
+    [authReady, getApiToken, isSignedIn, loaded]
   );
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
-}
-
-export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  if (isClerkConfigured()) {
-    return <ClerkAdminAuthProvider>{children}</ClerkAdminAuthProvider>;
-  }
-  return <DevAdminAuthProvider>{children}</DevAdminAuthProvider>;
 }
 
 export function useAdminAuth(): AdminAuthState {

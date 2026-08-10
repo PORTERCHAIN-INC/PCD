@@ -27,7 +27,6 @@ import { cn, formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Button, Spinner } from "@/components/crm/primitives";
 import ReportChart, { lineChartOption } from "@/components/reports/ReportChart";
-import DashboardEmbeddedMap from "@/components/dashboard/DashboardEmbeddedMap";
 import {
   dashboardApi,
   DASHBOARD_WIDGETS,
@@ -209,12 +208,6 @@ export default function DashboardPage() {
             </Panel>
           )}
 
-          {widgets.map && (
-            <Panel title="Live map" icon={<Truck className="h-4 w-4" />}>
-              <DashboardEmbeddedMap className="h-[360px]" />
-            </Panel>
-          )}
-
           <div className="grid gap-5 lg:grid-cols-2">
             {widgets.orders && <OrdersPanel center={center} />}
             {widgets.booking && <BookingPanel center={center} />}
@@ -380,7 +373,6 @@ function KpiGrid({ center }: { center: DashboardCenter }) {
     },
     { label: "Orders today", value: String(k.orders_today ?? k.todays_bookings ?? 0) },
     { label: "In progress", value: String(k.orders_in_progress ?? 0) },
-    { label: "Drivers online", value: String(k.drivers_online ?? 0) },
     { label: "Vehicles active", value: String(k.vehicles_active ?? 0) },
     { label: "Awaiting dispatch", value: String(k.orders_waiting_dispatch ?? 0) },
     { label: "Late deliveries", value: String(k.late_deliveries ?? 0), alert: true },
@@ -390,7 +382,6 @@ function KpiGrid({ center }: { center: DashboardCenter }) {
     { label: "New customers", value: String(k.customer_growth ?? 0) },
     { label: "Avg delivery (h)", value: String(k.avg_delivery_hours ?? "—") },
     { label: "Profit estimate", value: formatCents(Number(k.profit_estimate_cents ?? 0)) },
-    { label: "Fleet health", value: `${k.fleet_health_percent ?? 0}%` },
   ];
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
@@ -568,11 +559,11 @@ function DriversPanel({ center }: { center: DashboardCenter }) {
   return (
     <Panel title="Drivers" icon={<Truck className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <Row label="Online" value={d.online ?? 0} />
-        <Row label="Offline" value={d.offline ?? 0} />
-        <Row label="Available" value={d.available ?? 0} />
-        <Row label="Active" value={Number(d.active_drivers ?? 0)} />
+        <Row label="Active assignments" value={Number(d.active_assignments ?? 0)} />
       </div>
+      <p className="mt-2 text-xs text-muted">
+        Live online/GPS state lives in the Fleetbase console.
+      </p>
       <Link href="/drivers" className="mt-2 inline-block text-sm text-secondary hover:underline">
         Drivers →
       </Link>

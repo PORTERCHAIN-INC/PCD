@@ -70,7 +70,7 @@ export default function SiteNavbar() {
     setScrolled(false);
   }, [pathname]);
 
-  const quoteHref = "/business#inquiry";
+  const quoteHref = "/sign-up?intent=quote&from=nav";
   const quoteLabel = t("bookNow");
   const quoteExternal = false;
 

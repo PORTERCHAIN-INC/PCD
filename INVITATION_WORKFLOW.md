@@ -5,7 +5,7 @@
 **Last verified:** 2026-07-05
 
 **Authority:** [masterrule.md](./masterrule.md) §15  
-**Related:** [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md), [RBAC_MATRIX.md](./RBAC_MATRIX.md)
+**Related:** [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md), [auth-clerk-spicedb.md](./docs/architecture/auth-clerk-spicedb.md)
 
 ---
 
@@ -60,45 +60,21 @@ Admin / Merchant owner                Porterchain API                    Clerk
 
 ## Workflows
 
-### 1. Admin staff invite
+### 1. Admin staff enroll (staff IdP — no Clerk)
 
-**Who can invite:** Super admin / settings module (`settings` RBAC)
+**Who can enroll:** Super admin / settings module (`settings` RBAC)
 
-**API:** `POST /v1/admin/settings/staff/invite`
+**API:** `POST /v1/admin/settings/staff/enroll` · reissue `POST …/staff/{id}/enroll-reissue`  
+**Login:** `POST /v1/auth/staff/login-request` → `/activate-staff?token=…`
 
-```json
-{
-  "email": "dispatcher@porterchain.com",
-  "role": "dispatcher",
-  "name": "Ops Dispatcher"
-}
-```
+Clerk `invite_admin_staff` / `POST /settings/staff/invite` are **deleted**.
 
 **Steps:**
 
-1. Admin submits invite from **Settings → Staff → Invite staff**
-2. `InvitationService.invite_admin_staff()`:
-   - Validates role ∈ `{super_admin, admin, dispatcher, support, support_lead, finance, fleet_manager, sales_manager}`
-   - Creates/updates `admin_users` with `clerk_user_id = pending:{email}`
-   - Calls Clerk `POST /v1/invitations` with `redirect_url = {ADMIN_PORTAL_URL}/sign-in`
-   - Records `user_invitations` row (`user_type=admin`, `status=pending`)
-3. Clerk emails invitation link
-4. User completes Clerk signup / password setup
-5. User signs in at admin portal → `get_admin_context` verifies `admin_users` row
-6. `UserSyncService` links `clerk_user_id`, upserts `porterchain_users`, marks invitation `accepted`
-
-**Invitable admin roles:**
-
-| Role key        | Label                      |
-| --------------- | -------------------------- |
-| `super_admin`   | Super Admin                |
-| `admin`         | Admin                      |
-| `dispatcher`    | Dispatcher                 |
-| `support`       | Support                    |
-| `support_lead`  | Support Lead               |
-| `finance`       | Finance                    |
-| `fleet_manager` | Fleet / Operations Manager |
-| `sales_manager` | Sales Manager              |
+1. Admin enrolls from **Settings → Users → Staff → Add staff**
+2. `StaffIdpService.enroll()` provisions `admin_users` + SpiceDB subject `staff:{id}` + one-time token
+3. Staff opens activate link (or requests login from `/sign-in`) → Redis `pc_staff_sid` session
+4. Admin API auth is staff session only (`admin_clerk_retired_use_staff_idp`)
 
 ---
 
@@ -127,23 +103,22 @@ Admin / Merchant owner                Porterchain API                    Clerk
 **Who can invite:**
 
 - **Admin** — CRM company conversion (`POST /v1/admin/crm/companies/{id}/convert-merchant`)
-- **Merchant owner** — team invite (`POST /v1/merchant/team/invite`)
+- **Merchant owner / teammate** — email seat reserve (`POST /v1/merchant/team/seats`, admin `…/owner-seat`) — no Clerk Invitation API; teammate self SignUp on Platform
 
-**Steps (owner invite):**
+**Steps (owner / teammate seat):**
 
-1. Merchant owner invites teammate email + role
-2. `InvitationService.invite_merchant_member()` provisions `merchant_users` (`pending:{email}`)
-3. Clerk invitation → `{MERCHANT_PORTAL_URL}/sign-in`
-4. Invitee activates Clerk account
-5. `get_merchant_context` requires matching `merchant_users` row + active merchant
+1. Admin or merchant owner reserves seat by email + role (seat-reserve — **no** Clerk Invitation API)
+2. `merchant_users` row created (`pending:{email}` or linked if Clerk user already exists)
+3. Invitee self SignUp / SignIn on **Platform Clerk** → merchant portal
+4. `get_merchant_context` requires matching `merchant_users` row + active merchant
 
-**Self-signup:** Disabled — `/sign-up` shows invitation-only message; Clerk `signUpUrl` removed from merchant provider.
+**Self-signup for merchant org creation:** Disabled for cold `/sign-up` without a reserved seat.
 
 ---
 
 ### 4. Customer (open signup)
 
-**Where:** Website `book/continue` — Clerk `<SignIn />` (includes sign-up for new retail customers)
+**Where:** Customer portal (`apps/customer`) `/book` after Platform Clerk sign-up. Website marketing CTAs → `/sign-up?intent=quote` only (no website booking wizard).
 
 **Provisioning:** `CustomerService.upsert()` on booking flow; `porterchain_users` synced on API auth.
 
@@ -234,17 +209,10 @@ cd apps/api && alembic upgrade head
 | Document                                                           | Purpose                   |
 | ------------------------------------------------------------------ | ------------------------- |
 | [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Clerk-only policy         |
-| [RBAC_MATRIX.md](./RBAC_MATRIX.md)                                 | Invitation policy by role |
+| [auth-clerk-spicedb.md](./docs/architecture/auth-clerk-spicedb.md) | Invitation policy by role |
 | [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)             | Portal URL env vars       |
 
 ---
 
 _Violations: bypassing invitation for merchant/driver/admin provisioning is a security defect per masterrule §15._
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

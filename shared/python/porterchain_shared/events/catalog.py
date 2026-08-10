@@ -3,7 +3,7 @@
 from enum import StrEnum
 
 # Bump when adding/removing/renaming events (§3.3.4); keep in sync with packages/events.
-CATALOG_VERSION = "1.0.0"
+CATALOG_VERSION = "1.1.1"
 
 
 class DomainEventType(StrEnum):
@@ -29,6 +29,7 @@ class DomainEventType(StrEnum):
     MERCHANT_LEAD_CREATED = "merchant.lead_created"
     MERCHANT_APPROVED = "merchant.approved"
     MERCHANT_ACTIVATED = "merchant.activated"
+    MERCHANT_SUSPENDED = "merchant.suspended"
     MERCHANT_BILLED = "merchant.billed"
 
     # Payment
@@ -55,6 +56,10 @@ class DomainEventType(StrEnum):
     ORDER_NEAR_DELIVERY = "order.near_delivery"
     ORDER_LOCATION_UPDATED = "order.tracking_updated"
     ORDER_TEMP_EXCURSION = "order.temp_excursion"
+    EXCEPTION_OPENED = "exception.opened"
+    EXCEPTION_RESOLVED = "exception.resolved"
+    ORDER_DELAYED = "order.delayed"
+    SLA_BREACHED = "sla.breached"
 
     # Phase 2 stubs — no consumers yet (ADR-010; Route Center deferred)
     ROUTE_OPTIMIZED = "route.optimized"
@@ -103,6 +108,7 @@ EVENT_ALIASES: dict[str, str] = {
     "CustomerAuthenticated": DomainEventType.CUSTOMER_AUTHENTICATED,
     "PaymentStarted": DomainEventType.PAYMENT_STARTED,
     "MerchantApproved": DomainEventType.MERCHANT_APPROVED,
+    "MerchantSuspended": DomainEventType.MERCHANT_SUSPENDED,
     "PaymentSucceeded": DomainEventType.PAYMENT_SUCCEEDED,
     "BookingConfirmed": DomainEventType.BOOKING_CONFIRMED,
     "OrderCreated": DomainEventType.ORDER_CREATED,
@@ -131,6 +137,10 @@ EVENT_ALIASES: dict[str, str] = {
     "RefundRequested": DomainEventType.REFUND_REQUESTED,
     "ClaimOpened": DomainEventType.CLAIM_OPENED,
     "ClaimResolved": DomainEventType.CLAIM_RESOLVED,
+    "ExceptionOpened": DomainEventType.EXCEPTION_OPENED,
+    "ExceptionResolved": DomainEventType.EXCEPTION_RESOLVED,
+    "OrderDelayed": DomainEventType.ORDER_DELAYED,
+    "SlaBreached": DomainEventType.SLA_BREACHED,
     "NotificationQueued": DomainEventType.NOTIFICATION_QUEUED,
     "NotificationSent": DomainEventType.NOTIFICATION_SENT,
     "WebhookReceived": DomainEventType.WEBHOOK_RECEIVED,

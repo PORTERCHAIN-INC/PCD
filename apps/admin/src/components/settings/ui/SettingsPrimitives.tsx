@@ -67,18 +67,54 @@ export function SettingsCard({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-2xl border border-primary/10 bg-white shadow-sm", className)}>
+    <div
+      className={cn(
+        "min-w-0 overflow-hidden rounded-2xl border border-primary/10 bg-white shadow-sm",
+        className
+      )}
+    >
       {(title || action) && (
         <div className="flex items-start justify-between gap-3 border-b border-primary/10 px-5 py-4">
-          <div>
+          <div className="min-w-0">
             {title && <h3 className="text-sm font-semibold text-primary">{title}</h3>}
             {description && <p className="mt-0.5 text-xs text-muted">{description}</p>}
           </div>
           {action}
         </div>
       )}
-      <div className="p-5">{children}</div>
+      <div className="min-w-0 p-5">{children}</div>
     </div>
+  );
+}
+
+export function BindingBadge({
+  effect,
+}: {
+  effect: "wired" | "env" | "policy" | "decorative" | "identity" | "status" | string;
+}) {
+  const label =
+    effect === "wired"
+      ? "Wired — affects runtime"
+      : effect === "env"
+        ? "Env / Clerk owned"
+        : effect === "policy"
+          ? "Policy — not enforced yet"
+          : effect === "identity"
+            ? "Identity workflow"
+            : "Status only";
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ring-inset",
+        effect === "wired" && "bg-emerald-50 text-emerald-800 ring-emerald-600/20",
+        effect === "env" && "bg-sky-50 text-sky-800 ring-sky-600/20",
+        effect === "policy" && "bg-amber-50 text-amber-900 ring-amber-600/20",
+        (effect === "identity" || effect === "status" || effect === "decorative") &&
+          "bg-slate-100 text-slate-700 ring-slate-500/20"
+      )}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -93,30 +129,35 @@ export function Toggle({
   label: string;
   hint?: string;
 }) {
+  const id = `toggle-${label.replace(/\W+/g, "-").toLowerCase()}`;
   return (
-    <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-primary/10 bg-gray-bg/40 px-4 py-3">
-      <div>
-        <p className="text-sm font-medium text-primary">{label}</p>
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-primary/10 bg-white px-4 py-3 shadow-sm">
+      <div className="min-w-0 flex-1">
+        <p id={id} className="text-sm font-medium text-primary">
+          {label}
+        </p>
         {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
       </div>
       <button
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-labelledby={id}
         onClick={() => onChange(!checked)}
         className={cn(
-          "relative h-6 w-11 shrink-0 rounded-full transition-colors",
-          checked ? "bg-secondary" : "bg-primary/20"
+          "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition-colors",
+          checked ? "border-secondary bg-secondary" : "border-primary/20 bg-slate-200"
         )}
       >
         <span
+          aria-hidden
           className={cn(
-            "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
-            checked ? "translate-x-5" : "translate-x-0.5"
+            "pointer-events-none absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow-md ring-1 ring-black/5 transition-transform duration-200",
+            checked ? "translate-x-5" : "translate-x-0"
           )}
         />
       </button>
-    </label>
+    </div>
   );
 }
 
@@ -153,10 +194,10 @@ export function MasterruleCallout() {
     <div className="flex gap-3 rounded-xl border border-secondary/20 bg-secondary/5 px-4 py-3 text-xs text-primary/80">
       <Info className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
       <p>
-        <span className="font-semibold text-primary">Architecture policy:</span> Runtime settings
-        are stored in Porterchain <code className="rounded bg-white px-1">SystemConfig</code>.
-        Secrets and API keys remain in environment variables — this UI shows status only, never
-        credentials. Business logic stays in Application Services per masterrule §3.
+        <span className="font-semibold text-primary">Commercial & access settings.</span> Badges
+        show what actually changes runtime (Wired), what lives in Doppler/Clerk (Env), and what is
+        stored as policy only. Secrets never appear here. Live GPS and fleet execution stay in
+        Fleetbase (SSO).
       </p>
     </div>
   );

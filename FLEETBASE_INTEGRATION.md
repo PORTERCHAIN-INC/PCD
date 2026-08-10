@@ -161,15 +161,8 @@ Complete Fleetbase onboarding at http://localhost:4200 and copy company UUID.
 | [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) | Adapter package structure           |
 | [FLEETBASE_MODULES.md](./FLEETBASE_MODULES.md)                           | Per-module Porterchain decisions    |
 | [EVENT_CATALOG.md](./EVENT_CATALOG.md)                                   | Fleetbase-related domain events     |
-| [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md)           | Fleetbase/Porterchain data boundary |
+| [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md)                     | Fleetbase/Porterchain data boundary |
 | [INTEGRATIONS.md](./INTEGRATIONS.md)                                     | All external integrations           |
 | [docs/archive/README.md](./docs/archive/README.md#fleetbase-detail)      | Historical Fleetbase detail reports |
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

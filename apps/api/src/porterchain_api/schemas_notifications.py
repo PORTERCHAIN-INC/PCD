@@ -23,12 +23,27 @@ class PreferenceUpdateRequest(BaseModel):
     in_app_enabled: bool | None = None
 
 
+class QuietHoursUpdateRequest(BaseModel):
+    quiet_hours_enabled: bool | None = None
+    quiet_start_hour: int | None = Field(default=None, ge=0, le=23)
+    quiet_end_hour: int | None = Field(default=None, ge=0, le=23)
+    timezone: str | None = Field(default=None, max_length=64)
+
+
 class BroadcastRequest(BaseModel):
     recipient_type: str
     recipient_id: str
     title: str
     body: str
     channel: str = "in_app"
+
+
+class SendTestRequest(BaseModel):
+    template_key: str = Field(min_length=1, max_length=64)
+    channel: str = Field(default="email", max_length=16)
+    recipient_address: str | None = Field(default=None, max_length=512)
+    recipient_type: str = Field(default="admin", max_length=32)
+    recipient_id: str | None = Field(default=None, max_length=36)
 
 
 class NotificationRecordOut(BaseModel):

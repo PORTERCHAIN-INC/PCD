@@ -9,13 +9,13 @@ import AdminAccessGate from "@/components/AdminAccessGate";
 import AdminAccountMenu from "@/components/nav/AdminAccountMenu";
 import AdminAppsMenu from "@/components/nav/AdminAppsMenu";
 import AdminMenuBar from "@/components/nav/AdminMenuBar";
+import OpenFleetbaseButton from "@/components/nav/OpenFleetbaseButton";
 import NotificationBell from "@/components/nav/NotificationBell";
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
-  const fullBleed = pathname === "/live-map" || pathname.startsWith("/live-map/");
   const pageLabel = activeNavLabel(pathname, search);
 
   // Access gate wraps header + main so the account menu always has the real
@@ -53,6 +53,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5 border-l border-primary/10 pl-2 sm:gap-2">
+              <OpenFleetbaseButton variant="header" />
               <AdminAppsMenu />
               <NotificationBell viewAllHref="/notifications" />
               <AdminAccountMenu />
@@ -60,13 +61,8 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           </div>
         </header>
 
-        <main
-          className={cn(
-            "ops-main min-h-0 flex-1 overflow-auto",
-            fullBleed ? "flex flex-col" : "py-6"
-          )}
-        >
-          {fullBleed ? children : <Container>{children}</Container>}
+        <main className={cn("ops-main min-h-0 flex-1 overflow-auto", "py-6")}>
+          <Container>{children}</Container>
         </main>
       </div>
     </AdminAccessGate>

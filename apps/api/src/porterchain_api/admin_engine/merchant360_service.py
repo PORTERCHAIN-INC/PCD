@@ -37,7 +37,7 @@ from porterchain_api.merchant_models import (
     MerchantWebhook,
     SavedAddress,
 )
-from porterchain_api.models import Order
+from porterchain_api.models import Invoice, Order, Payment
 
 
 def _now() -> datetime:
@@ -55,6 +55,36 @@ class Merchant360Service:
     def _linked_company(self, db: Session, merchant_id: str) -> CrmCompany | None:
         return db.query(CrmCompany).filter(CrmCompany.merchant_id == merchant_id).first()
 
+    def _ops_ar_balances(self, db: Session, merchant: Merchant) -> tuple[int, int]:
+        """Outstanding / overdue from ops delivery invoices (not CRM sales invoices)."""
+        from porterchain_api.billing_engine.merchant_service import invoice_status, outstanding_cents
+
+        rows = (
+            db.query(Invoice, Order)
+            .join(Order, Invoice.order_id == Order.id)
+            .filter(Order.merchant_id == merchant.id)
+            .all()
+        )
+        outstanding = 0
+        overdue = 0
+        for inv, order in rows:
+            payment = (
+                db.query(Payment)
+                .filter(Payment.order_id == order.id)
+                .order_by(Payment.created_at.desc())
+                .first()
+            )
+            status = invoice_status(
+                inv, order, payment, terms=merchant.payment_terms or order.payment_terms
+            )
+            cents = outstanding_cents(inv, status)
+            if not cents:
+                continue
+            outstanding += cents
+            if status == "overdue":
+                overdue += cents
+        return int(outstanding), int(overdue)
+
     def _metrics(self, db: Session, merchant: Merchant, company: CrmCompany | None) -> dict[str, Any]:
         cutoff = _now() - timedelta(days=30)
         orders = db.query(Order).filter(Order.merchant_id == merchant.id)
@@ -69,16 +99,15 @@ class Merchant360Service:
         monthly_revenue = sum(o.amount_cents for o in monthly)
         open_orders = orders.filter(Order.state.in_(OPEN_ORDER_STATES)).count()
 
-        outstanding = 0
-        overdue = 0
+        # Ops AR (delivery invoices) — same SSOT as Invoices tab / GET …/invoices
+        outstanding, overdue = self._ops_ar_balances(db, merchant)
+        # CRM sales invoices kept separate so header never silently drifts from the tab
+        crm_outstanding = 0
         if company:
             invs = db.query(CrmInvoice).filter(CrmInvoice.company_id == company.id).all()
-            today = _now().date()
             for inv in invs:
                 if inv.status in OUTSTANDING_STATUSES:
-                    outstanding += inv.total_cents
-                    if inv.due_date and inv.due_date < today:
-                        overdue += inv.total_cents
+                    crm_outstanding += inv.total_cents
 
         api_connected = (
             db.query(MerchantApiKey)
@@ -106,6 +135,7 @@ class Merchant360Service:
             "open_orders": open_orders,
             "outstanding_balance_cents": outstanding,
             "overdue_balance_cents": overdue,
+            "crm_outstanding_balance_cents": crm_outstanding,
             "api_connected": api_connected,
             "active_contract": active_contract,
             "last_activity_at": last_activity_at,
@@ -341,12 +371,13 @@ class Merchant360Service:
             .scalar()
             or 0
         )
-        outstanding = (
-            db.query(func.coalesce(func.sum(CrmInvoice.total_cents), 0))
-            .filter(CrmInvoice.status.in_(OUTSTANDING_STATUSES))
-            .scalar()
-            or 0
-        )
+        # M-29: directory outstanding = ops AR for merchants in the directory
+        # (not global CRM sales invoices that may have no merchant link).
+        outstanding = 0
+        merchants = db.query(Merchant).all()
+        for merchant in merchants:
+            bal, _ = self._ops_ar_balances(db, merchant)
+            outstanding += bal
         onboarding_pending = (
             db.query(func.count(Merchant.id))
             .filter(Merchant.status.in_([MerchantStatus.PENDING.value, MerchantStatus.ONBOARDING.value]))
@@ -364,13 +395,16 @@ class Merchant360Service:
         }
 
     def unprovisioned_signups(self, db: Session, settings: Settings) -> list[dict[str, Any]]:
-        """Clerk merchant-app users with no Porterchain merchant_users row."""
+        """Clerk merchant-app users with no Porterchain merchant_users row.
+
+        Raises on Clerk directory failure so Admin can surface the error (M-4).
+        """
         from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
 
         try:
             snaps = fetch_clerk_snapshots(settings, "merchant", limit=500)
-        except Exception:
-            return []
+        except Exception as exc:
+            raise RuntimeError(f"clerk_directory_unavailable: {exc}") from exc
 
         linked_clerk_ids = {
             u.clerk_user_id
@@ -414,11 +448,17 @@ class Merchant360Service:
                 "hst_number": merchant.hst_number,
                 "business_number": merchant.business_number,
                 "credit_limit_cents": merchant.credit_limit_cents,
+                "billing_cycle": merchant.billing_cycle or "MONTHLY",
                 "billing_address": merchant.billing_address or {},
                 "preferred_vehicles": merchant.preferred_vehicles or [],
                 "delivery_zones": merchant.delivery_zones or [],
                 "pricing_config": merchant.pricing_config or {},
                 "profile": merchant.profile or {},
+                "stripe_enabled": (
+                    bool((merchant.profile or {}).get("stripe_enabled"))
+                    if isinstance(merchant.profile, dict)
+                    else False
+                ),
                 "activated_at": merchant.activated_at,
                 "website": company.website if company else None,
                 "health": health,
@@ -525,8 +565,8 @@ class Merchant360Service:
                 "complete": owner_provisioned,
             },
             {
-                "id": "clerk_invitation",
-                "label": "Clerk invitation sent",
+                "id": "owner_seat",
+                "label": "Owner seat reserved",
                 "complete": owner_provisioned and owner_invite != "not_invited",
             },
             {

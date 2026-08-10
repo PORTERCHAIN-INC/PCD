@@ -54,6 +54,23 @@ def test_assert_organization_scope_fail_closed_on_check_error() -> None:
         assert exc.value.detail == "organization_scope_denied"
 
 
+def test_assert_organization_scope_heals_stale_spicedb() -> None:
+    principal = _principal()
+    db = MagicMock()
+    user = PorterchainUser(id="u1", clerk_user_id="user_x", email="a@example.com", role="merchant_owner")
+    db.query.return_value.filter.return_value.first.return_value = user
+    with patch("porterchain_api.authz.client.get_authz_client") as get_client, patch(
+        "porterchain_api.authz.tuples.TupleWriter"
+    ) as writer_cls:
+        client = MagicMock()
+        client.check.side_effect = [False, True]
+        get_client.return_value = client
+        writer_cls.return_value.sync_user_from_profiles.return_value = "tok"
+        assert_organization_scope(principal, "org-a", db)
+        writer_cls.return_value.sync_user_from_profiles.assert_called_once_with(db, user)
+        assert client.check.call_count == 2
+
+
 def test_assert_self_scope_fail_closed_on_check_error() -> None:
     principal = _principal(
         roles=frozenset({AssignableRole.DRIVER}),

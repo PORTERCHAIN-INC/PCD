@@ -88,10 +88,3 @@ export default {
 | [../../env/README.md](../../env/README.md)                       | Env folder guide      |
 
 ---
-
-## Governance
-
-| Document                                                       | Role              |
-| -------------------------------------------------------------- | ----------------- |
-| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

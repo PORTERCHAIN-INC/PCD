@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Box, Car, GripVertical, Plus, Save, Search, Truck } from "lucide-react";
+import { ArrowRight, Box, Car, Plus, Save, Search, Truck } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Badge, Button, Drawer, Field, Input, Textarea } from "@/components/crm/primitives";
@@ -113,10 +113,8 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
     () => ({
       catalog: classes.length,
       bookingEnabled: classes.filter((v) => v.booking_enabled !== false).length,
-      fleetTotal: overview?.fleet_total ?? 0,
-      fleetAssigned: overview?.fleet_assigned ?? 0,
     }),
-    [classes, overview]
+    [classes]
   );
 
   function updateClasses(next: VehicleClassConfig[]) {
@@ -178,7 +176,11 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
   }
 
   async function handleSave() {
-    await onSave(classes, reason || "Vehicle catalog update");
+    if (!reason.trim()) {
+      window.alert("Change reason is required for vehicle catalog updates");
+      return;
+    }
+    await onSave(classes, reason.trim());
     setDirty(false);
     setReason("");
   }
@@ -186,7 +188,7 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
   return (
     <div className="space-y-6">
       <SettingsPageHeader
-        title="Vehicles"
+        title="Vehicle Classes"
         description={SECTION_DESCRIPTIONS.vehicles}
         actions={
           <>
@@ -203,11 +205,14 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label="Vehicle classes" value={String(stats.catalog)} />
         <StatTile label="Booking enabled" value={String(stats.bookingEnabled)} tone="success" />
-        <StatTile label="Fleet registered" value={String(stats.fleetTotal)} />
         <StatTile
-          label="Assigned to drivers"
-          value={String(stats.fleetAssigned)}
-          sub={`${overview?.fleet_available ?? 0} available`}
+          label="Physical fleet"
+          value="Fleetbase"
+          sub="Open Fleetbase via SSO — not edited here"
+        />
+        <StatTile
+          label="Default booking class"
+          value={defaultClass ?? overview?.default_vehicle_class ?? "sedan"}
         />
       </div>
 
@@ -224,8 +229,11 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
         >
           Change in Booking settings <ArrowRight className="h-3.5 w-3.5" />
         </Link>
-        <Link href="/pricing" className="inline-flex items-center gap-1 font-medium text-secondary">
-          Vehicle tariffs in Pricing <ArrowRight className="h-3.5 w-3.5" />
+        <Link
+          href="/settings?section=pricing"
+          className="inline-flex items-center gap-1 font-medium text-secondary"
+        >
+          Quote rates in Pricing <ArrowRight className="h-3.5 w-3.5" />
         </Link>
         <Link href="/drivers" className="inline-flex items-center gap-1 font-medium text-secondary">
           Driver fleet registry <ArrowRight className="h-3.5 w-3.5" />
@@ -373,11 +381,11 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
       >
         <ul className="space-y-2 text-sm text-muted">
           <li className="flex gap-2">
-            <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
+            <Car className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
             <span>
-              <strong className="text-primary">Vehicle classes</strong> define what shippers can
-              book and how routes are planned. They sync to pricing tariffs and the website quote
-              widget.
+              <strong className="text-primary">Vehicle classes</strong> are the quote catalog.
+              Retail/booking enabled flags gate <code className="text-xs">POST /v1/quotes</code> and
+              must have matching Pricing rows.
             </span>
           </li>
           <li className="flex gap-2">

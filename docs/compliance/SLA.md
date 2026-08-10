@@ -39,5 +39,5 @@ Credits apply to platform software fees only — not pass-through courier execut
 ## Related
 
 - [PRIORITY_SUPPORT.md](./PRIORITY_SUPPORT.md)
-- [STATUS_PAGE.md](../STATUS_PAGE.md)
+- [PRIORITY_TODOS.md](../PRIORITY_TODOS.md)
 - [RUNBOOK.md](../../RUNBOOK.md)

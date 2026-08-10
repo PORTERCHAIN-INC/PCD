@@ -18,6 +18,7 @@ export async function adminFetch<T>(
   try {
     const res = await fetch(`${API}${path}`, {
       ...init,
+      credentials: "include",
       signal: controller.signal,
       headers: { ...headers, ...(init?.headers as Record<string, string>) },
     });
@@ -52,8 +53,6 @@ export type AdminDashboard = {
   todays_bookings: number;
   pending_quotes: number;
   pending_merchant_approvals: number;
-  drivers_online: number;
-  drivers_offline: number;
   orders_waiting_dispatch: number;
   orders_in_transit: number;
   completed_today: number;
@@ -61,7 +60,6 @@ export type AdminDashboard = {
   open_claims: number;
   outstanding_invoices_cents: number;
   open_support_tickets: number;
-  fleet_health_percent: number;
 };
 
 export type PaymentItem = {
@@ -165,14 +163,11 @@ export const api = {
   drivers: (t: string) => adminFetch<Array<Record<string, unknown>>>("/v1/admin/drivers", t),
   approveDriver: (t: string, id: string) =>
     adminFetch<Record<string, unknown>>(`/v1/admin/drivers/${id}/approve`, t, { method: "POST" }),
-  dispatchQueue: (t: string) =>
-    adminFetch<Array<Record<string, unknown>>>("/v1/admin/dispatch/queue", t),
   assignDriver: (t: string, orderId: string, driverId: string) =>
     adminFetch<Record<string, unknown>>(`/v1/admin/dispatch/orders/${orderId}/assign`, t, {
       method: "POST",
       body: JSON.stringify({ driver_id: driverId }),
     }),
-  liveMap: (t: string) => adminFetch<Record<string, unknown>>("/v1/admin/map/live", t),
   orders: (t: string, params?: { state?: string; search?: string }) => {
     const qs = new URLSearchParams();
     if (params?.state) qs.set("state", params.state);
@@ -204,8 +199,6 @@ export const api = {
       body: JSON.stringify({ reason }),
     }),
   claims: (t: string) => adminFetch<Array<Record<string, unknown>>>("/v1/admin/claims", t),
-  tariffs: (t: string) =>
-    adminFetch<Array<Record<string, unknown>>>("/v1/admin/pricing/tariffs", t),
   financeSummary: (t: string) => adminFetch<Record<string, number>>("/v1/admin/finance/summary", t),
   tickets: (t: string) =>
     adminFetch<Array<Record<string, unknown>>>("/v1/admin/support/tickets", t),

@@ -45,7 +45,7 @@ export default async function ServiceAreasHubView({ locale: _locale }: ServiceAr
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("cta.primary")}
-        primaryHref={`/business?from=${source}#inquiry`}
+        primaryHref={`/sign-up?intent=quote&from=${source}`}
         secondaryCta={t("cta.secondary")}
         secondaryHref="/solutions"
         variant="light-centered"
@@ -117,7 +117,7 @@ export default async function ServiceAreasHubView({ locale: _locale }: ServiceAr
         title={t("cta.title")}
         subtitle={t("cta.description")}
         primaryLabel={t("cta.primary")}
-        primaryHref={`/business?from=${source}#inquiry`}
+        primaryHref={`/sign-up?intent=quote&from=${source}`}
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/business#fleet"
         variant="gradient"

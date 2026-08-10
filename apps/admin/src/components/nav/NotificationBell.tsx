@@ -7,6 +7,7 @@ import { Bell, CheckCheck, Inbox, Sparkles } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminNotificationRealtime } from "@/hooks/useAdminNotificationRealtime";
 import HeaderDropdown from "@/components/nav/HeaderDropdown";
 import { adminFetch } from "@/lib/api";
 
@@ -63,8 +64,13 @@ export default function NotificationBell({
   const { data, isLoading } = useQuery({
     queryKey: ["admin-notification-inbox"],
     enabled,
-    refetchInterval: 45_000,
+    // Slow fallback; live updates arrive via WS.
+    refetchInterval: 120_000,
     queryFn: async () => loadInbox(await getApiToken()),
+  });
+
+  useAdminNotificationRealtime(enabled, getApiToken, () => {
+    void qc.invalidateQueries({ queryKey: ["admin-notification-inbox"] });
   });
 
   const unread = data?.unread_count ?? 0;

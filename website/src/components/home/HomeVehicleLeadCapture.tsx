@@ -43,7 +43,7 @@ export default function HomeVehicleLeadCapture() {
         {LEAD_VEHICLES.map((vehicle, index) => {
           const photo = FLEET_VEHICLE_PHOTOS[vehicle.photoKey];
           const icon = FLEET_VEHICLE_ICONS[vehicle.fleetKey];
-          const href = `/business?from=${HUB_FROM.chooser}&vehicle=${vehicle.vehicleParam}#inquiry`;
+          const href = `/sign-up?intent=quote&from=${HUB_FROM.chooser}&vehicle=${vehicle.vehicleParam}`;
 
           return (
             <motion.div

@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from porterchain_api.booking_engine.compliance_metadata import delivery_window_end
-
 # Operational order states (control tower).
 WAITING = ("DISPATCH_READY",)
 PICKUP_LEG = ("DRIVER_ASSIGNED", "DRIVER_ACCEPTED", "DRIVER_EN_ROUTE", "AT_PICKUP")
@@ -34,6 +32,9 @@ FOOD_SLA_DISPATCH_STATES = DISPATCH_POOL + DELIVERY_ONLY_POOL
 
 def dispatch_queue_sort_key(order: Any, *, now: datetime | None = None) -> tuple[int, datetime]:
     """Lower tuple sorts earlier — urgent food windows before generic FIFO."""
+    # Lazy import: booking_engine → tracking → buckets (avoid circular import at load).
+    from porterchain_api.booking_engine.compliance_metadata import delivery_window_end
+
     ref = now or datetime.now(UTC)
     window_end = delivery_window_end(getattr(order, "compliance_metadata", None))
     if window_end is not None:

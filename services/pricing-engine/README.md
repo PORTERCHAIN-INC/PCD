@@ -52,12 +52,11 @@ service = get_pricing_service(db)
 
 ## API Integration
 
-| Consumer                | Path                                    | Notes                             |
-| ----------------------- | --------------------------------------- | --------------------------------- |
-| Website / retail quotes | `booking_engine/quote_service.py`       | `POST /v1/quotes`                 |
-| Merchant bookings       | `merchant_engine/booking_service.py`    | Net terms / B2B                   |
-| Admin simulator         | `admin_engine/pricing_service.py`       | `POST /v1/admin/pricing/simulate` |
-| DB repository           | `apps/api/pricing_engine/repository.py` | `SqlAlchemyPricingRepository`     |
+| Consumer                | Path                                    | Notes                         |
+| ----------------------- | --------------------------------------- | ----------------------------- |
+| Website / retail quotes | `booking_engine/quote_service.py`       | `POST /v1/quotes`             |
+| Merchant bookings       | `merchant_engine/booking_service.py`    | Net terms / B2B               |
+| DB repository           | `apps/api/pricing_engine/repository.py` | `SqlAlchemyPricingRepository` |
 
 ---
 
@@ -81,10 +80,3 @@ Included automatically when using root `pnpm dev:api` PYTHONPATH.
 | [../../docs/architecture/PAYMENT_FLOW.md](../../docs/architecture/PAYMENT_FLOW.md) | Payment/pricing flow |
 
 ---
-
-## Governance
-
-| Document                                                       | Role              |
-| -------------------------------------------------------------- | ----------------- |
-| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

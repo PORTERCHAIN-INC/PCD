@@ -16,8 +16,8 @@ from porterchain_api.routers.admin._deps import (
     Settings,
     SettingsConfigUpdateRequest,
     SettingsImportRequest,
+    StaffEnrollResponse,
     StaffInviteRequest,
-    StaffInviteResponse,
     StaffItem,
     StaffRoleUpdateRequest,
     _clerk_directory,
@@ -28,6 +28,9 @@ from porterchain_api.routers.admin._deps import (
     require_module,
     router,
 )
+from porterchain_api.admin_engine.staff_idp_service import StaffIdpService
+
+_staff_idp = StaffIdpService()
 
 
 @router.get("/settings/dashboard")
@@ -108,6 +111,16 @@ def settings_export(
     return _settings.export_configuration(db)
 
 
+@router.get("/settings/bindings")
+def settings_bindings(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+):
+    require_module(ctx, "settings")
+    from porterchain_api.admin_engine.settings_bindings import bindings_payload
+
+    return bindings_payload()
+
+
 @router.post("/settings/import")
 def settings_import(
     body: SettingsImportRequest,
@@ -115,7 +128,12 @@ def settings_import(
     db: Session = Depends(get_db),
 ):
     require_module(ctx, "settings")
-    return _settings.import_configuration(db, ctx, body.config, reason=body.reason)
+    try:
+        return _settings.import_configuration(
+            db, ctx, body.config, reason=body.reason, dry_run=body.dry_run
+        )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 @router.get("/settings/staff", response_model=list[StaffItem])
@@ -175,6 +193,10 @@ def create_platform_user(
     require_module(ctx, "settings")
     if user_type not in ("staff", "driver", "customer", "merchant"):
         raise HTTPException(400, "invalid_user_type")
+    if user_type == "customer":
+        raise HTTPException(400, "customer_self_signup_only")
+    if user_type == "staff":
+        raise HTTPException(400, "staff_use_enroll_endpoint")
     try:
         return _clerk_directory.create_user(
             db,
@@ -206,6 +228,8 @@ def update_platform_clerk_user(
     require_module(ctx, "settings")
     if user_type not in ("staff", "driver", "customer", "merchant"):
         raise HTTPException(400, "invalid_user_type")
+    if user_type in ("merchant", "customer"):
+        raise HTTPException(400, "clerk_manage_forbidden_for_retail")
     try:
         return _clerk_directory.update_clerk_user(
             db,
@@ -232,6 +256,8 @@ def delete_platform_user(
     require_module(ctx, "settings")
     if user_type not in ("staff", "driver", "customer", "merchant"):
         raise HTTPException(400, "invalid_user_type")
+    if user_type == "customer":
+        raise HTTPException(400, "customer_delete_forbidden")
     if not body.clerk_user_id and not body.platform_user_id:
         raise HTTPException(400, "clerk_user_id_or_platform_user_id_required")
     try:
@@ -258,6 +284,8 @@ def authorize_platform_user(
     require_module(ctx, "settings")
     if user_type not in ("staff", "driver", "customer", "merchant"):
         raise HTTPException(400, "invalid_user_type")
+    if user_type == "customer":
+        raise HTTPException(400, "customer_self_signup_only")
     if not body.platform_user_id and not body.clerk_user_id and not body.email:
         raise HTTPException(400, "platform_user_id_clerk_user_id_or_email_required")
     try:
@@ -278,34 +306,46 @@ def authorize_platform_user(
         raise HTTPException(400, str(exc)) from exc
 
 
-@router.post("/settings/staff/invite", response_model=StaffInviteResponse, status_code=201)
-def invite_staff(
+@router.post("/settings/staff/enroll", response_model=StaffEnrollResponse, status_code=201)
+def enroll_staff(
     body: StaffInviteRequest,
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-) -> StaffInviteResponse:
+) -> StaffEnrollResponse:
+    """Provision AdminUser + staff IdP enrollment token (emails activate link)."""
     require_module(ctx, "settings")
     try:
-        user, invitation = _settings.invite_staff(
+        result = _staff_idp.enroll(
             db, ctx, settings, email=body.email, role=body.role, name=body.name
         )
     except ValueError as exc:
         detail = str(exc)
-        if detail == "clerk_not_configured":
-            raise HTTPException(503, "clerk_not_configured") from exc
-        if detail == "invalid_admin_role":
-            raise HTTPException(400, "invalid_admin_role") from exc
-        raise
-    return StaffInviteResponse(
-        id=user.id,
-        email=user.email,
-        name=user.name,
-        role=user.role,
-        clerk_action=invitation.invitation_metadata.get("clerk_action", "invited"),
-        invitation_status=invitation.status,
-        created_at=user.created_at,
-    )
+        if detail == "staff_enrollment_redis_unavailable":
+            raise HTTPException(503, detail) from exc
+        raise HTTPException(400, detail) from exc
+    return StaffEnrollResponse(**result)
+
+
+@router.post("/settings/staff/{user_id}/enroll-reissue", response_model=StaffEnrollResponse, status_code=201)
+def reissue_staff_enrollment(
+    user_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> StaffEnrollResponse:
+    """Re-issue enrollment token for existing staff (lost link / expired session)."""
+    require_module(ctx, "settings")
+    try:
+        result = _staff_idp.reissue(db, ctx, settings, user_id)
+    except LookupError:
+        raise HTTPException(404, "staff_not_found") from None
+    except ValueError as exc:
+        detail = str(exc)
+        if detail == "staff_enrollment_redis_unavailable":
+            raise HTTPException(503, detail) from exc
+        raise HTTPException(400, detail) from exc
+    return StaffEnrollResponse(**result)
 
 
 @router.patch("/settings/staff/{user_id}/role", response_model=StaffItem)
@@ -352,10 +392,19 @@ def update_system_config(
     db: Session = Depends(get_db),
 ):
     require_module(ctx, "settings")
-    from porterchain_api.admin_engine.settings_service import CONFIG_KEYS, DEFAULTS
+    from porterchain_api.admin_engine.settings_bindings import WRITABLE_LOGICAL_KEYS
+    from porterchain_api.admin_engine.settings_service import CONFIG_KEYS
 
-    resolved = CONFIG_KEYS.get(key, key)
-    if resolved not in DEFAULTS and not resolved.startswith("settings_"):
+    if key not in WRITABLE_LOGICAL_KEYS and key not in CONFIG_KEYS:
         raise HTTPException(400, "unknown_config_key")
-    record = _settings.set_config(db, ctx, resolved, body.value, reason=body.reason)
+    if key not in WRITABLE_LOGICAL_KEYS:
+        raise HTTPException(400, "config_key_not_writable")
+    commercial = {"vehicles", "pricing", "pricing_tax", "pricing_fuel", "pricing_rate_card", "booking"}
+    if key in commercial and (not body.reason or not str(body.reason).strip()):
+        raise HTTPException(400, "reason_required")
+    resolved = CONFIG_KEYS[key]
+    try:
+        record = _settings.set_config(db, ctx, resolved, body.value, reason=body.reason)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
     return {"key": record.key, "value": record.value}

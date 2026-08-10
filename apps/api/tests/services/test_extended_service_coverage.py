@@ -14,7 +14,6 @@ from porterchain_api.admin_engine.dashboard_service import AdminDashboardService
 from porterchain_api.admin_engine.driver360_service import Driver360Service
 from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
-from porterchain_api.admin_engine.pricing_service import AdminPricingService, PricingFilters
 from porterchain_api.billing_engine import merchant_service as billing_merchant
 from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
@@ -62,18 +61,6 @@ def test_booking_draft_service_lookup(db) -> None:
     svc = BookingDraftService()
     assert svc.get_by_id(db, "missing-id") is None
     assert svc.get_by_quote_id(db, "missing-quote") is None
-
-
-def test_pricing_extended_reads(db) -> None:
-    svc = AdminPricingService()
-    assert isinstance(svc.list_promotions(db), list)
-    assert isinstance(svc.list_zones(db), list)
-    assert isinstance(svc.list_contracts(db), list)
-    assert isinstance(svc.get_tax_config(db), dict)
-    assert isinstance(svc.get_fuel_config(db), dict)
-    assert isinstance(svc.reports(db), dict)
-    assert isinstance(svc.detect_conflicts(db), list)
-    assert isinstance(svc.list_tariffs_enriched(db, PricingFilters(limit=10)), list)
 
 
 def test_crm_sales_dashboard(db) -> None:

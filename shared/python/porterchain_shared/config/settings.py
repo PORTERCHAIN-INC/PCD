@@ -85,6 +85,14 @@ class PlatformSettings(BaseSettings):
         validation_alias=AliasChoices("push_send", "PORTERCHAIN_PUSH_SEND", "PORTERCHAIN_DRIVER_PUSH_SEND"),
     )
     notification_max_retries: int = Field(default=5, validation_alias=AliasChoices("notification_max_retries", "NOTIFICATION_MAX_RETRIES"))
+    sms_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("sms_enabled", "PORTERCHAIN_SMS_ENABLED"),
+    )
+    sms_provider: str = Field(
+        default="",
+        validation_alias=AliasChoices("sms_provider", "PORTERCHAIN_SMS_PROVIDER"),
+    )
 
     # SMTP (Zoho Mail — transactional; auth is Clerk-only)
     smtp_host: str = Field(default="", validation_alias=AliasChoices("smtp_host", "MAIL_HOST"))

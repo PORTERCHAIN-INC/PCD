@@ -31,6 +31,18 @@ class ClaimsQueryMixin:
             q = q.filter(Claim.created_at >= filters.date_from)
         if filters.date_to:
             q = q.filter(Claim.created_at <= filters.date_to)
+        if filters.customer_id:
+            # Claim has no customer FK — scope via order.customer_id (C-6).
+            order_ids = [
+                oid
+                for (oid,) in db.query(Order.id)
+                .filter(Order.customer_id == filters.customer_id)
+                .limit(5000)
+                .all()
+            ]
+            if not order_ids:
+                return []
+            q = q.filter(Claim.order_id.in_(order_ids))
         if filters.search:
             like = f"%{filters.search}%"
             order_ids = [
@@ -64,6 +76,8 @@ class ClaimsQueryMixin:
             if filters.merchant_id and row["merchant_id"] != filters.merchant_id:
                 continue
             if filters.driver_id and row["driver_id"] != filters.driver_id:
+                continue
+            if filters.customer_id and row["customer_id"] != filters.customer_id:
                 continue
             if filters.insurance is True and not row["has_insurance"]:
                 continue

@@ -134,7 +134,7 @@ export function stagePolicy(stage: GuideStage): string {
     case "book":
       return "Offer slots only after phone is on file (or ask for phone first). Confirm verbally, then book_appointment.";
     case "handoff":
-      return "If contact still incomplete, ask once more for email/phone. Then confirm next steps (/business or /business#inquiry) and save_transcript_excerpt.";
+      return "If contact still incomplete, ask once more for email/phone. Then confirm next steps (/business or /sign-up?intent=quote&from=business) and save_transcript_excerpt.";
     default:
       return "";
   }

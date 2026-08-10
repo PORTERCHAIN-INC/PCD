@@ -1,12 +1,12 @@
 "use client";
 
-import { use, useCallback, useMemo } from "react";
+import { use, useCallback, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import OrderDetailView, { type Order360Actions } from "@/components/orders/OrderDetailView";
-import { api } from "@/lib/api";
-import { ordersApi } from "@/lib/orders";
+import { AssignDriverModal } from "@/components/orders/AssignDriverModal";
+import { downloadOrderPdf, ordersApi } from "@/lib/orders";
 
 const DETAIL_POLL_MS = 10_000;
 const TRACKING_POLL_MS = 8_000;
@@ -52,18 +52,12 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     await refetch();
   }, [queryClient, id, refetch]);
 
-  const assignDriver = useCallback(async () => {
-    const driverId = window.prompt("Enter driver ID to assign:");
-    if (!driverId?.trim()) return;
-    const token = await getApiToken();
-    await api.assignDriver(token, id, driverId.trim());
-    await invalidate();
-  }, [getApiToken, id, invalidate]);
+  const [assignOpen, setAssignOpen] = useState(false);
 
   const actions: Order360Actions = useMemo(
     () => ({
-      onAssignDriver: () => void assignDriver(),
-      onReassignDriver: () => void assignDriver(),
+      onAssignDriver: () => setAssignOpen(true),
+      onReassignDriver: () => setAssignOpen(true),
       onCancel: () => {
         void (async () => {
           if (!window.confirm("Cancel this order?")) return;
@@ -86,11 +80,32 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       },
       onCreateReturn: () => router.push(`/claims?order_id=${id}`),
       onGenerateInvoice: () => {
-        if (detail?.invoice_number) router.push(`/finance/invoices`);
-        else
-          window.alert(
-            "Invoice generation is handled by the billing engine when the order reaches POD_COMPLETED."
-          );
+        void (async () => {
+          try {
+            const token = await getApiToken();
+            const res = await ordersApi.generateInvoice(token, id);
+            window.alert(`Invoice ${res.invoice_number} ready.`);
+            await invalidate();
+          } catch (err) {
+            window.alert(err instanceof Error ? err.message : "Invoice generation failed");
+          }
+        })();
+      },
+      onResendReceipt: () => {
+        void (async () => {
+          try {
+            const token = await getApiToken();
+            const res = await ordersApi.resendReceipt(token, id);
+            window.alert(
+              res.email
+                ? `Receipt resent to ${res.email}`
+                : "Receipt event queued (no recipient email on file)."
+            );
+            await invalidate();
+          } catch (err) {
+            window.alert(err instanceof Error ? err.message : "Resend receipt failed");
+          }
+        })();
       },
       onRefund: () => {
         window.alert("Refunds are processed through Finance — open the linked payment or invoice.");
@@ -102,20 +117,57 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         const url = `${window.location.origin}/track/${detail?.tracking_number ?? id}`;
         void navigator.clipboard.writeText(url).then(() => window.alert("Tracking link copied."));
       },
-      onPrintLabels: () => window.print(),
-      onPrintManifest: () => window.print(),
+      onPrintLabels: () => {
+        void (async () => {
+          try {
+            const token = await getApiToken();
+            await downloadOrderPdf(
+              token,
+              ordersApi.labelPdfUrl(id),
+              `label-${detail?.tracking_number ?? id}.pdf`
+            );
+          } catch (err) {
+            window.alert(err instanceof Error ? err.message : "Label PDF failed");
+          }
+        })();
+      },
+      onPrintManifest: () => {
+        void (async () => {
+          try {
+            const token = await getApiToken();
+            await downloadOrderPdf(
+              token,
+              ordersApi.manifestPdfUrl(id),
+              `manifest-${detail?.tracking_number ?? id}.pdf`
+            );
+          } catch (err) {
+            window.alert(err instanceof Error ? err.message : "Manifest PDF failed");
+          }
+        })();
+      },
     }),
-    [assignDriver, detail, getApiToken, id, invalidate, router]
+    [detail, getApiToken, id, invalidate, router]
   );
 
   return (
-    <OrderDetailView
-      detail={detail ?? null}
-      tracking={tracking ?? null}
-      loading={isLoading}
-      error={isError ? (error instanceof Error ? error.message : "Failed to load order") : null}
-      liveRefreshing={isFetching && !isLoading}
-      actions={actions}
-    />
+    <>
+      <OrderDetailView
+        detail={detail ?? null}
+        tracking={tracking ?? null}
+        loading={isLoading}
+        error={isError ? (error instanceof Error ? error.message : "Failed to load order") : null}
+        liveRefreshing={isFetching && !isLoading}
+        actions={actions}
+        onRefresh={() => void invalidate()}
+      />
+      <AssignDriverModal
+        open={assignOpen}
+        orderId={id}
+        trackingNumber={detail?.tracking_number}
+        currentDriverName={detail?.driver_name}
+        onClose={() => setAssignOpen(false)}
+        onAssigned={() => void invalidate()}
+      />
+    </>
   );
 }

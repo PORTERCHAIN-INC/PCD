@@ -6,25 +6,13 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.auth.persona_bundle import load_persona_bundle
+from porterchain_api.auth.portal_guard import clerk_id_staff_portal
 from porterchain_api.auth.user_sync_service import _is_pending_clerk_id
 from porterchain_api.config import Settings
-from porterchain_api.merchant_models import MerchantUser
 from porterchain_api.models import Customer
-
-
-def _identity_conflict_portal(db: Session, clerk_user_id: str) -> str | None:
-    if not clerk_user_id or _is_pending_clerk_id(clerk_user_id):
-        return None
-    if db.query(AdminUser.id).filter(AdminUser.clerk_user_id == clerk_user_id).first():
-        return "admin"
-    if db.query(MerchantUser.id).filter(MerchantUser.clerk_user_id == clerk_user_id).first():
-        return "merchant"
-    if db.query(Driver.id).filter(Driver.clerk_user_id == clerk_user_id).first():
-        return "driver"
-    return None
 
 
 def evaluate_customer_onboarding(
@@ -40,10 +28,10 @@ def evaluate_customer_onboarding(
         clerk_linked = True
 
     if customer is None and claims.clerk_user_id:
-        customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()
+        customer = load_persona_bundle(db, claims.clerk_user_id).customer
 
     email_ok = bool(email or (customer and customer.email))
-    conflict = _identity_conflict_portal(db, claims.clerk_user_id or "")
+    conflict = clerk_id_staff_portal(db, claims.clerk_user_id or "")
     provisioned = customer is not None
 
     steps: list[dict[str, Any]] = [

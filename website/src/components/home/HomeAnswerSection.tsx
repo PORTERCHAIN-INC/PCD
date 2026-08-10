@@ -36,7 +36,7 @@ export default async function HomeAnswerSection({ locale }: Props) {
 
         <FadeIn delay={0.12} className="mt-10 flex flex-wrap items-center gap-3 sm:mt-12">
           <LinkButton
-            href="/business?from=home-answers#inquiry"
+            href="/sign-up?intent=quote&from=home-answers"
             trackLabel={t("cta")}
             trackSource="home_answers"
           >

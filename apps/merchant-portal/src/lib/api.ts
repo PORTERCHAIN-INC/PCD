@@ -194,6 +194,10 @@ async function merchantFetch<T>(
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
   };
+  // M-26: select merchant membership when the user has multiple seats.
+  if (init?.orgId) {
+    headers["X-Merchant-Id"] = init.orgId;
+  }
   if (!(init?.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
@@ -203,10 +207,29 @@ async function merchantFetch<T>(
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(body.detail || `API error ${response.status}`);
+    const detail = body.detail;
+    const message =
+      typeof detail === "string"
+        ? detail
+        : Array.isArray(detail)
+          ? detail.map((d: { msg?: string }) => d.msg || JSON.stringify(d)).join("; ")
+          : `API error ${response.status}`;
+    throw new Error(message);
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
+}
+
+export type MerchantSession = {
+  merchant_id: string;
+  company_name: string;
+  role: string;
+  modules: string[];
+  user_email: string;
+};
+
+export function getMerchantSession(token: string, orgId?: string) {
+  return merchantFetch<MerchantSession>("/v1/merchant/session", token, { orgId });
 }
 
 export function getDashboard(token: string, orgId?: string) {
@@ -285,6 +308,120 @@ export function confirmBulk(token: string, jobId: string, orgId?: string) {
   );
 }
 
+export interface RouteImportJob {
+  schema_version: string;
+  job_id: string;
+  status: string;
+  source?: string | null;
+  vehicle_class?: string | null;
+  scheduled_at?: string | null;
+  mapping: Array<Record<string, unknown>>;
+  headers?: string[];
+  mapping_profile_id?: string | null;
+  optimized?: boolean;
+  stops: Array<Record<string, unknown>>;
+  quote: {
+    amount_cents?: number;
+    currency?: string;
+    distance_meters?: number | null;
+    routing_source?: string | null;
+    total_drops?: number;
+    line_items?: Array<{ code: string; label: string; amount_cents: number }>;
+  } | null;
+  route_geometry?: {
+    polyline?: string | null;
+    distance_meters?: number;
+    duration_seconds?: number;
+    source?: string;
+    leg_count?: number;
+  } | null;
+  route_explanation?: string | null;
+  errors: Array<Record<string, unknown>>;
+  order_ids: string[];
+  filename?: string | null;
+  total_rows: number;
+  valid_rows: number;
+  error_rows: number;
+}
+
+export function uploadRouteImport(
+  token: string,
+  file: File,
+  opts: { vehicleClass: string; scheduledAt?: string; orgId?: string }
+) {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("vehicle_class", opts.vehicleClass);
+  if (opts.scheduledAt) form.append("scheduled_at", opts.scheduledAt);
+  return merchantFetch<RouteImportJob>("/v1/merchant/route-imports/upload", token, {
+    method: "POST",
+    body: form,
+    orgId: opts.orgId,
+  });
+}
+
+export function confirmRouteImport(token: string, jobId: string, orgId?: string) {
+  return merchantFetch<RouteImportJob>(`/v1/merchant/route-imports/${jobId}/confirm`, token, {
+    method: "POST",
+    orgId,
+  });
+}
+
+export function patchRouteImportStop(
+  token: string,
+  jobId: string,
+  index: number,
+  patch: Record<string, unknown>,
+  orgId?: string
+) {
+  return merchantFetch<RouteImportJob>(
+    `/v1/merchant/route-imports/${jobId}/stops/${index}`,
+    token,
+    {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+      orgId,
+    }
+  );
+}
+
+export function patchRouteImportMapping(
+  token: string,
+  jobId: string,
+  mapping: Array<Record<string, unknown>>,
+  orgId?: string
+) {
+  return merchantFetch<RouteImportJob>(`/v1/merchant/route-imports/${jobId}/mapping`, token, {
+    method: "PATCH",
+    body: JSON.stringify({ mapping }),
+    orgId,
+  });
+}
+
+export function optimizeRouteImport(token: string, jobId: string, orgId?: string) {
+  return merchantFetch<RouteImportJob>(`/v1/merchant/route-imports/${jobId}/optimize`, token, {
+    method: "POST",
+    orgId,
+  });
+}
+
+export function saveRouteImportMappingProfile(
+  token: string,
+  jobId: string,
+  name: string,
+  orgId?: string
+) {
+  return merchantFetch<{ id: string; name: string }>(
+    `/v1/merchant/route-imports/${jobId}/mapping-profile`,
+    token,
+    {
+      method: "POST",
+      body: JSON.stringify({ name }),
+      orgId,
+    }
+  );
+}
+
 export function getProfile(token: string, orgId?: string) {
   return merchantFetch<MerchantProfile>("/v1/merchant/profile", token, { orgId });
 }
@@ -302,7 +439,7 @@ export function listTeam(token: string, orgId?: string) {
 }
 
 export function inviteTeamMember(token: string, email: string, role: string, orgId?: string) {
-  return merchantFetch<TeamMember>("/v1/merchant/team/invite", token, {
+  return merchantFetch<TeamMember>("/v1/merchant/team/seats", token, {
     method: "POST",
     body: JSON.stringify({ email, role }),
     orgId,

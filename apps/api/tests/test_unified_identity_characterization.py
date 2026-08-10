@@ -22,13 +22,11 @@ from porterchain_api.auth.clerk_registry import (
     clerk_configuration_mode,
 )
 from porterchain_api.auth.dev import allow_auth_dev_bypass
-from porterchain_api.auth.invitation_service import OPEN_SIGNUP_USER_TYPES
+from porterchain_api.auth.invitation_service import InvitationService, OPEN_SIGNUP_USER_TYPES
 from porterchain_api.auth.portal_guard import (
-    PORTAL_CLERK_APP,
     assert_clerk_id_exclusive,
     is_legacy_shared_clerk_app,
     is_unified_clerk_app,
-    require_clerk_app_for_portal,
 )
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
@@ -71,11 +69,14 @@ def _settings(**overrides: object) -> Settings:
 
 
 def _unified_settings(**overrides: object) -> Settings:
+    """Platform + Driver layout (name kept for call-site compat)."""
     sk = "sk_platform"
     jwks = "https://platform.clerk.accounts.dev/.well-known/jwks.json"
     pk = "pk_platform"
+    dsk = "sk_driver"
+    djwks = "https://driver.clerk.accounts.dev/.well-known/jwks.json"
     return _settings(
-        clerk_unified_mode=True,
+        clerk_unified_mode=False,
         clerk_secret_key=sk,
         clerk_publishable_key=pk,
         clerk_jwks_url=jwks,
@@ -88,9 +89,9 @@ def _unified_settings(**overrides: object) -> Settings:
         clerk_admin_secret_key=sk,
         clerk_admin_jwks_url=jwks,
         clerk_admin_publishable_key=pk,
-        clerk_driver_secret_key=sk,
-        clerk_driver_jwks_url=jwks,
-        clerk_driver_publishable_key=pk,
+        clerk_driver_secret_key=dsk,
+        clerk_driver_jwks_url=djwks,
+        clerk_driver_publishable_key="pk_driver",
         **overrides,
     )
 
@@ -120,21 +121,19 @@ def test_four_clerk_app_kinds_are_customer_merchant_admin_driver() -> None:
     assert ALL_CLERK_APP_KINDS == ("customer", "merchant", "admin", "driver")
 
 
-def test_portal_clerk_app_map_binds_surface_to_kind() -> None:
-    assert PORTAL_CLERK_APP["admin"] == "admin"
-    assert PORTAL_CLERK_APP["staff"] == "admin"
-    assert PORTAL_CLERK_APP["merchant"] == "merchant"
-    assert PORTAL_CLERK_APP["driver"] == "driver"
-    assert PORTAL_CLERK_APP["customer"] == "customer"
+def test_clerk_staff_invite_retired() -> None:
+    """A6 — staff provision is IdP enroll only; InvitationService has no admin invite."""
+    assert not hasattr(InvitationService, "invite_admin_staff")
+    assert hasattr(InvitationService, "invite_driver")
 
 
-def test_unified_mode_shares_platform_secrets_across_portal_slots() -> None:
+def test_platform_driver_mode_keeps_distinct_driver() -> None:
     settings = _unified_settings()
-    assert clerk_configuration_mode(settings) == "unified"
-    assert is_unified_clerk_app(settings)
+    assert clerk_configuration_mode(settings) == "platform_driver"
+    assert not is_unified_clerk_app(settings)
     apps = clerk_app_configs(settings)
     assert len(apps) == 4
-    assert len({a.secret_key for a in apps}) == 1
+    assert len({a.secret_key for a in apps}) == 2
 
 
 def test_legacy_shared_secret_marks_legacy_shared_clerk_app() -> None:
@@ -169,30 +168,6 @@ def test_metadata_role_reads_public_metadata_role_or_porterchain_role() -> None:
     assert ClerkClaims("u1").metadata_role is None
 
 
-# --- Portal app mismatch (retired — always no-op) ---
-
-
-def test_require_clerk_app_for_portal_is_always_noop() -> None:
-    """Phase D3: Platform only — never rejects on clerk_app class."""
-    claims = ClerkClaims(clerk_user_id="user_abc", clerk_app="customer")
-    require_clerk_app_for_portal(claims, _unified_settings(), "admin")
-    require_clerk_app_for_portal(
-        claims,
-        _settings(
-            clerk_customer_secret_key="sk_cust",
-            clerk_customer_jwks_url="https://cust.clerk.accounts.dev/.well-known/jwks.json",
-            clerk_admin_secret_key="sk_admin",
-            clerk_admin_jwks_url="https://admin.clerk.accounts.dev/.well-known/jwks.json",
-        ),
-        "admin",
-    )
-    require_clerk_app_for_portal(
-        ClerkClaims(clerk_user_id="dev_clerk_user", clerk_app="customer"),
-        _unified_settings(),
-        "admin",
-    )
-
-
 # --- Identity (unified multi-role; provisioning still required) ---
 
 
@@ -219,10 +194,9 @@ def test_assert_allows_provisioned_admin_with_customer_membership() -> None:
 
 
 def test_open_signup_is_customer_only() -> None:
-    assert OPEN_SIGNUP_USER_TYPES == frozenset({"customer"})
+    assert OPEN_SIGNUP_USER_TYPES == frozenset({"customer", "merchant"})
     assert "admin" not in OPEN_SIGNUP_USER_TYPES
     assert "driver" not in OPEN_SIGNUP_USER_TYPES
-    assert "merchant" not in OPEN_SIGNUP_USER_TYPES
 
 
 # --- Role enums present today (SoT for authz matrices) ---

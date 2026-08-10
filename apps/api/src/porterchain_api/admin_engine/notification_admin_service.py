@@ -9,7 +9,11 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.notification_engine.engine import get_notification_engine
-from porterchain_api.notification_engine.models import NotificationDevice, NotificationRecord
+from porterchain_api.notification_engine.models import (
+    NotificationDeliveryLog,
+    NotificationDevice,
+    NotificationRecord,
+)
 from porterchain_api.notification_engine.templates import TEMPLATES, template_meta
 
 
@@ -39,6 +43,8 @@ class NotificationAdminService:
         status: str | None = None,
         channel: str | None = None,
         search: str | None = None,
+        recipient_type: str | None = None,
+        recipient_id: str | None = None,
         limit: int = 100,
     ) -> list[dict[str, Any]]:
         q = db.query(NotificationRecord)
@@ -46,6 +52,10 @@ class NotificationAdminService:
             q = q.filter(NotificationRecord.status == status)
         if channel:
             q = q.filter(NotificationRecord.channel == channel)
+        if recipient_type:
+            q = q.filter(NotificationRecord.recipient_type == recipient_type)
+        if recipient_id:
+            q = q.filter(NotificationRecord.recipient_id == recipient_id)
         if search:
             like = f"%{search}%"
             q = q.filter(
@@ -58,6 +68,178 @@ class NotificationAdminService:
             )
         rows = q.order_by(NotificationRecord.created_at.desc()).limit(limit).all()
         return [self._record_dict(r) for r in rows]
+
+    def entity_alerts(
+        self,
+        db: Session,
+        *,
+        recipient_type: str,
+        recipient_id: str,
+        limit: int = 15,
+    ) -> dict[str, Any]:
+        """Trust strip payload for Merchant / Driver / Customer 360 (Wave 3)."""
+        role = recipient_type.strip().lower()
+        if role not in ("merchant", "driver", "customer"):
+            raise ValueError("invalid_recipient_type")
+        entity_id = recipient_id.strip()
+        if not entity_id:
+            raise ValueError("recipient_id_required")
+
+        from porterchain_api.notification_engine.device_service import DeviceService
+        from porterchain_api.notification_engine.preference_service import (
+            DEFAULT_CATEGORIES,
+            PreferenceService,
+            _default_channel_flags,
+        )
+        from porterchain_api.notification_engine.user_settings import UserSettingsService
+
+        recent = self.list_records(
+            db, recipient_type=role, recipient_id=entity_id, limit=limit
+        )
+
+        prefs_svc = PreferenceService()
+        existing = {
+            p.category: p
+            for p in prefs_svc.get_all(db, user_role=role, user_id=entity_id)
+        }
+        preferences: list[dict[str, Any]] = []
+        for category in DEFAULT_CATEGORIES:
+            row = existing.get(category)
+            if row:
+                preferences.append(
+                    {
+                        "category": row.category,
+                        "email_enabled": row.email_enabled,
+                        "push_enabled": row.push_enabled,
+                        "sms_enabled": row.sms_enabled,
+                        "in_app_enabled": row.in_app_enabled,
+                        "persisted": True,
+                    }
+                )
+            else:
+                flags = _default_channel_flags(category)
+                preferences.append(
+                    {
+                        "category": category,
+                        **flags,
+                        "persisted": False,
+                    }
+                )
+
+        settings_svc = UserSettingsService()
+        settings_row = settings_svc.get(db, user_role=role, user_id=entity_id)
+        tz = settings_svc.resolve_timezone(db, user_role=role, user_id=entity_id)
+        settings = settings_svc.to_dict(settings_row, timezone_fallback=tz)
+
+        devices: list[dict[str, Any]] = []
+        if role in ("driver", "customer"):
+            for d in DeviceService().list_active(db, user_role=role, user_id=entity_id):
+                devices.append(
+                    {
+                        "id": d.id,
+                        "platform": d.platform,
+                        "device_name": d.device_name,
+                        "app_version": d.app_version,
+                        "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
+                        "notification_permission": d.notification_permission,
+                    }
+                )
+
+        care = self._care_counts(db, role, entity_id)
+        muted = [
+            p["category"]
+            for p in preferences
+            if not (p["email_enabled"] or p["push_enabled"] or p["in_app_enabled"] or p["sms_enabled"])
+        ]
+
+        return {
+            "recipient_type": role,
+            "recipient_id": entity_id,
+            "recent": recent,
+            "preferences": preferences,
+            "settings": settings,
+            "devices": devices,
+            "care": care,
+            "muted_categories": muted,
+            "links": {
+                "notifications_history": "/notifications?tab=history",
+                "notifications_devices": "/notifications?tab=devices",
+            },
+        }
+
+    def _care_counts(self, db: Session, role: str, entity_id: str) -> dict[str, int]:
+        from porterchain_api.admin_models import Claim, SupportTicket
+        from porterchain_api.models import Order, OrderException
+
+        open_exc = 0
+        open_support = 0
+        open_claims = 0
+        if role == "merchant":
+            open_exc = (
+                db.query(func.count(OrderException.id))
+                .join(Order, Order.id == OrderException.order_id)
+                .filter(
+                    Order.merchant_id == entity_id,
+                    OrderException.status.in_(("open", "acknowledged")),
+                )
+                .scalar()
+                or 0
+            )
+            open_support = (
+                db.query(func.count(SupportTicket.id))
+                .filter(
+                    SupportTicket.merchant_id == entity_id,
+                    SupportTicket.status.in_(("open", "in_progress", "waiting")),
+                )
+                .scalar()
+                or 0
+            )
+        elif role == "driver":
+            open_exc = (
+                db.query(func.count(OrderException.id))
+                .join(Order, Order.id == OrderException.order_id)
+                .filter(
+                    Order.assigned_driver_id == entity_id,
+                    OrderException.status.in_(("open", "acknowledged")),
+                )
+                .scalar()
+                or 0
+            )
+            open_claims = (
+                db.query(func.count(Claim.id))
+                .join(Order, Order.id == Claim.order_id)
+                .filter(
+                    Order.assigned_driver_id == entity_id,
+                    Claim.status.in_(("open", "investigating", "pending")),
+                )
+                .scalar()
+                or 0
+            )
+        elif role == "customer":
+            open_exc = (
+                db.query(func.count(OrderException.id))
+                .join(Order, Order.id == OrderException.order_id)
+                .filter(
+                    Order.customer_id == entity_id,
+                    OrderException.status.in_(("open", "acknowledged")),
+                )
+                .scalar()
+                or 0
+            )
+            open_support = (
+                db.query(func.count(SupportTicket.id))
+                .filter(
+                    SupportTicket.customer_id == entity_id,
+                    SupportTicket.status.in_(("open", "in_progress", "waiting")),
+                )
+                .scalar()
+                or 0
+            )
+        return {
+            "open_exceptions": int(open_exc),
+            "open_support_tickets": int(open_support),
+            "open_claims": int(open_claims),
+        }
 
     def list_devices(self, db: Session, *, limit: int = 200) -> list[dict[str, Any]]:
         rows = (
@@ -146,6 +328,106 @@ class NotificationAdminService:
         )
         db.commit()
         return {"ok": True, "notification_id": rec.id if rec else None}
+
+    def send_test(
+        self,
+        db: Session,
+        *,
+        template_key: str,
+        channel: str,
+        recipient_type: str,
+        recipient_id: str,
+        recipient_address: str | None = None,
+    ) -> dict[str, Any]:
+        if template_key not in TEMPLATES:
+            raise LookupError("template_not_found")
+        ctx = {
+            "tracking_number": "TRK-TEST-001",
+            "order_number": "ORD-TEST-001",
+            "quote_id": "Q-TEST-001",
+            "amount_display": "$0.00",
+            "invoice_number": "INV-TEST-001",
+            "merchant_name": "Test Merchant",
+            "message": "PorterChain notification send-test",
+            "title": "Send test",
+            "body": "PorterChain notification send-test",
+            "exception_type": "test",
+            "claim_number": "CLM-TEST",
+            "claim_type": "general",
+            "ticket_number": "TKT-TEST",
+            "subject": "Send test",
+            "status": "open",
+            "celsius": "0",
+            "route_id": "RTE-TEST",
+            "stops_count": "1",
+            "recovery_url": "https://porterchain.com",
+            "reset_url": "https://porterchain.com",
+            "activate_url": "https://porterchain.com",
+            "code": "000000",
+            "receipt_number": "RCP-TEST",
+            "receipt_url": "https://porterchain.com",
+        }
+        if channel in ("email", "sms") and not recipient_address:
+            raise ValueError("recipient_address_required")
+        from uuid import uuid4
+
+        rec = get_notification_engine().dispatch(
+            db,
+            event_type="admin.send_test",
+            template_key=template_key,
+            channel=channel,
+            recipient_type=recipient_type,
+            recipient_id=recipient_id,
+            recipient_address=recipient_address,
+            context=ctx,
+            priority="normal",
+            correlation_id=f"send-test-{uuid4().hex[:12]}",
+        )
+        # Dev convenience: deliver email/SMS immediately for send-test (Mailpit).
+        if rec and channel in ("email", "sms") and recipient_address:
+            from porterchain_api.notification_engine.delivery_service import DeliveryService
+
+            DeliveryService().deliver(
+                {
+                    "notification_id": rec.id,
+                    "channel": channel,
+                    "template": template_key,
+                    "recipient_type": recipient_type,
+                    "recipient_id": recipient_id,
+                    "recipient": recipient_address,
+                    "context": {**ctx, "title": rec.title, "body": rec.body},
+                }
+            )
+        db.commit()
+        return {
+            "ok": True,
+            "notification_id": rec.id if rec else None,
+            "status": rec.status if rec else "suppressed",
+            "template_key": template_key,
+            "channel": channel,
+        }
+
+    def delivery_logs(self, db: Session, notification_id: str, *, limit: int = 50) -> list[dict[str, Any]]:
+        rows = (
+            db.query(NotificationDeliveryLog)
+            .filter(NotificationDeliveryLog.notification_id == notification_id)
+            .order_by(NotificationDeliveryLog.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "id": r.id,
+                "notification_id": r.notification_id,
+                "channel": r.channel,
+                "template": r.template,
+                "recipient": r.recipient,
+                "status": r.status,
+                "error": r.error,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in rows
+        ]
 
     def _record_dict(self, r: NotificationRecord) -> dict[str, Any]:
         return {

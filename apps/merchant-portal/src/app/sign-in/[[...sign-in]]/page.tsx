@@ -1,36 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SignIn, useAuth } from "@clerk/nextjs";
-import { isClerkConfigured, publicEnv } from "@/lib/env";
-import { porterchainClerkAppearance } from "@/lib/clerk-appearance";
-import { platformLoginUrl } from "@porterchain/auth";
+import { porterchainClerkAppearance, safeAppRedirect } from "@porterchain/auth";
+import { MerchantAuthLoading, MerchantAuthScreen } from "@/components/auth/MerchantAuthScreen";
+import { isClerkConfigured } from "@/lib/env";
 
 function ClerkUnavailable() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-bg p-4">
-      <div className="w-full max-w-md rounded-2xl border border-primary/10 portal-surface p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-primary">Porterchain Merchant Portal</h1>
-        <p className="mt-2 text-sm text-muted">
-          Clerk is not configured for local development, so the sign-in widget cannot load.
+    <MerchantAuthScreen
+      title="Local development"
+      subtitle="Clerk is not configured for this environment. The sign-in widget cannot load without keys."
+    >
+      <div className="space-y-4">
+        <p className="text-sm leading-relaxed text-muted">
+          Add Platform Clerk keys via <code className="text-primary">pnpm clerk:sync</code>, then
+          refresh.
         </p>
         <Link
           href="/dashboard"
-          className="mt-6 flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white hover:bg-[#1d4ed8]"
+          className="flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
         >
-          Continue in dev mode (no auth)
+          Continue in dev mode
         </Link>
       </div>
-    </div>
+    </MerchantAuthScreen>
   );
 }
 
 function SignInWithClerk() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
   const [checking, setChecking] = useState(true);
+  const redirectUrl = safeAppRedirect(searchParams.get("redirect_url"), {
+    fallback: "/onboarding",
+    blockPrefixes: ["/sign-in", "/sign-up"],
+  });
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -38,41 +46,40 @@ function SignInWithClerk() {
       setChecking(false);
       return;
     }
-    router.replace("/onboarding");
-  }, [isLoaded, isSignedIn, router]);
+    router.replace(redirectUrl);
+  }, [isLoaded, isSignedIn, redirectUrl, router]);
 
   if (!isLoaded || checking) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-bg">
-        <p className="text-sm text-muted">Loading…</p>
-      </div>
-    );
+    return <MerchantAuthLoading label="Preparing sign-in…" />;
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-bg p-4">
-      <div className="mb-6 max-w-md text-center">
-        <h1 className="text-2xl font-bold text-primary">Porterchain Merchant Portal</h1>
-        <p className="mt-2 text-sm text-muted">
-          Sign in with your approved business account. Prefer Platform login at{" "}
-          <a href={platformLoginUrl(publicEnv.websiteUrl)} className="font-semibold text-secondary">
-            {platformLoginUrl(publicEnv.websiteUrl)}
-          </a>
-          .
-        </p>
-      </div>
+    <MerchantAuthScreen
+      title="Business sign-in"
+      subtitle="Access capacity, shipments, and billing for your organization."
+      showPlatformLogin
+      footer={
+        <>
+          New organization?{" "}
+          <Link
+            href="/sign-up"
+            className="font-semibold text-secondary underline-offset-2 hover:underline"
+          >
+            Create an account
+          </Link>
+          . Existing merchants may also be invited by Porterchain ops.
+        </>
+      }
+    >
       <SignIn
         routing="path"
         path="/sign-in"
-        forceRedirectUrl="/onboarding"
-        fallbackRedirectUrl="/onboarding"
+        signUpUrl="/sign-up"
+        forceRedirectUrl={redirectUrl}
+        fallbackRedirectUrl={redirectUrl}
         appearance={porterchainClerkAppearance}
       />
-      <p className="mt-6 max-w-sm text-center text-xs text-muted">
-        Merchant access is invitation-only. Contact your Porterchain account manager if you need an
-        invite.
-      </p>
-    </div>
+    </MerchantAuthScreen>
   );
 }
 
@@ -80,5 +87,9 @@ export default function SignInPage() {
   if (!isClerkConfigured()) {
     return <ClerkUnavailable />;
   }
-  return <SignInWithClerk />;
+  return (
+    <Suspense fallback={<MerchantAuthLoading label="Preparing sign-in…" />}>
+      <SignInWithClerk />
+    </Suspense>
+  );
 }

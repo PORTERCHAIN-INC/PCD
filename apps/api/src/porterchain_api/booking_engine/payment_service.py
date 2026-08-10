@@ -104,13 +104,34 @@ class PaymentService:
         payment.status = PaymentStatus.SUCCEEDED.value
         payment.stripe_payment_intent_id = stripe_payment_intent_id
         payment.receipt_url = receipt_url
+
+        quote = db.query(Quote).filter(Quote.id == payment.quote_id).first()
+        customer = (
+            db.query(Customer).filter(Customer.id == payment.customer_id).first()
+            if payment.customer_id
+            else None
+        )
+        if customer is None and quote and quote.customer_id:
+            customer = db.query(Customer).filter(Customer.id == quote.customer_id).first()
+        cents = int(payment.amount_cents or (quote.amount_cents if quote else 0) or 0)
+        currency = payment.currency or (quote.currency if quote else "cad")
         emit_event(
             db,
             event_type=E.PAYMENT_SUCCEEDED,
             aggregate_type="payment",
             aggregate_id=payment.id,
             correlation_id=payment.quote_id,
-            payload={"stripe_payment_intent_id": stripe_payment_intent_id},
+            payload={
+                "stripe_payment_intent_id": stripe_payment_intent_id,
+                "receipt_url": receipt_url,
+                "customer_id": payment.customer_id or (quote.customer_id if quote else None),
+                "email": customer.email if customer else None,
+                "amount_cents": cents,
+                "amount_display": f"${cents / 100:.2f} {(currency or 'cad').upper()}",
+                "currency": currency,
+                "order_id": payment.order_id,
+                "order_number": None,
+            },
         )
         db.commit()
         db.refresh(payment)

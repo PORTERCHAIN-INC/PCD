@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Validate Clerk keys before Doppler upload.
-# Supports:
-#   CLERK_MODE=enterprise (default) — 4 isolated apps (12 keys)
-#   CLERK_MODE=unified — one Platform triad (pk/sk/jwks)
+# Canonical:
+#   CLERK_MODE=platform_driver — Platform triad + Driver triad
+# Retired (script fails):
+#   CLERK_MODE=unified | enterprise
 #
-# Phase 6: validation only. Does not mutate Doppler.
+# Validation only. Does not mutate Doppler.
 # Production upload remains a manual human gate (upload-clerk-to-doppler.sh).
 set -euo pipefail
 
@@ -60,42 +61,32 @@ check_jwks() {
   pass "${portal} JWKS (${count} key(s))"
 }
 
-MODE="$(echo "${CLERK_MODE:-enterprise}" | tr '[:upper:]' '[:lower:]')"
-# Auto-detect unified triad when mode unset/enterprise but only platform keys present
-if [ "$MODE" != "unified" ]; then
-  if [ -n "${CLERK_PUBLISHABLE_KEY:-}${CLERK_UNIFIED_PUBLISHABLE_KEY:-}" ] \
-    && [ -n "${CLERK_SECRET_KEY:-}${CLERK_UNIFIED_SECRET_KEY:-}" ] \
-    && [ -n "${CLERK_JWKS_URL:-}${CLERK_UNIFIED_JWKS_URL:-}" ] \
-    && [ -z "${CLERK_CUSTOMER_PUBLISHABLE_KEY:-}" ]; then
-    MODE="unified"
-  fi
+MODE="$(echo "${CLERK_MODE:-platform_driver}" | tr '[:upper:]' '[:lower:]')"
+# Normalize aliases
+if [ "$MODE" = "dual" ] || [ "$MODE" = "platform+driver" ]; then
+  MODE="platform_driver"
+fi
+if [ "$MODE" = "unified" ] || [ "$MODE" = "enterprise" ]; then
+  fail "CLERK_MODE=${MODE} is retired — use platform_driver (Platform + Driver)"
 fi
 
 echo "Validating ${ENV_FILE} (mode=${MODE})..."
 
-if [ "$MODE" = "unified" ]; then
-  PUB="${CLERK_UNIFIED_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY:-}}"
-  SEC="${CLERK_UNIFIED_SECRET_KEY:-${CLERK_SECRET_KEY:-}}"
-  JWKS="${CLERK_UNIFIED_JWKS_URL:-${CLERK_JWKS_URL:-}}"
-
-  if [[ "$PUB" == pk_test_* ]]; then
-    warn "CLERK_PUBLISHABLE_KEY is pk_test_ — use Production (pk_live_) before go-live"
-  fi
-  if [[ "$SEC" == sk_test_* ]]; then
-    warn "CLERK_SECRET_KEY is sk_test_ — use Production (sk_live_) before go-live"
-  fi
-  if [[ "$PUB" == pk_live_* && "$SEC" == sk_test_* ]]; then
-    fail "env mismatch: publishable is live but secret is test"
-  fi
-  if [[ "$PUB" == pk_test_* && "$SEC" == sk_live_* ]]; then
-    fail "env mismatch: publishable is test but secret is live"
-  fi
-
-  check_key "CLERK_PUBLISHABLE_KEY" "$PUB" "pk"
-  check_key "CLERK_SECRET_KEY" "$SEC" "sk"
-  check_jwks "PLATFORM" "$JWKS"
-  pass "Unified Platform Clerk app validated (local only — do not auto-upload to Doppler prod)"
-  exit 0
+if [ "$MODE" = "platform_driver" ]; then
+  # Expand Platform → customer/merchant/admin when only ADMIN/triad present
+  PLATFORM_PK="${CLERK_PUBLISHABLE_KEY:-${CLERK_ADMIN_PUBLISHABLE_KEY:-}}"
+  PLATFORM_SK="${CLERK_SECRET_KEY:-${CLERK_ADMIN_SECRET_KEY:-}}"
+  PLATFORM_JWKS="${CLERK_JWKS_URL:-${CLERK_ADMIN_JWKS_URL:-}}"
+  CLERK_CUSTOMER_PUBLISHABLE_KEY="${CLERK_CUSTOMER_PUBLISHABLE_KEY:-$PLATFORM_PK}"
+  CLERK_CUSTOMER_SECRET_KEY="${CLERK_CUSTOMER_SECRET_KEY:-$PLATFORM_SK}"
+  CLERK_CUSTOMER_JWKS_URL="${CLERK_CUSTOMER_JWKS_URL:-$PLATFORM_JWKS}"
+  CLERK_MERCHANT_PUBLISHABLE_KEY="${CLERK_MERCHANT_PUBLISHABLE_KEY:-$PLATFORM_PK}"
+  CLERK_MERCHANT_SECRET_KEY="${CLERK_MERCHANT_SECRET_KEY:-$PLATFORM_SK}"
+  CLERK_MERCHANT_JWKS_URL="${CLERK_MERCHANT_JWKS_URL:-$PLATFORM_JWKS}"
+  CLERK_ADMIN_PUBLISHABLE_KEY="${CLERK_ADMIN_PUBLISHABLE_KEY:-$PLATFORM_PK}"
+  CLERK_ADMIN_SECRET_KEY="${CLERK_ADMIN_SECRET_KEY:-$PLATFORM_SK}"
+  CLERK_ADMIN_JWKS_URL="${CLERK_ADMIN_JWKS_URL:-$PLATFORM_JWKS}"
+  # Fall through to 4-slot validation below
 fi
 
 for portal in CUSTOMER MERCHANT ADMIN DRIVER; do
@@ -125,3 +116,46 @@ for portal in CUSTOMER MERCHANT ADMIN DRIVER; do
 done
 
 pass "All 4 Clerk apps validated — upload to Doppler is a manual human gate"
+
+# Suggested policy values (human pastes into clerk-keys.local.env / Doppler)
+issuer_from_jwks() {
+  local u="${1:-}"
+  u="${u%%/.well-known/jwks.json}"
+  u="${u%/}"
+  echo "$u"
+}
+
+suggest_issuers=""
+for jwks in \
+  "${CLERK_JWKS_URL:-${CLERK_ADMIN_JWKS_URL:-}}" \
+  "${CLERK_DRIVER_JWKS_URL:-}"; do
+  [ -n "$jwks" ] || continue
+  iss="$(issuer_from_jwks "$jwks")"
+  [ -n "$iss" ] || continue
+  case ",${suggest_issuers}," in
+    *",${iss},"*) ;;
+    *) suggest_issuers="${suggest_issuers:+$suggest_issuers,}${iss}" ;;
+  esac
+done
+
+suggest_parties="https://porterchain.com,https://merchant.porterchain.com,https://driver.porterchain.com,https://customer.porterchain.com,http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003"
+
+echo ""
+echo "--- Doppler policy (optional but recommended for prod) ---"
+if [ -n "${CLERK_AUTHORIZED_ISSUERS:-}" ]; then
+  pass "CLERK_AUTHORIZED_ISSUERS already set"
+else
+  warn "CLERK_AUTHORIZED_ISSUERS empty — suggested:"
+  echo "  CLERK_AUTHORIZED_ISSUERS=${suggest_issuers}"
+fi
+if [ -n "${CLERK_AUTHORIZED_PARTIES:-}" ]; then
+  pass "CLERK_AUTHORIZED_PARTIES already set"
+else
+  warn "CLERK_AUTHORIZED_PARTIES empty — suggested (no admin: staff IdP):"
+  echo "  CLERK_AUTHORIZED_PARTIES=${suggest_parties}"
+fi
+if [ -n "${CLERK_WEBHOOK_SIGNING_SECRET:-}" ]; then
+  pass "CLERK_WEBHOOK_SIGNING_SECRET already set"
+else
+  warn "CLERK_WEBHOOK_SIGNING_SECRET empty — set from Clerk Dashboard → Webhooks → Signing secret"
+fi

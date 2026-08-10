@@ -1,0 +1,5 @@
+sequence,stop_type,address,unit,contact_name,external_ref
+1,pickup,"100 King St W, Toronto, ON M5X 1A9",1200,Warehouse Desk,WH-1
+2,drop,"200 Bay St, Toronto, ON M5J 2J2",,Receiver A,PO-1001
+3,drop,"1 Dundas St E, Toronto, ON M5B 2R8",,Receiver B,PO-1002
+4,drop,"220 Yonge St, Toronto, ON M5B 2H1",,Receiver C,PO-1003

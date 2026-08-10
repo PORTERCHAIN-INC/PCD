@@ -108,9 +108,6 @@ export async function driverLogout(): Promise<void> {
 }
 
 export const driverApi = {
-  login: async (_email: string, _clerkToken?: string) => {
-    throw new Error("driver_cookie_jwt_retired");
-  },
   onboarding: () =>
     driverFetch<import("@/lib/onboarding").DriverOnboardingStatus>("/v1/onboarding"),
   dashboard: () => driverFetch<DriverDashboard>("/v1/dashboard"),

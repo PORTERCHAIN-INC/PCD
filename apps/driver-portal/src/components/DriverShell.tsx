@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Spinner } from "@porterchain/ui/loading";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Container from "@/components/ui/Container";
 import DriverAccessGate from "@/components/DriverAccessGate";
@@ -13,67 +11,12 @@ import DriverMenuBar from "@/components/nav/DriverMenuBar";
 import NotificationBell from "@/components/nav/NotificationBell";
 import { DriverProfileProvider } from "@/components/nav/DriverProfileContext";
 import { activeNavLabel } from "@/lib/driver-nav";
-import { hasDriverSession } from "@/lib/api";
-import { fetchDriverOnboarding, isPendingDriverPath } from "@/lib/onboarding";
+import { isPendingDriverPath } from "@/lib/onboarding";
 
 export default function DriverShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const pageLabel = activeNavLabel(pathname);
-  const [sessionReady, setSessionReady] = useState(false);
-  const [gateReady, setGateReady] = useState(false);
   const pendingOnly = isPendingDriverPath(pathname);
-
-  useEffect(() => {
-    let cancelled = false;
-    void hasDriverSession().then((ok) => {
-      if (cancelled) return;
-      if (!ok) {
-        router.replace(`/login?redirect_url=${encodeURIComponent(pathname)}`);
-        return;
-      }
-      setSessionReady(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [pathname, router]);
-
-  useEffect(() => {
-    if (!sessionReady) return;
-    let cancelled = false;
-
-    void fetchDriverOnboarding()
-      .then((status) => {
-        if (cancelled) return;
-        if (!status.ready && !isPendingDriverPath(pathname)) {
-          router.replace("/onboarding");
-          return;
-        }
-        if (status.ready && pathname === "/onboarding") {
-          router.replace("/dashboard");
-          return;
-        }
-        setGateReady(true);
-      })
-      .catch(() => {
-        if (!cancelled) setGateReady(true);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [pathname, router, sessionReady]);
-
-  if (!sessionReady || !gateReady) {
-    return (
-      <DriverAccessGate>
-        <div className="flex min-h-dvh items-center justify-center bg-gray-bg">
-          <Spinner label="Verifying driver session…" />
-        </div>
-      </DriverAccessGate>
-    );
-  }
 
   if (pendingOnly) {
     return (

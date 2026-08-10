@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Plus, Trash2 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { drivers, DRIVER_DOC_TYPES, type DriverCreatePayload } from "@/lib/drivers";
-import { VEHICLE_CLASSES } from "@/lib/pricing";
+import {
+  drivers,
+  DRIVER_DOC_TYPES,
+  VEHICLE_CLASSES,
+  type DriverCreatePayload,
+} from "@/lib/drivers";
 import { Button, Drawer, Field, Input, Select, Textarea } from "@/components/crm/primitives";
 
 type DocDraft = {
@@ -169,6 +174,17 @@ export function AddDriverModal({
             {error}
           </p>
         )}
+        <p className="rounded-xl border border-primary/10 bg-gray-bg px-3 py-2 text-xs text-muted">
+          Full supply profile (license, vehicle, docs). For identity-only PENDING + Clerk invite,
+          use{" "}
+          <Link
+            href="/settings?section=users&tab=driver"
+            className="font-medium text-secondary hover:underline"
+          >
+            Settings → Users → Drivers
+          </Link>
+          .
+        </p>
 
         <section className="space-y-3">
           <h3 className="text-sm font-semibold text-primary">Basic information</h3>

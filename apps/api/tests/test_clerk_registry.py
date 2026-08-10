@@ -71,7 +71,7 @@ def test_enterprise_clerk_per_portal() -> None:
     assert {kind for kind, _ in urls} == set(ALL_CLERK_APP_KINDS)
 
 
-def test_identical_four_slots_are_unified_not_enterprise() -> None:
+def test_identical_four_slots_are_platform_driver_local_dev() -> None:
     shared_sk = "sk_test_platform"
     shared_jwks = "https://platform.clerk.accounts.dev/.well-known/jwks.json"
     shared_pk = "pk_test_platform"
@@ -93,27 +93,39 @@ def test_identical_four_slots_are_unified_not_enterprise() -> None:
         jwt_secret="a" * 32,
     )
     assert is_enterprise_clerk_configured(settings)
-    assert clerk_configuration_mode(settings) == "unified"
+    assert clerk_configuration_mode(settings) == "platform_driver"
     assert len(clerk_jwks_urls(settings)) == 1
 
 
-def test_unified_mode_uses_platform_triad_for_all_kinds() -> None:
+def test_platform_driver_keeps_distinct_driver_issuer() -> None:
+    sk = "sk_test_platform"
+    jwks = "https://relaxing-warthog-11.clerk.accounts.dev/.well-known/jwks.json"
+    pk = "pk_test_platform"
     settings = Settings(
         _env_file=None,
-        clerk_unified_mode=True,
-        clerk_secret_key="sk_test_platform",
-        clerk_jwks_url="https://relaxing-warthog-11.clerk.accounts.dev/.well-known/jwks.json",
-        clerk_publishable_key="pk_test_platform",
-        clerk_customer_secret_key="sk_ignored_other",
-        clerk_customer_jwks_url="https://other.clerk.accounts.dev/.well-known/jwks.json",
+        clerk_unified_mode=False,
+        clerk_secret_key=sk,
+        clerk_jwks_url=jwks,
+        clerk_publishable_key=pk,
+        clerk_customer_secret_key=sk,
+        clerk_customer_jwks_url=jwks,
+        clerk_customer_publishable_key=pk,
+        clerk_merchant_secret_key=sk,
+        clerk_merchant_jwks_url=jwks,
+        clerk_merchant_publishable_key=pk,
+        clerk_admin_secret_key=sk,
+        clerk_admin_jwks_url=jwks,
+        clerk_admin_publishable_key=pk,
+        clerk_driver_secret_key="sk_test_driver",
+        clerk_driver_jwks_url="https://driver.clerk.accounts.dev/.well-known/jwks.json",
+        clerk_driver_publishable_key="pk_test_driver",
         jwt_secret="a" * 32,
     )
-    assert clerk_configuration_mode(settings) == "unified"
+    assert clerk_configuration_mode(settings) == "platform_driver"
     urls = clerk_jwks_urls(settings)
-    assert len(urls) == 1
-    assert urls[0][1].startswith("https://relaxing-warthog-11.")
+    assert len(urls) == 2
     apps = clerk_app_configs(settings)
-    assert {a.secret_key for a in apps} == {"sk_test_platform"}
+    assert {a.secret_key for a in apps} == {sk, "sk_test_driver"}
 
 
 def test_platform_triad_falls_back_to_admin_slots() -> None:
@@ -121,7 +133,7 @@ def test_platform_triad_falls_back_to_admin_slots() -> None:
 
     settings = Settings(
         _env_file=None,
-        clerk_unified_mode=True,
+        clerk_unified_mode=False,
         clerk_secret_key="",
         clerk_jwks_url="",
         clerk_publishable_key="",
@@ -133,7 +145,21 @@ def test_platform_triad_falls_back_to_admin_slots() -> None:
     platform = resolve_platform_clerk_config(settings)
     assert platform is not None
     assert platform.secret_key == "sk_test_admin_platform"
-    assert clerk_configuration_mode(settings) == "unified"
+    assert clerk_configuration_mode(settings) == "platform_driver"
+
+
+def test_clerk_unified_mode_flag_rejected() -> None:
+    import pytest
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError, match="CLERK_UNIFIED_MODE"):
+        Settings(
+            _env_file=None,
+            clerk_unified_mode=True,
+            clerk_secret_key="sk_test_platform",
+            clerk_jwks_url="https://platform.clerk.accounts.dev/.well-known/jwks.json",
+            jwt_secret="a" * 32,
+        )
 
 
 def test_production_boot_requires_clerk() -> None:

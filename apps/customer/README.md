@@ -76,15 +76,7 @@ For Stripe Checkout from this portal, set `RETAIL_CHECKOUT_SUCCESS_URL=http://lo
 
 | Document                                                                           | Purpose              |
 | ---------------------------------------------------------------------------------- | -------------------- |
-| [../mobile-customer/README.md](../mobile-customer/README.md)                       | Customer mobile app  |
 | [../../USER_JOURNEYS.md](../../USER_JOURNEYS.md)                                   | Customer journeys    |
 | [../../docs/architecture/BOOKING_FLOW.md](../../docs/architecture/BOOKING_FLOW.md) | Booking architecture |
 
 ---
-
-## Governance
-
-| Document                                                       | Role              |
-| -------------------------------------------------------------- | ----------------- |
-| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

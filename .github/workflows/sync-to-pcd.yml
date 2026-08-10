@@ -1,0 +1,80 @@
+name: Sync Local Repository to porterchain/PCD
+
+# This workflow syncs your local PCD repository to the remote porterchain/PCD
+# Run this manually from the GitHub Actions tab to push all local changes
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_remote:
+        description: "Target remote repository"
+        required: true
+        default: "origin"
+        type: choice
+        options:
+          - origin
+          - porterchain
+      branch:
+        description: "Branch to push"
+        required: true
+        default: "main"
+      force_push:
+        description: "Force push (overwrite remote history)?"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  sync-repository:
+    name: Sync repository to porterchain/PCD
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+
+          # Add porterchain remote if needed
+          if [ "${{ inputs.target_remote }}" = "porterchain" ]; then
+            git remote add porterchain https://github.com/porterchain/PCD.git || true
+            git fetch porterchain
+          fi
+
+      - name: Sync to porterchain/PCD
+        run: |
+          REMOTE_NAME="${{ inputs.target_remote }}"
+
+          echo "Syncing to $REMOTE_NAME (${{ inputs.branch }})..."
+
+          # Fetch latest from remote
+          git fetch $REMOTE_NAME ${{ inputs.branch }}
+
+          # Merge or rebase as needed
+          git pull $REMOTE_NAME ${{ inputs.branch }} --rebase || true
+
+          # Push changes
+          if [ "${{ inputs.force_push }}" = "true" ]; then
+            git push $REMOTE_NAME ${{ inputs.branch }} --force-with-lease
+          else
+            git push $REMOTE_NAME ${{ inputs.branch }}
+          fi
+
+          echo "✅ Successfully synced to $REMOTE_NAME"
+
+      - name: Display git status
+        run: |
+          echo "Current branch: $(git branch --show-current)"
+          echo "Latest commits:"
+          git log --oneline -5
+          git status --short

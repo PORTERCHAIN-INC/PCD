@@ -22,7 +22,7 @@ from porterchain_api.fleetbase_engine.audit_logger import AuditLogger
 from porterchain_api.fleetbase_engine.integration_bridge import FleetbaseIntegrationBridge
 from porterchain_api.fleetbase_engine.retry_queue import RetryQueue
 from porterchain_api.fleetbase_engine.status_translator import StatusTranslator
-from porterchain_api.fleetbase_engine.tracking_translator import TrackingTranslator
+from porterchain_api.fleetbase_engine.tracking_facade import TrackingFacade
 from porterchain_api.models import Order, OrderException
 from porterchain_shared.events.catalog import DomainEventType
 
@@ -71,7 +71,14 @@ class WebhookProcessor:
                             "fleetbase_event": update.get("event"),
                             "from_state": current.value,
                             "to_state": new_state.value,
+                            "status": new_state.value,
                             "fleetbase_order_id": order.fleetbase_order_id,
+                            "order_id": order.id,
+                            "order_number": order.order_number,
+                            "tracking_number": order.tracking_number,
+                            "customer_id": order.customer_id,
+                            "merchant_id": order.merchant_id,
+                            "driver_id": order.assigned_driver_id,
                         },
                     )
             except ValueError as exc:
@@ -116,6 +123,35 @@ class WebhookProcessor:
     def process(self, db: Session, settings: Settings, update: dict, raw: dict | None = None) -> Order | None:
         event = update.get("event")
         kind = StatusTranslator.classify(event)
+
+        # D-26: driver presence does not require an order — mirror onto Driver.is_online.
+        if kind == "presence":
+            try:
+                driver = self._mirror_driver_presence(db, update)
+                AuditLogger.log(
+                    db,
+                    direction="inbound",
+                    kind=kind,
+                    status="ok" if driver else "skipped",
+                    message=event,
+                    detail={
+                        "fleetbase_driver_id": update.get("fleetbase_driver_id"),
+                        "online": update.get("online"),
+                        "driver_id": getattr(driver, "id", None),
+                    },
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("Fleetbase presence webhook failed: %s", exc)
+                AuditLogger.log(
+                    db,
+                    direction="inbound",
+                    kind=kind,
+                    status="error",
+                    message=str(exc),
+                    detail={"event": event},
+                )
+            return None
+
         order = self._resolve_order(db, update)
 
         if not order:
@@ -143,6 +179,10 @@ class WebhookProcessor:
                     self._open_claim(db, order, event)
                 elif kind == "driver":
                     self._map_driver(db, order, update)
+
+            # Opportunistic presence mirror when the payload carries online.
+            if update.get("online") is not None:
+                self._mirror_driver_presence(db, update)
 
             # Fan out a Porterchain domain event for dashboards + notifications.
             emit_event(
@@ -174,7 +214,7 @@ class WebhookProcessor:
 
     # ------------------------------------------------------------------ #
     def _handle_tracking(self, db: Session, order: Order, raw: dict[str, Any]) -> None:
-        snapshot = TrackingTranslator.translate(raw)
+        snapshot = TrackingFacade.translate_live(raw)
         emit_event(
             db,
             event_type="order.tracking_updated",
@@ -194,14 +234,32 @@ class WebhookProcessor:
         )
         if existing:
             return
-        db.add(
-            OrderException(
-                order_id=order.id,
-                type=ex_type,
-                status="open",
-                reported_by_type="fleetbase",
-                evidence={"event": event},
-            )
+        exc = OrderException(
+            order_id=order.id,
+            type=ex_type,
+            status="open",
+            reported_by_type="fleetbase",
+            evidence={"event": event},
+        )
+        db.add(exc)
+        db.flush()
+        emit_event(
+            db,
+            event_type=DomainEventType.EXCEPTION_OPENED,
+            aggregate_type="order",
+            aggregate_id=order.id,
+            actor_type="fleetbase",
+            payload={
+                "exception_id": exc.id,
+                "exception_type": ex_type,
+                "order_id": order.id,
+                "order_number": order.order_number,
+                "tracking_number": order.tracking_number,
+                "customer_id": order.customer_id,
+                "merchant_id": order.merchant_id,
+                "driver_id": order.assigned_driver_id,
+                "message": f"Exception opened: {ex_type}",
+            },
         )
         db.commit()
 
@@ -216,8 +274,57 @@ class WebhookProcessor:
     def _map_driver(self, db: Session, order: Order, update: dict) -> None:
         fb_driver = update.get("fleetbase_driver_id") or (update.get("driver") or {}).get("id")
         if not fb_driver:
+            resource = update.get("resource") if isinstance(update.get("resource"), dict) else {}
+            nested = resource.get("driver") if isinstance(resource.get("driver"), dict) else {}
+            fb_driver = nested.get("id") or nested.get("uuid")
+        if not fb_driver:
             return
         driver = db.query(Driver).filter(Driver.fleetbase_driver_id == fb_driver).first()
         if driver and order.assigned_driver_id != driver.id:
             order.assigned_driver_id = driver.id
             db.commit()
+
+    def _mirror_driver_presence(self, db: Session, update: dict) -> Driver | None:
+        """Mirror Fleetbase online/availability onto the local Driver row (D-26)."""
+        resource = update.get("resource") if isinstance(update.get("resource"), dict) else {}
+        fb_driver = update.get("fleetbase_driver_id")
+        if not fb_driver:
+            nested = resource.get("driver") if isinstance(resource.get("driver"), dict) else {}
+            fb_driver = (
+                nested.get("uuid")
+                or nested.get("id")
+                or resource.get("uuid")
+                or resource.get("id")
+                or (update.get("driver") or {}).get("id")
+            )
+        if not fb_driver:
+            return None
+
+        online = update.get("online")
+        if online is None:
+            body = resource.get("driver") if isinstance(resource.get("driver"), dict) else resource
+            if isinstance(body, dict):
+                if isinstance(body.get("online"), bool):
+                    online = body["online"]
+                else:
+                    status = str(body.get("status") or "").lower()
+                    if status in {"online", "active"}:
+                        online = True
+                    elif status in {"offline", "inactive"}:
+                        online = False
+        if online is None:
+            event = str(update.get("event") or "").lower()
+            if event in {"driver.online", "driver.toggled_online"}:
+                online = True
+            elif event == "driver.offline":
+                online = False
+        if online is None:
+            return None
+
+        driver = db.query(Driver).filter(Driver.fleetbase_driver_id == str(fb_driver)).first()
+        if not driver:
+            return None
+        driver.is_online = bool(online)
+        driver.availability = "online" if online else "offline"
+        db.commit()
+        return driver

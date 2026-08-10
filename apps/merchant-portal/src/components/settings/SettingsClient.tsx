@@ -528,6 +528,16 @@ function NotificationsTab({
     await onRefresh();
   };
 
+  const toggleChannel = async (channel: "email" | "in_app", value: boolean) => {
+    const token = await getToken();
+    await settingsApi.updateNotifications(
+      token,
+      { channels: { ...prefs.channels, [channel]: value } },
+      orgId
+    );
+    await onRefresh();
+  };
+
   const items: { key: keyof NotificationPrefs; label: string }[] = [
     { key: "order_booked", label: "Order booked" },
     { key: "order_delivered", label: "Order delivered" },
@@ -539,9 +549,32 @@ function NotificationsTab({
     { key: "weekly_summary", label: "Weekly summary" },
   ];
 
+  const channels = prefs.channels ?? { email: true, in_app: true };
+
   return (
     <section className="rounded-2xl border border-primary/10 bg-white p-6">
       <h2 className="font-semibold text-primary">Notification preferences</h2>
+      <p className="mt-1 text-xs text-muted">
+        Changes apply to PorterChain delivery (email and in-app). SMS stays off until enabled.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-6 border-b border-primary/8 pb-4">
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={Boolean(channels.email)}
+            onChange={(e) => void toggleChannel("email", e.target.checked)}
+          />
+          Email
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={Boolean(channels.in_app)}
+            onChange={(e) => void toggleChannel("in_app", e.target.checked)}
+          />
+          In-app
+        </label>
+      </div>
       <ul className="mt-4 space-y-3">
         {items.map((item) => (
           <li key={item.key} className="flex items-center justify-between text-sm">

@@ -69,8 +69,6 @@ class AdminDashboardService:
         pending_merchants = (
             db.query(Merchant).filter(Merchant.status == MerchantStatus.PENDING.value).count()
         )
-        drivers_online = db.query(Driver).filter(Driver.is_online.is_(True)).count()
-        drivers_offline = db.query(Driver).filter(Driver.is_online.is_(False)).count()
         dispatch_queue = db.query(Order).filter(Order.state == OrderState.DISPATCH_READY.value).count()
         in_transit = db.query(Order).filter(
             Order.state.in_(
@@ -95,18 +93,13 @@ class AdminDashboardService:
         open_tickets = db.query(SupportTicket).filter(
             SupportTicket.status.in_(["open", "in_progress", "escalated"])
         ).count()
-        fleet_health = round(
-            (drivers_online / (drivers_online + drivers_offline) * 100) if (drivers_online + drivers_offline) else 100.0,
-            1,
-        )
 
         return {
             "todays_revenue_cents": int(todays_revenue),
             "todays_bookings": todays_bookings,
             "pending_quotes": pending_quotes,
             "pending_merchant_approvals": pending_merchants,
-            "drivers_online": drivers_online,
-            "drivers_offline": drivers_offline,
+            # Driver online counts + fleet health are Fleetbase-owned (fleetbase-first policy).
             "orders_waiting_dispatch": dispatch_queue,
             "orders_in_transit": in_transit,
             "completed_today": completed_today,
@@ -114,7 +107,6 @@ class AdminDashboardService:
             "open_claims": open_claims,
             "outstanding_invoices_cents": int(outstanding_invoices),
             "open_support_tickets": open_tickets,
-            "fleet_health_percent": fleet_health,
         }
 
     def get_center(self, db: Session, settings: Settings, *, role: str = "admin") -> dict[str, Any]:
@@ -214,16 +206,16 @@ class AdminDashboardService:
             "customers": customers,
             "drivers": {
                 **drivers,
-                "online": kpis["drivers_online"],
-                "offline": kpis["drivers_offline"],
-                "busy": max(kpis["drivers_online"] - int(orders.get("assigned", 0)), 0),
-                "available": max(kpis["drivers_online"] - int(orders.get("assigned", 0)), 0),
+                # Online/offline/busy/available removed — live driver state is
+                # Fleetbase-owned; see the Fleetbase console for live capacity.
             },
             "fleet": {
                 "vehicles_total": vehicles_total,
                 "vehicles_active": vehicles_active,
                 "vehicles_available": max(vehicles_total - vehicles_active, 0),
-                "utilization_percent": kpis["fleet_health_percent"],
+                "utilization_percent": round(
+                    (vehicles_active / vehicles_total * 100) if vehicles_total else 100.0, 1
+                ),
             },
             "trends": trends,
             "executive": executive,
@@ -252,15 +244,45 @@ class AdminDashboardService:
     def global_search(self, db: Session, query: str, *, limit: int = 25) -> list[dict[str, Any]]:
         """Cross-module search for the command center header."""
         from porterchain_api.admin_engine.finance_service import AdminFinanceService
-        from porterchain_api.admin_engine.live_map_service import LiveMapService
         from porterchain_api.models import BookingDraft
 
         q = query.strip()
         if len(q) < 2:
             return []
 
-        hits = LiveMapService().search(db, q, limit=limit)
         like = f"%{q}%"
+        hits: list[dict[str, Any]] = []
+
+        for o in (
+            db.query(Order)
+            .filter(or_(Order.tracking_number.ilike(like), Order.order_number.ilike(like), Order.id.ilike(like)))
+            .limit(5)
+            .all()
+        ):
+            hits.append(
+                {
+                    "type": "order",
+                    "id": o.id,
+                    "label": o.tracking_number or o.order_number or o.id[:8],
+                    "subtitle": o.state,
+                }
+            )
+
+        for d in (
+            db.query(Driver)
+            .filter(or_(Driver.full_name.ilike(like), Driver.email.ilike(like), Driver.id.ilike(like)))
+            .limit(5)
+            .all()
+        ):
+            hits.append({"type": "driver", "id": d.id, "label": d.full_name, "subtitle": d.status})
+
+        for m in (
+            db.query(Merchant)
+            .filter(or_(Merchant.name.ilike(like), Merchant.id.ilike(like)))
+            .limit(5)
+            .all()
+        ):
+            hits.append({"type": "merchant", "id": m.id, "label": m.name, "subtitle": m.status})
 
         for t in (
             db.query(SupportTicket)

@@ -2,10 +2,10 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-08-07
 
 **Source:** Frontend `lib/api.ts` files, `apps/api/src/porterchain_api/routers/`  
-**See also:** [API_FLOW_DIAGRAM.md](../../API_FLOW_DIAGRAM.md) · [APPLICATION_FLOW.md](./APPLICATION_FLOW.md)
+**See also:** [APPLICATION_FLOW.md](./APPLICATION_FLOW.md)
 
 > **Policy:** [masterrule.md](../../masterrule.md) §7
 
@@ -13,18 +13,18 @@
 
 ## Client → API matrix
 
-| Client          | Base URL                | Auth                             | Key paths                                                                                                                         |
-| --------------- | ----------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Website         | `:8001/v1`              | Clerk bearer (booking)           | `/quotes`, `/bookings`, `/booking-drafts`, `/orders`, `/customers/me`, `/payments`                                                |
-| Customer        | `:8001/v1`              | Clerk bearer                     | `/customers/me/dashboard`, `/customers/me/support`, `/customers/me/rebook/{id}`                                                   |
-| Merchant        | `:8001/v1/merchant`     | Clerk bearer                     | `/dashboard`, `/bookings`, `/orders`, `/bulk`, `/billing`, `/api-keys`, `/integrations/webhooks`                                  |
-| Merchant API    | `:8001/v1/merchant-api` | `X-Api-Key` + scopes             | `/bookings`, `/orders`, `/track/{tracking_number}`                                                                                |
-| Admin           | `:8001/v1/admin`        | Clerk bearer                     | `/dashboard`, `/orders`, `/operations`, `/route-center`, `/crm`, `/merchants`, `/drivers`, `/finance`, `/reports`, `/diagnostics` |
-| Driver portal   | `:8001/driver-api/v1`   | Porterchain JWT (via Next proxy) | `/auth/login`, `/routes`, `/stops`, `/location`, `/pod`                                                                           |
-| mobile-driver   | `:8001/driver-api/v1`   | Clerk → Porterchain JWT          | Same as driver portal                                                                                                             |
-| mobile-customer | `:8001/v1`              | Clerk bearer                     | `/customers/me/*`                                                                                                                 |
-| Stripe          | `:8001/webhooks`        | HMAC                             | `/webhooks/stripe`                                                                                                                |
-| Fleetbase       | `:8001/webhooks`        | HMAC                             | `/webhooks/fleetbase`                                                                                                             |
+| Client          | Base URL                | Auth                             | Key paths                                                                                                        |
+| --------------- | ----------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Website         | `:8001/v1`              | Clerk bearer (booking)           | `/quotes`, `/bookings`, `/booking-drafts`, `/orders`, `/customers/me`, `/payments`                               |
+| Customer        | `:8001/v1`              | Clerk bearer                     | `/customers/me/dashboard`, `/customers/me/support`, `/customers/me/rebook/{id}`                                  |
+| Merchant        | `:8001/v1/merchant`     | Clerk bearer                     | `/dashboard`, `/bookings`, `/orders`, `/bulk`, `/billing`, `/api-keys`, `/integrations/webhooks`                 |
+| Merchant API    | `:8001/v1/merchant-api` | `X-Api-Key` + scopes             | `/bookings`, `/orders`, `/track/{tracking_number}`                                                               |
+| Admin           | `:8001/v1/admin`        | Clerk bearer                     | `/dashboard`, `/orders`, `/operations`, `/crm`, `/merchants`, `/drivers`, `/finance`, `/reports`, `/diagnostics` |
+| Driver portal   | `:8001/driver-api/v1`   | Porterchain JWT (via Next proxy) | `/auth/login`, `/routes`, `/stops`, `/location`, `/pod`                                                          |
+| mobile-driver   | `:8001/driver-api/v1`   | Clerk → Porterchain JWT          | Same as driver portal                                                                                            |
+| mobile-customer | `:8001/v1`              | Clerk bearer                     | `/customers/me/*`                                                                                                |
+| Stripe          | `:8001/webhooks`        | HMAC                             | `/webhooks/stripe`                                                                                               |
+| Fleetbase       | `:8001/webhooks`        | HMAC                             | `/webhooks/fleetbase`                                                                                            |
 
 Webhooks are **not** under `/v1/` — router prefix is `/webhooks`.
 
@@ -72,10 +72,9 @@ flowchart LR
     MERCH_KEY["/v1/merchant-api"]
     ADMIN_API["/v1/admin/*"]
     OPS["/v1/admin/operations"]
-    RC["/v1/admin/route-center"]
     DRV_API["/driver-api/v1"]
     WH["/webhooks/stripe, /webhooks/fleetbase"]
-    WS["WS /v1/admin/operations/live-map/ws"]
+    NWS["WS /v1/notifications/ws"]
   end
 
   subgraph External
@@ -89,7 +88,7 @@ flowchart LR
   C & MCUST --> CUST_API
   M --> MERCH_API
   MAPI --> MERCH_KEY
-  A --> ADMIN_API & OPS & RC & WS
+  A --> ADMIN_API & OPS & NWS
   D & MDRV --> DRV_API
   W & M & A & C --> GMAPS
   Clients --> CLERK
@@ -115,10 +114,3 @@ See [plantuml/api_dependency.puml](./plantuml/api_dependency.puml)
 | [PORT_CONFIGURATION.md](../../PORT_CONFIGURATION.md) | Ports            |
 
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

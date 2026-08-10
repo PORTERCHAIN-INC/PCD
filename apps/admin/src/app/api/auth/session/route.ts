@@ -1,7 +1,9 @@
-import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
 
-/** Server-side session probe — used by /sign-in to avoid client/server auth mismatch loops. */
-export async function GET() {
-  const { userId } = await auth();
-  return Response.json({ signedIn: Boolean(userId) });
+/**
+ * Session probe for sign-in — staff IdP cookie only (Clerk retired from admin).
+ */
+export async function GET(req: NextRequest) {
+  const signedIn = Boolean(req.cookies.get("pc_staff_sid")?.value);
+  return NextResponse.json({ signedIn });
 }

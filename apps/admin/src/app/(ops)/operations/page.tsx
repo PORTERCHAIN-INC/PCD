@@ -4,106 +4,162 @@ import { useEffect, useRef, useState } from "react";
 import {
   Activity as ActivityIcon,
   AlertTriangle,
-  Boxes,
+  CalendarDays,
   ClipboardList,
   Clock,
-  ExternalLink,
+  Gauge,
+  LayoutDashboard,
   LayoutGrid,
-  MapPin,
+  Map,
+  Monitor,
+  Moon,
   Package,
   Pause,
   Play,
   Radio,
-  Search,
+  Users,
   Sparkles,
   Timer,
-  Truck,
-  Users,
-  Wallet,
-  Zap,
+  Plus,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
-import { api } from "@/lib/api";
-import { ops, SLA_TONE, type AssignableDriver, type OpsOrder } from "@/lib/operations";
+import { ops, type OpsOrder } from "@/lib/operations";
 import { DispatchBoard } from "@/components/operations/DispatchBoard";
 import { DispatchQueuePanel } from "@/components/operations/DispatchQueuePanel";
-import { OperationsLiveMapPanel } from "@/components/operations/OperationsLiveMapPanel";
+import { KpiStrip } from "@/components/operations/KpiStrip";
+import { LiveMapPanel } from "@/components/operations/LiveMapPanel";
+import { adaptivePollMs, OpsAlertToast } from "@/components/operations/OpsAlertToast";
+import { DispatcherCopilotPanel } from "@/components/operations/DispatcherCopilotPanel";
+import { OptimizePanel } from "@/components/operations/OptimizePanel";
+import { OpsCommandPalette } from "@/components/operations/OpsCommandPalette";
+import { OrdersTablePanel } from "@/components/operations/OrdersTablePanel";
+import { ScheduledBatchesPanel } from "@/components/operations/ScheduledBatchesPanel";
+import { UtilizationPanel } from "@/components/operations/UtilizationPanel";
+import { Order360Drawer } from "@/components/orders/Order360Drawer";
+import { OrderBuilderModal } from "@/components/orders/OrderBuilderModal";
+import { AssignDriverModal } from "@/components/orders/AssignDriverModal";
 import {
-  Badge,
-  Button,
-  EmptyState,
-  SectionCard,
-  Select,
-  Spinner,
-} from "@/components/crm/primitives";
-import { money, relativeTime, titleCase, dateTime } from "@/lib/crmFormat";
+  ExceptionReasonModal,
+  isExceptionColumn,
+  type ExceptionColumn,
+} from "@/components/orders/ExceptionReasonModal";
+import OpenFleetbaseButton from "@/components/nav/OpenFleetbaseButton";
+import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { relativeTime, titleCase, dateTime } from "@/lib/crmFormat";
 
-const STATE_TONE = (sla: string) => SLA_TONE[sla] ?? "slate";
-
-type TabId = "board" | "orders" | "queue" | "exceptions" | "sla" | "ai" | "activity" | "map";
+type TabId =
+  | "overview"
+  | "board"
+  | "map"
+  | "orders"
+  | "queue"
+  | "scheduled"
+  | "optimize"
+  | "exceptions"
+  | "sla"
+  | "ai"
+  | "activity"
+  | "utilization";
 const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "board", label: "Dispatch Board", icon: LayoutGrid },
+  { id: "map", label: "Live Map", icon: Map },
   { id: "orders", label: "Active Orders", icon: Package },
   { id: "queue", label: "Dispatch Queue", icon: ClipboardList },
+  { id: "scheduled", label: "Scheduled", icon: CalendarDays },
+  { id: "optimize", label: "Optimize", icon: Gauge },
+  { id: "utilization", label: "Utilization", icon: Users },
   { id: "exceptions", label: "Exceptions", icon: AlertTriangle },
   { id: "sla", label: "SLA Monitor", icon: Timer },
-  { id: "ai", label: "AI Ops", icon: Sparkles },
+  { id: "ai", label: "Copilot", icon: Sparkles },
   { id: "activity", label: "Live Activity", icon: ActivityIcon },
-  { id: "map", label: "Live Map", icon: MapPin },
 ];
 
+type OpsDisplay = "default" | "dark" | "wall";
+const DISPLAY_KEY = "porterchain.ops.display";
+
 export default function OperationsPage() {
-  const { getApiToken } = useAdminAuth();
-  const [tab, setTab] = useState<TabId>("board");
+  const [tab, setTab] = useState<TabId>("overview");
   const [auto, setAuto] = useState(true);
+  const [sound, setSound] = useState(false);
+  const [display, setDisplay] = useState<OpsDisplay>("default");
   const [tick, setTick] = useState(0);
   const [updatedAt, setUpdatedAt] = useState<Date>(new Date());
-  const [ssoLoading, setSsoLoading] = useState(false);
+  const [drawerOrderId, setDrawerOrderId] = useState<string | null>(null);
+  const [builderOpen, setBuilderOpen] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  useEffect(() => {
+    const raw = localStorage.getItem(DISPLAY_KEY);
+    if (raw === "dark" || raw === "wall" || raw === "default") setDisplay(raw);
+  }, []);
+
+  const cycleDisplay = () => {
+    const next: OpsDisplay =
+      display === "default" ? "dark" : display === "dark" ? "wall" : "default";
+    setDisplay(next);
+    localStorage.setItem(DISPLAY_KEY, next);
+  };
+
+  const openOrder = (id: string) => setDrawerOrderId(id);
+  const refresh = () => setTick((x) => x + 1);
+
   const { data: stats } = useApiData((t) => ops.stats(t), [tick], { key: "ops-stats" });
+  const pollMs = adaptivePollMs(stats);
 
   useEffect(() => {
-    if (auto) {
-      timer.current = setInterval(() => setTick((x) => x + 1), 15000);
-      return () => {
-        if (timer.current) clearInterval(timer.current);
-      };
-    }
-  }, [auto]);
+    if (!auto) return;
+    timer.current = setInterval(() => setTick((x) => x + 1), pollMs);
+    return () => {
+      if (timer.current) clearInterval(timer.current);
+    };
+  }, [auto, pollMs]);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- stamp last-refresh time whenever the polling tick advances
     setUpdatedAt(new Date());
   }, [tick]);
 
-  async function openFleetbase() {
-    setSsoLoading(true);
-    try {
-      const token = await getApiToken();
-      const session = await api.fleetbaseSso(token);
-      window.open(session.console_url, "_blank", "noopener,noreferrer");
-    } finally {
-      setSsoLoading(false);
-    }
-  }
-
   return (
-    <div className="space-y-4">
+    <div
+      className={cn(
+        "ops-tower space-y-4",
+        display === "dark" && "ops-tower--dark",
+        display === "wall" && "ops-tower--dark ops-tower--wall"
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-primary">
             <Radio className="h-5 w-5 text-secondary" /> Operations Control Tower
           </h1>
-          <p className="text-sm text-muted">
-            Real-time view of dispatch, deliveries, exceptions and SLA across the network.
-          </p>
+          {display !== "wall" && (
+            <p className="text-sm text-muted">
+              Real-time view of dispatch, deliveries, exceptions and SLA across the network.
+            </p>
+          )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <span className="flex items-center gap-1.5 text-xs text-muted">
             <Clock className="h-3.5 w-3.5" /> Updated {updatedAt.toLocaleTimeString("en-CA")}
+            {auto && <span className="text-muted/70">· every {Math.round(pollMs / 1000)}s</span>}
           </span>
+          <Button variant="outline" onClick={cycleDisplay} className="text-xs" title="Display mode">
+            {display === "wall" ? (
+              <Monitor className="h-4 w-4" />
+            ) : display === "dark" ? (
+              <Moon className="h-4 w-4" />
+            ) : (
+              <Monitor className="h-4 w-4" />
+            )}
+            {display === "default" ? "Light" : display === "dark" ? "Dark" : "Wall"}
+          </Button>
+          <Button variant="outline" onClick={() => setSound((s) => !s)} className="text-xs">
+            {sound ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            {sound ? "Sound on" : "Sound off"}
+          </Button>
           <Button variant="outline" onClick={() => setAuto((a) => !a)} className="text-xs">
             {auto ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             {auto ? "Live" : "Paused"}
@@ -111,81 +167,19 @@ export default function OperationsPage() {
           <Button variant="outline" onClick={() => setTick((x) => x + 1)} className="text-xs">
             Refresh
           </Button>
-          <Button onClick={openFleetbase} disabled={ssoLoading}>
-            <ExternalLink className="h-4 w-4" /> {ssoLoading ? "Opening…" : "Fleetbase Console"}
-          </Button>
+          {display !== "wall" && (
+            <Button onClick={() => setBuilderOpen(true)} className="text-xs">
+              <Plus className="h-4 w-4" /> New order
+            </Button>
+          )}
+          {display !== "wall" && <OpenFleetbaseButton variant="toolbar" />}
         </div>
       </div>
 
-      {/* KPI grid */}
-      {stats && (
-        <div className="ops-stat-grid grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
-          <Kpi icon={Package} label="Orders today" value={String(stats.orders_today)} />
-          <Kpi
-            icon={Truck}
-            label="Active deliveries"
-            value={String(stats.active_deliveries)}
-            accent="text-secondary"
-          />
-          <Kpi
-            icon={ClipboardList}
-            label="Waiting dispatch"
-            value={String(stats.waiting_dispatch)}
-            accent="text-amber-600"
-          />
-          <Kpi
-            icon={Zap}
-            label="Delayed"
-            value={String(stats.delayed_orders)}
-            accent="text-red-600"
-          />
-          <Kpi
-            icon={AlertTriangle}
-            label="High priority"
-            value={String(stats.high_priority_orders)}
-            accent="text-red-600"
-          />
-          <Kpi
-            icon={Users}
-            label="Drivers online"
-            value={String(stats.drivers_online)}
-            accent="text-green-600"
-          />
-          <Kpi icon={Truck} label="Vehicles active" value={String(stats.vehicles_active)} />
-          <Kpi
-            icon={Wallet}
-            label="Revenue today"
-            value={money(stats.revenue_today_cents)}
-            accent="text-secondary"
-          />
-          <Kpi icon={MapPin} label="Pending pickups" value={String(stats.pending_pickups)} />
-          <Kpi icon={MapPin} label="Pending deliveries" value={String(stats.pending_deliveries)} />
-          <Kpi
-            icon={AlertTriangle}
-            label="Failed"
-            value={String(stats.failed_deliveries)}
-            accent="text-red-600"
-          />
-          <Kpi
-            icon={Boxes}
-            label="Completed today"
-            value={String(stats.completed_today)}
-            accent="text-green-600"
-          />
-          <Kpi
-            icon={AlertTriangle}
-            label="Open exceptions"
-            value={String(stats.open_exceptions)}
-            accent="text-amber-600"
-          />
-          <Kpi icon={AlertTriangle} label="Open claims" value={String(stats.open_claims)} />
-          <Kpi icon={ClipboardList} label="Support tickets" value={String(stats.support_tickets)} />
-          <Kpi icon={Users} label="Drivers offline" value={String(stats.drivers_offline)} />
-        </div>
-      )}
+      {stats && <KpiStrip stats={stats} onDrill={(t) => setTab(t)} />}
 
       {/* Tabs */}
-      <div className="ops-table-scroll flex gap-1 rounded-2xl border border-primary/10 bg-white p-1.5">
+      <div className="ops-table-scroll flex gap-1 rounded-2xl border border-primary/10 bg-white p-1.5 ops-tower-tabs">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -201,56 +195,91 @@ export default function OperationsPage() {
         ))}
       </div>
 
-      {tab === "board" && <BoardTab tick={tick} onMoved={() => setTick((x) => x + 1)} />}
-      {tab === "orders" && <OrdersTab tick={tick} />}
-      {tab === "queue" && (
-        <DispatchQueuePanel tick={tick} onAssigned={() => setTick((x) => x + 1)} />
+      {tab === "overview" && (
+        <OverviewTab tick={tick} onAssigned={refresh} onOpenOrder={openOrder} />
       )}
-      {tab === "exceptions" && <ExceptionsTab tick={tick} />}
-      {tab === "sla" && <SlaTab tick={tick} />}
-      {tab === "ai" && <AiTab tick={tick} />}
-      {tab === "activity" && <ActivityTab tick={tick} />}
-      {tab === "map" && <OperationsLiveMapPanel tick={tick} onFleetbase={openFleetbase} />}
+      {tab === "board" && <BoardTab tick={tick} onMoved={refresh} onOpenOrder={openOrder} />}
+      {tab === "map" && <LiveMapPanel tick={tick} onOpenOrder={openOrder} />}
+      {tab === "orders" && <OrdersTablePanel tick={tick} onOpenOrder={openOrder} />}
+      {tab === "queue" && (
+        <DispatchQueuePanel tick={tick} onAssigned={refresh} onOpenOrder={openOrder} />
+      )}
+      {tab === "scheduled" && <ScheduledBatchesPanel tick={tick} onOpenOrder={openOrder} />}
+      {tab === "optimize" && (
+        <OptimizePanel tick={tick} onOpenOrder={openOrder} onCommitted={refresh} />
+      )}
+      {tab === "utilization" && <UtilizationPanel tick={tick} />}
+      {tab === "exceptions" && <ExceptionsTab tick={tick} onOpenOrder={openOrder} />}
+      {tab === "sla" && <SlaTab tick={tick} onOpenOrder={openOrder} />}
+      {tab === "ai" && (
+        <DispatcherCopilotPanel tick={tick} onOpenOrder={openOrder} onChanged={refresh} />
+      )}
+      {tab === "activity" && (
+        <ActivityTab tick={tick} followOrderId={drawerOrderId} onOpenOrder={openOrder} />
+      )}
+
+      <Order360Drawer
+        orderId={drawerOrderId}
+        onClose={() => setDrawerOrderId(null)}
+        onChanged={refresh}
+      />
+      <OrderBuilderModal
+        open={builderOpen}
+        onClose={() => setBuilderOpen(false)}
+        onCreated={(id) => {
+          refresh();
+          openOrder(id);
+        }}
+      />
+      <OpsCommandPalette onOpenOrder={openOrder} />
+      <OpsAlertToast stats={stats} soundEnabled={sound} />
     </div>
   );
 }
 
-function Kpi({
-  icon: Icon,
-  label,
-  value,
-  accent = "text-primary",
+function OverviewTab({
+  tick,
+  onAssigned,
+  onOpenOrder,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  accent?: string;
+  tick: number;
+  onAssigned: () => void;
+  onOpenOrder: (id: string) => void;
 }) {
   return (
-    <div className="rounded-xl border border-primary/10 bg-white p-3">
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium text-muted">{label}</p>
-        <Icon className={`h-3.5 w-3.5 ${accent}`} />
+    <div className="space-y-3">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <DispatchQueuePanel tick={tick} onAssigned={onAssigned} onOpenOrder={onOpenOrder} />
+        <LiveMapPanel tick={tick} onOpenOrder={onOpenOrder} />
       </div>
-      <p className="mt-1 text-lg font-bold text-primary">{value}</p>
+      <ActivityTab tick={tick} compact />
     </div>
   );
 }
 
-function SlaBadge({ sla }: { sla: string }) {
-  return <Badge tone={STATE_TONE(sla)}>{sla === "at_risk" ? "At risk" : titleCase(sla)}</Badge>;
-}
-
-function BoardTab({ tick, onMoved }: { tick: number; onMoved: () => void }) {
+function BoardTab({
+  tick,
+  onMoved,
+  onOpenOrder,
+}: {
+  tick: number;
+  onMoved: () => void;
+  onOpenOrder: (id: string) => void;
+}) {
   const { getApiToken } = useAdminAuth();
   const { data, refetch } = useApiData((t) => ops.board(t), [tick], { key: "ops-board" });
   const [error, setError] = useState<string | null>(null);
+  const [assignOrder, setAssignOrder] = useState<OpsOrder | null>(null);
+  const [exceptionTarget, setExceptionTarget] = useState<{
+    order: OpsOrder;
+    column: ExceptionColumn;
+  } | null>(null);
 
-  async function move(order: OpsOrder, toColumn: string) {
+  async function move(order: OpsOrder, toColumn: string, reason?: string) {
     setError(null);
     try {
       const token = await getApiToken();
-      await ops.moveBoardOrder(token, order.id, toColumn);
+      await ops.moveBoardOrder(token, order.id, toColumn, reason);
       onMoved();
       await refetch();
     } catch (e) {
@@ -259,116 +288,212 @@ function BoardTab({ tick, onMoved }: { tick: number; onMoved: () => void }) {
     }
   }
 
+  function requestMove(order: OpsOrder, toColumn: string) {
+    setError(null);
+    if (toColumn === "assigned") {
+      setAssignOrder(order);
+      return;
+    }
+    if (isExceptionColumn(toColumn)) {
+      setExceptionTarget({ order, column: toColumn });
+      return;
+    }
+    setError(
+      "Execution columns (accept → delivered) advance in Fleetbase / the driver app. Use Assign for drivers, or Order 360 for exceptions."
+    );
+  }
+
   if (!data) return <Spinner label="Loading board…" />;
 
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted">
-        Drag orders between columns to advance dispatch state. Moves follow the order lifecycle —
-        backward jumps are blocked when no valid path exists.
+        Click a card to open Order 360. Drop on <strong>Assigned</strong> to pick a driver, or on
+        Failed / Returned / Lost / Damaged to enter a reason. Accept → Deliver stays in Fleetbase.
       </p>
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
           {error}
         </div>
       )}
-      <DispatchBoard columns={data} onMove={move} />
+      <DispatchBoard
+        columns={data}
+        onMove={(o, col) => move(o, col)}
+        onRequestMove={requestMove}
+        onOpenOrder={(o) => onOpenOrder(o.id)}
+      />
+      <AssignDriverModal
+        open={!!assignOrder}
+        orderId={assignOrder?.id ?? null}
+        trackingNumber={assignOrder?.tracking_number}
+        currentDriverName={assignOrder?.driver}
+        onClose={() => setAssignOrder(null)}
+        onAssigned={() => {
+          onMoved();
+          void refetch();
+        }}
+      />
+      <ExceptionReasonModal
+        open={!!exceptionTarget}
+        trackingNumber={exceptionTarget?.order.tracking_number}
+        initialColumn={exceptionTarget?.column ?? ""}
+        allowColumnChange={false}
+        onClose={() => setExceptionTarget(null)}
+        onConfirm={async (column, reason) => {
+          if (!exceptionTarget) return;
+          await move(exceptionTarget.order, column, reason);
+        }}
+      />
     </div>
   );
 }
 
-function OrdersTab({ tick }: { tick: number }) {
-  const [search, setSearch] = useState("");
-  const { data } = useApiData((t) => ops.orders(t, search || undefined), [tick, search], {
-    key: "ops-orders",
-  });
+function ExceptionAgeBadge({ createdAt }: { createdAt: string | null }) {
+  if (!createdAt) return null;
+  const hrs = (Date.now() - new Date(createdAt).getTime()) / 3_600_000;
+  const tone = hrs >= 4 ? "red" : hrs >= 1 ? "amber" : "slate";
+  return <Badge tone={tone}>{relativeTime(createdAt)}</Badge>;
+}
+
+function ExceptionsTab({ tick, onOpenOrder }: { tick: number; onOpenOrder: (id: string) => void }) {
+  const { getApiToken } = useAdminAuth();
+  const { data, refetch } = useApiData((t) => ops.exceptions(t), [tick], { key: "ops-exceptions" });
+  const [busy, setBusy] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+
+  async function run(id: string, fn: (token: string) => Promise<unknown>) {
+    setBusy(id);
+    setActionError(null);
+    try {
+      const token = await getApiToken();
+      await fn(token);
+      setResolvingId(null);
+      setNote("");
+      await refetch();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Action failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
-    <SectionCard
-      title="Active orders"
-      action={
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search tracking…"
-            className="w-56 rounded-xl border border-primary/15 py-1.5 pl-9 pr-3 text-sm outline-none focus:border-secondary"
-          />
-        </div>
-      }
-    >
-      <div className="ops-table-scroll">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-primary/10 bg-gray-bg/40 text-xs uppercase text-muted">
-            <tr>
-              <th className="px-4 py-2">Tracking</th>
-              <th className="px-4 py-2">Merchant</th>
-              <th className="px-4 py-2">Driver</th>
-              <th className="px-4 py-2">Route</th>
-              <th className="px-4 py-2">ETA</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">SLA</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(data ?? []).map((o) => (
-              <tr key={o.id} className="border-b border-primary/5">
-                <td className="px-4 py-2 font-mono text-xs font-semibold text-primary">
-                  {o.tracking_number}
-                  {o.high_priority && (
-                    <Badge tone="red" className="ml-1">
-                      High
-                    </Badge>
+    <div className="space-y-3">
+      {actionError && (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {actionError}
+        </p>
+      )}
+      <SectionCard title={`Exception center (${data?.length ?? 0})`}>
+        <div className="divide-y divide-primary/5">
+          {(data ?? []).map((e) => (
+            <div key={e.id} className="px-5 py-3">
+              <div className="flex items-start justify-between gap-3">
+                <div
+                  onClick={() => onOpenOrder(e.order_id)}
+                  className="min-w-0 flex-1 cursor-pointer rounded-lg px-2 py-1 -mx-2 -my-1 transition-colors hover:bg-gray-bg/70"
+                  title="Open Order 360"
+                >
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-primary">
+                    {titleCase(e.type)}
+                    <ExceptionAgeBadge createdAt={e.created_at} />
+                  </p>
+                  <p className="text-xs text-muted">
+                    <span className="font-mono">{e.tracking_number}</span> · {e.merchant ?? "—"} ·
+                    reported by {titleCase(e.reported_by)}
+                    {e.order_state ? ` · order ${titleCase(e.order_state)}` : ""}
+                  </p>
+                  {e.acknowledged_by && (
+                    <p className="mt-0.5 text-[11px] text-muted">
+                      Acknowledged by {e.acknowledged_by} {relativeTime(e.acknowledged_at)}
+                    </p>
                   )}
-                </td>
-                <td className="px-4 py-2">{o.merchant ?? "—"}</td>
-                <td className="px-4 py-2">
-                  {o.driver ?? <span className="text-muted">Unassigned</span>}
-                </td>
-                <td className="px-4 py-2 text-xs text-muted">
-                  {o.pickup ?? "?"} → {o.dropoff ?? "?"}
-                </td>
-                <td className="px-4 py-2 text-xs">{o.eta ? dateTime(o.eta) : "—"}</td>
-                <td className="px-4 py-2">
-                  <Badge tone="sky">{titleCase(o.state)}</Badge>
-                </td>
-                <td className="px-4 py-2">
-                  <SlaBadge sla={o.sla} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {(!data || data.length === 0) && <EmptyState title="No active orders" />}
-      </div>
-    </SectionCard>
-  );
-}
-
-function ExceptionsTab({ tick }: { tick: number }) {
-  const { data } = useApiData((t) => ops.exceptions(t), [tick], { key: "ops-exceptions" });
-  return (
-    <SectionCard title={`Exception center (${data?.length ?? 0})`}>
-      <div className="divide-y divide-primary/5">
-        {(data ?? []).map((e) => (
-          <div key={e.id} className="flex items-center justify-between px-5 py-3">
-            <div>
-              <p className="text-sm font-medium text-primary">{titleCase(e.type)}</p>
-              <p className="text-xs text-muted">
-                {e.tracking_number} · {e.merchant ?? "—"} · reported by {titleCase(e.reported_by)} ·{" "}
-                {relativeTime(e.created_at)}
-              </p>
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                  <Badge tone={e.status === "acknowledged" ? "blue" : "amber"}>
+                    {titleCase(e.status)}
+                  </Badge>
+                  {e.status === "open" && (
+                    <Button
+                      variant="outline"
+                      className="px-3 py-1.5 text-xs"
+                      disabled={busy === e.id}
+                      onClick={() => void run(e.id, (t) => ops.acknowledgeException(t, e.id))}
+                    >
+                      Acknowledge
+                    </Button>
+                  )}
+                  {e.order_state === "FAILED" && (
+                    <Button
+                      variant="outline"
+                      className="px-3 py-1.5 text-xs"
+                      disabled={busy === e.id}
+                      onClick={() => void run(e.id, (t) => ops.retryException(t, e.id))}
+                    >
+                      Retry dispatch
+                    </Button>
+                  )}
+                  <Button
+                    className="px-3 py-1.5 text-xs"
+                    disabled={busy === e.id}
+                    onClick={() => {
+                      setResolvingId(resolvingId === e.id ? null : e.id);
+                      setNote("");
+                    }}
+                  >
+                    Resolve
+                  </Button>
+                  {e.customer_email && (
+                    <a
+                      href={`mailto:${e.customer_email}?subject=Delivery ${e.tracking_number}`}
+                      className="inline-flex items-center gap-1 rounded-xl border border-primary/15 bg-white px-3 py-1.5 text-xs font-medium text-primary hover:bg-gray-bg"
+                    >
+                      Contact
+                    </a>
+                  )}
+                </div>
+              </div>
+              {resolvingId === e.id && (
+                <div className="mt-2 flex items-center gap-2 pl-2">
+                  <input
+                    value={note}
+                    onChange={(ev) => setNote(ev.target.value)}
+                    placeholder="Resolution note (optional)…"
+                    className="w-72 rounded-xl border border-primary/15 px-3 py-1.5 text-sm outline-none focus:border-secondary"
+                  />
+                  <Button
+                    className="px-3 py-1.5 text-xs"
+                    disabled={busy === e.id}
+                    onClick={() =>
+                      void run(e.id, (t) => ops.resolveException(t, e.id, note || undefined))
+                    }
+                  >
+                    Confirm resolve
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="px-3 py-1.5 text-xs"
+                    onClick={() => {
+                      setResolvingId(null);
+                      setNote("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
             </div>
-            <Badge tone="amber">{titleCase(e.status)}</Badge>
-          </div>
-        ))}
-        {(!data || data.length === 0) && <EmptyState title="No open exceptions" />}
-      </div>
-    </SectionCard>
+          ))}
+          {(!data || data.length === 0) && <EmptyState title="No open exceptions" />}
+        </div>
+      </SectionCard>
+    </div>
   );
 }
 
-function SlaTab({ tick }: { tick: number }) {
+function SlaTab({ tick, onOpenOrder }: { tick: number; onOpenOrder: (id: string) => void }) {
   const { data } = useApiData((t) => ops.sla(t), [tick], { key: "ops-sla" });
   if (!data) return <Spinner />;
   return (
@@ -376,7 +501,7 @@ function SlaTab({ tick }: { tick: number }) {
       <SectionCard title={`Breached (${data.breached_count})`}>
         <div className="divide-y divide-primary/5">
           {data.breached.map((o) => (
-            <SlaRow key={o.id} o={o} />
+            <SlaRow key={o.id} o={o} onOpen={() => onOpenOrder(o.id)} />
           ))}
           {data.breached.length === 0 && <EmptyState title="No SLA breaches" />}
         </div>
@@ -384,7 +509,7 @@ function SlaTab({ tick }: { tick: number }) {
       <SectionCard title={`At risk (${data.at_risk_count})`}>
         <div className="divide-y divide-primary/5">
           {data.at_risk.map((o) => (
-            <SlaRow key={o.id} o={o} />
+            <SlaRow key={o.id} o={o} onOpen={() => onOpenOrder(o.id)} />
           ))}
           {data.at_risk.length === 0 && <EmptyState title="Nothing approaching breach" />}
         </div>
@@ -393,9 +518,16 @@ function SlaTab({ tick }: { tick: number }) {
   );
 }
 
-function SlaRow({ o }: { o: OpsOrder }) {
+function SlaRow({ o, onOpen }: { o: OpsOrder; onOpen?: () => void }) {
   return (
-    <div className="flex items-center justify-between px-5 py-3">
+    <div
+      onClick={onOpen}
+      className={cn(
+        "flex items-center justify-between px-5 py-3",
+        onOpen && "cursor-pointer transition-colors hover:bg-gray-bg/60"
+      )}
+      title={onOpen ? "Open Order 360" : undefined}
+    >
       <div>
         <p className="font-mono text-xs font-semibold text-primary">{o.tracking_number}</p>
         <p className="text-xs text-muted">
@@ -407,85 +539,128 @@ function SlaRow({ o }: { o: OpsOrder }) {
   );
 }
 
-function AiTab({ tick }: { tick: number }) {
-  const { data } = useApiData((t) => ops.ai(t), [tick], { key: "ops-ai" });
-  if (!data) return <Spinner />;
-  return (
-    <div className="grid gap-5 lg:grid-cols-3">
-      <SectionCard title="Risk orders" className="lg:col-span-2">
-        <div className="divide-y divide-primary/5">
-          {data.risk_orders.map((o) => (
-            <div key={o.id} className="flex items-center justify-between px-5 py-3">
-              <div>
-                <p className="font-mono text-xs font-semibold text-primary">{o.tracking_number}</p>
-                <p className="text-xs text-muted">{(o.reasons ?? []).join(" · ")}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge tone={(o.risk_score ?? 0) >= 60 ? "red" : "amber"}>
-                  Risk {o.risk_score}
-                </Badge>
-                <SlaBadge sla={o.sla} />
-              </div>
-            </div>
-          ))}
-          {data.risk_orders.length === 0 && (
-            <EmptyState title="No risk orders" hint={data.recommendation} />
-          )}
-        </div>
-      </SectionCard>
-      <SectionCard title="Dispatch recommendation">
-        <div className="p-5">
-          <div className="rounded-xl border border-secondary/20 bg-secondary/5 p-3 text-sm text-primary">
-            <Sparkles className="mb-1 h-4 w-4 text-secondary" />
-            {data.recommendation}
-          </div>
-          <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
-            Suggested drivers
-          </p>
-          <div className="space-y-2">
-            {data.suggested_drivers.map((d) => (
-              <div
-                key={d.id}
-                className="flex items-center justify-between rounded-lg border border-primary/10 px-3 py-2 text-sm"
-              >
-                <span className="text-primary">{d.name}</span>
-                <span className="text-xs text-muted">
-                  {d.rating ? `${d.rating}★` : ""} {d.online ? "● online" : ""}
-                </span>
-              </div>
-            ))}
-            {data.suggested_drivers.length === 0 && (
-              <p className="text-sm text-muted">No drivers online.</p>
-            )}
-          </div>
-        </div>
-      </SectionCard>
-    </div>
-  );
+const FOLLOW_KEY = "porterchain.ops.followOrderIds";
+
+function readFollowed(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(FOLLOW_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
 }
 
-function ActivityTab({ tick }: { tick: number }) {
+function writeFollowed(ids: string[]) {
+  localStorage.setItem(FOLLOW_KEY, JSON.stringify(ids.slice(0, 20)));
+}
+
+function ActivityTab({
+  tick,
+  compact,
+  followOrderId,
+  onOpenOrder,
+}: {
+  tick: number;
+  compact?: boolean;
+  followOrderId?: string | null;
+  onOpenOrder?: (id: string) => void;
+}) {
   const { data } = useApiData((t) => ops.activity(t), [tick], { key: "ops-activity" });
+  const [followed, setFollowed] = useState<string[]>(() => readFollowed());
+  const [followOnly, setFollowOnly] = useState(false);
+
+  useEffect(() => {
+    writeFollowed(followed);
+  }, [followed]);
+
+  function toggleFollow(orderId: string) {
+    setFollowed((prev) =>
+      prev.includes(orderId) ? prev.filter((id) => id !== orderId) : [...prev, orderId]
+    );
+  }
+
+  const filtered = (data ?? []).filter((e) =>
+    followOnly && followed.length ? followed.includes(e.aggregate_id) : true
+  );
+  const rows = compact ? filtered.slice(0, 8) : filtered;
+
   return (
-    <SectionCard title="Live activity">
-      <div className="divide-y divide-primary/5">
-        {(data ?? []).map((e) => (
+    <SectionCard
+      title={compact ? "Live activity feed" : "Live activity"}
+      action={
+        !compact ? (
+          <div className="flex items-center gap-2">
+            {followOrderId && (
+              <Button
+                variant="outline"
+                className="text-xs"
+                onClick={() => toggleFollow(followOrderId)}
+              >
+                {followed.includes(followOrderId) ? "Unfollow open order" : "Follow open order"}
+              </Button>
+            )}
+            <Button
+              variant={followOnly ? "primary" : "outline"}
+              className="text-xs"
+              onClick={() => setFollowOnly((v) => !v)}
+              disabled={!followed.length}
+            >
+              Follow mode {followed.length ? `(${followed.length})` : ""}
+            </Button>
+          </div>
+        ) : undefined
+      }
+    >
+      <div className={cn("divide-y divide-primary/5", compact && "max-h-64 overflow-y-auto")}>
+        {rows.map((e) => (
           <div key={e.id} className="flex items-center justify-between px-5 py-2.5">
             <div className="flex items-center gap-3">
-              <span className="h-2 w-2 rounded-full bg-secondary" />
+              <span
+                className={cn(
+                  "h-2 w-2 rounded-full",
+                  followed.includes(e.aggregate_id) ? "bg-amber-500" : "bg-secondary"
+                )}
+              />
               <div>
                 <p className="text-sm text-primary">
                   {titleCase(e.event_type.replace(/\./g, " "))}
                 </p>
                 <p className="text-xs text-muted">
                   {titleCase(e.aggregate_type)} · {titleCase(e.actor_type)}
+                  {e.aggregate_type === "order" && onOpenOrder ? (
+                    <>
+                      {" · "}
+                      <button
+                        type="button"
+                        className="text-secondary hover:underline"
+                        onClick={() => onOpenOrder(e.aggregate_id)}
+                      >
+                        open
+                      </button>
+                      {" · "}
+                      <button
+                        type="button"
+                        className="text-muted hover:underline"
+                        onClick={() => toggleFollow(e.aggregate_id)}
+                      >
+                        {followed.includes(e.aggregate_id) ? "unfollow" : "follow"}
+                      </button>
+                    </>
+                  ) : null}
                 </p>
               </div>
             </div>
             <span className="text-xs text-muted">{relativeTime(e.occurred_at)}</span>
           </div>
         ))}
-        {(!data || data.length === 0) && <EmptyState title="No recent activity" />}
+        {rows.length === 0 && (
+          <EmptyState
+            title={followOnly ? "No followed-order events" : "No recent activity"}
+            hint={followOnly ? "Follow orders from this feed or Order 360." : undefined}
+          />
+        )}
       </div>
     </SectionCard>
   );

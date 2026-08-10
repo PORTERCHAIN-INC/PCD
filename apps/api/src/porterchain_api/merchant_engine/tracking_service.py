@@ -14,9 +14,8 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.order_engine.buckets import IN_FLIGHT
 from porterchain_api.admin_models import Driver, PricingZone, Vehicle
-from porterchain_api.booking_engine.tracking_service import TrackingService
 from porterchain_api.config import Settings
-from porterchain_api.fleetbase_engine.tracking_translator import TrackingTranslator
+from porterchain_api.fleetbase_engine.tracking_facade import TrackingFacade
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.models import Order, OrderEvent
 from porterchain_services.maps.route_helpers import optimized_route_from_valhalla
@@ -79,7 +78,7 @@ class MerchantTrackingService:
     def __init__(self) -> None:
         from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
 
-        self._tracking = TrackingService()
+        self._tracking = TrackingFacade()
         self._maps = MapsService()
         self._order_repo = OrderRepository()
 
@@ -211,24 +210,12 @@ class MerchantTrackingService:
         if not order.fleetbase_order_id:
             return None
         try:
-            return self._tracking.get_live_tracking(db, settings, order)
+            return self._tracking.fetch_raw(settings, order)
         except Exception:
             return None
 
     def _translate_live(self, live_raw: dict[str, Any] | None) -> dict[str, Any]:
-        if not live_raw:
-            return TrackingTranslator.translate(None)
-
-        tracker = live_raw.get("tracker") if isinstance(live_raw.get("tracker"), dict) else live_raw
-        coords = live_raw.get("coordinates")
-        merged = {**tracker, **(coords if isinstance(coords, dict) else {})}
-        if live_raw.get("eta"):
-            merged["eta"] = live_raw["eta"]
-        if live_raw.get("driver"):
-            merged["driver"] = live_raw["driver"]
-        if live_raw.get("status"):
-            merged["status"] = live_raw["status"]
-        return TrackingTranslator.translate(merged)
+        return TrackingFacade.translate_live(live_raw)
 
     def _extract_proofs(self, live_raw: dict[str, Any] | None) -> list[dict[str, Any]]:
         if not live_raw:
@@ -315,7 +302,7 @@ class MerchantTrackingService:
                 "id": driver.id,
                 "name": driver.full_name,
                 "phone": driver.phone,
-                "is_online": driver.is_online,
+                "is_online": fb_driver.get("online") if isinstance(fb_driver, dict) else None,
                 "rating": driver.rating,
                 "fleetbase": fb_driver,
             }

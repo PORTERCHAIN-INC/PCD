@@ -46,3 +46,44 @@ body {
     }
   }
 }
+
+/* Control Tower display modes (scoped — does not flip whole admin shell) */
+.ops-tower--dark {
+  --primary: #e2e8f0;
+  --secondary: #38bdf8;
+  --gray-bg: #0f172a;
+  --foreground: #e2e8f0;
+  --muted: #94a3b8;
+  color: var(--foreground);
+  background: #020617;
+  border-radius: 1rem;
+  padding: 1rem 1.25rem 1.5rem;
+  min-height: calc(100vh - 6rem);
+}
+
+.ops-tower--dark .bg-white,
+.ops-tower--dark .ops-tower-tabs {
+  background: #0f172a !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.ops-tower--dark .bg-gray-bg\/40,
+.ops-tower--dark .bg-gray-bg\/50,
+.ops-tower--dark .hover\:bg-gray-bg\/60:hover {
+  background-color: rgba(30, 41, 59, 0.7) !important;
+}
+
+.ops-tower--wall {
+  padding: 1.5rem 2rem 2rem;
+  min-height: 100vh;
+  font-size: 1.05rem;
+}
+
+.ops-tower--wall h1 {
+  font-size: 2rem;
+}
+
+.ops-tower--wall .ops-tower-tabs button {
+  font-size: 1rem;
+  padding: 0.65rem 1rem;
+}

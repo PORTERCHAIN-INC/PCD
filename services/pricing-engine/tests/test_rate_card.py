@@ -1,11 +1,11 @@
-"""Rate card defaults and merchant overlays drive quote math."""
+"""Rate card helpers + GTA retail quote path."""
 
 from __future__ import annotations
 
 from datetime import UTC, datetime
 
 from porterchain_pricing.engine import PricingEngine
-from porterchain_pricing.rate_card import RateCard, VehicleRate, default_rate_card, merge_merchant_overlay
+from porterchain_pricing.rate_card import RateCard, default_rate_card, merge_merchant_overlay, rate_card_from_dict
 from porterchain_pricing.types import GeoPoint, PricingContext, PricingRequest
 
 
@@ -17,6 +17,8 @@ def _req(**kwargs) -> PricingRequest:
         distance_meters=10_000,
         estimated_duration_minutes=20,
         scheduled_at=datetime(2026, 7, 13, 12, 0, tzinfo=UTC),  # Monday
+        is_downtown=False,
+        is_upper_zone=False,
     )
     base.update(kwargs)
     return PricingRequest(**base)
@@ -28,60 +30,45 @@ def test_default_rate_card_matches_catalog_floor():
     assert card.liftgate_cents == 4500
 
 
-def test_system_rate_card_changes_per_km():
+def test_retail_uses_gta_matrix_not_rate_card_per_km():
+    """Retail quotes ignore legacy per-km rate card — GTA matrix is authoritative."""
     card = default_rate_card()
-    card.vehicles["cargoVan"] = VehicleRate(per_km_cents=250, minimum_cents=100, surcharge_cents=0)
+    card.vehicles["cargoVan"] = card.vehicles.get("cargoVan") or card.vehicle("cargoVan")
     engine = PricingEngine()
-    ctx = PricingContext(rate_card=card)
-    breakdown = engine.calculate(_req(channel="retail"), ctx)
-    # 10 km * 250¢ = 2500
-    assert breakdown.distance_cents == 2500
-    assert breakdown.base_cents == 2500
+    breakdown = engine.calculate(_req(channel="retail", vehicle_class="cargoVan"), PricingContext(rate_card=card))
+    # cargo_van base $65 for 10 km, 1 drop
+    assert breakdown.final_cents == 6500
+    assert breakdown.metadata.get("pricing_model") == "gta_delivery_rate"
+    assert breakdown.metadata.get("gta_vehicle_type") == "cargo_van"
 
 
-def test_merchant_overlay_raises_minimum():
+def test_merge_merchant_overlay_still_builds_card():
     system = default_rate_card()
     effective = merge_merchant_overlay(
         system,
         {"rate_card": {"vehicles": {"cargoVan": {"per_km_cents": 100, "minimum_cents": 5000, "surcharge_cents": 0}}}},
     )
-    engine = PricingEngine()
-    breakdown = engine.calculate(_req(channel="retail", distance_meters=1000), PricingContext(rate_card=effective))
-    assert breakdown.final_cents >= 5000
+    assert effective.vehicle("cargoVan").minimum_cents == 5000
 
 
-def test_per_minute_and_wait_and_extra_stop():
-    card = default_rate_card()
-    card.per_minute_cents = 50
-    card.wait_cents_per_minute = 100
-    card.extra_stop_cents = 300
+def test_extra_drop_from_additional_stops():
     engine = PricingEngine()
     breakdown = engine.calculate(
         _req(
-            estimated_duration_minutes=10,
-            wait_minutes=5,
+            vehicle_class="sedan",
             additional_stops=[GeoPoint(lat=43.68, lng=-79.39)],
+            is_downtown=False,
+            is_upper_zone=False,
         ),
-        PricingContext(rate_card=card),
+        PricingContext(),
     )
-    codes = {i.code: i.amount_cents for i in breakdown.items}
-    assert codes.get("per_minute") == 500
-    assert codes.get("wait") == 500
-    assert codes.get("additional_stops") == 300
-
-
-def test_weekend_multiplier_from_rate_card():
-    card = default_rate_card()
-    card.weekend_multiplier = 1.5
-    engine = PricingEngine()
-    weekend = _req(scheduled_at=datetime(2026, 7, 11, 12, 0, tzinfo=UTC))  # Saturday
-    breakdown = engine.calculate(weekend, PricingContext(rate_card=card))
-    assert any(i.code == "weekend" for i in breakdown.items)
+    # sedan $45 + 1 extra drop $15 = $60
+    assert breakdown.final_cents == 6000
+    assert any(i.code == "stop_fees" for i in breakdown.items)
 
 
 def test_share_pct_in_metadata():
     card = RateCard(driver_share_pct=70, platform_share_pct=30)
-    # refill vehicles from default
     card.vehicles = default_rate_card().vehicles
     engine = PricingEngine()
     breakdown = engine.calculate(_req(), PricingContext(rate_card=card))
@@ -106,8 +93,6 @@ def test_driver_payout_flat_and_percent():
 
 
 def test_rate_card_from_dict_driver_payout_fields():
-    from porterchain_pricing.rate_card import rate_card_from_dict
-
     card = rate_card_from_dict(
         {
             "driver_payout_mode": "percent",

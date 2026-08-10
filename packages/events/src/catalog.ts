@@ -24,6 +24,7 @@ export const DomainEvents = {
   MERCHANT_LEAD_CREATED: "merchant.lead_created",
   MERCHANT_APPROVED: "merchant.approved",
   MERCHANT_ACTIVATED: "merchant.activated",
+  MERCHANT_SUSPENDED: "merchant.suspended",
   MERCHANT_BILLED: "merchant.billed",
 
   // Payment
@@ -98,6 +99,7 @@ export const EventAliases: Record<string, DomainEventName> = {
   CustomerAuthenticated: DomainEvents.CUSTOMER_AUTHENTICATED,
   PaymentStarted: DomainEvents.PAYMENT_STARTED,
   MerchantApproved: DomainEvents.MERCHANT_APPROVED,
+  MerchantSuspended: DomainEvents.MERCHANT_SUSPENDED,
   PaymentSucceeded: DomainEvents.PAYMENT_SUCCEEDED,
   BookingConfirmed: DomainEvents.BOOKING_CONFIRMED,
   OrderCreated: DomainEvents.ORDER_CREATED,

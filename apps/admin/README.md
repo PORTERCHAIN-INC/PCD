@@ -42,22 +42,20 @@ Fleetbase adapter (server-side only — never called from this UI)
 
 ## Modules
 
-| Module         | Route prefix        | Purpose                                    |
-| -------------- | ------------------- | ------------------------------------------ |
-| Dashboard      | `/dashboard`        | KPIs, ops overview                         |
-| Merchants      | `/merchants`        | Merchant onboarding and management         |
-| Drivers        | `/drivers`          | Driver roster and detail                   |
-| Operations     | `/operations`       | Control tower — dispatch and ops workflows |
-| Live Map       | `/live-map`, `/map` | Fleet visualization                        |
-| Orders         | `/orders`           | Order management                           |
-| Booking drafts | `/booking-drafts`   | Draft reconciliation                       |
-| Claims         | `/claims`           | Claims workflow                            |
-| Pricing        | `/pricing`          | Rate configuration                         |
-| Finance        | `/finance`          | Invoices, payouts                          |
-| Support        | `/support`          | Ticket management                          |
-| Notifications  | `/notifications`    | Admin notification tools                   |
-| Settings       | `/settings`         | Staff, system config                       |
-| System         | `/system`           | Health + diagnostics (tabs)                |
+| Module         | Route prefix      | Purpose                                    |
+| -------------- | ----------------- | ------------------------------------------ |
+| Dashboard      | `/dashboard`      | KPIs, ops overview                         |
+| Merchants      | `/merchants`      | Merchant onboarding and management         |
+| Drivers        | `/drivers`        | Driver roster and detail                   |
+| Operations     | `/operations`     | Control tower — dispatch and ops workflows |
+| Orders         | `/orders`         | Order management                           |
+| Booking drafts | `/booking-drafts` | Draft reconciliation                       |
+| Claims         | `/claims`         | Claims workflow                            |
+| Finance        | `/finance`        | Invoices, payouts                          |
+| Support        | `/support`        | Ticket management                          |
+| Notifications  | `/notifications`  | Admin notification tools                   |
+| Settings       | `/settings`       | Staff, system config                       |
+| System         | `/system`         | Health + diagnostics (tabs)                |
 
 _Phase 2 deferred:_ CRM sales pipeline UI, Route Center, BI reports center — use Fleetbase console + module dashboards.
 
@@ -80,16 +78,10 @@ See [ENVIRONMENT_VARIABLES.md](../../ENVIRONMENT_VARIABLES.md) · [PORT_CONFIGUR
 
 ## Related Documents
 
-| Document                                                                     | Purpose            |
-| ---------------------------------------------------------------------------- | ------------------ |
-| [../../RBAC.md](../../RBAC.md)                                               | Role permissions   |
-| [../../PRODUCTION_READINESS_REPORT.md](../../PRODUCTION_READINESS_REPORT.md) | Platform readiness |
+| Document                                                                                       | Purpose                   |
+| ---------------------------------------------------------------------------------------------- | ------------------------- |
+| [../../docs/architecture/auth-clerk-spicedb.md](../../docs/architecture/auth-clerk-spicedb.md) | Authorization (SpiceDB)   |
+| [../../docs/ops/ORDERS_MODULE.md](../../docs/ops/ORDERS_MODULE.md)                             | Control Tower / Order 360 |
+| [../../docs/PRIORITY_TODOS.md](../../docs/PRIORITY_TODOS.md)                                   | Execution backlog         |
 
 ---
-
-## Governance
-
-| Document                                                       | Role              |
-| -------------------------------------------------------------- | ----------------- |
-| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

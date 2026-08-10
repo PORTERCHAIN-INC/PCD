@@ -358,10 +358,10 @@ function MembersTab({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("merchant_ops");
 
-  const invite = async (e: React.FormEvent) => {
+  const addSeat = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = await getToken();
-    await teamApi.invite(token, email, role, orgId);
+    await teamApi.addSeat(token, email, role, orgId);
     setEmail("");
     await onRefresh();
   };
@@ -381,7 +381,7 @@ function MembersTab({
   return (
     <div className="space-y-6">
       <form
-        onSubmit={(e) => void invite(e)}
+        onSubmit={(e) => void addSeat(e)}
         className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/10 bg-white p-6"
       >
         <div>
@@ -392,6 +392,7 @@ function MembersTab({
             className="mt-1 block rounded-xl border border-primary/15 px-3 py-2 text-sm"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            placeholder="teammate@company.com"
           />
         </div>
         <div>
@@ -408,8 +409,11 @@ function MembersTab({
             ))}
           </select>
         </div>
-        <Button type="submit">Invite user</Button>
+        <Button type="submit">Add teammate</Button>
       </form>
+      <p className="text-xs text-muted">
+        They create their own PorterChain account with this email — no invitation email is sent.
+      </p>
 
       <ul className="divide-y divide-primary/5 rounded-2xl border border-primary/10 bg-white">
         {members.map((m) => (

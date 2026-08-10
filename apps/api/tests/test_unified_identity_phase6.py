@@ -77,11 +77,12 @@ def _enterprise_live(**overrides: object) -> Settings:
 
 
 def _unified_live(**overrides: object) -> Settings:
+    """platform_driver live fixture (name kept for call-site compat)."""
     sk = "sk_live_platform"
     pk = "pk_live_platform"
     jwks = "https://platform.clerk.accounts.dev/.well-known/jwks.json"
     params: dict[str, object] = {
-        "clerk_unified_mode": True,
+        "clerk_unified_mode": False,
         "clerk_secret_key": sk,
         "clerk_publishable_key": pk,
         "clerk_jwks_url": jwks,
@@ -94,9 +95,9 @@ def _unified_live(**overrides: object) -> Settings:
         "clerk_admin_secret_key": sk,
         "clerk_admin_publishable_key": pk,
         "clerk_admin_jwks_url": jwks,
-        "clerk_driver_secret_key": sk,
-        "clerk_driver_publishable_key": pk,
-        "clerk_driver_jwks_url": jwks,
+        "clerk_driver_secret_key": "sk_live_driver",
+        "clerk_driver_publishable_key": "pk_live_driver",
+        "clerk_driver_jwks_url": "https://driver.clerk.accounts.dev/.well-known/jwks.json",
     }
     params.update(overrides)
     return _settings(**params)
@@ -109,10 +110,9 @@ def test_issuer_from_jwks_url() -> None:
     )
 
 
-def test_resolve_mode_enterprise_vs_unified() -> None:
+def test_resolve_mode_enterprise_vs_platform_driver() -> None:
     assert resolve_clerk_runtime_mode(_enterprise_live()) == "enterprise"
-    assert resolve_clerk_runtime_mode(_unified_live()) == "unified"
-    assert resolve_clerk_runtime_mode(_unified_live(clerk_unified_mode=False)) == "unified"
+    assert resolve_clerk_runtime_mode(_unified_live()) == "platform_driver"
 
 
 def test_audit_never_includes_secret_values() -> None:
@@ -157,9 +157,9 @@ def test_production_accepts_enterprise_live() -> None:
     assert production_clerk_errors(s) == []
 
 
-def test_production_accepts_unified_live() -> None:
+def test_production_accepts_platform_driver_live() -> None:
     s = _unified_live(app_env="production")
-    assert resolve_clerk_runtime_mode(s) == "unified"
+    assert resolve_clerk_runtime_mode(s) == "platform_driver"
     assert production_clerk_errors(s) == []
 
 

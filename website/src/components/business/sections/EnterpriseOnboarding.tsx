@@ -86,7 +86,7 @@ export default function EnterpriseOnboarding() {
           className="mt-12 text-center"
         >
           <a
-            href="#inquiry"
+            href="/sign-up?intent=quote&from=business"
             className="inline-flex items-center gap-2 text-sm font-semibold text-[#2563eb] hover:text-[#1d4ed8] transition-colors"
           >
             {t("cta")}

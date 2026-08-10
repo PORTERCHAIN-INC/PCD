@@ -19,20 +19,20 @@ Share this document with enterprise prospects **before** a full SIG. Each contro
 
 ## Access control
 
-| #   | Question                       | Answer                                | Evidence                                                   |
-| --- | ------------------------------ | ------------------------------------- | ---------------------------------------------------------- |
-| A1  | SSO supported?                 | Yes — SAML 2.0 via Clerk Enterprise   | [ADR-017](../architecture/ADR-017-enterprise-saml-scim.md) |
-| A2  | MFA enforced?                  | Yes — Clerk MFA policies per portal   | [SECURITY.md](../../SECURITY.md)                           |
-| A3  | RBAC model documented?         | Yes                                   | [RBAC_MATRIX.md](../../RBAC_MATRIX.md)                     |
-| A4  | Admin audit export?            | Yes                                   | `GET /v1/admin/audit-logs/export`                          |
-| A5  | SCIM provisioning?             | **Roadmap** Phase 2                   | ADR-017 — JIT via Clerk today                              |
-| A6  | Session timeout?               | Yes — Clerk session TTL               | Clerk dashboard                                            |
-| A7  | API keys scoped?               | Yes — merchant API keys + rate limits | `merchant_engine/api_key_service.py`                       |
-| A8  | Secrets in vault?              | Yes — Doppler prod                    | [ADR-013](../architecture/ADR-013-secrets.md)              |
-| A9  | Dev JWT blocked in prod?       | Yes                                   | `config.reject_dev_jwt_secret_in_production`               |
-| A10 | Cross-tenant isolation tested? | Yes                                   | `tests/test_idor.py`                                       |
-| A11 | Password policy?               | Delegated to Clerk / IdP              | —                                                          |
-| A12 | Privileged access logging?     | Yes — admin audit + domain events     | `audit_export_service.py`                                  |
+| #   | Question                       | Answer                                | Evidence                                                        |
+| --- | ------------------------------ | ------------------------------------- | --------------------------------------------------------------- |
+| A1  | SSO supported?                 | Yes — SAML 2.0 via Clerk Enterprise   | [ADR-017](../architecture/ADR-017-enterprise-saml-scim.md)      |
+| A2  | MFA enforced?                  | Yes — Clerk MFA policies per portal   | [SECURITY.md](../../SECURITY.md)                                |
+| A3  | RBAC model documented?         | Yes                                   | [RBAC_MATRIX.md](../../docs/architecture/auth-clerk-spicedb.md) |
+| A4  | Admin audit export?            | Yes                                   | `GET /v1/admin/audit-logs/export`                               |
+| A5  | SCIM provisioning?             | **Roadmap** Phase 2                   | ADR-017 — JIT via Clerk today                                   |
+| A6  | Session timeout?               | Yes — 45 min inactivity re-login      | Clerk Dashboard inactivity + `@porterchain/auth` idle guard     |
+| A7  | API keys scoped?               | Yes — merchant API keys + rate limits | `merchant_engine/api_key_service.py`                            |
+| A8  | Secrets in vault?              | Yes — Doppler prod                    | [ADR-013](../architecture/ADR-013-secrets.md)                   |
+| A9  | Dev JWT blocked in prod?       | Yes                                   | `config.reject_dev_jwt_secret_in_production`                    |
+| A10 | Cross-tenant isolation tested? | Yes                                   | `tests/test_idor.py`                                            |
+| A11 | Password policy?               | Delegated to Clerk / IdP              | —                                                               |
+| A12 | Privileged access logging?     | Yes — admin audit + domain events     | `audit_export_service.py`                                       |
 
 ## Application security
 
@@ -53,7 +53,6 @@ Share this document with enterprise prospects **before** a full SIG. Each contro
 
 | #   | Question                | Answer                         | Evidence                                                             |
 | --- | ----------------------- | ------------------------------ | -------------------------------------------------------------------- |
-| O1  | Status page?            | Yes                            | `/health/status`, [STATUS_PAGE.md](../STATUS_PAGE.md)                |
 | O2  | Incident runbook?       | Yes                            | [RUNBOOK.md](../../RUNBOOK.md)                                       |
 | O3  | Backup / restore?       | Documented                     | RUNBOOK + [DATABASE_ARCHITECTURE.md](../../DATABASE_ARCHITECTURE.md) |
 | O4  | Monitoring?             | Prometheus `/metrics` + Sentry | `platform/metrics.py`                                                |

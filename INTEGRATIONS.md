@@ -29,7 +29,7 @@
 | **Mailpit**           | ✅ Dev            | Docker compose           | Local transactional email                       |
 | **Zoho SalesIQ**      | ✅ Optional       | Website                  | Live chat widget                                |
 
-**Removed (do not use):** Supabase OTP, Twilio SMS OTP, `BOOKING_OTP_*` — see [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md).
+**Removed (do not use):** Supabase OTP, Twilio SMS OTP, `BOOKING_OTP_*` — see [AUTHENTICATION_ARCHITECTURE.md](AUTHENTICATION_ARCHITECTURE.md).
 
 ---
 
@@ -108,13 +108,14 @@ Server-only secrets: `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`.
 
 **Sole authentication provider** for Porterchain users. See [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
 
-| Surface                   | SDK                                 |
-| ------------------------- | ----------------------------------- |
-| Next.js portals + website | `@clerk/nextjs`                     |
-| Mobile apps               | `@clerk/clerk-expo`                 |
-| API                       | JWKS verification (`auth/clerk.py`) |
+| Surface                          | SDK                                                                        |
+| -------------------------------- | -------------------------------------------------------------------------- |
+| Next.js retail portals + website | `@clerk/nextjs` (Platform / Driver)                                        |
+| Admin portal                     | PorterChain staff IdP (no Clerk)                                           |
+| Mobile apps                      | Blank Expo shells — Clerk deferred (`@clerk/clerk-expo` not installed yet) |
+| API                              | JWKS verification (`auth/clerk.py`)                                        |
 
-Local/dev/prod: **unified Platform Clerk app only** (`CLERK_MODE=unified`; single `CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` / `CLERK_JWKS_URL` shared by all portals). Per-portal `CLERK_{PORTAL}_*` names are slot aliases filled from the Platform triad — `CLERK_MODE=enterprise` is retired. See [docs/runbooks/clerk-consolidation.md](./docs/runbooks/clerk-consolidation.md).
+Local/dev/prod: **`CLERK_MODE=platform_driver`** — PorterChain Platform triad (customer, merchant, website) + Porterchain Driver triad (driver portal / mobile). Admin uses PorterChain staff IdP (no Clerk). `CLERK_MODE=unified` and `enterprise` are retired. See [docs/SECRETS_MAP.md](./docs/SECRETS_MAP.md) and [SSO.md](SSO.md).
 
 ---
 
@@ -201,17 +202,9 @@ Code: `website/src/components/integrations/ZohoSalesIQ.tsx`.
 
 | Document                                                                     | Purpose                         |
 | ---------------------------------------------------------------------------- | ------------------------------- |
-| [CONNECTIONS.md](./CONNECTIONS.md)                                           | Mobile-driver connection detail |
+| [INTEGRATIONS.md](INTEGRATIONS.md)                                           | Mobile-driver connection detail |
 | [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)                       | Env reference                   |
 | [docs/architecture/API_DEPENDENCY.md](./docs/architecture/API_DEPENDENCY.md) | Service dependencies            |
 | [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                       | Fleetbase bridge detail         |
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |
-| [OpenAPI](http://localhost:8001/docs)      | OpenAPI (local)   |

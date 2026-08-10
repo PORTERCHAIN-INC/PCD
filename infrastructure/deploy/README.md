@@ -62,14 +62,14 @@ Internet ──443──▶ Caddy (pcd-caddy)
                     ├─ driver.porterchain.com → driver :3003
                     └─ customer.porterchain.com → customer :3004
 
-Internal: postgres:16, redis:7.2 (Docker network `edge`)
+Internal: postgres:16.10 (prod volume still on PG16 — upgrade to 18 via dump/restore when scheduled), redis:7.2 (Docker network `edge`). Dev/CI use postgres:18 per stack baseline.
 ```
 
 - **API replicas:** deploy defaults to **2** (`API_REPLICAS` repo variable or droplet `.env`). Caddy load-balances `api:8001` across replicas. See [ADR-012-scaling.md](../../docs/architecture/ADR-012-scaling.md).
 - **Caddy** (`infrastructure/deploy/Caddyfile`) — TLS (Let's Encrypt), HTTP→HTTPS, `www`→apex, security headers.
 - Portal/API containers are **not** published to the host — only Caddy exposes 80/443.
 - Stack: `infrastructure/deploy/docker-compose.prod.yml` in `/opt/porterchain`.
-- **PostgreSQL 16** and **Redis** run in-compose with persistent volumes.
+- **PostgreSQL 18** and **Redis** run in-compose with persistent volumes.
 
 ---
 
@@ -246,7 +246,7 @@ docker compose -f docker-compose.prod.yml up -d
 | -------------- | ------------------------------------------------ |
 | Firewall (UFW) | Default-deny; 22/80/443 only                     |
 | TLS            | Let's Encrypt via Caddy; HSTS                    |
-| Database       | PostgreSQL 16 in Docker (`postgres-data` volume) |
+| Database       | PostgreSQL 18 in Docker (`postgres-data` volume) |
 | Redis          | In-compose; not exposed to host                  |
 | Payments       | `STRIPE_MOCK=false`; real Stripe Checkout        |
 | Auth           | `CLERK_DEV_BYPASS=false`; Clerk JWT verification |
@@ -264,10 +264,3 @@ Re-run `harden-droplet.sh` any time (idempotent).
 - Mobile apps (Expo) deploy via EAS separately — not part of this droplet stack.
 
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

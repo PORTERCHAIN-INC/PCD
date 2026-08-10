@@ -51,15 +51,6 @@ def dashboard_search(
     return _dashboard.global_search(db, q)
 
 
-@router.get("/dispatch/queue", response_model=list[OrderAdminItem])
-def dispatch_queue(
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-) -> list[OrderAdminItem]:
-    require_module(ctx, "dispatch_read")
-    return [_order_item(o) for o in _ops.dispatch_queue(db)]
-
-
 @router.post("/dispatch/orders/{order_id}/assign", response_model=OrderAdminItem)
 def assign_driver(
     order_id: str,
@@ -73,11 +64,7 @@ def assign_driver(
         o = _ops.assign_driver(db, settings, ctx, order_id, body.driver_id)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     return _order_item(o)
-
-
-@router.get("/map/live")
-def live_map(ctx: Annotated[AdminContext, Depends(get_admin_context)], db: Session = Depends(get_db)):
-    require_module(ctx, "map")
-    return _ops.live_map_snapshot(db)
 

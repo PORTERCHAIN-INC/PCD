@@ -20,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppClerkProvider
           publishableKey={publicEnv.clerkPublishableKey}
           signInUrl="/sign-in"
+          signUpUrl="/sign-up"
           afterSignOutUrl="/sign-in"
           fallbackRedirect="/dashboard"
         >

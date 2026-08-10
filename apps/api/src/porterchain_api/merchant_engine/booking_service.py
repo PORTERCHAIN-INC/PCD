@@ -74,6 +74,10 @@ class MerchantBookingService:
         # before an order is generated. A merchant never reaches Fleetbase directly.
         validated = MerchantSyncService().validate_booking(db, ctx.merchant, amount_cents=amount_cents)
 
+        compliance = build_compliance_metadata(body) or {}
+        if body.additional_stops:
+            compliance["additional_stops"] = [s.model_dump() for s in body.additional_stops]
+
         order = Order(
             order_number=generate_order_number(),
             tracking_number=generate_tracking_number(),
@@ -95,7 +99,7 @@ class MerchantBookingService:
             purchase_order_number=body.purchase_order_number,
             cost_centre=body.cost_centre,
             special_instructions=body.special_instructions,
-            compliance_metadata=build_compliance_metadata(body),
+            compliance_metadata=compliance or None,
         )
         db.add(order)
         db.flush()

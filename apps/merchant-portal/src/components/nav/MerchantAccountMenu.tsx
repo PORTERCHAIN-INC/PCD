@@ -125,7 +125,7 @@ function ClerkAccountMenu() {
           label="Business profile"
           hint="Company, locations, tax"
         />
-        <AccountMenuLink href="/team" icon={Users} label="Team" hint="Members, roles, invites" />
+        <AccountMenuLink href="/team" icon={Users} label="Team" hint="Members, roles, seats" />
         <AccountMenuLink href="/api" icon={Key} label="Integrations" hint="API keys and webhooks" />
         <AccountMenuLink
           href="/settings"

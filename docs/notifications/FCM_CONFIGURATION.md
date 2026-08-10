@@ -4,7 +4,7 @@
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
 
-**See also:** [NOTIFICATION_ARCHITECTURE.md](./NOTIFICATION_ARCHITECTURE.md) · [DEVICE_REGISTRATION_FLOW.md](./DEVICE_REGISTRATION_FLOW.md)
+**See also:** [NOTIFICATION_ARCHITECTURE.md](./NOTIFICATION_ARCHITECTURE.md) · [NOTIFICATION_ARCHITECTURE.md](NOTIFICATION_ARCHITECTURE.md)
 
 Firebase Cloud Messaging — server-side only via Notification Engine (`fcm_service.py`).
 
@@ -79,10 +79,3 @@ push (log-only): token=ExponentPush… title=Driver assigned
 - [ ] Invalid token removed from `notification_devices`
 
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

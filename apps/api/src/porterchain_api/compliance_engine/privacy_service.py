@@ -124,6 +124,11 @@ class PrivacyService:
         }
 
     def export_customer(self, db: Session, customer: Customer) -> dict[str, Any]:
+        """C-20: DSAR export — profile + orders + payments + tickets + prefs."""
+        from porterchain_api.admin_models import SupportTicket
+        from porterchain_api.models import Payment
+        from porterchain_api.notification_engine.user_settings import UserSettingsService
+
         orders = (
             db.query(Order)
             .filter(Order.customer_id == customer.id)
@@ -131,6 +136,27 @@ class PrivacyService:
             .limit(200)
             .all()
         )
+        payments = (
+            db.query(Payment)
+            .filter(Payment.customer_id == customer.id)
+            .order_by(Payment.created_at.desc())
+            .limit(200)
+            .all()
+        )
+        tickets = (
+            db.query(SupportTicket)
+            .filter(SupportTicket.customer_id == customer.id)
+            .order_by(SupportTicket.created_at.desc())
+            .limit(100)
+            .all()
+        )
+        prefs: dict[str, Any] = {}
+        try:
+            row = UserSettingsService().get(db, user_role="customer", user_id=customer.id)
+            prefs = UserSettingsService().to_dict(row, timezone_fallback="America/Toronto")
+        except Exception:  # noqa: BLE001
+            prefs = {}
+
         return {
             "exported_at": datetime.now(UTC).isoformat(),
             "subject_type": "customer",
@@ -139,6 +165,7 @@ class PrivacyService:
                 "email": customer.email,
                 "phone": customer.phone,
                 "customer_reference": customer.customer_reference,
+                "stripe_customer_id": getattr(customer, "stripe_customer_id", None),
                 "created_at": customer.created_at.isoformat() if customer.created_at else None,
             },
             "orders": [
@@ -148,10 +175,33 @@ class PrivacyService:
                     "state": o.state,
                     "pickup": o.pickup,
                     "dropoff": o.dropoff,
+                    "amount_cents": o.amount_cents,
                     "created_at": o.created_at.isoformat() if o.created_at else None,
                 }
                 for o in orders
             ],
+            "payments": [
+                {
+                    "payment_id": p.id,
+                    "status": p.status,
+                    "amount_cents": p.amount_cents,
+                    "currency": p.currency,
+                    "stripe_payment_intent_id": p.stripe_payment_intent_id,
+                    "created_at": p.created_at.isoformat() if p.created_at else None,
+                }
+                for p in payments
+            ],
+            "support_tickets": [
+                {
+                    "ticket_id": t.id,
+                    "subject": t.subject,
+                    "status": t.status,
+                    "order_id": t.order_id,
+                    "created_at": t.created_at.isoformat() if t.created_at else None,
+                }
+                for t in tickets
+            ],
+            "notification_preferences": prefs,
         }
 
     def request_customer_deletion(
@@ -168,6 +218,10 @@ class PrivacyService:
             "customer_id": customer.id,
             "email": customer.email,
         }
+        # Legal hold — Admin delete must not wipe during SLA (C-19).
+        customer.privacy_status = "deletion_hold"
+        customer.privacy_hold_reference = reference
+        customer.privacy_hold_at = datetime.now(UTC)
         emit_event(
             db,
             event_type=DomainEventType.PRIVACY_DELETE_REQUESTED,

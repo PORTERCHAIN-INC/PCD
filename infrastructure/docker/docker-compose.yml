@@ -6,14 +6,16 @@
 #   docker compose --profile core --profile routing up -d
 #
 # Profiles:
-#   core     — MySQL, Redis, Mailpit (always safe to start)
+#   core     — PostgreSQL, Redis, Mailpit (always safe to start for PorterChain)
 #   routing  — Valhalla (large image; first start downloads tiles)
-#   fleetbase — Fleetbase API + console (requires Fleetbase images)
+#   fleetbase — MySQL + Fleetbase API + console (requires Fleetbase images)
 #   proxy    — Nginx dev proxy
 
 name: porterchain
 
 services:
+  # Fleetbase services require MySQL (see line 19) — do NOT remove.
+  # PorterChain API uses PostgreSQL only (line 72).
   database:
     profiles: [core, fleetbase]
     image: mysql:8.0.46

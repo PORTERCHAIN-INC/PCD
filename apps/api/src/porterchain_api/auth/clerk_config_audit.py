@@ -14,8 +14,6 @@ from porterchain_api.auth.clerk_registry import (
     clerk_app_configs,
     clerk_configuration_mode,
     is_divergent_enterprise_clerk,
-    is_enterprise_clerk_configured,
-    is_legacy_clerk_configured,
 )
 from porterchain_api.config import Settings
 from porterchain_shared.redis_health import is_local_env
@@ -87,10 +85,10 @@ def _looks_like_jwks_url(url: str) -> bool:
 
 def resolve_clerk_runtime_mode(settings: Settings) -> str:
     """
-    enterprise | unified | legacy | incomplete
+    platform_driver | enterprise | legacy | incomplete
 
-    Delegates to ``clerk_configuration_mode`` so identical four-slot keys
-    (Platform expand) are never mislabeled enterprise.
+    Delegates to ``clerk_configuration_mode``. ``unified`` is retired and never
+    reported as a healthy mode.
     """
     return clerk_configuration_mode(settings)
 
@@ -280,30 +278,30 @@ def audit_clerk_settings(settings: Settings) -> list[ConfigAuditFinding]:
                 )
             )
 
-    if mode == "unified":
+    if mode == "platform_driver":
         findings.append(
             ConfigAuditFinding(
                 name="SECRET_ACCESS_MATRIX",
                 status="info",
-                detail="API holds sk+jwks+webhook; Next holds NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY only; Expo holds EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY only",
+                detail="Platform triad for customer/merchant/website; Driver triad for drivers; admin uses staff IdP (no Clerk pk)",
             )
         )
-    elif mode == "enterprise":
+    elif mode in ("unified", "enterprise"):
         findings.append(
             ConfigAuditFinding(
-                name="SECRET_ACCESS_MATRIX",
-                status="info",
-                detail="per-portal CLERK_{PORTAL}_* in Doppler; GitHub build holds pk_* only",
+                name="CLERK_MODE_RETIRED",
+                status="warn",
+                detail=f"CLERK_MODE={mode} is retired — use platform_driver (Platform + Driver)",
             )
         )
-        if is_divergent_enterprise_clerk(settings) and not settings.clerk_unified_mode:
-            findings.append(
-                ConfigAuditFinding(
-                    name="CLERK_MULTI_APP_RETIRED",
-                    status="warn",
-                    detail="divergent portal Clerk apps detected — set CLERK_MODE=unified / CLERK_UNIFIED_MODE=true (Porterchain Platform only)",
-                )
+    elif is_divergent_enterprise_clerk(settings) and settings.clerk_unified_mode:
+        findings.append(
+            ConfigAuditFinding(
+                name="CLERK_UNIFIED_MODE_RETIRED",
+                status="warn",
+                detail="CLERK_UNIFIED_MODE=true is retired — set false and use platform_driver",
             )
+        )
 
     findings.append(
         ConfigAuditFinding(

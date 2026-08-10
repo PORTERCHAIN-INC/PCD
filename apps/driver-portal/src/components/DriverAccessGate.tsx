@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { SignOutButton, useAuth } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
 import {
-  canAccessPortal,
-  fetchSessionContext,
   platformLoginUrl,
   useOptionalSessionContext,
+  usePortalSessionGate,
+  type SessionContext,
 } from "@porterchain/auth";
 import { isClerkConfigured, publicEnv } from "@/lib/env";
+import { fetchDriverOnboarding, isPendingDriverPath } from "@/lib/onboarding";
 
 type Props = {
   children: ReactNode;
@@ -25,51 +26,49 @@ export default function DriverAccessGate({ children }: Props) {
 
 function DriverAccessGateWithClerk({ children }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const sessionCtx = useOptionalSessionContext();
   const setSession = sessionCtx?.setSession;
   const setActiveWorkspaceId = sessionCtx?.setActiveWorkspaceId;
-  const [checking, setChecking] = useState(true);
-  const [errorDetail, setErrorDetail] = useState("");
+  const onPendingPath = isPendingDriverPath(pathname);
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!isSignedIn) {
-      setSession?.(null);
-      router.replace("/login");
-      return;
-    }
-
-    let cancelled = false;
-    void (async () => {
-      setChecking(true);
-      setErrorDetail("");
-      try {
-        const token = await getToken();
-        if (!token) throw new Error("missing_token");
-        const ctx = await fetchSessionContext(publicEnv.porterchainApiUrl, token);
-        if (cancelled) return;
-        if (!canAccessPortal(ctx.permissions, "driver")) {
-          throw new Error("missing_portal_permission");
-        }
-        setSession?.(ctx);
-        if (ctx.default_workspace) {
-          setActiveWorkspaceId?.(ctx.default_workspace);
-        }
-        setChecking(false);
-      } catch (err) {
-        if (cancelled) return;
-        setErrorDetail(err instanceof Error ? err.message : "session_failed");
-        setChecking(false);
+  const onSession = useCallback(
+    (ctx: SessionContext) => {
+      setSession?.(ctx);
+      if (ctx.default_workspace) {
+        setActiveWorkspaceId?.(ctx.default_workspace);
       }
-    })();
+    },
+    [setActiveWorkspaceId, setSession]
+  );
 
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoaded, isSignedIn, getToken, router, setSession, setActiveWorkspaceId]);
+  const onSignedOut = useCallback(() => {
+    setSession?.(null);
+    router.replace("/login");
+  }, [router, setSession]);
 
-  if (!isLoaded || checking) {
+  const onNeedOnboarding = useCallback(() => {
+    router.replace("/onboarding");
+  }, [router]);
+
+  const fetchOnboarding = useCallback(async () => fetchDriverOnboarding(), []);
+
+  const { checking, errorDetail } = usePortalSessionGate({
+    portal: "driver",
+    apiUrl: publicEnv.porterchainApiUrl,
+    isLoaded,
+    isSignedIn: !!isSignedIn,
+    getToken,
+    skipCheck: onPendingPath,
+    // Driver BFF onboarding uses cookies; token is unused but required by the shared hook.
+    fetchOnboarding,
+    onSession,
+    onSignedOut,
+    onNeedOnboarding,
+  });
+
+  if (!isLoaded || (checking && !onPendingPath)) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-gray-bg">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" />

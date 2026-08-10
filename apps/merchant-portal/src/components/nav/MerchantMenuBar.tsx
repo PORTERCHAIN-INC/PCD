@@ -4,13 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  ALL_MERCHANT_NAV_ITEMS,
-  MERCHANT_NAV_GROUPS,
-  isNavActive,
-  type MerchantNavItem,
-} from "@/lib/merchant-nav";
+import { filterNavGroupsByModules, isNavActive, type MerchantNavItem } from "@/lib/merchant-nav";
 import NavDropdown from "@/components/nav/NavDropdown";
+import { useMerchantAuth } from "@/components/providers/MerchantAuthProvider";
 
 function NavLinkItem({
   href,
@@ -44,12 +40,20 @@ function NavLinkItem({
   );
 }
 
-function AllModulesPanel({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function AllModulesPanel({
+  pathname,
+  onNavigate,
+  items,
+}: {
+  pathname: string;
+  onNavigate?: () => void;
+  items: MerchantNavItem[];
+}) {
   return (
     <div className="max-h-[min(70dvh,520px)] overflow-y-auto p-2">
-      <p className="px-3 py-2 text-xs font-semibold text-muted">All merchant modules</p>
+      <p className="px-3 py-2 text-xs font-semibold text-muted">Your modules</p>
       <div className="grid gap-1 sm:grid-cols-2">
-        {ALL_MERCHANT_NAV_ITEMS.map((item) => (
+        {items.map((item) => (
           <NavLinkItem key={item.href} {...item} pathname={pathname} onNavigate={onNavigate} />
         ))}
       </div>
@@ -82,6 +86,9 @@ function GroupPanel({
 
 export default function MerchantMenuBar() {
   const pathname = usePathname();
+  const { modules } = useMerchantAuth();
+  const groups = filterNavGroupsByModules(modules);
+  const allItems = groups.flatMap((g) => g.items);
 
   return (
     <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-1" aria-label="Main menu">
@@ -105,13 +112,15 @@ export default function MerchantMenuBar() {
             </button>
           )}
         >
-          {({ close }) => <AllModulesPanel pathname={pathname} onNavigate={close} />}
+          {({ close }) => (
+            <AllModulesPanel pathname={pathname} onNavigate={close} items={allItems} />
+          )}
         </NavDropdown>
       </div>
 
       <span className="mx-0.5 hidden h-5 w-px bg-primary/10 md:inline" />
 
-      {MERCHANT_NAV_GROUPS.map((group) => {
+      {groups.map((group) => {
         const active = group.items.some((item) => isNavActive(pathname, item.href));
         const single = group.items.length === 1;
 

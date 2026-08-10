@@ -10,7 +10,6 @@ import pytest
 
 from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
 from porterchain_api.admin_engine.finance_service import AdminFinanceService
-from porterchain_api.admin_engine.pricing_service import AdminPricingService
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.auth.user_sync_service import UserSyncService
@@ -82,18 +81,6 @@ def test_booking_sync_cancellation(db, settings, dispatch_order) -> None:
     svc._bridge.cancel_order.return_value = True
     svc.sync_cancellation(db, settings, dispatch_order)
     svc._bridge.cancel_order.assert_called()
-
-
-def test_pricing_create_promotion(db, admin_ctx) -> None:
-    code = f"COV{int(datetime.now(UTC).timestamp())}"[:16]
-    promo = AdminPricingService().create_promotion(
-        db,
-        admin_ctx,
-        code=code,
-        discount_percent=10.0,
-        is_active=True,
-    )
-    assert promo.code == code
 
 
 @patch("porterchain_api.merchant_engine.webhook_delivery_service.SessionLocal")

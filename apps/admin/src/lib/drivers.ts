@@ -1,6 +1,17 @@
 import { adminFetch } from "@/lib/api";
 import type { Activity, Task } from "@/lib/crm";
 
+/** Vehicle class IDs used for driver registration / fleet (matches API catalog). */
+export const VEHICLE_CLASSES = [
+  "sedan",
+  "suv",
+  "pickup",
+  "cargoVan",
+  "highRoof",
+  "box16",
+  "box20",
+] as const;
+
 export type DriverRow = {
   id: string;
   full_name: string;
@@ -8,8 +19,6 @@ export type DriverRow = {
   phone: string | null;
   photo_url: string | null;
   status: string;
-  availability: string;
-  is_online: boolean;
   vehicle: string | null;
   vehicle_type: string | null;
   license_class: string | null;
@@ -27,7 +36,9 @@ export type DriverRow = {
   license_verified: boolean;
   insurance_verified: boolean;
   vehicle_verified: boolean;
+  medical_transport_certified: boolean;
   background_check_status: string;
+  fleetbase_driver_id?: string | null;
   last_active_at: string | null;
   created_at: string;
   tags: string[];
@@ -49,6 +60,8 @@ export type DriverDetail = DriverRow & {
   documents: Record<string, unknown>;
   performance: Record<string, unknown>;
   fleetbase_driver_id: string | null;
+  /** Present when suspend succeeded locally but Fleetbase offline sync failed (D-15). */
+  fleetbase_sync_warning?: string | null;
   metrics: {
     orders_today: number;
     in_progress: number;
@@ -76,13 +89,11 @@ export type DriverStats = {
   approved: number;
   pending: number;
   suspended: number;
-  online: number;
   pending_payout_cents: number;
 };
 
 export type DriverFacets = {
   statuses: Array<{ value: string; count: number }>;
-  availability: Array<{ value: string; count: number }>;
   background_check: Array<{ value: string; count: number }>;
   vehicle_types: Array<{ value: string; count: number }>;
 };
@@ -228,6 +239,12 @@ export const drivers = {
     adminFetch<DriverDetail>(`${B}/${id}/approve`, t, { method: "POST" }),
   suspend: (t: string, id: string) =>
     adminFetch<DriverDetail>(`${B}/${id}/suspend`, t, { method: "POST" }),
+  deactivate: (t: string, id: string) =>
+    adminFetch<DriverDetail>(`${B}/${id}/deactivate`, t, { method: "POST" }),
+  reject: (t: string, id: string) =>
+    adminFetch<DriverDetail>(`${B}/${id}/reject`, t, { method: "POST" }),
+  rehire: (t: string, id: string) =>
+    adminFetch<DriverDetail>(`${B}/${id}/rehire`, t, { method: "POST" }),
   verify: (
     t: string,
     id: string,
@@ -235,6 +252,7 @@ export const drivers = {
       license_verified?: boolean;
       insurance_verified?: boolean;
       vehicle_verified?: boolean;
+      medical_transport_certified?: boolean;
       background_check_status?: string;
     }
   ) =>
@@ -243,10 +261,35 @@ export const drivers = {
       body: JSON.stringify(body),
     }),
   action: (t: string, id: string, body: { type: string; message?: string }) =>
-    adminFetch<{ ok: boolean; action: string }>(`${B}/${id}/action`, t, {
+    adminFetch<{
+      ok: boolean;
+      action: string;
+      delivery_status?: "queued" | "logged" | string;
+      detail?: string;
+    }>(`${B}/${id}/action`, t, {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  invite: (t: string, id: string) =>
+    adminFetch<{ ok: boolean; action?: string }>(`${B}/${id}/invite`, t, { method: "POST" }),
+  createPayout: (t: string, id: string, body: { amount_cents?: number; reference?: string } = {}) =>
+    adminFetch<{
+      id: string;
+      amount_cents: number;
+      currency: string;
+      status: string;
+      reference: string | null;
+      created_at: string | null;
+    }>(`${B}/${id}/payouts`, t, { method: "POST", body: JSON.stringify(body) }),
+  markPayoutPaid: (t: string, id: string, payoutId: string) =>
+    adminFetch<{
+      id: string;
+      amount_cents: number;
+      currency: string;
+      status: string;
+      reference: string | null;
+      created_at: string | null;
+    }>(`${B}/${id}/payouts/${payoutId}/mark-paid`, t, { method: "POST" }),
   orders: (t: string, id: string, params: Record<string, string | undefined> = {}) =>
     adminFetch<DriverOrder[]>(`${B}/${id}/orders${qs(params)}`, t),
   vehicles: (t: string, id: string) => adminFetch<DriverVehicle[]>(`${B}/${id}/vehicles`, t),

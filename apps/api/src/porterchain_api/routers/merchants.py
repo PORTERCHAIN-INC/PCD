@@ -24,9 +24,17 @@ from porterchain_api.schemas_admin import (
     MerchantCreateRequest,
     MerchantInviteRequest,
     MerchantInviteResponse,
+    MerchantTeamRoleUpdate,
     MerchantUpdateRequest,
 )
-from porterchain_api.schemas_crm import ActivityOut, ContactOut, ContractOut, InvoiceOut, TaskOut
+from porterchain_api.schemas_crm import (
+    ActivityOut,
+    ContactOut,
+    ContractCreate,
+    ContractOut,
+    InvoiceOut,
+    TaskOut,
+)
 
 router = APIRouter(prefix="/v1/admin/merchants", tags=["merchants"])
 
@@ -82,7 +90,10 @@ def merchant_unprovisioned_signups(
     settings: Settings = Depends(get_settings),
 ) -> list[dict]:
     _guard(ctx, "merchants_read")
-    return _m360.unprovisioned_signups(db, settings)
+    try:
+        return _m360.unprovisioned_signups(db, settings)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.post("", status_code=201)
@@ -151,12 +162,20 @@ def update_merchant(
     _guard(ctx, "merchants")
     try:
         _merchants.update_merchant_terms(
-            db, ctx, merchant_id,
+            db,
+            ctx,
+            merchant_id,
             payment_terms=body.payment_terms,
             pricing_config=body.pricing_config,
             credit_limit_cents=body.credit_limit_cents,
             parent_merchant_id=body.parent_merchant_id,
             support_tier=body.support_tier,
+            billing_cycle=body.billing_cycle,
+            preferred_vehicles=body.preferred_vehicles,
+            company_name=body.company_name,
+            phone=body.phone,
+            hst_number=body.hst_number,
+            stripe_enabled=body.stripe_enabled,
         )
     except LookupError:
         raise HTTPException(status_code=404, detail="merchant_not_found") from None
@@ -215,41 +234,40 @@ def merchant_onboarding(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db
         raise HTTPException(status_code=404, detail="merchant_not_found") from None
 
 
-@router.post("/{merchant_id}/invite-owner", response_model=MerchantInviteResponse, status_code=201)
-def invite_merchant_owner(
+@router.post("/{merchant_id}/owner-seat", response_model=MerchantInviteResponse, status_code=201)
+def add_merchant_owner_seat(
     merchant_id: str,
     body: MerchantInviteRequest,
     ctx: Ctx,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> MerchantInviteResponse:
+    """Reserve owner seat by email. Owner self-signs-up on Platform; no Clerk invite."""
     _guard(ctx, "merchants")
     try:
         user = _merchants.invite_owner(db, ctx, settings, merchant_id, email=body.email)
     except LookupError:
         raise HTTPException(status_code=404, detail="merchant_not_found") from None
     except ValueError as exc:
-        detail = str(exc)
-        if detail == "clerk_not_configured":
-            raise HTTPException(status_code=503, detail=detail) from exc
-        raise HTTPException(status_code=400, detail=detail) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     return MerchantInviteResponse(
         merchant_user_id=user.id,
         email=user.email,
         role=user.role,
-        invitation_status="invited",
+        invitation_status="seat_reserved",
         clerk_user_id=user.clerk_user_id if user.clerk_user_id.startswith("user_") else None,
     )
 
 
-@router.post("/{merchant_id}/team/invite", response_model=MerchantInviteResponse, status_code=201)
-def invite_merchant_team_member(
+@router.post("/{merchant_id}/team/seats", response_model=MerchantInviteResponse, status_code=201)
+def add_merchant_team_seat(
     merchant_id: str,
     body: MerchantInviteRequest,
     ctx: Ctx,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> MerchantInviteResponse:
+    """Reserve teammate seat by email. No Clerk Invitation API."""
     _guard(ctx, "merchants")
     try:
         user = _merchants.invite_team_member(
@@ -258,17 +276,52 @@ def invite_merchant_team_member(
     except LookupError:
         raise HTTPException(status_code=404, detail="merchant_not_found") from None
     except ValueError as exc:
-        detail = str(exc)
-        if detail == "clerk_not_configured":
-            raise HTTPException(status_code=503, detail=detail) from exc
-        raise HTTPException(status_code=400, detail=detail) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     return MerchantInviteResponse(
         merchant_user_id=user.id,
         email=user.email,
         role=user.role,
-        invitation_status="invited",
+        invitation_status="seat_reserved",
         clerk_user_id=user.clerk_user_id if user.clerk_user_id.startswith("user_") else None,
     )
+
+
+@router.patch("/{merchant_id}/team/{user_id}")
+def update_merchant_team_role(
+    merchant_id: str,
+    user_id: str,
+    body: MerchantTeamRoleUpdate,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+) -> dict:
+    """M-30: Admin change seat role (last-owner protected)."""
+    _guard(ctx, "merchants")
+    try:
+        user = _merchants.update_team_member_role(
+            db, ctx, merchant_id, user_id, role=body.role
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"id": user.id, "email": user.email, "role": user.role, "is_active": user.is_active}
+
+
+@router.delete("/{merchant_id}/team/{user_id}", status_code=204)
+def remove_merchant_team_member(
+    merchant_id: str,
+    user_id: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+) -> None:
+    """M-30: Admin deactivate seat (last-owner protected)."""
+    _guard(ctx, "merchants")
+    try:
+        _merchants.remove_team_member(db, ctx, merchant_id, user_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/{merchant_id}/activate-users")
@@ -345,13 +398,36 @@ def merchant_contracts(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)
     return [ContractOut.model_validate(c) for c in rows]
 
 
+@router.post("/{merchant_id}/contracts", response_model=ContractOut, status_code=201)
+def create_merchant_contract(
+    merchant_id: str,
+    body: ContractCreate,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+) -> ContractOut:
+    """M-22: Create/link a CRM contract for the merchant's company."""
+    _guard(ctx, "merchants")
+    if not _merchants.get_merchant(db, merchant_id):
+        raise HTTPException(status_code=404, detail="merchant_not_found")
+    cid = _company_id(db, merchant_id)
+    if not cid:
+        raise HTTPException(
+            status_code=400,
+            detail="merchant_has_no_crm_company",
+        )
+    data = body.model_dump(exclude_unset=True)
+    data["company_id"] = cid
+    contract = _crm.create_contract(db, ctx, data)
+    return ContractOut.model_validate(contract)
+
+
 @router.get("/{merchant_id}/invoices", response_model=list[InvoiceOut])
 def merchant_invoices(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> list[InvoiceOut]:
     """Ops invoices for this merchant (AR SSOT) — not CRM sales invoices."""
     _guard(ctx, "merchants_read")
     from datetime import date as date_cls
 
-    from porterchain_api.billing_engine.merchant_service import invoice_status
+    from porterchain_api.billing_engine.merchant_service import invoice_status, invoice_total_cents
     from porterchain_api.merchant_models import Merchant
     from porterchain_api.models import Invoice, Order, Payment
 
@@ -377,6 +453,8 @@ def merchant_invoices(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db))
         status = invoice_status(inv, order, payment, terms=merchant.payment_terms or order.payment_terms)
         due = inv.due_at.date() if inv.due_at else None
         paid_at = payment.created_at if payment and payment.status == "SUCCEEDED" else None
+        total = invoice_total_cents(inv)
+        pretax = int(inv.amount_cents or 0) - int(inv.tax_cents or 0)
         out.append(
             InvoiceOut(
                 id=inv.id,
@@ -385,17 +463,17 @@ def merchant_invoices(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db))
                 deal_id=None,
                 contract_id=None,
                 status=status,
-                amount_cents=inv.amount_cents,
+                amount_cents=pretax if inv.tax_cents else inv.amount_cents,
                 tax_cents=inv.tax_cents,
-                total_cents=inv.amount_cents,
+                total_cents=total,
                 currency=inv.currency,
                 net_terms=merchant.payment_terms or order.payment_terms or "NET_30",
                 line_items=[
                     {
                         "label": order.order_number or order.tracking_number or "Delivery",
                         "quantity": 1,
-                        "unit_price_cents": inv.amount_cents,
-                        "amount_cents": inv.amount_cents,
+                        "unit_price_cents": pretax if inv.tax_cents else inv.amount_cents,
+                        "amount_cents": pretax if inv.tax_cents else inv.amount_cents,
                     }
                 ],
                 notes=None,

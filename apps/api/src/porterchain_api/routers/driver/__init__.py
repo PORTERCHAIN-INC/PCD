@@ -3,7 +3,6 @@
 from porterchain_api.routers.driver._deps import router
 from porterchain_api.routers.driver.navigation_pod import legacy_router
 
-from porterchain_api.routers.driver import auth  # noqa: F401
 from porterchain_api.routers.driver import profile  # noqa: F401
 from porterchain_api.routers.driver import dashboard  # noqa: F401
 from porterchain_api.routers.driver import shift  # noqa: F401

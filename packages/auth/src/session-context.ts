@@ -125,7 +125,7 @@ export async function fetchSessionContext(
     });
   } catch (err) {
     if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) {
-      throw new Error("Failed to fetch");
+      throw new Error("porterchain_api_timeout");
     }
     throw err;
   }

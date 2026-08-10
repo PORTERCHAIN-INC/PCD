@@ -93,8 +93,9 @@ def main() -> int:
     business_hero = (
         ROOT / "website/src/components/business/sections/BusinessHero.tsx"
     ).read_text(encoding="utf-8")
+    # Regression: deleted MerchantSsoButtons must not return on BusinessHero
     if "MerchantSsoButtons" in business_hero:
-        failures.append("BusinessHero still has SSO block — quote page only")
+        failures.append("BusinessHero must not reintroduce MerchantSsoButtons — quote page only")
 
     print("Blog CMS guard")
     if failures:

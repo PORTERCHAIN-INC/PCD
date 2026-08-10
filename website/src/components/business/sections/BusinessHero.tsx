@@ -1,32 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Container from "@/components/ui/Container";
 import SiteImage from "@/components/ui/SiteImage";
 import AnimatedGradientText from "@/components/magic/animated-gradient-text";
 import BlurFade from "@/components/magic/blur-fade";
-import InquiryForm from "@/components/business/InquiryForm";
+import QuoteSignupPanel from "@/components/business/QuoteSignupPanel";
 import { siteImages } from "@/data/site-images";
-import { cn } from "@/lib/utils";
 
 /**
  * Business / services hero — Open Road brand photo as full-bleed bg,
- * soft white merge on the left for copy + quote form in front.
+ * soft white merge on the left for copy + quote sign-up CTA in front.
  */
 export default function BusinessHero() {
   const t = useTranslations("businessPage.hero");
-  const [formActive, setFormActive] = useState(false);
   const openRoad = siteImages.brand.openRoad;
 
   return (
-    <section
-      className={cn(
-        "relative isolate min-h-[min(88svh,44rem)] overflow-hidden bg-white",
-        formActive && "motion-paused"
-      )}
-    >
-      {/* Full-bleed brand photo */}
+    <section className="relative isolate min-h-[min(88svh,44rem)] overflow-hidden bg-white">
       <div className="absolute inset-0" aria-hidden>
         <SiteImage
           image={openRoad}
@@ -36,7 +27,6 @@ export default function BusinessHero() {
           className="object-cover object-[72%_center] sm:object-[68%_center] lg:object-[62%_center]"
           sizes="100vw"
         />
-        {/* Soft dissolve into white — left for copy readability, edges + bottom into page */}
         <div className="biz-hero-merge pointer-events-none absolute inset-0" />
       </div>
 
@@ -48,7 +38,7 @@ export default function BusinessHero() {
             </BlurFade>
 
             <BlurFade delay={0.06}>
-              <h1 className="biz-hero-title mt-4 text-primary text-balance">
+              <h1 className="biz-hero-title mt-4 text-balance text-primary">
                 {t("titleLine1")}
                 <span className="block">
                   <AnimatedGradientText>{t("titleLine2")}</AnimatedGradientText>
@@ -62,11 +52,11 @@ export default function BusinessHero() {
           </div>
 
           <BlurFade delay={0.18}>
-            <InquiryForm
+            <QuoteSignupPanel
               id="inquiry"
               variant="hero"
               className="biz-hero-form"
-              onInteractionChange={setFormActive}
+              from="business-hero"
             />
           </BlurFade>
         </div>

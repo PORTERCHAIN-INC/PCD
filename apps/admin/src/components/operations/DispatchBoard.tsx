@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -26,8 +26,44 @@ import { titleCase } from "@/lib/crmFormat";
 
 const STATE_TONE = (sla: string) => SLA_TONE[sla] ?? "slate";
 
-function SlaBadge({ sla }: { sla: string }) {
-  return <Badge tone={STATE_TONE(sla)}>{sla === "at_risk" ? "At risk" : titleCase(sla)}</Badge>;
+function SlaCountdown({ o }: { o: OpsOrder }) {
+  const mins = o.sla_minutes_remaining;
+  if (mins == null) {
+    return (
+      <Badge tone={STATE_TONE(o.sla)}>{o.sla === "at_risk" ? "At risk" : titleCase(o.sla)}</Badge>
+    );
+  }
+  if (mins < 0) {
+    const late = Math.abs(mins);
+    const label = late >= 60 ? `${Math.floor(late / 60)}h late` : `${late}m late`;
+    return <Badge tone="red">{label}</Badge>;
+  }
+  if (mins <= 30 || o.sla === "at_risk") {
+    return <Badge tone="amber">{mins}m left</Badge>;
+  }
+  const label = mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m left`;
+  return <Badge tone="green">{label}</Badge>;
+}
+
+function WaypointChips({ o }: { o: OpsOrder }) {
+  const total = o.stop_count ?? 2;
+  const done = Math.min(o.stops_done ?? 0, total);
+  return (
+    <div className="mt-1.5 flex items-center gap-1" title={`${done}/${total} stops`}>
+      {Array.from({ length: total }, (_, i) => (
+        <span
+          key={i}
+          className={cn(
+            "h-1.5 flex-1 rounded-full",
+            i < done ? "bg-green-500" : i === done ? "bg-secondary" : "bg-primary/10"
+          )}
+        />
+      ))}
+      <span className="ml-1 shrink-0 text-[10px] tabular-nums text-muted">
+        {done}/{total}
+      </span>
+    </div>
+  );
 }
 
 function OrderCard({ o, dragging }: { o: OpsOrder; dragging?: boolean }) {
@@ -49,15 +85,24 @@ function OrderCard({ o, dragging }: { o: OpsOrder; dragging?: boolean }) {
       <p className="mt-1 truncate text-xs text-primary">
         {o.pickup ?? "?"} → {o.dropoff ?? "?"}
       </p>
-      <div className="mt-2 flex items-center justify-between">
-        <span className="text-xs text-muted">{o.driver ?? "Unassigned"}</span>
-        <SlaBadge sla={o.sla} />
+      <WaypointChips o={o} />
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <span className="truncate text-xs text-muted">{o.driver ?? "Unassigned"}</span>
+        <SlaCountdown o={o} />
       </div>
     </div>
   );
 }
 
-function DraggableOrderCard({ order }: { order: OpsOrder }) {
+function DraggableOrderCard({
+  order,
+  onOpenOrder,
+  suppressClickUntil,
+}: {
+  order: OpsOrder;
+  onOpenOrder?: (order: OpsOrder) => void;
+  suppressClickUntil: React.RefObject<number>;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: order.id,
     data: { order },
@@ -67,6 +112,12 @@ function DraggableOrderCard({ order }: { order: OpsOrder }) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      onClick={() => {
+        // Ignore the click that dnd-kit lets through right after a drag ends
+        if (Date.now() < (suppressClickUntil.current ?? 0)) return;
+        onOpenOrder?.(order);
+      }}
+      title="Click for Order 360 · drag to move"
       className={cn("touch-none cursor-grab active:cursor-grabbing", isDragging && "opacity-30")}
     >
       <OrderCard o={order} />
@@ -74,7 +125,15 @@ function DraggableOrderCard({ order }: { order: OpsOrder }) {
   );
 }
 
-function BoardColumnView({ column }: { column: BoardColumn }) {
+function BoardColumnView({
+  column,
+  onOpenOrder,
+  suppressClickUntil,
+}: {
+  column: BoardColumn;
+  onOpenOrder?: (order: OpsOrder) => void;
+  suppressClickUntil: React.RefObject<number>;
+}) {
   const { setNodeRef, isOver } = useDroppable({ id: column.key });
   return (
     <div className="flex w-64 shrink-0 flex-col">
@@ -98,7 +157,12 @@ function BoardColumnView({ column }: { column: BoardColumn }) {
         )}
       >
         {column.orders.map((o) => (
-          <DraggableOrderCard key={o.id} order={o} />
+          <DraggableOrderCard
+            key={o.id}
+            order={o}
+            onOpenOrder={onOpenOrder}
+            suppressClickUntil={suppressClickUntil}
+          />
         ))}
         {column.hidden > 0 && (
           <p className="rounded-lg bg-white/60 px-2 py-2 text-center text-xs text-muted">
@@ -113,18 +177,40 @@ function BoardColumnView({ column }: { column: BoardColumn }) {
   );
 }
 
+/** Columns that open a confirm modal instead of optimistic board move. */
+const CONFIRM_COLUMNS = new Set([
+  "assigned",
+  "failed",
+  "returned",
+  "lost",
+  "damaged",
+  "waiting_dispatch",
+  "accepted",
+  "heading_to_pickup",
+  "at_pickup",
+  "picked_up",
+  "in_transit",
+  "near_delivery",
+  "delivered",
+]);
+
 export function DispatchBoard({
   columns,
   onMove,
+  onRequestMove,
+  onOpenOrder,
 }: {
   columns: BoardColumn[];
   onMove: (order: OpsOrder, toColumn: string) => Promise<void>;
+  /** When set, used for assign/exception/execution drops (no optimistic jump). */
+  onRequestMove?: (order: OpsOrder, toColumn: string) => void;
+  onOpenOrder?: (order: OpsOrder) => void;
 }) {
   const [local, setLocal] = useState<BoardColumn[]>(columns);
   const [active, setActive] = useState<OpsOrder | null>(null);
+  const suppressClickUntil = useRef(0);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- resync when server board refreshes
   useEffect(() => setLocal(columns), [columns]);
 
   const findOrder = useMemo(
@@ -141,6 +227,7 @@ export function DispatchBoard({
 
   async function handleEnd(event: DragEndEvent) {
     setActive(null);
+    suppressClickUntil.current = Date.now() + 250;
     const { active: a, over } = event;
     if (!over) return;
 
@@ -148,6 +235,11 @@ export function DispatchBoard({
     const toColumn = String(over.id);
     const fromColumn = order ? columnForOrder(order) : null;
     if (!order || !fromColumn || fromColumn === toColumn) return;
+
+    if (onRequestMove && CONFIRM_COLUMNS.has(toColumn)) {
+      onRequestMove(order, toColumn);
+      return;
+    }
 
     const previous = local;
     setLocal((prev) =>
@@ -174,7 +266,12 @@ export function DispatchBoard({
     <DndContext sensors={sensors} onDragStart={handleStart} onDragEnd={handleEnd}>
       <div className="flex gap-3 overflow-x-auto pb-3">
         {local.map((column) => (
-          <BoardColumnView key={column.key} column={column} />
+          <BoardColumnView
+            key={column.key}
+            column={column}
+            onOpenOrder={onOpenOrder}
+            suppressClickUntil={suppressClickUntil}
+          />
         ))}
       </div>
       <DragOverlay>{active ? <OrderCard o={active} dragging /> : null}</DragOverlay>

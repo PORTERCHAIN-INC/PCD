@@ -48,6 +48,10 @@ class PricingService:
             referral_credit_cents=request.referral_credit_cents,
             wait_minutes=request.wait_minutes,
             requires_liftgate=request.requires_liftgate,
+            total_pickups=request.total_pickups,
+            total_drops=request.total_drops,
+            is_downtown=request.is_downtown,
+            is_upper_zone=request.is_upper_zone,
         )
         return self.calculate(retail_request)
 
@@ -74,6 +78,10 @@ class PricingService:
             promo_code=request.promo_code,
             volume_units=request.volume_units,
             requires_liftgate=request.requires_liftgate,
+            total_pickups=request.total_pickups,
+            total_drops=request.total_drops,
+            is_downtown=request.is_downtown,
+            is_upper_zone=request.is_upper_zone,
         )
         return self.calculate(merchant_request)
 

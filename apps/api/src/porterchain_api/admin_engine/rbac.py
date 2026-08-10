@@ -3,11 +3,13 @@
 ``MODULE_PERMISSIONS`` is the **role→module catalog** used to:
 - expand ``schema.zed`` platform permissions (via ``platform_roles``)
 - project UX module lists (authorize responses, nav hints)
+- Settings → Roles panel (read-only matrix)
 
 It is **not** the authorization Check SoT — ``require_module`` Checks SpiceDB only.
 """
 
 from dataclasses import dataclass
+from typing import Any
 
 from porterchain_api.admin_models import AdminUser
 from porterchain_api.domain.admin_states import AdminRole, PORTAL_ROLE_MAP
@@ -17,6 +19,23 @@ from porterchain_api.domain.admin_states import AdminRole, PORTAL_ROLE_MAP
 class AdminContext:
     user: AdminUser
     role: AdminRole
+
+
+ROLE_LABELS: dict[AdminRole, str] = {
+    AdminRole.SUPER_ADMIN: "Super admin",
+    AdminRole.ADMIN: "Admin",
+    AdminRole.DISPATCHER: "Dispatcher",
+    AdminRole.SUPPORT: "Support",
+    AdminRole.SUPPORT_LEAD: "Support lead",
+    AdminRole.SALES: "Sales",
+    AdminRole.SALES_MANAGER: "Sales manager",
+    AdminRole.FINANCE: "Finance",
+    AdminRole.COMPLIANCE: "Compliance",
+    AdminRole.DEVELOPER: "Developer",
+    AdminRole.MARKETING: "Marketing",
+    AdminRole.READ_ONLY: "Read only",
+    AdminRole.FLEET_MANAGER: "Fleet manager",
+}
 
 
 MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
@@ -69,6 +88,7 @@ MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
             AdminRole.DISPATCHER,
             AdminRole.SUPPORT,
             AdminRole.SALES,
+            AdminRole.SALES_MANAGER,
             AdminRole.FINANCE,
             AdminRole.COMPLIANCE,
             AdminRole.READ_ONLY,
@@ -84,6 +104,31 @@ MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
             AdminRole.DISPATCHER,
             AdminRole.SUPPORT,
             AdminRole.SALES,
+            AdminRole.COMPLIANCE,
+            AdminRole.FLEET_MANAGER,
+            AdminRole.READ_ONLY,
+        }
+    ),
+    # Retail customers — care/read for ops; write reserved for support leads (no Admin create).
+    "customers": frozenset(
+        {
+            AdminRole.SUPER_ADMIN,
+            AdminRole.ADMIN,
+            AdminRole.SUPPORT,
+            AdminRole.SUPPORT_LEAD,
+            AdminRole.COMPLIANCE,
+        }
+    ),
+    "customers_read": frozenset(
+        {
+            AdminRole.SUPER_ADMIN,
+            AdminRole.ADMIN,
+            AdminRole.DISPATCHER,
+            AdminRole.SUPPORT,
+            AdminRole.SUPPORT_LEAD,
+            AdminRole.SALES,
+            AdminRole.SALES_MANAGER,
+            AdminRole.FINANCE,
             AdminRole.COMPLIANCE,
             AdminRole.READ_ONLY,
         }
@@ -108,8 +153,6 @@ MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
             AdminRole.READ_ONLY,
         }
     ),
-    "pricing": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.SALES, AdminRole.SALES_MANAGER}),
-    "pricing_read": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.DISPATCHER, AdminRole.SALES}),
     "finance": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.FINANCE, AdminRole.SUPPORT_LEAD}),
     "finance_read": frozenset(
         {AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.FINANCE, AdminRole.SUPPORT, AdminRole.SUPPORT_LEAD}
@@ -171,6 +214,26 @@ MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
         }
     ),
 }
+
+
+def permissions_catalog() -> dict[str, Any]:
+    """Expose admin role→module matrix for Settings Roles UI (not Check SoT)."""
+    roles = [
+        {
+            "role": role.value,
+            "label": ROLE_LABELS.get(role, role.value),
+            "modules": sorted(m for m, allowed in MODULE_PERMISSIONS.items() if role in allowed),
+        }
+        for role in AdminRole
+    ]
+    modules = [
+        {
+            "module": module,
+            "roles": sorted(r.value for r in allowed),
+        }
+        for module, allowed in sorted(MODULE_PERMISSIONS.items())
+    ]
+    return {"roles": roles, "modules": modules}
 
 
 def require_module(ctx: AdminContext, module: str) -> None:

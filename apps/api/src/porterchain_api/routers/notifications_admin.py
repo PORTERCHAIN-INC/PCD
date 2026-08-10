@@ -9,7 +9,7 @@ from porterchain_api.admin_engine.notification_admin_service import Notification
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.db import get_db
-from porterchain_api.schemas_notifications import BroadcastRequest
+from porterchain_api.schemas_notifications import BroadcastRequest, SendTestRequest
 
 router = APIRouter(prefix="/v1/admin/notifications", tags=["notifications-admin"])
 
@@ -74,6 +74,24 @@ def devices(ctx: Ctx, db: Session = Depends(get_db), limit: int = Query(200, le=
     return _svc.list_devices(db, limit=limit)
 
 
+@router.get("/entity-alerts")
+def entity_alerts(
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    recipient_type: str = Query(..., min_length=1),
+    recipient_id: str = Query(..., min_length=1),
+    limit: int = Query(15, ge=1, le=50),
+) -> dict:
+    """Trust strip for Partners entity 360 pages (Wave 3)."""
+    _guard(ctx, "notifications_read")
+    try:
+        return _svc.entity_alerts(
+            db, recipient_type=recipient_type, recipient_id=recipient_id, limit=limit
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.post("/retry/{notification_id}")
 def retry(notification_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     _guard(ctx, "notifications")
@@ -94,3 +112,32 @@ def broadcast(body: BroadcastRequest, ctx: Ctx, db: Session = Depends(get_db)) -
         channel=body.channel,
     )
     return result
+
+
+@router.post("/send-test")
+def send_test(body: SendTestRequest, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+    _guard(ctx, "notifications")
+    try:
+        return _svc.send_test(
+            db,
+            template_key=body.template_key,
+            channel=body.channel,
+            recipient_type=body.recipient_type,
+            recipient_id=body.recipient_id or ctx.user.id,
+            recipient_address=body.recipient_address or ctx.user.email,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/{notification_id}/delivery-logs")
+def delivery_logs(
+    notification_id: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    limit: int = Query(50, le=200),
+) -> list[dict]:
+    _guard(ctx, "notifications_read")
+    return _svc.delivery_logs(db, notification_id, limit=limit)

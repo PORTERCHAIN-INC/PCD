@@ -19,7 +19,7 @@ const INTEGRATION_META: Record<string, { label: string; note: string }> = {
   redis: { label: "Redis / Queue", note: "Event bus and job queue" },
   stripe: { label: "Stripe", note: "Payments — masterrule §14" },
   fleetbase: { label: "Fleetbase", note: "Execution engine via adapter only" },
-  google_maps: { label: "Google Maps", note: "Geocoding and routing" },
+  google_maps: { label: "Google Maps", note: "Places autocomplete & map tiles only" },
   firebase: { label: "Firebase", note: "Push notifications" },
   clerk: { label: "Clerk", note: "Identity — auth only, not RBAC" },
   email: { label: "Email (SMTP)", note: "Transactional delivery" },
@@ -29,15 +29,21 @@ const INTEGRATION_META: Record<string, { label: string; note: string }> = {
   api: { label: "API", note: "Porterchain orchestrator" },
 };
 
-export default function DashboardPanel({ dash }: { dash: SettingsDashboard }) {
+export default function DashboardPanel({
+  dash,
+  validation,
+}: {
+  dash: SettingsDashboard;
+  validation?: { valid: boolean; issues: string[]; warnings: string[]; commercial_ok?: boolean };
+}) {
   const health = dash.health as Record<string, unknown>;
   const integrations = Object.entries(INTEGRATION_META).filter(([k]) => k in health);
 
   return (
     <div className="space-y-6">
       <SettingsPageHeader
-        title="System overview"
-        description="Real-time health of the Porterchain orchestrator and connected services. Credentials are never displayed."
+        title="Settings overview"
+        description="Connection health and commercial readiness. Credentials are never displayed."
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -48,7 +54,22 @@ export default function DashboardPanel({ dash }: { dash: SettingsDashboard }) {
         />
         <StatTile label="Version" value={dash.version} sub="masterrule v3.1" />
         <StatTile label="Environment" value={dash.environment} />
-        <StatTile label="API" value={<StatusPill status={healthStatus(health.api)} />} />
+        <StatTile
+          label="Commercial"
+          value={
+            validation == null
+              ? "—"
+              : validation.commercial_ok !== false && validation.valid
+                ? "Ready"
+                : "Needs attention"
+          }
+          tone={validation?.valid && validation.commercial_ok !== false ? "success" : "warning"}
+          sub={
+            validation
+              ? `${validation.issues.length} issues · ${validation.warnings.length} warnings`
+              : undefined
+          }
+        />
       </div>
 
       <SettingsCard

@@ -17,14 +17,11 @@ from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_
 from porterchain_api.auth.clerk_registry import ClerkAppKind
 from porterchain_api.auth.portal_guard import is_legacy_shared_clerk_app
 from porterchain_api.auth.invitation_service import InvitationService
-from porterchain_api.booking_engine import CustomerService
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.merchant_models import Merchant, MerchantUser
 
 logger = logging.getLogger(__name__)
-
-_CUSTOMERS = CustomerService()
 
 
 def clerk_kind_for_user_type(user_type: str) -> ClerkAppKind:
@@ -81,6 +78,14 @@ class ClerkDirectoryService:
         normalized = email.lower().strip()
         if not normalized:
             raise ValueError("email_required")
+        # Retail personas self-serve on Platform Clerk — Admin must not set passwords
+        # or invent Clerk users for merchant/customer. Staff use staff IdP enroll.
+        if user_type == "customer":
+            raise ValueError("customer_self_signup_only")
+        if user_type == "staff":
+            raise ValueError("staff_use_enroll_endpoint")
+        if user_type in ("merchant", "customer") and password:
+            raise ValueError("password_create_forbidden_for_retail")
         kind = clerk_kind_for_user_type(user_type)
         if not is_clerk_secret_configured(settings, kind):
             raise ValueError("clerk_not_configured")
@@ -96,6 +101,42 @@ class ClerkDirectoryService:
         clerk_user: dict[str, Any] | None = None
         clerk_action = "created"
 
+        # Merchant seats are always reserved locally — never Clerk-invite from Settings (M-16).
+        if user_type == "merchant":
+            if not merchant_id:
+                raise ValueError("merchant_id_required")
+            merchant = db.query(Merchant).filter(Merchant.id == merchant_id).first()
+            if not merchant:
+                raise ValueError("merchant_not_found")
+            from porterchain_api.merchant_engine.team_service import ensure_merchant_seat
+
+            m_role = role or "merchant_ops"
+            mu = ensure_merchant_seat(
+                db,
+                merchant_id=merchant_id,
+                email=normalized,
+                role=m_role,
+                actor_user_id=ctx.user.id,
+                audit_action="merchant.member_seat_added",
+                commit=False,
+            )
+            log_admin_audit(
+                db,
+                ctx,
+                action="settings.user.seat_added",
+                resource_type="merchant",
+                resource_id=mu.id,
+                payload={"email": normalized, "clerk_invite": False, "role": m_role},
+            )
+            db.commit()
+            db.refresh(mu)
+            return {
+                "platform_user_id": mu.id,
+                "clerk_user_id": mu.clerk_user_id if str(mu.clerk_user_id).startswith("user_") else None,
+                "clerk_action": "seat_reserved",
+                "email": normalized,
+            }
+
         if password:
             clerk_user = client.create_user(
                 normalized,
@@ -107,13 +148,6 @@ class ClerkDirectoryService:
             clerk_action = "created_with_password"
         elif send_invite:
             inv = InvitationService()
-            if user_type == "staff":
-                if not role:
-                    raise ValueError("role_required")
-                user, _inv = inv.invite_admin_staff(
-                    db, ctx, settings, email=normalized, role=role, name=name
-                )
-                return {"platform_user_id": user.id, "clerk_action": "invited", "email": normalized}
             if user_type == "driver":
                 driver = Driver(
                     full_name=name or normalized.split("@")[0],
@@ -125,65 +159,7 @@ class ClerkDirectoryService:
                 inv.invite_driver(db, ctx, settings, driver)
                 db.commit()
                 return {"platform_user_id": driver.id, "clerk_action": "invited", "email": normalized}
-            if user_type == "merchant":
-                if not merchant_id:
-                    raise ValueError("merchant_id_required")
-                merchant = db.query(Merchant).filter(Merchant.id == merchant_id).first()
-                if not merchant:
-                    raise ValueError("merchant_not_found")
-                m_role = role or "merchant_ops"
-                metadata = {
-                    "user_type": "merchant",
-                    "merchant_id": merchant_id,
-                    "role": m_role,
-                }
-                redirect = f"{settings.merchant_portal_url.rstrip('/')}/sign-in"
-                clerk_result = client.invite_user(
-                    normalized, redirect_url=redirect, public_metadata=metadata
-                )
-                clerk_ref = clerk_result.clerk_user_id or f"pending:{normalized}"
-                mu = (
-                    db.query(MerchantUser)
-                    .filter(MerchantUser.merchant_id == merchant_id, MerchantUser.email == normalized)
-                    .first()
-                )
-                if not mu:
-                    mu = MerchantUser(
-                        merchant_id=merchant_id,
-                        clerk_user_id=clerk_ref,
-                        email=normalized,
-                        role=m_role,
-                    )
-                    db.add(mu)
-                else:
-                    mu.clerk_user_id = clerk_ref
-                    mu.is_active = True
-                    mu.role = m_role
-                db.flush()
-                log_admin_audit(
-                    db,
-                    ctx,
-                    action="settings.user.invited",
-                    resource_type="merchant",
-                    resource_id=mu.id,
-                    payload={"email": normalized, "clerk_action": clerk_result.action},
-                )
-                db.commit()
-                return {
-                    "platform_user_id": mu.id,
-                    "clerk_user_id": clerk_ref if clerk_ref.startswith("user_") else None,
-                    "clerk_action": clerk_result.action,
-                    "email": normalized,
-                }
-            # customer — self-signup; create Clerk + customer row
-            clerk_user = client.create_user(
-                normalized,
-                first_name=first_name,
-                last_name=last_name,
-                skip_password_requirement=True,
-                public_metadata={"user_type": "customer"},
-            )
-            clerk_action = "created"
+            raise ValueError("customer_self_signup_only")
         else:
             clerk_user = client.create_user(
                 normalized,
@@ -235,6 +211,10 @@ class ClerkDirectoryService:
         password: str | None = None,
         banned: bool | None = None,
     ) -> dict[str, Any]:
+        if user_type in ("merchant", "customer") and password:
+            raise ValueError("password_update_forbidden_for_retail")
+        if user_type in ("merchant", "customer") and banned is not None:
+            raise ValueError("ban_forbidden_for_retail")
         kind = clerk_kind_for_user_type(user_type)
         client = clerk_client_for_kind(settings, kind)
         first_name = None
@@ -276,12 +256,29 @@ class ClerkDirectoryService:
         clerk_user_id: str | None = None,
         platform_user_id: str | None = None,
     ) -> None:
+        if user_type == "customer":
+            # C-0: never wipe Platform Clerk retail identities from Admin Settings.
+            # C-19: DSR hold also blocks any future tombstone path.
+            if platform_user_id:
+                from porterchain_api.models import Customer
+
+                customer = db.query(Customer).filter(Customer.id == platform_user_id).first()
+                if customer and (customer.privacy_status or "").lower() == "deletion_hold":
+                    raise ValueError("customer_privacy_deletion_hold")
+            raise ValueError("customer_delete_forbidden")
         kind = clerk_kind_for_user_type(user_type)
         resolved_clerk_id = clerk_user_id or self._clerk_id_for_platform(db, user_type, platform_user_id)
         if resolved_clerk_id and is_clerk_secret_configured(settings, kind):
             clerk_client_for_kind(settings, kind).delete_user(resolved_clerk_id)
         if platform_user_id:
             self._deactivate_platform_user(db, user_type, platform_user_id)
+            clerk_for_sync = resolved_clerk_id or self._clerk_id_for_platform(
+                db, user_type, platform_user_id
+            )
+            if clerk_for_sync:
+                from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+
+                sync_authz_after_persona_mutation(db, clerk_for_sync)
         log_admin_audit(
             db,
             ctx,
@@ -338,25 +335,7 @@ class ClerkDirectoryService:
         merchant_id: str | None,
     ) -> str | None:
         if user_type == "staff":
-            existing = db.query(AdminUser).filter(AdminUser.email == email).first()
-            if existing:
-                existing.clerk_user_id = clerk_user_id
-                existing.is_active = True
-                if role:
-                    existing.role = role
-                if name:
-                    existing.name = name
-                return existing.id
-            user = AdminUser(
-                id=str(uuid.uuid4()),
-                clerk_user_id=clerk_user_id,
-                email=email,
-                name=name,
-                role=role or "read_only",
-            )
-            db.add(user)
-            db.flush()
-            return user.id
+            raise ValueError("staff_use_enroll_endpoint")
         if user_type == "driver":
             existing = db.query(Driver).filter(Driver.email == email).first()
             if existing:
@@ -372,10 +351,8 @@ class ClerkDirectoryService:
             db.flush()
             return driver.id
         if user_type == "customer":
-            customer = _CUSTOMERS.get_or_create_from_clerk(
-                db, clerk_user_id=clerk_user_id, email=email, phone=None
-            )
-            return customer.id
+            # C-0b: retail personas self-signup only — never provision from Admin Clerk create.
+            raise ValueError("customer_self_signup_only")
         if user_type == "merchant" and merchant_id:
             mu = (
                 db.query(MerchantUser)

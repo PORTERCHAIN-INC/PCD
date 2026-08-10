@@ -120,17 +120,10 @@ See [plantuml/event_bus_flow.puml](./plantuml/event_bus_flow.puml)
 
 ## Related
 
-| Document                                                                 | Purpose                    |
-| ------------------------------------------------------------------------ | -------------------------- |
-| [EVENT_BUS.md](../../EVENT_BUS.md)                                       | Infrastructure, retry, DLQ |
-| [EVENT_CATALOG.md](../../EVENT_CATALOG.md)                               | Event types                |
-| [docs/archive/EVENT_BUS_AUDIT.md](../../docs/archive/EVENT_BUS_AUDIT.md) | Historical audit findings  |
+| Document                                                         | Purpose                    |
+| ---------------------------------------------------------------- | -------------------------- |
+| [EVENT_BUS.md](../../EVENT_BUS.md)                               | Infrastructure, retry, DLQ |
+| [EVENT_CATALOG.md](../../EVENT_CATALOG.md)                       | Event types                |
+| [docs/archive/EVENT_BUS_AUDIT.md](../archive/EVENT_BUS_AUDIT.md) | Historical audit findings  |
 
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

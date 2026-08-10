@@ -10,6 +10,24 @@ def _checkout_urls(settings: Settings, checkout_channel: str) -> tuple[str, str]
     return settings.retail_checkout_success_url, settings.retail_checkout_cancel_url
 
 
+def ensure_stripe_customer(settings: Settings, customer: Customer) -> str | None:
+    """C-18: create or reuse a Stripe Customer and persist the id on the PC row."""
+    if not settings.stripe_secret:
+        return None
+    stripe.api_key = settings.stripe_secret
+    if customer.stripe_customer_id:
+        return customer.stripe_customer_id
+    if not customer.email:
+        return None
+    created = stripe.Customer.create(
+        email=customer.email,
+        phone=customer.phone or None,
+        metadata={"porterchain_customer_id": customer.id},
+    )
+    customer.stripe_customer_id = created.id
+    return created.id
+
+
 def create_checkout_session(
     settings: Settings,
     quote: Quote,
@@ -29,15 +47,15 @@ def create_checkout_session(
         "checkout_channel": checkout_channel,
     }
     success_base, cancel_base = _checkout_urls(settings, checkout_channel)
-    session = stripe.checkout.Session.create(
-        mode="payment",
+    stripe_customer_id = ensure_stripe_customer(settings, customer)
+    session_kwargs: dict = {
+        "mode": "payment",
         # Apple Pay & Google Pay are presented automatically by Stripe Checkout
         # when "card" is enabled and the domain is registered — no extra config.
-        payment_method_types=["card"],
-        customer_email=customer.email,
-        phone_number_collection={"enabled": True},
-        billing_address_collection="auto",
-        line_items=[
+        "payment_method_types": ["card"],
+        "phone_number_collection": {"enabled": True},
+        "billing_address_collection": "auto",
+        "line_items": [
             {
                 "price_data": {
                     "currency": quote.currency,
@@ -50,12 +68,17 @@ def create_checkout_session(
                 "quantity": 1,
             }
         ],
-        success_url=f"{success_base}?quote_id={quote.id}",
-        cancel_url=f"{cancel_base}?quote_id={quote.id}",
-        metadata=metadata,
+        "success_url": f"{success_base}?quote_id={quote.id}",
+        "cancel_url": f"{cancel_base}?quote_id={quote.id}",
+        "metadata": metadata,
         # Propagate identifiers onto the PaymentIntent for reconciliation.
-        payment_intent_data={"metadata": metadata},
-    )
+        "payment_intent_data": {"metadata": metadata},
+    }
+    if stripe_customer_id:
+        session_kwargs["customer"] = stripe_customer_id
+    else:
+        session_kwargs["customer_email"] = customer.email
+    session = stripe.checkout.Session.create(**session_kwargs)
     if not session.url:
         raise RuntimeError("stripe_session_missing_url")
     return session.url, session.id

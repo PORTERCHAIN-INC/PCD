@@ -32,7 +32,7 @@ export default async function CustomersPage({ params }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="/business#inquiry"
+        primaryHref="/sign-up?intent=quote&from=business"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/business#fleet"
         variant="light-centered"

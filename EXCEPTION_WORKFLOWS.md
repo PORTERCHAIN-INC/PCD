@@ -210,18 +210,10 @@ Delivered via the notification engine (`order.*` / `claim.*` events → `notific
 
 ## Related documents
 
-| Document                                       | Purpose                   |
-| ---------------------------------------------- | ------------------------- |
-| [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)     | Canonical states          |
-| [EVENT_CATALOG.md](./EVENT_CATALOG.md)         | Exception/claim events    |
-| [BUSINESS_WORKFLOW.md](./BUSINESS_WORKFLOW.md) | Business processes        |
-| [RBAC_MATRIX.md](./RBAC_MATRIX.md)             | Who can act on exceptions |
+| Document                                   | Purpose                |
+| ------------------------------------------ | ---------------------- |
+| [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md) | Canonical states       |
+| [EVENT_CATALOG.md](./EVENT_CATALOG.md)     | Exception/claim events |
+| [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md) | Business processes     |
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

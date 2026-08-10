@@ -5,7 +5,7 @@
 **Last verified:** 2026-07-05
 
 **Source:** `merchant_engine/`, `routers/merchant.py`, `routers/merchant_api.py`, `gateway_engine/`  
-**See also:** [DISPATCH_FLOW.md](./DISPATCH_FLOW.md) · [PAYMENT_FLOW.md](./PAYMENT_FLOW.md) · [MERCHANT_PRODUCTION_READINESS.md](../../MERCHANT_PRODUCTION_READINESS.md)
+**See also:** [DISPATCH_FLOW.md](./DISPATCH_FLOW.md) · [PAYMENT_FLOW.md](./PAYMENT_FLOW.md) · [MERCHANT_FLOW.md](MERCHANT_FLOW.md)
 
 ---
 
@@ -112,10 +112,3 @@ flowchart TD
 
 See [plantuml/merchant_flow.puml](./plantuml/merchant_flow.puml)
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

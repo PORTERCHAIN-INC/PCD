@@ -157,6 +157,11 @@ def PricingRequest_replace(request: PricingRequest, **kwargs) -> PricingRequest:
         "referral_credit_cents": request.referral_credit_cents,
         "volume_units": request.volume_units,
         "requires_liftgate": request.requires_liftgate,
+        "total_pickups": request.total_pickups,
+        "total_drops": request.total_drops,
+        "is_downtown": request.is_downtown,
+        "is_upper_zone": request.is_upper_zone,
+        "wait_minutes": request.wait_minutes,
     }
     data.update(kwargs)
     return PricingRequest(**data)

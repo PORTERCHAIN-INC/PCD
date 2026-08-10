@@ -11,12 +11,17 @@ export type OpsStats = {
   high_priority_orders: number;
   failed_deliveries: number;
   completed_today: number;
-  drivers_online: number;
-  drivers_offline: number;
   vehicles_active: number;
   open_claims: number;
   support_tickets: number;
   open_exceptions: number;
+  sla_at_risk?: number;
+  sla_breached?: number;
+  deltas?: {
+    orders_today?: number;
+    revenue_today_cents?: number;
+    completed_today?: number;
+  };
 };
 
 export type OpsOrder = {
@@ -32,6 +37,10 @@ export type OpsOrder = {
   dropoff: string | null;
   eta: string | null;
   sla: string;
+  sla_deadline?: string | null;
+  sla_minutes_remaining?: number | null;
+  stop_count?: number;
+  stops_done?: number;
   high_priority: boolean;
   created_at: string | null;
   risk_score?: number;
@@ -42,41 +51,6 @@ export type QueueOrder = OpsOrder & {
   has_pickup_coords?: boolean;
   has_dropoff_coords?: boolean;
   stop_phase?: "full" | "delivery_only";
-};
-
-export type OptimizedStop = {
-  sequence: number;
-  order_id: string;
-  tracking_number: string;
-  type: "pickup" | "delivery";
-  address: string | null;
-  leg_duration_seconds?: number;
-  cumulative_duration_seconds?: number;
-};
-
-export type OptimizeQueueResponse = {
-  plan_id: string;
-  optimized_stops: OptimizedStop[];
-  metrics: {
-    stop_count: number;
-    order_count: number;
-    distance_meters: number;
-    duration_seconds: number;
-    duration_minutes: number;
-    distance_km: number;
-    strategy: string;
-    engine: string;
-  };
-  warnings: string[];
-  order_ids: string[];
-};
-
-export type AssignBatchResponse = {
-  plan_id: string;
-  driver_id: string;
-  assigned_count: number;
-  results: Array<{ order_id: string; status: string; tracking_number?: string }>;
-  errors: Array<{ order_id: string; error: string }>;
 };
 
 export type BoardColumn = {
@@ -97,10 +71,16 @@ export type OpsException = {
   type: string;
   status: string;
   order_id: string;
+  order_state?: string;
   tracking_number: string;
   merchant: string | null;
+  customer_email?: string | null;
   reported_by: string;
   created_at: string | null;
+  acknowledged_at?: string | null;
+  acknowledged_by?: string | null;
+  resolution_note?: string | null;
+  resolved_at?: string | null;
 };
 export type ActivityEvent = {
   id: string;
@@ -113,25 +93,294 @@ export type ActivityEvent = {
 export type AssignableDriver = {
   id: string;
   name: string;
-  online: boolean;
-  availability: string;
   rating: number | null;
+  is_online?: boolean;
+  active_orders?: number;
+  medical_transport_certified?: boolean;
+};
+
+export type SuggestedDriver = {
+  id: string;
+  name: string;
+  rating: number | null;
+  online: boolean;
+  active_orders: number;
+  eta_minutes: number | null;
+  deadhead_km: number | null;
+  eta_source: string;
+  capability_match: boolean | null;
+  score: number;
+  reasons: string[];
+};
+
+export type DriverSuggestions = {
+  order_id: string;
+  pickup_coords: boolean;
+  vehicle_class: string | null;
+  medical_required?: boolean;
+  filtered_out_count?: number;
+  drivers: SuggestedDriver[];
+};
+
+export type LiveMapStop = { lat: number; lng: number; kind: string; label: string };
+export type LiveMapOrder = {
+  id: string;
+  tracking_number: string;
+  state: string;
+  driver: string | null;
+  stops: LiveMapStop[];
+};
+export type LiveMapDriver = {
+  id: string;
+  fleetbase_driver_id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  online: boolean;
+};
+export type LiveMapDensityCell = { lat: number; lng: number; weight: number };
+export type LiveMapZone = {
+  id: string | null;
+  name: string;
+  kind: string;
+  color: string;
+  stroke_color: string;
+  path: [number, number][];
+};
+export type LiveMapSnapshot = {
+  drivers: LiveMapDriver[];
+  orders: LiveMapOrder[];
+  drivers_source: string;
+  density?: LiveMapDensityCell[];
+  zones?: LiveMapZone[];
+  zones_source?: string;
+};
+export type RouteGeometry = {
+  order_id: string;
+  stops: LiveMapStop[];
+  path: [number, number][];
+  source: string;
+  distance_meters: number | null;
+  duration_seconds: number | null;
+};
+export type PlaybackPoint = {
+  lat: number;
+  lng: number;
+  heading?: number | null;
+  speed?: number | null;
+  recorded_at?: string | null;
+  id?: string | null;
+};
+export type OrderPlayback = {
+  order_id: string;
+  fleetbase_order_id?: string | null;
+  points: PlaybackPoint[];
+  source: string;
+  message?: string;
+};
+export type UtilizationDriver = {
+  id: string;
+  name: string;
+  fleetbase_driver_id: string | null;
+  online: boolean;
+  on_shift: boolean;
+  on_break: boolean;
+  active_orders: number;
+  shift_minutes: number;
+  break_minutes: number;
+  status: string;
+  utilization_percent: number;
+  utilization_note?: string;
+  rating: number | null;
+};
+export type UtilizationSnapshot = {
+  as_of: string;
+  online_source: string;
+  summary: {
+    drivers_total: number;
+    online: number;
+    on_shift: number;
+    idle: number;
+    busy: number;
+    on_break: number;
+    waiting_unassigned: number;
+    active_orders: number;
+    avg_load_per_online: number;
+    staffing_gap: number;
+  };
+  drivers: UtilizationDriver[];
 };
 export type AiOps = {
   risk_orders: OpsOrder[];
   suggested_drivers: AssignableDriver[];
   recommendation: string;
 };
-export type MapSnapshot = {
-  drivers: Array<{ id: string; name: string; status: string; online: boolean }>;
-  orders: Array<{
-    order_id: string;
-    tracking: string;
-    state: string;
-    pickup: Record<string, unknown>;
-    dropoff: Record<string, unknown>;
+
+export type ScheduledBatchOrder = {
+  id: string;
+  order_number: string;
+  tracking_number: string;
+  state: string;
+  scheduled_at: string | null;
+  pickup: string | null;
+  stop_count: number;
+  order_kind?: string | null;
+  amount_cents: number;
+  fleetbase_order_id: string | null;
+  pickup_window_start?: string | null;
+  pickup_window_end?: string | null;
+};
+
+export type ScheduledBatch = {
+  merchant_id: string | null;
+  merchant_name: string | null;
+  pickup_address: string | null;
+  pickup_window_start: string | null;
+  pickup_window_end: string | null;
+  order_count: number;
+  amount_cents: number;
+  orders: ScheduledBatchOrder[];
+};
+
+export type ScheduledBatchesResponse = {
+  date: string;
+  batch_count: number;
+  order_count: number;
+  batches: ScheduledBatch[];
+};
+
+export type FleetbaseManifest = {
+  id?: string | null;
+  public_id?: string | null;
+  status?: string | null;
+  scheduled_date?: string | null;
+  driver_id?: string | null;
+  driver_name?: string | null;
+  vehicle_id?: string | null;
+  vehicle_name?: string | null;
+  stop_count?: number | null;
+  stops?: Array<{
+    id?: string | null;
+    sequence?: number;
+    status?: string | null;
+    order_id?: string | null;
   }>;
-  fleetbase_note: string;
+};
+
+export type ManifestsResponse = {
+  date: string;
+  source: string;
+  manifest_count: number;
+  manifests: FleetbaseManifest[];
+  note?: string;
+};
+
+export type OptimizeAssignment = {
+  order_id?: string | null;
+  porterchain_order_id?: string | null;
+  vehicle_id?: string | null;
+  driver_id?: string | null;
+  distance_m?: number | null;
+  duration_s?: number | null;
+  sequence?: number | null;
+};
+
+export type OptimizeMetrics = {
+  assigned_count?: number;
+  unassigned_count?: number;
+  vehicles_used?: number;
+  after_distance_m?: number;
+  after_duration_s?: number;
+  after_distance_km?: number;
+  after_duration_min?: number;
+  utilization_orders_per_vehicle?: number;
+  before_order_count?: number;
+};
+
+export type OptimizeRunResult = {
+  ok?: boolean;
+  error?: string | null;
+  hint?: string | null;
+  message?: string | null;
+  assignments: OptimizeAssignment[];
+  unassigned?: string[];
+  metrics?: OptimizeMetrics;
+  missing_sync?: string[];
+};
+
+export type OptimizePool = {
+  order_count: number;
+  orders: Array<{
+    id: string;
+    tracking_number: string;
+    state: string;
+    fleetbase_order_id: string | null;
+  }>;
+  missing_sync?: string[];
+};
+
+export type OptimizeCommitResult = {
+  ok?: boolean;
+  error?: string | null;
+  manifest_count?: number;
+  committed?: unknown[];
+  failed?: unknown[];
+};
+
+export type CopilotAlternate = {
+  driver_id: string;
+  driver_name?: string | null;
+  eta_minutes?: number | null;
+  score?: number | null;
+};
+
+export type CopilotAction = {
+  id: string;
+  kind: string;
+  title: string;
+  summary: string;
+  order_id: string;
+  tracking_number: string;
+  driver_id: string;
+  driver_name?: string | null;
+  eta_minutes?: number | null;
+  savings_minutes?: number | null;
+  score?: number | null;
+  reasons?: string[];
+  alternates?: CopilotAlternate[];
+};
+
+export type CopilotResponse = {
+  generated_at: string;
+  action_count: number;
+  actions: CopilotAction[];
+  note?: string;
+};
+
+export type CopilotAuditEvent = {
+  id: string;
+  event_type: string;
+  order_id: string;
+  actor_id?: string | null;
+  payload?: Record<string, unknown>;
+  occurred_at: string | null;
+};
+
+export type OpsSearchResult = {
+  q: string;
+  orders: Array<{
+    id: string;
+    tracking_number: string;
+    order_number: string;
+    state: string;
+    kind: "order";
+  }>;
+  drivers: Array<{
+    id: string;
+    name: string;
+    online: boolean;
+    kind: "driver";
+  }>;
 };
 
 const B = "/v1/admin/operations";
@@ -139,10 +388,14 @@ const B = "/v1/admin/operations";
 export const ops = {
   stats: (t: string) => adminFetch<OpsStats>(`${B}/stats`, t),
   board: (t: string) => adminFetch<BoardColumn[]>(`${B}/board`, t),
-  moveBoardOrder: (t: string, orderId: string, toColumn: string) =>
+  moveBoardOrder: (t: string, orderId: string, toColumn: string, reason?: string) =>
     adminFetch<OpsOrder>(`${B}/board/move`, t, {
       method: "POST",
-      body: JSON.stringify({ order_id: orderId, to_column: toColumn }),
+      body: JSON.stringify({
+        order_id: orderId,
+        to_column: toColumn,
+        reason: reason?.trim() || null,
+      }),
     }),
   orders: (t: string, search?: string) =>
     adminFetch<OpsOrder[]>(
@@ -150,27 +403,76 @@ export const ops = {
       t
     ),
   queue: (t: string) => adminFetch<QueueOrder[]>(`${B}/queue`, t),
-  optimizeQueue: (t: string, orderIds: string[], opts?: { strategy?: string; engine?: string }) =>
-    adminFetch<OptimizeQueueResponse>(`${B}/queue/optimize`, t, {
-      method: "POST",
-      timeoutMs: 60_000,
-      body: JSON.stringify({
-        order_ids: orderIds,
-        strategy: opts?.strategy ?? "balanced",
-        engine: opts?.engine ?? "valhalla",
-      }),
-    }),
-  assignBatch: (t: string, body: { plan_id: string; driver_id: string; order_ids?: string[] }) =>
-    adminFetch<AssignBatchResponse>(`${B}/queue/assign-batch`, t, {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
   assignableDrivers: (t: string) => adminFetch<AssignableDriver[]>(`${B}/assignable-drivers`, t),
+  driverSuggestions: (t: string, orderId: string) =>
+    adminFetch<DriverSuggestions>(`${B}/orders/${orderId}/driver-suggestions`, t),
+  liveMap: (t: string) => adminFetch<LiveMapSnapshot>(`${B}/live-map`, t),
+  routeGeometry: (t: string, orderId: string) =>
+    adminFetch<RouteGeometry>(`${B}/orders/${orderId}/route-geometry`, t),
+  playback: (t: string, orderId: string) =>
+    adminFetch<OrderPlayback>(`${B}/orders/${orderId}/playback`, t),
+  utilization: (t: string) => adminFetch<UtilizationSnapshot>(`${B}/utilization`, t),
   exceptions: (t: string) => adminFetch<OpsException[]>(`${B}/exceptions`, t),
+  acknowledgeException: (t: string, id: string) =>
+    adminFetch<OpsException>(`${B}/exceptions/${id}/acknowledge`, t, { method: "POST" }),
+  resolveException: (t: string, id: string, note?: string) =>
+    adminFetch<OpsException>(`${B}/exceptions/${id}/resolve`, t, {
+      method: "POST",
+      body: JSON.stringify({ note: note ?? null }),
+    }),
+  retryException: (t: string, id: string) =>
+    adminFetch<{ exception: OpsException; order_state: string }>(`${B}/exceptions/${id}/retry`, t, {
+      method: "POST",
+    }),
   sla: (t: string) => adminFetch<SlaResponse>(`${B}/sla`, t),
   activity: (t: string) => adminFetch<ActivityEvent[]>(`${B}/activity`, t),
   ai: (t: string) => adminFetch<AiOps>(`${B}/ai`, t),
-  map: (t: string) => adminFetch<MapSnapshot>(`${B}/map`, t),
+  scheduledBatches: (t: string, day?: string, merchantId?: string) => {
+    const q = new URLSearchParams();
+    if (day) q.set("day", day);
+    if (merchantId) q.set("merchant_id", merchantId);
+    const qs = q.toString();
+    return adminFetch<ScheduledBatchesResponse>(`${B}/scheduled-batches${qs ? `?${qs}` : ""}`, t);
+  },
+  manifests: (t: string, scheduledDate?: string, status?: string) => {
+    const q = new URLSearchParams();
+    if (scheduledDate) q.set("scheduled_date", scheduledDate);
+    if (status) q.set("status", status);
+    const qs = q.toString();
+    return adminFetch<ManifestsResponse>(`${B}/manifests${qs ? `?${qs}` : ""}`, t);
+  },
+  optimizePool: (t: string) => adminFetch<OptimizePool>(`${B}/optimize/pool`, t),
+  optimizeEngines: (t: string) =>
+    adminFetch<{ engines: Array<{ id?: string; name?: string }> }>(`${B}/optimize/engines`, t),
+  optimizeRun: (t: string, body: { order_ids?: string[]; mode?: string; engine?: string | null }) =>
+    adminFetch<OptimizeRunResult>(`${B}/optimize/run`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  optimizeCommit: (t: string, assignments: OptimizeAssignment[], scheduledDate?: string) =>
+    adminFetch<OptimizeCommitResult>(`${B}/optimize/commit`, t, {
+      method: "POST",
+      body: JSON.stringify({ assignments, scheduled_date: scheduledDate ?? null }),
+    }),
+  copilot: (t: string) => adminFetch<CopilotResponse>(`${B}/copilot`, t),
+  copilotAudit: (t: string) => adminFetch<CopilotAuditEvent[]>(`${B}/copilot/audit`, t),
+  copilotAccept: (t: string, body: { action_id: string; order_id: string; driver_id: string }) =>
+    adminFetch<{ ok: boolean }>(`${B}/copilot/accept`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  copilotModify: (t: string, body: { action_id: string; order_id: string; driver_id: string }) =>
+    adminFetch<{ ok: boolean }>(`${B}/copilot/modify`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  copilotDismiss: (t: string, body: { action_id: string; order_id: string; reason?: string }) =>
+    adminFetch<{ ok: boolean }>(`${B}/copilot/dismiss`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  search: (t: string, q: string) =>
+    adminFetch<OpsSearchResult>(`${B}/search?q=${encodeURIComponent(q)}`, t),
 };
 
 export const BOARD_LABELS: Record<string, string> = {

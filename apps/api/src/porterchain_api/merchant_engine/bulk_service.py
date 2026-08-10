@@ -184,6 +184,7 @@ class MerchantBulkService:
         job = BulkImportJob(
             merchant_id=ctx.merchant.id,
             status=BulkImportStatus.PREVIEW.value,
+            kind="classic",
             filename=filename,
             total_rows=len(rows),
             valid_rows=len(preview),
@@ -191,6 +192,7 @@ class MerchantBulkService:
             duplicate_rows=duplicates,
             preview=preview[:50],
             errors=errors[:100],
+            job_config=None,
         )
         db.add(job)
         db.commit()

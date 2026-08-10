@@ -11,28 +11,28 @@ Porterchain is a logistics orchestration platform. All commercial logic lives in
 
 ## Components
 
-| Layer             | Path                                    | Port | Role                                                     |
-| ----------------- | --------------------------------------- | ---- | -------------------------------------------------------- |
-| Website           | `website/`                              | 3000 | Marketing, booking, quote; links to customer app `:3004` |
-| Merchant Portal   | `apps/merchant-portal/`                 | 3001 | B2B bookings, bulk, billing, API keys                    |
-| Admin Portal      | `apps/admin/`                           | 3002 | Ops control tower — dispatch, orders, finance (not CRM)  |
-| Driver Portal     | `apps/driver-portal/`                   | 3003 | Driver web UI (proxied to `/driver-api/v1`)              |
-| Customer Portal   | `apps/customer/`                        | 3004 | Retail dashboard, support, rebook                        |
-| Mobile Driver     | `apps/mobile-driver/`                   | —    | Expo app → `/driver-api/v1/*`                            |
-| Mobile Customer   | `apps/mobile-customer/`                 | —    | Expo app → `/v1/*`                                       |
-| Porterchain API   | `apps/api/`                             | 8001 | FastAPI orchestrator, all `*_engine` services            |
-| Worker            | `apps/worker/`                          | —    | Redis event bus + queue consumer                         |
-| Fleetbase Adapter | `services/fleetbase-adapter/`           | —    | Sole Fleetbase HTTP boundary                             |
-| Event Bus         | `services/event-bus/`                   | —    | `porterchain_event_bus` + handler registry               |
-| Pricing Engine    | `services/pricing-engine/`              | —    | `porterchain_pricing` library                            |
-| Shared Services   | `services/python/porterchain_services/` | —    | Stripe, maps, notifications                              |
-| Shared Python     | `shared/python/porterchain_shared/`     | —    | Config, events catalog, queue names                      |
+| Layer             | Path                                    | Port | Role                                                    |
+| ----------------- | --------------------------------------- | ---- | ------------------------------------------------------- |
+| Website           | `website/`                              | 3000 | Marketing + guest track; CTAs → customer portal `:3004` |
+| Merchant Portal   | `apps/merchant-portal/`                 | 3001 | B2B bookings, bulk, billing, API keys                   |
+| Admin Portal      | `apps/admin/`                           | 3002 | Ops control tower — dispatch, orders, finance (not CRM) |
+| Driver Portal     | `apps/driver-portal/`                   | 3003 | Driver web UI (proxied to `/driver-api/v1`)             |
+| Customer Portal   | `apps/customer/`                        | 3004 | Retail quote/book/pay, dashboard, support, rebook       |
+| Mobile Driver     | `apps/mobile-driver/`                   | —    | Expo app → `/driver-api/v1/*`                           |
+| Mobile Customer   | `apps/mobile-customer/`                 | —    | Expo app → `/v1/*`                                      |
+| Porterchain API   | `apps/api/`                             | 8001 | FastAPI orchestrator, all `*_engine` services           |
+| Worker            | `apps/worker/`                          | —    | Redis event bus + queue consumer                        |
+| Fleetbase Adapter | `services/fleetbase-adapter/`           | —    | Sole Fleetbase HTTP boundary                            |
+| Event Bus         | `services/event-bus/`                   | —    | `porterchain_event_bus` + handler registry              |
+| Pricing Engine    | `services/pricing-engine/`              | —    | `porterchain_pricing` library                           |
+| Shared Services   | `services/python/porterchain_services/` | —    | Stripe, maps, notifications                             |
+| Shared Python     | `shared/python/porterchain_shared/`     | —    | Config, events catalog, queue names                     |
 
 ## Data Stores
 
 | Store         | Usage                                            |
 | ------------- | ------------------------------------------------ |
-| PostgreSQL 16 | Primary domain DB (`porterchain_api/models*.py`) |
+| PostgreSQL 18 | Primary domain DB (`porterchain_api/models*.py`) |
 | Redis         | Event bus transport, task queues, idempotency    |
 | Fleetbase DB  | Operational drivers, dispatch, GPS (external)    |
 
@@ -65,7 +65,7 @@ flowchart TB
   end
 
   subgraph Data["Data & Messaging"]
-    PG[("PostgreSQL 16")]
+    PG[("PostgreSQL 18")]
     REDIS[("Redis")]
     EB["Event Bus<br/>porterchain_event_bus"]
     Q["Queues<br/>emails|sms|push|billing|webhooks|dispatch|reports"]
@@ -93,7 +93,7 @@ flowchart TB
   end
 
   WEB & CUST & MERCH & ADMIN & DRIVER & MOBILE_D & MOBILE_C -->|"HTTPS /v1/*"| ROUTERS
-  ADMIN -->|"WS live-map/ws"| ROUTERS
+  ADMIN -->|"WS /v1/notifications/ws"| ROUTERS
   BE & ME & AE & FE & DE --> PG
   BE & ME & AE --> EB
   EB --> REDIS
@@ -123,10 +123,3 @@ flowchart TB
 
 See [plantuml/system_architecture.puml](./plantuml/system_architecture.puml)
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

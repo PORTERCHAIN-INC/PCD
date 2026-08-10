@@ -105,6 +105,7 @@ export type ClaimFilters = {
   search?: string;
   merchant_id?: string;
   driver_id?: string;
+  customer_id?: string;
   insurance?: boolean;
   date_from?: string;
   date_to?: string;

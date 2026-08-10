@@ -50,10 +50,26 @@ export type MerchantAi = {
   suggested_actions: string[];
 };
 
+export const BILLING_CYCLES = ["WEEKLY", "BIWEEKLY", "MONTHLY", "CUSTOM"] as const;
+
+/** Retail vehicle class IDs — must stay ⊆ Settings vehicle_types catalog (M-6). */
+export const RETAIL_VEHICLE_OPTIONS = [
+  "sedan",
+  "suv",
+  "pickup",
+  "cargoVan",
+  "highRoof",
+  "box16",
+  "box20",
+] as const;
+
 export type MerchantDetail = MerchantRow & {
   hst_number: string | null;
   business_number: string | null;
   credit_limit_cents: number | null;
+  billing_cycle?: string;
+  phone?: string | null;
+  stripe_enabled?: boolean;
   billing_address: Record<string, unknown>;
   preferred_vehicles: string[];
   delivery_zones: unknown[];
@@ -71,6 +87,7 @@ export type MerchantDetail = MerchantRow & {
     open_orders: number;
     outstanding_balance_cents: number;
     overdue_balance_cents: number;
+    crm_outstanding_balance_cents?: number;
     api_connected: boolean;
     active_contract: boolean;
     last_activity_at: string | null;
@@ -204,6 +221,17 @@ export const merchants = {
       payment_terms: Array<{ value: string; count: number }>;
     }>(`${B}/facets`, t),
   stats: (t: string) => adminFetch<MerchantStats>(`${B}/stats`, t),
+  unprovisionedSignups: (t: string) =>
+    adminFetch<
+      Array<{
+        email: string;
+        name: string;
+        clerk_user_id: string;
+        clerk_status: string | null;
+        last_sign_in_at: string | null;
+        suggested_company_name: string;
+      }>
+    >(`${B}/unprovisioned-signups`, t),
   detail: (t: string, id: string) => adminFetch<MerchantDetail>(`${B}/${id}`, t),
   approve: (t: string, id: string) =>
     adminFetch<MerchantDetail>(`${B}/${id}/approve`, t, { method: "POST" }),
@@ -216,6 +244,12 @@ export const merchants = {
       payment_terms?: string;
       credit_limit_cents?: number;
       pricing_config?: Record<string, unknown>;
+      billing_cycle?: string;
+      preferred_vehicles?: string[];
+      company_name?: string;
+      phone?: string;
+      hst_number?: string;
+      stripe_enabled?: boolean;
     }
   ) => adminFetch<MerchantDetail>(`${B}/${id}`, t, { method: "PATCH", body: JSON.stringify(body) }),
   orders: (t: string, id: string, params: Record<string, string | undefined> = {}) =>
@@ -229,14 +263,22 @@ export const merchants = {
       email: string;
       role: string;
       invitation_status: string;
-    }>(`${B}/${id}/invite-owner`, t, { method: "POST", body: JSON.stringify({ email }) }),
+    }>(`${B}/${id}/owner-seat`, t, { method: "POST", body: JSON.stringify({ email }) }),
   inviteTeamMember: (t: string, id: string, email: string, role: string) =>
     adminFetch<{
       merchant_user_id: string;
       email: string;
       role: string;
       invitation_status: string;
-    }>(`${B}/${id}/team/invite`, t, { method: "POST", body: JSON.stringify({ email, role }) }),
+    }>(`${B}/${id}/team/seats`, t, { method: "POST", body: JSON.stringify({ email, role }) }),
+  updateTeamRole: (t: string, id: string, userId: string, role: string) =>
+    adminFetch<{ id: string; email: string; role: string; is_active: boolean }>(
+      `${B}/${id}/team/${userId}`,
+      t,
+      { method: "PATCH", body: JSON.stringify({ role }) }
+    ),
+  removeTeamMember: (t: string, id: string, userId: string) =>
+    adminFetch<void>(`${B}/${id}/team/${userId}`, t, { method: "DELETE" }),
   activateUsers: (t: string, id: string, email?: string) =>
     adminFetch<{ activated: number; emails: string[] }>(`${B}/${id}/activate-users`, t, {
       method: "POST",
@@ -253,6 +295,15 @@ export const merchants = {
   timeline: (t: string, id: string) => adminFetch<TimelineEvent[]>(`${B}/${id}/timeline`, t),
   contacts: (t: string, id: string) => adminFetch<Contact[]>(`${B}/${id}/contacts`, t),
   contracts: (t: string, id: string) => adminFetch<Contract[]>(`${B}/${id}/contracts`, t),
+  createContract: (
+    t: string,
+    id: string,
+    body: { net_terms?: string; value_cents?: number; status?: string } = {}
+  ) =>
+    adminFetch<Contract>(`${B}/${id}/contracts`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   invoices: (t: string, id: string) => adminFetch<Invoice[]>(`${B}/${id}/invoices`, t),
   activities: (t: string, id: string) => adminFetch<Activity[]>(`${B}/${id}/activities`, t),
   tasks: (t: string, id: string) => adminFetch<Task[]>(`${B}/${id}/tasks`, t),

@@ -11,9 +11,51 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_models import AdminAuditLog, Claim, Driver, SupportTicket
 from porterchain_api.billing_engine.models import BillingLedgerEntry
 from porterchain_api.booking_draft_models import BookingDraft
+from porterchain_api.booking_engine.invoice_service import public_document_url
 from porterchain_api.config import Settings
+from porterchain_api.fleetbase_engine.pod_normalize import normalize_pod
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.models import Booking, Customer, DomainEvent, Invoice, Order, OrderException, Payment, Quote
+
+
+def resolve_order_additional_stops(order: Order, quote: Quote | None = None) -> list[Any]:
+    """Stop SoT for Order 360: compliance.stops → legacy additional_stops → quote."""
+    meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
+    rich = meta.get("stops")
+    if isinstance(rich, list) and rich:
+        pickup = order.pickup if isinstance(order.pickup, dict) else {}
+        dropoff = order.dropoff if isinstance(order.dropoff, dict) else {}
+        ends = {
+            str(pickup.get("formatted") or pickup.get("address") or "").strip().lower(),
+            str(dropoff.get("formatted") or dropoff.get("address") or "").strip().lower(),
+        }
+        ordered = sorted(
+            (s for s in rich if isinstance(s, dict)),
+            key=lambda s: int(s.get("sequence") or 0),
+        )
+        middles: list[Any] = []
+        for s in ordered:
+            label = str(s.get("formatted") or s.get("address") or "").strip().lower()
+            if label and label in ends:
+                continue
+            middles.append(
+                {
+                    "formatted": s.get("formatted") or s.get("address"),
+                    "lat": s.get("lat"),
+                    "lng": s.get("lng"),
+                    "city": s.get("city"),
+                    "type": s.get("type"),
+                    "sequence": s.get("sequence"),
+                    "id": s.get("id"),
+                }
+            )
+        return middles
+    legacy = meta.get("additional_stops")
+    if isinstance(legacy, list) and legacy:
+        return legacy
+    if quote and isinstance(quote.additional_stops, list):
+        return quote.additional_stops
+    return []
 
 
 class OrderPlatformDetailMixin:
@@ -68,10 +110,67 @@ class OrderPlatformDetailMixin:
         )
 
         live_tracking = None
+        live_raw: dict[str, Any] | None = None
         try:
-            live_tracking = self._tracking.get_live_tracking(db, settings, order)
+            from porterchain_api.fleetbase_engine.tracking_facade import TrackingFacade
+
+            live_raw = self._tracking.get_live_tracking(db, settings, order)
+            snapshot = TrackingFacade.translate_live(live_raw)
+            live_tracking = {**snapshot, "driver_location": snapshot.get("location")}
         except Exception:
             live_tracking = None
+
+        fb_status = (live_tracking or {}).get("fleetbase_status")
+        fb_mapped = None
+        proofs: list[dict[str, Any]] = []
+        if isinstance(live_raw, dict):
+            raw_proofs = live_raw.get("proofs")
+            if isinstance(raw_proofs, list):
+                proofs = [p for p in raw_proofs if isinstance(p, dict)]
+        if order.fleetbase_order_id and not fb_status:
+            try:
+                from porterchain_api.fleetbase_engine.integration_bridge import FleetbaseIntegrationBridge
+
+                sync = FleetbaseIntegrationBridge().sync_status_from_fleetbase(settings, order)
+                if sync:
+                    fb_status = sync.get("status") or fb_status
+                    fb_mapped = sync.get("target_state")
+                    if not proofs and isinstance(sync.get("proofs"), list):
+                        proofs = [p for p in sync["proofs"] if isinstance(p, dict)]
+            except Exception:
+                pass
+        if fb_mapped is None and fb_status:
+            try:
+                from porterchain_api.fleetbase_engine.status_translator import StatusTranslator
+
+                mapped = StatusTranslator.to_state(status=str(fb_status))
+                fb_mapped = mapped.value if mapped else None
+            except Exception:
+                fb_mapped = None
+        pc_upper = str(order.state).upper()
+        fb_mapped_upper = str(fb_mapped).upper() if fb_mapped else None
+        fb_status_l = str(fb_status).lower() if fb_status else ""
+        aligned: bool | None
+        if not fb_mapped_upper and not fb_status_l:
+            aligned = None
+        elif fb_mapped_upper == pc_upper:
+            aligned = True
+        elif pc_upper in {"POD_COMPLETED", "INVOICED", "CLOSED"} and (
+            fb_mapped_upper in {"DELIVERED", "POD_COMPLETED"}
+            or fb_status_l in {"completed", "delivered"}
+        ):
+            # Commercial post-delivery vs Fleetbase execution complete = expected, not drift.
+            aligned = True
+        else:
+            aligned = False
+        status_sync = {
+            "pc_state": order.state,
+            "fleetbase_order_id": order.fleetbase_order_id,
+            "fleetbase_status": fb_status,
+            "fleetbase_mapped_state": fb_mapped,
+            "status_aligned": aligned,
+            "truth": "Live from Fleetbase" if fb_status else "PC commercial only",
+        }
 
         timeline = []
         for ev in events:
@@ -112,8 +211,13 @@ class OrderPlatformDetailMixin:
                 }
             )
 
-        pod_events = [ev for ev in events if "pod" in ev.event_type.lower() or ev.to_state == "POD_COMPLETED"]
-        pod = pod_events[-1].payload if pod_events else {}
+        pod = normalize_pod(proofs)
+        if not pod.get("complete"):
+            pod_events = [
+                ev for ev in events if "pod" in ev.event_type.lower() or ev.to_state == "POD_COMPLETED"
+            ]
+            if pod_events and isinstance(pod_events[-1].payload, dict):
+                pod = {**pod, "event_payload": pod_events[-1].payload}
 
         booking_draft = (
             db.query(BookingDraft).filter(BookingDraft.quote_id == order.quote_id).first()
@@ -174,8 +278,6 @@ class OrderPlatformDetailMixin:
                 "phone": driver.phone,
                 "email": driver.email,
                 "rating": driver.rating,
-                "is_online": driver.is_online,
-                "availability": driver.availability,
                 "wallet_balance_cents": driver.wallet_balance_cents,
                 "todays_deliveries": int(todays),
             }
@@ -200,14 +302,11 @@ class OrderPlatformDetailMixin:
         )
 
         automation: list[dict[str, Any]] = []
-        communications: list[dict[str, Any]] = []
         api_activity: list[dict[str, Any]] = []
         for item in timeline:
             et = str(item.get("event_type", ""))
             if any(et.startswith(p) for p in ("payment.", "notification.", "fleetbase.", "invoice.", "dispatch.", "order.")):
                 automation.append(item)
-            if any(k in et for k in ("notification", "email", "sms", "push")):
-                communications.append(item)
             if any(k in et for k in ("stripe", "fleetbase", "webhook", "api")):
                 api_activity.append(item)
         for le in ledger_entries:
@@ -222,16 +321,20 @@ class OrderPlatformDetailMixin:
                 }
             )
 
-        driver_status = "offline"
-        if driver:
-            driver_status = driver.availability if driver.is_online else "offline"
+        communications = self._order_communications(db, order_id)
+
+        # Live driver status (online/GPS) is Fleetbase-owned; here we only
+        # reflect the commercial assignment state of this order.
+        driver_status = "assigned" if driver else "unassigned"
         vehicle_status = "assigned" if vehicle and order.assigned_driver_id else "available"
 
+        receipt_url = public_document_url(invoice.stripe_receipt_url if invoice else None)
+        pdf_url = public_document_url(invoice.pdf_url if invoice else None)
         documents = []
-        if invoice and invoice.pdf_url:
-            documents.append({"type": "invoice_pdf", "name": invoice.invoice_number, "url": invoice.pdf_url})
-        if invoice and invoice.stripe_receipt_url:
-            documents.append({"type": "receipt", "name": invoice.invoice_number, "url": invoice.stripe_receipt_url})
+        if invoice and pdf_url:
+            documents.append({"type": "invoice_pdf", "name": invoice.invoice_number, "url": pdf_url})
+        if invoice and receipt_url:
+            documents.append({"type": "receipt", "name": invoice.invoice_number, "url": receipt_url})
 
         merchants = self._merchant_map(db)
         row = self._row(db, order, merchants, self._driver_map(db))
@@ -240,6 +343,7 @@ class OrderPlatformDetailMixin:
             **row,
             "special_instructions": order.special_instructions,
             "fleetbase_order_id": order.fleetbase_order_id,
+            "status_sync": status_sync,
             "customer_phone": customer.phone if customer else None,
             "booking_id": booking.id if booking else None,
             "booking_draft_id": booking_draft.id if booking_draft else None,
@@ -257,7 +361,15 @@ class OrderPlatformDetailMixin:
             "pricing_breakdown": quote.pricing_breakdown if quote else None,
             "pickup_detail": order.pickup,
             "dropoff_detail": order.dropoff,
-            "additional_stops": (quote.additional_stops or []) if quote else [],
+            "additional_stops": resolve_order_additional_stops(order, quote),
+            "order_kind": (order.compliance_metadata or {}).get("order_kind")
+            if isinstance(order.compliance_metadata, dict)
+            else None,
+            "stops": (
+                (order.compliance_metadata or {}).get("stops")
+                if isinstance(order.compliance_metadata, dict)
+                else None
+            ),
             "payments": [
                 {
                     "payment_id": p.id,
@@ -266,7 +378,7 @@ class OrderPlatformDetailMixin:
                     "currency": p.currency,
                     "stripe_payment_intent_id": p.stripe_payment_intent_id,
                     "stripe_checkout_session_id": p.stripe_checkout_session_id,
-                    "receipt_url": p.receipt_url,
+                    "receipt_url": public_document_url(p.receipt_url),
                     "failure_reason": p.failure_reason,
                     "retry_count": p.retry_count,
                     "created_at": p.created_at,
@@ -275,8 +387,8 @@ class OrderPlatformDetailMixin:
             ],
             "invoice_number": invoice.invoice_number if invoice else None,
             "invoice_amount_cents": invoice.amount_cents if invoice else None,
-            "invoice_receipt_url": invoice.stripe_receipt_url if invoice else None,
-            "invoice_pdf_url": invoice.pdf_url if invoice else None,
+            "invoice_receipt_url": receipt_url,
+            "invoice_pdf_url": pdf_url,
             "merchant": merchant_360 or (
                 {
                     "id": merchant.id,
@@ -293,7 +405,6 @@ class OrderPlatformDetailMixin:
                     "name": driver.full_name,
                     "phone": driver.phone,
                     "rating": driver.rating,
-                    "is_online": driver.is_online,
                 }
                 if driver
                 else None
@@ -370,3 +481,69 @@ class OrderPlatformDetailMixin:
             "duplicates": self.find_duplicates(db, order),
             "smart": self._smart_insights(order, quote, events),
         }
+
+    @staticmethod
+    def _order_communications(db: Session, order_id: str) -> list[dict[str, Any]]:
+        """Notification delivery history for this order (email / SMS / push / in-app)."""
+        try:
+            from porterchain_api.notification_engine.models import (
+                NotificationDeliveryLog,
+                NotificationRecord,
+            )
+
+            # Savepoint so a JSON filter miss never aborts the parent 360 transaction.
+            with db.begin_nested():
+                candidates = (
+                    db.query(NotificationRecord)
+                    .order_by(NotificationRecord.created_at.desc())
+                    .limit(200)
+                    .all()
+                )
+            matched = []
+            for r in candidates:
+                ctx = r.context if isinstance(r.context, dict) else {}
+                tags = r.search_tags if isinstance(r.search_tags, dict) else {}
+                if (
+                    ctx.get("order_id") == order_id
+                    or tags.get("order_id") == order_id
+                    or order_id in (r.deep_link or "")
+                ):
+                    matched.append(r)
+                if len(matched) >= 40:
+                    break
+            if not matched:
+                return []
+            ids = [r.id for r in matched]
+            with db.begin_nested():
+                logs = (
+                    db.query(NotificationDeliveryLog)
+                    .filter(NotificationDeliveryLog.notification_id.in_(ids))
+                    .order_by(NotificationDeliveryLog.created_at.desc())
+                    .all()
+                )
+            latest_by_nid: dict[str, NotificationDeliveryLog] = {}
+            for log in logs:
+                if log.notification_id and log.notification_id not in latest_by_nid:
+                    latest_by_nid[log.notification_id] = log
+            out: list[dict[str, Any]] = []
+            for r in matched:
+                log = latest_by_nid.get(r.id)
+                out.append(
+                    {
+                        "id": r.id,
+                        "source": "notification",
+                        "event_type": r.event_type or r.template_key,
+                        "label": r.title or r.template_key,
+                        "channel": r.channel,
+                        "template_key": r.template_key,
+                        "recipient_type": r.recipient_type,
+                        "recipient": r.recipient_address,
+                        "status": (log.status if log else r.status),
+                        "error": (log.error if log else r.failure_reason),
+                        "occurred_at": r.created_at,
+                        "body": (r.body or "")[:280],
+                    }
+                )
+            return out
+        except Exception:
+            return []

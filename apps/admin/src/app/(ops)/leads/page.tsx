@@ -68,7 +68,7 @@ export default function LeadsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-primary">
-            {isDriverInbox ? "Driver Leads" : "Merchant Leads"}
+            {isDriverInbox ? "Driver Applications" : "Merchant Leads"}
           </h1>
           <p className="text-sm text-muted">
             {isDriverInbox

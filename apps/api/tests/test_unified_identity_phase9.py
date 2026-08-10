@@ -31,8 +31,6 @@ from porterchain_api.auth.dependencies import (
     require_permission,
 )
 from porterchain_api.auth.identity_fk_backfill import PROFILE_TARGETS, _is_skippable_clerk_id
-from porterchain_api.auth.identity_migration.planner import build_migration_plan
-from porterchain_api.auth.identity_migration.types import AdminAllowlist, SourceExportUser
 from porterchain_api.auth.unified_catalog import (
     AssignableRole,
     UnifiedPermission,
@@ -367,18 +365,7 @@ def test_webhook_duplicate_delivery_status(monkeypatch: pytest.MonkeyPatch) -> N
     assert result == {"status": "duplicate"}
 
 
-# --- Migration / FK matrix hooks ---
-
-
-def test_migration_admin_without_allowlist_conflicts() -> None:
-    plan = build_migration_plan(
-        label="p9",
-        sources=[SourceExportUser("admin", "user_admin", email="a@x.com", email_verified=True)],
-        explicit_map=[],
-        allowlist=AdminAllowlist(),
-        db=None,
-    )
-    assert plan.records[0].status == "conflict"
+# --- FK matrix hooks (4→1 migration CLI deleted) ---
 
 
 def test_fk_backfill_targets_and_skips() -> None:

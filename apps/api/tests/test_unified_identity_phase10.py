@@ -28,12 +28,13 @@ def test_phase10_main_runbook_still_manual() -> None:
     assert "clerk-cutover-phase10.md" in text or "Phase 10" in text
 
 
-def test_phase10_does_not_ship_prod_mutation_scripts_as_default() -> None:
-    """Identity tooling defaults remain dry-run; apply requires explicit confirm token."""
-    migrate = (REPO / "apps" / "api" / "scripts" / "identity_migrate.py").read_text(encoding="utf-8")
-    assert "--confirm" in migrate
-    assert "APPLY" in migrate
-    backfill = (REPO / "apps" / "api" / "src" / "porterchain_api" / "auth" / "identity_fk_backfill.py").read_text(
-        encoding="utf-8"
-    )
+def test_phase10_identity_migrate_cli_deleted() -> None:
+    """4→1 Clerk migration CLI retired after platform_driver cutover."""
+    migrate = REPO / "apps" / "api" / "scripts" / "identity_migrate.py"
+    assert not migrate.is_file()
+    pkg = REPO / "apps" / "api" / "src" / "porterchain_api" / "auth" / "identity_migration"
+    assert not pkg.is_dir()
+    backfill = (
+        REPO / "apps" / "api" / "src" / "porterchain_api" / "auth" / "identity_fk_backfill.py"
+    ).read_text(encoding="utf-8")
     assert "dry_run" in backfill

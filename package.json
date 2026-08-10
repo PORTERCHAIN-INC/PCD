@@ -45,7 +45,7 @@
     "validate:router-audit": "python3 scripts/verify_router_audit.py",
     "validate:golden-rules": "python3 scripts/verify_golden_rules.py && python3 scripts/verify_execution_metrics.py && python3 scripts/verify_engineering_gates.py && python3 scripts/verify_latency_slo_doc.py && python3 scripts/verify_prod_webhook_runbook.py && python3 scripts/verify_rolling_deploy.py && python3 scripts/verify_load_query_plan.py && python3 scripts/verify_dispatch_worker.py && python3 scripts/verify_dd_critical_blockers.py && python3 scripts/verify_stripe_webhook_idempotency_table.py",
     "validate:masterrule-layer": "python3 scripts/verify_masterrule_layer_audit.py",
-    "validate:architecture": "python3 scripts/verify_architecture_boundaries.py && python3 scripts/verify_model_ownership.py && python3 scripts/verify_api_stateless.py && python3 scripts/verify_db_pool.py && python3 scripts/verify_realtime_scale_doc.py && python3 scripts/verify_fleetbase_sync_slo.py && python3 scripts/verify_read_replica_doc.py && python3 scripts/verify_managed_postgres.py && python3 scripts/verify_architecture_validation_report.py && python3 scripts/verify_masterrule_layer_audit.py && python3 scripts/verify_integrations_matrix.py && python3 scripts/verify_api_readme_openapi.py && python3 scripts/verify_doc_pointer_stubs.py",
+    "validate:architecture": "python3 scripts/verify_no_ops_spatial_math.py && python3 scripts/verify_architecture_boundaries.py && python3 scripts/verify_model_ownership.py && python3 scripts/verify_api_stateless.py && python3 scripts/verify_db_pool.py && python3 scripts/verify_realtime_scale_doc.py && python3 scripts/verify_fleetbase_sync_slo.py && python3 scripts/verify_read_replica_doc.py && python3 scripts/verify_managed_postgres.py && python3 scripts/verify_architecture_validation_report.py && python3 scripts/verify_masterrule_layer_audit.py && python3 scripts/verify_integrations_matrix.py && python3 scripts/verify_api_readme_openapi.py && python3 scripts/verify_doc_pointer_stubs.py",
     "validate:precommit": "pnpm format:check && pnpm validate:d2",
     "validate:developer-portal": "python3 scripts/verify_developer_portal.py",
     "validate:website-seo": "python3 scripts/verify_website_seo_metadata.py && python3 scripts/verify_website_redirects.py && python3 scripts/verify_website_sitemap.py && python3 scripts/verify_website_robots.py && python3 scripts/verify_website_schema.py && python3 scripts/verify_website_internal_links.py && python3 scripts/verify_llms_txt.py && python3 scripts/verify_website_a11y_smoke.py && python3 scripts/verify_website_draft_expansions.py && python3 scripts/verify_no_false_ai_marketing.py",
@@ -82,7 +82,6 @@
     "docs:openapi": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python scripts/export_openapi.py",
     "clerk:sync": "node scripts/sync-clerk-env.mjs",
     "config:audit": "cd apps/api && PYTHONPATH=src:../../shared/python .venv/bin/python scripts/config_audit.py",
-    "identity:migrate": "cd apps/api && PYTHONPATH=src:../../shared/python .venv/bin/python scripts/identity_migrate.py",
     "identity:test": "cd apps/api && PYTHONPATH=src:../../shared/python .venv/bin/python scripts/run_identity_matrix.py",
     "secrets:verify": "bash scripts/verify-secrets-alignment.sh",
     "db:seed": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src python scripts/seed_local_dev.py",
@@ -105,7 +104,8 @@
     "ports": "bash scripts/ports-local.sh",
     "load:booking": "k6 run tests/load/booking.js",
     "load:webhooks": "k6 run tests/load/webhooks.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "validate:fleetbase-first": "python3 scripts/verify_no_ops_spatial_math.py"
   },
   "devDependencies": {
     "husky": "^9.1.7",

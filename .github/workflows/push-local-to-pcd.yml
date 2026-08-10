@@ -1,0 +1,81 @@
+name: Push Local PCD to porterchain/PCD
+
+# This workflow pushes your local PCD repository to porterchain/PCD remote
+# Use this to sync your local /Users/ravi/Documents/GitHub/PCD to https://github.com/porterchain/PCD
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "Target branch in porterchain/PCD"
+        required: true
+        default: "main"
+        options:
+          - main
+          - feature/crm
+          - master
+      push_strategy:
+        description: "Push strategy"
+        required: true
+        default: "standard"
+        type: choice
+        options:
+          - standard
+          - force-with-lease
+      include_canvas:
+        description: "Include canvas folder (if not ignored)"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  push-to-pcd:
+    name: Push to porterchain/PCD
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout local repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.target_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+
+          # Add porterchain/PCD remote
+          git remote add porterchain https://github.com/porterchain/PCD.git 2>/dev/null || true
+          git remote set-url porterchain https://github.com/porterchain/PCD.git
+
+          echo "Remote configured:"
+          git remote -v
+
+      - name: Sync and push to porterchain/PCD
+        run: |
+          # Fetch latest from porterchain/PCD
+          git fetch porterchain
+
+          # Merge or rebase
+          git pull porterchain ${{ inputs.target_branch }} --rebase || true
+
+          # Push with appropriate strategy
+          if [ "${{ inputs.push_strategy }}" = "force-with-lease" ]; then
+            git push porterchain ${{ inputs.target_branch }} --force-with-lease
+          else
+            git push porterchain ${{ inputs.target_branch }}
+          fi
+
+          echo "✅ Successfully pushed to porterchain/PCD"
+
+      - name: Verify push
+        run: |
+          echo "Latest commits from porterchain/PCD:"
+          git ls-remote porterchain ${{ inputs.target_branch }}
+          git log --oneline -5
+          echo "Push verification complete"

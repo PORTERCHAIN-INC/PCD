@@ -12,7 +12,6 @@ from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.portal_guard import (
     assert_clerk_id_exclusive,
     is_unified_clerk_app,
-    require_clerk_app_for_portal,
 )
 from porterchain_api.config import Settings
 
@@ -53,12 +52,12 @@ def _settings(**overrides: object) -> Settings:
 
 
 def _unified_settings(**overrides: object) -> Settings:
-    """Same sk/jwks across portal slots — mirrors pnpm clerk:sync CLERK_MODE=unified."""
+    """Platform slots share issuer; Driver distinct — platform_driver layout."""
     sk = "sk_platform"
     jwks = "https://platform.clerk.accounts.dev/.well-known/jwks.json"
     pk = "pk_platform"
     params: dict[str, object] = {
-        "clerk_unified_mode": True,
+        "clerk_unified_mode": False,
         "clerk_secret_key": sk,
         "clerk_publishable_key": pk,
         "clerk_jwks_url": jwks,
@@ -71,9 +70,9 @@ def _unified_settings(**overrides: object) -> Settings:
         "clerk_admin_secret_key": sk,
         "clerk_admin_publishable_key": pk,
         "clerk_admin_jwks_url": jwks,
-        "clerk_driver_secret_key": sk,
-        "clerk_driver_publishable_key": pk,
-        "clerk_driver_jwks_url": jwks,
+        "clerk_driver_secret_key": "sk_driver",
+        "clerk_driver_publishable_key": "pk_driver",
+        "clerk_driver_jwks_url": "https://driver.clerk.accounts.dev/.well-known/jwks.json",
     }
     params.update(overrides)
     return _settings(**params)
@@ -95,26 +94,42 @@ def _db_membership(*, admin=False, merchant=False, driver=False, customer=False)
     return db
 
 
-def test_is_unified_when_flag_set() -> None:
-    assert is_unified_clerk_app(_settings(clerk_unified_mode=True)) is True
+def test_unified_flag_rejected_by_settings() -> None:
+    import pytest
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError, match="CLERK_UNIFIED_MODE"):
+        _settings(clerk_unified_mode=True)
 
 
-def test_is_unified_when_shared_portal_secrets() -> None:
-    assert is_unified_clerk_app(_unified_settings(clerk_unified_mode=False)) is True
-
-
-def test_require_clerk_app_is_noop_platform_only() -> None:
-    """Phase D3: always no-op even if claims.clerk_app would have mismatched."""
-    require_clerk_app_for_portal(
-        ClerkClaims(clerk_user_id="user_abc", clerk_app="customer"),
-        _unified_settings(),
-        "admin",
+def test_is_unified_when_all_slots_share_secrets() -> None:
+    """Local DEV collapse (Driver == Platform) still reports shared issuer."""
+    sk = "sk_platform"
+    jwks = "https://platform.clerk.accounts.dev/.well-known/jwks.json"
+    pk = "pk_platform"
+    assert (
+        is_unified_clerk_app(
+            _settings(
+                clerk_customer_secret_key=sk,
+                clerk_customer_jwks_url=jwks,
+                clerk_customer_publishable_key=pk,
+                clerk_merchant_secret_key=sk,
+                clerk_merchant_jwks_url=jwks,
+                clerk_merchant_publishable_key=pk,
+                clerk_admin_secret_key=sk,
+                clerk_admin_jwks_url=jwks,
+                clerk_admin_publishable_key=pk,
+                clerk_driver_secret_key=sk,
+                clerk_driver_jwks_url=jwks,
+                clerk_driver_publishable_key=pk,
+            )
+        )
+        is True
     )
-    require_clerk_app_for_portal(
-        ClerkClaims(clerk_user_id="user_abc", clerk_app="customer"),
-        _settings(),
-        "merchant",
-    )
+
+
+def test_platform_driver_is_not_single_issuer() -> None:
+    assert is_unified_clerk_app(_unified_settings()) is False
 
 
 def test_unified_allows_multi_role_same_subject_on_customer() -> None:

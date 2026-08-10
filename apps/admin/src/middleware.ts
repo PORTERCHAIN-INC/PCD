@@ -1,36 +1,46 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-const isPublic = createRouteMatcher(["/sign-in(.*)", "/api/auth/session"]);
+const PUBLIC_PREFIXES = [
+  "/sign-in",
+  "/activate-staff",
+  "/api/auth/staff-session",
+  "/api/auth/session",
+];
 
-const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim());
+function isPublic(pathname: string): boolean {
+  return PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
 
-export default clerkMiddleware(
-  async (auth, req) => {
-    if (req.nextUrl.pathname === "/") {
-      const { userId } = await auth();
-      const dest = userId ? "/dashboard" : "/sign-in";
-      return NextResponse.redirect(new URL(dest, req.url));
-    }
+/** Staff IdP only — Clerk middleware removed (canvas Phase 5). */
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const staffSid = req.cookies.get("pc_staff_sid")?.value;
 
-    if (isPublic(req)) return;
+  if (pathname === "/") {
+    const dest = staffSid ? "/dashboard" : "/sign-in";
+    return NextResponse.redirect(new URL(dest, req.url));
+  }
 
-    if (clerkConfigured) {
-      const { userId } = await auth();
-      if (!userId) {
-        // Manual redirect keeps auth on admin.porterchain.com. auth.protect() can still
-        // bounce to accounts.admin.porterchain.com (403) and cause flicker loops.
-        const signIn = new URL("/sign-in", req.url);
-        const returnPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
-        if (returnPath !== "/sign-in" && !returnPath.startsWith("/sign-in/")) {
-          signIn.searchParams.set("redirect_url", returnPath);
-        }
-        return NextResponse.redirect(signIn);
-      }
-    }
-  },
-  { signInUrl: "/sign-in" }
-);
+  if (isPublic(pathname)) {
+    return NextResponse.next();
+  }
+
+  if (staffSid) {
+    return NextResponse.next();
+  }
+
+  // Local API bypass: allow shell without cookie when NEXT_PUBLIC_CLERK_DEV_BYPASS=true
+  if (process.env.NEXT_PUBLIC_CLERK_DEV_BYPASS === "true") {
+    return NextResponse.next();
+  }
+
+  const signIn = new URL("/sign-in", req.url);
+  const returnPath = `${pathname}${req.nextUrl.search}`;
+  if (returnPath !== "/sign-in" && !returnPath.startsWith("/sign-in/")) {
+    signIn.searchParams.set("redirect_url", returnPath);
+  }
+  return NextResponse.redirect(signIn);
+}
 
 export const config = {
   matcher: [

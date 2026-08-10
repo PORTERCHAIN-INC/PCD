@@ -89,7 +89,7 @@ def test_every_template_has_category_meta(template_key: str) -> None:
         (DomainEventType.BOOKING_DRAFT_CREATED, {"customer"}),
         (DomainEventType.BOOKING_CONFIRMED, {"customer", "merchant", "admin"}),
         (DomainEventType.PAYMENT_STARTED, {"customer"}),
-        (DomainEventType.PAYMENT_SUCCEEDED, {"customer", "merchant", "finance"}),
+        (DomainEventType.PAYMENT_SUCCEEDED, {"customer", "merchant", "admin"}),
         (DomainEventType.PAYMENT_FAILED, {"customer"}),
         (DomainEventType.ORDER_CREATED, {"customer", "merchant", "admin"}),
         (DomainEventType.ORDER_BOOKED, {"customer", "merchant", "admin"}),
@@ -102,14 +102,17 @@ def test_every_template_has_category_meta(template_key: str) -> None:
         (DomainEventType.ORDER_NEAR_DELIVERY, {"customer"}),
         (DomainEventType.PARCEL_DELIVERED, {"customer", "driver", "admin"}),
         (DomainEventType.PROOF_COMPLETED, {"admin", "driver"}),
-        (DomainEventType.INVOICE_GENERATED, {"customer", "merchant", "finance"}),
-        (DomainEventType.MERCHANT_BILLED, {"merchant", "finance"}),
+        (DomainEventType.INVOICE_GENERATED, {"customer", "merchant", "admin"}),
+        (DomainEventType.MERCHANT_BILLED, {"merchant", "admin"}),
         (DomainEventType.REFUND_ISSUED, {"customer"}),
-        (DomainEventType.CLAIM_OPENED, {"customer", "driver", "support"}),
-        (DomainEventType.CLAIM_RESOLVED, {"customer", "driver", "support"}),
-        (DomainEventType.SUPPORT_TICKET_CREATED, {"customer", "driver", "support"}),
-        (DomainEventType.FLEETBASE_STATUS_UPDATED, {"customer"}),
+        (DomainEventType.CLAIM_OPENED, {"customer", "driver", "admin"}),
+        (DomainEventType.CLAIM_RESOLVED, {"customer", "driver", "admin"}),
+        (DomainEventType.SUPPORT_TICKET_CREATED, {"customer", "driver", "admin"}),
+        (DomainEventType.FLEETBASE_STATUS_UPDATED, {"customer", "merchant"}),
         (DomainEventType.ORDER_TEMP_EXCURSION, {"admin", "merchant"}),
+        (DomainEventType.EXCEPTION_OPENED, {"customer", "merchant", "admin"}),
+        (DomainEventType.ORDER_DELAYED, {"customer", "merchant", "admin"}),
+        (DomainEventType.SLA_BREACHED, {"customer", "merchant", "admin"}),
         ("driver.emergency", {"admin"}),
         ("driver.route_changed", {"driver"}),
         ("incident.reported", {"driver", "admin"}),
@@ -127,9 +130,20 @@ def test_event_router_roles(event_type: str, expected_roles: set[str]) -> None:
 @pytest.mark.parametrize("template_key", sorted(TEMPLATES.keys()))
 def test_in_app_inbox_for_each_user_type_and_template(db, user_role: str, template_key: str) -> None:
     """Every template can land in each portal user's in-app inbox."""
+    from porterchain_api.notification_engine.preference_service import PreferenceService
+
     user_id = f"matrix-{user_role}-{uuid.uuid4().hex[:10]}"
     engine = get_notification_engine()
     category = TEMPLATE_META[template_key]["category"]
+    # Marketing is OFF by default (Phase 2); force-enable for inbox capability coverage.
+    if category == "marketing":
+        PreferenceService().upsert(
+            db,
+            user_role=user_role,
+            user_id=user_id,
+            category="marketing",
+            in_app_enabled=True,
+        )
 
     rec = engine.dispatch(
         db,
@@ -157,9 +171,20 @@ def test_in_app_inbox_for_each_user_type_and_template(db, user_role: str, templa
 
     db.rollback()
 
-
 def test_event_dispatch_multi_populates_all_primary_roles(db) -> None:
-    """DRIVER_ASSIGNED fans out to customer, merchant, driver, admin (system)."""
+    """DRIVER_ASSIGNED fans out to customer, merchant, driver, and real admin staff."""
+    from porterchain_api.admin_models import AdminUser
+    from porterchain_api.notification_engine.staff_fanout import expand_staff_specs
+
+    admin = AdminUser(
+        clerk_user_id=f"clerk_{uuid.uuid4().hex[:12]}",
+        email=f"ops-{uuid.uuid4().hex[:6]}@porterchain.test",
+        role="dispatcher",
+        is_active=True,
+    )
+    db.add(admin)
+    db.flush()
+
     engine = get_notification_engine()
     payload = {
         **EVENT_PAYLOAD,
@@ -167,18 +192,25 @@ def test_event_dispatch_multi_populates_all_primary_roles(db) -> None:
         "merchant_id": f"merch-{uuid.uuid4().hex[:8]}",
         "driver_id": f"drv-{uuid.uuid4().hex[:8]}",
     }
-    specs = _specs_for_event(DomainEventType.DRIVER_ASSIGNED, payload)
+    specs = expand_staff_specs(db, _specs_for_event(DomainEventType.DRIVER_ASSIGNED, payload))
     in_app = [s for s in specs if s["channel"] == "in_app"]
     records = engine.dispatch_multi(db, in_app, event_type=DomainEventType.DRIVER_ASSIGNED)
     assert len(records) >= 4
+    assert all(r.recipient_id != "system" for r in records)
 
     for role, rid in (
         ("customer", payload["customer_id"]),
         ("merchant", payload["merchant_id"]),
         ("driver", payload["driver_id"]),
-        ("admin", "system"),
+        ("admin", admin.id),
     ):
         inbox = engine.inbox_payload(db, user_role=role, user_id=rid, limit=20)
         assert any(i["category"] == "tracking" for i in inbox["items"]), f"missing inbox for {role}"
 
     db.rollback()
+
+
+def test_no_system_recipient_in_staff_specs() -> None:
+    specs = _specs_for_event(DomainEventType.BOOKING_CONFIRMED, EVENT_PAYLOAD)
+    assert all(s["recipient_id"] != "system" for s in specs)
+    assert any(str(s["recipient_id"]).startswith("__staff:") for s in specs)

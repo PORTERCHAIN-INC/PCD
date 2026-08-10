@@ -31,6 +31,28 @@ def _resolve_merchant_recipient(
     clerk_user_id: str,
     org_id: str | None,
 ) -> NotificationUser | None:
+    """Resolve merchant inbox recipient from MerchantUser (not Clerk Organizations).
+
+    Porterchain merchants often have null ``clerk_org_id`` — membership is
+    ``merchant_users.clerk_user_id`` → ``merchant_id``.
+    """
+    user = (
+        db.query(MerchantUser)
+        .filter(MerchantUser.clerk_user_id == clerk_user_id, MerchantUser.is_active.is_(True))
+        .order_by(MerchantUser.created_at)
+        .first()
+    )
+    if user:
+        merchant = db.query(Merchant).filter(Merchant.id == user.merchant_id).first()
+        if not merchant or merchant.status != MerchantStatus.ACTIVE.value:
+            return None
+        if org_id:
+            # Accept merchant UUID or legacy Clerk org id when provided.
+            if org_id not in {merchant.id, merchant.clerk_org_id or ""}:
+                return None
+        return NotificationUser("merchant", merchant.id)
+
+    # Legacy / local seed: look up by Clerk org id (or dev_merchant_org under bypass).
     resolved_org = org_id
     if allow_auth_dev_bypass(settings) and not resolved_org:
         resolved_org = "dev_merchant_org"
@@ -40,13 +62,8 @@ def _resolve_merchant_recipient(
     merchant = db.query(Merchant).filter(Merchant.clerk_org_id == resolved_org).first()
     if not merchant or merchant.status != MerchantStatus.ACTIVE.value:
         return None
-
-    user = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_user_id).first()
-    if not user and not allow_auth_dev_bypass(settings):
+    if not allow_auth_dev_bypass(settings):
         return None
-    if user and user.merchant_id != merchant.id:
-        return None
-
     return NotificationUser("merchant", merchant.id)
 
 
@@ -74,14 +91,9 @@ async def get_notification_user(
         from porterchain_api.auth.clerk import verify_clerk_token
 
         claims = await verify_clerk_token(token, settings)
-        user = db.query(AdminUser).filter(AdminUser.clerk_user_id == claims.clerk_user_id).first()
-        if not user and allow_auth_dev_bypass(settings):
-            from porterchain_api.auth.admin import _ensure_dev_admin
 
-            user = _ensure_dev_admin(db, claims.clerk_user_id, None)
-        if user and user.is_active:
-            return NotificationUser("admin", user.id)
-
+        # Prefer merchant/customer before admin — never auto-elevate merchants to admin
+        # under CLERK_DEV_BYPASS (that stole inbox identity and masked membership bugs).
         merchant_user = _resolve_merchant_recipient(
             db,
             settings,
@@ -94,6 +106,14 @@ async def get_notification_user(
         customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()
         if customer:
             return NotificationUser("customer", customer.id)
+
+        user = db.query(AdminUser).filter(AdminUser.clerk_user_id == claims.clerk_user_id).first()
+        if not user and allow_auth_dev_bypass(settings):
+            from porterchain_api.auth.admin import _ensure_dev_admin
+
+            user = _ensure_dev_admin(db, claims.clerk_user_id, None)
+        if user and user.is_active:
+            return NotificationUser("admin", user.id)
     except Exception:  # noqa: BLE001
         pass
 
@@ -128,13 +148,6 @@ async def resolve_notification_ws_user(
             from porterchain_api.auth.clerk import verify_clerk_token
 
             claims = await verify_clerk_token(token, settings)
-            admin = db.query(AdminUser).filter(AdminUser.clerk_user_id == claims.clerk_user_id).first()
-            if not admin and allow_auth_dev_bypass(settings):
-                from porterchain_api.auth.admin import _ensure_dev_admin
-
-                admin = _ensure_dev_admin(db, claims.clerk_user_id, None)
-            if admin and admin.is_active:
-                return NotificationUser("admin", admin.id)
             merchant_user = _resolve_merchant_recipient(
                 db, settings, claims.clerk_user_id, org_id or claims.org_id
             )
@@ -143,6 +156,13 @@ async def resolve_notification_ws_user(
             customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()
             if customer:
                 return NotificationUser("customer", customer.id)
+            admin = db.query(AdminUser).filter(AdminUser.clerk_user_id == claims.clerk_user_id).first()
+            if not admin and allow_auth_dev_bypass(settings):
+                from porterchain_api.auth.admin import _ensure_dev_admin
+
+                admin = _ensure_dev_admin(db, claims.clerk_user_id, None)
+            if admin and admin.is_active:
+                return NotificationUser("admin", admin.id)
         except Exception:  # noqa: BLE001
             return None
     finally:

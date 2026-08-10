@@ -65,6 +65,15 @@ EXCEPTION_EVENTS = {
     "order.return_to_sender", "order.damaged", "order.lost", "order.canceled", "order.cancelled",
 }
 ASSIGNMENT_EVENTS = {"order.driver_assigned", "order.assigned", "driver.assigned"}
+# Driver presence (online/offline) — not order lifecycle; mirrored onto Driver.is_online.
+PRESENCE_EVENTS = {
+    "driver.online",
+    "driver.offline",
+    "driver.updated",
+    "driver.toggled",
+    "driver.toggled_online",
+    "driver.toggle-online",
+}
 
 # Outbound: Porterchain order state → Fleetbase operational status (masterrule Appendix A).
 PORTERCHAIN_STATE_TO_FLEETBASE_STATUS: dict[str, str] = {
@@ -98,6 +107,8 @@ class FleetbaseLifecycleTranslator:
     @staticmethod
     def classify(event: str | None) -> str:
         e = (event or "").lower()
+        if e in PRESENCE_EVENTS:
+            return "presence"
         if e in CLAIM_EVENTS:
             return "claim"
         if e in TRACKING_EVENTS:

@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 from porterchain_fleetbase_adapter.events import EventTranslator
+from porterchain_fleetbase_adapter.events.lifecycle import FleetbaseLifecycleTranslator
 
 logger = logging.getLogger(__name__)
 
@@ -64,13 +65,29 @@ class WebhookService:
         parsed = parse_webhook_body(body)
         event_name = parsed["event"]
         resource = parsed["resource"] if isinstance(parsed["resource"], dict) else {}
+        kind = FleetbaseLifecycleTranslator.classify(event_name)
 
         target_state = self.translator.resolve_order_state(event_name)
         domain_event = self.translator.resolve_domain_event(event_name)
 
-        if not target_state and not domain_event:
+        if not target_state and not domain_event and kind != "presence":
             logger.debug("Ignoring unmapped Fleetbase event: %s", event_name)
             return None
+
+        # Presence payloads are driver resources — do not treat their id as an order id.
+        if kind == "presence":
+            return {
+                "event_id": parsed.get("event_id"),
+                "event": event_name,
+                "domain_event": domain_event or "driver.presence",
+                "target_state": None,
+                "porterchain_order_id": None,
+                "fleetbase_order_id": None,
+                "fleetbase_driver_id": self.translator.extract_fleetbase_driver_id(resource),
+                "online": self.translator.extract_online(resource, event_name),
+                "resource": resource,
+                "created_at": parsed.get("created_at"),
+            }
 
         return {
             "event_id": parsed.get("event_id"),
@@ -79,6 +96,8 @@ class WebhookService:
             "target_state": target_state,
             "porterchain_order_id": self.translator.extract_porterchain_order_id(resource),
             "fleetbase_order_id": self.translator.extract_fleetbase_order_id(resource),
+            "fleetbase_driver_id": self.translator.extract_fleetbase_driver_id(resource),
+            "online": self.translator.extract_online(resource, event_name),
             "resource": resource,
             "created_at": parsed.get("created_at"),
         }

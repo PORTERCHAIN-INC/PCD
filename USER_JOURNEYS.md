@@ -177,16 +177,9 @@ Ship a furniture item across the GTA today without creating a business account.
 
 ## Related documents
 
-- [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md)
-- [BUSINESS_WORKFLOW.md](./BUSINESS_WORKFLOW.md)
+- [PORTERCHAIN_CHARTER.md](./docs/PORTERCHAIN_CHARTER.md)
 - [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)
-- [SYSTEM_SEQUENCE_DIAGRAMS.md](./SYSTEM_SEQUENCE_DIAGRAMS.md)
+- [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)
+- [README.md](docs/architecture/README.md)
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

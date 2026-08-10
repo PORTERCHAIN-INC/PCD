@@ -1,107 +1,57 @@
-# Valhalla Usage
+# Valhalla usage
 
-**Type:** CANONICAL
-**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Type:** CANONICAL  
+**Last verified:** 2026-08-07
 
-**API default:** `ROUTING_ENGINE=valhalla` (`PlatformSettings.routing_engine`)
+**API default:** `ROUTING_ENGINE=valhalla`  
+Primary engine for pricing distance, optimized geometry, and matrix-style costing.  
+Execution sequencing stays in **Fleetbase**.
 
-> **OSRM (ETA fallback):** [OSRM_USAGE.md](./OSRM_USAGE.md) · **Historical audit:** [docs/archive/ROUTING_ENGINE_AUDIT.md](./docs/archive/ROUTING_ENGINE_AUDIT.md)
+Fallback: [OSRM_USAGE.md](./OSRM_USAGE.md).
 
 ---
 
 ## Responsibilities
 
-| Function                            | Valhalla                          | Status                                                      |
-| ----------------------------------- | --------------------------------- | ----------------------------------------------------------- |
-| Pricing distance (API)              | Valhalla primary                  | ✅ via `MapsService`                                        |
-| Optimized route geometry            | Valhalla                          | ✅ API + driver/merchant tracking                           |
-| Multi-stop leg sum                  | Valhalla                          | ✅ `route_distance_meters()`                                |
-| Route optimization (Route Center)   | Valhalla + Fleetbase orchestrator | ⚠️ Split — local optimize then Fleetbase `run_orchestrator` |
-| Multi-stop sequencing (execution)   | Fleetbase                         | ✅                                                          |
-| Commercial vehicle / truck costing  | Future                            | ❌ `costing: auto` only                                     |
-| Avoid tolls / ferries               | Future                            | ❌                                                          |
-| Merchant bulk route optimization UI | Fleetbase                         | ⚠️ Not in merchant portal                                   |
+| Function                              | Status                                       |
+| ------------------------------------- | -------------------------------------------- |
+| Pricing distance                      | ✅ `MapsService`                             |
+| Optimized route geometry              | ✅ API + tracking                            |
+| Multi-stop leg sum                    | ✅                                           |
+| Dispatch suggestions / assign ranking | ✅ (Valhalla matrix via suggestions service) |
+| Execution multi-stop sequencing       | Fleetbase                                    |
+| Admin Route Center optimize UI        | **Removed** — use Fleetbase                  |
 
-**Google Maps** never participates in routing. **OSRM** handles ETA legs when Valhalla is unavailable or engine is set to `osrm`.
+Google Maps never participates in routing.
 
 ---
 
 ## Infrastructure
 
-| Component                     | Endpoint                                                          |
-| ----------------------------- | ----------------------------------------------------------------- |
-| Docker `porterchain-valhalla` | `http://127.0.0.1:8002` (profile `routing`, **GTA ~150 km only**) |
-| Docker `pcd-valhalla` (prod)  | `http://valhalla:8002` (internal; Ontario tiles volume)           |
-| `VALHALLA_BASE_URL`           | Host access (`http://localhost:8002`)                             |
-| `VALHALLA_BASE_URI`           | Docker-internal (`http://valhalla:8002`)                          |
-| Fleetbase override            | Public demo URLs in `fleetbase.porterchain.override.yml` for dev  |
+| Component                                 | Endpoint                                                           |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| Local `porterchain-valhalla`              | `http://127.0.0.1:8002` (GTA extract via `pnpm docker:up:routing`) |
+| `VALHALLA_BASE_URL` / `VALHALLA_BASE_URI` | Host vs Docker-internal                                            |
 
-**Local tiles (not full Ontario):** `pnpm docker:valhalla:prepare` fetches a BBBike extract for downtown Toronto ±150 km into `infrastructure/docker/valhalla/data/gta-150km.osm.pbf`, then `pnpm docker:up:routing` builds tiles from that file only.
-
-Start local Valhalla: `pnpm docker:up:routing` (see [DOCKER_SETUP.md](./DOCKER_SETUP.md)).
-
-Health: `http://localhost:8002/status`
+Health: `http://localhost:8002/status` · see [DOCKER_SETUP.md](./DOCKER_SETUP.md).
 
 ---
 
 ## Call sites
 
-| Location                                               | Role                                   |
-| ------------------------------------------------------ | -------------------------------------- |
-| `services/python/porterchain_services/maps/service.py` | Authoritative API routing              |
-| `apps/api/src/porterchain_api/services/routing.py`     | Pricing distance bridge                |
-| `apps/api/.../admin_engine/route_center_service.py`    | Plan optimize + simulate               |
-| `apps/api/.../merchant_engine/tracking_service.py`     | Optimized route polylines              |
-| `services/driver-platform/.../navigation.py`           | Driver optimized route polylines       |
-| `website/src/lib/quote/routing.ts`                     | Preview when `ROUTING_ENGINE=valhalla` |
-| Fleetbase stack                                        | Shared routing config via override env |
-
----
-
-## Engine selection note
-
-| Runtime               | Default when `ROUTING_ENGINE` unset                        |
-| --------------------- | ---------------------------------------------------------- |
-| Porterchain API       | `valhalla`                                                 |
-| Website quote preview | `osrm` — set `ROUTING_ENGINE=valhalla` for parity with API |
-
----
-
-## Duplication check
-
-| Duplicate Valhalla client      | Found?                  |
-| ------------------------------ | ----------------------- |
-| In FastAPI routers             | ❌ — only `MapsService` |
-| In merchant/customer frontends | ❌                      |
-| Third Python implementation    | ❌                      |
-
----
-
-## Gaps
-
-| Gap                                   | Status                                                                   |
-| ------------------------------------- | ------------------------------------------------------------------------ |
-| `route.optimized` on domain event bus | ⚠️ Logged to `AdminAuditLog` in Route Center; not published to event bus |
-| VROOM / multi-stop in Porterchain API | ❌ Delegated to Fleetbase orchestrator                                   |
-| Truck costing profile                 | ❌ Future                                                                |
-| Local Valhalla tiles for production   | ❌ Dev container only — production URL TBD                               |
+| Location                                                    | Role                         |
+| ----------------------------------------------------------- | ---------------------------- |
+| `services/python/porterchain_services/maps/service.py`      | Authoritative client         |
+| `apps/api/.../services/routing.py`                          | Pricing bridge               |
+| `apps/api/.../admin_engine/dispatch_suggestions_service.py` | Ranked assign                |
+| `apps/api/.../merchant_engine/tracking_service.py`          | Polylines                    |
+| `services/driver-platform/.../navigation.py`                | Driver routes                |
+| `website/src/lib/quote/routing.ts`                          | Preview when engine=valhalla |
 
 ---
 
 ## Related
 
-| Document                                                                   | Purpose                 |
-| -------------------------------------------------------------------------- | ----------------------- |
-| [docs/architecture/VALHALLA_FLOW.md](./docs/architecture/VALHALLA_FLOW.md) | Flow diagram (Group 27) |
-| [ROUTE_CENTER_ARCHITECTURE.md](./ROUTE_CENTER_ARCHITECTURE.md)             | Route Center (Group 19) |
-| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)                           | Port 8002               |
-
----
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |
+- [docs/architecture/VALHALLA_FLOW.md](./docs/architecture/VALHALLA_FLOW.md)
+- [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md) (port 8002)
+- [docs/ops/ORDERS_MODULE.md](./docs/ops/ORDERS_MODULE.md) (Control Tower uses suggestions, not Route Center)

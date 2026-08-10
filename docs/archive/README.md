@@ -1,18 +1,29 @@
 # Documentation archive
 
-**Last verified:** 2026-07-04
+**Last verified:** 2026-08-07
 
-Historical audit snapshots, validation reports, and superseded duplicates. **Do not edit these files** — update the canonical document listed in each root-level pointer stub instead.
+Historical audit snapshots, validation reports, and superseded duplicates. **Do not edit these files** — update the canonical document in [docs/README.md](../README.md) instead.
+
+---
+
+## Aug 2026 cleanup (`reports-2026-08/`)
+
+Root readiness reports, module scorecards, retired RBAC matrix, regenerable E2E reports, and website audit logs were moved here so the repo root stays professional.
+
+See folder: [reports-2026-08/](./reports-2026-08/)
+
+Orders / Order 360 living docs: [docs/ops/](../ops/)
 
 ---
 
 ## How to use
 
-| Location                        | Purpose                                                 |
-| ------------------------------- | ------------------------------------------------------- |
-| Root `*.md` pointer stubs (≤20) | Short redirect to the current canonical doc             |
-| `docs/archive/pointer-stubs/`   | Excess pointer stubs (E.2 consolidation)                |
-| `docs/archive/*.md`             | Frozen copy preserved at consolidation time (July 2026) |
+| Location                | Purpose                                                                |
+| ----------------------- | ---------------------------------------------------------------------- |
+| Root POINTER stubs (≤5) | Short redirect — see [POINTER_STUB_INDEX.md](../POINTER_STUB_INDEX.md) |
+| `pointer-stubs/`        | Excess historical redirects                                            |
+| `reports-2026-08/`      | Aug 2026 root cleanup batch                                            |
+| `*.md` (this folder)    | July 2026 frozen consolidation copies                                  |
 
 ---
 

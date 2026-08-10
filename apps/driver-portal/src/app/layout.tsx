@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           publishableKey={publicEnv.clerkPublishableKey}
           signInUrl="/login"
           afterSignOutUrl="/login"
-          fallbackRedirect="/"
+          fallbackRedirect="/onboarding"
         >
           <SessionContextProvider>
             <CommunicationsProvider>

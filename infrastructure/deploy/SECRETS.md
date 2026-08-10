@@ -30,7 +30,7 @@ Legacy path (no `DOPPLER_TOKEN`): deploy still injects secrets from individual G
 
 ## One-time Doppler setup
 
-See **[docs/runbooks/clerk-consolidation.md](../../docs/runbooks/clerk-consolidation.md)** (primary — unified Platform Clerk app). Legacy per-portal setup: **[CLERK_APPS_SETUP.md](./CLERK_APPS_SETUP.md)** (rollback only).
+See **[SSO.md](../../SSO.md)** (primary — unified Platform Clerk app). Legacy per-portal setup: **[CLERK_APPS_SETUP.md](./CLERK_APPS_SETUP.md)** (rollback only).
 
 1. Use project **`pcd`** at [doppler.com](https://www.doppler.com) (already created).
 2. Create config **`prd`** (production).

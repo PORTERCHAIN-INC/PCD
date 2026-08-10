@@ -11,7 +11,6 @@ from porterchain_api.admin_engine.dashboard_service import AdminDashboardService
 from porterchain_api.admin_engine.finance_service import AdminFinanceService, FinanceFilters
 from porterchain_api.admin_engine.operations_service import AdminOperationsService
 from porterchain_api.admin_engine.orders_service import AdminOrderFilters, AdminOrdersService
-from porterchain_api.admin_engine.pricing_service import AdminPricingService, PricingFilters
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
@@ -44,10 +43,12 @@ from porterchain_api.schemas_admin import (
     OrderDetail360Response,
     OrderBulkRequest,
     OrderTemperatureRequest,
+    AdminCreateOrderRequest,
+    AdminCreateOrderResponse,
     PaymentAdminItem,
     StaffItem,
     StaffInviteRequest,
-    StaffInviteResponse,
+    StaffEnrollResponse,
     StaffRoleUpdateRequest,
     PlatformUserItem,
     PlatformUsersResponse,
@@ -58,10 +59,6 @@ from porterchain_api.schemas_admin import (
     PlatformUserAuthorizeResponse,
     SettingsConfigUpdateRequest,
     SettingsImportRequest,
-    TariffCreateRequest,
-    TariffUpdateRequest,
-    PricingDashboardResponse,
-    TariffItem,
     TicketCreateRequest,
     TicketItem,
     TicketListItem,
@@ -75,17 +72,6 @@ from porterchain_api.schemas_admin import (
     SupportMacroRequest,
     SupportAutomationRequest,
     SupportSlaConfigRequest,
-    PromotionItem,
-    PromotionCreateRequest,
-    PricingZoneItem,
-    PricingZoneCreateRequest,
-    MerchantContractItem,
-    MerchantContractCreateRequest,
-    PricingSimulatorRequest,
-    PricingBreakdownResponse,
-    TaxConfigRequest,
-    FuelConfigRequest,
-    RateCardRequest,
     FinanceDashboardResponse,
     FinanceInvoiceItem,
     FinanceInvoiceDetailResponse,
@@ -103,9 +89,6 @@ from porterchain_api.schemas_admin import (
     BookingDraftCancelRequest,
     BookingDraftBulkRequest,
     BookingDraftPaymentLinkResponse,
-    RouteTemplateCreateRequest,
-    RouteTemplateItem,
-    RouteTemplateUpdateRequest,
     BlogPostCreateRequest,
     BlogPostItem,
     BlogPostUpdateRequest,
@@ -119,7 +102,6 @@ from porterchain_api.admin_engine.data_moat_service import AdminDataMoatService
 from porterchain_api.admin_engine.investor_metrics_service import InvestorMetricsService
 from porterchain_api.admin_engine.monopoly_metrics_service import MonopolyMetricsService
 from porterchain_api.admin_engine.platform_metrics_service import PlatformMetricsService
-from porterchain_api.admin_engine.route_template_service import AdminRouteTemplateService
 from porterchain_api.admin_engine.blog_service import AdminBlogService
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
 
@@ -127,7 +109,6 @@ _dashboard = AdminDashboardService()
 _ops = AdminOperationsService()
 _orders = AdminOrdersService()
 _claims = AdminClaimsService()
-_pricing = AdminPricingService()
 _finance = AdminFinanceService()
 _merchant_ar = __import__(
     "porterchain_api.admin_engine.merchant_ar_service", fromlist=["MerchantArService"]
@@ -136,7 +117,6 @@ _support = AdminSupportService()
 _settings = AdminSettingsService()
 _clerk_directory = ClerkDirectoryService()
 _draft_admin = AdminBookingDraftService()
-_route_templates = AdminRouteTemplateService()
 _blog = AdminBlogService()
 _data_moat = AdminDataMoatService()
 _platform_metrics = PlatformMetricsService()
@@ -238,9 +218,6 @@ __all__ = [
     "BookingDraftCancelRequest",
     "BookingDraftExtendRequest",
     "BookingDraftPaymentLinkResponse",
-    "RouteTemplateCreateRequest",
-    "RouteTemplateItem",
-    "RouteTemplateUpdateRequest",
     "BlogPostCreateRequest",
     "BlogPostItem",
     "BlogPostUpdateRequest",
@@ -268,15 +245,13 @@ __all__ = [
     "FinanceLedgerItem",
     "FinancePaymentItem",
     "FinancePayoutItem",
-    "FuelConfigRequest",
-    "RateCardRequest",
-    "HTTPException",
+            "HTTPException",
     "Merchant",
-    "MerchantContractCreateRequest",
-    "MerchantContractItem",
-    "OrderAdminItem",
+            "OrderAdminItem",
     "OrderBulkRequest",
     "OrderTemperatureRequest",
+    "AdminCreateOrderRequest",
+    "AdminCreateOrderResponse",
     "OrderDashboardResponse",
     "OrderDetail360Response",
     "OrderListItem",
@@ -286,21 +261,13 @@ __all__ = [
     "PlatformUserAuthorizeResponse",
     "PlatformUserUpdateRequest",
     "PlatformUsersResponse",
-    "PricingBreakdownResponse",
-    "PricingDashboardResponse",
-    "PricingFilters",
-    "PricingSimulatorRequest",
-    "PricingZoneCreateRequest",
-    "PricingZoneItem",
-    "PromotionCreateRequest",
-    "PromotionItem",
-    "Query",
+                                    "Query",
     "Session",
     "Settings",
     "SettingsConfigUpdateRequest",
     "SettingsImportRequest",
     "StaffInviteRequest",
-    "StaffInviteResponse",
+    "StaffEnrollResponse",
     "StaffItem",
     "StaffRoleUpdateRequest",
     "SupportAutomationRequest",
@@ -308,11 +275,7 @@ __all__ = [
     "SupportKbArticleRequest",
     "SupportMacroRequest",
     "SupportSlaConfigRequest",
-    "TariffCreateRequest",
-    "TariffItem",
-    "TariffUpdateRequest",
-    "TaxConfigRequest",
-    "TicketAssignRequest",
+                    "TicketAssignRequest",
     "TicketBulkRequest",
     "TicketCreateRequest",
     "TicketDashboardResponse",
@@ -335,8 +298,6 @@ __all__ = [
     "_orders",
     "_perm",
     "_platform_metrics",
-    "_pricing",
-    "_route_templates",
     "_blog",
     "_settings",
     "_support",

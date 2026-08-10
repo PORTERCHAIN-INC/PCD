@@ -85,10 +85,23 @@ class Driver360Service:
             completion = round((completed / total) * 100, 1) if total else 0.0
         cancellation_rate = round((cancelled / total) * 100, 1) if total else 0.0
 
-        # Payout-based earnings.
-        payouts = db.query(DriverPayout).filter(DriverPayout.driver_id == driver.id).all()
-        weekly_earnings = sum(p.amount_cents for p in payouts if _on_or_after(p.created_at, week))
-        pending_payout = sum(p.amount_cents for p in payouts if p.status == "pending")
+        # D-36: earnings SSOT = DriverFinanceService (wallet txns), not raw DriverPayout sum.
+        from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
+
+        fin = DriverFinanceService().driver_earnings_snapshot(db, driver)
+        weekly_earnings = int(fin.get("week_cents") or 0)
+        pending_payout = sum(
+            int(p.get("amount_cents") or 0)
+            for p in (fin.get("payout_history") or [])
+            if str(p.get("status") or "").lower() == "pending"
+        )
+        if not pending_payout:
+            pending_payout = sum(
+                p.amount_cents
+                for p in db.query(DriverPayout)
+                .filter(DriverPayout.driver_id == driver.id, DriverPayout.status == "pending")
+                .all()
+            )
 
         incidents = (
             db.query(func.count(OrderException.id))
@@ -112,7 +125,7 @@ class Driver360Service:
             "cancellation_rate": cancellation_rate,
             "on_time_percent": on_time if on_time is not None else (completion if total else 0.0),
             "weekly_earnings_cents": weekly_earnings,
-            "wallet_balance_cents": driver.wallet_balance_cents,
+            "wallet_balance_cents": int(fin.get("wallet_balance_cents") or driver.wallet_balance_cents or 0),
             "pending_payout_cents": pending_payout,
             "incidents": incidents,
             "last_active_at": (last_order.created_at if last_order else driver.updated_at),
@@ -230,8 +243,7 @@ class Driver360Service:
             "phone": driver.phone,
             "photo_url": docs.get("photo_url"),
             "status": driver.status,
-            "availability": driver.availability,
-            "is_online": driver.is_online,
+            # Online/availability intentionally omitted — Fleetbase owns live driver state.
             "vehicle": vehicle.make_model if vehicle else None,
             "vehicle_type": vehicle.vehicle_class if vehicle else None,
             "license_class": docs.get("license_class"),
@@ -249,7 +261,9 @@ class Driver360Service:
             "license_verified": driver.license_verified,
             "insurance_verified": driver.insurance_verified,
             "vehicle_verified": driver.vehicle_verified,
+            "medical_transport_certified": bool(driver.medical_transport_certified),
             "background_check_status": driver.background_check_status,
+            "fleetbase_driver_id": driver.fleetbase_driver_id,
             "last_active_at": metrics["last_active_at"],
             "created_at": driver.created_at,
             "tags": docs.get("tags") or [],
@@ -266,7 +280,6 @@ class Driver360Service:
         db: Session,
         *,
         status: str | None = None,
-        availability: str | None = None,
         background_check: str | None = None,
         search: str | None = None,
         limit: int = 1000,
@@ -274,8 +287,6 @@ class Driver360Service:
         q = db.query(Driver)
         if status:
             q = q.filter(Driver.status == status)
-        if availability:
-            q = q.filter(Driver.availability == availability)
         if background_check:
             q = q.filter(Driver.background_check_status == background_check)
         if search:
@@ -286,7 +297,6 @@ class Driver360Service:
 
     def facets(self, db: Session) -> dict:
         status_rows = db.query(Driver.status, func.count(Driver.id)).group_by(Driver.status).all()
-        avail_rows = db.query(Driver.availability, func.count(Driver.id)).group_by(Driver.availability).all()
         bg_rows = (
             db.query(Driver.background_check_status, func.count(Driver.id))
             .group_by(Driver.background_check_status)
@@ -295,7 +305,6 @@ class Driver360Service:
         vehicle_rows = db.query(Vehicle.vehicle_class, func.count(Vehicle.id)).group_by(Vehicle.vehicle_class).all()
         return {
             "statuses": [{"value": s, "count": n} for s, n in status_rows if s],
-            "availability": [{"value": s, "count": n} for s, n in avail_rows if s],
             "background_check": [{"value": s, "count": n} for s, n in bg_rows if s],
             "vehicle_types": [{"value": s, "count": n} for s, n in vehicle_rows if s],
         }
@@ -305,7 +314,6 @@ class Driver360Service:
         approved = db.query(func.count(Driver.id)).filter(Driver.status == "APPROVED").scalar() or 0
         pending = db.query(func.count(Driver.id)).filter(Driver.status == "PENDING").scalar() or 0
         suspended = db.query(func.count(Driver.id)).filter(Driver.status == "SUSPENDED").scalar() or 0
-        online = db.query(func.count(Driver.id)).filter(Driver.is_online == True).scalar() or 0  # noqa: E712
         pending_payout = (
             db.query(func.coalesce(func.sum(DriverPayout.amount_cents), 0))
             .filter(DriverPayout.status == "pending")
@@ -317,7 +325,7 @@ class Driver360Service:
             "approved": approved,
             "pending": pending,
             "suspended": suspended,
-            "online": online,
+            # "online" count removed — live driver state is Fleetbase-owned.
             "pending_payout_cents": int(pending_payout),
         }
 
@@ -435,6 +443,9 @@ class Driver360Service:
         }
 
     def incidents(self, db: Session, driver_id: str) -> dict:
+        from porterchain_api.admin_models import SupportTicket
+        from porterchain_api.support_engine.claims_constants import claim_meta
+
         exc = (
             db.query(OrderException)
             .join(Order, Order.id == OrderException.order_id)
@@ -442,11 +453,34 @@ class Driver360Service:
             .order_by(OrderException.created_at.desc())
             .all()
         )
-        claims = (
-            db.query(Claim)
-            .join(Order, Order.id == Claim.order_id)
-            .filter(Order.assigned_driver_id == driver_id)
-            .order_by(Claim.created_at.desc())
+        # D-31: current assignee OR snapshot driver_id in claim evidence._meta
+        by_assignee = {
+            c.id: c
+            for c in (
+                db.query(Claim)
+                .join(Order, Order.id == Claim.order_id)
+                .filter(Order.assigned_driver_id == driver_id)
+                .order_by(Claim.created_at.desc())
+                .limit(100)
+                .all()
+            )
+        }
+        for c in (
+            db.query(Claim).order_by(Claim.created_at.desc()).limit(300).all()
+        ):
+            if claim_meta(c).get("driver_id") == driver_id:
+                by_assignee[c.id] = c
+        claims = sorted(
+            by_assignee.values(),
+            key=lambda c: c.created_at or datetime.min,
+            reverse=True,
+        )
+
+        tickets = (
+            db.query(SupportTicket)
+            .filter(SupportTicket.driver_id == driver_id)
+            .order_by(SupportTicket.created_at.desc())
+            .limit(100)
             .all()
         )
         return {
@@ -469,6 +503,16 @@ class Driver360Service:
                     "created_at": c.created_at.isoformat() if c.created_at else None,
                 }
                 for c in claims
+            ],
+            "support_tickets": [
+                {
+                    "id": t.id,
+                    "subject": t.subject,
+                    "status": t.status,
+                    "order_id": t.order_id,
+                    "created_at": t.created_at.isoformat() if t.created_at else None,
+                }
+                for t in tickets
             ],
         }
 

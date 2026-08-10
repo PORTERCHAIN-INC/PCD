@@ -5,7 +5,7 @@
 **Last verified:** 2026-07-05
 
 **Source:** `package.json`, `pyproject.toml`, import graph across `apps/api`, `services/`, `packages/`, `shared/`  
-**See also:** [MODULE_DEPENDENCY_GRAPH.md](../../MODULE_DEPENDENCY_GRAPH.md) · [MODULE_INTEGRATION_MATRIX.md](../../MODULE_INTEGRATION_MATRIX.md)
+**See also:** [MODULE_DEPENDENCY.md](MODULE_DEPENDENCY.md) · [MODULE_DEPENDENCY.md](MODULE_DEPENDENCY.md)
 
 ---
 
@@ -24,7 +24,7 @@ Adapters → external HTTP only (no business rules)
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `booking_engine`   | `pricing_engine`, `fleetbase_engine`, `billing_engine`, `notification_engine`, `porterchain_services`, `porterchain_shared`, `porterchain_event_bus` |
 | `merchant_engine`  | `booking_engine` (transitions), `pricing_engine`, `fleetbase_engine`, `gateway_engine` (usage logs)                                                  |
-| `admin_engine`     | All engines, `crm_models`, `porterchain_pricing`, `route_center` models                                                                              |
+| `admin_engine`     | All engines, `crm_models`, `porterchain_pricing`                                                                                                     |
 | `fleetbase_engine` | `fleetbase-adapter` via `services/fleetbase_integration.py`                                                                                          |
 | `driver_engine`    | `porterchain_driver`, `fleetbase_engine` bridge                                                                                                      |
 | `pricing_engine`   | `services/pricing-engine/porterchain_pricing`                                                                                                        |
@@ -117,10 +117,3 @@ flowchart TB
 
 See [plantuml/module_dependency.puml](./plantuml/module_dependency.puml)
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -1,0 +1,44 @@
+---
+description: Fleetbase-first and routing-provider policy — always prefer Fleetbase/Valhalla/OSRM over custom builds and Google
+alwaysApply: true
+---
+
+# Fleetbase-first & routing-provider policy
+
+## Rule 1 — Fleetbase first, custom build last
+
+Before writing any logistics operations code (dispatch, drivers, vehicles, live GPS, geofences, POD, route execution, fleet views, notifications to drivers):
+
+1. **Use Fleetbase** if the capability exists in Core, FleetOps, or console.
+2. **Wrap via `services/fleetbase-adapter/`** if Fleetbase has it but we need it inside PorterChain API.
+3. **Extend** Fleetbase only through its extension points (never fork/patch upstream `apps/fleetbase/`).
+4. **Build our own ONLY** when Fleetbase does not provide it AND it is commercial/domain-unique (pricing, quotes, Stripe, CRM, claims, customer/merchant UX, onboarding/compliance).
+
+Forbidden re-builds: dispatch boards, driver online/availability state, live tracking maps, GPS ping storage, vehicle registries, geofence engines, POD storage, route optimizers, SocketCluster listeners in web apps.
+
+## Rule 2 — Routing providers: Valhalla/OSRM first, Google only when they cannot
+
+Spatial operations priority:
+
+1. **Valhalla** (`porterchain-valhalla` :8002) — primary: routes, matrix, isochrones, costing.
+2. **OSRM** — ETA legs, distance/duration fallback when Valhalla unavailable.
+3. **Fleetbase adapter** — when the routing must reflect dispatch execution.
+
+**Google Maps is NOT a routing engine.** Use Google only where Valhalla/OSRM are not capable:
+
+- Places autocomplete (UX address entry)
+- Map tile rendering in browser (Google Maps JS)
+- Optional server geocode fallback if Nominatim insufficient
+
+Never use Google for: distance/duration for pricing or dispatch, route geometry, ETA, matrix, nearest-driver, optimization.
+
+## Rule 3 — No manual spatial math in ops layer
+
+Do not hand-roll haversine/matrix/sequencing/ETA in `admin_engine` or ops routers. If Valhalla/OSRM can compute it, call them (or the adapter). Keep haversine only for non-operational UI approximations (and label it as such).
+
+## Decision checklist for any new feature
+
+1. Does Fleetbase do this? → Use/wrap it.
+2. Else can Valhalla/OSRM compute the spatial part? → Call them.
+3. Else is Google needed for places/autocomplete only? → Limit to that.
+4. Else is this commercial logic Fleetbase must never own? → Build in PorterChain, and document why in `FLEETBASE_MODULES.md` style (Use/Extend/Replace).

@@ -32,16 +32,16 @@ docker compose \
 
 ## Services
 
-| Service         | Container name                        | Image / build                         | Host ports            | Restart          | Health check               |
-| --------------- | ------------------------------------- | ------------------------------------- | --------------------- | ---------------- | -------------------------- |
-| **database**    | `porterchain-fleetbase-mysql`         | `mysql:8.0-oracle`                    | `127.0.0.1:3307→3306` | `unless-stopped` | `mysqladmin ping`          |
-| **cache**       | `porterchain-fleetbase-redis`         | `redis:4-alpine`                      | internal only         | `unless-stopped` | `redis-cli ping`           |
-| **socket**      | `porterchain-fleetbase-socketcluster` | `socketcluster/socketcluster:v17.4.0` | `38000→8000`          | `unless-stopped` | —                          |
-| **queue**       | `porterchain-fleetbase-queue`         | `fleetbase/fleetbase-api:latest`      | internal              | `unless-stopped` | `php artisan queue:status` |
-| **scheduler**   | `porterchain-fleetbase-scheduler`     | `fleetbase/fleetbase-api:latest`      | internal              | `unless-stopped` | —                          |
-| **application** | `porterchain-fleetbase-application`   | `fleetbase/fleetbase-api:latest`      | internal              | `unless-stopped` | image default              |
-| **httpd**       | `porterchain-fleetbase-httpd`         | build `docker/httpd/Dockerfile`       | `8000→80`             | `unless-stopped` | —                          |
-| **console**     | `porterchain-fleetbase-console`       | build `console/Dockerfile`            | `4200→4200`           | `unless-stopped` | —                          |
+| Service         | Container name                        | Image / build                                                     | Host ports            | Restart          | Health check               |
+| --------------- | ------------------------------------- | ----------------------------------------------------------------- | --------------------- | ---------------- | -------------------------- |
+| **database**    | `porterchain-fleetbase-mysql`         | `mysql:8.0-oracle`                                                | `127.0.0.1:3307→3306` | `unless-stopped` | `mysqladmin ping`          |
+| **cache**       | `porterchain-fleetbase-redis`         | `valkey/valkey:8.1.8-alpine` (overlay)                            | internal only         | `unless-stopped` | `valkey-cli ping`          |
+| **socket**      | `porterchain-fleetbase-socketcluster` | `socketcluster/socketcluster:v17.4.0`                             | `38000→8000`          | `unless-stopped` | —                          |
+| **queue**       | `porterchain-fleetbase-queue`         | `fleetbase/fleetbase-api@sha256:24c0…` (overlay; fleetops 0.6.59) | internal              | `unless-stopped` | `php artisan queue:status` |
+| **scheduler**   | `porterchain-fleetbase-scheduler`     | same digest pin as application                                    | internal              | `unless-stopped` | —                          |
+| **application** | `porterchain-fleetbase-application`   | same digest pin (not `:latest`)                                   | internal              | `unless-stopped` | image default              |
+| **httpd**       | `porterchain-fleetbase-httpd`         | build `docker/httpd/Dockerfile`                                   | `8000→80`             | `unless-stopped` | —                          |
+| **console**     | `porterchain-fleetbase-console`       | build `console/Dockerfile`                                        | `4200→4200`           | `unless-stopped` | —                          |
 
 ### Service roles
 
@@ -196,10 +196,3 @@ curl -s http://localhost:8001/health/ready | python3 -m json.tool
 
 The overall `status` should be `ok` when the database is reachable (Redis/Clerk checks may be `unavailable` in some local configurations).
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -5,7 +5,7 @@
 **Last verified:** 2026-07-05
 
 **Source:** `services/fleetbase-adapter/`, `fleetbase_engine/`, `services/fleetbase_integration.py`  
-**See also:** [FLEETBASE_SERVICE_STATUS.md](../../FLEETBASE_SERVICE_STATUS.md) · [DISPATCH_FLOW.md](./DISPATCH_FLOW.md) · [FLEETBASE_INSTALL.md](../../FLEETBASE_INSTALL.md)
+**See also:** [SERVICE_STATUS.md](../../SERVICE_STATUS.md) · [DISPATCH_FLOW.md](./DISPATCH_FLOW.md) · [FLEETBASE_INSTALL.md](../../FLEETBASE_INSTALL.md)
 
 > **Vendor boundary:** `apps/fleetbase/**` is upstream Fleetbase — Porterchain integrates only via `fleetbase-adapter`. Do not document or modify vendor internals here.
 
@@ -105,10 +105,3 @@ flowchart TB
 
 See [plantuml/fleetbase_flow.puml](./plantuml/fleetbase_flow.puml)
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

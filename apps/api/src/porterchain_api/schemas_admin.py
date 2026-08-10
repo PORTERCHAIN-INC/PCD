@@ -54,11 +54,23 @@ class MerchantUpdateRequest(BaseModel):
     credit_limit_cents: int | None = None
     parent_merchant_id: str | None = None
     support_tier: str | None = Field(default=None, pattern="^(standard|priority|enterprise)$")
+    billing_cycle: str | None = Field(
+        default=None, pattern="^(WEEKLY|BIWEEKLY|MONTHLY|CUSTOM)$"
+    )
+    preferred_vehicles: list[str] | None = None
+    company_name: str | None = None
+    phone: str | None = None
+    hst_number: str | None = None
+    stripe_enabled: bool | None = None
 
 
 class MerchantInviteRequest(BaseModel):
     email: str
     role: str | None = None
+
+
+class MerchantTeamRoleUpdate(BaseModel):
+    role: str
 
 
 class MerchantInviteResponse(BaseModel):
@@ -95,7 +107,6 @@ class DriverItem(BaseModel):
     vehicle_verified: bool
     background_check_status: str
     rating: float | None
-    is_online: bool
     wallet_balance_cents: int
     created_at: datetime
 
@@ -225,6 +236,50 @@ class OrderTemperatureRequest(BaseModel):
     celsius: float = Field(..., description="Recorded cargo temperature in °C")
 
 
+class AdminOrderStopInput(BaseModel):
+    """Adapter-shaped stop for multi-waypoint admin order builder (P0-2 / P1-4)."""
+
+    id: str | None = None
+    type: str = Field(..., description="pickup | dropoff")
+    sequence: int = 0
+    formatted: str
+    lat: float | None = None
+    lng: float | None = None
+    city: str | None = None
+    time_window_start: datetime | None = None
+    time_window_end: datetime | None = None
+    service_time_seconds: int | None = None
+    notes: str | None = None
+    pod_required: bool = False
+
+
+class AdminCreateOrderRequest(BaseModel):
+    merchant_id: str
+    order_kind: str = Field(
+        ...,
+        description="single | hub_spoke | multi_pickup_delivery | scheduled_pickup",
+    )
+    stops: list[AdminOrderStopInput] = Field(..., min_length=2)
+    vehicle_class: str = "cargoVan"
+    package_type: str = "looseParcel"
+    weight_kg: float | None = None
+    scheduled_at: datetime
+    schedule_mode: str = "now"
+    special_instructions: str | None = None
+    internal_reference: str | None = None
+
+
+class AdminCreateOrderResponse(BaseModel):
+    order_id: str
+    order_number: str
+    tracking_number: str
+    state: str
+    amount_cents: int
+    currency: str = "cad"
+    stop_count: int
+    warnings: list[str] = Field(default_factory=list)
+
+
 class PaymentAdminItem(BaseModel):
     payment_id: str
     status: str
@@ -324,6 +379,7 @@ class OrderDetail360Response(OrderListItem):
     api_activity: list[dict[str, Any]] = Field(default_factory=list)
     duplicates: list[dict[str, Any]] = Field(default_factory=list)
     smart: dict[str, Any] = Field(default_factory=dict)
+    status_sync: dict[str, Any] = Field(default_factory=dict)
 
 
 class AssignDriverRequest(BaseModel):
@@ -605,65 +661,6 @@ class SupportSlaConfigRequest(BaseModel):
     business_hours_only: bool | None = None
 
 
-class TariffItem(BaseModel):
-    id: str
-    name: str
-    tariff_type: str
-    vehicle_class: str | None
-    zone: str | None
-    merchant_id: str | None = None
-    merchant_name: str | None = None
-    base_cents: int
-    per_km_cents: int
-    fuel_surcharge_percent: float
-    is_active: bool
-    status: str = "published"
-    version: int = 1
-    priority: int = 100
-    effective_from: datetime | None = None
-    effective_to: datetime | None = None
-    created_at: datetime | None = None
-
-
-class TariffUpdateRequest(BaseModel):
-    name: str | None = None
-    base_cents: int | None = None
-    per_km_cents: int | None = None
-    fuel_surcharge_percent: float | None = None
-    is_active: bool | None = None
-    config: dict[str, Any] | None = None
-
-
-class PricingDashboardResponse(BaseModel):
-    active_pricing_rules: int
-    merchant_contracts: int
-    vehicle_pricing_rules: int
-    zone_pricing_rules: int
-    distance_pricing_rules: int
-    weight_pricing_rules: int
-    fuel_surcharge_percent: float
-    tax_hst_percent: float
-    active_coupons: int
-    active_promotions: int
-    revenue_forecast_cents: int
-    monthly_quotes: int
-    recent_changes: list[dict[str, Any]] = Field(default_factory=list)
-    upcoming_scheduled: list[dict[str, Any]] = Field(default_factory=list)
-    conflict_count: int = 0
-
-
-class TariffCreateRequest(BaseModel):
-    name: str
-    tariff_type: str
-    vehicle_class: str | None = None
-    zone: str | None = None
-    merchant_id: str | None = None
-    base_cents: int = 0
-    per_km_cents: int = 0
-    fuel_surcharge_percent: float = 0.0
-    config: dict[str, Any] = Field(default_factory=dict)
-
-
 class ReportsSummaryResponse(BaseModel):
     monthly_orders: int
     monthly_revenue_cents: int
@@ -809,6 +806,18 @@ class StaffInviteResponse(BaseModel):
     created_at: datetime
 
 
+class StaffEnrollResponse(BaseModel):
+    """Staff IdP enrollment — activate link emailed; token still returned for ops copy."""
+
+    admin_user_id: str
+    email: str
+    role: str
+    enrollment_token: str | None = None
+    expires_at: float
+    clerk_invite: bool = False
+    email_sent: bool = False
+
+
 class SettingsConfigUpdateRequest(BaseModel):
     value: Any
     reason: str | None = None
@@ -817,6 +826,7 @@ class SettingsConfigUpdateRequest(BaseModel):
 class SettingsImportRequest(BaseModel):
     config: dict[str, Any]
     reason: str | None = None
+    dry_run: bool = False
 
 
 class CrmTaskCreateRequest(BaseModel):
@@ -829,150 +839,6 @@ class CrmNoteCreateRequest(BaseModel):
     entity_type: str
     entity_id: str
     body: str
-
-
-class PromotionItem(BaseModel):
-    id: str
-    code: str
-    promotion_type: str
-    merchant_id: str | None
-    merchant_name: str | None = None
-    discount_percent: float | None
-    discount_cents: int | None
-    is_active: bool
-    expires_at: datetime | None = None
-    status: str = "published"
-    created_at: datetime | None = None
-
-
-class PromotionCreateRequest(BaseModel):
-    code: str
-    promotion_type: str = "coupon"
-    merchant_id: str | None = None
-    discount_percent: float | None = None
-    discount_cents: int | None = None
-    is_active: bool = True
-    config: dict[str, Any] = Field(default_factory=dict)
-
-
-class PricingZoneItem(BaseModel):
-    id: str
-    code: str
-    name: str
-    multiplier: float
-    is_active: bool
-    bounds: dict[str, Any] = Field(default_factory=dict)
-    created_at: datetime | None = None
-
-
-class PricingZoneCreateRequest(BaseModel):
-    code: str
-    name: str
-    bounds: dict[str, float]
-    multiplier: float = 1.0
-
-
-class MerchantContractItem(BaseModel):
-    id: str
-    merchant_id: str
-    merchant_name: str | None = None
-    name: str
-    minimum_monthly_commitment_cents: int
-    is_active: bool
-    effective_from: datetime | None = None
-    effective_to: datetime | None = None
-    created_at: datetime | None = None
-
-
-class MerchantContractCreateRequest(BaseModel):
-    merchant_id: str
-    name: str
-    rules: dict[str, Any] = Field(default_factory=dict)
-    minimum_monthly_commitment_cents: int = 0
-
-
-class PricingSimulatorRequest(BaseModel):
-    pickup: dict[str, Any]
-    dropoff: dict[str, Any]
-    vehicle_class: str
-    package_type: str = "looseParcel"
-    service_type: str = "same_day"
-    weight_kg: float | None = None
-    dimensions: str | dict[str, float] | None = None
-    declared_value_cents: int | None = None
-    schedule_mode: str = "now"
-    channel: str = "retail"
-    merchant_id: str | None = None
-    promo_code: str | None = None
-    distance_meters: int | None = None
-    overrides: dict[str, Any] | None = None
-
-
-class PricingBreakdownResponse(BaseModel):
-    base_cents: int
-    distance_cents: int
-    vehicle_cents: int
-    weight_cents: int
-    fuel_cents: int
-    tax_cents: int
-    discount_cents: int
-    subtotal_cents: int
-    final_cents: int
-    currency: str = "cad"
-    zone_code: str | None = None
-    contract_id: str | None = None
-    promo_code: str | None = None
-    items: list[dict[str, Any]]
-    metadata: dict[str, Any] = Field(default_factory=dict)
-
-
-class TaxConfigRequest(BaseModel):
-    hst_percent: float = 13.0
-    tax_included: bool = False
-    exempt_merchant_ids: list[str] = Field(default_factory=list)
-
-
-class FuelConfigRequest(BaseModel):
-    surcharge_percent: float = 8.5
-    base_fuel_price_cents: int = 145
-    current_fuel_price_cents: int = 158
-
-
-class VehicleRateRequest(BaseModel):
-    per_km_cents: int | None = None
-    minimum_cents: int | None = None
-    surcharge_cents: int | None = None
-
-
-class RateCardRequest(BaseModel):
-    """System or merchant rate-card body — all fields optional for sparse merchant overlays."""
-
-    vehicles: dict[str, VehicleRateRequest] | None = None
-    base_fee_cents: int | None = None
-    per_minute_cents: int | None = None
-    wait_cents_per_minute: int | None = None
-    extra_stop_cents: int | None = None
-    liftgate_cents: int | None = None
-    rush_surcharge_cents: int | None = None
-    scheduled_surcharge_cents: int | None = None
-    weight_threshold_kg: float | None = None
-    weight_cents_per_kg: int | None = None
-    declared_value_threshold_cents: int | None = None
-    declared_value_rate: float | None = None
-    weekend_multiplier: float | None = None
-    holiday_multiplier: float | None = None
-    holidays: list[str] | None = None
-    night_multiplier: float | None = None
-    night_start_hour: int | None = None
-    night_end_hour: int | None = None
-    driver_payout_mode: str | None = None
-    driver_flat_per_delivery_cents: int | None = None
-    driver_minimum_payout_cents: int | None = None
-    driver_share_pct: float | None = None
-    platform_share_pct: float | None = None
-    package_surcharges: dict[str, int] | None = None
-    service_surcharges: dict[str, int] | None = None
-    minimum_charge_cents: int | None = None
 
 
 class FinanceDashboardResponse(BaseModel):
@@ -1186,39 +1052,6 @@ class BookingDraftPaymentLinkResponse(BaseModel):
     checkout_url: str | None
     payment_id: str | None
     stripe_checkout_session_id: str | None
-
-
-class RouteTemplateItem(BaseModel):
-    id: str
-    name: str
-    template_type: str
-    merchant_id: str | None = None
-    zone: str | None = None
-    schedule: dict[str, Any] = Field(default_factory=dict)
-    stops: list[dict[str, Any]] = Field(default_factory=list)
-    config: dict[str, Any] = Field(default_factory=dict)
-    is_active: bool = True
-    created_by: str | None = None
-    created_at: datetime
-
-
-class RouteTemplateCreateRequest(BaseModel):
-    name: str
-    merchant_id: str | None = None
-    zone: str | None = None
-    schedule: dict[str, Any] = Field(default_factory=dict)
-    stops: list[dict[str, Any]] = Field(default_factory=list)
-    config: dict[str, Any] = Field(default_factory=dict)
-
-
-class RouteTemplateUpdateRequest(BaseModel):
-    name: str | None = None
-    merchant_id: str | None = None
-    zone: str | None = None
-    schedule: dict[str, Any] | None = None
-    stops: list[dict[str, Any]] | None = None
-    config: dict[str, Any] | None = None
-    is_active: bool | None = None
 
 
 class BlogPostItem(BaseModel):

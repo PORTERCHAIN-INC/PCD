@@ -55,11 +55,13 @@ class UserSyncService:
             InvitationService().mark_accepted(db, email=claims.email, clerk_user_id=claims.clerk_user_id)
 
         identity = claims_to_identity(claims)
+        # Unlink already ran above — skip the second scan inside EnsureUser.
         user = EnsureUserService().ensure_from_identity(
             db,
             identity,
             email_verified=bool(identity.email_verified if identity.email_verified is not None else identity.email),
             commit=True,
+            skip_unlink=True,
         )
         self._sync_fleetbase_link_metadata(db, claims, user)
         return user
@@ -113,16 +115,26 @@ class UserSyncService:
         if self._clerk_id_bound_to_other_email(db, clerk_id, email):
             return
 
+        from porterchain_api.auth.persona_bundle import invalidate_persona_bundle
+
         if self._rebind_persona_clerk_id(db, AdminUser, email, clerk_id):
             self._rebind_registry_clerk_id(db, email=email, new_clerk_id=clerk_id)
+            invalidate_persona_bundle(db, clerk_id)
             return
 
         if self._rebind_persona_clerk_id(db, MerchantUser, email, clerk_id):
             self._rebind_registry_clerk_id(db, email=email, new_clerk_id=clerk_id)
+            invalidate_persona_bundle(db, clerk_id)
             return
 
         if self._rebind_persona_clerk_id(db, Driver, email, clerk_id):
             self._rebind_registry_clerk_id(db, email=email, new_clerk_id=clerk_id)
+            invalidate_persona_bundle(db, clerk_id)
+            return
+
+        if self._rebind_persona_clerk_id(db, Customer, email, clerk_id):
+            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=clerk_id)
+            invalidate_persona_bundle(db, clerk_id)
 
     @staticmethod
     def _rebind_persona_clerk_id(db: Session, model: type, email: str, clerk_id: str) -> bool:
@@ -188,9 +200,17 @@ class UserSyncService:
     @staticmethod
     def _clerk_id_bound_to_other_email(db: Session, clerk_user_id: str, email: str) -> bool:
         """True when this Clerk id is already linked to a different email in any user class."""
-        for model in (AdminUser, MerchantUser, Driver, Customer):
-            row = db.query(model).filter(model.clerk_user_id == clerk_user_id).first()
-            if row and not emails_match(getattr(row, "email", None), email):
+        from porterchain_api.auth.persona_bundle import load_persona_bundle
+
+        bundle = load_persona_bundle(db, clerk_user_id)
+        rows = [
+            bundle.admin,
+            *bundle.merchant_users,
+            bundle.driver,
+            bundle.customer,
+        ]
+        for row in rows:
+            if row is not None and not emails_match(getattr(row, "email", None), email):
                 return True
         return False
 

@@ -6,7 +6,7 @@
 
 Internal Python service layer — **not** customer-facing. All external clients talk to `apps/api/` only.
 
-> **See also:** [REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md) · [EXTENSION_GUIDE.md](../EXTENSION_GUIDE.md)
+> **See also:** [REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md) · [CONTRIBUTING_GUIDE.md](../CONTRIBUTING_GUIDE.md)
 
 ---
 
@@ -139,10 +139,3 @@ breakdown = service.calculate_retail(PricingRequest(
 | [PRICING_ENGINE.md](../PRICING_ENGINE.md)               | Pricing architecture  |
 
 ---
-
-## Governance
-
-| Document                                                 | Role              |
-| -------------------------------------------------------- | ----------------- |
-| [../masterrule.md](../masterrule.md)                     | Architecture SSOT |
-| [../REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

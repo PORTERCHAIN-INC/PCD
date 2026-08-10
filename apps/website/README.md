@@ -54,10 +54,3 @@ i18n: `next-intl` with locale prefix (e.g. `/en/`, `/fr/`).
 | [../../docs/architecture/BOOKING_FLOW.md](../../docs/architecture/BOOKING_FLOW.md) | Booking architecture                                        |
 
 ---
-
-## Governance
-
-| Document                                                       | Role              |
-| -------------------------------------------------------------- | ----------------- |
-| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

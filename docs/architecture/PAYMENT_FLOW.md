@@ -68,10 +68,3 @@ sequenceDiagram
 
 See [plantuml/payment_flow.puml](./plantuml/payment_flow.puml)
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

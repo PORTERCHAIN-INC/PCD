@@ -83,9 +83,22 @@ class MerchantSettingsService:
     def update_notifications(self, db: Session, ctx: MerchantContext, body: dict[str, Any]) -> dict[str, Any]:
         settings = _settings_bucket(ctx.merchant)
         current = dict(settings.get("notifications") or DEFAULT_NOTIFICATIONS)
-        current.update(body)
+        patch = dict(body)
+        channels_patch = patch.pop("channels", None)
+        current.update(patch)
+        if isinstance(channels_patch, dict):
+            channels = dict(current.get("channels") or DEFAULT_NOTIFICATIONS["channels"])
+            channels.update(channels_patch)
+            current["channels"] = channels
+        if "channels" not in current or not isinstance(current["channels"], dict):
+            current["channels"] = dict(DEFAULT_NOTIFICATIONS["channels"])
         settings["notifications"] = current
         _save_settings(ctx.merchant, settings)
+        from porterchain_api.notification_engine.preference_service import PreferenceService
+
+        PreferenceService().sync_merchant_portal_prefs(
+            db, merchant_id=ctx.merchant.id, portal_prefs=current
+        )
         self._audit(db, ctx, "settings.notifications", current)
         db.commit()
         db.refresh(ctx.merchant)

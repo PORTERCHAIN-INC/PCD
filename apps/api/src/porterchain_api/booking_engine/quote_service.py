@@ -114,6 +114,18 @@ class QuoteService:
                 location=body.tracking.location if body.tracking else None,
             )
 
+        from porterchain_api.admin_engine.settings_service import AdminSettingsService
+        from porterchain_pricing.gta_rate import normalize_vehicle_type
+
+        enabled = AdminSettingsService().enabled_retail_vehicle_ids(db)
+        if enabled:
+            try:
+                matrix_id = normalize_vehicle_type(body.vehicle_class)
+            except ValueError as exc:
+                raise ValueError("vehicle_class_not_available") from exc
+            if matrix_id not in enabled:
+                raise ValueError("vehicle_class_not_available")
+
         request = _request_from_quote_body(body)
         if body.additional_stops:
             stops = [GeoPoint(lat=s.lat, lng=s.lng, formatted=s.formatted) for s in body.additional_stops]
@@ -236,6 +248,12 @@ def PricingRequest_replace(request, **kwargs):
         "referral_credit_cents": request.referral_credit_cents,
         "volume_units": request.volume_units,
         "requires_liftgate": request.requires_liftgate,
+        "total_pickups": request.total_pickups,
+        "total_drops": request.total_drops,
+        "is_downtown": request.is_downtown,
+        "is_upper_zone": request.is_upper_zone,
+        "routing_source": getattr(request, "routing_source", None),
+        "wait_minutes": getattr(request, "wait_minutes", 0.0),
     }
     data.update(kwargs)
     return PricingRequest(**data)

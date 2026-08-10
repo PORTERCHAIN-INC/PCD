@@ -139,7 +139,7 @@ function retiredMarketingHubRedirects(): WebsiteRedirect[] {
     },
     {
       source: `/${locale}/quote`,
-      destination: `/${locale}/business?from=quote#inquiry`,
+      destination: `/${locale}/sign-up?intent=quote&from=quote`,
       permanent: true,
       note: "Legacy /quote → business capacity form",
     },

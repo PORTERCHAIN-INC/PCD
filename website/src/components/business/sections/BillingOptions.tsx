@@ -103,7 +103,7 @@ export default function BillingOptions() {
                   ))}
                 </ul>
                 <a
-                  href="#inquiry"
+                  href="/sign-up?intent=quote&from=business"
                   className={cn(
                     "mt-8 block rounded-xl px-5 py-3 text-center text-sm font-semibold transition-all",
                     isFeatured

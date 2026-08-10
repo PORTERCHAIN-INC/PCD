@@ -111,7 +111,3 @@ pnpm validate:architecture && pnpm validate:d2
 - **Neutral:** Reads across contexts stay common until repository facades land (§3.2.8).
 
 ---
-
-## Governance
-
-Update this ADR when a context gains a new ORM module or write owner changes. Bump checklist §3.2 rows and extend `verify_model_ownership.py` for `admin_models`, `driver_models`, etc.

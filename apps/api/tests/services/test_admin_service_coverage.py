@@ -14,7 +14,6 @@ from porterchain_api.admin_engine.finance_service import AdminFinanceService, Fi
 from porterchain_api.admin_engine.merchant360_service import Merchant360Service
 from porterchain_api.admin_engine.operations_service import AdminOperationsService
 from porterchain_api.admin_engine.orders_service import AdminOrdersService
-from porterchain_api.admin_engine.pricing_service import AdminPricingService
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.admin_engine.control_tower_service import ControlTowerService
 from porterchain_api.admin_engine.notification_admin_service import NotificationAdminService
@@ -41,7 +40,9 @@ def test_admin_settings_read_paths(db: Session, settings) -> None:
     svc = AdminSettingsService()
     center = svc.center(db, settings)
     assert center.get("authz", {}).get("engine") == "spicedb"
-    assert center.get("permissions") == {}
+    permissions = center.get("permissions")
+    assert isinstance(permissions, dict)
+    assert "dispatch" in permissions
     assert isinstance(svc.search("stripe"), list)
     assert isinstance(svc.default_config(db), dict)
     assert isinstance(svc.module_config_links(db), dict)
@@ -93,7 +94,11 @@ def test_admin_merchant360_read_paths(db: Session, settings, merchant_ctx) -> No
     assert isinstance(svc.onboarding(db, merchant_ctx.merchant.id), dict)
     assert isinstance(svc.api_keys(db, merchant_ctx.merchant.id), dict)
     assert isinstance(svc.analytics(db, merchant_ctx.merchant.id), dict)
-    assert isinstance(svc.unprovisioned_signups(db, settings), list)
+    try:
+        assert isinstance(svc.unprovisioned_signups(db, settings), list)
+    except RuntimeError as exc:
+        # M-4: Clerk directory failures surface instead of silent [].
+        assert "clerk_directory_unavailable" in str(exc)
 
 
 def test_admin_operations_assign_and_queues(
@@ -124,10 +129,7 @@ def test_admin_orders_force_transition_and_bulk(
     assert results[0]["status"] == "cancelled"
 
 
-def test_admin_pricing_and_control_tower(db: Session) -> None:
-    pricing = AdminPricingService()
-    assert isinstance(pricing.dashboard(db), dict)
-    assert isinstance(pricing.list_tariffs(db), list)
+def test_admin_control_tower(db: Session) -> None:
     tower = ControlTowerService()
     assert isinstance(tower.stats(db), dict)
     assert isinstance(tower.board(db), list)

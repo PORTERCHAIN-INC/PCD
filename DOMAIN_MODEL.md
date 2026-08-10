@@ -939,7 +939,7 @@ Mapped by `EventTranslator` in `services/fleetbase-adapter/`.
 
 ## Related documents
 
-- [ENTITY_RELATIONSHIP_MODEL.md](./ENTITY_RELATIONSHIP_MODEL.md) — ER diagrams
+- [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) — ER diagrams
 - [BUSINESS_GLOSSARY.md](./BUSINESS_GLOSSARY.md) — Term definitions
 - [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md) — State machine detail
 - [EVENT_BUS.md](./EVENT_BUS.md) — Event catalog
@@ -948,12 +948,5 @@ Mapped by `EventTranslator` in `services/fleetbase-adapter/`.
 
 ---
 
-_Canonical domain specification. SQLAlchemy models in `apps/api/src/porterchain_api/` implement this model; see [ENTITY_RELATIONSHIP_MODEL.md](./ENTITY_RELATIONSHIP_MODEL.md) for table mappings._
+_Canonical domain specification. SQLAlchemy models in `apps/api/src/porterchain_api/` implement this model; see [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) for table mappings._
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -246,8 +246,8 @@ class DiagnosticsProbesMixin:
         return {"status": "healthy", "details": {"project_id": platform.firebase_project_id, "credentials": True}}
 
     def _probe_websockets(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
-        ws_url = f"{settings.porterchain_api_url.rstrip('/')}/v1/admin/operations/live-map/ws"
-        warnings = ["WebSocket requires Clerk JWT — route registered at operations/live-map/ws"]
+        ws_url = f"{settings.porterchain_api_url.rstrip('/')}/v1/orders/ws"
+        warnings = ["Realtime execution GPS streams from Fleetbase SocketCluster (via console); public tracking WS at /v1/orders/ws"]
         if live:
             warnings.append(f"Endpoint: {ws_url}")
         return {"status": "healthy", "warnings": warnings, "details": {"endpoint": ws_url}}

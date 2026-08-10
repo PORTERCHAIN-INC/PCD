@@ -6,7 +6,7 @@
 
 **Package:** `services/driver-platform` (`porterchain-driver` / `porterchain_driver`)
 
-> **See also:** [DRIVER_PRODUCTION_READINESS.md](./DRIVER_PRODUCTION_READINESS.md) · [docs/architecture/DISPATCH_FLOW.md](./docs/architecture/DISPATCH_FLOW.md)
+> **See also:** [DRIVER_PLATFORM.md](DRIVER_PLATFORM.md) · [docs/architecture/DISPATCH_FLOW.md](./docs/architecture/DISPATCH_FLOW.md)
 
 ---
 
@@ -106,7 +106,7 @@ snap = platform.dashboard.snapshot(db, driver)
 
 ---
 
-## Data model (PostgreSQL 16)
+## Data model (PostgreSQL 18)
 
 | Table                        | Purpose                        |
 | ---------------------------- | ------------------------------ |
@@ -146,16 +146,9 @@ pnpm dev:api             # http://localhost:8001
 
 ## Related documents
 
-- [CONNECTIONS.md](./CONNECTIONS.md) — mobile API contract
-- [FLEETBASE_SERVICE_STATUS.md](./FLEETBASE_SERVICE_STATUS.md) — Fleetbase stack
+- [INTEGRATIONS.md](INTEGRATIONS.md) — mobile API contract
+- [SERVICE_STATUS.md](SERVICE_STATUS.md) — Fleetbase stack
 - [EVENT_CATALOG.md](./EVENT_CATALOG.md)
-- [DEVICE_REGISTRATION_FLOW.md](./docs/notifications/DEVICE_REGISTRATION_FLOW.md)
+- [NOTIFICATION_ARCHITECTURE.md](docs/notifications/NOTIFICATION_ARCHITECTURE.md)
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

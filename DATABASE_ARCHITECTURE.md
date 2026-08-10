@@ -4,9 +4,9 @@
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-08
 
-**Status:** Implemented — PostgreSQL 16 + Alembic in `apps/api/`
+**Status:** Implemented — PostgreSQL 18 + Alembic in `apps/api/`
 
-> **Ownership:** [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md) · **Migrations:** [ALEMBIC_VALIDATION.md](./ALEMBIC_VALIDATION.md) · **Domain:** [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
+> **Ownership:** [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md) · **Migrations:** [README.md](apps/api/alembic/README.md) · **Domain:** [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
 
 ---
 
@@ -14,7 +14,7 @@
 
 | Store                  | Engine        | Purpose                                | Owner               | Access from Porterchain                  |
 | ---------------------- | ------------- | -------------------------------------- | ------------------- | ---------------------------------------- |
-| **Porterchain API DB** | PostgreSQL 16 | Commercial domain, CRM, billing, admin | Porterchain API     | SQLAlchemy + Alembic                     |
+| **Porterchain API DB** | PostgreSQL 18 | Commercial domain, CRM, billing, admin | Porterchain API     | SQLAlchemy + Alembic                     |
 | **Fleetbase DB**       | MySQL 8       | Dispatch, GPS, routes, POD             | Fleetbase (Laravel) | **HTTP adapter only** — never direct SQL |
 | **Redis**              | Redis 7       | Queues, cache, event streams           | Shared infra        | `redis` client / worker                  |
 
@@ -48,7 +48,7 @@ Auth identity: **Clerk** (external). User mirrors live in PostgreSQL (`portercha
 | `fleetbase_models.py`                     | `fleetbase_sync_jobs`, `fleetbase_sync_audit`                |
 | `user_models.py` / `invitation_models.py` | `porterchain_users`, `user_invitations`                      |
 
-**~68 application tables** + `alembic_version`. Full list: [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md).
+**~68 application tables** + `alembic_version`. Full list: [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md).
 
 ### Schema rules
 
@@ -77,7 +77,7 @@ Auth identity: **Clerk** (external). User mirrors live in PostgreSQL (`portercha
 
 Schema owned by Fleetbase Laravel migrations. Porterchain reads/writes via `services/fleetbase-adapter/` only.
 
-See [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) and [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md).
+See [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) and [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md).
 
 ---
 
@@ -149,7 +149,7 @@ Until `DATABASE_URL_REPLICA` is set, `merchant_engine/reporting_metrics.py` and 
 
 **Phase A (current prod):** Single Postgres container in `docker-compose.prod.yml` (`pcd-postgres`, Postgres 18).
 
-**Phase B (managed primary):** Move OLTP to DigitalOcean Managed PostgreSQL 16+ before scaling past 2 API replicas.
+**Phase B (managed primary):** Move OLTP to DigitalOcean Managed PostgreSQL 18+ before scaling past 2 API replicas.
 
 | Step | Action                                                                                                |
 | ---- | ----------------------------------------------------------------------------------------------------- |
@@ -189,17 +189,10 @@ See [infrastructure/deploy/README.md](./infrastructure/deploy/README.md) and [AD
 
 | Document                                                                                   | Purpose                    |
 | ------------------------------------------------------------------------------------------ | -------------------------- |
-| [DATABASE_OWNERSHIP_MATRIX.md](./DATABASE_OWNERSHIP_MATRIX.md)                             | Table ownership            |
-| [ALEMBIC_VALIDATION.md](./ALEMBIC_VALIDATION.md)                                           | Migration validation       |
-| [ENTITY_RELATIONSHIP_MODEL.md](./ENTITY_RELATIONSHIP_MODEL.md)                             | ERM                        |
+| [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md)                                       | Table ownership            |
+| [README.md](apps/api/alembic/README.md)                                                    | Migration validation       |
+| [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)                                                       | ERM                        |
 | [docs/architecture/DATABASE_RELATIONSHIP.md](./docs/architecture/DATABASE_RELATIONSHIP.md) | Flow diagram (Group 28)    |
 | [docs/archive/README.md](./docs/archive/README.md#database)                                | Historical database audits |
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

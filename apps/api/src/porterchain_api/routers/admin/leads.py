@@ -4,9 +4,11 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import HTTPException, Query
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from porterchain_api.collaboration_engine import CrmSalesService
+from porterchain_api.config import Settings, get_settings
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Depends,
@@ -19,6 +21,17 @@ from porterchain_api.routers.admin._deps import (
 from porterchain_api.schemas_crm import LeadOut, LeadUpdate, TaskOut
 
 _crm = CrmSalesService()
+
+
+class LeadConvertRequest(BaseModel):
+    create_deal: bool = True
+    deal_name: str | None = None
+    expected_revenue_cents: int | None = None
+    target_stage: str | None = None
+    to_merchant: bool = Field(
+        default=False,
+        description="Also create/link a PorterChain merchant (seat-reserve owner).",
+    )
 
 
 @router.get("/leads", response_model=list[LeadOut])
@@ -96,6 +109,43 @@ def update_lead(
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="lead_not_found") from exc
     return LeadOut.model_validate(lead)
+
+
+@router.post("/leads/{lead_id}/convert")
+def convert_lead(
+    lead_id: str,
+    body: LeadConvertRequest,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """M-19: Lead → company (+ deal); optional → merchant seat (ONBOARDING)."""
+    require_module(ctx, "crm")
+    try:
+        result = _crm.convert_lead(
+            db,
+            ctx,
+            lead_id,
+            create_deal=body.create_deal,
+            deal_name=body.deal_name,
+            expected_revenue_cents=body.expected_revenue_cents,
+            target_stage=body.target_stage,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="lead_not_found") from exc
+
+    out: dict = {**result, "to_merchant": body.to_merchant}
+    if body.to_merchant and result.get("company_id"):
+        try:
+            merchant = _crm.convert_company_to_merchant(
+                db, ctx, str(result["company_id"]), settings=settings
+            )
+            out["merchant"] = merchant
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return out
 
 
 @router.delete("/leads/{lead_id}", status_code=204)

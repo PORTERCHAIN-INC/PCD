@@ -61,9 +61,6 @@ class E2EValidationVerifiersMixin:
             return "PASS"
         return "PASS"
 
-    def _verify_route_center(self, db: Session, settings: Settings) -> ValidationStatus:
-        return "SKIPPED"
-
     def _verify_receipt(self, db: Session, order_id: str) -> ValidationStatus:
         from porterchain_api.models import Invoice
 

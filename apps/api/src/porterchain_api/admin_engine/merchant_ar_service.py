@@ -199,6 +199,7 @@ class MerchantArService:
                 )
                 db.refresh(order)
 
+            # POD → INVOICED may already have run via InvoiceService on order.pod_completed.
             if OrderState(order.state) != OrderState.INVOICED:
                 transition_order_state(
                     db,
@@ -210,21 +211,14 @@ class MerchantArService:
                     payload={
                         "invoice_id": invoice.id,
                         "invoice_number": invoice.invoice_number,
-                        "merchant_ar": True,
-                    },
-                )
-            else:
-                emit_event(
-                    db,
-                    event_type=BookingEvents.ORDER_INVOICED,
-                    aggregate_type="order",
-                    aggregate_id=order.id,
-                    correlation_id=invoice.id,
-                    actor_type="admin",
-                    actor_id=ctx.user.id,
-                    payload={
-                        "invoice_id": invoice.id,
-                        "invoice_number": invoice.invoice_number,
+                        "merchant_id": merchant_id,
+                        "merchant_email": merchant.email,
+                        "merchant_name": merchant.company_name,
+                        "email": merchant.email,
+                        "order_id": order.id,
+                        "order_number": order.order_number,
+                        "amount_cents": invoice.amount_cents,
+                        "amount_display": f"${(invoice.amount_cents or 0) / 100:.2f} {(invoice.currency or 'cad').upper()}",
                         "merchant_ar": True,
                     },
                 )

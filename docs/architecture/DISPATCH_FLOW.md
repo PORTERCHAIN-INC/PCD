@@ -2,10 +2,10 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-08-07
 
 **Source:** `admin_engine/operations_service.py`, `control_tower_service.py`, `fleetbase_engine/booking_sync_service.py`, `webhook_processor.py`  
-**See also:** [BOOKING_FLOW.md](./BOOKING_FLOW.md) · [MERCHANT_FLOW.md](./MERCHANT_FLOW.md) · [FLEETBASE_SERVICE_STATUS.md](../../FLEETBASE_SERVICE_STATUS.md)
+**See also:** [BOOKING_FLOW.md](./BOOKING_FLOW.md) · [ORDERS_MODULE.md](../ops/ORDERS_MODULE.md) · [SERVICE_STATUS.md](../../SERVICE_STATUS.md)
 
 ---
 
@@ -33,11 +33,11 @@ Batch assignment: `POST /v1/admin/operations/queue/assign-batch`.
 - POD → `DELIVERED` → `POD_COMPLETED`
 - Exceptions → `OrderException`; claims → `Claim`
 
-## Live Tracking
+## Live tracking
 
-- Admin map: `LiveMapService.snapshot()` via WebSocket `GET /v1/admin/operations/live-map/ws` (5s polling loop, Clerk JWT)
-- REST fallbacks: `/v1/admin/operations/live-map`, `/live-map/search`, `/live-map/detail/{type}/{id}`
-- Public tracking: `TrackingService` + Fleetbase live tracking API
+- **Ops maps / GPS:** Fleetbase console (Admin SSO) — not a PorterChain live-map surface
+- **Public / merchant tracking:** `TrackingService` + Fleetbase live tracking API
+- Order 360 in Admin shows adapter-fed status, POD, and documents — not a custom map engine
 
 ## Diagram
 
@@ -56,18 +56,10 @@ flowchart LR
   WH --> WP[WebhookProcessor]
   WP --> TRACK[order.tracking_updated]
   WP --> POD[POD fetch → POD_COMPLETED]
-  ADMIN_MAP[LiveMapService] --> WS[WS /v1/admin/operations/live-map/ws<br/>5s snapshots]
-  ADMIN_MAP --> FB_TRACK[TrackingService<br/>Fleetbase live tracking]
+  ADMIN_SSO[Admin SSO] --> FB_UI[Fleetbase console<br/>live GPS / fleet map]
 ```
 
 ## PlantUML
 
 See [plantuml/dispatch_flow.puml](./plantuml/dispatch_flow.puml)
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

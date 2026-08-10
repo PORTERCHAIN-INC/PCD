@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Sync production secrets to /opt/porterchain/.env (DD-14).
 #
-# Clerk: ONE app only — Platform (former Admin, clerk.admin.porterchain.com).
-# Canonical keys: CLERK_SECRET_KEY, CLERK_PUBLISHABLE_KEY, CLERK_JWKS_URL, CLERK_UNIFIED_MODE=true
-# Per-portal CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_* names are stripped from runtime .env.
+# Clerk: platform_driver — TWO apps
+#   Platform (clerk.admin.porterchain.com) → CLERK_* + CUSTOMER/MERCHANT/ADMIN slots
+#   Driver   (clerk.driver.porterchain.com) → CLERK_DRIVER_*
+# CLERK_UNIFIED_MODE must stay false. Do not strip portal slots.
 #
 # Modes:
 #   DOPPLER_TOKEN set  → download from Doppler (secret manager SSOT)
@@ -30,6 +31,8 @@ REQUIRED_KEYS=(
   SPICEDB_PRESHARED_KEY
   CLERK_SECRET_KEY
   CLERK_JWKS_URL
+  CLERK_DRIVER_SECRET_KEY
+  CLERK_DRIVER_JWKS_URL
 )
 
 env_value() {
@@ -76,31 +79,45 @@ promote_platform_triad_from_admin() {
   fi
 }
 
-# Drop multi-app slot names so compose only sees Platform triad.
-strip_portal_clerk_slots() {
-  if grep -qE '^CLERK_(CUSTOMER|MERCHANT|ADMIN|DRIVER)_(SECRET_KEY|PUBLISHABLE_KEY|JWKS_URL)=' .env 2>/dev/null; then
-    grep -v -E '^CLERK_(CUSTOMER|MERCHANT|ADMIN|DRIVER)_(SECRET_KEY|PUBLISHABLE_KEY|JWKS_URL)=' .env > .env.tmp && mv .env.tmp .env
-    echo "Clerk: stripped per-portal slot keys (CUSTOMER/MERCHANT/ADMIN/DRIVER)"
-  fi
+# Expand Platform triad into customer/merchant/admin slots when empty.
+expand_platform_slots() {
+  local sk pk jwks
+  sk="$(env_value CLERK_SECRET_KEY)"
+  pk="$(env_value CLERK_PUBLISHABLE_KEY)"
+  jwks="$(env_value CLERK_JWKS_URL)"
+  [ -z "$sk" ] && return 0
+
+  for portal in ADMIN CUSTOMER MERCHANT; do
+    [ -z "$(env_value "CLERK_${portal}_SECRET_KEY")" ] && set_env_key "CLERK_${portal}_SECRET_KEY" "$sk"
+    [ -z "$(env_value "CLERK_${portal}_PUBLISHABLE_KEY")" ] && [ -n "$pk" ] && set_env_key "CLERK_${portal}_PUBLISHABLE_KEY" "$pk"
+    [ -z "$(env_value "CLERK_${portal}_JWKS_URL")" ] && set_env_key "CLERK_${portal}_JWKS_URL" "$jwks"
+  done
 }
 
-normalize_clerk_platform() {
+normalize_clerk_platform_driver() {
   promote_platform_triad_from_admin
-  strip_portal_clerk_slots
-  set_env_key CLERK_UNIFIED_MODE true
+  expand_platform_slots
+  set_env_key CLERK_MODE platform_driver
+  set_env_key CLERK_UNIFIED_MODE false
 }
 
 verify_clerk_env() {
-  local sk jwks pk
+  local sk jwks pk dsk djwks
   sk="$(env_value CLERK_SECRET_KEY)"
   jwks="$(env_value CLERK_JWKS_URL)"
   pk="$(env_value CLERK_PUBLISHABLE_KEY)"
+  dsk="$(env_value CLERK_DRIVER_SECRET_KEY)"
+  djwks="$(env_value CLERK_DRIVER_JWKS_URL)"
 
   if [ -z "$sk" ] || [ -z "$jwks" ]; then
-    echo "::error::Clerk: set CLERK_SECRET_KEY + CLERK_JWKS_URL (Platform / admin.porterchain.com only)" >&2
+    echo "::error::Clerk: set CLERK_SECRET_KEY + CLERK_JWKS_URL (Platform / admin.porterchain.com)" >&2
     return 1
   fi
-  if [[ "$sk" == sk_test_* ]] || [[ "$pk" == pk_test_* ]]; then
+  if [ -z "$dsk" ] || [ -z "$djwks" ]; then
+    echo "::error::Clerk: set CLERK_DRIVER_SECRET_KEY + CLERK_DRIVER_JWKS_URL (Porterchain Driver)" >&2
+    return 1
+  fi
+  if [[ "$sk" == sk_test_* ]] || [[ "$pk" == pk_test_* ]] || [[ "$dsk" == sk_test_* ]]; then
     echo "::error::Clerk: test keys are not allowed in production (need sk_live_ / pk_live_)" >&2
     return 1
   fi
@@ -108,11 +125,18 @@ verify_clerk_env() {
     echo "::error::Clerk: CLERK_SECRET_KEY must be sk_live_… (Platform)" >&2
     return 1
   fi
+  if [[ "$dsk" != sk_live_* ]]; then
+    echo "::error::Clerk: CLERK_DRIVER_SECRET_KEY must be sk_live_… (Driver)" >&2
+    return 1
+  fi
   if [ -n "$pk" ] && [[ "$pk" != pk_live_* ]]; then
     echo "::error::Clerk: CLERK_PUBLISHABLE_KEY must be pk_live_… (Platform)" >&2
     return 1
   fi
-  echo "Clerk: Platform triad only (admin.porterchain.com / clerk.admin.porterchain.com)"
+  if [ "$sk" = "$dsk" ]; then
+    echo "::warning::Clerk: Platform and Driver secret keys match — expected distinct apps in production" >&2
+  fi
+  echo "Clerk: platform_driver (Platform + Driver triads)"
   return 0
 }
 
@@ -187,20 +211,36 @@ if [ -n "${DOPPLER_TOKEN:-}" ]; then
     > .env
   extract_firebase_from_env
   strip_inline_firebase_from_env
-  normalize_clerk_platform
+  normalize_clerk_platform_driver
   echo "Secrets synced from Doppler (${DOPPLER_PROJECT:-pcd}/${DOPPLER_CONFIG:-prd})"
 else
-  # Break-glass: Platform triad only (optional Admin names as fallback source).
+  # Break-glass: Platform + Driver (optional Admin names as Platform fallback).
   CLERK_SECRET_KEY="${CLERK_SECRET_KEY:-${CLERK_ADMIN_SECRET_KEY:-}}"
   CLERK_PUBLISHABLE_KEY="${CLERK_PUBLISHABLE_KEY:-${CLERK_ADMIN_PUBLISHABLE_KEY:-}}"
   CLERK_JWKS_URL="${CLERK_JWKS_URL:-${CLERK_ADMIN_JWKS_URL:-}}"
   cat > .env <<EOF
 GOOGLE_MAPS_SERVER_API_KEY=${GOOGLE_MAPS_SERVER_API_KEY:-}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+CLERK_MODE=platform_driver
+CLERK_UNIFIED_MODE=false
 CLERK_SECRET_KEY=${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform) is required}
 CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY:-}
 CLERK_JWKS_URL=${CLERK_JWKS_URL:?CLERK_JWKS_URL (Platform) is required}
-CLERK_UNIFIED_MODE=true
+CLERK_ADMIN_SECRET_KEY=${CLERK_ADMIN_SECRET_KEY:-${CLERK_SECRET_KEY}}
+CLERK_ADMIN_PUBLISHABLE_KEY=${CLERK_ADMIN_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
+CLERK_ADMIN_JWKS_URL=${CLERK_ADMIN_JWKS_URL:-${CLERK_JWKS_URL}}
+CLERK_CUSTOMER_SECRET_KEY=${CLERK_CUSTOMER_SECRET_KEY:-${CLERK_SECRET_KEY}}
+CLERK_CUSTOMER_PUBLISHABLE_KEY=${CLERK_CUSTOMER_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
+CLERK_CUSTOMER_JWKS_URL=${CLERK_CUSTOMER_JWKS_URL:-${CLERK_JWKS_URL}}
+CLERK_MERCHANT_SECRET_KEY=${CLERK_MERCHANT_SECRET_KEY:-${CLERK_SECRET_KEY}}
+CLERK_MERCHANT_PUBLISHABLE_KEY=${CLERK_MERCHANT_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
+CLERK_MERCHANT_JWKS_URL=${CLERK_MERCHANT_JWKS_URL:-${CLERK_JWKS_URL}}
+CLERK_DRIVER_SECRET_KEY=${CLERK_DRIVER_SECRET_KEY:?CLERK_DRIVER_SECRET_KEY is required}
+CLERK_DRIVER_PUBLISHABLE_KEY=${CLERK_DRIVER_PUBLISHABLE_KEY:-}
+CLERK_DRIVER_JWKS_URL=${CLERK_DRIVER_JWKS_URL:?CLERK_DRIVER_JWKS_URL is required}
+CLERK_AUTHORIZED_PARTIES=${CLERK_AUTHORIZED_PARTIES:-}
+CLERK_AUTHORIZED_ISSUERS=${CLERK_AUTHORIZED_ISSUERS:-}
+CLERK_WEBHOOK_SIGNING_SECRET=${CLERK_WEBHOOK_SIGNING_SECRET:-}
 STRIPE_SECRET=${STRIPE_SECRET:?STRIPE_SECRET is required}
 STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:?STRIPE_WEBHOOK_SECRET is required}
 JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
@@ -226,7 +266,8 @@ EOF
   echo "Secrets written from deploy environment (legacy GitHub secrets path)"
 fi
 
+write_firebase_file
 chmod 600 .env
 verify_env
 verify_clerk_env
-echo "✓ ${#REQUIRED_KEYS[@]} required keys present in .env"
+echo "✓ ${#REQUIRED_KEYS[@]} required keys present in .env (platform_driver)"

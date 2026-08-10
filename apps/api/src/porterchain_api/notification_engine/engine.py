@@ -12,7 +12,7 @@ from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.notification_engine.models import NotificationRecord
 from porterchain_api.notification_engine.preference_service import PreferenceService
 from porterchain_api.notification_engine.realtime import realtime_hub
-from porterchain_api.notification_engine.templates import render_template, template_meta
+from porterchain_api.notification_engine.templates import render_email, template_meta
 from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
@@ -102,8 +102,36 @@ class NotificationEngine:
             logger.debug("notification suppressed by preference: %s/%s/%s", recipient_type, cat, channel)
             return None
 
-        title, body = render_template(template_key, ctx)
-        html = meta.get("html", "").format(**{k: str(v) for k, v in ctx.items()}) if meta.get("html") else None
+        from porterchain_api.notification_engine.user_settings import UserSettingsService
+
+        if UserSettingsService().should_mute_channel(
+            db,
+            user_role=recipient_type,
+            user_id=recipient_id,
+            channel=channel,
+            priority=priority,
+            category=cat,
+        ):
+            logger.debug(
+                "notification muted by quiet hours: %s/%s/%s",
+                recipient_type,
+                channel,
+                cat,
+            )
+            return None
+
+        tags = dict(search_tags or {})
+        idem_key: str | None = None
+        if event_type and correlation_id:
+            idem_key = (
+                f"{event_type}|{correlation_id}|{template_key}|{channel}|{recipient_type}|{recipient_id}"
+            )
+            tags["idempotency_key"] = idem_key
+            existing = self._find_idempotent(db, event_type=event_type, template_key=template_key, channel=channel, recipient_type=recipient_type, recipient_id=recipient_id, idem_key=idem_key)
+            if existing:
+                return existing
+
+        title, body, html = render_email(template_key, ctx)
         now = datetime.now(UTC)
 
         record = NotificationRecord(
@@ -121,7 +149,7 @@ class NotificationEngine:
             deep_link=deep_link or ctx.get("deep_link"),
             status="queued",
             context=ctx,
-            search_tags=search_tags or {},
+            search_tags=tags,
             queued_at=now,
         )
         db.add(record)
@@ -142,23 +170,54 @@ class NotificationEngine:
             )
             return record
 
+        # Worker-only delivery for email/SMS/push (auth-critical mail uses staff_mail sync path).
+        queue_payload = {
+            "notification_id": record.id,
+            "channel": channel,
+            "template": template_key,
+            "recipient_type": recipient_type,
+            "recipient_id": recipient_id,
+            "recipient": recipient_address or "",
+            "context": {**ctx, "title": title, "body": body, "deep_link": record.deep_link},
+        }
         emit_event(
             db,
             event_type=DomainEventType.NOTIFICATION_QUEUED,
             aggregate_type="notification",
             aggregate_id=record.id,
             correlation_id=correlation_id or record.id,
-            payload={
-                "notification_id": record.id,
-                "channel": channel,
-                "template": template_key,
-                "recipient_type": recipient_type,
-                "recipient_id": recipient_id,
-                "recipient": recipient_address or "",
-                "context": {**ctx, "title": title, "body": body, "deep_link": record.deep_link},
-            },
+            payload=queue_payload,
         )
         return record
+
+    @staticmethod
+    def _find_idempotent(
+        db: Session,
+        *,
+        event_type: str,
+        template_key: str,
+        channel: str,
+        recipient_type: str,
+        recipient_id: str,
+        idem_key: str,
+    ) -> NotificationRecord | None:
+        candidates = (
+            db.query(NotificationRecord)
+            .filter(
+                NotificationRecord.event_type == event_type,
+                NotificationRecord.template_key == template_key,
+                NotificationRecord.channel == channel,
+                NotificationRecord.recipient_type == recipient_type,
+                NotificationRecord.recipient_id == recipient_id,
+            )
+            .order_by(NotificationRecord.created_at.desc())
+            .limit(25)
+            .all()
+        )
+        for row in candidates:
+            if (row.search_tags or {}).get("idempotency_key") == idem_key:
+                return row
+        return None
 
     def dispatch_multi(
         self,

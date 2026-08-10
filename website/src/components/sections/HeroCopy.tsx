@@ -58,7 +58,7 @@ export default function HeroCopy({
       <BlurFade delay={0.2}>
         <div className="hero-copy__actions">
           <ShimmerButton
-            href="/business?from=home-hero#inquiry"
+            href="/sign-up?intent=quote&from=home-hero"
             trackSource="home-hero"
             className="hero-copy__cta"
           >

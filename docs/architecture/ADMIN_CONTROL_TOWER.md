@@ -1,21 +1,21 @@
 # Admin Control Tower
 
-**Type:** CANONICAL
-**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Type:** CANONICAL  
+**masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)  
+**Last verified:** 2026-08-07
 
-**Source:** `routers/admin.py`, `routers/operations.py`, `routers/route_center.py`, `admin_engine/control_tower_service.py`  
-**See also:** [DISPATCH_FLOW.md](./DISPATCH_FLOW.md) · [REALTIME_FLOW.md](./REALTIME_FLOW.md) · [ROUTE_CENTER_INTEGRATION.md](../../ROUTE_CENTER_INTEGRATION.md)
+**Source:** `routers/admin.py`, `routers/operations.py`, `admin_engine/control_tower_service.py`  
+**See also:** [DISPATCH_FLOW.md](./DISPATCH_FLOW.md) · [ORDERS_MODULE.md](../ops/ORDERS_MODULE.md) · [SSO.md](../../SSO.md)
 
 ---
 
 ## Overview
 
-The Admin Portal (`:3002`) is the **business control tower**. It communicates exclusively with `/v1/admin/*`, `/v1/admin/operations/*`, and `/v1/admin/route-center/*`. It never calls Fleetbase HTTP directly — only SSO to open the Fleetbase console (`:4200`).
+The Admin Portal (`:3002`) is the **business control tower**. It talks only to `/v1/admin/*` and `/v1/admin/operations/*`. It never calls Fleetbase HTTP directly — use Admin SSO to open the Fleetbase console (`:4200`) for live GPS, fleet maps, and dispatch execution UI.
 
 ## Control Tower (`ControlTowerService`)
 
-Central ops hub at `/v1/admin/operations/`:
+Ops hub at `/v1/admin/operations/`:
 
 | Endpoint                   | Purpose                                |
 | -------------------------- | -------------------------------------- |
@@ -23,7 +23,6 @@ Central ops hub at `/v1/admin/operations/`:
 | `GET /board`               | Dispatch board columns                 |
 | `POST /board/move`         | Move order between board columns       |
 | `GET /queue`               | Dispatch-ready queue                   |
-| `POST /queue/optimize`     | Queue optimization suggestions         |
 | `POST /queue/assign-batch` | Batch driver assignment                |
 | `GET /assignable-drivers`  | Drivers available for assignment       |
 | `GET /orders`              | Active operational orders              |
@@ -34,119 +33,67 @@ Central ops hub at `/v1/admin/operations/`:
 | `POST /sync/process`       | Fleetbase retry queue processor        |
 | `GET /sync/health`         | Sync job health                        |
 
-Driver assignment execution remains on `POST /v1/admin/dispatch/orders/{id}/assign` (`admin.py`).
+Driver assignment: `POST /v1/admin/dispatch/orders/{id}/assign`. Order 360: `/v1/admin/orders/{id}` (+ assist, documents, invoice).
 
-## Live Map (`LiveMapService`)
+## Maps & live tracking (Fleetbase-first)
 
-| Endpoint                           | Purpose                           |
-| ---------------------------------- | --------------------------------- |
-| `GET /map`, `/live-map`            | Map snapshot data                 |
-| `GET /live-map/search`             | Entity search                     |
-| `GET /live-map/detail/{type}/{id}` | Order/driver detail               |
-| `GET /live-map/playback`           | Historical playback               |
-| `GET /live-map/nearest-drivers`    | Proximity query                   |
-| `WS /live-map/ws`                  | 5s realtime snapshots (Clerk JWT) |
+PorterChain Admin does **not** host a live-map WebSocket or Route Center. Live fleet views, GPS, and route execution stay in **Fleetbase console** (SSO). Public/merchant tracking uses `TrackingService` + Fleetbase-backed APIs.
 
-Full WebSocket path: `/v1/admin/operations/live-map/ws`.
-
-## Route Center (`RouteCenterService`)
-
-Planning and multi-stop optimization at `/v1/admin/route-center/*` — creates `route_center_plans`, simulates routes via Valhalla/OSRM, dispatches through Fleetbase adapter (never direct Fleetbase HTTP from UI).
-
-## Module Communication
+## Module communication
 
 ```
 Admin Portal
-    ├── Dashboard → AdminDashboardService (aggregates all modules)
-    ├── Orders → AdminOrdersService → order_transitions, Fleetbase via events
+    ├── Dashboard → AdminDashboardService
+    ├── Orders / Order 360 → order platform detail + assist
     ├── Dispatch → AdminOperationsService.assign_driver()
-    ├── Operations → ControlTowerService + LiveMapService
-    ├── Route Center → RouteCenterService → MapsService + fleetbase_engine
+    ├── Operations → ControlTowerService (board / queue / exceptions)
     ├── Finance → AdminFinanceService → billing_engine
-    ├── Pricing → AdminPricingService → pricing_engine
+    ├── Pricing → settings / pricing_engine (commercial; not Fleetbase)
     ├── CRM → CrmSalesService
-    ├── Merchants → AdminMerchantService + Merchant360Service
-    ├── Drivers → AdminDriverService + Driver360Service
-    ├── Claims → AdminClaimsService → claim.opened events
-    ├── Support → AdminSupportService → support.ticket_created events
-    ├── Settings → AdminSettingsService (integration health)
-    ├── Reports → AdminReportsService (aggregates all)
-    └── Diagnostics → AdminDiagnosticsService (health / E2E probes)
+    ├── Merchants → AdminMerchantService
+    ├── Drivers → AdminDriverService
+    ├── Claims / Support → claims & support services
+    ├── Settings → AdminSettingsService (+ Fleetbase SSO link)
+    └── Diagnostics → AdminDiagnosticsService
 ```
 
 ## RBAC
 
-`admin_engine/rbac.py` — `require_module()` guards per route (e.g. `dispatch`, `finance`, `crm`, `map`).
+`admin_engine/rbac.py` — `require_module()` guards per route (e.g. `dispatch`, `finance`, `crm`).
 
 ## Diagram
 
 ```mermaid
 flowchart TB
   ADMIN[Admin Portal :3002] --> API["/v1/admin/*"]
+  ADMIN -->|SSO| FB_UI[Fleetbase console :4200]
 
   subgraph ControlTower["Control Tower — operations.py"]
     CT[ControlTowerService]
-    LM[LiveMapService]
     STATS["/operations/stats"]
     BOARD["/operations/board"]
     QUEUE["/operations/queue"]
     EXC["/operations/exceptions"]
-    SLA["/operations/sla"]
-    AI["/operations/ai"]
-    WS["WS /live-map/ws"]
   end
 
-  subgraph RouteCenter["Route Center — route_center.py"]
-    RC[RouteCenterService]
-    PLANS[route_center_plans]
-  end
-
-  subgraph Modules["Admin Engine Modules"]
+  subgraph Modules["Admin Engine"]
     DASH[AdminDashboardService]
-    ORD[AdminOrdersService]
+    ORD[Orders / Order 360]
     DISP[AdminOperationsService]
     FIN[AdminFinanceService]
-    PRC[AdminPricingService]
-    CLM[AdminClaimsService]
-    SUP[AdminSupportService]
-    CRM[CrmSalesService]
-    MER[AdminMerchantService / Merchant360]
-    DRV[AdminDriverService / Driver360]
     SET[AdminSettingsService]
-    REP[AdminReportsService]
-    BD[AdminBookingDraftService]
-    DIAG[AdminDiagnosticsService]
   end
 
-  subgraph Execution["Downstream"]
+  subgraph Downstream
     FBE[fleetbase_engine]
     EB[Event Bus]
-    BLE[billing_engine]
-    NE[notification_engine]
-    PE[pricing_engine]
     MAPS[MapsService Valhalla/OSRM]
   end
 
-  API --> DASH & ORD & DISP & CT & LM & RC & FIN & PRC & CLM & SUP & CRM & MER & DRV & SET & REP & BD & DIAG
+  API --> DASH & ORD & DISP & CT & FIN & SET
   CT --> ORD & FBE
-  LM --> CT & FBE
-  RC --> MAPS & FBE & PLANS
   DISP --> ORD
   ORD --> EB
-  FIN --> BLE
-  CLM & SUP --> NE
-  PRC --> PE
-  SET -->|"health checks"| FBE
+  SET -->|health / SSO| FBE
+  FBE --> MAPS
 ```
-
-## PlantUML
-
-See [plantuml/admin_control_tower.puml](./plantuml/admin_control_tower.puml)
----
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

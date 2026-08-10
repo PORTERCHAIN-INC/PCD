@@ -56,10 +56,3 @@ Use **Doppler** as the **system of record** for production runtime secrets on th
 - Committing `doppler.yaml` secrets (only project/config names are in repo)
 
 ---
-
-## Governance
-
-| Document                                  | Role                |
-| ----------------------------------------- | ------------------- |
-| [PRIORITY_TODOS.md](../PRIORITY_TODOS.md) | DD-14 tracking      |
-| [RUNBOOK.md](../../RUNBOOK.md)            | Rotation procedures |

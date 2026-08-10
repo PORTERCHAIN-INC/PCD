@@ -15,6 +15,10 @@ def process_dispatch(payload: dict[str, Any]) -> None:
         logger.warning("dispatch job missing order_id: %s", payload)
         return
 
+    if action == "score_suggestions":
+        _score_suggestions(order_id)
+        return
+
     from porterchain_api.config import get_settings
     from porterchain_api.db import SessionLocal
     from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
@@ -36,6 +40,30 @@ def process_dispatch(payload: dict[str, Any]) -> None:
         db.commit()
 
     logger.info("dispatch job completed: order_id=%s action=%s", order_id, action)
+
+
+def _score_suggestions(order_id: str) -> None:
+    """P1-2: Valhalla-matrix ranking + capability/skills/window filters → Redis cache."""
+    from porterchain_api.admin_engine.control_tower.scoring import (
+        compute_ranked_suggestions,
+        write_suggestions_cache,
+    )
+    from porterchain_api.db import SessionLocal
+
+    with SessionLocal() as db:
+        try:
+            result = compute_ranked_suggestions(db, order_id)
+        except LookupError:
+            logger.warning("score_suggestions: order %s not found", order_id)
+            return
+        write_suggestions_cache(order_id, result)
+    logger.info(
+        "score_suggestions completed: order_id=%s drivers=%s filtered=%s matrix=%s",
+        order_id,
+        len(result.get("drivers") or []),
+        result.get("filtered_out_count"),
+        result.get("matrix_source"),
+    )
 
 
 def _resolve_fleetbase_driver_id(db, settings, sync, driver_id: str | None) -> str | None:

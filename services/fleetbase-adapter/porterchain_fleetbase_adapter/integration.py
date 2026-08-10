@@ -12,12 +12,15 @@ from porterchain_fleetbase_adapter.dispatch import DispatchService
 from porterchain_fleetbase_adapter.drivers import DriverService
 from porterchain_fleetbase_adapter.errors import ErrorHandler
 from porterchain_fleetbase_adapter.events import EventTranslator
+from porterchain_fleetbase_adapter.manifests import ManifestService
 from porterchain_fleetbase_adapter.orders import OrderService
+from porterchain_fleetbase_adapter.orchestrator import OrchestratorService
 from porterchain_fleetbase_adapter.pod import PodService
 from porterchain_fleetbase_adapter.routes import RouteService
 from porterchain_fleetbase_adapter.tracking import TrackingService
 from porterchain_fleetbase_adapter.vehicles import VehicleService
 from porterchain_fleetbase_adapter.webhooks import WebhookService
+from porterchain_fleetbase_adapter.zones import ZonesService
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +41,11 @@ class FleetbaseAdapter:
         self.vehicles = VehicleService(self.settings, self.client, self.errors)
         self.dispatch = DispatchService(self.settings, self.client, self.errors)
         self.tracking = TrackingService(self.settings, self.client, self.errors)
+        self.zones = ZonesService(self.settings, self.client, self.errors)
         self.routes = RouteService(self.settings, self.client, self.errors)
         self.pod = PodService(self.settings, self.client, self.errors)
+        self.manifests = ManifestService(self.settings, self.client, self.errors)
+        self.orchestrator = OrchestratorService(self.settings, self.client, self.errors)
         self.events = EventTranslator()
         self.webhooks = WebhookService(
             webhook_secret=self.settings.webhook_secret,
@@ -66,6 +72,62 @@ class FleetbaseAdapter:
     def sync_driver(self, driver: dict[str, Any]) -> str | None:
         return self.drivers.sync(driver)
 
+    def list_drivers(self, *, limit: int = 200) -> list[dict[str, Any]]:
+        """Live Fleetbase driver roster (online + location), read-only."""
+        if not self.is_enabled:
+            return []
+        return self.drivers.list_all(limit=limit)
+
+    def list_manifests(
+        self,
+        *,
+        scheduled_date: str | None = None,
+        status: str | None = None,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        """Committed Fleetbase manifests (orchestrator output), read-only."""
+        if not self.is_enabled:
+            return []
+        return self.manifests.list(
+            scheduled_date=scheduled_date, status=status, limit=limit
+        )
+
+    def get_manifest(self, manifest_id: str) -> dict[str, Any] | None:
+        if not self.is_enabled:
+            return None
+        return self.manifests.get(manifest_id)
+
+    def run_orchestrator(
+        self,
+        order_ids: list[str],
+        *,
+        mode: str = "allocate",
+        engine: str | None = None,
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if not self.is_enabled:
+            return {"ok": False, "error": "fleetbase_disabled", "assignments": [], "metrics": {}}
+        return self.orchestrator.run(
+            order_ids=order_ids, mode=mode, engine=engine, options=options
+        )
+
+    def commit_orchestrator(
+        self,
+        assignments: list[dict[str, Any]],
+        *,
+        scheduled_date: str | None = None,
+    ) -> dict[str, Any]:
+        if not self.is_enabled:
+            return {"ok": False, "error": "fleetbase_disabled", "manifests": []}
+        return self.orchestrator.commit(
+            assignments=assignments, scheduled_date=scheduled_date
+        )
+
+    def list_orchestrator_engines(self) -> list[dict[str, Any]]:
+        if not self.is_enabled:
+            return []
+        return self.orchestrator.list_engines()
+
     # --- Vehicle sync ---
 
     def sync_vehicle(self, vehicle: dict[str, Any]) -> str | None:
@@ -79,6 +141,26 @@ class FleetbaseAdapter:
             return None
         snapshot["proofs"] = self.pod.fetch_proofs(fleetbase_order_id)
         return snapshot
+
+    def position_history(
+        self,
+        *,
+        order_uuid: str | None = None,
+        subject_uuid: str | None = None,
+        limit: int = 500,
+    ) -> dict[str, Any]:
+        """REST breadcrumb trail for ops playback (never SocketCluster replay)."""
+        if not self.is_enabled:
+            return {"points": [], "source": "none"}
+        return self.tracking.position_history(
+            order_uuid=order_uuid, subject_uuid=subject_uuid, limit=limit
+        )
+
+    def list_zone_overlays(self) -> list[dict[str, Any]]:
+        """Fleetbase zones / service-area polygons for map overlays."""
+        if not self.is_enabled:
+            return []
+        return self.zones.list_overlays()
 
     # --- Dispatch sync ---
 

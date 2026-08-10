@@ -32,6 +32,8 @@ class FleetbaseIntegrationBridge:
             logger.info("Fleetbase dispatch bridge disabled; skipping order %s", order.id)
             return None
 
+        compliance = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
+        additional_stops = compliance.get("additional_stops") or []
         payload = {
             "porterchain_order_id": order.id,
             "fleetbase_order_id": order.fleetbase_order_id,
@@ -40,9 +42,15 @@ class FleetbaseIntegrationBridge:
             "merchant_id": order.merchant_id,
             "pickup": order.pickup,
             "dropoff": order.dropoff,
+            "additional_stops": additional_stops,
             "scheduled_at": order.scheduled_at.isoformat(),
             "special_instructions": order.special_instructions,
         }
+        # Rich typed/sequenced stops (hub-spoke, multi-pickup) take precedence
+        # over the legacy address-only additional_stops when present.
+        stops = compliance.get("stops")
+        if isinstance(stops, list) and stops:
+            payload["stops"] = stops
 
         fleetbase_id = self._integration(settings).sync_order(payload)
 
@@ -95,6 +103,8 @@ class FleetbaseIntegrationBridge:
             "make_model": vehicle.make_model,
             "vehicle_class": vehicle.vehicle_class,
             "capacity_kg": vehicle.capacity_kg,
+            "is_active": bool(vehicle.is_active),
+            "driver_id": vehicle.driver_id,
         }
 
         fleetbase_id = self._integration(settings).sync_vehicle(payload)
@@ -127,6 +137,12 @@ class FleetbaseIntegrationBridge:
         if not order.fleetbase_order_id:
             return []
         return self._integration(settings).sync_proofs(order.fleetbase_order_id)
+
+    def sync_status_from_fleetbase(self, settings: Settings, order: Order) -> dict | None:
+        """Poll Fleetbase order status (+ proofs) for PC↔FB diff / POD gallery."""
+        if not order.fleetbase_order_id or not settings.fleetbase_dispatch_bridge:
+            return None
+        return self._integration(settings).sync_status_from_fleetbase(order.fleetbase_order_id)
 
     def cancel_order(self, settings: Settings, order: Order) -> bool:
         if not order.fleetbase_order_id or not settings.fleetbase_dispatch_bridge:

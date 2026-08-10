@@ -68,6 +68,61 @@ class AdminOrdersService(OrderPlatformService):
         filename = f"compliance-{order.order_number}.pdf"
         return pdf, filename
 
+    def label_pdf(self, db: Session, order_id: str) -> tuple[bytes, str] | None:
+        from porterchain_api.reporting.order_documents import build_label_pdf
+
+        order = self.get_order(db, order_id)
+        if not order:
+            return None
+        return build_label_pdf(order), f"label-{order.tracking_number}.pdf"
+
+    def manifest_pdf(self, db: Session, order_id: str) -> tuple[bytes, str] | None:
+        from porterchain_api.reporting.order_documents import build_manifest_pdf
+
+        order = self.get_order(db, order_id)
+        if not order:
+            return None
+        driver_name = None
+        if order.assigned_driver_id:
+            from porterchain_api.admin_models import Driver
+
+            driver = db.query(Driver).filter(Driver.id == order.assigned_driver_id).first()
+            driver_name = driver.full_name if driver else None
+        return build_manifest_pdf(order, driver_name=driver_name), f"manifest-{order.tracking_number}.pdf"
+
+    def invoice_pdf(self, db: Session, order_id: str) -> tuple[bytes, str] | None:
+        from porterchain_api.booking_models import Invoice
+        from porterchain_api.reporting.order_documents import build_invoice_pdf
+
+        order = self.get_order(db, order_id)
+        if not order:
+            return None
+        invoice = db.query(Invoice).filter(Invoice.order_id == order_id).first()
+        if not invoice:
+            return None
+        merchant_name = None
+        customer_email = None
+        if order.merchant_id:
+            from porterchain_api.merchant_models import Merchant
+
+            m = db.query(Merchant).filter(Merchant.id == order.merchant_id).first()
+            merchant_name = m.company_name if m else None
+        if order.customer_id:
+            from porterchain_api.models import Customer
+
+            c = db.query(Customer).filter(Customer.id == order.customer_id).first()
+            customer_email = c.email if c else None
+        pdf = build_invoice_pdf(
+            order,
+            invoice_number=invoice.invoice_number,
+            amount_cents=int(invoice.amount_cents or 0),
+            currency=invoice.currency or "cad",
+            receipt_number=invoice.receipt_number,
+            merchant_name=merchant_name,
+            customer_email=customer_email,
+        )
+        return pdf, f"invoice-{invoice.invoice_number}.pdf"
+
     def force_transition(
         self,
         db: Session,

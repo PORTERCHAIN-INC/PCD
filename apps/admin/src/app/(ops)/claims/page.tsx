@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw, X } from "lucide-react";
 import { cn, formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import ClaimsGrid from "@/components/claims/ClaimsGrid";
@@ -11,10 +12,22 @@ import { CLAIM_STATUSES, CLAIM_TYPES, claimsApi, type ClaimFilters } from "@/lib
 
 export default function ClaimsPage() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
+  const searchParams = useSearchParams();
   const qc = useQueryClient();
   const [filters, setFilters] = useState<ClaimFilters>({});
   const [selected, setSelected] = useState<string[]>([]);
   const filterKey = JSON.stringify(filters);
+
+  useEffect(() => {
+    const customerId = searchParams.get("customer_id");
+    const merchantId = searchParams.get("merchant_id");
+    if (!customerId && !merchantId) return;
+    setFilters((f) => ({
+      ...f,
+      ...(customerId ? { customer_id: customerId } : {}),
+      ...(merchantId ? { merchant_id: merchantId } : {}),
+    }));
+  }, [searchParams]);
 
   const {
     data: rows = [],
@@ -90,6 +103,34 @@ export default function ClaimsPage() {
       )}
 
       <div className="rounded-2xl border border-primary/10 bg-white p-4">
+        {(filters.customer_id || filters.merchant_id) && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl bg-secondary/5 px-3 py-2 text-sm">
+            {filters.customer_id && (
+              <span className="text-primary">
+                Customer filter: <code className="text-xs">{filters.customer_id}</code>
+              </span>
+            )}
+            {filters.merchant_id && (
+              <span className="text-primary">
+                Merchant filter: <code className="text-xs">{filters.merchant_id}</code>
+              </span>
+            )}
+            <Button
+              variant="ghost"
+              className="text-xs"
+              onClick={() =>
+                setFilters((f) => {
+                  const next = { ...f };
+                  delete next.customer_id;
+                  delete next.merchant_id;
+                  return next;
+                })
+              }
+            >
+              <X className="h-3.5 w-3.5" /> Clear entity filter
+            </Button>
+          </div>
+        )}
         <div className="mb-4 flex flex-wrap gap-2">
           <input
             type="search"

@@ -17,7 +17,6 @@ from porterchain_api.routers.merchant._deps import (
     SavedAddressCreateRequest,
     SavedAddressResponse,
     Session,
-    Settings,
     TeamInviteRequest,
     TeamMemberResponse,
     TeamRoleUpdateRequest,
@@ -28,10 +27,25 @@ from porterchain_api.routers.merchant._deps import (
     _team,
     get_db,
     get_merchant_context,
-    get_settings,
     require_module,
     router,
 )
+
+
+@router.get("/session")
+def merchant_session(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+) -> dict:
+    """M-25/M-26: active merchant + role modules for portal nav / X-Merchant-Id."""
+    from porterchain_api.merchant_engine.rbac import modules_for_role
+
+    return {
+        "merchant_id": ctx.merchant.id,
+        "company_name": ctx.merchant.company_name,
+        "role": ctx.role.value,
+        "modules": sorted(modules_for_role(ctx.role)),
+        "user_email": ctx.user.email,
+    }
 
 
 @router.get("/profile", response_model=MerchantProfileResponse)
@@ -219,19 +233,20 @@ def list_team(
     ]
 
 
-@router.post("/team/invite", response_model=TeamMemberResponse)
-def invite_team_member(
+@router.post("/team/seats", response_model=TeamMemberResponse, status_code=201)
+def add_team_seat(
     body: TeamInviteRequest,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
 ) -> TeamMemberResponse:
+    """Reserve a teammate seat by email. Teammate self-signs-up on Platform; no Clerk invite."""
     require_module(ctx, "users")
     try:
-        m = _team.invite_member(db, ctx, settings, email=body.email, role=body.role)
+        m = _team.add_seat(db, ctx, email=body.email, role=body.role)
     except ValueError as exc:
-        if str(exc) == "clerk_not_configured":
-            raise HTTPException(status_code=503, detail="clerk_not_configured") from exc
+        detail = str(exc)
+        if detail in {"email_required", "email_seat_taken", "invalid_team_role"}:
+            raise HTTPException(status_code=400, detail=detail) from exc
         raise
     _contacts.sync_team_contacts(db, ctx.merchant)
     return TeamMemberResponse(id=m.id, email=m.email, role=m.role, is_active=m.is_active, created_at=m.created_at)

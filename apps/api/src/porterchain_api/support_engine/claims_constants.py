@@ -58,6 +58,7 @@ class ClaimFilters:
     investigator_id: str | None = None
     merchant_id: str | None = None
     driver_id: str | None = None
+    customer_id: str | None = None
     insurance: bool | None = None
     date_from: datetime | None = None
     date_to: datetime | None = None

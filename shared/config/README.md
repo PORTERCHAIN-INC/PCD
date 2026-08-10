@@ -42,7 +42,7 @@ See also [env/README.md](../../env/README.md).
 | Valhalla / OSRM | API                    | Routing in maps service         |
 | Firebase        | API + mobile           | Push notifications              |
 | Redis           | API + worker           | Events, queues, cache           |
-| PostgreSQL 16   | API                    | Porterchain-owned data          |
+| PostgreSQL 18   | API                    | Porterchain-owned data          |
 | MySQL           | Fleetbase              | Fleetbase-owned data (separate) |
 | SMTP            | Worker                 | Email queue                     |
 
@@ -93,10 +93,3 @@ Per-app public env helpers also live in app `src/lib/env.ts` where needed.
 | [../../PORT_CONFIGURATION.md](../../PORT_CONFIGURATION.md)         | Ports                         |
 
 ---
-
-## Governance
-
-| Document                                                       | Role              |
-| -------------------------------------------------------------- | ----------------- |
-| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

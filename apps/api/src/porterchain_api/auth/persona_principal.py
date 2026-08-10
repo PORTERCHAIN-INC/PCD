@@ -8,14 +8,12 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
-from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.email_identity import emails_match
+from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.merchant_engine.rbac import parse_merchant_role
-from porterchain_api.merchant_models import MerchantUser
-from porterchain_api.models import Customer
 from porterchain_shared.auth.principal import AuthPrincipal
 from porterchain_shared.auth.roles import PlatformRole
 from porterchain_shared.types.user_types import UserType
@@ -44,13 +42,10 @@ def resolve_persona_principal(
     settings: Settings | None = None,
 ) -> AuthPrincipal | None:
     _ = settings
+    bundle = load_persona_bundle(db, claims.clerk_user_id)
 
-    admin = (
-        db.query(AdminUser)
-        .filter(AdminUser.clerk_user_id == claims.clerk_user_id, AdminUser.is_active.is_(True))
-        .first()
-    )
-    if admin and _profile_email_ok(admin.email, claims.email):
+    admin = bundle.admin
+    if admin is not None and admin.is_active and _profile_email_ok(admin.email, claims.email):
         admin_role = parse_admin_role(admin.role)
         return AuthPrincipal(
             user_id=admin.id,
@@ -61,9 +56,7 @@ def resolve_persona_principal(
             session_id=claims.session_id,
         )
 
-    merchant_user = (
-        db.query(MerchantUser).filter(MerchantUser.clerk_user_id == claims.clerk_user_id).first()
-    )
+    merchant_user = next(iter(bundle.merchant_users), None)
     if merchant_user and _profile_email_ok(merchant_user.email, claims.email):
         m_role = parse_merchant_role(merchant_user.role)
         platform = (
@@ -80,7 +73,7 @@ def resolve_persona_principal(
             session_id=claims.session_id,
         )
 
-    driver = db.query(Driver).filter(Driver.clerk_user_id == claims.clerk_user_id).first()
+    driver = bundle.driver
     if driver and _profile_email_ok(driver.email, claims.email):
         return AuthPrincipal(
             user_id=driver.id,
@@ -91,7 +84,7 @@ def resolve_persona_principal(
             session_id=claims.session_id,
         )
 
-    customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()
+    customer = bundle.customer
     if customer and _profile_email_ok(customer.email, claims.email):
         return AuthPrincipal(
             user_id=customer.id,
@@ -106,8 +99,9 @@ def resolve_persona_principal(
 
 
 def _profile_email_ok(system_email: str | None, clerk_email: str | None) -> bool:
+    # Fail closed: Clerk id alone must never authorize a persona.
     if not clerk_email:
-        return True
+        return False
     return emails_match(system_email, clerk_email)
 
 

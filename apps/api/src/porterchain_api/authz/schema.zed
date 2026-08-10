@@ -34,15 +34,15 @@ definition platform {
     permission quotes_read = super_admin + admin + dispatcher + support + support_lead + sales + finance + read_only
     permission bookings = super_admin + admin + dispatcher + support + support_lead
     permission merchants = super_admin + admin + sales + sales_manager + compliance
-    permission merchants_read = super_admin + admin + dispatcher + support + sales + finance + compliance + read_only
+    permission merchants_read = super_admin + admin + dispatcher + support + sales + sales_manager + finance + compliance + read_only
     permission drivers = super_admin + admin + dispatcher + fleet_manager + compliance
-    permission drivers_read = super_admin + admin + dispatcher + support + sales + compliance + read_only
+    permission drivers_read = super_admin + admin + dispatcher + support + sales + compliance + fleet_manager + read_only
+    permission customers = super_admin + admin + support + support_lead + compliance
+    permission customers_read = super_admin + admin + dispatcher + support + support_lead + sales + sales_manager + finance + compliance + read_only
     permission dispatch = super_admin + admin + dispatcher + fleet_manager
     permission dispatch_read = super_admin + admin + dispatcher + support + support_lead
     permission orders = super_admin + admin + dispatcher + support + support_lead
     permission orders_read = super_admin + admin + dispatcher + support + support_lead + sales + finance + compliance + read_only
-    permission pricing = super_admin + admin + sales + sales_manager
-    permission pricing_read = super_admin + admin + dispatcher + sales
     // mod_* — SpiceDB forbids permission names that match a relation on the same definition
     permission mod_finance = super_admin + admin + finance + support_lead
     permission finance_read = super_admin + admin + finance + support + support_lead
@@ -66,27 +66,32 @@ definition platform {
 }
 
 definition organization {
+    // Maps 1:1 to MerchantRole (merchant_owner → owner, …). Legacy ``member`` kept for revoke cleanup.
+    relation owner: user
     relation admin: user
+    relation ops: user
+    relation finance: user
+    relation readonly: user
     relation member: user
 
-    permission portal = admin + member
-    permission manage = admin
-    permission dashboard = admin + member
-    permission book = admin + member
-    permission bulk = admin + member
-    permission api_keys = admin
-    permission orders = admin + member
-    permission orders_write = admin + member
-    permission tracking = admin + member
-    permission invoices = admin + member
-    permission invoices_pay = admin
-    permission statements = admin + member
-    permission reports = admin + member
-    permission billing = admin
-    permission users = admin
-    permission settings = admin + member
-    permission support = admin + member
-    permission claims = admin + member
+    permission portal = owner + admin + ops + finance + readonly + member
+    permission manage = owner + admin
+    permission dashboard = owner + admin + ops + finance + readonly + member
+    permission book = owner + admin + ops
+    permission bulk = owner + admin + ops
+    permission api_keys = owner + admin
+    permission orders = owner + admin + ops + finance + readonly + member
+    permission orders_write = owner + admin + ops
+    permission tracking = owner + admin + ops + finance + readonly + member
+    permission invoices = owner + admin + ops + finance + readonly + member
+    permission invoices_pay = owner + admin + finance
+    permission statements = owner + admin + finance + readonly
+    permission reports = owner + admin + ops + finance + readonly + member
+    permission billing = owner + admin + finance
+    permission users = owner + admin
+    permission settings = owner + admin + finance + ops
+    permission support = owner + admin + ops + finance + readonly + member
+    permission claims = owner + admin + ops + finance
 }
 
 definition driver_profile {

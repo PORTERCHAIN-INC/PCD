@@ -1,195 +1,115 @@
-# Porterchain documentation
+# PorterChain documentation
 
-**Type:** CANONICAL
-**masterrule:** [§21](../masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Type:** CANONICAL  
+**Last verified:** 2026-08-07
 
-Master index for the PCD monorepo. Root-level reports remain searchable; **canonical** deep docs are linked below.
-
----
-
-## Documentation simplification program
-
-Per **[masterrule §21](../masterrule.md#21-simplification--essential-complexity)** (essential vs accidental complexity):
-
-| Item   | Detail                                                                                              |
-| ------ | --------------------------------------------------------------------------------------------------- |
-| Scope  | 191 platform markdown files                                                                         |
-| Groups | 39 × 5 — tracker in [Appendix C](../masterrule.md#appendix-c--documentation-simplification-program) |
-| Audit  | [CTO_AUDIT_REPORT.md](../CTO_AUDIT_REPORT.md)                                                       |
-| Rule   | One canonical doc per topic; trim pointers; no new root audit files                                 |
+When docs disagree with code, trust live `package.json` / `requirements.txt` / compose / `.nvmrc`.
 
 ---
 
-## Entry & governance
+## Start here
 
-| Document                                              | Description                                     |
-| ----------------------------------------------------- | ----------------------------------------------- |
-| [README.md](../README.md)                             | Quick start, ports, dev commands                |
-| [masterrule.md](../masterrule.md)                     | **Single source of truth** — architecture rules |
-| [REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md) | Monorepo layout and boundaries                  |
-| [CONTRIBUTING_GUIDE.md](../CONTRIBUTING_GUIDE.md)     | Contribution rules                              |
-| [TECH_STACK.md](../TECH_STACK.md)                     | Technology versions                             |
-| [FOLDER_STRUCTURE.md](../FOLDER_STRUCTURE.md)         | Pointer → repository structure                  |
-
----
-
-## Production status
-
-| Document                                                                       | Description                                            |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------ |
-| [CTO_AUDIT_REPORT.md](../CTO_AUDIT_REPORT.md)                                  | **Doc vs code audit** (12 bunches, 2026-07-05)         |
-| [SILICON_VALLEY_READINESS_CHECKLIST.md](SILICON_VALLEY_READINESS_CHECKLIST.md) | **10/10 scorecard gates** — Fowler evolution checklist |
-| [PRIORITY_TODOS.md](PRIORITY_TODOS.md)                                         | **Prioritized execution todos** (P0–P3)                |
-| [PRODUCTION_READINESS_REPORT.md](../PRODUCTION_READINESS_REPORT.md)            | **Go/no-go** certification                             |
-| [GAP_ANALYSIS.md](../GAP_ANALYSIS.md)                                          | Open platform gaps                                     |
-| [ROADMAP.md](../ROADMAP.md)                                                    | Remediation timeline                                   |
-| [MODULE_SCORECARD.md](../MODULE_SCORECARD.md)                                  | Per-module readiness                                   |
+| Document                                                                       | Role                      |
+| ------------------------------------------------------------------------------ | ------------------------- |
+| [../README.md](../README.md)                                                   | Clone → run               |
+| [PORTERCHAIN_CHARTER.md](PORTERCHAIN_CHARTER.md)                               | Company identity          |
+| [PRIORITY_TODOS.md](PRIORITY_TODOS.md)                                         | Execution backlog (P0–P3) |
+| [../masterrule.md](../masterrule.md)                                           | Architecture rules        |
+| [../TECH_STACK.md](../TECH_STACK.md)                                           | Versions                  |
+| [ONBOARDING_ENGINEER.md](ONBOARDING_ENGINEER.md)                               | Engineer onboarding       |
+| [SILICON_VALLEY_READINESS_CHECKLIST.md](SILICON_VALLEY_READINESS_CHECKLIST.md) | Release gates             |
 
 ---
 
-## Architecture
+## Architecture & auth
 
-| Document                                                                        | Description                                         |
-| ------------------------------------------------------------------------------- | --------------------------------------------------- |
-| [docs/architecture/SYSTEM_ARCHITECTURE.md](architecture/SYSTEM_ARCHITECTURE.md) | **Canonical** platform topology                     |
-| [SYSTEM_ARCHITECTURE.md](../SYSTEM_ARCHITECTURE.md)                             | Pointer → architecture doc above                    |
-| [DOMAIN_MODEL.md](../DOMAIN_MODEL.md)                                           | Domain aggregates, lifecycles, events               |
-| [ENTITY_RELATIONSHIP_MODEL.md](../ENTITY_RELATIONSHIP_MODEL.md)                 | ER diagrams                                         |
-| [BUSINESS_GLOSSARY.md](../BUSINESS_GLOSSARY.md)                                 | Business terminology                                |
-| [architecture/README.md](architecture/README.md)                                | Flow diagrams index (booking, dispatch, payment, …) |
-| [FLEETBASE_ADAPTER_ARCHITECTURE.md](../FLEETBASE_ADAPTER_ARCHITECTURE.md)       | Fleetbase adapter design                            |
-| [INTEGRATIONS.md](../INTEGRATIONS.md)                                           | External systems matrix                             |
-
----
-
-## Authentication & access
-
-| Document                                                                   | Description                |
-| -------------------------------------------------------------------------- | -------------------------- |
-| [AUTHENTICATION_ARCHITECTURE.md](../AUTHENTICATION_ARCHITECTURE.md)        | **Canonical** auth design  |
-| [architecture/AUTHENTICATION_FLOW.md](architecture/AUTHENTICATION_FLOW.md) | Clerk + Fleetbase SSO flow |
-| [RBAC_MATRIX.md](../RBAC_MATRIX.md)                                        | Permission matrix          |
-| [RBAC.md](../RBAC.md)                                                      | Pointer → RBAC cluster     |
-| [SSO.md](../SSO.md)                                                        | Single sign-on             |
-| [SECURITY.md](../SECURITY.md)                                              | Security policy            |
-
----
-
-## Events & order lifecycle
-
-| Document                                                           | Description                          |
-| ------------------------------------------------------------------ | ------------------------------------ |
-| [EVENT_BUS.md](../EVENT_BUS.md)                                    | **Canonical** event bus architecture |
-| [EVENT_CATALOG.md](../EVENT_CATALOG.md)                            | **Canonical** domain event catalog   |
-| [architecture/EVENT_BUS_FLOW.md](architecture/EVENT_BUS_FLOW.md)   | Event bus flow diagram               |
-| [ORDER_LIFECYCLE.md](../ORDER_LIFECYCLE.md)                        | Order states (root)                  |
-| [architecture/ORDER_LIFECYCLE.md](architecture/ORDER_LIFECYCLE.md) | Order lifecycle diagram              |
-| [EVENT_FLOW.md](../EVENT_FLOW.md)                                  | Pointer → EVENT_BUS + EVENT_CATALOG  |
-
----
-
-## Database
-
-| Document                                                                       | Description                             |
-| ------------------------------------------------------------------------------ | --------------------------------------- |
-| [DATABASE_ARCHITECTURE.md](../DATABASE_ARCHITECTURE.md)                        | **Canonical** — PostgreSQL 16 + Alembic |
-| [DATABASE_OWNERSHIP_MATRIX.md](../DATABASE_OWNERSHIP_MATRIX.md)                | Table ownership                         |
-| [ALEMBIC_VALIDATION.md](../ALEMBIC_VALIDATION.md)                              | Migration chain (13 revisions)          |
-| [architecture/DATABASE_RELATIONSHIP.md](architecture/DATABASE_RELATIONSHIP.md) | ER flow diagram                         |
-| [archive/README.md#database](archive/README.md#database)                       | Historical database audits              |
-
----
-
-## Maps & routing
-
-| Document                                                             | Description                   |
-| -------------------------------------------------------------------- | ----------------------------- |
-| [GOOGLE_MAPS_USAGE.md](../GOOGLE_MAPS_USAGE.md)                      | Google Maps policy (viz only) |
-| [OSRM_USAGE.md](../OSRM_USAGE.md)                                    | OSRM distance/ETA             |
-| [VALHALLA_USAGE.md](../VALHALLA_USAGE.md)                            | Valhalla optimization         |
-| [ROUTE_CENTER_ARCHITECTURE.md](../ROUTE_CENTER_ARCHITECTURE.md)      | Admin Route Center            |
-| [architecture/GOOGLE_MAPS_FLOW.md](architecture/GOOGLE_MAPS_FLOW.md) | Maps flow diagram             |
-
----
-
-## Fleetbase
-
-| Document                                                                 | Description                         |
-| ------------------------------------------------------------------------ | ----------------------------------- |
-| [FLEETBASE_INTEGRATION.md](../FLEETBASE_INTEGRATION.md)                  | Integration overview                |
-| [FLEETBASE_INSTALL.md](../FLEETBASE_INSTALL.md)                          | Docker install                      |
-| [FLEETBASE_SERVICE_STATUS.md](../FLEETBASE_SERVICE_STATUS.md)            | Verification snapshot               |
-| [SERVICE_STATUS.md](../SERVICE_STATUS.md)                                | Pointer → service status            |
-| [FLEETBASE_MODULES.md](../FLEETBASE_MODULES.md)                          | Module breakdown                    |
-| [EXTENSION_GUIDE.md](../EXTENSION_GUIDE.md)                              | Extend the adapter                  |
-| [UPGRADE_GUIDE.md](../UPGRADE_GUIDE.md)                                  | Version upgrades                    |
-| [archive/README.md#fleetbase-detail](archive/README.md#fleetbase-detail) | Historical Fleetbase detail reports |
+| Document                                                                        | Role                            |
+| ------------------------------------------------------------------------------- | ------------------------------- |
+| [architecture/SYSTEM_ARCHITECTURE.md](architecture/SYSTEM_ARCHITECTURE.md)      | Platform topology               |
+| [architecture/README.md](architecture/README.md)                                | Flow diagrams                   |
+| [architecture/auth-clerk-spicedb.md](architecture/auth-clerk-spicedb.md)        | Authorization (SpiceDB)         |
+| [../AUTHENTICATION_ARCHITECTURE.md](../AUTHENTICATION_ARCHITECTURE.md)          | Identity by portal              |
+| [../SSO.md](../SSO.md)                                                          | Admin staff IdP + Fleetbase SSO |
+| [../DOMAIN_MODEL.md](../DOMAIN_MODEL.md)                                        | Aggregates                      |
+| [../EVENT_BUS.md](../EVENT_BUS.md) · [../EVENT_CATALOG.md](../EVENT_CATALOG.md) | Events                          |
+| [../ORDER_LIFECYCLE.md](../ORDER_LIFECYCLE.md)                                  | Order states                    |
+| [../FLEETBASE_MODULES.md](../FLEETBASE_MODULES.md)                              | Use / Extend / Replace          |
+| [../FLEETBASE_INTEGRATION.md](../FLEETBASE_INTEGRATION.md)                      | Fleetbase bridge                |
+| [../INTEGRATIONS.md](../INTEGRATIONS.md)                                        | External systems                |
+| [../PRICING_ENGINE.md](../PRICING_ENGINE.md)                                    | Pricing                         |
 
 ---
 
 ## Operations
 
-| Document                                                | Description                |
-| ------------------------------------------------------- | -------------------------- |
-| [RUNBOOK.md](../RUNBOOK.md)                             | Operations runbook         |
-| [DOCKER_SETUP.md](../DOCKER_SETUP.md)                   | Docker compose             |
-| [env/README.md](../env/README.md)                       | Environment templates      |
-| [ENVIRONMENT_VARIABLES.md](../ENVIRONMENT_VARIABLES.md) | Full env catalog           |
-| [PORT_CONFIGURATION.md](../PORT_CONFIGURATION.md)       | Local and production ports |
+| Document                                                                 | Role                                                                 |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| [ops/ORDERS_MODULE.md](ops/ORDERS_MODULE.md)                             | Control Tower & Order 360                                            |
+| [ops/ADMIN_PARTNERS_UPGRADE_PLAN.md](ops/ADMIN_PARTNERS_UPGRADE_PLAN.md) | Partners deep audit + upgrade plan (Merchants · Drivers · Customers) |
+| [ops/ORDER_360_AUDIT_SCORECARD.md](ops/ORDER_360_AUDIT_SCORECARD.md)     | Release audit form                                                   |
+| [ops/VALIDATE_MONTHLY_PROD.md](ops/VALIDATE_MONTHLY_PROD.md)             | Monthly prod validation                                              |
+| [../RUNBOOK.md](../RUNBOOK.md)                                           | Ops runbook                                                          |
+| [../ENVIRONMENT_VARIABLES.md](../ENVIRONMENT_VARIABLES.md)               | Env catalog                                                          |
+| [SECRETS_MAP.md](SECRETS_MAP.md)                                         | Secrets map                                                          |
+| [../infrastructure/deploy/README.md](../infrastructure/deploy/README.md) | Deploy                                                               |
 
 ---
 
-## E2E validation reports (regenerable)
+## Data · maps · notifications
 
-Generated by `pnpm validate:e2e:reports`:
-
-| Report                                                        | Phase                     |
-| ------------------------------------------------------------- | ------------------------- |
-| [FORWARD_LOGISTICS_REPORT.md](../FORWARD_LOGISTICS_REPORT.md) | Forward chain             |
-| [REVERSE_LOGISTICS_REPORT.md](../REVERSE_LOGISTICS_REPORT.md) | Returns                   |
-| [DATA_CONSISTENCY_REPORT.md](../DATA_CONSISTENCY_REPORT.md)   | Cross-surface consistency |
-| [FAILURE_SCENARIOS_REPORT.md](../FAILURE_SCENARIOS_REPORT.md) | Failure matrix            |
-| [NOTIFICATION_REPORT.md](../NOTIFICATION_REPORT.md)           | Notification templates    |
-
----
-
-## Notifications & realtime
-
-| Document                                                                                 | Description                      |
-| ---------------------------------------------------------------------------------------- | -------------------------------- |
-| [notifications/NOTIFICATION_ARCHITECTURE.md](notifications/NOTIFICATION_ARCHITECTURE.md) | Notification engine design       |
-| [notifications/ZOHO_MAIL.md](notifications/ZOHO_MAIL.md)                                 | Zoho Mail SMTP/IMAP (dev + prod) |
-| [notifications/FCM_CONFIGURATION.md](notifications/FCM_CONFIGURATION.md)                 | Firebase push setup              |
-| [architecture/NOTIFICATION_FLOW.md](architecture/NOTIFICATION_FLOW.md)                   | Delivery flow diagram            |
-| [REALTIME_COMMUNICATION_REPORT.md](../REALTIME_COMMUNICATION_REPORT.md)                  | WS + polling audit               |
-| [architecture/REALTIME_FLOW.md](architecture/REALTIME_FLOW.md)                           | Live map WebSocket flow          |
+| Document                                                                                 | Role                |
+| ---------------------------------------------------------------------------------------- | ------------------- |
+| [../DATABASE_ARCHITECTURE.md](../DATABASE_ARCHITECTURE.md)                               | Postgres + Alembic  |
+| [../GOOGLE_MAPS_USAGE.md](../GOOGLE_MAPS_USAGE.md)                                       | Places / tiles only |
+| [../OSRM_USAGE.md](../OSRM_USAGE.md) · [../VALHALLA_USAGE.md](../VALHALLA_USAGE.md)      | Routing             |
+| [notifications/NOTIFICATION_ARCHITECTURE.md](notifications/NOTIFICATION_ARCHITECTURE.md) | Notifications       |
+| [notifications/FCM_CONFIGURATION.md](notifications/FCM_CONFIGURATION.md)                 | FCM                 |
+| [notifications/ZOHO_MAIL.md](notifications/ZOHO_MAIL.md)                                 | Email               |
 
 ---
 
-## Module surfaces (canonical)
+## Product surfaces
 
-| Module       | Architecture                                                          | Readiness                                                               |
-| ------------ | --------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Merchant     | [MERCHANT_ARCHITECTURE_REPORT.md](../MERCHANT_ARCHITECTURE_REPORT.md) | [MERCHANT_PRODUCTION_READINESS.md](../MERCHANT_PRODUCTION_READINESS.md) |
-| Driver       | [DRIVER_PLATFORM.md](../DRIVER_PLATFORM.md)                           | [DRIVER_PRODUCTION_READINESS.md](../DRIVER_PRODUCTION_READINESS.md)     |
-| Mobile       | [MOBILE_ARCHITECTURE_REPORT.md](../MOBILE_ARCHITECTURE_REPORT.md)     | [MOBILE_PRODUCTION_READINESS.md](../MOBILE_PRODUCTION_READINESS.md)     |
-| Route Center | [ROUTING_ENGINE_AUDIT.md](../ROUTING_ENGINE_AUDIT.md)                 | —                                                                       |
-
-Superseded audit/security/performance reports are **pointer stubs** — **20** at repo root, **43** archived. Index: [POINTER_STUB_INDEX.md](POINTER_STUB_INDEX.md). Frozen copies: [archive/](archive/README.md).
+| Document                                               | Role            |
+| ------------------------------------------------------ | --------------- |
+| [../DRIVER_PLATFORM.md](../DRIVER_PLATFORM.md)         | Driver platform |
+| [../MOBILE_ARCHITECTURE.md](../MOBILE_ARCHITECTURE.md) | Mobile          |
+| [../apps/admin/README.md](../apps/admin/README.md)     | Admin           |
+| [../apps/api/README.md](../apps/api/README.md)         | API             |
+| [../website/README.md](../website/README.md)           | Website         |
 
 ---
 
-## Documentation archive
+## Website / GTM
 
-Historical audit snapshots and merged duplicates: **[archive/README.md](archive/README.md)** (55 files, July 2026 consolidation).
+| Document                                                       | Role                   |
+| -------------------------------------------------------------- | ---------------------- |
+| [WEBSITE_GTM_EXECUTION_PLAN.md](WEBSITE_GTM_EXECUTION_PLAN.md) | GTM                    |
+| [WEBSITE_SEO_STRATEGY.md](WEBSITE_SEO_STRATEGY.md)             | SEO                    |
+| [ICP.md](ICP.md)                                               | ICP                    |
+| [DESIGN_COPY_BAN_LIST.md](DESIGN_COPY_BAN_LIST.md)             | Copy rules             |
+| [website/](website/)                                           | SEO/content appendices |
 
-Phase 2 merged database reports, API snapshots, platform audits, and Fleetbase detail reports into the canonical docs above.
 ---
 
-## Governance
+## Compliance · investor · legal
 
-| Document                                      | Role              |
-| --------------------------------------------- | ----------------- |
-| [masterrule.md](../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../CTO_AUDIT_REPORT.md) | Doc vs code audit |
+| Area         | Path                       |
+| ------------ | -------------------------- |
+| Compliance   | [compliance/](compliance/) |
+| Investor     | [investor/](investor/)     |
+| Legal        | [legal/](legal/)           |
+| API partners | [api/](api/)               |
+
+---
+
+## Archive
+
+**Do not edit** historical material:
+
+- [archive/README.md](archive/README.md)
+- [archive/reports-2026-08/](archive/reports-2026-08/) — readiness / scorecards / E2E dumps
+- [archive/redundant-2026-08/](archive/redundant-2026-08/) — overlapping or superseded living docs
+- [POINTER_STUB_INDEX.md](POINTER_STUB_INDEX.md) — ≤5 root pointers
+
+**Policy:** one canonical doc per topic. No new root `*_AUDIT.md` / `*_REPORT.md`.

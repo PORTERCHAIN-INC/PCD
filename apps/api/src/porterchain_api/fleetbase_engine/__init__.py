@@ -9,6 +9,7 @@ and the Fleetbase adapter. Components:
 - WebhookProcessor      — inbound status/tracking/POD/driver/exception/claim sync
 - StatusTranslator      — Fleetbase status/event ↔ Porterchain OrderState
 - TrackingTranslator    — Fleetbase tracker → Porterchain tracking shape
+- TrackingFacade        — single fetch + normalize path for all portal tracking
 - RetryQueue / ErrorQueue — durable retry + dead-letter
 - AuditLogger           — immutable sync audit trail
 """
@@ -22,6 +23,7 @@ from porterchain_api.fleetbase_engine.merchant_sync_service import (
 )
 from porterchain_api.fleetbase_engine.retry_queue import ErrorQueue, RetryQueue
 from porterchain_api.fleetbase_engine.status_translator import StatusTranslator
+from porterchain_api.fleetbase_engine.tracking_facade import TrackingFacade
 from porterchain_api.fleetbase_engine.tracking_translator import TrackingTranslator
 from porterchain_api.fleetbase_engine.webhook_ingress_service import WebhookIngressService
 from porterchain_api.fleetbase_engine.webhook_processor import WebhookProcessor
@@ -34,6 +36,7 @@ __all__ = [
     "MerchantSyncService",
     "RetryQueue",
     "StatusTranslator",
+    "TrackingFacade",
     "TrackingTranslator",
     "ValidatedBooking",
     "WebhookIngressService",

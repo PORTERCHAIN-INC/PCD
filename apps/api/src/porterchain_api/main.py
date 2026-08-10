@@ -14,6 +14,7 @@ from porterchain_api.routers import (
     booking_drafts,
     collaboration,
     customers,
+    customers_admin,
     driver,
     drivers_admin,
     merchant,
@@ -63,13 +64,19 @@ def create_app() -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origin_list,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    cors_kwargs: dict = {
+        "allow_origins": settings.cors_origin_list,
+        "allow_credentials": True,
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+    }
+    # Next.js "Network" URLs (http://192.168.x.x:3000) in local/dev.
+    if settings.app_env in {"local", "development"}:
+        cors_kwargs["allow_origin_regex"] = (
+            r"http://(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3})"
+            r":(3000|3001|3002|3003|3004)$"
+        )
+    app.add_middleware(CORSMiddleware, **cors_kwargs)
     app.add_middleware(RequestIdMiddleware)
     from porterchain_api.platform.rate_limit_middleware import PortalRateLimitMiddleware
 
@@ -97,6 +104,7 @@ def create_app() -> FastAPI:
     app.include_router(collaboration.router)
     app.include_router(merchants.router)
     app.include_router(drivers_admin.router)
+    app.include_router(customers_admin.router)
     app.include_router(notifications_admin.router)
     app.include_router(notifications.router)
     app.include_router(security.router)

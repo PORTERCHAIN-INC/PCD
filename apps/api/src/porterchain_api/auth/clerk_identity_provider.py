@@ -67,12 +67,14 @@ def _enforce_token_policy(payload: dict, settings: Settings) -> None:
 
 
 def _claims_from_payload(payload: dict, *, clerk_app: str | None = None) -> ClerkClaims:
+    from porterchain_api.auth.email_identity import email_from_jwt_payload
+
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="invalid_token")
     return ClerkClaims(
         clerk_user_id=str(user_id),
-        email=payload.get("email"),
+        email=email_from_jwt_payload(payload),
         phone=payload.get("phone_number") or payload.get("primary_phone_number"),
         org_id=payload.get("org_id"),
         org_role=payload.get("org_role"),
@@ -142,7 +144,11 @@ async def verify_clerk_token(token: str, settings: Settings) -> ClerkClaims:
                 options=decode_options,
             )
             _enforce_token_policy(payload, settings)
-            return _claims_from_payload(payload, clerk_app=clerk_app)
+            claims = _claims_from_payload(payload, clerk_app=clerk_app)
+            # Default Clerk session JWTs omit email — resolve verified primary via Backend API.
+            from porterchain_api.auth.email_identity import enrich_claims_with_verified_email
+
+            return enrich_claims_with_verified_email(claims, settings)
         except HTTPException:
             raise
         except JWTError as exc:

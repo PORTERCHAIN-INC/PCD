@@ -32,6 +32,12 @@ class Customer(Base):
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     visitor_session_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     customer_reference: Mapped[str | None] = mapped_column(String(32), nullable=True, unique=True, index=True)
+    # C-18: durable Stripe Customer id for saved PM / Admin 360.
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    # GDPR / DSAR — deletion_hold blocks Admin wipe during SLA window (C-19).
+    privacy_status: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+    privacy_hold_reference: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    privacy_hold_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     quotes: Mapped[list["Quote"]] = relationship(back_populates="customer")
@@ -55,6 +61,7 @@ class VisitorSession(Base):
     location: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     quote_generated: Mapped[bool] = mapped_column(default=False)
     last_quote_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    customer_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

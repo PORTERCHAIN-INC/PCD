@@ -77,7 +77,10 @@ def post_quote(
     settings: Settings = Depends(get_settings),
 ) -> QuoteResponse:
     client_ip = request.client.host if request.client else None
-    quote = _quote_service.create_quote(db, settings, body, ip_address=client_ip)
+    try:
+        quote = _quote_service.create_quote(db, settings, body, ip_address=client_ip)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     return _quote_response(quote)
 
 

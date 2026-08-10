@@ -33,7 +33,7 @@ services/pricing-engine/          ← all pricing logic
 services/fleetbase-adapter/       ← execution only, no pricing
 ```
 
-Distance for pricing comes from **`resolve_route_distance()`** (road network via `MapsService`, haversine fallback). Route Center simulation uses separate `MapsService` calls — not the pricing engine.
+Distance for pricing comes from **`resolve_route_distance()`** (road network via `MapsService`, haversine fallback). Dispatch simulation uses Fleetbase + MapsService — not the pricing engine.
 
 ---
 
@@ -99,20 +99,19 @@ Line items in `items[]` with `code`, `label`, `amount_cents`.
 
 ---
 
-## Admin API
+## Quote math (GTA delivery rate matrix)
 
-Prefix: **`/v1/admin/pricing`** (in `routers/admin.py`)
+Retail quotes use `porterchain_pricing.gta_rate`:
 
-| Endpoint                       | Purpose            |
-| ------------------------------ | ------------------ |
-| `GET/POST /pricing/tariffs`    | Tariff rules       |
-| `GET/POST /pricing/promotions` | Promo codes        |
-| `GET/POST /pricing/zones`      | Geographic zones   |
-| `GET/POST /pricing/contracts`  | Merchant contracts |
-| `POST /pricing/simulate`       | Pricing simulator  |
-| `GET/PUT /pricing/tax`         | Tax configuration  |
-| `GET/PUT /pricing/fuel`        | Fuel surcharge     |
-| `GET /pricing/dashboard`       | Admin pricing KPIs |
+1. Vehicle base covers up to **20 km** (`sedan` $45 … `box_truck` $125)
+2. Extra km beyond 20 × vehicle `extra_km_rate`
+3. Extra pickups (`total_pickups - 1`) × $20; extra drops (`total_drops - 1`) × $15
+4. Flat location surcharges once each: downtown **$25**, Markham/North York **$15**
+
+Example: `large_van`, 18 km, 1 pickup, 15 drops → **$285.00**
+
+Vehicle aliases: `cargoVan`→`small_van`, `highRoof`/`sprinter_van`→`large_van`, `box16`/`box20`→`box_truck`.
+Additional quote stops count as extra drops. HST only if `pricing_tax` is configured (default 0).
 
 Factory: `apps/api/src/porterchain_api/pricing_engine/__init__.py` → `get_pricing_service(db)`
 
@@ -142,17 +141,9 @@ pnpm dev:api
 
 ## Related documents
 
-| Document                                                                 | Purpose                                  |
-| ------------------------------------------------------------------------ | ---------------------------------------- |
-| [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md)                     | Product scope                            |
-| [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) | Execution boundary                       |
-| [ROUTE_CENTER_ARCHITECTURE.md](./ROUTE_CENTER_ARCHITECTURE.md)           | Route simulation (separate from pricing) |
+| Document                                                                 | Purpose            |
+| ------------------------------------------------------------------------ | ------------------ |
+| [PORTERCHAIN_CHARTER.md](./docs/PORTERCHAIN_CHARTER.md)                  | Product scope      |
+| [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md) | Execution boundary |
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

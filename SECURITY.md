@@ -2,24 +2,25 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-09
+**Last verified:** 2026-08-07
 
-Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md). This document describes security posture, controls, and pre-production checklist.
+Security posture, controls, and pre-production checklist.  
+Execution status: [docs/PRIORITY_TODOS.md](docs/PRIORITY_TODOS.md) · [docs/SILICON_VALLEY_READINESS_CHECKLIST.md](docs/SILICON_VALLEY_READINESS_CHECKLIST.md).
 
 ---
 
 ## Security posture summary
 
-| Area            | Current state                                                        | Target (production)                                        |
-| --------------- | -------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Secrets in git  | `details.md` **removed** (July 2026); use `env/*.example` only       | Doppler + [SECRETS.md](./infrastructure/deploy/SECRETS.md) |
-| Auth            | **Clerk-only** user identity + Porterchain RBAC + driver session JWT | MFA for admin/merchant admins                              |
-| Database        | **PostgreSQL 16** (Porterchain); MySQL (Fleetbase only)              | TLS, private network                                       |
-| HTTPS           | Assumed in production deploys                                        | Enforce HSTS                                               |
-| API hardening   | Partial (Pydantic validation, RBAC)                                  | Rate limits, strict CORS                                   |
-| Monitoring      | Limited                                                              | Sentry + uptime checks                                     |
-| Backups         | Documented below; not verified in CI                                 | Automated encrypted backups                                |
-| Dependency CVEs | Track via CI audit                                                   | No high/critical in release                                |
+| Area            | Current state                                                    | Target (production)                                        |
+| --------------- | ---------------------------------------------------------------- | ---------------------------------------------------------- |
+| Secrets in git  | `details.md` **removed** (July 2026); use `env/*.example` only   | Doppler + [SECRETS.md](./infrastructure/deploy/SECRETS.md) |
+| Auth            | Clerk (portals) + staff IdP (admin) + SpiceDB authz + driver JWT | MFA for admin/merchant admins                              |
+| Database        | **PostgreSQL 18** (PorterChain); MySQL (Fleetbase only)          | TLS, private network                                       |
+| HTTPS           | Assumed in production deploys                                    | Enforce HSTS                                               |
+| API hardening   | Partial (Pydantic validation, RBAC)                              | Rate limits, strict CORS                                   |
+| Monitoring      | Limited                                                          | Sentry + uptime checks                                     |
+| Backups         | Documented below; not verified in CI                             | Automated encrypted backups                                |
+| Dependency CVEs | Track via CI audit                                               | No high/critical in release                                |
 
 ---
 
@@ -81,14 +82,14 @@ Platform is **not production-ready** — see [PRODUCTION_READINESS_REPORT.md](./
 
 See [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
 
-| Control           | Implementation                                        |
-| ----------------- | ----------------------------------------------------- |
-| Identity provider | Clerk only — no Supabase/Twilio OTP                   |
-| Authorization     | Server-side RBAC — [RBAC_MATRIX.md](./RBAC_MATRIX.md) |
-| Invite tokens     | Opaque, hashed at rest, expiry enforced               |
-| Clerk MFA         | Recommended for admin and merchant admins             |
-| Dev bypass        | `CLERK_DEV_BYPASS` — local only (`APP_ENV=local`)     |
-| Delivery POD OTP  | Operational proof-of-delivery — not user auth         |
+| Control           | Implementation                                                               |
+| ----------------- | ---------------------------------------------------------------------------- |
+| Identity provider | Clerk only — no Supabase/Twilio OTP                                          |
+| Authorization     | SpiceDB — [auth-clerk-spicedb.md](./docs/architecture/auth-clerk-spicedb.md) |
+| Invite tokens     | Opaque, hashed at rest, expiry enforced                                      |
+| Clerk MFA         | Recommended for admin and merchant admins                                    |
+| Dev bypass        | `CLERK_DEV_BYPASS` — local only (`APP_ENV=local`)                            |
+| Delivery POD OTP  | Operational proof-of-delivery — not user auth                                |
 
 ---
 
@@ -180,7 +181,7 @@ Verify signature on every request; idempotency via stored `event.id`; process as
 
 ## Dependency security
 
-See [DEPENDENCY_REPORT.md](./DEPENDENCY_REPORT.md).
+See [TECH_STACK.md](TECH_STACK.md).
 
 | Action                 | Frequency    |
 | ---------------------- | ------------ |
@@ -216,7 +217,7 @@ Separate projects per app; scrub PII in `beforeSend`.
 | Redis             | AOF snapshot             | 7 days    |
 | S3 uploads        | Cross-region replication | 1 year    |
 
-**RPO:** 1 hour · **RTO:** 4 hours · Test restore quarterly — see [docs/BACKUP_RESTORE.md](./docs/BACKUP_RESTORE.md).
+**RPO:** 1 hour · **RTO:** 4 hours · Test restore quarterly — see [RUNBOOK.md](RUNBOOK.md).
 
 ### Rotation policy (§5.1.8)
 
@@ -265,16 +266,8 @@ Rotate via Doppler + redeploy: `JWT_SECRET` (90d), `FLEETBASE_*` (90d), Clerk/St
 | Document                                                           | Purpose                   |
 | ------------------------------------------------------------------ | ------------------------- |
 | [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md) | Auth policy               |
-| [RBAC_MATRIX.md](./RBAC_MATRIX.md)                                 | Authorization             |
+| [auth-clerk-spicedb.md](./docs/architecture/auth-clerk-spicedb.md) | Authorization             |
 | [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)             | Env reference             |
-| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md) | Go/no-go                  |
 | [docs/archive/SECURITY_AUDIT.md](./docs/archive/SECURITY_AUDIT.md) | Historical audit snapshot |
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

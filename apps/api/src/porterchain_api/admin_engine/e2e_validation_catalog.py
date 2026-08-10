@@ -169,7 +169,6 @@ CONSISTENCY_SURFACES: tuple[str, ...] = (
     "merchant_dashboard",
     "admin_orders",
     "operations_queue",
-    "route_center",
     "fleetbase",
     "driver_app",
     "reports",

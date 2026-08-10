@@ -13,7 +13,6 @@ SPLITS: dict[str, list[tuple[str, int, int | None]]] = {
         ("dashboard", 197, 255),
         ("orders", 257, 614),
         ("claims", 615, 857),
-        ("pricing", 858, 1080),
         ("finance", 1081, 1220),
         ("support", 1221, 1491),
         ("settings", 1492, None),

@@ -8,8 +8,13 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.clerk import ClerkClaims, get_clerk_claims
-from porterchain_api.auth.email_identity import EMAIL_CLERK_MISMATCH, emails_match
-from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive, require_clerk_app_for_portal
+from porterchain_api.auth.email_identity import (
+    CLERK_EMAIL_REQUIRED,
+    CLERK_EMAIL_UNVERIFIED,
+    EMAIL_CLERK_MISMATCH,
+    assert_portal_email_identity,
+)
+from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import MerchantStatus
@@ -35,21 +40,26 @@ def get_merchant_context(
     Optional X-Merchant-Id selects membership when a user belongs to multiple merchants.
     Role is always taken from merchant_users.role — never from request headers.
     """
-    require_clerk_app_for_portal(claims, settings, "merchant")
     assert_clerk_id_exclusive(db, claims, portal="merchant", settings=settings)
 
     user = _resolve_merchant_user(db, claims.clerk_user_id, x_merchant_id, settings)
-    if claims.email and not emails_match(user.email, claims.email):
-        raise HTTPException(status_code=403, detail=EMAIL_CLERK_MISMATCH)
+    try:
+        assert_portal_email_identity(user.email, claims.email)
+    except PermissionError as exc:
+        detail = str(exc)
+        if detail in {CLERK_EMAIL_REQUIRED, CLERK_EMAIL_UNVERIFIED, EMAIL_CLERK_MISMATCH}:
+            raise HTTPException(status_code=403, detail=detail) from exc
+        raise HTTPException(status_code=403, detail=EMAIL_CLERK_MISMATCH) from exc
 
-    # SpiceDB ReBAC: organization#portal required when principal is resolvable.
+    # SpiceDB ReBAC: organization#portal required — fail closed when unprovisioned.
     from porterchain_api.auth.dependencies import assert_organization_scope, resolve_principal_for_claims
 
     principal = resolve_principal_for_claims(db, claims)
-    if principal:
-        assert_organization_scope(principal, user.merchant_id, db)
-        if not user.porterchain_user_id:
-            user.porterchain_user_id = principal.user_id
+    if not principal:
+        raise HTTPException(status_code=403, detail="user_not_provisioned")
+    assert_organization_scope(principal, user.merchant_id, db)
+    if not user.porterchain_user_id:
+        user.porterchain_user_id = principal.user_id
 
     merchant = db.query(Merchant).filter(Merchant.id == user.merchant_id).first()
     if not merchant:
@@ -115,4 +125,7 @@ def _ensure_dev_user(db: Session, clerk_user_id: str) -> MerchantUser:
     db.add(user)
     db.commit()
     db.refresh(user)
+    from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+
+    sync_authz_after_persona_mutation(db, clerk_user_id)
     return user

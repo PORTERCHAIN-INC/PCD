@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from porterchain_pricing.rate_card import RateCard, default_rate_card
+
+if TYPE_CHECKING:
+    from porterchain_pricing.gta_rate import GtaRateConfig
 
 
 @dataclass(frozen=True)
@@ -43,6 +46,11 @@ class PricingRequest:
     referral_credit_cents: int = 0
     volume_units: int = 1
     requires_liftgate: bool = False
+    # GTA matrix inputs (optional — inferred from stops/geo when omitted)
+    total_pickups: int | None = None
+    total_drops: int | None = None
+    is_downtown: bool | None = None
+    is_upper_zone: bool | None = None
 
 
 @dataclass
@@ -131,7 +139,8 @@ class ContractRecord:
 
 @dataclass
 class TaxConfig:
-    hst_percent: float = 13.0
+    # GTA matrix returns a clean pre-tax quote; HST only when configured in system_config.
+    hst_percent: float = 0.0
     tax_included: bool = False
     exempt_merchant_ids: list[str] = field(default_factory=list)
 
@@ -155,3 +164,4 @@ class PricingContext:
     tax: TaxConfig = field(default_factory=TaxConfig)
     fuel: FuelConfig = field(default_factory=FuelConfig)
     rate_card: RateCard = field(default_factory=default_rate_card)
+    gta_rate: GtaRateConfig | None = None

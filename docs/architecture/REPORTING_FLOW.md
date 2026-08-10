@@ -13,7 +13,7 @@
 
 ## Admin Reports (Synchronous)
 
-Admin portal calls `GET /v1/admin/reports/*` → `AdminReportsService` aggregates from existing module services. No separate reporting database or OLAP layer — reports are **live PostgreSQL 16 aggregates**.
+Admin portal calls `GET /v1/admin/reports/*` → `AdminReportsService` aggregates from existing module services. No separate reporting database or OLAP layer — reports are **live PostgreSQL 18 aggregates**.
 
 | Area              | Example endpoints                                                                                | Source service                                                  |
 | ----------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
@@ -51,7 +51,7 @@ flowchart LR
   ARS --> SS[AdminSupportService.reports]
   ARS --> PS[AdminPricingService.reports]
   ARS --> CRM[CrmSalesService.reports]
-  OS & FS & CS & SS & PS & CRM --> DB[(PostgreSQL 16)]
+  OS & FS & CS & SS & PS & CRM --> DB[(PostgreSQL 18)]
   ARS --> RESP[Aggregated JSON response]
   MERCH[Merchant Portal :3001] --> MRS["GET /v1/merchant/reports/summary<br/>/reports/overview"]
   MRS --> MerchantReportsService --> DB
@@ -65,10 +65,3 @@ flowchart LR
 
 See [plantuml/reporting_flow.puml](./plantuml/reporting_flow.puml)
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

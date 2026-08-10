@@ -19,8 +19,8 @@ def suggest_ops_action(
     return {
         "suggestions": [
             {
-                "action": "review_live_map",
-                "rationale": "Verify active drivers near exception zone before reassign.",
+                "action": "review_fleetbase_console",
+                "rationale": "Verify active drivers near exception zone in the Fleetbase live map before reassign.",
                 "auto_apply": False,
             }
         ],

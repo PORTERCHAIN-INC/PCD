@@ -2,9 +2,10 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-08-07
 
-**Fleetbase:** v0.7.40 | **Packages:** core-api 1.6.47, fleetops-api 0.6.48
+**Runtime SSOT (Docker image pin):** core-api **1.6.55**, fleetops-api **0.6.59** — see `infrastructure/docker/fleetbase.porterchain.override.yml` (`fleetbase/fleetbase-api@sha256:24c0fbe5e465…`).  
+**Git clone tag (apps/fleetbase):** v0.7.40 — host `composer.lock` may still list core-api 1.6.47 / fleetops-api 0.6.48; do not treat that lock as the running API version.
 
 For each module: purpose, Porterchain fit, and recommended action.  
 **Canonical integration:** [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)
@@ -445,12 +446,12 @@ See [EVENT_CATALOG.md](./EVENT_CATALOG.md).
 
 **Tables:** `fleetbase_roles`, `fleetbase_permissions`, `fleetbase_policies`, `fleetbase_groups`, pivots
 
-| Question                         | Answer                                                                      |
-| -------------------------------- | --------------------------------------------------------------------------- |
-| Can Porterchain use it directly? | **Console only**                                                            |
-| Remain unchanged?                | **Yes**                                                                     |
-| Extend?                          | —                                                                           |
-| Replace?                         | **Yes** — Porterchain RBAC ([RBAC_MATRIX.md](./RBAC_MATRIX.md)) for portals |
+| Question                         | Answer                                                                                                      |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Can Porterchain use it directly? | **Console only**                                                                                            |
+| Remain unchanged?                | **Yes**                                                                                                     |
+| Extend?                          | —                                                                                                           |
+| Replace?                         | **Yes** — Porterchain RBAC ([auth-clerk-spicedb.md](./docs/architecture/auth-clerk-spicedb.md)) for portals |
 
 ---
 
@@ -483,10 +484,3 @@ See [EVENT_CATALOG.md](./EVENT_CATALOG.md).
 
 **Porterchain rule:** Merchants and retail customers **never** access `:4200`. Ops and dispatch staff only.
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

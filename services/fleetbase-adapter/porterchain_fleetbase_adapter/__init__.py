@@ -7,7 +7,9 @@ from porterchain_fleetbase_adapter.drivers import DriverService
 from porterchain_fleetbase_adapter.errors import ErrorHandler
 from porterchain_fleetbase_adapter.events import EventTranslator
 from porterchain_fleetbase_adapter.integration import FleetbaseAdapter, FleetbaseIntegrationService
+from porterchain_fleetbase_adapter.manifests import ManifestService
 from porterchain_fleetbase_adapter.orders import OrderService
+from porterchain_fleetbase_adapter.orchestrator import OrchestratorService
 from porterchain_fleetbase_adapter.pod import PodService
 from porterchain_fleetbase_adapter.retry import RetryPolicy
 from porterchain_fleetbase_adapter.routes import RouteService
@@ -24,7 +26,9 @@ __all__ = [
     "FleetbaseClient",
     "FleetbaseIntegrationService",
     "FleetbaseSettings",
+    "ManifestService",
     "OrderService",
+    "OrchestratorService",
     "PodService",
     "RetryPolicy",
     "RouteService",

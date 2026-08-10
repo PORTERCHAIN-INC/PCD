@@ -14,7 +14,12 @@ from porterchain_api.notification_engine.engine import get_notification_engine
 from porterchain_api.notification_engine.preference_service import PreferenceService
 from porterchain_api.notification_engine.principal import NotificationUser, get_notification_user
 from porterchain_api.notification_engine.realtime import realtime_hub
-from porterchain_api.schemas_notifications import DeviceRegisterRequest, PreferenceUpdateRequest
+from porterchain_api.notification_engine.user_settings import UserSettingsService
+from porterchain_api.schemas_notifications import (
+    DeviceRegisterRequest,
+    PreferenceUpdateRequest,
+    QuietHoursUpdateRequest,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +27,7 @@ router = APIRouter(prefix="/v1/notifications", tags=["notifications"])
 
 _devices = DeviceService()
 _prefs = PreferenceService()
+_user_settings = UserSettingsService()
 _engine = get_notification_engine()
 
 
@@ -179,6 +185,36 @@ def update_preference(
         "sms_enabled": pref.sms_enabled,
         "in_app_enabled": pref.in_app_enabled,
     }
+
+
+@router.get("/settings")
+def get_user_settings(
+    user: Annotated[NotificationUser, Depends(get_notification_user)],
+    db: Session = Depends(get_db),
+):
+    tz = _user_settings.resolve_timezone(db, user_role=user.user_role, user_id=user.user_id)
+    row = _user_settings.get(db, user_role=user.user_role, user_id=user.user_id)
+    return _user_settings.to_dict(row, timezone_fallback=tz)
+
+
+@router.patch("/settings")
+def update_user_settings(
+    body: QuietHoursUpdateRequest,
+    user: Annotated[NotificationUser, Depends(get_notification_user)],
+    db: Session = Depends(get_db),
+):
+    with db_transaction(db):
+        row = _user_settings.upsert(
+            db,
+            user_role=user.user_role,
+            user_id=user.user_id,
+            quiet_hours_enabled=body.quiet_hours_enabled,
+            quiet_start_hour=body.quiet_start_hour,
+            quiet_end_hour=body.quiet_end_hour,
+            timezone=body.timezone,
+        )
+        tz = _user_settings.resolve_timezone(db, user_role=user.user_role, user_id=user.user_id)
+    return _user_settings.to_dict(row, timezone_fallback=tz)
 
 
 @router.websocket("/ws")

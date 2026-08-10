@@ -9,10 +9,8 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.clerk_client import ClerkClient
-from porterchain_api.auth.clerk_registry import fetch_clerk_user, is_clerk_secret_configured
 from porterchain_api.auth.dev import allow_auth_dev_bypass
-from porterchain_api.auth.portal_guard import require_clerk_app_for_portal
+from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.auth.user_sync_service import UserSyncService, _is_pending_clerk_id
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
@@ -23,8 +21,6 @@ from porterchain_api.merchant_engine.verticals import (
     is_valid_merchant_vertical,
 )
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.admin_models import AdminUser, Driver
-from porterchain_api.user_models import PorterchainUser
 
 logger = logging.getLogger(__name__)
 
@@ -34,32 +30,26 @@ def resolve_merchant_contact(
     claims: ClerkClaims,
     settings: Settings | None,
 ) -> str | None:
-    """Resolve merchant email when Clerk JWT omits the email claim (common in production)."""
-    email = (claims.email or "").lower().strip() or None
+    """Resolve Clerk-attested email only (JWT or verified Backend primary). Never DB."""
+    _ = db
+    from porterchain_api.auth.email_identity import normalize_email, resolve_verified_clerk_email
+
+    email = normalize_email(claims.email)
     if email:
         return email
 
     clerk_id = claims.clerk_user_id or ""
-    if clerk_id and not _is_pending_clerk_id(clerk_id):
-        merchant_user = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_id).first()
-        if merchant_user and merchant_user.email:
-            return merchant_user.email.lower().strip()
-
-        user = db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == clerk_id).first()
-        if user and user.email:
-            return user.email.lower().strip()
-
-    if settings and is_clerk_secret_configured(settings, "merchant"):
-        try:
-            clerk_user, _kind = fetch_clerk_user(settings, clerk_id)
-            if clerk_user:
-                resolved = ClerkClient.primary_email(clerk_user)
-                if resolved:
-                    return resolved.lower().strip()
-        except Exception:
-            logger.warning("merchant_email_clerk_lookup_failed", exc_info=True)
-
-    return None
+    if not clerk_id or _is_pending_clerk_id(clerk_id) or not settings:
+        return None
+    try:
+        return resolve_verified_clerk_email(
+            jwt_email=None,
+            clerk_user_id=clerk_id,
+            settings=settings,
+        )
+    except PermissionError:
+        logger.warning("merchant_email_clerk_lookup_failed", exc_info=False)
+        return None
 
 
 def _derive_company_name(claims: ClerkClaims, email: str) -> str:
@@ -83,23 +73,21 @@ def ensure_merchant_portal_signup(
     First sign-in at :3001 creates merchants + merchant_users so admin /merchants
     lists them immediately (status ONBOARDING until ops approves).
     """
-    if settings:
-        require_clerk_app_for_portal(claims, settings, "merchant")
-
     email = resolve_merchant_contact(db, claims, settings) or ""
     clerk_id = claims.clerk_user_id or ""
     if not email:
         raise HTTPException(status_code=400, detail="email_required")
 
     if clerk_id and not _is_pending_clerk_id(clerk_id):
-        if db.query(AdminUser.id).filter(AdminUser.clerk_user_id == clerk_id).first():
+        bundle = load_persona_bundle(db, clerk_id)
+        if bundle.admin is not None:
             raise HTTPException(status_code=403, detail="identity_conflict:clerk_user_is_admin")
-        if db.query(Driver.id).filter(Driver.clerk_user_id == clerk_id).first():
+        if bundle.driver is not None:
             raise HTTPException(status_code=403, detail="identity_conflict:clerk_user_is_driver")
 
     merchant_user: MerchantUser | None = None
     if clerk_id and not _is_pending_clerk_id(clerk_id):
-        merchant_user = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_id).first()
+        merchant_user = next(iter(load_persona_bundle(db, clerk_id).merchant_users), None)
     if not merchant_user:
         merchant_user = db.query(MerchantUser).filter(MerchantUser.email == email).first()
 
@@ -145,6 +133,10 @@ def ensure_merchant_portal_signup(
         )
     )
     db.commit()
+    if clerk_id:
+        from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+
+        sync_authz_after_persona_mutation(db, clerk_id)
 
     try:
         UserSyncService().sync(db, claims)

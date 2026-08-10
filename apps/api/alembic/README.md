@@ -4,7 +4,7 @@
 **masterrule:** [§21](../../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-05
 
-Schema changes for Porterchain-owned **PostgreSQL 16 only** (local, staging, production). SQLite is not supported.
+Schema changes for Porterchain-owned **PostgreSQL 18 only** (local, staging, production). SQLite is not supported.
 
 ---
 
@@ -91,17 +91,9 @@ New tables in billing or notification engines are included automatically when mo
 
 ## Related Documents
 
-| Document                                                                   | Purpose            |
-| -------------------------------------------------------------------------- | ------------------ |
-| [../README.md](../README.md)                                               | API setup          |
-| [../../../DATABASE_MIGRATION_PLAN.md](../../../DATABASE_MIGRATION_PLAN.md) | Migration strategy |
-| [../../../ALEMBIC_VALIDATION.md](../../../ALEMBIC_VALIDATION.md)           | Validation report  |
+| Document                     | Purpose           |
+| ---------------------------- | ----------------- |
+| [../README.md](../README.md) | API setup         |
+| [README.md](README.md)       | Validation report |
 
 ---
-
-## Governance
-
-| Document                                                             | Role              |
-| -------------------------------------------------------------------- | ----------------- |
-| [../../../masterrule.md](../../../masterrule.md)                     | Architecture SSOT |
-| [../../../REPOSITORY_STRUCTURE.md](../../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

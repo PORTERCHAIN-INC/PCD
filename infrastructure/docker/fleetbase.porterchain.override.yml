@@ -1,10 +1,19 @@
-# Porterchain overlay for Fleetbase Docker Compose (v0.7.40)
+# Porterchain overlay for Fleetbase Docker Compose
 # Does NOT modify upstream docker-compose.yml — merged via:
-#   docker compose -f apps/fleetbase/docker-compose.yml -f infrastructure/docker/fleetbase.porterchain.override.yml
+#   docker compose -f apps/fleetbase/docker-compose.yml \
+#     -f apps/fleetbase/docker-compose.override.yml \
+#     -f infrastructure/docker/fleetbase.porterchain.override.yml
 #
+# Runtime SSOT (P0-1): digest-pin fleetbase-api — never :latest.
+# Baked packages in this digest: fleetops-api 0.6.59, core-api 1.6.55
+# (host apps/fleetbase @ v0.7.40 composer.lock may still list 0.6.48/1.6.47 —
+#  the running image vendor tree is authoritative for API contracts).
 # See FLEETBASE_INSTALL.md and DOCKER_SETUP.md
 
 name: porterchain-fleetbase
+
+# Pin verified 2026-08-07 from local pc-application-1 (fleetops-api 0.6.59).
+x-fleetbase-api-image: &fleetbase_api_image fleetbase/fleetbase-api@sha256:24c0fbe5e465e3876c74836e619d08968d8a2ca1cba400fd67290601141799a5
 
 services:
   database:
@@ -39,11 +48,13 @@ services:
       - fleetbase-internal
 
   scheduler:
+    image: *fleetbase_api_image
     container_name: porterchain-fleetbase-scheduler
     networks:
       - fleetbase-internal
 
   queue:
+    image: *fleetbase_api_image
     container_name: porterchain-fleetbase-queue
     networks:
       - fleetbase-internal
@@ -54,6 +65,7 @@ services:
       - fleetbase-internal
 
   application:
+    image: *fleetbase_api_image
     container_name: porterchain-fleetbase-application
     volumes:
       - fleetbase-api-storage:/fleetbase/api/storage/app
@@ -61,9 +73,9 @@ services:
       APP_NAME: "Porterchain Fleetbase"
       OSRM_HOST: https://router.project-osrm.org
       ROUTING_ENGINE: valhalla
-      # Public OSM Valhalla (no API key — fair-use rate limits apply)
-      VALHALLA_BASE_URL: https://valhalla1.openstreetmap.de
-      VALHALLA_BASE_URI: https://valhalla1.openstreetmap.de
+      # Shared PorterChain Valhalla (GTA tiles) — same engine as pricing, not the public demo
+      VALHALLA_BASE_URL: http://host.docker.internal:8002
+      VALHALLA_BASE_URI: http://host.docker.internal:8002
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

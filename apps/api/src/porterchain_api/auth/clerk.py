@@ -8,11 +8,10 @@ from sqlalchemy.orm import Session
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.clerk_identity_provider import (
     _dev_claims,
-    claims_to_identity,
     verify_clerk_token,
 )
 from porterchain_api.auth.dev import allow_auth_dev_bypass
-from porterchain_api.auth.user_sync_service import UserSyncService
+from porterchain_api.auth.prepare import prepare_user_from_claims
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 
@@ -23,12 +22,13 @@ __all__ = [
     "get_clerk_claims",
     "get_clerk_user_id",
     "get_optional_clerk_user_id",
+    "_sync_and_ensure",
 ]
 
 
 def _sync_and_ensure(db: Session, claims: ClerkClaims) -> ClerkClaims:
-    """Single auth prepare path: persona rebind → EnsureUser (account + SpiceDB)."""
-    UserSyncService().sync(db, claims)
+    """Single auth prepare path (request-cached via prepare_user_from_claims)."""
+    prepare_user_from_claims(db, claims)
     return claims
 
 

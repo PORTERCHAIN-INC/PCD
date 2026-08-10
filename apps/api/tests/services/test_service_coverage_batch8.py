@@ -6,6 +6,8 @@ from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
 from porterchain_api.admin_engine.control_tower_service import (
     ControlTowerService,
@@ -42,8 +44,16 @@ def test_control_tower_extended(db, admin_ctx, dispatch_order, driver) -> None:
     assert isinstance(tower.live_activity(db), list)
     assert isinstance(tower.ai_ops(db), dict)
 
-    card = tower.move_board_order(db, admin_ctx, dispatch_order.id, "assigned")
-    assert card["state"] == OrderState.DRIVER_ASSIGNED.value
+    with pytest.raises(ValueError, match="execution_moves_run_in_fleetbase"):
+        tower.move_board_order(db, admin_ctx, dispatch_order.id, "assigned")
+
+    with pytest.raises(ValueError, match="exception_reason_required"):
+        tower.move_board_order(db, admin_ctx, dispatch_order.id, "failed")
+
+    card = tower.move_board_order(
+        db, admin_ctx, dispatch_order.id, "failed", reason="Customer unavailable"
+    )
+    assert card["state"] == OrderState.FAILED.value
 
 
 def test_normalize_pod_variants() -> None:

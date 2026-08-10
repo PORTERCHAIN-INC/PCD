@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { adminFetch } from "@/lib/api";
+import { publicEnv } from "@/lib/env";
 
 export const ORDER_STATES = [
   "BOOKED",
@@ -117,6 +118,7 @@ export const orderDetailSchema = orderRowSchema.extend({
   api_activity: z.array(z.record(z.string(), z.unknown())).optional(),
   duplicates: z.array(z.record(z.string(), z.unknown())),
   smart: z.record(z.string(), z.unknown()),
+  status_sync: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type OrderDetail = z.infer<typeof orderDetailSchema>;
@@ -143,6 +145,7 @@ export type OrderFilters = {
   invoice_status?: string;
   merchant_id?: string;
   driver_id?: string;
+  customer_id?: string;
   priority?: string;
   service_type?: string;
   city?: string;
@@ -185,7 +188,99 @@ export const ordersApi = {
       method: "POST",
       body: JSON.stringify({ order_ids: orderIds, action, ...opts }),
     }),
+  generateInvoice: (token: string, id: string) =>
+    adminFetch<{
+      order_id: string;
+      invoice_id: string;
+      invoice_number: string;
+      receipt_number: string | null;
+      amount_cents: number;
+    }>(`${B}/${id}/invoice`, token, { method: "POST" }),
+  resendReceipt: (token: string, id: string) =>
+    adminFetch<{
+      order_id: string;
+      invoice_number: string;
+      email: string | null;
+      receipt_url: string | null;
+    }>(`${B}/${id}/resend-receipt`, token, { method: "POST" }),
+  labelPdfUrl: (id: string) => `${B}/${id}/label.pdf`,
+  manifestPdfUrl: (id: string) => `${B}/${id}/manifest.pdf`,
+  invoicePdfUrl: (id: string) => `${B}/${id}/invoice.pdf`,
+  assist: (token: string, id: string) => adminFetch<AssistPayload>(`${B}/${id}/assist`, token),
+  assistDecide: (
+    token: string,
+    id: string,
+    body: { proposal_id: string; decision: "accept" | "reject"; payload?: Record<string, unknown> }
+  ) =>
+    adminFetch<{ ok: boolean; decision: string; result?: unknown }>(
+      `${B}/${id}/assist/decide`,
+      token,
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+      }
+    ),
+  runPlaybook: (
+    token: string,
+    id: string,
+    playbookId: string,
+    body: { confirm: boolean; note?: string }
+  ) =>
+    adminFetch<{ ok: boolean; playbook_id: string; result?: unknown }>(
+      `${B}/${id}/playbooks/${playbookId}`,
+      token,
+      { method: "POST", body: JSON.stringify(body) }
+    ),
 };
+
+export type AssistProposal = {
+  id: string;
+  kind: string;
+  title: string;
+  summary: string;
+  confidence: string;
+  preview: Record<string, unknown>;
+  requires_confirm: boolean;
+  payload: Record<string, unknown>;
+};
+
+export type Playbook = {
+  id: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  disabled_reason?: string | null;
+};
+
+export type AssistPayload = {
+  order_id: string;
+  tracking_number: string;
+  state: string;
+  contract: Record<string, unknown>;
+  proposals: AssistProposal[];
+  playbooks: Playbook[];
+  generated_at: string;
+};
+
+/** Download authenticated admin PDF (labels / manifest). */
+export async function downloadOrderPdf(token: string, path: string, filename: string) {
+  const res = await fetch(`${publicEnv.porterchainApiUrl}${path}`, {
+    credentials: "include",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const detail = (body as { detail?: string }).detail;
+    throw new Error(typeof detail === "string" ? detail : `PDF download failed (${res.status})`);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export const STATE_STYLES: Record<string, string> = {
   BOOKED: "bg-blue-100 text-blue-700",

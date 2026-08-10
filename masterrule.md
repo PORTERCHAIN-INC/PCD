@@ -10,7 +10,7 @@
 **Last updated:** July 5, 2026
 
 > This document is the **single source of truth** for Porterchain. Every Cursor prompt, feature, refactor, review, and integration must follow it.  
-> For implementation status vs this diagram, see [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md).
+> For implementation status vs this diagram, see [docs/PRIORITY_TODOS.md](docs/PRIORITY_TODOS.md).
 
 ---
 
@@ -679,7 +679,7 @@ Each file in the repo (except `website/content/blog/*` and `docs/archive/*`) mus
 | **REPORT**    | Generated or point-in-time audit; link to canonical doc for current truth                |
 | **README**    | How to run/build that folder only; link to masterrule for architecture                   |
 
-**Canonical set (do not duplicate):** this file, [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md), [INTEGRATIONS.md](./INTEGRATIONS.md), [EVENT_CATALOG.md](./EVENT_CATALOG.md), [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md), [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md), [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md), [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md), [CTO_AUDIT_REPORT.md](./CTO_AUDIT_REPORT.md), OpenAPI `/docs`.
+**Canonical set (do not duplicate):** this file, [docs/README.md](./docs/README.md), [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md), [INTEGRATIONS.md](./INTEGRATIONS.md), [EVENT_CATALOG.md](./EVENT_CATALOG.md), [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md), [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md), [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md), [docs/PRIORITY_TODOS.md](./docs/PRIORITY_TODOS.md), OpenAPI `/docs`.
 
 ### 21.7 Rollout
 
@@ -690,7 +690,7 @@ Improve **all** platform docs in **groups of five** (Appendix C). For each group
 3. CANONICAL → remove duplication; link to code paths and OpenAPI.
 4. Mark group **Done** in Appendix C when merged.
 
-Do **not** create new root-level audit files — extend canonical docs or [CTO_AUDIT_REPORT.md](./CTO_AUDIT_REPORT.md).
+Do **not** create new root-level audit files — extend canonical docs or archive under `docs/archive/`.
 
 ---
 
@@ -728,7 +728,7 @@ Monitor in production; verify locally with `pnpm ports` and `pnpm docker:fleetba
 | PostgreSQL         | `127.0.0.1:5432`                 |
 | Valhalla (routing) | `http://localhost:8002/status`   |
 | OSRM (fallback)    | Configured in Fleetbase env      |
-| Mailhog            | `http://localhost:8025`          |
+| Mailpit            | `http://localhost:8025`          |
 | Background worker  | `pnpm dev:worker` — no HTTP port |
 
 ---
@@ -739,7 +739,7 @@ Monitor in production; verify locally with `pnpm ports` and `pnpm docker:fleetba
 **Groups:** 39 × 5 files · **Status:** Phase 1 complete (July 2026)  
 **Phase 0 (done):** §21.4 headers on all 191 files.  
 **Phase 1 (done):** All 39 groups processed (2026-07-05).  
-**Audit:** [CTO_AUDIT_REPORT.md](./CTO_AUDIT_REPORT.md)
+**Audit:** [docs/SILICON_VALLEY_READINESS_CHECKLIST.md](./docs/SILICON_VALLEY_READINESS_CHECKLIST.md)
 
 ### Per-group workflow
 
@@ -756,7 +756,6 @@ Monitor in production; verify locally with `pnpm ports` and `pnpm docker:fleetba
 | G01   | `ALEMBIC_VALIDATION.md` · `API_DEPENDENCY_GRAPH.md` · `API_FLOW_DIAGRAM.md` · `API_FLOW_REPORT.md` · `API_TRACE_REPORT.md`                                                                                                                                     | Done   | Keep Alembic canonical; pointer API audits |
 | G02   | `ARCHITECTURE_ALIGNMENT_REPORT.md` · `ARCHITECTURE_AUDIT.md` · `AUTHENTICATION.md` · `AUTHENTICATION_ARCHITECTURE.md` · `AUTHENTICATION_AUDIT.md`                                                                                                              | Done   | Auth cluster; one canonical                |
 | G03   | `AUTHENTICATION_CLEANUP.md` · `AUTHENTICATION_FLOW.md` · `BOOKING_WORKFLOW_AUDIT.md` · `BUSINESS_GLOSSARY.md` · `BUSINESS_WORKFLOW.md`                                                                                                                         | Done   | Booking + glossary                         |
-| G04   | `CLERK_INTEGRATION_REPORT.md` · `CONNECTIONS.md` · `CONTRIBUTING_GUIDE.md` · `CTO_AUDIT_REPORT.md` · `DATABASE_ARCHITECTURE.md`                                                                                                                                | Done   | Governance + DB canonical                  |
 | G05   | `DATABASE_AUDIT.md` · `DATABASE_CONFIGURATION_REPORT.md` · `DATABASE_MIGRATION_PLAN.md` · `DATABASE_OWNERSHIP_MATRIX.md` · `DATABASE_VALIDATION_REPORT.md`                                                                                                     | Done   | DB reports → pointers                      |
 | G06   | `DATA_CONSISTENCY_REPORT.md` · `DEPENDENCY_REPORT.md` · `DOCKER_ARCHITECTURE.md` · `DOCKER_SETUP.md` · `DOMAIN_MODEL.md`                                                                                                                                       | Done   | Ops + domain model                         |
 | G07   | `DRIVER_ARCHITECTURE_REPORT.md` · `DRIVER_AUDIT.md` · `DRIVER_INTEGRATION_MATRIX.md` · `DRIVER_PERFORMANCE_REPORT.md` · `DRIVER_PLATFORM.md`                                                                                                                   | Done   | Driver module                              |
@@ -774,9 +773,7 @@ Monitor in production; verify locally with `pnpm ports` and `pnpm docker:fleetba
 | G19   | `MODULE_INTEGRATION_MATRIX.md` · `MODULE_SCORECARD.md` · `NOTIFICATION_REPORT.md` · `ORDER_LIFECYCLE.md` · `ORDER_LIFECYCLE_REPORT.md`                                                                                                                         | Done   | Order lifecycle                            |
 | G20   | `OSRM_REPORT.md` · `OSRM_USAGE.md` · `PERFORMANCE_AUDIT.md` · `PLATFORM_FOUNDATION.md` · `PORTERCHAIN-LEGAL-AND-IMPORTANT-INFO.md`                                                                                                                             | Done   | Platform + legal                           |
 | G21   | `PORT_CONFIGURATION.md` · `POSTGRESQL_COMPATIBILITY_REPORT.md` · `POSTGRESQL_PERFORMANCE.md` · `PRICING_ENGINE.md` · `PRODUCTION_DATABASE_SCORE.md`                                                                                                            | Done   | Ports + pricing                            |
-| G22   | `PRODUCTION_READINESS_REPORT.md` · `PRODUCT_REQUIREMENTS.md` · `RBAC.md` · `RBAC_MATRIX.md` · `README.md`                                                                                                                                                      | Done   | **README** + go/no-go                      |
 | G23   | `REALTIME_COMMUNICATION_REPORT.md` · `REPOSITORY_STRUCTURE.md` · `REVERSE_LOGISTICS_REPORT.md` · `ROADMAP.md` · `ROLE_PERMISSIONS.md`                                                                                                                          | Done   | Repo + roadmap                             |
-| G24   | `ROUTE_CENTER_ARCHITECTURE.md` · `ROUTE_CENTER_AUDIT.md` · `ROUTE_CENTER_INTEGRATION.md` · `ROUTE_CENTER_PERFORMANCE.md` · `ROUTING_ENGINE_AUDIT.md`                                                                                                           | Done   | Route Center                               |
 | G25   | `RUNBOOK.md` · `SECURITY.md` · `SECURITY_AUDIT.md` · `SERVICE_STATUS.md` · `SQLITE_AUDIT.md`                                                                                                                                                                   | Done   | Security + runbook                         |
 | G26   | `SSO.md` · `SYSTEM_ARCHITECTURE.md` · `SYSTEM_SEQUENCE_DIAGRAMS.md` · `SYSTEM_VALIDATION_REPORT.md` · `TECH_STACK.md`                                                                                                                                          | Done   | Topology pointers                          |
 | G27   | `UPGRADE_GUIDE.md` · `USER_JOURNEYS.md` · `VALHALLA_REPORT.md` · `VALHALLA_USAGE.md` · `apps/admin/README.md`                                                                                                                                                  | Done   | Journeys + Valhalla                        |
@@ -966,8 +963,6 @@ PostgreSQL = commercial truth │ Redis = bus/queues │ Stripe = payments
 
 | Document                                                                               | Purpose                        |
 | -------------------------------------------------------------------------------------- | ------------------------------ |
-| [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md)                     | Go/no-go certification         |
-| [CTO_AUDIT_REPORT.md](./CTO_AUDIT_REPORT.md)                                           | Doc vs code audit              |
 | [docs/architecture/SYSTEM_ARCHITECTURE.md](./docs/architecture/SYSTEM_ARCHITECTURE.md) | Platform topology              |
 | [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md)                                   | Monorepo layout and PYTHONPATH |
 | [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)                                       | Local ports and start commands |

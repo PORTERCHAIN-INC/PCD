@@ -24,8 +24,6 @@ ADMIN_MODULE_TO_PERMISSION: dict[str, UnifiedPermission] = {
     "dispatch_read": UnifiedPermission.DISPATCH_READ,
     "orders": UnifiedPermission.ORDER_WRITE,
     "orders_read": UnifiedPermission.ORDER_READ,
-    "pricing": UnifiedPermission.SETTINGS_MANAGE,
-    "pricing_read": UnifiedPermission.OPERATIONS_READ,
     "finance": UnifiedPermission.BILLING_MANAGE,
     "finance_read": UnifiedPermission.BILLING_READ,
     "claims": UnifiedPermission.LEGACY_SUPPORT_MANAGE,

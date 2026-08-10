@@ -13,6 +13,7 @@ class OrderFilters:
     invoice_status: str | None = None
     merchant_id: str | None = None
     driver_id: str | None = None
+    customer_id: str | None = None
     priority: str | None = None
     service_type: str | None = None
     city: str | None = None

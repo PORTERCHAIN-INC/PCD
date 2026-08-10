@@ -28,7 +28,7 @@ Enterprise merchants require SSO (SAML 2.0) and automated user provisioning (SCI
 
 - **In scope later:** group → `MerchantRole` mapping table
 - **Out of scope:** Clerk Organizations as permission source (masterrule)
-- **MVP:** manual team invite via `POST /v1/merchant/team/invite` + admin merchant invites
+- **MVP:** email seat reserve via `POST /v1/merchant/team/seats` + admin `…/owner-seat` (no Clerk Invitation API)
 
 ## Configuration checklist (ops)
 
@@ -44,5 +44,5 @@ Enterprise merchants require SSO (SAML 2.0) and automated user provisioning (SCI
 
 ## References
 
-- [RBAC_MATRIX.md](../../RBAC_MATRIX.md)
+- [RBAC_MATRIX.md](../../docs/architecture/auth-clerk-spicedb.md)
 - [Clerk SAML docs](https://clerk.com/docs/authentication/saml/overview)

@@ -43,16 +43,38 @@ class RouteService:
             return {"waypoints": waypoints}
         return None
 
-    def run_orchestrator(self, order_ids: list[str]) -> dict[str, Any] | None:
-        try:
-            return self.client.post("/v1/orchestrator/run", json={"orders": order_ids})
-        except Exception as exc:
-            self.errors.log_and_suppress(exc, "Fleetbase orchestrator run failed")
-            return None
+    def run_orchestrator(
+        self,
+        order_ids: list[str],
+        *,
+        mode: str = "allocate",
+        engine: str | None = None,
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        from porterchain_fleetbase_adapter.orchestrator import OrchestratorService
 
-    def commit_orchestrator(self, run_id: str) -> dict[str, Any] | None:
-        try:
-            return self.client.post("/v1/orchestrator/commit", json={"run_id": run_id})
-        except Exception as exc:
-            self.errors.log_and_suppress(exc, "Fleetbase orchestrator commit failed")
+        result = OrchestratorService(self.settings, self.client, self.errors).run(
+            order_ids=order_ids, mode=mode, engine=engine, options=options
+        )
+        return result if result.get("ok") is not False or result.get("assignments") is not None else None
+
+    def commit_orchestrator(
+        self,
+        assignments: list[dict[str, Any]] | None = None,
+        *,
+        run_id: str | None = None,
+        scheduled_date: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Commit plan assignments → Fleetbase manifests.
+
+        Prefer `assignments` (fleetops 0.6.59 contract). `run_id` is accepted for
+        backward compatibility but ignored — upstream commit requires assignments.
+        """
+        del run_id  # legacy keyword; commit is assignment-based
+        if not assignments:
             return None
+        from porterchain_fleetbase_adapter.orchestrator import OrchestratorService
+
+        return OrchestratorService(self.settings, self.client, self.errors).commit(
+            assignments=assignments, scheduled_date=scheduled_date
+        )

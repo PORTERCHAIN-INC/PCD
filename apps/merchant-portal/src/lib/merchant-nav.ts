@@ -90,7 +90,7 @@ export const MERCHANT_NAV_GROUPS: MerchantNavGroup[] = [
       {
         href: "/team",
         label: "Team & contacts",
-        description: "Contacts, invites, roles",
+        description: "Contacts, seats, roles",
         icon: Users,
       },
       {
@@ -104,6 +104,33 @@ export const MERCHANT_NAV_GROUPS: MerchantNavGroup[] = [
 ];
 
 export const ALL_MERCHANT_NAV_ITEMS = MERCHANT_NAV_GROUPS.flatMap((g) => g.items);
+
+/** Map nav href → authorize module key (M-25). */
+export const NAV_MODULE_BY_HREF: Record<string, string> = {
+  "/dashboard": "dashboard",
+  "/book": "book",
+  "/bulk": "bulk",
+  "/orders": "orders",
+  "/track": "tracking",
+  "/billing": "billing",
+  "/reports": "reports",
+  "/notifications": "support",
+  "/api": "api_keys",
+  "/team": "users",
+  "/settings": "settings",
+};
+
+export function filterNavGroupsByModules(modules: string[] | null | undefined): MerchantNavGroup[] {
+  if (!modules || modules.length === 0) return MERCHANT_NAV_GROUPS;
+  const allowed = new Set(modules);
+  return MERCHANT_NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => {
+      const mod = NAV_MODULE_BY_HREF[item.href];
+      return !mod || allowed.has(mod);
+    }),
+  })).filter((g) => g.items.length > 0);
+}
 
 export function isNavActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);

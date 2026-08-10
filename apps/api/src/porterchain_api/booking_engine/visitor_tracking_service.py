@@ -79,6 +79,9 @@ class VisitorTrackingService:
         db.commit()
 
     def merge_to_customer(self, db: Session, session_id: str, customer_id: str) -> None:
+        visitor = db.query(VisitorSession).filter(VisitorSession.id == session_id).first()
+        if visitor:
+            visitor.customer_id = customer_id
         emit_event(
             db,
             event_type=E.SESSION_MERGED,
@@ -86,7 +89,7 @@ class VisitorTrackingService:
             aggregate_id=session_id,
             actor_type="customer",
             actor_id=customer_id,
-            payload={"customer_id": customer_id},
+            payload={"customer_id": customer_id, "session_id": session_id},
         )
         db.commit()
 

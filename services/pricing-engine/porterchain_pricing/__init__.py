@@ -12,6 +12,14 @@ from porterchain_pricing.catalog import (
 from porterchain_pricing.contract import ContractService
 from porterchain_pricing.distance import estimate_duration_minutes, haversine_meters, total_route_meters
 from porterchain_pricing.engine import PricingEngine
+from porterchain_pricing.gta_rate import (
+    VEHICLE_MATRIX,
+    GtaRateConfig,
+    calculate_gta_delivery_rate,
+    default_gta_rate_config,
+    gta_rate_config_from_dict,
+    normalize_vehicle_type,
+)
 from porterchain_pricing.pricing_service import PricingService
 from porterchain_pricing.promotion import PromotionService
 from porterchain_pricing.repository import InMemoryPricingRepository, PricingRepository
@@ -38,13 +46,19 @@ __all__ = [
     "RateCard",
     "ServiceType",
     "TaxService",
+    "GtaRateConfig",
+    "VEHICLE_MATRIX",
     "VehicleClass",
     "VehicleRate",
     "ZoneService",
+    "calculate_gta_delivery_rate",
+    "default_gta_rate_config",
     "default_rate_card",
     "estimate_duration_minutes",
+    "gta_rate_config_from_dict",
     "haversine_meters",
     "merge_merchant_overlay",
+    "normalize_vehicle_type",
     "rate_card_from_dict",
     "total_route_meters",
 ]

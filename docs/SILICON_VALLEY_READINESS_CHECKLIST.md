@@ -153,18 +153,18 @@ Mark prod-only rows **`[—]` deferred** in tracking (not `[x]`). Stripe-related
 
 **Verify:** `pnpm validate:d3` · `validate:d3:e2e` · `validate:d3:prod`
 
-| ID     | Feature                        | Owner                             | Local | Prod              | Done                                                                                     |
-| ------ | ------------------------------ | --------------------------------- | ----- | ----------------- | ---------------------------------------------------------------------------------------- |
-| 0.4.1  | Merchant dashboard             | `merchant_engine`                 | [x]   | [x]               | [x]                                                                                      |
-| 0.4.2  | Driver web + mobile            | `driver_engine`                   | [x]   | portal 200        | [x] mobile-theme shell 2026-07-08                                                        |
-| 0.4.3  | Customer web + mobile          | `booking_engine`                  | [x]   | quote+sign-in     | [x] mobile-theme shell 2026-07-08                                                        |
-| 0.4.4  | Dispatch                       | `fleetbase_engine` + admin ops    | [x]   | bridge off        | [x] validate:d3 local 2026-07-08                                                         |
-| 0.4.5  | Routing Valhalla/OSRM          | `services/routing.py`             | [x]   | deployed          | [~] tiles building                                                                       |
-| 0.4.6  | Tracking public API + WS       | `booking_engine`, `operations.py` | [x]   | [x]               | [x]                                                                                      |
-| 0.4.7  | POD driver + webhook           | `driver_engine`, Fleetbase        | [x]   | no FB prod        | [x] validate:d3 + contract tests 2026-07-08                                              |
-| 0.4.8  | Billing Stripe                 | `billing_engine`                  | [x]   | live webhook      | [~]                                                                                      |
-| 0.4.9  | Partner API OpenAPI            | `gateway_engine`, `/docs`         | [x]   | [x]               | [x]                                                                                      |
-| 0.4.10 | Manual Clerk login each portal | All portals                       | [x]   | [—] prod deferred | local matrix 2026-07-08; see [clerk-consolidation.md](./runbooks/clerk-consolidation.md) |
+| ID     | Feature                        | Owner                             | Local | Prod              | Done                                             |
+| ------ | ------------------------------ | --------------------------------- | ----- | ----------------- | ------------------------------------------------ |
+| 0.4.1  | Merchant dashboard             | `merchant_engine`                 | [x]   | [x]               | [x]                                              |
+| 0.4.2  | Driver web + mobile            | `driver_engine`                   | [x]   | portal 200        | [x] mobile-theme shell 2026-07-08                |
+| 0.4.3  | Customer web + mobile          | `booking_engine`                  | [x]   | quote+sign-in     | [x] mobile-theme shell 2026-07-08                |
+| 0.4.4  | Dispatch                       | `fleetbase_engine` + admin ops    | [x]   | bridge off        | [x] validate:d3 local 2026-07-08                 |
+| 0.4.5  | Routing Valhalla/OSRM          | `services/routing.py`             | [x]   | deployed          | [~] tiles building                               |
+| 0.4.6  | Tracking public API + WS       | `booking_engine`, `operations.py` | [x]   | [x]               | [x]                                              |
+| 0.4.7  | POD driver + webhook           | `driver_engine`, Fleetbase        | [x]   | no FB prod        | [x] validate:d3 + contract tests 2026-07-08      |
+| 0.4.8  | Billing Stripe                 | `billing_engine`                  | [x]   | live webhook      | [~]                                              |
+| 0.4.9  | Partner API OpenAPI            | `gateway_engine`, `/docs`         | [x]   | [x]               | [x]                                              |
+| 0.4.10 | Manual Clerk login each portal | All portals                       | [x]   | [—] prod deferred | local matrix 2026-07-08; see [SSO.md](../SSO.md) |
 
 ### §0.5 Clerk production (4 isolated apps)
 
@@ -972,15 +972,14 @@ _Rescaffolded **2026-07-08** as Expo SDK 57 / RN 0.86 blank shells. Prior `share
 
 ## Appendix E — Documentation & contracts
 
-| ID  | Item                                             | Files                       | Done                                                |
-| --- | ------------------------------------------------ | --------------------------- | --------------------------------------------------- |
-| E.1 | Appendix C 191 files typed                       | `masterrule.md`             | [x]                                                 |
-| E.2 | Pointer stubs ≤20 (from 61)                      | `docs/archive/`             | [x] `validate:doc-pointers` 2026-07-08              |
-| E.3 | `apps/api/README.md` → OpenAPI                   | README                      | [x] `validate:architecture` 2026-07-08              |
-| E.4 | Partner API guide                                | `docs/api/PARTNER_GUIDE.md` | [x]                                                 |
-| E.5 | `INTEGRATIONS.md` = code matrix                  | root                        | [x] `integrations.yaml` 2026-07-08                  |
-| E.6 | CTO audit P0 issues closed                       | `CTO_AUDIT_REPORT.md`       | [x] `validate:doc-governance` §0.6 P0–P1 2026-07-09 |
-| E.7 | This checklist linked from masterrule Appendix D | `masterrule.md`             | [x]                                                 |
+| ID  | Item                                             | Files                       | Done                                   |
+| --- | ------------------------------------------------ | --------------------------- | -------------------------------------- |
+| E.1 | Appendix C 191 files typed                       | `masterrule.md`             | [x]                                    |
+| E.2 | Pointer stubs ≤20 (from 61)                      | `docs/archive/`             | [x] `validate:doc-pointers` 2026-07-08 |
+| E.3 | `apps/api/README.md` → OpenAPI                   | README                      | [x] `validate:architecture` 2026-07-08 |
+| E.4 | Partner API guide                                | `docs/api/PARTNER_GUIDE.md` | [x]                                    |
+| E.5 | `INTEGRATIONS.md` = code matrix                  | root                        | [x] `integrations.yaml` 2026-07-08     |
+| E.7 | This checklist linked from masterrule Appendix D | `masterrule.md`             | [x]                                    |
 
 ---
 
@@ -1157,15 +1156,7 @@ wc -l apps/api/src/porterchain_api/collaboration_engine/crm_service.py  # target
 | Document                                                                        | Role                        |
 | ------------------------------------------------------------------------------- | --------------------------- |
 | [masterrule.md](../masterrule.md)                                               | Architecture SSOT           |
-| [CTO_AUDIT_REPORT.md](../CTO_AUDIT_REPORT.md)                                   | Open issues O-01–O-11       |
 | Appendix H (this doc)                                                           | DD-01–50 diligence register |
 | [RUNBOOK.md](../RUNBOOK.md)                                                     | Ops                         |
 | [DOMAIN_MODEL.md](../DOMAIN_MODEL.md)                                           | Aggregates                  |
 | [docs/architecture/SYSTEM_ARCHITECTURE.md](architecture/SYSTEM_ARCHITECTURE.md) | Topology                    |
-
-## Governance
-
-- **Owner:** CTO / founder
-- **Review:** Monthly gates; quarterly §12 score table
-- **New items:** Require ADR if Phase 2 surface
-- **Never:** Rebuild; microservice split; Fleetbase bypass; CRM before prod dispatch

@@ -26,8 +26,8 @@ porterchain/
 │   ├── customer/               # Retail customer portal (:3004)
 │   ├── api/                    # Porterchain FastAPI (:8001)
 │   ├── worker/                 # Event bus + queue consumer
-│   ├── mobile-driver/          # Driver mobile app (Expo SDK 52)
-│   ├── mobile-customer/        # Customer mobile app (Expo SDK 52)
+│   ├── mobile-driver/          # Driver mobile app (Expo SDK 57)
+│   ├── mobile-customer/        # Customer mobile app (Expo SDK 57)
 │   ├── fleetbase/              # Upstream Fleetbase clone — DO NOT MODIFY
 │   ├── website/                # README placeholder → canonical `website/`
 │   ├── merchant/               # README placeholder → `apps/merchant-portal/`
@@ -241,10 +241,3 @@ See [docs/README.md](./docs/README.md) for the full index.
 - [vendor/fleetbase/README.md](./vendor/fleetbase/README.md)
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

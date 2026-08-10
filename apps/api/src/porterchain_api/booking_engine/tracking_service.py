@@ -4,8 +4,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_engine.public_address import public_address_snapshot
 from porterchain_api.booking_engine.public_tracking_snapshot import build_public_live_tracking
-from porterchain_api.fleetbase_engine.integration_bridge import FleetbaseIntegrationBridge
+from porterchain_api.fleetbase_engine.tracking_facade import TrackingFacade
 from porterchain_api.config import Settings
 from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
 from porterchain_api.models import Booking, Customer, Invoice, Order, Payment
@@ -14,15 +15,26 @@ from porterchain_api.schemas import OrderResponse, OrderTrackingResponse
 
 class TrackingService:
     def __init__(self) -> None:
-        self._fleetbase = FleetbaseIntegrationBridge()
+        self._facade = TrackingFacade()
         self._orders = OrderRepository()
 
     def get_by_tracking(self, db: Session, tracking_number: str) -> Order | None:
         return db.query(Order).filter(Order.tracking_number == tracking_number).first()
 
-    def _order_response_from_order(self, db: Session, order: Order) -> OrderResponse:
+    def _order_response_from_order(
+        self,
+        db: Session,
+        order: Order,
+        *,
+        public: bool = False,
+    ) -> OrderResponse:
         booking = db.query(Booking).filter(Booking.order_id == order.id).first()
         invoice = db.query(Invoice).filter(Invoice.order_id == order.id).first()
+        pickup = order.pickup
+        dropoff = order.dropoff
+        if public:
+            pickup = public_address_snapshot(pickup if isinstance(pickup, dict) else None) or {}
+            dropoff = public_address_snapshot(dropoff if isinstance(dropoff, dict) else None) or {}
         return OrderResponse(
             order_id=order.id,
             order_number=order.order_number,
@@ -31,8 +43,8 @@ class TrackingService:
             amount_cents=order.amount_cents,
             currency=order.currency,
             scheduled_at=order.scheduled_at,
-            pickup=order.pickup,
-            dropoff=order.dropoff,
+            pickup=pickup,
+            dropoff=dropoff,
             fleetbase_order_id=order.fleetbase_order_id,
             booking_number=booking.booking_number if booking else None,
             invoice_number=invoice.invoice_number if invoice else None,
@@ -42,7 +54,7 @@ class TrackingService:
         order = self.get_by_tracking(db, tracking_number)
         if not order:
             return None
-        return self._order_response_from_order(db, order)
+        return self._order_response_from_order(db, order, public=True)
 
     def get_order_tracking_response(
         self,
@@ -86,8 +98,17 @@ class TrackingService:
         settings: Settings,
         order: Order,
     ) -> dict | None:
-        """Pull live GPS/status from Fleetbase logistics engine."""
-        return self._fleetbase.fetch_tracking(settings, order)
+        """Pull raw live GPS/status from Fleetbase via the shared facade."""
+        return self._facade.fetch_raw(settings, order)
+
+    def get_live_snapshot(
+        self,
+        db: Session,
+        settings: Settings,
+        order: Order,
+    ) -> dict[str, Any]:
+        """Normalized tracking snapshot — identical shape on every portal."""
+        return self._facade.live_snapshot(settings, order)
 
     def build_public_live_tracking(
         self,

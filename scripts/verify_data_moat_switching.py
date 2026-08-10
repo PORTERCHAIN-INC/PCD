@@ -15,7 +15,6 @@ PATHS = {
     "merchant reports router": ROOT / "apps/api/src/porterchain_api/routers/merchant/reports.py",
     "merchant integrations router": ROOT / "apps/api/src/porterchain_api/routers/merchant/integrations.py",
     "merchant settings router": ROOT / "apps/api/src/porterchain_api/routers/merchant/settings.py",
-    "admin pricing router": ROOT / "apps/api/src/porterchain_api/routers/admin/pricing.py",
     "merchant billing router": ROOT / "apps/api/src/porterchain_api/routers/merchant/billing.py",
     "merchant rbac": ROOT / "apps/api/src/porterchain_api/merchant_engine/rbac.py",
     "test file": ROOT / "apps/api/tests/test_data_moat_switching.py",
@@ -54,10 +53,6 @@ def main() -> int:
     if "/audit-logs" not in settings:
         failures.append("merchant settings missing audit-logs endpoint")
 
-    pricing = PATHS["admin pricing router"].read_text(encoding="utf-8")
-    if "/pricing/contracts" not in pricing:
-        failures.append("admin pricing missing merchant contracts")
-
     billing = PATHS["merchant billing router"].read_text(encoding="utf-8")
     if "/billing/contract" not in billing:
         failures.append("merchant billing missing contract endpoint")
@@ -71,7 +66,7 @@ def main() -> int:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  OK — data moat metrics, switching-cost APIs, tariffs, RBAC audit")
+    print("  OK — data moat metrics, switching-cost APIs, RBAC audit")
     return 0
 
 

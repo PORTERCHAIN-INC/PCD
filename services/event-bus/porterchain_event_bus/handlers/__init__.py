@@ -29,6 +29,7 @@ def register_default_handlers() -> None:
     registry.subscribe("order.return_to_sender", _handle_order_return_to_sender)
     registry.subscribe("order.damaged", _handle_order_damaged)
     registry.subscribe(DomainEventType.PAYMENT_SUCCEEDED, _handle_payment_succeeded)
+    registry.subscribe(DomainEventType.PROOF_COMPLETED, _handle_pod_completed_invoice)
     registry.subscribe(DomainEventType.WEBHOOK_RECEIVED, _handle_webhook_received)
     registry.subscribe(DomainEventType.NOTIFICATION_QUEUED, _handle_notification_queued)
     registry.subscribe("order.*", _handle_merchant_webhook_fanout)
@@ -40,8 +41,17 @@ def register_default_handlers() -> None:
 
 def _handle_order_dispatch_ready(envelope: dict[str, Any]) -> None:
     from porterchain_api.booking_engine.fleetbase_sync_handler import sync_order_from_event
+    from porterchain_shared.queue.names import QueueName
+    from porterchain_shared.queue.publisher import get_queue_publisher
 
     sync_order_from_event(envelope)
+    # Precompute ranked driver suggestions (Valhalla matrix + filters) for the queue UI.
+    order_id = envelope.get("aggregate_id")
+    if order_id:
+        get_queue_publisher().enqueue(
+            QueueName.DISPATCH,
+            {"action": "score_suggestions", "order_id": order_id},
+        )
 
 
 def _handle_driver_assigned(envelope: dict[str, Any]) -> None:
@@ -82,6 +92,25 @@ def _handle_payment_succeeded(envelope: dict[str, Any]) -> None:
         QueueName.BILLING,
         {"action": "payment_settled", "aggregate_id": envelope["aggregate_id"], "payload": envelope.get("payload", {})},
     )
+
+
+def _handle_pod_completed_invoice(envelope: dict[str, Any]) -> None:
+    """Auto-generate invoice + email receipt after POD."""
+    order_id = envelope.get("aggregate_id")
+    if not order_id:
+        return
+    from porterchain_api.booking_engine.invoice_service import InvoiceService
+    from porterchain_api.db import SessionLocal
+
+    db = SessionLocal()
+    try:
+        InvoiceService().finalize_after_pod(db, order_id)
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("auto-invoice after POD failed for %s: %s", order_id, exc)
+        db.rollback()
+    finally:
+        db.close()
 
 
 def _handle_webhook_received(envelope: dict[str, Any]) -> None:

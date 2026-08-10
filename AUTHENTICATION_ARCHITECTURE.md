@@ -155,7 +155,7 @@ Clerk sign-in → /auth/login → session tokens → driver_engine routes
 Invite flow: /auth/driver-invite → Clerk password → ACTIVE
 ```
 
-Mobile: `apps/mobile-driver/` and `apps/mobile-customer/` use `@clerk/clerk-expo`; API calls use Porterchain JWT/session after Clerk login.
+Mobile: `apps/mobile-driver/` and `apps/mobile-customer/` are blank Expo shells — `@clerk/clerk-expo` is not wired yet (`pnpm clerk:sync` clears unused `EXPO_PUBLIC_CLERK_*`).
 
 ---
 
@@ -264,18 +264,11 @@ SMTP configuration (`MAIL_*`, `SMTP_*` in platform settings) supports the **noti
 | [RBAC.md](./RBAC.md)                                                                   | Role matrix                        |
 | [SSO.md](./SSO.md)                                                                     | Fleetbase console SSO              |
 | [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)                                 | Env var reference                  |
-| [AUTHENTICATION_AUDIT.md](./AUTHENTICATION_AUDIT.md)                                   | Historical pre-cleanup inventory   |
-| [AUTHENTICATION_CLEANUP.md](./AUTHENTICATION_CLEANUP.md)                               | Historical cleanup log             |
+| [AUTHENTICATION_ARCHITECTURE.md](AUTHENTICATION_ARCHITECTURE.md)                       | Historical pre-cleanup inventory   |
+| [AUTHENTICATION_ARCHITECTURE.md](AUTHENTICATION_ARCHITECTURE.md)                       | Historical cleanup log             |
 | [docs/archive/CLERK_INTEGRATION_REPORT.md](./docs/archive/CLERK_INTEGRATION_REPORT.md) | Historical Clerk integration audit |
 
 ---
 
 _Architecture locked per masterrule.md §15. Violations should be fixed in refactor, not extended._
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

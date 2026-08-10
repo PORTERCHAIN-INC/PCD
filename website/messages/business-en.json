@@ -100,8 +100,8 @@
     }
   },
   "inquiry": {
-    "title": "Get delivery capacity on your lanes",
-    "subtitle": "Share how to reach you and what needs to move. We respond within one business day with vehicle-and-driver options.",
+    "title": "Get a quote and book capacity",
+    "subtitle": "Create a free account to quote lanes and book vehicle-and-driver capacity in the customer portal — no waiting on a callback form.",
     "workEmail": "Work Email",
     "workEmailPlaceholder": "you@company.com",
     "phone": "Phone Number",
@@ -112,7 +112,9 @@
     "extensionPlaceholder": "e.g. 204",
     "optional": "Optional",
     "consent": "I agree to be contacted by Porterchain about delivery capacity and quotes for my business.",
-    "submit": "Get a quote",
+    "submit": "Create account & get a quote",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in",
     "submitting": "Submitting...",
     "successTitle": "Quote request received",
     "successMessage": "Thank you. We'll respond within one business day with capacity options for your lanes.",
@@ -121,8 +123,8 @@
     "errorMessage": "We couldn't submit your inquiry. Please try again or call us directly.",
     "assurances": {
       "noObligation": "No obligation",
-      "noLongForms": "No long forms",
-      "responseTime": "Response within 1 business day"
+      "noLongForms": "Sign up in seconds",
+      "responseTime": "Quote & book online"
     }
   },
   "stickyCta": {
@@ -575,7 +577,7 @@
   },
   "finalCta": {
     "title": "Get delivery capacity on your lanes",
-    "subtitle": "Tell us what needs to move. We'll quote the right vehicle-and-driver capacity for your operation."
+    "subtitle": "Create an account to quote and book vehicle-and-driver capacity for your operation — online, in minutes."
   },
   "footer": {
     "tagline": "Enterprise logistics for growing businesses.",

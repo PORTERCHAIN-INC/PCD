@@ -24,7 +24,7 @@ Investor diligence (DD-03) requires a documented path off “one box forever” 
 | Phase             | Trigger                             | Topology                                                        | Effort    |
 | ----------------- | ----------------------------------- | --------------------------------------------------------------- | --------- |
 | **A — Now**       | DD-03 close; p95 headroom           | Same droplet, **2 API replicas**, in-compose Postgres/Redis     | 1–2 days  |
-| **B — Growth**    | DB CPU >60% sustained or backup SLA | **Managed Postgres 16** + **Managed Redis 7**; 2–4 API replicas | 1–2 weeks |
+| **B — Growth**    | DB CPU >60% sustained or backup SLA | **Managed Postgres 18** + **Managed Redis 7**; 2–4 API replicas | 1–2 weeks |
 | **C — Scale-out** | >500 RPS API or multi-region        | DO App Platform / ECS / K8s; read replica for analytics (DD-19) | 4–8 weeks |
 
 Phases are **sequential**. Do not jump to Kubernetes while still on a single droplet DB.
@@ -44,7 +44,7 @@ These must remain true for every API replica:
 | Background work             | Single worker fleet, Redis queues | `apps/worker/` (DD-04)                              |
 | DB connections              | Pooled per replica                | `config.py` `db_pool_size=10`, `db_max_overflow=20` |
 
-**Live-map WebSocket** (`/v1/admin/operations/live-map/ws`) is sticky by connection — Caddy round-robin is acceptable; each replica polls DB/Fleetbase independently every 5s. Notification WS (`/v1/notifications/ws`) uses Redis pub/sub so any replica can serve the connection.
+**Notification WS** (`/v1/notifications/ws`) uses Redis pub/sub so any replica can serve the connection. Admin live-map WS was removed (Fleetbase-first).
 
 ---
 
@@ -99,7 +99,7 @@ docker compose -f docker-compose.prod.yml up -d --scale api=1
 
 ### Postgres (DigitalOcean Managed Database)
 
-1. Provision **PostgreSQL 16** cluster (single primary; HA standby optional).
+1. Provision **PostgreSQL 18** cluster (single primary; HA standby optional).
 2. Set `DATABASE_URL` on API + worker to managed connection string (`?sslmode=require`).
 3. `pg_dump` from droplet Postgres → restore to managed; cut over during maintenance window.
 4. Remove `postgres` service from compose (or keep as staging-only).
@@ -165,11 +165,3 @@ Before scaling past 2 replicas in production:
 - Multi-region active-active.
 
 ---
-
-## Governance
-
-| Document                                  | Role                  |
-| ----------------------------------------- | --------------------- |
-| [PRIORITY_TODOS.md](../PRIORITY_TODOS.md) | DD-03 tracking        |
-| [RUNBOOK.md](../../RUNBOOK.md)            | Ops execution         |
-| [masterrule.md](../../masterrule.md)      | Monolith-first policy |

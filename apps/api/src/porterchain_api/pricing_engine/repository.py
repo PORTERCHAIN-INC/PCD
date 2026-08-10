@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_models import MerchantContract, PricingTariff, PricingZone, Promotion, SystemConfig
 from porterchain_api.db import engine
 from porterchain_api.merchant_models import Merchant
+from porterchain_pricing.gta_rate import default_gta_rate_config, gta_rate_config_from_dict
 from porterchain_pricing.rate_card import default_rate_card, merge_merchant_overlay, rate_card_from_dict
 from porterchain_pricing.types import (
     ContractRecord,
@@ -36,6 +37,7 @@ class SqlAlchemyPricingRepository:
         ctx.zones = self._load_zones()
         ctx.tax = self._load_tax_config()
         ctx.fuel = self._load_fuel_config()
+        ctx.gta_rate = self._load_gta_rate_config()
         system_card = self._load_rate_card()
 
         if request.merchant_id:
@@ -185,3 +187,15 @@ class SqlAlchemyPricingRepository:
         if row and row.value:
             return FuelConfig(**{k: v for k, v in row.value.items() if k in FuelConfig.__dataclass_fields__})
         return FuelConfig()
+
+    def _load_gta_rate_config(self):
+        if not self._has_table("system_config"):
+            return default_gta_rate_config()
+        try:
+            row = self.db.query(SystemConfig).filter(SystemConfig.key == "pricing_gta_rate").first()
+        except ProgrammingError:
+            self.db.rollback()
+            return default_gta_rate_config()
+        if row and isinstance(row.value, dict):
+            return gta_rate_config_from_dict(row.value)
+        return default_gta_rate_config()

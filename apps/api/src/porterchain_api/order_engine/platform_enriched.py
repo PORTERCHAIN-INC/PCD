@@ -21,6 +21,8 @@ class OrderPlatformEnrichedMixin:
             q = q.filter(Order.merchant_id == filters.merchant_id)
         if filters.driver_id:
             q = q.filter(Order.assigned_driver_id == filters.driver_id)
+        if filters.customer_id:
+            q = q.filter(Order.customer_id == filters.customer_id)
         if filters.date_from:
             q = q.filter(Order.created_at >= filters.date_from)
         if filters.date_to:

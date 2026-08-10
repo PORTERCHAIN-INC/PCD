@@ -2,147 +2,261 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { SignIn, useAuth, useClerk } from "@clerk/nextjs";
-import { Shield } from "lucide-react";
-import { isClerkConfigured, publicEnv } from "@/lib/env";
-import { platformLoginUrl } from "@porterchain/auth";
+import { useRouter, useSearchParams } from "next/navigation";
+import { PortalAuthScreen, safeAppRedirect } from "@porterchain/auth";
+import { publicEnv, useClerkDevApiBypass } from "@/lib/env";
+import { getStaffBearer, setStaffBearer } from "@/lib/staff-session";
+import { credentialToJson, getPasskey, passkeysSupported } from "@/lib/staff-webauthn";
 
 export default function SignInPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gray-bg">
-          <p className="text-sm text-muted">Loading…</p>
-        </div>
+        <PortalAuthScreen portalLabel="Admin" title="Loading" subtitle="Preparing staff sign-in…">
+          <p className="text-center text-sm text-muted">Loading…</p>
+        </PortalAuthScreen>
       }
     >
-      <SignInGate />
+      <StaffSignIn />
     </Suspense>
   );
 }
 
-function SignInGate() {
-  if (!isClerkConfigured()) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-bg p-4">
-        <div className="w-full max-w-md rounded-2xl border border-primary/10 bg-white p-8 shadow-sm">
-          <h1 className="text-2xl font-bold text-primary">Porterchain Admin</h1>
-          <p className="mt-2 text-sm text-muted">
-            Clerk is not configured. Local dev uses API bypass — add staff in{" "}
-            <code className="rounded bg-gray-bg px-1">admin_users</code> for production-like
-            testing.
-          </p>
-          <Link
-            href="/dashboard"
-            className="mt-6 flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white hover:bg-secondary/90"
-          >
-            Continue in dev mode
-          </Link>
-        </div>
-      </div>
-    );
-  }
-  return <SignInContent />;
-}
-
-function resolvePostSignInTarget(raw: string | null): string {
-  const fallback = "/dashboard";
-  if (!raw) return fallback;
-  if (raw.startsWith("/") && !raw.startsWith("/sign-in")) return raw;
-  try {
-    const url = new URL(raw, "https://admin.porterchain.com");
-    if (url.pathname.startsWith("/sign-in")) return fallback;
-    return `${url.pathname}${url.search}${url.hash}` || fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function SignInContent() {
+function StaffSignIn() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { signOut } = useClerk();
-  const redirectUrl = resolvePostSignInTarget(searchParams.get("redirect_url"));
-  const [showForm, setShowForm] = useState(false);
+  const devBypass = useClerkDevApiBypass();
+  const redirectUrl = safeAppRedirect(searchParams.get("redirect_url"), {
+    fallback: "/dashboard",
+    blockPrefixes: ["/sign-in", "/sign-up", "/activate-staff"],
+  });
+
+  const [email, setEmail] = useState("");
+  const [token, setToken] = useState("");
+  const [loginToken, setLoginToken] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Defer WebAuthn probe until after mount — window.PublicKeyCredential is SSR-false / CSR-true.
+  const [canPasskey, setCanPasskey] = useState(false);
 
   useEffect(() => {
-    if (!isLoaded) return;
+    setCanPasskey(passkeysSupported());
+  }, []);
 
-    let cancelled = false;
-    void (async () => {
-      if (!isSignedIn) {
-        if (!cancelled) setShowForm(true);
-        return;
+  useEffect(() => {
+    if (getStaffBearer()) {
+      router.replace(redirectUrl);
+    }
+  }, [redirectUrl, router]);
+
+  async function finishSession(bearer: string) {
+    setStaffBearer(bearer);
+    await fetch("/api/auth/staff-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bearer_token: bearer }),
+    });
+    router.replace(redirectUrl);
+  }
+
+  async function requestLogin() {
+    setBusy(true);
+    setError(null);
+    setLoginToken(null);
+    setEmailSent(false);
+    try {
+      const res = await fetch(`${publicEnv.porterchainApiUrl}/v1/auth/staff/login-request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const body = (await res.json().catch(() => ({}))) as {
+        detail?: string;
+        enrollment_token?: string;
+        email_sent?: boolean;
+        ok?: boolean;
+      };
+      if (!res.ok) {
+        throw new Error(typeof body.detail === "string" ? body.detail : "login_request_failed");
       }
+      setEmailSent(Boolean(body.email_sent ?? true));
+      if (body.enrollment_token) {
+        setLoginToken(body.enrollment_token);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "login_request_failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
-      try {
-        const token = await getToken();
-        if (!token) throw new Error("missing_token");
-
-        const res = await fetch("/api/auth/session", { credentials: "include", cache: "no-store" });
-        const data = (await res.json()) as { signedIn?: boolean };
-        if (cancelled) return;
-        if (data.signedIn) {
-          window.location.assign(redirectUrl);
-          return;
+  async function signInWithPasskey() {
+    if (!email.trim()) {
+      setError("email_required");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const optRes = await fetch(
+        `${publicEnv.porterchainApiUrl}/v1/auth/staff/passkey/login/options`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim() }),
         }
-      } catch {
-        // fall through — clear stale client session
+      );
+      const options = (await optRes.json().catch(() => ({}))) as Record<string, unknown> & {
+        detail?: string;
+        challenge_id?: string;
+      };
+      if (!optRes.ok) {
+        throw new Error(
+          typeof options.detail === "string" ? options.detail : "passkey_options_failed"
+        );
       }
-
-      if (!cancelled) {
-        await signOut({
-          redirectUrl: `/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`,
-        });
+      const challengeId = String(options.challenge_id || "");
+      const cred = await getPasskey(options);
+      const loginRes = await fetch(`${publicEnv.porterchainApiUrl}/v1/auth/staff/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          challenge_id: challengeId,
+          passkey_assertion: { credential: credentialToJson(cred) },
+        }),
+      });
+      const loginBody = (await loginRes.json().catch(() => ({}))) as {
+        detail?: string;
+        bearer_token?: string;
+      };
+      if (!loginRes.ok || !loginBody.bearer_token) {
+        throw new Error(
+          typeof loginBody.detail === "string" ? loginBody.detail : "passkey_login_failed"
+        );
       }
-    })();
+      await finishSession(loginBody.bearer_token);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "passkey_login_failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
-    return () => {
-      cancelled = true;
-    };
-  }, [getToken, isLoaded, isSignedIn, redirectUrl, signOut]);
-
-  if (!isLoaded || !showForm) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-bg">
-        <p className="text-sm text-muted">Loading…</p>
-      </div>
-    );
+  function activateWithToken(value: string) {
+    const t = value.trim();
+    if (!t) return;
+    router.push(`/activate-staff?token=${encodeURIComponent(t)}`);
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-bg p-4">
-      <div className="mb-6 max-w-md text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10">
-          <Shield className="h-7 w-7 text-secondary" />
+    <PortalAuthScreen
+      portalLabel="Admin"
+      title="Staff sign-in"
+      subtitle="Staff IdP — email magic link or passkey. No Clerk."
+      websiteUrl={publicEnv.websiteUrl}
+      footer={
+        <>Need first-time access? Ask a super admin to enroll you in Settings → Users → Staff.</>
+      }
+    >
+      <div className="space-y-5 text-sm">
+        {devBypass && (
+          <Link
+            href="/dashboard"
+            className="flex w-full items-center justify-center rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-950 hover:bg-amber-100"
+          >
+            Continue with local API bypass
+          </Link>
+        )}
+
+        <div className="space-y-3">
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+              Work email
+            </span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@porterchain.com"
+              className="w-full rounded-xl border border-primary/15 bg-gray-bg px-3 py-2.5 text-primary outline-none focus:border-secondary"
+            />
+          </label>
+          <button
+            type="button"
+            disabled={!email.trim() || busy}
+            onClick={() => void requestLogin()}
+            className="flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-50"
+          >
+            {busy ? "Sending…" : "Email activate link"}
+          </button>
+          {canPasskey && (
+            <button
+              type="button"
+              disabled={!email.trim() || busy}
+              onClick={() => void signInWithPasskey()}
+              className="flex w-full items-center justify-center rounded-xl border border-primary/15 px-4 py-3 text-sm font-semibold text-primary hover:bg-gray-bg disabled:opacity-50"
+            >
+              Sign in with passkey
+            </button>
+          )}
         </div>
-        <h1 className="text-2xl font-bold text-primary">Porterchain Admin</h1>
-        <p className="mt-2 text-sm text-muted">
-          Prefer Platform login at{" "}
-          <a href={platformLoginUrl(publicEnv.websiteUrl)} className="font-semibold text-secondary">
-            {platformLoginUrl(publicEnv.websiteUrl)}
-          </a>
-          .
-        </p>
+
+        {emailSent && (
+          <div className="rounded-xl border border-green-200 bg-green-50/80 p-3 text-green-950">
+            <p className="font-medium">Check your email for a one-time activate link.</p>
+            <p className="mt-1 text-xs text-muted">
+              Local Mailpit:{" "}
+              <a
+                href="http://localhost:8025"
+                className="underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                localhost:8025
+              </a>
+            </p>
+          </div>
+        )}
+
+        {loginToken && (
+          <div className="rounded-xl border border-primary/10 bg-gray-bg/50 p-3">
+            <p className="text-xs text-muted">Local only — activate without waiting for mail:</p>
+            <button
+              type="button"
+              className="mt-2 w-full rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold text-white"
+              onClick={() => activateWithToken(loginToken)}
+            >
+              Activate now
+            </button>
+          </div>
+        )}
+
+        <div className="border-t border-primary/10 pt-4">
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+              Or paste enrollment token
+            </span>
+            <input
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              placeholder="Token from enroll / email"
+              className="w-full rounded-xl border border-primary/15 bg-gray-bg px-3 py-2.5 text-primary outline-none focus:border-secondary"
+            />
+          </label>
+          <button
+            type="button"
+            disabled={!token.trim()}
+            onClick={() => activateWithToken(token)}
+            className="mt-3 flex w-full items-center justify-center rounded-xl border border-primary/15 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-gray-bg disabled:opacity-50"
+          >
+            Activate with token
+          </button>
+        </div>
+
+        {error && <p className="text-center text-red-600">{error}</p>}
       </div>
-      <SignIn
-        routing="hash"
-        signUpUrl="/sign-in"
-        forceRedirectUrl={redirectUrl}
-        fallbackRedirectUrl={redirectUrl}
-        appearance={{
-          elements: {
-            rootBox: "w-full max-w-md",
-            card: "shadow-sm",
-            footerAction: { display: "none" },
-            footerActionLink: { display: "none" },
-          },
-        }}
-      />
-      <p className="mt-6 max-w-sm text-center text-xs text-muted">
-        Need access? Ask a super admin to add your work email in Admin Settings → Staff.
-      </p>
-    </div>
+    </PortalAuthScreen>
   );
 }

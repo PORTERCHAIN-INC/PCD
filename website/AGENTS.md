@@ -2,7 +2,7 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](../masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-08-08
 
 # This is NOT the Next.js you know
 
@@ -18,15 +18,17 @@ Rules for AI agents and contributors editing `website/`.
 
 ## Scope
 
-This app is the **public marketing site + retail booking funnel** only. It is **not** the admin, merchant, driver, or customer portals (those live under `apps/`).
+This app is the **public marketing site** only. It is **not** the admin, merchant, driver, or customer portals (those live under `apps/`).
+
+**Retail quote / book / pay:** `apps/customer` (:3004) only. Do **not** reintroduce a booking wizard, `POST /v1/quotes` from the website UI, or `/api/quote` on this app.
 
 ---
 
 ## Hard Rules (masterrule)
 
-1. **No Fleetbase** — never call Fleetbase HTTP from this app. Use Porterchain API (`/v1/*`) only.
-2. **No business logic duplication** — authoritative quotes, bookings, and payments are decided by `apps/api`. Client code validates UX; server decides outcomes.
-3. **Clerk only** — no legacy auth. Public flows may be anonymous; authenticated flows use Clerk.
+1. **No Fleetbase** — never call Fleetbase HTTP from this app. Use Porterchain API (`/v1/*`) only when needed (e.g. guest track).
+2. **No website booking** — capacity CTAs → `/sign-up?intent=quote` → customer portal. Legacy `/book*` = redirect to portal only.
+3. **Clerk only** — Platform Clerk for login/sign-up CTAs. Authenticated retail booking is on the customer portal.
 4. **i18n required** — all user-facing routes live under `[locale]` (`en`, `fr`). Update `messages/en.json` and `messages/fr.json` together.
 5. **Do not modify** `apps/fleetbase/**` (upstream vendor).
 
@@ -34,43 +36,41 @@ This app is the **public marketing site + retail booking funnel** only. It is **
 
 ## Stack
 
-| Tech       | Notes                                             |
-| ---------- | ------------------------------------------------- |
-| Next.js 16 | App Router, `output: "standalone"`                |
-| React 19   |                                                   |
-| next-intl  | Locale routing in `src/i18n/`                     |
-| Clerk      | `@clerk/nextjs` via `AppClerkProvider`            |
-| Maps       | `@porterchain/maps` + `@vis.gl/react-google-maps` |
-| Env        | `@porterchain/config/monorepo-env.mjs`            |
+| Tech       | Notes                                         |
+| ---------- | --------------------------------------------- |
+| Next.js 16 | App Router, `output: "standalone"`            |
+| React 19   |                                               |
+| next-intl  | Locale routing in `src/i18n/`                 |
+| Clerk      | `@clerk/nextjs` via `AppClerkProvider`        |
+| Maps       | `@porterchain/maps` for **public track** only |
+| Env        | `@porterchain/config/monorepo-env.mjs`        |
 
 ---
 
 ## Key Paths
 
-| Path                                    | Purpose                         |
-| --------------------------------------- | ------------------------------- |
-| `src/app/[locale]/`                     | Pages                           |
-| `src/lib/api.ts`, `src/lib/api-base.ts` | Porterchain API client          |
-| `src/app/api/quote/route.ts`            | Server-side quote/geocode proxy |
-| `content/blog/{en,fr}/`                 | Blog markdown                   |
-| `messages/{en,fr}.json`                 | i18n strings                    |
-| `src/data/portal-links.ts`              | Links to other portals          |
+| Path                                    | Purpose                                 |
+| --------------------------------------- | --------------------------------------- |
+| `src/app/[locale]/`                     | Pages                                   |
+| `src/lib/api.ts`, `src/lib/api-base.ts` | Guest track API client only             |
+| `src/data/portal-links.ts`              | Links to customer/merchant/admin/driver |
+| `content/blog/{en,fr}/`                 | Blog markdown                           |
+| `messages/{en,fr}.json`                 | i18n strings                            |
 
 ---
 
-## Booking Flow
+## Capacity CTA Flow (not on-site booking)
 
-1. User completes booking widget → `POST /v1/quotes` (or draft via `/v1/booking-drafts`)
-2. Authenticated checkout → `POST /v1/bookings` → Stripe hosted URL
-3. Confirmation via server webhook — poll `GET /v1/bookings/confirmation`
-4. Do **not** add client-side "I've paid" bypasses
+1. Marketing CTA → `/sign-up?intent=quote&from=…`
+2. After Platform Clerk → customer portal `/book`
+3. Do **not** add `BookingWidget`, quote engine, or booking-draft clients here
 
 ---
 
 ## When Editing
 
 - Match existing component patterns in `src/components/`.
-- Prefer `@porterchain/maps` over ad-hoc Google Maps setup.
+- Prefer `@porterchain/maps` over ad-hoc Google Maps setup (track only).
 - Blog posts: frontmatter in `content/blog/`; do not break slug URLs without redirects.
 - Run `pnpm --filter @porterchain/website lint` after TS changes.
 - Production build: `pnpm --filter @porterchain/website build`.
@@ -79,15 +79,6 @@ This app is the **public marketing site + retail booking funnel** only. It is **
 
 ## Related Docs
 
-- [README.md](./README.md) — setup and routes
-- [../masterrule.md](../masterrule.md) — platform rules
-- [../docs/architecture/BOOKING_FLOW.md](../docs/architecture/BOOKING_FLOW.md)
-
----
-
-## Governance
-
-| Document                                      | Role              |
-| --------------------------------------------- | ----------------- |
-| [masterrule.md](../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../CTO_AUDIT_REPORT.md) | Doc vs code audit |
+- [README.md](./README.md)
+- [../apps/customer/README.md](../apps/customer/README.md)
+- [../docs/PORTERCHAIN_CHARTER.md](../docs/PORTERCHAIN_CHARTER.md)

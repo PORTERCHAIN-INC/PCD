@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     clerk_authorized_issuers: str = ""  # comma-separated iss allowlist
     # Phase 4 — Clerk webhook (Svix) signing secret
     clerk_webhook_signing_secret: str = ""
-    # Phase 5 — one Platform Clerk app for all portals (multi-role same subject)
+    # RETIRED — must stay false. platform_driver is the only supported layout.
     clerk_unified_mode: bool = False
 
     # SpiceDB (Zanzibar) — access-rules graph (not business data)
@@ -150,10 +150,6 @@ class Settings(BaseSettings):
     phase2_crm: bool = Field(
         default=False,
         validation_alias=AliasChoices("phase2_crm", "PORTERCHAIN_PHASE2_CRM"),
-    )
-    phase2_route_center: bool = Field(
-        default=False,
-        validation_alias=AliasChoices("phase2_route_center", "PORTERCHAIN_PHASE2_ROUTE_CENTER"),
     )
     phase2_ai_dispatch: bool = Field(
         default=False,
@@ -244,6 +240,15 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
+    def reject_retired_clerk_unified_mode(self) -> Self:
+        if self.clerk_unified_mode:
+            raise ValueError(
+                "CLERK_UNIFIED_MODE is retired — use CLERK_MODE=platform_driver "
+                "(Platform + distinct Driver). Set CLERK_UNIFIED_MODE=false."
+            )
+        return self
+
+    @model_validator(mode="after")
     def require_clerk_in_production(self) -> Self:
         if is_local_env(self.app_env):
             return self
@@ -256,7 +261,15 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        origins = [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        # Local LAN access (Next "Network" URL) must be allowed or browsers report Failed to fetch.
+        if is_local_env(self.app_env):
+            for port in (3000, 3001, 3002, 3003, 3004):
+                for host in ("localhost", "127.0.0.1"):
+                    origin = f"http://{host}:{port}"
+                    if origin not in origins:
+                        origins.append(origin)
+        return origins
 
     @property
     def allow_stripe_mock(self) -> bool:

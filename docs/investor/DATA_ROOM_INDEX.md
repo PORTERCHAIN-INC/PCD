@@ -8,10 +8,7 @@
 
 | Document               | Path                                                                               |
 | ---------------------- | ---------------------------------------------------------------------------------- |
-| Category positioning   | [docs/CATEGORY.md](../CATEGORY.md)                                                 |
 | ICP                    | [docs/ICP.md](../ICP.md)                                                           |
-| Competitive memo       | [docs/COMPETITIVE_MEMO.md](../COMPETITIVE_MEMO.md)                                 |
-| Demo script            | [docs/DEMO_SCRIPT.md](../DEMO_SCRIPT.md)                                           |
 | 3-min demo video guide | [DEMO_VIDEO.md](./DEMO_VIDEO.md) (record MP4 → `investor/demo/`)                   |
 | Architecture 1-pager   | [docs/architecture/ADR-011-context-map.md](../architecture/ADR-011-context-map.md) |
 
@@ -25,7 +22,7 @@
 | SIG Lite (enterprise)    | [../compliance/SIG_LITE.md](../compliance/SIG_LITE.md)                            |
 | Metric snapshots         | [snapshots/](./snapshots/)                                                        |
 | Silicon Valley checklist | [SILICON_VALLEY_READINESS_CHECKLIST.md](../SILICON_VALLEY_READINESS_CHECKLIST.md) |
-| RBAC matrix              | [RBAC_MATRIX.md](../../RBAC_MATRIX.md)                                            |
+| RBAC matrix              | [RBAC_MATRIX.md](../../docs/architecture/auth-clerk-spicedb.md)                   |
 | Runbook                  | [RUNBOOK.md](../../RUNBOOK.md)                                                    |
 
 ## Live metrics (API)

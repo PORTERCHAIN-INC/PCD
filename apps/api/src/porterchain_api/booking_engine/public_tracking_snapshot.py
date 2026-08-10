@@ -5,7 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from porterchain_api.fleetbase_engine.tracking_translator import TrackingTranslator
+from porterchain_api.booking_engine.public_address import public_address_snapshot
+from porterchain_api.fleetbase_engine.tracking_facade import TrackingFacade
 from porterchain_api.models import Order
 from porterchain_api.order_engine.buckets import IN_FLIGHT
 from porterchain_services.maps.route_helpers import optimized_route_from_valhalla
@@ -28,19 +29,7 @@ def _coords_from_address(addr: dict[str, Any] | None) -> tuple[float, float] | N
 
 
 def _translate_live(live_raw: dict[str, Any] | None) -> dict[str, Any]:
-    if not live_raw:
-        return TrackingTranslator.translate(None)
-
-    tracker = live_raw.get("tracker") if isinstance(live_raw.get("tracker"), dict) else live_raw
-    coords = live_raw.get("coordinates")
-    merged = {**tracker, **(coords if isinstance(coords, dict) else {})}
-    if live_raw.get("eta"):
-        merged["eta"] = live_raw["eta"]
-    if live_raw.get("driver"):
-        merged["driver"] = live_raw["driver"]
-    if live_raw.get("status"):
-        merged["status"] = live_raw["status"]
-    return TrackingTranslator.translate(merged)
+    return TrackingFacade.translate_live(live_raw)
 
 
 def _format_eta_label(seconds: int) -> str:
@@ -115,13 +104,15 @@ def build_public_live_tracking(
     *,
     maps: MapsService | None = None,
 ) -> dict[str, Any]:
-    """Return public-safe live tracking: addresses, driver pin, route geometry, and ETA."""
+    """Return public-safe live tracking: city-level addresses, driver pin, route geometry, and ETA."""
     maps_service = maps or MapsService()
     translated = _translate_live(live_raw)
-    pickup = order.pickup if isinstance(order.pickup, dict) else None
-    dropoff = order.dropoff if isinstance(order.dropoff, dict) else None
-    pickup_coords = _coords_from_address(pickup)
-    dropoff_coords = _coords_from_address(dropoff)
+    pickup_raw = order.pickup if isinstance(order.pickup, dict) else None
+    dropoff_raw = order.dropoff if isinstance(order.dropoff, dict) else None
+    pickup = public_address_snapshot(pickup_raw)
+    dropoff = public_address_snapshot(dropoff_raw)
+    pickup_coords = _coords_from_address(pickup_raw)
+    dropoff_coords = _coords_from_address(dropoff_raw)
     driver_loc = translated.get("location")
 
     eta: dict[str, Any] | None = None

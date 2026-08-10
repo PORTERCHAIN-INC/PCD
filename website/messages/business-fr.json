@@ -103,8 +103,8 @@
     }
   },
   "inquiry": {
-    "title": "Parlons de votre logistique",
-    "subtitle": "Indiquez-nous comment vous joindre. Un consultant Porterchain vous contactera dans un jour ouvrable.",
+    "title": "Obtenez un devis et réservez de la capacité",
+    "subtitle": "Créez un compte gratuit pour obtenir des devis et réserver véhicule + chauffeur dans le portail client — sans formulaire de rappel.",
     "workEmail": "Courriel professionnel",
     "workEmailPlaceholder": "vous@entreprise.com",
     "phone": "Numéro de téléphone",
@@ -115,7 +115,9 @@
     "extensionPlaceholder": "p. ex. 204",
     "optional": "Facultatif",
     "consent": "J'accepte d'être contacté par Porterchain concernant les services logistiques d'entreprise.",
-    "submit": "Demander une consultation d'affaires",
+    "submit": "Créer un compte et obtenir un devis",
+    "haveAccount": "Vous avez déjà un compte?",
+    "signIn": "Se connecter",
     "submitting": "Envoi en cours...",
     "successTitle": "Demande reçue",
     "successMessage": "Merci. Un consultant Porterchain vous contactera dans un jour ouvrable.",
@@ -124,13 +126,13 @@
     "errorMessage": "Impossible d'envoyer votre demande. Réessayez ou appelez-nous directement.",
     "assurances": {
       "noObligation": "Sans obligation",
-      "noLongForms": "Pas de longs formulaires",
-      "responseTime": "Réponse en 1 jour ouvrable"
+      "noLongForms": "Inscription en quelques secondes",
+      "responseTime": "Devis et réservation en ligne"
     }
   },
   "stickyCta": {
-    "message": "Prêt à optimiser votre logistique?",
-    "button": "Demander une consultation"
+    "message": "Besoin de capacité livraison le jour même?",
+    "button": "Créer un compte et obtenir un devis"
   },
   "trustedBy": {
     "label": "Approuvé par des entreprises du RGT",
@@ -578,7 +580,7 @@
   },
   "finalCta": {
     "title": "Obtenez de la capacité de livraison sur vos couloirs",
-    "subtitle": "Dites-nous ce qui doit bouger. Nous deviserons la bonne capacité véhicule-chauffeur pour votre opération."
+    "subtitle": "Créez un compte pour obtenir un devis et réserver véhicule + chauffeur — en ligne, en quelques minutes."
   },
   "footer": {
     "tagline": "Logistique entreprise pour entreprises en croissance.",

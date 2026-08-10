@@ -28,7 +28,6 @@ import {
   UserPlus,
   Users,
   Wallet,
-  Wifi,
   X,
 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
@@ -41,7 +40,6 @@ import { money, shortDate, relativeTime, titleCase, downloadCsv, toCsv } from "@
 import { AddDriverModal } from "@/components/drivers/AddDriverModal";
 
 const STATUSES = ["PENDING", "APPROVED", "SUSPENDED", "REJECTED"];
-const AVAILABILITY = ["online", "offline", "busy", "break", "vacation"];
 const BG = ["pending", "passed", "failed"];
 const PROVINCE_NAMES: Record<string, string> = {
   ON: "Ontario",
@@ -64,13 +62,6 @@ const STATUS_TONE: Record<string, string> = {
   SUSPENDED: "red",
   REJECTED: "slate",
 };
-const AVAIL_TONE: Record<string, string> = {
-  online: "green",
-  offline: "slate",
-  busy: "amber",
-  break: "sky",
-  vacation: "violet",
-};
 const VIEWS_KEY = "pc.drivers.views";
 
 type SavedView = { name: string; visibility: VisibilityState };
@@ -86,7 +77,6 @@ export default function DriversPage() {
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
-  const [availability, setAvailability] = useState("");
   const [vehicleType, setVehicleType] = useState("");
   const [province, setProvince] = useState("");
   const [city, setCity] = useState("");
@@ -104,6 +94,7 @@ export default function DriversPage() {
   const [chooserOpen, setChooserOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const chooserRef = useRef<HTMLDivElement>(null);
 
   const [views, setViews] = useState<SavedView[]>([]);
@@ -152,7 +143,6 @@ export default function DriversPage() {
         `${d.full_name} ${d.email} ${d.phone ?? ""} ${d.city ?? ""}`.toLowerCase().includes(q)
       );
     if (status) r = r.filter((d) => d.status === status);
-    if (availability) r = r.filter((d) => d.availability === availability);
     if (vehicleType) r = r.filter((d) => d.vehicle_type === vehicleType);
     if (province) r = r.filter((d) => d.province === province);
     if (city) r = r.filter((d) => d.city === city);
@@ -168,14 +158,13 @@ export default function DriversPage() {
     else if (sortBy === "orders") r.sort((a, b) => b.orders_today - a.orders_today);
     else if (sortBy === "name") r.sort((a, b) => a.full_name.localeCompare(b.full_name));
     return r;
-  }, [data, search, status, availability, vehicleType, province, city, bg, rating, health, sortBy]);
+  }, [data, search, status, vehicleType, province, city, bg, rating, health, sortBy]);
 
   const activeFilters =
-    [status, availability, vehicleType, province, city, bg, rating, health].filter(Boolean).length +
+    [status, vehicleType, province, city, bg, rating, health].filter(Boolean).length +
     (sortBy !== "recent" ? 1 : 0);
   function clearFilters() {
     setStatus("");
-    setAvailability("");
     setVehicleType("");
     setProvince("");
     setCity("");
@@ -222,9 +211,6 @@ export default function DriversPage() {
                   .slice(0, 2)
                   .join("")
               )}
-              {row.original.is_online && (
-                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
-              )}
             </span>
             <div>
               <p className="font-semibold text-primary">{row.original.full_name}</p>
@@ -236,19 +222,14 @@ export default function DriversPage() {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ getValue }) => (
-          <Badge tone={STATUS_TONE[String(getValue())] ?? "slate"}>
-            {titleCase(String(getValue()))}
-          </Badge>
-        ),
-      },
-      {
-        accessorKey: "availability",
-        header: "Availability",
-        cell: ({ getValue }) => (
-          <Badge tone={AVAIL_TONE[String(getValue())] ?? "slate"}>
-            {titleCase(String(getValue()))}
-          </Badge>
+        cell: ({ row }) => (
+          <div className="flex flex-wrap items-center gap-1">
+            <Badge tone={STATUS_TONE[String(row.original.status)] ?? "slate"}>
+              {titleCase(String(row.original.status))}
+            </Badge>
+            {row.original.medical_transport_certified && <Badge tone="sky">Medical</Badge>}
+            {row.original.fleetbase_driver_id && <Badge tone="green">FB</Badge>}
+          </div>
         ),
       },
       {
@@ -381,6 +362,7 @@ export default function DriversPage() {
 
   async function bulk(action: "approve" | "suspend") {
     setBusy(true);
+    setActionError(null);
     try {
       const token = await getApiToken();
       for (const id of selectedIds) {
@@ -389,6 +371,8 @@ export default function DriversPage() {
       }
       setRowSelection({});
       setVersion((v) => v + 1);
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : `Bulk ${action} failed`);
     } finally {
       setBusy(false);
     }
@@ -422,13 +406,27 @@ export default function DriversPage() {
         <div>
           <h1 className="text-2xl font-bold text-primary">Driver Command Center</h1>
           <p className="text-sm text-muted">
-            360° driver platform — performance, compliance, payouts, and risk.
+            360° driver platform — performance, compliance, payouts, and risk. Identity-only invites
+            live in{" "}
+            <a
+              href="/settings?section=users&tab=driver"
+              className="font-medium text-secondary hover:underline"
+            >
+              Settings → Users → Drivers
+            </a>
+            .
           </p>
         </div>
         <Button onClick={() => setAddOpen(true)}>
           <UserPlus className="h-4 w-4" /> Add driver
         </Button>
       </div>
+
+      {actionError && (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {actionError}
+        </p>
+      )}
 
       {stats && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -444,12 +442,6 @@ export default function DriversPage() {
             label="Pending"
             value={String(stats.pending)}
             accent="text-amber-600"
-          />
-          <StatTile
-            icon={Wifi}
-            label="Online now"
-            value={String(stats.online)}
-            accent="text-secondary"
           />
           <StatTile
             icon={Wallet}
@@ -487,12 +479,6 @@ export default function DriversPage() {
             value={status}
             onChange={setStatus}
             options={STATUSES.map((s) => ({ value: s, label: titleCase(s) }))}
-          />
-          <Dropdown
-            label="Availability"
-            value={availability}
-            onChange={setAvailability}
-            options={AVAILABILITY.map((s) => ({ value: s, label: titleCase(s) }))}
           />
           <Dropdown
             label="Vehicle"
@@ -552,12 +538,6 @@ export default function DriversPage() {
             {city && <FilterChip label={`City: ${city}`} onRemove={() => setCity("")} />}
             {status && (
               <FilterChip label={`Status: ${titleCase(status)}`} onRemove={() => setStatus("")} />
-            )}
-            {availability && (
-              <FilterChip
-                label={`Availability: ${titleCase(availability)}`}
-                onRemove={() => setAvailability("")}
-              />
             )}
             {vehicleType && (
               <FilterChip

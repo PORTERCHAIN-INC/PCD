@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import io
+import uuid
 from datetime import UTC, datetime, time, timedelta
 from typing import Any, Literal
 
@@ -277,6 +278,63 @@ class DriverFinanceService:
             }
             for p in rows
         ]
+
+    def create_payout(
+        self,
+        db: Session,
+        driver_id: str,
+        *,
+        amount_cents: int | None = None,
+        reference: str | None = None,
+        currency: str = "cad",
+    ) -> DriverPayout:
+        """Create a pending payout and debit wallet (D-24)."""
+        driver = db.get(Driver, driver_id)
+        if not driver:
+            raise LookupError("driver_not_found")
+        balance = int(driver.wallet_balance_cents or 0)
+        cents = int(amount_cents) if amount_cents is not None else balance
+        if cents <= 0:
+            raise ValueError("payout_amount_invalid")
+        if cents > balance:
+            raise ValueError("insufficient_wallet_balance")
+        payout_id = str(uuid.uuid4())
+        payout = DriverPayout(
+            id=payout_id,
+            driver_id=driver_id,
+            amount_cents=cents,
+            currency=(currency or "cad").lower(),
+            status="pending",
+            reference=reference or f"PO-{datetime.now(UTC).strftime('%Y%m%d')}-{driver_id[:8]}",
+        )
+        db.add(payout)
+        driver.wallet_balance_cents = balance - cents
+        db.add(
+            DriverWalletTransaction(
+                driver_id=driver_id,
+                tx_type="payout",
+                amount_cents=-cents,
+                balance_after_cents=int(driver.wallet_balance_cents),
+                reference_id=payout_id,
+                description="Payout reserved",
+            )
+        )
+        db.commit()
+        db.refresh(payout)
+        return payout
+
+    def mark_payout_paid(self, db: Session, payout_id: str) -> DriverPayout:
+        payout = db.get(DriverPayout, payout_id)
+        if not payout:
+            raise LookupError("payout_not_found")
+        if payout.status == "paid":
+            return payout
+        if payout.status not in ("pending", "processing"):
+            raise ValueError("payout_not_payable")
+        payout.status = "paid"
+        db.commit()
+        db.refresh(payout)
+        return payout
 
     def _tax_summary(
         self,

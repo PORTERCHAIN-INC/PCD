@@ -87,7 +87,7 @@ export default async function HowPorterchainWorksView({ locale }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref={`/business?from=${source}#inquiry`}
+        primaryHref={`/sign-up?intent=quote&from=${source}`}
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/business"
         variant="light-centered"
@@ -189,7 +189,7 @@ export default async function HowPorterchainWorksView({ locale }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
-        primaryHref={`/business?from=${source}#inquiry`}
+        primaryHref={`/sign-up?intent=quote&from=${source}`}
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/business"
         variant="gradient"

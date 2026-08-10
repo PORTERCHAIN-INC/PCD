@@ -41,6 +41,9 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         body = b""
         async for chunk in response.body_iterator:
             body += chunk
+        # Drop stale length — rebuilt body (e.g. injected request_id) is often longer.
+        headers.pop("content-length", None)
+        headers.pop("Content-Length", None)
         try:
             data = json.loads(body)
         except json.JSONDecodeError:

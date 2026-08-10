@@ -14,9 +14,11 @@ _running = True
 _last_fleetbase_retry_at = 0.0
 _last_draft_reconcile_at = 0.0
 _last_standing_orders_at = 0.0
+_last_notification_retry_at = 0.0
 FLEETBASE_RETRY_INTERVAL_SECONDS = 60
 DRAFT_RECONCILE_INTERVAL_SECONDS = 300
 STANDING_ORDERS_INTERVAL_SECONDS = 300
+NOTIFICATION_RETRY_INTERVAL_SECONDS = 60
 EVENT_BUS_BLOCK_MS = 1000
 
 
@@ -144,6 +146,28 @@ def _drain_standing_orders() -> int:
     return int(result.get("created", 0))
 
 
+def _drain_notification_retries() -> int:
+    """Re-enqueue failed notifications whose next_retry_at is due."""
+    global _last_notification_retry_at
+    now = time.monotonic()
+    if now - _last_notification_retry_at < NOTIFICATION_RETRY_INTERVAL_SECONDS:
+        return 0
+    _last_notification_retry_at = now
+
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.notification_engine.retry_sweeper import sweep_notification_retries
+
+    with SessionLocal() as db:
+        result = sweep_notification_retries(db)
+    if result.get("requeued") or result.get("due"):
+        logger.info(
+            "notification retry sweep: due=%s requeued=%s",
+            result.get("due", 0),
+            result.get("requeued", 0),
+        )
+    return int(result.get("requeued", 0))
+
+
 def main() -> None:
     from porterchain_api.platform.bus import ensure_handlers_registered
     from porterchain_shared.queue.names import QueueName
@@ -176,6 +200,7 @@ def main() -> None:
             processed += _drain_fleetbase_retry_queue()
             processed += _drain_draft_reconciliation()
             processed += _drain_standing_orders()
+            processed += _drain_notification_retries()
             _touch_heartbeat()
         except Exception:
             logger.exception("worker loop error — backing off before retry")

@@ -11,7 +11,7 @@ Day-2 procedures for the Porterchain monorepo and the self-hosted Fleetbase stac
 ## Porterchain platform — daily checks
 
 ```bash
-pnpm docker:up              # PostgreSQL :5432, Redis :6379, Mailhog :8025
+pnpm docker:up              # PostgreSQL :5432, Redis :6379, Mailpit :8025
 pnpm db:migrate             # Alembic at head
 pnpm dev:api                # API :8001
 pnpm dev:worker             # Event bus + queues
@@ -304,7 +304,7 @@ curl http://localhost:8001/health
 
 ## Backup
 
-Porterchain **Postgres** (orders, merchants, billing) — see [docs/BACKUP_RESTORE.md](./docs/BACKUP_RESTORE.md) for scripts and **quarterly restore drill** (DD-28).
+Porterchain **Postgres** (orders, merchants, billing) — see [RUNBOOK.md](RUNBOOK.md) for scripts and **quarterly restore drill** (DD-28).
 
 ```bash
 # Prod droplet
@@ -380,7 +380,7 @@ pnpm validate:e2e:reports       # full markdown reports (optional)
 | G4   | On-time delivery              | ≥95% delivered within `scheduled_at` + 30m grace                                  |
 | G5   | Support first response        | <4h average on tickets with `first_response_at`                                   |
 
-See [EXECUTION_METRICS.md](./docs/EXECUTION_METRICS.md) for dashboard paths and Prometheus series.
+See [PRIORITY_TODOS.md](docs/PRIORITY_TODOS.md) for dashboard paths and Prometheus series.
 | G3 | Webhook secret | `FLEETBASE_WEBHOOK_SECRET` set; signed POST `/webhooks/fleetbase` |
 | G8 | Stripe webhook (prod) | `STRIPE_WEBHOOK_SECRET` set; POST `/webhooks/stripe` ≠ 503 |
 | G8b | Stripe dashboard URL | Webhook endpoint lists `porterchain.com/webhooks/stripe` |
@@ -483,7 +483,7 @@ Local smoke (no external monitor): `curl -fsS http://localhost:8001/health/ready
 
 ### Live drill (annual, staging)
 
-1. Restore latest Postgres backup per [BACKUP_RESTORE.md](./docs/BACKUP_RESTORE.md).
+1. Restore latest Postgres backup per [RUNBOOK.md](RUNBOOK.md).
 2. Run `pnpm validate:p0` against restored stack.
 3. Record RTO achieved vs 4h target in [SECURITY.md](./SECURITY.md).
 
@@ -637,14 +637,7 @@ Until then: document exceptions in admin ops runbook; target **≥90%** orders m
 - [FLEETBASE_INSTALL.md](./FLEETBASE_INSTALL.md)
 - [DOCKER_SETUP.md](./DOCKER_SETUP.md)
 - [SERVICE_STATUS.md](./SERVICE_STATUS.md)
-- [PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md)
-- [ROADMAP.md](./ROADMAP.md)
+- [PRODUCTION_READINESS_REPORT.md](docs/archive/reports-2026-08/PRODUCTION_READINESS_REPORT.md)
+- [PRIORITY_TODOS.md](docs/PRIORITY_TODOS.md)
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

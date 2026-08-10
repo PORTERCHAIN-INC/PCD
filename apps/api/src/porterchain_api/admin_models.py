@@ -29,6 +29,29 @@ class AdminUser(Base):
     fleetbase_user_uuid: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    webauthn_credentials: Mapped[list["StaffWebAuthnCredential"]] = relationship(
+        "StaffWebAuthnCredential", back_populates="admin_user", cascade="all, delete-orphan"
+    )
+
+
+class StaffWebAuthnCredential(Base):
+    """Passkey credentials for staff IdP (WebAuthn)."""
+
+    __tablename__ = "staff_webauthn_credentials"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    admin_user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("admin_users.id", ondelete="CASCADE"), index=True
+    )
+    credential_id: Mapped[str] = mapped_column(String(512), unique=True, index=True)
+    public_key: Mapped[str] = mapped_column(Text)
+    sign_count: Mapped[int] = mapped_column(Integer, default=0)
+    device_label: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    admin_user: Mapped[AdminUser] = relationship("AdminUser", back_populates="webauthn_credentials")
+
 
 class Driver(Base):
     __tablename__ = "drivers"
@@ -223,57 +246,6 @@ class AdminAuditLog(Base):
     resource_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     payload: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
-class RouteCenterPlan(Base):
-    """Porterchain route plan — execution dispatched via Fleetbase adapter."""
-
-    __tablename__ = "route_center_plans"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    name: Mapped[str] = mapped_column(String(128))
-    status: Mapped[str] = mapped_column(String(32), default="waiting", index=True)
-    strategy: Mapped[str] = mapped_column(String(32), default="balanced")
-    zone: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
-    order_ids: Mapped[list] = mapped_column(JSON, default=list)
-    stops: Mapped[list] = mapped_column(JSON, default=list)
-    driver_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    vehicle_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    simulation: Mapped[dict] = mapped_column(JSON, default=dict)
-    recommendations: Mapped[dict] = mapped_column(JSON, default=dict)
-    fleetbase_run_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    template_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    requires_approval: Mapped[bool] = mapped_column(Boolean, default=False)
-    approved_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-    dispatched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-
-class RouteCenterTemplate(Base):
-    """Wholesale / recurring route templates (§8.1.10) — alias: RouteTemplate."""
-
-    __tablename__ = "route_center_templates"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    name: Mapped[str] = mapped_column(String(128))
-    template_type: Mapped[str] = mapped_column(String(32), default="daily", index=True)
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    zone: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    schedule: Mapped[dict] = mapped_column(JSON, default=dict)
-    stops: Mapped[list] = mapped_column(JSON, default=list)
-    config: Mapped[dict] = mapped_column(JSON, default=dict)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
-# Checklist §8.1.10 wholesale route templates
-RouteTemplate = RouteCenterTemplate
 
 
 class SystemConfig(Base):

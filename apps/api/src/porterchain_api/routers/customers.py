@@ -1,6 +1,6 @@
 """Customer portal API — dashboard, support, rebook."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.clerk import get_clerk_claims
@@ -66,6 +66,7 @@ def create_support_ticket(
     db: Session = Depends(get_db),
     claims: ClerkClaims = Depends(get_clerk_claims),
     settings: Settings = Depends(get_settings),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> CustomerSupportTicketResponse:
     customer = require_customer(db, claims, settings)
     try:
@@ -75,6 +76,7 @@ def create_support_ticket(
             subject=body.subject,
             description=body.description,
             order_id=body.order_id,
+            idempotency_key=idempotency_key,
         )
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc

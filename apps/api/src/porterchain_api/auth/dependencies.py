@@ -21,15 +21,13 @@ from porterchain_api.auth.clerk_identity_provider import (
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.identity import AuthenticatedIdentity
-from porterchain_api.auth.principal_resolution_service import PrincipalResolutionService
+from porterchain_api.auth.prepare import prepare_user_from_claims, resolve_principal_cached
 from porterchain_api.auth.unified_catalog import UnifiedPermission
-from porterchain_api.auth.user_sync_service import UserSyncService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.unified_identity_models import AccessAuditLog
 
 logger = logging.getLogger("porterchain.security")
-_resolution = PrincipalResolutionService()
 
 
 def _claims_for_sync(identity: AuthenticatedIdentity) -> ClerkClaims:
@@ -72,6 +70,35 @@ def _record_denial(
             pass
 
 
+def _identity_from_staff_bearer(db: Session, token: str) -> AuthenticatedIdentity:
+    """Map ``staff_sess_*`` Redis session → AuthenticatedIdentity (no Clerk JWT)."""
+    from porterchain_api.admin_engine.staff_idp_service import ensure_staff_identity
+    from porterchain_api.admin_models import AdminUser
+    from porterchain_api.auth.staff_session import STAFF_BEARER_PREFIX, get_session
+
+    session_id = token.removeprefix(STAFF_BEARER_PREFIX).strip()
+    session = get_session(session_id)
+    if session is None:
+        raise HTTPException(status_code=401, detail="staff_session_invalid")
+
+    user = db.query(AdminUser).filter(AdminUser.id == session.admin_user_id).first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=403, detail="admin_user_not_found")
+
+    ensure_staff_identity(db, user)
+    db.refresh(user)
+    subject = str(user.clerk_user_id or f"staff:{user.id}")
+    return AuthenticatedIdentity(
+        provider="staff_idp",
+        issuer="porterchain:staff",
+        subject=subject,
+        session_id=session_id,
+        email=user.email,
+        email_verified=True,
+        adapter_context={"staff_admin_user_id": user.id},
+    )
+
+
 async def get_authenticated_identity(
     authorization: Annotated[str | None, Header()] = None,
     settings: Settings = Depends(get_settings),
@@ -80,7 +107,7 @@ async def get_authenticated_identity(
     """Authenticate bearer token via IdentityProvider. Does not authorize."""
     if allow_auth_dev_bypass(settings) and (not authorization or authorization == "Bearer dev"):
         claims = _dev_claims()
-        UserSyncService().sync(db, claims)
+        prepare_user_from_claims(db, claims)
         return claims_to_identity(claims)
 
     if not authorization or not authorization.startswith("Bearer "):
@@ -89,11 +116,14 @@ async def get_authenticated_identity(
     token = authorization.removeprefix("Bearer ").strip()
     if token == "dev" and allow_auth_dev_bypass(settings):
         claims = _dev_claims()
-        UserSyncService().sync(db, claims)
+        prepare_user_from_claims(db, claims)
         return claims_to_identity(claims)
 
+    if token.startswith("staff_sess_"):
+        return _identity_from_staff_bearer(db, token)
+
     identity = await get_identity_provider().authenticate_bearer(token, settings)
-    UserSyncService().sync(db, _claims_for_sync(identity))
+    prepare_user_from_claims(db, _claims_for_sync(identity))
     return identity
 
 
@@ -102,7 +132,7 @@ async def require_authenticated(
     db: Session = Depends(get_db),
 ) -> CurrentPrincipal:
     """Authenticate + resolve internal user. Suspended/deactivated → 403."""
-    return _resolution.resolve(db, identity)
+    return resolve_principal_cached(db, identity)
 
 
 def require_permission(*needed: UnifiedPermission | str) -> Callable:
@@ -194,10 +224,16 @@ def require_organization_scope(organization_id_param: str = "merchant_id") -> Ca
 
 
 def assert_organization_scope(principal: CurrentPrincipal, organization_id: str, db: Session) -> None:
-    """Deny unless SpiceDB grants organization#portal for this user. Fail closed on Check errors."""
+    """Deny unless SpiceDB grants organization#portal for this user. Fail closed on Check errors.
+
+    When Postgres membership is present but SpiceDB is stale (common after first login /
+    email enrich), reconcile tuples once from profile rows and re-check.
+    """
     from porterchain_api.authz.client import get_authz_client
+    from porterchain_api.user_models import PorterchainUser
 
     client = get_authz_client()
+    check_error = False
     try:
         allowed = client.check(
             resource_type="organization",
@@ -206,8 +242,44 @@ def assert_organization_scope(principal: CurrentPrincipal, organization_id: str,
             subject_id=principal.user_id,
         )
     except Exception:  # noqa: BLE001
-        logger.exception("spicedb_org_check_failed user_id=%s org=%s", principal.user_id, organization_id)
+        logger.exception(
+            "spicedb_org_check_failed user_id=%s org=%s", principal.user_id, organization_id
+        )
         allowed = False
+        check_error = True
+
+    # Stale graph only — never "heal" across a SpiceDB outage (fail closed).
+    if (
+        not allowed
+        and not check_error
+        and organization_id in principal.organization_ids
+        and principal.user_id
+    ):
+        try:
+            from porterchain_api.authz.tuples import TupleWriter
+
+            user = db.query(PorterchainUser).filter(PorterchainUser.id == principal.user_id).first()
+            if user:
+                TupleWriter().sync_user_from_profiles(db, user)
+                db.flush()
+                allowed = client.check(
+                    resource_type="organization",
+                    resource_id=organization_id,
+                    permission="portal",
+                    subject_id=principal.user_id,
+                )
+                if allowed:
+                    logger.info(
+                        "spicedb_org_scope_healed user_id=%s org=%s",
+                        principal.user_id,
+                        organization_id,
+                    )
+        except Exception:  # noqa: BLE001
+            logger.exception(
+                "spicedb_org_scope_heal_failed user_id=%s org=%s",
+                principal.user_id,
+                organization_id,
+            )
 
     if allowed:
         return
@@ -254,13 +326,10 @@ def assert_self_scope(principal: CurrentPrincipal, profile_id: str, db: Session)
 
 def resolve_principal_for_claims(db: Session, claims: ClerkClaims) -> CurrentPrincipal | None:
     """Best-effort CurrentPrincipal for portal contexts; None if not provisioned."""
-    from porterchain_api.auth.identity import AuthenticatedIdentity
-    from porterchain_api.auth.principal_resolution_service import PrincipalResolutionService
-
     if not claims.clerk_user_id or claims.clerk_user_id == "dev_clerk_user":
         return None
     try:
-        return PrincipalResolutionService().resolve(
+        return resolve_principal_cached(
             db,
             AuthenticatedIdentity(
                 provider="clerk",

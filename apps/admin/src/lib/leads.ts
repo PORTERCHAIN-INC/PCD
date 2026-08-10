@@ -99,6 +99,26 @@ export const leadsApi = {
     await adminFetch<void>(`/v1/admin/leads/${id}`, token, { method: "DELETE" });
   },
 
+  /** M-19: Lead → company (+ deal); optional merchant seat (ONBOARDING). */
+  async convert(
+    token: string,
+    id: string,
+    body: { to_merchant?: boolean; create_deal?: boolean } = {}
+  ): Promise<{
+    company_id?: string;
+    deal_id?: string | null;
+    to_merchant?: boolean;
+    merchant?: { merchant_id: string; created: boolean };
+  }> {
+    return adminFetch(`/v1/admin/leads/${id}/convert`, token, {
+      method: "POST",
+      body: JSON.stringify({
+        create_deal: body.create_deal ?? true,
+        to_merchant: body.to_merchant ?? false,
+      }),
+    });
+  },
+
   async calendar(
     token: string,
     params: { due_after?: string; due_before?: string } = {}

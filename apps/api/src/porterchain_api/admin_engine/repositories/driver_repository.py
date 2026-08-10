@@ -11,15 +11,6 @@ class DriverRepository:
     def get_by_id(self, db: Session, driver_id: str) -> Driver | None:
         return db.query(Driver).filter(Driver.id == driver_id).first()
 
-    def list_online(self, db: Session, *, limit: int = 200) -> list[Driver]:
-        return (
-            db.query(Driver)
-            .filter(Driver.is_online.is_(True))
-            .order_by(Driver.updated_at.desc())
-            .limit(limit)
-            .all()
-        )
-
     def list_all(self, db: Session, *, limit: int = 10_000) -> list[Driver]:
         return db.query(Driver).order_by(Driver.created_at.desc()).limit(limit).all()
 

@@ -20,7 +20,7 @@ export default function StoryCta() {
           <p className="mt-4 text-lg text-white/65 leading-relaxed">{t("subtitle")}</p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <ShimmerButton
-              href="/business?from=home-final#inquiry"
+              href="/sign-up?intent=quote&from=home-final"
               variant="onDark"
               showArrow
               trackSource="home-final"

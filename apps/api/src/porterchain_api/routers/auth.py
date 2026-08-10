@@ -1,8 +1,8 @@
-"""Authentication and SSO — Clerk is the sole identity provider."""
+"""Authentication and SSO — Clerk for business portals; staff IdP for admin."""
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
@@ -173,28 +173,17 @@ def customer_onboarding(
     settings: Settings = Depends(get_settings),
 ) -> PortalOnboardingResponse:
     """Customer activation checklist — provisions customers row when allowed."""
-    from porterchain_api.booking_engine import CustomerService
+    from porterchain_api.auth.customer import require_customer
+    from porterchain_api.auth.portal_guard import clerk_id_staff_portal
 
-    email, phone = resolve_customer_contact(db, claims, settings)
+    email, _phone = resolve_customer_contact(db, claims, settings)
     customer = None
-    if claims.clerk_user_id:
-        from porterchain_api.models import Customer
-
-        customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()
-    if not customer and email and claims.clerk_user_id:
-        from porterchain_api.auth.portal_guard import clerk_id_staff_portal
-
-        if not clerk_id_staff_portal(db, claims.clerk_user_id):
-            try:
-                customer = CustomerService().get_or_create_from_clerk(
-                    db,
-                    clerk_user_id=claims.clerk_user_id,
-                    email=email,
-                    phone=phone,
-                )
-                db.commit()
-            except ValueError:
-                pass
+    if claims.clerk_user_id and not clerk_id_staff_portal(db, claims.clerk_user_id):
+        try:
+            customer = require_customer(db, claims, settings)
+            db.commit()
+        except HTTPException:
+            customer = None
     return PortalOnboardingResponse(
         **evaluate_customer_onboarding(
             db, claims, settings=settings, customer=customer, email=email
@@ -204,26 +193,260 @@ def customer_onboarding(
 
 @router.post("/sso/fleetbase", response_model=FleetbaseSsoResponse)
 def sso_fleetbase(
-    claims: Annotated[ClerkClaims, Depends(get_clerk_claims)],
+    principal: Annotated[CurrentPrincipal, Depends(require_authenticated)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> FleetbaseSsoResponse:
     """
-    Exchange Clerk session for Fleetbase console SSO.
+    Exchange staff IdP (or legacy Clerk) session for Fleetbase console SSO.
     Fleetbase trusts Porterchain JWT — no Fleetbase login screen for Porterchain users.
     """
     if not settings.fleetbase_sso_enabled:
         raise HTTPException(status_code=503, detail="fleetbase_sso_disabled")
 
-    principal = _sso.resolve_principal(db, claims, settings)
-    if not principal:
-        raise HTTPException(status_code=403, detail="user_not_provisioned")
-
     try:
-        result = _sso.exchange_fleetbase_session(db, settings, claims, principal)
+        result = _sso.exchange_fleetbase_session_for_principal(db, settings, principal)
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     return FleetbaseSsoResponse(**result)
+
+
+@router.get("/staff/enrollment/{token}")
+def peek_staff_enrollment(token: str) -> dict:
+    """Public peek for staff IdP activation UI (no Clerk)."""
+    from porterchain_api.admin_engine.staff_idp_service import StaffIdpService
+
+    enrollment = StaffIdpService().peek(token)
+    if enrollment is None:
+        raise HTTPException(status_code=404, detail="enrollment_invalid_or_expired")
+    return {
+        "email": enrollment.email,
+        "role": enrollment.role,
+        "expires_at": enrollment.expires_at,
+    }
+
+
+@router.post("/staff/enrollment/{token}/activate")
+def activate_staff_enrollment(
+    token: str,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """Consume enrollment token, mint Redis session, set ``pc_staff_sid`` cookie."""
+    from fastapi.responses import JSONResponse
+
+    from porterchain_api.admin_engine.staff_idp_service import StaffIdpService
+    from porterchain_api.auth.staff_session import staff_cookie_params
+
+    try:
+        payload = StaffIdpService().activate(db, token)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    response = JSONResponse(payload)
+    cookie = staff_cookie_params(settings)
+    response.set_cookie(
+        cookie["key"],
+        payload["session_id"],
+        max_age=cookie["max_age"],
+        httponly=cookie["httponly"],
+        secure=cookie["secure"],
+        samesite=cookie["samesite"],
+        path=cookie["path"],
+        domain=cookie["domain"],
+    )
+    return response
+
+
+@router.post("/staff/login-request")
+def staff_login_request(
+    body: dict,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """Email a one-time staff login link (token included only in local env)."""
+    from porterchain_api.admin_engine.staff_idp_service import StaffIdpService
+
+    email = (body.get("email") or "").strip()
+    if not email:
+        raise HTTPException(status_code=400, detail="email_required")
+    try:
+        return StaffIdpService().request_login(db, settings, email=email)
+    except ValueError as exc:
+        detail = str(exc)
+        if detail == "staff_enrollment_redis_unavailable":
+            raise HTTPException(status_code=503, detail=detail) from exc
+        raise HTTPException(status_code=400, detail=detail) from exc
+
+
+def _staff_session_response(payload: dict, settings: Settings):
+    from fastapi.responses import JSONResponse
+
+    from porterchain_api.auth.staff_session import staff_cookie_params
+
+    response = JSONResponse(payload)
+    cookie = staff_cookie_params(settings)
+    response.set_cookie(
+        cookie["key"],
+        payload["session_id"],
+        max_age=cookie["max_age"],
+        httponly=cookie["httponly"],
+        secure=cookie["secure"],
+        samesite=cookie["samesite"],
+        path=cookie["path"],
+        domain=cookie["domain"],
+    )
+    return response
+
+
+@router.post("/staff/passkey/register/options")
+async def staff_passkey_register_options(
+    request: Request,
+    authorization: Annotated[str | None, Header()] = None,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """WebAuthn registration options for an authenticated staff session."""
+    from porterchain_api.auth.admin import get_admin_context
+    from porterchain_api.auth import staff_webauthn
+
+    ctx = await get_admin_context(request, authorization, db, settings, None)
+    try:
+        return staff_webauthn.registration_options(db, settings, ctx.user)
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/staff/passkey/register/verify")
+async def staff_passkey_register_verify(
+    body: dict,
+    request: Request,
+    authorization: Annotated[str | None, Header()] = None,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """Verify WebAuthn registration and persist credential."""
+    from porterchain_api.auth.admin import get_admin_context
+    from porterchain_api.auth import staff_webauthn
+
+    ctx = await get_admin_context(request, authorization, db, settings, None)
+    challenge_id = (body.get("challenge_id") or "").strip()
+    credential = body.get("credential")
+    if not challenge_id or not isinstance(credential, dict):
+        raise HTTPException(status_code=400, detail="passkey_registration_invalid")
+    try:
+        row = staff_webauthn.verify_registration(
+            db,
+            settings,
+            admin_user=ctx.user,
+            challenge_id=challenge_id,
+            credential=credential,
+            device_label=body.get("device_label"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {
+        "id": row.id,
+        "credential_id": row.credential_id,
+        "device_label": row.device_label,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+    }
+
+
+@router.post("/staff/passkey/login/options")
+def staff_passkey_login_options(
+    body: dict,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """WebAuthn authentication options for staff email (public)."""
+    from porterchain_api.auth import staff_webauthn
+
+    email = (body.get("email") or "").strip()
+    if not email:
+        raise HTTPException(status_code=400, detail="email_required")
+    try:
+        return staff_webauthn.authentication_options(db, settings, email=email)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/staff/login")
+def staff_login(
+    body: dict,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """Activate via enrollment_token or passkey_assertion. Sets staff session cookie."""
+    from porterchain_api.admin_engine.staff_idp_service import StaffIdpService
+    from porterchain_api.auth import staff_webauthn
+
+    assertion = body.get("passkey_assertion")
+    if assertion:
+        challenge_id = (body.get("challenge_id") or assertion.get("challenge_id") or "").strip()
+        credential = assertion.get("credential") if isinstance(assertion, dict) else None
+        if credential is None and isinstance(assertion, dict) and assertion.get("id"):
+            credential = assertion
+        if not challenge_id or not isinstance(credential, dict):
+            raise HTTPException(status_code=400, detail="passkey_assertion_invalid")
+        try:
+            payload = staff_webauthn.verify_authentication(
+                db, settings, challenge_id=challenge_id, credential=credential
+            )
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            detail = str(exc)
+            status = 503 if "redis" in detail else 400
+            raise HTTPException(status_code=status, detail=detail) from exc
+        return _staff_session_response(payload, settings)
+
+    enrollment_token = (body.get("enrollment_token") or "").strip()
+    if not enrollment_token:
+        raise HTTPException(status_code=400, detail="enrollment_token_required")
+    try:
+        payload = StaffIdpService().activate(db, enrollment_token)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return _staff_session_response(payload, settings)
+
+
+@router.post("/staff/logout")
+def staff_logout(
+    request: Request,
+    authorization: Annotated[str | None, Header()] = None,
+    settings: Settings = Depends(get_settings),
+):
+    """Revoke staff session + clear cookie."""
+    from fastapi.responses import JSONResponse
+
+    from porterchain_api.auth.staff_session import (
+        STAFF_COOKIE_NAME,
+        revoke_session,
+        session_id_from_authorization,
+        staff_cookie_params,
+    )
+
+    sid = session_id_from_authorization(authorization) or request.cookies.get(STAFF_COOKIE_NAME)
+    if sid:
+        revoke_session(sid)
+    response = JSONResponse({"ok": True})
+    cookie = staff_cookie_params(settings, max_age=0)
+    response.delete_cookie(
+        cookie["key"],
+        path=cookie["path"],
+        domain=cookie["domain"],
+        secure=cookie["secure"],
+        httponly=cookie["httponly"],
+        samesite=cookie["samesite"],
+    )
+    return response

@@ -1,37 +1,34 @@
-# Porterchain (PCD)
+# PorterChain (PCD)
 
-**Type:** CANONICAL
-**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Type:** CANONICAL  
+**Last verified:** 2026-08-07
 
-Commercial logistics platform monorepo — website, API, portals, worker, and Fleetbase integration.
+Transportation Capacity Network monorepo — website, API, portals, worker, and Fleetbase integration.
 
-> **Architecture:** [masterrule.md](./masterrule.md) · **Doc rollout:** [Appendix C](./masterrule.md#appendix-c--documentation-simplification-program) · **Audit:** [CTO_AUDIT_REPORT.md](./CTO_AUDIT_REPORT.md)
+> **Charter:** [docs/PORTERCHAIN_CHARTER.md](docs/PORTERCHAIN_CHARTER.md) · **Architecture:** [masterrule.md](masterrule.md) · **Docs index:** [docs/README.md](docs/README.md) · **Todos:** [docs/PRIORITY_TODOS.md](docs/PRIORITY_TODOS.md)
 
 ## Applications
 
-| Path                                             | Port     | Description                                                                          |
-| ------------------------------------------------ | -------- | ------------------------------------------------------------------------------------ |
-| [`website/`](website/)                           | **3000** | Public Next.js site — marketing, booking, track (link to customer app for dashboard) |
-| [`apps/merchant-portal/`](apps/merchant-portal/) | **3001** | B2B merchant dashboard (Clerk)                                                       |
-| [`apps/admin/`](apps/admin/)                     | **3002** | Business admin / ops (Clerk)                                                         |
-| [`apps/driver-portal/`](apps/driver-portal/)     | **3003** | Driver web dashboard                                                                 |
-| [`apps/customer/`](apps/customer/)               | **3004** | Retail customer portal                                                               |
-| [`apps/api/`](apps/api/)                         | **8001** | Porterchain API (FastAPI) — all business logic                                       |
-| [`apps/worker/`](apps/worker/)                   | —        | Event bus + queue consumer                                                           |
-| [`apps/mobile-driver/`](apps/mobile-driver/)     | Expo     | Driver mobile app (Expo SDK 52)                                                      |
-| [`apps/mobile-customer/`](apps/mobile-customer/) | Expo     | Retail customer mobile app (Expo SDK 52)                                             |
-
-Path aliases: `website/` = public site (target `apps/website/`); `apps/merchant-portal/` = merchant portal (target `apps/merchant/`).
+| Path                                             | Port     | Description                                     |
+| ------------------------------------------------ | -------- | ----------------------------------------------- |
+| [`website/`](website/)                           | **3000** | Public Next.js site — marketing, booking, track |
+| [`apps/merchant-portal/`](apps/merchant-portal/) | **3001** | B2B merchant dashboard                          |
+| [`apps/admin/`](apps/admin/)                     | **3002** | Business admin / Control Tower                  |
+| [`apps/driver-portal/`](apps/driver-portal/)     | **3003** | Driver web dashboard                            |
+| [`apps/customer/`](apps/customer/)               | **3004** | Retail customer portal                          |
+| [`apps/api/`](apps/api/)                         | **8001** | PorterChain API (FastAPI)                       |
+| [`apps/worker/`](apps/worker/)                   | —        | Event bus + queue consumer                      |
+| [`apps/mobile-driver/`](apps/mobile-driver/)     | Expo     | Driver mobile (Expo SDK **57**)                 |
+| [`apps/mobile-customer/`](apps/mobile-customer/) | Expo     | Customer mobile (Expo SDK **57**)               |
 
 ## Quick start
 
 ### Prerequisites
 
-- Node.js **24.18.0** (see [`.nvmrc`](.nvmrc); engines `>=24`)
+- Node.js **24.18** (see [`.nvmrc`](.nvmrc))
 - [pnpm](https://pnpm.io) **11.10**
 - Python **3.14.6** for API/worker (see [TECH_STACK.md](TECH_STACK.md))
-- Docker (Postgres, Redis, Mailhog)
+- Docker (Postgres **18**, Redis, **Mailpit**)
 
 ### Install
 
@@ -43,14 +40,15 @@ cd apps/api && python3 -m venv .venv && source .venv/bin/activate && pip install
 
 ### Environment
 
-Copy templates from [`env/`](env/README.md) to each app (e.g. `apps/api/.env`, `website/.env.local`).
+Copy templates from [`env/`](env/README.md) into each app. Clerk: `env/clerk.env` → `pnpm clerk:sync`.
 
 ### Run locally
 
 ```bash
-pnpm docker:up          # Postgres :5432, Redis :6379, Mailhog :8025
+pnpm docker:up          # Postgres :5432, Redis :6379, Mailpit :8025
+pnpm db:migrate
 pnpm dev:api            # API :8001
-pnpm dev:worker         # async worker
+pnpm dev:worker
 pnpm dev                # website :3000
 pnpm dev:merchant       # :3001
 pnpm dev:admin          # :3002
@@ -58,65 +56,33 @@ pnpm dev:driver         # :3003
 pnpm dev:customer       # :3004
 ```
 
-### Health check (new engineer)
-
 ```bash
 curl -s http://localhost:8001/health/ready | python3 -m json.tool
 ```
 
-If you want the fastest “clone → ready” walkthrough, see `docs/ONBOARDING_ENGINEER.md`.
-
-Mobile apps: `pnpm dev:mobile-driver` or `pnpm dev:mobile-customer`
-
-### Database migrations
-
-```bash
-pnpm db:migrate         # alembic upgrade head (PostgreSQL production)
-pnpm db:revision -- -m "describe change"
-```
-
-PostgreSQL uses Alembic migrations — see [`apps/api/alembic/README.md`](apps/api/alembic/README.md). Run `pnpm db:migrate` before starting the API.
-
-## Monorepo scripts
-
-| Command           | Description                           |
-| ----------------- | ------------------------------------- |
-| `pnpm dev`        | Turbo dev (website + configured apps) |
-| `pnpm dev:api`    | Porterchain API                       |
-| `pnpm dev:worker` | Queue + event bus worker              |
-| `pnpm build`      | Production build                      |
-| `pnpm docker:up`  | Core Docker services                  |
+Onboarding walkthrough: [docs/ONBOARDING_ENGINEER.md](docs/ONBOARDING_ENGINEER.md).
 
 ## Ports
 
-| Port | Service                             |
-| ---- | ----------------------------------- |
-| 3000 | Website                             |
-| 3001 | Merchant portal                     |
-| 3002 | Admin                               |
-| 3003 | Driver portal                       |
-| 3004 | Customer portal                     |
-| 8001 | Porterchain API                     |
-| 8000 | Fleetbase API (when enabled)        |
-| 5432 | PostgreSQL (Porterchain-owned data) |
-| 6379 | Redis                               |
+| Port      | Service                      |
+| --------- | ---------------------------- |
+| 3000–3004 | Website + portals            |
+| 8001      | PorterChain API              |
+| 8000      | Fleetbase API (when enabled) |
+| 5432      | PostgreSQL                   |
+| 6379      | Redis                        |
+| 8025      | Mailpit UI                   |
 
 See [PORT_CONFIGURATION.md](PORT_CONFIGURATION.md).
 
-## Architecture
+## Documentation
 
-- [masterrule.md](masterrule.md) — locked rules and layer boundaries
-- [docs/architecture/SYSTEM_ARCHITECTURE.md](docs/architecture/SYSTEM_ARCHITECTURE.md) — platform topology (code-derived)
-- [PRODUCTION_READINESS_REPORT.md](PRODUCTION_READINESS_REPORT.md) — go/no-go status (July 2026)
-- [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md) — monorepo layout
-- [TECH_STACK.md](TECH_STACK.md)
-- [docs/README.md](docs/README.md) — full documentation index
-
----
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |
+| Document                                                   | Role                            |
+| ---------------------------------------------------------- | ------------------------------- |
+| [docs/README.md](docs/README.md)                           | **Full documentation index**    |
+| [docs/PORTERCHAIN_CHARTER.md](docs/PORTERCHAIN_CHARTER.md) | Company charter                 |
+| [masterrule.md](masterrule.md)                             | Architecture rules              |
+| [TECH_STACK.md](TECH_STACK.md)                             | Version SSOT                    |
+| [docs/ops/ORDERS_MODULE.md](docs/ops/ORDERS_MODULE.md)     | Control Tower / Order 360       |
+| [RUNBOOK.md](RUNBOOK.md)                                   | Operations runbook              |
+| [docs/archive/](docs/archive/)                             | Historical audits (do not edit) |

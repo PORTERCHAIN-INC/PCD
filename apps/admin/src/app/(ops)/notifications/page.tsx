@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Bell,
@@ -53,6 +53,8 @@ export default function NotificationsPage() {
   const [version, setVersion] = useState(0);
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [testEmail, setTestEmail] = useState("");
+  const [testMsg, setTestMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const q = searchParams.get("tab");
@@ -61,36 +63,35 @@ export default function NotificationsPage() {
 
   const { data: inbox } = useApiData(
     (t) => (tab === "inbox" ? notificationsApi.inbox(t) : Promise.resolve(null)),
-    [tab, version]
+    [tab, version],
+    { key: "notifications-inbox", enabled: tab === "inbox" }
   );
-  const { data: dashboard } = useApiData(
-    (t) => (tab === "dashboard" ? notificationsApi.dashboard(t) : Promise.resolve(null)),
-    [tab, version]
-  );
+  const { data: dashboard } = useApiData((t) => notificationsApi.dashboard(t), [version], {
+    key: "notifications-dashboard",
+    enabled: tab === "dashboard",
+  });
   const { data: queue } = useApiData(
-    (t) =>
-      tab === "queue" ? notificationsApi.queue(t, search ? { search } : {}) : Promise.resolve([]),
-    [tab, version, search]
+    (t) => notificationsApi.queue(t, search ? { search } : {}),
+    [version, search],
+    { key: "notifications-queue", enabled: tab === "queue" }
   );
   const { data: history } = useApiData(
-    (t) =>
-      tab === "history"
-        ? notificationsApi.history(t, search ? { search } : {})
-        : Promise.resolve([]),
-    [tab, version, search]
+    (t) => notificationsApi.history(t, search ? { search } : {}),
+    [version, search],
+    { key: "notifications-history", enabled: tab === "history" }
   );
-  const { data: failed } = useApiData(
-    (t) => (tab === "failed" ? notificationsApi.failed(t) : Promise.resolve([])),
-    [tab, version]
-  );
-  const { data: templates } = useApiData(
-    (t) => (tab === "templates" ? notificationsApi.templates(t) : Promise.resolve([])),
-    [tab, version]
-  );
-  const { data: devices } = useApiData(
-    (t) => (tab === "devices" ? notificationsApi.devices(t) : Promise.resolve([])),
-    [tab, version]
-  );
+  const { data: failed } = useApiData((t) => notificationsApi.failed(t), [version], {
+    key: "notifications-failed",
+    enabled: tab === "failed",
+  });
+  const { data: templates } = useApiData((t) => notificationsApi.templates(t), [version], {
+    key: "notifications-templates",
+    enabled: tab === "templates",
+  });
+  const { data: devices } = useApiData((t) => notificationsApi.devices(t), [version], {
+    key: "notifications-devices",
+    enabled: tab === "devices",
+  });
 
   async function retry(id: string) {
     setBusy(id);
@@ -120,6 +121,29 @@ export default function NotificationsPage() {
       const token = await getApiToken();
       await notificationsApi.markAllRead(token);
       setVersion((v) => v + 1);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function sendTest(templateKey: string) {
+    setBusy(templateKey);
+    setTestMsg(null);
+    try {
+      const token = await getApiToken();
+      const result = await notificationsApi.sendTest(token, {
+        template_key: templateKey,
+        channel: "email",
+        recipient_address: testEmail.trim() || undefined,
+      });
+      setTestMsg(
+        result.ok
+          ? `Sent ${templateKey} → ${result.status} (${result.notification_id?.slice(0, 8) ?? "—"}…)`
+          : "Send test failed"
+      );
+      setVersion((v) => v + 1);
+    } catch (e) {
+      setTestMsg(e instanceof Error ? e.message : "Send test failed");
     } finally {
       setBusy(null);
     }
@@ -192,13 +216,17 @@ export default function NotificationsPage() {
         />
       )}
 
-      {tab === "dashboard" && dashboard && (
+      {tab === "dashboard" && dashboard && !Array.isArray(dashboard) && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <Stat label="Total sent" value={dashboard.total} />
-          <Stat label="Queued" value={dashboard.queued} accent="text-amber-600" />
-          <Stat label="Failed" value={dashboard.failed} accent="text-red-600" />
-          <Stat label="Active devices" value={dashboard.active_devices} accent="text-secondary" />
-          <Stat label="Templates" value={dashboard.templates} />
+          <Stat label="Total sent" value={dashboard.total ?? 0} />
+          <Stat label="Queued" value={dashboard.queued ?? 0} accent="text-amber-600" />
+          <Stat label="Failed" value={dashboard.failed ?? 0} accent="text-red-600" />
+          <Stat
+            label="Active devices"
+            value={dashboard.active_devices ?? 0}
+            accent="text-secondary"
+          />
+          <Stat label="Templates" value={dashboard.templates ?? 0} />
         </div>
       )}
 
@@ -230,17 +258,41 @@ export default function NotificationsPage() {
 
       {tab === "templates" && (
         <SectionCard title={`Templates (${templates?.length ?? 0})`}>
+          <div className="flex flex-wrap items-end gap-3 border-b border-primary/8 px-5 py-3">
+            <label className="flex min-w-[220px] flex-1 flex-col gap-1 text-xs text-muted">
+              Send-test email (Mailpit / SMTP)
+              <input
+                type="email"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                placeholder="you@porterchain.com"
+                className="rounded-lg border border-primary/15 px-3 py-2 text-sm text-primary"
+              />
+            </label>
+            {testMsg ? <p className="text-xs text-muted">{testMsg}</p> : null}
+          </div>
           {!templates ? (
             <Spinner />
           ) : (
             <div className="divide-y divide-primary/5">
               {templates.map((t) => (
-                <div key={t.key} className="flex items-center justify-between px-5 py-3">
-                  <div>
+                <div key={t.key} className="flex items-center justify-between gap-3 px-5 py-3">
+                  <div className="min-w-0">
                     <p className="text-sm font-medium text-primary">{t.key}</p>
-                    <p className="text-xs text-muted">{t.subject}</p>
+                    <p className="truncate text-xs text-muted">{t.subject}</p>
                   </div>
-                  <Badge tone="slate">{titleCase(t.category)}</Badge>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Badge tone="slate">{titleCase(t.category)}</Badge>
+                    <Button
+                      variant="outline"
+                      disabled={busy === t.key}
+                      onClick={() => void sendTest(t.key)}
+                      className="gap-1.5 text-xs"
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                      Send test
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -330,13 +382,13 @@ function Stat({
   accent = "text-primary",
 }: {
   label: string;
-  value: number;
+  value: number | null | undefined;
   accent?: string;
 }) {
   return (
     <div className="rounded-2xl border border-primary/10 bg-white p-4 shadow-sm">
       <p className="text-xs text-muted">{label}</p>
-      <p className={`mt-1 text-2xl font-bold ${accent}`}>{value.toLocaleString()}</p>
+      <p className={`mt-1 text-2xl font-bold ${accent}`}>{(value ?? 0).toLocaleString()}</p>
     </div>
   );
 }
@@ -354,6 +406,35 @@ function RecordTable({
   empty: string;
   showRetry?: boolean;
 }) {
+  const { getApiToken } = useAdminAuth();
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [logs, setLogs] = useState<
+    Record<
+      string,
+      Array<{
+        id: string;
+        channel: string;
+        status: string;
+        error: string | null;
+        recipient: string;
+        created_at: string | null;
+      }>
+    >
+  >({});
+
+  async function toggleReceipts(id: string) {
+    if (expanded === id) {
+      setExpanded(null);
+      return;
+    }
+    setExpanded(id);
+    if (!logs[id]) {
+      const token = await getApiToken();
+      const data = await notificationsApi.deliveryLogs(token, id);
+      setLogs((prev) => ({ ...prev, [id]: data }));
+    }
+  }
+
   if (!rows) return <Spinner />;
   if (rows.length === 0) return <EmptyState title={empty} />;
   return (
@@ -367,37 +448,74 @@ function RecordTable({
               <th className="px-4 py-2">Recipient</th>
               <th className="px-4 py-2">Status</th>
               <th className="px-4 py-2">Created</th>
+              <th className="px-4 py-2">Receipts</th>
               {showRetry && <th className="px-4 py-2" />}
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="border-b border-primary/5">
-                <td className="px-4 py-2">
-                  <p className="font-medium text-primary">{r.title}</p>
-                  <p className="text-xs text-muted">{r.template_key}</p>
-                </td>
-                <td className="px-4 py-2">{titleCase(r.channel)}</td>
-                <td className="px-4 py-2 text-xs">
-                  {titleCase(r.recipient_type)} · {r.recipient_id.slice(0, 8)}…
-                </td>
-                <td className="px-4 py-2">
-                  <Badge tone={STATUS_TONE[r.status] ?? "slate"}>{titleCase(r.status)}</Badge>
-                </td>
-                <td className="px-4 py-2">{shortDate(r.created_at)}</td>
-                {showRetry && (
+              <Fragment key={r.id}>
+                <tr className="border-b border-primary/5">
                   <td className="px-4 py-2">
-                    <Button
-                      variant="outline"
-                      className="px-2 py-1 text-xs"
-                      disabled={busy === r.id}
-                      onClick={() => onRetry(r.id)}
-                    >
-                      <RefreshCw className="h-3 w-3" /> Retry
-                    </Button>
+                    <p className="font-medium text-primary">{r.title}</p>
+                    <p className="text-xs text-muted">{r.template_key}</p>
                   </td>
-                )}
-              </tr>
+                  <td className="px-4 py-2">{titleCase(r.channel)}</td>
+                  <td className="px-4 py-2 text-xs">
+                    {titleCase(r.recipient_type)} · {r.recipient_id.slice(0, 8)}…
+                  </td>
+                  <td className="px-4 py-2">
+                    <Badge tone={STATUS_TONE[r.status] ?? "slate"}>{titleCase(r.status)}</Badge>
+                  </td>
+                  <td className="px-4 py-2">{shortDate(r.created_at)}</td>
+                  <td className="px-4 py-2">
+                    <button
+                      type="button"
+                      className="text-xs font-medium text-secondary hover:underline"
+                      onClick={() => void toggleReceipts(r.id)}
+                    >
+                      {expanded === r.id ? "Hide" : "View"}
+                    </button>
+                  </td>
+                  {showRetry ? (
+                    <td className="px-4 py-2">
+                      <Button
+                        variant="outline"
+                        className="px-2 py-1 text-xs"
+                        disabled={busy === r.id}
+                        onClick={() => onRetry(r.id)}
+                      >
+                        <RefreshCw className="h-3 w-3" /> Retry
+                      </Button>
+                    </td>
+                  ) : null}
+                </tr>
+                {expanded === r.id ? (
+                  <tr className="bg-slate-50/80">
+                    <td colSpan={showRetry ? 7 : 6} className="px-4 py-3">
+                      {!logs[r.id] ? (
+                        <Spinner />
+                      ) : logs[r.id].length === 0 ? (
+                        <p className="text-xs text-muted">No delivery attempts logged yet.</p>
+                      ) : (
+                        <ul className="space-y-1 text-xs text-muted">
+                          {logs[r.id].map((log) => (
+                            <li key={log.id}>
+                              <span className="font-medium text-primary">
+                                {titleCase(log.status)}
+                              </span>
+                              {" · "}
+                              {titleCase(log.channel)} · {log.recipient || "—"}
+                              {log.error ? ` · ${log.error}` : ""}
+                              {log.created_at ? ` · ${shortDate(log.created_at)}` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </td>
+                  </tr>
+                ) : null}
+              </Fragment>
             ))}
           </tbody>
         </table>

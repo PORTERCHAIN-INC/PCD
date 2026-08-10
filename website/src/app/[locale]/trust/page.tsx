@@ -94,7 +94,7 @@ export default async function TrustPage({ params }: Props) {
         primaryLabel={t("cta.primary")}
         primaryHref="mailto:security@porterchain.com"
         secondaryLabel={t("cta.secondary")}
-        secondaryHref="/business#inquiry"
+        secondaryHref="/sign-up?intent=quote&from=business"
         variant="gradient"
       />
     </CorporateShell>

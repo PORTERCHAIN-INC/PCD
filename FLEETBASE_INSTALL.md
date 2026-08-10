@@ -2,10 +2,10 @@
 
 **Type:** CANONICAL
 **masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Last verified:** 2026-08-07
 
-**Version installed:** [Fleetbase v0.7.40](https://github.com/fleetbase/fleetbase/releases/tag/v0.7.40)  
-**Location:** `apps/fleetbase/` (upstream clone — **no Porterchain modifications to Fleetbase source**)
+**Git clone:** [Fleetbase v0.7.40](https://github.com/fleetbase/fleetbase/releases/tag/v0.7.40) in `apps/fleetbase/` (upstream — **no Porterchain modifications to Fleetbase source**)  
+**Runtime API pin:** `fleetbase/fleetbase-api@sha256:24c0fbe5e465…` via `infrastructure/docker/fleetbase.porterchain.override.yml` → **fleetops-api 0.6.59**, **core-api 1.6.55** (image vendor tree is SSOT; host `composer.lock` may lag)
 
 ---
 
@@ -130,7 +130,7 @@ pnpm docker:fleetbase:verify
 pnpm docker:fleetbase:verify
 ```
 
-Expected: all checks `PASS` (see [FLEETBASE_SERVICE_STATUS.md](./FLEETBASE_SERVICE_STATUS.md)).
+Expected: all checks `PASS` (see [SERVICE_STATUS.md](SERVICE_STATUS.md)).
 
 ---
 
@@ -175,19 +175,12 @@ Always run `./deploy.sh` after upgrading per [Fleetbase docs](https://fleetbase.
 
 ## Related documents
 
-| Document                                                     | Purpose               |
-| ------------------------------------------------------------ | --------------------- |
-| [DOCKER_SETUP.md](./DOCKER_SETUP.md)                         | Container reference   |
-| [RUNBOOK.md](./RUNBOOK.md)                                   | Day-2 operations      |
-| [FLEETBASE_SERVICE_STATUS.md](./FLEETBASE_SERVICE_STATUS.md) | Verification snapshot |
-| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)       | Porterchain bridge    |
-| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)             | Port map              |
+| Document                                               | Purpose               |
+| ------------------------------------------------------ | --------------------- |
+| [DOCKER_SETUP.md](./DOCKER_SETUP.md)                   | Container reference   |
+| [RUNBOOK.md](./RUNBOOK.md)                             | Day-2 operations      |
+| [SERVICE_STATUS.md](SERVICE_STATUS.md)                 | Verification snapshot |
+| [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md) | Porterchain bridge    |
+| [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)       | Port map              |
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

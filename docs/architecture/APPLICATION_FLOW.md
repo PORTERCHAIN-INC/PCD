@@ -29,7 +29,7 @@ FastAPI Router (Controller)
         ↓
 Application Service (*_engine/*_service.py)
         ↓
-Repository → PostgreSQL 16
+Repository → PostgreSQL 18
         ↓ (async side effects)
 Event Bus → apps/worker → Queues
         ↓ (logistics execution)
@@ -65,7 +65,7 @@ sequenceDiagram
   participant Auth as auth/clerk.py or merchant_api
   participant Svc as Application Service
   participant Repo as SQLAlchemy / Repository
-  participant DB as PostgreSQL 16
+  participant DB as PostgreSQL 18
   participant Bus as Event Bus
   participant Worker as apps/worker
   participant FBE as fleetbase_engine
@@ -96,10 +96,3 @@ sequenceDiagram
 
 See [plantuml/application_flow.puml](./plantuml/application_flow.puml)
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

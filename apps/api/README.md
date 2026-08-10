@@ -4,7 +4,7 @@
 **masterrule:** [§21](../../masterrule.md#21-simplification--essential-complexity)
 **Last verified:** 2026-07-08
 
-Logistics orchestrator — retail booking, merchant, driver, admin, notifications, and Fleetbase bridge. See [PRODUCT_REQUIREMENTS.md](../../PRODUCT_REQUIREMENTS.md) and [ORDER_LIFECYCLE.md](../../ORDER_LIFECYCLE.md).
+Logistics orchestrator — retail booking, merchant, driver, admin, notifications, and Fleetbase bridge. See [PORTERCHAIN_CHARTER.md](../../docs/PORTERCHAIN_CHARTER.md) and [ORDER_LIFECYCLE.md](../../ORDER_LIFECYCLE.md).
 
 ---
 
@@ -143,10 +143,3 @@ pnpm validate:e2e:reports # Regenerate E2E report markdown
 | [../../DATABASE_ARCHITECTURE.md](../../DATABASE_ARCHITECTURE.md) | Database design    |
 
 ---
-
-## Governance
-
-| Document                                                       | Role              |
-| -------------------------------------------------------------- | ----------------- |
-| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

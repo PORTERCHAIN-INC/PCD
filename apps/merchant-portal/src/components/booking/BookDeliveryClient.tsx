@@ -21,6 +21,7 @@ import {
 } from "@/lib/booking";
 import { publicEnv } from "@/lib/env";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
+import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -401,7 +402,7 @@ export default function BookDeliveryClient() {
             Single
           </ModeButton>
           <ModeButton active={mode === "multi"} onClick={() => setMode("multi")}>
-            Multi parcel
+            Multiple deliveries
           </ModeButton>
           <Link
             href="/bulk"
@@ -410,6 +411,22 @@ export default function BookDeliveryClient() {
             CSV / Excel bulk
           </Link>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-primary/10 bg-gray-bg/60 px-4 py-3 text-sm text-muted">
+        <p>
+          <span className="font-medium text-primary">Single</span> — one pickup → one drop (one
+          order). <span className="font-medium text-primary">Multiple deliveries</span> — same
+          pickup, many drops as <span className="font-medium text-primary">separate orders</span>{" "}
+          (not one multi-stop route). For one multi-stop route (1 pickup → many drops), use{" "}
+          <Link
+            href="/bulk"
+            className="font-medium text-secondary underline-offset-2 hover:underline"
+          >
+            Bulk → Route import
+          </Link>
+          .
+        </p>
       </div>
 
       {draftBanner && (
@@ -508,9 +525,8 @@ export default function BookDeliveryClient() {
                   </div>
                 )}
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field
+                  <DateTimeField
                     label="Scheduled at"
-                    type="datetime-local"
                     value={scheduledAt}
                     onChange={setScheduledAt}
                   />
@@ -623,15 +639,13 @@ export default function BookDeliveryClient() {
                         onChange={setTempMax}
                         type="number"
                       />
-                      <Field
+                      <DateTimeField
                         label="Window start"
-                        type="datetime-local"
                         value={deliveryWindowStart}
                         onChange={setDeliveryWindowStart}
                       />
-                      <Field
+                      <DateTimeField
                         label="Window end"
-                        type="datetime-local"
                         value={deliveryWindowEnd}
                         onChange={setDeliveryWindowEnd}
                       />
@@ -931,6 +945,33 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
+    </div>
+  );
+}
+
+function DateTimeField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <span className="text-sm font-medium text-primary">{label}</span>
+      <div className="mt-1">
+        <DateTimePickerSeparateField
+          value={value}
+          onChange={onChange}
+          hourFormat={12}
+          timeInterval={15}
+          minDate={new Date()}
+          datePlaceholder="Pick a date"
+          timePlaceholder="Pick time"
+        />
+      </div>
     </div>
   );
 }

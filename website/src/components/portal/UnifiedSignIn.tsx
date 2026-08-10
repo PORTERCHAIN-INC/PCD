@@ -3,8 +3,9 @@
 import { SignIn } from "@clerk/nextjs";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import PorterchainWordmark from "@/components/brand/PorterchainWordmark";
-import { porterchainClerkAppearance } from "@/lib/clerk-appearance";
+import { porterchainClerkAppearance } from "@porterchain/auth";
+import PlatformAuthLayout from "@/components/portal/PlatformAuthLayout";
+import { adminSignInUrl, driverSignInUrl } from "@/data/portal-links";
 
 type UnifiedSignInProps = {
   /** Absolute path Clerk should open after auth (e.g. /en/login/continue). */
@@ -12,49 +13,54 @@ type UnifiedSignInProps = {
 };
 
 /**
- * Platform Clerk sign-in for signed-out users only.
- * After success Clerk goes to redirectUrl — never leave the user on #/factor-one.
- *
- * path routing must match the real browser path (`/{locale}/login`), not bare `/login`.
+ * Platform Clerk SignIn for retail (customer + merchant).
+ * Open SignUp is on /sign-up. Admin and Driver use separate portal URLs.
  */
 export default function UnifiedSignIn({ redirectUrl }: UnifiedSignInProps) {
   const t = useTranslations("login");
   const locale = useLocale();
   const signInPath = `/${locale}/login`;
+  const signUpPath = `/${locale}/sign-up`;
 
   return (
-    <div className="min-h-[calc(100dvh-var(--nav-height))] flex flex-col items-center justify-center bg-gray-bg px-4 py-10 sm:px-6">
-      <div className="mb-8 flex flex-col items-center text-center">
-        <PorterchainWordmark tone="light" size="lg" />
-        <h1 className="mt-6 text-xl font-semibold tracking-tight text-primary sm:text-2xl">
-          {t("title")}
-        </h1>
-        <p className="mt-2 max-w-sm text-sm text-muted">{t("subtitle")}</p>
-      </div>
-
-      <div className="w-full max-w-md min-w-0 rounded-2xl border border-primary/8 bg-white p-5 sm:p-6 md:p-8 shadow-premium">
-        <SignIn
-          routing="path"
-          path={signInPath}
-          forceRedirectUrl={redirectUrl}
-          signUpForceRedirectUrl={redirectUrl}
-          fallbackRedirectUrl={redirectUrl}
-          appearance={porterchainClerkAppearance}
-        />
-      </div>
-
-      <p className="mt-8 text-center text-sm text-muted">
-        {t("needHelp")}{" "}
-        <Link href="/contact" className="font-medium text-secondary hover:text-[#1d4ed8]">
-          {t("needHelpLink")}
-        </Link>
-      </p>
-
-      <p className="mt-3 text-center">
-        <Link href="/" className="text-xs text-muted hover:text-primary transition-colors">
-          {t("backHome")}
-        </Link>
-      </p>
-    </div>
+    <PlatformAuthLayout
+      mode="sign-in"
+      title={t("title")}
+      subtitle={t("subtitle")}
+      footer={
+        <div className="space-y-4">
+          <p>
+            {t("needHelp")}{" "}
+            <Link
+              href="/sign-up"
+              className="font-semibold text-secondary underline-offset-2 hover:text-[#1d4ed8] hover:underline"
+            >
+              {t("needHelpLink")}
+            </Link>
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted sm:justify-start">
+            <a href={adminSignInUrl} className="transition-colors hover:text-primary">
+              {t("staffSignIn")}
+            </a>
+            <span className="text-primary/20" aria-hidden>
+              ·
+            </span>
+            <a href={driverSignInUrl} className="transition-colors hover:text-primary">
+              {t("driverSignIn")}
+            </a>
+          </div>
+        </div>
+      }
+    >
+      <SignIn
+        routing="path"
+        path={signInPath}
+        signUpUrl={signUpPath}
+        forceRedirectUrl={redirectUrl}
+        signUpForceRedirectUrl={redirectUrl}
+        fallbackRedirectUrl={redirectUrl}
+        appearance={porterchainClerkAppearance}
+      />
+    </PlatformAuthLayout>
   );
 }

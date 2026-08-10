@@ -25,12 +25,17 @@ class MerchantProfileService:
             "billing_address",
             "hst_number",
             "business_number",
-            "preferred_vehicles",
             "delivery_zones",
         ):
             value = getattr(body, field)
             if value is not None:
                 setattr(merchant, field, value)
+        if body.preferred_vehicles is not None:
+            from porterchain_api.admin_engine.merchant_service import AdminMerchantService
+
+            merchant.preferred_vehicles = AdminMerchantService._validate_preferred_vehicles(
+                db, list(body.preferred_vehicles)
+            )
         db.commit()
         db.refresh(merchant)
         return merchant

@@ -126,17 +126,50 @@ def is_divergent_enterprise_clerk(settings: Settings) -> bool:
     return not _apps_share_single_issuer(apps)
 
 
-def should_use_platform_clerk(settings: Settings) -> bool:
-    """Force single PorterChain Platform client."""
+def is_platform_driver_layout(settings: Settings) -> bool:
+    """True when customer/merchant/admin share one issuer and driver differs."""
     if settings.clerk_unified_mode:
-        return True
+        return False
+    if not is_enterprise_clerk_configured(settings):
+        return False
+    apps = {a.kind: a for a in _portal_slot_apps(settings)}
+    required = ("customer", "merchant", "admin", "driver")
+    if any(k not in apps for k in required):
+        return False
+    platform_secrets = {
+        apps["customer"].secret_key,
+        apps["merchant"].secret_key,
+        apps["admin"].secret_key,
+    }
+    platform_jwks = {
+        apps["customer"].jwks_url,
+        apps["merchant"].jwks_url,
+        apps["admin"].jwks_url,
+    }
+    if len(platform_secrets) != 1 or len(platform_jwks) != 1:
+        return False
+    driver = apps["driver"]
+    return driver.secret_key not in platform_secrets or driver.jwks_url not in platform_jwks
+
+
+def should_use_platform_clerk(settings: Settings) -> bool:
+    """Collapse Platform triad over all kinds — never when Driver differs.
+
+    ``clerk_unified_mode`` is retired (ignored). Identical four-slot keys still
+    collapse only for local DEV where Driver temporarily shares Platform secrets.
+    """
+    if settings.clerk_unified_mode:
+        # Flag kept for env compat — never treat as SoT collapse.
+        pass
+    if is_platform_driver_layout(settings):
+        return False
     slots = _portal_slot_apps(settings)
     if slots and _apps_share_single_issuer(slots):
         return True
+    if is_divergent_enterprise_clerk(settings):
+        return False
     platform = resolve_platform_clerk_config(settings)
-    if platform and platform.secret_key and platform.jwks_url and not is_divergent_enterprise_clerk(settings):
-        return True
-    return False
+    return bool(platform and platform.secret_key and platform.jwks_url and not slots)
 
 
 def _expand_platform(platform: ClerkAppConfig) -> list[ClerkAppConfig]:
@@ -261,20 +294,18 @@ def is_legacy_clerk_configured(settings: Settings) -> bool:
 
 def clerk_configuration_mode(settings: Settings) -> str:
     """
-    unified | enterprise | legacy | incomplete
+    platform_driver | enterprise | legacy | incomplete
 
-    Identical four-slot keys or ``clerk_unified_mode`` → unified (not enterprise).
+    platform_driver = PorterChain Platform (customer/merchant/admin) + Porterchain Driver.
+    Identical four-slot keys (Driver == Platform) → platform_driver for local DEV.
+    ``clerk_unified_mode`` is retired and does not change the reported mode.
     """
-    if settings.clerk_unified_mode:
-        if resolve_platform_clerk_config(settings) or is_enterprise_clerk_configured(settings):
-            return "unified"
-        if is_legacy_clerk_configured(settings):
-            return "unified"
-        return "incomplete"
-
     if is_enterprise_clerk_configured(settings):
+        if is_platform_driver_layout(settings):
+            return "platform_driver"
         if _apps_share_single_issuer(_portal_slot_apps(settings)):
-            return "unified"
+            # Local DEV: Driver temporarily shares Platform secrets.
+            return "platform_driver"
         return "enterprise"
 
     if is_legacy_clerk_configured(settings):
@@ -282,7 +313,7 @@ def clerk_configuration_mode(settings: Settings) -> str:
 
     platform = resolve_platform_clerk_config(settings)
     if platform and platform.secret_key and platform.jwks_url:
-        return "unified"
+        return "platform_driver"
 
     return "incomplete"
 

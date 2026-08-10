@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { quoteSignUpPath } from "@/data/portal-links";
 
 export default function StickyCta() {
   const t = useTranslations("businessPage.stickyCta");
@@ -15,10 +17,6 @@ export default function StickyCta() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToInquiry = () => {
-    document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
     <AnimatePresence>
       {visible && (
@@ -27,20 +25,20 @@ export default function StickyCta() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed bottom-0 left-0 right-0 z-40 px-4 pt-2 safe-bottom pointer-events-none"
+          className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 px-4 pt-2 safe-bottom"
         >
-          <div className="max-w-lg mx-auto pointer-events-auto">
-            <div className="biz-glass-dark rounded-2xl px-4 sm:px-5 py-3 sm:py-3.5 flex items-center justify-between gap-3 sm:gap-4 biz-shadow-lg">
-              <p className="text-white text-sm font-medium hidden sm:block min-w-0">
+          <div className="pointer-events-auto mx-auto max-w-lg">
+            <div className="biz-glass-dark biz-shadow-lg flex items-center justify-between gap-3 rounded-2xl px-4 py-3 sm:gap-4 sm:px-5 sm:py-3.5">
+              <p className="hidden min-w-0 text-sm font-medium text-white sm:block">
                 {t("message")}
               </p>
-              <button
-                onClick={scrollToInquiry}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto min-h-[2.75rem] px-5 py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-semibold hover:bg-[#1d4ed8] transition-colors whitespace-nowrap sm:ml-auto"
+              <Link
+                href={quoteSignUpPath({ from: "business-sticky" })}
+                className="flex min-h-[2.75rem] w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#2563eb] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8] sm:ml-auto sm:w-auto"
               >
                 {t("button")}
-                <ArrowRight className="w-4 h-4" />
-              </button>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </motion.div>

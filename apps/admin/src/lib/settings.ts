@@ -112,17 +112,57 @@ export type SettingsDashboard = {
   recent_changes: Array<Record<string, unknown>>;
 };
 
+export type RoleCatalogEntry = {
+  role: string;
+  label: string;
+  modules: string[];
+};
+
+export type RoleCatalog = {
+  roles: RoleCatalogEntry[];
+  modules: Array<{ module: string; roles: string[] }>;
+};
+
+export type SettingsBinding = {
+  id: string;
+  storage_key: string | null;
+  effect: "wired" | "env" | "policy" | "decorative" | "identity" | "status";
+  readers: string[];
+  ui_editable: boolean;
+  summary: string;
+  fields?: Array<{ key: string; effect: string }>;
+  related_keys?: string[];
+};
+
 export type SettingsCenter = {
   dashboard: SettingsDashboard;
   sections: SettingsSection[];
   config: Record<string, unknown>;
   module_config: Record<string, unknown>;
+  bindings?: {
+    bindings: SettingsBinding[];
+    aliases: Record<string, string>;
+    writable: string[];
+  };
+  env_runtime?: {
+    quote_ttl_minutes?: number;
+    booking_draft_ttl_minutes?: number | null;
+  };
+  /** module → roles that include it (catalog, not Check SoT) */
   permissions: Record<string, string[]>;
-  roles: string[];
+  /** Admin role catalog entries from MODULE_PERMISSIONS */
+  roles: RoleCatalogEntry[];
+  role_catalog?: RoleCatalog;
+  authz?: {
+    engine: string;
+    docs: string;
+    schema: string;
+  };
   validation: {
     valid: boolean;
     issues: string[];
     warnings: string[];
+    commercial_ok?: boolean;
     checked_at: string;
   };
 };
@@ -142,10 +182,6 @@ const B = "/v1/admin/settings";
 
 export const CONFIG_SECTION_IDS = [
   "general",
-  "branding",
-  "authentication",
-  "security",
-  "notifications",
   "booking",
   "merchant",
   "driver",
@@ -154,10 +190,6 @@ export const CONFIG_SECTION_IDS = [
   "documents",
   "claims",
   "automation",
-  "feature_flags",
-  "vehicles",
-  "service_areas",
-  "delivery_zones",
 ] as const;
 
 export const INTEGRATION_SECTION_IDS = [
@@ -165,18 +197,14 @@ export const INTEGRATION_SECTION_IDS = [
   "stripe",
   "google_maps",
   "firebase",
-  "email",
-  "sms",
-  "push",
   "storage",
+  "channels",
 ] as const;
 
-export const MODULE_SECTION_LINKS: Record<string, { href: string; label: string }> = {
-  finance: { href: "/pricing", label: "Tax, fuel, and system rate card live in Pricing Center" },
-  support: { href: "/support", label: "SLA, macros, and automation in Support Center" },
-  pricing: { href: "/pricing", label: "System rate card, rules, and tariffs" },
-  operations: { href: "/operations", label: "Operations control tower" },
-};
+export const ENV_OWNED_SECTION_IDS = ["authentication", "security"] as const;
+
+/** @deprecated stubs removed — kept empty for any residual imports */
+export const MODULE_SECTION_LINKS: Record<string, { href: string; label: string }> = {};
 
 export const settingsApi = {
   center: (token: string) => adminFetch<SettingsCenter>(`${B}/center`, token),
@@ -199,43 +227,54 @@ export const settingsApi = {
     const raw = await adminFetch<unknown>(`${B}/users/${userType}${qs ? `?${qs}` : ""}`, token);
     return platformUsersResponseSchema.parse(raw);
   },
-  createUser: (
+  /** Driver-only create (Clerk invite and/or password). */
+  createDriver: (
     token: string,
-    userType: UserDirectoryTab,
     body: {
       email: string;
       name?: string;
-      role?: string;
       password?: string;
       send_invite?: boolean;
-      merchant_id?: string;
     }
   ) =>
-    adminFetch<Record<string, unknown>>(`${B}/users/${userType}`, token, {
+    adminFetch<Record<string, unknown>>(`${B}/users/driver`, token, {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  updateClerkUser: (
+  /** Merchant seat reserve — no password / Clerk invite. */
+  addMerchantSeat: (
     token: string,
-    userType: UserDirectoryTab,
+    body: {
+      email: string;
+      name?: string;
+      merchant_id: string;
+      role?: string;
+    }
+  ) =>
+    adminFetch<Record<string, unknown>>(`${B}/users/merchant`, token, {
+      method: "POST",
+      body: JSON.stringify({
+        email: body.email,
+        name: body.name,
+        merchant_id: body.merchant_id,
+        role: body.role ?? "merchant_ops",
+      }),
+    }),
+  updateDriverClerk: (
+    token: string,
     body: { clerk_user_id: string; name?: string; password?: string; banned?: boolean }
   ) =>
-    adminFetch<Record<string, unknown>>(`${B}/users/${userType}/clerk`, token, {
+    adminFetch<Record<string, unknown>>(`${B}/users/driver/clerk`, token, {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
-  deleteUser: (
-    token: string,
-    userType: UserDirectoryTab,
-    body: { clerk_user_id?: string; platform_user_id?: string }
-  ) =>
-    adminFetch<void>(`${B}/users/${userType}/delete`, token, {
+  deleteDriver: (token: string, body: { clerk_user_id?: string; platform_user_id?: string }) =>
+    adminFetch<void>(`${B}/users/driver/delete`, token, {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  authorizeUser: (
+  authorizeDriver: (
     token: string,
-    userType: UserDirectoryTab,
     body: {
       platform_user_id?: string;
       clerk_user_id?: string;
@@ -252,19 +291,33 @@ export const settingsApi = {
       access_status: string;
       modules: string[];
       actions_taken: string[];
-    }>(`${B}/users/${userType}/authorize`, token, {
+    }>(`${B}/users/driver/authorize`, token, {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  inviteStaff: (token: string, body: { email: string; role: string; name?: string }) =>
-    adminFetch<StaffUser & { clerk_action: string; invitation_status: string }>(
-      `${B}/staff/invite`,
-      token,
-      {
-        method: "POST",
-        body: JSON.stringify(body),
-      }
-    ),
+  enrollStaff: (token: string, body: { email: string; role: string; name?: string }) =>
+    adminFetch<{
+      admin_user_id: string;
+      email: string;
+      role: string;
+      enrollment_token?: string | null;
+      expires_at: number;
+      clerk_invite: boolean;
+      email_sent?: boolean;
+    }>(`${B}/staff/enroll`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  reissueStaffEnrollment: (token: string, userId: string) =>
+    adminFetch<{
+      admin_user_id: string;
+      email: string;
+      role: string;
+      enrollment_token?: string | null;
+      expires_at: number;
+      clerk_invite: boolean;
+      email_sent?: boolean;
+    }>(`${B}/staff/${userId}/enroll-reissue`, token, { method: "POST" }),
   updateStaffRole: (token: string, userId: string, role: string, reason?: string) =>
     adminFetch<StaffUser>(`${B}/staff/${userId}/role`, token, {
       method: "PATCH",
@@ -289,10 +342,17 @@ export const settingsApi = {
   validate: (token: string) =>
     adminFetch<{ valid: boolean; issues: string[]; warnings: string[] }>(`${B}/validate`, token),
   exportConfig: (token: string) => adminFetch<Record<string, unknown>>(`${B}/export`, token),
-  importConfig: (token: string, config: Record<string, unknown>, reason?: string) =>
-    adminFetch<{ imported: number }>(`${B}/import`, token, {
+  importConfig: (token: string, config: Record<string, unknown>, reason?: string, dryRun = false) =>
+    adminFetch<{
+      imported?: number;
+      dry_run?: boolean;
+      added?: string[];
+      changed?: string[];
+      blocked?: string[];
+      would_write?: number;
+    }>(`${B}/import`, token, {
       method: "POST",
-      body: JSON.stringify({ config, reason }),
+      body: JSON.stringify({ config, reason, dry_run: dryRun }),
     }),
   vehiclesOverview: (token: string) =>
     adminFetch<VehiclesOverview>(`${B}/vehicles/overview`, token),
@@ -338,6 +398,15 @@ export const ADMIN_ROLES = [
   "marketing",
   "read_only",
   "fleet_manager",
+] as const;
+
+/** Merchant seat / team roles (aligned with SpiceDB org relations). */
+export const MERCHANT_SEAT_ROLES = [
+  { value: "merchant_owner", label: "Owner" },
+  { value: "merchant_admin", label: "Admin" },
+  { value: "merchant_ops", label: "Operations" },
+  { value: "merchant_finance", label: "Finance" },
+  { value: "merchant_readonly", label: "Read only" },
 ] as const;
 
 export function healthTone(status: string): "green" | "amber" | "red" | "gray" {

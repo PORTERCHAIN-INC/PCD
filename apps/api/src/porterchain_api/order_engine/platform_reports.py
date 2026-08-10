@@ -58,7 +58,8 @@ class OrderPlatformReportsMixin:
             return None
         live = None
         try:
-            live = self._tracking.get_live_tracking(db, settings, order)
+            snapshot = self._tracking.get_live_snapshot(db, settings, order)
+            live = {**snapshot, "driver_location": snapshot.get("location")}
         except Exception:
             pass
         return {

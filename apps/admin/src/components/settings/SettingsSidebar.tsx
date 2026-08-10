@@ -5,6 +5,7 @@ import { cn } from "@porterchain/ui/utils";
 import {
   SECTION_ICONS,
   SETTINGS_GROUP_LABELS,
+  SETTINGS_GROUP_ORDER,
   type SettingsGroupId,
 } from "@/lib/settings-metadata";
 import type { SettingsSection } from "@/lib/settings";
@@ -22,26 +23,15 @@ export default function SettingsSidebar({ sections, activeId, onSelect }: Props)
     return acc;
   }, {});
 
-  const order: SettingsGroupId[] = [
-    "overview",
-    "company",
-    "access",
-    "communications",
-    "integrations",
-    "operations",
-    "modules",
-    "platform",
-  ];
-
   return (
-    <nav className="space-y-6">
-      {order.map((groupId) => {
+    <nav className="space-y-6" aria-label="Settings sections">
+      {SETTINGS_GROUP_ORDER.map((groupId) => {
         const items = groups[groupId];
         if (!items?.length) return null;
         return (
           <div key={groupId}>
             <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted">
-              {SETTINGS_GROUP_LABELS[groupId]}
+              {SETTINGS_GROUP_LABELS[groupId as SettingsGroupId] ?? groupId}
             </p>
             <ul className="space-y-0.5">
               {items.map((s) => {
@@ -52,6 +42,7 @@ export default function SettingsSidebar({ sections, activeId, onSelect }: Props)
                     <button
                       type="button"
                       onClick={() => onSelect(s.id)}
+                      aria-current={active ? "page" : undefined}
                       className={cn(
                         "flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-sm transition-colors",
                         active

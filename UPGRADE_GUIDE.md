@@ -106,14 +106,16 @@ Document supported Fleetbase versions in `services/fleetbase-adapter/README.md` 
 
 ---
 
-## Composer lock reference (v0.7.40)
+## Runtime pin vs git-tag lock (P0-1)
 
-| Package                  | Version |
-| ------------------------ | ------- |
-| `fleetbase/core-api`     | 1.6.47  |
-| `fleetbase/fleetops-api` | 0.6.48  |
+| Source                                                          | core-api   | fleetops-api |
+| --------------------------------------------------------------- | ---------- | ------------ |
+| **Running image** (`fleetbase.porterchain.override.yml` digest) | **1.6.55** | **0.6.59**   |
+| Host clone `apps/fleetbase` @ v0.7.40 `composer.lock`           | 1.6.47     | 0.6.48       |
 
-After upgrade, diff `composer.lock` and check FleetOps release notes for order/driver API changes.
+**SSOT for adapter contracts / orchestrator / manifests = running image digest**, not the git-tag lock. Never use `fleetbase/fleetbase-api:latest` in PorterChain overlays.
+
+To bump runtime: pull a new digest, update the pin in `infrastructure/docker/fleetbase.porterchain.override.yml`, verify `vendor/fleetbase/fleetops-api` version inside the container, then refresh this table + `FLEETBASE_MODULES.md`.
 
 ---
 
@@ -156,14 +158,7 @@ After a successful upgrade, update:
 
 - [FLEETBASE_INSTALL.md](./FLEETBASE_INSTALL.md)
 - [FLEETBASE_ADAPTER_ARCHITECTURE.md](./FLEETBASE_ADAPTER_ARCHITECTURE.md)
-- [EXTENSION_GUIDE.md](./EXTENSION_GUIDE.md)
+- [CONTRIBUTING_GUIDE.md](CONTRIBUTING_GUIDE.md)
 - [vendor/fleetbase/README.md](./vendor/fleetbase/README.md)
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

@@ -9,14 +9,13 @@ import {
   Headphones,
   HeartPulse,
   LayoutDashboard,
-  Map,
   Newspaper,
   Package,
   Settings,
   Shield,
-  Tags,
   Truck,
   UserPlus,
+  Users,
   Zap,
 } from "lucide-react";
 
@@ -38,6 +37,10 @@ export const DRIVER_LEAD_SOURCE = "website_driver_partner";
 /**
  * Admin primary nav — ordered by daily ops workflow.
  * Top-level (ops) pages must appear here; detail/redirect routes do not.
+ *
+ * Groups follow the operator's day: overview → run the day (operations) →
+ * manage partners (merchants / drivers / retail customers) → grow the pipeline
+ * (sales/recovery/content) → money → customer care (tickets + claims) → administration.
  */
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
@@ -59,32 +62,14 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       {
         href: "/operations",
         label: "Control Tower",
-        description: "Dispatch board and SLA",
+        description: "Dispatch board, SLA monitor, exceptions",
         icon: Zap,
-      },
-      {
-        href: "/live-map",
-        label: "Live Map",
-        description: "Fleet positions and routes",
-        icon: Map,
       },
       {
         href: "/orders",
         label: "Orders",
         description: "Active deliveries and history",
         icon: Package,
-      },
-      {
-        href: "/booking-drafts",
-        label: "Booking Drafts",
-        description: "Incomplete checkouts",
-        icon: ClipboardList,
-      },
-      {
-        href: "/claims",
-        label: "Claims",
-        description: "Damage and insurance cases",
-        icon: Shield,
       },
     ],
   },
@@ -95,15 +80,27 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       {
         href: "/merchants",
         label: "Merchants",
-        description: "B2B accounts and contracts",
+        description: "Business accounts and contracts",
         icon: Building2,
       },
       {
         href: "/drivers",
         label: "Drivers",
-        description: "Fleet partners and compliance",
+        description: "Capacity partners and compliance",
         icon: Truck,
       },
+      {
+        href: "/customers",
+        label: "Customers",
+        description: "Retail customers and booking history",
+        icon: Users,
+      },
+    ],
+  },
+  {
+    id: "growth",
+    label: "Growth",
+    items: [
       {
         href: "/leads",
         label: "Merchant Leads",
@@ -112,15 +109,27 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       },
       {
         href: "/leads/calendar",
-        label: "Lead calendar",
+        label: "Sales Calendar",
         description: "Calls and meetings from guides",
         icon: CalendarDays,
       },
       {
         href: `/leads?source=${DRIVER_LEAD_SOURCE}`,
-        label: "Driver Leads",
+        label: "Driver Applications",
         description: "Vehicle partner applications",
         icon: HardHat,
+      },
+      {
+        href: "/booking-drafts",
+        label: "Booking Drafts",
+        description: "Abandoned checkouts to recover",
+        icon: ClipboardList,
+      },
+      {
+        href: "/blog",
+        label: "Website Blog",
+        description: "Marketing content (EN / FR)",
+        icon: Newspaper,
       },
     ],
   },
@@ -130,15 +139,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       {
         href: "/finance",
-        label: "Billing & AR",
+        label: "Billing & Invoicing",
         description: "Invoices, payments, collections",
         icon: Banknote,
-      },
-      {
-        href: "/pricing",
-        label: "Pricing",
-        description: "Rate card and driver payout",
-        icon: Tags,
       },
     ],
   },
@@ -148,38 +151,38 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       {
         href: "/support",
-        label: "Tickets",
-        description: "Support center and SLA",
+        label: "Support Tickets",
+        description: "Customer helpdesk and SLA",
         icon: Headphones,
       },
       {
-        href: "/notifications",
-        label: "Notifications",
-        description: "Alerts, queue, templates, devices",
-        icon: Bell,
+        href: "/claims",
+        label: "Claims",
+        description: "Damage, loss and insurance cases",
+        icon: Shield,
       },
     ],
   },
   {
-    id: "admin",
-    label: "Admin",
+    id: "administration",
+    label: "Administration",
     items: [
       {
-        href: "/blog",
-        label: "Blog",
-        description: "Website CMS (EN / FR)",
-        icon: Newspaper,
+        href: "/notifications",
+        label: "Notifications",
+        description: "Alerts, delivery queue, templates",
+        icon: Bell,
       },
       {
         href: "/system",
-        label: "System",
-        description: "Health probes and diagnostics",
+        label: "System Health",
+        description: "Probes, diagnostics, integrations",
         icon: HeartPulse,
       },
       {
         href: "/settings",
         label: "Settings",
-        description: "Staff, vehicles, integrations",
+        description: "Staff, roles, integrations",
         icon: Settings,
       },
     ],
@@ -192,17 +195,16 @@ export const ALL_ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((g) => g.items);
 export const ADMIN_TOP_LEVEL_ROUTES = [
   "/dashboard",
   "/operations",
-  "/live-map",
   "/orders",
   "/booking-drafts",
   "/claims",
   "/merchants",
   "/drivers",
+  "/customers",
   "/leads",
   "/leads/calendar",
   "/blog",
   "/finance",
-  "/pricing",
   "/support",
   "/notifications",
   "/system",

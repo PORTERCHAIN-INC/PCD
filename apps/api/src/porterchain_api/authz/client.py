@@ -103,14 +103,35 @@ class _MemoryStore:
             )
 
         if resource_type == "organization":
-            is_admin = self._has("organization", resource_id, "admin", subject_type, subject_id)
-            is_member = self._has("organization", resource_id, "member", subject_type, subject_id)
-            if permission in ("portal", "dashboard", "book", "bulk", "orders", "tracking", "invoices", "statements", "reports", "settings", "support", "claims", "orders_write"):
-                return is_admin or is_member
-            if permission in ("manage", "api_keys", "invoices_pay", "billing", "users"):
-                return is_admin
-            if permission == "orders_write":
-                return is_admin or is_member
+            # Keep in sync with authz/schema.zed organization permissions.
+            roles = {
+                rel
+                for rel in ("owner", "admin", "ops", "finance", "readonly", "member")
+                if self._has("organization", resource_id, rel, subject_type, subject_id)
+            }
+            org_perms: dict[str, set[str]] = {
+                "portal": {"owner", "admin", "ops", "finance", "readonly", "member"},
+                "manage": {"owner", "admin"},
+                "dashboard": {"owner", "admin", "ops", "finance", "readonly", "member"},
+                "book": {"owner", "admin", "ops"},
+                "bulk": {"owner", "admin", "ops"},
+                "api_keys": {"owner", "admin"},
+                "orders": {"owner", "admin", "ops", "finance", "readonly", "member"},
+                "orders_write": {"owner", "admin", "ops"},
+                "tracking": {"owner", "admin", "ops", "finance", "readonly", "member"},
+                "invoices": {"owner", "admin", "ops", "finance", "readonly", "member"},
+                "invoices_pay": {"owner", "admin", "finance"},
+                "statements": {"owner", "admin", "finance", "readonly"},
+                "reports": {"owner", "admin", "ops", "finance", "readonly", "member"},
+                "billing": {"owner", "admin", "finance"},
+                "users": {"owner", "admin"},
+                "settings": {"owner", "admin", "finance", "ops"},
+                "support": {"owner", "admin", "ops", "finance", "readonly", "member"},
+                "claims": {"owner", "admin", "ops", "finance"},
+            }
+            allowed = org_perms.get(permission)
+            if allowed is not None:
+                return bool(roles & allowed)
 
         if resource_type in ("driver_profile", "customer_profile"):
             if permission == "access":
@@ -174,7 +195,9 @@ class AuthzClient:
         self.preshared_key = preshared_key
         self._memory = _MemoryStore()
         self._grpc = None
-        self._use_memory = use_memory or not enabled
+        # Explicit memory (tests / SPICEDB_ENABLED=false) vs soft fallback when gRPC is down.
+        self._force_memory = use_memory or not enabled
+        self._use_memory = self._force_memory
         self._last_zed_token: str | None = None
         if not self._use_memory:
             self._try_connect()
@@ -188,6 +211,7 @@ class AuthzClient:
 
             self._grpc = InsecureClient(self.endpoint, self.preshared_key)
             self._ensure_schema()
+            self._use_memory = False
             logger.info("spicedb_connected endpoint=%s", self.endpoint)
         except Exception:  # noqa: BLE001
             logger.exception("spicedb_connect_failed endpoint=%s", self.endpoint)
@@ -196,6 +220,14 @@ class AuthzClient:
                 raise
             self._use_memory = True
             logger.warning("spicedb_falling_back_to_memory_store")
+
+    def _ensure_backend(self) -> None:
+        """Retry SpiceDB when API booted before the container was ready."""
+        if self._force_memory:
+            return
+        if self._grpc is not None and not self._use_memory:
+            return
+        self._try_connect()
 
     def _ensure_schema(self) -> None:
         if self._grpc is None:
@@ -212,6 +244,7 @@ class AuthzClient:
     def write_relationships(self, rels: list[Relationship]) -> str:
         if not rels:
             return self._last_zed_token or ""
+        self._ensure_backend()
         if self._use_memory or self._grpc is None:
             token = self._memory.write(rels)
             self._last_zed_token = token
@@ -246,6 +279,7 @@ class AuthzClient:
     def delete_relationships(self, rels: list[Relationship]) -> str:
         if not rels:
             return self._last_zed_token or ""
+        self._ensure_backend()
         if self._use_memory or self._grpc is None:
             token = self._memory.delete(rels)
             self._last_zed_token = token
@@ -287,6 +321,7 @@ class AuthzClient:
         subject_id: str,
         zed_token: str | None = None,
     ) -> bool:
+        self._ensure_backend()
         if resource_type == "platform":
             from porterchain_api.authz.platform_roles import to_schema_permission
 
@@ -333,6 +368,7 @@ class AuthzClient:
         subject_id: str,
         subject_type: str = "user",
     ) -> list[str]:
+        self._ensure_backend()
         if resource_type == "platform":
             from porterchain_api.authz.platform_roles import to_schema_permission
 

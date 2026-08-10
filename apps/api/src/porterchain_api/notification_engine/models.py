@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
@@ -108,6 +108,25 @@ class NotificationPreference(Base):
     push_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     sms_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     in_app_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class NotificationUserSettings(Base):
+    """Per-user quiet hours / timezone (Phase 3)."""
+
+    __tablename__ = "notification_user_settings"
+    __table_args__ = (UniqueConstraint("user_role", "user_id", name="uq_notification_user_settings_role_user"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_role: Mapped[str] = mapped_column(String(32), index=True)
+    user_id: Mapped[str] = mapped_column(String(36), index=True)
+    quiet_hours_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    quiet_start_hour: Mapped[int] = mapped_column(Integer, default=22)
+    quiet_end_hour: Mapped[int] = mapped_column(Integer, default=7)
+    timezone: Mapped[str] = mapped_column(String(64), default="America/Toronto")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

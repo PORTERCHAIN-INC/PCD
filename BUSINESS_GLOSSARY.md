@@ -5,7 +5,7 @@
 **Last verified:** 2026-07-05
 
 **Status:** Canonical terminology — all modules must use these definitions  
-**See also:** [DOMAIN_MODEL.md](./DOMAIN_MODEL.md), [ENTITY_RELATIONSHIP_MODEL.md](./ENTITY_RELATIONSHIP_MODEL.md)
+**See also:** [DOMAIN_MODEL.md](./DOMAIN_MODEL.md), [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
 
 ---
 
@@ -448,20 +448,13 @@ Fleetbase Adapter ◄── Order.fleetbase_order_id (execution only)
 ## Related documents
 
 - [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
-- [ENTITY_RELATIONSHIP_MODEL.md](./ENTITY_RELATIONSHIP_MODEL.md)
+- [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
 - [ORDER_LIFECYCLE.md](./ORDER_LIFECYCLE.md)
 - [docs/architecture/EVENT_BUS_FLOW.md](./docs/architecture/EVENT_BUS_FLOW.md)
 - [PRICING_ENGINE.md](./PRICING_ENGINE.md)
-- [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md)
+- [PORTERCHAIN_CHARTER.md](./docs/PORTERCHAIN_CHARTER.md)
 
 ---
 
 _Canonical business vocabulary for Porterchain. Update this glossary when adding new domain entities._
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

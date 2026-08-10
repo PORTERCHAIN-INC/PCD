@@ -1,13 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
-import { ChevronDown, LogIn, LogOut, Settings, Shield, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronDown, KeyRound, LogIn, LogOut, Settings, Shield, User } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { initials } from "@/lib/crmFormat";
-import { isClerkConfigured } from "@/lib/env";
+import { publicEnv } from "@/lib/env";
 import HeaderDropdown from "@/components/nav/HeaderDropdown";
+import OpenFleetbaseButton from "@/components/nav/OpenFleetbaseButton";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { canOpenFleetbaseConsole } from "@/lib/fleetbase-access";
+import { clearStaffSession, getStaffBearer } from "@/lib/staff-session";
+import { createPasskey, credentialToJson, passkeysSupported } from "@/lib/staff-webauthn";
 import { useOptionalSessionContext } from "@porterchain/auth";
 
 /** Display labels for admin_users.role — never show a generic "Staff" for admins. */
@@ -66,7 +72,15 @@ function resolveAdminRole(
 }
 
 export default function AdminAccountMenu() {
-  if (!isClerkConfigured()) {
+  const router = useRouter();
+  const { profile } = useAdminProfile();
+  const { getApiToken } = useAdminAuth();
+  const session = useOptionalSessionContext()?.session;
+  const hasStaff = Boolean(getStaffBearer());
+  const [passkeyMsg, setPasskeyMsg] = useState<string | null>(null);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+
+  if (!hasStaff && !profile && !session) {
     return (
       <Link
         href="/sign-in"
@@ -78,37 +92,55 @@ export default function AdminAccountMenu() {
     );
   }
 
-  return <ClerkAccountMenu />;
-}
-
-function ClerkAccountMenu() {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const { profile } = useAdminProfile();
-  const session = useOptionalSessionContext()?.session;
-
-  if (!isLoaded) {
-    return <div className="h-10 w-10 animate-pulse rounded-full bg-primary/10" />;
-  }
-
-  if (!isSignedIn) {
-    return (
-      <SignInButton mode="redirect">
-        <button
-          type="button"
-          className="flex h-10 items-center gap-2 rounded-full bg-secondary pl-4 pr-4 text-sm font-semibold text-white shadow-sm hover:bg-secondary/90"
-        >
-          <LogIn className="h-4 w-4" />
-          Sign in
-        </button>
-      </SignInButton>
-    );
-  }
-
-  const email = profile?.email ?? session?.email ?? user.primaryEmailAddress?.emailAddress ?? "";
-  const name = profile?.name ?? user.fullName ?? user.username ?? "Admin";
-  const avatar = user.imageUrl;
+  const email = profile?.email ?? session?.email ?? "";
+  const name = profile?.name ?? email.split("@")[0] ?? "Admin";
   const role = resolveAdminRole(profile?.role, session?.roles);
   const label = roleLabel(role);
+
+  async function registerPasskey() {
+    setPasskeyBusy(true);
+    setPasskeyMsg(null);
+    try {
+      const token = await getApiToken();
+      const optRes = await fetch(
+        `${publicEnv.porterchainApiUrl}/v1/auth/staff/passkey/register/options`,
+        { method: "POST", headers: { Authorization: `Bearer ${token}` } }
+      );
+      const options = (await optRes.json().catch(() => ({}))) as Record<string, unknown> & {
+        detail?: string;
+        challenge_id?: string;
+      };
+      if (!optRes.ok) {
+        throw new Error(typeof options.detail === "string" ? options.detail : "options_failed");
+      }
+      const challengeId = String(options.challenge_id || "");
+      const cred = await createPasskey(options);
+      const verifyRes = await fetch(
+        `${publicEnv.porterchainApiUrl}/v1/auth/staff/passkey/register/verify`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            challenge_id: challengeId,
+            credential: credentialToJson(cred),
+            device_label: "This device",
+          }),
+        }
+      );
+      if (!verifyRes.ok) {
+        const body = (await verifyRes.json().catch(() => ({}))) as { detail?: string };
+        throw new Error(typeof body.detail === "string" ? body.detail : "verify_failed");
+      }
+      setPasskeyMsg("Passkey saved — use it on sign-in.");
+    } catch (e) {
+      setPasskeyMsg(e instanceof Error ? e.message : "passkey_failed");
+    } finally {
+      setPasskeyBusy(false);
+    }
+  }
 
   return (
     <HeaderDropdown
@@ -124,66 +156,37 @@ function ClerkAccountMenu() {
             open && "border-secondary/30 ring-2 ring-secondary/20"
           )}
         >
-          {avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatar}
-              alt=""
-              className="h-8 w-8 rounded-full object-cover ring-2 ring-white"
-            />
-          ) : (
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-bold text-white">
-              {initials(name)}
-            </span>
-          )}
-          <span className="hidden min-w-0 flex-1 text-left sm:block">
-            <span className="block truncate text-xs font-semibold text-primary">
-              {name.split(" ")[0]}
-            </span>
-            <span className="block truncate text-[10px] text-muted">{label}</span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary/10 text-xs font-bold text-secondary">
+            {initials(name || email)}
           </span>
-          <ChevronDown
-            className={cn("h-4 w-4 shrink-0 text-muted transition", open && "rotate-180")}
-          />
+          <span className="hidden min-w-0 flex-1 truncate text-left text-sm font-medium text-primary sm:block">
+            {name}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
         </button>
       )}
     >
-      <div className="border-b border-primary/8 bg-gradient-to-br from-slate-50 to-white px-4 py-4">
-        <div className="flex items-center gap-3">
-          {avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatar}
-              alt=""
-              className="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-md"
-            />
-          ) : (
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-sm font-bold text-white shadow-md">
-              {initials(name)}
-            </span>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-primary">{name}</p>
-            <p className="truncate text-xs text-muted">{email}</p>
-            <span className="mt-1.5 inline-block rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary">
-              {label}
-            </span>
-          </div>
-        </div>
+      <div className="border-b border-primary/8 px-4 py-3">
+        <p className="truncate text-sm font-semibold text-primary">{name}</p>
+        <p className="truncate text-xs text-muted">{email}</p>
+        <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-0.5 text-[11px] font-semibold text-secondary">
+          <Shield className="h-3 w-3" />
+          {label}
+        </p>
+        <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-muted">Staff IdP</p>
       </div>
 
-      <div className="p-1.5">
+      <div className="p-2">
+        {canOpenFleetbaseConsole(role) && (
+          <div className="mb-1">
+            <OpenFleetbaseButton variant="menu" respectRole={false} />
+          </div>
+        )}
         <AccountMenuLink
-          href="/settings"
+          href="/settings?section=users"
           icon={User}
-          label="Profile"
-          hint="View your admin profile"
-        />
-        <AccountMenuLink
-          href="/settings"
-          icon={Shield}
-          label="Account & security"
-          hint="Clerk session settings"
+          label="Users"
+          hint="Staff directory"
         />
         <AccountMenuLink
           href="/settings"
@@ -191,18 +194,38 @@ function ClerkAccountMenu() {
           label="Admin settings"
           hint="Integrations & RBAC"
         />
+        {passkeysSupported() && (
+          <button
+            type="button"
+            disabled={passkeyBusy}
+            onClick={() => void registerPasskey()}
+            className="flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-sm transition hover:bg-gray-bg disabled:opacity-50"
+          >
+            <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
+            <span className="min-w-0 text-left">
+              <span className="block font-medium text-primary">
+                {passkeyBusy ? "Registering…" : "Add passkey"}
+              </span>
+              <span className="block text-xs text-muted">Passwordless sign-in on this device</span>
+            </span>
+          </button>
+        )}
+        {passkeyMsg && <p className="px-3 pb-2 text-xs text-muted">{passkeyMsg}</p>}
       </div>
 
       <div className="border-t border-primary/8 bg-slate-50/80 p-2">
-        <SignOutButton redirectUrl="/sign-in">
-          <button
-            type="button"
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 shadow-sm transition hover:bg-red-50"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </button>
-        </SignOutButton>
+        <button
+          type="button"
+          onClick={() => {
+            void clearStaffSession(publicEnv.porterchainApiUrl).then(() =>
+              router.replace("/sign-in")
+            );
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 shadow-sm transition hover:bg-red-50"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </button>
       </div>
     </HeaderDropdown>
   );
@@ -222,13 +245,11 @@ function AccountMenuLink({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-gray-bg"
+      className="flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm transition hover:bg-gray-bg"
     >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-        <Icon className="h-4 w-4 text-secondary" />
-      </span>
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-primary">{label}</span>
+        <span className="block font-medium text-primary">{label}</span>
         <span className="block text-xs text-muted">{hint}</span>
       </span>
     </Link>

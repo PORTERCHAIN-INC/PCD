@@ -3,6 +3,7 @@
 from porterchain_api.routers.merchant._deps import _order_response, _profile_response, router
 
 from porterchain_api.routers.merchant import dashboard_booking  # noqa: F401
+from porterchain_api.routers.merchant import route_imports  # noqa: F401
 from porterchain_api.routers.merchant import orders_tracking  # noqa: F401
 from porterchain_api.routers.merchant import billing  # noqa: F401
 from porterchain_api.routers.merchant import reports  # noqa: F401

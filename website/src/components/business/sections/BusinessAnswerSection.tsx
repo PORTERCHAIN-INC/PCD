@@ -34,7 +34,7 @@ export default async function BusinessAnswerSection({ locale }: { locale: string
         </FadeIn>
         <FadeIn delay={0.1} className="mt-8">
           <LinkButton
-            href={`/business?from=${HUB_FROM.merchants}#inquiry`}
+            href={`/sign-up?intent=quote&from=${HUB_FROM.merchants}`}
             trackLabel={t("cta")}
             className="btn-primary"
           >

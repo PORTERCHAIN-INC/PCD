@@ -10,33 +10,17 @@ from __future__ import annotations
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.clerk_registry import clerk_app_configs
+from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.config import Settings
-from porterchain_api.merchant_models import MerchantUser
-from porterchain_api.models import Customer
-
-PORTAL_CLERK_APP: dict[str, str] = {
-    "admin": "admin",
-    "staff": "admin",
-    "merchant": "merchant",
-    "driver": "driver",
-    "customer": "customer",
-}
 
 
 def clerk_id_staff_portal(db: Session, clerk_user_id: str) -> str | None:
     """Return admin, merchant, or driver when this Clerk id is provisioned outside retail."""
     if not clerk_user_id or clerk_user_id.startswith("pending:") or clerk_user_id == "dev_clerk_user":
         return None
-    if db.query(AdminUser.id).filter(AdminUser.clerk_user_id == clerk_user_id).first():
-        return "admin"
-    if db.query(MerchantUser.id).filter(MerchantUser.clerk_user_id == clerk_user_id).first():
-        return "merchant"
-    if db.query(Driver.id).filter(Driver.clerk_user_id == clerk_user_id).first():
-        return "driver"
-    return None
+    return load_persona_bundle(db, clerk_user_id).staff_portal()
 
 
 def is_legacy_shared_clerk_app(settings: Settings) -> bool:
@@ -49,28 +33,17 @@ def is_legacy_shared_clerk_app(settings: Settings) -> bool:
 
 
 def is_unified_clerk_app(settings: Settings) -> bool:
-    """True for PorterChain Platform single-app mode (always preferred)."""
-    if settings.clerk_unified_mode:
-        return True
+    """True when all configured Clerk slots share one issuer (legacy local collapse).
+
+    Named historically; platform_driver with distinct Driver returns False.
+    """
+    _ = settings.clerk_unified_mode  # retired flag — ignored
     apps = [a for a in clerk_app_configs(settings) if a.secret_key and a.jwks_url]
     if len(apps) < 2:
         return is_legacy_shared_clerk_app(settings)
     secrets = {a.secret_key for a in apps}
     jwks = {a.jwks_url for a in apps}
     return len(secrets) == 1 and len(jwks) == 1
-
-
-def require_clerk_app_for_portal(
-    claims: ClerkClaims,
-    settings: Settings,
-    portal: str,
-) -> None:
-    """Deprecated no-op — Platform-only; retained for import stability.
-
-    Formerly rejected tokens minted for a different Clerk application under
-    enterprise multi-app mode (retired Phase D3).
-    """
-    return
 
 
 def assert_clerk_id_exclusive(
@@ -95,24 +68,10 @@ def assert_clerk_id_exclusive(
         return
 
     portal_norm = "admin" if portal in ("admin", "staff") else portal
+    membership = load_persona_bundle(db, clerk_id).membership()
 
-    in_admin = db.query(AdminUser.id).filter(AdminUser.clerk_user_id == clerk_id).first() is not None
-    in_merchant = db.query(MerchantUser.id).filter(MerchantUser.clerk_user_id == clerk_id).first() is not None
-    in_driver = db.query(Driver.id).filter(Driver.clerk_user_id == clerk_id).first() is not None
-    in_customer = db.query(Customer.id).filter(Customer.clerk_user_id == clerk_id).first() is not None
-
-    membership = {
-        "admin": in_admin,
-        "merchant": in_merchant,
-        "driver": in_driver,
-        "customer": in_customer,
-    }
-
-    if portal_norm not in membership:
-        return
-
-    # Multi-role OK — portal visit does not grant access; provisioning does.
+    # Customer auto-provisions; staff portals require a persona row.
     if portal_norm == "customer":
         return
-    if not membership[portal_norm]:
+    if not membership.get(portal_norm):
         raise HTTPException(status_code=403, detail=f"{portal_norm}_user_not_provisioned")

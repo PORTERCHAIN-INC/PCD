@@ -93,10 +93,3 @@ stateDiagram-v2
 
 See [plantuml/order_lifecycle.puml](./plantuml/order_lifecycle.puml)
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

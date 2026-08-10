@@ -11,7 +11,7 @@
 
 ## Purpose
 
-Valhalla is the **default routing engine** (`routing_engine=valhalla`) for distance/ETA in the Porterchain API. Used for quote pricing and route-center optimization paths — **not** for Fleetbase dispatch execution.
+Valhalla is the **default routing engine** (`routing_engine=valhalla`) for distance/ETA in the Porterchain API (quotes, commercial routing). Dispatch execution routing stays in Fleetbase.
 
 ## HTTP Call
 
@@ -83,10 +83,3 @@ flowchart LR
 
 See [plantuml/valhalla_flow.puml](./plantuml/valhalla_flow.puml)
 ---
-
-## Governance
-
-| Document                                         | Role              |
-| ------------------------------------------------ | ----------------- |
-| [masterrule.md](../../masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](../../CTO_AUDIT_REPORT.md) | Doc vs code audit |

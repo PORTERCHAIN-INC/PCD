@@ -2,18 +2,19 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { GoogleMapsProvider, TrackEtaPanel, TrackRouteMap } from "@porterchain/maps";
+import { useCallback, useEffect, useState } from "react";
 import { EmptyState } from "@porterchain/ui/empty-state";
 import { Spinner } from "@porterchain/ui/loading";
 import CustomerShell from "@/components/CustomerShell";
+import CustomerLiveTrack from "@/components/tracking/CustomerLiveTrack";
 import {
-  formatCents,
   getOrderByTracking,
   getOrderLiveTracking,
   type OrderLiveTracking,
   type OrderResult,
 } from "@/lib/booking";
+
+const POLL_MS = 10_000;
 
 export default function TrackOrderPage() {
   const params = useParams();
@@ -22,11 +23,13 @@ export default function TrackOrderPage() {
   const [live, setLive] = useState<OrderLiveTracking | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (!trackingNumber) return;
-    (async () => {
-      setLoading(true);
+  const load = useCallback(
+    async (mode: "initial" | "poll" | "manual" = "poll") => {
+      if (!trackingNumber) return;
+      if (mode === "initial") setLoading(true);
+      if (mode === "manual" || mode === "poll") setRefreshing(true);
       setError("");
       try {
         const [orderResult, liveResult] = await Promise.all([
@@ -36,73 +39,50 @@ export default function TrackOrderPage() {
         setOrder(orderResult);
         setLive(liveResult);
       } catch {
-        setError("Shipment not found.");
-        setOrder(null);
-        setLive(null);
+        if (mode === "initial") {
+          setError("Shipment not found.");
+          setOrder(null);
+          setLive(null);
+        }
       } finally {
         setLoading(false);
+        setRefreshing(false);
       }
-    })();
-  }, [trackingNumber]);
+    },
+    [trackingNumber]
+  );
 
-  const liveData = live?.live_tracking;
-  const pickup = liveData?.pickup ?? order?.pickup;
-  const dropoff = liveData?.dropoff ?? order?.dropoff;
-  const driverLocation = liveData?.driver_location ?? null;
-  const routePolyline = liveData?.optimized_route?.polyline ?? liveData?.eta?.polyline ?? null;
-  const eta = liveData?.eta ?? null;
-  const delivered = Boolean(liveData?.delivery_status?.delivered);
+  useEffect(() => {
+    void load("initial");
+  }, [load]);
+
+  useEffect(() => {
+    if (!trackingNumber || !order) return;
+    const delivered = Boolean(live?.live_tracking?.delivery_status?.delivered);
+    if (delivered) return;
+    const timer = window.setInterval(() => void load("poll"), POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [trackingNumber, order, live?.live_tracking?.delivery_status?.delivered, load]);
 
   return (
     <CustomerShell>
-      <div className="mb-6">
+      <div className="mb-5">
         <Link href="/dashboard" className="text-sm font-medium text-secondary hover:underline">
           ← Back to dashboard
         </Link>
       </div>
 
-      {loading && <Spinner label="Loading shipment…" />}
+      {loading && <Spinner label="Loading live tracking…" />}
       {error && !loading && <EmptyState title="Shipment not found" hint={error} />}
 
-      {order && (
-        <section className="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-bold text-primary">Shipment tracking</h1>
-          <p className="mt-2 font-mono text-secondary">{order.tracking_number}</p>
-          <GoogleMapsProvider>
-            <TrackRouteMap
-              pickup={pickup}
-              dropoff={dropoff}
-              driverLocation={driverLocation}
-              routePolyline={routePolyline}
-              height="min(55vw, 320px)"
-              className="mt-6"
-            />
-          </GoogleMapsProvider>
-          <TrackEtaPanel eta={eta} delivered={delivered} className="mt-4" />
-          <p className="mt-4 text-sm">
-            Status: <span className="font-semibold text-primary">{order.state}</span>
-          </p>
-          <p className="mt-2 text-sm text-muted">
-            {formatCents(order.amount_cents, order.currency.toUpperCase())}
-          </p>
-          <ul className="mt-6 space-y-3 text-sm">
-            <li>
-              <span className="text-muted">Pickup: </span>
-              {pickup?.formatted ?? "—"}
-            </li>
-            <li>
-              <span className="text-muted">Drop-off: </span>
-              {dropoff?.formatted ?? "—"}
-            </li>
-            {order.scheduled_at && (
-              <li>
-                <span className="text-muted">Scheduled: </span>
-                {new Date(order.scheduled_at).toLocaleString()}
-              </li>
-            )}
-          </ul>
-        </section>
-      )}
+      {order && !loading ? (
+        <CustomerLiveTrack
+          order={order}
+          live={live}
+          refreshing={refreshing}
+          onRefresh={() => void load("manual")}
+        />
+      ) : null}
     </CustomerShell>
   );
 }

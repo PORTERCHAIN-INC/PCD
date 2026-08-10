@@ -17,7 +17,9 @@ import {
 } from "lucide-react";
 import { cn, formatCents } from "@porterchain/ui/utils";
 import {
+  downloadOrderPdf,
   formatState,
+  ordersApi,
   PAYMENT_STYLES,
   SLA_STYLES,
   STATE_STYLES,
@@ -25,12 +27,12 @@ import {
 } from "@/lib/orders";
 import { relativeTime } from "@/lib/crmFormat";
 import { Badge, Button, Spinner } from "@/components/crm/primitives";
-import Order360EmbeddedMap from "@/components/orders/Order360EmbeddedMap";
+import { OrderAssistPanel } from "@/components/orders/OrderAssistPanel";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 type Tab =
   | "overview"
   | "timeline"
-  | "live-map"
   | "tracking"
   | "packages"
   | "pickup"
@@ -47,6 +49,7 @@ type Tab =
   | "pod"
   | "claims"
   | "support"
+  | "assist"
   | "communications"
   | "automation"
   | "api"
@@ -54,8 +57,8 @@ type Tab =
 
 const NAV: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
+  { id: "assist", label: "Assist" },
   { id: "timeline", label: "Timeline" },
-  { id: "live-map", label: "Live Map" },
   { id: "tracking", label: "Tracking" },
   { id: "packages", label: "Packages" },
   { id: "pickup", label: "Pickup" },
@@ -86,6 +89,7 @@ export type Order360Actions = {
   onRebook: () => void;
   onCreateReturn: () => void;
   onGenerateInvoice: () => void;
+  onResendReceipt: () => void;
   onRefund: () => void;
   onOpenClaim: () => void;
   onOpenSupport: () => void;
@@ -101,6 +105,7 @@ type Props = {
   error?: string | null;
   liveRefreshing?: boolean;
   actions: Order360Actions;
+  onRefresh?: () => void;
 };
 
 export default function OrderDetailView({
@@ -110,6 +115,7 @@ export default function OrderDetailView({
   error,
   liveRefreshing,
   actions,
+  onRefresh,
 }: Props) {
   const [tab, setTab] = useState<Tab>("overview");
 
@@ -172,6 +178,20 @@ export default function OrderDetailView({
                 <Meta label="Booking #" value={detail.booking_number || "—"} mono />
                 <Meta label="Draft #" value={detail.booking_draft_number || "—"} mono />
                 <Meta label="Fleetbase ID" value={detail.fleetbase_order_id || "—"} mono />
+                <Meta
+                  label="PC ↔ Fleetbase"
+                  value={
+                    detail.status_sync?.fleetbase_status
+                      ? `${String(detail.status_sync.pc_state)} · FB ${String(detail.status_sync.fleetbase_status)}${
+                          detail.status_sync.status_aligned === true
+                            ? " · aligned"
+                            : detail.status_sync.status_aligned === false
+                              ? " · drift"
+                              : ""
+                        }`
+                      : String(detail.status_sync?.truth ?? "PC commercial only")
+                  }
+                />
                 <Meta label="Driver" value={detail.driver_name || "Unassigned"} />
                 <Meta label="Vehicle" value={detail.vehicle_label || "—"} />
                 <Meta label="Merchant" value={detail.merchant_name || "—"} />
@@ -281,14 +301,20 @@ export default function OrderDetailView({
             className="rounded-2xl border border-primary/10 bg-white p-5 lg:p-6"
           >
             {tab === "overview" && <OverviewTab detail={detail} live={live} />}
-            {tab === "timeline" && <TimelineTab detail={detail} />}
-            {tab === "live-map" && (
-              <Order360EmbeddedMap
+            {tab === "assist" && (
+              <OrderAssistPanel
                 orderId={detail.order_id}
-                driverId={driverId ? String(driverId) : null}
-                merchantId={detail.merchant_id ?? null}
+                onChanged={onRefresh}
+                onOpenAssign={actions.onAssignDriver}
+                onOpenException={() => {
+                  /* exception modal lives on drawer; full page uses Mark via board */
+                  window.alert(
+                    "Use Mark exception from Operations board / drawer, or apply the suggested state with reason there."
+                  );
+                }}
               />
             )}
+            {tab === "timeline" && <TimelineTab detail={detail} />}
             {tab === "tracking" && <TrackingTab detail={detail} tracking={tracking} live={live} />}
             {tab === "packages" && <PackagesTab detail={detail} />}
             {tab === "pickup" && <AddressTab title="Pickup" addr={detail.pickup_detail} />}
@@ -310,9 +336,7 @@ export default function OrderDetailView({
             {tab === "pod" && <PodTab pod={detail.proof_of_delivery} />}
             {tab === "claims" && <ClaimsTab claims={detail.claims} />}
             {tab === "support" && <SupportTab tickets={detail.support_tickets} />}
-            {tab === "communications" && (
-              <EventListTab items={detail.communications ?? []} empty="No communications logged" />
-            )}
+            {tab === "communications" && <CommunicationsTab items={detail.communications ?? []} />}
             {tab === "automation" && (
               <EventListTab items={detail.automation ?? []} empty="No automation events" />
             )}
@@ -420,6 +444,7 @@ function QuickActions({ detail, actions }: { detail: OrderDetail; actions: Order
     { label: "Rebook", onClick: actions.onRebook },
     { label: "Create return", onClick: actions.onCreateReturn },
     { label: "Generate invoice", onClick: actions.onGenerateInvoice },
+    { label: "Resend receipt", onClick: actions.onResendReceipt },
     { label: "Refund", onClick: actions.onRefund },
     { label: "Open claim", onClick: actions.onOpenClaim },
     { label: "Open support ticket", onClick: actions.onOpenSupport },
@@ -650,6 +675,7 @@ function Merchant360Tab({ detail }: { detail: OrderDetail }) {
 
 function Customer360Tab({ detail }: { detail: OrderDetail }) {
   const c360 = detail.customer_360;
+  const customerId = (c360?.id as string | undefined) || detail.customer_id || null;
   return (
     <div className="space-y-4">
       <Row label="Email" value={detail.customer_email || "—"} />
@@ -683,6 +709,13 @@ function Customer360Tab({ detail }: { detail: OrderDetail }) {
             </div>
           ) : null}
         </>
+      ) : null}
+      {customerId ? (
+        <Link href={`/customers/${customerId}`}>
+          <Button variant="outline" className="px-2 py-1 text-xs">
+            <User className="h-4 w-4" /> Customer profile
+          </Button>
+        </Link>
       ) : null}
     </div>
   );
@@ -831,6 +864,7 @@ function PaymentsTab({ detail }: { detail: OrderDetail }) {
 }
 
 function InvoicesTab({ detail }: { detail: OrderDetail }) {
+  const { getApiToken } = useAdminAuth();
   if (!detail.invoice_number) return <p className="text-sm text-muted">No invoice generated</p>;
   return (
     <>
@@ -839,7 +873,7 @@ function InvoicesTab({ detail }: { detail: OrderDetail }) {
         label="Amount"
         value={detail.invoice_amount_cents ? formatCents(detail.invoice_amount_cents) : "—"}
       />
-      <div className="mt-3 flex gap-3">
+      <div className="mt-3 flex flex-wrap gap-3">
         {detail.invoice_receipt_url && (
           <a
             href={detail.invoice_receipt_url}
@@ -850,7 +884,7 @@ function InvoicesTab({ detail }: { detail: OrderDetail }) {
             Receipt
           </a>
         )}
-        {detail.invoice_pdf_url && (
+        {detail.invoice_pdf_url ? (
           <a
             href={detail.invoice_pdf_url}
             target="_blank"
@@ -859,6 +893,27 @@ function InvoicesTab({ detail }: { detail: OrderDetail }) {
           >
             <FileText className="h-4 w-4" /> Download PDF
           </a>
+        ) : (
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-sm text-secondary hover:underline"
+            onClick={() => {
+              void (async () => {
+                try {
+                  const token = await getApiToken();
+                  await downloadOrderPdf(
+                    token,
+                    ordersApi.invoicePdfUrl(detail.order_id),
+                    `invoice-${detail.invoice_number}.pdf`
+                  );
+                } catch (err) {
+                  window.alert(err instanceof Error ? err.message : "Invoice PDF failed");
+                }
+              })();
+            }}
+          >
+            <FileText className="h-4 w-4" /> Download invoice PDF
+          </button>
         )}
       </div>
     </>
@@ -886,17 +941,108 @@ function DocumentsTab({ detail }: { detail: OrderDetail }) {
 }
 
 function PodTab({ pod }: { pod: Record<string, unknown> }) {
-  if (!Object.keys(pod).length)
-    return <p className="text-sm text-muted">Proof of delivery not yet captured</p>;
+  const photos = Array.isArray(pod.photos) ? (pod.photos as Array<Record<string, unknown>>) : [];
+  const signatures = Array.isArray(pod.signatures)
+    ? (pod.signatures as Array<Record<string, unknown>>)
+    : [];
+  const otps = Array.isArray(pod.otp) ? (pod.otp as Array<Record<string, unknown>>) : [];
+  const hasGallery = photos.length + signatures.length + otps.length > 0;
+
+  if (!hasGallery && !Object.keys(pod).length) {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm text-muted">Proof of delivery not yet captured</p>
+        <p className="text-xs text-muted">
+          Capture in the driver app / Fleetbase — Admin is read-only.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {pod.source ? (
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
+          Live from Fleetbase
+        </p>
+      ) : null}
+      {(photos.length > 0 || signatures.length > 0) && (
+        <div className="flex flex-wrap gap-3">
+          {photos.map((p, i) =>
+            typeof p.url === "string" ? (
+              // eslint-disable-next-line @next/next/no-img-element -- Fleetbase proof URL
+              <img
+                key={String(p.id ?? i)}
+                src={p.url}
+                alt="Delivery photo"
+                className="h-36 w-36 rounded-xl border border-primary/10 object-cover"
+              />
+            ) : null
+          )}
+          {signatures.map((s, i) => {
+            const src =
+              typeof s.url === "string"
+                ? s.url
+                : typeof s.signature === "string" && s.signature.startsWith("data:")
+                  ? s.signature
+                  : null;
+            return src ? (
+              // eslint-disable-next-line @next/next/no-img-element -- Fleetbase signature
+              <img
+                key={String(s.id ?? `sig-${i}`)}
+                src={src}
+                alt="Recipient signature"
+                className="h-36 rounded-xl border border-primary/10 bg-gray-bg object-contain px-4"
+              />
+            ) : null;
+          })}
+        </div>
+      )}
+      {otps.length > 0 && (
+        <div className="space-y-1">
+          {otps.map((o, i) => (
+            <Row key={i} label="OTP / barcode" value={String(o.otp ?? o.code ?? "—")} mono />
+          ))}
+        </div>
+      )}
+      {!hasGallery && pod.event_payload ? (
+        <p className="text-xs text-muted">
+          POD event recorded — media not synced from Fleetbase yet.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function CommunicationsTab({ items }: { items: Array<Record<string, unknown>> }) {
+  if (!items.length) {
+    return (
+      <p className="text-sm text-muted">
+        No email / SMS / push notifications logged for this order
+      </p>
+    );
+  }
   return (
     <div className="space-y-2">
-      {Object.entries(pod).map(([k, v]) => (
-        <Row
-          key={k}
-          label={k.replace(/_/g, " ")}
-          value={typeof v === "object" ? JSON.stringify(v) : String(v ?? "—")}
-          mono={typeof v === "object"}
-        />
+      {items.map((e, i) => (
+        <div
+          key={String(e.id ?? i)}
+          className="rounded-lg border border-primary/10 px-3 py-2 text-sm"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-medium">{String(e.label || e.event_type)}</p>
+            <span className="rounded-full bg-gray-bg px-2 py-0.5 text-[10px] font-bold uppercase text-muted">
+              {String(e.channel || "—")} · {String(e.status || "—")}
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs text-muted">
+            {e.occurred_at ? relativeTime(String(e.occurred_at)) : ""}
+            {e.recipient ? ` · ${String(e.recipient)}` : ""}
+            {e.recipient_type ? ` · ${String(e.recipient_type)}` : ""}
+          </p>
+          {e.body ? <p className="mt-1 text-xs text-primary/80">{String(e.body)}</p> : null}
+          {e.error ? <p className="mt-1 text-xs text-red-600">{String(e.error)}</p> : null}
+        </div>
       ))}
     </div>
   );

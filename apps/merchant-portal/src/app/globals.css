@@ -35,3 +35,69 @@ body {
   background: var(--surface);
   border-color: var(--surface-border);
 }
+
+/* Merchant auth (/sign-in, /sign-up) — presence, not noise */
+@keyframes merchant-auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes merchant-auth-glow {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes merchant-auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.merchant-auth-brand {
+  animation: merchant-auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.merchant-auth-rise {
+  animation: merchant-auth-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.merchant-auth-rise-delay {
+  animation: merchant-auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+}
+
+.merchant-auth-glow {
+  background:
+    radial-gradient(ellipse 70% 55% at 20% 15%, rgba(56, 189, 248, 0.28), transparent 55%),
+    radial-gradient(ellipse 55% 45% at 85% 85%, rgba(37, 99, 235, 0.35), transparent 50%);
+  animation: merchant-auth-glow 10s ease-in-out infinite;
+}
+
+.merchant-auth-pulse {
+  animation: merchant-auth-spin 0.85s linear infinite;
+}
+
+.merchant-auth-form {
+  animation: merchant-auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merchant-auth-brand,
+  .merchant-auth-rise,
+  .merchant-auth-rise-delay,
+  .merchant-auth-form,
+  .merchant-auth-glow,
+  .merchant-auth-pulse {
+    animation: none;
+  }
+}

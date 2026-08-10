@@ -279,10 +279,3 @@ Set `REDIS_URL` in environment (see `ENVIRONMENT_VARIABLES.md`). Without Redis, 
 | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)                                         | Bounded contexts and aggregates       |
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

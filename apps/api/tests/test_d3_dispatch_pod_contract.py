@@ -10,7 +10,6 @@ def test_dispatch_admin_routes_present() -> None:
     corpus = "\n".join(p.read_text(encoding="utf-8") for p in routers.rglob("*.py"))
     for needle in (
         'prefix="/v1/admin/operations"',
-        "/dispatch/queue",
         "/dispatch/orders/{order_id}/assign",
         "/sync/health",
     ):

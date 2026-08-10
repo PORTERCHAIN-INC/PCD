@@ -11,37 +11,35 @@
 
 ## Summary
 
-| Aspect               | Approach                                                                |
-| -------------------- | ----------------------------------------------------------------------- |
-| Identity provider    | **Clerk** (admin staff — dispatchers, support, ops)                     |
-| Trust broker         | **Porterchain API**                                                     |
-| Fleetbase auth       | Trusts **Porterchain-signed SSO JWT**                                   |
-| User duplication     | **None** — one Clerk ID → one `identity_links` row → one Fleetbase user |
-| Password duplication | **None** — Fleetbase users provisioned without Porterchain passwords    |
-| Permission sync      | Porterchain RBAC → Fleetbase IAM on each SSO exchange                   |
+| Aspect               | Approach                                                                 |
+| -------------------- | ------------------------------------------------------------------------ |
+| Identity provider    | **PorterChain staff IdP** (admin Redis session; Clerk retired for admin) |
+| Trust broker         | **Porterchain API** (`POST /v1/auth/sso/fleetbase`)                      |
+| Fleetbase auth       | Trusts **Porterchain-signed SSO JWT**                                    |
+| User duplication     | **None** — one staff subject → one `identity_links` row → Fleetbase user |
+| Password duplication | **None** — Fleetbase users provisioned without Porterchain passwords     |
+| Permission sync      | AdminRole → Fleetbase IAM on each SSO exchange                           |
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────┐     Clerk JWT      ┌──────────────────┐
-│ Admin Portal│ ─────────────────► │ Porterchain API  │
-└─────────────┘                    │                  │
-                                   │  SsoService      │
-                                   │  ├─ verify Clerk │
-                                   │  ├─ resolve RBAC │
-                                   │  ├─ issue SSO JWT│
-                                   │  └─ sync perms   │
+┌─────────────┐  staff_sess_* /    ┌──────────────────┐
+│ Admin Portal│  pc_staff_sid ───► │ Porterchain API  │
+│ (staff IdP) │                    │  SsoService      │
+└─────────────┘                    │  ├─ staff session │
+                                   │  ├─ SpiceDB role  │
+                                   │  ├─ issue SSO JWT │
+                                   │  └─ sync perms    │
                                    └────────┬─────────┘
                                             │ Porterchain SSO JWT
                                             ▼
                                    ┌──────────────────┐
                                    │ Fleetbase API    │
                                    │ /porterchain/sso │
-                                   │ /exchange        │
                                    └────────┬─────────┘
-                                            │ Sanctum session
+                                            │ session
                                             ▼
                                    ┌──────────────────┐
                                    │ Fleetbase Console│
@@ -231,15 +229,15 @@ PORTERCHAIN_API_URL=http://localhost:8001
 
 ## Security checklist
 
-| Item                                        | Status             |
-| ------------------------------------------- | ------------------ |
-| HTTPS in production                         | Required           |
-| Short SSO token TTL (5 min)                 | Implemented        |
-| Clerk JWKS verification                     | Implemented        |
-| Fleetbase SSO signature verification        | Extension required |
-| Merchants blocked from console SSO          | Implemented        |
-| No Fleetbase password for Porterchain users | By design          |
-| Permission sync on SSO                      | Implemented        |
+| Item                                        | Status               |
+| ------------------------------------------- | -------------------- |
+| HTTPS in production                         | Required             |
+| Short SSO token TTL (5 min)                 | Implemented          |
+| Clerk JWKS verification                     | Implemented          |
+| Fleetbase SSO signature verification        | Implemented (bridge) |
+| Merchants blocked from console SSO          | Implemented          |
+| No Fleetbase password for Porterchain users | By design            |
+| Permission sync on SSO                      | Implemented          |
 
 ---
 
@@ -257,14 +255,16 @@ PORTERCHAIN_API_URL=http://localhost:8001
 
 ## Code references
 
-| Component            | Path                                                       |
-| -------------------- | ---------------------------------------------------------- |
-| SSO service          | `apps/api/src/porterchain_api/auth/sso_service.py`         |
-| Auth router          | `apps/api/src/porterchain_api/routers/auth.py`             |
-| Identity links       | `apps/api/src/porterchain_api/identity_models.py`          |
-| Fleetbase role map   | `apps/api/src/porterchain_api/auth/fleetbase_roles.py`     |
-| Fleetbase SSO client | `services/fleetbase/porterchain_fleetbase/sso/__init__.py` |
-| Admin SSO button     | `apps/admin/src/app/(ops)/operations/page.tsx`             |
+| Component               | Path                                                                                                                                           |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| SSO service             | `apps/api/src/porterchain_api/auth/sso_service.py`                                                                                             |
+| Auth router             | `apps/api/src/porterchain_api/routers/auth.py`                                                                                                 |
+| Identity links          | `apps/api/src/porterchain_api/identity_models.py`                                                                                              |
+| Fleetbase role map      | `apps/api/src/porterchain_api/auth/fleetbase_roles.py`                                                                                         |
+| Fleetbase SSO client    | `services/fleetbase-adapter/porterchain_fleetbase_adapter/auth/__init__.py`                                                                    |
+| Fleetbase bridge API    | `PC/api` → `routes/porterchain-sso.php`, `app/Http/Controllers/Porterchain/SsoController.php`, `app/Services/Porterchain/SsoBridgeService.php` |
+| Fleetbase console route | `PC/console` → `app/routes/porterchain/sso.js` (+ `router.map.js`)                                                                             |
+| Admin SSO button        | `apps/admin/src/app/(ops)/operations/page.tsx`                                                                                                 |
 
 ---
 
@@ -274,15 +274,8 @@ PORTERCHAIN_API_URL=http://localhost:8001
 | -------------------------------------------------------------------------------------- | --------------------- |
 | [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md)                     | Auth policy           |
 | [docs/architecture/AUTHENTICATION_FLOW.md](./docs/architecture/AUTHENTICATION_FLOW.md) | Flow diagrams         |
-| [RBAC_MATRIX.md](./RBAC_MATRIX.md)                                                     | Console access matrix |
+| [auth-clerk-spicedb.md](./docs/architecture/auth-clerk-spicedb.md)                     | Console access matrix |
 | [FLEETBASE_INTEGRATION.md](./FLEETBASE_INTEGRATION.md)                                 | Fleetbase bridge      |
-| [FLEETBASE_EXTENSION_POINTS.md](./FLEETBASE_EXTENSION_POINTS.md)                       | Extension endpoints   |
+| [FLEETBASE_MODULES.md](FLEETBASE_MODULES.md)                                           | Extension endpoints   |
 
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

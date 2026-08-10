@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -53,10 +53,14 @@ class Merchant(Base):
 
 class MerchantUser(Base):
     __tablename__ = "merchant_users"
+    __table_args__ = (
+        # M-26: same Clerk subject may hold seats on multiple merchants.
+        UniqueConstraint("clerk_user_id", "merchant_id", name="uq_merchant_users_clerk_merchant"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
-    clerk_user_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    clerk_user_id: Mapped[str] = mapped_column(String(128), index=True)
     # Phase 8 — internal UUID FK (nullable until backfill); clerk_user_id retained
     porterchain_user_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
@@ -178,6 +182,7 @@ class BulkImportJob(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
     status: Mapped[str] = mapped_column(String(32), default="UPLOADED", index=True)
+    kind: Mapped[str] = mapped_column(String(32), default="classic", index=True)
     filename: Mapped[str] = mapped_column(String(255))
     total_rows: Mapped[int] = mapped_column(Integer, default=0)
     valid_rows: Mapped[int] = mapped_column(Integer, default=0)
@@ -186,6 +191,7 @@ class BulkImportJob(Base):
     preview: Mapped[list] = mapped_column(JSON, default=list)
     errors: Mapped[list] = mapped_column(JSON, default=list)
     order_ids: Mapped[list] = mapped_column(JSON, default=list)
+    job_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     merchant: Mapped[Merchant] = relationship(back_populates="bulk_imports")

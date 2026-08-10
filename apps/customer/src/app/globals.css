@@ -65,3 +65,208 @@ body {
   color: inherit;
   outline: none;
 }
+
+/* Customer auth (/sign-in, /sign-up) — presence, not noise */
+@keyframes customer-auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes customer-auth-glow {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes customer-auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.customer-auth-brand {
+  animation: customer-auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.customer-auth-rise {
+  animation: customer-auth-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.customer-auth-rise-delay {
+  animation: customer-auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+}
+
+.customer-auth-glow {
+  background:
+    radial-gradient(ellipse 70% 55% at 20% 15%, rgba(56, 189, 248, 0.28), transparent 55%),
+    radial-gradient(ellipse 55% 45% at 85% 85%, rgba(37, 99, 235, 0.35), transparent 50%);
+  animation: customer-auth-glow 10s ease-in-out infinite;
+}
+
+.customer-auth-pulse {
+  animation: customer-auth-spin 0.85s linear infinite;
+}
+
+.customer-auth-form {
+  animation: customer-auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-auth-brand,
+  .customer-auth-rise,
+  .customer-auth-rise-delay,
+  .customer-auth-form,
+  .customer-auth-glow,
+  .customer-auth-pulse {
+    animation: none;
+  }
+}
+
+/* —— Customer welcome motion / magic UI —— */
+@keyframes customer-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes customer-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes customer-shimmer-slide {
+  0% {
+    transform: translateX(-100%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-12deg);
+  }
+}
+
+@keyframes customer-beam-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes customer-hero-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.customer-rise {
+  animation: customer-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.customer-rise-delay {
+  animation: customer-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.customer-rise-delay-2 {
+  animation: customer-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+}
+
+.customer-hero-glow {
+  background: radial-gradient(
+    ellipse 70% 50% at 70% 20%,
+    rgba(56, 189, 248, 0.35),
+    transparent 55%
+  );
+  animation: customer-hero-glow 8s ease-in-out infinite;
+}
+
+.customer-marquee-track {
+  width: max-content;
+  animation: customer-marquee 28s linear infinite;
+}
+
+.customer-marquee-reverse {
+  animation-direction: reverse;
+}
+
+.customer-shimmer {
+  isolation: isolate;
+}
+
+.customer-shimmer-glow {
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 60%
+  );
+  animation: customer-shimmer-slide 2.8s ease-in-out infinite;
+}
+
+.customer-border-beam {
+  isolation: isolate;
+}
+
+.customer-border-beam::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  z-index: 0;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    #2563eb 55deg,
+    #38bdf8 110deg,
+    transparent 170deg
+  );
+  animation: customer-beam-spin 10s linear infinite;
+  opacity: 0.55;
+}
+
+.customer-border-beam::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  z-index: 0;
+  border-radius: calc(1rem - 1px);
+  background: white;
+}
+
+.customer-fleet-card {
+  transition: transform 0.2s ease;
+}
+
+.customer-fleet-card:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-rise,
+  .customer-rise-delay,
+  .customer-rise-delay-2,
+  .customer-hero-glow,
+  .customer-marquee-track,
+  .customer-shimmer-glow,
+  .customer-border-beam::before {
+    animation: none;
+  }
+}

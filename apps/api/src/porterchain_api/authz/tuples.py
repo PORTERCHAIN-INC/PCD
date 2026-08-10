@@ -20,13 +20,32 @@ logger = logging.getLogger("porterchain.authz")
 
 PLATFORM_ID = "porterchain"
 
-# Merchant roles that map to organization#admin
-_ORG_ADMIN_ROLES = {
-    MerchantRole.OWNER.value,
-    MerchantRole.ADMIN.value,
-    "merchant_owner",
-    "merchant_admin",
+# organization relations — mirrors MerchantRole (plus legacy ``member`` for revoke)
+ORG_ROLE_RELATIONS: tuple[str, ...] = (
+    "owner",
+    "admin",
+    "ops",
+    "finance",
+    "readonly",
+    "member",
+)
+
+_MERCHANT_ROLE_TO_ORG_RELATION: dict[str, str] = {
+    MerchantRole.OWNER.value: "owner",
+    MerchantRole.ADMIN.value: "admin",
+    MerchantRole.OPS.value: "ops",
+    MerchantRole.FINANCE.value: "finance",
+    MerchantRole.READONLY.value: "readonly",
+    "merchant_owner": "owner",
+    "merchant_admin": "admin",
+    "merchant_ops": "ops",
+    "merchant_finance": "finance",
+    "merchant_readonly": "readonly",
 }
+
+
+def relation_for_merchant_role(role: str) -> str:
+    return _MERCHANT_ROLE_TO_ORG_RELATION.get(role, "ops")
 
 
 class TupleWriter:
@@ -62,13 +81,17 @@ class TupleWriter:
                 continue
             if mu.porterchain_user_id != user.id:
                 mu.porterchain_user_id = user.id
-            rel = "admin" if mu.role in _ORG_ADMIN_ROLES else "member"
+            rel = relation_for_merchant_role(mu.role)
             desired.append(
                 Relationship("organization", mu.merchant_id, rel, "user", user.id)
             )
 
         driver = db.query(Driver).filter(Driver.clerk_user_id == subject).first()
-        if driver and driver.status != DriverStatus.REJECTED.value:
+        # PENDING needs portal access for onboarding; SUSPENDED/REJECTED must lose tuples.
+        if driver and driver.status in (
+            DriverStatus.APPROVED.value,
+            DriverStatus.PENDING.value,
+        ):
             if driver.porterchain_user_id != user.id:
                 driver.porterchain_user_id = user.id
             desired.append(
@@ -86,8 +109,8 @@ class TupleWriter:
                 Relationship("customer_profile", customer.id, "owner", "user", user.id)
             )
 
-        # Replace prior subject edges for this user on known resource types (memory-safe reconcile).
-        self._reconcile_user(user.id, desired)
+        # Full reconcile: drop all known edges (memory + gRPC), then write the desired set.
+        self.revoke_all_for_user(db, user)
         token = self.client.write_relationships(desired) if desired else None
         logger.info(
             "authz_tuples_synced user_id=%s relationships=%s",
@@ -95,20 +118,6 @@ class TupleWriter:
             len(desired),
         )
         return token
-
-    def _reconcile_user(self, user_id: str, desired: list[Relationship]) -> None:
-        """Delete stale memory/grpc edges we own for this user before writing desired set."""
-        client = self.client
-        # Memory store: drop all relationships where subject is this user, then rewrite.
-        mem = getattr(client, "_memory", None)
-        if mem is not None and (client._use_memory or client._grpc is None):  # noqa: SLF001
-            with mem.lock:
-                keep = {t for t in mem.relationships if not (t[3] == "user" and t[4] == user_id)}
-                mem.relationships = keep
-            return
-        # gRPC: delete known relation shapes then touch desired (best-effort).
-        # Full ReadRelationships filter would be better; for v1 we delete+write desired only.
-        _ = desired
 
     def revoke_all_for_user(self, db: Session, user: PorterchainUser) -> str | None:
         """Delete SpiceDB edges for this internal user (memory + gRPC)."""
@@ -122,12 +131,10 @@ class TupleWriter:
 
         if subject:
             for mu in db.query(MerchantUser).filter(MerchantUser.clerk_user_id == subject).all():
-                to_delete.append(
-                    Relationship("organization", mu.merchant_id, "member", "user", user.id)
-                )
-                to_delete.append(
-                    Relationship("organization", mu.merchant_id, "admin", "user", user.id)
-                )
+                for rel in ORG_ROLE_RELATIONS:
+                    to_delete.append(
+                        Relationship("organization", mu.merchant_id, rel, "user", user.id)
+                    )
             driver = db.query(Driver).filter(Driver.clerk_user_id == subject).first()
             if driver:
                 to_delete.append(
@@ -167,8 +174,18 @@ class TupleWriter:
             ]
         )
 
-    def grant_org_member(self, user_id: str, merchant_id: str, *, admin: bool = False) -> str:
-        rel = "admin" if admin else "member"
+    def grant_org_member(
+        self,
+        user_id: str,
+        merchant_id: str,
+        *,
+        admin: bool = False,
+        role: str | None = None,
+    ) -> str:
+        if role:
+            rel = relation_for_merchant_role(role)
+        else:
+            rel = "admin" if admin else "ops"
         return self.client.write_relationships(
             [Relationship("organization", merchant_id, rel, "user", user_id)]
         )
@@ -176,8 +193,8 @@ class TupleWriter:
     def revoke_org_member(self, user_id: str, merchant_id: str) -> str:
         return self.client.delete_relationships(
             [
-                Relationship("organization", merchant_id, "member", "user", user_id),
-                Relationship("organization", merchant_id, "admin", "user", user_id),
+                Relationship("organization", merchant_id, rel, "user", user_id)
+                for rel in ORG_ROLE_RELATIONS
             ]
         )
 

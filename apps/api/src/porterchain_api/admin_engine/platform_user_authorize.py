@@ -1,4 +1,8 @@
-"""Authorize platform users for maximum portal module access (Settings → Users)."""
+"""Authorize platform users for portal access (Settings → Users).
+
+Staff: activate existing AdminUser only — never promote to super_admin, never
+create staff from a random Platform Clerk signup (invite first).
+"""
 
 from __future__ import annotations
 
@@ -17,7 +21,6 @@ from porterchain_api.domain.admin_states import AdminRole, DriverStatus
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.rbac import MODULE_PERMISSIONS as MERCHANT_MODULE_PERMISSIONS
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.models import Customer
 from porterchain_api.schemas_admin import PlatformUserAuthorizeResponse
 
 
@@ -33,9 +36,11 @@ def authorize_platform_user(
     name: str | None = None,
     reason: str | None = None,
 ) -> PlatformUserAuthorizeResponse:
-    """Grant maximum portal access for a user type (role promotion + lifecycle gates)."""
+    """Activate / approve portal access. Does not grant super_admin to staff."""
     if user_type not in ("staff", "driver", "customer", "merchant"):
         raise ValueError("invalid_user_type")
+    if user_type == "customer":
+        raise ValueError("customer_self_signup_only")
 
     resolved_clerk_id = clerk_user_id
     resolved_platform_id = platform_user_id
@@ -68,23 +73,13 @@ def authorize_platform_user(
             reason=reason,
             actions=actions,
         )
-    if user_type == "merchant":
-        return _authorize_merchant(
-            db,
-            ctx,
-            platform_user_id=resolved_platform_id,
-            clerk_user_id=resolved_clerk_id,
-            email=email,
-            name=name,
-            reason=reason,
-            actions=actions,
-        )
-    return _authorize_customer(
+    return _authorize_merchant(
         db,
         ctx,
         platform_user_id=resolved_platform_id,
         clerk_user_id=resolved_clerk_id,
         email=email,
+        name=name,
         reason=reason,
         actions=actions,
     )
@@ -99,20 +94,10 @@ def _merchant_modules_for_role(role: MerchantRole) -> list[str]:
 
 
 def _sync_authz_for_clerk(db: Session, clerk_user_id: str | None) -> None:
-    """Push persona changes into SpiceDB immediately (don't wait for next login resolve)."""
-    if not clerk_user_id or clerk_user_id.startswith("pending:"):
-        return
-    from porterchain_api.authz.tuples import TupleWriter
-    from porterchain_api.user_models import PorterchainUser
+    """Activate registry user + push SpiceDB tuples after authorize mutations."""
+    from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-    user = db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == clerk_user_id).first()
-    if not user:
-        return
-    try:
-        TupleWriter().sync_user_from_profiles(db, user)
-    except Exception:  # noqa: BLE001
-        # Soft-fail: next PrincipalResolutionService.resolve will retry sync.
-        pass
+    sync_authz_after_persona_mutation(db, clerk_user_id)
 
 
 def _authorize_staff(
@@ -126,27 +111,18 @@ def _authorize_staff(
     reason: str | None,
     actions: list[str],
 ) -> PlatformUserAuthorizeResponse:
+    """Activate an invited AdminUser. Never creates staff; never forces super_admin."""
+    _ = name  # display-only; role comes from invite / role PATCH
     user = _find_staff(db, platform_user_id, clerk_user_id, email)
     if not user:
-        if not clerk_user_id or not email:
-            raise LookupError("staff_not_found")
-        user = AdminUser(
-            id=str(uuid.uuid4()),
-            clerk_user_id=clerk_user_id,
-            email=email.lower().strip(),
-            name=name,
-            role=AdminRole.SUPER_ADMIN.value,
-            is_active=True,
-        )
-        db.add(user)
-        actions.append("created_staff_row")
-    else:
-        if clerk_user_id and user.clerk_user_id != clerk_user_id:
+        raise LookupError("staff_not_found_invite_first")
+    if clerk_user_id and user.clerk_user_id != clerk_user_id:
+        # Allow linking after invite accept when email matches.
+        if email and user.email and user.email.lower().strip() == email.lower().strip():
             user.clerk_user_id = clerk_user_id
             actions.append("linked_clerk_id")
-    if user.role != AdminRole.SUPER_ADMIN.value:
-        actions.append(f"role:{user.role}->super_admin")
-        user.role = AdminRole.SUPER_ADMIN.value
+        else:
+            raise LookupError("staff_clerk_mismatch")
     if not user.is_active:
         user.is_active = True
         actions.append("activated")
@@ -330,55 +306,6 @@ def _authorize_merchant(
     )
 
 
-def _authorize_customer(
-    db: Session,
-    ctx: AdminContext,
-    *,
-    platform_user_id: str | None,
-    clerk_user_id: str | None,
-    email: str | None,
-    reason: str | None,
-    actions: list[str],
-) -> PlatformUserAuthorizeResponse:
-    customer = _find_customer(db, platform_user_id, clerk_user_id, email)
-    if not customer:
-        if not clerk_user_id or not email:
-            raise LookupError("customer_not_found")
-        customer = Customer(
-            id=str(uuid.uuid4()),
-            clerk_user_id=clerk_user_id,
-            email=email.lower().strip(),
-        )
-        db.add(customer)
-        actions.append("created_customer_row")
-    elif clerk_user_id and customer.clerk_user_id != clerk_user_id:
-        customer.clerk_user_id = clerk_user_id
-        actions.append("linked_clerk_id")
-    elif not actions:
-        actions.append("already_authorized")
-
-    log_admin_audit(
-        db,
-        ctx,
-        action="settings.user.authorize",
-        resource_type="customer",
-        resource_id=customer.id,
-        payload={"user_type": "customer", "actions": actions, "reason": reason},
-    )
-    db.commit()
-    db.refresh(customer)
-    _sync_authz_for_clerk(db, customer.clerk_user_id)
-    return PlatformUserAuthorizeResponse(
-        platform_user_id=customer.id,
-        user_type="customer",
-        email=customer.email,
-        role="customer",
-        access_status="authorized",
-        modules=["quote", "book", "orders", "tracking", "invoices", "support"],
-        actions_taken=actions,
-    )
-
-
 def _find_staff(
     db: Session,
     platform_user_id: str | None,
@@ -435,21 +362,3 @@ def _find_merchant_user(
         return db.query(MerchantUser).filter(MerchantUser.email == email.lower().strip()).first()
     return None
 
-
-def _find_customer(
-    db: Session,
-    platform_user_id: str | None,
-    clerk_user_id: str | None,
-    email: str | None,
-) -> Customer | None:
-    if platform_user_id:
-        row = db.query(Customer).filter(Customer.id == platform_user_id).first()
-        if row:
-            return row
-    if clerk_user_id:
-        row = db.query(Customer).filter(Customer.clerk_user_id == clerk_user_id).first()
-        if row:
-            return row
-    if email:
-        return db.query(Customer).filter(Customer.email == email.lower().strip()).first()
-    return None

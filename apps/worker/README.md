@@ -86,10 +86,3 @@ Uses `apps/api/.env` — same `DATABASE_URL`, Redis, Fleetbase, and Stripe setti
 | [../api/README.md](../api/README.md)     | API setup              |
 
 ---
-
-## Governance
-
-| Document                                                       | Role              |
-| -------------------------------------------------------------- | ----------------- |
-| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

@@ -216,9 +216,7 @@ class E2EValidationForwardMixin:
             db.refresh(o)
             return "PASS"
 
-        record("Vehicle Recommendation", lambda: self._verify_route_center(db, settings), layer="route_center")
         record("Driver Recommendation", lambda: "WARNING" if not settings.fleetbase_dispatch_bridge else "PASS", layer="fleetbase_engine")
-        record("Route Optimization", lambda: self._verify_route_center(db, settings), layer="route_center")
         record(
             "Fleetbase Adapter",
             lambda: self._health_to_validation(self._diagnostics._probe_fleetbase_adapter(settings)["status"]),

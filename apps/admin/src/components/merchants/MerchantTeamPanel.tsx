@@ -15,14 +15,7 @@ import {
   Select,
   Spinner,
 } from "@/components/crm/primitives";
-
-const MERCHANT_ROLES = [
-  { value: "merchant_owner", label: "Owner" },
-  { value: "merchant_admin", label: "Admin" },
-  { value: "merchant_ops", label: "Operations" },
-  { value: "merchant_finance", label: "Finance" },
-  { value: "merchant_readonly", label: "Read only" },
-] as const;
+import { MERCHANT_SEAT_ROLES } from "@/lib/settings";
 
 const INVITE_TONE: Record<string, "green" | "amber" | "red" | "slate"> = {
   accepted: "green",
@@ -79,7 +72,7 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
     await run("invite-owner", async () => {
       const token = await getApiToken();
       await merchants.inviteOwner(token, id, email);
-      setSuccess(`Invitation sent to ${email}`);
+      setSuccess(`Owner seat reserved for ${email} — they sign up on Platform with this email`);
     });
   }
 
@@ -90,7 +83,7 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
       const token = await getApiToken();
       await merchants.inviteTeamMember(token, id, email, memberRole);
       setMemberEmail("");
-      setSuccess(`Invitation sent to ${email}`);
+      setSuccess(`Teammate seat reserved for ${email}`);
     });
   }
 
@@ -110,7 +103,24 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
       } else {
         await merchants.inviteTeamMember(token, id, email, role);
       }
-      setSuccess(`Invitation resent to ${email}`);
+      setSuccess(`Seat re-reserved for ${email}`);
+    });
+  }
+
+  async function changeRole(userId: string, role: string) {
+    await run(`role-${userId}`, async () => {
+      const token = await getApiToken();
+      await merchants.updateTeamRole(token, id, userId, role);
+      setSuccess("Role updated");
+    });
+  }
+
+  async function removeMember(userId: string, email: string) {
+    if (!confirm(`Deactivate seat for ${email}?`)) return;
+    await run(`remove-${userId}`, async () => {
+      const token = await getApiToken();
+      await merchants.removeTeamMember(token, id, userId);
+      setSuccess(`${email} deactivated`);
     });
   }
 
@@ -130,8 +140,8 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
       <SectionCard title="Portal onboarding">
         <div className="space-y-4 px-5 py-4">
           <p className="text-sm text-muted">
-            Provision the merchant owner, send a Clerk invitation, then approve the account. No need
-            to use Settings → Users for this merchant.
+            Reserve the owner seat by email, have them create their PorterChain Platform account,
+            then approve the merchant. No Clerk invitation email is sent.
           </p>
 
           <ul className="space-y-2">
@@ -167,7 +177,7 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
               disabled={!ownerEmail.trim() || busy === "invite-owner"}
             >
               <Mail className="h-4 w-4" />
-              {onboarding.team_count === 0 ? "Invite owner" : "Send / resend invite"}
+              {onboarding.team_count === 0 ? "Add owner seat" : "Refresh owner seat"}
             </Button>
             {onboarding.can_approve && (
               <Button
@@ -219,7 +229,7 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
             </Field>
             <Field label="Role" className="min-w-[8rem]">
               <Select value={memberRole} onChange={(e) => setMemberRole(e.target.value)}>
-                {MERCHANT_ROLES.filter((r) => r.value !== "merchant_owner").map((r) => (
+                {MERCHANT_SEAT_ROLES.filter((r) => r.value !== "merchant_owner").map((r) => (
                   <option key={r.value} value={r.value}>
                     {r.label}
                   </option>
@@ -232,7 +242,7 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
               onClick={() => void inviteMember()}
             >
               <UserPlus className="h-4 w-4" />
-              Invite
+              Add teammate
             </Button>
           </div>
         }
@@ -252,6 +262,20 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
                   {inviteLabel(u.invite_status)}
                 </Badge>
                 {u.clerk_linked && <Badge tone="green">Clerk linked</Badge>}
+                {u.is_active && (
+                  <Select
+                    value={u.role}
+                    className="min-w-[9rem] text-xs"
+                    disabled={busy === `role-${u.id}`}
+                    onChange={(e) => void changeRole(u.id, e.target.value)}
+                  >
+                    {MERCHANT_SEAT_ROLES.map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </Select>
+                )}
                 {u.invite_status !== "accepted" && (
                   <Button
                     variant="ghost"
@@ -259,7 +283,17 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
                     disabled={busy === `resend-${u.email}`}
                     onClick={() => void resendInvite(u.email, u.role)}
                   >
-                    Resend invite
+                    Re-reserve seat
+                  </Button>
+                )}
+                {u.is_active && (
+                  <Button
+                    variant="ghost"
+                    className="text-xs text-red-600"
+                    disabled={busy === `remove-${u.id}`}
+                    onClick={() => void removeMember(u.id, u.email)}
+                  >
+                    Remove
                   </Button>
                 )}
                 {!u.is_active && (
@@ -283,7 +317,7 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
           ))}
           {(!team || team.length === 0) && (
             <p className="px-5 py-10 text-center text-sm text-muted">
-              No team members yet. Invite the owner above to start onboarding.
+              No team members yet. Add the owner seat above to start onboarding.
             </p>
           )}
         </div>

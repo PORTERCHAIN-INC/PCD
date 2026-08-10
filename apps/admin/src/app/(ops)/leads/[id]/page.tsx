@@ -42,6 +42,8 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
   const qc = useQueryClient();
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [converting, setConverting] = useState(false);
+  const [convertError, setConvertError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
@@ -72,6 +74,36 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
       void refetch();
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleConvert(toMerchant: boolean) {
+    if (
+      !confirm(
+        toMerchant
+          ? "Convert this lead to a company and create an ONBOARDING merchant seat?"
+          : "Convert this lead to a CRM company (and deal)?"
+      )
+    ) {
+      return;
+    }
+    setConverting(true);
+    setConvertError("");
+    try {
+      const token = await getApiToken();
+      const result = await leadsApi.convert(token, id, { to_merchant: toMerchant });
+      await qc.invalidateQueries({ queryKey: ["lead", id] });
+      await qc.invalidateQueries({ queryKey: ["leads"] });
+      const merchantId = result.merchant?.merchant_id;
+      if (toMerchant && merchantId) {
+        router.push(`/merchants/${merchantId}`);
+        return;
+      }
+      void refetch();
+    } catch (err) {
+      setConvertError(err instanceof Error ? err.message : "Convert failed");
+    } finally {
+      setConverting(false);
     }
   }
 
@@ -132,6 +164,24 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
           <Badge tone={STATUS_TONES[lead.status] ?? "slate"}>{lead.status}</Badge>
           <Badge tone={PRIORITY_TONES[lead.priority] ?? "slate"}>{lead.priority}</Badge>
           <Badge tone="slate">Score {lead.lead_score}</Badge>
+          {lead.status !== "converted" ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => void handleConvert(false)}
+                disabled={converting}
+              >
+                {converting ? "Converting…" : "Convert to company"}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => void handleConvert(true)}
+                disabled={converting}
+              >
+                {converting ? "Converting…" : "Convert → merchant"}
+              </Button>
+            </>
+          ) : null}
           {canDelete ? (
             <Button variant="danger" onClick={() => void handleDelete()} disabled={deleting}>
               <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
@@ -140,6 +190,9 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
+      {convertError ? (
+        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{convertError}</p>
+      ) : null}
       {deleteError ? (
         <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{deleteError}</p>
       ) : null}

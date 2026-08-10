@@ -93,12 +93,12 @@ Start: `pnpm dev:admin`
 
 **Files:** `apps/mobile-customer/.env.example` → `apps/mobile-customer/.env`
 
-| Variable                            | Required | Description                   |
-| ----------------------------------- | -------- | ----------------------------- |
-| `EXPO_PUBLIC_API_URL`               | Yes      | API origin, no trailing slash |
-| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`   | Optional | Maps SDK key                  |
-| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes      | Clerk auth                    |
-| `EXPO_PUBLIC_APP_KIND`              | Yes      | `customer`                    |
+| Variable                            | Required      | Description                                |
+| ----------------------------------- | ------------- | ------------------------------------------ |
+| `EXPO_PUBLIC_API_URL`               | Yes           | API origin, no trailing slash              |
+| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`   | Optional      | Maps SDK key                               |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | No (deferred) | Cleared until `@clerk/clerk-expo` is wired |
+| `EXPO_PUBLIC_APP_KIND`              | Yes           | `customer`                                 |
 
 Start: `pnpm dev:mobile-customer`
 
@@ -173,7 +173,7 @@ Shares most API env vars (Redis, database, event bus). No HTTP port. Start: `pnp
 | `CLERK_JWKS_URL`        | Yes      | Unified Platform JWT verification URL |
 | `CLERK_DEV_BYPASS`      | Local    | Requires `APP_ENV=local`              |
 
-Primary local/dev/prod target is **unified only** — one Platform Clerk app shared by every portal (see [docs/runbooks/clerk-consolidation.md](./docs/runbooks/clerk-consolidation.md)). `CLERK_MODE=enterprise` (divergent 4-app / 12-key) is **retired**; `pnpm clerk:sync` exits with an error if requested. Per-portal `CLERK_{PORTAL}_*` names below remain as **slot aliases** filled from the Platform triad (compose / dual-read compat) — not a supported second mode.
+Primary local/dev/prod target is **unified only** — one Platform Clerk app shared by every portal (see [SSO.md](SSO.md)). `CLERK_MODE=enterprise` (divergent 4-app / 12-key) is **retired**; `pnpm clerk:sync` exits with an error if requested. Per-portal `CLERK_{PORTAL}_*` names below remain as **slot aliases** filled from the Platform triad (compose / dual-read compat) — not a supported second mode.
 
 | Variable                                                                                   | Required | Description                                                |
 | ------------------------------------------------------------------------------------------ | -------- | ---------------------------------------------------------- |
@@ -182,7 +182,7 @@ Primary local/dev/prod target is **unified only** — one Platform Clerk app sha
 | `CLERK_ADMIN_SECRET_KEY` / `CLERK_ADMIN_JWKS_URL` / `CLERK_ADMIN_PUBLISHABLE_KEY`          | Alias    | Admin / Platform rename path when triad empty              |
 | `CLERK_DRIVER_SECRET_KEY` / `CLERK_DRIVER_JWKS_URL` / `CLERK_DRIVER_PUBLISHABLE_KEY`       | Alias    | Driver slot (Platform triad expand)                        |
 
-Frontends use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` or `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` with the unified Platform publishable key — see [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
+Retail frontends use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (`platform_driver`: Platform or Driver triad). Admin uses staff IdP. Mobile Expo keys are deferred — see [AUTHENTICATION_ARCHITECTURE.md](./AUTHENTICATION_ARCHITECTURE.md).
 
 ### Driver onboarding (API server)
 
@@ -499,10 +499,3 @@ Not currently configured in PCD repo.
 
 _See [env/README.md](./env/README.md) and [PORT_CONFIGURATION.md](./PORT_CONFIGURATION.md)._
 ---
-
-## Governance
-
-| Document                                   | Role              |
-| ------------------------------------------ | ----------------- |
-| [masterrule.md](masterrule.md)             | Architecture SSOT |
-| [CTO_AUDIT_REPORT.md](CTO_AUDIT_REPORT.md) | Doc vs code audit |

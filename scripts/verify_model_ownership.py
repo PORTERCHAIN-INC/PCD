@@ -34,7 +34,6 @@ _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
         "admin_engine/merchant_ar_service.py",
         "admin_engine/merchant_service.py",
         "admin_engine/platform_user_authorize.py",
-        "admin_engine/pricing_service.py",
         "admin_engine/settings_service.py",
         "auth/invitation_service.py",
         "auth/merchant.py",

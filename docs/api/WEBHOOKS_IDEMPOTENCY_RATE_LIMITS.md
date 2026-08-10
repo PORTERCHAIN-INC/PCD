@@ -44,10 +44,9 @@ Exact numeric limits may change — check OpenAPI descriptions and `Retry-After`
 
 ## Status and health
 
-| Endpoint             | Purpose                                                             |
-| -------------------- | ------------------------------------------------------------------- |
-| `GET /health`        | Liveness                                                            |
-| `GET /health/status` | Aggregated status summary (see [STATUS_PAGE.md](../STATUS_PAGE.md)) |
+| Endpoint      | Purpose  |
+| ------------- | -------- |
+| `GET /health` | Liveness |
 
 Public marketing status UI (`status.porterchain.com`) is Phase 2. Until then, use health endpoints and ops escalation via contact.
 

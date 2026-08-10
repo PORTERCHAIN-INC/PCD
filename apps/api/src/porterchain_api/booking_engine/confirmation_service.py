@@ -27,6 +27,67 @@ from porterchain_api.booking_engine.row_locks import (
 )
 
 
+def _retail_compliance_from_quote(quote: Quote) -> dict | None:
+    """Persist quote stops onto the order so Fleetbase sync sees multi-stop retail."""
+    extras = quote.additional_stops if isinstance(quote.additional_stops, list) else []
+    if not extras:
+        return None
+    pickup = quote.pickup if isinstance(quote.pickup, dict) else {}
+    dropoff = quote.dropoff if isinstance(quote.dropoff, dict) else {}
+    stops: list[dict] = []
+    seq = 0
+    if pickup:
+        stops.append(
+            {
+                "id": "s0",
+                "type": "pickup",
+                "sequence": seq,
+                "formatted": pickup.get("formatted") or pickup.get("address"),
+                "address": pickup.get("formatted") or pickup.get("address"),
+                "lat": pickup.get("lat"),
+                "lng": pickup.get("lng"),
+                "city": pickup.get("city"),
+            }
+        )
+        seq += 1
+    for i, raw in enumerate(extras):
+        s = raw if isinstance(raw, dict) else {}
+        stops.append(
+            {
+                "id": f"s{seq}",
+                "type": "dropoff",
+                "sequence": seq,
+                "formatted": s.get("formatted") or s.get("address"),
+                "address": s.get("formatted") or s.get("address"),
+                "lat": s.get("lat"),
+                "lng": s.get("lng"),
+                "city": s.get("city"),
+            }
+        )
+        seq += 1
+        del i
+    if dropoff:
+        stops.append(
+            {
+                "id": f"s{seq}",
+                "type": "dropoff",
+                "sequence": seq,
+                "formatted": dropoff.get("formatted") or dropoff.get("address"),
+                "address": dropoff.get("formatted") or dropoff.get("address"),
+                "lat": dropoff.get("lat"),
+                "lng": dropoff.get("lng"),
+                "city": dropoff.get("city"),
+            }
+        )
+    return {
+        "stops": stops,
+        "order_kind": "hub_spoke" if len(extras) >= 1 else "single",
+        "additional_stops": extras,
+        "vehicle_class": quote.vehicle_class,
+        "schedule_mode": quote.schedule_mode,
+    }
+
+
 class BookingConfirmationService:
     """Completes payment → booking → order → invoice; downstream via domain events."""
 
@@ -81,10 +142,10 @@ class BookingConfirmationService:
         if not quote.customer_id:
             raise ValueError("quote_missing_customer")
 
-        # Ensure the customer has a stable business reference.
+        # Ensure the customer has a stable business reference (C-25: retry on collision).
         customer = db.query(Customer).filter(Customer.id == quote.customer_id).first()
         if customer and not customer.customer_reference:
-            customer.customer_reference = generate_customer_reference()
+            self._assign_customer_reference(db, customer)
 
         booking = Booking(
             booking_number=generate_booking_number(),
@@ -113,6 +174,7 @@ class BookingConfirmationService:
             pickup=quote.pickup,
             dropoff=quote.dropoff,
             scheduled_at=quote.scheduled_at,
+            compliance_metadata=_retail_compliance_from_quote(quote),
         )
         db.add(order)
         db.flush()
@@ -159,6 +221,22 @@ class BookingConfirmationService:
             correlation_id=quote.id,
             payload={"tracking_number": order.tracking_number},
         )
+        amount_display = f"${(order.amount_cents or 0) / 100:.2f} {(order.currency or 'cad').upper()}"
+        receipt_payload = {
+            "invoice_id": invoice.id,
+            "invoice_number": invoice.invoice_number,
+            "receipt_number": invoice.receipt_number,
+            "payment_reference": payment.payment_reference if payment else None,
+            "receipt_url": receipt_url,
+            "customer_id": quote.customer_id,
+            "email": customer.email if customer else None,
+            "order_id": order.id,
+            "order_number": order.order_number,
+            "tracking_number": order.tracking_number,
+            "amount_cents": order.amount_cents,
+            "amount_display": amount_display,
+            "currency": order.currency,
+        }
         emit_event(
             db,
             event_type=E.INVOICE_CREATED,
@@ -173,7 +251,7 @@ class BookingConfirmationService:
             aggregate_type="order",
             aggregate_id=order.id,
             correlation_id=order.id,
-            payload={"invoice_number": invoice.invoice_number, "invoice_id": invoice.id},
+            payload=receipt_payload,
         )
         emit_event(
             db,
@@ -181,11 +259,7 @@ class BookingConfirmationService:
             aggregate_type="invoice",
             aggregate_id=invoice.id,
             correlation_id=order.id,
-            payload={
-                "receipt_number": invoice.receipt_number,
-                "payment_reference": payment.payment_reference if payment else None,
-                "receipt_url": receipt_url,
-            },
+            payload=receipt_payload,
         )
         db.commit()
 
@@ -204,16 +278,19 @@ class BookingConfirmationService:
             correlation_id=order.id,
             payload={
                 "order_id": order.id,
+                "customer_id": quote.customer_id,
                 "email": customer.email if customer else None,
                 "phone": customer.phone if customer else None,
                 "tracking_number": order.tracking_number,
                 "order_number": order.order_number,
                 "invoice_number": invoice.invoice_number,
                 "receipt_number": invoice.receipt_number,
+                "receipt_url": receipt_url,
                 "booking_number": booking.booking_number,
                 "payment_reference": payment.payment_reference if payment else None,
                 "customer_reference": customer.customer_reference if customer else None,
                 "amount_cents": order.amount_cents,
+                "amount_display": amount_display,
                 "currency": order.currency,
             },
         )
@@ -267,6 +344,30 @@ class BookingConfirmationService:
             "dropoff": order.dropoff,
             "fleetbase_order_id": order.fleetbase_order_id,
         }
+
+    @staticmethod
+    def _assign_customer_reference(db: Session, customer: Customer, *, attempts: int = 8) -> None:
+        """C-25: unique customer_reference — probe + nested savepoint on collision."""
+        from sqlalchemy.exc import IntegrityError
+
+        for _ in range(attempts):
+            ref = generate_customer_reference()
+            taken = (
+                db.query(Customer.id)
+                .filter(Customer.customer_reference == ref, Customer.id != customer.id)
+                .first()
+            )
+            if taken:
+                continue
+            customer.customer_reference = ref
+            try:
+                with db.begin_nested():
+                    db.flush()
+                return
+            except IntegrityError:
+                customer.customer_reference = None
+                continue
+        raise ValueError("customer_reference_collision")
 
     def mock_complete_checkout(self, db: Session, settings: Settings, quote_id: str) -> Order:
         quote = lock_quote(db, quote_id)

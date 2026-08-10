@@ -9,6 +9,7 @@ from porterchain_api.booking_engine.compliance_metadata import requires_medical_
 from porterchain_api.admin_engine import events as E
 from porterchain_api.booking_engine.order_transitions import transition_order_state
 from porterchain_api.config import Settings
+from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.models import Order, OrderException
 from porterchain_api.order_engine.buckets import dispatch_queue_sort_key
@@ -42,6 +43,16 @@ class AdminOperationsService:
         driver_id: str,
     ) -> Order:
         order = self._assign_driver_no_commit(db, ctx, order_id, driver_id)
+        driver = db.query(Driver).filter(Driver.id == driver_id).first()
+        if driver and settings.fleetbase_dispatch_bridge:
+            from porterchain_api.fleetbase_engine import BookingSyncService
+
+            BookingSyncService().push_driver_assignment(
+                db,
+                settings,
+                order,
+                fleetbase_driver_id=driver.fleetbase_driver_id,
+            )
         db.commit()
         db.refresh(order)
         return order
@@ -59,6 +70,14 @@ class AdminOperationsService:
         driver = db.query(Driver).filter(Driver.id == driver_id).first()
         if not driver:
             raise LookupError("driver_not_found")
+        if driver.status != DriverStatus.APPROVED.value:
+            raise ValueError("driver_not_approved")
+        # D-27: hard-gate verification beyond medical (license / insurance / background).
+        from porterchain_api.admin_engine.control_tower.scoring import driver_verification_gap
+
+        gap = driver_verification_gap(driver)
+        if gap:
+            raise ValueError(gap)
         if requires_medical_certified(order.compliance_metadata) and not driver.medical_transport_certified:
             raise ValueError("driver_not_medical_certified")
         transition_order_state(
@@ -68,7 +87,14 @@ class AdminOperationsService:
             event_type="order.driver_assigned",
             actor_type="admin",
             actor_id=ctx.user.id,
-            payload={"driver_id": driver_id},
+            payload={
+                "driver_id": driver_id,
+                "order_id": order.id,
+                "order_number": order.order_number,
+                "tracking_number": order.tracking_number,
+                "customer_id": order.customer_id,
+                "merchant_id": order.merchant_id,
+            },
         )
         order.assigned_driver_id = driver_id
         db.flush()
@@ -88,55 +114,13 @@ class AdminOperationsService:
             aggregate_id=order_id,
             actor_type="admin",
             actor_id=ctx.user.id,
-            payload={"driver_id": driver_id},
+            payload={
+                "driver_id": driver_id,
+                "order_id": order.id,
+                "order_number": order.order_number,
+                "tracking_number": order.tracking_number,
+                "customer_id": order.customer_id,
+                "merchant_id": order.merchant_id,
+            },
         )
         return order
-
-    def assign_batch(
-        self,
-        db: Session,
-        settings: Settings,
-        ctx: AdminContext,
-        *,
-        plan_id: str,
-        driver_id: str,
-        order_ids: list[str] | None = None,
-    ) -> dict:
-        """Assign a batch of orders to one driver.
-
-        Each order is assigned inside its own savepoint so a single failure
-        (missing order, invalid transition) is reported per-order without
-        aborting the whole batch.
-        """
-        ids = order_ids or []
-        results: list[dict] = []
-        errors: list[dict] = []
-        for order_id in ids:
-            try:
-                with db.begin_nested():
-                    order = self._assign_driver_no_commit(db, ctx, order_id, driver_id)
-                results.append(
-                    {
-                        "order_id": order_id,
-                        "status": order.state,
-                        "tracking_number": getattr(order, "tracking_number", None),
-                    }
-                )
-            except (LookupError, ValueError) as exc:
-                errors.append({"order_id": order_id, "error": str(exc)})
-        if results:
-            db.commit()
-        else:
-            db.rollback()
-        return {
-            "plan_id": plan_id,
-            "driver_id": driver_id,
-            "assigned_count": len(results),
-            "results": results,
-            "errors": errors,
-        }
-
-    def live_map_snapshot(self, db: Session) -> dict:
-        from porterchain_api.admin_engine.live_map_service import LiveMapService
-
-        return LiveMapService().snapshot(db)

@@ -1,7 +1,15 @@
-# RBAC
+# RBAC / authorization
 
-**Type:** POINTER
-**masterrule:** [§21](./masterrule.md#21-simplification--essential-complexity)
-**Last verified:** 2026-07-05
+**Type:** POINTER  
+**Last verified:** 2026-08-07
 
-Pointer to **[RBAC_MATRIX.md](RBAC_MATRIX.md)** — roles and permissions matrix
+PorterChain authorization is **SpiceDB** (not a static role matrix).
+
+**Canonical:** [docs/architecture/auth-clerk-spicedb.md](docs/architecture/auth-clerk-spicedb.md)
+
+Related:
+
+- [AUTHENTICATION_ARCHITECTURE.md](AUTHENTICATION_ARCHITECTURE.md) — identity by portal
+- [SSO.md](SSO.md) — admin staff IdP + Fleetbase console SSO
+
+The former `RBAC_MATRIX.md` / `ROLE_PERMISSIONS.md` files were archived under `docs/archive/reports-2026-08/`.

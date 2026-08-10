@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-
 from porterchain_api.admin_engine.clerk_directory_service import clerk_kind_for_user_type
-from porterchain_api.admin_engine.pricing_service import AdminPricingService
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.merchant_engine.bulk_service import MerchantBulkService
 from porterchain_api.merchant_engine.reports_service import MerchantReportsService
@@ -26,20 +23,6 @@ def test_bulk_normalize_row() -> None:
 def test_webhook_sign_payload() -> None:
     sig = _sign_payload(b"{}", 1234567890, "secret")
     assert len(sig) == 64
-
-
-def test_pricing_publish_tariff(db, admin_ctx) -> None:
-    svc = AdminPricingService()
-    tariff = svc.create_tariff(
-        db,
-        admin_ctx,
-        name=f"Pub {datetime.now(UTC).timestamp()}",
-        tariff_type="retail",
-        base_cents=1000,
-        per_km_cents=100,
-    )
-    published = svc.publish_tariff(db, admin_ctx, tariff.id)
-    assert published.is_active is True
 
 
 def test_settings_update_staff_role(db, admin_ctx) -> None:
@@ -64,11 +47,28 @@ def test_settings_authorize_platform_user_staff(db, admin_ctx, settings) -> None
         reason="test",
     )
     assert result.access_status == "authorized"
-    assert result.role == "super_admin"
-    assert "settings" in result.modules
+    # Activate only — never promote to super_admin
+    assert result.role == "read_only"
     db.refresh(staff)
-    assert staff.role == "super_admin"
+    assert staff.role == "read_only"
     assert staff.is_active is True
+
+
+def test_settings_authorize_staff_refuses_clerk_only_create(db, admin_ctx, settings) -> None:
+    svc = AdminSettingsService()
+    try:
+        svc.authorize_platform_user(
+            db,
+            admin_ctx,
+            settings,
+            "staff",
+            clerk_user_id="user_random_platform",
+            email="random@example.com",
+            reason="should_fail",
+        )
+        raise AssertionError("expected LookupError")
+    except LookupError as exc:
+        assert "invite" in str(exc) or "not_found" in str(exc)
 
 
 def test_merchant_reports_export(db, merchant_ctx) -> None:
@@ -78,15 +78,6 @@ def test_merchant_reports_export(db, merchant_ctx) -> None:
     assert isinstance(reports.executive(db, merchant_ctx), dict)
     assert isinstance(reports.order_volume(db, merchant_ctx), dict)
     assert isinstance(reports.export_csv(db, merchant_ctx, "orders"), str)
-
-
-def test_admin_pricing_promotion_and_zone(db, admin_ctx) -> None:
-    svc = AdminPricingService()
-    code = f"Z{int(datetime.now(UTC).timestamp())}"[:12]
-    promo = svc.create_promotion(db, admin_ctx, code=code, discount_percent=5.0, is_active=True)
-    assert promo.code == code
-    zones = svc.list_zones_enriched(db)
-    assert isinstance(zones, list)
 
 
 def test_hook_wildcard_events() -> None:

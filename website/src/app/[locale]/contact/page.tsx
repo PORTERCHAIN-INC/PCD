@@ -42,7 +42,7 @@ export default async function ContactPage({ params, searchParams }: Props) {
 
   if (intent === "quote") {
     const fromParam = from?.trim() || "contact";
-    redirect(`/${locale as Locale}/business?from=${encodeURIComponent(fromParam)}#inquiry`);
+    redirect(`/${locale as Locale}/sign-up?intent=quote&from=${encodeURIComponent(fromParam)}`);
   }
 
   const t = await getTranslations("corporate.contact");
@@ -101,7 +101,7 @@ export default async function ContactPage({ params, searchParams }: Props) {
                 </p>
                 <div className="mt-6">
                   <ShimmerButton
-                    href="/business?from=contact#inquiry"
+                    href="/sign-up?intent=quote&from=contact"
                     trackSource="contact-to-business"
                     showArrow
                     className="rounded-xl"

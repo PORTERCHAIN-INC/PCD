@@ -22,10 +22,3 @@ This directory is a documentation alias. Shared module documentation lives at:
 
 A future consolidation may colocate Python shared code under `packages/shared/python/`; until then, use the paths above.
 ---
-
-## Governance
-
-| Document                                                       | Role              |
-| -------------------------------------------------------------- | ----------------- |
-| [../../masterrule.md](../../masterrule.md)                     | Architecture SSOT |
-| [../../REPOSITORY_STRUCTURE.md](../../REPOSITORY_STRUCTURE.md) | Monorepo layout   |

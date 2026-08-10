@@ -117,20 +117,22 @@ Copy templates from `env/README.md`. Clerk keys: one file `env/clerk.env` → `p
 
 ---
 
-## Clerk (unified Platform triad)
+## Clerk (`platform_driver` — Platform + Driver)
 
 **Single local source:** `env/clerk.env` (copy from `env/clerk.env.example`).
 
-`CLERK_MODE=enterprise` (4-app / 12-key) is **retired**. Sync is unified-only; requesting enterprise exits with an error — see [clerk-consolidation.md](./runbooks/clerk-consolidation.md).
+`CLERK_MODE=unified` and `enterprise` are **retired** (sync/upload/validate exit). Layout:
+
+- **PorterChain Platform** — website, customer, merchant, admin (admin leaving Clerk via staff IdP)
+- **Porterchain Driver** — driver portal / mobile only (invite-only)
 
 ```bash
 cp env/clerk.env.example env/clerk.env
-# unified only: CLERK_MODE=unified + CLERK_PUBLISHABLE_KEY / CLERK_SECRET_KEY / CLERK_JWKS_URL
-pnpm clerk:sync                          # → all portals + API + mobile .env (expands triad into portal slots)
-# Prod Doppler/GitHub upload remains Phase 6+ manual ops — do not run casually
+# CLERK_MODE=platform_driver + Platform triad + CLERK_DRIVER_*
+pnpm clerk:sync
+# Prod Doppler/GitHub upload remains manual ops — do not run casually
 bash infrastructure/deploy/scripts/upload-clerk-to-doppler.sh
 bash infrastructure/deploy/scripts/upload-clerk-to-github.sh   # pk_* only
-# trigger Deploy workflow
 ```
 
 | Portal   | Publishable (GitHub build / slot alias) | Secret + JWKS (Doppler runtime / slot alias)           |
@@ -140,18 +142,16 @@ bash infrastructure/deploy/scripts/upload-clerk-to-github.sh   # pk_* only
 | Admin    | `CLERK_ADMIN_PUBLISHABLE_KEY`           | `CLERK_ADMIN_SECRET_KEY`, `CLERK_ADMIN_JWKS_URL`       |
 | Driver   | `CLERK_DRIVER_PUBLISHABLE_KEY`          | `CLERK_DRIVER_SECRET_KEY`, `CLERK_DRIVER_JWKS_URL`     |
 
-**Canonical Platform triad:**
+**Canonical keys:**
 
-| Consumer   | Names                                                                                                     |
-| ---------- | --------------------------------------------------------------------------------------------------------- |
-| Sync / API | `CLERK_MODE=unified`, `CLERK_UNIFIED_MODE`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_JWKS_URL` |
-| Next apps  | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (+ server `CLERK_SECRET_KEY`)                                         |
-| Expo       | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` only                                                                  |
-| Policy     | `CLERK_AUTHORIZED_PARTIES`, `CLERK_AUTHORIZED_ISSUERS`, `CLERK_AUDIENCE`, `CLERK_WEBHOOK_SIGNING_SECRET`  |
+| Consumer   | Names                                                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Sync / API | `CLERK_MODE=platform_driver`, `CLERK_UNIFIED_MODE=false`, Platform triad, `CLERK_DRIVER_*`, optional azp/issuers/webhook |
+| Next apps  | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (Platform or Driver per app)                                                         |
+| Expo       | Deferred — `pnpm clerk:sync` clears `EXPO_PUBLIC_CLERK_*` until `@clerk/clerk-expo`                                      |
+| Policy     | `CLERK_AUTHORIZED_PARTIES`, `CLERK_AUTHORIZED_ISSUERS`, `CLERK_AUDIENCE`, `CLERK_WEBHOOK_SIGNING_SECRET`                 |
 
-Each portal container maps its `CLERK_{PORTAL}_SECRET_KEY` → `CLERK_SECRET_KEY` at runtime (`docker-compose.prod.yml`). Under unified sync, all portal slots hold the same Platform keys.
-
-Do **not** delete old Clerk apps in Doppler/Clerk dashboard until the retirement checklist + founder approval.
+Customer/merchant/admin slots share Platform; Driver must differ in production.
 
 ---
 
@@ -196,9 +196,9 @@ curl -fsS https://api.porterchain.com/health/ready | jq '.clerk_mode, .clerk_app
 
 ## Related
 
-| Document                                                                  | Role                                                  |
-| ------------------------------------------------------------------------- | ----------------------------------------------------- |
-| [env/README.md](../env/README.md)                                         | Local templates                                       |
-| [infrastructure/deploy/SECRETS.md](../infrastructure/deploy/SECRETS.md)   | Doppler setup + rotation                              |
-| [docs/runbooks/clerk-consolidation.md](./runbooks/clerk-consolidation.md) | Clerk unified setup (primary) + legacy 4-app rollback |
-| [ENVIRONMENT_VARIABLES.md](../ENVIRONMENT_VARIABLES.md)                   | Full variable catalog                                 |
+| Document                                                                | Role                                                  |
+| ----------------------------------------------------------------------- | ----------------------------------------------------- |
+| [env/README.md](../env/README.md)                                       | Local templates                                       |
+| [infrastructure/deploy/SECRETS.md](../infrastructure/deploy/SECRETS.md) | Doppler setup + rotation                              |
+| [docs/runbooks/clerk-consolidation.md](../SSO.md)                       | Clerk unified setup (primary) + legacy 4-app rollback |
+| [ENVIRONMENT_VARIABLES.md](../ENVIRONMENT_VARIABLES.md)                 | Full variable catalog                                 |

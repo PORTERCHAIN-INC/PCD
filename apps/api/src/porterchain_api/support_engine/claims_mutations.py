@@ -39,8 +39,13 @@ class ClaimsMutationsMixin:
         )
         db.add(claim)
         db.flush()
-        set_claim_meta(claim, priority=priority)
         order = db.query(Order).filter(Order.id == order_id).first()
+        # D-31: snapshot assignee at open so reassignment doesn't drop care history.
+        set_claim_meta(
+            claim,
+            priority=priority,
+            driver_id=order.assigned_driver_id if order else None,
+        )
         customer = (
             db.query(Customer).filter(Customer.id == order.customer_id).first()
             if order and order.customer_id

@@ -12,12 +12,12 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
-from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.auth.current_principal import (
     CurrentPrincipal,
     RoleAssignmentView,
 )
 from porterchain_api.auth.identity import AuthenticatedIdentity
+from porterchain_api.auth.persona_bundle import PersonaBundle, load_persona_bundle
 from porterchain_api.auth.unified_catalog import (
     AccountStatus,
     AssignableRole,
@@ -27,12 +27,10 @@ from porterchain_api.auth.unified_catalog import (
     merchant_role_to_assignable,
 )
 from porterchain_api.authz.client import get_authz_client
-from porterchain_api.authz.tuples import PLATFORM_ID, TupleWriter
+from porterchain_api.authz.tuples import PLATFORM_ID
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.identity_models import IdentityLink
 from porterchain_api.merchant_engine.rbac import parse_merchant_role
-from porterchain_api.merchant_models import MerchantUser
-from porterchain_api.models import Customer
 from porterchain_api.user_models import PorterchainUser
 
 logger = logging.getLogger("porterchain.security")
@@ -54,14 +52,11 @@ class PrincipalResolutionService:
             logger.info("auth_reject reason=account_%s user_id=%s", user.status, user.id)
             raise HTTPException(status_code=403, detail=f"account_{user.status}")
 
-        self._dual_write_identity_link(db, identity, user)
+        # IdentityLink is written on EnsureUser prepare; only heal if missing.
+        self._ensure_identity_link(db, identity, user)
 
-        try:
-            TupleWriter().sync_user_from_profiles(db, user)
-            db.flush()
-        except Exception:  # noqa: BLE001
-            logger.exception("spicedb_sync_on_resolve_failed user_id=%s", user.id)
-
+        # SpiceDB tuple sync belongs on EnsureUser (login prepare) / authorize mutations —
+        # not on every principal resolve.
         roles, views, org_ids, legacy_ids = self._roles_from_profiles(db, identity.subject)
         permissions = self._permissions_from_spicedb(user.id, org_ids)
 
@@ -146,22 +141,24 @@ class PrincipalResolutionService:
     def _roles_from_profiles(
         self, db: Session, subject: str
     ) -> tuple[set[AssignableRole], tuple[RoleAssignmentView, ...], set[str], dict[str, str]]:
+        bundle = load_persona_bundle(db, subject)
+        return self._roles_from_bundle(bundle)
+
+    def _roles_from_bundle(
+        self, bundle: PersonaBundle
+    ) -> tuple[set[AssignableRole], tuple[RoleAssignmentView, ...], set[str], dict[str, str]]:
         roles: set[AssignableRole] = set()
         views: list[RoleAssignmentView] = []
         org_ids: set[str] = set()
-        legacy_ids = self._legacy_profile_ids(db, subject)
+        legacy_ids = bundle.legacy_profile_ids()
 
-        admin = (
-            db.query(AdminUser)
-            .filter(AdminUser.clerk_user_id == subject, AdminUser.is_active.is_(True))
-            .first()
-        )
-        if admin:
+        admin = bundle.admin
+        if admin is not None and admin.is_active:
             role = admin_role_to_assignable(parse_admin_role(admin.role))
             roles.add(role)
             views.append(RoleAssignmentView(role_key=role.value, scope_type="global", scope_id=""))
 
-        for mu in db.query(MerchantUser).filter(MerchantUser.clerk_user_id == subject).all():
+        for mu in bundle.merchant_users:
             if not mu.is_active:
                 continue
             m_role = merchant_role_to_assignable(parse_merchant_role(mu.role))
@@ -175,8 +172,11 @@ class PrincipalResolutionService:
                 )
             )
 
-        driver = db.query(Driver).filter(Driver.clerk_user_id == subject).first()
-        if driver and driver.status != DriverStatus.REJECTED.value:
+        driver = bundle.driver
+        if driver is not None and driver.status in (
+            DriverStatus.APPROVED.value,
+            DriverStatus.PENDING.value,
+        ):
             roles.add(AssignableRole.DRIVER)
             views.append(
                 RoleAssignmentView(
@@ -186,8 +186,8 @@ class PrincipalResolutionService:
                 )
             )
 
-        customer = db.query(Customer).filter(Customer.clerk_user_id == subject).first()
-        if customer:
+        customer = bundle.customer
+        if customer is not None:
             roles.add(AssignableRole.CUSTOMER)
             views.append(
                 RoleAssignmentView(
@@ -227,9 +227,10 @@ class PrincipalResolutionService:
             )
         return None
 
-    def _dual_write_identity_link(
+    def _ensure_identity_link(
         self, db: Session, identity: AuthenticatedIdentity, user: PorterchainUser
     ) -> None:
+        """Heal missing IdentityLink only — EnsureUser owns the primary write."""
         if not identity.subject:
             return
         existing = (
@@ -244,8 +245,6 @@ class PrincipalResolutionService:
         if existing:
             if existing.platform_user_id != user.id:
                 existing.platform_user_id = user.id
-            if identity.issuer and not existing.issuer:
-                existing.issuer = identity.issuer
             return
         by_clerk = (
             db.query(IdentityLink)
@@ -268,20 +267,3 @@ class PrincipalResolutionService:
                 user_type=user.role or "unprovisioned",
             )
         )
-
-    def _legacy_profile_ids(self, db: Session, subject: str) -> dict[str, str]:
-        out: dict[str, str] = {}
-        admin = db.query(AdminUser).filter(AdminUser.clerk_user_id == subject).first()
-        if admin:
-            out["admin_user_id"] = admin.id
-        mu = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == subject).first()
-        if mu:
-            out["merchant_user_id"] = mu.id
-            out["merchant_id"] = mu.merchant_id
-        driver = db.query(Driver).filter(Driver.clerk_user_id == subject).first()
-        if driver:
-            out["driver_id"] = driver.id
-        customer = db.query(Customer).filter(Customer.clerk_user_id == subject).first()
-        if customer:
-            out["customer_id"] = customer.id
-        return out

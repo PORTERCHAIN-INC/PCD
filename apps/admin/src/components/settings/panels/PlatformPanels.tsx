@@ -7,9 +7,21 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { relativeTime } from "@/lib/crmFormat";
 import { Button } from "@/components/crm/primitives";
 import { settingsApi, type AuditEntry, type SettingsDashboard } from "@/lib/settings";
-import { MODULE_SECTION_LINKS } from "@/lib/settings";
 import { SECTION_DESCRIPTIONS } from "@/lib/settings-metadata";
 import { SettingsCard, SettingsPageHeader, StatTile } from "../ui/SettingsPrimitives";
+
+function formatAuditDiff(oldValue: unknown, newValue: unknown): string {
+  try {
+    const text = JSON.stringify({ old: oldValue, new: newValue }, null, 2);
+    // Huge vehicle/pricing blobs must not blow out the settings shell width
+    if (text.length > 4000) {
+      return `${text.slice(0, 4000)}\n… truncated (${text.length} chars)`;
+    }
+    return text;
+  } catch {
+    return "[unserializable diff]";
+  }
+}
 
 export function AuditPanel() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
@@ -20,18 +32,19 @@ export function AuditPanel() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 max-w-full space-y-6">
       <SettingsPageHeader title="Audit log" description={SECTION_DESCRIPTIONS.audit} />
       <SettingsCard
         title="Configuration changes"
         description="Immutable record with actor, reason, and diff"
+        className="min-w-0 overflow-hidden"
       >
         {isLoading ? (
           <p className="text-sm text-muted">Loading…</p>
         ) : (
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             {logs.map((log, i) => (
-              <AuditRow key={i} log={log} />
+              <AuditRow key={`${log.action}-${log.created_at}-${i}`} log={log} />
             ))}
             {!logs.length && (
               <p className="py-6 text-center text-sm text-muted">No settings audit entries yet</p>
@@ -45,23 +58,27 @@ export function AuditPanel() {
 
 function AuditRow({ log }: { log: AuditEntry }) {
   return (
-    <div className="rounded-xl border border-primary/10 bg-gray-bg/30 p-4">
+    <div className="min-w-0 overflow-hidden rounded-xl border border-primary/10 bg-gray-bg/30 p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="font-mono text-sm font-semibold text-primary">{log.action}</p>
-        <span className="text-xs text-muted">
+        <p className="min-w-0 break-all font-mono text-sm font-semibold text-primary">
+          {log.action}
+        </p>
+        <span className="shrink-0 text-xs text-muted">
           {log.created_at ? relativeTime(log.created_at) : "—"}
         </span>
       </div>
-      <p className="mt-1 text-xs text-muted">
+      <p className="mt-1 break-all text-xs text-muted">
         Actor: {log.actor_user_id || "system"} · {log.resource_type}
         {log.resource_id ? ` / ${log.resource_id}` : ""}
       </p>
-      {log.reason && <p className="mt-2 text-sm text-primary/80">Reason: {log.reason}</p>}
+      {log.reason && (
+        <p className="mt-2 break-words text-sm text-primary/80">Reason: {log.reason}</p>
+      )}
       {(log.old_value != null || log.new_value != null) && (
-        <details className="mt-2">
+        <details className="mt-2 min-w-0">
           <summary className="cursor-pointer text-xs font-medium text-secondary">View diff</summary>
-          <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-white p-2 text-[10px]">
-            {JSON.stringify({ old: log.old_value, new: log.new_value }, null, 2)}
+          <pre className="mt-2 max-h-40 max-w-full overflow-auto whitespace-pre-wrap break-all rounded-lg bg-white p-2 text-[10px] leading-relaxed">
+            {formatAuditDiff(log.old_value, log.new_value)}
           </pre>
         </details>
       )}
@@ -167,52 +184,18 @@ export function PlatformPanel({
 
 export function ModuleLinkPanel({
   sectionId,
-  moduleConfig,
 }: {
   sectionId: string;
   moduleConfig?: Record<string, unknown>;
 }) {
-  const link = MODULE_SECTION_LINKS[sectionId];
-  const related = moduleConfig
-    ? Object.entries(moduleConfig).filter(
-        ([k]) => k.includes(sectionId) || (sectionId === "finance" && k.includes("pricing"))
-      )
-    : [];
-
   return (
     <div className="space-y-6">
       <SettingsPageHeader
         title={sectionId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
         description={SECTION_DESCRIPTIONS[sectionId]}
       />
-
-      {link && (
-        <Link
-          href={link.href}
-          className="flex items-center justify-between rounded-2xl border border-secondary/30 bg-secondary/5 px-5 py-4 transition-colors hover:bg-secondary/10"
-        >
-          <div>
-            <p className="font-semibold text-primary">Open {sectionId} module</p>
-            <p className="mt-1 text-sm text-muted">{link.label}</p>
-          </div>
-          <ArrowRight className="h-5 w-5 text-secondary" />
-        </Link>
-      )}
-
-      {related.length > 0 && (
-        <SettingsCard
-          title="Module-owned settings"
-          description="Read-only — edits happen in the owning module"
-        >
-          <pre className="max-h-64 overflow-auto rounded-xl bg-gray-bg p-4 text-xs">
-            {JSON.stringify(Object.fromEntries(related), null, 2)}
-          </pre>
-        </SettingsCard>
-      )}
-
-      <p className="text-xs text-muted">
-        Per masterrule §3: module-specific settings are owned by their Application Service —
-        Settings Center surfaces links without duplicating write paths.
+      <p className="text-sm text-muted">
+        This section moved into Commercial / Partners policy forms or the owning module nav.
       </p>
     </div>
   );

@@ -2,7 +2,7 @@
 
 Runtime business configuration is stored in SystemConfig. Secrets and infrastructure
 endpoints remain in environment variables — the admin UI exposes status only, never secrets.
-Module-specific settings (support SLA, pricing tax, reports) are owned by their modules;
+Module-specific settings (support SLA, reports) are owned by their modules;
 this service surfaces them for read/link without duplicating write paths.
 """
 
@@ -42,51 +42,34 @@ PORTERCHAIN_VERSION = os.environ.get("PORTERCHAIN_VERSION", "3.1.0")
 
 SETTINGS_SECTIONS: list[dict[str, str]] = [
     {"id": "dashboard", "label": "Dashboard", "group": "overview"},
-    {"id": "general", "label": "General", "group": "company"},
-    {"id": "branding", "label": "Branding", "group": "company"},
+    {"id": "general", "label": "Company", "group": "general"},
     {"id": "users", "label": "Users", "group": "access"},
     {"id": "roles", "label": "Roles & Permissions", "group": "access"},
     {"id": "authentication", "label": "Authentication", "group": "access"},
     {"id": "security", "label": "Security", "group": "access"},
-    {"id": "notifications", "label": "Notifications", "group": "communications"},
-    {"id": "email", "label": "Email", "group": "communications"},
-    {"id": "sms", "label": "SMS", "group": "communications"},
-    {"id": "push", "label": "Push Notifications", "group": "communications"},
-    {"id": "fleetbase", "label": "Fleetbase", "group": "integrations"},
-    {"id": "google_maps", "label": "Google Maps", "group": "integrations"},
-    {"id": "stripe", "label": "Stripe", "group": "integrations"},
-    {"id": "firebase", "label": "Firebase", "group": "integrations"},
-    {"id": "storage", "label": "Storage", "group": "integrations"},
-    {"id": "api_keys", "label": "API Keys", "group": "integrations"},
-    {"id": "integrations", "label": "Integrations", "group": "integrations"},
-    {"id": "vehicles", "label": "Vehicles", "group": "operations"},
-    {"id": "service_areas", "label": "Service Areas", "group": "operations"},
-    {"id": "delivery_zones", "label": "Delivery Zones", "group": "operations"},
-    {"id": "booking", "label": "Booking", "group": "operations"},
-    {"id": "merchant", "label": "Merchant", "group": "modules"},
-    {"id": "driver", "label": "Driver", "group": "modules"},
-    {"id": "customer", "label": "Customer", "group": "modules"},
-    {"id": "operations", "label": "Operations", "group": "modules"},
-    {"id": "finance", "label": "Finance", "group": "modules"},
-    {"id": "documents", "label": "Documents", "group": "modules"},
-    {"id": "claims", "label": "Claims", "group": "modules"},
-    {"id": "support", "label": "Support", "group": "modules"},
-    {"id": "reports", "label": "Reports", "group": "modules"},
+    {"id": "vehicles", "label": "Vehicle Classes", "group": "commercial"},
+    {"id": "pricing", "label": "Pricing", "group": "commercial"},
+    {"id": "coverage", "label": "Coverage", "group": "commercial"},
+    {"id": "booking", "label": "Booking", "group": "commercial"},
+    {"id": "finance", "label": "Finance", "group": "commercial"},
+    {"id": "documents", "label": "Documents", "group": "commercial"},
+    {"id": "claims", "label": "Claims", "group": "commercial"},
+    {"id": "merchant", "label": "Merchant", "group": "partners"},
+    {"id": "driver", "label": "Driver", "group": "partners"},
+    {"id": "customer", "label": "Customer", "group": "partners"},
+    {"id": "fleetbase", "label": "Fleetbase", "group": "connections"},
+    {"id": "stripe", "label": "Stripe", "group": "connections"},
+    {"id": "google_maps", "label": "Google Maps", "group": "connections"},
+    {"id": "firebase", "label": "Firebase", "group": "connections"},
+    {"id": "storage", "label": "Storage", "group": "connections"},
+    {"id": "channels", "label": "Channels", "group": "connections"},
     {"id": "automation", "label": "Automation", "group": "platform"},
-    {"id": "feature_flags", "label": "Feature Flags", "group": "platform"},
     {"id": "audit", "label": "Audit", "group": "platform"},
     {"id": "backup", "label": "Backup", "group": "platform"},
-    {"id": "logs", "label": "Logs", "group": "platform"},
-    {"id": "maintenance", "label": "System Maintenance", "group": "platform"},
-    {"id": "developer", "label": "Developer", "group": "platform"},
 ]
 
 CONFIG_KEYS = {
     "general": "settings_general",
-    "branding": "settings_branding",
-    "authentication": "settings_authentication",
-    "security": "settings_security",
-    "notifications": "notification_templates",
     "booking": "settings_booking",
     "merchant": "settings_merchant",
     "driver": "settings_driver",
@@ -95,12 +78,15 @@ CONFIG_KEYS = {
     "documents": "settings_documents",
     "claims": "settings_claims",
     "automation": "settings_automation",
-    "feature_flags": "settings_feature_flags",
     "vehicles": "vehicle_types",
+    "pricing": "pricing_gta_rate",
+    "pricing_tax": "pricing_tax",
+    "pricing_fuel": "pricing_fuel",
+    "pricing_rate_card": "pricing_rate_card",
+    "coverage": "settings_coverage",
+    # Legacy storage keys still readable for migration
     "service_areas": "service_areas",
     "delivery_zones": "settings_delivery_zones",
-    "package_types": "package_types",
-    "integrations_meta": "integrations",
 }
 
 DEFAULTS: dict[str, Any] = {
@@ -167,11 +153,6 @@ DEFAULTS: dict[str, Any] = {
         "queue_retry_max": 3,
         "dispatch_retry_seconds": 60,
     },
-    "settings_feature_flags": {
-        "beta_live_map": True,
-        "beta_order_360": True,
-        "experimental_ai_summary": True,
-    },
     "vehicle_types": [
         {"id": "sedan", "label": "Sedan", "capacity_kg": 50, "booking_enabled": True, "retail_enabled": True, "merchant_enabled": True, "sort_order": 1},
         {"id": "suv", "label": "SUV", "capacity_kg": 80, "booking_enabled": True, "retail_enabled": True, "merchant_enabled": True, "sort_order": 2},
@@ -180,11 +161,39 @@ DEFAULTS: dict[str, Any] = {
         {"id": "sprinter_van", "label": "Sprinter Van", "capacity_kg": 1200, "booking_enabled": True, "retail_enabled": True, "merchant_enabled": True, "sort_order": 5},
         {"id": "box_truck", "label": "Box Truck", "capacity_kg": 3000, "booking_enabled": True, "retail_enabled": False, "merchant_enabled": True, "sort_order": 6},
     ],
+    # GTA delivery rate matrix — CAD dollars; keys match vehicle_types ids
+    "pricing_gta_rate": {
+        "base_km_limit": 20.0,
+        "downtown_fee_cad": 25.0,
+        "upper_zone_fee_cad": 15.0,
+        "vehicles": {
+            "sedan": {"base_price": 45.0, "extra_km_rate": 1.25, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+            "suv": {"base_price": 55.0, "extra_km_rate": 1.75, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+            "pickup": {"base_price": 60.0, "extra_km_rate": 1.90, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+            "cargo_van": {"base_price": 65.0, "extra_km_rate": 2.0, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+            "sprinter_van": {"base_price": 75.0, "extra_km_rate": 2.5, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+            "box_truck": {"base_price": 125.0, "extra_km_rate": 3.5, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+        },
+    },
+    "pricing_tax": {"hst_percent": 0.0, "tax_included": False, "exempt_merchant_ids": []},
+    "pricing_fuel": {
+        "surcharge_percent": 0.0,
+        "base_fuel_price_cents": 145,
+        "current_fuel_price_cents": 158,
+    },
+    "pricing_rate_card": {
+        "extra_stop_cents": 1500,
+        "driver_payout_mode": "flat",
+        "driver_flat_per_delivery_cents": 850,
+        "driver_share_pct": 72.0,
+        "platform_share_pct": 28.0,
+    },
+    "settings_coverage": {
+        "areas": [{"city": "Toronto", "region": "GTA", "active": True}],
+        "zones": [],
+    },
     "service_areas": [{"city": "Toronto", "region": "GTA", "active": True}],
     "settings_delivery_zones": [],
-    "package_types": ["parcel", "envelope", "pallet", "fragile"],
-    "notification_templates": [],
-    "integrations": [],
 }
 
 
@@ -346,6 +355,25 @@ def _enrich_with_clerk(item: PlatformUserItem, snap: ClerkUserSnapshot | None) -
     )
 
 
+def _persona_match_score(item: PlatformUserItem, snap: ClerkUserSnapshot | None) -> tuple[int, float]:
+    """Higher is better — prefer real Clerk id match over email-only / fixture ids."""
+    score = 0
+    cid = item.clerk_user_id or ""
+    if snap and cid and cid == snap.clerk_user_id:
+        score += 1000
+    elif cid.startswith("user_") and "merchant" not in cid and "pending" not in cid:
+        score += 200
+    elif _clerk_linked(cid):
+        score += 50
+    if item.access_status == "authorized":
+        score += 20
+    if item.provisioned:
+        score += 10
+    # Prefer newest when scores tie
+    ts = item.created_at.timestamp() if item.created_at else 0.0
+    return score, ts
+
+
 def _merge_clerk_directory(
     items: list[PlatformUserItem],
     settings: Settings,
@@ -359,6 +387,8 @@ def _merge_clerk_directory(
 
     Security: never return Postgres-only ghosts. If Clerk sync fails, fail closed
     (empty list) so deleted Clerk accounts cannot linger in Admin → Users.
+
+    Dedupes by email so fixture / multi-org merchant seats do not spam the table.
     """
     try:
         snaps = fetch_clerk_snapshots(settings, user_type, limit=limit, query=search)
@@ -373,22 +403,44 @@ def _merge_clerk_directory(
     clerk_ids = {s.clerk_user_id for s in snaps.values() if s.clerk_user_id}
     clerk_emails = set(snaps.keys())
 
-    merged: list[PlatformUserItem] = []
+    # Group DB personas by email, keep best match that is visible in Clerk
+    by_email: dict[str, list[PlatformUserItem]] = {}
     for item in items:
-        email = (item.email or "").lower()
+        email = (item.email or "").lower().strip()
+        if not email:
+            continue
         cid = item.clerk_user_id or ""
-        if cid and cid in clerk_ids:
-            merged.append(_enrich_with_clerk(item, snaps.get(email)))
+        visible = (cid and cid in clerk_ids) or (email in clerk_emails)
+        if not visible:
             continue
-        if email and email in clerk_emails:
-            merged.append(_enrich_with_clerk(item, snaps.get(email)))
-            continue
-        # DB-only / fake clerk id → drop
-    by_email = {i.email.lower(): i for i in merged}
+        by_email.setdefault(email, []).append(item)
+
+    merged: list[PlatformUserItem] = []
+    for email, group in by_email.items():
+        snap = snaps.get(email)
+        best = max(group, key=lambda i: _persona_match_score(i, snap))
+        enriched = _enrich_with_clerk(best, snap)
+        if len(group) > 1:
+            orgs = sorted({(i.organization or "").strip() for i in group if i.organization})
+            orgs = [o for o in orgs if o]
+            primary = enriched.organization or (orgs[0] if orgs else "Organization")
+            extra = len(group) - 1
+            org_label = f"{primary} · {extra} other seat{'s' if extra != 1 else ''}"
+            if 1 < len(orgs) <= 3:
+                org_label = f"{' · '.join(orgs)} ({len(group)} seats)"
+            enriched = enriched.model_copy(
+                update={
+                    "organization": org_label,
+                    "status_label": f"{enriched.status_label} · {len(group)} seats same email",
+                }
+            )
+        merged.append(enriched)
+
+    seen = {(i.email or "").lower() for i in merged}
 
     if include_unprovisioned:
         for email, snap in snaps.items():
-            if email in by_email:
+            if email in seen:
                 continue
             access = "not_authorized"
             invite = "accepted"
@@ -416,6 +468,7 @@ def _merge_clerk_directory(
                     created_at=snap.created_at or datetime.now(UTC),
                 )
             )
+    merged.sort(key=lambda i: i.created_at or datetime.min.replace(tzinfo=UTC), reverse=True)
     return merged, True, len(snaps)
 
 
@@ -502,10 +555,11 @@ class AdminSettingsService:
                 )
         elif user_type == "customer":
             for c in db.query(Customer).order_by(Customer.created_at.desc()).limit(limit).all():
-                inv = invitations.get(c.email.lower())
-                invite = _invite_status(inv, c.clerk_user_id)
-                identity = _identity_status(c.clerk_user_id, invite)
-                access = "authorized"
+                linked = _clerk_linked(c.clerk_user_id)
+                identity = "registered" if linked else "not_registered"
+                access = "authorized" if linked else "not_authorized"
+                invite = "accepted" if linked else "not_invited"
+                hold = (c.privacy_status or "").lower() == "deletion_hold"
                 items.append(
                     PlatformUserItem(
                         id=c.id,
@@ -513,13 +567,18 @@ class AdminSettingsService:
                         email=c.email,
                         name=c.customer_reference or c.email.split("@")[0],
                         role="customer",
-                        status="active",
+                        status="deletion_hold" if hold else ("active" if linked else "orphan"),
                         access_status=access,
-                        invite_status=invite if invite != "not_invited" else "accepted",
+                        invite_status=invite,
                         identity_status=identity,
-                        status_label=_status_label(access, invite if invite != "not_invited" else "accepted", identity),
-                        clerk_linked=_clerk_linked(c.clerk_user_id),
-                        clerk_user_id=c.clerk_user_id if _clerk_linked(c.clerk_user_id) else None,
+                        status_label=(
+                            f"DSR hold · {c.privacy_hold_reference}"
+                            if hold
+                            else _status_label(access, invite, identity)
+                        ),
+                        clerk_linked=linked,
+                        clerk_user_id=c.clerk_user_id if linked else None,
+                        detail_href=f"/customers/{c.id}",
                         created_at=c.created_at,
                     )
                 )
@@ -570,9 +629,9 @@ class AdminSettingsService:
             user_type,
             limit=limit,
             search=search,
-            # Staff: allow Clerk-only rows so ops can authorize unprovisioned accounts.
-            # Other tabs: provisioned persona rows only (no fake customer/driver/merchant).
-            include_unprovisioned=(user_type == "staff"),
+            # Staff and all tabs: provisioned persona rows only.
+            # Do not surface random Platform Clerk signups as authorize-able staff.
+            include_unprovisioned=False,
         )
 
         facets = _facet_counts(items)
@@ -600,20 +659,6 @@ class AdminSettingsService:
             clerk_total=clerk_total if clerk_synced else None,
         )
 
-    def invite_staff(
-        self,
-        db: Session,
-        ctx: AdminContext,
-        settings: Settings,
-        *,
-        email: str,
-        role: str,
-        name: str | None = None,
-    ):
-        if not is_clerk_secret_configured(settings, "admin"):
-            raise ValueError("clerk_not_configured")
-        return self._invitations.invite_admin_staff(db, ctx, settings, email=email, role=role, name=name)
-
     def update_staff_role(
         self,
         db: Session,
@@ -638,6 +683,9 @@ class AdminSettingsService:
         )
         db.commit()
         db.refresh(user)
+        from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+
+        sync_authz_after_persona_mutation(db, user.clerk_user_id)
         return user
 
     def authorize_platform_user(
@@ -673,8 +721,58 @@ class AdminSettingsService:
     def get_config_value(self, db: Session, key: str) -> Any:
         rec = self.get_config(db, key)
         if rec and rec.value is not None:
-            return rec.value
-        return DEFAULTS.get(key, {})
+            value = rec.value
+        else:
+            value = DEFAULTS.get(key, {})
+        if key == "pricing_gta_rate" and isinstance(value, dict):
+            return self._normalize_pricing_gta(value)
+        if key == "settings_coverage":
+            return self._coverage_value(db, value)
+        return value
+
+    @staticmethod
+    def _normalize_pricing_gta(raw: dict[str, Any]) -> dict[str, Any]:
+        try:
+            from porterchain_pricing.gta_rate import gta_rate_config_from_dict
+
+            return gta_rate_config_from_dict(raw).to_dict()
+        except Exception:
+            return raw
+
+    def _coverage_value(self, db: Session, value: Any) -> dict[str, Any]:
+        if isinstance(value, dict) and ("areas" in value or "zones" in value):
+            return {
+                "areas": value.get("areas")
+                if isinstance(value.get("areas"), list)
+                else DEFAULTS["settings_coverage"]["areas"],
+                "zones": value.get("zones") if isinstance(value.get("zones"), list) else [],
+            }
+        areas = self.get_config(db, "service_areas")
+        zones = self.get_config(db, "settings_delivery_zones")
+        return {
+            "areas": areas.value
+            if areas and isinstance(areas.value, list)
+            else DEFAULTS["settings_coverage"]["areas"],
+            "zones": zones.value if zones and isinstance(zones.value, list) else [],
+        }
+
+    def enabled_retail_vehicle_ids(self, db: Session) -> set[str]:
+        catalog = self.get_config_value(db, "vehicle_types")
+        if not isinstance(catalog, list):
+            return set()
+        out: set[str] = set()
+        for row in catalog:
+            if not isinstance(row, dict):
+                continue
+            vid = str(row.get("id") or "").strip()
+            if not vid:
+                continue
+            if row.get("booking_enabled") is False:
+                continue
+            if row.get("retail_enabled") is False:
+                continue
+            out.add(vid)
+        return out
 
     def set_config(
         self,
@@ -685,6 +783,14 @@ class AdminSettingsService:
         *,
         reason: str | None = None,
     ) -> SystemConfig:
+        if key == "pricing_gta_rate" and isinstance(value, dict):
+            value = self._normalize_pricing_gta(value)
+        if isinstance(value, float) and value != value:  # NaN
+            raise ValueError("invalid_config_value")
+        if isinstance(value, dict):
+            for v in value.values():
+                if isinstance(v, float) and v != v:
+                    raise ValueError("invalid_config_value")
         record = self.get_config(db, key)
         old_value = record.value if record else None
         if record:
@@ -707,6 +813,8 @@ class AdminSettingsService:
     def default_config(self, db: Session) -> dict[str, Any]:
         result: dict[str, Any] = {}
         for logical, key in CONFIG_KEYS.items():
+            if logical in ("service_areas", "delivery_zones"):
+                continue
             result[logical] = self.get_config_value(db, key)
         return result
 
@@ -715,9 +823,6 @@ class AdminSettingsService:
         keys = [
             "support_sla",
             "support_automation",
-            "pricing_tax",
-            "pricing_fuel",
-            "pricing_rate_card",
             "reports_center_saved",
             "reports_center_scheduled",
         ]
@@ -797,7 +902,8 @@ class AdminSettingsService:
             },
             "google_maps": {
                 "status": "configured" if platform.google_maps_api_key else "unconfigured",
-                "routing_engine": platform.routing_engine,
+                "role": "places_and_tiles_only",
+                "note": "Routing uses Valhalla/OSRM — not Google",
             },
             "firebase": {
                 "status": "configured" if platform.firebase_project_id else "unconfigured",
@@ -837,13 +943,23 @@ class AdminSettingsService:
         }
 
     def center(self, db: Session, settings: Settings) -> dict[str, Any]:
+        from porterchain_api.admin_engine.rbac import permissions_catalog
+        from porterchain_api.admin_engine.settings_bindings import bindings_payload
+
+        catalog = permissions_catalog()
         return {
             "dashboard": self.dashboard(db, settings),
             "sections": SETTINGS_SECTIONS,
             "config": self.default_config(db),
             "module_config": self.module_config_links(db),
-            "permissions": {},
-            "roles": [],
+            "bindings": bindings_payload(),
+            "env_runtime": {
+                "quote_ttl_minutes": settings.quote_ttl_minutes,
+                "booking_draft_ttl_minutes": settings.booking_draft_ttl_minutes,
+            },
+            "permissions": {m["module"]: m["roles"] for m in catalog["modules"]},
+            "roles": catalog["roles"],
+            "role_catalog": catalog,
             "authz": {
                 "engine": "spicedb",
                 "docs": "docs/architecture/auth-clerk-spicedb.md",
@@ -896,16 +1012,36 @@ class AdminSettingsService:
         ]
 
     def search(self, query: str) -> list[dict[str, str]]:
+        from porterchain_api.admin_engine.settings_bindings import FIELD_SEARCH, SECTION_ALIASES
+
         q = query.lower().strip()
         if not q:
             return []
         hits: list[dict[str, str]] = []
+        seen: set[str] = set()
         for section in SETTINGS_SECTIONS:
             if q in section["label"].lower() or q in section["id"]:
                 hits.append({"type": "section", "id": section["id"], "label": section["label"]})
-        for logical, key in CONFIG_KEYS.items():
-            if q in logical or q in key:
-                hits.append({"type": "config", "id": logical, "label": logical.replace("_", " ").title()})
+                seen.add(section["id"])
+        for logical in CONFIG_KEYS:
+            if q in logical and logical not in seen:
+                hits.append(
+                    {
+                        "type": "config",
+                        "id": logical if logical != "coverage" else "coverage",
+                        "label": logical.replace("_", " ").title(),
+                    }
+                )
+                seen.add(logical)
+        for field in FIELD_SEARCH:
+            if q in field["q"] or any(part in field["q"] for part in q.split() if len(part) > 2):
+                sid = field["section"]
+                if sid not in seen:
+                    hits.append({"type": "field", "id": sid, "label": field["label"]})
+                    seen.add(sid)
+        alias_target = SECTION_ALIASES.get(q)
+        if alias_target and alias_target not in seen:
+            hits.append({"type": "alias", "id": alias_target, "label": f"→ {alias_target}"})
         return hits[:20]
 
     def validate(self, settings: Settings, db: Session) -> dict[str, Any]:
@@ -919,7 +1055,7 @@ class AdminSettingsService:
             if settings.fleetbase_dispatch_bridge and not settings.fleetbase_api_key:
                 issues.append("Fleetbase API key required when dispatch bridge is enabled")
             if not platform.google_maps_api_key:
-                warnings.append("Google Maps server API key not configured")
+                warnings.append("Google Maps Places key not configured (tiles/autocomplete)")
             if not platform.firebase_project_id:
                 warnings.append("Firebase project not configured for push notifications")
 
@@ -930,20 +1066,107 @@ class AdminSettingsService:
         if ready.get("status") != "ok":
             issues.append(f"Readiness probe status: {ready.get('status')}")
 
+        # Commercial integrity
+        catalog = self.get_config_value(db, "vehicle_types")
+        pricing = self.get_config_value(db, "pricing_gta_rate")
+        booking = self.get_config_value(db, "settings_booking")
+        catalog_ids: set[str] = set()
+        if isinstance(catalog, list):
+            for row in catalog:
+                if isinstance(row, dict) and row.get("id"):
+                    catalog_ids.add(str(row["id"]))
+                    if row.get("booking_enabled") is not False and row.get("retail_enabled") is not False:
+                        vid = str(row["id"])
+                        vehicles = pricing.get("vehicles") if isinstance(pricing, dict) else None
+                        if isinstance(vehicles, dict) and vid not in vehicles:
+                            issues.append(f"Enabled vehicle '{vid}' has no GTA pricing row")
+        if isinstance(pricing, dict):
+            vehicles = pricing.get("vehicles")
+            if isinstance(vehicles, dict):
+                for vid, rates in vehicles.items():
+                    if catalog_ids and vid not in catalog_ids:
+                        warnings.append(f"Pricing row '{vid}' is not in vehicle catalog")
+                    if isinstance(rates, dict):
+                        for rk, rv in rates.items():
+                            try:
+                                if float(rv) < 0:
+                                    issues.append(f"Negative rate {rk} for vehicle '{vid}'")
+                            except (TypeError, ValueError):
+                                issues.append(f"Invalid rate {rk} for vehicle '{vid}'")
+        if isinstance(booking, dict):
+            default_class = booking.get("default_vehicle_class")
+            if default_class and catalog_ids and str(default_class) not in catalog_ids:
+                issues.append(f"Default vehicle '{default_class}' is not in vehicle catalog")
+            sla = booking.get("instant_delivery_sla_hours")
+            if sla is not None:
+                try:
+                    if float(sla) <= 0:
+                        issues.append("instant_delivery_sla_hours must be > 0")
+                except (TypeError, ValueError):
+                    issues.append("instant_delivery_sla_hours is not a number")
+            # TTL in SystemConfig does not bind runtime — warn if diverges from env
+            ui_ttl = booking.get("quote_ttl_minutes")
+            if ui_ttl is not None and int(ui_ttl) != int(settings.quote_ttl_minutes):
+                warnings.append(
+                    f"Booking quote_ttl_minutes in Settings ({ui_ttl}) differs from env "
+                    f"({settings.quote_ttl_minutes}) — runtime uses env"
+                )
+
+        wired_ok = len([i for i in issues if "vehicle" in i.lower() or "pricing" in i.lower() or "sla" in i.lower()]) == 0
         return {
             "valid": len(issues) == 0,
             "issues": issues,
             "warnings": warnings,
+            "commercial_ok": wired_ok and len(issues) == 0,
             "checked_at": datetime.now(UTC).isoformat(),
         }
 
     def export_configuration(self, db: Session) -> dict[str, Any]:
-        rows = db.query(SystemConfig).all()
+        owned = set(CONFIG_KEYS.values()) | set(DEFAULTS.keys())
+        rows = db.query(SystemConfig).filter(SystemConfig.key.in_(owned)).all()
         return {
             "exported_at": datetime.now(UTC).isoformat(),
             "version": PORTERCHAIN_VERSION,
             "config": {r.key: r.value for r in rows},
-            "defaults": DEFAULTS,
+            "defaults": {k: DEFAULTS[k] for k in DEFAULTS if k in owned},
+        }
+
+    def import_preview(self, db: Session, payload: dict[str, Any]) -> dict[str, Any]:
+        config = payload.get("config") or payload
+        if not isinstance(config, dict):
+            raise ValueError("invalid_import")
+        owned = set(CONFIG_KEYS.values()) | {
+            k for k in DEFAULTS if k.startswith("settings_") or k in (
+                "vehicle_types",
+                "pricing_gta_rate",
+                "pricing_tax",
+                "pricing_fuel",
+                "pricing_rate_card",
+                "settings_coverage",
+            )
+        }
+        added: list[str] = []
+        changed: list[str] = []
+        blocked: list[str] = []
+        for key, value in config.items():
+            if key not in owned and not str(key).startswith("settings_"):
+                blocked.append(str(key))
+                continue
+            if key not in owned and str(key).startswith("settings_"):
+                # only known settings_* from DEFAULTS
+                if key not in DEFAULTS:
+                    blocked.append(str(key))
+                    continue
+            current = self.get_config(db, key)
+            if current is None:
+                added.append(str(key))
+            elif current.value != value:
+                changed.append(str(key))
+        return {
+            "added": added,
+            "changed": changed,
+            "blocked": blocked,
+            "would_write": len(added) + len(changed),
         }
 
     def import_configuration(
@@ -953,13 +1176,35 @@ class AdminSettingsService:
         payload: dict[str, Any],
         *,
         reason: str | None = None,
-    ) -> dict[str, int]:
+        dry_run: bool = False,
+    ) -> dict[str, Any]:
+        preview = self.import_preview(db, payload)
+        if dry_run:
+            return {"dry_run": True, **preview}
+        if not reason or not str(reason).strip():
+            raise ValueError("import_reason_required")
         config = payload.get("config") or payload
         if not isinstance(config, dict):
             raise ValueError("invalid_import")
+        blocked = set(preview["blocked"])
+        allowed = set(CONFIG_KEYS.values()) | {
+            k
+            for k in DEFAULTS
+            if k.startswith("settings_")
+            or k
+            in (
+                "vehicle_types",
+                "pricing_gta_rate",
+                "pricing_tax",
+                "pricing_fuel",
+                "pricing_rate_card",
+                "settings_coverage",
+            )
+        }
         imported = 0
         for key, value in config.items():
-            if key.startswith("settings_") or key in DEFAULTS:
-                self.set_config(db, ctx, key, value, reason=reason or "import")
-                imported += 1
-        return {"imported": imported}
+            if key in blocked or key not in allowed:
+                continue
+            self.set_config(db, ctx, key, value, reason=reason)
+            imported += 1
+        return {"imported": imported, "dry_run": False, **preview}

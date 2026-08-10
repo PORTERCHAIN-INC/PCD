@@ -19,13 +19,13 @@ Phase 2 surfaces (CRM, Route Center, AI dispatch, analytics widgets) must not ap
 
 Introduce **`PORTERCHAIN_PHASE2_*` flags** — all default **`false`**:
 
-| Env var                           | Capability gated             |
-| --------------------------------- | ---------------------------- |
-| `PORTERCHAIN_PHASE2_CRM`          | Admin CRM modules            |
-| `PORTERCHAIN_PHASE2_ROUTE_CENTER` | Route optimizer UI           |
-| `PORTERCHAIN_PHASE2_AI_DISPATCH`  | ML dispatch strategies       |
-| `PORTERCHAIN_PHASE2_ANALYTICS`    | Analytics warehouse widgets  |
-| `PORTERCHAIN_PHASE2_INTELLIGENCE` | Intelligence engine copilots |
+| Env var                           | Capability gated                              |
+| --------------------------------- | --------------------------------------------- |
+| `PORTERCHAIN_PHASE2_CRM`          | Admin CRM modules                             |
+| `PORTERCHAIN_PHASE2_ROUTE_CENTER` | **Retired** — do not re-enable; use Fleetbase |
+| `PORTERCHAIN_PHASE2_AI_DISPATCH`  | ML dispatch strategies                        |
+| `PORTERCHAIN_PHASE2_ANALYTICS`    | Analytics warehouse widgets                   |
+| `PORTERCHAIN_PHASE2_INTELLIGENCE` | Intelligence engine copilots                  |
 
 Shared definitions:
 
