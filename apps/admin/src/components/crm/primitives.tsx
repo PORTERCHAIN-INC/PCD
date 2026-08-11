@@ -55,6 +55,7 @@ export function Button({
   type = "button",
   disabled,
   onClick,
+  title,
 }: {
   children: ReactNode;
   variant?: ButtonVariant;
@@ -62,12 +63,14 @@ export function Button({
   type?: "button" | "submit";
   disabled?: boolean;
   onClick?: () => void;
+  title?: string;
 }) {
   return (
     <button
       type={type}
       disabled={disabled}
       onClick={onClick}
+      title={title}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         BTN[variant],
