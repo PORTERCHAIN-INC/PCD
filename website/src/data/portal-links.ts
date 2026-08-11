@@ -19,6 +19,21 @@ export const customerPortalSignInUrl = `${publicEnv.customerPortalUrl}/sign-in`;
 /** Authenticated quote / book surface after Platform sign-up. */
 export const customerPortalBookUrl = `${publicEnv.customerPortalUrl}/book`;
 
+/**
+ * Customer book URL with optional handoff query (caller should layer `pc_vid` via
+ * `withVisitorHandoff` on the client).
+ */
+export function customerPortalBookHandoffUrl(
+  query?: Record<string, string | undefined | null>
+): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value) params.set(key, value);
+  }
+  const qs = params.toString();
+  return qs ? `${customerPortalBookUrl}?${qs}` : customerPortalBookUrl;
+}
+
 /** Marketing “Get a quote” → Clerk sign-up (then customer portal book). */
 export function quoteSignUpPath(query?: { from?: string; vehicle?: string }): string {
   const params = new URLSearchParams();

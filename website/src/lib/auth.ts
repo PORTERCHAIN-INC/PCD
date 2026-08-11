@@ -1,6 +1,7 @@
 import { getPorterchainApiBase } from "@/lib/api-base";
 import {
   adminSignInUrl,
+  customerPortalBookUrl,
   customerPortalDashboardUrl,
   driverSignInUrl,
   merchantPortalUrl,
@@ -11,6 +12,7 @@ import {
   type PorterchainPortal,
   type SessionContext,
 } from "@porterchain/auth";
+import { readQuoteIntent, withVisitorHandoff } from "@/lib/visitor-tracking";
 
 export type { SessionContext };
 
@@ -22,6 +24,18 @@ const PORTAL_HOME: Record<(typeof RETAIL_PORTALS)[number], string> = {
   // Mobile welcome home — primary CTA is quote/book.
   customer: customerPortalDashboardUrl,
 };
+
+function customerHomeUrl(): string {
+  const intent = readQuoteIntent();
+  if (intent.intent === "quote") {
+    return withVisitorHandoff(customerPortalBookUrl, {
+      intent: "quote",
+      from: intent.from,
+      vehicle: intent.vehicle,
+    });
+  }
+  return withVisitorHandoff(customerPortalDashboardUrl);
+}
 
 const PORTAL_LABEL: Record<(typeof RETAIL_PORTALS)[number], string> = {
   merchant: "Merchant",
@@ -54,7 +68,7 @@ export function retailPortalChoicesFromSession(
   return RETAIL_PORTALS.filter((portal) => canAccessPortal(ctx.permissions, portal)).map(
     (portal) => ({
       portal,
-      url: PORTAL_HOME[portal],
+      url: portal === "customer" ? customerHomeUrl() : PORTAL_HOME[portal],
       label: PORTAL_LABEL[portal],
     })
   );

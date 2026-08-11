@@ -282,6 +282,8 @@ export async function POST(req: Request) {
             business_name: input.business_name || guideState.businessName,
             intent: input.intent || guideState.intent || "quote",
             session_id: sessionId,
+            visitor_id: sessionId,
+            guide_stage: guideState.stage || "qualify",
             source_page: "/",
             notes: notes || undefined,
           });
@@ -341,6 +343,8 @@ export async function POST(req: Request) {
             business_name: input.business_name,
             intent: input.intent,
             session_id: sessionId,
+            visitor_id: sessionId,
+            guide_stage: "capture",
             source_page: "/",
             notes: input.notes,
           });

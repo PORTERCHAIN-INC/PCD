@@ -21,6 +21,11 @@ import {
 import { REBOOK_STORAGE_KEY } from "@/lib/api";
 import { isClerkConfigured, publicEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
+import {
+  captureVisitorHandoff,
+  getVisitorSessionId,
+  getVisitorTrackingPayload,
+} from "@/lib/visitor-session";
 
 const VEHICLES = [
   { id: "sedan", label: "Sedan" },
@@ -86,6 +91,11 @@ function CustomerBookDeliveryBody({
   const searchParams = useSearchParams();
   const handoffQuoteId = searchParams.get("quote_id");
   const wantsRebook = searchParams.get("rebook") === "1";
+
+  useEffect(() => {
+    captureVisitorHandoff(searchParams);
+  }, [searchParams]);
+
   const [step, setStep] = useState<Step>("details");
   const [pickup, setPickup] = useState<BookingAddress>({ formatted: "" });
   const [dropoff, setDropoff] = useState<BookingAddress>({ formatted: "" });
@@ -196,6 +206,7 @@ function CustomerBookDeliveryBody({
     try {
       const scheduled =
         scheduleMode === "now" ? new Date().toISOString() : new Date(scheduledAt).toISOString();
+      const sessionId = getVisitorSessionId() ?? undefined;
       const result = await createQuote({
         pickup: toPayload(pickup),
         dropoff: toPayload(dropoff),
@@ -204,6 +215,9 @@ function CustomerBookDeliveryBody({
         weight_kg: weightKg ? Number(weightKg) : undefined,
         scheduled_at: scheduled,
         schedule_mode: scheduleMode,
+        anonymous_session_id: sessionId,
+        visitor_session_id: sessionId,
+        tracking: getVisitorTrackingPayload(),
       });
       setQuote(result);
       setStep("quote");
@@ -237,6 +251,7 @@ function CustomerBookDeliveryBody({
         privacy_accepted: privacy,
         dangerous_goods_confirmed: dangerous,
         consent_at: new Date().toISOString(),
+        anonymous_session_id: getVisitorSessionId() ?? undefined,
       });
       if (booking.checkout_url) {
         window.location.href = booking.checkout_url;

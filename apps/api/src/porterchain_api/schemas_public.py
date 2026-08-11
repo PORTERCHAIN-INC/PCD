@@ -38,11 +38,13 @@ class PublicGuideLeadCreate(BaseModel):
     business_name: str | None = Field(default=None, max_length=255)
     intent: str | None = Field(default=None, max_length=64)
     session_id: str | None = Field(default=None, max_length=128)
+    visitor_id: str | None = Field(default=None, max_length=128)
     source_page: str | None = Field(default=None, max_length=512)
     notes: str | None = Field(default=None, max_length=4000)
     utm_source: str | None = Field(default=None, max_length=128)
     utm_campaign: str | None = Field(default=None, max_length=128)
     utm_medium: str | None = Field(default=None, max_length=128)
+    guide_stage: str | None = Field(default=None, max_length=32)
 
 
 class PublicGuideLeadResponse(BaseModel):

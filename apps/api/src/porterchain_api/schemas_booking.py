@@ -18,9 +18,19 @@ class VisitorTrackingInput(BaseModel):
     utm_source: str | None = None
     utm_medium: str | None = None
     utm_campaign: str | None = None
+    utm_term: str | None = None
+    utm_content: str | None = None
     referrer: str | None = None
     device: str | None = None
     location: dict[str, Any] | None = None
+    landing_page: str | None = None
+    from_page: str | None = None
+    locale: str | None = None
+    source_page: str | None = None
+    page_view_count: int | None = None
+    paths: list[str] | None = None
+    intent: str | None = None
+    guide_stage: str | None = None
 
 
 class WebsitePricingSnapshot(BaseModel):

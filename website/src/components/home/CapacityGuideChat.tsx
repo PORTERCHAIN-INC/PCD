@@ -37,6 +37,8 @@ import { HUB_FROM } from "@/lib/marketing/config";
 import { ANALYTICS_EVENTS, track } from "@/lib/seo/analytics";
 import { cn } from "@/lib/utils";
 
+import { getOrCreateVisitorId } from "@/lib/visitor-tracking";
+
 const SESSION_KEY = "pc_capacity_guide_session";
 const STATE_KEY = "pc_capacity_guide_state";
 
@@ -47,10 +49,17 @@ function messageText(message: UIMessage): string {
     .join("");
 }
 
+/** Unify guide session with durable visitor id for CRM ↔ quote stitching. */
 function ensureSessionId(): string {
   if (typeof window === "undefined") return "";
+  const visitorId = getOrCreateVisitorId();
   try {
     const existing = sessionStorage.getItem(SESSION_KEY);
+    if (existing && existing === visitorId) return existing;
+    if (visitorId) {
+      sessionStorage.setItem(SESSION_KEY, visitorId);
+      return visitorId;
+    }
     if (existing) return existing;
     const id =
       typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -59,7 +68,7 @@ function ensureSessionId(): string {
     sessionStorage.setItem(SESSION_KEY, id);
     return id;
   } catch {
-    return `guide-${Date.now()}`;
+    return visitorId || `guide-${Date.now()}`;
   }
 }
 

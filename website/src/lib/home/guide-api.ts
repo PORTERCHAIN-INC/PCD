@@ -62,8 +62,13 @@ export async function upsertGuideLead(payload: {
   business_name?: string;
   intent?: string;
   session_id?: string;
+  visitor_id?: string;
   source_page?: string;
   notes?: string;
+  guide_stage?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
 }): Promise<{ ok: true; data: GuideLeadResult } | { ok: false; error: string }> {
   const result = await guideFetch<GuideLeadResult>("/v1/public/guide/leads", {
     method: "POST",

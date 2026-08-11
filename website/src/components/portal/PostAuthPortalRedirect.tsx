@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SignOutButton, useAuth } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import LoginShell from "@/components/portal/LoginShell";
 import LoginStatusCard from "@/components/portal/LoginStatusCard";
@@ -12,6 +13,7 @@ import {
   nonRetailSignInHints,
   retailPortalChoicesFromSession,
 } from "@/lib/auth";
+import { rememberQuoteIntent } from "@/lib/visitor-tracking";
 
 type PortalChoice = { portal: string; url: string; label: string };
 type NonRetailHint = { kind: "admin" | "driver"; url: string };
@@ -22,12 +24,22 @@ type NonRetailHint = { kind: "admin" | "driver"; url: string };
  */
 export default function PostAuthPortalRedirect() {
   const t = useTranslations("login");
+  const searchParams = useSearchParams();
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const [error, setError] = useState("");
   const [choices, setChoices] = useState<PortalChoice[] | null>(null);
   const [nonRetail, setNonRetail] = useState<NonRetailHint[]>([]);
   const getTokenRef = useRef(getToken);
   getTokenRef.current = getToken;
+
+  useEffect(() => {
+    const intent = searchParams.get("intent") ?? undefined;
+    const from = searchParams.get("from") ?? undefined;
+    const vehicle = searchParams.get("vehicle") ?? undefined;
+    if (intent || from || vehicle) {
+      rememberQuoteIntent({ intent, from, vehicle });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;

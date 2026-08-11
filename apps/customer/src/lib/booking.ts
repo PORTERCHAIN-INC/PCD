@@ -106,6 +106,9 @@ export function createQuote(payload: {
   dimensions?: string;
   scheduled_at: string;
   schedule_mode: "now" | "later";
+  anonymous_session_id?: string;
+  visitor_session_id?: string;
+  tracking?: Record<string, unknown>;
 }) {
   return apiFetch<QuoteResult>("/v1/quotes", {
     method: "POST",
@@ -151,6 +154,7 @@ export function startBooking(
     dangerous_goods_confirmed: boolean;
     consent_at: string;
     checkout_channel?: "retail" | "customer";
+    anonymous_session_id?: string;
   }
 ) {
   return apiFetch<BookingStartResult>("/v1/bookings", {

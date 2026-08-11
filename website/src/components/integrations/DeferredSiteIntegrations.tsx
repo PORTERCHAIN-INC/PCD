@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   DEFAULT_CONSENT,
@@ -20,6 +20,10 @@ const MarketingTags = dynamic(() => import("@/components/marketing/MarketingTags
 const MobileWhatsAppChat = dynamic(() => import("@/components/integrations/MobileWhatsAppChat"), {
   ssr: false,
 });
+const VisitorIntelligenceBootstrap = dynamic(
+  () => import("@/components/seo/VisitorIntelligenceBootstrap"),
+  { ssr: false }
+);
 
 /**
  * Site-wide deferred integrations + CMP.
@@ -51,6 +55,9 @@ export default function DeferredSiteIntegrations() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <VisitorIntelligenceBootstrap />
+      </Suspense>
       <WebVitalsReporter />
       <CapacityGuideWidget />
       {showWhatsAppFab ? <MobileWhatsAppChat /> : null}

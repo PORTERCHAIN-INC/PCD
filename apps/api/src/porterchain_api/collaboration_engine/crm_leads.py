@@ -149,8 +149,10 @@ class CrmLeadsMixin:
         )
 
     @staticmethod
-    def score_lead(lead: CrmLead) -> int:
-        """Heuristic logistics lead score (0-100)."""
+    def score_lead(lead: CrmLead, visitor=None) -> int:
+        """Heuristic logistics lead score (0-100) with first-party intent fusion."""
+        from porterchain_api.domain.visitor_intent import behavioral_score_boost
+
         score = 0
         deliveries = lead.estimated_deliveries_per_month or 0
         if deliveries >= 1000:
@@ -174,12 +176,14 @@ class CrmLeadsMixin:
             score += 10
         if lead.priority in ("high", "urgent"):
             score += 10
+        score += behavioral_score_boost(lead, visitor)
         return min(score, 100)
 
     def create_lead(self, db: Session, ctx: AdminContext | None, data: dict) -> CrmLead:
         data.setdefault("assigned_to", _actor(ctx))
         lead = CrmLead(**data)
-        lead.lead_score = self.score_lead(lead)
+        visitor = self._visitor_for_lead(db, lead)
+        lead.lead_score = self.score_lead(lead, visitor)
         db.add(lead)
         db.commit()
         db.refresh(lead)
@@ -200,7 +204,8 @@ class CrmLeadsMixin:
         prev_status = lead.status
         for key, value in data.items():
             setattr(lead, key, value)
-        lead.lead_score = self.score_lead(lead)
+        visitor = self._visitor_for_lead(db, lead)
+        lead.lead_score = self.score_lead(lead, visitor)
         db.commit()
         db.refresh(lead)
         if "status" in data and data["status"] != prev_status:
@@ -212,6 +217,16 @@ class CrmLeadsMixin:
                 subject=f"Status: {prev_status} → {lead.status}",
             )
         return lead
+
+    def _visitor_for_lead(self, db: Session, lead: CrmLead):
+        """Lookup visitor session by CRM custom field ids (no booking_engine import)."""
+        from porterchain_api.models import VisitorSession
+
+        fields = lead.custom_fields if isinstance(lead.custom_fields, dict) else {}
+        session_id = fields.get("visitor_id") or fields.get("session_id")
+        if not isinstance(session_id, str) or not session_id.strip():
+            return None
+        return db.query(VisitorSession).filter(VisitorSession.id == session_id.strip()).first()
 
     def delete_lead(self, db: Session, lead_id: str) -> None:
         lead = db.get(CrmLead, lead_id)

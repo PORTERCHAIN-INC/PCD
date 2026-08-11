@@ -2,24 +2,31 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC
 from typing import Annotated
-from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
 from porterchain_api.collaboration_engine import CrmSalesService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.crm_states import LeadPriority, LeadStatus
+from porterchain_api.routers.public_guide_support import (
+    GUIDE_SOURCE,
+    GUIDE_TZ,
+    append_transcript,
+    merge_custom,
+    next_slots,
+    phone_trim,
+)
 from porterchain_api.routers.public_ingest_auth import verify_public_ingest_key
 from porterchain_api.schemas_public import (
     PublicGuideAppointmentCreate,
     PublicGuideAppointmentResponse,
     PublicGuideLeadCreate,
     PublicGuideLeadResponse,
-    PublicGuideSlot,
     PublicGuideSlotsResponse,
     PublicGuideTranscriptCreate,
     PublicGuideTranscriptResponse,
@@ -27,81 +34,7 @@ from porterchain_api.schemas_public import (
 
 router = APIRouter(prefix="/v1/public/guide", tags=["public-guide"])
 _crm = CrmSalesService()
-
-GUIDE_SOURCE = "website_capacity_guide"
-GUIDE_TZ = ZoneInfo("America/Toronto")
-TRANSCRIPT_MAX_CHARS = 16_000
-TRANSCRIPT_MAX_TURNS = 40
-SLOT_HOURS = range(9, 17)  # 09:00–16:00 starts → end by 17:00
-SLOT_COUNT = 10
-
-
-def _phone_trim(raw: str | None) -> str | None:
-    phone_raw = (raw or "").strip() or None
-    return phone_raw[:32] if phone_raw else None
-
-
-def _merge_custom(existing: dict | None, patch: dict) -> dict:
-    base = dict(existing or {})
-    for key, value in patch.items():
-        if value is not None and value != "":
-            base[key] = value
-    return base
-
-
-def _append_transcript(existing: dict | None, turns: list[dict], summary: str | None) -> dict:
-    fields = dict(existing or {})
-    history = fields.get("transcript")
-    if not isinstance(history, list):
-        history = []
-    for turn in turns:
-        history.append(
-            {
-                "role": turn.get("role", "user"),
-                "content": str(turn.get("content", ""))[:4000],
-                "at": datetime.now(UTC).isoformat(),
-            }
-        )
-    history = history[-TRANSCRIPT_MAX_TURNS:]
-    # Cap serialized size roughly
-    while history and len(str(history)) > TRANSCRIPT_MAX_CHARS:
-        history = history[1:]
-    fields["transcript"] = history
-    if summary:
-        fields["transcript_summary"] = summary[:4000]
-    return fields
-
-
-def _next_slots(*, meeting_type: str, count: int = SLOT_COUNT) -> list[PublicGuideSlot]:
-    now = datetime.now(GUIDE_TZ)
-    cursor = now + timedelta(hours=1)
-    # Snap to next half-hour boundary
-    if cursor.minute < 30:
-        cursor = cursor.replace(minute=30, second=0, microsecond=0)
-    else:
-        cursor = (cursor + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-
-    slots: list[PublicGuideSlot] = []
-    guard = 0
-    while len(slots) < count and guard < 400:
-        guard += 1
-        if cursor.weekday() < 5 and cursor.hour in SLOT_HOURS:
-            if cursor > now:
-                end = cursor + timedelta(minutes=30)
-                try:
-                    label = cursor.strftime("%a %b %-d · %-I:%M %p")
-                except ValueError:
-                    label = cursor.strftime("%a %b %d · %I:%M %p")
-                slots.append(
-                    PublicGuideSlot(
-                        start=cursor.astimezone(UTC),
-                        end=end.astimezone(UTC),
-                        label=label,
-                        meeting_type=meeting_type,
-                    )
-                )
-        cursor += timedelta(minutes=30)
-    return slots
+_visitors = VisitorTrackingService()
 
 
 @router.post("/leads", response_model=PublicGuideLeadResponse, status_code=201)
@@ -119,38 +52,63 @@ def upsert_guide_lead(
 
     contact_name = (body.name or "").strip() or email.split("@", 1)[0]
     company_name = (body.business_name or "").strip() or contact_name
-    phone = _phone_trim(body.phone)
+    phone = phone_trim(body.phone)
+
+    visitor_key = (body.visitor_id or body.session_id or "").strip() or None
+    if visitor_key:
+        _visitors.ensure_session(
+            db,
+            session_id=visitor_key[:64],
+            utm_source=body.utm_source,
+            utm_medium=body.utm_medium,
+            utm_campaign=body.utm_campaign,
+            signals={
+                "intent": body.intent,
+                "guide_stage": body.guide_stage or "capture",
+                "source_page": body.source_page or "/",
+                "from_page": "capacity_guide",
+            },
+        )
 
     existing = _crm.find_lead_by_email(db, email)
 
     custom_patch = {
         "form": "capacity_guide",
         "intent": body.intent,
-        "session_id": body.session_id,
+        "session_id": body.session_id or visitor_key,
+        "visitor_id": visitor_key,
+        "guide_stage": body.guide_stage,
         "source_page": body.source_page or "/",
         "utm_source": body.utm_source,
         "utm_campaign": body.utm_campaign,
         "utm_medium": body.utm_medium,
-        **({"phone_full": (body.phone or "").strip()} if body.phone and phone != (body.phone or "").strip() else {}),
+        **(
+            {"phone_full": (body.phone or "").strip()}
+            if body.phone and phone != (body.phone or "").strip()
+            else {}
+        ),
         **({"guide_notes": body.notes} if body.notes else {}),
     }
 
     if existing:
         patch: dict = {
-            "custom_fields": _merge_custom(existing.custom_fields, custom_patch),
+            "custom_fields": merge_custom(existing.custom_fields, custom_patch),
         }
         if contact_name and contact_name != existing.primary_contact_name:
             patch["primary_contact_name"] = contact_name
-        if company_name and (not existing.company_name or existing.company_name == existing.primary_contact_name):
+        if company_name and (
+            not existing.company_name or existing.company_name == existing.primary_contact_name
+        ):
             patch["company_name"] = company_name
         if phone:
             patch["phone"] = phone
         if body.notes:
             note = (body.notes or "").strip()
             prev = (existing.internal_notes or "").strip()
-            patch["internal_notes"] = f"{prev}\n{note}".strip() if prev and note not in prev else (note or prev or None)
+            patch["internal_notes"] = (
+                f"{prev}\n{note}".strip() if prev and note not in prev else (note or prev or None)
+            )
         if existing.source != GUIDE_SOURCE and (existing.source or "").startswith("website_"):
-            # Keep original source; tag capacity guide in custom_fields only
             pass
         elif not existing.source:
             patch["source"] = GUIDE_SOURCE
@@ -216,14 +174,23 @@ def save_guide_transcript(
     if not turns and not body.summary:
         raise HTTPException(status_code=422, detail="turns_or_summary_required")
 
-    fields = _append_transcript(lead.custom_fields, turns, body.summary)
+    fields = append_transcript(lead.custom_fields, turns, body.summary)
     if body.session_id:
         fields["session_id"] = body.session_id
+        fields["visitor_id"] = fields.get("visitor_id") or body.session_id
+        _visitors.ensure_session(
+            db,
+            session_id=body.session_id[:64],
+            signals={
+                "guide_stage": "capture",
+                "intent": (lead.custom_fields or {}).get("intent")
+                if isinstance(lead.custom_fields, dict)
+                else None,
+            },
+        )
     _crm.update_lead(db, lead.id, {"custom_fields": fields})
 
-    excerpt = body.summary or "\n".join(
-        f"{t['role']}: {t['content'][:500]}" for t in turns[-6:]
-    )
+    excerpt = body.summary or "\n".join(f"{t['role']}: {t['content'][:500]}" for t in turns[-6:])
     _crm.log_activity(
         db,
         entity_type="lead",
@@ -244,11 +211,10 @@ def list_guide_slots(
     x_ingest_key: Annotated[str | None, Header(alias="X-Ingest-Key")] = None,
 ) -> PublicGuideSlotsResponse:
     verify_public_ingest_key(settings, x_ingest_key)
-    slots = _next_slots(meeting_type=meeting_type)
     return PublicGuideSlotsResponse(
         timezone="America/Toronto",
         meeting_type=meeting_type,
-        slots=slots,
+        slots=next_slots(meeting_type=meeting_type),
     )
 
 
@@ -299,7 +265,7 @@ def book_guide_appointment(
     )
 
     status_patch: dict = {
-        "custom_fields": _merge_custom(
+        "custom_fields": merge_custom(
             lead.custom_fields,
             {
                 "session_id": body.session_id,

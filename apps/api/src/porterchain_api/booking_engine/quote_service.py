@@ -112,6 +112,7 @@ class QuoteService:
                 referrer=body.tracking.referrer if body.tracking else None,
                 device=body.tracking.device if body.tracking else None,
                 location=body.tracking.location if body.tracking else None,
+                signals=self._visitor.signals_from_tracking(body.tracking),
             )
 
         from porterchain_api.admin_engine.settings_service import AdminSettingsService
