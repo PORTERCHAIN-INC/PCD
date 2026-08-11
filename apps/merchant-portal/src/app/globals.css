@@ -20,7 +20,7 @@
   --color-gray-bg: var(--gray-bg);
   --color-muted: var(--muted);
   --color-surface: var(--surface);
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
 }
 
 body {

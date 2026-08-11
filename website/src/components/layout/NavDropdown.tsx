@@ -3,21 +3,28 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Award,
   BookOpen,
   Briefcase,
   Building2,
   ChevronDown,
   CircleHelp,
   Code2,
+  FileCheck,
   HardHat,
   HeartPulse,
+  Layers,
   LayoutGrid,
   Mail,
   MapPin,
   Newspaper,
   PackageSearch,
+  Plug,
+  RefreshCw,
   Route,
+  Scale,
   Server,
+  ShieldCheck,
   Truck,
   Users,
   UtensilsCrossed,
@@ -34,19 +41,32 @@ const CHILD_ICONS: Record<string, LucideIcon> = {
   medical: HeartPulse,
   foodBeverage: UtensilsCrossed,
   construction: HardHat,
+  threePl: PackageSearch,
+  fleetOverflow: RefreshCw,
   industries: Building2,
   serviceAreas: MapPin,
   about: Users,
   careers: Briefcase,
   contact: Mail,
   vehiclePartner: Truck,
+  trust: ShieldCheck,
+  claims: FileCheck,
   blog: Newspaper,
+  authors: Users,
   faq: CircleHelp,
   guides: BookOpen,
   track: PackageSearch,
   howItWorks: Route,
   platform: Server,
   developers: Code2,
+  capabilities: Layers,
+  integrations: Plug,
+  compare: Scale,
+  successStories: Award,
+  cargoVan: Truck,
+  tradeVan: Truck,
+  boxTruck: Truck,
+  pickupTruck: Truck,
 };
 
 interface NavDropdownProps {
@@ -62,6 +82,8 @@ interface NavDropdownProps {
   onNavigate?: () => void;
   mobileOnDarkBar?: boolean;
   variant?: "desktop" | "mobile";
+  /** When set, overrides computed active state (e.g. solutions covers /construction). */
+  forceActive?: boolean;
 }
 
 export default function NavDropdown({
@@ -77,17 +99,27 @@ export default function NavDropdown({
   onNavigate,
   mobileOnDarkBar = false,
   variant = "desktop",
+  forceActive,
 }: NavDropdownProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuIdAttr = useId();
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const childActive = items.some(
-    (child) => pathname === child.href || pathname.startsWith(`${child.href}/`)
-  );
-  const parentActive = href ? pathname === href || pathname.startsWith(`${href}/`) : false;
-  const active = childActive || parentActive;
+  const normalizePath = (value: string) => value.split("?")[0]?.split("#")[0] ?? value;
+  const childActive = items.some((child) => {
+    // Hash-only destinations share a hub path — do not steal active from other top-level links.
+    if (child.href.includes("#")) return false;
+    const path = normalizePath(child.href);
+    return pathname === path || pathname.startsWith(`${path}/`);
+  });
+  const parentActive = href
+    ? (() => {
+        const path = normalizePath(href);
+        return pathname === path || pathname.startsWith(`${path}/`);
+      })()
+    : false;
+  const active = forceActive ?? (childActive || parentActive);
 
   const clearCloseTimer = () => {
     if (closeTimer.current) {

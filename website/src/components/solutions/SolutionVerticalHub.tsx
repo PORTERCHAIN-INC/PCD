@@ -5,8 +5,10 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
+import { RelatedResourcesSection } from "@/components/corporate/sections/CardGridSection";
 import LinkButton from "@/components/corporate/ui/LinkButton";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
+import { collectResourceItems } from "@/lib/corporate-content";
 import {
   SOLUTION_HUB_CITY_SLUGS,
   SOLUTION_HUB_PROGRAMS,
@@ -137,6 +139,15 @@ export default async function SolutionVerticalHub({ vertical }: SolutionVertical
           </div>
         </Container>
       </section>
+
+      {t.has("resources.title") ? (
+        <RelatedResourcesSection
+          label={t("resources.label")}
+          title={t("resources.title")}
+          items={collectResourceItems(t, "resources.items", 3)}
+          className="bg-gray-bg border-t border-primary/[0.06]"
+        />
+      ) : null}
 
       <FaqSection label={t("faq.label")} title={t("faq.title")} items={faqItems} />
 

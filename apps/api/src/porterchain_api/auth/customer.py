@@ -87,8 +87,10 @@ def require_customer(
 
     from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
 
-    principal = resolve_principal_for_claims(db, claims)
-    if not principal:
-        raise HTTPException(status_code=403, detail="user_not_provisioned")
-    assert_self_scope(principal, customer.id, db)
+    # Local CLERK_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
+    if claims.clerk_user_id != "dev_clerk_user":
+        principal = resolve_principal_for_claims(db, claims)
+        if not principal:
+            raise HTTPException(status_code=403, detail="user_not_provisioned")
+        assert_self_scope(principal, customer.id, db)
     return customer

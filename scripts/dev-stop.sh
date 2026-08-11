@@ -25,6 +25,10 @@ done
 
 should_keep() {
   local svc=$1
+  # Bash 3.2 + `set -u`: empty array expansion is unbound without a guard.
+  if ((${#KEEP[@]} == 0)); then
+    return 1
+  fi
   for k in "${KEEP[@]}"; do
     [[ "$k" == "$svc" ]] && return 0
   done

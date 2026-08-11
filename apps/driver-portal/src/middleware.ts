@@ -5,16 +5,30 @@ const isPublic = createRouteMatcher(["/login(.*)", "/api/auth(.*)"]);
 
 const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim());
 
-/** Clerk session guard — same pattern as other portals (no Porterchain JWT cookies). */
+function isDevLoginEnabled(): boolean {
+  if (process.env.NEXT_PUBLIC_DRIVER_DEV_LOGIN === "false") return false;
+  if (process.env.NEXT_PUBLIC_DRIVER_DEV_LOGIN === "true") return true;
+  const appEnv = (process.env.NEXT_PUBLIC_APP_ENV ?? process.env.NODE_ENV ?? "").trim();
+  return appEnv === "local" || appEnv === "development";
+}
+
+/** Clerk session guard — local also accepts pc_driver_dev_id cookie (email picker). */
 export default clerkMiddleware(
   async (auth, req) => {
+    const devSessionId = req.cookies.get("pc_driver_dev_id")?.value;
+    const hasDevSession = isDevLoginEnabled() && Boolean(devSessionId);
+
     if (req.nextUrl.pathname === "/") {
       const { userId } = await auth();
-      const dest = userId ? "/onboarding" : "/login";
+      const dest = userId || hasDevSession ? "/onboarding" : "/login";
       return NextResponse.redirect(new URL(dest, req.url));
     }
 
     if (isPublic(req)) return;
+
+    if (hasDevSession) {
+      return NextResponse.next();
+    }
 
     if (clerkConfigured) {
       const { userId } = await auth();

@@ -15,6 +15,10 @@
     "successStories": {
       "title": "Histoires de réussite marchands | Porterchain",
       "description": "Comment torréfacteurs, pharmacies et marques beauté développent leur livraison avec Porterchain."
+    },
+    "capabilities": {
+      "title": "Capacités de capacité | Multi-arrêts, suivi et preuve | PorterChain",
+      "description": "Explorez les capacités PorterChain : livraison multi-arrêts, routes récurrentes, suivi client, récupération d'exceptions, appariement intelligent et vérification de livraison pour les corridors B2B ontariens."
     }
   },
   "compare": {
@@ -167,6 +171,49 @@
         {
           "path": "integrations",
           "label": "Intégrations"
+        }
+      ]
+    },
+    "multi-location-vs-single-hub": {
+      "title": "Capacité multi-emplacements vs répartition mono-hub",
+      "description": "Comparez la capacité multi-succursales RGT à la répartition mono-hub — coordination des collectes, cut-offs par zone, suivi et preuve.",
+      "intro": "Les opérateurs en croissance gèrent souvent plusieurs comptoirs ou entrepôts mais répartissent comme si tout partait d'un seul quai. PorterChain fournit de la capacité véhicule + chauffeur sur vos emplacements RGT — sans prétendre remplacer votre système d'inventaire.",
+      "alternativeLabel": "Répartition mono-hub / multi-succursales ad hoc",
+      "comparisonRows": [
+        {
+          "dimension": "Clarté de l'origine de collecte",
+          "porterchain": "Chaque course est appariée à la succursale ou l'entrepôt qui a préparé le fret, avec notes d'accès et classe de véhicule confirmées.",
+          "alternative": "Les chauffeurs arrivent souvent au mauvais site ou découvrent que le fret est ailleurs après le début de la fenêtre."
+        },
+        {
+          "dimension": "Cut-offs par zone",
+          "porterchain": "Les cut-offs peuvent différer par zone de collecte à Toronto, Peel et York.",
+          "alternative": "Un cut-off unique pour tous les sites, ou un savoir tribal qui ne survit pas au roulement."
+        },
+        {
+          "dimension": "Visibilité",
+          "porterchain": "Suivi partageable et un dossier d'envoi entre succursales.",
+          "alternative": "Le statut vit dans des textos entre gérants; la finance ne peut pas reconstruire ce qui a bougé."
+        },
+        {
+          "dimension": "Preuve et responsabilité",
+          "porterchain": "Clôture photo et GPS sur livraisons clients et transferts internes.",
+          "alternative": "Les transferts internes se ferment souvent par une passation verbale sans piste."
+        },
+        {
+          "dimension": "Jours de débordement",
+          "porterchain": "Le volume de pointe peut utiliser les mêmes standards de partenaire sur tous les sites.",
+          "alternative": "Chaque site invente sa propre liste de coursiers de secours."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
         }
       ]
     }
@@ -720,8 +767,14 @@
         }
       ],
       "extraLinks": [
-        { "path": "pricing", "label": "Tarification" },
-        { "path": "serviceAreas", "label": "Zones desservies" }
+        {
+          "path": "pricing",
+          "label": "Tarification"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
       ]
     },
     "fleet-overflow-wholesale-delivery": {
@@ -751,8 +804,14 @@
         }
       ],
       "extraLinks": [
-        { "path": "pricing", "label": "Tarification" },
-        { "path": "onboarding", "label": "Intégration" }
+        {
+          "path": "pricing",
+          "label": "Tarification"
+        },
+        {
+          "path": "onboarding",
+          "label": "Intégration"
+        }
       ]
     }
   },
@@ -888,6 +947,217 @@
           "label": "Intégration marchands"
         }
       ]
+    },
+    "what-is-a-transportation-capacity-network": {
+      "title": "Qu'est-ce qu'un réseau de capacité de transport?",
+      "description": "En quoi un réseau de capacité diffère des apps coursiers et logiciels de flotte — technologie plus chauffeurs, véhicules et ops pour la livraison B2B dans le RGT.",
+      "intro": "Un réseau de capacité de transport vend de la capacité véhicule + chauffeur soutenue par logiciel et opérations — pas un siège logiciel, et pas une roulette de coursiers. PorterChain applique ce modèle aux entreprises ontariennes : appariement, répartition, suivi, preuve et récupération quand un arrêt dérape.",
+      "sections": [
+        {
+          "heading": "La capacité est le produit",
+          "body": "Les clients achètent des courses qui se terminent : la bonne classe de véhicule, un chauffeur professionnel, une fenêtre fiable et une preuve utilisable par la finance. Le logiciel coordonne — ce n'est pas le SKU. Si le camion n'arrive pas, le login ne compte pas."
+        },
+        {
+          "heading": "Numérique et physique ensemble",
+          "body": "Devis, réservation, statut en direct et POD dans un système avec les personnes et la flotte qui exécutent. C'est pourquoi débordement, jour même et corridors récurrents peuvent partager un partenaire au lieu de trois fournisseurs."
+        },
+        {
+          "heading": "Conçu pour les corridors B2B du RGT",
+          "body": "Cut-offs de gros, dépôts chantier, urgence pharmacie et multi-arrêts entrepôt exigent une densité locale. Un réseau avec couverture RGT et tour de contrôle bat les défauts colis nationaux quand les fenêtres et l'accès sont serrés."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "workflow",
+          "label": "Comment fonctionne la livraison"
+        },
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        }
+      ]
+    },
+    "same-day-delivery-capacity-gta": {
+      "title": "Capacité de livraison jour même dans le RGT",
+      "description": "Comment les entreprises ontariennes utilisent la capacité véhicule + chauffeur jour même — cut-offs, véhicule adapté, suivi, et quand le débordement bat l'étirement de votre flotte.",
+      "intro": "Le jour même dans le RGT est un problème de capacité : fret prêt, bon véhicule libre, chauffeur qui tient la fenêtre. PorterChain fournit cette capacité avec suivi et preuve — en couverture principale ou en débordement quand votre flotte est déjà réservée.",
+      "sections": [
+        {
+          "heading": "Connaître vos cut-offs par zone",
+          "body": "Toronto, Peel et York ne sont pas un SLA unique. Publiez des cut-offs jour même réalistes par zone de collecte pour que les ventes promettent ce que les ops peuvent exécuter. Préparez le fret avant le cut-off — le retard de staging est l'échec le plus courant."
+        },
+        {
+          "heading": "Apparier la classe de véhicule à l'arrêt",
+          "body": "Berline et fourgonnette pour colis et bacs; fourgon métier et camion cube pour longs stocks et palettes. Une mauvaise classe brûle la fenêtre même si le chauffeur est à l'heure. Confirmez la classe dans le devis, pas au quai."
+        },
+        {
+          "heading": "Utiliser le débordement avant de casser la flotte",
+          "body": "Quand vos camions sont pleins ou une unité immobilisée, le débordement réservé tient les promesses clients. Partagez suivi et standards POD pour que les destinataires ne voient que l'arrivée à l'heure avec preuve."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "delivery-failure-modes-and-recovery": {
+      "title": "Modes de défaillance de livraison et récupération ops",
+      "description": "Neuf modes de défaillance B2B courants dans le RGT — et comment répartition, réaffectation et preuve ferment la boucle au lieu de vous laisser en attente.",
+      "intro": "Les arrêts manqués sont souvent prévisibles : mauvaises notes d'accès, quais fermés, mauvais véhicule, staging tardif ou contact injoignable. PorterChain traite les exceptions comme un problème ops — surveiller, réaffecter, documenter, escalader — pas un ticket qui attend jusqu'au lendemain.",
+      "sections": [
+        {
+          "heading": "Échecs avant que les roues tournent",
+          "body": "Adresses incomplètes, codes de porte manquants, fret non prêt et fenêtres non confirmées. Corrigez l'intake : exiger contact, notes d'accès et fret préparé avant la répartition. La plupart des redeliveries commencent ici."
+        },
+        {
+          "heading": "Échecs sur la route",
+          "body": "Trafic, panne, fret refusé, client absent. Le suivi en direct révèle les blocages tôt; la tour de contrôle réaffecte ou réinitialise la fenêtre avec un motif documenté au lieu d'un miss silencieux."
+        },
+        {
+          "heading": "Clôture et dossiers prêts pour réclamations",
+          "body": "Photo, signature et GPS arrêtent les litiges répétés. Quand un arrêt échoue, le motif voyage avec la commande pour que finance, ventes et le prochain chauffeur partagent un brief. C'est ainsi que la récupération scale."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "workflow",
+          "label": "Comment fonctionne la livraison"
+        },
+        {
+          "path": "support",
+          "label": "Contacter les ops"
+        }
+      ]
+    },
+    "multi-location-capacity-gta": {
+      "title": "Capacité multi-emplacements dans le RGT",
+      "description": "Comment les entreprises multi-succursales ontariennes gèrent la capacité entre comptoirs et entrepôts — cut-offs par site, véhicule adapté, transferts et preuve.",
+      "intro": "La livraison multi-emplacements est un problème de coordination de capacité. PorterChain exécute véhicule + chauffeur sur les succursales du RGT sans prétendre être votre système d'inventaire.",
+      "sections": [
+        {
+          "heading": "Nommer l'origine avant de promettre la fenêtre",
+          "body": "Les ventes doivent savoir quel comptoir ou entrepôt préparera la course. Une mauvaise origine brûle les fenêtres jour même plus vite que le trafic."
+        },
+        {
+          "heading": "Transferts et livraisons clients partagent les standards",
+          "body": "Équilibrage de succursales et dépôts clients ont besoin de suivi et de preuve. Un partenaire évite une deuxième culture coursier les jours de débordement."
+        },
+        {
+          "heading": "Cut-offs par zone et site",
+          "body": "Les quais de Peel et les comptoirs du centre-ville ne sont pas interchangeables. Publiez des cut-offs par site."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "inventory-transfers-between-locations": {
+      "title": "Transferts d'inventaire entre emplacements du RGT",
+      "description": "Guide pratique des transferts magasin-magasin et entrepôt-magasin dans le Grand Toronto — staging, classe de véhicule et preuve de clôture.",
+      "intro": "Les transferts semblent simples jusqu'à ce que le fret ne soit pas prêt, le contact quai soit faux, ou personne ne puisse prouver l'arrivée. Traitez-les comme des livraisons clients.",
+      "sections": [
+        {
+          "heading": "Préparer comme un cut-off client",
+          "body": "Fret prêt, références SKU claires et contact quai joignable avant la répartition."
+        },
+        {
+          "heading": "Apparier le camion au cube",
+          "body": "Bacs et cartons exigent une capacité différente des transferts palettes. Confirmez la classe dans le devis."
+        },
+        {
+          "heading": "Clôturer avec des preuves",
+          "body": "Photo et GPS aident entrepôt et retail à s'accorder que le transfert est terminé."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "workflow",
+          "label": "Comment fonctionne la livraison"
+        }
+      ]
+    },
+    "choosing-courier-vs-capacity-partner-gta": {
+      "title": "Choisir un coursier vs un partenaire de capacité dans le RGT",
+      "description": "Guide pratique pour expéditeurs B2B du RGT comparant coursiers ponctuels et partenaire de capacité de transport — véhicules, chauffeurs, ops, suivi et preuve.",
+      "intro": "Quand une fenêtre chantier échoue ou qu'une route café glisse, la question n'est rarement « quelle app? ». C'est de savoir si vous avez une capacité véhicule + chauffeur fiable avec répartition, suivi et preuve — ou un autre numéro qui peut ne pas répondre en pointe.",
+      "sections": [
+        {
+          "heading": "Ce que vous achetez vraiment",
+          "body": "Une course coursier achète un déplacement ponctuel. Un partenaire de capacité vend du transport exécuté : classe de véhicule, chauffeur professionnel, répartition quand les exceptions frappent, et preuves de clôture pour la finance."
+        },
+        {
+          "heading": "Quand le coursier ponctuel suffit",
+          "body": "Faible volume, fenêtres flexibles et fret qui tient en berline peuvent fonctionner avec des réservations occasionnelles. Les échecs sont tolérables si les destinataires sont flexibles."
+        },
+        {
+          "heading": "Quand il faut un partenaire de capacité",
+          "body": "Boucles café ou gros récurrentes, fenêtres chantier, vagues multi-arrêts, débordement quand votre flotte est pleine, et POD prêt pour réclamations pointent vers un partenaire qui peut réserver ou apparier de la capacité."
+        },
+        {
+          "heading": "Questions à poser avant de changer",
+          "body": "Quelles classes de véhicule sont dispo jour même? Qui possède la récupération d'exceptions? Le suivi est-il partageable? Photo/GPS/signature sur chaque arrêt critique? Prix confirmés par écrit avant expédition?"
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "pricing",
+          "label": "Comment fonctionne la tarification"
+        }
+      ]
+    },
+    "same-day-from-store-capacity-gta": {
+      "title": "Capacité jour même depuis vos magasins du RGT",
+      "description": "Comment détaillants et opérateurs multi-sites du RGT exécutent des commandes locales depuis le magasin le plus proche — avec capacité véhicule + chauffeur, cut-offs, suivi et preuve. Pas une app SaaS de caisse.",
+      "intro": "Le ship-from-store est un problème de capacité : la succursale qui a le stock doit préparer le fret, le bon véhicule doit tenir la fenêtre, et les destinataires ont besoin d'un statut fiable. PorterChain fournit cette capacité sur vos emplacements du RGT.",
+      "sections": [
+        {
+          "heading": "Ramasser là où l'inventaire est vraiment",
+          "body": "Le staging à la mauvaise succursale tue les promesses jour même. Alignez le ramassage au magasin qui peut tirer la commande, avec cut-offs clairs par emplacement."
+        },
+        {
+          "heading": "Promesse client vs billet ops",
+          "body": "Que la caisse montre jour même ou livraison standard, les ops ont encore besoin de classe de véhicule, notes d'accès et preuve."
+        },
+        {
+          "heading": "Débordement quand un site explose",
+          "body": "Les jours de pointe vident un magasin et en surchargent un autre. Utilisez capacité de transfert puis capacité sortante — mêmes standards de suivi et de POD."
+        },
+        {
+          "heading": "Ce que ce n'est pas",
+          "body": "C'est de la capacité de transport pour fret d'origine magasin. Ce n'est pas une install Shopify, une app de substitution d'articles, ni un système d'inventaire."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
     }
   },
   "successStories": {
@@ -934,6 +1204,302 @@
       "quote": "Un partenaire pour récurrent et jour même a éliminé l'incertitude logistique de la croissance.",
       "quoteAttribution": "Opérations, marque beauté",
       "outcomeMetric": "Récurrent + jour même en Ontario"
+    },
+    "electrical-wholesaler-overflow-capacity": {
+      "title": "Comment un grossiste électrique de Peel a couvert le débordement de cut-off",
+      "description": "Une maison de fournitures électriques a tenu les cut-offs entrepreneurs d'après-midi avec capacité fourgonnette de débordement — suivi et preuve sans ajouter d'effectif.",
+      "headline": "Débordement de cut-off sans embaucher un autre chauffeur",
+      "challenge": "Le volume des ventes internes dépassait leurs tournées les après-midis de pointe. Les coursiers ponctuels manquaient les fenêtres entrepreneurs et n'avaient pas de preuve cohérente.",
+      "solution": "Nous avons réservé de la capacité fourgonnette cargo et métier alignée aux cut-offs Peel–York — mêmes liens de suivi et POD photo que leurs corridors principaux.",
+      "outcome": "Ils ont protégé les cut-offs d'après-midi les jours de pointe sans effectif permanent. Les entrepreneurs ont des ETA; la finance a la preuve sur les arrêts de débordement.",
+      "quote": "Le débordement devait ressembler à notre livraison normale — suivi et preuve inclus. Non négociable.",
+      "quoteAttribution": "Responsable ops, grossiste électrique Peel",
+      "outcomeMetric": "Cut-offs de pointe tenus sans nouvelles embauches"
+    },
+    "3pl-warehouse-outbound-peel": {
+      "title": "Comment un 3PL de Peel a développé les vagues sortantes multi-arrêts",
+      "description": "Un 3PL du RGT a couvert sorties multi-arrêts et débordement de pointe depuis les quais de Peel avec capacité véhicule + chauffeur et suivi partageable.",
+      "headline": "Vagues sortantes sans CapEx de flotte permanente",
+      "challenge": "Les SLA marchands se resserraient pendant que les vagues de quai explosaient en promotion. Leurs fourgonnettes ne couvraient pas le multi-arrêts sans risque d'heures sup.",
+      "solution": "Nous avons aligné fourgonnettes cargo et camions cube aux vagues sortantes — densité multi-arrêts Toronto et Peel, suivi partageable et POD à chaque arrêt.",
+      "outcome": "Ils ont vidé les vagues de pointe sans flotte permanente. Les gestionnaires de comptes ont arrêté de courir après chaque ETA de marque.",
+      "quote": "Il nous fallait de la capacité alignée à la vague — pas un autre login logiciel.",
+      "quoteAttribution": "Ops entrepôt, 3PL Peel",
+      "outcomeMetric": "Vagues sortantes de pointe couvertes"
+    },
+    "plumbing-supply-counter-to-jobsite": {
+      "title": "Comment un grossiste en plomberie a stabilisé les courses comptoir-chantier",
+      "description": "Une maison de fournitures de plomberie a remplacé la roulette de coursiers par une capacité récurrente et jour même pour tuyaux, fixtures et chauffe-eau dans le RGT.",
+      "headline": "Corridors métier avec preuve que plombiers et GP font confiance",
+      "challenge": "Longs stocks et urgences jour même cassaient le plan d'après-midi. Les coursiers variaient; la POD était inconstante pour les litiges métier.",
+      "solution": "Nous avons mis des corridors fourgon métier récurrents plus débordement jour même — classe de véhicule adaptée, preuve photo à chaque dépôt chantier.",
+      "outcome": "Les équipes comptoir ont tenu plus de cut-offs avec suivi partageable. Les litiges de facturation ont baissé grâce à la preuve à chaque arrêt.",
+      "quote": "Les plombiers n'attendent pas. Il nous fallait de la capacité qui arrive avec preuve.",
+      "quoteAttribution": "Ops comptoir, grossiste plomberie RGT",
+      "outcomeMetric": "Corridors métier récurrents + jour même"
+    }
+  },
+  "capabilities": {
+    "multi-stop-delivery": {
+      "title": "Capacité de livraison multi-arrêts",
+      "description": "Capacité de livraison B2B multi-arrêts dans le RGT — boucles de gros, cliniques et vagues d'entrepôt avec le bon véhicule et preuve à chaque arrêt.",
+      "intro": "La livraison multi-arrêts est un problème de capacité : tournées plus denses, bonne classe de véhicule et chauffeurs qui exécutent les fenêtres sans transformer chaque arrêt en appel. PorterChain gère les corridors multi-dépôts avec suivi et preuve pour que gros, cliniques et entrepôts tiennent les cut-offs.",
+      "sections": [
+        {
+          "heading": "Conçu pour les boucles B2B, pas le colis unique",
+          "body": "Les comptoirs de gros, l'approvisionnement clinique et les sorties 3PL envoient rarement un seul arrêt. Nous séquençons des courses multi-arrêts à Toronto, Peel et York avec véhicule adapté — et statut partageable pour chaque destinataire."
+        },
+        {
+          "heading": "Cut-offs et staging fiables pour les ops",
+          "body": "Le multi-arrêts échoue quand le fret n'est pas prêt ou les fenêtres non confirmées. Nous alignons les cut-offs par zone, exigeons des notes d'accès au besoin, et gardons les motifs d'exception avec la commande."
+        },
+        {
+          "heading": "Preuve qui ferme la boucle",
+          "body": "Photo, signature et GPS à chaque arrêt soutiennent facturation et litiges. Finance et ventes internes voient le même dossier de clôture."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "platform",
+          "label": "Comment nous opérons"
+        }
+      ]
+    },
+    "recurring-routes": {
+      "title": "Capacité de routes récurrentes",
+      "description": "Corridors de livraison récurrents dans le RGT — programmes hebdomadaires gros, cafés et cliniques avec capacité véhicule + chauffeur, suivi et preuve.",
+      "intro": "Les routes récurrentes transforment la livraison en programme : jours fixes, fenêtres connues et capacité réservée. PorterChain fournit les véhicules et chauffeurs derrière ces modèles — avec les mêmes standards de suivi et de preuve chaque semaine.",
+      "sections": [
+        {
+          "heading": "Programmes de capacité, pas une roulette ponctuelle",
+          "body": "Nous alignons classe de véhicule et couverture chauffeur à votre rythme hebdomadaire — cafés, gros comptoir-chantier, cliniques ou vagues d'entrepôt."
+        },
+        {
+          "heading": "Débordement jour même quand le modèle casse",
+          "body": "Pics, promotions et immobilisations arrivent encore. Les clients récurrents peuvent réserver du débordement chez le même partenaire."
+        },
+        {
+          "heading": "Visibilité pour ventes et finance",
+          "body": "Suivi en direct et POD à chaque arrêt : les ventes répondent aux ETA et la finance ferme les litiges sans courir après les chauffeurs."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "serviceAreas",
+          "label": "Zones desservies"
+        }
+      ]
+    },
+    "branded-tracking": {
+      "title": "Suivi client et statut de livraison",
+      "description": "Suivi et ETA partageables pour destinataires B2B du RGT — statut que vos clients suivent sans appeler la répartition.",
+      "intro": "Les destinataires attendent un statut de grade consommateur sur le fret commercial. PorterChain fournit suivi et ETA partageables pendant que votre équipe garde une seule source de vérité opérationnelle.",
+      "sections": [
+        {
+          "heading": "Liens utilisables par vos clients",
+          "body": "Partagez le statut sans transmettre d'outils internes. Ops, ventes et destinataires suivent la même histoire d'envoi."
+        },
+        {
+          "heading": "Lié à la capacité, pas un widget déconnecté",
+          "body": "Le suivi reflète la course véhicule + chauffeur qui s'exécute vraiment. Les exceptions restent avec l'envoi."
+        },
+        {
+          "heading": "Preuve à la clôture",
+          "body": "Photo et signature rejoignent l'historique de suivi — utiles pour facturation, litiges métier et confiance client."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "trustClaims",
+          "label": "Preuve et réclamations"
+        }
+      ]
+    },
+    "exception-recovery": {
+      "title": "Récupération d'exceptions et tour de contrôle",
+      "description": "Comment PorterChain récupère les livraisons bloquées dans le RGT — surveiller, réaffecter la capacité, documenter et escalader.",
+      "intro": "Les livraisons bloquent pour des raisons prévisibles. PorterChain traite la récupération comme un travail ops — tour de contrôle, réaffectation et motifs documentés — pas un ticket qui attend jusqu'au lendemain.",
+      "sections": [
+        {
+          "heading": "Voir les blocages tôt",
+          "body": "Le statut en direct révèle les arrêts en retard ou bloqués. Les ops interviennent avant qu'un miss silencieux ne devient une plainte."
+        },
+        {
+          "heading": "Réaffecter la capacité au besoin",
+          "body": "Panne ou fenêtre glissée : nous réaffectons véhicule + chauffeur et réinitialisons les attentes avec un motif documenté."
+        },
+        {
+          "heading": "Documenter pour la prochaine tentative",
+          "body": "Les motifs d'exception voyagent avec la commande. Le brief de redelivery est exact."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "platform",
+          "label": "Comment nous opérons"
+        }
+      ]
+    },
+    "ai-dispatch": {
+      "title": "Appariement intelligent et soutien à la répartition",
+      "description": "Comment PorterChain apparie classe de véhicule, couverture chauffeur et zones RGT — soutien à la décision pour la capacité, pas un produit IA logiciel seul.",
+      "intro": "Apparier la bonne capacité à un arrêt : classe de véhicule, couverture de zone, cut-offs et urgence. PorterChain utilise l'intelligence opérationnelle pour soutenir la répartition — toujours avec chauffeurs professionnels et véhicules commerciaux.",
+      "sections": [
+        {
+          "heading": "Apparier la capacité au fret",
+          "body": "De la berline au camion cube : nous apparions classe, cube, poids, accès et urgence pour que la première affectation ait une chance de réussir."
+        },
+        {
+          "heading": "Soutenir les ops — ne pas remplacer la responsabilité",
+          "body": "Le logiciel surface options et risques; la tour de contrôle reste responsable des exceptions. Nous ne vendons pas un siège IA comme produit."
+        },
+        {
+          "heading": "Ancré dans la densité du RGT",
+          "body": "La qualité d'appariement dépend de la couverture locale. Notre réseau cible le Grand Toronto et les métropoles ontariennes."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "platform",
+          "label": "Comment nous opérons"
+        }
+      ]
+    },
+    "delivery-verification": {
+      "title": "Vérification de livraison et preuve prête pour réclamations",
+      "description": "Photo, signature et GPS à chaque arrêt PorterChain — dossiers de clôture pour facturation, litiges et suivi des réclamations en Ontario.",
+      "intro": "La vérification rend la capacité digne de confiance. Chaque arrêt peut se clôturer avec photo, signature et GPS pour que finance, ventes et clients partagent un dossier.",
+      "sections": [
+        {
+          "heading": "Clôture à chaque arrêt",
+          "body": "POD photo et signature plus achèvement géolocalisé : une source de vérité partagée."
+        },
+        {
+          "heading": "Exceptions avec motifs",
+          "body": "Accès impossible, fret refusé ou client absent — documenté avec l'envoi."
+        },
+        {
+          "heading": "Parcours pour perte et dommage",
+          "body": "Ops et entreprise travaillent à partir de la même chaîne de preuves. Voir Confiance pour assurance et processus de réclamation."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "trustClaims",
+          "label": "Preuve et réclamations"
+        },
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        }
+      ]
+    },
+    "multi-location-routing": {
+      "title": "Routage de capacité multi-emplacements",
+      "description": "Capacité véhicule + chauffeur sur plusieurs succursales et entrepôts du RGT — collectes coordonnées, appariement par zone et preuve à chaque arrêt.",
+      "intro": "Les entreprises multi-sites n'échouent pas sur des cartes logicielles — elles échouent quand la mauvaise succursale prépare le fret, le mauvais véhicule arrive, ou le statut vit dans trois téléphones. PorterChain fournit de la capacité sur vos emplacements RGT avec collectes coordonnées, suivi et preuve — pas un WMS ni un SaaS d'inventaire.",
+      "sections": [
+        {
+          "heading": "Capacité sur les succursales, un partenaire",
+          "body": "Collectes comptoir, entrepôt et magasin peuvent partager un partenaire de capacité. Nous apparions classe de véhicule et fenêtres à l'origine qui prépare vraiment le fret."
+        },
+        {
+          "heading": "Exécution sensible aux zones",
+          "body": "Les cut-offs Toronto, Peel et York diffèrent. Les programmes multi-sites ont besoin de fenêtres réalistes par site de collecte."
+        },
+        {
+          "heading": "Ce que ce n'est pas",
+          "body": "Nous ne remplaçons pas votre système d'inventaire ni ne promettons l'équilibrage automatique des stocks. Nous déplaçons le fret préparé entre emplacements et vers les clients."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "platform",
+          "label": "Comment nous opérons"
+        }
+      ]
+    },
+    "inventory-transfers": {
+      "title": "Capacité de transferts d'inventaire",
+      "description": "Capacité magasin-magasin et entrepôt-magasin dans le RGT — mouvements jour même et planifiés avec suivi et preuve, sans bâtir une flotte de transfert.",
+      "intro": "Les transferts d'inventaire sont des courses de capacité avec deux adresses commerciales. PorterChain fournit véhicule + chauffeur pour l'équilibrage de succursales et le réapprovisionnement entrepôt dans le RGT — avec les mêmes standards de suivi et de preuve.",
+      "sections": [
+        {
+          "heading": "Des transferts qui se terminent",
+          "body": "Mauvaise classe de véhicule et contacts quai manquants tuent les transferts. Nous apparions fourgonnette à camion cube et exigeons la même discipline de staging qu'un cut-off client."
+        },
+        {
+          "heading": "Jour même et planifié",
+          "body": "Corridors planifiés pour le réapprovisionnement hebdomadaire et débordement jour même quand une succursale est à court."
+        },
+        {
+          "heading": "Preuve pour la responsabilité interne",
+          "body": "Photo et GPS aident entrepôt et retail à s'accorder que le stock a bougé."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "trustClaims",
+          "label": "Preuve et réclamations"
+        }
+      ]
+    },
+    "returns-round-trip-capacity": {
+      "title": "Capacité retours et aller-retour",
+      "description": "Capacité de retours et aller-retour dans le RGT — ramassages, échanges et courses B2B à deux jambes avec suivi et preuve aux deux bouts.",
+      "intro": "Les retours et aller-retour sont des problèmes de capacité avec deux adresses et une promesse commerciale. PorterChain fournit véhicule + chauffeur pour ramassage-retour, échanges d'équipement et récupération d'échecs — avec suivi et preuve pour clôturer les deux jambes.",
+      "sections": [
+        {
+          "heading": "Deux jambes, un partenaire de capacité",
+          "body": "Que vous récupériez du stock invendu, échangiez des unités d'affichage ou récupériez un dépôt échoué, traitez les deux adresses comme des arrêts de premier plan. Nous apparions la classe de véhicule au cube et à l'accès."
+        },
+        {
+          "heading": "Pas une app de location ou de merchandising",
+          "body": "C'est de la capacité de transport pour retours et aller-retour B2B — pas un plugin de location ni un produit de substitution d'articles. Vous gardez la relation commerciale; nous exécutons le déplacement."
+        },
+        {
+          "heading": "Preuve au ramassage et à la livraison",
+          "body": "Photo et GPS aux deux bouts soutiennent facturation, ajustement d'inventaire et litiges quand le fret revient autant qu'il part."
+        }
+      ],
+      "extraLinks": [
+        {
+          "path": "onboarding",
+          "label": "Obtenir un devis"
+        },
+        {
+          "path": "trustClaims",
+          "label": "Preuve et réclamations"
+        }
+      ]
     }
   }
 }

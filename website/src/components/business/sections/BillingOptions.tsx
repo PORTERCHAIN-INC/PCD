@@ -8,6 +8,14 @@ import { BUSINESS_BILLING_KEYS } from "@/data/business";
 import { cn } from "@/lib/utils";
 
 const FACTOR_KEYS = ["vehicle", "route", "proof"] as const;
+const INCLUDED_CHECKLIST_KEYS = [
+  "vehicleDriver",
+  "tracking",
+  "pod",
+  "dispatch",
+  "writtenQuote",
+] as const;
+const PROGRAM_COMPARE_KEYS = ["overflow", "dedicated", "recurring"] as const;
 
 export default function BillingOptions() {
   const t = useTranslations("businessPage.billing");
@@ -117,6 +125,74 @@ export default function BillingOptions() {
             );
           })}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mx-auto mt-14 max-w-3xl"
+        >
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563eb]">
+            {t("includedChecklist.label")}
+          </span>
+          <h3 className="mt-2 text-xl font-bold tracking-tight text-[#0b1220]">
+            {t("includedChecklist.title")}
+          </h3>
+          <ul className="mt-5 space-y-3">
+            {INCLUDED_CHECKLIST_KEYS.map((key) => (
+              <li
+                key={key}
+                className="flex items-start gap-2.5 text-sm leading-relaxed text-[#0b1220]/85"
+              >
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#2563eb]" aria-hidden />
+                <span>{t(`includedChecklist.items.${key}`)}</span>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mx-auto mt-14 max-w-5xl"
+        >
+          <div className="mx-auto mb-8 max-w-2xl text-center">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563eb]">
+              {t("programCompare.label")}
+            </span>
+            <h3 className="mt-2 text-xl font-bold tracking-tight text-[#0b1220]">
+              {t("programCompare.title")}
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed text-[#64748b]">
+              {t("programCompare.subtitle")}
+            </p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {PROGRAM_COMPARE_KEYS.map((key, i) => (
+              <motion.div
+                key={key}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className="border border-[#0b1220]/8 bg-white p-6 biz-shadow"
+              >
+                <h4 className="text-base font-semibold text-[#0b1220]">
+                  {t(`programCompare.columns.${key}.title`)}
+                </h4>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-[#2563eb]">
+                  {t(`programCompare.columns.${key}.bestFor`)}
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-[#64748b]">
+                  {t(`programCompare.columns.${key}.body`)}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+          <p className="mt-6 text-center text-xs text-[#64748b]">{t("programCompare.footnote")}</p>
+        </motion.div>
+
         <p className="mt-8 text-center text-xs text-[#64748b]">{t("footnote")}</p>
       </Container>
     </section>

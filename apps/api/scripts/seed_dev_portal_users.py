@@ -78,11 +78,18 @@ def _ensure_dev_merchant(db) -> Merchant:
 def _ensure_merchant_user(db, merchant: Merchant) -> MerchantUser:
     user = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == DEV_CLERK_USER).first()
     if user:
+        # Keep local Bearer-dev claims (admin@porterchain.com) aligned.
+        user.email = "admin@porterchain.com"
+        user.merchant_id = merchant.id
+        user.role = "merchant_owner"
+        user.is_active = True
+        db.commit()
+        db.refresh(user)
         return user
     user = MerchantUser(
         merchant_id=merchant.id,
         clerk_user_id=DEV_CLERK_USER,
-        email="merchant@porterchain.com",
+        email="admin@porterchain.com",
         role="merchant_owner",
     )
     db.add(user)

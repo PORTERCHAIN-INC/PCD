@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Carlito } from "next/font/google";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 
-const inter = Inter({
+const brand = Carlito({
   subsets: ["latin"],
+  weight: ["400", "700"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-brand",
 });
 
 type Props = {
@@ -54,7 +55,7 @@ export default async function BusinessLayout({ children, params }: Props) {
   setRequestLocale(locale);
 
   return (
-    <div className={`business-theme ${inter.variable} font-[family-name:var(--font-inter)]`}>
+    <div className={`business-theme ${brand.variable} font-[family-name:var(--font-brand)]`}>
       {children}
     </div>
   );

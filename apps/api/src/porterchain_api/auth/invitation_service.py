@@ -24,18 +24,8 @@ from porterchain_api.invitation_models import UserInvitation
 
 logger = logging.getLogger(__name__)
 
-INVITABLE_ADMIN_ROLES = frozenset(
-    {
-        AdminRole.SUPER_ADMIN.value,
-        AdminRole.ADMIN.value,
-        AdminRole.DISPATCHER.value,
-        AdminRole.SUPPORT.value,
-        AdminRole.SUPPORT_LEAD.value,
-        AdminRole.FINANCE.value,
-        AdminRole.FLEET_MANAGER.value,
-        AdminRole.SALES_MANAGER.value,
-    }
-)
+# All AdminRole values are enrollable via Staff IdP (real-world role matrix).
+INVITABLE_ADMIN_ROLES = frozenset(role.value for role in AdminRole)
 
 OPEN_SIGNUP_USER_TYPES = frozenset({"customer", "merchant"})
 

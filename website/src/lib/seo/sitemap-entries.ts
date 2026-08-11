@@ -17,7 +17,7 @@ import {
   INTEGRATIONS_EDUCATION_PAGES,
   getAllIntegrationsEducationSlugs,
 } from "./content/integrations-education";
-import { SUCCESS_STORIES } from "./content/success-stories";
+import { CAPABILITY_PAGES } from "./content/capabilities";
 import { DEVELOPER_DOC_SLUGS } from "@/lib/developer-docs";
 import { getAllCitySegmentPairs } from "./city-segment-seo";
 import { isPublishableCitySegment } from "./city-segment-publication";
@@ -25,6 +25,7 @@ import { INDEXABLE_VEHICLE_SEGMENTS, shouldIndexVehicleRoute } from "./vehicle-p
 import { getAllPostSlugs, getAllPostSlugsSync, getAllPosts } from "@/lib/blog";
 import { SOLUTION_VERTICAL_SLUGS, solutionVerticalPathSegment } from "@/lib/solutions-verticals";
 import { BLOG_CATEGORIES } from "@/data/blog-categories";
+import { blogAuthors } from "@/data/blog-authors";
 import { isPublishableNiche } from "./landing-content";
 import { isDraftNicheSlug } from "./content/draft-expansions";
 import { isPublishableServiceArea, type ServiceAreaMessageContent } from "./service-area-content";
@@ -82,10 +83,12 @@ const STATIC_PATHS: {
   { segment: "careers", priority: 0.8 },
   { segment: "developers", priority: 0.75 },
   { segment: "blog", priority: 0.85, freq: "weekly" },
+  { segment: "authors", priority: 0.7, freq: "monthly" },
   { segment: "track", priority: 0.8 },
   { segment: "vehicle-partner", priority: 0.85 },
   { segment: "drive", priority: 0.8 },
   { segment: "platform", priority: 0.8, freq: "weekly" },
+  { segment: "capabilities", priority: 0.85, freq: "weekly" },
   { segment: "integrations", priority: 0.85 },
   { segment: "enterprise", priority: 0.85 },
   { segment: "solutions", priority: 0.9 },
@@ -93,13 +96,15 @@ const STATIC_PATHS: {
   { segment: "vehicles", priority: 0.9 },
   { segment: "service-areas", priority: 0.85 },
   { segment: "faq", priority: 0.85 },
+  { segment: "guides", priority: 0.85, freq: "weekly" },
   { segment: "compare", priority: 0.8 },
-  { segment: "success-stories", priority: 0.8 },
   { segment: "campaigns", priority: 0.75 },
   { segment: "privacy", priority: 0.3 },
   { segment: "terms", priority: 0.3 },
   { segment: "cookies", priority: 0.3 },
   { segment: "trust", priority: 0.4 },
+  { segment: "trust/claims", priority: 0.55 },
+  { segment: "trust/sla", priority: 0.45 },
 ];
 
 function skipFrenchEnOnlyContent(locale: Locale): boolean {
@@ -107,7 +112,7 @@ function skipFrenchEnOnlyContent(locale: Locale): boolean {
 }
 
 function hasFrProgrammaticSlug(
-  namespace: "compare" | "faq" | "guides" | "successStories",
+  namespace: "compare" | "faq" | "guides" | "successStories" | "capabilities",
   slug: string
 ): boolean {
   const ns = frProgrammatic[namespace];
@@ -235,6 +240,10 @@ export function buildResourceSitemapEntries(): SitemapEntry[] {
       if (locale === "fr" && !hasFrProgrammaticSlug("compare", page.slug)) continue;
       push(entries, locale, `compare/${page.slug}`, 0.7);
     }
+    for (const page of CAPABILITY_PAGES) {
+      if (locale === "fr" && !hasFrProgrammaticSlug("capabilities", page.slug)) continue;
+      push(entries, locale, `capabilities/${page.slug}`, 0.8);
+    }
     for (const slug of getAllOnboardingEducationSlugs()) {
       if (skipFrenchEnOnlyContent(locale)) continue;
       push(entries, locale, `onboarding-education/${slug}`, 0.75);
@@ -245,6 +254,9 @@ export function buildResourceSitemapEntries(): SitemapEntry[] {
     }
     for (const category of BLOG_CATEGORIES) {
       push(entries, locale, `blog/category/${category}`, 0.65);
+    }
+    for (const id of Object.keys(blogAuthors)) {
+      push(entries, locale, `authors/${id}`, 0.55, "monthly");
     }
   }
   return entries;
@@ -267,14 +279,8 @@ export async function buildArticleSitemapEntries(): Promise<SitemapEntry[]> {
 }
 
 export function buildCaseStudySitemapEntries(): SitemapEntry[] {
-  const entries: SitemapEntry[] = [];
-  for (const locale of routing.locales) {
-    for (const story of SUCCESS_STORIES) {
-      if (locale === "fr" && !hasFrProgrammaticSlug("successStories", story.slug)) continue;
-      push(entries, locale, `success-stories/${story.slug}`, 0.75);
-    }
-  }
-  return entries;
+  // Success-stories hub retired until permissioned customer stories ship.
+  return [];
 }
 
 export function buildDeveloperSitemapEntries(): SitemapEntry[] {

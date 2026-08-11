@@ -388,7 +388,11 @@ class StopsService:
         )
 
     def _active_plan(self, db: Session, driver_id: str):
-        from porterchain_api.admin_models import RouteCenterPlan
+        try:
+            from porterchain_api.admin_models import RouteCenterPlan
+        except ImportError:
+            # Route Center tables removed — optimization lives in Fleetbase/VROOM.
+            return None
 
         return (
             db.query(RouteCenterPlan)
@@ -401,7 +405,10 @@ class StopsService:
         )
 
     def _plan_by_id(self, db: Session, driver_id: str, plan_id: str):
-        from porterchain_api.admin_models import RouteCenterPlan
+        try:
+            from porterchain_api.admin_models import RouteCenterPlan
+        except ImportError:
+            return None
 
         return (
             db.query(RouteCenterPlan)

@@ -326,9 +326,12 @@ def assert_self_scope(principal: CurrentPrincipal, profile_id: str, db: Session)
 
 def resolve_principal_for_claims(db: Session, claims: ClerkClaims) -> CurrentPrincipal | None:
     """Best-effort CurrentPrincipal for portal contexts; None if not provisioned."""
-    if not claims.clerk_user_id or claims.clerk_user_id == "dev_clerk_user":
+    if not claims.clerk_user_id:
         return None
     try:
+        # Local CLERK_DEV_BYPASS uses synthetic subject ``dev_clerk_user``.
+        # Still sync/resolve so merchant/customer portal guards can run.
+        prepare_user_from_claims(db, claims)
         return resolve_principal_cached(
             db,
             AuthenticatedIdentity(

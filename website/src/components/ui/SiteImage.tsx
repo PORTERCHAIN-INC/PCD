@@ -22,9 +22,14 @@ type Props = {
 };
 
 function defaultQuality(src: string): number {
-  // Local brand photography — keep sharp (Next default is 75).
-  if (src.startsWith("/images/brand/")) return 98;
-  return 80;
+  // Local brand photography — keep near-lossless (Next default is 75 → soft).
+  if (src.startsWith("/images/brand/")) return 100;
+  return 90;
+}
+
+/** Brand JPGs should not be re-encoded to AVIF/WebP (softens edges). */
+function defaultUnoptimized(src: string): boolean {
+  return src.startsWith("/images/brand/");
 }
 
 export default function SiteImage({
@@ -40,6 +45,7 @@ export default function SiteImage({
   const [src, setSrc] = useState(image.src);
   const alt = image.alt;
   const q = quality ?? defaultQuality(image.src);
+  const skipOptimizer = unoptimized ?? defaultUnoptimized(image.src);
 
   const handleError = () => {
     if (src !== FALLBACK_IMAGE.src) {
@@ -58,7 +64,7 @@ export default function SiteImage({
         sizes={sizes ?? "100vw"}
         priority={priority}
         quality={q}
-        unoptimized={unoptimized}
+        unoptimized={skipOptimizer}
         onError={handleError}
       />
     );
@@ -75,7 +81,7 @@ export default function SiteImage({
       sizes={sizes}
       priority={priority}
       quality={q}
-      unoptimized={unoptimized}
+      unoptimized={skipOptimizer}
       onError={handleError}
     />
   );

@@ -16,7 +16,7 @@
   --color-accent: var(--accent);
   --color-gray-bg: var(--gray-bg);
   --color-muted: var(--muted);
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
 }
 
 body {

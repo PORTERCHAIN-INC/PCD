@@ -394,6 +394,56 @@ export const COMPARISON_PAGES: ComparisonPage[] = [
       { path: "onboarding", label: "Onboarding" },
     ],
   },
+  {
+    slug: "multi-location-vs-single-hub",
+    title: "Multi-location capacity vs single-hub dispatch",
+    description:
+      "Compare multi-branch GTA capacity with single-hub dispatch — pickup coordination, zone cut-offs, tracking, and proof across locations.",
+    intro:
+      "Growing operators often run multiple counters or warehouses but still dispatch as if everything leaves one dock. That creates wrong-origin pickups, uneven cut-offs, and status chaos. PorterChain supplies vehicle-and-driver capacity across your GTA locations with coordinated execution — without claiming to replace your inventory system.",
+    alternativeLabel: "Single-hub / ad-hoc multi-branch dispatch",
+    comparisonRows: [
+      {
+        dimension: "Pickup origin clarity",
+        porterchain:
+          "Each run is matched to the branch or warehouse that staged the freight, with access notes and vehicle class confirmed in the quote path.",
+        alternative:
+          "Drivers often arrive at the wrong site or discover freight is at another branch after the window starts.",
+      },
+      {
+        dimension: "Zone cut-offs",
+        porterchain:
+          "Cut-offs can differ by pickup zone across Toronto, Peel, and York so sales promises match ops reality.",
+        alternative:
+          "One blanket cut-off applied to every location, or tribal knowledge that does not survive staff turnover.",
+      },
+      {
+        dimension: "Visibility",
+        porterchain:
+          "Shareable tracking and one shipment record across branches — receivers and internal teams see the same status.",
+        alternative:
+          "Status lives in texts between store managers; finance cannot reconstruct what moved.",
+      },
+      {
+        dimension: "Proof and accountability",
+        porterchain: "Photo and GPS closeout on customer deliveries and internal transfers alike.",
+        alternative: "Internal transfers often close with a verbal handoff and no evidence trail.",
+      },
+      {
+        dimension: "Overflow days",
+        porterchain:
+          "Peak volume can use the same partner standards across locations instead of a new courier per branch.",
+        alternative:
+          "Each location invents its own backup courier list when the primary plan breaks.",
+      },
+    ],
+    industrySlugs: ["ecommerce", "electrical-distribution", "construction-materials"],
+    serviceAreaSlugs: ["toronto", "mississauga", "brampton", "vaughan"],
+    extraLinks: [
+      { path: "onboarding", label: "Get a quote" },
+      { path: "serviceAreas", label: "Service areas" },
+    ],
+  },
 ];
 
 export function getComparisonBySlug(slug: string): ComparisonPage | null {

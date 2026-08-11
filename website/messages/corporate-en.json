@@ -1,16 +1,16 @@
 {
   "metadata": {
     "home": {
-      "title": "Local Logistics Platform GTA | Business Account | PorterChain",
-      "description": "Run local GTA logistics from one platform — quotes, booking, tracking, proof of delivery, reports, APIs, and dedicated logistics support backed by professional drivers and vehicles.",
-      "ogTitle": "PorterChain — Local Logistics Operating Platform for the GTA",
-      "ogDescription": "One business account to simplify, automate, and manage local logistics across Toronto, Peel, York, and Durham."
+      "title": "GTA Delivery Capacity | Drivers, Vehicles & Technology | PorterChain",
+      "description": "Full-stack local logistics for the Greater Toronto Area — proprietary software plus professional drivers and vehicles for same-day, overflow, and recurring capacity. Quote-based. Tracking and proof on every stop.",
+      "ogTitle": "PorterChain — Transportation Capacity Network for the GTA",
+      "ogDescription": "Technology, drivers, vehicles, and logistics operations for Ontario businesses — capacity when your own fleet cannot cover it."
     },
     "platform": {
-      "title": "How We Operate | Porterchain Capacity Network",
-      "description": "How Porterchain orchestrates drivers, vehicles, dispatch, tracking, and proof of delivery behind every transportation capacity request.",
-      "ogTitle": "How Porterchain Runs Delivery",
-      "ogDescription": "The intelligent operations layer behind our transportation capacity network — not software you buy separately."
+      "title": "How We Operate | Full-Stack Capacity Capabilities | PorterChain",
+      "description": "Dispatch, routing, tracking, proof of delivery, vehicle matching, and overflow capacity — the technology and operations behind PorterChain transportation capacity in the GTA.",
+      "ogTitle": "PorterChain network operations & capabilities",
+      "ogDescription": "Full-stack local logistics: proprietary software plus drivers, vehicles, and ops for Ontario businesses."
     },
     "solutions": {
       "title": "B2B Delivery Solutions GTA | Construction, Wholesale, Medical | Porterchain",
@@ -143,6 +143,12 @@
     "serviceStandards": {
       "title": "Service Standards | Porterchain Trust",
       "description": "Delivery proof, windows, and escalation standards — scaffold pending ops approval."
+    },
+    "claims": {
+      "title": "Proof of Delivery & Claims | PorterChain Trust",
+      "description": "Delivery verification, photo POD, GPS timestamps, and claims-ready records for PorterChain capacity programs in Ontario.",
+      "ogTitle": "PorterChain delivery verification & claims",
+      "ogDescription": "How photo, signature, and GPS proof close every stop — and support dispute follow-up."
     }
   },
   "nav": {
@@ -164,7 +170,9 @@
       "foodBeverage": "Food & beverage",
       "construction": "Construction",
       "industries": "Industries",
-      "serviceAreas": "Service areas"
+      "serviceAreas": "Service areas",
+      "threePl": "3PL",
+      "fleetOverflow": "Fleet overflow"
     },
     "vehiclesTabs": {
       "ariaLabel": "Vehicle classes",
@@ -202,6 +210,14 @@
       "serviceAreas": {
         "label": "Service areas",
         "description": "GTA and Ontario metros — same-day, scheduled, and recurring lanes."
+      },
+      "threePl": {
+        "label": "3PL & warehouse",
+        "description": "Outbound multi-stop and overflow capacity for GTA warehouses."
+      },
+      "fleetOverflow": {
+        "label": "Fleet overflow",
+        "description": "Backup vehicles and drivers when your fleet cannot cover the cut-off."
       }
     },
     "vehiclesMenu": {
@@ -238,6 +254,14 @@
       "vehiclePartner": {
         "label": "Vehicle partners",
         "description": "Join the professional driver and commercial vehicle network."
+      },
+      "trust": {
+        "label": "Trust center",
+        "description": "Security, insurance, SLA, and procurement documentation."
+      },
+      "claims": {
+        "label": "Proof & claims",
+        "description": "POD, GPS closeout, and claims-ready delivery records."
       }
     },
     "resourcesMenu": {
@@ -253,13 +277,17 @@
         "label": "Blog",
         "description": "Capacity, operations, and industry insights for Ontario shippers."
       },
+      "authors": {
+        "label": "Authors",
+        "description": "Ops and engineering voices behind PorterChain guides and articles."
+      },
       "faq": {
         "label": "FAQ",
         "description": "When to use Porterchain vs your own fleet — straight answers."
       },
       "guides": {
         "label": "Guides",
-        "description": "How quoting, dispatch, and proof of delivery work end to end."
+        "description": "Capacity network, same-day GTA, transfers, and ops recovery guides."
       },
       "track": {
         "label": "Track shipment",
@@ -268,6 +296,22 @@
       "howItWorks": {
         "label": "How it works",
         "description": "Quote → dispatch → track → proof → invoice in one loop."
+      },
+      "capabilities": {
+        "label": "Capabilities",
+        "description": "Multi-stop, recurring, tracking, recovery, multi-location, and proof."
+      },
+      "integrations": {
+        "label": "Integrations",
+        "description": "CSV, API, EDI, email intake, and status notifications."
+      },
+      "compare": {
+        "label": "Compare options",
+        "description": "Capacity network vs in-house, courier, and single-hub dispatch."
+      },
+      "successStories": {
+        "label": "Success stories",
+        "description": "How Ontario businesses run overflow, jobsite, and wholesale lanes."
       }
     },
     "careers": "Careers",
@@ -324,7 +368,9 @@
     "enterprise": "Enterprise",
     "programs": "Programs",
     "dpa": "DPA",
-    "msa": "MSA"
+    "msa": "MSA",
+    "claims": "Proof & claims",
+    "capabilities": "Capabilities"
   },
   "platformBridge": {
     "label": "Capacity",
@@ -861,6 +907,55 @@
           "title": "Compare alternatives",
           "description": "Porterchain vs own employee, ad-hoc courier, or stretching your fleet.",
           "href": "/compare"
+        },
+        "3": {
+          "title": "Proof & delivery verification",
+          "description": "How POD, photos, and claims-ready records close every stop.",
+          "href": "/trust/claims"
+        },
+        "4": {
+          "title": "Capacity capabilities",
+          "description": "Multi-stop, recurring, tracking, recovery, matching, and proof — deep-dives.",
+          "href": "/capabilities"
+        }
+      }
+    },
+    "capabilities": {
+      "label": "Full-stack capabilities",
+      "title": "Digital and physical capacity in one system",
+      "subtitle": "What you get when you buy PorterChain capacity — technology, drivers, vehicles, and ops — not a software seat.",
+      "items": {
+        "0": {
+          "title": "Vehicle + driver matching",
+          "description": "Sedan through box truck matched to load, access, and urgency — with a professional driver on every run."
+        },
+        "1": {
+          "title": "Same-day & overflow capacity",
+          "description": "Backup vehicles and drivers when your fleet is full, a truck is down, or demand spikes."
+        },
+        "2": {
+          "title": "Multi-stop & recurring routes",
+          "description": "Wholesale and clinic-style multi-drop lanes plus scheduled recurring capacity programs."
+        },
+        "3": {
+          "title": "Quotes, booking & business portal",
+          "description": "Instant quotes, booking, shipment history, and reporting in one merchant workspace."
+        },
+        "4": {
+          "title": "Live tracking",
+          "description": "Shareable status and ETA for ops teams and receiving customers."
+        },
+        "5": {
+          "title": "Proof of delivery",
+          "description": "Photo, signature, and GPS records aligned to billing and dispute follow-up."
+        },
+        "6": {
+          "title": "Exception recovery",
+          "description": "Dispatch control tower monitors stalls, reassigns capacity, and escalates when a human is needed."
+        },
+        "7": {
+          "title": "APIs & notifications",
+          "description": "Connect order flow by API or CSV; keep teams updated via email, SMS, and operational alerts."
         }
       }
     }
@@ -915,6 +1010,14 @@
         "3": {
           "title": "Construction supply",
           "description": "Jobsite material delivery, pallet drops, and emergency same-day runs — building supply, electrical, and plumbing trade lanes from one construction solutions hub."
+        },
+        "4": {
+          "title": "3PL & warehouse outbound",
+          "description": "Multi-stop outbound, same-day releases, and peak overflow for GTA 3PL docks — tracking and proof merchants can share."
+        },
+        "5": {
+          "title": "Fleet overflow",
+          "description": "Backup vehicle-and-driver capacity when your fleet is full, a truck is down, or cut-offs cannot slip."
         }
       }
     },
@@ -1140,6 +1243,27 @@
         "subtitle": "Tell us your trade, materials, and GTA service areas — we confirm vehicle fit and respond within one business day.",
         "primary": "Get a quote",
         "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "Construction capacity resources",
+        "items": {
+          "0": {
+            "title": "Jobsite delivery blog",
+            "description": "Mississauga and Peel site access, truck fit, and POD.",
+            "href": "/blog/jobsite-delivery-capacity-mississauga"
+          },
+          "1": {
+            "title": "Exception recovery",
+            "description": "How ops reassigns capacity when a site window stalls.",
+            "href": "/capabilities/exception-recovery"
+          },
+          "2": {
+            "title": "Fleet overflow",
+            "description": "Backup capacity when your construction fleet is booked.",
+            "href": "/solutions/fleet-overflow"
+          }
+        }
       }
     },
     "wholesale": {
@@ -1263,6 +1387,27 @@
         "subtitle": "Share routes, cut-offs, and GTA zones — response within one business day.",
         "primary": "Get a quote",
         "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "Wholesale capacity resources",
+        "items": {
+          "0": {
+            "title": "Multi-stop delivery",
+            "description": "How multi-drop wholesale loops run with vehicle fit and proof.",
+            "href": "/capabilities/multi-stop-delivery"
+          },
+          "1": {
+            "title": "Fleet overflow",
+            "description": "Backup capacity when cut-offs outrun your own trucks.",
+            "href": "/solutions/fleet-overflow"
+          },
+          "2": {
+            "title": "Wholesale routes guide",
+            "description": "GTA multi-stop wholesale patterns and staging discipline.",
+            "href": "/blog/multi-stop-wholesale-routes-gta"
+          }
+        }
       }
     },
     "medical": {
@@ -1386,6 +1531,27 @@
         "subtitle": "Share routes, handling needs, and service areas.",
         "primary": "Get a quote",
         "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "Healthcare capacity resources",
+        "items": {
+          "0": {
+            "title": "Delivery verification",
+            "description": "POD and claims-ready closeout for regulated B2B runs.",
+            "href": "/capabilities/delivery-verification"
+          },
+          "1": {
+            "title": "Same-day GTA guide",
+            "description": "Cut-offs, vehicle class, and overflow for urgent lanes.",
+            "href": "/guides/same-day-delivery-capacity-gta"
+          },
+          "2": {
+            "title": "Pharmacy same-day blog",
+            "description": "Chain-of-custody visibility without in-house fleet.",
+            "href": "/blog/pharmacy-same-day-courier-gta"
+          }
+        }
       }
     },
     "foodBeverage": {
@@ -1509,6 +1675,315 @@
         "subtitle": "Share routes, perishability needs, and service areas.",
         "primary": "Get a quote",
         "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "Food & beverage capacity resources",
+        "items": {
+          "0": {
+            "title": "Recurring routes",
+            "description": "Café and wholesale food programs with reserved capacity and same-day overflow.",
+            "href": "/capabilities/recurring-routes"
+          },
+          "1": {
+            "title": "Early-morning foodservice blog",
+            "description": "How GTA roasters and distributors hold café and kitchen windows.",
+            "href": "/blog/early-morning-foodservice-routes-gta"
+          },
+          "2": {
+            "title": "Coffee freshness blog",
+            "description": "Wholesale freshness windows and route rhythm for roasters.",
+            "href": "/blog/coffee-supply-chain-freshness"
+          }
+        }
+      }
+    },
+    "threePl": {
+      "meta": {
+        "title": "3PL Delivery Capacity GTA | Warehouse Outbound & Multi-Stop | PorterChain",
+        "description": "Transportation capacity for 3PL warehouses in the GTA — outbound multi-stop, same-day releases, and overflow when dock volume spikes. Tracking and proof on every stop.",
+        "ogTitle": "3PL capacity partner — PorterChain",
+        "ogDescription": "Vehicle-and-driver capacity for Ontario 3PLs — warehouse outbound, multi-stop, and peak overflow."
+      },
+      "breadcrumb": "3PL & warehouse",
+      "hero": {
+        "badge": "3PL solutions",
+        "title": "Capacity for 3PL warehouses in the GTA",
+        "subtitle": "Outbound multi-stop, same-day releases, and overflow when your dock volume spikes — professional drivers and commercial vehicles with tracking and proof so warehouse ops keep SLAs without adding fleet headcount.",
+        "primaryCta": "Get a quote",
+        "secondaryCta": "E-commerce playbook"
+      },
+      "programs": {
+        "label": "Warehouse lanes",
+        "title": "3PL programs that match outbound volume",
+        "subtitle": "Each lane links to an industry playbook with vehicle fit and quote paths for warehouse and fulfillment leaders.",
+        "quoteCta": "Get a quote",
+        "alsoBrowse": "Also browse",
+        "allIndustries": "all industries",
+        "allSolutions": "all solutions",
+        "allServiceAreas": "all service areas",
+        "items": {
+          "warehouse": {
+            "title": "Warehouse outbound capacity",
+            "description": "Dock-to-customer and dock-to-store runs when your own vans are full or the release window is tight.",
+            "cta": "E-commerce delivery playbook",
+            "bullets": {
+              "0": "Same-day and next-window outbound from Peel and Toronto docks",
+              "1": "Cargo van through box truck matched to carton and pallet mix",
+              "2": "Shareable tracking for merchant and receiving teams"
+            }
+          },
+          "multistop": {
+            "title": "Multi-stop distribution",
+            "description": "Wave-based multi-drop lanes for B2B replenishment and local last-mile without stretching night shift.",
+            "cta": "E-commerce delivery playbook",
+            "bullets": {
+              "0": "Route density across Toronto, Peel, and York",
+              "1": "Proof standards aligned to billing disputes",
+              "2": "API or CSV intake for order waves"
+            }
+          },
+          "overflow": {
+            "title": "Peak & exception overflow",
+            "description": "Backup capacity for promotions, returns spikes, and truck downtime — booked without rebuilding your fleet plan.",
+            "cta": "Construction capacity playbook",
+            "bullets": {
+              "0": "Release-valve capacity when volume spikes",
+              "1": "Same partner standards as primary lanes",
+              "2": "Ops escalation when a stop stalls"
+            }
+          }
+        }
+      },
+      "personas": {
+        "label": "Who we serve",
+        "title": "Built for warehouse and fulfillment leaders",
+        "subtitle": "3PL ops buy capacity reliability. Merchants need tracking. Finance needs proof.",
+        "items": {
+          "0": {
+            "title": "3PL & warehouse ops",
+            "description": "Cover outbound waves without capex or ad-hoc courier roulette."
+          },
+          "1": {
+            "title": "Fulfillment & account managers",
+            "description": "Hit merchant SLAs with shareable status on every stop."
+          },
+          "2": {
+            "title": "Merchant brands",
+            "description": "Last-mile that looks professional — ETA and POD their customers trust."
+          },
+          "3": {
+            "title": "Finance & procurement",
+            "description": "Shipment-level proof and COI for vendor and claim reviews."
+          }
+        }
+      },
+      "cities": {
+        "title": "3PL capacity by city",
+        "items": {
+          "toronto": "Toronto warehouse outbound",
+          "mississauga": "Mississauga & Peel docks",
+          "brampton": "Brampton distribution lanes"
+        }
+      },
+      "bridge": {
+        "body": "3PLs buy execution capacity — not another software login.",
+        "platform": "How we operate",
+        "trust": "Trust & documentation",
+        "business": "Business programs"
+      },
+      "faq": {
+        "label": "FAQ",
+        "title": "3PL capacity FAQ",
+        "items": {
+          "0": {
+            "q": "Can you cover outbound from our GTA warehouse?",
+            "a": "Yes. Same-day and scheduled multi-stop capacity from Toronto, Peel, and York docks."
+          },
+          "1": {
+            "q": "Do you support peak season overflow?",
+            "a": "Yes. Book overflow capacity for promotions and volume spikes without adding permanent fleet."
+          },
+          "2": {
+            "q": "How do merchants get tracking?",
+            "a": "Shareable tracking links and proof of delivery on every stop — photo, signature, and GPS timestamps."
+          },
+          "3": {
+            "q": "Can we connect by API or CSV?",
+            "a": "Yes. Order intake via API or CSV waves — see integrations for partner options."
+          }
+        }
+      },
+      "cta": {
+        "title": "Get a quote for 3PL outbound",
+        "subtitle": "Share dock location, wave volume, and GTA zones — response within one business day.",
+        "primary": "Get a quote",
+        "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "3PL capacity resources",
+        "items": {
+          "0": {
+            "title": "Inventory transfers",
+            "description": "Warehouse-to-store and branch balancing capacity.",
+            "href": "/capabilities/inventory-transfers"
+          },
+          "1": {
+            "title": "Multi-location routing",
+            "description": "Coordinate outbound across docks and zones.",
+            "href": "/capabilities/multi-location-routing"
+          },
+          "2": {
+            "title": "3PL Peel blog",
+            "description": "Outbound waves from Peel docks without permanent fleet.",
+            "href": "/blog/3pl-outbound-capacity-peel"
+          }
+        }
+      }
+    },
+    "fleetOverflow": {
+      "meta": {
+        "title": "Fleet Overflow Delivery GTA | Backup Capacity | PorterChain",
+        "description": "Fleet overflow capacity for GTA businesses — backup vehicles and drivers when your fleet is full, a truck is down, or cut-offs cannot slip. Tracking and proof on every stop.",
+        "ogTitle": "Fleet overflow capacity — PorterChain",
+        "ogDescription": "Release-valve vehicle-and-driver capacity for Ontario fleets under pressure."
+      },
+      "breadcrumb": "Fleet overflow",
+      "hero": {
+        "badge": "Overflow capacity",
+        "title": "Fleet overflow when your trucks cannot cover it",
+        "subtitle": "Backup vehicles and professional drivers for peak volume, breakdowns, and hard cut-offs — same tracking and proof standards as your primary lanes so customers never feel the scramble.",
+        "primaryCta": "Get a quote",
+        "secondaryCta": "All industries"
+      },
+      "programs": {
+        "label": "Overflow triggers",
+        "title": "When teams book overflow capacity",
+        "subtitle": "Use overflow as a planned release valve — not a last-minute panic courier.",
+        "quoteCta": "Get a quote",
+        "alsoBrowse": "Also browse",
+        "allIndustries": "all industries",
+        "allSolutions": "all solutions",
+        "allServiceAreas": "all service areas",
+        "items": {
+          "peak": {
+            "title": "Peak volume & promotions",
+            "description": "Cover launch days and seasonal spikes without permanent headcount or weekend overtime that burns your team.",
+            "cta": "E-commerce delivery playbook",
+            "bullets": {
+              "0": "Same-day and next-window overflow across the GTA",
+              "1": "Vehicle class matched to carton and pallet mix",
+              "2": "Tracking links your customers can follow"
+            }
+          },
+          "breakdown": {
+            "title": "Breakdown & downtime cover",
+            "description": "Keep jobsite and wholesale promises when a unit is in the shop or a driver calls out.",
+            "cta": "Construction capacity playbook",
+            "bullets": {
+              "0": "Cargo van through box truck standby patterns",
+              "1": "Proof for billing when the stop still completes",
+              "2": "Ops escalation if the replacement run stalls"
+            }
+          },
+          "cutoffs": {
+            "title": "Hard cut-off protection",
+            "description": "Protect counter-to-contractor and warehouse cut-offs when inside sales volume outruns your own routes.",
+            "cta": "Electrical distribution playbook",
+            "bullets": {
+              "0": "Afternoon cut-off lanes in Peel and York",
+              "1": "Shareable ETA for contractors and PMs",
+              "2": "POD that closes trade disputes"
+            }
+          }
+        }
+      },
+      "personas": {
+        "label": "Who we serve",
+        "title": "Built for fleets under pressure",
+        "subtitle": "Ops leaders buy reliability. Sales needs cut-offs. Finance needs clean proof.",
+        "items": {
+          "0": {
+            "title": "Fleet & dispatch managers",
+            "description": "Add capacity without hiring or stretching unsafe overtime."
+          },
+          "1": {
+            "title": "Inside sales & counter teams",
+            "description": "Promise windows you can still hit on peak days."
+          },
+          "2": {
+            "title": "Warehouse & dock leads",
+            "description": "Clear staged freight with a booked overflow run."
+          },
+          "3": {
+            "title": "Finance & procurement",
+            "description": "Shipment-level POD when overflow completes the stop."
+          }
+        }
+      },
+      "cities": {
+        "title": "Overflow capacity by city",
+        "items": {
+          "toronto": "Toronto overflow lanes",
+          "mississauga": "Mississauga & Peel backup capacity",
+          "brampton": "Brampton fleet overflow"
+        }
+      },
+      "bridge": {
+        "body": "Overflow is capacity insurance — planned, tracked, and proven.",
+        "platform": "How we operate",
+        "trust": "Trust & documentation",
+        "business": "Business programs"
+      },
+      "faq": {
+        "label": "FAQ",
+        "title": "Fleet overflow FAQ",
+        "items": {
+          "0": {
+            "q": "How fast can overflow capacity start?",
+            "a": "Often same day when freight is staged and the zone is covered — share cut-off and vehicle class for a written quote."
+          },
+          "1": {
+            "q": "Is overflow the same quality as primary lanes?",
+            "a": "Yes. Same professional drivers, tracking, and proof standards — customers should not feel a scramble."
+          },
+          "2": {
+            "q": "Which industries use overflow most?",
+            "a": "Wholesale, construction supply, e-commerce, food distribution, and any GTA fleet that hits hard cut-offs."
+          },
+          "3": {
+            "q": "Can we keep overflow on retainer?",
+            "a": "Business and Enterprise programs can plan recurring overflow windows — ask during quote."
+          }
+        }
+      },
+      "cta": {
+        "title": "Get a quote for overflow capacity",
+        "subtitle": "Share peak patterns, vehicle class, and GTA zones — response within one business day.",
+        "primary": "Get a quote",
+        "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "Overflow capacity resources",
+        "items": {
+          "0": {
+            "title": "Overflow blog",
+            "description": "When GTA fleets book backup capacity.",
+            "href": "/blog/fleet-overflow-capacity-gta"
+          },
+          "1": {
+            "title": "Same-day GTA guide",
+            "description": "Cut-offs and vehicle class for urgent days.",
+            "href": "/guides/same-day-delivery-capacity-gta"
+          },
+          "2": {
+            "title": "Multi-location capacity",
+            "description": "Keep overflow standards consistent across branches.",
+            "href": "/capabilities/multi-location-routing"
+          }
+        }
       }
     }
   },
@@ -2434,6 +2909,11 @@
           "title": "Subprocessors",
           "description": "Vendor list and processing roles for authentication, payments, infrastructure, communications, and analytics.",
           "href": "/trust/subprocessors"
+        },
+        "4": {
+          "title": "Proof & claims",
+          "description": "POD standards, exception records, and claims follow-up path for capacity programs.",
+          "href": "/trust/claims"
         }
       }
     },
@@ -2597,6 +3077,46 @@
         "title": "Ready for MSA review?",
         "subtitle": "Share your procurement timeline — we'll align exhibits, SLAs, and onboarding to your rollout plan.",
         "primary": "Contact enterprise sales",
+        "secondary": "Back to trust"
+      }
+    },
+    "claims": {
+      "hero": {
+        "badge": "Proof & claims",
+        "title": "Delivery verification and claims-ready records",
+        "subtitle": "Photo, signature, and GPS proof on every stop — so billing, disputes, and loss follow-up start from evidence instead of guesswork."
+      },
+      "bands": {
+        "label": "Closeout",
+        "title": "What proof includes",
+        "subtitle": "Standards apply to Business and Enterprise capacity programs. Growth tier includes core POD; advanced exhibits are provided during onboarding.",
+        "items": {
+          "0": {
+            "title": "Photo & signature POD",
+            "description": "Visual confirmation and receiver signature captured at delivery — tied to the shipment record for finance and customers."
+          },
+          "1": {
+            "title": "GPS timestamps",
+            "description": "Location-stamped completion events that document when and where the stop closed."
+          },
+          "2": {
+            "title": "Exception documentation",
+            "description": "Failed access, refused freight, or customer not available — recorded with reason so redelivery briefs stay accurate."
+          },
+          "3": {
+            "title": "Claims follow-up path",
+            "description": "Ops and enterprise contacts for loss or damage review using the same shipment evidence chain — not a disconnected email thread."
+          }
+        }
+      },
+      "note": {
+        "title": "Insurance and executed exhibits",
+        "body": "Certificate of insurance and claims process details are available during vendor review. See Trust for COI requests and SLA exhibits for contracted response bands."
+      },
+      "cta": {
+        "title": "Need claims-ready capacity for your lanes?",
+        "subtitle": "Share freight type, proof requirements, and GTA zones — we align POD standards in the quote.",
+        "primary": "Get a quote",
         "secondary": "Back to trust"
       }
     }

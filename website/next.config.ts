@@ -74,8 +74,11 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 86_400,
+    // Prefer sharper defaults when quality prop is omitted by callers.
+    // (SiteImage still sets quality explicitly for brand assets.)
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 2560, 3840, 5120],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384, 512],
+    qualities: [75, 80, 90, 95, 100],
     remotePatterns: [
       {
         protocol: "https",

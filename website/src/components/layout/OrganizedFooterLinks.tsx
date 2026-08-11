@@ -4,8 +4,11 @@ import { customerPortalDashboardUrl, driverPortalUrl } from "@/data/portal-links
 import {
   footerNavigation,
   footerSectionOrder,
+  assertUniqueFooterHrefs,
   type FooterSectionId,
 } from "@/data/footer-navigation";
+
+assertUniqueFooterHrefs();
 
 export type FooterVariant = "corporate" | "booking" | "business";
 
@@ -27,7 +30,7 @@ export function OrganizedFooterLinks({
   titleClassName,
 }: OrganizedFooterLinksProps) {
   return (
-    <div className={cn("grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6", className)}>
+    <div className={cn("grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-5", className)}>
       {footerSectionOrder.map((section) => (
         <FooterColumn
           key={section}

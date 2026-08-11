@@ -99,6 +99,8 @@ export const BUSINESS_FAQ_KEYS = [
   "vehicles",
   "pod",
   "pricing",
+  "whatsIncluded",
+  "overflowVsDedicated",
   "recurring",
   "multiStop",
   "contract",

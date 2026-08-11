@@ -22,6 +22,7 @@ export default function HeroPhoto({
     cinematic: "aspect-[16/9]",
     card: "aspect-[4/3] sm:aspect-[3/2]",
   }[aspect];
+  const brand = image.src.startsWith("/images/brand/");
 
   return (
     <div
@@ -35,8 +36,10 @@ export default function HeroPhoto({
         image={image}
         fill
         className="object-cover"
-        sizes={sizes ?? "(max-width: 768px) 100vw, 80vw"}
+        sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1280px) 70vw, 1100px"}
         priority={priority}
+        quality={brand ? 100 : 90}
+        unoptimized={brand}
       />
       <div
         className="absolute inset-0 bg-gradient-to-t from-primary/35 via-primary/5 to-transparent pointer-events-none"

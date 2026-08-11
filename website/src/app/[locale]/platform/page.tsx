@@ -8,11 +8,18 @@ import HeroSection from "@/components/corporate/sections/HeroSection";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import TimelineSection from "@/components/corporate/sections/TimelineSection";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import CardGridSection from "@/components/corporate/sections/CardGridSection";
+import CardGridSection, {
+  RelatedResourcesSection,
+} from "@/components/corporate/sections/CardGridSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import FaqSection from "@/components/corporate/sections/FaqSection";
 import { siteImages } from "@/data/site-images";
-import { collectCardItems, collectFaqItems, collectTimelineSteps } from "@/lib/corporate-content";
+import {
+  collectCardItems,
+  collectFaqItems,
+  collectResourceItems,
+  collectTimelineSteps,
+} from "@/lib/corporate-content";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -26,6 +33,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return buildPageMetadata(locale, "platform", t("title"), t("description"));
 }
 
+/**
+ * /platform story: how the capacity network operates — not a second product demo page.
+ * Interactive product UI lives on home + /business.
+ */
 export default async function PlatformPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -84,6 +95,14 @@ export default async function PlatformPage({ params }: Props) {
         variant="grid"
       />
       <CardGridSection
+        label={t("capabilities.label")}
+        title={t("capabilities.title")}
+        subtitle={t("capabilities.subtitle")}
+        items={collectCardItems(t, "capabilities.items", 8)}
+        variant="mosaic"
+        className="bg-white"
+      />
+      <CardGridSection
         label={t("cards.label")}
         title={t("cards.title")}
         subtitle={t("cards.subtitle")}
@@ -91,19 +110,24 @@ export default async function PlatformPage({ params }: Props) {
         variant="mosaic"
         className="bg-gray-bg"
       />
+      <FaqSection
+        label={t("faq.label")}
+        title={t("faq.title")}
+        items={collectFaqItems(t, "faq.items", 4)}
+      />
       <CtaSection
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}
         primaryHref="/sign-up?intent=quote&from=platform"
         secondaryLabel={t("cta.secondary")}
-        secondaryHref="/compare"
+        secondaryHref="/business"
         variant="gradient"
       />
-      <FaqSection
-        label={t("faq.label")}
-        title={t("faq.title")}
-        items={collectFaqItems(t, "faq.items", 4)}
+      <RelatedResourcesSection
+        label={t("resources.label")}
+        title={t("resources.title")}
+        items={collectResourceItems(t, "resources.items", 5)}
       />
     </CorporateShell>
   );

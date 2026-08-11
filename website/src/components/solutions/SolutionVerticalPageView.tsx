@@ -8,6 +8,8 @@ import { SOLUTION_MESSAGE_KEYS } from "@/lib/solutions-hub-config";
 
 const SECONDARY_INDUSTRY: Partial<Record<SolutionVerticalSlug, string>> = {
   construction: "construction-materials",
+  "3pl": "ecommerce",
+  "fleet-overflow": "construction-materials",
 };
 
 function secondaryHrefForVertical(vertical: SolutionVerticalSlug): string {

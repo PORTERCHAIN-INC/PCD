@@ -9,7 +9,7 @@ export default async function TrustDocumentsSection() {
     <RelatedResourcesSection
       label={t("label")}
       title={t("title")}
-      items={collectResourceItems(t, "items", 4)}
+      items={collectResourceItems(t, "items", 5)}
       className="bg-white border-t border-primary/[0.06]"
     />
   );

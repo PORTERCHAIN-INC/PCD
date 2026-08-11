@@ -8,6 +8,8 @@ export type SolutionsTabId =
   | "medical"
   | "foodBeverage"
   | "construction"
+  | "threePl"
+  | "fleetOverflow"
   | "industries"
   | "serviceAreas";
 
@@ -22,6 +24,8 @@ export const SOLUTIONS_TAB_ITEMS: readonly SolutionsTabItem[] = [
   { id: "medical", href: solutionVerticalPath("medical") },
   { id: "foodBeverage", href: solutionVerticalPath("food-beverage") },
   { id: "construction", href: solutionVerticalPath("construction") },
+  { id: "threePl", href: solutionVerticalPath("3pl") },
+  { id: "fleetOverflow", href: solutionVerticalPath("fleet-overflow") },
   { id: "industries", href: "/business#industries" },
   { id: "serviceAreas", href: "/service-areas" },
 ] as const;

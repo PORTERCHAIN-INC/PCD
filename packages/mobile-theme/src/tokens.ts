@@ -31,8 +31,10 @@ export const radius = {
 export const touchTargetMin = 44;
 
 export const typography = {
-  title: { fontSize: 22, fontWeight: "600" as const },
-  body: { fontSize: 16, fontWeight: "400" as const },
-  caption: { fontSize: 14, fontWeight: "400" as const },
-  button: { fontSize: 16, fontWeight: "600" as const },
+  /** Prefer Calibri when present (Windows / Office); system UI otherwise. */
+  fontFamily: "Calibri",
+  title: { fontSize: 22, fontWeight: "600" as const, fontFamily: "Calibri" },
+  body: { fontSize: 16, fontWeight: "400" as const, fontFamily: "Calibri" },
+  caption: { fontSize: 14, fontWeight: "400" as const, fontFamily: "Calibri" },
+  button: { fontSize: 16, fontWeight: "600" as const, fontFamily: "Calibri" },
 };

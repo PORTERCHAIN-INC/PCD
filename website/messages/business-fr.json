@@ -460,6 +460,40 @@
           "Conditions de service sur entente"
         ]
       }
+    },
+    "includedChecklist": {
+      "label": "Ce qui est inclus",
+      "title": "Les devis de capacité couvrent l'exécution — pas des sièges logiciels",
+      "items": {
+        "vehicleDriver": "Classe de véhicule appariée avec un chauffeur professionnel pour la course",
+        "tracking": "Suivi en direct et statut partageable pour ops et destinataires",
+        "pod": "Preuve de livraison (photo / signature / GPS selon l'entente pour vos corridors)",
+        "dispatch": "Coordination de répartition et gestion des exceptions jusqu'à la clôture",
+        "writtenQuote": "Confirmation de prix écrite avant l'expédition — sans frais de sièges surprises"
+      }
+    },
+    "programCompare": {
+      "label": "Adéquation du programme",
+      "title": "Débordement, dédié ou récurrent — choisissez le modèle, pas un forfait SaaS",
+      "subtitle": "PorterChain tarifie la capacité de transport selon votre façon d'expédier. Utilisez cette grille pour préparer un devis — jamais un abonnement logiciel mensuel.",
+      "columns": {
+        "overflow": {
+          "title": "Débordement / jour même",
+          "bestFor": "Idéal quand votre flotte est pleine",
+          "body": "Chauffeur absent, camion immobilisé ou pic de demande. Réservez de la capacité de renfort avec les mêmes standards de suivi et de preuve."
+        },
+        "dedicated": {
+          "title": "Programme dédié",
+          "bestFor": "Idéal pour les corridors à fort volume",
+          "body": "Relation de répartition nommée, couverture véhicule prioritaire et tarification par corridor quand le volume justifie de réserver de la capacité."
+        },
+        "recurring": {
+          "title": "Routes récurrentes",
+          "bestFor": "Idéal pour les rythmes hebdomadaires",
+          "body": "Jours et fenêtres fixes pour cafés, gros, cliniques ou boucles d'entrepôt — avec débordement quand le modèle casse."
+        }
+      },
+      "footnote": "La plupart des comptes mélangent les modèles. Indiquez corridors, classe de véhicule et besoins de preuve — nous confirmons un parcours de capacité par écrit."
     }
   },
   "success": {
@@ -498,7 +532,15 @@
       },
       "pricing": {
         "question": "Comment fonctionne la tarification?",
-        "answer": "Sur devis selon classe de véhicule, distance, arrêts, urgence (jour même vs planifié) et manutention. Pas de frais plateforme cachés."
+        "answer": "Sur devis selon classe de véhicule, distance, arrêts, urgence (jour même vs planifié) et manutention. Aucuns frais de sièges logiciels et aucun forfait SaaS publié — le prix de capacité est confirmé par écrit avant l'expédition."
+      },
+      "whatsIncluded": {
+        "question": "Qu'est-ce qui est inclus dans un devis de capacité?",
+        "answer": "Véhicule apparié et chauffeur professionnel, coordination de répartition, suivi en direct et preuve de livraison selon l'entente pour vos corridors. Vous achetez de la capacité de transport exécutée — pas un abonnement logiciel."
+      },
+      "overflowVsDedicated": {
+        "question": "Dois-je choisir débordement, capacité dédiée ou routes récurrentes?",
+        "answer": "Utilisez le débordement pour les pics et les trous de couverture; le récurrent pour les corridors hebdomadaires fixes; le dédié quand le volume justifie une couverture réservée et une relation de répartition nommée. La plupart des comptes RGT mélangent ces modèles — nous recommandons un modèle sur le devis, pas un forfait logiciel."
       },
       "monthly": {
         "question": "Puis-je payer mensuellement?",

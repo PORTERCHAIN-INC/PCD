@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
+import { Carlito } from "next/font/google";
 import { AppClerkProvider, SessionContextProvider } from "@porterchain/auth";
 import { CommunicationsProvider } from "@/components/providers/CommunicationsProvider";
 import { GoogleMapsProvider } from "@porterchain/maps";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
+
+const brand = Carlito({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-brand",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Porterchain Driver",
@@ -15,8 +23,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" style={{ colorScheme: "light" }}>
-      <body>
+    <html lang="en" className={brand.variable} style={{ colorScheme: "light" }}>
+      <body className={brand.className}>
         <AppClerkProvider
           publishableKey={publicEnv.clerkPublishableKey}
           signInUrl="/login"

@@ -73,8 +73,10 @@ export default function HomeVehicleLeadCapture() {
                     src={photo}
                     alt=""
                     fill
-                    className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                    sizes="120px"
+                    unoptimized
+                    quality={100}
+                    className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
+                    sizes="(max-width: 640px) 33vw, 200px"
                   />
                   <span
                     className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-transparent"

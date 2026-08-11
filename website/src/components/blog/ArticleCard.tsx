@@ -45,8 +45,8 @@ export default function ArticleCard({
           <SiteImage
             image={cover}
             fill
-            className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
-            sizes="160px"
+            className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+            sizes="(max-width: 640px) 100vw, 200px"
           />
         </div>
         <div className="flex-1 min-w-0">

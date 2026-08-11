@@ -172,13 +172,22 @@ Creating a Clerk account **alone does not grant Porterchain access** for staff, 
 
 ## CLI (bootstrap)
 
-Existing script for first super admin:
+Staff IdP (no Clerk) — prefer these over any Clerk-invite admin scripts:
 
 ```bash
-cd apps/api && python ../../infrastructure/scripts/provision_admin.py ravi@porterchain.com --role super_admin
+# Full role matrix + driver invite attempt + disable admin Bearer-dev bypass
+pnpm auth:bootstrap
+
+# Single staff enroll (prints activate_url for local)
+pnpm auth:provision-admin you@porterchain.com -- --role dispatcher --name "Ops Lead"
+
+# Reissue magic link
+pnpm auth:provision-admin you@porterchain.com -- --reissue
 ```
 
-Uses the same Clerk Invitations API pattern as `InvitationService`.
+Open `activate_url` or Mailpit (`http://localhost:8025`), then later use `/sign-in`.
+Driver local email picker: `/login` when `NEXT_PUBLIC_DRIVER_DEV_LOGIN=true`.
+Driver production path: Clerk invitation → `/login`.
 
 ---
 

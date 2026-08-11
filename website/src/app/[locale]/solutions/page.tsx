@@ -41,7 +41,7 @@ export default async function SolutionsPage({ params }: Props) {
   const verticalCards = collectCardItems(
     t,
     "cards.items",
-    4,
+    SOLUTION_VERTICAL_SLUGS.length,
     SOLUTION_VERTICAL_SLUGS as unknown as string[]
   );
 
@@ -123,6 +123,12 @@ export default async function SolutionsPage({ params }: Props) {
           </p>
         </Container>
       </section>
+      <FeatureSection
+        label={t("features.label")}
+        title={t("features.title")}
+        items={outcomeItems}
+        variant="grid"
+      />
       <TimelineSection
         label={t("timeline.label")}
         title={t("timeline.title")}
@@ -131,11 +137,10 @@ export default async function SolutionsPage({ params }: Props) {
         variant="horizontal"
         className="bg-gray-bg"
       />
-      <FeatureSection
-        label={t("features.label")}
-        title={t("features.title")}
-        items={outcomeItems}
-        variant="grid"
+      <FaqSection
+        label={t("faq.label")}
+        title={t("faq.title")}
+        items={collectFaqItems(t, "faq.items", 4)}
       />
       <CtaSection
         title={t("cta.title")}
@@ -145,11 +150,6 @@ export default async function SolutionsPage({ params }: Props) {
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/vehicles"
         variant="gradient"
-      />
-      <FaqSection
-        label={t("faq.label")}
-        title={t("faq.title")}
-        items={collectFaqItems(t, "faq.items", 4)}
       />
     </CorporateShell>
   );

@@ -128,6 +128,8 @@ const SOLUTION_VERTICAL_LABELS: Record<SolutionVerticalSlug, string> = {
   medical: "Medical & healthcare solutions",
   "food-beverage": "Food & beverage solutions",
   construction: "Construction supply solutions",
+  "3pl": "3PL & warehouse solutions",
+  "fleet-overflow": "Fleet overflow solutions",
 };
 
 export const INDUSTRY_PAGE_LABELS: Record<string, string> = {

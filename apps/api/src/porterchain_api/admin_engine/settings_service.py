@@ -101,7 +101,7 @@ DEFAULTS: dict[str, Any] = {
     "settings_branding": {
         "primary_color": "#2563eb",
         "secondary_color": "#0ea5e9",
-        "typography": "Inter",
+        "typography": "Calibri",
     },
     "settings_authentication": {
         "session_timeout_minutes": 480,

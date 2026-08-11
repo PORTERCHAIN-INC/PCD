@@ -1,15 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Plus_Jakarta_Sans } from "next/font/google";
 import { platformLoginUrl } from "@porterchain/auth";
 import { publicEnv } from "@/lib/env";
 
-const authDisplay = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-customer-auth",
-  display: "swap",
-});
+const AUTH_FONT = 'Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif';
 
 export type CustomerAuthMode = "sign-in" | "sign-up";
 
@@ -37,10 +32,7 @@ export function CustomerAuthScreen({
   const platformUrl = showPlatformLogin ? platformLoginUrl(publicEnv.websiteUrl) : null;
 
   return (
-    <div
-      className={`${authDisplay.variable} relative flex min-h-dvh flex-col lg:flex-row`}
-      style={{ fontFamily: "var(--font-customer-auth), system-ui, sans-serif" }}
-    >
+    <div className="relative flex min-h-dvh flex-col lg:flex-row" style={{ fontFamily: AUTH_FONT }}>
       <BrandPanel mode={mode} />
 
       <section className="relative z-10 flex flex-1 flex-col justify-center px-5 py-10 sm:px-8 lg:px-12 xl:px-16">

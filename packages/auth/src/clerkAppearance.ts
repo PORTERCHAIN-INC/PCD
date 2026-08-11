@@ -31,7 +31,7 @@ const baseVariables = {
   colorInputText: "#0a1628",
   colorNeutral: "#0a1628",
   borderRadius: "0.75rem",
-  fontFamily: "var(--font-inter), Inter, system-ui, sans-serif",
+  fontFamily: 'Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif',
   fontSize: "0.875rem",
 } as const;
 

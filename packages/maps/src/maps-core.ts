@@ -50,7 +50,7 @@ export function applyBookingAutocompleteStyles(
   style.setProperty("min-height", "3rem");
   style.setProperty(
     "font-family",
-    'var(--font-inter), "Inter", system-ui, -apple-system, sans-serif'
+    'Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif'
   );
   style.setProperty("font-size", "1rem");
   style.setProperty("color", "#0a1628");

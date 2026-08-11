@@ -112,7 +112,10 @@ class DriverRouteOptimizer:
         return stop_count >= 2
 
     def optimize(self, db: Any, driver: Any) -> dict[str, Any]:
-        from porterchain_api.admin_models import RouteCenterPlan
+        try:
+            from porterchain_api.admin_models import RouteCenterPlan
+        except ImportError:
+            RouteCenterPlan = None  # type: ignore[assignment,misc]
         from porterchain_api.models import Order
 
         warnings: list[str] = []
@@ -232,15 +235,27 @@ class DriverRouteOptimizer:
             "engine": "haversine",
         }
 
-        existing = (
-            db.query(RouteCenterPlan)
-            .filter(
-                RouteCenterPlan.driver_id == driver.id,
-                RouteCenterPlan.status.in_(("dispatched", "active", "optimized")),
+        existing = None
+        if RouteCenterPlan is not None:
+            existing = (
+                db.query(RouteCenterPlan)
+                .filter(
+                    RouteCenterPlan.driver_id == driver.id,
+                    RouteCenterPlan.status.in_(("dispatched", "active", "optimized")),
+                )
+                .order_by(RouteCenterPlan.updated_at.desc())
+                .first()
             )
-            .order_by(RouteCenterPlan.updated_at.desc())
-            .first()
-        )
+
+        if RouteCenterPlan is None:
+            plan_id = str(uuid.uuid4())
+            return {
+                "plan_id": plan_id,
+                "optimized_stops": optimized_stops,
+                "metrics": metrics,
+                "warnings": warnings + ["route_center_removed_use_fleetbase"],
+                "order_ids": included_ids,
+            }
 
         if existing:
             plan = existing
@@ -305,7 +320,10 @@ class DriverRouteOptimizer:
 
     def reoptimize_remaining(self, db: Any, driver: Any, completed_stop_id: str) -> dict[str, Any] | None:
         """Re-order unfinished stops in the active plan from the driver's last location."""
-        from porterchain_api.admin_models import RouteCenterPlan
+        try:
+            from porterchain_api.admin_models import RouteCenterPlan
+        except ImportError:
+            return None
         from porterchain_api.models import Order
 
         plan = (

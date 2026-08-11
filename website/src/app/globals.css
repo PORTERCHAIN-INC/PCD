@@ -43,7 +43,7 @@
   --color-accent: var(--accent);
   --color-gray-bg: var(--gray-bg);
   --color-muted: var(--muted);
-  --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
 }
 
 html {
@@ -57,12 +57,7 @@ html {
 body {
   background: var(--white);
   color: var(--foreground);
-  font-family:
-    var(--font-inter),
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
   font-size: var(--text-base);
   font-weight: 400;
   line-height: 1.6;
@@ -764,7 +759,7 @@ p {
   --biz-muted: #64748b;
   --foreground: #0a1628;
   --primary: #0a1628;
-  font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+  font-family: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
 }
 
 .business-theme ::selection {
@@ -1203,12 +1198,7 @@ input[type="tel"].biz-input::-webkit-contacts-auto-fill-button {
   border: 1px solid transparent;
   border-radius: 9999px;
   min-height: 3rem;
-  font-family:
-    var(--font-inter),
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
   font-size: 1rem;
   color: var(--primary);
   transition:

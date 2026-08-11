@@ -83,14 +83,11 @@ function vehicleSlugRedirects(): WebsiteRedirect[] {
 
 function educationHubRedirects(): WebsiteRedirect[] {
   return LOCALES.flatMap((locale) =>
-    (["onboarding-education", "integrations-education", "guides"] as const).map((path) => ({
+    (["onboarding-education", "integrations-education"] as const).map((path) => ({
       source: `/${locale}/${path}`,
       destination: `/${locale}/faq`,
       permanent: true,
-      note:
-        path === "guides"
-          ? "Guides hub merged into FAQ"
-          : "Education hubs consolidated under FAQ index",
+      note: "Education hubs consolidated under FAQ index",
     }))
   );
 }
@@ -142,6 +139,18 @@ function retiredMarketingHubRedirects(): WebsiteRedirect[] {
       destination: `/${locale}/sign-up?intent=quote&from=quote`,
       permanent: true,
       note: "Legacy /quote → business capacity form",
+    },
+    {
+      source: `/${locale}/success-stories`,
+      destination: `/${locale}/business`,
+      permanent: true,
+      note: "Success stories hub retired until permissioned stories exist",
+    },
+    {
+      source: `/${locale}/success-stories/:slug`,
+      destination: `/${locale}/business`,
+      permanent: true,
+      note: "Success story leaves retired until permissioned stories exist",
     },
   ]);
 }

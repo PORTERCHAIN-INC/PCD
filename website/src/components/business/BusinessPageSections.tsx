@@ -10,6 +10,7 @@ import FinalCta from "@/components/business/sections/FinalCta";
 import BusinessIntentGuides from "@/components/business/sections/BusinessIntentGuides";
 import HubTrustStrip from "@/components/hub/HubTrustStrip";
 import HubShell from "@/components/hub/HubShell";
+import CapacityProductTrust from "@/components/marketing/CapacityProductTrust";
 import { siteImages } from "@/data/site-images";
 
 const BusinessSolutions = dynamic(() => import("@/components/business/sections/BusinessSolutions"));
@@ -28,7 +29,17 @@ type Props = {
   locale: Locale;
 };
 
-/** Below-fold sections code-split to protect INP on /business (Wave 10 w10-1). */
+/**
+ * /business story (one job per band):
+ * 1. Hero — capacity partner + quote
+ * 2. Facade — how capacity shows up
+ * 3. Fleet — vehicle classes
+ * 4. Answer + challenges — pain → fit
+ * 5. Solutions + industries — who / when
+ * 6. Product UI — tech included (once)
+ * 7. Why + proof + brand
+ * 8. Pricing → guides → FAQ → final CTA
+ */
 export default async function BusinessPageSections({ locale }: Props) {
   const tBrand = await getTranslations("businessPage.brandBand");
   const tTrust = await getTranslations("businessPage.trustStrip");
@@ -39,6 +50,16 @@ export default async function BusinessPageSections({ locale }: Props) {
       <BusinessHubFacade locale={locale} />
       <BusinessFleet />
       <BusinessAnswerSection locale={locale} />
+      <div className="perf-defer-section">
+        <BusinessChallenges />
+        <BusinessSolutions />
+        <BusinessIndustries />
+      </div>
+      <CapacityProductTrust from="business" tone="light" />
+      <div className="perf-defer-section">
+        <WhyChooseBusiness />
+        <TrustedBy />
+      </div>
       <HubTrustStrip
         eyebrow={tTrust("eyebrow")}
         title={tTrust("title")}
@@ -56,11 +77,6 @@ export default async function BusinessPageSections({ locale }: Props) {
         objectPosition="center 45%"
       />
       <div className="perf-defer-section">
-        <BusinessSolutions />
-        <BusinessChallenges />
-        <BusinessIndustries />
-        <WhyChooseBusiness />
-        <TrustedBy />
         <BillingOptions />
         <BusinessIntentGuides locale={locale} />
         <BusinessFAQ />

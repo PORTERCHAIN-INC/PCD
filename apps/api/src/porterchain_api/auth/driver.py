@@ -24,8 +24,13 @@ async def get_driver_context(
 ) -> DriverContext:
     driver_id: str | None = None
 
-    if credentials and credentials.credentials:
-        driver_id = await _clerk_driver_id(db, credentials.credentials, settings)
+    token = credentials.credentials if credentials and credentials.credentials else None
+    if token == "dev" and allow_auth_dev_bypass(settings):
+        driver = db.query(Driver).filter(Driver.status == DriverStatus.APPROVED.value).first()
+        if driver:
+            return DriverContext(driver=driver)
+    elif token:
+        driver_id = await _clerk_driver_id(db, token, settings)
     elif allow_auth_dev_bypass(settings) and x_driver_id:
         driver_id = x_driver_id
     elif allow_auth_dev_bypass(settings):

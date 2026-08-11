@@ -457,6 +457,40 @@
           "Service-level terms by agreement"
         ]
       }
+    },
+    "includedChecklist": {
+      "label": "What's included",
+      "title": "Capacity quotes cover execution — not software seats",
+      "items": {
+        "vehicleDriver": "Matched vehicle class with a professional driver for the run",
+        "tracking": "Live tracking and shareable status for ops and receivers",
+        "pod": "Proof of delivery (photo / signature / GPS where agreed for your lanes)",
+        "dispatch": "Dispatch coordination and exception handling through closeout",
+        "writtenQuote": "Written price confirmation before dispatch — no surprise seat fees"
+      }
+    },
+    "programCompare": {
+      "label": "Program fit",
+      "title": "Overflow, dedicated, or recurring — pick the pattern, not a SaaS tier",
+      "subtitle": "PorterChain prices transportation capacity by how you ship. Use this checklist to brief a quote — never a monthly software plan.",
+      "columns": {
+        "overflow": {
+          "title": "Overflow / same-day",
+          "bestFor": "Best when your fleet is full",
+          "body": "Driver out, truck down, or demand spikes. Book backup capacity with the same tracking and proof standards as your primary lanes."
+        },
+        "dedicated": {
+          "title": "Dedicated program",
+          "bestFor": "Best for high-volume corridors",
+          "body": "Named dispatch relationship, priority vehicle coverage, and lane pricing when volume is steady enough to reserve capacity."
+        },
+        "recurring": {
+          "title": "Recurring routes",
+          "bestFor": "Best for weekly patterns",
+          "body": "Fixed days and windows for café, wholesale, clinic, or warehouse loops — with overflow available when the template breaks."
+        }
+      },
+      "footnote": "Most accounts mix patterns. Tell us your corridors, vehicle class, and proof needs — we confirm a written capacity path."
     }
   },
   "success": {
@@ -495,7 +529,15 @@
       },
       "pricing": {
         "question": "How does pricing work?",
-        "answer": "Quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. No hidden platform fees."
+        "answer": "Quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. No software-seat fees and no published SaaS tiers — capacity price is confirmed in writing before dispatch."
+      },
+      "whatsIncluded": {
+        "question": "What is included in a capacity quote?",
+        "answer": "Matched vehicle and professional driver, dispatch coordination, live tracking, and proof of delivery where agreed for your lanes. You are buying executed transportation capacity — not a software subscription."
+      },
+      "overflowVsDedicated": {
+        "question": "Should I buy overflow, dedicated, or recurring capacity?",
+        "answer": "Use overflow for spikes and coverage gaps; recurring for fixed weekly lanes; dedicated when volume justifies reserved coverage and a named dispatch relationship. Most GTA accounts mix these — we recommend a pattern on the quote, not a software plan."
       },
       "monthly": {
         "question": "Can I pay monthly?",

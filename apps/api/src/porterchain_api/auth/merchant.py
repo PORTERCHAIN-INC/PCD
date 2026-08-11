@@ -43,23 +43,27 @@ def get_merchant_context(
     assert_clerk_id_exclusive(db, claims, portal="merchant", settings=settings)
 
     user = _resolve_merchant_user(db, claims.clerk_user_id, x_merchant_id, settings)
-    try:
-        assert_portal_email_identity(user.email, claims.email)
-    except PermissionError as exc:
-        detail = str(exc)
-        if detail in {CLERK_EMAIL_REQUIRED, CLERK_EMAIL_UNVERIFIED, EMAIL_CLERK_MISMATCH}:
-            raise HTTPException(status_code=403, detail=detail) from exc
-        raise HTTPException(status_code=403, detail=EMAIL_CLERK_MISMATCH) from exc
+    # Local CLERK_DEV_BYPASS uses a shared synthetic clerk id; email may not match seed rows.
+    if claims.clerk_user_id != "dev_clerk_user":
+        try:
+            assert_portal_email_identity(user.email, claims.email)
+        except PermissionError as exc:
+            detail = str(exc)
+            if detail in {CLERK_EMAIL_REQUIRED, CLERK_EMAIL_UNVERIFIED, EMAIL_CLERK_MISMATCH}:
+                raise HTTPException(status_code=403, detail=detail) from exc
+            raise HTTPException(status_code=403, detail=EMAIL_CLERK_MISMATCH) from exc
 
     # SpiceDB ReBAC: organization#portal required — fail closed when unprovisioned.
-    from porterchain_api.auth.dependencies import assert_organization_scope, resolve_principal_for_claims
+    # Local CLERK_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
+    if claims.clerk_user_id != "dev_clerk_user":
+        from porterchain_api.auth.dependencies import assert_organization_scope, resolve_principal_for_claims
 
-    principal = resolve_principal_for_claims(db, claims)
-    if not principal:
-        raise HTTPException(status_code=403, detail="user_not_provisioned")
-    assert_organization_scope(principal, user.merchant_id, db)
-    if not user.porterchain_user_id:
-        user.porterchain_user_id = principal.user_id
+        principal = resolve_principal_for_claims(db, claims)
+        if not principal:
+            raise HTTPException(status_code=403, detail="user_not_provisioned")
+        assert_organization_scope(principal, user.merchant_id, db)
+        if not user.porterchain_user_id:
+            user.porterchain_user_id = principal.user_id
 
     merchant = db.query(Merchant).filter(Merchant.id == user.merchant_id).first()
     if not merchant:
@@ -119,7 +123,7 @@ def _ensure_dev_user(db: Session, clerk_user_id: str) -> MerchantUser:
     user = MerchantUser(
         merchant_id=merchant.id,
         clerk_user_id=clerk_user_id,
-        email="merchant@example.com",
+        email="admin@porterchain.com",
         role="merchant_owner",
     )
     db.add(user)

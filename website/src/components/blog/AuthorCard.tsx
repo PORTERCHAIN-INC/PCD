@@ -1,4 +1,5 @@
 import { getAuthor } from "@/data/blog-authors";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 interface AuthorCardProps {
@@ -20,15 +21,10 @@ export default function AuthorCard({
     .map((n) => n[0])
     .join("")
     .slice(0, 2);
+  const profileHref = author.id !== "porterchain" ? `/authors/${author.id}` : null;
 
-  return (
-    <div
-      className={cn(
-        "flex items-start gap-4",
-        variant === "default" && "p-5 rounded-2xl border border-primary/[0.06] bg-gray-bg",
-        className
-      )}
-    >
+  const body = (
+    <>
       <div
         className={cn(
           "rounded-full bg-secondary text-white font-semibold flex items-center justify-center shrink-0",
@@ -46,6 +42,33 @@ export default function AuthorCard({
           <p className="mt-2 text-sm text-muted leading-relaxed">{author.bio}</p>
         )}
       </div>
+    </>
+  );
+
+  if (profileHref) {
+    return (
+      <Link
+        href={profileHref}
+        className={cn(
+          "flex items-start gap-4 transition-opacity hover:opacity-90",
+          variant === "default" && "p-5 rounded-2xl border border-primary/[0.06] bg-gray-bg",
+          className
+        )}
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "flex items-start gap-4",
+        variant === "default" && "p-5 rounded-2xl border border-primary/[0.06] bg-gray-bg",
+        className
+      )}
+    >
+      {body}
     </div>
   );
 }

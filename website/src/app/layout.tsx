@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Inter } from "next/font/google";
+import { Carlito } from "next/font/google";
 import { siteConfig } from "@/lib/seo/config";
 import "./globals.css";
 
-const inter = Inter({
+const brand = Carlito({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["400", "700"],
+  variable: "--font-brand",
   display: "swap",
 });
 
@@ -23,11 +24,14 @@ export default function RootLayout({ children }: Props) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} scroll-smooth`}
+      className={`${brand.variable} scroll-smooth`}
       style={{ colorScheme: "light" }}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-white font-sans antialiased" suppressHydrationWarning>
+      <body
+        className={`${brand.className} min-h-screen bg-white font-sans antialiased`}
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

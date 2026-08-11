@@ -7,6 +7,8 @@ import type { AuthorityPage } from "./content/authority-pages";
 import { getAuthorityPageBySlug } from "./content/authority-pages";
 import type { SuccessStory } from "./content/success-stories";
 import { getSuccessStoryBySlug } from "./content/success-stories";
+import type { CapabilityPage } from "./content/capabilities";
+import { getCapabilityBySlug } from "./content/capabilities";
 
 type FrCompareOverride = Pick<
   ComparisonPage,
@@ -34,17 +36,23 @@ type FrSuccessOverride = Pick<
   | "outcomeMetric"
 >;
 
+type FrCapabilityOverride = Pick<CapabilityPage, "title" | "description" | "intro" | "sections"> & {
+  extraLinks?: CapabilityPage["extraLinks"];
+};
+
 type SeoProgrammaticFr = {
   hubs?: {
     compare?: { title: string; description: string };
     faq?: { title: string; description: string };
     guides?: { title: string; description: string };
     successStories?: { title: string; description: string };
+    capabilities?: { title: string; description: string };
   };
   compare?: Record<string, FrCompareOverride>;
   faq?: Record<string, FrFaqOverride>;
   guides?: Record<string, FrGuideOverride>;
   successStories?: Record<string, FrSuccessOverride>;
+  capabilities?: Record<string, FrCapabilityOverride>;
 };
 
 let frCache: SeoProgrammaticFr | null = null;
@@ -59,7 +67,10 @@ async function loadFrProgrammatic(): Promise<SeoProgrammaticFr> {
 
 export async function hasProgrammaticLocale(
   locale: string,
-  namespace: keyof Pick<SeoProgrammaticFr, "compare" | "faq" | "guides" | "successStories">,
+  namespace: keyof Pick<
+    SeoProgrammaticFr,
+    "compare" | "faq" | "guides" | "successStories" | "capabilities"
+  >,
   slug: string
 ): Promise<boolean> {
   if (locale === "en") return true;
@@ -171,4 +182,28 @@ export async function listLocalizedSuccessStorySlugs(locale: Locale): Promise<st
   if (locale === "en") return SUCCESS_STORIES.map((s) => s.slug);
   const fr = await loadFrProgrammatic();
   return SUCCESS_STORIES.map((s) => s.slug).filter((slug) => Boolean(fr.successStories?.[slug]));
+}
+
+export async function getLocalizedCapability(
+  locale: Locale,
+  slug: string
+): Promise<CapabilityPage | null> {
+  const en = getCapabilityBySlug(slug);
+  if (!en) return null;
+  if (locale === "en") return en;
+  const fr = (await loadFrProgrammatic()).capabilities?.[slug];
+  if (!fr) return null;
+  return {
+    ...en,
+    ...fr,
+    sections: fr.sections ?? en.sections,
+    extraLinks: fr.extraLinks ?? en.extraLinks,
+  };
+}
+
+export async function listLocalizedCapabilitySlugs(locale: Locale): Promise<string[]> {
+  const { CAPABILITY_PAGES } = await import("./content/capabilities");
+  if (locale === "en") return CAPABILITY_PAGES.map((p) => p.slug);
+  const fr = await loadFrProgrammatic();
+  return CAPABILITY_PAGES.map((p) => p.slug).filter((slug) => Boolean(fr.capabilities?.[slug]));
 }

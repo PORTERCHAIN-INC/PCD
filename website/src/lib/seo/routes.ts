@@ -24,6 +24,7 @@ export const PATHS = {
   INTEGRATIONS: "integrations",
   ENTERPRISE: "enterprise",
   PLATFORM: "platform",
+  CAPABILITIES: "capabilities",
   DRIVE: "drive",
   TRACK: "track",
   SEDAN_DELIVERY: "sedan-delivery",
@@ -159,6 +160,14 @@ export function enterprise(locale: Locale, query?: RouteQuery): string {
 
 export function platform(locale: Locale, query?: RouteQuery): string {
   return withQuery(localePath(locale, PATHS.PLATFORM), query);
+}
+
+export function capabilities(locale: Locale): string {
+  return localePath(locale, PATHS.CAPABILITIES);
+}
+
+export function capabilitySlug(locale: Locale, slug: string): string {
+  return localePath(locale, `${PATHS.CAPABILITIES}/${slug}`);
 }
 
 /** Capacity quote — Platform Clerk sign-up → customer portal book. */

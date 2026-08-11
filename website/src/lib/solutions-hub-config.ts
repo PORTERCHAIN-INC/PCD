@@ -4,10 +4,13 @@ import {
   FlaskConical,
   HardHat,
   HeartPulse,
+  Package,
+  RefreshCw,
   ShoppingCart,
   Stethoscope,
   Truck,
   UtensilsCrossed,
+  Warehouse,
   Wrench,
   Zap,
 } from "lucide-react";
@@ -20,7 +23,7 @@ export type SolutionProgramConfig = {
 };
 
 const ICONS = {
-  warehouse: ShoppingCart,
+  warehouse: Warehouse,
   zap: Zap,
   wrench: Wrench,
   cart: ShoppingCart,
@@ -31,6 +34,8 @@ const ICONS = {
   utensils: UtensilsCrossed,
   truck: Truck,
   hardHat: HardHat,
+  package: Package,
+  refresh: RefreshCw,
 } as const;
 
 /** Message namespace key under corporate.solutions.* */
@@ -39,6 +44,8 @@ export const SOLUTION_MESSAGE_KEYS: Record<SolutionVerticalSlug, string> = {
   medical: "medical",
   "food-beverage": "foodBeverage",
   construction: "construction",
+  "3pl": "threePl",
+  "fleet-overflow": "fleetOverflow",
 };
 
 export const SOLUTION_HUB_PROGRAMS: Record<SolutionVerticalSlug, SolutionProgramConfig[]> = {
@@ -62,6 +69,16 @@ export const SOLUTION_HUB_PROGRAMS: Record<SolutionVerticalSlug, SolutionProgram
     { key: "electrical", industrySlug: "electrical-distribution", icon: ICONS.zap },
     { key: "plumbing", industrySlug: "plumbing-supply", icon: ICONS.wrench },
   ],
+  "3pl": [
+    { key: "warehouse", industrySlug: "ecommerce", icon: ICONS.warehouse },
+    { key: "multistop", industrySlug: "ecommerce", icon: ICONS.package },
+    { key: "overflow", industrySlug: "construction-materials", icon: ICONS.refresh },
+  ],
+  "fleet-overflow": [
+    { key: "peak", industrySlug: "ecommerce", icon: ICONS.refresh },
+    { key: "breakdown", industrySlug: "construction-materials", icon: ICONS.truck },
+    { key: "cutoffs", industrySlug: "electrical-distribution", icon: ICONS.zap },
+  ],
 };
 
 export const SOLUTION_HUB_CITY_SLUGS: Record<SolutionVerticalSlug, readonly string[]> = {
@@ -69,6 +86,8 @@ export const SOLUTION_HUB_CITY_SLUGS: Record<SolutionVerticalSlug, readonly stri
   medical: ["toronto", "mississauga", "hamilton"],
   "food-beverage": ["toronto", "mississauga", "kitchener-waterloo"],
   construction: ["toronto", "mississauga", "brampton"],
+  "3pl": ["toronto", "mississauga", "brampton"],
+  "fleet-overflow": ["toronto", "mississauga", "brampton"],
 };
 
 export const SERVICE_AREA_REGIONS = [

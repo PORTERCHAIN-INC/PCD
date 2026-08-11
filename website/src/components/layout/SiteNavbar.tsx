@@ -10,10 +10,8 @@ import Container from "@/components/ui/Container";
 import LinkButton from "@/components/corporate/ui/LinkButton";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import SiteNavbarAuth from "@/components/layout/SiteNavbarAuth";
-import NavDropdown from "@/components/layout/NavDropdown";
 import PorterchainWordmark from "@/components/brand/PorterchainWordmark";
 import { navbarNavigation } from "@/data/navbar-navigation";
-import { isVehiclesNavActive } from "@/data/vehicles-navigation";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 import { buildChatWhatsAppMessage, buildWhatsAppDeepLink } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
@@ -24,18 +22,7 @@ const DARK_HERO_PATHS = new Set(["/", "/careers", "/contact"]);
 const LIGHT_HERO_PATHS = new Set(["/business", "/login", "/vehicle-partner"]);
 
 function isNavPathActive(pathname: string, href: string) {
-  const pathOnly = href.split("?")[0] ?? href;
-  if (pathOnly === "/solutions") {
-    return (
-      pathname === "/solutions" ||
-      pathname.startsWith("/solutions/") ||
-      pathname === "/construction" ||
-      pathname.startsWith("/construction/")
-    );
-  }
-  if (pathOnly === "/vehicles") {
-    return isVehiclesNavActive(pathname);
-  }
+  const pathOnly = href.split("?")[0]?.split("#")[0] ?? href;
   return pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
 }
 
@@ -86,13 +73,11 @@ export default function SiteNavbar() {
           : "text-white/80 hover:text-white hover:bg-white/10"
     );
 
-  const getDropdownChildLabel = (menuId: string, childId: string) =>
-    t(`${menuId}Menu.${childId}.label` as Parameters<typeof t>[0]);
-
-  const getDropdownChildDescription = (menuId: string, childId: string) =>
-    t(`${menuId}Menu.${childId}.description` as Parameters<typeof t>[0]);
-
   const closeMobile = () => setMobileOpen(false);
+
+  const navLinks = navbarNavigation.filter(
+    (item): item is { type: "link"; id: string; href: string } => item.type === "link"
+  );
 
   return (
     <header
@@ -105,48 +90,30 @@ export default function SiteNavbar() {
             : "bg-primary/95 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-primary/15"
       )}
     >
-      <Container as="nav" aria-label="Main">
-        <div className="flex h-16 md:h-[4.5rem] items-center justify-between gap-4">
+      <Container>
+        <div className="flex items-center gap-3 h-[var(--nav-height)]">
           <Link
             href="/"
-            className="group shrink-0 transition-opacity hover:opacity-90"
+            className="shrink-0 mr-1"
             aria-label="Porterchain home"
+            onClick={closeMobile}
           >
             <PorterchainWordmark tone={navLight ? "light" : "dark"} size="md" />
           </Link>
 
           <div className="hidden xl:flex items-center gap-0.5">
-            {navbarNavigation.map((item) => {
-              if (item.type === "link") {
-                return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    className={linkClass(isNavPathActive(pathname, item.href))}
-                  >
-                    {t(item.id)}
-                  </Link>
-                );
-              }
-
-              return (
-                <NavDropdown
-                  key={item.id}
-                  menuId={item.id}
-                  label={t(item.id)}
-                  href={item.href}
-                  items={item.children}
-                  getChildLabel={(childId) => getDropdownChildLabel(item.id, childId)}
-                  getChildDescription={(childId) => getDropdownChildDescription(item.id, childId)}
-                  linkClass={linkClass}
-                  pathname={pathname}
-                  navLight={navLight}
-                />
-              );
-            })}
+            {navLinks.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={linkClass(isNavPathActive(pathname, item.href))}
+              >
+                {t(item.id)}
+              </Link>
+            ))}
           </div>
 
-          <div className="hidden xl:flex items-center gap-3 shrink-0">
+          <div className="hidden xl:flex items-center gap-3 shrink-0 ml-auto">
             <LanguageSwitcher lightText={!navLight} />
             <SiteNavbarAuth navLight={navLight} linkClass={(href, active) => linkClass(active)} />
             <LinkButton href={quoteHref} size="sm" external={quoteExternal}>
@@ -185,43 +152,21 @@ export default function SiteNavbar() {
             )}
           >
             <div className="page-container py-4 space-y-0.5">
-              {navbarNavigation.map((item) => {
-                if (item.type === "link") {
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      onClick={closeMobile}
-                      className={cn(
-                        "block px-4 py-3 text-sm font-medium rounded-xl",
-                        navLight
-                          ? "text-primary/90 hover:bg-gray-bg hover:text-primary"
-                          : "text-white/90 hover:bg-white/10 hover:text-white"
-                      )}
-                    >
-                      {t(item.id)}
-                    </Link>
-                  );
-                }
-
-                return (
-                  <NavDropdown
-                    key={item.id}
-                    variant="mobile"
-                    menuId={item.id}
-                    label={t(item.id)}
-                    href={item.href}
-                    items={item.children}
-                    getChildLabel={(childId) => getDropdownChildLabel(item.id, childId)}
-                    getChildDescription={(childId) => getDropdownChildDescription(item.id, childId)}
-                    linkClass={linkClass}
-                    pathname={pathname}
-                    navLight={navLight}
-                    onNavigate={closeMobile}
-                    mobileOnDarkBar={!navLight}
-                  />
-                );
-              })}
+              {navLinks.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  onClick={closeMobile}
+                  className={cn(
+                    "block px-4 py-3 text-sm font-medium rounded-xl",
+                    navLight
+                      ? "text-primary/90 hover:bg-gray-bg hover:text-primary"
+                      : "text-white/90 hover:bg-white/10 hover:text-white"
+                  )}
+                >
+                  {t(item.id)}
+                </Link>
+              ))}
               <div
                 className={cn(
                   "pt-4 mt-2 border-t flex flex-col gap-2.5",

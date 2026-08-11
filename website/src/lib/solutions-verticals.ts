@@ -26,6 +26,8 @@ export const SOLUTION_VERTICAL_SLUGS = [
   "medical",
   "food-beverage",
   "construction",
+  "3pl",
+  "fleet-overflow",
 ] as const;
 
 export type SolutionVerticalSlug = (typeof SOLUTION_VERTICAL_SLUGS)[number];
@@ -35,6 +37,8 @@ const VERTICAL_INDUSTRY: Record<SolutionVerticalSlug, NicheSlug> = {
   medical: "pharmacy-medical",
   "food-beverage": "coffee-roasters",
   construction: "construction-materials",
+  "3pl": "ecommerce",
+  "fleet-overflow": "construction-materials",
 };
 
 const VERTICAL_CARD_INDEX: Record<SolutionVerticalSlug, number> = {
@@ -42,6 +46,8 @@ const VERTICAL_CARD_INDEX: Record<SolutionVerticalSlug, number> = {
   medical: 1,
   "food-beverage": 2,
   construction: 3,
+  "3pl": 4,
+  "fleet-overflow": 5,
 };
 
 export function isValidSolutionVertical(slug: string): slug is SolutionVerticalSlug {

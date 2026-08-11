@@ -14,12 +14,13 @@
   --color-secondary: var(--secondary);
   --color-gray-bg: var(--gray-bg);
   --color-muted: var(--muted);
+  --font-sans: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
 }
 
 body {
   background: var(--gray-bg);
   color: var(--foreground);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
 }
 
 /* §6.3.4 — admin ops tablet (768–1024px): touch scroll + min tap targets */

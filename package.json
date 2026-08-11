@@ -85,6 +85,8 @@
     "identity:test": "cd apps/api && PYTHONPATH=src:../../shared/python .venv/bin/python scripts/run_identity_matrix.py",
     "secrets:verify": "bash scripts/verify-secrets-alignment.sh",
     "db:seed": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src python scripts/seed_local_dev.py",
+    "auth:bootstrap": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python scripts/bootstrap_auth_login.py --disable-admin-bypass",
+    "auth:provision-admin": "cd apps/api && source .venv/bin/activate && PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python ../../infrastructure/scripts/provision_admin.py",
     "dev:admin": "pnpm --filter @porterchain/admin dev",
     "dev:worker": "cd apps/worker && source ../api/.venv/bin/activate && PYTHONPATH=.:../api/src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform python run.py",
     "build": "turbo build",

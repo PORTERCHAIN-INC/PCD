@@ -1,20 +1,322 @@
 {
   "metadata": {
-    "title": "PorterChain | Plateforme de logistique locale pour le RGT",
-    "description": "Gérez la logistique locale du RGT depuis une plateforme — devis, réservation, suivi, preuve de livraison, rapports, API et soutien logistique dédié, avec chauffeurs et véhicules professionnels.",
-    "ogTitle": "PorterChain | Plateforme opérationnelle de logistique locale — RGT",
-    "ogDescription": "Un compte affaires pour simplifier, automatiser et gérer la logistique locale à Toronto, Peel, York et Durham.",
+    "title": "PorterChain | Capacité de livraison RGT — Chauffeurs, véhicules et technologie",
+    "description": "Logistique locale pleine pile pour le RGT : chauffeurs et véhicules professionnels, logiciel propriétaire pour devis, suivi et preuve, plus soutien ops dédié. Capacité jour même, débordement et récurrente — obtenez un devis.",
+    "ogTitle": "PorterChain — Réseau de capacité de transport pour le RGT",
+    "ogDescription": "Technologie, chauffeurs, véhicules et opérations logistiques pour les entreprises ontariennes — capacité quand votre flotte ne suffit pas.",
     "keywords": [
       "logistique locale RGT",
-      "plateforme logistique affaires Toronto",
       "livraison jour même entreprise Toronto",
       "capacité débordement flotte RGT",
       "preuve de livraison RGT",
       "livraison chantier Toronto",
       "distribution gros RGT",
-      "compte affaires PorterChain",
+      "capacité véhicule chauffeur Toronto",
+      "PorterChain",
       "Porterchain"
     ]
+  },
+  "productTrust": {
+    "eyebrow": "Voyez par vous-même",
+    "title": "Devis, suivi et preuve — parcourez les écrans que les ops utilisent.",
+    "subtitle": "Le même réseau de capacité, technologie visible. Trois moments avant d'acheter un corridor.",
+    "tabsAria": "Moments produit",
+    "tabs": {
+      "quote": "Obtenir un devis",
+      "track": "Suivi en direct",
+      "pod": "Preuve de livraison"
+    },
+    "cta": "Obtenir un devis",
+    "ctaHint": "Indiquez corridors et classe de véhicule — nous confirmons la capacité par écrit.",
+    "panels": {
+      "quote": {
+        "url": "app.porterchain.com/quotes/new",
+        "formLabel": "Demande de capacité",
+        "fields": {
+          "pickup": "Ramassage",
+          "drop": "Livraison",
+          "vehicle": "Classe de véhicule",
+          "window": "Fenêtre"
+        },
+        "pickup": "Mississauga — Dixie et 401",
+        "drop": "Chantier Vaughan · Portail B",
+        "vehicle": "Camion cube 16 pi + chauffeur",
+        "window": "Jour même · après 14 h",
+        "resultLabel": "Option de capacité écrite",
+        "price": "Devis confirmé",
+        "priceNote": "Prix verrouillé avant l'expédition — aucun frais de sièges logiciels.",
+        "includes": {
+          "driver": "Chauffeur professionnel adapté à la charge",
+          "tracking": "Suivi en direct pour ops et destinataires",
+          "written": "Confirmé par écrit avant le départ"
+        },
+        "cta": "Confirmer et réserver la capacité"
+      },
+      "track": {
+        "url": "app.porterchain.com/shipments/PC-48291",
+        "mapBadge": "Corridor RGT en direct",
+        "corridor": "Peel → York",
+        "vehicle": "Fourgonnette · en route",
+        "eta": "ETA 16 h 24",
+        "shipment": "Envoi",
+        "ref": "PC-48291 · comptoir vers chantier",
+        "status": "En route",
+        "steps": {
+          "dispatched": { "title": "Réparti", "meta": "14 h 08 · véhicule confirmé" },
+          "pickup": { "title": "Au ramassage", "meta": "14 h 31 · photo quai capturée" },
+          "enRoute": { "title": "En route", "meta": "Statut partageable pour le destinataire" },
+          "eta": { "title": "Fenêtre ETA", "meta": "16 h 10–16 h 40 · mises à jour en direct" }
+        }
+      },
+      "pod": {
+        "url": "app.porterchain.com/proof/PC-48291",
+        "photoLabel": "Photo de livraison",
+        "photoMeta": "Clôture démo — vue de site anonymisée",
+        "gps": "43,82° N · GPS vérifié",
+        "timestamp": "16 h 27 HAE",
+        "closeoutLabel": "Clôture prête pour réclamations",
+        "title": "Preuve utilisable par la finance",
+        "body": "Photo, signature selon l'entente et horodatage GPS restent avec l'envoi — pas dans un fil de textos.",
+        "fields": {
+          "receiver": "Destinataire",
+          "method": "Méthode",
+          "site": "Notes de site",
+          "ref": "Référence"
+        },
+        "receiver": "Contremaître · confirmé",
+        "method": "Photo + GPS",
+        "site": "Portail B · laisser au staging",
+        "ref": "PO-11904",
+        "verified": "Vérifié pour facturation et litiges"
+      }
+    }
+  },
+  "capacityOps": {
+    "eyebrow": "Ce que nous faisons",
+    "title": "Votre opération de capacité, gérée de bout en bout.",
+    "subtitle": "Technologie, chauffeurs, véhicules et ops — pas un tableau de bord que vous staffez seul. Voici comment un envoi RGT passe du devis à une clôture prête pour réclamations.",
+    "cta": "Obtenir un devis",
+    "ctaHint": "Indiquez corridors et classe de véhicule — nous confirmons la capacité par écrit.",
+    "features": {
+      "monitor": {
+        "label": "Fil de capacité en direct",
+        "title": "Chaque envoi suivi jusqu'à la clôture",
+        "body": "De la répartition à la porte, les statuts atterrissent dans un seul fil. Si un chauffeur s'arrête ou qu'une fenêtre glisse, les ops le voient avant l'appel client — parce que la capacité inclut des gens sur le corridor, pas seulement des alertes logicielles."
+      },
+      "dispatch": {
+        "label": "Panneau marchand · Tableau des commandes",
+        "title": "Kanban pour chaque envoi actif — le même tableau que votre équipe ouvre chaque jour",
+        "body": "En attente, assigné, au ramassage, en transit, livré — les cartes montrent suivi, trajet, chauffeur et SLA. Faites défiler le tableau comme le vrai panneau marchand : pas de tableur, pas de doute sur où se trouve la capacité."
+      },
+      "notify": {
+        "label": "Mises à jour destinataire",
+        "title": "Votre marque sur chaque point de contact que les destinataires lisent vraiment",
+        "body": "SMS et courriel à la répartition, à l'approche et à la livraison — pour que ops et service client cessent de répondre « où est ma commande? » toute la journée. Le suivi reste partageable; vous ne babysittez pas un fil de messagerie."
+      },
+      "closeout": {
+        "label": "Preuve et clôture",
+        "title": "Photo, GPS et fenêtre — vérifiés pour la facturation",
+        "body": "Après livraison, la clôture croise photos de ramassage et de dépôt, GPS sur site et fenêtre convenue. Finance et litiges obtiennent des preuves en minutes — pas une chasse dans les textos."
+      },
+      "claims": {
+        "label": "Dossier d'exception",
+        "title": "Quand quelque chose cloche, le dossier est déjà constitué",
+        "body": "Notes d'incident, photos, horodatages et contexte chauffeur restent avec l'envoi. Vous obtenez un dossier clair pour crédits ou suivi — sans reconstruire l'histoire à zéro."
+      }
+    },
+    "demos": {
+      "feed": {
+        "title": "Fil de capacité en direct",
+        "live": "En direct",
+        "events": {
+          "dispatched": {
+            "title": "Réparti",
+            "time": "14 h 33",
+            "body": "Assigné · fourgonnette · ETA 22 min · Peel → York"
+          },
+          "pickup": {
+            "title": "Au ramassage",
+            "time": "14 h 51",
+            "body": "Quai Mississauga · photo capturée"
+          },
+          "stall": {
+            "title": "Arrêt imprévu",
+            "time": "15 h 02",
+            "body": "23 min d'arrêt · ops examine le corridor"
+          },
+          "recovered": {
+            "title": "De retour en route",
+            "time": "15 h 03",
+            "body": "Chauffeur confirmé · fenêtre encore intacte"
+          },
+          "delivered": {
+            "title": "Livré",
+            "time": "15 h 14",
+            "body": "Photo + GPS vérifiés · prêt pour clôture"
+          }
+        }
+      },
+      "board": {
+        "url": "app.porterchain.com/orders · Tableau",
+        "appName": "Porterchain",
+        "appSub": "Marchand · Commandes",
+        "viewLabel": "Vue tableau",
+        "title": "Tableau des commandes",
+        "subtitle": "Capacité RGT en direct · statuts qui bougent avec le travail",
+        "filterToday": "Aujourd'hui",
+        "filterAll": "Tous les corridors",
+        "active": "12 actifs",
+        "cols": {
+          "waiting": "En attente",
+          "assigned": "Assigné",
+          "atPickup": "Au ramassage",
+          "inTransit": "En transit",
+          "delivered": "Livré"
+        },
+        "cards": {
+          "waiting": {
+            "0": {
+              "id": "PC-11904",
+              "merchant": "Oak & Vine",
+              "route": "Mississauga → Vaughan",
+              "driver": "Non assigné",
+              "sla": "2 h restantes",
+              "slaTone": "green"
+            },
+            "1": {
+              "id": "PC-11905",
+              "merchant": "Bloom Co.",
+              "route": "Etobicoke → Centre-ville",
+              "driver": "Non assigné",
+              "sla": "48 min restantes",
+              "slaTone": "amber"
+            }
+          },
+          "assigned": {
+            "0": {
+              "id": "PC-11901",
+              "merchant": "Copper & Co",
+              "route": "Brampton → Markham",
+              "driver": "Carlos R. · fourgonnette",
+              "sla": "1 h 20",
+              "slaTone": "green"
+            }
+          },
+          "atPickup": {
+            "0": {
+              "id": "PC-11898",
+              "merchant": "Maison Lux",
+              "route": "Quai North York A",
+              "driver": "Priya S. · cube",
+              "sla": "Au quai",
+              "slaTone": "slate"
+            }
+          },
+          "inTransit": {
+            "0": {
+              "id": "PC-11899",
+              "merchant": "Finch Home",
+              "route": "Peel → York",
+              "driver": "Marcus T. · VUS",
+              "sla": "22 min restantes",
+              "slaTone": "green"
+            },
+            "1": {
+              "id": "PC-11900",
+              "merchant": "Petite Fleur",
+              "route": "Toronto → Scarborough",
+              "driver": "Elena V. · berline",
+              "sla": "À risque",
+              "slaTone": "amber"
+            }
+          },
+          "delivered": {
+            "0": {
+              "id": "PC-11894",
+              "merchant": "Sage Bowl",
+              "route": "POD vérifié",
+              "driver": "Clôturé · 15 h 14",
+              "sla": "Respecté",
+              "slaTone": "green"
+            }
+          }
+        }
+      },
+      "notify": {
+        "title": "Séquence de notifications",
+        "active": "Active",
+        "sampleBusiness": "Oak & Vine",
+        "sampleLink": "pc.app/t/48291",
+        "msgs": {
+          "dispatch": {
+            "channel": "SMS · à la répartition",
+            "when": "Envoyé",
+            "body": "Bonjour Sarah — votre envoi de {business} est en route. Suivi : {link}"
+          },
+          "nearby": {
+            "channel": "SMS · à proximité",
+            "when": "~5 min",
+            "body": "Presque arrivé — votre chauffeur est à environ 5 minutes. {link}"
+          },
+          "delivered": {
+            "channel": "SMS · livré",
+            "when": "Envoyé",
+            "body": "Livré — votre envoi {business} est sur place. Voir la preuve : {link}"
+          }
+        }
+      },
+      "closeout": {
+        "title": "Clôture de livraison",
+        "photo": "Photo de dépôt",
+        "gps": "GPS au portail",
+        "time": "15 h 14",
+        "checks": {
+          "photo": "Photo de dépôt conforme aux notes",
+          "gps": "GPS confirme le véhicule au dépôt",
+          "window": "Dans la fenêtre de livraison convenue",
+          "notes": "Notes de site capturées pour le destinataire"
+        },
+        "verified": "Vérifié — prêt pour facturation"
+      },
+      "claims": {
+        "title": "Exception · PC-11847",
+        "status": "Résolu",
+        "steps": {
+          "issue": {
+            "label": "Incident signalé",
+            "body": "Emballage endommagé signalé au dépôt"
+          },
+          "evidence": {
+            "label": "Preuves au dossier",
+            "body": "3 photos · journal GPS · déclaration chauffeur"
+          },
+          "record": {
+            "label": "Dossier ops",
+            "body": "Classé avec l'envoi · réf. PC-EX-9021"
+          }
+        },
+        "outcome": "Crédit émis · 18 h au total"
+      }
+    }
+  },
+  "authors": {
+    "meta": {
+      "title": "Auteurs | Perspectives logistiques PorterChain",
+      "description": "Rencontrez les opérateurs et bâtisseurs PorterChain derrière nos guides de capacité RGT, notes ops et analyses de livraison."
+    },
+    "hub": {
+      "eyebrow": "Éditorial",
+      "title": "Auteurs",
+      "subtitle": "Répartition, ingénierie et direction écrivent sur la capacité de transport pour les entreprises ontariennes.",
+      "viewProfile": "Voir le profil"
+    },
+    "profile": {
+      "metaTitle": "{name} | Auteur PorterChain",
+      "metaDescription": "{name} — {role}. Articles et guides sur la capacité de livraison RGT de PorterChain.",
+      "back": "Tous les auteurs",
+      "postsTitle": "Articles",
+      "noPosts": "Aucun article publié pour le moment."
+    }
   },
   "nav": {
     "solutions": "Solutions",
@@ -38,14 +340,15 @@
   },
   "homeChooser": {
     "eyebrow": "PorterChain · Grand Toronto",
-    "headline": "Livraison? On s’en occupe.",
-    "subtitle": "Logistique et livraison du dernier kilomètre, conçues pour les entreprises modernes.",
-    "primaryCta": "Obtenir un compte affaires",
-    "primaryCtaHint": "Accédez aux devis instantanés, réservations, suivi, preuve de livraison, rapports et plus.",
+    "headline": "Votre demande de livraison. Notre capacité logistique.",
+    "subtitle": "Logistique locale pleine pile pour les entreprises du RGT — technologie propriétaire plus chauffeurs et véhicules professionnels pour capacité jour même, débordement et récurrente. Sur devis. Sans sièges logiciels.",
+    "primaryCta": "Obtenir un devis",
+    "primaryCtaHint": "Indiquez corridors et besoins véhicules — nous répondons avec des options de capacité par écrit.",
+    "businessAccountCta": "Obtenir un compte affaires",
     "secondaryCta": "Parler à un spécialiste logistique",
-    "trustLine": "Conçu pour fabricants, distributeurs, entrepreneurs, grossistes, détaillants et entreprises en croissance dans le RGT.",
+    "trustLine": "Conçu pour fabricants, distributeurs, entrepreneurs, grossistes, détaillants et entreprises en croissance à Toronto, Peel, York et Durham.",
     "vehicleLead": {
-      "prompt": "Choisissez un véhicule pour commencer",
+      "prompt": "Choisissez une classe de véhicule pour démarrer un devis",
       "continueHint": "Nous vous amènerons à un court formulaire — indiquez comment vous joindre et ce qui doit bouger.",
       "vehicles": {
         "sedan": {
@@ -66,7 +369,7 @@
       "ariaLabel": "Chat guide de capacité",
       "title": "Ligne logistique",
       "status": "En direct · RGT",
-      "hint": "Demandez comment gérer la logistique locale sur une plateforme",
+      "hint": "Demandez capacité, véhicules avec chauffeurs, débordement ou devis",
       "launcherLabel": "Chat",
       "launcherAria": "Ouvrir le chat logistique PorterChain",
       "closeAria": "Fermer le chat logistique",
@@ -74,10 +377,10 @@
       "error": "La ligne logistique est indisponible pour le moment. Réessayez, ou parlez à un spécialiste et nous vous répondrons.",
       "guideName": "PorterChain",
       "you": "Vous",
-      "welcome": "Posez toute question sur la logistique locale du RGT — devis, réservation, suivi, preuve de livraison, véhicules avec chauffeurs, industries, tarification ou comptes affaires. Pour vous proposer des options sur vos corridors, j'aurai aussi besoin de votre courriel professionnel et de votre cellulaire.",
+      "welcome": "Posez une question sur la capacité de livraison du RGT — devis, véhicules avec chauffeurs, débordement jour même, suivi, preuve de livraison, industries ou comptes affaires. Pour vous proposer des options sur vos corridors, j'aurai aussi besoin de votre courriel professionnel et de votre cellulaire.",
       "fallback": "Je peux aider sur la tarification, les industries, les véhicules avec chauffeurs, le débordement jour même, les comptes affaires ou l'adhésion chauffeur. Indiquez votre courriel professionnel et votre cellulaire pour qu'un spécialiste vous suive — ou essayez une suggestion.",
       "tryAsking": "Essayez de demander",
-      "placeholder": "Demandez logistique locale, réservation, véhicules…",
+      "placeholder": "Demandez capacité, débordement, véhicules…",
       "send": "Envoyer",
       "toolContactSaved": "Coordonnées enregistrées",
       "toolContactUpdated": "Coordonnées mises à jour",
@@ -94,7 +397,7 @@
       "toolWorking": "En cours…",
       "toolFailed": "Étape impossible — réessayez ou parlez à un spécialiste.",
       "actions": {
-        "quote": "Parler à un spécialiste",
+        "quote": "Obtenir un devis",
         "merchants": "Obtenir un compte affaires",
         "drivers": "Partenaires chauffeurs",
         "pricing": "Comment fonctionne la tarification",
@@ -104,27 +407,27 @@
       "topics": {
         "what": {
           "prompt": "Qu'est-ce que PorterChain?",
-          "answer": "PorterChain est la plateforme opérationnelle qui aide les entreprises à simplifier, automatiser et gérer la logistique locale. Derrière cette promesse : chauffeurs et véhicules professionnels, outils portail affaires, assistance IA, API et soutien logistique dédié dans le RGT."
+          "answer": "PorterChain est un fournisseur de logistique locale pleine pile pour le RGT : technologie propriétaire plus chauffeurs, véhicules et ops dédiés. Vous achetez de la capacité de transport — jour même, débordement ou récurrente — avec devis, suivi et preuve inclus. Nous complétons votre flotte quand elle ne peut pas couvrir le travail."
         },
         "pricing": {
           "prompt": "Comment fonctionne la tarification?",
-          "answer": "La tarification est sur devis selon la classe de véhicule, la distance, les arrêts et l'urgence (jour même vs planifié). Votre compte affaires regroupe devis, réservation, suivi et preuve — nous confirmons capacité de transport et prix par écrit avant l'expédition."
+          "answer": "La tarification est sur devis selon la classe de véhicule, la distance, les arrêts et l'urgence (jour même vs planifié). Pas de frais de sièges logiciels. Nous confirmons capacité et prix par écrit avant l'expédition — commencez par Obtenir un devis ou un spécialiste logistique."
         },
         "industries": {
           "prompt": "Quelles industries desservez-vous?",
-          "answer": "Fabrication, construction, fournitures industrielles, électrique, CVC, plomberie, médical, détail et gros dans le RGT. PorterChain s'adapte à la façon dont votre équipe ops travaille."
+          "answer": "Fabrication, construction, fournitures industrielles, électrique, CVC, plomberie, médical, détail et gros dans le RGT. PorterChain s'adapte aux fenêtres chantier, aux courses comptoir-chantier et au débordement de pointe."
         },
         "sameday": {
           "prompt": "Couvrez-vous le débordement jour même?",
-          "answer": "Oui — capacité de transport urgente et jour même dans le RGT quand un chauffeur est absent, un camion est immobilisé ou la demande explose. Réservez depuis votre compte affaires ou parlez à un spécialiste avec ramassage, livraison, véhicule et fenêtre."
+          "answer": "Oui — capacité urgente et jour même dans le RGT quand un chauffeur est absent, un camion est immobilisé ou la demande explose. Nous ne remplaçons pas votre flotte; nous ajoutons véhicules et chauffeurs quand vous en avez besoin. Indiquez ramassage, livraison, classe de véhicule et fenêtre pour un devis."
         },
         "vehicles": {
           "prompt": "Quels véhicules sont disponibles?",
-          "answer": "Berline, VUS, camionnette, fourgonnette cargo, Sprinter et camions cubes — chacun avec chauffeur professionnel, adaptés à la charge, à l'accès et à l'urgence. Le transport est une couche de la plateforme; voir la flotte sur la page affaires."
+          "answer": "Berline, VUS, camionnette, fourgonnette cargo, Sprinter et camions cubes — chacun avec chauffeur professionnel, adaptés à la charge, à l'accès et à l'urgence. La capacité véhicule fait partie de ce que vous achetez; voir la flotte sur la page affaires."
         },
         "merchants": {
           "prompt": "J'ai besoin d'un compte affaires",
-          "answer": "Un compte affaires PorterChain permet à votre équipe ops de générer des devis, réserver des livraisons, suivre les envois, télécharger la preuve de livraison, consulter les rapports et se connecter via API — avec soutien logistique dédié. Commencez sur le hub affaires ou parlez à un spécialiste."
+          "answer": "Un compte affaires PorterChain donne aux ops devis, réservation, suivi en direct, preuve de livraison, rapports et options API — avec soutien logistique dédié derrière chaque course. Ouvrez le hub affaires, ou obtenez un devis d'abord si vous avez besoin de capacité maintenant."
         },
         "drivers": {
           "prompt": "Comment devenir chauffeur partenaire?",
@@ -132,21 +435,21 @@
         },
         "areas": {
           "prompt": "Où opérez-vous?",
-          "answer": "Nous nous concentrons sur le Grand Toronto — Toronto, Peel, York et Durham. Indiquez vos corridors lors de l'ouverture d'un compte affaires ou d'un appel avec un spécialiste."
+          "answer": "Nous nous concentrons sur le Grand Toronto — Toronto, Peel, York et Durham. Indiquez vos corridors lorsque vous demandez un devis ou parlez à un spécialiste."
         },
         "tracking": {
           "prompt": "Fournissez-vous suivi et preuve?",
-          "answer": "Oui — suivi en direct et preuve de livraison (photo / signature selon entente) font partie de la plateforme affaires pour que les ops et vos clients restent alignés après chaque transfert."
+          "answer": "Oui — suivi en direct et preuve de livraison (photo / signature selon entente) accompagnent la capacité pour que les ops et vos clients restent alignés après chaque transfert. Les visiteurs peuvent consulter le statut via Suivi."
         },
         "start": {
           "prompt": "Comment commencer?",
-          "answer": "Obtenez un compte affaires pour gérer la logistique locale depuis une plateforme — ou parlez à un spécialiste logistique. Nous cartographierons devis, réservation, suivi et capacité de transport sur vos corridors du RGT."
+          "answer": "Obtenez un devis avec vos corridors et besoins véhicules, ou parlez à un spécialiste logistique. Préférez d'abord un espace de travail? Ouvrez un compte affaires pour devis, réservation, suivi et preuve sur vos corridors du RGT."
         }
       }
     },
     "ops": {
-      "eyebrow": "Boîte à outils ops",
-      "title": "Tout ce dont votre équipe opérations a besoin.",
+      "eyebrow": "Inclus avec la capacité",
+      "title": "Technologie et ops derrière chaque course.",
       "items": {
         "quotes": "Devis instantanés",
         "book": "Réserver des livraisons",
@@ -160,8 +463,8 @@
     },
     "control": {
       "eyebrow": "Compte affaires",
-      "title": "Un compte affaires. Contrôle complet.",
-      "subtitle": "Gérez chaque envoi depuis une seule plateforme.",
+      "title": "Visibilité et contrôle — sans bâtir une flotte.",
+      "subtitle": "Gérez devis, réservations, suivi et preuve pendant que PorterChain fournit chauffeurs, véhicules et répartition.",
       "items": {
         "quotes": "Générer des devis instantanés",
         "book": "Réserver des livraisons en quelques secondes",
@@ -173,35 +476,35 @@
       }
     },
     "pillars": {
-      "eyebrow": "Comment PorterChain fonctionne",
-      "title": "Le transport n'est que le début.",
-      "subtitle": "PorterChain combine transport, logiciel, IA, opérations et technologie — pour que votre équipe achète une capacité opérationnelle, pas seulement des camions.",
+      "eyebrow": "Ce que vous achetez",
+      "title": "Infrastructure logistique locale pleine pile.",
+      "subtitle": "Technologie, chauffeurs, véhicules, opérations et IA forment un seul système — vous achetez de la capacité de livraison, pas des sièges logiciels.",
       "transportation": {
         "title": "Transport",
-        "body": "Chauffeurs professionnels et véhicules de la berline au camion cube."
+        "body": "Chauffeurs professionnels et véhicules de la berline au camion cube — capacité que vous pouvez mettre sur la route."
       },
       "software": {
         "title": "Logiciel",
-        "body": "Portail affaires, gestion des envois, rapports et automatisation des flux."
+        "body": "Portail affaires pour devis, réservation, suivi, preuve et rapports."
       },
       "ai": {
         "title": "IA",
-        "body": "Assistance intelligente pour simplifier les opérations logistiques."
+        "body": "Intelligence opérationnelle pour l'appariement, les exceptions et des réponses plus rapides — pas un produit chatbot."
       },
       "operations": {
         "title": "Opérations",
-        "body": "Soutien logistique dédié, conseils de conformité et expertise opérationnelle."
+        "body": "Soutien logistique dédié, conseils de conformité et expertise de répartition sur le terrain."
       },
       "technology": {
         "title": "Technologie",
-        "body": "Intégrations sur mesure, API et fonctionnalités adaptées à votre entreprise."
+        "body": "API, intégrations et flux adaptés à la façon dont votre entreprise du RGT expédie vraiment."
       }
     },
     "industries": {
       "eyebrow": "Qui nous servons",
       "title": "Conçu pour les entreprises qui bougent.",
       "subtitle": "Que vous opériez dans l'un de ces secteurs :",
-      "closing": "PorterChain s'adapte à la façon dont votre entreprise travaille.",
+      "closing": "PorterChain s'adapte à la façon dont votre entreprise travaille — comme capacité principale ou débordement quand votre flotte est pleine.",
       "cta": "Parcourir les industries",
       "items": {
         "manufacturing": "Fabrication",
@@ -215,10 +518,19 @@
         "wholesale": "Gros"
       }
     },
+    "proof": {
+      "eyebrow": "Preuve client",
+      "title": "Des résultats que nous pouvons publier avec autorisation.",
+      "body": "Histoires autorisées seulement — métriques et citations réelles de clients qui ont approuvé la publication.",
+      "metricLabel": "Résultat",
+      "cta": "Lire l'histoire complète",
+      "moreLabel": "Aussi en livraison pour",
+      "hubCta": "Parcourir toutes les histoires de réussite"
+    },
     "ready": {
-      "title": "Prêt à moderniser votre logistique locale?",
-      "body": "Créez votre compte affaires PorterChain et commencez à gérer le transport via une plateforme intelligente.",
-      "highlight": "Une plateforme. Contrôle complet.",
+      "title": "Prêt pour de la capacité quand votre flotte ne suffit pas?",
+      "body": "Indiquez la classe de véhicule, les arrêts, le timing et les besoins de preuve. Nous répondrons avec un parcours de capacité par écrit.",
+      "highlight": "Votre demande. Notre capacité. Un réseau.",
       "secondaryCta": "Parler à un spécialiste logistique"
     }
   },
@@ -1779,15 +2091,15 @@
   },
   "integrations": {
     "meta": {
-      "title": "Intégrations API",
-      "description": "Porterchain offre l'ingestion prête API, le téléversement CSV structuré, l'onboarding assisté par l'admin et une architecture prête EDI. Connectez-vous selon ce qui convient à vos opérations."
+      "title": "Intégrations et notifications | CSV, API, SMS, Webhooks | PorterChain",
+      "description": "Connectez la capacité PorterChain par CSV, API, EDI, courriel — plus notifications SMS, courriel, WhatsApp et webhooks de livraison pour les ops B2B du RGT."
     },
     "hero": {
       "title": "Comment vous connecter à Porterchain",
-      "subtitle": "Nous offrons l'ingestion prête API, le téléversement CSV structuré, l'onboarding assisté par l'admin et une architecture prête EDI. Choisissez l'option qui correspond à la façon dont vous gérez les opérations aujourd'hui."
+      "subtitle": "Prise de commandes par CSV, API, EDI, courriel ou onboarding assisté — plus notifications opérationnelles (SMS, courriel, WhatsApp) et webhooks. Choisissez ce qui convient à votre capacité aujourd'hui."
     },
     "intro": {
-      "description": "Porterchain supporte quatre façons principales d'alimenter notre système : l'ingestion prête API pour les flux automatisés, le téléversement CSV structuré pour les tournées récurrentes, l'onboarding assisté par l'admin quand vous n'êtes pas prêt à automatiser, et une architecture prête EDI pour le B2B et les partenaires détaillants. Nous vous aidons à choisir la bonne option et à faire circuler les commandes."
+      "description": "PorterChain offre plusieurs façons d'alimenter les courses de capacité et de tenir les équipes informées : API et CSV pour l'intake structuré, architecture prête EDI pour partenaires B2B, courriel ou onboarding assisté si vous n'êtes pas prêt à automatiser, et notifications opérationnelles pour que destinataires et ops partagent le statut sans téléphone. Nous vous aidons à choisir et à faire circuler les commandes avec suivi et preuve."
     },
     "readinessSectionTitle": "Comment nous connectons",
     "csv": {
@@ -1815,6 +2127,18 @@
       "description": "Décrivez-nous comment vous gérez les opérations aujourd'hui. Nous recommanderons la bonne méthode de connexion et vous mettrons en place.",
       "primary": "Obtenir un devis",
       "secondary": "Contactez-nous"
+    },
+    "sms": {
+      "title": "Notifications SMS de statut",
+      "description": "Invites SMS optionnelles pour ETA et alertes d'exception liées à la course de capacité en direct — pour aligner destinataires et ops sans fil texte déconnecté."
+    },
+    "whatsapp": {
+      "title": "Notifications WhatsApp de statut",
+      "description": "Lorsque activé, WhatsApp peut livrer invites de suivi et coordination d'exceptions pour destinataires terrain — toujours liées au dossier d'envoi et à la clôture POD."
+    },
+    "webhooks": {
+      "title": "Webhooks et événements de livraison",
+      "description": "Poussez statut, exception et preuve vers votre WMS ou OMS. Schémas et signature dans la doc développeurs; la capacité commerciale commence toujours par un devis écrit."
     }
   },
   "pricing": {

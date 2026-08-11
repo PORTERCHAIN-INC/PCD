@@ -1,20 +1,322 @@
 {
   "metadata": {
-    "title": "PorterChain | Local Logistics Platform for the GTA",
-    "description": "Run local GTA logistics from one platform — quotes, booking, tracking, proof of delivery, reports, APIs, and dedicated logistics support backed by professional drivers and vehicles.",
-    "ogTitle": "PorterChain | Local Logistics Operating Platform — GTA",
-    "ogDescription": "One business account to simplify, automate, and manage local logistics across Toronto, Peel, York, and Durham.",
+    "title": "PorterChain | GTA Delivery Capacity — Drivers, Vehicles & Technology",
+    "description": "Full-stack local logistics for the GTA: professional drivers and vehicles, proprietary software for quotes, tracking and proof, plus dedicated ops support. Same-day, overflow, and recurring capacity — get a quote.",
+    "ogTitle": "PorterChain — Transportation Capacity Network for the GTA",
+    "ogDescription": "Technology, drivers, vehicles, and logistics operations for Ontario businesses — capacity when your own fleet cannot cover it.",
     "keywords": [
       "local logistics GTA",
-      "business logistics platform Toronto",
       "same day delivery business Toronto",
       "fleet overflow capacity GTA",
       "proof of delivery GTA",
       "jobsite delivery Toronto",
       "wholesale distribution delivery GTA",
-      "PorterChain business account",
+      "vehicle and driver capacity Toronto",
+      "PorterChain",
       "Porterchain"
     ]
+  },
+  "productTrust": {
+    "eyebrow": "See it yourself",
+    "title": "Quote, track, and proof — tap through the screens ops uses.",
+    "subtitle": "Same capacity network, visible technology. Three moments before you buy a lane.",
+    "tabsAria": "Product moments",
+    "tabs": {
+      "quote": "Get a quote",
+      "track": "Live tracking",
+      "pod": "Proof of delivery"
+    },
+    "cta": "Get a quote",
+    "ctaHint": "Share lanes and vehicle class — we confirm capacity in writing.",
+    "panels": {
+      "quote": {
+        "url": "app.porterchain.com/quotes/new",
+        "formLabel": "Capacity request",
+        "fields": {
+          "pickup": "Pickup",
+          "drop": "Drop",
+          "vehicle": "Vehicle class",
+          "window": "Window"
+        },
+        "pickup": "Mississauga — Dixie & 401",
+        "drop": "Vaughan jobsite · Gate B",
+        "vehicle": "16 ft box truck + driver",
+        "window": "Same-day · after 14:00",
+        "resultLabel": "Written capacity option",
+        "price": "Quote confirmed",
+        "priceNote": "Price locked before dispatch — no software-seat fees.",
+        "includes": {
+          "driver": "Professional driver matched to the load",
+          "tracking": "Live tracking for ops and receivers",
+          "written": "Confirmed in writing before wheels move"
+        },
+        "cta": "Confirm & book capacity"
+      },
+      "track": {
+        "url": "app.porterchain.com/shipments/PC-48291",
+        "mapBadge": "Live GTA corridor",
+        "corridor": "Peel → York",
+        "vehicle": "Cargo van · en route",
+        "eta": "ETA 16:24",
+        "shipment": "Shipment",
+        "ref": "PC-48291 · counter to jobsite",
+        "status": "En route",
+        "steps": {
+          "dispatched": { "title": "Dispatched", "meta": "14:08 · vehicle confirmed" },
+          "pickup": { "title": "At pickup", "meta": "14:31 · dock photo captured" },
+          "enRoute": { "title": "En route", "meta": "Shareable status for receiver" },
+          "eta": { "title": "ETA window", "meta": "16:10–16:40 · updates live" }
+        }
+      },
+      "pod": {
+        "url": "app.porterchain.com/proof/PC-48291",
+        "photoLabel": "Delivery photo",
+        "photoMeta": "Demo closeout — scrubbed site view",
+        "gps": "43.82° N · GPS verified",
+        "timestamp": "16:27 EDT",
+        "closeoutLabel": "Claims-ready closeout",
+        "title": "Proof your finance team can use",
+        "body": "Photo, signature where agreed, and GPS timestamp stay with the shipment — not in a text thread.",
+        "fields": {
+          "receiver": "Receiver",
+          "method": "Method",
+          "site": "Site notes",
+          "ref": "Reference"
+        },
+        "receiver": "Site foreman · confirmed",
+        "method": "Photo + GPS",
+        "site": "Gate B · leave at staging",
+        "ref": "PO-11904",
+        "verified": "Verified for billing & disputes"
+      }
+    }
+  },
+  "capacityOps": {
+    "eyebrow": "What we do",
+    "title": "Your capacity operation, handled end to end.",
+    "subtitle": "Technology, drivers, vehicles, and ops — not a dashboard you staff alone. Here’s how a GTA shipment moves from quote to claims-ready closeout.",
+    "cta": "Get a quote",
+    "ctaHint": "Share lanes and vehicle class — we confirm capacity in writing.",
+    "features": {
+      "monitor": {
+        "label": "Live capacity feed",
+        "title": "Every shipment watched until it closes",
+        "body": "From dispatch to doorstep, status updates land in one feed. If a driver stalls or a window slips, ops sees it before your customer calls — because capacity includes people watching the lane, not only software alerts."
+      },
+      "dispatch": {
+        "label": "Merchant panel · Orders board",
+        "title": "Kanban for every active shipment — same board your team opens daily",
+        "body": "Waiting, assigned, at pickup, in transit, delivered — cards show tracking, route, driver, and SLA. Scroll the board like the real merchant panel: no spreadsheet, no guessing where capacity sits."
+      },
+      "notify": {
+        "label": "Receiver updates",
+        "title": "Your brand on every touchpoint receivers actually read",
+        "body": "SMS and email at dispatch, nearby, and delivered — so ops and CS stop answering “where’s my order?” all day. Tracking stays shareable; you’re not babysitting a courier thread."
+      },
+      "closeout": {
+        "label": "Proof & closeout",
+        "title": "Photo, GPS, and window — verified for billing",
+        "body": "After delivery, closeout cross-checks pickup and drop photos, GPS at the site, and the agreed window. Finance and disputes get evidence in minutes — not a scavenger hunt through texts."
+      },
+      "claims": {
+        "label": "Exception record",
+        "title": "When something goes wrong, the file is already built",
+        "body": "Issue notes, photos, timestamps, and driver context stay with the shipment. You get a clear record for credits or follow-up — without rebuilding the story from scratch."
+      }
+    },
+    "demos": {
+      "feed": {
+        "title": "Live capacity feed",
+        "live": "Live",
+        "events": {
+          "dispatched": {
+            "title": "Dispatched",
+            "time": "2:33 PM",
+            "body": "Assigned · cargo van · ETA 22 min · Peel → York"
+          },
+          "pickup": {
+            "title": "At pickup",
+            "time": "2:51 PM",
+            "body": "Mississauga dock · photo captured"
+          },
+          "stall": {
+            "title": "Unplanned stop",
+            "time": "3:02 PM",
+            "body": "23 min idle · ops reviewing corridor"
+          },
+          "recovered": {
+            "title": "Back en route",
+            "time": "3:03 PM",
+            "body": "Driver confirmed · window still intact"
+          },
+          "delivered": {
+            "title": "Delivered",
+            "time": "3:14 PM",
+            "body": "Photo + GPS verified · ready for closeout"
+          }
+        }
+      },
+      "board": {
+        "url": "app.porterchain.com/orders · Board",
+        "appName": "Porterchain",
+        "appSub": "Merchant · Orders",
+        "viewLabel": "Board view",
+        "title": "Orders board",
+        "subtitle": "Live GTA capacity · drag statuses as work moves",
+        "filterToday": "Today",
+        "filterAll": "All lanes",
+        "active": "12 active",
+        "cols": {
+          "waiting": "Waiting",
+          "assigned": "Assigned",
+          "atPickup": "At pickup",
+          "inTransit": "In transit",
+          "delivered": "Delivered"
+        },
+        "cards": {
+          "waiting": {
+            "0": {
+              "id": "PC-11904",
+              "merchant": "Oak & Vine",
+              "route": "Mississauga → Vaughan",
+              "driver": "Unassigned",
+              "sla": "2h left",
+              "slaTone": "green"
+            },
+            "1": {
+              "id": "PC-11905",
+              "merchant": "Bloom Co.",
+              "route": "Etobicoke → Downtown",
+              "driver": "Unassigned",
+              "sla": "48m left",
+              "slaTone": "amber"
+            }
+          },
+          "assigned": {
+            "0": {
+              "id": "PC-11901",
+              "merchant": "Copper & Co",
+              "route": "Brampton → Markham",
+              "driver": "Carlos R. · van",
+              "sla": "1h 20m",
+              "slaTone": "green"
+            }
+          },
+          "atPickup": {
+            "0": {
+              "id": "PC-11898",
+              "merchant": "Maison Lux",
+              "route": "North York dock A",
+              "driver": "Priya S. · box",
+              "sla": "At dock",
+              "slaTone": "slate"
+            }
+          },
+          "inTransit": {
+            "0": {
+              "id": "PC-11899",
+              "merchant": "Finch Home",
+              "route": "Peel → York",
+              "driver": "Marcus T. · SUV",
+              "sla": "22m left",
+              "slaTone": "green"
+            },
+            "1": {
+              "id": "PC-11900",
+              "merchant": "Petite Fleur",
+              "route": "Toronto → Scarborough",
+              "driver": "Elena V. · sedan",
+              "sla": "At risk",
+              "slaTone": "amber"
+            }
+          },
+          "delivered": {
+            "0": {
+              "id": "PC-11894",
+              "merchant": "Sage Bowl",
+              "route": "POD verified",
+              "driver": "Closed · 15:14",
+              "sla": "Met",
+              "slaTone": "green"
+            }
+          }
+        }
+      },
+      "notify": {
+        "title": "Notification sequence",
+        "active": "Active",
+        "sampleBusiness": "Oak & Vine",
+        "sampleLink": "pc.app/t/48291",
+        "msgs": {
+          "dispatch": {
+            "channel": "SMS · on dispatch",
+            "when": "Sent",
+            "body": "Hi Sarah — your shipment from {business} is on the way. Track here: {link}"
+          },
+          "nearby": {
+            "channel": "SMS · nearby",
+            "when": "~5 min",
+            "body": "Almost there — your driver is about 5 minutes away. {link}"
+          },
+          "delivered": {
+            "channel": "SMS · delivered",
+            "when": "Sent",
+            "body": "Delivered — your {business} shipment is at the site. View proof: {link}"
+          }
+        }
+      },
+      "closeout": {
+        "title": "Delivery closeout",
+        "photo": "Drop photo",
+        "gps": "GPS at gate",
+        "time": "3:14 PM",
+        "checks": {
+          "photo": "Drop photo matches order notes",
+          "gps": "GPS confirms vehicle at drop",
+          "window": "Inside agreed delivery window",
+          "notes": "Site notes captured for receiver"
+        },
+        "verified": "Verified — ready for billing"
+      },
+      "claims": {
+        "title": "Exception · PC-11847",
+        "status": "Resolved",
+        "steps": {
+          "issue": {
+            "label": "Issue flagged",
+            "body": "Damaged packaging reported at drop"
+          },
+          "evidence": {
+            "label": "Evidence on file",
+            "body": "3 photos · GPS log · driver statement"
+          },
+          "record": {
+            "label": "Ops record",
+            "body": "Filed with shipment · ref PC-EX-9021"
+          }
+        },
+        "outcome": "Credit issued · 18 hrs total"
+      }
+    }
+  },
+  "authors": {
+    "meta": {
+      "title": "Authors | PorterChain logistics insights",
+      "description": "Meet the PorterChain operators and builders behind our GTA capacity guides, ops notes, and delivery insights."
+    },
+    "hub": {
+      "eyebrow": "Editorial",
+      "title": "Authors",
+      "subtitle": "Dispatch, engineering, and leadership writing about transportation capacity for Ontario businesses.",
+      "viewProfile": "View profile"
+    },
+    "profile": {
+      "metaTitle": "{name} | PorterChain author",
+      "metaDescription": "{name} — {role}. Articles and guides on GTA delivery capacity from PorterChain.",
+      "back": "All authors",
+      "postsTitle": "Articles",
+      "noPosts": "No published articles yet."
+    }
   },
   "nav": {
     "solutions": "Solutions",
@@ -90,14 +392,15 @@
   },
   "homeChooser": {
     "eyebrow": "PorterChain · Greater Toronto Area",
-    "headline": "Delivery? Let's get it done.",
-    "subtitle": "Logistics and last-mile delivery management built for modern businesses.",
-    "primaryCta": "Get Business Account",
-    "primaryCtaHint": "Access instant quotes, booking, tracking, proof of delivery, reports, and more.",
+    "headline": "Your delivery demand. Our logistics capacity.",
+    "subtitle": "Full-stack local logistics for GTA businesses — proprietary technology plus professional drivers and vehicles for same-day, overflow, and recurring capacity. Quote-based. No software seats.",
+    "primaryCta": "Get a quote",
+    "primaryCtaHint": "Share lanes and vehicle needs — we respond with written capacity options.",
+    "businessAccountCta": "Get Business Account",
     "secondaryCta": "Talk to a Logistics Specialist",
-    "trustLine": "Built for manufacturers, distributors, contractors, wholesalers, retailers, and growing businesses across the GTA.",
+    "trustLine": "Built for manufacturers, distributors, contractors, wholesalers, retailers, and growing businesses across Toronto, Peel, York, and Durham.",
     "vehicleLead": {
-      "prompt": "Pick a vehicle to get started",
+      "prompt": "Pick a vehicle class to start a quote",
       "continueHint": "We’ll take you to a short form — share how to reach you and what needs to move.",
       "vehicles": {
         "sedan": {
@@ -118,7 +421,7 @@
       "ariaLabel": "Capacity guide chat",
       "title": "Logistics line",
       "status": "Live · GTA",
-      "hint": "Ask how to manage local logistics on one platform",
+      "hint": "Ask about capacity, vehicles with drivers, overflow, or quotes",
       "launcherLabel": "Chat",
       "launcherAria": "Open PorterChain logistics chat",
       "closeAria": "Close logistics chat",
@@ -126,10 +429,10 @@
       "error": "The logistics line is unavailable right now. Try again, or talk to a specialist and we’ll follow up.",
       "guideName": "PorterChain",
       "you": "You",
-      "welcome": "Ask anything about local GTA logistics — quotes, booking, tracking, proof of delivery, vehicles with drivers, industries, pricing, or business accounts. To follow up with options for your lanes, I’ll also need your work email and mobile.",
+      "welcome": "Ask about GTA delivery capacity — quotes, vehicles with drivers, same-day overflow, tracking, proof of delivery, industries, or business accounts. To follow up with options for your lanes, I’ll also need your work email and mobile.",
       "fallback": "I can help with pricing, industries, vehicles with drivers, same-day overflow, business accounts, or joining as a driver partner. Share your work email and mobile so a specialist can follow up — or try a prompt below.",
       "tryAsking": "Try asking",
-      "placeholder": "Ask about local logistics, booking, vehicles…",
+      "placeholder": "Ask about capacity, overflow, vehicles…",
       "send": "Send",
       "toolContactSaved": "Contact saved",
       "toolContactUpdated": "Contact updated",
@@ -146,7 +449,7 @@
       "toolWorking": "Working…",
       "toolFailed": "Couldn’t complete that step — try again or talk to a specialist.",
       "actions": {
-        "quote": "Talk to a specialist",
+        "quote": "Get a quote",
         "merchants": "Get Business Account",
         "drivers": "Driver partners",
         "pricing": "How pricing works",
@@ -156,27 +459,27 @@
       "topics": {
         "what": {
           "prompt": "What is PorterChain?",
-          "answer": "PorterChain is the operating platform that helps businesses simplify, automate, and manage local logistics. Behind that promise: professional drivers and vehicles, business portal tools, AI assistance, APIs, and dedicated logistics support across the GTA."
+          "answer": "PorterChain is a full-stack local logistics provider for the GTA: proprietary technology plus professional drivers, vehicles, and dedicated ops. You buy transportation capacity — same-day, overflow, or recurring — with quotes, tracking, and proof included. We complement your fleet when it cannot cover the work."
         },
         "pricing": {
           "prompt": "How does pricing work?",
-          "answer": "Pricing is quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). Your business account brings quotes, booking, tracking, and proof together — we confirm transportation capacity and price in writing before dispatch."
+          "answer": "Pricing is quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). No software-seat fees. We confirm transportation capacity and price in writing before dispatch — start with Get a quote or a logistics specialist."
         },
         "industries": {
           "prompt": "Which industries do you serve?",
-          "answer": "Manufacturing, construction, industrial supply, electrical, HVAC, plumbing, medical, retail, and wholesale across the GTA. PorterChain adapts to how your operations team works."
+          "answer": "Manufacturing, construction, industrial supply, electrical, HVAC, plumbing, medical, retail, and wholesale across the GTA. PorterChain adapts to jobsite windows, counter-to-jobsite runs, and peak overflow."
         },
         "sameday": {
           "prompt": "Can you cover same-day overflow?",
-          "answer": "Yes — same-day and urgent transportation capacity across the GTA when a driver is out, a truck is down, or demand spikes. Book from your business account or talk to a logistics specialist with pickup, drop, vehicle need, and window."
+          "answer": "Yes — same-day and urgent capacity across the GTA when a driver is out, a truck is down, or demand spikes. We don’t replace your fleet; we add vehicles and drivers when you need them. Share pickup, drop, vehicle class, and window for a quote."
         },
         "vehicles": {
           "prompt": "What vehicles are available?",
-          "answer": "Sedan, SUV, pickup, cargo van, Sprinter van, and box trucks — each with a professional driver, matched to load, access, and urgency. Transportation is one layer of the platform; see the fleet on the business page."
+          "answer": "Sedan, SUV, pickup, cargo van, Sprinter van, and box trucks — each with a professional driver, matched to load, access, and urgency. Vehicle capacity is part of what you buy; see the fleet on the business page."
         },
         "merchants": {
           "prompt": "I need a business account",
-          "answer": "A PorterChain Business Account lets your ops team generate quotes, book deliveries, track shipments, download proof of delivery, view reports, and connect via APIs — with dedicated logistics support. Start on the business hub or talk to a specialist."
+          "answer": "A PorterChain Business Account gives ops quotes, booking, live tracking, proof of delivery, reports, and API options — with dedicated logistics support behind every run. Open the business hub, or Get a quote first if you need capacity now."
         },
         "drivers": {
           "prompt": "How do I join as a driver?",
@@ -184,21 +487,21 @@
         },
         "areas": {
           "prompt": "Where do you operate?",
-          "answer": "We focus on the Greater Toronto Area — Toronto, Peel, York, and Durham. Tell us your corridors when you open a business account or talk to a specialist."
+          "answer": "We focus on the Greater Toronto Area — Toronto, Peel, York, and Durham. Tell us your corridors when you request a quote or talk to a specialist."
         },
         "tracking": {
           "prompt": "Do you provide tracking and proof?",
-          "answer": "Yes — live tracking and proof of delivery (photo / signature where agreed) are part of the business platform so ops and your customers stay aligned after every handoff."
+          "answer": "Yes — live tracking and proof of delivery (photo / signature where agreed) come with capacity so ops and your customers stay aligned after every handoff. Guests can look up status at Track."
         },
         "start": {
           "prompt": "How do I get started?",
-          "answer": "Get a Business Account to manage local logistics from one platform — or talk to a logistics specialist. We’ll map quotes, booking, tracking, and transportation capacity to your GTA lanes."
+          "answer": "Get a quote with your lanes and vehicle needs, or talk to a logistics specialist. Prefer a workspace first? Open a Business Account for quotes, booking, tracking, and proof on your GTA corridors."
         }
       }
     },
     "ops": {
-      "eyebrow": "Operations toolkit",
-      "title": "Everything your operations team needs.",
+      "eyebrow": "Included with capacity",
+      "title": "Technology and ops behind every run.",
       "items": {
         "quotes": "Instant Quotes",
         "book": "Book Deliveries",
@@ -212,8 +515,8 @@
     },
     "control": {
       "eyebrow": "Business account",
-      "title": "One business account. Complete control.",
-      "subtitle": "Manage every shipment from a single platform.",
+      "title": "Visibility and control — without building a fleet.",
+      "subtitle": "Manage quotes, bookings, tracking, and proof while PorterChain supplies drivers, vehicles, and dispatch.",
       "items": {
         "quotes": "Generate instant quotes",
         "book": "Book deliveries in seconds",
@@ -225,35 +528,35 @@
       }
     },
     "pillars": {
-      "eyebrow": "How PorterChain works",
-      "title": "Transportation is only the beginning.",
-      "subtitle": "PorterChain combines transportation, software, AI, operations, and technology — so your team buys operational capability, not just trucks.",
+      "eyebrow": "What you buy",
+      "title": "Full-stack local logistics infrastructure.",
+      "subtitle": "Technology, drivers, vehicles, operations, and AI work as one system — so you buy delivery capacity, not software seats.",
       "transportation": {
         "title": "Transportation",
-        "body": "Professional drivers and vehicles from sedan to box truck."
+        "body": "Professional drivers and vehicles from sedan to box truck — capacity you can put on the road."
       },
       "software": {
         "title": "Software",
-        "body": "Business portal, shipment management, reporting, and workflow automation."
+        "body": "Business portal for quotes, booking, tracking, proof, and reporting."
       },
       "ai": {
         "title": "AI",
-        "body": "Intelligent assistance to simplify logistics operations."
+        "body": "Operational intelligence for matching, exceptions, and faster answers — not a chatbot product."
       },
       "operations": {
         "title": "Operations",
-        "body": "Dedicated logistics support, compliance guidance, and operational expertise."
+        "body": "Dedicated logistics support, compliance guidance, and hands-on dispatch expertise."
       },
       "technology": {
         "title": "Technology",
-        "body": "Custom integrations, APIs, and features built around your business."
+        "body": "APIs, integrations, and workflows built around how your GTA business actually ships."
       }
     },
     "industries": {
       "eyebrow": "Who we serve",
       "title": "Built for businesses that move.",
       "subtitle": "Whether you operate in any of these verticals:",
-      "closing": "PorterChain adapts to the way your business works.",
+      "closing": "PorterChain adapts to the way your business works — as primary capacity or overflow when your fleet is full.",
       "cta": "Browse industries",
       "items": {
         "manufacturing": "Manufacturing",
@@ -267,10 +570,19 @@
         "wholesale": "Wholesale"
       }
     },
+    "proof": {
+      "eyebrow": "Customer proof",
+      "title": "Outcomes we can publish with approval.",
+      "body": "Permissioned stories only — real metrics and quotes from customers who approved publication.",
+      "metricLabel": "Outcome",
+      "cta": "Read the full story",
+      "moreLabel": "Also shipping for",
+      "hubCta": "Browse all success stories"
+    },
     "ready": {
-      "title": "Ready to modernize your local logistics?",
-      "body": "Create your PorterChain Business Account and start managing transportation through one intelligent platform.",
-      "highlight": "One platform. Complete control.",
+      "title": "Ready for capacity when your fleet cannot cover it?",
+      "body": "Tell us the vehicle class, stops, timing, and proof needs. We’ll respond with a written capacity path.",
+      "highlight": "Your demand. Our capacity. One network.",
       "secondaryCta": "Speak with a Logistics Specialist"
     }
   },
@@ -1895,15 +2207,15 @@
   },
   "integrations": {
     "meta": {
-      "title": "API Integrations",
-      "description": "Porterchain supports API-ready order ingestion, structured CSV upload, admin-assisted onboarding, and EDI-ready architecture. Connect the way that fits your operations."
+      "title": "Integrations & Notifications | CSV, API, SMS, Webhooks | PorterChain",
+      "description": "Connect PorterChain capacity by CSV, API, EDI, email intake — plus SMS, email, WhatsApp status notifications and delivery webhooks for GTA B2B operations."
     },
     "hero": {
       "title": "How to connect to Porterchain",
-      "subtitle": "We support API-ready order ingestion, structured CSV upload, admin-assisted onboarding, and EDI-ready architecture. Choose the option that fits how you run operations today."
+      "subtitle": "Order intake by CSV, API, EDI, email, or admin-assisted onboarding — plus operational status notifications (SMS, email, WhatsApp) and webhooks. Choose what fits how you run capacity today."
     },
     "intro": {
-      "description": "Porterchain supports four main ways to get orders into our system: API-ready order ingestion for automated flows, structured CSV upload for recurring runs, admin-assisted onboarding when you're not ready to automate, and EDI-ready architecture for B2B and retail partners. We'll help you pick the right fit and get orders flowing."
+      "description": "PorterChain supports multiple ways to get orders into capacity runs and keep teams updated: API and CSV for structured intake, EDI-ready architecture for B2B partners, email or admin-assisted onboarding when you are not ready to automate, and operational notifications so receivers and ops share status without phone tag. We help you pick the fit and get orders flowing with tracking and proof."
     },
     "readinessSectionTitle": "How we connect",
     "csv": {
@@ -1931,6 +2243,18 @@
       "description": "Tell us how you run operations today. We’ll recommend the right connection method and get you set up.",
       "primary": "Get a quote",
       "secondary": "Contact us"
+    },
+    "sms": {
+      "title": "SMS status notifications",
+      "description": "Optional SMS prompts for ETA updates and exception alerts tied to the live capacity run — so receivers and ops stay aligned without a disconnected text thread."
+    },
+    "whatsapp": {
+      "title": "WhatsApp status notifications",
+      "description": "Where enabled, WhatsApp can deliver tracking prompts and exception coordination for field receivers — always linked back to the shipment record and proof closeout."
+    },
+    "webhooks": {
+      "title": "Webhooks & delivery events",
+      "description": "Push status, exception, and proof events to your WMS or OMS. Schemas and signing live in developer docs; commercial capacity still starts with a written quote."
     }
   },
   "pricing": {

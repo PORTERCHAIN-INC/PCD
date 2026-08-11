@@ -136,18 +136,25 @@ def seed_complete(db) -> bool:
 
 def ensure_admin(db) -> AdminUser:
     user = db.query(AdminUser).filter(AdminUser.email == SEED_ADMIN_EMAIL).first()
-    if user:
-        return user
-    user = AdminUser(
-        clerk_user_id=f"seed:{SEED_ADMIN_EMAIL}",
-        email=SEED_ADMIN_EMAIL,
-        name="Seed Super Admin",
-        role=AdminRole.SUPER_ADMIN.value,
-        is_active=True,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    if not user:
+        user = AdminUser(
+            clerk_user_id=f"seed:{SEED_ADMIN_EMAIL}",
+            email=SEED_ADMIN_EMAIL,
+            name="Seed Super Admin",
+            role=AdminRole.SUPER_ADMIN.value,
+            is_active=True,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    # Staff IdP subject staff:{id} + SpiceDB — required for real magic-link login.
+    try:
+        from porterchain_api.admin_engine.staff_idp_service import ensure_staff_identity
+
+        ensure_staff_identity(db, user)
+        db.refresh(user)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  warn: staff identity for seed-admin failed: {exc}")
     return user
 
 
@@ -182,6 +189,13 @@ def ensure_founder_super_admin(db) -> AdminUser | None:
         pc.status = "active"
     db.commit()
     db.refresh(admin)
+    try:
+        from porterchain_api.admin_engine.staff_idp_service import ensure_staff_identity
+
+        ensure_staff_identity(db, admin)
+        db.refresh(admin)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  warn: staff identity for founder failed: {exc}")
     if pc:
         try:
             TupleWriter().sync_user_from_profiles(db, pc)

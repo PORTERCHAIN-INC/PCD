@@ -10,5 +10,6 @@ from porterchain_api.routers.driver import support  # noqa: F401
 from porterchain_api.routers.driver import communications  # noqa: F401
 from porterchain_api.routers.driver import jobs  # noqa: F401
 from porterchain_api.routers.driver import navigation_pod  # noqa: F401
+from porterchain_api.routers.driver import auth_dev  # noqa: F401
 
 __all__ = ["router", "legacy_router"]

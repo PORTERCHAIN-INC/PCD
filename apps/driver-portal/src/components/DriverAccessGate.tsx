@@ -10,7 +10,7 @@ import {
   usePortalSessionGate,
   type SessionContext,
 } from "@porterchain/auth";
-import { isClerkConfigured, publicEnv } from "@/lib/env";
+import { isClerkConfigured, isDevEmailLogin, publicEnv } from "@/lib/env";
 import { fetchDriverOnboarding, isPendingDriverPath } from "@/lib/onboarding";
 
 type Props = {
@@ -32,6 +32,11 @@ function DriverAccessGateWithClerk({ children }: Props) {
   const setSession = sessionCtx?.setSession;
   const setActiveWorkspaceId = sessionCtx?.setActiveWorkspaceId;
   const onPendingPath = isPendingDriverPath(pathname);
+
+  // Local email-picker session: middleware + BFF enforce cookie; skip Clerk gate.
+  if (isLoaded && !isSignedIn && isDevEmailLogin()) {
+    return <>{children}</>;
+  }
 
   const onSession = useCallback(
     (ctx: SessionContext) => {

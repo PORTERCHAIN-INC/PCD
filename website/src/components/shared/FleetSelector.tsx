@@ -296,6 +296,9 @@ export default function FleetSelector({
                     width={fleetVehicleUsesPhoto(activeKey) ? 1024 : 420}
                     height={fleetVehicleUsesPhoto(activeKey) ? 585 : 420}
                     priority
+                    unoptimized={fleetVehicleUsesPhoto(activeKey)}
+                    quality={100}
+                    sizes="(max-width: 1024px) 90vw, 640px"
                     className={
                       fleetVehicleUsesPhoto(activeKey)
                         ? "h-auto w-full max-h-[min(52vw,18rem)] sm:max-h-[min(36vw,20rem)] lg:max-h-[18rem] object-cover object-center"

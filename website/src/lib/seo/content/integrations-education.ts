@@ -150,6 +150,138 @@ export const INTEGRATIONS_EDUCATION_PAGES: IntegrationsEducationPage[] = [
       { path: "serviceAreas", label: "Service areas" },
     ],
   },
+  {
+    slug: "sms-status-notifications",
+    title: "SMS status notifications",
+    description:
+      "How PorterChain uses SMS for delivery status and exception alerts — operational notifications tied to capacity runs, not a marketing channel product.",
+    intro:
+      "SMS keeps receivers and ops aligned when a run is en route, delayed, or needs a quick confirmation. PorterChain uses SMS as part of capacity execution — status and exceptions on live shipments — not as a standalone messaging SKU.",
+    sections: [
+      {
+        heading: "What SMS is for",
+        body: "Typical uses: shareable status prompts, ETA updates when a window slips, and exception alerts when access fails or a customer is not available. Messages point back to tracking and the shipment record so everyone works from one story.",
+      },
+      {
+        heading: "Tied to the capacity run",
+        body: "Notifications follow the vehicle-and-driver assignment that is actually executing. When ops reassigns capacity, status can update with the same shipment — not a disconnected text thread that ops never sees.",
+      },
+      {
+        heading: "What we do not promise",
+        body: "We do not sell SMS marketing campaigns or guarantee delivery of every carrier message in every region. Notification options are confirmed during onboarding for your program tier and channels.",
+      },
+    ],
+    industrySlugs: ["ecommerce", "pharmacy-medical", "construction-materials"],
+    serviceAreaSlugs: ["toronto", "mississauga", "brampton"],
+    relatedClusterSlugs: [
+      "email-status-notifications",
+      "whatsapp-status-notifications",
+      "webhooks-delivery-events",
+    ],
+    extraLinks: [
+      { path: "integrations", label: "Integrations" },
+      { path: "onboarding", label: "Get a quote" },
+    ],
+  },
+  {
+    slug: "email-status-notifications",
+    title: "Email status notifications",
+    description:
+      "Email alerts for GTA delivery status, exceptions, and proof closeout — operational messages aligned to PorterChain capacity runs.",
+    intro:
+      "Email is the default audit trail for many B2B teams. PorterChain can send status and exception notices by email so dispatch, sales, and receivers stay aligned without calling the control tower for every ETA.",
+    sections: [
+      {
+        heading: "Status and exception mail",
+        body: "Use email for pickup confirmation, en-route updates, failed-stop reasons, and proof-of-delivery summaries. Keep the shipment reference in the subject or body so finance and ops can find the record later.",
+      },
+      {
+        heading: "Works with CSV and API intake",
+        body: "Whether you submit by CSV, API, or admin-assisted intake, email notifications can still attach to the created run. Channel choice is independent of how orders enter the system.",
+      },
+      {
+        heading: "Boundaries",
+        body: "Email is best-effort operational messaging — not a guaranteed SLA for mailbox delivery, and not a substitute for live tracking when a receiver needs minute-level ETA.",
+      },
+    ],
+    industrySlugs: ["electrical-distribution", "coffee-roasters", "ecommerce"],
+    serviceAreaSlugs: ["toronto", "mississauga", "hamilton"],
+    relatedClusterSlugs: [
+      "sms-status-notifications",
+      "whatsapp-status-notifications",
+      "csv-delivery-uploads",
+    ],
+    extraLinks: [
+      { path: "integrations", label: "Integrations" },
+      { path: "onboarding", label: "Get a quote" },
+    ],
+  },
+  {
+    slug: "whatsapp-status-notifications",
+    title: "WhatsApp status notifications",
+    description:
+      "WhatsApp updates for delivery status and receiver coordination on PorterChain GTA capacity runs — ops messaging, not a chatbots SKU.",
+    intro:
+      "Some receivers and field teams prefer WhatsApp for quick status. PorterChain can use WhatsApp as an operational channel for tracking prompts and exception coordination where enabled for your program — always tied back to the shipment record.",
+    sections: [
+      {
+        heading: "When WhatsApp helps",
+        body: "Useful for contractors, clinic staff, and small B2B receivers who already live in WhatsApp. A short status prompt with a tracking link beats a phone tag loop with dispatch.",
+      },
+      {
+        heading: "Still one source of truth",
+        body: "WhatsApp messages should not become a shadow ticket system. Exceptions and proof still live with the shipment so finance and ops share the same closeout.",
+      },
+      {
+        heading: "Availability",
+        body: "WhatsApp options depend on program configuration and regional messaging rules. We confirm what is enabled during onboarding rather than promising every template for every account.",
+      },
+    ],
+    industrySlugs: ["construction-materials", "pharmacy-medical", "cosmetics"],
+    serviceAreaSlugs: ["toronto", "vaughan", "markham"],
+    relatedClusterSlugs: [
+      "sms-status-notifications",
+      "email-status-notifications",
+      "operational-setup-merchants",
+    ],
+    extraLinks: [
+      { path: "integrations", label: "Integrations" },
+      { path: "onboarding", label: "Get a quote" },
+    ],
+  },
+  {
+    slug: "webhooks-delivery-events",
+    title: "Webhooks and delivery events",
+    description:
+      "Outbound webhooks for PorterChain delivery events — status, exceptions, and proof signals your systems can consume.",
+    intro:
+      "When your WMS, OMS, or internal tools need machine-readable updates, webhooks push delivery events as the capacity run progresses. This page outlines the practical model — full schemas and signing live in developer docs.",
+    sections: [
+      {
+        heading: "What events are for",
+        body: "Typical signals: shipment created, en route, delivered, failed with reason, and proof available. Your system updates order status without polling a dashboard.",
+      },
+      {
+        heading: "Security and retries",
+        body: "Production webhooks use signed payloads and retry behavior documented for partners. We confirm endpoint requirements during technical onboarding.",
+      },
+      {
+        heading: "Start with docs, finish with a quote path",
+        body: "Read the partner API and webhook guides on Developers for schemas. Commercial capacity and cut-offs still start with a written quote — webhooks do not replace vehicle-and-driver coverage.",
+      },
+    ],
+    industrySlugs: ["ecommerce", "coffee-roasters", "electrical-distribution"],
+    serviceAreaSlugs: ["toronto", "mississauga", "brampton"],
+    relatedClusterSlugs: [
+      "api-order-ingestion",
+      "sms-status-notifications",
+      "email-status-notifications",
+    ],
+    extraLinks: [
+      { path: "integrations", label: "Integrations" },
+      { path: "onboarding", label: "Get a quote" },
+    ],
+  },
 ];
 
 export function getIntegrationsEducationBySlug(slug: string): IntegrationsEducationPage | null {

@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Carlito } from "next/font/google";
 import { AppClerkProvider, SessionContextProvider } from "@porterchain/auth";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const brand = Carlito({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-brand",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Porterchain Customer Portal",
@@ -15,8 +20,8 @@ export const dynamic = "force-dynamic";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" style={{ colorScheme: "light" }}>
-      <body className={inter.className}>
+    <html lang="en" className={brand.variable} style={{ colorScheme: "light" }}>
+      <body className={brand.className}>
         <AppClerkProvider
           publishableKey={publicEnv.clerkPublishableKey}
           signInUrl="/sign-in"

@@ -99,7 +99,11 @@ class AdminDashboardService:
             "todays_bookings": todays_bookings,
             "pending_quotes": pending_quotes,
             "pending_merchant_approvals": pending_merchants,
-            # Driver online counts + fleet health are Fleetbase-owned (fleetbase-first policy).
+            # Live driver online/offline is Fleetbase-owned (fleetbase-first).
+            # Schema still requires these keys — stub zeros until Control Tower
+            # reads capacity from the Fleetbase adapter.
+            "drivers_online": 0,
+            "drivers_offline": 0,
             "orders_waiting_dispatch": dispatch_queue,
             "orders_in_transit": in_transit,
             "completed_today": completed_today,
@@ -107,6 +111,7 @@ class AdminDashboardService:
             "open_claims": open_claims,
             "outstanding_invoices_cents": int(outstanding_invoices),
             "open_support_tickets": open_tickets,
+            "fleet_health_percent": 100.0,
         }
 
     def get_center(self, db: Session, settings: Settings, *, role: str = "admin") -> dict[str, Any]:
