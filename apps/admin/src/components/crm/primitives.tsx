@@ -233,18 +233,22 @@ export function Modal({
   title,
   children,
   footer,
+  panelClassName,
 }: {
   open: boolean;
   onClose: () => void;
   title: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
+  panelClassName?: string;
 }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-primary/30 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+      <div
+        className={cn("relative w-full max-w-lg rounded-2xl bg-white shadow-2xl", panelClassName)}
+      >
         <div className="flex items-center justify-between border-b border-primary/10 px-5 py-4">
           <div className="text-base font-semibold text-primary">{title}</div>
           <button onClick={onClose} className="rounded-lg p-1.5 text-muted hover:bg-gray-bg">

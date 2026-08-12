@@ -2,26 +2,44 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Search, Users } from "lucide-react";
+import { Link2, Search, ShieldAlert, TrendingUp, UserX, Users } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { customersApi } from "@/lib/customers";
+import { FilterChip } from "@/components/crm/filters";
 import { Badge, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
 import { money, shortDate } from "@/lib/crmFormat";
 import { cn } from "@porterchain/ui/utils";
 
+type IdentityFilter = "" | "linked" | "orphan" | "dsr";
+
 export default function CustomersPage() {
-  const { getApiToken, isLoaded, isSignedIn, authReady } = useAdminAuth();
+  const { isLoaded, isSignedIn, authReady } = useAdminAuth();
   const [search, setSearch] = useState("");
+  const [identity, setIdentity] = useState<IdentityFilter>("");
   const enabled = authReady && isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
+
+  const listParams = useMemo(() => {
+    const params: Record<string, string | undefined> = {
+      search: search.trim() || undefined,
+    };
+    if (identity === "linked") params.clerk_linked = "true";
+    if (identity === "orphan") params.clerk_linked = "false";
+    if (identity === "dsr") params.privacy_status = "deletion_hold";
+    return params;
+  }, [search, identity]);
+
+  const { data: stats } = useApiData((t) => customersApi.stats(t), [enabled], {
+    key: "customers-stats",
+    enabled,
+  });
   const { data, error, loading } = useApiData(
-    (t) => customersApi.list(t, { search: search.trim() || undefined }),
-    [search, enabled],
-    { key: `customers-${search}`, enabled }
+    (t) => customersApi.list(t, listParams),
+    [listParams, enabled],
+    { key: `customers-${JSON.stringify(listParams)}`, enabled }
   );
 
   const rows = useMemo(() => data ?? [], [data]);
-  const errMsg = error;
 
   return (
     <div className="space-y-5">
@@ -43,25 +61,84 @@ export default function CustomersPage() {
         </Link>
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search email, phone, or reference…"
-          className="w-full rounded-xl border border-primary/15 bg-white py-2 pl-9 pr-3 text-sm"
-        />
+      {stats && (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <StatTile icon={Users} label="Total customers" value={stats.total.toLocaleString()} />
+          <StatTile
+            icon={Link2}
+            label="Clerk linked"
+            value={String(stats.clerk_linked)}
+            accent="text-green-600"
+          />
+          <StatTile
+            icon={UserX}
+            label="Orphan rows"
+            value={String(stats.orphan)}
+            accent="text-slate-600"
+          />
+          <StatTile
+            icon={ShieldAlert}
+            label="DSR hold"
+            value={String(stats.dsr_hold)}
+            accent="text-amber-600"
+          />
+          <StatTile
+            icon={TrendingUp}
+            label="Revenue (30d)"
+            value={money(stats.revenue_30d_cents)}
+            accent="text-secondary"
+          />
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[220px] flex-1 max-w-md">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search email, phone, or reference…"
+            className="w-full rounded-xl border border-primary/15 bg-white py-2 pl-9 pr-3 text-sm"
+          />
+        </div>
+        <FacetButton active={identity === ""} onClick={() => setIdentity("")}>
+          All
+        </FacetButton>
+        <FacetButton active={identity === "linked"} onClick={() => setIdentity("linked")}>
+          Clerk linked
+        </FacetButton>
+        <FacetButton active={identity === "orphan"} onClick={() => setIdentity("orphan")}>
+          Orphan
+        </FacetButton>
+        <FacetButton active={identity === "dsr"} onClick={() => setIdentity("dsr")}>
+          DSR hold
+        </FacetButton>
       </div>
+
+      {identity && (
+        <div className="flex flex-wrap gap-2">
+          <FilterChip
+            label={
+              identity === "linked"
+                ? "Identity: Clerk linked"
+                : identity === "orphan"
+                  ? "Identity: Orphan"
+                  : "Privacy: DSR hold"
+            }
+            onRemove={() => setIdentity("")}
+          />
+        </div>
+      )}
 
       <SectionCard title={`Directory (${rows.length})`}>
         {loading ? (
           <Spinner label="Loading customers…" />
-        ) : errMsg ? (
-          <EmptyState title="Could not load customers" hint={errMsg} />
+        ) : error ? (
+          <EmptyState title="Could not load customers" hint={error} />
         ) : rows.length === 0 ? (
           <EmptyState
-            title="No retail customers yet"
+            title="No retail customers match"
             hint="Customers appear after Platform SignUp / website booking."
           />
         ) : (
@@ -71,6 +148,7 @@ export default function CustomersPage() {
                 <tr>
                   <th className="px-4 py-2">Customer</th>
                   <th className="px-4 py-2">Identity</th>
+                  <th className="px-4 py-2">Privacy</th>
                   <th className="px-4 py-2">Orders</th>
                   <th className="px-4 py-2">Revenue</th>
                   <th className="px-4 py-2">Added</th>
@@ -96,7 +174,13 @@ export default function CustomersPage() {
                       <Badge tone={c.clerk_linked ? "green" : "slate"}>
                         {c.clerk_linked ? "Clerk linked" : "Orphan"}
                       </Badge>
-                      {c.privacy_status === "deletion_hold" && <Badge tone="amber">DSR hold</Badge>}
+                    </td>
+                    <td className="px-4 py-3">
+                      {c.privacy_status === "deletion_hold" ? (
+                        <Badge tone="amber">DSR hold</Badge>
+                      ) : (
+                        <span className="text-xs text-muted">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">{c.lifetime_orders}</td>
                     <td className="px-4 py-3">{money(c.lifetime_revenue_cents)}</td>
@@ -110,6 +194,53 @@ export default function CustomersPage() {
           </div>
         )}
       </SectionCard>
+    </div>
+  );
+}
+
+function FacetButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-xl border px-3 py-2 text-sm font-medium transition-colors",
+        active
+          ? "border-secondary/40 bg-secondary/5 text-secondary"
+          : "border-primary/15 bg-white text-primary/80 hover:bg-gray-bg"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function StatTile({
+  icon: Icon,
+  label,
+  value,
+  accent = "text-secondary",
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  accent?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-primary/10 bg-white p-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium text-muted">{label}</p>
+        <Icon className={`h-4 w-4 ${accent}`} />
+      </div>
+      <p className="mt-2 text-2xl font-bold text-primary">{value}</p>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PortalAuthScreen, safeAppRedirect } from "@porterchain/auth";
-import { publicEnv, useClerkDevApiBypass } from "@/lib/env";
+import { publicEnv, useClerkDevApiBypass, isLocalDev } from "@/lib/env";
 import { getStaffBearer, setStaffBearer } from "@/lib/staff-session";
 import { credentialToJson, getPasskey, passkeysSupported } from "@/lib/staff-webauthn";
 
@@ -83,6 +83,11 @@ function StaffSignIn() {
       setEmailSent(Boolean(body.email_sent ?? true));
       if (body.enrollment_token) {
         setLoginToken(body.enrollment_token);
+        // Local: token is returned in JSON — skip Mailpit and finish sign-in immediately.
+        if (isLocalDev()) {
+          activateWithToken(body.enrollment_token);
+          return;
+        }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "login_request_failed");
@@ -179,7 +184,8 @@ function StaffSignIn() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@porterchain.com"
+              placeholder="porterchaininc@gmail.com"
+              autoComplete="username"
               className="w-full rounded-xl border border-primary/15 bg-gray-bg px-3 py-2.5 text-primary outline-none focus:border-secondary"
             />
           </label>
@@ -189,7 +195,7 @@ function StaffSignIn() {
             onClick={() => void requestLogin()}
             className="flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-50"
           >
-            {busy ? "Sending…" : "Email activate link"}
+            {busy ? "Signing in…" : isLocalDev() ? "Sign in with email" : "Email activate link"}
           </button>
           {canPasskey && (
             <button
@@ -203,11 +209,11 @@ function StaffSignIn() {
           )}
         </div>
 
-        {emailSent && (
+        {emailSent && !loginToken && (
           <div className="rounded-xl border border-green-200 bg-green-50/80 p-3 text-green-950">
             <p className="font-medium">Check your email for a one-time activate link.</p>
             <p className="mt-1 text-xs text-muted">
-              Local Mailpit:{" "}
+              Local Mailpit (not Gmail):{" "}
               <a
                 href="http://localhost:8025"
                 className="underline"
@@ -216,7 +222,14 @@ function StaffSignIn() {
               >
                 localhost:8025
               </a>
+              . Unknown emails always show this message (anti-enumeration).
             </p>
+          </div>
+        )}
+
+        {emailSent && loginToken && !isLocalDev() && (
+          <div className="rounded-xl border border-green-200 bg-green-50/80 p-3 text-green-950">
+            <p className="font-medium">Check your email for a one-time activate link.</p>
           </div>
         )}
 

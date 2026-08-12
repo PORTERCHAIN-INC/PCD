@@ -88,3 +88,39 @@ body {
   font-size: 1rem;
   padding: 0.65rem 1rem;
 }
+
+/* Google Places autocomplete (Add order / booking) */
+.booking-address-autocomplete,
+.booking-address-fallback {
+  display: block;
+  width: 100%;
+}
+
+.booking-address-autocomplete gmp-place-autocomplete,
+.booking-address-autocomplete .booking-place-autocomplete {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  color-scheme: light;
+  background-color: #fff;
+  border: 1px solid rgba(10, 22, 40, 0.15);
+  border-radius: 0.75rem;
+  min-height: 2.75rem;
+  font-size: 0.875rem;
+  color: var(--primary);
+}
+
+.booking-address-autocomplete gmp-place-autocomplete::part(input),
+.booking-address-autocomplete .booking-place-autocomplete::part(input) {
+  border: none;
+  background: transparent;
+  padding: 0.65rem 0.85rem;
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.booking-address-autocomplete gmp-place-autocomplete::part(prediction-list),
+.booking-address-autocomplete .booking-place-autocomplete::part(prediction-list) {
+  z-index: 60;
+}

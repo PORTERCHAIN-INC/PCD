@@ -92,6 +92,7 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "admin_engine->billing_engine:admin_engine/merchant_ar_service.py",
         "admin_engine->billing_engine:admin_engine/merchant_service.py",
         "admin_engine->booking_engine:admin_engine/booking_draft_admin_service.py",
+        "admin_engine->booking_engine:admin_engine/customer_booking_admin_service.py",
         "admin_engine->booking_engine:admin_engine/control_tower/exceptions.py",
         "admin_engine->booking_engine:admin_engine/control_tower/scoring.py",
         "admin_engine->booking_engine:admin_engine/control_tower/service.py",

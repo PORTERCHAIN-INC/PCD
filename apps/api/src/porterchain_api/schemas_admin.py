@@ -1054,6 +1054,42 @@ class BookingDraftPaymentLinkResponse(BaseModel):
     stripe_checkout_session_id: str | None
 
 
+class AdminCustomerAddressInput(BaseModel):
+    formatted: str = Field(min_length=1, max_length=512)
+    place_id: str | None = None
+    lat: float | None = None
+    lng: float | None = None
+
+
+class AdminCreateCustomerBookingDraftRequest(BaseModel):
+    """Admin phone-book: create retail quote + draft for an existing customer (Stripe only)."""
+
+    pickup: AdminCustomerAddressInput
+    dropoff: AdminCustomerAddressInput
+    vehicle_class: str = Field(min_length=1, max_length=64)
+    package_type: str = "looseParcel"
+    weight_kg: float | None = None
+    dimensions: str | None = None
+    declared_value_cents: int | None = None
+    special_instructions: str | None = None
+    scheduled_at: datetime
+    schedule_mode: str = "now"
+    send_payment_link: bool = False
+
+
+class AdminCreateCustomerBookingDraftResponse(BaseModel):
+    draft_id: str
+    draft_number: str | None = None
+    quote_id: str
+    customer_id: str
+    amount_cents: int
+    currency: str = "cad"
+    state: str
+    checkout_url: str | None = None
+    payment_id: str | None = None
+    stripe_checkout_session_id: str | None = None
+
+
 class BlogPostItem(BaseModel):
     id: str
     slug: str
