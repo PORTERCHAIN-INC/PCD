@@ -254,7 +254,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          printf '%s' "$DOPPLER_TOKEN" > .doppler_token
+          printf '%s' "$DOPPLER_TOKEN" > doppler.token
 
       - name: Copy Doppler token to droplet
         if: steps.check.outputs.ready == 'true'
@@ -264,7 +264,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          source: ".doppler_token"
+          source: "doppler.token"
           target: "/opt/porterchain"
 
       - name: Deploy to droplet over SSH
@@ -275,7 +275,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DOPPLER_TOKEN,DOPPLER_PROJECT,DOPPLER_CONFIG,PORTERCHAIN_PUSH_ENABLED,PORTERCHAIN_PUSH_SEND,API_REPLICAS
+          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DOPPLER_PROJECT,DOPPLER_CONFIG,PORTERCHAIN_PUSH_ENABLED,PORTERCHAIN_PUSH_SEND,API_REPLICAS
           script: |
             set -euo pipefail
             cd /opt/porterchain
@@ -286,7 +286,12 @@ jobs:
             export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:$IMAGE_TAG"
             export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:$IMAGE_TAG"
             export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:$IMAGE_TAG"
-            echo "sync-secrets: DOPPLER_TOKEN_len=${#DOPPLER_TOKEN} token_file=$([ -f .doppler_token ] && echo yes || echo no)"
+            # DOPPLER_TOKEN is delivered only via SCP'd doppler.token (appleboy envs truncates secrets).
+            if [ ! -f doppler.token ]; then
+              echo "::error::missing /opt/porterchain/doppler.token (SCP step failed)"
+              exit 1
+            fi
+            echo "sync-secrets: token_file_len=$(wc -c < doppler.token)"
             if ! bash sync-secrets.sh 2>&1; then
               echo "::error::sync-secrets.sh failed — see output above"
               exit 1
@@ -343,7 +348,6 @@ jobs:
           PORTERCHAIN_PUSH_ENABLED: ${{ vars.PORTERCHAIN_PUSH_ENABLED || 'false' }}
           PORTERCHAIN_PUSH_SEND: ${{ vars.PORTERCHAIN_PUSH_SEND || 'false' }}
           API_REPLICAS: ${{ vars.API_REPLICAS || '2' }}
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
           DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG || 'prd' }}
 

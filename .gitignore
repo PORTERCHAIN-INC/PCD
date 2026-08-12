@@ -7,7 +7,7 @@ env/.env
 env/clerk.env
 env/clerk.env.prod-live.bak
 env/go-live-*.local.md
-.doppler_token
+doppler.token
 
 # Credentials and key material
 secrets/

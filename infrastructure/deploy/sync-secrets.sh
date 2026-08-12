@@ -197,32 +197,55 @@ verify_env() {
   return "$missing"
 }
 
-# Load token from CI-uploaded file when env is missing/empty (appleboy can drop secrets).
-if [ -z "${DOPPLER_TOKEN:-}" ] && [ -f "${TARGET_DIR}/.doppler_token" ]; then
-  DOPPLER_TOKEN="$(tr -d '\r\n' < "${TARGET_DIR}/.doppler_token")"
+# Prefer CI-uploaded token file over env. appleboy env forwarding can truncate
+# or mangle DOPPLER_TOKEN (observed len=53) while the SCP'd file stays intact.
+if [ -f "${TARGET_DIR}/doppler.token" ]; then
+  DOPPLER_TOKEN="$(tr -d '\r\n' < "${TARGET_DIR}/doppler.token")"
   export DOPPLER_TOKEN
+  echo "Using Doppler token from doppler.token (len=${#DOPPLER_TOKEN})"
+elif [ -n "${DOPPLER_TOKEN:-}" ]; then
+  echo "Using Doppler token from environment (len=${#DOPPLER_TOKEN})"
 fi
 
-if [ -n "${DOPPLER_TOKEN:-}" ]; then
-  if ! command -v doppler >/dev/null 2>&1; then
-    echo "Installing Doppler CLI..."
-    curl -sLf --retry 3 https://cli.doppler.com/install.sh | sh
+_download_doppler_env() {
+  local out="$1"
+  local project="${DOPPLER_PROJECT:-pcd}"
+  local config="${DOPPLER_CONFIG:-prd}"
+  if command -v doppler >/dev/null 2>&1; then
+    if doppler secrets download \
+      --no-file \
+      --format env \
+      --project "$project" \
+      --config "$config" \
+      >"$out"; then
+      return 0
+    fi
+    echo "doppler CLI download failed; trying HTTP API…" >&2
   fi
+  # Fallback: same API the Actions preflight uses (no CLI / no sudo).
+  local code
+  code="$(curl -sS -o "$out" -w '%{http_code}' \
+    -H "Authorization: Bearer ${DOPPLER_TOKEN}" \
+    "https://api.doppler.com/v3/configs/config/secrets/download?project=${project}&config=${config}&format=env")"
+  if [ "$code" != "200" ]; then
+    echo "::error::Doppler secrets download failed (HTTP ${code}) for ${project}/${config}" >&2
+    head -c 400 "$out" >&2 || true
+    echo >&2
+    return 1
+  fi
+  return 0
+}
+
+if [ -n "${DOPPLER_TOKEN:-}" ]; then
   if [ -z "${DOPPLER_TOKEN}" ]; then
-    echo "::error::DOPPLER_TOKEN is empty on droplet (env + .doppler_token missing)" >&2
+    echo "::error::DOPPLER_TOKEN is empty on droplet (env + doppler.token missing)" >&2
     exit 1
   fi
   export DOPPLER_TOKEN
-  # Write to a temp file first — a failed `doppler … > .env` truncates .env to 0 bytes.
+  # Write to a temp file first — a failed download must not truncate .env to 0 bytes.
   tmp_env="$(mktemp "${TARGET_DIR}/.env.doppler.XXXXXX")"
   trap 'rm -f "${tmp_env}"' EXIT
-  if ! doppler secrets download \
-    --no-file \
-    --format env \
-    --project "${DOPPLER_PROJECT:-pcd}" \
-    --config "${DOPPLER_CONFIG:-prd}" \
-    > "${tmp_env}"; then
-    echo "::error::doppler secrets download failed for ${DOPPLER_PROJECT:-pcd}/${DOPPLER_CONFIG:-prd}" >&2
+  if ! _download_doppler_env "${tmp_env}"; then
     exit 1
   fi
   if [ ! -s "${tmp_env}" ]; then
@@ -234,7 +257,7 @@ if [ -n "${DOPPLER_TOKEN:-}" ]; then
   fi
   mv "${tmp_env}" .env
   trap - EXIT
-  rm -f "${TARGET_DIR}/.doppler_token"
+  rm -f "${TARGET_DIR}/doppler.token"
   extract_firebase_from_env
   strip_inline_firebase_from_env
   normalize_clerk_platform_driver
@@ -307,6 +330,12 @@ fi
 
 write_firebase_file
 chmod 600 .env
-verify_env
-verify_clerk_env
+if ! verify_env; then
+  echo "::error::sync-secrets verify_env failed" >&2
+  exit 1
+fi
+if ! verify_clerk_env; then
+  echo "::error::sync-secrets verify_clerk_env failed" >&2
+  exit 1
+fi
 echo "✓ ${#REQUIRED_KEYS[@]} required keys present in .env (platform_driver)"
