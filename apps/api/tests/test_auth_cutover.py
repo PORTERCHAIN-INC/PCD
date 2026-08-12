@@ -88,6 +88,66 @@ def test_get_admin_context_rejects_clerk_jwt() -> None:
     asyncio.run(_run())
 
 
+def test_notification_principal_accepts_staff_session() -> None:
+    from porterchain_api.admin_models import AdminUser
+    from porterchain_api.auth.staff_session import StaffSession
+    from porterchain_api.notification_engine.principal import (
+        _resolve_staff_notification_user,
+        get_notification_user,
+        resolve_notification_ws_user,
+    )
+
+    admin = AdminUser(
+        id="admin-n1",
+        email="ops@porterchain.com",
+        name="Ops",
+        role=AdminRole.SUPER_ADMIN.value,
+        is_active=True,
+    )
+    session = StaffSession(
+        session_id="notif-sid",
+        admin_user_id="admin-n1",
+        email="ops@porterchain.com",
+        role="super_admin",
+        created_at=0,
+        expires_at=9e9,
+    )
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = admin
+
+    with patch(
+        "porterchain_api.notification_engine.principal.get_session",
+        return_value=session,
+    ):
+        resolved = _resolve_staff_notification_user(db, "staff_sess_notif-sid")
+        assert resolved is not None
+        assert resolved.user_role == "admin"
+        assert resolved.user_id == "admin-n1"
+
+        async def _http() -> None:
+            creds = MagicMock()
+            creds.credentials = "staff_sess_notif-sid"
+            user = await get_notification_user(
+                db=db,
+                settings=Settings(app_env="local", clerk_dev_bypass=False),
+                credentials=creds,
+                x_merchant_org_id=None,
+            )
+            assert user.user_role == "admin"
+            assert user.user_id == "admin-n1"
+
+        asyncio.run(_http())
+
+        async def _ws() -> None:
+            with patch("porterchain_api.db.SessionLocal", return_value=db):
+                user = await resolve_notification_ws_user("staff_sess_notif-sid")
+                assert user is not None
+                assert user.user_role == "admin"
+                assert user.user_id == "admin-n1"
+
+        asyncio.run(_ws())
+
+
 def test_get_admin_context_accepts_staff_session() -> None:
     from porterchain_api.auth.staff_session import StaffSession
     from porterchain_api.admin_models import AdminUser

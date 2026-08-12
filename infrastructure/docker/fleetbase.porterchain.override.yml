@@ -69,6 +69,9 @@ services:
     container_name: porterchain-fleetbase-application
     volumes:
       - fleetbase-api-storage:/fleetbase/api/storage/app
+      # PorterChain SSO bridge (packages/porterchain-bridge) — no upstream fork
+      - ../../packages/porterchain-bridge:/fleetbase/api/packages/porterchain-bridge:ro
+      - ../../packages/porterchain-bridge/docker/RouteServiceProvider.php:/fleetbase/api/app/Providers/RouteServiceProvider.php:ro
     environment:
       APP_NAME: "Porterchain Fleetbase"
       OSRM_HOST: https://router.project-osrm.org
@@ -76,6 +79,10 @@ services:
       # Shared PorterChain Valhalla (GTA tiles) — same engine as pricing, not the public demo
       VALHALLA_BASE_URL: http://host.docker.internal:8002
       VALHALLA_BASE_URI: http://host.docker.internal:8002
+      PORTERCHAIN_API_URL: http://host.docker.internal:8001
+      PORTERCHAIN_SSO_JWT_SECRET: dev-sso-secret-change-in-production
+      PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID: e136168f-516e-4b43-b6c2-ed4178169bce
+      PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE: "true"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

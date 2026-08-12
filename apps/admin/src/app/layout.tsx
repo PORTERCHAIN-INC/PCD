@@ -19,8 +19,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={brand.variable} style={{ colorScheme: "light" }}>
-      <body className={brand.className}>
+    <html
+      lang="en"
+      className={brand.variable}
+      style={{ colorScheme: "light" }}
+      suppressHydrationWarning
+    >
+      {/* suppressHydrationWarning: browser extensions (e.g. Grammarly) inject body attrs */}
+      <body className={brand.className} suppressHydrationWarning>
         <AdminAuthProvider>
           <SessionContextProvider>{children}</SessionContextProvider>
         </AdminAuthProvider>

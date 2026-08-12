@@ -227,6 +227,8 @@ async def notifications_ws(
 
     user = await resolve_notification_ws_user(token, org_id=org_id)
     if not user:
+        # Accept then close — Starlette maps close-before-accept to HTTP 403.
+        await websocket.accept()
         await websocket.close(code=4401)
         return
 

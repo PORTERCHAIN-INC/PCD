@@ -255,16 +255,16 @@ PORTERCHAIN_API_URL=http://localhost:8001
 
 ## Code references
 
-| Component               | Path                                                                                                                                           |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| SSO service             | `apps/api/src/porterchain_api/auth/sso_service.py`                                                                                             |
-| Auth router             | `apps/api/src/porterchain_api/routers/auth.py`                                                                                                 |
-| Identity links          | `apps/api/src/porterchain_api/identity_models.py`                                                                                              |
-| Fleetbase role map      | `apps/api/src/porterchain_api/auth/fleetbase_roles.py`                                                                                         |
-| Fleetbase SSO client    | `services/fleetbase-adapter/porterchain_fleetbase_adapter/auth/__init__.py`                                                                    |
-| Fleetbase bridge API    | `PC/api` → `routes/porterchain-sso.php`, `app/Http/Controllers/Porterchain/SsoController.php`, `app/Services/Porterchain/SsoBridgeService.php` |
-| Fleetbase console route | `PC/console` → `app/routes/porterchain/sso.js` (+ `router.map.js`)                                                                             |
-| Admin SSO button        | `apps/admin/src/app/(ops)/operations/page.tsx`                                                                                                 |
+| Component               | Path                                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------------------- |
+| SSO service             | `apps/api/src/porterchain_api/auth/sso_service.py`                                            |
+| Auth router             | `apps/api/src/porterchain_api/routers/auth.py`                                                |
+| Identity links          | `apps/api/src/porterchain_api/identity_models.py`                                             |
+| Fleetbase role map      | `apps/api/src/porterchain_api/auth/fleetbase_roles.py`                                        |
+| Fleetbase SSO client    | `services/fleetbase-adapter/porterchain_fleetbase_adapter/auth/__init__.py`                   |
+| Fleetbase bridge API    | `packages/porterchain-bridge` → `POST /int/v1/porterchain/sso/*`                              |
+| Fleetbase console route | `packages/porterchain-bridge/console` → synced to `apps/fleetbase/console` `/porterchain/sso` |
+| Admin SSO button        | `apps/admin/src/app/(ops)/operations/page.tsx`                                                |
 
 ---
 
