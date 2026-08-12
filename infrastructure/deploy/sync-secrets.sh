@@ -67,30 +67,44 @@ promote_platform_triad_from_admin() {
 
   if [ -z "$sk" ]; then
     sk="$(env_value CLERK_ADMIN_SECRET_KEY)"
-    [ -n "$sk" ] && set_env_key CLERK_SECRET_KEY "$sk"
+    if [ -n "$sk" ]; then
+      set_env_key CLERK_SECRET_KEY "$sk"
+    fi
   fi
   if [ -z "$pk" ]; then
     pk="$(env_value CLERK_ADMIN_PUBLISHABLE_KEY)"
-    [ -n "$pk" ] && set_env_key CLERK_PUBLISHABLE_KEY "$pk"
+    if [ -n "$pk" ]; then
+      set_env_key CLERK_PUBLISHABLE_KEY "$pk"
+    fi
   fi
   if [ -z "$jwks" ]; then
     jwks="$(env_value CLERK_ADMIN_JWKS_URL)"
-    [ -n "$jwks" ] && set_env_key CLERK_JWKS_URL "$jwks"
+    if [ -n "$jwks" ]; then
+      set_env_key CLERK_JWKS_URL "$jwks"
+    fi
   fi
 }
 
 # Expand Platform triad into customer/merchant/admin slots when empty.
 expand_platform_slots() {
-  local sk pk jwks
+  local sk pk jwks portal
   sk="$(env_value CLERK_SECRET_KEY)"
   pk="$(env_value CLERK_PUBLISHABLE_KEY)"
   jwks="$(env_value CLERK_JWKS_URL)"
-  [ -z "$sk" ] && return 0
+  if [ -z "$sk" ]; then
+    return 0
+  fi
 
   for portal in ADMIN CUSTOMER MERCHANT; do
-    [ -z "$(env_value "CLERK_${portal}_SECRET_KEY")" ] && set_env_key "CLERK_${portal}_SECRET_KEY" "$sk"
-    [ -z "$(env_value "CLERK_${portal}_PUBLISHABLE_KEY")" ] && [ -n "$pk" ] && set_env_key "CLERK_${portal}_PUBLISHABLE_KEY" "$pk"
-    [ -z "$(env_value "CLERK_${portal}_JWKS_URL")" ] && set_env_key "CLERK_${portal}_JWKS_URL" "$jwks"
+    if [ -z "$(env_value "CLERK_${portal}_SECRET_KEY")" ]; then
+      set_env_key "CLERK_${portal}_SECRET_KEY" "$sk"
+    fi
+    if [ -z "$(env_value "CLERK_${portal}_PUBLISHABLE_KEY")" ] && [ -n "$pk" ]; then
+      set_env_key "CLERK_${portal}_PUBLISHABLE_KEY" "$pk"
+    fi
+    if [ -z "$(env_value "CLERK_${portal}_JWKS_URL")" ]; then
+      set_env_key "CLERK_${portal}_JWKS_URL" "$jwks"
+    fi
   done
 }
 
@@ -155,28 +169,40 @@ extract_firebase_from_env() {
   if ! grep -q '^FIREBASE_CREDENTIALS_JSON=' .env 2>/dev/null; then
     return 0
   fi
-  python3 - <<'PY'
+  # Soft-fail: malformed JSON must not abort secret sync (appleboy also redacts
+  # tracebacks that embed private_key material, which looks like a silent exit).
+  if ! python3 - <<'PY'
 import json
 import re
+import sys
 from pathlib import Path
 
-raw = Path(".env").read_text(encoding="utf-8")
-match = re.search(r"^FIREBASE_CREDENTIALS_JSON=(.*)$", raw, re.MULTILINE)
-if not match:
+try:
+    raw = Path(".env").read_text(encoding="utf-8")
+    match = re.search(r"^FIREBASE_CREDENTIALS_JSON=(.*)$", raw, re.MULTILINE)
+    if not match:
+        raise SystemExit(0)
+    value = match.group(1).strip()
+    if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+        value = json.loads(value)
+    elif value.startswith("{\\"):
+        value = json.loads(value.encode().decode("unicode_escape"))
+    elif value.startswith("{"):
+        value = json.loads(value)
+    if not value:
+        raise SystemExit(0)
+    out = json.dumps(value) if isinstance(value, dict) else str(value)
+    Path("secrets").mkdir(parents=True, exist_ok=True)
+    Path("secrets/firebase-service-account.json").write_text(out, encoding="utf-8")
+except Exception as exc:
+    print(f"::warning::firebase extract skipped ({type(exc).__name__})", file=sys.stderr)
     raise SystemExit(0)
-value = match.group(1).strip()
-if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
-    value = json.loads(value)
-elif value.startswith("{\\"):
-    value = json.loads(value.encode().decode("unicode_escape"))
-elif value.startswith("{"):
-    value = json.loads(value)
-if not value:
-    raise SystemExit(0)
-out = json.dumps(value) if isinstance(value, dict) else str(value)
-Path("secrets/firebase-service-account.json").write_text(out, encoding="utf-8")
 PY
-  chmod 600 secrets/firebase-service-account.json
+  then
+    echo "::warning::firebase extract command failed; continuing sync" >&2
+    return 0
+  fi
+  chmod 600 secrets/firebase-service-account.json 2>/dev/null || true
 }
 
 strip_inline_firebase_from_env() {
@@ -209,11 +235,17 @@ if [ -f "${TARGET_DIR}/doppler.env" ]; then
   if [ -s .env ]; then
     cp -a .env ".env.bak.$(date -u +%Y%m%dT%H%M%SZ)"
   fi
-  cp -a "${TARGET_DIR}/doppler.env" .env
+  # Copy then rename so a partial failure never leaves a truncated .env.
+  cp -a "${TARGET_DIR}/doppler.env" .env.incoming
+  mv -f .env.incoming .env
   rm -f "${TARGET_DIR}/doppler.env" "${TARGET_DIR}/doppler.token"
+  echo "sync step: applied doppler.env -> .env ($(wc -c < .env) bytes)"
   extract_firebase_from_env
+  echo "sync step: firebase extract done ($(wc -c < .env) bytes)"
   strip_inline_firebase_from_env
+  echo "sync step: firebase strip done ($(wc -c < .env) bytes)"
   normalize_clerk_platform_driver
+  echo "sync step: clerk normalize done ($(wc -c < .env) bytes)"
   echo "Secrets applied from CI-staged doppler.env"
 elif [ -f "${TARGET_DIR}/doppler.token" ] || [ -n "${DOPPLER_TOKEN:-}" ]; then
   if [ -f "${TARGET_DIR}/doppler.token" ]; then
