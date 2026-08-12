@@ -32,8 +32,8 @@ fi
 # Load only MAIL_* / PORTERCHAIN_OPS_EMAILS (do not source entire .env into this shell's export of secrets to logs)
 get_kv() {
   local key="$1"
-  # shellcheck disable=SC2002
-  grep -E "^${key}=" "$MAIL_ENV" | tail -1 | cut -d= -f2-
+  # Missing keys are OK — callers apply defaults. Never fail the script on grep miss.
+  grep -E "^${key}=" "$MAIL_ENV" 2>/dev/null | tail -1 | cut -d= -f2- || true
 }
 
 MAIL_HOST="$(get_kv MAIL_HOST)"

@@ -94,7 +94,7 @@ class PlatformSettings(BaseSettings):
         validation_alias=AliasChoices("sms_provider", "PORTERCHAIN_SMS_PROVIDER"),
     )
 
-    # SMTP (ZeptoMail transactional; auth is Clerk-only)
+    # SMTP / ZeptoMail transactional (auth is Clerk-only)
     smtp_host: str = Field(default="", validation_alias=AliasChoices("smtp_host", "MAIL_HOST"))
     smtp_port: int = Field(default=587, validation_alias=AliasChoices("smtp_port", "MAIL_PORT"))
     smtp_user: str = Field(default="", validation_alias=AliasChoices("smtp_user", "MAIL_USERNAME"))
@@ -114,6 +114,15 @@ class PlatformSettings(BaseSettings):
     smtp_from_name: str = Field(
         default="Porterchain",
         validation_alias=AliasChoices("smtp_from_name", "MAIL_FROM_NAME"),
+    )
+    # auto | smtp | https — auto uses HTTPS for ZeptoMail in non-local envs (DO blocks SMTP).
+    mail_transport: str = Field(
+        default="auto",
+        validation_alias=AliasChoices("mail_transport", "MAIL_TRANSPORT"),
+    )
+    zeptomail_api_url: str = Field(
+        default="https://api.zeptomail.ca/v1.1/email",
+        validation_alias=AliasChoices("zeptomail_api_url", "ZEPTOMAIL_API_URL"),
     )
 
     # Zoho Calendar (CRM meetings / follow-ups)
@@ -189,6 +198,18 @@ class PlatformSettings(BaseSettings):
         if key in ("personal", "ravi"):
             return self.smtp_from_personal or self.smtp_from
         return self.smtp_from
+
+    def resolve_mail_transport(self) -> str:
+        """Return ``smtp`` or ``https`` for outbound transactional mail."""
+        explicit = (self.mail_transport or "auto").strip().lower()
+        if explicit in {"smtp", "https"}:
+            return explicit
+        if self.is_local:
+            return "smtp"
+        host = (self.smtp_host or "").lower()
+        if "zeptomail" in host:
+            return "https"
+        return "smtp"
 
 
 @lru_cache

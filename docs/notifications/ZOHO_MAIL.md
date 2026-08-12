@@ -12,12 +12,19 @@
 
 ## Principle
 
-| Environment    | Outbound email                                                                              |
-| -------------- | ------------------------------------------------------------------------------------------- |
-| **Local / CI** | **Mailpit** — never put live send-mail tokens in local `.env` committed or shared           |
-| **Production** | **ZeptoMail SMTP** (`smtp.zeptomail.ca`, user `emailapikey`) via Doppler / droplet `MAIL_*` |
+| Environment    | Outbound email                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Local / CI** | **Mailpit** SMTP (`localhost:1025`) — never put live send-mail tokens in shared local `.env`                             |
+| **Production** | **ZeptoMail HTTPS API** (`api.zeptomail.ca`) by default — DO blocks outbound SMTP; token still stored as `MAIL_PASSWORD` |
 
-Human Zoho Mailboxes (`mail.zoho.ca`) remain for inbox/IMAP. **Transactional send** uses ZeptoMail SMTP.
+Human Zoho Mailboxes (`mail.zoho.ca`) remain for inbox/IMAP. **Transactional send** uses ZeptoMail
+(HTTPS on DigitalOcean; SMTP if `MAIL_TRANSPORT=smtp` after [SMTP unblock](../ops/DIGITALOCEAN_SMTP_UNBLOCK.md)).
+
+| `MAIL_TRANSPORT` | Behavior                                                              |
+| ---------------- | --------------------------------------------------------------------- |
+| `auto` (default) | Local → SMTP/Mailpit; prod + `MAIL_HOST` contains `zeptomail` → HTTPS |
+| `https`          | Always ZeptoMail HTTP API                                             |
+| `smtp`           | Always SMTP (587 STARTTLS / 465 SSL)                                  |
 
 Auth for portals remains **Clerk-only**. Mail is for **transactional + human mailboxes**, not login.
 

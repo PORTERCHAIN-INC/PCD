@@ -265,13 +265,102 @@ class DeliveryService:
             raise ValueError("email_recipient_required")
         settings = get_platform_settings()
         subject, text_body, html_body = render_email(template, context)
+        if not settings.smtp_host and not settings.smtp_password:
+            logger.info("email (log-only): to=%s template=%s", recipient, template)
+            return
+        from_addr = settings.smtp_from_for(context.get("from_alias") or context.get("mail_from"))
+        from_name = context.get("from_name") or settings.smtp_from_name or "PorterChain"
+
+        transport = settings.resolve_mail_transport()
+        if transport == "https":
+            self._send_email_zeptomail_https(
+                recipient=recipient,
+                subject=subject,
+                text_body=text_body,
+                html_body=html_body,
+                from_addr=from_addr,
+                from_name=from_name,
+                settings=settings,
+            )
+            return
+
         if not settings.smtp_host:
             logger.info("email (log-only): to=%s template=%s", recipient, template)
             return
+        self._send_email_smtp(
+            recipient=recipient,
+            subject=subject,
+            text_body=text_body,
+            html_body=html_body,
+            from_addr=from_addr,
+            from_name=from_name,
+            settings=settings,
+        )
+
+    def _send_email_zeptomail_https(
+        self,
+        *,
+        recipient: str,
+        subject: str,
+        text_body: str,
+        html_body: str,
+        from_addr: str,
+        from_name: str,
+        settings: Any,
+    ) -> None:
+        """ZeptoMail Send Mail HTTP API — used when DigitalOcean blocks outbound SMTP."""
+        import json
+        import urllib.error
+        import urllib.request
+
+        token = (settings.smtp_password or "").strip()
+        if not token:
+            raise ValueError("zeptomail_token_missing")
+        auth = token if token.startswith("Zoho-enczapikey") else f"Zoho-enczapikey {token}"
+        api_url = (getattr(settings, "zeptomail_api_url", None) or "https://api.zeptomail.ca/v1.1/email").strip()
+        from_obj: dict[str, str] = {"address": from_addr}
+        if from_name:
+            from_obj["name"] = from_name
+        payload = {
+            "from": from_obj,
+            "to": [{"email_address": {"address": recipient}}],
+            "subject": subject,
+            "htmlbody": html_body or text_body,
+            "textbody": text_body or "",
+        }
+        req = urllib.request.Request(
+            api_url,
+            data=json.dumps(payload).encode(),
+            method="POST",
+            headers={
+                "accept": "application/json",
+                "content-type": "application/json",
+                "authorization": auth,
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                raw = resp.read().decode()
+                if resp.status not in (200, 201):
+                    raise ValueError(f"zeptomail_http_{resp.status}:{raw[:200]}")
+                logger.info("email (zeptomail https): to=%s status=%s", recipient, resp.status)
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode()[:400]
+            raise ValueError(f"zeptomail_http_{exc.code}:{body}") from exc
+
+    def _send_email_smtp(
+        self,
+        *,
+        recipient: str,
+        subject: str,
+        text_body: str,
+        html_body: str,
+        from_addr: str,
+        from_name: str,
+        settings: Any,
+    ) -> None:
         msg = EmailMessage()
         msg["Subject"] = subject
-        from_addr = settings.smtp_from_for(context.get("from_alias") or context.get("mail_from"))
-        from_name = context.get("from_name") or settings.smtp_from_name or "PorterChain"
         msg["From"] = f"{from_name} <{from_addr}>" if from_name else from_addr
         msg["To"] = recipient
         msg.set_content(text_body)
@@ -284,21 +373,21 @@ class DeliveryService:
         if str(getattr(settings, "app_env", "")).lower() in {"local", "development", "dev"}:
             host, port = "localhost", 1025
 
-        # Prod ZeptoMail: 587 + STARTTLS (or 465 + SSL). Mailpit: plain 1025.
-        context = ssl.create_default_context()
+        # Prod SMTP (when unblocked): 587 + STARTTLS or 465 + SSL. Mailpit: plain 1025.
+        tls_ctx = ssl.create_default_context()
         if port == 465:
-            with smtplib.SMTP_SSL(host, port, context=context) as smtp:
+            with smtplib.SMTP_SSL(host, port, context=tls_ctx) as smtp:
                 if settings.smtp_user:
                     smtp.login(settings.smtp_user, settings.smtp_password)
                 smtp.send_message(msg)
         elif port == 587:
-            with smtplib.SMTP(host, port) as smtp:
-                smtp.starttls(context=context)
+            with smtplib.SMTP(host, port, timeout=30) as smtp:
+                smtp.starttls(context=tls_ctx)
                 if settings.smtp_user:
                     smtp.login(settings.smtp_user, settings.smtp_password)
                 smtp.send_message(msg)
         else:
-            with smtplib.SMTP(host, port) as smtp:
+            with smtplib.SMTP(host, port, timeout=30) as smtp:
                 if settings.smtp_user and port != 1025:
                     smtp.login(settings.smtp_user, settings.smtp_password)
                 smtp.send_message(msg)
