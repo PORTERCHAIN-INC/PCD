@@ -197,18 +197,44 @@ verify_env() {
   return "$missing"
 }
 
+# Load token from CI-uploaded file when env is missing/empty (appleboy can drop secrets).
+if [ -z "${DOPPLER_TOKEN:-}" ] && [ -f "${TARGET_DIR}/.doppler_token" ]; then
+  DOPPLER_TOKEN="$(tr -d '\r\n' < "${TARGET_DIR}/.doppler_token")"
+  export DOPPLER_TOKEN
+fi
+
 if [ -n "${DOPPLER_TOKEN:-}" ]; then
   if ! command -v doppler >/dev/null 2>&1; then
     echo "Installing Doppler CLI..."
     curl -sLf --retry 3 https://cli.doppler.com/install.sh | sh
   fi
+  if [ -z "${DOPPLER_TOKEN}" ]; then
+    echo "::error::DOPPLER_TOKEN is empty on droplet (env + .doppler_token missing)" >&2
+    exit 1
+  fi
   export DOPPLER_TOKEN
-  doppler secrets download \
+  # Write to a temp file first — a failed `doppler … > .env` truncates .env to 0 bytes.
+  tmp_env="$(mktemp "${TARGET_DIR}/.env.doppler.XXXXXX")"
+  trap 'rm -f "${tmp_env}"' EXIT
+  if ! doppler secrets download \
     --no-file \
     --format env \
     --project "${DOPPLER_PROJECT:-pcd}" \
     --config "${DOPPLER_CONFIG:-prd}" \
-    > .env
+    > "${tmp_env}"; then
+    echo "::error::doppler secrets download failed for ${DOPPLER_PROJECT:-pcd}/${DOPPLER_CONFIG:-prd}" >&2
+    exit 1
+  fi
+  if [ ! -s "${tmp_env}" ]; then
+    echo "::error::doppler secrets download produced an empty file" >&2
+    exit 1
+  fi
+  if [ -s .env ]; then
+    cp -a .env ".env.bak.$(date -u +%Y%m%dT%H%M%SZ)"
+  fi
+  mv "${tmp_env}" .env
+  trap - EXIT
+  rm -f "${TARGET_DIR}/.doppler_token"
   extract_firebase_from_env
   strip_inline_firebase_from_env
   normalize_clerk_platform_driver
@@ -218,14 +244,27 @@ else
   CLERK_SECRET_KEY="${CLERK_SECRET_KEY:-${CLERK_ADMIN_SECRET_KEY:-}}"
   CLERK_PUBLISHABLE_KEY="${CLERK_PUBLISHABLE_KEY:-${CLERK_ADMIN_PUBLISHABLE_KEY:-}}"
   CLERK_JWKS_URL="${CLERK_JWKS_URL:-${CLERK_ADMIN_JWKS_URL:-}}"
+  # Expand required vars before truncating .env (bash evaluates ${VAR:?} while writing the heredoc).
+  : "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
+  : "${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform) is required}"
+  : "${CLERK_JWKS_URL:?CLERK_JWKS_URL (Platform) is required}"
+  : "${CLERK_DRIVER_SECRET_KEY:?CLERK_DRIVER_SECRET_KEY is required}"
+  : "${CLERK_DRIVER_JWKS_URL:?CLERK_DRIVER_JWKS_URL is required}"
+  : "${STRIPE_SECRET:?STRIPE_SECRET is required}"
+  : "${STRIPE_WEBHOOK_SECRET:?STRIPE_WEBHOOK_SECRET is required}"
+  : "${JWT_SECRET:?JWT_SECRET is required}"
+  : "${SPICEDB_PRESHARED_KEY:?SPICEDB_PRESHARED_KEY is required}"
+  if [ -s .env ]; then
+    cp -a .env ".env.bak.$(date -u +%Y%m%dT%H%M%SZ)"
+  fi
   cat > .env <<EOF
 GOOGLE_MAPS_SERVER_API_KEY=${GOOGLE_MAPS_SERVER_API_KEY:-}
-POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 CLERK_MODE=platform_driver
 CLERK_UNIFIED_MODE=false
-CLERK_SECRET_KEY=${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform) is required}
+CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
 CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY:-}
-CLERK_JWKS_URL=${CLERK_JWKS_URL:?CLERK_JWKS_URL (Platform) is required}
+CLERK_JWKS_URL=${CLERK_JWKS_URL}
 CLERK_ADMIN_SECRET_KEY=${CLERK_ADMIN_SECRET_KEY:-${CLERK_SECRET_KEY}}
 CLERK_ADMIN_PUBLISHABLE_KEY=${CLERK_ADMIN_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
 CLERK_ADMIN_JWKS_URL=${CLERK_ADMIN_JWKS_URL:-${CLERK_JWKS_URL}}
@@ -235,16 +274,16 @@ CLERK_CUSTOMER_JWKS_URL=${CLERK_CUSTOMER_JWKS_URL:-${CLERK_JWKS_URL}}
 CLERK_MERCHANT_SECRET_KEY=${CLERK_MERCHANT_SECRET_KEY:-${CLERK_SECRET_KEY}}
 CLERK_MERCHANT_PUBLISHABLE_KEY=${CLERK_MERCHANT_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
 CLERK_MERCHANT_JWKS_URL=${CLERK_MERCHANT_JWKS_URL:-${CLERK_JWKS_URL}}
-CLERK_DRIVER_SECRET_KEY=${CLERK_DRIVER_SECRET_KEY:?CLERK_DRIVER_SECRET_KEY is required}
+CLERK_DRIVER_SECRET_KEY=${CLERK_DRIVER_SECRET_KEY}
 CLERK_DRIVER_PUBLISHABLE_KEY=${CLERK_DRIVER_PUBLISHABLE_KEY:-}
-CLERK_DRIVER_JWKS_URL=${CLERK_DRIVER_JWKS_URL:?CLERK_DRIVER_JWKS_URL is required}
+CLERK_DRIVER_JWKS_URL=${CLERK_DRIVER_JWKS_URL}
 CLERK_AUTHORIZED_PARTIES=${CLERK_AUTHORIZED_PARTIES:-}
 CLERK_AUTHORIZED_ISSUERS=${CLERK_AUTHORIZED_ISSUERS:-}
 CLERK_WEBHOOK_SIGNING_SECRET=${CLERK_WEBHOOK_SIGNING_SECRET:-}
-STRIPE_SECRET=${STRIPE_SECRET:?STRIPE_SECRET is required}
-STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:?STRIPE_WEBHOOK_SECRET is required}
-JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
-SPICEDB_PRESHARED_KEY=${SPICEDB_PRESHARED_KEY:?SPICEDB_PRESHARED_KEY is required}
+STRIPE_SECRET=${STRIPE_SECRET}
+STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+JWT_SECRET=${JWT_SECRET}
+SPICEDB_PRESHARED_KEY=${SPICEDB_PRESHARED_KEY}
 SPICEDB_ENABLED=${SPICEDB_ENABLED:-true}
 SPICEDB_REQUIRED=${SPICEDB_REQUIRED:-true}
 SPICEDB_ENDPOINT=${SPICEDB_ENDPOINT:-spicedb:50051}

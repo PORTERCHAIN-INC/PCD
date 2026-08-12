@@ -1,5 +1,5 @@
 /** Canonical domain event type constants — mirrors shared/python catalog. */
-export const CATALOG_VERSION = "1.0.0";
+export const CATALOG_VERSION = "1.1.1";
 
 export const DomainEvents = {
   // Visitor
@@ -51,6 +51,10 @@ export const DomainEvents = {
   ORDER_NEAR_DELIVERY: "order.near_delivery",
   ORDER_LOCATION_UPDATED: "order.tracking_updated",
   ORDER_TEMP_EXCURSION: "order.temp_excursion",
+  EXCEPTION_OPENED: "exception.opened",
+  EXCEPTION_RESOLVED: "exception.resolved",
+  ORDER_DELAYED: "order.delayed",
+  SLA_BREACHED: "sla.breached",
 
   // Phase 2 stubs (ADR-010 — no consumers yet)
   ROUTE_OPTIMIZED: "route.optimized",

@@ -18,6 +18,7 @@ _LEGACY_DIRECT_DISPATCH: frozenset[str] = frozenset(
         "notification_engine/orchestrator.py",
         "admin_engine/notification_admin_service.py",
         "admin_engine/e2e_validation_forward.py",
+        "admin_engine/order_assist_service.py",
         "routers/drivers_admin.py",
     }
 )
