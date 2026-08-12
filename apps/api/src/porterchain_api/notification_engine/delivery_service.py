@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import smtplib
+import ssl
 from datetime import UTC, datetime
 from email.message import EmailMessage
 from typing import Any
@@ -279,20 +280,25 @@ class DeliveryService:
         host = settings.smtp_host
         port = int(settings.smtp_port or 587)
         # Local stack: always use Mailpit so payment/invoice receipts are inspectable
-        # without sending through production Zoho.
+        # without sending through production SMTP (ZeptoMail).
         if str(getattr(settings, "app_env", "")).lower() in {"local", "development", "dev"}:
             host, port = "localhost", 1025
 
-        # Mailpit / local: plain SMTP (1025). Prod Zoho: SMTP_SSL (465) with login.
-        use_ssl = port not in (25, 587, 1025) and bool(settings.smtp_user)
-        if use_ssl:
-            with smtplib.SMTP_SSL(host, port) as smtp:
-                smtp.login(settings.smtp_user, settings.smtp_password)
+        # Prod ZeptoMail: 587 + STARTTLS (or 465 + SSL). Mailpit: plain 1025.
+        context = ssl.create_default_context()
+        if port == 465:
+            with smtplib.SMTP_SSL(host, port, context=context) as smtp:
+                if settings.smtp_user:
+                    smtp.login(settings.smtp_user, settings.smtp_password)
+                smtp.send_message(msg)
+        elif port == 587:
+            with smtplib.SMTP(host, port) as smtp:
+                smtp.starttls(context=context)
+                if settings.smtp_user:
+                    smtp.login(settings.smtp_user, settings.smtp_password)
                 smtp.send_message(msg)
         else:
             with smtplib.SMTP(host, port) as smtp:
-                if port == 587:
-                    smtp.starttls()
                 if settings.smtp_user and port != 1025:
                     smtp.login(settings.smtp_user, settings.smtp_password)
                 smtp.send_message(msg)

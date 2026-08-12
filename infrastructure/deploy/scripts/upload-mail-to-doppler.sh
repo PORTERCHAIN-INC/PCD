@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Upload Zoho SMTP (MAIL_*) secrets to Doppler pcd/prd for the live droplet.
+# Upload ZeptoMail SMTP (MAIL_*) secrets to Doppler pcd/prd for the live droplet.
 # Reads from apps/api/.env by default (gitignored). Never prints password values.
 #
 # Usage:
@@ -7,6 +7,7 @@
 #   MAIL_ENV=/path/to/.env bash infrastructure/deploy/scripts/upload-mail-to-doppler.sh
 #
 # Requires: doppler CLI + login (or DOPPLER_TOKEN)
+# ZeptoMail SMTP: host smtp.zeptomail.ca, user emailapikey, password = Send Mail Token
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
@@ -49,10 +50,11 @@ PORTERCHAIN_OPS_EMAILS="$(get_kv PORTERCHAIN_OPS_EMAILS)"
 
 # Production defaults when local file only has partial keys
 MAIL_MAILER="${MAIL_MAILER:-smtp}"
-MAIL_HOST="${MAIL_HOST:-smtp.zohocloud.ca}"
-MAIL_PORT="${MAIL_PORT:-465}"
-MAIL_ENCRYPTION="${MAIL_ENCRYPTION:-ssl}"
-MAIL_FROM_ADDRESS="${MAIL_FROM_ADDRESS:-ops@porterchain.com}"
+MAIL_HOST="${MAIL_HOST:-smtp.zeptomail.ca}"
+MAIL_PORT="${MAIL_PORT:-587}"
+MAIL_ENCRYPTION="${MAIL_ENCRYPTION:-tls}"
+MAIL_USERNAME="${MAIL_USERNAME:-emailapikey}"
+MAIL_FROM_ADDRESS="${MAIL_FROM_ADDRESS:-noreply@porterchain.com}"
 MAIL_FROM_ADDRESS2="${MAIL_FROM_ADDRESS2:-sales@porterchain.com}"
 MAIL_FROM_ADDRESS3="${MAIL_FROM_ADDRESS3:-ravi@porterchain.com}"
 MAIL_FROM_NAME="${MAIL_FROM_NAME:-Porterchain}"
@@ -60,15 +62,21 @@ PORTERCHAIN_OPS_EMAILS="${PORTERCHAIN_OPS_EMAILS:-ops@porterchain.com}"
 
 if [[ -z "${MAIL_USERNAME}" || -z "${MAIL_PASSWORD}" ]]; then
   echo "MAIL_USERNAME and MAIL_PASSWORD must be set in $MAIL_ENV" >&2
+  echo "ZeptoMail: MAIL_USERNAME=emailapikey and MAIL_PASSWORD=<Send Mail Token>" >&2
+  exit 1
+fi
+
+if [[ "$MAIL_PASSWORD" == "********" || "$MAIL_PASSWORD" == "changeme" || "$MAIL_PASSWORD" == "REPLACE_ME" ]]; then
+  echo "MAIL_PASSWORD still looks like a placeholder in $MAIL_ENV" >&2
   exit 1
 fi
 
 if [[ "$MAIL_HOST" == "localhost" || "$MAIL_HOST" == "127.0.0.1" ]]; then
-  echo "Refusing to upload Mailpit/local host to production. Set MAIL_HOST=smtp.zohocloud.ca" >&2
+  echo "Refusing to upload Mailpit/local host to production. Set MAIL_HOST=smtp.zeptomail.ca" >&2
   exit 1
 fi
 
-echo "Uploading Zoho MAIL_* to Doppler project=$PROJECT config=$CONFIG (password not printed)…"
+echo "Uploading ZeptoMail MAIL_* to Doppler project=$PROJECT config=$CONFIG (password not printed)…"
 echo "  MAIL_HOST=$MAIL_HOST"
 echo "  MAIL_PORT=$MAIL_PORT"
 echo "  MAIL_USERNAME=$MAIL_USERNAME"

@@ -174,7 +174,7 @@ Do **not** configure divergent per-portal Clerk apps. Platform triad names (`CLE
 | --------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | Not set                | Optional — add when Sentry project is created                                                                                                                     |
 | `FLEETBASE_*`                           | Blocked (DD-05b)       | Add to Doppler when Fleetbase prod ready                                                                                                                          |
-| SMTP (`MAIL_*` / `SMTP_*`)              | Prod via Zoho CA       | `bash infrastructure/deploy/scripts/upload-mail-to-doppler.sh` → Doppler `pcd`/`prd` → deploy `sync-secrets.sh`. See [ZOHO_MAIL.md](./notifications/ZOHO_MAIL.md) |
+| SMTP (`MAIL_*` / `SMTP_*`)              | Prod via ZeptoMail CA  | `bash infrastructure/deploy/scripts/upload-mail-to-doppler.sh` → Doppler `pcd`/`prd` → deploy `sync-secrets.sh`. See [ZOHO_MAIL.md](./notifications/ZOHO_MAIL.md) |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`    | Not in deploy workflow | Add GitHub secret when merchant Stripe UI ships                                                                                                                   |
 
 ---

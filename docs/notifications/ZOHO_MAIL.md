@@ -12,12 +12,14 @@
 
 ## Principle
 
-| Environment    | Outbound email                                                                  |
-| -------------- | ------------------------------------------------------------------------------- |
-| **Local / CI** | **Mailpit** — never put live Zoho passwords in local `.env` committed or shared |
-| **Production** | **Zoho SMTP** (`smtp.zohocloud.ca`) via Doppler / droplet `MAIL_*`              |
+| Environment    | Outbound email                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| **Local / CI** | **Mailpit** — never put live send-mail tokens in local `.env` committed or shared           |
+| **Production** | **ZeptoMail SMTP** (`smtp.zeptomail.ca`, user `emailapikey`) via Doppler / droplet `MAIL_*` |
 
-Auth for portals remains **Clerk-only**. Zoho Mail is for **transactional + human mailboxes**, not login.
+Human Zoho Mailboxes (`mail.zoho.ca`) remain for inbox/IMAP. **Transactional send** uses ZeptoMail SMTP.
+
+Auth for portals remains **Clerk-only**. Mail is for **transactional + human mailboxes**, not login.
 
 ---
 
@@ -41,15 +43,27 @@ Configure each address in Zoho Mail Admin (users and/or aliases / group addresse
 
 ## Server settings (Canada DC)
 
-### SMTP (outgoing — apps + clients)
+### SMTP outgoing — apps (ZeptoMail transactional)
 
-| Setting           | Value                                                                               |
-| ----------------- | ----------------------------------------------------------------------------------- |
-| Host              | `smtp.zohocloud.ca`                                                                 |
-| Port + encryption | **465 + SSL** (preferred for Porterchain API) **or** 587 + TLS                      |
-| Authentication    | Yes                                                                                 |
-| Username          | Full address, e.g. `ops@porterchain.com` (or the mailbox that owns Send Mail As)    |
-| Password          | Zoho account password **or** Zoho **app-specific password** (preferred for servers) |
+| Setting           | Value                                                         |
+| ----------------- | ------------------------------------------------------------- |
+| Host              | `smtp.zeptomail.ca`                                           |
+| Port + encryption | **587 + STARTTLS** (preferred) **or** 465 + SSL               |
+| Authentication    | Yes                                                           |
+| Username          | `emailapikey` (literal)                                       |
+| Password          | ZeptoMail **Send Mail Token** (not the Zoho mailbox password) |
+| From              | Verified sender, e.g. `noreply@porterchain.com`               |
+
+Upload to Doppler: `bash infrastructure/deploy/scripts/upload-mail-to-doppler.sh`
+
+### Zoho Mail SMTP (human clients — optional)
+
+| Setting           | Value                                                       |
+| ----------------- | ----------------------------------------------------------- |
+| Host              | `smtp.zohocloud.ca`                                         |
+| Port + encryption | **465 + SSL** **or** 587 + TLS                              |
+| Username          | Full address, e.g. `ops@porterchain.com`                    |
+| Password          | Zoho account password **or** Zoho **app-specific password** |
 
 ### IMAP (incoming — mail clients / tools)
 

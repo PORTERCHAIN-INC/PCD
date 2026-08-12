@@ -94,13 +94,13 @@ class PlatformSettings(BaseSettings):
         validation_alias=AliasChoices("sms_provider", "PORTERCHAIN_SMS_PROVIDER"),
     )
 
-    # SMTP (Zoho Mail — transactional; auth is Clerk-only)
+    # SMTP (ZeptoMail transactional; auth is Clerk-only)
     smtp_host: str = Field(default="", validation_alias=AliasChoices("smtp_host", "MAIL_HOST"))
-    smtp_port: int = Field(default=465, validation_alias=AliasChoices("smtp_port", "MAIL_PORT"))
+    smtp_port: int = Field(default=587, validation_alias=AliasChoices("smtp_port", "MAIL_PORT"))
     smtp_user: str = Field(default="", validation_alias=AliasChoices("smtp_user", "MAIL_USERNAME"))
     smtp_password: str = Field(default="", validation_alias=AliasChoices("smtp_password", "MAIL_PASSWORD"))
     smtp_from: str = Field(
-        default="ops@porterchain.com",
+        default="noreply@porterchain.com",
         validation_alias=AliasChoices("smtp_from", "MAIL_FROM_ADDRESS"),
     )
     smtp_from_sales: str = Field(
