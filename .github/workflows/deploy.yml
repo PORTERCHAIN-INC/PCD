@@ -60,17 +60,30 @@ jobs:
             echo "::error::DOPPLER_TOKEN is required. Runtime secrets are in Doppler, not GitHub. See docs/SECRETS_MAP.md"
             exit 1
           fi
-          # Use Doppler HTTP API (no CLI install / sudo on the runner).
-          code="$(curl -sS -o /tmp/doppler-preflight.json -w '%{http_code}' \
+          echo "DOPPLER_TOKEN length on runner: ${#DOPPLER_TOKEN}"
+          if [ "${#DOPPLER_TOKEN}" -lt 60 ]; then
+            echo "::warning::DOPPLER_TOKEN looks unusually short (${#DOPPLER_TOKEN} chars). Service tokens are typically longer — rotate if sync keeps failing."
+          fi
+          # Full config download (same payload the droplet needs) — proves token can sync, not only read one key.
+          code="$(curl -sS -o /tmp/doppler-preflight.env -w '%{http_code}' \
             -H "Authorization: Bearer ${DOPPLER_TOKEN}" \
-            "https://api.doppler.com/v3/configs/config/secret?project=${DOPPLER_PROJECT}&config=${DOPPLER_CONFIG}&name=POSTGRES_PASSWORD")"
+            "https://api.doppler.com/v3/configs/config/secrets/download?project=${DOPPLER_PROJECT}&config=${DOPPLER_CONFIG}&format=env")"
           if [ "$code" != "200" ]; then
-            echo "::error::DOPPLER_TOKEN cannot read ${DOPPLER_PROJECT}/${DOPPLER_CONFIG} (HTTP ${code}). Create a new service token in Doppler → Access → Service Tokens, then: gh secret set DOPPLER_TOKEN"
-            head -c 400 /tmp/doppler-preflight.json || true
+            echo "::error::DOPPLER_TOKEN cannot download ${DOPPLER_PROJECT}/${DOPPLER_CONFIG} (HTTP ${code}). Create a new service token in Doppler → Access → Service Tokens, then: gh secret set DOPPLER_TOKEN"
+            head -c 400 /tmp/doppler-preflight.env || true
             echo
             exit 1
           fi
-          echo "Doppler preflight OK (${DOPPLER_PROJECT}/${DOPPLER_CONFIG})"
+          bytes="$(wc -c < /tmp/doppler-preflight.env)"
+          if [ "$bytes" -lt 500 ]; then
+            echo "::error::Doppler download too small (${bytes} bytes) — token or config likely wrong"
+            exit 1
+          fi
+          if ! grep -qE '^POSTGRES_PASSWORD=.+' /tmp/doppler-preflight.env; then
+            echo "::error::Doppler download missing POSTGRES_PASSWORD"
+            exit 1
+          fi
+          echo "Doppler preflight OK (${DOPPLER_PROJECT}/${DOPPLER_CONFIG}, ${bytes} bytes)"
 
       - name: Resolve commit to deploy
         if: steps.check.outputs.ready == 'true'
@@ -247,16 +260,34 @@ jobs:
           source: "doppler.yaml"
           target: "/opt/porterchain"
 
-      - name: Stage Doppler token for droplet
+      - name: Stage Doppler env for droplet
         if: steps.check.outputs.ready == 'true'
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
+          DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG || 'prd' }}
         run: |
           set -euo pipefail
           umask 077
-          printf '%s' "$DOPPLER_TOKEN" > doppler.token
+          # Download on the runner (token works here). Do NOT SCP the token — appleboy
+          # and short/truncated tokens have broken droplet-side sync repeatedly.
+          code="$(curl -sS -o doppler.env -w '%{http_code}' \
+            -H "Authorization: Bearer ${DOPPLER_TOKEN}" \
+            "https://api.doppler.com/v3/configs/config/secrets/download?project=${DOPPLER_PROJECT}&config=${DOPPLER_CONFIG}&format=env")"
+          if [ "$code" != "200" ]; then
+            echo "::error::Failed to download Doppler env for SCP (HTTP ${code})"
+            head -c 400 doppler.env || true
+            echo
+            exit 1
+          fi
+          bytes="$(wc -c < doppler.env)"
+          echo "Staged doppler.env (${bytes} bytes, token_len=${#DOPPLER_TOKEN})"
+          if [ "$bytes" -lt 500 ] || ! grep -qE '^POSTGRES_PASSWORD=.+' doppler.env; then
+            echo "::error::Staged doppler.env failed validation"
+            exit 1
+          fi
 
-      - name: Copy Doppler token to droplet
+      - name: Copy Doppler env to droplet
         if: steps.check.outputs.ready == 'true'
         uses: appleboy/scp-action@v1.0.0
         with:
@@ -264,7 +295,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          source: "doppler.token"
+          source: "doppler.env"
           target: "/opt/porterchain"
 
       - name: Deploy to droplet over SSH
@@ -286,12 +317,13 @@ jobs:
             export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:$IMAGE_TAG"
             export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:$IMAGE_TAG"
             export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:$IMAGE_TAG"
-            # DOPPLER_TOKEN is delivered only via SCP'd doppler.token (appleboy envs truncates secrets).
-            if [ ! -f doppler.token ]; then
-              echo "::error::missing /opt/porterchain/doppler.token (SCP step failed)"
+            # Secrets arrive as SCP'd doppler.env (downloaded on the runner). Never rely on
+            # appleboy env-forwarding DOPPLER_TOKEN (truncates / breaks sync).
+            if [ ! -f doppler.env ]; then
+              echo "::error::missing /opt/porterchain/doppler.env (SCP step failed)"
               exit 1
             fi
-            echo "sync-secrets: token_file_len=$(wc -c < doppler.token)"
+            echo "sync-secrets: doppler.env bytes=$(wc -c < doppler.env)"
             if ! bash sync-secrets.sh 2>&1; then
               echo "::error::sync-secrets.sh failed — see output above"
               exit 1
