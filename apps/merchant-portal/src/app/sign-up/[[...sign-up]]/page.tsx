@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SignUp, useAuth } from "@clerk/nextjs";
 import { useEffect } from "react";
-import { porterchainClerkAppearance } from "@porterchain/auth";
+import { PasswordRequirements, porterchainClerkAppearance } from "@porterchain/auth";
 import { MerchantAuthLoading, MerchantAuthScreen } from "@/components/auth/MerchantAuthScreen";
 import { isClerkConfigured } from "@/lib/env";
 
@@ -70,6 +70,7 @@ function SignUpWithClerk() {
         fallbackRedirectUrl="/onboarding"
         appearance={porterchainClerkAppearance}
       />
+      <PasswordRequirements />
     </MerchantAuthScreen>
   );
 }

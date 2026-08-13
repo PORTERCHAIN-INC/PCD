@@ -15,6 +15,9 @@ const baseElements = {
   formFieldLabel: "text-sm font-medium text-primary",
   formFieldInput:
     "h-11 rounded-xl border-primary/10 bg-gray-bg text-primary shadow-none focus:ring-2 focus:ring-secondary/20",
+  formFieldInfoText: "text-xs text-muted mt-1",
+  formFieldHintText: "text-xs text-muted mt-1",
+  formFieldErrorText: "text-xs text-red-700 mt-1",
   formButtonPrimary:
     "h-11 rounded-xl bg-secondary hover:bg-[#1d4ed8] text-sm font-semibold shadow-none transition-colors",
   identityPreview: "rounded-xl border border-primary/8 bg-gray-bg",

@@ -10,7 +10,7 @@ import { SignUp, useAuth } from "@clerk/nextjs";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
-import { porterchainClerkAppearance } from "@porterchain/auth";
+import { PasswordRequirements, porterchainClerkAppearance } from "@porterchain/auth";
 import LoginShell from "@/components/portal/LoginShell";
 import PlatformAuthLayout, { PlatformAuthLoading } from "@/components/portal/PlatformAuthLayout";
 import PostAuthPortalRedirect from "@/components/portal/PostAuthPortalRedirect";
@@ -111,6 +111,19 @@ function SignUpContent() {
           forceRedirectUrl={continuePath}
           fallbackRedirectUrl={continuePath}
           appearance={porterchainClerkAppearance}
+        />
+        <PasswordRequirements
+          copy={{
+            title: t("passwordTitle"),
+            intro: t("passwordIntro"),
+            minLength: t("passwordMinLength"),
+            uppercase: t("passwordUppercase"),
+            lowercase: t("passwordLowercase"),
+            number: t("passwordNumber"),
+            special: t("passwordSpecial"),
+            allowedLabel: t("passwordAllowedLabel"),
+            strength: t("passwordStrength"),
+          }}
         />
       </PlatformAuthLayout>
     </LoginShell>

@@ -37,6 +37,13 @@ export {
   porterchainClerkAppearance,
   porterchainClerkAppearanceInviteOnly,
 } from "./clerkAppearance";
+export {
+  PASSWORD_ALLOWED_SPECIAL,
+  PASSWORD_ALLOWED_SPECIAL_DISPLAY,
+  PASSWORD_MIN_LENGTH,
+} from "./passwordPolicy";
+export { PasswordRequirements } from "./PasswordRequirements";
+export type { PasswordRequirementsCopy } from "./PasswordRequirements";
 export { PortalAuthScreen } from "./PortalAuthScreen";
 export type { PortalAuthMode, PortalAuthScreenProps } from "./PortalAuthScreen";
 export { safeAppRedirect } from "./safeRedirect";
