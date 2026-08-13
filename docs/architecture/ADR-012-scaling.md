@@ -23,7 +23,7 @@ Investor diligence (DD-03) requires a documented path off “one box forever” 
 
 | Phase             | Trigger                             | Topology                                                        | Effort    |
 | ----------------- | ----------------------------------- | --------------------------------------------------------------- | --------- |
-| **A — Now**       | DD-03 close; p95 headroom           | Same droplet, **2 API replicas**, in-compose Postgres/Redis     | 1–2 days  |
+| **A — Now**       | 4GB droplet RAM                     | Same droplet, **1 API replica**; `API_REPLICAS=2` when ≥8 GB    | 1–2 days  |
 | **B — Growth**    | DB CPU >60% sustained or backup SLA | **Managed Postgres 18** + **Managed Redis 7**; 2–4 API replicas | 1–2 weeks |
 | **C — Scale-out** | >500 RPS API or multi-region        | DO App Platform / ECS / K8s; read replica for analytics (DD-19) | 4–8 weeks |
 
@@ -35,29 +35,31 @@ Phases are **sequential**. Do not jump to Kubernetes while still on a single dro
 
 These must remain true for every API replica:
 
-| Concern                     | Mechanism                         | Code / config                                       |
-| --------------------------- | --------------------------------- | --------------------------------------------------- |
-| HTTP sessions               | None — Clerk JWT per request      | `auth/clerk.py`                                     |
-| Rate limiting               | Redis-backed, fail-closed         | `platform/rate_limit_middleware.py` (DD-06)         |
-| In-app notification WS      | Redis pub/sub fanout              | `notification_engine/realtime.py` (DD-11)           |
-| Stripe / Fleetbase webhooks | Idempotency store (Redis)         | `stripe_webhook_service.py`, event bus              |
-| Background work             | Single worker fleet, Redis queues | `apps/worker/` (DD-04)                              |
-| DB connections              | Pooled per replica                | `config.py` `db_pool_size=10`, `db_max_overflow=20` |
+| Concern                     | Mechanism                         | Code / config                                    |
+| --------------------------- | --------------------------------- | ------------------------------------------------ |
+| HTTP sessions               | None — Clerk JWT per request      | `auth/clerk.py`                                  |
+| Rate limiting               | Redis-backed, fail-closed         | `platform/rate_limit_middleware.py` (DD-06)      |
+| In-app notification WS      | Redis pub/sub fanout              | `notification_engine/realtime.py` (DD-11)        |
+| Stripe / Fleetbase webhooks | Idempotency store (Redis)         | `stripe_webhook_service.py`, event bus           |
+| Background work             | Single worker fleet, Redis queues | `apps/worker/` (DD-04)                           |
+| DB connections              | Pooled per replica                | `DB_POOL_SIZE=5` on 4GB (`config.py` default 10) |
 
 **Notification WS** (`/v1/notifications/ws`) uses Redis pub/sub so any replica can serve the connection. Admin live-map WS was removed (Fleetbase-first).
 
 ---
 
-## Phase A — Two API replicas (same droplet)
+## Phase A — API replicas (same droplet)
+
+On the **4GB production droplet**, run **1 API replica** so FastAPI + DB pool fit beside Valhalla, five Next.js portals, Postgres, and Redis. Scale to **2** when the host has ≥8 GB.
 
 ### Compose
 
 - Remove fixed `container_name` on the `api` service so Compose can scale.
-- Deploy with `API_REPLICAS` (default **2**):
+- Deploy with `API_REPLICAS` (default **1** on 4GB):
 
 ```bash
 cd /opt/porterchain
-export API_REPLICAS=2
+export API_REPLICAS=1
 docker compose -f docker-compose.prod.yml up -d --remove-orphans --scale api=$API_REPLICAS
 ```
 
@@ -78,19 +80,19 @@ CI deploy workflow uses the same pattern.
 
 ### Connection budget
 
-| Replicas | `db_pool_size` | Max DB connections (API only) |
-| -------- | -------------- | ----------------------------- |
-| 1        | 10             | ~30 (with overflow)           |
-| 2        | 10             | ~60                           |
-| 4        | 10             | ~120 — reduce pool to 5 first |
+| Replicas | `db_pool_size` | Max DB connections (API only)          |
+| -------- | -------------- | -------------------------------------- |
+| 1        | 5              | ~10 (overflow 5)                       |
+| 2        | 5              | ~20                                    |
+| 4        | 5              | ~40 — still under `max_connections=80` |
 
-Postgres default `max_connections=100` on the droplet image is sufficient for 2 replicas + worker; raise or move to managed PG before 4 replicas.
+Postgres on the droplet is capped at `max_connections=80` (compose). 1 replica + worker fits; raise or move to managed PG before 4 replicas.
 
-### Rollback
+### Scale up (when host RAM ≥8 GB)
 
 ```bash
-export API_REPLICAS=1
-docker compose -f docker-compose.prod.yml up -d --scale api=1
+export API_REPLICAS=2
+docker compose -f docker-compose.prod.yml up -d --scale api=2
 ```
 
 ---

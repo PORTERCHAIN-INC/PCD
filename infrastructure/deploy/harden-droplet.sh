@@ -70,6 +70,18 @@ EOF
 sshd -t
 systemctl reload ssh || systemctl reload sshd
 
+echo "==> Swap (2G) — 4GB droplet OOM insurance"
+if [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+fi
+grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+sysctl -w vm.swappiness=10 >/dev/null
+grep -q '^vm.swappiness=' /etc/sysctl.conf || echo 'vm.swappiness=10' >> /etc/sysctl.conf
+swapon --show || true
+
 echo
 echo "==> Hardening complete. Status:"
 ufw status verbose | head -n 20

@@ -41,6 +41,7 @@ RUN pnpm --filter @porterchain/merchant-portal build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV NODE_OPTIONS=--max-old-space-size=192
 ENV PORT=3001
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/apps/merchant-portal/public ./apps/merchant-portal/public

@@ -43,7 +43,7 @@ wait_redis 24
 
 echo "=== Roll app tier ==="
 docker compose -f docker-compose.prod.yml up -d --remove-orphans --force-recreate --pull missing \
-  --scale api="${API_REPLICAS:-2}" \
+  --scale api="${API_REPLICAS:-1}" \
   web api worker admin merchant driver customer caddy
 
 wait_postgres 24

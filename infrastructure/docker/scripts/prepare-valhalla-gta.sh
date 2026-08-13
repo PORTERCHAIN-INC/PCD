@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
-# Prepare a ~150 km GTA downtown OSM extract for local Valhalla (no full Ontario).
+# Prepare a ~150 km GTA downtown OSM extract for Valhalla (no full Ontario).
+# Coverage is intentionally ±150 km — do not shrink. RAM is cut via valhalla.json
+# (tune-valhalla-json.py) and compose, not a smaller bbox.
 # Downtown Toronto centre: 43.6532 N, 79.3832 W → ±150 km bbox.
+#
+# Override paths for production:
+#   DATA_DIR=/opt/porterchain/valhalla-extract \
+#   OUT_PBF=/opt/porterchain/valhalla-extract/gta-150km.osm.pbf \
+#   bash infrastructure/docker/scripts/prepare-valhalla-gta.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-DATA_DIR="$ROOT/infrastructure/docker/valhalla/data"
-OUT_PBF="$DATA_DIR/gta-150km.osm.pbf"
+DATA_DIR="${DATA_DIR:-$ROOT/infrastructure/docker/valhalla/data}"
+OUT_PBF="${OUT_PBF:-$DATA_DIR/gta-150km.osm.pbf}"
 
 # 150 km around downtown Toronto (Nathan Phillips / Yonge–Dundas)
 SW_LNG=-81.245

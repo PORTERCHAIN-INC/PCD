@@ -13,12 +13,31 @@
 
 name: porterchain-prod
 
+# 4GB droplet: cap Node heap without waiting for a new image build.
+x-node-ram: &node-ram
+  NODE_ENV: production
+  NODE_OPTIONS: "--max-old-space-size=192"
+
 services:
   postgres:
     # Prod volume was initialized on PG16 at /var/lib/postgresql/data — keep until pg_dump/pg_upgrade to 18.
     image: postgres:16.10-alpine3.22
     container_name: pcd-postgres
     restart: unless-stopped
+    command:
+      [
+        "postgres",
+        "-c",
+        "shared_buffers=64MB",
+        "-c",
+        "work_mem=4MB",
+        "-c",
+        "effective_cache_size=256MB",
+        "-c",
+        "maintenance_work_mem=32MB",
+        "-c",
+        "max_connections=80",
+      ]
     environment:
       POSTGRES_USER: porterchain
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
@@ -40,7 +59,7 @@ services:
     image: redis:8.8.0-alpine3.23
     container_name: pcd-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
     expose:
       - "6379"
     volumes:
@@ -139,12 +158,14 @@ services:
     volumes:
       - valhalla-tiles:/custom_files
     environment:
-      tile_urls: https://download.geofabrik.de/north-america/canada/ontario-latest.osm.pbf
+      # GTA ±150 km extract in the volume (rebuild-valhalla-gta.sh).
+      # Never point this at ontario-latest.osm.pbf — full Ontario OOMs a 4GB droplet.
+      tile_urls: ""
       use_tiles_ignore_pbf: "True"
       build_elevation: "False"
-      build_admins: "True"
-      build_time_zones: "True"
-      server_threads: "2"
+      build_admins: "False"
+      build_time_zones: "False"
+      server_threads: "1"
     networks:
       - edge
     healthcheck:
@@ -161,7 +182,7 @@ services:
     restart: unless-stopped
     pull_policy: missing
     # No container_name — required for `docker compose up --scale api=N` (ADR-012).
-    # Default deploy sets API_REPLICAS=2; Caddy load-balances api:8001 across replicas.
+    # 4GB droplet default is API_REPLICAS=1; scale to 2 when the host has ≥8 GB.
     depends_on:
       postgres:
         condition: service_healthy
@@ -176,6 +197,8 @@ services:
       APP_DEBUG: "false"
       DATABASE_URL: postgresql+psycopg://porterchain:${POSTGRES_PASSWORD}@postgres:5432/porterchain
       REDIS_URL: redis://redis:6379/0
+      DB_POOL_SIZE: "5"
+      DB_MAX_OVERFLOW: "5"
       PORTERCHAIN_API_URL: https://api.porterchain.com
       CORS_ORIGINS: ${CORS_ORIGINS:-https://porterchain.com,https://www.porterchain.com,https://admin.porterchain.com,https://merchant.porterchain.com,https://driver.porterchain.com,https://customer.porterchain.com}
       WEBSITE_URL: https://porterchain.com
@@ -277,6 +300,8 @@ services:
       APP_DEBUG: "false"
       DATABASE_URL: postgresql+psycopg://porterchain:${POSTGRES_PASSWORD}@postgres:5432/porterchain
       REDIS_URL: redis://redis:6379/0
+      DB_POOL_SIZE: "5"
+      DB_MAX_OVERFLOW: "5"
       FLEETBASE_DISPATCH_BRIDGE: ${FLEETBASE_DISPATCH_BRIDGE:-false}
       FLEETBASE_SSO_ENABLED: ${FLEETBASE_SSO_ENABLED:-false}
       FLEETBASE_API_URL: ${FLEETBASE_API_URL:-}
@@ -352,7 +377,7 @@ services:
       - api
       - valhalla
     environment:
-      NODE_ENV: production
+      <<: *node-ram
       PORT: "3000"
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
@@ -373,7 +398,7 @@ services:
     restart: unless-stopped
     pull_policy: missing
     environment:
-      NODE_ENV: production
+      <<: *node-ram
       PORT: "3002"
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
     expose:
@@ -389,7 +414,7 @@ services:
     restart: unless-stopped
     pull_policy: missing
     environment:
-      NODE_ENV: production
+      <<: *node-ram
       PORT: "3001"
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
     expose:
@@ -405,7 +430,7 @@ services:
     restart: unless-stopped
     pull_policy: missing
     environment:
-      NODE_ENV: production
+      <<: *node-ram
       PORT: "3003"
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
     expose:
@@ -421,7 +446,7 @@ services:
     restart: unless-stopped
     pull_policy: missing
     environment:
-      NODE_ENV: production
+      <<: *node-ram
       PORT: "3004"
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
     expose:

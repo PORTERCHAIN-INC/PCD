@@ -152,7 +152,7 @@ The meat of the pipeline. Single `deploy` job on `ubuntu-24.04`.
    - Export image tags as env (`WEB_IMAGE`, `API_IMAGE`, …)
    - `docker compose pull` → `bash scripts/recover-prod-stack.sh`
      - Recover data plane first (`postgres redis valhalla`, no force-recreate)
-     - Then app tier `--force-recreate --pull missing --scale api=${API_REPLICAS:-2}` (`web api worker admin merchant driver customer caddy`)
+     - Then app tier `--force-recreate --pull missing --scale api=${API_REPLICAS:-1}` (`web api worker admin merchant driver customer caddy`)
    - **Alembic migrations** once inside one API replica (`repair_and_migrate.py`) — **deploy aborts if migration fails**, before traffic cutover
    - Verify `booking_drafts` table exists
    - Restart api + caddy, `docker image prune`
@@ -169,7 +169,7 @@ The meat of the pipeline. Single `deploy` job on `ubuntu-24.04`.
 ```
 Internet :443 → Caddy (Let's Encrypt TLS, HSTS, www→apex)
   ├─ porterchain.com       → website :3000
-  ├─ api.porterchain.com   → api :8001 × API_REPLICAS (default 2)
+  ├─ api.porterchain.com   → api :8001 × API_REPLICAS (default 1 on 4GB)
   ├─ admin.porterchain.com → admin :3002
   ├─ merchant.porterchain.com → merchant :3001
   ├─ driver.porterchain.com  → driver :3003
@@ -239,7 +239,7 @@ Used by the contact/quote form path: website `/api/inquiries` → API `/v1/publi
 | Store                      | Owns                                                                                                                                                                             | How CI consumes                                                                        |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | **GitHub Actions secrets** | Deploy infra (`DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_PORT`), public bake keys (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, Clerk publishable keys, Sentry DSN, Zoho, GA) | `${{ secrets.* }}` in workflows                                                        |
-| **GitHub variables**       | `NEXT_PUBLIC_SITE_URL`, `API_REPLICAS` (default 2), `PORTERCHAIN_PUSH_ENABLED/SEND`, `DOPPLER_PROJECT/CONFIG`, Zoho toggle                                                       | `${{ vars.* }}` with `                                                                 |     | ` defaults |
+| **GitHub variables**       | `NEXT_PUBLIC_SITE_URL`, `API_REPLICAS` (default 1 on 4GB), `PORTERCHAIN_PUSH_ENABLED/SEND`, `DOPPLER_PROJECT/CONFIG`, Zoho toggle                                                | `${{ vars.* }}` with `                                                                 |     | ` defaults |
 | **Doppler** (`pcd`/`prd`)  | **Runtime** secrets: `POSTGRES_PASSWORD`, `STRIPE_*`, `JWT_SECRET`, Clerk secret keys/JWKS, Firebase, push flags, Fleetbase                                                      | `DOPPLER_TOKEN` in GH Actions → `sync-secrets.sh` → `/opt/porterchain/.env` on droplet |
 | **GHCR**                   | Container images                                                                                                                                                                 | `GITHUB_TOKEN` (built-in) — no extra secret                                            |
 
@@ -260,7 +260,7 @@ Legacy GitHub runtime secrets (e.g. `CLERK_SECRET_KEY`, `POSTGRES_PASSWORD`) wer
   export API_IMAGE=ghcr.io/porterchain/pcd-api:<previous-sha>
   docker compose -f docker-compose.prod.yml up -d
   ```
-- **API scale / rollback:** `API_REPLICAS=1` for single-replica rollback; `recover-prod-stack.sh` applies the scale.
+- **API scale:** default `API_REPLICAS=1` on the 4GB droplet; `2` when the host has ≥8 GB. `recover-prod-stack.sh` applies the scale.
 - **Recovery script** `infrastructure/deploy/scripts/recover-prod-stack.sh` is idempotent: boots data plane, waits for health, then rolls the app tier. It is what `deploy.yml` invokes on the droplet.
 - **Backups:** `backup-porterchain-postgres.sh` / `restore-porterchain-postgres.sh` on the droplet.
 - **Manual deploy/rollback docs:** `infrastructure/deploy/README.md` § Manual Deploy / Rollback.

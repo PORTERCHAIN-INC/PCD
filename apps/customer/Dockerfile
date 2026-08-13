@@ -44,6 +44,7 @@ RUN pnpm --filter @porterchain/customer build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV NODE_OPTIONS=--max-old-space-size=192
 ENV PORT=3004
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/apps/customer/public ./apps/customer/public

@@ -26,6 +26,7 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-fleetbase}
       MYSQL_USER: ${MYSQL_USER:-fleetbase}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me-fleetbase}
+    command: ["--innodb-buffer-pool-size=128M", "--max-connections=50", "--performance-schema=OFF"]
     ports:
       - "127.0.0.1:3306:3306"
     volumes:
@@ -55,7 +56,7 @@ services:
     image: redis:8.8.0-alpine3.23
     container_name: porterchain-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
     ports:
       - "127.0.0.1:6379:6379"
     volumes:
@@ -74,6 +75,18 @@ services:
     image: postgres:18-alpine3.24
     container_name: porterchain-postgres
     restart: unless-stopped
+    command:
+      [
+        "postgres",
+        "-c",
+        "shared_buffers=64MB",
+        "-c",
+        "work_mem=4MB",
+        "-c",
+        "effective_cache_size=256MB",
+        "-c",
+        "maintenance_work_mem=32MB",
+      ]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-porterchain}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-porterchain}
@@ -176,8 +189,8 @@ services:
       build_elevation: "False"
       # Admins need planet-scale extract; skip for GTA clip
       build_admins: "False"
-      build_time_zones: "True"
-      server_threads: "2"
+      build_time_zones: "False"
+      server_threads: "1"
     networks:
       - porterchain-internal
     healthcheck:

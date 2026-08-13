@@ -28,12 +28,14 @@ Google Maps never participates in routing.
 
 ## Infrastructure
 
-| Component                                 | Endpoint                                                           |
-| ----------------------------------------- | ------------------------------------------------------------------ |
-| Local `porterchain-valhalla`              | `http://127.0.0.1:8002` (GTA extract via `pnpm docker:up:routing`) |
-| `VALHALLA_BASE_URL` / `VALHALLA_BASE_URI` | Host vs Docker-internal                                            |
+| Component                                 | Endpoint                                                                   |
+| ----------------------------------------- | -------------------------------------------------------------------------- |
+| Local `porterchain-valhalla`              | `http://127.0.0.1:8002` (GTA ±150 km extract via `pnpm docker:up:routing`) |
+| `VALHALLA_BASE_URL` / `VALHALLA_BASE_URI` | Host vs Docker-internal                                                    |
 
 Health: `http://localhost:8002/status` · see [DOCKER_SETUP.md](./DOCKER_SETUP.md).
+
+**RAM (4GB droplet):** keep the GTA ±150 km extract. Do not load `ontario-latest.osm.pbf`. Tile cache is 256 MiB (`tune-valhalla-json.py`); `server_threads=1`; no elevation/admins/timezones. After tiles exist, drop the PBF from the volume (`rebuild-valhalla-gta.sh`). Apply live json without rebuild: `bash /opt/porterchain/scripts/tune-valhalla-ram.sh`.
 
 ---
 

@@ -68,6 +68,7 @@ RUN pnpm --filter @porterchain/website build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV NODE_OPTIONS=--max-old-space-size=192
 ENV PORT=3000
 # Runtime never needs the Node-distribution npm CLI; remove it so Trivy does not
 # fail on HIGH/CRITICAL findings inside /usr/local/lib/node_modules/npm.

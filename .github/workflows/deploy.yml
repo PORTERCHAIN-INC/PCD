@@ -245,7 +245,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh,infrastructure/deploy/scripts/verify-clerk.sh,infrastructure/deploy/scripts/verify-routing.sh,infrastructure/deploy/scripts/recover-prod-stack.sh"
+          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh,infrastructure/deploy/scripts/verify-clerk.sh,infrastructure/deploy/scripts/verify-routing.sh,infrastructure/deploy/scripts/recover-prod-stack.sh,infrastructure/deploy/scripts/tune-valhalla-ram.sh,infrastructure/deploy/scripts/rebuild-valhalla-gta.sh,infrastructure/docker/scripts/tune-valhalla-json.py,infrastructure/docker/scripts/prepare-valhalla-gta.sh,infrastructure/docker/valhalla/valhalla.gta-ram.json"
           target: "/opt/porterchain"
           strip_components: 2
 
@@ -332,7 +332,7 @@ jobs:
             echo "Compose env file ready ($(wc -c < .env) bytes)"
             docker compose -f docker-compose.prod.yml pull
             # Rolling API scale is applied inside recover-prod-stack.sh:
-            #   docker compose ... --scale api=${API_REPLICAS:-2}
+            #   docker compose ... --scale api=${API_REPLICAS:-1}
             bash scripts/recover-prod-stack.sh
             echo "Running Alembic migrations..."
             if ! docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \
@@ -379,7 +379,7 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PORTERCHAIN_PUSH_ENABLED: ${{ vars.PORTERCHAIN_PUSH_ENABLED || 'false' }}
           PORTERCHAIN_PUSH_SEND: ${{ vars.PORTERCHAIN_PUSH_SEND || 'false' }}
-          API_REPLICAS: ${{ vars.API_REPLICAS || '2' }}
+          API_REPLICAS: ${{ vars.API_REPLICAS || '1' }}
           DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
           DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG || 'prd' }}
 

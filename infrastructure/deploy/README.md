@@ -65,7 +65,7 @@ Internet ──443──▶ Caddy (pcd-caddy)
 Internal: postgres:16.10 (prod volume still on PG16 — upgrade to 18 via dump/restore when scheduled), redis:7.2 (Docker network `edge`). Dev/CI use postgres:18 per stack baseline.
 ```
 
-- **API replicas:** deploy defaults to **2** (`API_REPLICAS` repo variable or droplet `.env`). Caddy load-balances `api:8001` across replicas. See [ADR-012-scaling.md](../../docs/architecture/ADR-012-scaling.md).
+- **API replicas:** on the 4GB droplet deploy defaults to **1** (`API_REPLICAS` repo variable or droplet `.env`). **If the GitHub variable `API_REPLICAS` is still `2`, change it to `1`** or the droplet will keep two API containers. Set `API_REPLICAS=2` only when the host has ≥8 GB. Caddy load-balances `api:8001` across replicas. See [ADR-012-scaling.md](../../docs/architecture/ADR-012-scaling.md).
 - **Caddy** (`infrastructure/deploy/Caddyfile`) — TLS (Let's Encrypt), HTTP→HTTPS, `www`→apex, security headers.
 - Portal/API containers are **not** published to the host — only Caddy exposes 80/443.
 - Stack: `infrastructure/deploy/docker-compose.prod.yml` in `/opt/porterchain`.
@@ -154,11 +154,11 @@ pnpm fleetbase:replay
 
 **Repository variables:**
 
-| Variable                   | Default | Description                                        |
-| -------------------------- | ------- | -------------------------------------------------- |
-| `API_REPLICAS`             | `2`     | API containers behind Caddy (ADR-012 / DD-03)      |
-| `PORTERCHAIN_PUSH_ENABLED` | `false` | Enable FCM push pipeline                           |
-| `PORTERCHAIN_PUSH_SEND`    | `false` | When `true`, send real pushes (not dry-run) §0.1.3 |
+| Variable                   | Default | Description                                          |
+| -------------------------- | ------- | ---------------------------------------------------- |
+| `API_REPLICAS`             | `1`     | API containers behind Caddy (1 on 4GB; 2 when ≥8 GB) |
+| `PORTERCHAIN_PUSH_ENABLED` | `false` | Enable FCM push pipeline                             |
+| `PORTERCHAIN_PUSH_SEND`    | `false` | When `true`, send real pushes (not dry-run) §0.1.3   |
 
 **Still missing (optional):** `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, all `FLEETBASE_*` secrets (bridge stays off until Fleetbase prod is ready). `DOPPLER_TOKEN` ✅ set.
 
@@ -207,15 +207,15 @@ docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \
 
 GitHub Actions deploy (`.github/workflows/deploy.yml`) rolls API replicas with **zero fixed `container_name`** on the `api` service (see ADR-012). Flow:
 
-1. **Pull + scale** — `docker compose up -d --force-recreate --pull missing --scale api=${API_REPLICAS:-2}`
+1. **Pull + scale** — `docker compose up -d --force-recreate --pull missing --scale api=${API_REPLICAS:-1}`
 2. **Migrate once** — `repair_and_migrate.py` inside one API container before traffic
 3. **Health gate** — loop `curl http://localhost:8001/health` until OK; fail deploy on timeout
 4. **Smoke** — `https://api.porterchain.com/health` + `/health/ready` from the workflow
 
-Set replica count via GitHub **variable** `API_REPLICAS` (default `2`). Manual scale on droplet:
+Set replica count via GitHub **variable** `API_REPLICAS` (default `1` on the 4GB droplet). Manual scale on droplet:
 
 ```bash
-export API_REPLICAS=2   # or 1 to roll back
+export API_REPLICAS=1   # 2 only when the host has ≥8 GB
 docker compose -f docker-compose.prod.yml up -d --scale api=$API_REPLICAS
 ```
 

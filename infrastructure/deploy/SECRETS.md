@@ -59,7 +59,7 @@ See **[SSO.md](../../SSO.md)** (primary — unified Platform Clerk app). Legacy 
 | `FLEETBASE_*`                    | When bridge enabled                                           |
 | `PORTERCHAIN_PUSH_ENABLED`       | `true`                                                        |
 | `PORTERCHAIN_PUSH_SEND`          | `true`                                                        |
-| `API_REPLICAS`                   | `2`                                                           |
+| `API_REPLICAS`                   | `1` (4GB droplet; `2` when ≥8 GB RAM)                         |
 | `MAIL_HOST`                      | `smtp.zohocloud.ca` (Zoho Canada)                             |
 | `MAIL_PORT`                      | `465`                                                         |
 | `MAIL_USERNAME`                  | e.g. `ops@porterchain.com`                                    |

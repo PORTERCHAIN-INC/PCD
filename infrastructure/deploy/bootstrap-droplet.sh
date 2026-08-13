@@ -31,6 +31,18 @@ fi
 
 systemctl enable --now docker
 
+echo "==> Swap (2G) — 4GB droplet OOM insurance"
+if [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+sysctl -w vm.swappiness=10
+grep -q '^vm.swappiness=' /etc/sysctl.conf || echo 'vm.swappiness=10' >> /etc/sysctl.conf
+swapon --show || true
+
 echo "==> Configuring firewall (UFW)"
 ufw allow OpenSSH || ufw allow 22/tcp
 ufw allow 80/tcp

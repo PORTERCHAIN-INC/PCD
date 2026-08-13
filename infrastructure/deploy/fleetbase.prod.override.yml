@@ -1,33 +1,24 @@
-# Porterchain overlay for Fleetbase Docker Compose
-# Does NOT modify upstream docker-compose.yml — merged via:
-#   docker compose -f apps/fleetbase/docker-compose.yml \
-#     -f apps/fleetbase/docker-compose.override.yml \
-#     -f infrastructure/docker/fleetbase.porterchain.override.yml
+# Production Fleetbase overlay — joins PorterChain edge network for Caddy + Valhalla.
+# Used on droplet with:
+#   docker compose -f docker-compose.yml -f docker-compose.override.yml \
+#     -f /opt/porterchain/fleetbase.prod.override.yml up -d
 #
-# Runtime SSOT (P0-1): digest-pin fleetbase-api — never :latest.
-# Baked packages in this digest: fleetops-api 0.6.59, core-api 1.6.55
-# (host apps/fleetbase @ v0.7.40 composer.lock may still list 0.6.48/1.6.47 —
-#  the running image vendor tree is authoritative for API contracts).
-# See FLEETBASE_INSTALL.md and DOCKER_SETUP.md
+# Does not modify upstream Fleetbase source.
 
 name: porterchain-fleetbase
 
-# Pin verified 2026-08-07 from local pc-application-1 (fleetops-api 0.6.59).
 x-fleetbase-api-image: &fleetbase_api_image fleetbase/fleetbase-api@sha256:24c0fbe5e465e3876c74836e619d08968d8a2ca1cba400fd67290601141799a5
 
 services:
   database:
     container_name: porterchain-fleetbase-mysql
+    command: ["--innodb-buffer-pool-size=128M", "--max-connections=50", "--performance-schema=OFF"]
     ports: !override
       - "127.0.0.1:3307:3306"
-    volumes:
-      - fleetbase-mysql-data:/var/lib/mysql
-      - ../../apps/fleetbase/docker/database/:/docker-entrypoint-initdb.d/:ro
     networks:
       - fleetbase-internal
 
   cache:
-    # Upstream Fleetbase still declares redis:4-alpine; this override is the supported cache.
     image: valkey/valkey:8.1.8-alpine
     container_name: porterchain-fleetbase-redis
     command: valkey-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
@@ -36,19 +27,20 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-    volumes:
-      - fleetbase-redis-data:/data
     networks:
       - fleetbase-internal
 
   socket:
     image: socketcluster/socketcluster:v17.4.0
     container_name: porterchain-fleetbase-socketcluster
+    ports: !override []
     environment:
       SOCKETCLUSTER_WORKERS: "1"
       SOCKETCLUSTER_BROKERS: "1"
+      SOCKETCLUSTER_OPTIONS: '{"origins":"https://console.porterchain.com:*,https://fleetbase.porterchain.com:*,wss://console.porterchain.com:*,wss://fleetbase.porterchain.com:*"}'
     networks:
       - fleetbase-internal
+      - edge
 
   scheduler:
     image: *fleetbase_api_image
@@ -64,44 +56,50 @@ services:
 
   console:
     container_name: porterchain-fleetbase-console
+    ports: !override []
     networks:
       - fleetbase-internal
+      - edge
 
   application:
     image: *fleetbase_api_image
     container_name: porterchain-fleetbase-application
-    volumes:
-      - fleetbase-api-storage:/fleetbase/api/storage/app
-      # PorterChain SSO bridge (packages/porterchain-bridge) — no upstream fork
-      - ../../packages/porterchain-bridge:/fleetbase/api/packages/porterchain-bridge:ro
-      - ../../packages/porterchain-bridge/docker/RouteServiceProvider.php:/fleetbase/api/app/Providers/RouteServiceProvider.php:ro
     environment:
       APP_NAME: "Porterchain Fleetbase"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: https://console.porterchain.com
+      CONSOLE_HOST: https://console.porterchain.com
+      ENVIRONMENT: production
+      SESSION_DOMAIN: console.porterchain.com
       OSRM_HOST: https://router.project-osrm.org
       ROUTING_ENGINE: valhalla
-      # Shared PorterChain Valhalla (GTA tiles) — same engine as pricing, not the public demo
-      VALHALLA_BASE_URL: http://host.docker.internal:8002
-      VALHALLA_BASE_URI: http://host.docker.internal:8002
-      PORTERCHAIN_API_URL: http://host.docker.internal:8001
-      PORTERCHAIN_SSO_JWT_SECRET: dev-sso-secret-change-in-production
-      PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID: e136168f-516e-4b43-b6c2-ed4178169bce
+      VALHALLA_BASE_URL: http://pcd-valhalla:8002
+      VALHALLA_BASE_URI: http://pcd-valhalla:8002
+      PORTERCHAIN_API_URL: http://api:8001
       PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE: "true"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      PORTERCHAIN_SSO_JWT_SECRET: ${PORTERCHAIN_SSO_JWT_SECRET:-}
+      PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID: ${PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID:-}
+    volumes:
+      - /opt/porterchain/packages/porterchain-bridge:/fleetbase/api/packages/porterchain-bridge:ro
+      - /opt/porterchain/packages/porterchain-bridge/docker/RouteServiceProvider.php:/fleetbase/api/app/Providers/RouteServiceProvider.php:ro
     networks:
       - fleetbase-internal
+      - edge
 
   httpd:
     container_name: porterchain-fleetbase-httpd
+    ports: !override []
     networks:
       - fleetbase-internal
+      - edge
 
 networks:
   fleetbase-internal:
     driver: bridge
-  porterchain-bridge:
+  edge:
     external: true
-    name: porterchain_porterchain-internal
+    name: porterchain-prod_edge
 
 volumes:
   fleetbase-mysql-data:

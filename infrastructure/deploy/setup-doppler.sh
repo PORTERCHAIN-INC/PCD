@@ -61,7 +61,7 @@ ssh -i "$SSH_KEY" -o ConnectTimeout=15 "${SSH_USER}@${DROPLET_HOST}" 'cat /opt/p
   cat "$IMPORT_ENV"
   echo "PORTERCHAIN_PUSH_ENABLED=true"
   echo "PORTERCHAIN_PUSH_SEND=true"
-  echo "API_REPLICAS=2"
+  echo "API_REPLICAS=1"
 } | grep -v '^#' | grep -v '^$' | sort -u -t= -k1,1 > "${IMPORT_ENV}.merged"
 mv "${IMPORT_ENV}.merged" "$IMPORT_ENV"
 

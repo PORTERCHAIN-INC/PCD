@@ -89,7 +89,7 @@ GitHub Deploy workflow
 | `SENTRY_DSN`                                                                   | API errors (optional)                                                           |
 | `PORTERCHAIN_PUSH_ENABLED`                                                     | `true`                                                                          |
 | `PORTERCHAIN_PUSH_SEND`                                                        | `true`                                                                          |
-| `API_REPLICAS`                                                                 | `2`                                                                             |
+| `API_REPLICAS`                                                                 | `1` (4GB droplet)                                                               |
 | `FLEETBASE_*`                                                                  | When bridge enabled (blocked)                                                   |
 | `CLERK_WEBHOOK_SIGNING_SECRET`                                                 | Clerk Svix webhook (`POST /webhooks/clerk`) — add when unified webhooks enabled |
 
@@ -101,7 +101,7 @@ GitHub Deploy workflow
 | -------------------------- | ------- |
 | `DOPPLER_PROJECT`          | `pcd`   |
 | `DOPPLER_CONFIG`           | `prd`   |
-| `API_REPLICAS`             | `2`     |
+| `API_REPLICAS`             | `1`     |
 | `PORTERCHAIN_PUSH_ENABLED` | `true`  |
 | `PORTERCHAIN_PUSH_SEND`    | `true`  |
 
