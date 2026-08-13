@@ -2,7 +2,7 @@
 
 Maps Porterchain queue orders → fleetbase_order_id, runs allocate/optimize,
 and commits assignment plans (creates Fleetbase manifests). Never rebuilds
-VROOM/greedy engines locally.
+sequencing engines locally.
 """
 
 from __future__ import annotations

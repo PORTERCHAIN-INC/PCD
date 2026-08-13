@@ -5,15 +5,16 @@ from __future__ import annotations
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
+_PHASE10 = REPO / "docs" / "archive" / "redundant-2026-08" / "clerk-cutover-phase10.md"
+_CONSOLIDATION = REPO / "docs" / "archive" / "redundant-2026-08" / "clerk-consolidation.md"
 
 
 def test_phase10_cutover_runbook_exists() -> None:
-    path = REPO / "docs" / "runbooks" / "clerk-cutover-phase10.md"
-    assert path.is_file(), "Phase 10 cutover runbook missing"
+    assert _PHASE10.is_file(), "Phase 10 cutover runbook missing"
 
 
 def test_phase10_runbook_forbids_agent_prod_mutation() -> None:
-    text = (REPO / "docs" / "runbooks" / "clerk-cutover-phase10.md").read_text(encoding="utf-8")
+    text = _PHASE10.read_text(encoding="utf-8")
     lower = text.lower()
     assert "do not execute from cursor agents" in lower or "do **not** execute from cursor agents" in lower
     assert "upload-clerk-to-doppler" in lower
@@ -23,7 +24,7 @@ def test_phase10_runbook_forbids_agent_prod_mutation() -> None:
 
 
 def test_phase10_main_runbook_still_manual() -> None:
-    text = (REPO / "docs" / "runbooks" / "clerk-consolidation.md").read_text(encoding="utf-8")
+    text = _CONSOLIDATION.read_text(encoding="utf-8")
     assert "do **not** execute production cutover from agents" in text.lower() or "do not execute production cutover from agents" in text.lower()
     assert "clerk-cutover-phase10.md" in text or "Phase 10" in text
 

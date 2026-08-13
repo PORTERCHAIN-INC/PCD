@@ -12,15 +12,16 @@ from fastapi.testclient import TestClient
 
 from porterchain_api.main import app
 
+# Adapter-fed GET /v1/admin/operations/live-map is kept (Google tiles + Fleetbase
+# positions). Ban the deleted second-FleetOps aliases and Route Center.
 _REMOVED_NEEDLES = (
-    "live-map",
-    "live_map",
     "route-template",
     "route_template",
     "assign-batch",
     "dispatch/queue",
     "map/live",
     "/queue/optimize",
+    "/v1/operations/live-map",
 )
 
 _REMOVED_PATHS = (

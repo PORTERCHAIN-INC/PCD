@@ -33,11 +33,6 @@ function DriverAccessGateWithClerk({ children }: Props) {
   const setActiveWorkspaceId = sessionCtx?.setActiveWorkspaceId;
   const onPendingPath = isPendingDriverPath(pathname);
 
-  // Local email-picker session: middleware + BFF enforce cookie; skip Clerk gate.
-  if (isLoaded && !isSignedIn && isDevEmailLogin()) {
-    return <>{children}</>;
-  }
-
   const onSession = useCallback(
     (ctx: SessionContext) => {
       setSession?.(ctx);
@@ -72,6 +67,11 @@ function DriverAccessGateWithClerk({ children }: Props) {
     onSignedOut,
     onNeedOnboarding,
   });
+
+  // Local email-picker session: middleware + BFF enforce cookie; skip Clerk gate.
+  if (isLoaded && !isSignedIn && isDevEmailLogin()) {
+    return <>{children}</>;
+  }
 
   if (!isLoaded || (checking && !onPendingPath)) {
     return (

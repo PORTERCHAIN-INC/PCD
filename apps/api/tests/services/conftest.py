@@ -114,6 +114,9 @@ def driver(db: Session) -> Driver:
         status=DriverStatus.APPROVED.value,
         clerk_user_id=f"clerk_driver_{suffix}",
         is_online=True,
+        license_verified=True,
+        insurance_verified=True,
+        background_check_status="cleared",
     )
     db.add(row)
     db.flush()

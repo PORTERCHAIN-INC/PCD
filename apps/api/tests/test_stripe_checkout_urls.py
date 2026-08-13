@@ -17,7 +17,7 @@ def test_create_checkout_session_customer_channel() -> None:
         customer_portal_url="http://localhost:3004",
     )
     quote = Quote(id="q-1", amount_cents=1000, currency="cad")
-    customer = Customer(id="c-1", email="test@example.com")
+    customer = Customer(id="c-1", email="test@example.com", stripe_customer_id="cus_test")
 
     session = MagicMock()
     session.url = "https://checkout.stripe.test/session"

@@ -29,7 +29,10 @@ _BANNED: tuple[tuple[re.Pattern[str], str], ...] = tuple(
         (r"distance[_ ]matrix|travel[_ ]matrix", "matrix math — call Valhalla/OSRM matrix API"),
         (r"\bortools\b|\bvroom\b", "optimization solver — Fleetbase orchestrator owns sequencing"),
         (r"waypoint[_ ]sequenc|def \w*optimi|class \w*Optimiz", "sequencing/optimization code — Fleetbase orchestrator only"),
-        (r"live_map|live-map", "admin live map was deleted (second FleetOps) — do not reintroduce"),
+        (
+            r"/v1/operations/live-map|/v1/admin/map/live",
+            "deleted live-map aliases — keep only adapter-fed /v1/admin/operations/live-map",
+        ),
         (r"route_template|route_center", "Route Center was deleted — Fleetbase orchestrator only"),
         (r"DriverLocationPing", "ping mirror is deprecated for ops — Fleetbase owns driver GPS"),
     )
