@@ -20,7 +20,7 @@ firebase-admin>=7.5.0
 msgpack>=1.2.1
 authzed>=1.21.0
 grpcio>=1.70.0
-webauthn>=2.7.0
+webauthn>=3.0.0
 
 # Platform packages (editable — install from repo root or use PYTHONPATH)
 -e ../../shared/python
