@@ -25,10 +25,12 @@ COPY apps/api ./apps/api
 COPY apps/worker ./apps/worker
 
 WORKDIR /app/apps/api
-# setuptools comes from the slim base (CVE-2025-47273 at <78.1.1); bump after deps too.
+# Official CPython image keeps ensurepip's bundled setuptools wheel (CVE-2025-47273
+# at 70.3.0). Runtime does not need ensurepip; drop it after installing deps.
 RUN pip install --upgrade pip "setuptools>=78.1.1" \
     && pip install -r requirements.txt \
-    && pip install --upgrade --force-reinstall "setuptools>=78.1.1"
+    && pip install --upgrade --force-reinstall "setuptools>=78.1.1" \
+    && rm -rf /usr/local/lib/python3.14/ensurepip
 
 ENV PYTHONPATH=/app/apps/api/src:/app/apps/worker:/app/shared/python:/app/services/python:/app/services/fleetbase-adapter:/app/services/pricing-engine:/app/services/event-bus:/app/services/driver-platform \
     DATABASE_URL=sqlite:////data/porterchain.db \
