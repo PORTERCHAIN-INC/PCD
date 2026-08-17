@@ -26,6 +26,9 @@ _EXCLUDED_SERVICE_PATH_PARTS = (
     "/admin_engine/dispatcher_copilot_service.py",
     "/admin_engine/staff_idp_service.py",
     "/admin_engine/order_builder_service.py",
+    "/admin_engine/booking_draft_admin_service.py",
+    "/admin_engine/customer_admin_service.py",
+    "/admin_engine/scheduled_batches_service.py",
 )
 
 

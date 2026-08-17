@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -61,6 +61,7 @@ def driver_dev_login(
 def driver_dev_list(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
+    limit: int = Query(50, ge=1, le=100),
 ) -> list[DriverDevListItem]:
     """List approved drivers for the local email picker."""
     if not allow_auth_dev_bypass(settings):
@@ -69,7 +70,7 @@ def driver_dev_list(
         db.query(Driver)
         .filter(Driver.status == DriverStatus.APPROVED.value)
         .order_by(Driver.full_name.asc())
-        .limit(50)
+        .limit(limit)
         .all()
     )
     return [
