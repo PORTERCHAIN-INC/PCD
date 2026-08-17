@@ -475,6 +475,7 @@ services:
       # HTTP/3 (QUIC) disabled — UDP/443 left unpublished intentionally.
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./porterchain-sso:/etc/caddy/porterchain-sso:ro
       - caddy-data:/data
       - caddy-config:/config
     networks:
