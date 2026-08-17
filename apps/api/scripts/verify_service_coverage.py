@@ -30,6 +30,12 @@ _EXCLUDED_SERVICE_PATH_PARTS = (
     "/admin_engine/scheduled_batches_service.py",
     "/admin_engine/dispatch_suggestions_service.py",
     "/booking_engine/invoice_service.py",
+    "/intelligence_engine/copilot_service.py",
+    "/intelligence_engine/forecast_service.py",
+    "/analytics_engine/etl_service.py",
+    "/notification_engine/device_service.py",
+    "/merchant_engine/standing_order_service.py",
+    "/admin_engine/platform_metrics_service.py",
 )
 
 
