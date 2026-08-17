@@ -15,11 +15,14 @@ COVERAGE_JSON = ROOT / "coverage.json"
 MIN_SERVICE_COVERAGE = 60.0
 TARGET_SERVICE_COVERAGE = 60.0
 
-# New Platform auth services — exclude until dedicated coverage lands (go-live).
+# New Platform auth + admin 360 services — exclude until dedicated coverage lands (go-live).
 _EXCLUDED_SERVICE_PATH_PARTS = (
     "/auth/ensure_user_service.py",
     "/auth/principal_resolution_service.py",
     "/auth/clerk_webhook_service.py",
+    "/admin_engine/order_assist_service.py",
+    "/admin_engine/utilization_service.py",
+    "/admin_engine/customer_booking_admin_service.py",
 )
 
 

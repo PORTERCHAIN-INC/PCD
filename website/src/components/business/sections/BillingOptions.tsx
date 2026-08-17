@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { Check, Star } from "lucide-react";
 import Container from "@/components/ui/Container";
 import { BUSINESS_BILLING_KEYS } from "@/data/business";
+import { quoteSignUpPath } from "@/data/portal-links";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 const FACTOR_KEYS = ["vehicle", "route", "proof"] as const;
@@ -110,8 +112,8 @@ export default function BillingOptions() {
                     </li>
                   ))}
                 </ul>
-                <a
-                  href="/sign-up?intent=quote&from=business"
+                <Link
+                  href={quoteSignUpPath({ from: "business" })}
                   className={cn(
                     "mt-8 block rounded-xl px-5 py-3 text-center text-sm font-semibold transition-all",
                     isFeatured
@@ -120,7 +122,7 @@ export default function BillingOptions() {
                   )}
                 >
                   {t("cta")}
-                </a>
+                </Link>
               </motion.div>
             );
           })}

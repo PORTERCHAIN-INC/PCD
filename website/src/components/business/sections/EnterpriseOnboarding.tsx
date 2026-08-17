@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import Container from "@/components/ui/Container";
 import { BUSINESS_ONBOARDING_STEPS } from "@/data/business";
+import { quoteSignUpPath } from "@/data/portal-links";
+import { Link } from "@/i18n/navigation";
 import { ChevronRight } from "lucide-react";
 
 export default function EnterpriseOnboarding() {
@@ -85,13 +87,13 @@ export default function EnterpriseOnboarding() {
           viewport={{ once: true }}
           className="mt-12 text-center"
         >
-          <a
-            href="/sign-up?intent=quote&from=business"
+          <Link
+            href={quoteSignUpPath({ from: "business" })}
             className="inline-flex items-center gap-2 text-sm font-semibold text-[#2563eb] hover:text-[#1d4ed8] transition-colors"
           >
             {t("cta")}
             <ChevronRight className="w-4 h-4" />
-          </a>
+          </Link>
         </motion.div>
       </Container>
     </section>
