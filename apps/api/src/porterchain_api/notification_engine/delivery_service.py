@@ -309,15 +309,18 @@ class DeliveryService:
         settings: Any,
     ) -> None:
         """ZeptoMail Send Mail HTTP API — used when DigitalOcean blocks outbound SMTP."""
-        import json
-        import urllib.error
-        import urllib.request
+        from urllib.parse import urlparse
+
+        import httpx
 
         token = (settings.smtp_password or "").strip()
         if not token:
             raise ValueError("zeptomail_token_missing")
         auth = token if token.startswith("Zoho-enczapikey") else f"Zoho-enczapikey {token}"
         api_url = (getattr(settings, "zeptomail_api_url", None) or "https://api.zeptomail.ca/v1.1/email").strip()
+        parsed = urlparse(api_url)
+        if parsed.scheme != "https" or not parsed.netloc:
+            raise ValueError("zeptomail_url_must_be_https")
         from_obj: dict[str, str] = {"address": from_addr}
         if from_name:
             from_obj["name"] = from_name
@@ -328,25 +331,18 @@ class DeliveryService:
             "htmlbody": html_body or text_body,
             "textbody": text_body or "",
         }
-        req = urllib.request.Request(
-            api_url,
-            data=json.dumps(payload).encode(),
-            method="POST",
-            headers={
-                "accept": "application/json",
-                "content-type": "application/json",
-                "authorization": auth,
-            },
-        )
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                raw = resp.read().decode()
-                if resp.status not in (200, 201):
-                    raise ValueError(f"zeptomail_http_{resp.status}:{raw[:200]}")
-                logger.info("email (zeptomail https): to=%s status=%s", recipient, resp.status)
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode()[:400]
-            raise ValueError(f"zeptomail_http_{exc.code}:{body}") from exc
+            resp = httpx.post(
+                api_url,
+                json=payload,
+                headers={"accept": "application/json", "authorization": auth},
+                timeout=30.0,
+            )
+        except httpx.RequestError as exc:
+            raise ValueError(f"zeptomail_http_error:{exc}") from exc
+        if resp.status_code not in (200, 201):
+            raise ValueError(f"zeptomail_http_{resp.status_code}:{resp.text[:400]}")
+        logger.info("email (zeptomail https): to=%s status=%s", recipient, resp.status_code)
 
     def _send_email_smtp(
         self,

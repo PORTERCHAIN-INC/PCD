@@ -54,10 +54,8 @@ def test_send_email_uses_zeptomail_https() -> None:
         smtp_from_for=lambda alias=None: "noreply@porterchain.com",
     )
     mock_resp = MagicMock()
-    mock_resp.status = 201
-    mock_resp.read.return_value = b'{"message":"OK"}'
-    mock_resp.__enter__.return_value = mock_resp
-    mock_resp.__exit__.return_value = None
+    mock_resp.status_code = 201
+    mock_resp.text = '{"message":"OK"}'
 
     with (
         patch(
@@ -68,18 +66,15 @@ def test_send_email_uses_zeptomail_https() -> None:
             "porterchain_api.notification_engine.delivery_service.render_email",
             return_value=("Subj", "text", "<p>html</p>"),
         ),
-        patch("urllib.request.urlopen", return_value=mock_resp) as urlopen,
+        patch("httpx.post", return_value=mock_resp) as post,
     ):
         svc._send_email("ravi@porterchain.com", "staff_activate", {})
 
-    req = urlopen.call_args[0][0]
-    assert req.full_url == "https://api.zeptomail.ca/v1.1/email"
-    assert req.get_header("Authorization") == "Zoho-enczapikey test-token"
+    assert post.call_args.args[0] == "https://api.zeptomail.ca/v1.1/email"
+    assert post.call_args.kwargs["headers"]["authorization"] == "Zoho-enczapikey test-token"
 
 
 def test_send_email_https_http_error() -> None:
-    import urllib.error
-
     svc = DeliveryService()
     settings = SimpleNamespace(
         smtp_host="smtp.zeptomail.ca",
@@ -91,12 +86,35 @@ def test_send_email_https_http_error() -> None:
         resolve_mail_transport=lambda: "https",
         smtp_from_for=lambda alias=None: "noreply@porterchain.com",
     )
-    err = urllib.error.HTTPError(
-        url="https://api.zeptomail.ca/v1.1/email",
-        code=401,
-        msg="Unauthorized",
-        hdrs=None,
-        fp=MagicMock(read=lambda: b'{"error":"bad"}'),
+    mock_resp = MagicMock()
+    mock_resp.status_code = 401
+    mock_resp.text = '{"error":"bad"}'
+    with (
+        patch(
+            "porterchain_api.notification_engine.delivery_service.get_platform_settings",
+            return_value=settings,
+        ),
+        patch(
+            "porterchain_api.notification_engine.delivery_service.render_email",
+            return_value=("Subj", "text", "<p>html</p>"),
+        ),
+        patch("httpx.post", return_value=mock_resp),
+        pytest.raises(ValueError, match="zeptomail_http_401"),
+    ):
+        svc._send_email("ravi@porterchain.com", "staff_activate", {})
+
+
+def test_send_email_https_rejects_non_https_url() -> None:
+    svc = DeliveryService()
+    settings = SimpleNamespace(
+        smtp_host="smtp.zeptomail.ca",
+        smtp_password="token",
+        smtp_from="noreply@porterchain.com",
+        smtp_from_name="Porterchain",
+        mail_transport="https",
+        zeptomail_api_url="file:///etc/passwd",
+        resolve_mail_transport=lambda: "https",
+        smtp_from_for=lambda alias=None: "noreply@porterchain.com",
     )
     with (
         patch(
@@ -107,7 +125,6 @@ def test_send_email_https_http_error() -> None:
             "porterchain_api.notification_engine.delivery_service.render_email",
             return_value=("Subj", "text", "<p>html</p>"),
         ),
-        patch("urllib.request.urlopen", side_effect=err),
-        pytest.raises(ValueError, match="zeptomail_http_401"),
+        pytest.raises(ValueError, match="zeptomail_url_must_be_https"),
     ):
         svc._send_email("ravi@porterchain.com", "staff_activate", {})

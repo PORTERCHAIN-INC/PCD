@@ -9,6 +9,7 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -24,9 +25,10 @@ COPY apps/api ./apps/api
 COPY apps/worker ./apps/worker
 
 WORKDIR /app/apps/api
-# setuptools comes from the slim base (CVE-2025-47273 at <78.1.1); bump before deps.
+# setuptools comes from the slim base (CVE-2025-47273 at <78.1.1); bump after deps too.
 RUN pip install --upgrade pip "setuptools>=78.1.1" \
-    && pip install -r requirements.txt
+    && pip install -r requirements.txt \
+    && pip install --upgrade --force-reinstall "setuptools>=78.1.1"
 
 ENV PYTHONPATH=/app/apps/api/src:/app/apps/worker:/app/shared/python:/app/services/python:/app/services/fleetbase-adapter:/app/services/pricing-engine:/app/services/event-bus:/app/services/driver-platform \
     DATABASE_URL=sqlite:////data/porterchain.db \
