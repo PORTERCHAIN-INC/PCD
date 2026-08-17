@@ -94,10 +94,10 @@ export default function PricingPanel({
       (v): v is VehicleClassConfig => typeof v === "object" && v !== null && "id" in v
     );
   }, [vehicleCatalog]);
-  const catalogIds = catalog.map((v) => v.id);
+  const catalogIds = useMemo(() => catalog.map((v) => v.id), [catalog]);
   const labels = Object.fromEntries(catalog.map((v) => [v.id, v.label]));
 
-  const initial = useMemo(() => normalizeGta(data, catalogIds), [data, catalogIds.join(",")]);
+  const initial = useMemo(() => normalizeGta(data, catalogIds), [data, catalogIds]);
   const [config, setConfig] = useState(initial);
   const [tax, setTax] = useState<TaxConfig>(() => ({
     hst_percent: num((taxData as { hst_percent?: number })?.hst_percent, 0),
