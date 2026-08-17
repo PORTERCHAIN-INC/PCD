@@ -151,6 +151,10 @@ class Settings(BaseSettings):
         default=False,
         validation_alias=AliasChoices("phase2_crm", "PORTERCHAIN_PHASE2_CRM"),
     )
+    phase2_route_center: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("phase2_route_center", "PORTERCHAIN_PHASE2_ROUTE_CENTER"),
+    )
     phase2_ai_dispatch: bool = Field(
         default=False,
         validation_alias=AliasChoices("phase2_ai_dispatch", "PORTERCHAIN_PHASE2_AI_DISPATCH"),

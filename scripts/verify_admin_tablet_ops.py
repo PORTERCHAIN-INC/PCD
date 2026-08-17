@@ -10,7 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = (
     (ROOT / "apps/admin/src/app/globals.css", ("ops-table-scroll", "ops-touch-target", "768px")),
     (ROOT / "apps/admin/src/components/AdminShell.tsx", ("ops-main",)),
-    (ROOT / "apps/admin/src/app/(ops)/operations/page.tsx", ("ops-stat-grid", "ops-table-scroll")),
+    (ROOT / "apps/admin/src/components/operations/KpiStrip.tsx", ("ops-stat-grid",)),
+    (ROOT / "apps/admin/src/app/(ops)/operations/page.tsx", ("ops-table-scroll", "KpiStrip")),
 )
 
 

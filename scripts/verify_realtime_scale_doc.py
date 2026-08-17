@@ -12,12 +12,12 @@ DOC = ROOT / "docs/architecture/REALTIME_FLOW.md"
 _REQUIRED_SNIPPETS: tuple[str, ...] = (
     "## Multi-instance scaling",
     "porterchain:notifications:realtime",
-    "live-map/ws",
+    "/v1/notifications/ws",
     "Redis pub/sub",
     "round-robin",
     "ADR-012",
-    "5 seconds",
-    "db_pool",
+    "Fleetbase",
+    "DB pools",
 )
 
 

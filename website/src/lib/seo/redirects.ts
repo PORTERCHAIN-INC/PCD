@@ -140,18 +140,6 @@ function retiredMarketingHubRedirects(): WebsiteRedirect[] {
       permanent: true,
       note: "Legacy /quote → business capacity form",
     },
-    {
-      source: `/${locale}/success-stories`,
-      destination: `/${locale}/business`,
-      permanent: true,
-      note: "Success stories hub retired until permissioned stories exist",
-    },
-    {
-      source: `/${locale}/success-stories/:slug`,
-      destination: `/${locale}/business`,
-      permanent: true,
-      note: "Success story leaves retired until permissioned stories exist",
-    },
   ]);
 }
 

@@ -304,7 +304,7 @@ curl http://localhost:8001/health
 
 ## Backup
 
-Porterchain **Postgres** (orders, merchants, billing) — see [RUNBOOK.md](RUNBOOK.md) for scripts and **quarterly restore drill** (DD-28).
+Porterchain **Postgres** (orders, merchants, billing) — scripts and **quarterly restore drill** (DD-28) in [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
 
 ```bash
 # Prod droplet

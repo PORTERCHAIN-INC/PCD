@@ -45,12 +45,12 @@ def main() -> int:
     nav = (ROOT / "apps/admin/src/lib/admin-nav.ts").read_text(encoding="utf-8")
     if 'href: "/blog"' not in nav:
         failures.append("admin-nav.ts missing /blog link")
-    if 'label: "Blog"' not in nav:
+    if 'label: "Blog"' not in nav and 'label: "Website Blog"' not in nav:
         failures.append("admin-nav.ts missing Blog label")
     if "Merchant Leads" not in nav:
         failures.append("admin-nav.ts missing Merchant Leads")
-    if "Driver Leads" not in nav:
-        failures.append("admin-nav.ts missing Driver Leads")
+    if "Driver Leads" not in nav and "Driver Applications" not in nav:
+        failures.append("admin-nav.ts missing Driver Leads / Driver Applications")
     if "website_driver_partner" not in nav:
         failures.append("admin-nav.ts missing driver partner lead source href")
 

@@ -151,6 +151,7 @@ _EXPECTED_PROGRAMMATIC_SLUGS: dict[str, tuple[str, ...]] = {
         "ad-hoc-courier",
         "unmanaged-same-day",
         "spreadsheet-dispatch",
+        "multi-location-vs-single-hub",
     ),
     "faq": (
         "construction-delivery",
@@ -178,12 +179,22 @@ _EXPECTED_PROGRAMMATIC_SLUGS: dict[str, tuple[str, ...]] = {
         "merchant-onboarding-guide",
         "route-and-tracking-overview",
         "support-and-issue-handling",
+        "choosing-courier-vs-capacity-partner-gta",
+        "delivery-failure-modes-and-recovery",
+        "inventory-transfers-between-locations",
+        "multi-location-capacity-gta",
+        "same-day-delivery-capacity-gta",
+        "same-day-from-store-capacity-gta",
+        "what-is-a-transportation-capacity-network",
     ),
     "successStories": (
         "construction-distributor-jobsite-delivery",
         "coffee-roaster-wholesale-delivery",
         "pharmacy-patient-delivery",
         "beauty-brand-d2c-fulfillment",
+        "3pl-warehouse-outbound-peel",
+        "electrical-wholesaler-overflow-capacity",
+        "plumbing-supply-counter-to-jobsite",
     ),
 }
 

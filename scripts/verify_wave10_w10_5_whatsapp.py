@@ -8,8 +8,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WHATSAPP = ROOT / "website/src/lib/whatsapp.ts"
 LINK = ROOT / "website/src/components/seo/WhatsAppQuoteLink.tsx"
-CONTACT = ROOT / "website/src/components/corporate/sections/ContactInquiryForm.tsx"
-BUSINESS = ROOT / "website/src/components/business/InquiryForm.tsx"
+CONTACT = ROOT / "website/src/app/[locale]/contact/page.tsx"
+NAVBAR = ROOT / "website/src/components/layout/SiteNavbar.tsx"
 ANALYTICS = ROOT / "website/src/lib/seo/analytics.ts"
 DEVICE = ROOT / "website/src/lib/device.ts"
 DEFERRED = ROOT / "website/src/components/integrations/DeferredSiteIntegrations.tsx"
@@ -32,11 +32,11 @@ def main() -> int:
 
     contact = CONTACT.read_text(encoding="utf-8")
     if "WhatsAppQuoteLink" not in contact or "buildQuoteWhatsAppMessage" not in contact:
-        failures.append("ContactInquiryForm missing WhatsApp quote success CTA")
+        failures.append("contact page missing WhatsApp quote CTA")
 
-    business = BUSINESS.read_text(encoding="utf-8")
-    if "WhatsAppQuoteLink" not in business:
-        failures.append("InquiryForm missing WhatsApp quote success CTA")
+    navbar = NAVBAR.read_text(encoding="utf-8")
+    if "buildWhatsAppDeepLink" not in navbar:
+        failures.append("SiteNavbar missing WhatsApp deep link")
 
     analytics = ANALYTICS.read_text(encoding="utf-8")
     if "WHATSAPP_QUOTE_CLICK" not in analytics:

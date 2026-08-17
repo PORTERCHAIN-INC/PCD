@@ -13,7 +13,10 @@ import FaqSection from "@/components/corporate/sections/FaqSection";
 import Container from "@/components/ui/Container";
 import FadeIn from "@/components/corporate/motion/FadeIn";
 import ShimmerButton from "@/components/magic/shimmer-button";
+import SlaResponseCountdown from "@/components/seo/SlaResponseCountdown";
+import WhatsAppQuoteLink from "@/components/seo/WhatsAppQuoteLink";
 import { collectFaqItems } from "@/lib/corporate-content";
+import { buildQuoteWhatsAppMessage } from "@/lib/whatsapp";
 import { TrendingUp, Headphones, Building2, Truck, Code2 } from "lucide-react";
 import { JsonLd } from "@/components/seo";
 import { buildLocalBusinessSchema } from "@/lib/seo/schema";
@@ -47,6 +50,7 @@ export default async function ContactPage({ params, searchParams }: Props) {
 
   const t = await getTranslations("corporate.contact");
   const tInfo = await getTranslations("corporate.contact.info");
+  const tHero = await getTranslations("corporate.home.hero");
 
   const contactInfo = {
     phoneLabel: tInfo("phoneLabel"),
@@ -99,6 +103,13 @@ export default async function ContactPage({ params, searchParams }: Props) {
                 <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
                   {t("capacityCard.body")}
                 </p>
+                <div className="mt-5">
+                  <SlaResponseCountdown
+                    locale={locale}
+                    label={tHero("slaLabel")}
+                    expiredLabel={tHero("slaExpired")}
+                  />
+                </div>
                 <div className="mt-6">
                   <ShimmerButton
                     href="/sign-up?intent=quote&from=contact"
@@ -108,6 +119,13 @@ export default async function ContactPage({ params, searchParams }: Props) {
                   >
                     {t("capacityCard.cta")}
                   </ShimmerButton>
+                </div>
+                <div className="mt-4">
+                  <WhatsAppQuoteLink
+                    message={buildQuoteWhatsAppMessage({ source: "contact" })}
+                    label={locale === "fr" ? "Continuer sur WhatsApp" : "Continue on WhatsApp"}
+                    sourceSection="contact"
+                  />
                 </div>
               </div>
             </FadeIn>

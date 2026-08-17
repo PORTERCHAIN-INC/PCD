@@ -1,7 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { cn } from "@/lib/utils";
 import Container from "@/components/ui/Container";
 import DriverAccessGate from "@/components/DriverAccessGate";
@@ -30,7 +32,9 @@ export default function DriverShell({ children }: { children: React.ReactNode })
               <span className="text-xs text-muted">Documents only — dashboard locked</span>
             </div>
           </header>
-          <Container className="py-6">{children}</Container>
+          <Container className="py-6">
+            <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+          </Container>
         </div>
       </DriverAccessGate>
     );
@@ -78,7 +82,9 @@ export default function DriverShell({ children }: { children: React.ReactNode })
           </header>
 
           <main className={cn("min-h-0 flex-1 overflow-y-auto")}>
-            <Container className="py-4 sm:py-6">{children}</Container>
+            <Container className="py-4 sm:py-6">
+              <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+            </Container>
           </main>
         </div>
       </DriverProfileProvider>

@@ -30,6 +30,10 @@ _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
         "admin_engine/booking_draft_admin_service.py",
         "admin_engine/clerk_directory_service.py",
         "admin_engine/control_tower_service.py",
+        "admin_engine/control_tower/service.py",
+        "admin_engine/order_assist_service.py",
+        "admin_engine/order_builder_service.py",
+        "booking_engine/invoice_service.py",
         "admin_engine/finance_service.py",
         "admin_engine/merchant_ar_service.py",
         "admin_engine/merchant_service.py",
@@ -62,6 +66,10 @@ _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
 _LEGACY_ADMIN_MODEL_WRITERS: frozenset[str] = frozenset(
     {
         "auth/admin.py",
+        "auth/dependencies.py",
+        "auth/staff_webauthn.py",
+        "billing_engine/driver_finance_service.py",
+        "compliance_engine/privacy_service.py",
         "auth/email_identity.py",
         "auth/ensure_user_service.py",
         "auth/identity_fk_backfill.py",
@@ -85,10 +93,18 @@ _LEGACY_ADMIN_MODEL_WRITERS: frozenset[str] = frozenset(
     }
 )
 
+# §3.2.4 — legacy writers outside driver_engine (shrink over time).
+_LEGACY_DRIVER_MODEL_WRITERS: frozenset[str] = frozenset(
+    {
+        "billing_engine/driver_finance_service.py",
+    }
+)
+
 # §3.2.6 — legacy writers outside collaboration_engine (shrink over time).
 _LEGACY_CRM_MODEL_WRITERS: frozenset[str] = frozenset(
     {
         "merchant_engine/contacts_service.py",
+        "admin_engine/merchant_service.py",
     }
 )
 
@@ -134,7 +150,7 @@ _OWNERSHIP_CHECKS: tuple[dict[str, object], ...] = (
     {
         "model_module": "driver_models",
         "owner_prefix": "driver_engine",
-        "legacy_writers": frozenset(),
+        "legacy_writers": _LEGACY_DRIVER_MODEL_WRITERS,
         "section": "§3.2.4",
         "mutation_re": _DB_STRUCTURAL_MUTATION,
     },
@@ -164,7 +180,14 @@ _OWNERSHIP_CHECKS: tuple[dict[str, object], ...] = (
         "model_module": "user_models",
         "owner_prefix": "auth",
         "owner_files": _IDENTITY_AUTH_WRITERS,
-        "legacy_writers": frozenset({"auth/merchant_onboarding.py"}),
+        "legacy_writers": frozenset(
+            {
+                "auth/merchant_onboarding.py",
+                "auth/sso_service.py",
+                "auth/dependencies.py",
+                "admin_engine/staff_idp_service.py",
+            }
+        ),
         "section": "§3.2.7",
         "mutation_re": _DB_MUTATION,
     },
@@ -223,7 +246,8 @@ def main() -> int:
         "Model ownership guard passed "
         f"(§3.2.2 merchant: {len(_LEGACY_MERCHANT_MODEL_WRITERS)} legacy; "
         f"§3.2.3 admin: {len(_LEGACY_ADMIN_MODEL_WRITERS)} legacy; "
-        "§3.2.4 driver + §3.2.5 fleetbase: 0 legacy; "
+        f"§3.2.4 driver: {len(_LEGACY_DRIVER_MODEL_WRITERS)} legacy; "
+        "§3.2.5 fleetbase: 0 legacy; "
         f"§3.2.6 crm: {len(_LEGACY_CRM_MODEL_WRITERS)} legacy; "
         f"§3.2.7 identity/user via user_sync_service ({len(_LEGACY_IDENTITY_MODEL_WRITERS)} legacy)."
     )

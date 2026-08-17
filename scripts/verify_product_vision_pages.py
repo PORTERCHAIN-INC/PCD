@@ -28,7 +28,11 @@ HOME_FORBIDDEN_IMPORTS = (
 HERO_FORBIDDEN = "BookingWidget"
 HERO_REQUIRED = ("corporate.home.hero", "/business#fleet")
 
-NAV_QUOTE_HREFS = ('quoteHref = "/contact?intent=quote"', "customerPortalBookUrl")
+NAV_QUOTE_HREFS = (
+    'quoteHref = "/contact?intent=quote"',
+    'quoteHref = "/sign-up?intent=quote',
+    "customerPortalBookUrl",
+)
 TOP_NAV_FORBIDDEN_IDS = ('id: "platform"', 'id: "developers"')
 
 FOOTER_NAV = WEBSITE / "src/data/footer-navigation.ts"
@@ -51,6 +55,13 @@ def _route_exists(href: str) -> bool:
     direct = APP / path / "page.tsx"
     if direct.is_file():
         return True
+    # Clerk catch-alls: sign-up/[[...sign-up]]/page.tsx
+    if path:
+        segment_dir = APP / path
+        if segment_dir.is_dir():
+            for child in segment_dir.iterdir():
+                if child.is_dir() and child.name.startswith("[[") and (child / "page.tsx").is_file():
+                    return True
     # industry/construction-materials -> industry/[slug]/page.tsx
     parts = path.split("/")
     if len(parts) == 2 and (APP / parts[0] / "[slug]" / "page.tsx").is_file():
@@ -90,8 +101,14 @@ def main() -> int:
     book_page = APP / "book/page.tsx"
     if book_page.is_file():
         book_text = book_page.read_text(encoding="utf-8")
-        if "/business" not in book_text and "portal-book-redirect" not in book_text:
-            failures.append("book page must redirect to /business (marketing site does not link :3004/book)")
+        if (
+            "/business" not in book_text
+            and "portal-book-redirect" not in book_text
+            and "customerPortalBookUrl" not in book_text
+        ):
+            failures.append(
+                "book page must redirect to /business or customer portal book (marketing site does not host booking)"
+            )
 
     navbar = WEBSITE / "src/components/layout/SiteNavbar.tsx"
     if navbar.is_file():
@@ -224,11 +241,11 @@ def main() -> int:
     products = sections.get("products", {}).get("links", {})
     resources_links = sections.get("resources", {}).get("links", {})
     company_links = sections.get("company", {}).get("links", {})
-    # New IA: merchant/capacity links live under resources (or products if present).
-    capacity_links = {**products, **resources_links}
-    for key in ("business",):
-        if key not in capacity_links:
-            failures.append(f"site-footer-en.json missing capacity link '{key}' (products or resources)")
+    # New IA: merchant/capacity primary lives in the navbar; footer is crawl map.
+    navbar_data = WEBSITE / "src/data/navbar-navigation.ts"
+    navbar_text = navbar_data.read_text(encoding="utf-8") if navbar_data.is_file() else ""
+    if 'href: "/business"' not in navbar_text:
+        failures.append("navbar-navigation.ts missing merchants /business capacity link")
     if "getQuote" not in products and "contact" not in company_links:
         failures.append("site-footer-en.json missing quote path (products.getQuote or company.contact)")
     if "trust" not in company_links and "trust" not in sections.get("solutions", {}).get("links", {}):

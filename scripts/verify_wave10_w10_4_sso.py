@@ -55,14 +55,14 @@ def main() -> int:
     signin = MERCHANT_SIGNIN.read_text(encoding="utf-8")
     if "porterchainClerkAppearance" not in signin or "<SignIn" not in signin:
         failures.append("merchant SignIn missing themed Clerk widget")
-    if "PortalAuthScreen" not in signin:
-        failures.append("merchant SignIn must use PortalAuthScreen shell")
+    if "PortalAuthScreen" not in signin and "MerchantAuthScreen" not in signin:
+        failures.append("merchant SignIn must use PortalAuthScreen or MerchantAuthScreen shell")
 
     signup = MERCHANT_SIGNUP.read_text(encoding="utf-8")
     if "<SignUp" not in signup or "porterchainClerkAppearance" not in signup:
         failures.append("merchant SignUp missing OAuth-capable Clerk widget")
-    if "PortalAuthScreen" not in signup:
-        failures.append("merchant SignUp must use PortalAuthScreen shell")
+    if "PortalAuthScreen" not in signup and "MerchantAuthScreen" not in signup:
+        failures.append("merchant SignUp must use PortalAuthScreen or MerchantAuthScreen shell")
 
     print("Wave 10 w10-4 guard (Clerk SSO — portal only, not /business acquisition)")
     if failures:

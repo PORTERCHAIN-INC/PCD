@@ -40,6 +40,7 @@ details.md.local
 
 # Dependencies
 node_modules/
+.pnpm-store/
 
 # Build outputs
 .next

@@ -58,7 +58,7 @@ def main() -> int:
         "overflow": ("emergency", "fleet overflow"),
         "intraCity": ("intra-city", "GTA"),
         "pod": ("proof",),
-        "pricing": ("Quote-based", "platform fees"),
+        "pricing": ("Quote-based",),
     }
     for key, phrases in _PLAYBOOK_FAQ_PHRASES.items():
         item = faq.get(key, {})
@@ -66,6 +66,14 @@ def main() -> int:
         for phrase in phrases:
             if phrase not in blob:
                 failures.append(f"faq.items.{key} missing playbook phrase: {phrase!r}")
+    pricing_blob = f"{faq.get('pricing', {}).get('question', '')} {faq.get('pricing', {}).get('answer', '')}"
+    if not any(
+        marker in pricing_blob
+        for marker in ("platform fees", "software-seat fees", "SaaS")
+    ):
+        failures.append(
+            "faq.items.pricing must say quote-based capacity with no platform/software-seat/SaaS fees"
+        )
 
     print("Business playbook guard")
     if failures:

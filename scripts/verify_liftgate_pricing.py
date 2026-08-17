@@ -36,8 +36,8 @@ def main() -> int:
         failures.append("catalog missing LIFTGATE_SURCHARGE_CENTS")
 
     engine = ENGINE.read_text(encoding="utf-8")
-    if "_apply_liftgate" not in engine:
-        failures.append("pricing engine missing _apply_liftgate")
+    if "requires_liftgate" not in engine or 'add_item("liftgate"' not in engine:
+        failures.append("pricing engine missing liftgate surcharge line item")
 
     schema = SCHEMA.read_text(encoding="utf-8")
     if "requires_liftgate" not in schema:

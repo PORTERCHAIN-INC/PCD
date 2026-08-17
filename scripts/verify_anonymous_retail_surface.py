@@ -27,10 +27,10 @@ def main() -> int:
     required = (
         ("track/page.tsx", ("GuestTrackLookup",)),
         ("track/[tracking]/page.tsx", ("getOrderByTracking",)),
-        ("book/page.tsx", ("portal-book-redirect",)),
-        ("book/continue/page.tsx", ("portal-book-redirect",)),
-        ("book/success/page.tsx", ("portal-book-redirect",)),
-        # Legacy /quote is a capacity CTA → contact quote (not customer-portal book).
+        ("book/page.tsx", ("portal-book-redirect", "customerPortalBookUrl")),
+        ("book/continue/page.tsx", ("portal-book-redirect", "customerPortalBookUrl")),
+        ("book/success/page.tsx", ("portal-book-redirect", "customerPortalBookUrl")),
+        # Legacy /quote is a capacity CTA → sign-up quote (not customer-portal book).
         ("quote/page.tsx", ("intent=quote", "portal-book-redirect")),
     )
     for rel, needles in required:
@@ -57,9 +57,12 @@ def main() -> int:
     if "/v1/" not in track_detail and "getOrderByTracking" not in track_detail:
         failures.append("track detail page must call public /v1 tracking API")
 
-    api_ts = _read(ROOT / "website/src/lib/api.ts")
-    if "createQuote" not in api_ts:
-        failures.append("website api.ts missing createQuote for /v1/quotes")
+    customer_booking = _read(ROOT / "apps/customer/src/lib/booking.ts")
+    if "createQuote" not in customer_booking or "/v1/quotes" not in customer_booking:
+        failures.append("customer portal booking.ts missing createQuote for /v1/quotes")
+    website_api = _read(ROOT / "website/src/lib/api.ts")
+    if "createQuote" in website_api:
+        failures.append("website api.ts must not POST /v1/quotes (retail book lives on :3004)")
 
     home = _read(WEBSITE_APP / "page.tsx")
     if "BookingWidget" in home:

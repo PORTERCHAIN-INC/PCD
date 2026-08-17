@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 TRACK_PAGES = (
     ("retail website", ROOT / "website/src/app/[locale]/track/[tracking]/page.tsx"),
-    ("customer portal", ROOT / "apps/customer/src/app/track/[trackingNumber]/page.tsx"),
+    ("customer portal", ROOT / "apps/customer/src/components/tracking/CustomerLiveTrack.tsx"),
 )
 
 REQUIRED = ("TrackRouteMap", "GoogleMapsProvider", "TrackEtaPanel")
