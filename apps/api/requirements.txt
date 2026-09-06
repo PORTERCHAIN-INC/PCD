@@ -19,7 +19,7 @@ firebase-admin>=7.5.0
 # Transitive via CacheControl; pin patched floor for GHSA-6v7p-g79w-8964
 msgpack>=1.2.1
 authzed>=1.21.0
-grpcio>=1.70.0
+grpcio>=1.83.1
 webauthn>=2.7.0
 
 # Platform packages (editable — install from repo root or use PYTHONPATH)
