@@ -111,7 +111,7 @@
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "prettier": "^3.9.4",
-    "turbo": "^2.10.4"
+    "prettier": "^3.9.6",
+    "turbo": "^2.10.12"
   }
 }
