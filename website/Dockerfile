@@ -72,7 +72,10 @@ ENV NODE_OPTIONS=--max-old-space-size=192
 ENV PORT=3000
 # Runtime never needs the Node-distribution npm CLI; remove it so Trivy does not
 # fail on HIGH/CRITICAL findings inside /usr/local/lib/node_modules/npm.
-RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
+# node:24.18.0-alpine ships OpenSSL 3.5.7 (CVE-2026-14456). Upgrade the two
+# libs in place; do not float the Node image tag.
+RUN apk add --no-cache 'libcrypto3>=3.5.8-r0' 'libssl3>=3.5.8-r0' \
+  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
   && addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/website/public ./website/public
 COPY --from=builder --chown=nextjs:nodejs /app/website/.next/standalone ./

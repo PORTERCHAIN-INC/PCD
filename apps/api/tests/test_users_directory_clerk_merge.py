@@ -74,7 +74,7 @@ def test_staff_status_helpers_use_staff_idp_subjects() -> None:
 def test_list_platform_users_staff_skips_clerk_merge(db, settings) -> None:
     """Staff directory must not call Clerk — even when Clerk is empty/down."""
     with patch(
-        "porterchain_api.admin_engine.settings_service.fetch_clerk_snapshots",
+        "porterchain_api.admin_engine.settings_clerk_merge.fetch_clerk_snapshots",
         side_effect=AssertionError("staff must not fetch Clerk"),
     ):
         resp = AdminSettingsService().list_platform_users(db, settings, "staff", limit=50)
@@ -100,7 +100,7 @@ def test_merge_keeps_db_rows_missing_from_clerk() -> None:
         created_at=datetime.now(UTC),
     )
     with patch(
-        "porterchain_api.admin_engine.settings_service.fetch_clerk_snapshots",
+        "porterchain_api.admin_engine.settings_clerk_merge.fetch_clerk_snapshots",
         return_value={"real@example.com": snap},
     ):
         merged, synced, total = _merge_clerk_directory(
@@ -125,7 +125,7 @@ def test_merge_keeps_db_rows_missing_from_clerk() -> None:
 
 def test_merge_keeps_db_rows_when_clerk_errors() -> None:
     with patch(
-        "porterchain_api.admin_engine.settings_service.fetch_clerk_snapshots",
+        "porterchain_api.admin_engine.settings_clerk_merge.fetch_clerk_snapshots",
         side_effect=RuntimeError("clerk down"),
     ):
         merged, synced, total = _merge_clerk_directory(
@@ -144,7 +144,7 @@ def test_merge_keeps_db_rows_when_clerk_errors() -> None:
 
 def test_merge_empty_clerk_still_shows_db_rows() -> None:
     with patch(
-        "porterchain_api.admin_engine.settings_service.fetch_clerk_snapshots",
+        "porterchain_api.admin_engine.settings_clerk_merge.fetch_clerk_snapshots",
         return_value={},
     ):
         merged, synced, total = _merge_clerk_directory(
@@ -173,7 +173,7 @@ def test_merge_clerk_does_not_inject_unprovisioned_on_customer_tab() -> None:
         created_at=datetime.now(UTC),
     )
     with patch(
-        "porterchain_api.admin_engine.settings_service.fetch_clerk_snapshots",
+        "porterchain_api.admin_engine.settings_clerk_merge.fetch_clerk_snapshots",
         return_value={
             "real@example.com": snap,
             "porterchaininc@gmail.com": snap,
@@ -218,7 +218,7 @@ def test_merchant_keeps_unlinked_seats_and_injects_unprovisioned() -> None:
         banned=False,
     )
     with patch(
-        "porterchain_api.admin_engine.settings_service.fetch_clerk_snapshots",
+        "porterchain_api.admin_engine.settings_clerk_merge.fetch_clerk_snapshots",
         return_value={
             "live@example.com": snap,
             "orphan@example.com": orphan,
@@ -260,7 +260,7 @@ def test_merchant_keeps_unlinked_seats_and_injects_unprovisioned() -> None:
 
 def test_merchant_keep_unlinked_when_clerk_errors() -> None:
     with patch(
-        "porterchain_api.admin_engine.settings_service.fetch_clerk_snapshots",
+        "porterchain_api.admin_engine.settings_clerk_merge.fetch_clerk_snapshots",
         side_effect=RuntimeError("clerk down"),
     ):
         merged, synced, total = _merge_clerk_directory(
@@ -312,7 +312,7 @@ def test_merchant_same_email_keeps_one_row_per_seat() -> None:
         user_type="merchant",
     ).model_copy(update={"id": "mu-b", "organization": "Beta Freight"})
     with patch(
-        "porterchain_api.admin_engine.settings_service.fetch_clerk_snapshots",
+        "porterchain_api.admin_engine.settings_clerk_merge.fetch_clerk_snapshots",
         return_value={"ops@example.com": snap},
     ):
         merged, synced, total = _merge_clerk_directory(
@@ -333,7 +333,7 @@ def test_merchant_same_email_keeps_one_row_per_seat() -> None:
 
 def test_list_platform_users_customer_shows_db_when_clerk_empty(db, settings) -> None:
     with patch(
-        "porterchain_api.admin_engine.settings_service.fetch_clerk_snapshots",
+        "porterchain_api.admin_engine.settings_clerk_merge.fetch_clerk_snapshots",
         return_value={},
     ):
         resp = AdminSettingsService().list_platform_users(db, settings, "customer", limit=50)

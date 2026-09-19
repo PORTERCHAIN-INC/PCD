@@ -84,6 +84,18 @@ jobs:
         with:
           ref: ${{ steps.sha.outputs.value }}
 
+      # The composite action also checks this. The string has to live in this
+      # file: scripts/verify_enterprise_security.py reads deploy.yml only.
+      - name: Require Doppler token before image builds
+        if: steps.check.outputs.ready == 'true'
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: |
+          if [ -z "${DOPPLER_TOKEN}" ]; then
+            echo "::error::DOPPLER_TOKEN is required. Runtime secrets are in Doppler, not GitHub. See docs/SECRETS_MAP.md"
+            exit 1
+          fi
+
       # One Doppler download for the whole job (fail before image builds).
       - name: Download Doppler env (once)
         if: steps.check.outputs.ready == 'true'
