@@ -1,0 +1,3462 @@
+{
+  "metadata": {
+    "home": {
+      "title": "GTA Delivery Capacity | Drivers, Vehicles & Technology | PorterChain",
+      "description": "Full-stack local logistics for the Greater Toronto Area — proprietary software plus professional drivers and vehicles for same-day, overflow, and recurring capacity. Quote-based. Tracking and proof on every stop.",
+      "ogTitle": "PorterChain — Transportation Capacity Network for the GTA",
+      "ogDescription": "Technology, drivers, vehicles, and logistics operations for Ontario businesses — capacity when your own fleet cannot cover it."
+    },
+    "platform": {
+      "title": "How We Operate | Full-Stack Capacity Capabilities | PorterChain",
+      "description": "Dispatch, routing, tracking, proof of delivery, vehicle matching, and overflow capacity — the technology and operations behind PorterChain transportation capacity in the GTA.",
+      "ogTitle": "PorterChain network operations & capabilities",
+      "ogDescription": "Full-stack local logistics: proprietary software plus drivers, vehicles, and ops for Ontario businesses."
+    },
+    "solutions": {
+      "title": "B2B Delivery Solutions GTA | Construction, Wholesale, Medical | Porterchain",
+      "description": "Transportation capacity for GTA businesses — construction jobsite delivery, electrical and plumbing wholesale, pharmacy courier, food distribution, and recurring B2B routes across Toronto and Ontario.",
+      "ogTitle": "Porterchain B2B Delivery Solutions — GTA & Ontario",
+      "ogDescription": "Same-day, recurring, and overflow capacity with tracking and proof of delivery for Ontario's highest-demand B2B logistics verticals."
+    },
+    "vehicles": {
+      "title": "Delivery Vehicles GTA | Cargo Van, Trade Van, Box Truck | Porterchain",
+      "description": "Commercial vehicle capacity for Ontario B2B delivery — cargo vans, trade vans, box trucks, and pickup trucks with professional drivers, tracking, and proof.",
+      "ogTitle": "Porterchain Delivery Vehicles — GTA & Ontario",
+      "ogDescription": "Match the right vehicle class to your freight — same-day and recurring capacity across the GTA."
+    },
+    "howPorterchainWorks": {
+      "title": "How PorterChain Works | Capacity, Fleet & Coverage | Ontario",
+      "description": "How PorterChain delivers transportation capacity: request, match vehicle and driver, execute with tracking, and close with proof — plus solutions, fleet, and Ontario service areas.",
+      "ogTitle": "How PorterChain Works",
+      "ogDescription": "One page for how capacity works, which vehicles fit, how we operate, and where we serve across the GTA and Ontario metros."
+    },
+    "company": {
+      "title": "Company | Porterchain",
+      "description": "Porterchain is building a transportation capacity network for Ontario businesses — mission, team, and how we remove transportation bottlenecks.",
+      "ogTitle": "About Porterchain",
+      "ogDescription": "A transportation capacity network powered by intelligent software — reliable vehicle-and-driver capacity when your own logistics cannot keep up."
+    },
+    "contact": {
+      "title": "Contact | Porterchain",
+      "description": "Let's talk logistics. Reach Porterchain by phone, email, WhatsApp, or our inquiry form. Response within one business day.",
+      "ogTitle": "Contact Porterchain",
+      "ogDescription": "Sales, support, API, and emergency dispatch — we're here to help."
+    },
+    "careers": {
+      "title": "Careers | Porterchain",
+      "description": "Join Porterchain and help build the future of commercial logistics across Canada. Open roles in engineering, operations, sales, and more.",
+      "ogTitle": "Careers at Porterchain",
+      "ogDescription": "Build the future of logistics. Remote-friendly roles with growth, learning, and modern tools."
+    },
+    "developers": {
+      "title": "Developers | Porterchain API",
+      "description": "Integrate with Porterchain — OpenAPI reference, Postman collection, webhooks, and merchant API keys for quote-to-delivery automation.",
+      "ogTitle": "Porterchain Developer Portal",
+      "ogDescription": "REST API, webhooks, and partner docs for B2B logistics integrations."
+    },
+    "developerDocs": {
+      "title": "Developer docs | Porterchain API",
+      "description": "Hosted partner guide, API changelog, OpenAPI reference, and Postman collection for Porterchain integrations.",
+      "ogTitle": "Porterchain Developer Docs",
+      "ogDescription": "Canonical API documentation mirrored from the monorepo with live OpenAPI as source of truth."
+    },
+    "trust": {
+      "title": "Trust & Security | Porterchain",
+      "description": "Insurance, delivery commitments, COI, and security documentation for Ontario business shippers — procurement exhibits available on request.",
+      "ogTitle": "Porterchain Trust Center",
+      "ogDescription": "Commercial insurance, proof-of-delivery standards, operational escalation, and security documentation for capacity programs."
+    },
+    "subprocessors": {
+      "title": "Subprocessors | Porterchain Trust",
+      "description": "Current subprocessors used to operate Porterchain's transportation capacity network, merchant portal, payments, communications, analytics, and infrastructure.",
+      "ogTitle": "Porterchain Subprocessors",
+      "ogDescription": "Vendor list and data-processing roles for enterprise procurement review."
+    },
+    "sla": {
+      "title": "SLA Exhibit | Porterchain Trust",
+      "description": "Service-level bands, support response targets, credits, and escalation paths for dedicated capacity and recurring delivery programs.",
+      "ogTitle": "Porterchain SLA Summary",
+      "ogDescription": "Delivery and operations commitments for recurring capacity programs — availability, support, and escalation."
+    },
+    "dpa": {
+      "title": "Data Processing Addendum | Porterchain Trust",
+      "description": "PIPEDA-aligned data processing summary for enterprise procurement — roles, subprocessors, and security commitments.",
+      "ogTitle": "Porterchain DPA Summary",
+      "ogDescription": "How Porterchain processes merchant and shipper personal information under Canadian privacy law."
+    },
+    "msa": {
+      "title": "Master Service Agreement | Porterchain Trust",
+      "description": "Commercial framework for transportation capacity programs, dedicated delivery services, and enterprise procurement.",
+      "ogTitle": "Porterchain MSA Summary",
+      "ogDescription": "Commercial framework for capacity programs, optional integrations, and dedicated delivery services."
+    },
+    "customers": {
+      "title": "Customers | Porterchain",
+      "description": "How Ontario businesses rely on Porterchain for transportation capacity — delivery outcomes, proof, and recurring programs.",
+      "ogTitle": "Porterchain Customers",
+      "ogDescription": "Businesses that trust Porterchain to run urgent, overflow, and recurring delivery capacity across Ontario."
+    },
+    "enterprise": {
+      "title": "Dedicated Capacity Programs | Porterchain",
+      "description": "Recurring routes, dedicated capacity, and business continuity programs for Ontario shippers that need Porterchain as an extension of their logistics operation.",
+      "ogTitle": "Porterchain Dedicated Programs",
+      "ogDescription": "Capacity programs for businesses with structured routes, overflow needs, and operational accountability requirements."
+    },
+    "pricing": {
+      "title": "B2B Delivery Pricing GTA | Quote-Based Capacity | PorterChain",
+      "description": "Transparent quote-based pricing for GTA B2B delivery — same-day, urgent, recurring, and fleet overflow. Vehicle class, route, and proof requirements. Request a written quote.",
+      "ogTitle": "Porterchain B2B Delivery Pricing — GTA & Ontario",
+      "ogDescription": "Request a written quote for cargo van, Sprinter van, pickup, and box truck capacity with professional drivers across the Greater Toronto Area."
+    },
+    "accessibility": {
+      "title": "Accessibility | Porterchain",
+      "description": "Porterchain accessibility commitment for porterchain.com — WCAG-oriented improvements and contact path for barriers."
+    },
+    "editorialPolicy": {
+      "title": "Editorial Policy | Porterchain Trust",
+      "description": "How Porterchain publishes website content, case studies, and operational insights — evidence and approval gates."
+    },
+    "researchMethodology": {
+      "title": "Research Methodology | Porterchain Trust",
+      "description": "Methodology standards for Porterchain Logistics Intelligence reports before public release."
+    },
+    "corrections": {
+      "title": "Corrections Policy | Porterchain Trust",
+      "description": "How to report and how we correct factual errors on porterchain.com."
+    },
+    "securityOverview": {
+      "title": "Security Overview | Porterchain Trust",
+      "description": "High-level security practices for Porterchain systems — procurement summary scaffold pending legal review."
+    },
+    "researchHub": {
+      "title": "Logistics Intelligence | Porterchain",
+      "description": "Draft research hub for operational benchmarks — not indexed until verified data publishes."
+    },
+    "founder": {
+      "title": "Founder | Porterchain",
+      "description": "Founder and operator context for PorterChain — noindex until approved."
+    },
+    "insurance": {
+      "title": "Insurance & COI | Porterchain Trust",
+      "description": "Commercial insurance and COI process — scaffold pending legal review."
+    },
+    "serviceStandards": {
+      "title": "Service Standards | Porterchain Trust",
+      "description": "Delivery proof, windows, and escalation standards — scaffold pending ops approval."
+    },
+    "claims": {
+      "title": "Proof of Delivery & Claims | PorterChain Trust",
+      "description": "Delivery verification, photo POD, GPS timestamps, and claims-ready records for PorterChain capacity programs in Ontario.",
+      "ogTitle": "PorterChain delivery verification & claims",
+      "ogDescription": "How photo, signature, and GPS proof close every stop — and support dispute follow-up."
+    }
+  },
+  "nav": {
+    "platform": "Technology",
+    "solutions": "Solutions",
+    "business": "Services",
+    "merchants": "Merchants",
+    "drivers": "Drivers",
+    "vehicles": "Vehicles",
+    "pricing": "Pricing",
+    "developers": "Developers",
+    "company": "Company",
+    "resources": "Resources",
+    "solutionsTabs": {
+      "ariaLabel": "Solutions sections",
+      "overview": "Overview",
+      "wholesale": "Wholesale",
+      "medical": "Medical",
+      "foodBeverage": "Food & beverage",
+      "construction": "Construction",
+      "industries": "Industries",
+      "serviceAreas": "Service areas",
+      "threePl": "3PL",
+      "fleetOverflow": "Fleet overflow"
+    },
+    "vehiclesTabs": {
+      "ariaLabel": "Vehicle classes",
+      "overview": "Overview",
+      "cargoVan": "Cargo van",
+      "tradeVan": "Trade van",
+      "boxTruck": "Box truck",
+      "pickupTruck": "Pickup truck"
+    },
+    "solutionsMenu": {
+      "overview": {
+        "label": "All solutions",
+        "description": "Capacity programs by industry and use case across Ontario."
+      },
+      "wholesale": {
+        "label": "Wholesale distribution",
+        "description": "Recurring van and box truck routes for electrical, plumbing, and industrial distributors."
+      },
+      "medical": {
+        "label": "Medical & healthcare",
+        "description": "Pharmacy, lab, and patient runs with chain-of-custody proof on every stop."
+      },
+      "foodBeverage": {
+        "label": "Food & beverage",
+        "description": "Wholesale food, roasters, and distributors — scheduled and same-day capacity."
+      },
+      "construction": {
+        "label": "Construction supply",
+        "description": "Jobsite delivery, pallet drops, and overflow when your own fleet is full."
+      },
+      "industries": {
+        "label": "All industries",
+        "description": "Browse programs by vertical — construction, pharmacy, manufacturing, and more."
+      },
+      "serviceAreas": {
+        "label": "Service areas",
+        "description": "GTA and Ontario metros — same-day, scheduled, and recurring lanes."
+      },
+      "threePl": {
+        "label": "3PL & warehouse",
+        "description": "Outbound multi-stop and overflow capacity for GTA warehouses."
+      },
+      "fleetOverflow": {
+        "label": "Fleet overflow",
+        "description": "Backup vehicles and drivers when your fleet cannot cover the cut-off."
+      }
+    },
+    "vehiclesMenu": {
+      "cargoVan": {
+        "label": "Cargo van",
+        "description": "Same-day and recurring B2B runs — parcels, totes, and light freight."
+      },
+      "tradeVan": {
+        "label": "Trade van",
+        "description": "Wholesale and trade routes — counter to jobsite with proof on every stop."
+      },
+      "boxTruck": {
+        "label": "Box truck",
+        "description": "Pallet and jobsite freight — construction, industrial, and wholesale lanes."
+      },
+      "pickupTruck": {
+        "label": "Pickup truck",
+        "description": "Light construction and trade overflow when your fleet is booked."
+      }
+    },
+    "companyMenu": {
+      "about": {
+        "label": "About us",
+        "description": "Mission, team, and how Porterchain runs the capacity network."
+      },
+      "careers": {
+        "label": "Careers",
+        "description": "Engineering, operations, and growth roles — remote-friendly."
+      },
+      "contact": {
+        "label": "Contact",
+        "description": "Request capacity, speak with dispatch, or reach our sales team."
+      },
+      "vehiclePartner": {
+        "label": "Vehicle partners",
+        "description": "Join the professional driver and commercial vehicle network."
+      },
+      "trust": {
+        "label": "Trust center",
+        "description": "Security, insurance, SLA, and procurement documentation."
+      },
+      "claims": {
+        "label": "Proof & claims",
+        "description": "POD, GPS closeout, and claims-ready delivery records."
+      }
+    },
+    "resourcesMenu": {
+      "developers": {
+        "label": "Developers",
+        "description": "API reference, webhooks, and partner integration docs."
+      },
+      "platform": {
+        "label": "How we operate",
+        "description": "Dispatch, tracking, proof, and billing behind every delivery."
+      },
+      "blog": {
+        "label": "Blog",
+        "description": "Capacity, operations, and industry insights for Ontario shippers."
+      },
+      "authors": {
+        "label": "Authors",
+        "description": "Ops and engineering voices behind PorterChain guides and articles."
+      },
+      "faq": {
+        "label": "FAQ",
+        "description": "When to use Porterchain vs your own fleet — straight answers."
+      },
+      "guides": {
+        "label": "Guides",
+        "description": "Capacity network, same-day GTA, transfers, and ops recovery guides."
+      },
+      "track": {
+        "label": "Track shipment",
+        "description": "Look up live status by tracking number — no login required."
+      },
+      "howItWorks": {
+        "label": "How it works",
+        "description": "Quote → dispatch → track → proof → invoice in one loop."
+      },
+      "capabilities": {
+        "label": "Capabilities",
+        "description": "Multi-stop, recurring, tracking, recovery, multi-location, and proof."
+      },
+      "integrations": {
+        "label": "Integrations",
+        "description": "CSV, API, EDI, email intake, and status notifications."
+      },
+      "compare": {
+        "label": "Compare options",
+        "description": "Capacity network vs in-house, courier, and single-hub dispatch."
+      },
+      "successStories": {
+        "label": "Success stories",
+        "description": "How Ontario businesses run overflow, jobsite, and wholesale lanes."
+      }
+    },
+    "careers": "Careers",
+    "blog": "Blog",
+    "contact": "Contact",
+    "industries": "Industries",
+    "constructionMaterials": "Construction",
+    "serviceAreas": "Service areas",
+    "vehiclePartnerPortal": "Vehicle partners",
+    "myOrders": "My orders",
+    "businessLogin": "Business login",
+    "login": "Sign in",
+    "whatsappChat": "WhatsApp chat",
+    "getQuote": "Get a quote",
+    "bookNow": "Get a quote",
+    "toggleMenu": "Toggle navigation menu"
+  },
+  "footer": {
+    "tagline": "Logistics technology for businesses that can't afford operational blind spots.",
+    "platform": "Platform",
+    "solutions": "Solutions",
+    "company": "Company",
+    "legal": "Legal",
+    "dispatch": "How we operate",
+    "routing": "Routing Engine",
+    "visibility": "Live Visibility",
+    "integrations": "Integrations",
+    "wholesale": "Wholesale",
+    "medical": "Medical",
+    "food": "Food & Beverage",
+    "about": "About",
+    "careers": "Careers",
+    "blog": "Blog",
+    "contact": "Contact",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "copyright": "© {year} Porterchain Inc. All rights reserved."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "industry": "Industries",
+    "solutions": "Solutions",
+    "platform": "Platform",
+    "vehicles": "Vehicles",
+    "howPorterchainWorks": "How PorterChain Works",
+    "guides": "Guides",
+    "localDelivery": "Local delivery",
+    "compare": "Compare",
+    "customers": "Customers",
+    "trust": "Trust",
+    "sla": "SLA",
+    "developers": "Developers",
+    "pricing": "Pricing",
+    "enterprise": "Enterprise",
+    "programs": "Programs",
+    "dpa": "DPA",
+    "msa": "MSA",
+    "claims": "Proof & claims",
+    "capabilities": "Capabilities"
+  },
+  "platformBridge": {
+    "label": "Capacity",
+    "title": "Need delivery capacity in Ontario?",
+    "bullets": {
+      "0": "Professional drivers and commercial vehicles",
+      "1": "Sedan through box truck capacity",
+      "2": "Live tracking and proof of delivery"
+    },
+    "platformCta": "See vehicles",
+    "demoCta": "Get a quote",
+    "quoteCta": "Get a quote"
+  },
+  "seo": {
+    "sectionLabels": {
+      "industries": "Industries",
+      "challenges": "Challenges",
+      "solution": "Solution",
+      "workflow": "Workflow",
+      "onboarding": "Onboarding",
+      "deliveryInCity": "Delivery in your city",
+      "localDeliveryByCity": "Local delivery by city",
+      "capacitySolutions": "Capacity & solutions",
+      "serviceAreas": "Service areas",
+      "industryDeliveryInArea": "Industry delivery in this area",
+      "exploreByIndustry": "Explore by industry",
+      "localDelivery": "Local delivery",
+      "localChallenges": "Local challenges",
+      "industryFit": "Industry fit",
+      "howItWorks": "How it works",
+      "otherVehicles": "Other vehicles",
+      "vehicles": "Vehicle options",
+      "painPoints": "Why local delivery matters",
+      "coreServiceArea": "Core metro",
+      "availableByConfirmation": "Available by confirmation",
+      "intentGuides": "Delivery guides by intent",
+      "relatedPages": "Related pages",
+      "pricingFaqQ": "How does pricing work for delivery in this area?",
+      "pricingFaqA": "Quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). No platform fees — we confirm capacity in writing before dispatch.",
+      "neighbourhoodCoverage": "Neighbourhoods and districts we cover",
+      "fsaPrefixes": "Sample FSAs",
+      "neighbourhoodCoverageNote": "Coverage is confirmed by route and postal code on quote — we do not publish separate zip landing pages.",
+      "successStory": "Success story",
+      "writtenBy": "Written by",
+      "anonymizedStoryNote": "Anonymized composite narrative for illustration — named logos and numeric claims publish only with customer permission (see permissioned construction story + blog case study)."
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "B2B delivery · GTA & Ontario",
+      "title": "When your fleet can't cover it,",
+      "titleHighlight": "PorterChain can.",
+      "subtitle": "Same-day, urgent, emergency, and recurring B2B delivery across the GTA — intra-city logistics and local delivery with professional drivers, sedan through box truck, live tracking and proof on every stop.",
+      "primaryCta": "Get a quote",
+      "secondaryCta": "See vehicles",
+      "trustLine": "Response within one business day · Quote-based, no platform fees",
+      "trustProof": "Proof of delivery on every stop",
+      "trustAreas": "Toronto · Mississauga · Brampton · Peel · York · Durham",
+      "slaLabel": "Quote response by",
+      "slaExpired": "Next response window opens soon"
+    },
+    "answers": {
+      "eyebrow": "At a glance",
+      "title": "Quick answers",
+      "cta": "Get a quote",
+      "secondaryCta": "See vehicles",
+      "what": {
+        "question": "What is PorterChain?",
+        "answer": "PorterChain is a B2B transportation capacity network in the GTA and Ontario. Businesses get professional drivers and commercial vehicles — from cargo van to box truck — with live tracking and proof of delivery on every stop."
+      },
+      "who": {
+        "question": "Who uses PorterChain?",
+        "answer": "Construction suppliers, electrical and plumbing wholesalers, pharmacies, food distributors, and other Ontario businesses that need same-day, urgent, recurring, or overflow delivery capacity."
+      },
+      "where": {
+        "question": "Where does PorterChain operate?",
+        "answer": "We serve the Greater Toronto Area and Ontario metros including Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo, and London."
+      },
+      "how": {
+        "question": "How do I get started?",
+        "answer": "Request a quote with your routes, timing, and vehicle needs. We confirm capacity and pricing in writing — typically within one business day — before dispatch."
+      }
+    },
+    "brandBand": {
+      "eyebrow": "Our tagline",
+      "title": "Moving Commerce On-Chain",
+      "body": "Professional drivers and commercial vehicles — from box truck to trailer — so goods keep moving when your own fleet can't cover it."
+    },
+    "story": {
+      "problems": {
+        "label": "When you need capacity",
+        "title": "Delivery problems that stop your operation",
+        "subtitle": "Ontario businesses call PorterChain for same-day, urgent, and emergency delivery — plus fleet overflow and recurring intra-city logistics across the GTA.",
+        "cta": "Get a quote",
+        "items": {
+          "0": "Emergency delivery",
+          "1": "Fleet overflow",
+          "2": "Same-day urgent delivery",
+          "3": "Quick & express delivery",
+          "4": "Jobsite & construction delivery",
+          "5": "Pharmacy & medical courier",
+          "6": "Wholesale & trade delivery",
+          "7": "Intra-city & last-mile B2B"
+        },
+        "descriptions": {
+          "0": "Material or order has to move today — breakdowns, deadlines, and jobsite emergencies.",
+          "1": "Every truck is booked or your driver called in sick — backup capacity same day.",
+          "2": "Customer needs it today across Toronto, Mississauga, or Brampton.",
+          "3": "Time-sensitive commercial freight with tracked express delivery.",
+          "4": "Timed windows, site access, and pallet freight to construction sites.",
+          "5": "Pharmacy, clinic, and lab runs with chain-of-custody proof.",
+          "6": "Counter-to-jobsite and warehouse-to-contractor wholesale lanes.",
+          "7": "Multi-stop local delivery and retail replenishment across the GTA."
+        }
+      },
+      "flow": {
+        "label": "How it works",
+        "title": "From request to proof",
+        "subtitle": "Your business requests capacity. Our network dispatches the right vehicle and driver. You get proof.",
+        "steps": {
+          "business": {
+            "title": "Your business",
+            "description": "Request vehicle and driver capacity."
+          },
+          "platform": {
+            "title": "Dispatch & visibility",
+            "description": "Assignment, live tracking, and proof on every stop."
+          },
+          "network": {
+            "title": "Transportation network",
+            "description": "Professional drivers and vehicles."
+          },
+          "complete": {
+            "title": "Delivery complete",
+            "description": "Photo, signature, GPS, and status history."
+          }
+        }
+      },
+      "fleet": {
+        "label": "Network",
+        "title": "The right vehicle for every shipment",
+        "subtitle": "Sedan through box truck — matched to your load.",
+        "cta": "View full fleet"
+      },
+      "platform": {
+        "label": "Operations",
+        "title": "Visibility and proof on every delivery",
+        "subtitle": "You buy vehicle-and-driver capacity. Tracking, proof, and billing come standard.",
+        "cta": "How we operate",
+        "items": {
+          "portal": {
+            "title": "Merchant portal",
+            "description": "Orders, routes, and team visibility."
+          },
+          "tracking": {
+            "title": "Live tracking",
+            "description": "Status and ETA for every shipment."
+          },
+          "dispatch": {
+            "title": "Dispatch",
+            "description": "Structured assignment and exception handling."
+          },
+          "pod": {
+            "title": "Proof of delivery",
+            "description": "Photo, signature, and GPS on every stop."
+          },
+          "billing": {
+            "title": "Billing",
+            "description": "Invoices tied to completed deliveries."
+          },
+          "analytics": {
+            "title": "Analytics",
+            "description": "Performance across lanes and programs."
+          }
+        }
+      },
+      "industries": {
+        "label": "Industries",
+        "title": "Built for operations that cannot stop",
+        "cta": "All industries",
+        "viewAll": "View all"
+      },
+      "enterprise": {
+        "label": "Enterprise",
+        "title": "Ready when your program scales",
+        "subtitle": "Security, compliance, and integrations for larger shippers.",
+        "items": {
+          "api": "API",
+          "security": "Security",
+          "compliance": "Compliance",
+          "integrations": "Integrations",
+          "docs": "Documentation"
+        }
+      },
+      "ai": {
+        "label": "What's next",
+        "title": "AI-designed routes across the GTA",
+        "subtitle": "Stops sequenced for fewer kilometers — Toronto, Peel, York, and Durham lanes learned from real deliveries.",
+        "body": "Porterchain learns from real GTA deliveries: corridor patterns, proof standards, and exception history. Routes are planned with AI using that network data — so capacity programs get sharper ETAs, not a separate software pitch.",
+        "note": "Today you buy transportation capacity. Tomorrow the network gets sharper. We ship intelligence when it earns trust.",
+        "aiBadge": "AI route design",
+        "regionBadge": "Greater Toronto Area",
+        "statsLabel": "14 stops → 1 optimized run · fewer km across Mississauga, Brampton, and Toronto core",
+        "imageAlt": "Optimized delivery route across the Greater Toronto Area with stops in Toronto, Mississauga, Brampton, Vaughan, Markham, and Scarborough",
+        "imageCaption": "GTA route optimization"
+      },
+      "cta": {
+        "title": "Get delivery capacity on your lanes",
+        "subtitle": "Tell us your shipments, urgency, and GTA service areas. Same-day, urgent, or recurring — we respond within one business day with vehicle fit and a written quote.",
+        "primary": "Get a quote"
+      }
+    },
+    "logos": {
+      "label": "Trusted by operations teams across Ontario"
+    },
+    "stats": {
+      "onTime": {
+        "value": "SLA-first",
+        "label": "Structured dispatch programs"
+      },
+      "visibility": {
+        "value": "Live",
+        "label": "Shipment status tracking"
+      },
+      "exceptions": {
+        "value": "Proactive",
+        "label": "Exception workflows"
+      },
+      "audit": {
+        "value": "Full",
+        "label": "Audit-ready proof chain"
+      }
+    },
+    "bento": {
+      "label": "Capacity",
+      "title": "Vehicle-and-driver capacity for the moments that break normal operations",
+      "subtitle": "Use Porterchain when your own fleet is full, unavailable, or not the right vehicle for the job.",
+      "dispatch": {
+        "title": "Emergency delivery",
+        "description": "A driver calls in sick, a customer changes the address, or material has to move today — we help keep the operation moving."
+      },
+      "routing": {
+        "title": "Overflow capacity",
+        "description": "Add sedan, SUV, cargo van, Sprinter van, or box truck capacity when your team is already committed."
+      },
+      "visibility": {
+        "title": "Scheduled routes",
+        "description": "Run recurring pickups, local distribution, and multi-stop routes without hiring another full-time driver."
+      },
+      "compliance": {
+        "title": "Proof of delivery",
+        "description": "Photo, signature, GPS, references, and status history give your team confidence after every shipment."
+      },
+      "integrations": {
+        "title": "Business communication",
+        "description": "Your team gets clear updates from quote to delivery instead of chasing drivers by phone."
+      },
+      "analytics": {
+        "title": "Software-run operations",
+        "description": "Our internal platform coordinates dispatch, tracking, proof, billing, and partner management behind the service."
+      }
+    },
+    "pillars": {
+      "label": "What you buy",
+      "title": "Transportation capacity when your business needs backup",
+      "subtitle": "Porterchain gives your operation access to professional drivers and the right vehicle class without adding permanent fleet cost.",
+      "items": {
+        "0": {
+          "title": "Vehicle + driver",
+          "description": "Sedan, SUV, cargo van, Sprinter van, and box truck options with a professional driver assigned to the job."
+        },
+        "1": {
+          "title": "Business continuity",
+          "description": "Cover urgent deliveries, sick calls, breakdowns, overflow demand, and forgotten materials before they disrupt customers."
+        },
+        "2": {
+          "title": "Accountable execution",
+          "description": "Every job runs with tracking, communication, and proof of delivery your team can use for billing and follow-up."
+        }
+      },
+      "cta": "See vehicles"
+    },
+    "wedge": {
+      "label": "When to call",
+      "title": "When your own fleet is not enough",
+      "subtitle": "Use Porterchain for emergency deliveries, fleet overflow, scheduled routes, local distribution, marketplace pickups, construction deliveries, pharmacy runs, labs, and manufacturing logistics.",
+      "cta": "See business services",
+      "href": "/business"
+    },
+    "developerStrip": {
+      "title": "Technology runs the operation behind the scenes",
+      "subtitle": "Merchant portal, driver app, control tower, tracking, proof of delivery, billing, route management, and partner management make the service reliable.",
+      "primary": "How it works",
+      "href": "/how-porterchain-works",
+      "capabilities": {
+        "portal": "Merchant portal",
+        "driver": "Driver app",
+        "tower": "Control tower",
+        "tracking": "Live tracking",
+        "pod": "Proof of delivery",
+        "billing": "Billing"
+      }
+    },
+    "caseStudy": {
+      "label": "Customers",
+      "title": "Built for businesses that cannot stop moving goods",
+      "subtitle": "Construction suppliers, pharmacies, labs, manufacturers, wholesalers, and local distributors use Porterchain when transportation availability becomes the bottleneck.",
+      "cta": "Customer stories",
+      "href": "/customers"
+    },
+    "timeline": {
+      "label": "How it works",
+      "title": "From order to proof in four steps",
+      "subtitle": "Structured workflows replace ad-hoc coordination with repeatable, accountable execution.",
+      "steps": {
+        "0": {
+          "title": "Request capacity",
+          "description": "Tell us what needs to move, when, where, and which vehicle class fits the shipment."
+        },
+        "1": {
+          "title": "Confirm the quote",
+          "description": "We confirm service area, urgency, vehicle fit, route structure, and proof requirements before dispatch."
+        },
+        "2": {
+          "title": "Dispatch and track",
+          "description": "A professional driver receives clear instructions while our control tower monitors progress and exceptions."
+        },
+        "3": {
+          "title": "Close with proof",
+          "description": "Photo, signature, GPS, references, and status history are captured so your team can close the loop."
+        }
+      }
+    },
+    "features": {
+      "label": "Capabilities",
+      "title": "Why businesses call Porterchain instead of stretching their own fleet",
+      "subtitle": "The value is not another app. It is reliable capacity at the exact moment transportation becomes the constraint.",
+      "items": {
+        "0": {
+          "title": "Backup when a driver is unavailable",
+          "description": "Avoid delaying customers because an employee is sick, a vehicle is down, or a route changed."
+        },
+        "1": {
+          "title": "Right-sized vehicle capacity",
+          "description": "Choose sedan, SUV, cargo van, Sprinter van, or box truck capacity based on the load."
+        },
+        "2": {
+          "title": "Urgent work stays moving",
+          "description": "Cover same-day requests, forgotten materials, construction emergencies, and unexpected orders."
+        },
+        "3": {
+          "title": "Professional driver network",
+          "description": "Independent professional drivers and commercial vehicles are coordinated through Porterchain operations."
+        },
+        "4": {
+          "title": "Tracking and communication",
+          "description": "Your team gets visibility without manually checking in on every shipment."
+        },
+        "5": {
+          "title": "Recurring route support",
+          "description": "Scheduled pickups, local distribution, and repeat lanes can be turned into predictable delivery programs."
+        }
+      }
+    },
+    "cta": {
+      "title": "Need transportation capacity?",
+      "subtitle": "Share the shipment, vehicle class, service area, and timing. We will help map the right capacity and send a written quote.",
+      "primary": "Get a quote",
+      "secondary": "View solutions"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Common questions",
+      "items": {
+        "0": {
+          "q": "Is Porterchain just a courier?",
+          "a": "Porterchain is your transportation capacity partner — an extension of your logistics operation when you need backup vans, same-day runs, or recurring distribution without hiring."
+        },
+        "1": {
+          "q": "Who is Porterchain for?",
+          "a": "Ontario businesses that need goods to keep moving when their own fleet is full, unavailable, or not the right fit — including construction, pharmacy, labs, manufacturing, wholesale, and local distribution."
+        },
+        "2": {
+          "q": "What proof does each shipment include?",
+          "a": "Photo, signature, GPS coordinates, shipment references, and a complete audit-ready status history for every delivery."
+        },
+        "3": {
+          "q": "Do customers buy Porterchain software?",
+          "a": "Today customers buy transportation capacity. Our software powers dispatch, tracking, proof, billing, and partner coordination behind the service."
+        }
+      }
+    },
+    "resources": {
+      "label": "Resources",
+      "title": "Continue exploring",
+      "items": {
+        "0": {
+          "title": "Business services",
+          "description": "Vehicle-and-driver capacity for urgent, overflow, and recurring delivery.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "Blog",
+          "description": "Commercial logistics insights.",
+          "href": "/blog"
+        },
+        "2": {
+          "title": "Talk to our team",
+          "description": "Request capacity or ask our team about a delivery program.",
+          "href": "/business#inquiry"
+        }
+      }
+    }
+  },
+  "platform": {
+    "hero": {
+      "badge": "How we operate",
+      "title": "How Porterchain runs your delivery",
+      "subtitle": "Every capacity request across the GTA and Ontario metros we serve runs through our network operations layer — dispatch, routing, driver coordination, live tracking, proof of delivery, and billing. You buy transportation capacity; this is the engine behind it.",
+      "primaryCta": "Get a quote",
+      "secondaryCta": "See vehicles"
+    },
+    "timeline": {
+      "label": "Operations",
+      "title": "From capacity request to proof of delivery",
+      "subtitle": "Structured workflows replace ad-hoc coordination so every shipment in the network is accountable.",
+      "steps": {
+        "0": {
+          "title": "Request & quote",
+          "description": "Shippers share pickup, dropoff, vehicle class, urgency, and proof requirements before wheels roll."
+        },
+        "1": {
+          "title": "Match capacity",
+          "description": "Dispatch matches the right professional driver and vehicle class from the network."
+        },
+        "2": {
+          "title": "Execute & monitor",
+          "description": "Control tower tracks live progress, exceptions, and customer communication through delivery."
+        },
+        "3": {
+          "title": "Close with proof",
+          "description": "Photo, signature, GPS, and status history are captured for billing and follow-up."
+        }
+      }
+    },
+    "features": {
+      "label": "Network operations",
+      "title": "What powers reliable capacity",
+      "items": {
+        "0": {
+          "title": "Dispatch control tower",
+          "description": "Central coordination for active jobs, exceptions, and service commitments across the network."
+        },
+        "1": {
+          "title": "Routing & sequencing",
+          "description": "Intelligent stop sequencing, vehicle-class matching, and route efficiency for multi-stop work."
+        },
+        "2": {
+          "title": "Live tracking",
+          "description": "Shipment status and ETA visibility for operations teams and receiving customers."
+        },
+        "3": {
+          "title": "Driver partner app",
+          "description": "Clear instructions, navigation, and proof-of-delivery capture for every job in the field."
+        }
+      }
+    },
+    "cards": {
+      "label": "Behind the service",
+      "title": "Software strengthens the network",
+      "subtitle": "Internal systems make capacity faster, smarter, and harder to replace — not a separate product you license today.",
+      "items": {
+        "0": {
+          "title": "Merchant coordination",
+          "description": "Quotes, programs, shipment history, and billing tied to executed deliveries."
+        },
+        "1": {
+          "title": "Partner management",
+          "description": "Vetted drivers and vehicles onboarded with predictable workflows and support."
+        },
+        "2": {
+          "title": "Proof & billing",
+          "description": "Delivery-linked records with photo, signature, GPS, and invoice alignment."
+        },
+        "3": {
+          "title": "Integrations (by request)",
+          "description": "High-volume shippers can discuss CSV, API, or ERP paths with our integrations team."
+        }
+      }
+    },
+    "cta": {
+      "title": "See how network operations fit your lanes",
+      "subtitle": "Tell us what needs to move. We'll quote the right vehicle-and-driver capacity for your lane.",
+      "primary": "Get a quote",
+      "secondary": "Talk to dispatch"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Operations questions",
+      "items": {
+        "0": {
+          "q": "Do I buy this software separately?",
+          "a": "No. Today you buy transportation capacity. Our operations software runs behind every delivery in the network."
+        },
+        "1": {
+          "q": "What proof do I get?",
+          "a": "Photo, signature, GPS, references, and status history on executed deliveries — aligned to your program requirements."
+        },
+        "2": {
+          "q": "Can I track shipments?",
+          "a": "Yes. Live status and delivery confirmation are part of how Porterchain runs capacity for your business."
+        },
+        "3": {
+          "q": "How do integrations work?",
+          "a": "Most shippers start with quote and dispatch coordination. API or ERP integrations are available by request for high-volume programs."
+        }
+      }
+    },
+    "resources": {
+      "label": "Resources",
+      "title": "Related",
+      "items": {
+        "0": {
+          "title": "Customer stories",
+          "description": "How Ontario businesses use Porterchain capacity programs.",
+          "href": "/customers"
+        },
+        "1": {
+          "title": "Trust & insurance",
+          "description": "COI, security summary, and delivery commitments.",
+          "href": "/trust"
+        },
+        "2": {
+          "title": "Compare alternatives",
+          "description": "Porterchain vs own employee, ad-hoc courier, or stretching your fleet.",
+          "href": "/compare"
+        },
+        "3": {
+          "title": "Proof & delivery verification",
+          "description": "How POD, photos, and claims-ready records close every stop.",
+          "href": "/trust/claims"
+        },
+        "4": {
+          "title": "Capacity capabilities",
+          "description": "Multi-stop, recurring, tracking, recovery, matching, and proof — deep-dives.",
+          "href": "/capabilities"
+        }
+      }
+    },
+    "capabilities": {
+      "label": "Full-stack capabilities",
+      "title": "Digital and physical capacity in one system",
+      "subtitle": "What you get when you buy PorterChain capacity — technology, drivers, vehicles, and ops — not a software seat.",
+      "items": {
+        "0": {
+          "title": "Vehicle + driver matching",
+          "description": "Sedan through box truck matched to load, access, and urgency — with a professional driver on every run."
+        },
+        "1": {
+          "title": "Same-day & overflow capacity",
+          "description": "Backup vehicles and drivers when your fleet is full, a truck is down, or demand spikes."
+        },
+        "2": {
+          "title": "Multi-stop & recurring routes",
+          "description": "Wholesale and clinic-style multi-drop lanes plus scheduled recurring capacity programs."
+        },
+        "3": {
+          "title": "Quotes, booking & business portal",
+          "description": "Instant quotes, booking, shipment history, and reporting in one merchant workspace."
+        },
+        "4": {
+          "title": "Live tracking",
+          "description": "Shareable status and ETA for ops teams and receiving customers."
+        },
+        "5": {
+          "title": "Proof of delivery",
+          "description": "Photo, signature, and GPS records aligned to billing and dispute follow-up."
+        },
+        "6": {
+          "title": "Exception recovery",
+          "description": "Dispatch control tower monitors stalls, reassigns capacity, and escalates when a human is needed."
+        },
+        "7": {
+          "title": "APIs & notifications",
+          "description": "Connect order flow by API or CSV; keep teams updated via email, SMS, and operational alerts."
+        }
+      }
+    }
+  },
+  "vehiclesIndex": {
+    "hero": {
+      "badge": "Fleet capacity",
+      "title": "Commercial vehicles matched to your freight",
+      "subtitle": "Cargo vans, trade vans, box trucks, and pickup trucks — professional drivers with tracking and proof on every stop across the GTA and Ontario.",
+      "primaryCta": "Get a quote",
+      "secondaryCta": "See services"
+    },
+    "cards": {
+      "label": "Vehicle classes",
+      "title": "Choose the right capacity for the lane",
+      "viewVehicle": "View vehicle"
+    },
+    "cta": {
+      "title": "Need the right vehicle for your next run?",
+      "subtitle": "Share freight size, stops, and timing — we confirm vehicle class and send a written quote.",
+      "primary": "Get a quote",
+      "secondary": "Browse solutions"
+    }
+  },
+  "solutions": {
+    "hero": {
+      "badge": "B2B services",
+      "title": "Transportation capacity for GTA businesses",
+      "subtitle": "Same-day urgent, fleet overflow, recurring wholesale routes, jobsite delivery, and last-mile distribution — vehicle and driver capacity with tracking and proof for construction, medical, food, and trade distribution across the Greater Toronto Area.",
+      "primaryCta": "Get a quote",
+      "secondaryCta": "See vehicles"
+    },
+    "cards": {
+      "label": "Industries",
+      "title": "Services GTA businesses request most",
+      "viewSolution": "View solution",
+      "alsoBrowse": "Also browse ",
+      "allIndustries": "all industries",
+      "items": {
+        "0": {
+          "title": "Wholesale distribution",
+          "description": "Recurring van and box truck routes for electrical, plumbing, and industrial distributors — counter to jobsite with appointment windows and proof of delivery across Peel and York."
+        },
+        "1": {
+          "title": "Medical & healthcare",
+          "description": "Pharmacy courier, lab specimen transport, and clinic supply runs — chain-of-custody proof, same-day urgency, and time-sensitive routing for regulated B2B shipments."
+        },
+        "2": {
+          "title": "Food & beverage",
+          "description": "Wholesale food, roasters, and restaurant supply — scheduled recurring routes, same-day overflow, and tight delivery windows for perishable B2B freight in the GTA."
+        },
+        "3": {
+          "title": "Construction supply",
+          "description": "Jobsite material delivery, pallet drops, and emergency same-day runs — building supply, electrical, and plumbing trade lanes from one construction solutions hub."
+        },
+        "4": {
+          "title": "3PL & warehouse outbound",
+          "description": "Multi-stop outbound, same-day releases, and peak overflow for GTA 3PL docks — tracking and proof merchants can share."
+        },
+        "5": {
+          "title": "Fleet overflow",
+          "description": "Backup vehicle-and-driver capacity when your fleet is full, a truck is down, or cut-offs cannot slip."
+        }
+      }
+    },
+    "verticalDetail": {
+      "body": "Porterchain provides capacity programs adapted to your sector — urgent runs, overflow, recurring routes, and proof of delivery.",
+      "exploreIndustry": "Explore industry playbook",
+      "viewPlatform": "How we operate",
+      "viewCustomers": "Customer stories"
+    },
+    "timeline": {
+      "label": "Workflow",
+      "title": "How teams adopt Porterchain",
+      "subtitle": "A structured onboarding path from discovery to full operational deployment.",
+      "steps": {
+        "0": {
+          "title": "Discovery",
+          "description": "Map your routes, volumes, SLAs, and integration requirements with our team."
+        },
+        "1": {
+          "title": "Configuration",
+          "description": "Set up dispatch rules, vehicle classes, proof standards, and customer visibility."
+        },
+        "2": {
+          "title": "Pilot",
+          "description": "Run a controlled pilot on select routes with full monitoring and feedback loops."
+        },
+        "3": {
+          "title": "Scale",
+          "description": "Expand across your network with analytics, recurring routes, and API integrations."
+        }
+      }
+    },
+    "features": {
+      "label": "Outcomes",
+      "title": "What changes when you switch",
+      "items": {
+        "0": {
+          "title": "Reliable SLAs",
+          "description": "Managed dispatch replaces manual coordination with defined execution standards."
+        },
+        "1": {
+          "title": "Fewer exceptions",
+          "description": "Pre-dispatch validation catches issues before they become customer-facing problems."
+        },
+        "2": {
+          "title": "Complete visibility",
+          "description": "Every stakeholder sees the same live status — no more phone tag."
+        },
+        "3": {
+          "title": "Audit confidence",
+          "description": "Proof chains that satisfy compliance, billing, and customer dispute resolution."
+        }
+      }
+    },
+    "cta": {
+      "title": "Find capacity for your operation",
+      "subtitle": "Tell us your industry, lanes, and vehicle needs — we'll recommend the right capacity program.",
+      "primary": "Get a quote",
+      "secondary": "See vehicles"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Solutions FAQ",
+      "items": {
+        "0": {
+          "q": "Do you support recurring routes?",
+          "a": "Yes. Porterchain runs recurring route programs, multi-stop sequences, and scheduled distribution for regular delivery patterns."
+        },
+        "1": {
+          "q": "Can we start with a pilot?",
+          "a": "Most programs start with a few lanes or urgent overflow jobs before expanding to recurring capacity."
+        },
+        "2": {
+          "q": "What regions do you serve?",
+          "a": "Porterchain operates across the GTA and Ontario, with route optimization tuned for Canadian address and road networks."
+        },
+        "3": {
+          "q": "How does pricing work?",
+          "a": "Quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). No hidden platform fees — request a written quote."
+        }
+      }
+    },
+    "resources": {
+      "label": "Resources",
+      "title": "Go deeper",
+      "items": {
+        "0": {
+          "title": "Business programs",
+          "description": "Recurring routes and enterprise delivery for growing teams.",
+          "href": "/business"
+        },
+        "1": {
+          "title": "About us",
+          "description": "The team behind Porterchain commercial logistics.",
+          "href": "/company"
+        },
+        "2": {
+          "title": "Contact",
+          "description": "Start a conversation with our team.",
+          "href": "/contact"
+        }
+      }
+    },
+    "construction": {
+      "meta": {
+        "title": "Construction Delivery Solutions GTA | Jobsite & Trade Routes | PorterChain",
+        "description": "Construction delivery solutions for building supply, electrical, and plumbing — jobsite routes, fleet overflow, and same-day urgent capacity for distributors, contractors, and project managers across the GTA.",
+        "ogTitle": "Construction delivery solutions — PorterChain GTA",
+        "ogDescription": "Parent hub for construction material, electrical, and plumbing delivery — choose your trade lane and get a quote."
+      },
+      "breadcrumb": "Construction",
+      "hero": {
+        "badge": "Construction solutions",
+        "title": "Construction delivery capacity in the GTA",
+        "subtitle": "One solutions hub for building supply, electrical wholesale, and plumbing supply — jobsite delivery, counter-to-contractor routes, fleet overflow, and same-day urgent runs for vendors, contractors, project managers, and site supers across Toronto, Peel, and York.",
+        "primaryCta": "Get a quote",
+        "secondaryCta": "Construction materials"
+      },
+      "programs": {
+        "label": "Trade programs",
+        "title": "Choose your construction delivery lane",
+        "subtitle": "Each program has dedicated industry playbooks — personas, vehicle fit, workflows, and FAQs for your role on the job.",
+        "quoteCta": "Get a quote",
+        "alsoBrowse": "Also browse",
+        "allIndustries": "all industries",
+        "allSolutions": "all solutions",
+        "allServiceAreas": "all service areas",
+        "items": {
+          "materials": {
+            "title": "Construction materials",
+            "description": "Lumber, drywall, steel, and palletized building supply — yard-to-jobsite and distributor counter routes.",
+            "cta": "Construction materials delivery",
+            "bullets": {
+              "0": "Jobsite windows, site access, and foreman coordination",
+              "1": "Pickups, vans, and 16 ft box trucks for pallet freight",
+              "2": "Photo proof for PMs, supers, and billing teams"
+            }
+          },
+          "electrical": {
+            "title": "Electrical distribution",
+            "description": "Wire, panels, and equipment from electrical wholesalers to contractors and job sites.",
+            "cta": "Electrical distributor delivery",
+            "bullets": {
+              "0": "Same-day cut-offs and recurring counter routes",
+              "1": "Cars through box trucks for electrical freight",
+              "2": "Tracking links for inside sales and site supers"
+            }
+          },
+          "plumbing": {
+            "title": "Plumbing supply",
+            "description": "Pipe, fixtures, and water heaters for plumbing wholesalers and plumbing contractors.",
+            "cta": "Plumbing supply delivery",
+            "bullets": {
+              "0": "Counter-to-plumber and jobsite drops same day",
+              "1": "Vans and box trucks for long pipe and fixtures",
+              "2": "Emergency runs when rough-in cannot slip"
+            }
+          }
+        }
+      },
+      "personas": {
+        "label": "Who we serve",
+        "title": "Built for every role on the construction supply chain",
+        "subtitle": "Distributors ship capacity. Contractors and PMs need material on site. Ops and legal need proof — each industry page speaks your job.",
+        "items": {
+          "0": {
+            "title": "Vendors & distributors",
+            "description": "Counter-to-jobsite overflow, peak-season backup, and recurring routes without adding fleet or drivers."
+          },
+          "1": {
+            "title": "Contractors & trade subs",
+            "description": "When the supplier truck no-shows — same-day material to the jobsite with the right vehicle and timed window."
+          },
+          "2": {
+            "title": "Project managers & supers",
+            "description": "ETA visibility, photo proof with timestamps, and documentation you can forward to owners and finance."
+          },
+          "3": {
+            "title": "Operations & procurement",
+            "description": "One capacity partner for urgent and recurring lanes — plus trust documentation for vendor review."
+          }
+        }
+      },
+      "cities": {
+        "title": "Construction delivery by city",
+        "items": {
+          "toronto": "Toronto & GTA jobsite delivery",
+          "mississauga": "Mississauga & Peel construction routes",
+          "brampton": "Brampton & Peel building supply delivery"
+        }
+      },
+      "bridge": {
+        "body": "You buy delivery capacity — not dispatch software. See how we operate, what we document for procurement, and how distributors run jobsite lanes today.",
+        "platform": "How we operate",
+        "trust": "Trust & documentation",
+        "story": "Construction success story",
+        "business": "Business programs"
+      },
+      "faq": {
+        "label": "FAQ",
+        "title": "Construction solutions FAQ",
+        "items": {
+          "0": {
+            "q": "Which construction trade program should I start with?",
+            "a": "Start with the lane that matches your freight: construction materials for building supply, electrical distribution for wire and panels, or plumbing supply for pipe and fixtures. Each industry page has role-specific FAQs and quote paths."
+          },
+          "1": {
+            "q": "Do you serve contractors as well as distributors?",
+            "a": "Yes. Distributors use us for counter and yard routes; contractors and GCs use us when supplier delivery fails or they need emergency same-day material to site."
+          },
+          "2": {
+            "q": "Can project managers get proof for every jobsite drop?",
+            "a": "Every stop includes photo proof, signatures where required, GPS timestamps, and shareable tracking — documentation for supers, PMs, and billing disputes."
+          },
+          "3": {
+            "q": "What areas do construction solutions cover?",
+            "a": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener–Waterloo, and expanding Ontario metros."
+          }
+        }
+      },
+      "cta": {
+        "title": "Get a quote for your construction lanes",
+        "subtitle": "Tell us your trade, materials, and GTA service areas — we confirm vehicle fit and respond within one business day.",
+        "primary": "Get a quote",
+        "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "Construction capacity resources",
+        "items": {
+          "0": {
+            "title": "Jobsite delivery blog",
+            "description": "Mississauga and Peel site access, truck fit, and POD.",
+            "href": "/blog/jobsite-delivery-capacity-mississauga"
+          },
+          "1": {
+            "title": "Exception recovery",
+            "description": "How ops reassigns capacity when a site window stalls.",
+            "href": "/capabilities/exception-recovery"
+          },
+          "2": {
+            "title": "Fleet overflow",
+            "description": "Backup capacity when your construction fleet is booked.",
+            "href": "/solutions/fleet-overflow"
+          }
+        }
+      }
+    },
+    "wholesale": {
+      "meta": {
+        "title": "Wholesale Distribution Solutions GTA | B2B Delivery Capacity | PorterChain",
+        "description": "Wholesale distribution delivery in the GTA — recurring routes, fleet overflow, and same-day capacity for electrical, plumbing, e-commerce, and trade distributors across Toronto and Peel.",
+        "ogTitle": "Wholesale distribution solutions — PorterChain",
+        "ogDescription": "Vehicle-and-driver capacity for Ontario wholesalers with tracking and proof on every stop."
+      },
+      "breadcrumb": "Wholesale distribution",
+      "hero": {
+        "badge": "Wholesale solutions",
+        "title": "Wholesale distribution capacity in the GTA",
+        "subtitle": "Recurring B2B delivery for distributors who cannot miss cut-offs — counter-to-jobsite routes, fleet overflow, multi-stop distribution, and same-day urgent capacity across Toronto, Peel, and York with tracking and proof.",
+        "primaryCta": "Get a quote",
+        "secondaryCta": "E-commerce delivery"
+      },
+      "programs": {
+        "label": "Distribution lanes",
+        "title": "Wholesale programs that match your freight",
+        "subtitle": "Each lane links to an industry playbook with vehicle fit, buyer personas, and quote paths for ops leaders.",
+        "quoteCta": "Get a quote",
+        "alsoBrowse": "Also browse",
+        "allIndustries": "all industries",
+        "allSolutions": "all solutions",
+        "allServiceAreas": "all service areas",
+        "items": {
+          "ecommerce": {
+            "title": "E-commerce & retail replenishment",
+            "description": "Multi-stop distribution, marketplace pickups, and store replenishment — last-mile capacity without fleet capex.",
+            "cta": "E-commerce delivery playbook",
+            "bullets": {
+              "0": "Same-day overflow and scheduled recurring routes",
+              "1": "Sedan through box truck for parcel and pallet mix",
+              "2": "Live tracking and proof for customer teams"
+            }
+          },
+          "electrical": {
+            "title": "Electrical wholesale distribution",
+            "description": "Counter-to-contractor delivery for electrical supply houses — cut-off reliability your inside sales team can trust.",
+            "cta": "Electrical distribution playbook",
+            "bullets": {
+              "0": "Afternoon cut-offs and recurring Peel–York lanes",
+              "1": "Wire, panel, and equipment matched to vehicle class",
+              "2": "Tracking links for contractors and PMs"
+            }
+          },
+          "plumbing": {
+            "title": "Plumbing wholesale distribution",
+            "description": "Pipe, fixtures, and water heater runs for plumbing wholesalers — trade routes with emergency same-day overflow.",
+            "cta": "Plumbing supply playbook",
+            "bullets": {
+              "0": "Counter-to-plumber and jobsite drops",
+              "1": "Long stock and pallets on the right truck",
+              "2": "Proof for billing and trade disputes"
+            }
+          }
+        }
+      },
+      "personas": {
+        "label": "Who we serve",
+        "title": "Built for wholesale operators and their customers",
+        "subtitle": "Ops managers buy capacity. Counter teams need reliability. Finance needs proof.",
+        "items": {
+          "0": {
+            "title": "Distribution & ops managers",
+            "description": "Scale delivery without fleet capex or ad-hoc courier roulette."
+          },
+          "1": {
+            "title": "Inside sales & counter teams",
+            "description": "Hit cut-offs with tracking customers and contractors can follow."
+          },
+          "2": {
+            "title": "Trade customers & contractors",
+            "description": "Stock on site or at the window — timed delivery with documented proof."
+          },
+          "3": {
+            "title": "Finance & procurement",
+            "description": "Shipment-level POD, COI, and enterprise exhibits for vendor review."
+          }
+        }
+      },
+      "cities": {
+        "title": "Wholesale delivery by city",
+        "items": {
+          "toronto": "Toronto & GTA wholesale routes",
+          "mississauga": "Mississauga & Peel distribution",
+          "brampton": "Brampton warehouse-to-customer lanes"
+        }
+      },
+      "bridge": {
+        "body": "Wholesale leaders buy execution reliability — not another software login.",
+        "platform": "How we operate",
+        "trust": "Trust & documentation",
+        "business": "Business programs"
+      },
+      "faq": {
+        "label": "FAQ",
+        "title": "Wholesale distribution FAQ",
+        "items": {
+          "0": {
+            "q": "Do you run recurring wholesale routes in the GTA?",
+            "a": "Yes. Recurring van and box truck programs for distributors across Toronto, Peel, and York."
+          },
+          "1": {
+            "q": "Can you cover fleet overflow?",
+            "a": "Yes. Backup capacity when your fleet cannot cover the cut-off — often same day."
+          },
+          "2": {
+            "q": "What wholesale verticals do you serve?",
+            "a": "Electrical, plumbing, building supply, e-commerce, and industrial trade — each with an industry playbook."
+          },
+          "3": {
+            "q": "Is proof of delivery included?",
+            "a": "Photo proof, signatures, GPS timestamps, and shareable tracking on every stop."
+          }
+        }
+      },
+      "cta": {
+        "title": "Get a quote for wholesale lanes",
+        "subtitle": "Share routes, cut-offs, and GTA zones — response within one business day.",
+        "primary": "Get a quote",
+        "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "Wholesale capacity resources",
+        "items": {
+          "0": {
+            "title": "Multi-stop delivery",
+            "description": "How multi-drop wholesale loops run with vehicle fit and proof.",
+            "href": "/capabilities/multi-stop-delivery"
+          },
+          "1": {
+            "title": "Fleet overflow",
+            "description": "Backup capacity when cut-offs outrun your own trucks.",
+            "href": "/solutions/fleet-overflow"
+          },
+          "2": {
+            "title": "Wholesale routes guide",
+            "description": "GTA multi-stop wholesale patterns and staging discipline.",
+            "href": "/blog/multi-stop-wholesale-routes-gta"
+          }
+        }
+      }
+    },
+    "medical": {
+      "meta": {
+        "title": "Medical & Healthcare Delivery GTA | Pharmacy Courier | PorterChain",
+        "description": "Healthcare delivery capacity — pharmacy courier, lab specimens, clinic supply, and time-sensitive B2B shipments with chain-of-custody proof in the GTA.",
+        "ogTitle": "Medical & healthcare solutions — PorterChain",
+        "ogDescription": "Tracked delivery for pharmacies, labs, and healthcare suppliers in Ontario."
+      },
+      "breadcrumb": "Medical & healthcare",
+      "hero": {
+        "badge": "Medical solutions",
+        "title": "Healthcare delivery capacity in the GTA",
+        "subtitle": "Pharmacy runs, lab specimen transport, and clinic supply — time-sensitive B2B delivery with chain-of-custody proof, same-day urgency, and audit-ready documentation.",
+        "primaryCta": "Get a quote",
+        "secondaryCta": "Pharmacy delivery"
+      },
+      "programs": {
+        "label": "Healthcare lanes",
+        "title": "Medical delivery programs by use case",
+        "subtitle": "Regulated freight needs documented execution — each program links to an industry playbook.",
+        "quoteCta": "Get a quote",
+        "alsoBrowse": "Also browse",
+        "allIndustries": "all industries",
+        "allSolutions": "all solutions",
+        "allServiceAreas": "all service areas",
+        "items": {
+          "pharmacy": {
+            "title": "Pharmacy & patient delivery",
+            "description": "Prescription and pharmacy-to-patient logistics with compliance-friendly handling.",
+            "cta": "Pharmacy delivery playbook",
+            "bullets": {
+              "0": "Chain-of-custody on every shipment",
+              "1": "Windows aligned to pharmacy ops",
+              "2": "Shareable patient tracking links"
+            }
+          },
+          "lab": {
+            "title": "Lab sample courier",
+            "description": "Specimen transport for labs and clinics — time-critical runs with proof.",
+            "cta": "Lab sample playbook",
+            "bullets": {
+              "0": "Same-day and scheduled specimen routes",
+              "1": "Cars and vans for handling requirements",
+              "2": "Audit trail pickup through delivery"
+            }
+          },
+          "cosmetics": {
+            "title": "Medical aesthetics supply",
+            "description": "B2B replenishment for clinics and aesthetics suppliers.",
+            "cta": "Cosmetics delivery playbook",
+            "bullets": {
+              "0": "Recurring clinic replenishment",
+              "1": "Multi-stop efficiency",
+              "2": "Proof for receiving teams"
+            }
+          }
+        }
+      },
+      "personas": {
+        "label": "Who we serve",
+        "title": "Built for healthcare operators",
+        "subtitle": "Pharmacy managers need on-time runs. Compliance needs custody. Patients need visibility.",
+        "items": {
+          "0": {
+            "title": "Pharmacy & clinic operators",
+            "description": "Recurring and same-day delivery without an in-house courier fleet."
+          },
+          "1": {
+            "title": "Lab managers",
+            "description": "Specimen routes with timestamps and auditable proof."
+          },
+          "2": {
+            "title": "Healthcare procurement",
+            "description": "COI and trust docs for vendor onboarding."
+          },
+          "3": {
+            "title": "Patients & partners",
+            "description": "Shareable tracking — fewer where-is-it calls to your staff."
+          }
+        }
+      },
+      "cities": {
+        "title": "Medical delivery by city",
+        "items": {
+          "toronto": "Toronto pharmacy & clinic routes",
+          "mississauga": "Mississauga healthcare distribution",
+          "hamilton": "Hamilton medical courier lanes"
+        }
+      },
+      "bridge": {
+        "body": "Healthcare shippers buy trust and execution — not marketplace couriers.",
+        "platform": "How we operate",
+        "trust": "Trust & documentation",
+        "business": "Business programs"
+      },
+      "faq": {
+        "label": "FAQ",
+        "title": "Medical delivery FAQ",
+        "items": {
+          "0": {
+            "q": "Do you support pharmacy delivery?",
+            "a": "Yes. Pharmacy-to-patient and clinic supply with tracking and custody documentation."
+          },
+          "1": {
+            "q": "Can you handle lab specimens?",
+            "a": "Yes. Same-day and scheduled transport subject to handling requirements — confirm during onboarding."
+          },
+          "2": {
+            "q": "Is chain of custody documented?",
+            "a": "Tracked pickup-to-delivery with timestamps, proof, and dashboard visibility."
+          },
+          "3": {
+            "q": "What regions do you serve?",
+            "a": "GTA, Toronto, Mississauga, Hamilton, and expanding Ontario metros."
+          }
+        }
+      },
+      "cta": {
+        "title": "Get a quote for healthcare lanes",
+        "subtitle": "Share routes, handling needs, and service areas.",
+        "primary": "Get a quote",
+        "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "Healthcare capacity resources",
+        "items": {
+          "0": {
+            "title": "Delivery verification",
+            "description": "POD and claims-ready closeout for regulated B2B runs.",
+            "href": "/capabilities/delivery-verification"
+          },
+          "1": {
+            "title": "Same-day GTA guide",
+            "description": "Cut-offs, vehicle class, and overflow for urgent lanes.",
+            "href": "/guides/same-day-delivery-capacity-gta"
+          },
+          "2": {
+            "title": "Pharmacy same-day blog",
+            "description": "Chain-of-custody visibility without in-house fleet.",
+            "href": "/blog/pharmacy-same-day-courier-gta"
+          }
+        }
+      }
+    },
+    "foodBeverage": {
+      "meta": {
+        "title": "Food & Beverage Delivery GTA | Roaster & Wholesale Routes | PorterChain",
+        "description": "Food and beverage delivery — coffee roaster routes, wholesale food distribution, and perishable B2B freight with tight windows in the GTA.",
+        "ogTitle": "Food & beverage solutions — PorterChain",
+        "ogDescription": "Recurring and same-day delivery for roasters and food wholesalers in Ontario."
+      },
+      "breadcrumb": "Food & beverage",
+      "hero": {
+        "badge": "Food & beverage solutions",
+        "title": "Food and beverage delivery capacity in the GTA",
+        "subtitle": "Recurring B2B delivery for roasters and food wholesalers — café routes, wholesale drops, perishable freight, and same-day overflow with tracking and proof.",
+        "primaryCta": "Get a quote",
+        "secondaryCta": "Coffee roaster delivery"
+      },
+      "programs": {
+        "label": "Food & beverage lanes",
+        "title": "Programs for perishable and recurring freight",
+        "subtitle": "Freshness and window discipline — each program links to an industry playbook.",
+        "quoteCta": "Get a quote",
+        "alsoBrowse": "Also browse",
+        "allIndustries": "all industries",
+        "allSolutions": "all solutions",
+        "allServiceAreas": "all service areas",
+        "items": {
+          "coffee": {
+            "title": "Coffee roasters & café routes",
+            "description": "Wholesale bean delivery and recurring café drops aligned to roast cycles.",
+            "cta": "Coffee roaster playbook",
+            "bullets": {
+              "0": "Weekly café routes and same-day overflow",
+              "1": "Cargo bikes and vans for urban density",
+              "2": "ETAs café partners can trust"
+            }
+          },
+          "chocolate": {
+            "title": "Chocolate & confectionery",
+            "description": "Handled B2B delivery for confectionery brands.",
+            "cta": "Chocolate delivery playbook",
+            "bullets": {
+              "0": "Scheduled wholesale replenishment",
+              "1": "Careful handling and proof",
+              "2": "Multi-stop GTA routes"
+            }
+          },
+          "wholesaleFood": {
+            "title": "Wholesale food & restaurant supply",
+            "description": "Warehouse-to-restaurant runs with early-morning windows.",
+            "cta": "Wholesale food playbook",
+            "bullets": {
+              "0": "Timed delivery windows",
+              "1": "Vans and trucks for mixed freight",
+              "2": "Overflow when your fleet is full"
+            }
+          }
+        }
+      },
+      "personas": {
+        "label": "Who we serve",
+        "title": "Built for food brands and distribution ops",
+        "subtitle": "Roasters focus on product. Ops need reliability. Customers judge the window.",
+        "items": {
+          "0": {
+            "title": "Roasters & brand operators",
+            "description": "Recurring routes without hiring drivers or buying vans."
+          },
+          "1": {
+            "title": "Wholesale & restaurant supply",
+            "description": "Warehouse-to-kitchen lanes with peak-day overflow."
+          },
+          "2": {
+            "title": "Ops managers",
+            "description": "One partner for scheduled and urgent food freight."
+          },
+          "3": {
+            "title": "Café & retail partners",
+            "description": "Tracking and on-time proof — fewer status calls."
+          }
+        }
+      },
+      "cities": {
+        "title": "Food delivery by city",
+        "items": {
+          "toronto": "Toronto café & wholesale routes",
+          "mississauga": "Mississauga food distribution",
+          "kitchener-waterloo": "Kitchener–Waterloo roaster lanes"
+        }
+      },
+      "bridge": {
+        "body": "Food businesses buy route reliability — not experimental logistics.",
+        "platform": "How we operate",
+        "trust": "Trust & documentation",
+        "business": "Business programs"
+      },
+      "faq": {
+        "label": "FAQ",
+        "title": "Food & beverage FAQ",
+        "items": {
+          "0": {
+            "q": "Do you run recurring roaster routes?",
+            "a": "Yes. Weekly café drops and variable volume on one capacity partner."
+          },
+          "1": {
+            "q": "Can you handle tight morning windows?",
+            "a": "Yes. Share windows during onboarding; we align routes to cut-offs."
+          },
+          "2": {
+            "q": "Do you support same-day overflow?",
+            "a": "Yes. Matched capacity when volume exceeds your fleet."
+          },
+          "3": {
+            "q": "What areas do you serve?",
+            "a": "GTA, Toronto, Mississauga, Kitchener–Waterloo, Hamilton, and expanding regions."
+          }
+        }
+      },
+      "cta": {
+        "title": "Get a quote for food & beverage lanes",
+        "subtitle": "Share routes, perishability needs, and service areas.",
+        "primary": "Get a quote",
+        "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "Food & beverage capacity resources",
+        "items": {
+          "0": {
+            "title": "Recurring routes",
+            "description": "Café and wholesale food programs with reserved capacity and same-day overflow.",
+            "href": "/capabilities/recurring-routes"
+          },
+          "1": {
+            "title": "Early-morning foodservice blog",
+            "description": "How GTA roasters and distributors hold café and kitchen windows.",
+            "href": "/blog/early-morning-foodservice-routes-gta"
+          },
+          "2": {
+            "title": "Coffee freshness blog",
+            "description": "Wholesale freshness windows and route rhythm for roasters.",
+            "href": "/blog/coffee-supply-chain-freshness"
+          }
+        }
+      }
+    },
+    "threePl": {
+      "meta": {
+        "title": "3PL Delivery Capacity GTA | Warehouse Outbound & Multi-Stop | PorterChain",
+        "description": "Transportation capacity for 3PL warehouses in the GTA — outbound multi-stop, same-day releases, and overflow when dock volume spikes. Tracking and proof on every stop.",
+        "ogTitle": "3PL capacity partner — PorterChain",
+        "ogDescription": "Vehicle-and-driver capacity for Ontario 3PLs — warehouse outbound, multi-stop, and peak overflow."
+      },
+      "breadcrumb": "3PL & warehouse",
+      "hero": {
+        "badge": "3PL solutions",
+        "title": "Capacity for 3PL warehouses in the GTA",
+        "subtitle": "Outbound multi-stop, same-day releases, and overflow when your dock volume spikes — professional drivers and commercial vehicles with tracking and proof so warehouse ops keep SLAs without adding fleet headcount.",
+        "primaryCta": "Get a quote",
+        "secondaryCta": "E-commerce playbook"
+      },
+      "programs": {
+        "label": "Warehouse lanes",
+        "title": "3PL programs that match outbound volume",
+        "subtitle": "Each lane links to an industry playbook with vehicle fit and quote paths for warehouse and fulfillment leaders.",
+        "quoteCta": "Get a quote",
+        "alsoBrowse": "Also browse",
+        "allIndustries": "all industries",
+        "allSolutions": "all solutions",
+        "allServiceAreas": "all service areas",
+        "items": {
+          "warehouse": {
+            "title": "Warehouse outbound capacity",
+            "description": "Dock-to-customer and dock-to-store runs when your own vans are full or the release window is tight.",
+            "cta": "E-commerce delivery playbook",
+            "bullets": {
+              "0": "Same-day and next-window outbound from Peel and Toronto docks",
+              "1": "Cargo van through box truck matched to carton and pallet mix",
+              "2": "Shareable tracking for merchant and receiving teams"
+            }
+          },
+          "multistop": {
+            "title": "Multi-stop distribution",
+            "description": "Wave-based multi-drop lanes for B2B replenishment and local last-mile without stretching night shift.",
+            "cta": "E-commerce delivery playbook",
+            "bullets": {
+              "0": "Route density across Toronto, Peel, and York",
+              "1": "Proof standards aligned to billing disputes",
+              "2": "API or CSV intake for order waves"
+            }
+          },
+          "overflow": {
+            "title": "Peak & exception overflow",
+            "description": "Backup capacity for promotions, returns spikes, and truck downtime — booked without rebuilding your fleet plan.",
+            "cta": "Construction capacity playbook",
+            "bullets": {
+              "0": "Release-valve capacity when volume spikes",
+              "1": "Same partner standards as primary lanes",
+              "2": "Ops escalation when a stop stalls"
+            }
+          }
+        }
+      },
+      "personas": {
+        "label": "Who we serve",
+        "title": "Built for warehouse and fulfillment leaders",
+        "subtitle": "3PL ops buy capacity reliability. Merchants need tracking. Finance needs proof.",
+        "items": {
+          "0": {
+            "title": "3PL & warehouse ops",
+            "description": "Cover outbound waves without capex or ad-hoc courier roulette."
+          },
+          "1": {
+            "title": "Fulfillment & account managers",
+            "description": "Hit merchant SLAs with shareable status on every stop."
+          },
+          "2": {
+            "title": "Merchant brands",
+            "description": "Last-mile that looks professional — ETA and POD their customers trust."
+          },
+          "3": {
+            "title": "Finance & procurement",
+            "description": "Shipment-level proof and COI for vendor and claim reviews."
+          }
+        }
+      },
+      "cities": {
+        "title": "3PL capacity by city",
+        "items": {
+          "toronto": "Toronto warehouse outbound",
+          "mississauga": "Mississauga & Peel docks",
+          "brampton": "Brampton distribution lanes"
+        }
+      },
+      "bridge": {
+        "body": "3PLs buy execution capacity — not another software login.",
+        "platform": "How we operate",
+        "trust": "Trust & documentation",
+        "business": "Business programs"
+      },
+      "faq": {
+        "label": "FAQ",
+        "title": "3PL capacity FAQ",
+        "items": {
+          "0": {
+            "q": "Can you cover outbound from our GTA warehouse?",
+            "a": "Yes. Same-day and scheduled multi-stop capacity from Toronto, Peel, and York docks."
+          },
+          "1": {
+            "q": "Do you support peak season overflow?",
+            "a": "Yes. Book overflow capacity for promotions and volume spikes without adding permanent fleet."
+          },
+          "2": {
+            "q": "How do merchants get tracking?",
+            "a": "Shareable tracking links and proof of delivery on every stop — photo, signature, and GPS timestamps."
+          },
+          "3": {
+            "q": "Can we connect by API or CSV?",
+            "a": "Yes. Order intake via API or CSV waves — see integrations for partner options."
+          }
+        }
+      },
+      "cta": {
+        "title": "Get a quote for 3PL outbound",
+        "subtitle": "Share dock location, wave volume, and GTA zones — response within one business day.",
+        "primary": "Get a quote",
+        "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "3PL capacity resources",
+        "items": {
+          "0": {
+            "title": "Inventory transfers",
+            "description": "Warehouse-to-store and branch balancing capacity.",
+            "href": "/capabilities/inventory-transfers"
+          },
+          "1": {
+            "title": "Multi-location routing",
+            "description": "Coordinate outbound across docks and zones.",
+            "href": "/capabilities/multi-location-routing"
+          },
+          "2": {
+            "title": "3PL Peel blog",
+            "description": "Outbound waves from Peel docks without permanent fleet.",
+            "href": "/blog/3pl-outbound-capacity-peel"
+          }
+        }
+      }
+    },
+    "fleetOverflow": {
+      "meta": {
+        "title": "Fleet Overflow Delivery GTA | Backup Capacity | PorterChain",
+        "description": "Fleet overflow capacity for GTA businesses — backup vehicles and drivers when your fleet is full, a truck is down, or cut-offs cannot slip. Tracking and proof on every stop.",
+        "ogTitle": "Fleet overflow capacity — PorterChain",
+        "ogDescription": "Release-valve vehicle-and-driver capacity for Ontario fleets under pressure."
+      },
+      "breadcrumb": "Fleet overflow",
+      "hero": {
+        "badge": "Overflow capacity",
+        "title": "Fleet overflow when your trucks cannot cover it",
+        "subtitle": "Backup vehicles and professional drivers for peak volume, breakdowns, and hard cut-offs — same tracking and proof standards as your primary lanes so customers never feel the scramble.",
+        "primaryCta": "Get a quote",
+        "secondaryCta": "All industries"
+      },
+      "programs": {
+        "label": "Overflow triggers",
+        "title": "When teams book overflow capacity",
+        "subtitle": "Use overflow as a planned release valve — not a last-minute panic courier.",
+        "quoteCta": "Get a quote",
+        "alsoBrowse": "Also browse",
+        "allIndustries": "all industries",
+        "allSolutions": "all solutions",
+        "allServiceAreas": "all service areas",
+        "items": {
+          "peak": {
+            "title": "Peak volume & promotions",
+            "description": "Cover launch days and seasonal spikes without permanent headcount or weekend overtime that burns your team.",
+            "cta": "E-commerce delivery playbook",
+            "bullets": {
+              "0": "Same-day and next-window overflow across the GTA",
+              "1": "Vehicle class matched to carton and pallet mix",
+              "2": "Tracking links your customers can follow"
+            }
+          },
+          "breakdown": {
+            "title": "Breakdown & downtime cover",
+            "description": "Keep jobsite and wholesale promises when a unit is in the shop or a driver calls out.",
+            "cta": "Construction capacity playbook",
+            "bullets": {
+              "0": "Cargo van through box truck standby patterns",
+              "1": "Proof for billing when the stop still completes",
+              "2": "Ops escalation if the replacement run stalls"
+            }
+          },
+          "cutoffs": {
+            "title": "Hard cut-off protection",
+            "description": "Protect counter-to-contractor and warehouse cut-offs when inside sales volume outruns your own routes.",
+            "cta": "Electrical distribution playbook",
+            "bullets": {
+              "0": "Afternoon cut-off lanes in Peel and York",
+              "1": "Shareable ETA for contractors and PMs",
+              "2": "POD that closes trade disputes"
+            }
+          }
+        }
+      },
+      "personas": {
+        "label": "Who we serve",
+        "title": "Built for fleets under pressure",
+        "subtitle": "Ops leaders buy reliability. Sales needs cut-offs. Finance needs clean proof.",
+        "items": {
+          "0": {
+            "title": "Fleet & dispatch managers",
+            "description": "Add capacity without hiring or stretching unsafe overtime."
+          },
+          "1": {
+            "title": "Inside sales & counter teams",
+            "description": "Promise windows you can still hit on peak days."
+          },
+          "2": {
+            "title": "Warehouse & dock leads",
+            "description": "Clear staged freight with a booked overflow run."
+          },
+          "3": {
+            "title": "Finance & procurement",
+            "description": "Shipment-level POD when overflow completes the stop."
+          }
+        }
+      },
+      "cities": {
+        "title": "Overflow capacity by city",
+        "items": {
+          "toronto": "Toronto overflow lanes",
+          "mississauga": "Mississauga & Peel backup capacity",
+          "brampton": "Brampton fleet overflow"
+        }
+      },
+      "bridge": {
+        "body": "Overflow is capacity insurance — planned, tracked, and proven.",
+        "platform": "How we operate",
+        "trust": "Trust & documentation",
+        "business": "Business programs"
+      },
+      "faq": {
+        "label": "FAQ",
+        "title": "Fleet overflow FAQ",
+        "items": {
+          "0": {
+            "q": "How fast can overflow capacity start?",
+            "a": "Often same day when freight is staged and the zone is covered — share cut-off and vehicle class for a written quote."
+          },
+          "1": {
+            "q": "Is overflow the same quality as primary lanes?",
+            "a": "Yes. Same professional drivers, tracking, and proof standards — customers should not feel a scramble."
+          },
+          "2": {
+            "q": "Which industries use overflow most?",
+            "a": "Wholesale, construction supply, e-commerce, food distribution, and any GTA fleet that hits hard cut-offs."
+          },
+          "3": {
+            "q": "Can we keep overflow on retainer?",
+            "a": "Business and Enterprise programs can plan recurring overflow windows — ask during quote."
+          }
+        }
+      },
+      "cta": {
+        "title": "Get a quote for overflow capacity",
+        "subtitle": "Share peak patterns, vehicle class, and GTA zones — response within one business day.",
+        "primary": "Get a quote",
+        "secondary": "See vehicles"
+      },
+      "resources": {
+        "label": "Go deeper",
+        "title": "Overflow capacity resources",
+        "items": {
+          "0": {
+            "title": "Overflow blog",
+            "description": "When GTA fleets book backup capacity.",
+            "href": "/blog/fleet-overflow-capacity-gta"
+          },
+          "1": {
+            "title": "Same-day GTA guide",
+            "description": "Cut-offs and vehicle class for urgent days.",
+            "href": "/guides/same-day-delivery-capacity-gta"
+          },
+          "2": {
+            "title": "Multi-location capacity",
+            "description": "Keep overflow standards consistent across branches.",
+            "href": "/capabilities/multi-location-routing"
+          }
+        }
+      }
+    }
+  },
+  "industriesIndex": {
+    "meta": {
+      "title": "Industries | B2B Delivery GTA | PorterChain",
+      "description": "Industry delivery playbooks — construction, electrical, plumbing, pharmacy, food, e-commerce — vehicle capacity with tracking and proof across the GTA.",
+      "ogTitle": "Industries we serve",
+      "ogDescription": "Choose your industry playbook — personas, vehicle fit, and quote paths."
+    },
+    "breadcrumb": "Industries",
+    "hero": {
+      "badge": "Industries",
+      "title": "Industry delivery capacity across the GTA",
+      "subtitle": "PorterChain is a transportation capacity network. Each industry page explains who we serve, which vehicles fit your freight, and how to get a written quote for same-day, recurring, or overflow lanes.",
+      "primaryCta": "Get a quote",
+      "secondaryCta": "Construction solutions"
+    },
+    "featured": {
+      "label": "Primary vertical",
+      "title": "Construction & trades",
+      "subtitle": "Building supply, electrical wholesale, and plumbing — highest-volume Ontario lanes with jobsite windows and trade proof standards.",
+      "badge": "GTA focus",
+      "solutionsCta": "Construction solutions hub"
+    },
+    "all": {
+      "label": "All industries",
+      "title": "Specialized delivery playbooks",
+      "subtitle": "Challenges, vehicle fit, workflow, coverage, FAQs, and quote paths — for ops leaders evaluating capacity partners.",
+      "alsoBrowse": "Also browse",
+      "solutions": "all solutions",
+      "serviceAreas": "all service areas"
+    },
+    "items": {
+      "construction-materials": {
+        "title": "Construction materials",
+        "description": "Jobsite and distributor delivery — lumber, drywall, steel, pallets, timed windows, and proof for supers."
+      },
+      "electrical-distribution": {
+        "title": "Electrical distribution",
+        "description": "Wire, panel, and equipment — counter-to-contractor with same-day cut-off capacity."
+      },
+      "plumbing-supply": {
+        "title": "Plumbing supply",
+        "description": "Pipe, fixtures, and water heaters for wholesalers and plumbing contractors."
+      },
+      "coffee-roasters": {
+        "title": "Coffee roasters",
+        "description": "Recurring café routes and wholesale bean delivery without owning vans."
+      },
+      "pharmacy-medical": {
+        "title": "Pharmacy & medical",
+        "description": "Prescription and healthcare supply with chain-of-custody proof."
+      },
+      "cosmetics": {
+        "title": "Cosmetics & beauty",
+        "description": "Clinic and retail replenishment for aesthetics B2B."
+      },
+      "chocolate": {
+        "title": "Chocolate & confectionery",
+        "description": "Handled B2B delivery for wholesale confectionery."
+      },
+      "lab-sample-delivery": {
+        "title": "Lab sample delivery",
+        "description": "Time-critical specimen courier with audit-ready tracking."
+      },
+      "ecommerce": {
+        "title": "E-commerce & retail",
+        "description": "Multi-stop distribution and store replenishment capacity."
+      },
+      "viewPlaybook": "View industry playbook"
+    },
+    "personas": {
+      "label": "Buyers we speak to",
+      "title": "Capacity is an operational decision",
+      "subtitle": "We write for ops managers, counter teams, PMs, and procurement — not IT buyers.",
+      "items": {
+        "0": {
+          "title": "Ops & logistics leaders",
+          "description": "Evaluate overflow and recurring routes without fleet capex."
+        },
+        "1": {
+          "title": "Industry operators",
+          "description": "Language that matches your freight and buyers."
+        },
+        "2": {
+          "title": "Site & customer teams",
+          "description": "Tracking and proof that reduces driver phone tag."
+        },
+        "3": {
+          "title": "Procurement & finance",
+          "description": "Trust documentation and quote-based commercial terms."
+        }
+      }
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Industries FAQ",
+      "items": {
+        "0": {
+          "q": "Which industry page should I read first?",
+          "a": "Start with the vertical closest to your freight — construction, electrical, plumbing, pharmacy, coffee, or e-commerce."
+        },
+        "1": {
+          "q": "Do you sell software or a marketplace?",
+          "a": "No. You buy vehicle-and-driver capacity with tracking and proof."
+        },
+        "2": {
+          "q": "Can we pilot one lane?",
+          "a": "Yes. Most programs start with overflow or one recurring route."
+        },
+        "3": {
+          "q": "Do you serve the whole GTA?",
+          "a": "Yes. See service areas for city-level coverage."
+        }
+      }
+    },
+    "cta": {
+      "title": "Get a quote for your industry lanes",
+      "subtitle": "Tell us your vertical and service areas — response within one business day.",
+      "primary": "Get a quote",
+      "secondary": "See vehicles"
+    }
+  },
+  "company": {
+    "hero": {
+      "badge": "Company",
+      "title": "Building the transportation capacity network Ontario businesses rely on",
+      "subtitle": "Porterchain removes transportation bottlenecks so businesses never stop operating. We orchestrate professional drivers, commercial vehicles, and logistics operations through one intelligent network.",
+      "primaryCta": "Get a quote",
+      "secondaryCta": "View careers"
+    },
+    "brandBand": {
+      "eyebrow": "Identity",
+      "title": "Moving Commerce On-Chain",
+      "body": "We orchestrate businesses, drivers, and vehicles as one capacity network — so Ontario commerce never stalls waiting on a truck."
+    },
+    "mission": {
+      "label": "Mission",
+      "title": "Why we exist",
+      "items": {
+        "0": {
+          "title": "Mission",
+          "description": "Remove transportation bottlenecks from businesses — whenever goods need to move, Porterchain should be the default operating layer."
+        },
+        "1": {
+          "title": "Today",
+          "description": "Phase 1: a transportation capacity network — businesses buy reliable vehicle-and-driver capacity across Ontario."
+        },
+        "2": {
+          "title": "How we grow",
+          "description": "Denser capacity, accountable execution, and stronger shipper relationships across Ontario — still vehicle-and-driver capacity, not a software SKU."
+        }
+      }
+    },
+    "timeline": {
+      "label": "Journey",
+      "title": "How Porterchain evolved",
+      "subtitle": "From field operations to an intelligent capacity network.",
+      "steps": {
+        "0": {
+          "title": "Operations first",
+          "description": "Built on real delivery execution — insurance, compliance, and accountable workflows in the field."
+        },
+        "1": {
+          "title": "Network density",
+          "description": "Growing supply of professional drivers and commercial vehicles matched to B2B demand."
+        },
+        "2": {
+          "title": "Intelligent operations",
+          "description": "Dispatch, tracking, proof, and partner management software strengthens every delivery."
+        },
+        "3": {
+          "title": "Recurring programs",
+          "description": "Businesses use Porterchain as an extension of their logistics operation — not a one-off courier call."
+        }
+      }
+    },
+    "values": {
+      "label": "Principles",
+      "title": "How we operate",
+      "items": {
+        "0": {
+          "title": "Compliance-first",
+          "description": "Documented processes, insurance coverage, and audit-ready workflows on every shipment."
+        },
+        "1": {
+          "title": "Accountability",
+          "description": "Clear ownership from dispatch through proof — no handoffs into a black box."
+        },
+        "2": {
+          "title": "Sustainability",
+          "description": "Route optimization that reduces fuel use, emissions, and empty miles across the network."
+        },
+        "3": {
+          "title": "Partner success",
+          "description": "Fair payouts, clear instructions, and operational support for driver partners in the field."
+        }
+      }
+    },
+    "cta": {
+      "title": "Move goods with Porterchain",
+      "subtitle": "Need capacity for your business or want to join our driver network — we'd like to hear from you.",
+      "primary": "Get a quote",
+      "secondary": "Driver partners"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Company FAQ",
+      "items": {
+        "0": {
+          "q": "Where is Porterchain headquartered?",
+          "a": "Porterchain Inc. is based in Toronto, ON, Canada, serving the GTA and Ontario metros."
+        },
+        "1": {
+          "q": "Is Porterchain hiring?",
+          "a": "We're growing our technology and operations teams. Reach out through our contact page to learn about current opportunities."
+        },
+        "2": {
+          "q": "How do driver partners join?",
+          "a": "Driver partners apply through our network program. We focus on predictable work, fair compensation, and operational support."
+        },
+        "3": {
+          "q": "What makes Porterchain different?",
+          "a": "We're a transportation capacity network — not a consumer courier app. Professional drivers, accountable execution, tracking, and proof are built into every program."
+        },
+        "4": {
+          "q": "When should I use Porterchain vs my own driver?",
+          "a": "When your fleet is full, a driver is unavailable, you need a different vehicle class, or an urgent shipment cannot wait — Porterchain is your capacity partner."
+        }
+      }
+    },
+    "resources": {
+      "label": "Resources",
+      "title": "Learn more",
+      "items": {
+        "0": {
+          "title": "How we operate",
+          "description": "How Porterchain orchestrates capacity, dispatch, tracking, and proof behind every delivery.",
+          "href": "/platform"
+        },
+        "1": {
+          "title": "Trust & insurance",
+          "description": "Security summary, COI, and delivery commitments.",
+          "href": "/trust"
+        },
+        "2": {
+          "title": "Get a quote",
+          "description": "Tell us what needs to move and we'll map the right capacity.",
+          "href": "/business?from=company#inquiry"
+        }
+      }
+    }
+  },
+  "contact": {
+    "hero": {
+      "badge": "Contact",
+      "title": "Let's Talk Logistics",
+      "subtitle": "Whether you're scaling delivery operations, setting up a business account, or need dispatch support — our team is ready to help."
+    },
+    "capacityCard": {
+      "eyebrow": "Need capacity?",
+      "title": "Get delivery capacity on your lanes",
+      "body": "Share how to reach you and what needs to move. We respond within one business day with vehicle-and-driver options.",
+      "cta": "Request capacity"
+    },
+    "info": {
+      "phoneLabel": "Phone",
+      "phone": "+1 (647) 619-7951",
+      "phoneHref": "tel:+16476197951",
+      "emailLabel": "Email",
+      "email": "enterprise@porterchain.com",
+      "emailHref": "mailto:enterprise@porterchain.com",
+      "whatsappLabel": "WhatsApp",
+      "whatsapp": "+1 (647) 619-7951",
+      "whatsappHref": "https://wa.me/16476197951",
+      "whatsappChat": {
+        "ariaLabel": "Chat with Porterchain on WhatsApp"
+      },
+      "hoursLabel": "Business Hours",
+      "hours": "Monday – Friday, 8:00 AM – 6:00 PM ET",
+      "emergencyLabel": "Emergency Dispatch",
+      "emergency": "+1 (647) 619-7951",
+      "emergencyDetail": "Active shipment exceptions · ops@porterchain.com",
+      "googleBusinessLabel": "Find us on Google",
+      "googleReviewLabel": "Review us on Google"
+    },
+    "form": {
+      "title": "Send us a message",
+      "subtitle": "Fill in the form and we'll route your inquiry to the right team.",
+      "name": "Name",
+      "businessName": "Business Name",
+      "email": "Email",
+      "phone": "Phone",
+      "message": "Message",
+      "inquiryType": "Inquiry Type",
+      "inquiryTypes": {
+        "sales": "Sales",
+        "support": "Support",
+        "partnership": "Partnership",
+        "careers": "Careers",
+        "api": "API"
+      },
+      "submit": "Send Message",
+      "sending": "Sending…",
+      "responseLabel": "Average response:",
+      "responseTime": "< 1 Business Day",
+      "successTitle": "Message sent",
+      "successMessage": "Thank you. A member of our team will respond within one business day.",
+      "errorMessage": "We couldn't send your message. Please try again or email us directly.",
+      "quote": {
+        "title": "Get a quote",
+        "subtitle": "Share your shipment details and we'll quote matched vehicle-and-driver capacity.",
+        "urgency": "Urgency",
+        "urgencyPlaceholder": "Select urgency",
+        "urgencyOptions": {
+          "sameDay": "Same-day",
+          "urgent": "Urgent / emergency",
+          "scheduled": "Scheduled / recurring",
+          "unsure": "Not sure yet"
+        },
+        "vehicle": "Vehicle type",
+        "vehiclePlaceholder": "Select vehicle (optional)",
+        "vehicleOptions": {
+          "unsure": "Not sure — recommend for me",
+          "sedan": "Sedan",
+          "suv": "SUV",
+          "pickup": "Pickup truck",
+          "cargoVan": "Cargo van",
+          "highRoof": "Sprinter / high-roof van",
+          "box16": "16 ft box truck",
+          "box20": "20 ft box truck"
+        },
+        "lanes": "Pickup and delivery areas",
+        "lanesPlaceholder": "e.g. Mississauga warehouse → downtown Toronto jobsite",
+        "message": "Additional details",
+        "submit": "Request a quote",
+        "successTitle": "Quote request received",
+        "successMessage": "Thank you. We'll respond within one business day with capacity options for your lanes.",
+        "whatsappCta": "Continue on WhatsApp",
+        "whatsappHint": "Share route details for a faster reply — opens WhatsApp with your quote summary pre-filled."
+      }
+    },
+    "departments": {
+      "label": "Direct lines",
+      "title": "Reach the right team",
+      "items": {
+        "0": {
+          "title": "Sales",
+          "description": "Quotes, pricing, and enterprise onboarding for growing businesses.",
+          "contact": "enterprise@porterchain.com"
+        },
+        "1": {
+          "title": "Support",
+          "description": "Active shipment questions, tracking, and operational assistance.",
+          "contact": "ops@porterchain.com"
+        },
+        "2": {
+          "title": "Business Accounts",
+          "description": "Account setup, billing, recurring routes, and SLA configuration.",
+          "contact": "enterprise@porterchain.com"
+        },
+        "3": {
+          "title": "Driver Support",
+          "description": "Partner onboarding, route instructions, and field operations help.",
+          "contact": "driver@porterchain.com"
+        },
+        "4": {
+          "title": "Developer Support",
+          "description": "API access, webhooks, integrations, and technical documentation.",
+          "contact": "integrations@porterchain.com"
+        }
+      }
+    },
+    "social": {
+      "label": "Connect",
+      "title": "Follow Porterchain"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Common questions",
+      "items": {
+        "0": {
+          "q": "How quickly will someone respond?",
+          "a": "We respond to all inquiries within one business day. Emergency dispatch lines are monitored during active operations."
+        },
+        "1": {
+          "q": "Can I meet with your team in person?",
+          "a": "Yes. We can arrange virtual meetings or in-person sessions in the GTA by appointment — contact us to schedule."
+        },
+        "2": {
+          "q": "Who should I contact for API access?",
+          "a": "Select API as your inquiry type or email integrations@porterchain.com with your integration requirements."
+        },
+        "3": {
+          "q": "How do I report an active shipment issue?",
+          "a": "Call our emergency dispatch line or email ops@porterchain.com with your shipment reference for fastest resolution."
+        },
+        "4": {
+          "q": "How do I request a business quote?",
+          "a": "Select Sales as your inquiry type and our team will follow up with pricing and onboarding options for your delivery program."
+        }
+      }
+    }
+  },
+  "careers": {
+    "hero": {
+      "badge": "Careers",
+      "title": "Build the Future of Logistics",
+      "subtitle": "Join Porterchain and help transform commercial logistics across Canada.",
+      "primaryCta": "View open positions",
+      "secondaryCta": "Our mission"
+    },
+    "mission": {
+      "label": "Mission",
+      "title": "Help businesses grow without building a logistics department",
+      "description": "We strengthen transportation capacity for Ontario businesses — accountable field execution, routing, and shipment visibility. Every role at Porterchain connects to that mission."
+    },
+    "why": {
+      "label": "Why Porterchain",
+      "title": "Work on problems that matter",
+      "description": "Local businesses across Ontario depend on reliable delivery every day. You'll build operations and tools that replace blind spots with accountability — not another marketplace app, but capacity businesses can trust.",
+      "points": {
+        "0": "Real operational impact across wholesale, medical, food, and construction supply chains",
+        "1": "Software, data, and field operations working as one delivery network",
+        "2": "Room to grow as we expand transportation capacity across Ontario"
+      }
+    },
+    "culture": {
+      "label": "Our Culture",
+      "title": "Built for builders and operators",
+      "description": "We move with urgency and care. High standards, clear ownership, and respect for the people who run routes and write code. We celebrate shipped work, learned lessons, and customers who trust us with business-critical delivery.",
+      "traits": {
+        "0": {
+          "title": "Ownership",
+          "description": "You own outcomes end-to-end — from idea to production to the field."
+        },
+        "1": {
+          "title": "Clarity",
+          "description": "Direct communication, documented decisions, and no mystery handoffs."
+        },
+        "2": {
+          "title": "Craft",
+          "description": "We sweat details in dispatch, code, and customer experience alike."
+        }
+      }
+    },
+    "values": {
+      "label": "Core Values",
+      "title": "What we stand for",
+      "items": {
+        "0": {
+          "title": "Compliance-first",
+          "description": "We build trust through documented processes, insurance, and audit-ready workflows."
+        },
+        "1": {
+          "title": "Accountability",
+          "description": "Every shipment has a clear owner from dispatch through proof of delivery."
+        },
+        "2": {
+          "title": "Sustainability",
+          "description": "Route optimization that measurably reduces fuel, emissions, and empty miles."
+        },
+        "3": {
+          "title": "Partner success",
+          "description": "Driver partners deserve fair work, clear instructions, and operational support."
+        }
+      }
+    },
+    "benefits": {
+      "label": "Benefits",
+      "title": "How we support your growth",
+      "subtitle": "Competitive packages designed for people who do their best work with flexibility and the right tools.",
+      "items": {
+        "0": {
+          "title": "Remote Friendly",
+          "description": "Work from anywhere in Canada with periodic team gatherings in Toronto."
+        },
+        "1": {
+          "title": "Flexible Hours",
+          "description": "Core collaboration windows with autonomy to structure your day."
+        },
+        "2": {
+          "title": "Learning Budget",
+          "description": "Annual stipend for courses, conferences, books, and certifications."
+        },
+        "3": {
+          "title": "Modern Equipment",
+          "description": "Latest laptop, monitors, and software to do your best work."
+        },
+        "4": {
+          "title": "Career Growth",
+          "description": "Clear progression paths, mentorship, and expanding scope as we scale."
+        },
+        "5": {
+          "title": "Health & Wellness",
+          "description": "Comprehensive health benefits and wellness support for you and your family."
+        }
+      }
+    },
+    "positions": {
+      "label": "Open Positions",
+      "title": "Find your role",
+      "subtitle": "We're hiring across operations, engineering, go-to-market, and field teams.",
+      "all": "All teams",
+      "apply": "Apply now",
+      "departments": {
+        "operations": "Operations",
+        "engineering": "Engineering",
+        "sales": "Sales",
+        "marketing": "Marketing",
+        "customerSuccess": "Customer Success",
+        "driverSuccess": "Driver Success",
+        "dispatch": "Dispatch"
+      },
+      "logistics-operations-manager": {
+        "title": "Logistics Operations Manager",
+        "location": "Toronto, ON · Hybrid",
+        "employmentType": "Full-time",
+        "experience": "5+ years",
+        "description": "Lead day-to-day logistics operations across the GTA. Own SLA execution, partner network performance, and continuous improvement of dispatch workflows. You'll work closely with dispatch, driver success, and engineering to scale reliable delivery."
+      },
+      "senior-software-engineer": {
+        "title": "Senior Software Engineer",
+        "location": "Canada · Remote",
+        "employmentType": "Full-time",
+        "experience": "5+ years",
+        "description": "Build core platform services — dispatch, routing integrations, tracking, and APIs. You'll design systems that handle business-critical shipments with high reliability, observability, and clean abstractions."
+      },
+      "platform-engineer": {
+        "title": "Platform Engineer",
+        "location": "Canada · Remote",
+        "employmentType": "Full-time",
+        "experience": "3+ years",
+        "description": "Own infrastructure, CI/CD, and platform reliability for Porterchain's logistics stack. Improve deployment velocity, monitoring, and security across our cloud environment."
+      },
+      "account-executive": {
+        "title": "Account Executive",
+        "location": "Toronto, ON · Hybrid",
+        "employmentType": "Full-time",
+        "experience": "3+ years",
+        "description": "Bring Porterchain to growing businesses across Ontario. Run discovery, demos, and pilots with operations leaders who need structured logistics — not ad-hoc couriers."
+      },
+      "growth-marketing-manager": {
+        "title": "Growth Marketing Manager",
+        "location": "Canada · Remote",
+        "employmentType": "Full-time",
+        "experience": "4+ years",
+        "description": "Drive demand for a logistics technology platform. Own content, campaigns, and pipeline programs that speak to operations teams, not consumers."
+      },
+      "customer-success-manager": {
+        "title": "Customer Success Manager",
+        "location": "Toronto, ON · Hybrid",
+        "employmentType": "Full-time",
+        "experience": "3+ years",
+        "description": "Ensure customers achieve SLA outcomes on Porterchain. Onboard new accounts, monitor health metrics, and partner with operations to resolve exceptions before they escalate."
+      },
+      "driver-partner-success-lead": {
+        "title": "Driver Partner Success Lead",
+        "location": "GTA · On-site / Hybrid",
+        "employmentType": "Full-time",
+        "experience": "4+ years",
+        "description": "Grow and support Porterchain's driver partner network. Define onboarding, quality standards, and field support so every route runs with predictable workflows and fair compensation."
+      },
+      "dispatch-coordinator": {
+        "title": "Dispatch Coordinator",
+        "location": "Toronto, ON · On-site",
+        "employmentType": "Full-time",
+        "experience": "2+ years",
+        "description": "Run live dispatch from Porterchain's command layer. Assign routes, monitor active jobs, manage exceptions, and enforce pre-departure verification on every shipment."
+      }
+    },
+    "hiringProcess": {
+      "label": "Hiring Process",
+      "title": "What to expect",
+      "subtitle": "A respectful, transparent process — typically two to three weeks from application to offer.",
+      "steps": {
+        "0": {
+          "title": "Application",
+          "description": "Submit your resume and a short note on why Porterchain. We review every application."
+        },
+        "1": {
+          "title": "Review",
+          "description": "Our team evaluates fit for the role, mission, and stage of growth."
+        },
+        "2": {
+          "title": "Interview",
+          "description": "Conversations with your future manager and cross-functional partners."
+        },
+        "3": {
+          "title": "Offer",
+          "description": "Competitive package with clear role scope, start date, and onboarding plan."
+        },
+        "4": {
+          "title": "Onboarding",
+          "description": "Structured first 30 days with tools, mentors, and early wins."
+        }
+      }
+    },
+    "testimonials": {
+      "label": "Team voices",
+      "title": "What it's like here",
+      "items": {
+        "0": {
+          "quote": "I've worked in logistics for a decade. Porterchain is the first place where technology and operations actually talk to each other — you see the impact of your work on every route.",
+          "name": "Sarah Chen",
+          "role": "Dispatch Operations"
+        },
+        "1": {
+          "quote": "We're building real infrastructure, not features for a pitch deck. The problems are hard, the team is sharp, and there's genuine room to shape the platform.",
+          "name": "Marcus Okonkwo",
+          "role": "Engineering"
+        },
+        "2": {
+          "quote": "Customers trust us with business-critical shipments. That responsibility pushes everyone to higher standards — and it's rewarding when we deliver.",
+          "name": "Elena Vasquez",
+          "role": "Customer Success"
+        }
+      }
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Careers FAQ",
+      "items": {
+        "0": {
+          "q": "Do you hire remotely?",
+          "a": "Yes. Many roles are remote-friendly across Canada. Field and dispatch roles may require GTA presence."
+        },
+        "1": {
+          "q": "What is your interview process?",
+          "a": "Typically a recruiter screen, hiring manager conversation, and team interview. Technical roles include a practical exercise."
+        },
+        "2": {
+          "q": "Do you sponsor work permits?",
+          "a": "We consider sponsorship case-by-case for exceptional candidates in critical roles."
+        },
+        "3": {
+          "q": "Can I apply to multiple roles?",
+          "a": "Yes. Apply to each role that fits your experience, or send a general application if you're unsure."
+        },
+        "4": {
+          "q": "How fast do you respond?",
+          "a": "We aim to respond to all applications within five business days."
+        }
+      }
+    },
+    "cta": {
+      "title": "Didn't find your role?",
+      "subtitle": "We're always looking for exceptional people. Send us your resume and tell us how you'd help build the future of logistics.",
+      "primary": "Send us your resume",
+      "secondary": "Get in touch"
+    }
+  },
+  "developers": {
+    "hero": {
+      "badge": "Integrations",
+      "title": "API & integrations (by request)",
+      "subtitle": "Most shippers start with quote and dispatch coordination. High-volume programs can discuss API, webhook, and ERP integration paths with our team — documentation available for technical review.",
+      "primaryCta": "Contact integrations",
+      "secondaryCta": "Browse docs"
+    },
+    "quickstart": {
+      "label": "Quick start",
+      "title": "Three steps to your first call",
+      "apiHost": "API host: {host} — set NEXT_PUBLIC_PORTERCHAIN_API_URL for local (http://localhost:8001).",
+      "steps": {
+        "0": {
+          "step": "Step 1",
+          "title": "Read the partner guide",
+          "description": "Authentication, base URLs, and API v1 core endpoints for quote → booking → track."
+        },
+        "1": {
+          "step": "Step 2",
+          "title": "Import Postman",
+          "description": "Use the v2.1 collection with base_url, Bearer token (dev locally), and X-Api-Key for merchant-api."
+        },
+        "2": {
+          "step": "Step 3",
+          "title": "Create keys in merchant portal",
+          "description": "Generate sandbox API keys, configure webhooks, and review rate limits per tier."
+        }
+      }
+    },
+    "resources": {
+      "label": "Documentation",
+      "title": "Everything you need to integrate",
+      "items": {
+        "guide": {
+          "title": "Partner API guide",
+          "description": "Canonical partner guide — authentication, versioning, quote-to-delivery flows, and production readiness.",
+          "cta": "Read guide"
+        },
+        "postman": {
+          "title": "Postman collection",
+          "description": "porterchain.postman.json — quote, booking, merchant, driver, admin ops, and webhooks.",
+          "cta": "Download JSON"
+        },
+        "openapi": {
+          "title": "Live OpenAPI",
+          "description": "Interactive /docs and machine-readable openapi.json — route truth for all environments.",
+          "cta": "Open /docs"
+        },
+        "webhooks": {
+          "title": "Webhooks & HMAC",
+          "description": "Outbound event signing, retry behavior, and merchant webhook configuration.",
+          "cta": "Webhook docs"
+        },
+        "keys": {
+          "title": "API keys & sandbox",
+          "description": "Create scoped keys and toggle sandbox mode from the merchant integrations page.",
+          "cta": "Merchant API settings"
+        }
+      }
+    },
+    "flows": {
+      "label": "API v1",
+      "title": "Core integration paths",
+      "columns": {
+        "flow": "Flow",
+        "method": "Method",
+        "path": "Path"
+      },
+      "openApiJson": "OpenAPI JSON",
+      "changelog": "API changelog",
+      "items": {
+        "quote": {
+          "name": "Instant quote",
+          "method": "POST"
+        },
+        "booking": {
+          "name": "Create booking",
+          "method": "POST"
+        },
+        "track": {
+          "name": "Public track",
+          "method": "GET"
+        },
+        "webhook": {
+          "name": "Merchant API",
+          "method": "GET"
+        }
+      }
+    },
+    "policies": {
+      "label": "API operations",
+      "title": "Versioning, rate limits, and webhook expectations",
+      "items": {
+        "versioning": {
+          "title": "API v1 versioning",
+          "description": "Stable partner routes are versioned under /v1. Breaking changes ship behind a new version; additive fields may appear without a version bump."
+        },
+        "rateLimits": {
+          "title": "Rate limits by tier",
+          "description": "Default sandbox and Growth traffic is capped conservatively. Business and Enterprise programs receive higher limits after integration review."
+        },
+        "webhooks": {
+          "title": "Webhook delivery",
+          "description": "Outbound events use signed payloads, retry windows, and merchant-level endpoints so downstream systems can reconcile delivery status."
+        }
+      }
+    },
+    "cta": {
+      "title": "Need a partner integration review?",
+      "subtitle": "Our team helps with scoping, sandbox keys, and webhook verification before you go live.",
+      "contact": "Contact integrations",
+      "keys": "Open API settings",
+      "docs": "Browse all docs"
+    },
+    "docs": {
+      "hero": {
+        "badge": "Docs",
+        "title": "Porterchain API documentation",
+        "subtitle": "Hosted guides from the monorepo with live OpenAPI as the contract. GitHub remains the mirror for raw files and Postman JSON.",
+        "primaryCta": "Open live OpenAPI",
+        "secondaryCta": "Developer portal"
+      },
+      "list": {
+        "title": "Documentation library",
+        "subtitle": "Start with OpenAPI for route truth, then read the partner guide for auth, scopes, and production readiness."
+      },
+      "items": {
+        "openapi": {
+          "title": "Live OpenAPI",
+          "description": "Interactive docs and openapi.json on {host} — always current for your environment."
+        },
+        "postman": {
+          "title": "Postman collection",
+          "description": "porterchain.postman.json on GitHub — quote, booking, merchant-api, and webhooks."
+        }
+      },
+      "article": {
+        "label": "Developer doc",
+        "githubMirror": "View on GitHub"
+      }
+    }
+  },
+  "trustScaffolds": {
+    "accessibility": {
+      "title": "Accessibility statement",
+      "description": "Porterchain is committed to improving accessibility on porterchain.com for business shippers and partners.",
+      "breadcrumb": "Accessibility",
+      "body": "This page is a scaffold pending a full WCAG 2.2 AA audit.\n\nWe aim for perceivable, operable, and understandable content on public marketing pages, including keyboard navigation, sufficient contrast on primary UI, and descriptive link text.\n\nIf you encounter a barrier, email support@porterchain.com with the page URL and a short description. We respond within one business day."
+    },
+    "editorialPolicy": {
+      "title": "Editorial policy",
+      "description": "How Porterchain publishes website, blog, and case study content.",
+      "breadcrumb": "Editorial policy",
+      "body": "Capacity-first, evidence-backed publishing.\n\nOperational and industry pages are written from dispatch and merchant onboarding playbooks — not generic AI filler. Case studies with customer names or numeric outcomes publish only with written customer approval (see permissioned flag in our content model).\n\nDraft or placeholder research reports stay noindex until methodology and data are verified."
+    },
+    "researchMethodology": {
+      "title": "Research methodology",
+      "description": "Standards for Porterchain Logistics Intelligence before public release.",
+      "breadcrumb": "Research methodology",
+      "body": "Future benchmark reports will document sampling windows, aggregation method, limitations, and citation guidance.\n\nReports do not index until sample size, date range, and review sign-off are complete. Placeholder copy marked [REQUIRES REAL OPERATIONAL DATA] must be replaced before publication."
+    },
+    "corrections": {
+      "title": "Corrections policy",
+      "description": "How we handle factual corrections on porterchain.com.",
+      "breadcrumb": "Corrections",
+      "body": "Email support@porterchain.com if you believe a public page contains a factual error affecting routes, coverage, pricing process, or legal summaries.\n\nWe review within one business day, correct verified errors promptly, and note material changes on trust or legal pages when appropriate."
+    },
+    "securityOverview": {
+      "title": "Security overview",
+      "description": "High-level security summary for procurement — full questionnaire on request.",
+      "breadcrumb": "Security",
+      "body": "Porterchain uses encryption in transit, role-based access in product systems, and documented subprocessors (see /trust/subprocessors).\n\nDetailed security questionnaires and SOC 2 status are available via security@porterchain.com. This scaffold is noindex until legal review completes."
+    },
+    "founder": {
+      "title": "Founder profile",
+      "description": "Operator context for PorterChain's transportation capacity network.",
+      "breadcrumb": "Founder",
+      "body": "This scaffold is noindex until founder biography, photo rights, and claims are approved.\n\nFor capacity quotes, use /business#inquiry."
+    },
+    "insurance": {
+      "title": "Insurance & COI",
+      "description": "Certificate of insurance process for merchant programs.",
+      "breadcrumb": "Insurance",
+      "body": "COI is available for active merchant programs on request.\n\nThis page is a noindex scaffold until legal finalizes public insurance language.\n\nSee /trust for the trust center overview."
+    },
+    "serviceStandards": {
+      "title": "Service standards",
+      "description": "Proof, windows, and escalation for capacity programs.",
+      "breadcrumb": "Service standards",
+      "body": "Capacity programs include tracking and proof of delivery on every stop, with escalation for active shipment exceptions.\n\nDetailed SLA bands live on /trust/sla. This scaffold stays noindex until ops approves customer-facing standards copy."
+    }
+  },
+  "researchHub": {
+    "title": "Logistics Intelligence",
+    "description": "Operational research and benchmarks — draft reports listed below are not indexed until verified data publishes.",
+    "breadcrumb": "Research",
+    "draftLabel": "Draft — not indexed"
+  },
+  "trust": {
+    "hero": {
+      "badge": "Trust & insurance",
+      "title": "Insurance, delivery commitments, and accountable execution",
+      "subtitle": "Certificate of insurance, proof-of-delivery standards, and operational escalation for Ontario capacity programs — plus security and procurement documentation on request.",
+      "primaryCta": "Request COI",
+      "secondaryCta": "View SLA summary"
+    },
+    "summary": {
+      "label": "Overview",
+      "title": "How we protect your shipments and your business",
+      "subtitle": "Porterchain runs transportation capacity for Ontario B2B shippers. This page summarizes insurance, delivery commitments, and how to request security or procurement documentation."
+    },
+    "features": {
+      "label": "Program",
+      "title": "Trust center highlights",
+      "items": {
+        "0": {
+          "title": "Data protection",
+          "description": "Encryption in transit, role-based access in product, and documented subprocessors available on request."
+        },
+        "1": {
+          "title": "PIPEDA & privacy",
+          "description": "Canadian privacy alignment with DPA available for enterprise customers during procurement."
+        },
+        "2": {
+          "title": "SLA commitments",
+          "description": "Service-level bands for enterprise programs with credits and escalation paths documented in our SLA exhibit."
+        },
+        "3": {
+          "title": "Security roadmap",
+          "description": "SOC 2 readiness program in progress — contact security@porterchain.com for current status and questionnaire responses."
+        },
+        "4": {
+          "title": "Insurance & COI",
+          "description": "Certificate of insurance available for active merchant programs — request through your account team."
+        },
+        "5": {
+          "title": "Incident response",
+          "description": "Documented escalation for active shipment exceptions and platform incidents via ops@porterchain.com."
+        }
+      }
+    },
+    "cta": {
+      "title": "Need security documentation for procurement?",
+      "subtitle": "Email security@porterchain.com with your questionnaire or vendor onboarding requirements.",
+      "primary": "Contact security",
+      "secondary": "Talk to enterprise sales"
+    },
+    "documents": {
+      "label": "Documents",
+      "title": "Procurement resources",
+      "subtitle": "Request executed agreements and exhibits during enterprise onboarding.",
+      "items": {
+        "0": {
+          "title": "Data Processing Addendum (DPA)",
+          "description": "PIPEDA-aligned data processing terms for merchant and shipper personal information.",
+          "href": "/trust/dpa"
+        },
+        "1": {
+          "title": "Master Service Agreement (MSA)",
+          "description": "Commercial framework for capacity programs, dedicated delivery services, and enterprise procurement.",
+          "href": "/trust/msa"
+        },
+        "2": {
+          "title": "SLA exhibit",
+          "description": "Service-level bands, credits, and escalation paths for Business and Enterprise programs.",
+          "href": "/trust/sla"
+        },
+        "3": {
+          "title": "Subprocessors",
+          "description": "Vendor list and processing roles for authentication, payments, infrastructure, communications, and analytics.",
+          "href": "/trust/subprocessors"
+        },
+        "4": {
+          "title": "Proof & claims",
+          "description": "POD standards, exception records, and claims follow-up path for capacity programs.",
+          "href": "/trust/claims"
+        }
+      }
+    },
+    "subprocessors": {
+      "hero": {
+        "badge": "Subprocessors",
+        "title": "Vendor transparency for procurement",
+        "subtitle": "Porterchain uses a focused set of subprocessors to operate the transportation capacity network, merchant portal, payment flows, communications, and infrastructure."
+      },
+      "list": {
+        "label": "Current vendors",
+        "title": "Subprocessor categories",
+        "items": {
+          "0": {
+            "title": "Authentication",
+            "description": "Clerk — user authentication, session management, and identity workflows."
+          },
+          "1": {
+            "title": "Payments",
+            "description": "Stripe — payment processing, invoices, billing events, and related compliance workflows."
+          },
+          "2": {
+            "title": "Infrastructure",
+            "description": "Cloud and hosting providers — application runtime, databases, storage, and observability infrastructure."
+          },
+          "3": {
+            "title": "Communications",
+            "description": "Email, chat, and notification providers — support, operational alerts, and customer communications."
+          },
+          "4": {
+            "title": "Maps and routing",
+            "description": "Mapping, geocoding, and routing providers — address validation, route planning, ETA, and service-area logic."
+          },
+          "5": {
+            "title": "Analytics",
+            "description": "Product and marketing analytics providers — attribution, conversion measurement, and operational reporting."
+          }
+        }
+      },
+      "cta": {
+        "title": "Need the current enterprise subprocessor schedule?",
+        "subtitle": "Security and procurement teams can request the executed schedule and change-notice terms during vendor review.",
+        "primary": "Contact security",
+        "secondary": "Back to trust"
+      }
+    },
+    "sla": {
+      "hero": {
+        "badge": "SLA",
+        "title": "Service-level summary for Business and Enterprise",
+        "subtitle": "This summary outlines availability, support response, and escalation paths. Executed SLA exhibits are provided during enterprise onboarding."
+      },
+      "bands": {
+        "label": "Commitments",
+        "title": "Service-level bands",
+        "subtitle": "Targets apply to Business and Enterprise programs with executed agreements. Growth tier uses best-effort support unless otherwise contracted.",
+        "items": {
+          "0": {
+            "title": "Platform availability",
+            "description": "99.5% monthly uptime target for operations coordination tools and the merchant portal, excluding scheduled maintenance windows communicated in advance."
+          },
+          "1": {
+            "title": "Support response",
+            "description": "P1 production incidents: 1-hour acknowledgement, 4-hour mitigation target. P2 issues: same business day. P3 requests: 2 business days."
+          },
+          "2": {
+            "title": "Operational escalation",
+            "description": "Active shipment exceptions escalate through dispatch ops with documented handoffs — ops@porterchain.com for live routes."
+          },
+          "3": {
+            "title": "Service credits",
+            "description": "Monthly uptime below target may qualify for service credits per the executed SLA exhibit — contact enterprise sales for tier-specific terms."
+          }
+        }
+      },
+      "note": {
+        "title": "Executed exhibit on request",
+        "body": "Procurement teams receive the full SLA exhibit with credit calculations, maintenance windows, and change management as part of MSA onboarding."
+      },
+      "cta": {
+        "title": "Need the executed SLA exhibit?",
+        "subtitle": "Contact enterprise sales during vendor review — we'll align bands to your program tier and regions.",
+        "primary": "Contact enterprise sales",
+        "secondary": "Back to trust"
+      }
+    },
+    "dpa": {
+      "hero": {
+        "badge": "DPA",
+        "title": "Data Processing Addendum summary",
+        "subtitle": "PIPEDA-aligned processing terms for merchant, shipper, and driver personal information processed through Porterchain capacity programs and operations systems."
+      },
+      "sections": {
+        "label": "Coverage",
+        "title": "What the DPA addresses",
+        "subtitle": "Executed DPAs are provided during enterprise onboarding. This summary supports security questionnaires and vendor review.",
+        "items": {
+          "0": {
+            "title": "Roles & responsibilities",
+            "description": "Porterchain acts as processor for merchant operational data and documents controller/processor roles for shipper and end-customer information."
+          },
+          "1": {
+            "title": "Security measures",
+            "description": "Encryption in transit, role-based access, audit trails, and incident notification commitments aligned to enterprise programs."
+          },
+          "2": {
+            "title": "Subprocessors",
+            "description": "Documented vendor list (authentication, payments, infrastructure, communications) with change-notice terms — see /trust/subprocessors."
+          },
+          "3": {
+            "title": "Cross-border transfers",
+            "description": "Vendor DPAs and contractual safeguards for subprocessors that may process data outside Canada, including US-based auth and payments providers."
+          }
+        }
+      },
+      "note": {
+        "title": "Executed DPA on request",
+        "body": "Procurement and security teams receive the full Data Processing Addendum with exhibit schedules during vendor onboarding. Email security@porterchain.com with your questionnaire or redline process."
+      },
+      "cta": {
+        "title": "Need the executed DPA?",
+        "subtitle": "We'll share the current DPA template and align exhibits to your enterprise program.",
+        "primary": "Request DPA",
+        "secondary": "Back to trust"
+      }
+    },
+    "msa": {
+      "hero": {
+        "badge": "MSA",
+        "title": "Master Service Agreement summary",
+        "subtitle": "Commercial framework for transportation capacity programs, onboarding services, and optional integrations for high-volume shippers."
+      },
+      "sections": {
+        "label": "Framework",
+        "title": "What the MSA covers",
+        "subtitle": "Executed MSAs are countersigned during enterprise procurement. This summary helps legal and operations teams evaluate fit.",
+        "items": {
+          "0": {
+            "title": "Capacity services",
+            "description": "Rights to contracted transportation capacity programs, shipment coordination, merchant portal access, and standard integrations for your organization and authorized users."
+          },
+          "1": {
+            "title": "Dedicated programs",
+            "description": "Recurring routes, overflow coverage, named dispatch support, and customer success services layered on capacity programs where contracted."
+          },
+          "2": {
+            "title": "Commercial terms",
+            "description": "Quote-based capacity pricing by vehicle class and route, volume commitments for recurring programs, invoicing, and renewal mechanics tailored to program size."
+          },
+          "3": {
+            "title": "Exhibits & SLAs",
+            "description": "SLA exhibit, DPA, subprocessors schedule, and security appendix incorporated by reference for enterprise deployments."
+          }
+        }
+      },
+      "note": {
+        "title": "Executed MSA on request",
+        "body": "Enterprise sales provides the current MSA template, order form, and exhibits during procurement. Contact enterprise@porterchain.com to start vendor review."
+      },
+      "cta": {
+        "title": "Ready for MSA review?",
+        "subtitle": "Share your procurement timeline — we'll align exhibits, SLAs, and onboarding to your rollout plan.",
+        "primary": "Contact enterprise sales",
+        "secondary": "Back to trust"
+      }
+    },
+    "claims": {
+      "hero": {
+        "badge": "Proof & claims",
+        "title": "Delivery verification and claims-ready records",
+        "subtitle": "Photo, signature, and GPS proof on every stop — so billing, disputes, and loss follow-up start from evidence instead of guesswork."
+      },
+      "bands": {
+        "label": "Closeout",
+        "title": "What proof includes",
+        "subtitle": "Standards apply to Business and Enterprise capacity programs. Growth tier includes core POD; advanced exhibits are provided during onboarding.",
+        "items": {
+          "0": {
+            "title": "Photo & signature POD",
+            "description": "Visual confirmation and receiver signature captured at delivery — tied to the shipment record for finance and customers."
+          },
+          "1": {
+            "title": "GPS timestamps",
+            "description": "Location-stamped completion events that document when and where the stop closed."
+          },
+          "2": {
+            "title": "Exception documentation",
+            "description": "Failed access, refused freight, or customer not available — recorded with reason so redelivery briefs stay accurate."
+          },
+          "3": {
+            "title": "Claims follow-up path",
+            "description": "Ops and enterprise contacts for loss or damage review using the same shipment evidence chain — not a disconnected email thread."
+          }
+        }
+      },
+      "note": {
+        "title": "Insurance and executed exhibits",
+        "body": "Certificate of insurance and claims process details are available during vendor review. See Trust for COI requests and SLA exhibits for contracted response bands."
+      },
+      "cta": {
+        "title": "Need claims-ready capacity for your lanes?",
+        "subtitle": "Share freight type, proof requirements, and GTA zones — we align POD standards in the quote.",
+        "primary": "Get a quote",
+        "secondary": "Back to trust"
+      }
+    }
+  },
+  "customers": {
+    "hero": {
+      "badge": "Customers",
+      "title": "Businesses that trust Porterchain for capacity",
+      "subtitle": "Ontario shippers use Porterchain when they need reliable vehicle-and-driver capacity — urgent runs, overflow, and recurring distribution with tracking and proof.",
+      "primaryCta": "Get a quote",
+      "secondaryCta": "See vehicles"
+    },
+    "metrics": {
+      "label": "Outcomes",
+      "title": "What customers gain",
+      "items": {
+        "0": {
+          "title": "Capacity when needed",
+          "description": "Backup vans and drivers when your own fleet is full or unavailable."
+        },
+        "1": {
+          "title": "Proof on every delivery",
+          "description": "Photo, signature, GPS, and reference-linked status history."
+        },
+        "2": {
+          "title": "Industry fit",
+          "description": "Construction, electrical, pharmacy, labs, manufacturing, and wholesale programs across Ontario."
+        }
+      }
+    },
+    "caseStudy": {
+      "label": "Case study",
+      "title": "Construction materials distributor",
+      "subtitle": "A regional wholesaler used Porterchain capacity for jobsite deliveries when recurring routes needed overflow support — with tracking and proof their ops team could trust.",
+      "cta": "Read success stories",
+      "href": "/success-stories",
+      "detailCta": "Read the full story",
+      "detailHref": "/success-stories/construction-distributor-jobsite-delivery",
+      "quote": "We needed pallet delivery to sites with proof our GCs would accept. Porterchain made it repeatable.",
+      "quoteRole": "Operations Manager, GTA building supply distributor",
+      "metrics": {
+        "onTime": {
+          "value": "98.7%",
+          "label": "On-time jobsite delivery"
+        },
+        "cost": {
+          "value": "−22%",
+          "label": "Per-drop logistics cost"
+        },
+        "volume": {
+          "value": "40+",
+          "label": "Weekly jobsite drops"
+        }
+      }
+    },
+    "cta": {
+      "badge": "Your lanes",
+      "title": "See Porterchain on your lanes",
+      "subtitle": "Share your shipments, vehicle needs, and service areas. We'll map the right capacity program.",
+      "primary": "Get a quote",
+      "secondary": "View pricing",
+      "lanes": {
+        "0": "GTA corridors",
+        "1": "Peel & Toronto",
+        "2": "Ontario metros"
+      },
+      "panel": {
+        "label": "What we map for you",
+        "shipments": {
+          "title": "Shipment profile",
+          "description": "Urgency, proof requirements, and pickup windows for each lane."
+        },
+        "vehicles": {
+          "title": "Vehicle fit",
+          "description": "Sedan through box truck capacity matched to load and site access."
+        },
+        "areas": {
+          "title": "Service areas",
+          "description": "Corridor coverage across GTA and Ontario metros where you ship today."
+        }
+      }
+    }
+  },
+  "enterprise": {
+    "hero": {
+      "badge": "Dedicated programs",
+      "title": "Recurring capacity for growing operations",
+      "subtitle": "For businesses that need Porterchain as an extension of their logistics operation — structured routes, overflow coverage, proof standards, and a named dispatch relationship.",
+      "primaryCta": "Get a quote",
+      "secondaryCta": "Trust & insurance"
+    },
+    "features": {
+      "label": "Program benefits",
+      "title": "Built for repeat shippers",
+      "items": {
+        "0": {
+          "title": "Capacity planning",
+          "description": "Align vehicle classes and driver coverage to your weekly demand and peak patterns."
+        },
+        "1": {
+          "title": "Named dispatch support",
+          "description": "Operational contact who knows your lanes, proof requirements, and escalation paths."
+        },
+        "2": {
+          "title": "Delivery commitments",
+          "description": "Written service expectations for on-time execution, communication, and proof capture."
+        },
+        "3": {
+          "title": "Overflow & backup",
+          "description": "Network capacity when your own fleet cannot cover sick calls, breakdowns, or surges."
+        },
+        "4": {
+          "title": "Insurance & COI",
+          "description": "Commercial coverage documentation available for vendor and jobsite requirements."
+        },
+        "5": {
+          "title": "Integrations (by request)",
+          "description": "High-volume programs can discuss CSV, API, or billing integrations with our team."
+        }
+      }
+    },
+    "cta": {
+      "title": "Design your capacity program",
+      "subtitle": "Share your routes, vehicle needs, and proof requirements. We'll map dedicated capacity and dispatch support.",
+      "primary": "Get a quote",
+      "secondary": "Compare alternatives"
+    }
+  },
+  "pricing": {
+    "hero": {
+      "badge": "Pricing",
+      "title": "How delivery pricing works",
+      "subtitle": "You pay for transportation capacity executed — not software seats. Pricing reflects vehicle class, distance, stops, and urgency (same-day vs scheduled).",
+      "primaryCta": "Get a quote",
+      "secondaryCta": "See vehicles"
+    },
+    "model": {
+      "label": "How pricing works",
+      "title": "Vehicle, route, and service level determine the quote",
+      "subtitle": "Customers buy transportation capacity. Our software coordinates the operation behind the scenes; it is not priced as a subscription today.",
+      "items": {
+        "0": {
+          "title": "Vehicle class",
+          "description": "Sedan, SUV, cargo van, Sprinter van, and box truck capacity have different economics based on space, weight, and driver availability."
+        },
+        "1": {
+          "title": "Route and urgency",
+          "description": "Distance, wait time, same-day urgency, multi-stop routing, and service area all affect the final quote."
+        },
+        "2": {
+          "title": "Proof and program needs",
+          "description": "Photo, signature, GPS, references, recurring route planning, and dedicated capacity requirements are confirmed before launch."
+        }
+      }
+    },
+    "factors": {
+      "label": "Quote factors",
+      "title": "What changes the quote (no public rate card)",
+      "subtitle": "Factors stack — vehicle class × urgency × distance/stops × proof. Numbers are confirmed in writing before dispatch. No platform fees.",
+      "colVehicle": "Vehicle class",
+      "colSameDay": "Same-day / urgent",
+      "colScheduled": "Scheduled / recurring",
+      "rows": {
+        "0": {
+          "vehicle": "Sedan / SUV",
+          "sameDay": "Higher urgency weight on light urban runs",
+          "scheduled": "Baseline route quote by stops and distance"
+        },
+        "1": {
+          "vehicle": "Cargo / trade van",
+          "sameDay": "Urgency + stops + enclosed capacity",
+          "scheduled": "Route/stop program quote"
+        },
+        "2": {
+          "vehicle": "Box truck",
+          "sameDay": "Urgency + handling and site access",
+          "scheduled": "Dedicated lane / pallet program quote"
+        }
+      }
+    },
+    "tiers": {
+      "label": "Capacity programs",
+      "title": "Pay as you go · Business account · Dedicated program",
+      "subtitle": "Start with one urgent delivery or build a repeatable capacity program around your routes.",
+      "popular": "Most common",
+      "custom": "All pricing is confirmed in writing before dispatch.",
+      "items": {
+        "0": {
+          "name": "Pay as you go",
+          "price": "Quote by trip",
+          "description": "Per-run quotes for urgent, same-day, and occasional local delivery — no monthly minimum.",
+          "feature0": "Sedan through box truck options",
+          "feature1": "Live tracking + proof of delivery",
+          "feature2": "Confirmed quote before dispatch",
+          "cta": "Get a quote"
+        },
+        "1": {
+          "name": "Business account",
+          "price": "Route-based quote",
+          "description": "Net 15/30 and consolidated invoicing for regular B2B delivery shippers.",
+          "feature0": "Planned vehicle and driver coverage",
+          "feature1": "Multi-stop route coordination",
+          "feature2": "Operational reporting and proof history",
+          "cta": "Plan routes"
+        },
+        "2": {
+          "name": "Dedicated program",
+          "price": "Custom program",
+          "description": "Volume pricing for recurring routes and dedicated delivery lanes.",
+          "feature0": "Capacity planning around your demand",
+          "feature1": "Backup coverage and escalation paths",
+          "feature2": "Written service expectations and support",
+          "cta": "Talk to dispatch"
+        }
+      }
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Pricing questions",
+      "items": {
+        "0": {
+          "q": "Do you publish a public rate card?",
+          "a": "No — vehicle class, distance, urgency, wait time, route complexity, and proof requirements change the economics. We confirm numbers in writing before dispatch."
+        },
+        "1": {
+          "q": "Do we pay for software?",
+          "a": "No. Today customers buy transportation capacity. Porterchain software powers dispatch, tracking, proof, billing, and partner coordination behind the service."
+        },
+        "2": {
+          "q": "What vehicles are available?",
+          "a": "Sedan, SUV, cargo van, Sprinter van, and box truck capacity with professional drivers, subject to availability and service area."
+        }
+      }
+    },
+    "cta": {
+      "title": "Map capacity to your shipment",
+      "subtitle": "Share the vehicle class, pickup and dropoff, timing, and proof requirements. We will respond with the right capacity path.",
+      "primary": "Get a quote",
+      "secondary": "See services"
+    }
+  },
+  "howPorterchainWorks": {
+    "hero": {
+      "badge": "How PorterChain Works",
+      "title": "Transportation capacity, explained end to end",
+      "subtitle": "PorterChain is a transportation capacity network for Ontario businesses. You request vehicle and driver capacity — we match, execute, track, and prove delivery. No fleet software to buy. No Phase-3 vision sold as today.",
+      "primaryCta": "Get a quote",
+      "secondaryCta": "Merchant programs"
+    },
+    "steps": {
+      "label": "How it works",
+      "title": "From capacity request to proof of delivery",
+      "subtitle": "Four steps every shipment follows — clear enough for operations, accountable enough for finance.",
+      "items": {
+        "0": {
+          "title": "Request capacity",
+          "description": "Share pickup, dropoff, vehicle class, timing, and proof needs. We confirm coverage and send a written quote before wheels roll."
+        },
+        "1": {
+          "title": "Match vehicle + driver",
+          "description": "Dispatch assigns the right professional driver and commercial vehicle class from the live network."
+        },
+        "2": {
+          "title": "Execute with tracking",
+          "description": "Control tower monitors progress, exceptions, and ETA so you and your receivers stay informed."
+        },
+        "3": {
+          "title": "Close with proof",
+          "description": "Photo, signature, GPS, and status history close the job for billing and follow-up."
+        }
+      }
+    },
+    "solutions": {
+      "label": "Solutions",
+      "title": "Built for the capacity problems GTA businesses face",
+      "subtitle": "Same-day urgency, fleet overflow, recurring wholesale routes, and jobsite delivery — programs by industry, not a generic courier menu.",
+      "view": "View solution",
+      "all": "All solutions",
+      "items": {
+        "wholesale": {
+          "title": "Wholesale distribution",
+          "description": "Recurring van and box truck routes for electrical, plumbing, and industrial distributors — counter to jobsite with windows and proof."
+        },
+        "medical": {
+          "title": "Medical & healthcare",
+          "description": "Pharmacy courier, lab specimens, and clinic supply — chain-of-custody proof and time-sensitive same-day runs."
+        },
+        "foodBeverage": {
+          "title": "Food & beverage",
+          "description": "Wholesale food, roasters, and restaurant supply — scheduled routes, same-day overflow, and tight delivery windows."
+        },
+        "construction": {
+          "title": "Construction supply",
+          "description": "Jobsite material delivery, pallet drops, and emergency same-day runs for building, electrical, and plumbing trades."
+        }
+      }
+    },
+    "vehicles": {
+      "label": "Vehicles",
+      "title": "The right vehicle for every shipment",
+      "subtitle": "Sedan through box truck — pick the class that fits weight, cube, and skids. Capacity includes the professional driver.",
+      "all": "Vehicle delivery pages",
+      "business": "Merchant fleet details"
+    },
+    "operate": {
+      "label": "How we operate",
+      "title": "What powers reliable capacity",
+      "subtitle": "Software strengthens the network behind every job. You buy transportation capacity — not a platform SKU.",
+      "more": "How we operate in detail",
+      "items": {
+        "0": {
+          "title": "Dispatch control tower",
+          "description": "Central coordination for active jobs, exceptions, and service commitments across the network."
+        },
+        "1": {
+          "title": "Routing & sequencing",
+          "description": "Stop sequencing, vehicle-class matching, and efficient multi-stop routing for local metros."
+        },
+        "2": {
+          "title": "Live tracking",
+          "description": "Shipment status and ETA visibility for operations teams and receiving customers."
+        },
+        "3": {
+          "title": "Driver partner app",
+          "description": "Clear instructions, navigation, and proof-of-delivery capture for every field job."
+        }
+      }
+    },
+    "areas": {
+      "label": "Service areas",
+      "title": "Local capacity across Ontario metros",
+      "subtitle": "We focus on regions we can execute well — GTA cores and key Ontario metros — not a thin national map.",
+      "note": "Coverage includes surrounding neighbourhoods and industrial parks. Confirm your lanes during quote.",
+      "all": "All service areas"
+    },
+    "cta": {
+      "title": "Ready for capacity when your fleet cannot cover it?",
+      "subtitle": "Tell us the vehicle class, stops, timing, and proof requirements. We respond with a written capacity path.",
+      "primary": "Get a quote",
+      "secondary": "Merchant programs"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+packages:
+  - "website"
+  - "apps/merchant-portal"
+  - "apps/driver-portal"
+  - "apps/customer"
+  - "apps/admin"
+  - "apps/mobile-driver"
+  - "apps/mobile-customer"
+  - "packages/*"
+allowBuilds:
+  "@clerk/shared": true
+  "@firebase/util": true
+  bufferutil: false
+  utf-8-validate: false
+  "@parcel/watcher": true
+  "@sentry/cli": true
+  "@swc/core": true
+  browser-tabs-lock: true
+  core-js: true
+  protobufjs: true
+  sharp: true
+  unrs-resolver: true
+  esbuild: true
+# Security patches for Trivy HIGH/CRITICAL on website image (2026-07-28)
+overrides:
+  next: 16.2.11
+  sharp: 0.35.0
+  # One copy. openai 4.0.68 pulls 4.0.16; ai 7 pulls 4.0.3. Two copies fail website typecheck.
+  "@ai-sdk/provider": 4.0.16
+minimumReleaseAgeExclude:
+  - "@clerk/backend@3.11.1"
+  - "@clerk/nextjs@7.5.14"
+  - "@clerk/react@6.12.0"
+  - "@clerk/shared@4.25.0"
+  - "@sentry/browser-utils@10.64.0"
+  - "@sentry/browser@10.64.0"
+  - "@sentry/core@10.64.0"
+  - "@sentry/feedback@10.64.0"
+  - "@sentry/nextjs@10.64.0"
+  - "@sentry/node-core@10.64.0"
+  - "@sentry/node@10.64.0"
+  - "@sentry/opentelemetry@10.64.0"
+  - "@sentry/react@10.64.0"
+  - "@sentry/replay-canvas@10.64.0"
+  - "@sentry/replay@10.64.0"
+  - "@sentry/server-utils@10.64.0"
+  - "@sentry/vercel-edge@10.64.0"

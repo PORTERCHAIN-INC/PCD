@@ -1,0 +1,27 @@
+flowchart LR
+  subgraph Callers["API Callers"]
+    QS[QuoteService]
+    PS[PricingService / pricing.py]
+    MBS[MerchantBookingService]
+    RS[apps/api/services/routing.py]
+  end
+
+  subgraph MapsSvc["MapsService<br/>porterchain_services/maps/service.py"]
+    RD[route_distance_meters]
+    RT[route]
+  end
+
+  subgraph OSRM["OSRM :5000"]
+    URL["GET /route/v1/driving/{lon},{lat};... local GTA ±150 km"]
+  end
+
+  subgraph Config["Settings"]
+    ENG["routing_engine preference"]
+    OSRM_URL["osrm_url / OSRM_HOST"]
+  end
+
+  QS & PS & MBS & RS --> MapsSvc
+  ENG --> MapsSvc
+  MapsSvc -->|"if valhalla unavailable<br/>or engine=osrm"| OSRM
+  RT --> URL
+  RD --> RT

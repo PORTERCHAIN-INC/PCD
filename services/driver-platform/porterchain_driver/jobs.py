@@ -1,0 +1,624 @@
+"""Driver jobs — list, detail, and history scoped to assigned driver.
+
+Reuses AdminOrdersService for timeline reads only; never duplicates order transitions.
+"""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from types import SimpleNamespace
+from typing import TYPE_CHECKING, Any
+
+from porterchain_driver.job_legs import allowed_actions, current_leg, delivery_completed, pickup_completed
+from porterchain_driver.next_stop import NextStopResolver
+from porterchain_driver.route_optimizer import DriverRouteOptimizer, compute_urgency
+from porterchain_driver.stops import StopsService
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+_COMPLETED_STATES = frozenset(
+    {
+        "DELIVERED",
+        "POD_COMPLETED",
+        "INVOICED",
+        "CLOSED",
+        "CANCELLED",
+        "FAILED",
+        "RETURN_TO_SENDER",
+        "DAMAGED",
+        "LOST",
+        "REFUNDED",
+    }
+)
+
+
+class JobsService:
+    def __init__(self) -> None:
+        self._stops = StopsService()
+        self._optimizer = DriverRouteOptimizer()
+        self._next_stop = NextStopResolver()
+
+    def list_jobs(self, db: Session, driver: Any) -> dict[str, Any]:
+        from porterchain_driver.sequence_store import read_sequence
+
+        plan = read_sequence(driver.id)
+        priority_ranks = self._optimizer.priority_ranks_from_plan(
+            SimpleNamespace(stops=(plan or {}).get("waypoints") or []) if plan else None
+        )
+        orders = self._today_orders(db, driver.id)
+        next_stop = self._next_stop.resolve(db, driver)
+        next_order_id = next_stop.get("order_id") if next_stop else None
+
+        summaries = [
+            self._job_summary(
+                db,
+                driver,
+                order,
+                priority_ranks=priority_ranks,
+                next_order_id=next_order_id,
+            )
+            for order in orders
+        ]
+        current = next(
+            (j for j in summaries if j["bucket"] == "current"),
+            next((j for j in summaries if j["bucket"] != "completed"), None),
+        )
+        upcoming = self._sort_by_priority([j for j in summaries if j["bucket"] == "upcoming"])
+        completed = [j for j in summaries if j["bucket"] == "completed"]
+        route = self._stops.assigned_route(db, driver)
+        active_jobs = [j for j in summaries if j["bucket"] != "completed"]
+        completed_jobs = [j for j in summaries if j["bucket"] == "completed"]
+        prev_metrics = (plan or {}).get("metrics") if isinstance(plan, dict) else None
+        route_metrics = None
+        if isinstance(prev_metrics, dict) and prev_metrics:
+            route_metrics = {
+                "distance_km": prev_metrics.get("after_distance_km"),
+                "duration_minutes": prev_metrics.get("after_duration_min"),
+                "estimated_fuel_cents": prev_metrics.get("estimated_fuel_cents"),
+                "estimated_fuel_liters": prev_metrics.get("estimated_fuel_liters"),
+                "source": "last_optimize",
+            }
+        return {
+            "route_id": route.route_id if route else None,
+            "route_status": route.status if route else None,
+            "plan_id": (plan or {}).get("run_id"),
+            "route_metrics": route_metrics,
+            "optimize_available": self._optimizer.can_optimize(
+                [o for o in orders if str(o.state) not in _COMPLETED_STATES]
+            ),
+            "next_stop": next_stop,
+            "current": current,
+            "upcoming": upcoming,
+            "completed": completed,
+            "jobs": self._sort_by_priority(active_jobs) + completed_jobs,
+        }
+
+    def optimize_route(
+        self,
+        db: Session,
+        driver: Any,
+        *,
+        insert_order_id: str | None = None,
+        preview: bool = False,
+    ) -> dict[str, Any]:
+        """Enqueue Fleetbase sequencing for this driver's live jobs. Never TSP locally.
+
+        When ``insert_order_id`` is set (mid-day insert / Phase 1b), that order is
+        included in the pool but omitted from ``prior_assignments`` so VROOM can
+        place it while locking already-on-vehicle work.
+
+        ``preview=True`` (driver Request stop order) defers sequence apply until
+        Accept. Assign/accept/reopt keep ``preview=False`` (auto-apply on ready).
+        """
+        from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
+        from porterchain_api.admin_models import Vehicle
+        from porterchain_api.fleetbase_engine.public_ids import is_consumable_public_id
+
+        orders = [o for o in self._today_orders(db, driver.id) if str(o.state) not in _COMPLETED_STATES]
+        synced = [
+            o for o in orders if is_consumable_public_id(getattr(o, "fleetbase_order_id", None))
+        ]
+        if not synced:
+            raise ValueError("no_synced_jobs")
+
+        vehicles = (
+            db.query(Vehicle)
+            .filter(
+                Vehicle.driver_id == driver.id,
+                Vehicle.is_active.is_(True),
+                Vehicle.fleetbase_vehicle_id.isnot(None),
+            )
+            .all()
+        )
+        vehicle_ids = [
+            v.fleetbase_vehicle_id
+            for v in vehicles
+            if is_consumable_public_id(v.fleetbase_vehicle_id)
+        ]
+        driver_ids = (
+            [driver.fleetbase_driver_id]
+            if is_consumable_public_id(getattr(driver, "fleetbase_driver_id", None))
+            else []
+        )
+        if not vehicle_ids:
+            raise ValueError("no_synced_vehicles")
+
+        primary_vehicle = vehicle_ids[0]
+        insert_id = str(insert_order_id) if insert_order_id else None
+        prior_assignments = [
+            {
+                "order_id": o.fleetbase_order_id,
+                "vehicle_id": primary_vehicle,
+                "driver_id": driver_ids[0] if driver_ids else None,
+            }
+            for o in synced
+            if insert_id is None or str(o.id) != insert_id
+        ]
+
+        rec = OrchestratorOpsService().enqueue_run(
+            db,
+            order_ids=[o.id for o in synced],
+            mode="optimize_routes",
+            engine="vroom",
+            vehicle_ids=vehicle_ids,
+            driver_ids=driver_ids or None,
+            shape="vehicle",
+            prior_assignments=prior_assignments or None,
+            pc_driver_id=driver.id,
+            apply_on_ready=not preview,
+        )
+        if rec.get("error") == "no_synced_orders":
+            raise ValueError("no_synced_jobs")
+        if rec.get("error") == "no_synced_vehicles":
+            raise ValueError("no_synced_vehicles")
+        jobs = self.list_jobs(db, driver)
+        out = self.plan_from_run(rec, jobs, driver_id=driver.id)
+        out["preview"] = bool(preview)
+        out["apply_on_ready"] = not preview
+        return out
+
+    def optimize_run_status(
+        self,
+        db: Session,
+        driver: Any,
+        run_id: str,
+        *,
+        expected_version: int | None = None,
+        apply: bool = False,
+    ) -> dict[str, Any]:
+        from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
+        from porterchain_driver.sequence_store import apply_run_to_driver, read_sequence
+
+        rec = OrchestratorOpsService().get_run(run_id)
+        if not rec:
+            raise LookupError("optimize_run_not_found")
+        # IDOR: driver-scoped runs must not leak across drivers (404, not 403).
+        owner = rec.get("pc_driver_id")
+        if owner and str(owner) != str(driver.id):
+            raise LookupError("optimize_run_not_found")
+        # Capture baseline before apply overwrites the sequence metrics snapshot.
+        prev = read_sequence(driver.id)
+        before_km = None
+        if isinstance(prev, dict):
+            prev_m = prev.get("metrics") if isinstance(prev.get("metrics"), dict) else {}
+            if prev_m.get("after_distance_km") is not None:
+                try:
+                    before_km = float(prev_m["after_distance_km"])
+                except (TypeError, ValueError):
+                    before_km = None
+        applied = False
+        if apply and (rec.get("status") or "") == "ready":
+            apply_run_to_driver(driver.id, rec, expected_version=expected_version)
+            applied = True
+            try:
+                from porterchain_api.fleetbase_engine.optimize_events import emit_applied
+
+                emit_applied(
+                    run_id,
+                    pc_driver_id=str(driver.id),
+                    via="driver_accept",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+        jobs = self.list_jobs(db, driver)
+        if before_km is not None and applied:
+            jobs = {
+                **jobs,
+                "route_metrics": {
+                    **(jobs.get("route_metrics") or {}),
+                    "distance_km": before_km,
+                },
+            }
+        out = self.plan_from_run(rec, jobs, driver_id=driver.id)
+        out["preview"] = not applied and not bool(rec.get("apply_on_ready", True))
+        out["applied"] = applied
+        return out
+
+    def accept_optimize_run(
+        self,
+        db: Session,
+        driver: Any,
+        run_id: str,
+        *,
+        expected_version: int | None = None,
+    ) -> dict[str, Any]:
+        """Apply a ready preview to the driver's sequence (Preview→Accept)."""
+        return self.optimize_run_status(
+            db, driver, run_id, expected_version=expected_version, apply=True
+        )
+
+    def undo_optimize(self, db: Session, driver: Any) -> dict[str, Any]:
+        """Restore previous sequence snapshot after a bad Accept."""
+        from porterchain_driver.sequence_store import rollback_sequence
+
+        restored = rollback_sequence(driver.id)
+        jobs = self.list_jobs(db, driver)
+        if not restored:
+            return {
+                "ok": False,
+                "status": "error",
+                "error": "nothing_to_undo",
+                "message": "No previous stop order to restore.",
+                "jobs": jobs,
+            }
+        return {
+            "ok": True,
+            "status": "ready",
+            "run_id": restored.get("run_id"),
+            "sequence_version": restored.get("version"),
+            "message": "Previous stop order restored.",
+            "jobs": jobs,
+            "optimized_stops": list(restored.get("waypoints") or []),
+            "metrics": dict(restored.get("metrics") or {}),
+            "warnings": [],
+            "order_ids": [],
+            "plan_id": restored.get("run_id") or "rollback",
+        }
+
+    @staticmethod
+    def plan_from_run(
+        rec: dict[str, Any],
+        jobs: dict[str, Any],
+        *,
+        driver_id: str | None = None,
+    ) -> dict[str, Any]:
+        from porterchain_driver.sequence_store import read_sequence, waypoints_from_assignments
+        from porterchain_pricing.fuel_scorecard import enrich_optimize_metrics_fuel
+
+        assignments = rec.get("assignments") or []
+        waypoints = waypoints_from_assignments(list(assignments))
+        stops: list[dict[str, Any]] = []
+        if waypoints:
+            for wp in waypoints:
+                stops.append(
+                    {
+                        "sequence": wp["sequence"],
+                        "order_id": wp["order_id"],
+                        "tracking_number": wp["order_id"],
+                        "type": wp["stop_type"],
+                        "stop_type": wp["stop_type"],
+                        "vehicle_id": wp.get("vehicle_id"),
+                        "driver_id": wp.get("driver_id"),
+                    }
+                )
+        else:
+            for i, row in enumerate(assignments, 1):
+                if not isinstance(row, dict):
+                    continue
+                stops.append(
+                    {
+                        "sequence": row.get("sequence") or i,
+                        "order_id": row.get("porterchain_order_id") or row.get("order_id"),
+                        "tracking_number": row.get("order_id"),
+                        "type": "stop",
+                        "vehicle_id": row.get("vehicle_id"),
+                        "driver_id": row.get("driver_id"),
+                    }
+                )
+        run_id = rec.get("run_id") or ""
+        metrics = dict(rec.get("metrics") or {})
+        metrics.setdefault("engine", rec.get("engine") or "fleetbase")
+        # Baseline from prior applied plan so driver UI can show fuel/km delta.
+        route_metrics = jobs.get("route_metrics") if isinstance(jobs, dict) else None
+        if isinstance(route_metrics, dict) and route_metrics.get("distance_km") is not None:
+            try:
+                metrics.setdefault(
+                    "before_distance_km", float(route_metrics["distance_km"])
+                )
+            except (TypeError, ValueError):
+                pass
+        if metrics.get("after_distance_km") is not None or metrics.get("after_distance_m"):
+            metrics = enrich_optimize_metrics_fuel(metrics)
+        sequence_version = None
+        if driver_id:
+            applied = read_sequence(driver_id)
+            if isinstance(applied, dict) and applied.get("version") is not None:
+                try:
+                    sequence_version = int(applied["version"])
+                except (TypeError, ValueError):
+                    sequence_version = None
+        return {
+            "plan_id": run_id or "none",
+            "run_id": run_id or None,
+            "status": rec.get("status") or "pending",
+            "optimized_stops": stops,
+            "metrics": metrics,
+            "warnings": list(rec.get("warnings") or []),
+            "order_ids": rec.get("order_ids") or [],
+            "message": rec.get("message") or rec.get("error"),
+            "jobs": jobs,
+            "sequence_version": sequence_version,
+        }
+
+    def order_history(self, db: Session, driver: Any, *, limit: int = 50) -> list[dict[str, Any]]:
+        from porterchain_api.booking_models import Order
+
+        rows = (
+            db.query(Order)
+            .filter(
+                Order.assigned_driver_id == driver.id,
+                Order.state.in_(list(_COMPLETED_STATES)),
+            )
+            .order_by(Order.updated_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [self._job_summary(db, driver, order, force_bucket="completed") for order in rows]
+
+    def job_detail(self, db: Session, driver: Any, order_id: str) -> dict[str, Any]:
+        order = self._require_order(db, driver.id, order_id)
+        from porterchain_api.admin_engine.orders_service import AdminOrdersService
+        from porterchain_api.booking_engine.compliance_metadata import otp_required_at_delivery
+        from porterchain_api.driver_models import DriverIncident, DriverStopMeta
+        from porterchain_api.merchant_models import Merchant
+        from porterchain_api.booking_models import Customer, Quote
+
+        admin_orders = AdminOrdersService()
+        quote = db.query(Quote).filter(Quote.id == order.quote_id).first() if order.quote_id else None
+        customer = (
+            db.query(Customer).filter(Customer.id == order.customer_id).first()
+            if order.customer_id
+            else None
+        )
+        merchant = (
+            db.query(Merchant).filter(Merchant.id == order.merchant_id).first()
+            if order.merchant_id
+            else None
+        )
+        meta_row = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order_id).first()
+        stop_meta = dict(meta_row.meta or {}) if meta_row else {}
+        proofs = list(stop_meta.get("proofs", []))
+        photos = [p for p in proofs if p.get("type") == "photo"]
+        signatures = [p for p in proofs if p.get("type") == "signature"]
+        documents = [p for p in proofs if p.get("type") not in ("photo", "signature", "barcode")]
+
+        incidents = (
+            db.query(DriverIncident)
+            .filter(DriverIncident.driver_id == driver.id, DriverIncident.order_id == order_id)
+            .order_by(DriverIncident.created_at.desc())
+            .all()
+        )
+
+        pickup_stop = self._stops._order_to_stop(order, "pickup")  # noqa: SLF001
+        delivery_stop = self._stops._order_to_stop(order, "dropoff")  # noqa: SLF001
+
+        timeline = []
+        for ev in admin_orders.order_timeline(db, order_id):
+            timeline.append(
+                {
+                    "event_type": ev.event_type,
+                    "label": ev.event_type.replace(".", " ").replace("_", " ").title(),
+                    "from_state": ev.from_state,
+                    "to_state": ev.to_state,
+                    "occurred_at": ev.occurred_at.isoformat() if ev.occurred_at else None,
+                    "actor_type": ev.actor_type,
+                }
+            )
+
+        packages: list[dict[str, Any]] = []
+        scan_pickup: dict[str, Any] = {
+            "scanned": 0,
+            "required": 0,
+            "complete": True,
+            "missing_suffixes": [],
+        }
+        scan_delivery: dict[str, Any] = dict(scan_pickup)
+        try:
+            from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+            gate = ScanGateService()
+            packages = gate.package_rows(db, order)
+            scan_pickup = gate.scan_progress(db, order, phase="pickup")
+            scan_delivery = gate.scan_progress(db, order, phase="delivery")
+        except Exception:  # noqa: BLE001 — job detail must not fail on package sync
+            packages = []
+            if quote:
+                packages.append(
+                    {
+                        "package_type": quote.package_type,
+                        "vehicle_class": quote.vehicle_class,
+                        "weight_kg": quote.weight_kg,
+                        "dimensions": quote.dimensions,
+                        "declared_value_cents": quote.declared_value_cents,
+                    }
+                )
+
+        dropoff = order.dropoff or {}
+        pickup = order.pickup or {}
+
+        route = self._stops.assigned_route(db, driver)
+        next_stop = self._next_stop.resolve(db, driver)
+        state = str(order.state)
+        leg_meta = self._leg_metadata(state, stop_meta)
+
+        return {
+            **self._job_summary(
+                db,
+                driver,
+                order,
+                next_order_id=next_stop.get("order_id") if next_stop else None,
+            ),
+            "route_id": route.route_id if route else None,
+            "special_instructions": order.special_instructions,
+            "pickup_detail": pickup,
+            "delivery_detail": dropoff,
+            "pickup_stop": self._stop_dict(pickup_stop),
+            "delivery_stop": self._stop_dict(delivery_stop),
+            **leg_meta,
+            "next_stop": next_stop,
+            "is_current_job": bool(next_stop and next_stop.get("order_id") == order_id),
+            "pickup_completed_at": stop_meta.get("pickup_completed_at"),
+            "delivery_completed_at": stop_meta.get("delivery_completed_at"),
+            "merchant": (
+                {
+                    "id": merchant.id,
+                    "company_name": merchant.company_name,
+                    "email": merchant.email,
+                    "phone": merchant.phone,
+                }
+                if merchant
+                else None
+            ),
+            "customer": {
+                "id": customer.id if customer else None,
+                "email": customer.email if customer else dropoff.get("email") or pickup.get("email"),
+                "phone": customer.phone if customer else dropoff.get("phone") or pickup.get("phone"),
+                "name": dropoff.get("name") or dropoff.get("contact_name") or pickup.get("name"),
+            },
+            "packages": packages,
+            "scan_pickup": {
+                "scanned": scan_pickup.get("scanned", 0),
+                "required": scan_pickup.get("required", 0),
+                "complete": bool(scan_pickup.get("complete")),
+                "missing_suffixes": scan_pickup.get("missing_suffixes") or [],
+            },
+            "scan_delivery": {
+                "scanned": scan_delivery.get("scanned", 0),
+                "required": scan_delivery.get("required", 0),
+                "complete": bool(scan_delivery.get("complete")),
+                "missing_suffixes": scan_delivery.get("missing_suffixes") or [],
+            },
+            "timeline": timeline,
+            "photos": photos,
+            "signatures": signatures,
+            "documents": documents,
+            "proof_of_delivery": {
+                "completed": str(order.state) in ("POD_COMPLETED", "CLOSED", "INVOICED"),
+                "proofs": proofs,
+                "otp_verified": bool(stop_meta.get("delivery_otp_hash")),
+            },
+            "otp_required": otp_required_at_delivery(order.compliance_metadata),
+            "incidents": [
+                {
+                    "id": i.id,
+                    "incident_type": i.incident_type,
+                    "description": i.description,
+                    "status": i.status,
+                    "created_at": i.created_at.isoformat(),
+                }
+                for i in incidents
+            ],
+            "amount_cents": order.amount_cents,
+            "cod_amount_cents": getattr(order, "cod_amount_cents", None),
+            "cod_status": getattr(order, "cod_status", None),
+            "currency": order.currency,
+            "scheduled_at": order.scheduled_at.isoformat() if order.scheduled_at else None,
+            "updated_at": order.updated_at.isoformat() if order.updated_at else None,
+        }
+
+    @staticmethod
+    def _leg_metadata(state: str, stop_meta: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "current_leg": current_leg(state),
+            "allowed_actions": allowed_actions(state),
+            "pickup_completed": pickup_completed(state) or bool(stop_meta.get("pickup_completed_at")),
+            "delivery_completed": delivery_completed(state) or bool(stop_meta.get("delivery_completed_at")),
+        }
+
+    def _today_orders(self, db: Session, driver_id: str) -> list:
+        return self._stops._today_orders(db, driver_id)  # noqa: SLF001
+
+    def _require_order(self, db: Session, driver_id: str, order_id: str):
+        from porterchain_api.booking_models import Order
+
+        order = (
+            db.query(Order)
+            .filter(Order.id == order_id, Order.assigned_driver_id == driver_id)
+            .first()
+        )
+        if not order:
+            raise LookupError("job_not_found")
+        return order
+
+    def _job_summary(
+        self,
+        db: Session,
+        driver: Any,
+        order: Any,
+        *,
+        force_bucket: str | None = None,
+        priority_ranks: dict[str, int] | None = None,
+        next_order_id: str | None = None,
+    ) -> dict[str, Any]:
+        state = str(order.state)
+        bucket = force_bucket or self._bucket_for_order(state, order.id, next_order_id)
+        pickup = order.pickup or {}
+        dropoff = order.dropoff or {}
+        urgency = compute_urgency(order)
+        ranks = priority_ranks or {}
+        return {
+            "order_id": order.id,
+            "order_number": order.order_number,
+            "tracking_number": order.tracking_number,
+            "state": state,
+            "status": state.lower(),
+            "bucket": bucket,
+            "pickup_address": pickup.get("formatted") or pickup.get("line1") or "—",
+            "delivery_address": dropoff.get("formatted") or dropoff.get("line1") or "—",
+            "pickup_stop_id": f"{order.id}-pickup",
+            "delivery_stop_id": f"{order.id}-dropoff",
+            "scheduled_at": order.scheduled_at.isoformat() if order.scheduled_at else None,
+            "special_instructions": order.special_instructions,
+            "urgency": urgency,
+            "high_priority": urgency in ("critical", "high"),
+            "priority_rank": ranks.get(order.id),
+            "current_leg": current_leg(state),
+            "pickup_completed": pickup_completed(state),
+            "delivery_completed": delivery_completed(state),
+            "is_current_job": bool(next_order_id and next_order_id == order.id),
+        }
+
+    @staticmethod
+    def _sort_by_priority(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        urgency_weight = {"critical": 0, "high": 1, "medium": 2, "normal": 3}
+
+        def sort_key(job: dict[str, Any]) -> tuple:
+            rank = job.get("priority_rank")
+            return (
+                rank is None,
+                rank if rank is not None else 9999,
+                urgency_weight.get(job.get("urgency") or "normal", 3),
+            )
+
+        return sorted(jobs, key=sort_key)
+
+    @staticmethod
+    def _bucket_for_order(state: str, order_id: str, next_order_id: str | None) -> str:
+        if state in _COMPLETED_STATES:
+            return "completed"
+        if next_order_id:
+            return "current" if next_order_id == order_id else "upcoming"
+        return "upcoming"
+
+    @staticmethod
+    def _stop_dict(stop: Any) -> dict[str, Any]:
+        return {
+            "stop_id": stop.stop_id,
+            "stop_type": stop.stop_type,
+            "status": stop.status,
+            "address": stop.address,
+            "scheduled_at": stop.scheduled_at.isoformat() if stop.scheduled_at else None,
+            "otp_required": stop.otp_required,
+            "pod_required": stop.pod_required,
+        }

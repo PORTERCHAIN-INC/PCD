@@ -1,0 +1,23 @@
+# Maestro suite — Driver mobile P0 flows
+# Prefer individual flows or: maestro test apps/mobile-driver/maestro/ --include-tags=p0
+# Suite file chains existing smokes + new P0 skeletons.
+appId: com.porterchain.PCD
+name: Driver mobile P0
+tags:
+  - p0
+  - suite
+---
+- runFlow:
+    file: login-and-track.yaml
+- runFlow:
+    file: scan-offline.yaml
+- runFlow:
+    file: pod-capture.yaml
+- runFlow:
+    file: deeplink-job.yaml
+- runFlow:
+    file: p0-shift-duty.yaml
+- runFlow:
+    file: p0-jobs-list.yaml
+- runFlow:
+    file: p0-push-register.yaml

@@ -1,0 +1,438 @@
+{
+  "ssot": "docs/DRIVER_ADMIN_DEV_TEST_CASES.md",
+  "canvas": "canvases/driver-admin-dev-test-cases.canvas.tsx",
+  "version": 1,
+  "notes": "Automation seed for Driver persona (web :3003 + mobile) + Admin /drivers. status=implemented means a body exists; skeleton = skip until filled; skip = policy hold.",
+  "cases": [
+    {
+      "id": "AUTH-01",
+      "title": "Driver Clerk JWT → DriverContext bind",
+      "persona": "driver-web",
+      "layer": "auth",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-02",
+      "title": "Driver web BFF cookie ≠ mobile Bearer paths",
+      "persona": "driver-web",
+      "layer": "auth",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-03",
+      "title": "Dev login gated to local/development only",
+      "persona": "driver-web",
+      "layer": "auth",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "apps/api/tests/test_driver_p0_catalog.py::test_allow_auth_dev_bypass_only_in_development",
+        "apps/api/tests/test_driver_p0_catalog.py::test_dev_login_404_when_bypass_disabled"
+      ]
+    },
+    {
+      "id": "AUTH-04",
+      "title": "Admin staff session can call /v1/admin/drivers",
+      "persona": "admin",
+      "layer": "auth",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-06",
+      "title": "Clerk invite existing driver payload",
+      "persona": "admin",
+      "layer": "auth",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-07",
+      "title": "No Firebase Auth; FCM push only",
+      "persona": "integration",
+      "layer": "auth",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+
+    {
+      "id": "UI-D-01",
+      "title": "Login page Clerk + optional email picker",
+      "persona": "driver-web",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-D-02",
+      "title": "Dashboard workspace metrics",
+      "persona": "driver-web",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-D-03",
+      "title": "Jobs list + job detail Delivery360",
+      "persona": "driver-web",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-D-04",
+      "title": "Navigation map polyline Valhalla/Google decode",
+      "persona": "driver-web",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-D-05",
+      "title": "Shift start/break/resume/end",
+      "persona": "driver-web",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-D-06",
+      "title": "Communications inbox read/archive/mark-all",
+      "persona": "driver-web",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-D-PUSH",
+      "title": "Web FCM registerWebPush + SW (no Firebase Auth)",
+      "persona": "driver-web",
+      "layer": "push",
+      "runner": "playwright",
+      "status": "implemented",
+      "covers": ["apps/driver-portal/e2e/push.p0.spec.ts"]
+    },
+    {
+      "id": "UI-D-10",
+      "title": "Profile + onboarding gate",
+      "persona": "driver-web",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UX-D-02",
+      "title": "Offline queue UX (GPS + actions)",
+      "persona": "driver-web",
+      "layer": "ux",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+
+    {
+      "id": "MOB-01",
+      "title": "Handshake probe :8001 /driver-api/v1",
+      "persona": "driver-mobile",
+      "layer": "handshake",
+      "runner": "maestro",
+      "status": "implemented",
+      "covers": ["apps/mobile-driver/maestro/login-and-track.yaml"]
+    },
+    {
+      "id": "MOB-02",
+      "title": "Clerk sign-in + Jobs/Route/POD screens",
+      "persona": "driver-mobile",
+      "layer": "ui",
+      "runner": "maestro",
+      "status": "implemented",
+      "covers": [
+        "apps/mobile-driver/maestro/login-and-track.yaml",
+        "apps/mobile-driver/maestro/pod-capture.yaml"
+      ]
+    },
+    {
+      "id": "MOB-03",
+      "title": "FCM token register/unregister",
+      "persona": "driver-mobile",
+      "layer": "push",
+      "runner": "maestro",
+      "status": "implemented",
+      "covers": [
+        "apps/mobile-driver/maestro/p0-push-register.yaml",
+        "apps/api/tests/services/test_driver_push_service.py"
+      ]
+    },
+    {
+      "id": "MOB-04",
+      "title": "GPS location ingest → Fleetbase SoT",
+      "persona": "driver-mobile",
+      "layer": "fleetbase",
+      "runner": "maestro",
+      "status": "implemented",
+      "covers": ["apps/mobile-driver/maestro/login-and-track.yaml"]
+    },
+    {
+      "id": "MOB-05",
+      "title": "Mobile verification CTAs intentionally skipped",
+      "persona": "driver-mobile",
+      "layer": "policy",
+      "runner": "maestro",
+      "status": "skip"
+    },
+
+    {
+      "id": "API-D-01",
+      "title": "Profile/onboarding contract shapes",
+      "persona": "driver-web",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "API-D-02",
+      "title": "Jobs lifecycle accept/reject/arrive/deliver",
+      "persona": "driver-web",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "API-D-03",
+      "title": "Jobs optimize via Fleetbase/VROOM (not PC client)",
+      "persona": "driver-web",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "apps/api/tests/test_driver_p0_catalog.py::test_no_porterchain_vroom_client_in_api"
+      ]
+    },
+    {
+      "id": "API-D-04",
+      "title": "Package scan + COD checkout",
+      "persona": "driver-web",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "API-D-05",
+      "title": "Navigation session + route geometry",
+      "persona": "driver-web",
+      "layer": "maps",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "API-D-06",
+      "title": "POD photo/signature/barcode/complete + OTP",
+      "persona": "driver-web",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "API-D-07",
+      "title": "Offline queue/pending/sync",
+      "persona": "driver-web",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "API-D-08",
+      "title": "Verification Identity/Checkr/Abstract flags",
+      "persona": "driver-web",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "apps/api/tests/test_driver_identity_verification.py",
+        "apps/api/tests/test_driver_background_check.py",
+        "apps/api/tests/test_driver_abstract_and_expiry.py"
+      ]
+    },
+
+    {
+      "id": "UI-A-01",
+      "title": "Drivers list filters/facets/stats/bulk",
+      "persona": "admin",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-A-02",
+      "title": "AddDriverModal + Settings Create/Manage modals",
+      "persona": "admin",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-A-03",
+      "title": "Driver 360 tab Overview",
+      "persona": "admin",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-A-04",
+      "title": "Identity tab verification source badges",
+      "persona": "admin",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-A-05",
+      "title": "Documents tab add/list",
+      "persona": "admin",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-A-06",
+      "title": "Vehicles tab create/deactivate",
+      "persona": "admin",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-A-09",
+      "title": "Settings tab lifecycle + invite + action",
+      "persona": "admin",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-A-11",
+      "title": "AssignDriverModal ops path",
+      "persona": "admin",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+
+    {
+      "id": "API-A-01",
+      "title": "CRUD list/create/detail contracts",
+      "persona": "admin",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "API-A-02",
+      "title": "Lifecycle approve/suspend/deactivate/reject/rehire",
+      "persona": "admin",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "apps/api/tests/test_driver_p0_catalog.py",
+        "apps/api/tests/test_wave2_customers.py::test_approve_driver_pushes_fleetbase_when_settings_present"
+      ]
+    },
+    {
+      "id": "API-A-03",
+      "title": "PATCH verification + POST action",
+      "persona": "admin",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "apps/api/tests/test_driver_p0_catalog.py::test_admin_driver_action_rejects_unimplemented"
+      ]
+    },
+    {
+      "id": "API-A-04",
+      "title": "Driver360 board endpoints",
+      "persona": "admin",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+
+    {
+      "id": "FB-01",
+      "title": "push_driver / push_vehicle on create+approve",
+      "persona": "integration",
+      "layer": "fleetbase",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "apps/api/tests/test_wave2_customers.py::test_approve_driver_pushes_fleetbase_when_settings_present"
+      ]
+    },
+    {
+      "id": "FB-04",
+      "title": "VROOM stays behind Fleetbase orchestrator",
+      "persona": "integration",
+      "layer": "fleetbase",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "apps/api/tests/test_driver_p0_catalog.py::test_no_porterchain_vroom_client_in_api"
+      ]
+    },
+    {
+      "id": "MAP-01",
+      "title": "Valhalla route primary for driver nav",
+      "persona": "integration",
+      "layer": "maps",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "MAP-04",
+      "title": "Google Maps tiles/Places only",
+      "persona": "driver-web",
+      "layer": "maps",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "PUSH-01",
+      "title": "FCM delivery for assignment alerts",
+      "persona": "integration",
+      "layer": "push",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "EMAIL-01",
+      "title": "Driver invite + action emails via Mailpit",
+      "persona": "integration",
+      "layer": "email",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "ARCH-06",
+      "title": "Auto-approve DriverStatus from webhooks forbidden",
+      "persona": "admin",
+      "layer": "policy",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "apps/api/tests/test_driver_p0_catalog.py::test_identity_verified_does_not_auto_approve"
+      ]
+    },
+    {
+      "id": "LIVE-01",
+      "title": "Live Bearer-dev driver-api smoke",
+      "persona": "integration",
+      "layer": "handshake",
+      "runner": "script",
+      "status": "implemented",
+      "covers": ["scripts/verify_driver_api_live.py"]
+    }
+  ]
+}

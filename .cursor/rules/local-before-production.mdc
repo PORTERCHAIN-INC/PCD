@@ -1,0 +1,22 @@
+---
+description: Test and build on this Mac before any production or CI/CD step
+alwaysApply: true
+---
+
+# Local test, then local build, then production
+
+Every change follows this order. Do not start CI, Deploy, or a droplet change first.
+
+1. **Test** the change on this Mac. Use the check that matches the edit (portal `tsc`, API tests, the command that last failed). A green test is not a build.
+2. **Build locally** the apps the images actually ship. Run the same `next build` the Dockerfile runs:
+   - `pnpm --filter @porterchain/website build`
+   - `pnpm --filter @porterchain/admin build`
+   - `pnpm --filter @porterchain/merchant-portal build`
+   - `pnpm --filter @porterchain/driver-portal build`
+   - `pnpm --filter @porterchain/customer build`
+   Build only the apps the change touches. A wide web change is `pnpm build` (what CI runs). API, worker, or shared Python changes use the API test gate, not a portal image.
+3. **Then** commit, push, and start the production path. CI and Deploy build the **pushed commit**, not the working tree. Do not dispatch Deploy while the local test or local build is red, or while the fix is uncommitted.
+
+Do not substitute a Fleetbase console build, a Valhalla tile rebuild, or OSRM for steps 1–2.
+
+Website `next build` on this Mac reads `.env.local`. Blog pages fetch that API during page-data collection. `ECONNREFUSED` to localhost means the local API is down. It is not a TypeScript failure. The website image build uses `https://api.porterchain.com`, not `.env.local`. TypeScript must still finish before that fetch.

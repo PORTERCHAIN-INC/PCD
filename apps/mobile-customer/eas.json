@@ -1,0 +1,43 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "environment": "development",
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://127.0.0.1:8001",
+        "EXPO_PUBLIC_APP_ENV": "development",
+        "EXPO_PUBLIC_ALLOW_DEV_AUTH": "true"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "environment": "preview",
+      "node": "24.18.0",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.porterchain.com",
+        "EXPO_PUBLIC_APP_ENV": "preview",
+        "EXPO_PUBLIC_ALLOW_DEV_AUTH": "false"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "environment": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.porterchain.com",
+        "EXPO_PUBLIC_APP_ENV": "production",
+        "EXPO_PUBLIC_ALLOW_DEV_AUTH": "false"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

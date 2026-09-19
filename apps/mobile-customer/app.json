@@ -1,0 +1,84 @@
+{
+  "expo": {
+    "name": "Porterchain Customer",
+    "slug": "porterchain-customer",
+    "owner": "porterchain",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "porterchain-customer",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.porterchain.customer",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"],
+        "NSUserNotificationsUsageDescription": "Porterchain can notify you when a shipment status changes."
+      },
+      "associatedDomains": ["applinks:porterchain.com", "applinks:www.porterchain.com"]
+    },
+    "android": {
+      "package": "com.porterchain.customer",
+      "googleServicesFile": "./google-services.json",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": ["android.permission.POST_NOTIFICATIONS"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "porterchain.com",
+              "pathPrefix": "/track"
+            },
+            {
+              "scheme": "https",
+              "host": "www.porterchain.com",
+              "pathPrefix": "/track"
+            },
+            {
+              "scheme": "https",
+              "host": "porterchain.com",
+              "pathPrefix": "/en/track"
+            },
+            {
+              "scheme": "https",
+              "host": "porterchain.com",
+              "pathPrefix": "/fr/track"
+            },
+            {
+              "scheme": "https",
+              "host": "porterchain.com",
+              "pathPrefix": "/login"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#2563eb"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "de933889-dc10-47b3-9d87-06cca2f7e5da"
+      }
+    }
+  }
+}

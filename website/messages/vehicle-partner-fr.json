@@ -1,0 +1,218 @@
+{
+  "meta": {
+    "title": "Portail partenaire véhicule | Rejoindre le réseau chauffeur Porterchain",
+    "description": "Partenaire Porterchain avec berline, VUS, camionnette, fourgonnette ou camion boîte. Permis G Ontario. Tournées structurées et soutien opérationnel dans le RGT."
+  },
+  "hero": {
+    "badge": "Portail partenaire véhicule",
+    "title": "Partenaire Porterchain avec les véhicules que vous exploitez déjà",
+    "subtitle": "Programme partenaire chauffeur structuré pour opérateurs ontariens avec berline, VUS, camionnette, fourgonnette ou camion boîte admissible dans le RGT. Instructions claires, flux prévisibles et tournées alignées sur la demande marchande. La rémunération est définie dans votre entente partenaire — nous ne publions pas de gains garantis ni de tarifs en dollars sur cette page.",
+    "primaryCta": "Commencer la demande",
+    "secondaryCta": "Questions? Contactez-nous"
+  },
+  "vehicles": {
+    "label": "Véhicules admissibles",
+    "title": "Types de véhicules permis G que nous accompagnons",
+    "subtitle": "Porterchain se concentre sur les véhicules commerciaux légers et moyens pour la livraison locale dans le RGT et les marchés ontariens desservis. L'admissibilité est confirmée à l'intégration.",
+    "items": {
+      "sedan": {
+        "title": "Berline",
+        "description": "Tournées urbaines et suburbaines pour colis plus petits et livraisons locales urgentes."
+      },
+      "suv": {
+        "title": "VUS",
+        "description": "Espace cargo supplémentaire pour tournées multi-arrêts sans passer à une fourgonnette."
+      },
+      "pickup": {
+        "title": "Camionnette",
+        "description": "Charges mixtes et benne ouverte pour fret local flexible dans les limites du permis G."
+      },
+      "van": {
+        "title": "Fourgonnette",
+        "description": "Capacité fermée pour tournées B2B récurrentes et livraisons commerciales multi-arrêts."
+      },
+      "boxTruck": {
+        "title": "Camion boîte (16 pi)",
+        "description": "Fret local palettisé et charges plus lourdes selon les lignes directrices du programme. Confirmé à l'intégration."
+      }
+    },
+    "licenceNote": "Un permis de classe G Ontario (ou équivalent pour le véhicule exploité) est requis. Des documents supplémentaires peuvent être demandés."
+  },
+  "pillars": {
+    "label": "Pourquoi les partenaires nous choisissent",
+    "title": "Conçu pour simplifier votre capacité de livraison",
+    "subtitle": "Porterchain est une plateforme technologique logistique. Nous privilégions des opérations structurées et des flux qui respectent votre temps sur la route.",
+    "items": {
+      "routes": {
+        "title": "Opportunités de tournées récurrentes",
+        "description": "Lorsque le volume marchand le permet, les partenaires peuvent recevoir des tournées locales récurrentes. La disponibilité dépend de la zone, du véhicule et de la demande."
+      },
+      "earnings": {
+        "title": "Conditions partenaire transparentes",
+        "description": "La rémunération et les délais de paiement sont décrits dans les ententes partenaires avant d'accepter du travail."
+      },
+      "support": {
+        "title": "Soutien opérationnel",
+        "description": "Détails de tournée, instructions et outils de statut via le flux partenaire — moins de coordination manuelle."
+      },
+      "multiple": {
+        "title": "Un ou plusieurs véhicules",
+        "description": "Si vous gérez plusieurs véhicules admissibles, l'intégration peut en tenir compte selon les lignes directrices du programme."
+      }
+    }
+  },
+  "workflow": {
+    "label": "Comment ça fonctionne",
+    "title": "Un parcours d'intégration clair",
+    "subtitle": "De la demande aux tournées acceptées — chaque étape est définie.",
+    "steps": {
+      "step1": {
+        "title": "Demande avec détails du véhicule",
+        "stepDescription": "Indiquez type de véhicule, zone et disponibilité. Nous confirmons le permis G et l'adéquation à la demande actuelle."
+      },
+      "step2": {
+        "title": "Révision d'intégration",
+        "stepDescription": "Documents, assurance et conditions sont vérifiés avant l'accès partenaire."
+      },
+      "step3": {
+        "title": "Accepter des tournées via le portail",
+        "stepDescription": "Lorsqu'une tournée correspond à votre véhicule et zone, vous recevez une assignation structurée avec instructions et suivi."
+      }
+    }
+  },
+  "ease": {
+    "label": "Pour les opérateurs",
+    "title": "Faciliter vos opérations quotidiennes",
+    "subtitle": "Que vous exploitiez une fourgonnette ou une petite flotte, Porterchain vise à réduire la friction administrative.",
+    "items": {
+      "clarity": {
+        "title": "Instructions de tournée claires",
+        "description": "Fenêtres de collecte, détails de livraison et exigences de complétion présentés d'avance."
+      },
+      "tools": {
+        "title": "Outils du portail partenaire",
+        "description": "Mises à jour de statut et visibilité des tournées — alignement terrain et répartition."
+      },
+      "fleet": {
+        "title": "Croissance avec plusieurs véhicules",
+        "description": "Les opérateurs multi-véhicules peuvent discuter de l'intégration de flotte lors de la demande."
+      },
+      "local": {
+        "title": "Focus Ontario local",
+        "description": "RGT et marchés ontariens sélectionnés. Tournées dans des zones définies."
+      }
+    }
+  },
+  "faq": {
+    "label": "FAQ",
+    "title": "Questions fréquentes",
+    "subtitle": "Information générale sur le portail partenaire. Les détails sont confirmés à l'intégration.",
+    "items": [
+      {
+        "question": "Quels véhicules sont admissibles?",
+        "answer": "Berline, VUS, camionnette, fourgonnette et camion boîte (typiquement 16 pi), sous réserve du permis G Ontario et de la révision d'intégration."
+      },
+      {
+        "question": "Ai-je besoin du permis G Ontario?",
+        "answer": "Oui. Un permis de classe G valide (ou équivalent) est requis pour le véhicule exploité."
+      },
+      {
+        "question": "Puis-je inscrire plus d'un véhicule?",
+        "answer": "Oui. Indiquez-le dans votre demande. Chaque véhicule peut être révisé pour assurance et documentation."
+      },
+      {
+        "question": "Les tournées ou revenus sont-ils garantis?",
+        "answer": "Non. La disponibilité dépend de la demande, du véhicule et de la zone. La rémunération est décrite dans les ententes partenaires."
+      },
+      {
+        "question": "Les partenaires sont-ils employés de Porterchain?",
+        "answer": "Les partenaires chauffeurs sont engagés selon les conditions d'entrepreneur indépendant décrites dans les ententes applicables."
+      },
+      {
+        "question": "Comment commencer la demande?",
+        "answer": "Utilisez le lien de demande ci-dessous pour accéder au portail partenaire et suivre les étapes d'intégration."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Prêt à explorer le portail partenaire?",
+    "subtitle": "Commencez votre demande pour voir les exigences d'intégration, véhicules admissibles et zones pour votre opération.",
+    "primary": "Commencer la demande partenaire",
+    "secondary": "Contacter le soutien partenaire"
+  },
+  "inquiry": {
+    "title": "Commencer votre demande partenaire",
+    "subtitle": "Indiquez vos coordonnées et le type de véhicule. Nous vous contacterons dans un jour ouvrable pour les prochaines étapes.",
+    "name": "Nom complet",
+    "namePlaceholder": "Votre nom",
+    "email": "Courriel",
+    "emailPlaceholder": "vous@courriel.com",
+    "phone": "Numéro de téléphone",
+    "phonePlaceholder": "(416) 555-0100",
+    "countryCode": "Indicatif pays",
+    "extension": "Poste",
+    "extensionShort": "Poste",
+    "optional": "Facultatif",
+    "vehicleType": "Type de véhicule",
+    "vehicleTypePlaceholder": "Sélectionner un véhicule",
+    "serviceArea": "Zone de service principale",
+    "serviceAreaPlaceholder": "p. ex. RGT, Mississauga, Hamilton",
+    "notes": "Détails supplémentaires",
+    "notesPlaceholder": "Taille de flotte, disponibilité ou questions (facultatif)",
+    "consent": "J'accepte d'être contacté par Porterchain au sujet du programme partenaire véhicule et de l'intégration.",
+    "submit": "Soumettre mon intérêt partenaire",
+    "submitting": "Envoi en cours...",
+    "successTitle": "Intérêt partenaire reçu",
+    "successMessage": "Merci. Notre équipe partenaire vous contactera dans un jour ouvrable avec les prochaines étapes.",
+    "portalCta": "Continuer vers le portail partenaire",
+    "portalHint": "Complétez les détails du véhicule et la documentation dans le portail partenaire chauffeur.",
+    "errorMessage": "Impossible d'envoyer votre demande. Réessayez ou contactez le soutien partenaire.",
+    "assurances": {
+      "noObligation": "Sans obligation",
+      "gLicence": "Permis G Ontario",
+      "responseTime": "Réponse en 1 jour ouvrable"
+    },
+    "vehicles": {
+      "sedan": "Berline",
+      "suv": "VUS",
+      "pickup": "Camionnette",
+      "van": "Fourgonnette",
+      "boxTruck": "Camion boîte (16 pi)",
+      "unsure": "Pas encore certain"
+    }
+  },
+  "disclaimer": "Cette page est à titre informatif seulement et peut évoluer. La participation est sujette à approbation et aux ententes partenaires signées.",
+  "hubFacade": {
+    "title": "Aperçu des assignations",
+    "chip": "Illustratif",
+    "illustrativeNote": "Styles d'assignation exemples — pas un babillard d'acceptation en direct. Les conditions sont dans votre entente partenaire.",
+    "mapTitle": "Corridors du réseau",
+    "mapSubtitle": "Routes du RGT assorties à votre classe de véhicule après l'intégration.",
+    "portalCta": "Ouvrir le portail chauffeur",
+    "offers": {
+      "a": {
+        "title": "Course marchand le jour même",
+        "badge": "Local",
+        "meta": "Multi-arrêts · preuve à la livraison"
+      },
+      "b": {
+        "title": "Corridor gros récurrent",
+        "badge": "Planifié",
+        "meta": "Fenêtres hebdomadaires · instructions claires"
+      },
+      "c": {
+        "title": "Débordement de chantier",
+        "badge": "Construction",
+        "meta": "Camionnette / fourgonnette quand les flottes sont pleines"
+      }
+    }
+  },
+  "trustStrip": {
+    "eyebrow": "Confiance",
+    "title": "Connaissez le réseau que vous rejoignez",
+    "body": "Contexte d'entreprise, engagements de confiance et contact direct — avant de postuler.",
+    "company": "À propos de Porterchain",
+    "trust": "Centre de confiance",
+    "contact": "Nous joindre"
+  }
+}

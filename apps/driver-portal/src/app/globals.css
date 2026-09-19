@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Tailwind v4 skips symlinked workspace packages; scan shared UI so its utilities are generated. */
+@source "../../../../packages/ui/src";
+
+:root {
+  color-scheme: light;
+  --primary: #0a1628;
+  --secondary: #2563eb;
+  --accent: #38bdf8;
+  --white: #ffffff;
+  --gray-bg: #f0f4f8;
+  --foreground: #0a1628;
+  --muted: #64748b;
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-gray-bg: var(--gray-bg);
+  --color-muted: var(--muted);
+  --font-sans: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
+}
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  background: var(--gray-bg);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}

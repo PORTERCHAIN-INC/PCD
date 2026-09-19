@@ -1,0 +1,423 @@
+#!/usr/bin/env python3
+"""Porterchain async worker — consumes event bus + task queues."""
+
+import argparse
+import logging
+import os
+import signal
+import sys
+import time
+from pathlib import Path
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+logger = logging.getLogger("porterchain.worker")
+
+_running = True
+_last_draft_reconcile_at = 0.0
+_last_standing_orders_at = 0.0
+_last_notification_retry_at = 0.0
+_last_webhook_retry_at = 0.0
+_last_ops_mirror_at = 0.0
+_last_compliance_expiry_at = 0.0
+_last_lead_nurture_at = 0.0
+DRAFT_RECONCILE_INTERVAL_SECONDS = 300
+STANDING_ORDERS_INTERVAL_SECONDS = 300
+NOTIFICATION_RETRY_INTERVAL_SECONDS = 60
+WEBHOOK_RETRY_INTERVAL_SECONDS = 60
+OPS_MIRROR_INTERVAL_SECONDS = 30
+COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
+LEAD_NURTURE_INTERVAL_SECONDS = 300
+TRACKING_DRAIN_LIMIT = 10
+# Vehicles/drivers must land in Fleetbase before Optimize can assign. Do not
+# starve them behind a backlog of order sync jobs (commercial drain is limit=1).
+FLEET_SYNC_KINDS = ("vehicle", "driver_profile", "driver_online")
+FLEET_DRAIN_LIMIT = 5
+EVENT_BUS_BLOCK_MS = 1000
+# Catch up Redis stream lag without waiting on empty BRPOP fan-out.
+EVENT_BUS_BURST = 50
+WORKER_MODES = ("all", "events", "queues", "fleetbase", "routing")
+
+
+def _load_local_api_env() -> None:
+    """Load apps/api/.env when the worker is started from apps/worker (local).
+
+    Production compose injects the same keys; existing process env wins.
+    """
+    env_path = Path(__file__).resolve().parents[1] / "api" / ".env"
+    if not env_path.is_file():
+        return
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(env_path, override=False)
+    except Exception:
+        logger.debug("local api env load skipped", exc_info=True)
+
+
+def _touch_heartbeat() -> None:
+    try:
+        from porterchain_shared.redis_client import get_redis_client
+
+        get_redis_client().setex("porterchain:worker:heartbeat", 120, str(time.time()))
+    except Exception:
+        logger.debug("worker heartbeat write failed", exc_info=True)
+
+
+def _shutdown(_signum, _frame) -> None:
+    global _running
+    _running = False
+    logger.info("shutdown signal received")
+
+
+def _consumer_name() -> str:
+    return os.environ.get("WORKER_CONSUMER_NAME", "worker-1").strip() or "worker-1"
+
+
+def parse_worker_mode(argv: list[str] | None = None) -> str:
+    parser = argparse.ArgumentParser(prog="porterchain-worker")
+    parser.add_argument(
+        "--mode",
+        choices=WORKER_MODES,
+        default=(os.environ.get("WORKER_MODE") or "all").strip() or "all",
+        help="events = bus only; queues = Redis queues + sweepers; fleetbase = drain + ops mirror; routing = ROUTING queue only",
+    )
+    args = parser.parse_args(argv)
+    return str(args.mode)
+
+
+def mode_includes(mode: str, component: str) -> bool:
+    if mode == "all":
+        return True
+    return mode == component
+
+
+def _drain_event_bus(*, consumer_name: str, block_ms: int = EVENT_BUS_BLOCK_MS) -> int:
+    from porterchain_event_bus import get_event_bus
+
+    try:
+        return get_event_bus().consume_once(consumer_name=consumer_name, block_ms=block_ms)
+    except Exception:
+        logger.exception("event bus consume failed — will retry")
+        return 0
+
+
+def _drain_event_bus_burst(*, consumer_name: str) -> int:
+    """Block once for new work, then non-blocking burst to burn stream lag."""
+    total = _drain_event_bus(consumer_name=consumer_name, block_ms=EVENT_BUS_BLOCK_MS)
+    while total < EVENT_BUS_BURST:
+        n = _drain_event_bus(consumer_name=consumer_name, block_ms=0)
+        if not n:
+            break
+        total += n
+    return total
+
+
+def _drain_queues(publisher, *, timeout_seconds: int = 0, queues=None) -> int:
+    from porterchain_shared.queue.names import QueueName
+    from processors import process_queue_message
+
+    processed = 0
+    # Always non-blocking in mode=all — blocking per empty queue starved the event bus
+    # (~8s+/loop) and left notification.queued / email-push stuck behind 30k lag.
+    for queue in queues or list(QueueName):
+        while True:
+            msg = publisher.dequeue(queue, timeout_seconds=timeout_seconds)
+            if not msg:
+                break
+            try:
+                process_queue_message(msg)
+                processed += 1
+            except Exception:
+                logger.exception("failed to process %s message %s", queue.value, msg.message_id)
+    return processed
+
+
+def _drain_fleetbase_retry_queue() -> int:
+    """Commercial drain limit=1; tracking drain is a separate batch (limit=10)."""
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
+    from porterchain_api.fleetbase_engine.retry_queue import TRACKING_KIND
+
+    settings = get_settings()
+    if not settings.fleetbase_dispatch_bridge:
+        return 0
+
+    svc = BookingSyncService()
+    with SessionLocal() as db:
+        fleet = svc.process_retry_queue(
+            db, settings, limit=FLEET_DRAIN_LIMIT, kinds=list(FLEET_SYNC_KINDS)
+        )
+        commercial = svc.process_retry_queue(
+            db,
+            settings,
+            limit=1,
+            exclude_kinds=[TRACKING_KIND, *FLEET_SYNC_KINDS],
+        )
+        tracking = svc.process_retry_queue(
+            db, settings, limit=TRACKING_DRAIN_LIMIT, kinds=[TRACKING_KIND]
+        )
+    processed = (
+        int(fleet.get("processed", 0))
+        + int(commercial.get("processed", 0))
+        + int(tracking.get("processed", 0))
+    )
+    if (
+        processed
+        or fleet.get("failed")
+        or fleet.get("skipped")
+        or commercial.get("failed")
+        or commercial.get("skipped")
+        or tracking.get("failed")
+        or tracking.get("skipped")
+    ):
+        logger.info(
+            "fleetbase retry drain: fleet processed=%s failed=%s skipped=%s; "
+            "commercial processed=%s failed=%s skipped=%s; "
+            "tracking processed=%s failed=%s skipped=%s",
+            fleet.get("processed", 0),
+            fleet.get("failed", 0),
+            fleet.get("skipped", 0),
+            commercial.get("processed", 0),
+            commercial.get("failed", 0),
+            commercial.get("skipped", 0),
+            tracking.get("processed", 0),
+            tracking.get("failed", 0),
+            tracking.get("skipped", 0),
+        )
+    return processed
+
+
+def _drain_draft_reconciliation() -> int:
+    """Expire stale booking drafts and repair draft/order mismatches."""
+    global _last_draft_reconcile_at
+    now = time.monotonic()
+    if now - _last_draft_reconcile_at < DRAFT_RECONCILE_INTERVAL_SECONDS:
+        return 0
+    _last_draft_reconcile_at = now
+
+    from porterchain_api.booking_engine.draft_reconciliation_service import (
+        BookingDraftReconciliationService,
+    )
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+
+    settings = get_settings()
+    with SessionLocal() as db:
+        result = BookingDraftReconciliationService().run_cycle(db, settings)
+    if result.get("expired") or result.get("repaired"):
+        logger.info("draft reconciliation: %s", result)
+    return int(result.get("expired", 0)) + int(result.get("repaired", 0))
+
+
+def _drain_standing_orders() -> int:
+    """Materialize due recurring merchant standing orders (§8.1.11)."""
+    global _last_standing_orders_at
+    now = time.monotonic()
+    if now - _last_standing_orders_at < STANDING_ORDERS_INTERVAL_SECONDS:
+        return 0
+    _last_standing_orders_at = now
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.merchant_engine.standing_order_service import MerchantStandingOrderService
+
+    settings = get_settings()
+    with SessionLocal() as db:
+        result = MerchantStandingOrderService().run_due_orders(db, settings)
+    if result.get("created") or result.get("failed"):
+        logger.info(
+            "standing orders drain: processed=%s created=%s failed=%s skipped=%s",
+            result.get("processed", 0),
+            result.get("created", 0),
+            result.get("failed", 0),
+            result.get("skipped", 0),
+        )
+    return int(result.get("created", 0))
+
+
+def _drain_notification_retries() -> int:
+    """Re-enqueue failed notifications whose next_retry_at is due."""
+    global _last_notification_retry_at
+    now = time.monotonic()
+    if now - _last_notification_retry_at < NOTIFICATION_RETRY_INTERVAL_SECONDS:
+        return 0
+    _last_notification_retry_at = now
+
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.notification_engine.retry_sweeper import sweep_notification_retries
+
+    with SessionLocal() as db:
+        result = sweep_notification_retries(db)
+    if result.get("requeued") or result.get("due"):
+        logger.info(
+            "notification retry sweep: due=%s requeued=%s",
+            result.get("due", 0),
+            result.get("requeued", 0),
+        )
+    return int(result.get("requeued", 0))
+
+
+def _drain_merchant_webhook_retries() -> int:
+    """Re-POST failed merchant webhooks whose next_retry_at is due (no sleep)."""
+    global _last_webhook_retry_at
+    now = time.monotonic()
+    if now - _last_webhook_retry_at < WEBHOOK_RETRY_INTERVAL_SECONDS:
+        return 0
+    _last_webhook_retry_at = now
+
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.merchant_engine.webhook_retry_sweeper import sweep_merchant_webhook_retries
+
+    with SessionLocal() as db:
+        result = sweep_merchant_webhook_retries(db)
+    if result.get("retried") or result.get("due"):
+        logger.info(
+            "merchant webhook retry sweep: due=%s retried=%s",
+            result.get("due", 0),
+            result.get("retried", 0),
+        )
+    return int(result.get("retried", 0))
+
+
+def _drain_lead_nurture() -> int:
+    """Send due D+1 nurture emails when marketing consent is present."""
+    global _last_lead_nurture_at
+    now = time.monotonic()
+    if now - _last_lead_nurture_at < LEAD_NURTURE_INTERVAL_SECONDS:
+        return 0
+    _last_lead_nurture_at = now
+
+    from porterchain_api.collaboration_engine.lead_nurture import process_due_nurture_emails
+    from porterchain_api.db import SessionLocal
+
+    with SessionLocal() as db:
+        result = process_due_nurture_emails(db, limit=20)
+    if result.get("sent") or result.get("due"):
+        logger.info(
+            "lead nurture sweep: due=%s sent=%s skipped=%s",
+            result.get("due", 0),
+            result.get("sent", 0),
+            result.get("skipped", 0),
+        )
+    return int(result.get("sent", 0))
+
+
+def _drain_driver_compliance_expiry() -> int:
+    """Revoke insurance/registration/license flags when document expiry lapses."""
+    global _last_compliance_expiry_at
+    now = time.monotonic()
+    if now - _last_compliance_expiry_at < COMPLIANCE_EXPIRY_INTERVAL_SECONDS:
+        return 0
+    _last_compliance_expiry_at = now
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
+
+    settings = get_settings()
+    if not settings.driver_compliance_expiry_sweep_enabled:
+        return 0
+
+    with SessionLocal() as db:
+        result = DriverComplianceExpiryService().sweep(db)
+    if result.get("updated"):
+        logger.info(
+            "driver compliance expiry: scanned=%s updated=%s",
+            result.get("scanned", 0),
+            result.get("updated", 0),
+        )
+    return int(result.get("updated", 0))
+
+
+def _refresh_fleetbase_ops_mirror() -> int:
+    """Pull leftover Fleetbase GETs into Redis so API request threads never wait."""
+    global _last_ops_mirror_at
+    now = time.monotonic()
+    if now - _last_ops_mirror_at < OPS_MIRROR_INTERVAL_SECONDS:
+        return 0
+    _last_ops_mirror_at = now
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.fleetbase_engine.ops_mirror_refresh import OpsMirrorRefreshService
+
+    settings = get_settings()
+    if not settings.fleetbase_dispatch_bridge:
+        return 0
+
+    with SessionLocal() as db:
+        result = OpsMirrorRefreshService().refresh(db, settings)
+    if result.get("skipped"):
+        return 0
+    logger.info(
+        "fleetbase ops mirror: drivers=%s zones=%s tracking=%s history=%s",
+        result.get("drivers", 0),
+        result.get("zones", 0),
+        result.get("tracking", 0),
+        result.get("history", 0),
+    )
+    return int(result.get("drivers", 0)) + int(result.get("tracking", 0))
+
+
+def main(argv: list[str] | None = None) -> None:
+    _load_local_api_env()
+    from porterchain_api.platform.bus import ensure_handlers_registered
+    from porterchain_shared.queue.names import QueueName
+    from porterchain_shared.queue.publisher import get_queue_publisher
+    from porterchain_shared.redis_health import require_redis_for_production
+
+    require_redis_for_production()
+    ensure_handlers_registered()
+
+    signal.signal(signal.SIGINT, _shutdown)
+    signal.signal(signal.SIGTERM, _shutdown)
+
+    mode = parse_worker_mode(argv)
+    publisher = get_queue_publisher()
+    consumer_name = _consumer_name()
+    logger.info(
+        "worker started mode=%s — event bus consumer=%s; queues: %s",
+        mode,
+        consumer_name,
+        ", ".join(q.value for q in QueueName),
+    )
+
+    while _running:
+        try:
+            processed = 0
+            if mode_includes(mode, "events"):
+                processed += _drain_event_bus_burst(consumer_name=consumer_name)
+            if mode == "routing":
+                from porterchain_shared.queue.names import QueueName as _QN
+
+                processed += _drain_queues(
+                    publisher,
+                    timeout_seconds=0,
+                    queues=[_QN.ROUTING],
+                )
+            elif mode_includes(mode, "queues"):
+                processed += _drain_queues(publisher, timeout_seconds=0)
+                processed += _drain_draft_reconciliation()
+                processed += _drain_standing_orders()
+                processed += _drain_notification_retries()
+                processed += _drain_merchant_webhook_retries()
+                processed += _drain_driver_compliance_expiry()
+                processed += _drain_lead_nurture()
+            if mode_includes(mode, "fleetbase"):
+                processed += _drain_fleetbase_retry_queue()
+                processed += _refresh_fleetbase_ops_mirror()
+            _touch_heartbeat()
+        except Exception:
+            logger.exception("worker loop error — backing off before retry")
+            time.sleep(2)
+            continue
+        if processed == 0:
+            time.sleep(0.5)
+
+    logger.info("worker stopped")
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,25 @@
+node_modules
+.pnpm-store
+.next
+out
+build
+dist
+coverage
+pnpm-lock.yaml
+package-lock.json
+*.min.js
+**/.pytest_cache/**
+**/coverage.json
+
+# Generated OpenAPI snapshot — regenerate with `pnpm docs:openapi`
+docs/api/openapi.json
+
+# Generated Expo/Android/iOS trees (not source of truth)
+apps/mobile-*/android
+apps/mobile-*/ios
+**/.cxx
+**/Pods
+
+# Playwright artifacts (local runs)
+**/playwright-report/**
+**/test-results/**

@@ -1,0 +1,71 @@
+{
+  "ssot": "docs/WEBSITE_PERSONA_DEV_TEST_CASES.md",
+  "ripwire": "docs/RIPWIRE_QUOTE_VISITOR_OPTIMIZE.md",
+  "version": 1,
+  "notes": "Website :3000 P0. /quote and /book are redirects (book lives on customer :3004). status=implemented means a Playwright body exists; skeleton = skip until filled.",
+  "cases": [
+    {
+      "id": "W-UI-001",
+      "title": "Locale home renders with capacity/quote CTA",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented"
+    },
+    {
+      "id": "W-UI-002",
+      "title": "/quote redirects to sign-up with intent=quote",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented"
+    },
+    {
+      "id": "W-UI-003",
+      "title": "/book redirects to customer portal book URL",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented"
+    },
+    {
+      "id": "W-UI-004",
+      "title": "/book/continue preserves query toward portal book",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented"
+    },
+    {
+      "id": "W-UI-006",
+      "title": "/track renders GuestTrackLookup surface",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented"
+    },
+    {
+      "id": "W-UI-008",
+      "title": "/contact renders contact surface",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented"
+    },
+    {
+      "id": "W-SPA-002",
+      "title": "Money-loop pages never navigate to Fleetbase :8000",
+      "layer": "arch",
+      "runner": "playwright",
+      "status": "implemented"
+    },
+    {
+      "id": "W-GTM-002",
+      "title": "Primary CTA language is quote/capacity not demo tour",
+      "layer": "ux",
+      "runner": "playwright",
+      "status": "implemented"
+    },
+    {
+      "id": "W-VIS-001",
+      "title": "Visitor id key pc_vid writable on track page",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented"
+    }
+  ]
+}

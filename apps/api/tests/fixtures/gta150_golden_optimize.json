@@ -1,0 +1,22 @@
+{
+  "name": "gta150_golden_week_sample",
+  "tile": "GTA150",
+  "notes": "Pre-change baseline OD set inside tile — measure km/fuel before claiming wins.",
+  "baseline": {
+    "distance_km": 186.4,
+    "duration_min": 312,
+    "left_turn_proxy": 41,
+    "estimated_fuel_cents": 4200,
+    "engine": "pre_vroom_flip"
+  },
+  "stops": [
+    { "id": "pu-m5v", "fsa": "M5V", "lat": 43.6426, "lng": -79.3871, "kind": "depot" },
+    { "id": "do-m4w", "fsa": "M4W", "lat": 43.6825, "lng": -79.3733, "kind": "dropoff" },
+    { "id": "do-l5b", "fsa": "L5B", "lat": 43.589, "lng": -79.6441, "kind": "dropoff" },
+    { "id": "do-l4z", "fsa": "L4Z", "lat": 43.595, "lng": -79.64, "kind": "dropoff" },
+    { "id": "do-m2n", "fsa": "M2N", "lat": 43.7615, "lng": -79.4111, "kind": "dropoff" },
+    { "id": "do-l6t", "fsa": "L6T", "lat": 43.715, "lng": -79.72, "kind": "dropoff" }
+  ],
+  "driver_owned_order_ids": ["ord-gta-1", "ord-gta-2", "ord-gta-3"],
+  "sandbox_order_ids": ["ord-sandbox-1"]
+}

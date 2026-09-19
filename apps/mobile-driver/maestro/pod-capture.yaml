@@ -1,0 +1,36 @@
+# POD capture surface — appears after arrive on a dropoff stop
+appId: com.porterchain.PCD
+---
+- launchApp
+- assertVisible:
+    id: mobile-sign-in
+- tapOn:
+    id: dev-sign-in
+- runFlow:
+    when:
+      visible:
+        id: mobile-onboarding
+    commands:
+      - tapOn:
+          id: onboarding-skip-dev
+- extendedWaitUntil:
+    visible:
+      id: mobile-track
+    timeout: 20000
+- runFlow:
+    when:
+      visible:
+        id: pod-capture
+    commands:
+      - assertVisible:
+          id: signature-pad
+      - assertVisible:
+          id: pod-barcode-input
+      - assertVisible:
+          id: pod-barcode-scan
+      - assertVisible:
+          id: pod-otp-input
+      - assertVisible:
+          id: complete-stop
+- assertVisible:
+    id: route-status

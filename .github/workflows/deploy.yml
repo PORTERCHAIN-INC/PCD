@@ -1,0 +1,497 @@
+name: Deploy
+
+# Continuous deployment for the PorterChain platform.
+# - After CI succeeds on `main` → full stack (all images).
+# - Manual dispatch → choose scope: full | website.
+# Builds Docker images, pushes to GHCR, deploys to the DigitalOcean droplet over SSH.
+# SSOT: infrastructure/deploy/README.md
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "Deploy scope (website = marketing site only)"
+        required: true
+        default: full
+        type: choice
+        options:
+          - full
+          - website
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-website
+  API_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-api
+  ADMIN_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-admin
+  MERCHANT_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-merchant
+  DRIVER_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-driver
+  CUSTOMER_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-customer
+  PROD_API_URL: https://api.porterchain.com
+  PROD_SITE_URL: https://porterchain.com
+
+jobs:
+  deploy:
+    name: Build & deploy (${{ github.event.inputs.scope || 'full' }})
+    runs-on: ubuntu-24.04
+    # Skip when triggered by a failed CI run (manual dispatch always runs).
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Check deploy secrets are configured
+        id: check
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -n "$DEPLOY_HOST" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Deploy secrets not configured (DEPLOY_HOST missing). Skipping deploy. See infrastructure/deploy/README.md."
+          fi
+
+      - name: Resolve deploy scope
+        if: steps.check.outputs.ready == 'true'
+        id: scope
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=${{ inputs.scope }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=full" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Deploy scope → $( [ "${{ github.event_name }}" = "workflow_dispatch" ] && echo "${{ inputs.scope }}" || echo full )"
+
+      - name: Resolve commit to deploy
+        if: steps.check.outputs.ready == 'true'
+        id: sha
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "value=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.check.outputs.ready == 'true'
+        with:
+          ref: ${{ steps.sha.outputs.value }}
+
+      # One Doppler download for the whole job (fail before image builds).
+      - name: Download Doppler env (once)
+        if: steps.check.outputs.ready == 'true'
+        uses: ./.github/actions/stage-doppler-env
+        with:
+          doppler_token: ${{ secrets.DOPPLER_TOKEN }}
+          doppler_project: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
+          doppler_config: ${{ vars.DOPPLER_CONFIG || 'prd' }}
+          require_keys: POSTGRES_PASSWORD
+          upload: "false"
+
+      - uses: pnpm/action-setup@v6
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+        with:
+          version: 11.10.0
+
+      - uses: actions/setup-node@v6
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - uses: actions/setup-python@v6
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+        with:
+          python-version: "3.14.6"
+
+      - name: Website preflight (scope=website)
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          pnpm validate:website-seo
+          pnpm validate:developer-portal
+
+      - name: Set up Docker Buildx
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.API_IMAGE_NAME }}:latest
+            ${{ env.API_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build and push website image
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: website/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          # One Clerk app only: Platform (clerk.admin.porterchain.com / Admin).
+          build-args: |
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
+            NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED=${{ vars.NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED || 'false' }}
+            NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE=${{ secrets.NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+            NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=${{ secrets.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
+            NEXT_PUBLIC_GOOGLE_BUSINESS_PROFILE_URL=${{ vars.NEXT_PUBLIC_GOOGLE_BUSINESS_PROFILE_URL }}
+            NEXT_PUBLIC_GOOGLE_BUSINESS_REVIEW_URL=${{ vars.NEXT_PUBLIC_GOOGLE_BUSINESS_REVIEW_URL }}
+            NEXT_PUBLIC_CONTACT_PHONE=${{ vars.NEXT_PUBLIC_CONTACT_PHONE || '+16476197951' }}
+            NEXT_PUBLIC_MERCHANT_PORTAL_URL=https://merchant.porterchain.com
+            NEXT_PUBLIC_ADMIN_PORTAL_URL=https://admin.porterchain.com
+            NEXT_PUBLIC_CUSTOMER_PORTAL_URL=https://customer.porterchain.com
+            NEXT_PUBLIC_DRIVER_PORTAL_URL=https://driver.porterchain.com
+          cache-from: type=gha,scope=website
+          cache-to: type=gha,mode=max,scope=website
+
+      - name: Build and push admin image
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/admin/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ADMIN_IMAGE_NAME }}:latest
+            ${{ env.ADMIN_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://admin.porterchain.com
+            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
+          cache-from: type=gha,scope=admin
+          cache-to: type=gha,mode=max,scope=admin
+
+      - name: Build and push merchant image
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/merchant-portal/Dockerfile
+          push: true
+          tags: |
+            ${{ env.MERCHANT_IMAGE_NAME }}:latest
+            ${{ env.MERCHANT_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://merchant.porterchain.com
+            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
+          cache-from: type=gha,scope=merchant
+          cache-to: type=gha,mode=max,scope=merchant
+
+      - name: Build and push driver portal image
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/driver-portal/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DRIVER_IMAGE_NAME }}:latest
+            ${{ env.DRIVER_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://driver.porterchain.com
+            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
+          cache-from: type=gha,scope=driver
+          cache-to: type=gha,mode=max,scope=driver
+
+      - name: Build and push customer portal image
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/customer/Dockerfile
+          push: true
+          tags: |
+            ${{ env.CUSTOMER_IMAGE_NAME }}:latest
+            ${{ env.CUSTOMER_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://customer.porterchain.com
+            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            NEXT_PUBLIC_WEBSITE_URL=${{ env.PROD_SITE_URL }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_APP_ENV=production
+          cache-from: type=gha,scope=customer
+          cache-to: type=gha,mode=max,scope=customer
+
+      - name: Copy full-stack deploy manifests to droplet
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full'
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/porterchain-sso/sso.html,infrastructure/deploy/porterchain-sso/gate.html,infrastructure/deploy/sync-secrets.sh,infrastructure/deploy/scripts/verify-clerk.sh,infrastructure/deploy/scripts/verify-routing.sh,infrastructure/deploy/scripts/recover-prod-stack.sh,infrastructure/deploy/scripts/tune-valhalla-ram.sh,infrastructure/deploy/scripts/rebuild-valhalla-gta.sh,infrastructure/docker/scripts/tune-valhalla-json.py,infrastructure/docker/scripts/prepare-valhalla-gta.sh,infrastructure/docker/valhalla/valhalla.gta-ram.json"
+          target: "/opt/porterchain"
+          strip_components: 2
+
+      - name: Copy website-only deploy manifests to droplet
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          # No Valhalla rebuild helpers — website roll only needs compose + sync + edge config.
+          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh"
+          target: "/opt/porterchain"
+          strip_components: 2
+
+      - name: Copy Doppler config to droplet
+        if: steps.check.outputs.ready == 'true'
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          source: "doppler.yaml"
+          target: "/opt/porterchain"
+
+      - name: Upload Doppler env to droplet
+        if: steps.check.outputs.ready == 'true'
+        uses: ./.github/actions/stage-doppler-env
+        with:
+          doppler_token: ${{ secrets.DOPPLER_TOKEN }}
+          skip_download: "true"
+          upload: "true"
+          deploy_host: ${{ secrets.DEPLOY_HOST }}
+          deploy_user: ${{ secrets.DEPLOY_USER }}
+          deploy_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          deploy_port: ${{ secrets.DEPLOY_PORT || 22 }}
+
+      - name: Deploy full stack to droplet over SSH
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full'
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DOPPLER_PROJECT,DOPPLER_CONFIG,PORTERCHAIN_PUSH_ENABLED,PORTERCHAIN_PUSH_SEND,API_REPLICAS
+          script: |
+            set -euo pipefail
+            cd /opt/porterchain
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
+            export API_IMAGE="$API_IMAGE_NAME:$IMAGE_TAG"
+            export ADMIN_IMAGE="$ADMIN_IMAGE_NAME:$IMAGE_TAG"
+            export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:$IMAGE_TAG"
+            export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:$IMAGE_TAG"
+            export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:$IMAGE_TAG"
+            # Secrets arrive as SCP'd doppler.env (downloaded on the runner). Never rely on
+            # appleboy env-forwarding DOPPLER_TOKEN (truncates / breaks sync).
+            if [ ! -f doppler.env ]; then
+              echo "::error::missing /opt/porterchain/doppler.env (SCP step failed)"
+              exit 1
+            fi
+            echo "sync-secrets: doppler.env bytes=$(wc -c < doppler.env)"
+            if ! bash sync-secrets.sh 2>&1; then
+              echo "::error::sync-secrets.sh failed — see output above"
+              exit 1
+            fi
+            # docker compose loads ./.env automatically; do not bash-source (JSON/special chars).
+            echo "Compose env file ready ($(wc -c < .env) bytes)"
+            # Profile osrm-fallback is off, so do not pull osrm-backend.
+            docker compose -f docker-compose.prod.yml pull \
+              postgres redis spicedb-db-init spicedb-migrate spicedb valhalla \
+              api worker web admin merchant driver customer caddy
+            # Rolling API scale is applied inside recover-prod-stack.sh:
+            #   docker compose ... --scale api=${API_REPLICAS:-1}
+            bash scripts/recover-prod-stack.sh
+            echo "Running Alembic migrations..."
+            if ! docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \
+              -e PYTHONPATH=/app/apps/api/src:/app/apps/api \
+              api python scripts/repair_and_migrate.py; then
+              echo "::error::Migration repair failed; aborting deploy before smoke test"
+              docker compose -f docker-compose.prod.yml logs --tail 120 api || true
+              docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \
+                -e PYTHONPATH=/app/apps/api/src api alembic current || true
+              exit 1
+            fi
+            if ! docker exec pcd-postgres psql -U porterchain -d porterchain -tAc "SELECT to_regclass('public.booking_drafts')" | grep -q booking_drafts; then
+              echo "::error::booking_drafts table missing after migrations"
+              exit 1
+            fi
+            docker compose -f docker-compose.prod.yml restart api
+            docker compose -f docker-compose.prod.yml restart caddy
+            echo "Waiting for API health..."
+            api_healthy=0
+            for i in $(seq 1 18); do
+              if docker compose -f docker-compose.prod.yml exec -T api curl -fsS http://localhost:8001/health >/dev/null 2>&1; then
+                echo "API healthy"
+                api_healthy=1
+                break
+              fi
+              sleep 5
+            done
+            if [ "$api_healthy" != 1 ]; then
+              echo "::error::API did not become healthy"
+              docker compose -f docker-compose.prod.yml logs --tail 80 api || true
+              exit 1
+            fi
+            # Dangling layers only. Tagged rollback images are handled below.
+            docker image prune -f
+            # Keep the running pcd tag and one older tag. Never prune -af.
+            docker ps --format '{{.Image}}' | sort -u > /tmp/pcd-running-images
+            repos="$(docker images --format '{{.Repository}}' | grep -E 'ghcr.io/.*/pcd-' | sort -u || true)"
+            for repo in $repos; do
+              kept_rollback=0
+              for tag in $(docker images "$repo" --format '{{.Tag}}'); do
+                [ "$tag" = "<none>" ] && continue
+                ref="$repo:$tag"
+                if grep -qx "$ref" /tmp/pcd-running-images; then
+                  continue
+                fi
+                if [ "$kept_rollback" -eq 0 ]; then
+                  kept_rollback=1
+                  echo "keep rollback $ref"
+                  continue
+                fi
+                echo "remove old $ref"
+                docker rmi "$ref" || true
+              done
+            done
+            rm -f /tmp/pcd-running-images
+            curl -fsS -o /dev/null http://localhost:80 && echo "Caddy responding (HTTP->HTTPS)" || (docker compose -f docker-compose.prod.yml logs --tail 50 caddy; exit 1)
+            docker compose -f docker-compose.prod.yml exec -T api curl -fsS http://localhost:8001/health && echo " <- API healthy" || (docker compose -f docker-compose.prod.yml logs --tail 80 api; exit 1)
+            echo "Smoke test: booking draft + quote..."
+            docker compose -f docker-compose.prod.yml exec -T api curl -fsS -X POST http://localhost:8001/v1/booking-drafts \
+              -H 'Content-Type: application/json' \
+              -d '{"session_id":"deploy-smoke-test"}' >/dev/null \
+              && echo " <- booking-drafts OK" \
+              || (docker compose -f docker-compose.prod.yml logs --tail 120 api; exit 1)
+            docker compose -f docker-compose.prod.yml exec -T api curl -fsS -X POST http://localhost:8001/v1/quotes \
+              -H 'Content-Type: application/json' \
+              -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","scheduled_at":"2026-07-04T12:00:00Z"}' >/dev/null \
+              && echo " <- quotes OK" \
+              || (docker compose -f docker-compose.prod.yml logs --tail 120 api; exit 1)
+            docker exec pcd-postgres pg_isready -U porterchain -d porterchain && echo " <- Postgres ready" || (docker logs --tail 50 pcd-postgres; exit 1)
+        env:
+          IMAGE_TAG: ${{ steps.sha.outputs.value }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PORTERCHAIN_PUSH_ENABLED: ${{ vars.PORTERCHAIN_PUSH_ENABLED || 'false' }}
+          PORTERCHAIN_PUSH_SEND: ${{ vars.PORTERCHAIN_PUSH_SEND || 'false' }}
+          API_REPLICAS: ${{ vars.API_REPLICAS || '1' }}
+          DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
+          DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG || 'prd' }}
+
+      - name: Deploy website only to droplet over SSH
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,API_REPLICAS
+          script: |
+            set -euo pipefail
+            mkdir -p /opt/porterchain
+            cd /opt/porterchain
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
+            # Keep other services on :latest — do not retag the whole stack on a website-only deploy.
+            export API_IMAGE="$API_IMAGE_NAME:latest"
+            export ADMIN_IMAGE="$ADMIN_IMAGE_NAME:latest"
+            export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:latest"
+            export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:latest"
+            export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:latest"
+            if [ ! -f doppler.env ]; then
+              echo "::error::missing /opt/porterchain/doppler.env (SCP step failed)"
+              exit 1
+            fi
+            echo "sync-secrets: doppler.env bytes=$(wc -c < doppler.env)"
+            if ! bash sync-secrets.sh 2>&1; then
+              echo "::error::sync-secrets.sh failed — see output above"
+              exit 1
+            fi
+            echo "Compose env file ready ($(wc -c < .env) bytes)"
+            docker compose -f docker-compose.prod.yml pull web
+            docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate web
+            for i in $(seq 1 18); do
+              if curl -fsS -o /dev/null http://localhost:80; then
+                echo "Caddy responding"
+                break
+              fi
+              sleep 5
+            done
+            echo "Website updated with image $WEB_IMAGE"
+        env:
+          IMAGE_TAG: ${{ steps.sha.outputs.value }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          API_REPLICAS: ${{ vars.API_REPLICAS || '1' }}
+
+      - name: Prod surface smoke (D3 / G1)
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full'
+        run: |
+          set -e
+          curl -fsS https://api.porterchain.com/health | grep -q '"status":"ok"'
+          curl -fsS https://api.porterchain.com/health/ready
+          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en | grep -q 200
+          curl -fsS -o /dev/null -w "%{http_code}" https://admin.porterchain.com/sign-in | grep -q 200
+          curl -fsS -o /dev/null -w "%{http_code}" https://merchant.porterchain.com/login | grep -qE '200|307|308'
+          curl -fsS -o /dev/null -w "%{http_code}" https://customer.porterchain.com/login | grep -qE '200|307|308'
+          curl -fsS -D - -o /tmp/console-sso.html "https://console.porterchain.com/porterchain/sso" \
+            | grep -qi '^content-type: text/html'
+          grep -q "Opening dispatch console" /tmp/console-sso.html
+          curl -fsS -X POST https://api.porterchain.com/v1/quotes \
+            -H 'Content-Type: application/json' \
+            -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","scheduled_at":"2026-07-05T18:00:00Z"}' \
+            | grep -q quote_id
+          echo "Prod D3 smoke passed"
+
+      - name: Prod website smoke
+        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+        run: |
+          set -e
+          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en | grep -q 200
+          curl -fsS https://porterchain.com/sitemap.xml | grep -q '<urlset'
+          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en/toronto/trade-van-delivery | grep -q 200
+          echo "Website prod smoke passed"

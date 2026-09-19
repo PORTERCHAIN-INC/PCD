@@ -1,0 +1,18 @@
+# Driver mobile — onboarding gate (dev skip) + docs tab reachable
+appId: com.porterchain.PCD
+---
+- launchApp
+- assertVisible:
+    id: mobile-sign-in
+- tapOn:
+    id: dev-sign-in
+- extendedWaitUntil:
+    visible:
+      id: mobile-onboarding
+    timeout: 20000
+- tapOn:
+    id: onboarding-skip-dev
+- assertVisible:
+    id: mobile-track
+- assertVisible:
+    id: route-status

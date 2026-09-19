@@ -1,0 +1,118 @@
+"""Merchant portal first-run seat + company create — owned by merchant_engine."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from sqlalchemy.orm import Session
+
+from porterchain_api.auth.user_sync_service import _is_pending_clerk_id
+from porterchain_api.domain.merchant_states import MerchantRole, PORTAL_OPEN_STATUSES
+from porterchain_api.merchant_engine.activation_service import (
+    SIGNUP_SOURCE_PORTAL,
+    apply_signup_policy,
+    resolve_initial_status,
+)
+from porterchain_api.merchant_engine.lookups import (
+    get_merchant,
+    get_merchant_by_email,
+    get_merchant_user_by_email,
+    seats_for_clerk,
+)
+from porterchain_api.merchant_engine.provision import create_onboarding_merchant
+from porterchain_api.merchant_engine.team_service import bind_seat_clerk, ensure_merchant_seat
+from porterchain_api.merchant_models import Merchant, MerchantUser
+
+
+def resolve_seat(
+    db: Session,
+    *,
+    clerk_id: str,
+    email: str,
+) -> tuple[MerchantUser | None, Merchant | None]:
+    merchant_user: MerchantUser | None = None
+    if clerk_id and not _is_pending_clerk_id(clerk_id):
+        seats = seats_for_clerk(db, clerk_id)
+        merchant_user = seats[0] if seats else None
+    if not merchant_user and email:
+        merchant_user = get_merchant_user_by_email(db, email)
+    merchant: Merchant | None = None
+    if merchant_user:
+        merchant = get_merchant(db, merchant_user.merchant_id)
+    return merchant_user, merchant
+
+
+def link_or_create_portal_merchant(
+    db: Session,
+    *,
+    email: str,
+    clerk_id: str,
+    company_name: str,
+) -> None:
+    """Create merchants + owner seat on first portal sign-in, or bind a reserved seat."""
+    merchant_user: MerchantUser | None = None
+    if clerk_id and not _is_pending_clerk_id(clerk_id):
+        seats = seats_for_clerk(db, clerk_id)
+        merchant_user = seats[0] if seats else None
+    if not merchant_user:
+        merchant_user = get_merchant_user_by_email(db, email)
+
+    if merchant_user:
+        changed = False
+        if clerk_id and not _is_pending_clerk_id(clerk_id) and merchant_user.clerk_user_id != clerk_id:
+            if _is_pending_clerk_id(merchant_user.clerk_user_id):
+                bind_seat_clerk(db, merchant_user.id, clerk_id)
+                changed = True
+        merchant = get_merchant(db, merchant_user.merchant_id)
+        if merchant:
+            before = merchant.status
+            apply_signup_policy(db, merchant, source=SIGNUP_SOURCE_PORTAL)
+            changed = changed or merchant.status != before
+        if changed:
+            db.commit()
+        return
+
+    merchant = get_merchant_by_email(db, email)
+    if not merchant:
+        merchant = create_onboarding_merchant(
+            db,
+            company_name=company_name,
+            email=email,
+            status=resolve_initial_status(db, source=SIGNUP_SOURCE_PORTAL),
+            profile={"source": SIGNUP_SOURCE_PORTAL, "auto_provisioned": True},
+        )
+    else:
+        apply_signup_policy(db, merchant, source=SIGNUP_SOURCE_PORTAL)
+
+    clerk_ref = clerk_id if clerk_id and not _is_pending_clerk_id(clerk_id) else f"pending:{email}"
+    user = ensure_merchant_seat(
+        db,
+        merchant_id=merchant.id,
+        email=email,
+        role=MerchantRole.OWNER.value,
+        audit_action="merchant.portal_signup_seat",
+        commit=False,
+    )
+    if user.clerk_user_id != clerk_ref:
+        bind_seat_clerk(db, user.id, clerk_ref, activate=True)
+    db.commit()
+
+
+def save_vertical(db: Session, merchant: Any, vertical: str, industry: str | None) -> None:
+    profile = dict(merchant.profile or {})
+    profile["vertical"] = vertical
+    profile.pop("industry", None)
+    merchant.profile = profile
+    merchant.industry = industry
+    db.commit()
+
+
+def first_open_seat(db: Session, clerk_user_id: str) -> MerchantUser | None:
+    for seat in seats_for_clerk(db, clerk_user_id):
+        if not seat.is_active:
+            continue
+        merchant = get_merchant(db, seat.merchant_id)
+        if merchant and merchant.status in PORTAL_OPEN_STATUSES:
+            return seat
+    seats = [s for s in seats_for_clerk(db, clerk_user_id) if s.is_active]
+    return seats[0] if seats else None

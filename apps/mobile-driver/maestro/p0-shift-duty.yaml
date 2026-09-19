@@ -1,0 +1,34 @@
+# P0 — shift / duty controls after login
+# Case: UI-D-05 (mobile analogue) · MOB-02
+appId: com.porterchain.PCD
+tags:
+  - p0
+  - shift
+---
+- launchApp
+- assertVisible:
+    id: mobile-sign-in
+- tapOn:
+    id: dev-sign-in
+- runFlow:
+    when:
+      visible:
+        id: mobile-onboarding
+    commands:
+      - tapOn:
+          id: onboarding-skip-dev
+- extendedWaitUntil:
+    visible:
+      id: mobile-track
+    timeout: 20000
+- runFlow:
+    when:
+      visible:
+        id: shift-controls
+    commands:
+      - assertVisible:
+          id: shift-start
+      - assertVisible:
+          id: shift-end
+- assertVisible:
+    id: route-status

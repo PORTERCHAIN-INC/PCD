@@ -1,0 +1,98 @@
+{
+  "tagline": "Moving Commerce On-Chain",
+  "corporateTagline": "Professional drivers and vehicles when your own fleet is not enough.",
+  "businessTagline": "Urgent, overflow, recurring, and dedicated delivery capacity for growing businesses.",
+  "copyright": "© {year} Porterchain Inc. All rights reserved.",
+  "contactLine": "enterprise@porterchain.com · +1 (647) 619-7951",
+  "driverPortal": "Driver Portal",
+  "merchantPortal": "Merchant Portal",
+  "support": "Customer Support",
+  "status": "Status",
+  "googleBusiness": "Google Business Profile",
+  "googleReview": "Review on Google",
+  "sections": {
+    "product": {
+      "title": "Product",
+      "links": {
+        "getQuote": "Get a quote",
+        "pricing": "Pricing",
+        "capabilities": "All capabilities",
+        "multiStop": "Multi-stop delivery",
+        "recurring": "Recurring routes",
+        "brandedTracking": "Customer tracking",
+        "deliveryVerification": "Proof of delivery",
+        "exceptionRecovery": "Exception recovery",
+        "multiLocation": "Multi-location routing",
+        "inventoryTransfers": "Inventory transfers",
+        "returnsRoundTrip": "Returns & round-trip",
+        "aiDispatch": "Intelligent matching",
+        "platform": "How we operate"
+      }
+    },
+    "solutions": {
+      "title": "Solutions",
+      "links": {
+        "allSolutions": "All solutions",
+        "wholesale": "Wholesale",
+        "medical": "Medical",
+        "foodBeverage": "Food & beverage",
+        "construction": "Construction",
+        "threePl": "3PL & warehouse",
+        "fleetOverflow": "Fleet overflow",
+        "industries": "Industries",
+        "serviceAreas": "Service areas",
+        "vehicles": "All vehicles",
+        "cargoVan": "Cargo van",
+        "tradeVan": "Trade van",
+        "boxTruck": "Box truck",
+        "pickupTruck": "Pickup truck"
+      }
+    },
+    "integrations": {
+      "title": "Integrations",
+      "links": {
+        "allIntegrations": "All integrations",
+        "sms": "SMS notifications",
+        "email": "Email notifications",
+        "whatsapp": "WhatsApp notifications",
+        "webhooks": "Webhooks",
+        "api": "API order intake",
+        "csv": "CSV uploads",
+        "developers": "Developers & API"
+      }
+    },
+    "resources": {
+      "title": "Guides & resources",
+      "links": {
+        "guides": "All guides",
+        "capacityNetwork": "What is a capacity network?",
+        "sameDay": "Same-day capacity guide",
+        "courierVsCapacity": "Courier vs capacity partner",
+        "failureModes": "Failure modes & recovery",
+        "multiLocationGuide": "Multi-location capacity",
+        "inventoryTransfersGuide": "Inventory transfers guide",
+        "fromStore": "Same-day from store",
+        "howPorterchainWorks": "How PorterChain works",
+        "compare": "Compare alternatives",
+        "blog": "Blog",
+        "authors": "Authors",
+        "faq": "FAQ"
+      }
+    },
+    "company": {
+      "title": "Company",
+      "links": {
+        "about": "About",
+        "contact": "Contact",
+        "careers": "Careers",
+        "trust": "Trust center",
+        "claims": "Proof & claims",
+        "trackShipment": "Track a shipment",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service",
+        "cookies": "Cookie Policy",
+        "accessibility": "Accessibility"
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+sequence,stop_type,address,unit,contact_name,external_ref,sku,length,width,height,dimensions_unit,weight,weight_unit,quantity
+1,pickup,"100 King St W, Toronto, ON M5X 1A9",1200,Warehouse Desk,WH-1,,,,,,,
+2,drop,"200 Bay St, Toronto, ON M5J 2J2",,Receiver A,PO-1001,BOX-A,12,12,12,in,5,lbs,2
+2,drop,"200 Bay St, Toronto, ON M5J 2J2",,Receiver A,PO-1001,BOX-B,24,12,12,in,15,lbs,1
+3,drop,"1 Dundas St E, Toronto, ON M5B 2R8",,Receiver B,PO-1002,CARTON,30,20,15,cm,4,kg,1

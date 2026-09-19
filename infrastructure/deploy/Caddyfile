@@ -1,0 +1,146 @@
+# Porterchain production reverse proxy.
+# DNS A/AAAA records → droplet for:
+#   porterchain.com, www.porterchain.com
+#   api.porterchain.com
+#   admin.porterchain.com, merchant.porterchain.com
+#   driver.porterchain.com, customer.porterchain.com
+#   fleetbase.porterchain.com (Fleetbase Laravel API)
+#   console.porterchain.com (Fleetbase dispatcher console)
+{
+	email admin@porterchain.com
+	# Prefer TCP HTTP/1.1+2 only. HTTP/3 (UDP/443) can hang some client networks
+	# when QUIC is filtered while TCP still works — presents as "site not loading".
+	servers {
+		protocols h1 h2
+	}
+}
+
+(common) {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+		-Server
+		-X-Powered-By
+	}
+}
+
+# Dedicated API host — used by all portals (CORS).
+api.porterchain.com {
+	import common
+	reverse_proxy api:8001
+}
+
+admin.porterchain.com {
+	import common
+	reverse_proxy admin:3002
+}
+
+merchant.porterchain.com {
+	import common
+	reverse_proxy merchant:3001
+}
+
+driver.porterchain.com {
+	import common
+	reverse_proxy driver:3003
+}
+
+customer.porterchain.com {
+	import common
+	reverse_proxy customer:3004
+}
+
+# Fleetbase Laravel API (dispatch OS). Public DNS is optional; PorterChain API
+# talks to this stack over Docker DNS. Container names are the official
+# installer names (fleetbase-*-1).
+fleetbase.porterchain.com {
+	import common
+	handle /socketcluster* {
+		reverse_proxy fleetbase-socket-1:8000
+	}
+	handle {
+		reverse_proxy fleetbase-httpd-1:80
+	}
+}
+
+# Dispatch console (Ember) + same-origin Fleetbase API / SocketCluster.
+# SSO landing is PorterChain-owned (stock console image has no /porterchain/sso).
+console.porterchain.com {
+	import common
+
+	handle /porterchain/sso* {
+		root * /etc/caddy/porterchain-sso
+		rewrite * /sso.html
+		header {
+			Cache-Control "no-store"
+			Content-Type "text/html; charset=utf-8"
+		}
+		file_server
+	}
+
+	@gate path /auth* /onboard* /install* /join*
+	handle @gate {
+		root * /etc/caddy/porterchain-sso
+		rewrite * /gate.html
+		header {
+			Cache-Control "no-store"
+			Content-Type "text/html; charset=utf-8"
+		}
+		file_server
+	}
+
+	handle /int/* {
+		reverse_proxy fleetbase-httpd-1:80
+	}
+
+	handle /socketcluster* {
+		reverse_proxy fleetbase-socket-1:8000
+	}
+
+	handle {
+		reverse_proxy fleetbase-console-1:4200
+	}
+}
+
+# Public marketing site + same-origin API paths for the website.
+porterchain.com {
+	import common
+
+	@static path /_next/static/*
+	handle @static {
+		header Cache-Control "public, max-age=31536000, immutable"
+		reverse_proxy web:3000
+	}
+
+	@assets path /icon.svg /favicon.ico /robots.txt /sitemap.xml
+	handle @assets {
+		header Cache-Control "public, max-age=3600, stale-while-revalidate=86400"
+		reverse_proxy web:3000
+	}
+
+	handle /v1/* {
+		reverse_proxy api:8001
+	}
+	handle /health {
+		reverse_proxy api:8001
+	}
+	handle /internal/* {
+		reverse_proxy api:8001
+	}
+	handle /webhooks/* {
+		reverse_proxy api:8001
+	}
+	handle {
+		header Cache-Control "public, max-age=0, s-maxage=60, stale-while-revalidate=300"
+		reverse_proxy web:3000
+	}
+}
+
+www.porterchain.com {
+	import common
+	redir https://porterchain.com{uri} permanent
+}

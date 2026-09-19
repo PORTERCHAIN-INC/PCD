@@ -1,0 +1,24 @@
+# Deep link /jobs/{id} opens job detail (dev sign-in path)
+appId: com.porterchain.PCD
+---
+- launchApp
+- assertVisible:
+    id: mobile-sign-in
+- tapOn:
+    id: dev-sign-in
+- runFlow:
+    when:
+      visible:
+        id: mobile-onboarding
+    commands:
+      - tapOn:
+          id: onboarding-skip-dev
+- extendedWaitUntil:
+    visible:
+      id: mobile-track
+    timeout: 20000
+- openLink: porterchain-driver://jobs/demo-order-deeplink
+- extendedWaitUntil:
+    visible:
+      id: mobile-job-detail
+    timeout: 15000

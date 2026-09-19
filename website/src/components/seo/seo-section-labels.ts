@@ -1,0 +1,22 @@
+export type SeoSectionLabels = {
+  industries: string;
+  challenges: string;
+  solution: string;
+  workflow: string;
+  onboarding: string;
+  deliveryInCity: string;
+  localDeliveryByCity: string;
+  capacitySolutions: string;
+  serviceAreas: string;
+  industryDeliveryInArea: string;
+  exploreByIndustry: string;
+  localDelivery: string;
+  localChallenges: string;
+  industryFit: string;
+  howItWorks: string;
+  otherVehicles: string;
+  vehicles: string;
+  painPoints: string;
+  intentGuides: string;
+  relatedPages: string;
+};

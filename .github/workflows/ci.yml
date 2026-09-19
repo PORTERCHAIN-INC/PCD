@@ -1,0 +1,175 @@
+name: CI
+
+on:
+  push:
+    branches: [main, base-code]
+  pull_request:
+    branches: [main, base-code]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: Static gates
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.10.0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14.6"
+          cache: pip
+          cache-dependency-path: apps/api/requirements.txt
+
+      # Static D2/D3 validators are mostly stdlib; fleetbase lifecycle import needs httpx.
+      - name: Install API deps for contract validators
+        run: |
+          python -m pip install --upgrade pip
+          pip install 'httpx>=0.28.1' 'PyYAML>=6.0.2'
+
+      - name: Lockfile freshness (DD-40 · §2.5.8)
+        run: pnpm validate:lockfiles
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Architecture + product gates (validate:ci)
+        run: pnpm validate:ci
+
+      - name: Build all portals (§0.2.7)
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'ci-placeholder-key' }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
+          # Any portal publishable key is enough for ClerkProvider during monorepo build.
+          # Portals also guard hooks when this is empty (Clerk-off prerender).
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY || '' }}
+
+  admin-vitest:
+    name: Admin (Vitest)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.10.0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Admin unit + component tests (Vitest · leads UI)
+        run: pnpm test:admin
+
+  api-postgres:
+    name: API (PostgreSQL)
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18-alpine3.24
+        env:
+          POSTGRES_USER: porterchain
+          POSTGRES_PASSWORD: porterchain
+          POSTGRES_DB: porterchain
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U porterchain -d porterchain"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:8.8.0-alpine3.23
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14.6"
+          cache: pip
+          cache-dependency-path: apps/api/requirements.txt
+
+      - name: Install API dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: API test file count (ENG-G1, DD-01d)
+        run: |
+          count=$(find tests -name 'test_*.py' | wc -l | tr -d ' ')
+          echo "API test files: $count"
+          test "$count" -ge 20
+
+      - name: Alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+          APP_ENV: local
+        run: |
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          alembic upgrade head
+
+      - name: API tests (PostgreSQL)
+        env:
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+          APP_ENV: local
+        run: |
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform:../../apps/worker
+          pip install pytest-cov
+          pytest tests/ --cov=porterchain_api --cov-config=.coveragerc --cov-report=json -v
+
+      - name: Service coverage floor (§2.1.11)
+        run: python scripts/verify_service_coverage.py
+
+      - name: Test count regression guard (§2.1.12)
+        run: python scripts/verify_test_regression.py
+
+      - name: Module validation script
+        env:
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+          APP_ENV: local
+        run: |
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          python scripts/validate_postgres_modules.py

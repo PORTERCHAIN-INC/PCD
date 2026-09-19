@@ -1,0 +1,659 @@
+{
+  "ssot": "docs/ADMIN_SUPERADMIN_DEV_TESTCASES.md",
+  "version": 1,
+  "notes": "Automation seed for Admin + Super Admin P0. status=implemented means a pytest/playwright body exists; skeleton = skip until filled.",
+  "cases": [
+    {
+      "id": "AUTH-001",
+      "title": "Unauthenticated visit to /dashboard redirects to /sign-in",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-002",
+      "title": "Clerk admin JWKS validates; wrong portal key rejected",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-003",
+      "title": "Session returns role + modules_for_permissions",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-004",
+      "title": "SYSTEM_ALL expands all module keys",
+      "persona": "SA",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/test_hybrid_rbac.py::test_modules_for_permissions_system_all"]
+    },
+    {
+      "id": "AUTH-005",
+      "title": "Admin modules match SpiceDB (no matrix fallback)",
+      "persona": "AD",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/test_spicedb_authz.py::test_require_module_does_not_bypass_via_portal_admin"
+      ]
+    },
+    {
+      "id": "AUTH-006",
+      "title": "Unlinked user \u2192 admin_forbidden",
+      "persona": "NEG",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-007",
+      "title": "BFF /api/porterchain proxy forwards Bearer",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-012",
+      "title": "Dev bypass only when APP_ENV=local",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-013",
+      "title": "POST /settings/project-mode always 403 project_mode_immutable",
+      "persona": "SKIP",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/test_project_mode.py::test_project_mode_change_endpoint_immutable"]
+    },
+    {
+      "id": "AUTH-015",
+      "title": "Merchant/driver Clerk cannot authorize admin routes",
+      "persona": "NEG",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-017",
+      "title": "Staff role patch updates SpiceDB tuples",
+      "persona": "SA",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "AUTH-018",
+      "title": "require_module(finance) fails for dispatcher",
+      "persona": "NEG",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/test_spicedb_authz.py::test_sales_cannot_access_finance_or_system_all"]
+    },
+    {
+      "id": "AUTH-019",
+      "title": "No ADMIN_CLERK_* env names \u2014 CLERK_ADMIN_* triad only",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "AUTH-020",
+      "title": "Super-admin = SYSTEM_ALL + platform.admin \u2014 not every portal",
+      "persona": "SA",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/test_spicedb_authz.py::test_platform_super_admin_portal_and_system_all"]
+    },
+    {
+      "id": "UI-DASH-001",
+      "title": "Dashboard KPI trends shape",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-OPS-001",
+      "title": "Control Tower board move",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-OPS-002",
+      "title": "Driver suggestions via Valhalla/OSRM",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-OPS-003",
+      "title": "Map tiles Google; positions via adapter poll",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-OPS-006",
+      "title": "Optimize \u2192 Fleetbase/VROOM only",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented",
+      "covers": [
+        "OptimizePanel pool\u2192run\u2192commit",
+        "Fleetbase/VROOM-only copy",
+        "e2e/optimize.p0.spec.ts"
+      ]
+    },
+    {
+      "id": "UI-ORD-001",
+      "title": "Orders list filters + pagination",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-ORD-003",
+      "title": "Order 360 tracking/timeline",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-MER-002",
+      "title": "Merchant approve/suspend/close/reopen",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-MER-003",
+      "title": "Hard DELETE merchant must not exist",
+      "persona": "SKIP",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "UI-MER-006",
+      "title": "Merchant pricing + GTA matrix",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-DRV-002",
+      "title": "Driver lifecycle invite\u2192approve\u2192suspend",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-DRV-003",
+      "title": "Verification badges (human approve)",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-DRV-009",
+      "title": "No auto-approve DriverStatus from webhooks",
+      "persona": "SKIP",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "apps/api/tests/test_driver_p0_catalog.py::test_identity_verified_does_not_auto_approve"
+      ]
+    },
+    {
+      "id": "UI-LEAD-001",
+      "title": "Merchant inbox vs driver applications filter",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "vitest+playwright",
+      "status": "implemented",
+      "covers": ["apps/admin/src/app/(ops)/leads/page.test.tsx", "apps/admin/e2e/leads.p0.spec.ts"]
+    },
+    {
+      "id": "UI-LEAD-002",
+      "title": "Pipeline stages load",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "vitest+playwright",
+      "status": "implemented",
+      "covers": [
+        "apps/admin/src/app/(ops)/leads/pipeline/page.test.tsx",
+        "apps/admin/e2e/leads.p0.spec.ts"
+      ]
+    },
+    {
+      "id": "UI-LEAD-003",
+      "title": "Sales calendar week view mounts",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "vitest+playwright",
+      "status": "implemented",
+      "covers": [
+        "apps/admin/src/app/(ops)/leads/calendar/page.test.tsx",
+        "apps/admin/e2e/leads.p0.spec.ts"
+      ]
+    },
+    {
+      "id": "UI-LEAD-004",
+      "title": "leadsApi client Zod + filter query contracts",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "vitest",
+      "status": "implemented",
+      "covers": ["apps/admin/src/lib/leads.test.ts"]
+    },
+    {
+      "id": "UI-LEAD-005",
+      "title": "Lead detail convert / delete gate / assist",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "vitest",
+      "status": "implemented",
+      "covers": ["apps/admin/src/app/(ops)/leads/[id]/page.test.tsx"]
+    },
+    {
+      "id": "UI-LEAD-006",
+      "title": "Lead ingest settings panel never leaks secrets",
+      "persona": "SA",
+      "layer": "ui",
+      "runner": "vitest",
+      "status": "implemented",
+      "covers": ["apps/admin/src/components/settings/panels/LeadIngestPanel.test.tsx"]
+    },
+    {
+      "id": "UI-DRAFT-001",
+      "title": "Booking draft extend/cancel/restore/expire",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-FIN-002",
+      "title": "Invoice payment + remind",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-FIN-005",
+      "title": "COD Connect does not break Checkout",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-PRC-001",
+      "title": "Pricing Center simulate quote",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-PRC-002",
+      "title": "Quote distance Valhalla/OSRM not Google",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "UI-SUP-001",
+      "title": "Support ticket SLA pause/resume",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-CLM-001",
+      "title": "Claim lifecycle + compensation cap",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-NTF-003",
+      "title": "Notifications devices + push-health",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented",
+      "covers": [
+        "apps/admin/e2e/push.p0.spec.ts",
+        "apps/api/tests/test_mf_hs_open_batch.py::test_na02_push_health_strip_wires_api_and_operations_page",
+        "apps/api/tests/test_maps_firebase_push_gaps.py::test_gap04_push_health_contract_keys"
+      ]
+    },
+    {
+      "id": "UI-SYS-002",
+      "title": "Run full diagnostics TEST_IDS catalog",
+      "persona": "SA",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-SYS-006",
+      "title": "Chaos denied for non-diagnostics_write",
+      "persona": "NEG",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-SYS-008",
+      "title": "Layered architecture: no UI\u2192Fleetbase HTTP",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "UI-SET-001",
+      "title": "Settings all sections + aliases resolve",
+      "persona": "SA",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-SET-003",
+      "title": "Users directory 4 tabs",
+      "persona": "SA",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-SET-006",
+      "title": "Roles matrix matches permissions_catalog",
+      "persona": "SA",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-SET-012",
+      "title": "Integration health panels",
+      "persona": "SA",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "UI-SET-018",
+      "title": "No project-mode UI toggle",
+      "persona": "SKIP",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "API-X-001",
+      "title": "401 without auth on admin routes",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "API-X-003",
+      "title": "IDOR blocked across merchants",
+      "persona": "NEG",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "API-MUT-002",
+      "title": "Privacy execute confirm gate",
+      "persona": "SA",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "API-MUT-003",
+      "title": "Double record-payment rejected",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "DB-002",
+      "title": "Integrity FKs reject orphans",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "DB-003",
+      "title": "Order is_sandbox \u2260 APP_ENV",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "DB-009",
+      "title": "Postgres image pin (no :latest)",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "INT-FB-001",
+      "title": "Fleetbase HTTP only via fleetbase-adapter",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "INT-FB-007",
+      "title": "VROOM inside Fleetbase orchestrator",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "INT-FB-008",
+      "title": "No PorterChain-native VROOM client",
+      "persona": "SKIP",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "INT-FB-009",
+      "title": "No SocketCluster SDK in admin bundle",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "INT-RT-001",
+      "title": "Valhalla primary probe",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "INT-RT-002",
+      "title": "OSRM fallback",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "INT-RT-003",
+      "title": "No Google Distance Matrix for pricing",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "INT-CLK-001",
+      "title": "Admin portal slot in clerk_registry",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/test_clerk_registry.py::test_enterprise_clerk_per_portal"]
+    },
+    {
+      "id": "INT-ST-002",
+      "title": "Checkout prepaid path intact",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "INT-FCM-001",
+      "title": "FCM app + production ready gate",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "INT-FCM-005",
+      "title": "SMTP + Mailpit probes",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "INT-SHP-001",
+      "title": "Shopify OAuth install + callback",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "INT-BUS-001",
+      "title": "Event bus publish smoke + catalog parity",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/test_event_catalog_parity.py::test_event_catalog_parity"]
+    },
+    {
+      "id": "ARC-001",
+      "title": "Compose exact tags/digests \u2014 never :latest",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "ARC-002",
+      "title": "Mailpit not Mailhog",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "ARC-004",
+      "title": "Fleetbase URL allowlist gate",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "ARC-005",
+      "title": "D2 no illegal cross-engine imports",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "skeleton"
+    },
+    {
+      "id": "ARC-010",
+      "title": "APP_ENV boot-time only",
+      "persona": "BOTH",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented"
+    },
+    {
+      "id": "DIFF-004",
+      "title": "SA SYSTEM_ALL includes merchant modules",
+      "persona": "SA",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/test_hybrid_rbac.py::test_modules_for_permissions_system_all"]
+    },
+    {
+      "id": "DIFF-009",
+      "title": "Both personas cannot flip project mode",
+      "persona": "BOTH",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/test_project_mode.py::test_project_mode_change_endpoint_immutable"]
+    },
+    {
+      "id": "UX-007",
+      "title": "No secrets in client responses",
+      "persona": "BOTH",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    }
+  ]
+}

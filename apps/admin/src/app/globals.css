@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+/* Tailwind v4 skips symlinked workspace packages; scan shared UI so its utilities are generated. */
+@source "../../../../packages/ui/src";
+
+:root {
+  color-scheme: light;
+  --primary: #0a1628;
+  --secondary: #2563eb;
+  --gray-bg: #f0f4f8;
+  --foreground: #0a1628;
+  --muted: #64748b;
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-gray-bg: var(--gray-bg);
+  --color-muted: var(--muted);
+  --font-sans: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
+}
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  background: var(--gray-bg);
+  color: var(--foreground);
+  font-family: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
+  overflow-x: clip;
+}
+
+/* §6.3.4 — admin ops: fit phone / tablet / desktop without horizontal page scroll */
+@layer components {
+  .ops-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .ops-tab-rail {
+    display: flex;
+    gap: 0.25rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    padding: 0.375rem;
+  }
+
+  .ops-tab-rail::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .ops-tab-rail::-webkit-scrollbar-thumb {
+    background: rgba(10, 22, 40, 0.18);
+    border-radius: 999px;
+  }
+
+  .ops-touch-target {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  .ops-main {
+    min-width: 0;
+    padding-top: 1rem;
+    padding-bottom: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .ops-main {
+      padding-top: 1.5rem;
+      padding-bottom: 1.5rem;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .ops-stat-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+/* Control Tower display modes (scoped — does not flip whole admin shell) */
+.ops-tower--dark {
+  --primary: #e2e8f0;
+  --secondary: #38bdf8;
+  --gray-bg: #0f172a;
+  --foreground: #e2e8f0;
+  --muted: #94a3b8;
+  color: var(--foreground);
+  background: #020617;
+  border-radius: 1rem;
+  padding: 1rem 1.25rem 1.5rem;
+  min-height: calc(100vh - 6rem);
+}
+
+.ops-tower--dark .bg-white,
+.ops-tower--dark .ops-tower-tabs {
+  background: #0f172a !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.ops-tower--dark .bg-gray-bg\/40,
+.ops-tower--dark .bg-gray-bg\/50,
+.ops-tower--dark .hover\:bg-gray-bg\/60:hover {
+  background-color: rgba(30, 41, 59, 0.7) !important;
+}
+
+.ops-tower--wall {
+  padding: 1.5rem 2rem 2rem;
+  min-height: 100vh;
+  font-size: 1.05rem;
+}
+
+.ops-tower--wall h1 {
+  font-size: 2rem;
+}
+
+.ops-tower--wall .ops-tower-tabs button {
+  font-size: 1rem;
+  padding: 0.65rem 1rem;
+}
+
+.ops-tower--wall .ops-stat-grid {
+  gap: 0.5rem;
+}
+
+.ops-tower--wall .ops-stat-grid > * {
+  padding: 0.75rem 1rem;
+}
+
+.ops-tower--wall .ops-stat-grid p.text-lg {
+  font-size: 1.35rem;
+}
+
+/* Desk three-pane: fill map column height */
+.ops-tower .ops-desk-map-fill {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.ops-tower .ops-desk-map-fill > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Google Places autocomplete (Add order / booking) */
+.booking-address-autocomplete,
+.booking-address-fallback {
+  display: block;
+  width: 100%;
+}
+
+.booking-address-autocomplete gmp-place-autocomplete,
+.booking-address-autocomplete .booking-place-autocomplete {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  color-scheme: light;
+  background-color: #fff;
+  border: 1px solid rgba(10, 22, 40, 0.15);
+  border-radius: 0.75rem;
+  min-height: 2.75rem;
+  font-size: 0.875rem;
+  color: var(--primary);
+}
+
+.booking-address-autocomplete gmp-place-autocomplete::part(input),
+.booking-address-autocomplete .booking-place-autocomplete::part(input) {
+  border: none;
+  background: transparent;
+  padding: 0.65rem 0.85rem;
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.booking-address-autocomplete gmp-place-autocomplete::part(prediction-list),
+.booking-address-autocomplete .booking-place-autocomplete::part(prediction-list) {
+  z-index: 60;
+}

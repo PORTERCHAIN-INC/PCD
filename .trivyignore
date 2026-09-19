@@ -1,0 +1,18 @@
+# Node distribution npm CLI (not on Next request path). Also stripped in
+# website/Dockerfile runner stage; keep IDs as belt-and-suspenders for api image
+# or residual base layers.
+CVE-2026-12151
+CVE-2026-13149
+CVE-2026-14257
+CVE-2026-59873
+CVE-2026-59874
+
+# msgpack: API image installs 1.2.1 (patched), but Trivy still reports installed
+# version as 1.1.2 against GHSA-6v7p-g79w-8964. Floor is also pinned in
+# apps/api/requirements.txt (msgpack>=1.2.1).
+GHSA-6v7p-g79w-8964
+
+# pip 26.2+ ships pip/_vendor/bom.cdx.json listing setuptools==70.3.0. Trivy
+# synthesizes CVE-2025-47273 from that SBOM; pip does not vendor PackageIndex.
+# The API image installs setuptools>=78.1.1 and deletes the pip SBOM file.
+CVE-2025-47273

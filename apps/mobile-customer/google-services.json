@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "430248198034",
+    "project_id": "porterchain-55313",
+    "storage_bucket": "porterchain-55313.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:430248198034:android:d4d39263039b48e02f0b4b",
+        "android_client_info": {
+          "package_name": "com.porterchain.PCD"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcY0AuJL-EX5yT8ZlCUU3f9n4ivTUnRNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:430248198034:android:b9b394370b29dcb02f0b4b",
+        "android_client_info": {
+          "package_name": "com.porterchain.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcY0AuJL-EX5yT8ZlCUU3f9n4ivTUnRNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

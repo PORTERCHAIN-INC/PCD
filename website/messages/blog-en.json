@@ -1,0 +1,67 @@
+{
+  "metadata": {
+    "title": "Blog | Porterchain — Commercial Logistics Insights",
+    "description": "Ideas on dispatch, routing, supply chain visibility, and commercial delivery operations from the Porterchain team.",
+    "ogTitle": "Porterchain Blog",
+    "ogDescription": "Commercial logistics, operations, and industry insights for growing businesses."
+  },
+  "nav": {
+    "blog": "Blog",
+    "allPosts": "All posts",
+    "categories": "Categories"
+  },
+  "home": {
+    "badge": "Porterchain Blog",
+    "title": "Ideas for modern logistics operations",
+    "subtitle": "Dispatch, routing, supply chain, and proof of delivery — written for operators building reliable delivery at scale.",
+    "featured": "Featured",
+    "latest": "Latest articles",
+    "trending": "Trending",
+    "popularCategories": "Popular categories",
+    "searchPlaceholder": "Search articles…",
+    "noResults": "No articles match your search.",
+    "readArticle": "Read article",
+    "minRead": "{minutes} min read"
+  },
+  "article": {
+    "writtenBy": "Written by",
+    "published": "Published",
+    "related": "Related posts",
+    "seoLinksTitle": "Related delivery pages",
+    "share": "Share",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "tableOfContents": "On this page"
+  },
+  "sidebar": {
+    "newsletterTitle": "Stay in the loop",
+    "newsletterSubtitle": "Commercial logistics and operations insights — monthly, no spam.",
+    "emailPlaceholder": "Work email",
+    "subscribe": "Subscribe",
+    "subscribing": "Subscribing…",
+    "subscribed": "You're subscribed. Thank you.",
+    "newsletterError": "Could not subscribe. Please try again."
+  },
+  "category": {
+    "articlesIn": "Articles in",
+    "articleCount": "{count} articles"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {current} of {total}"
+  },
+  "categories": {
+    "logistics": "Logistics",
+    "technology": "Operations",
+    "business": "Business",
+    "route-optimization": "Route Optimization",
+    "supply-chain": "Supply Chain",
+    "same-day-delivery": "Same-Day Delivery",
+    "wholesale": "Wholesale",
+    "construction": "Construction",
+    "medical": "Medical",
+    "retail": "Retail",
+    "coffee": "Coffee"
+  }
+}

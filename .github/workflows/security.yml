@@ -1,0 +1,75 @@
+name: Security
+
+on:
+  push:
+    branches: [main, base-code]
+  pull_request:
+    branches: [main, base-code]
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bandit:
+    name: Bandit (Python)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14.6"
+
+      - name: Run Bandit
+        run: |
+          python -m pip install --upgrade pip bandit
+          bandit -r src/porterchain_api -c bandit.yaml -ll --format json -o bandit-report.json || true
+          bandit -r src/porterchain_api -c bandit.yaml -ll
+
+  trivy:
+    name: Trivy (containers)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            dockerfile: apps/api/Dockerfile
+          - name: website
+            dockerfile: website/Dockerfile
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build image for scan
+        env:
+          DOCKERFILE: ${{ matrix.dockerfile }}
+          IMAGE: pcd-scan:${{ matrix.name }}
+        run: |
+          if [ "$DOCKERFILE" = "website/Dockerfile" ]; then
+            docker build -f "$DOCKERFILE" -t "$IMAGE" \
+              --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=ci-placeholder-key \
+              --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=ci-placeholder \
+              .
+          else
+            docker build -f "$DOCKERFILE" -t "$IMAGE" .
+          fi
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: pcd-scan:${{ matrix.name }}
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          severity: CRITICAL,HIGH

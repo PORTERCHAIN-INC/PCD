@@ -1,0 +1,98 @@
+{
+  "tagline": "Moving Commerce On-Chain",
+  "corporateTagline": "Des chauffeurs et véhicules professionnels quand votre flotte ne suffit pas.",
+  "businessTagline": "Capacité de livraison urgente, de débordement, récurrente et dédiée pour les entreprises en croissance.",
+  "copyright": "© {year} Porterchain Inc. Tous droits réservés.",
+  "contactLine": "enterprise@porterchain.com · +1 (647) 619-7951",
+  "driverPortal": "Portail chauffeur",
+  "merchantPortal": "Portail marchand",
+  "support": "Soutien client",
+  "status": "Statut",
+  "googleBusiness": "Fiche Google Business",
+  "googleReview": "Avis sur Google",
+  "sections": {
+    "product": {
+      "title": "Produit",
+      "links": {
+        "getQuote": "Obtenir un devis",
+        "pricing": "Tarification",
+        "capabilities": "Toutes les capacités",
+        "multiStop": "Livraison multi-arrêts",
+        "recurring": "Routes récurrentes",
+        "brandedTracking": "Suivi client",
+        "deliveryVerification": "Preuve de livraison",
+        "exceptionRecovery": "Récupération d'exceptions",
+        "multiLocation": "Routage multi-emplacements",
+        "inventoryTransfers": "Transferts d'inventaire",
+        "returnsRoundTrip": "Retours et aller-retour",
+        "aiDispatch": "Appariement intelligent",
+        "platform": "Comment nous opérons"
+      }
+    },
+    "solutions": {
+      "title": "Solutions",
+      "links": {
+        "allSolutions": "Toutes les solutions",
+        "wholesale": "Gros",
+        "medical": "Médical",
+        "foodBeverage": "Alimentation",
+        "construction": "Construction",
+        "threePl": "3PL et entrepôt",
+        "fleetOverflow": "Débordement de flotte",
+        "industries": "Industries",
+        "serviceAreas": "Zones desservies",
+        "vehicles": "Tous les véhicules",
+        "cargoVan": "Fourgonnette cargo",
+        "tradeVan": "Fourgonnette métier",
+        "boxTruck": "Camion cube",
+        "pickupTruck": "Camionnette"
+      }
+    },
+    "integrations": {
+      "title": "Intégrations",
+      "links": {
+        "allIntegrations": "Toutes les intégrations",
+        "sms": "Notifications SMS",
+        "email": "Notifications courriel",
+        "whatsapp": "Notifications WhatsApp",
+        "webhooks": "Webhooks",
+        "api": "Prise de commandes API",
+        "csv": "Téléversements CSV",
+        "developers": "Développeurs et API"
+      }
+    },
+    "resources": {
+      "title": "Guides et ressources",
+      "links": {
+        "guides": "Tous les guides",
+        "capacityNetwork": "Qu'est-ce qu'un réseau de capacité?",
+        "sameDay": "Guide capacité jour même",
+        "courierVsCapacity": "Coursier vs partenaire de capacité",
+        "failureModes": "Modes d'échec et récupération",
+        "multiLocationGuide": "Capacité multi-emplacements",
+        "inventoryTransfersGuide": "Guide transferts d'inventaire",
+        "fromStore": "Jour même depuis le magasin",
+        "howPorterchainWorks": "Comment PorterChain fonctionne",
+        "compare": "Comparer les alternatives",
+        "blog": "Blogue",
+        "authors": "Auteurs",
+        "faq": "FAQ"
+      }
+    },
+    "company": {
+      "title": "Entreprise",
+      "links": {
+        "about": "À propos",
+        "contact": "Contact",
+        "careers": "Carrières",
+        "trust": "Centre de confiance",
+        "claims": "Preuve et réclamations",
+        "trackShipment": "Suivre un envoi",
+        "privacy": "Confidentialité",
+        "terms": "Conditions",
+        "cookies": "Témoins",
+        "accessibility": "Accessibilité"
+      }
+    }
+  }
+}

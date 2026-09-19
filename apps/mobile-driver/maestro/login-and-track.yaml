@@ -1,0 +1,23 @@
+# §2.1.10 — driver mobile smoke: dev sign-in → route tracking
+appId: com.porterchain.PCD
+---
+- launchApp
+- assertVisible:
+    id: mobile-sign-in
+- tapOn:
+    id: dev-sign-in
+- runFlow:
+    when:
+      visible:
+        id: mobile-onboarding
+    commands:
+      - tapOn:
+          id: onboarding-skip-dev
+- extendedWaitUntil:
+    visible:
+      id: mobile-track
+    timeout: 20000
+- assertVisible:
+    id: route-status
+- tapOn:
+    id: track-refresh

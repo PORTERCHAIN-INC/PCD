@@ -1,0 +1,11 @@
+pickup,dropoff,scheduled_at,pickup_lat,pickup_lng,dropoff_lat,dropoff_lng,internal_reference,purchase_order_number,cost_centre,vehicle_class,package_type,weight_kg
+"2450 Dundas St E, Mississauga ON L4X 1M3","100 King St W, Toronto ON M5X 1A9",2026-07-03T19:00:00,43.6129,-79.578,43.6488,-79.3817,PAREVA-TEST-01,PO-PAREVA-1000,WH-1,cargoVan,looseParcel,5.0
+"50 Bramgate Dr, Brampton ON L6T 5E8","200 Bay St, Toronto ON M5J 2J2",2026-07-03T21:15:00,43.7315,-79.7082,43.6476,-79.3797,PAREVA-TEST-02,PO-PAREVA-1001,WH-2,cargoVan,looseParcel,6.5
+"1185 Finch Ave W, North York ON M3J 2G5","550 Dundas St W, Toronto ON M5T 1H4",2026-07-03T23:30:00,43.7677,-79.501,43.651,-79.4042,PAREVA-TEST-03,PO-PAREVA-1002,WH-3,cargoVan,looseParcel,8.0
+"2450 Dundas St E, Mississauga ON L4X 1M3","875 Don Mills Rd, North York ON M3C 1V9",2026-07-04T01:00:00,43.6129,-79.578,43.725,-79.346,PAREVA-TEST-04,PO-PAREVA-1003,WH-1,cargoVan,looseParcel,9.5
+"50 Bramgate Dr, Brampton ON L6T 5E8","945 Lakeshore Blvd E, Toronto ON M4M 1A4",2026-07-04T03:15:00,43.7315,-79.7082,43.655,-79.34,PAREVA-TEST-05,PO-PAREVA-1004,WH-2,cargoVan,looseParcel,11.0
+"1185 Finch Ave W, North York ON M3J 2G5","25 The West Mall, Etobicoke ON M9C 1B8",2026-07-04T05:30:00,43.7677,-79.501,43.623,-79.558,PAREVA-TEST-06,PO-PAREVA-1005,WH-3,cargoVan,looseParcel,12.5
+"2450 Dundas St E, Mississauga ON L4X 1M3","1450 Derry Rd E, Mississauga ON L5T 2B8",2026-07-04T07:00:00,43.6129,-79.578,43.647,-79.65,PAREVA-TEST-07,PO-PAREVA-1006,WH-1,cargoVan,looseParcel,14.0
+"50 Bramgate Dr, Brampton ON L6T 5E8","550 Dundas St W, Toronto ON M5T 1H4",2026-07-04T09:15:00,43.7315,-79.7082,43.651,-79.4042,PAREVA-TEST-08,PO-PAREVA-1007,WH-2,cargoVan,looseParcel,15.5
+"1185 Finch Ave W, North York ON M3J 2G5","875 Don Mills Rd, North York ON M3C 1V9",2026-07-04T11:30:00,43.7677,-79.501,43.725,-79.346,PAREVA-TEST-09,PO-PAREVA-1008,WH-3,cargoVan,looseParcel,17.0
+"2450 Dundas St E, Mississauga ON L4X 1M3","945 Lakeshore Blvd E, Toronto ON M4M 1A4",2026-07-04T13:00:00,43.6129,-79.578,43.655,-79.34,PAREVA-TEST-10,PO-PAREVA-1009,WH-1,cargoVan,looseParcel,18.5

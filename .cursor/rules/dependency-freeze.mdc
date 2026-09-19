@@ -1,0 +1,27 @@
+---
+description: Dependency freeze — frontend stable, backend/infra pinned (until 2026-10)
+alwaysApply: true
+---
+
+# Dependency policy (Martin Fowler: stabilize foundations first)
+
+## Frontend freeze (until ~2026-10)
+
+The web stack is green on React 19, Next.js 16, TypeScript 6. **Do not upgrade** without explicit approval:
+
+- `next`, `react`, `react-dom`, `eslint`, `eslint-config-next`, `typescript`
+- Node.js: stay on **24 LTS** (`.nvmrc`); do **not** move to Node 26
+- No drive-by patch bumps in `apps/*` or `website/` package.json files
+
+Focus engineering time on API, Docker pins, Fleetbase boundary, and deployment stability.
+
+## Infrastructure pins
+
+- Docker images use **exact tags or digests** — never `:latest`, `:2-alpine`, or floating minors in compose/Dockerfiles.
+- Dev email: **Mailpit** (`axllent/mailpit`), not Mailhog.
+- Valhalla: **ghcr.io/valhalla/** only (digest-pinned `valhalla-scripted` for tile builds).
+- Fleetbase cache: **Valkey 8.x** via `fleetbase.porterchain.override.yml` (upstream `redis:4` is overridden, not trusted).
+
+## SocketCluster / Fleetbase
+
+Treat SocketCluster as a **legacy vendor black box**. Web apps must not import SocketCluster SDKs; all Fleetbase real-time traffic stays behind `services/fleetbase-adapter` and the API.

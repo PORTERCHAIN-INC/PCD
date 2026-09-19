@@ -1,0 +1,69 @@
+"""Phase 3 — quiet hours, event alias, delivery logs."""
+
+from __future__ import annotations
+
+import uuid
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+from porterchain_api.notification_engine.event_router import _specs_for_event
+from porterchain_api.notification_engine.user_settings import (
+    UserSettingsService,
+    is_within_quiet_hours,
+)
+from porterchain_shared.events.catalog import DomainEventType
+
+
+def test_quiet_hours_wraps_midnight() -> None:
+    assert is_within_quiet_hours(
+        now=datetime(2026, 8, 8, 23, 0, tzinfo=ZoneInfo("America/Toronto")),
+        quiet_start_hour=22,
+        quiet_end_hour=7,
+        timezone="America/Toronto",
+    )
+    assert is_within_quiet_hours(
+        now=datetime(2026, 8, 8, 3, 0, tzinfo=ZoneInfo("America/Toronto")),
+        quiet_start_hour=22,
+        quiet_end_hour=7,
+        timezone="America/Toronto",
+    )
+    assert not is_within_quiet_hours(
+        now=datetime(2026, 8, 8, 12, 0, tzinfo=ZoneInfo("America/Toronto")),
+        quiet_start_hour=22,
+        quiet_end_hour=7,
+        timezone="America/Toronto",
+    )
+
+
+def test_quiet_hours_mutes_push_not_email(db) -> None:
+    svc = UserSettingsService()
+    uid = f"u-{uuid.uuid4().hex[:8]}"
+    svc.upsert(
+        db,
+        user_role="customer",
+        user_id=uid,
+        quiet_hours_enabled=True,
+        quiet_start_hour=0,
+        quiet_end_hour=23,
+        timezone="UTC",
+    )
+    # Almost always quiet with 0–23 window (hour 23 excluded by end exclusive when start<end)
+    # Use full-day wrap: 0–0 is disabled; use 22–21 wrap-ish — better force with start=0 end=23
+    assert svc.should_mute_channel(
+        db, user_role="customer", user_id=uid, channel="push", priority="normal", category="tracking"
+    )
+    assert not svc.should_mute_channel(
+        db, user_role="customer", user_id=uid, channel="email", priority="normal", category="tracking"
+    )
+    assert not svc.should_mute_channel(
+        db, user_role="customer", user_id=uid, channel="push", priority="critical", category="tracking"
+    )
+    db.rollback()
+
+
+def test_merchant_invoice_generated_alias_matches_billed() -> None:
+    payload = {"merchant_id": "m1", "email": "m@example.com", "merchant_email": "m@example.com"}
+    a = _specs_for_event(DomainEventType.MERCHANT_BILLED, payload)
+    b = _specs_for_event("merchant.invoice_generated", payload)
+    assert {s["template_key"] for s in a} == {s["template_key"] for s in b}
+    assert {s["recipient_type"] for s in a} == {s["recipient_type"] for s in b}

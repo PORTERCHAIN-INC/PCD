@@ -1,0 +1,137 @@
+{
+  "expo": {
+    "name": "Porterchain Driver",
+    "slug": "porterchain-driver",
+    "owner": "porterchain",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "porterchain-driver",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.porterchain.PCD",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "buildNumber": "1",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification", "location"],
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserNotificationsUsageDescription": "Porterchain notifies you when a job is assigned or a stop changes.",
+        "NSLocationWhenInUseUsageDescription": "While you are on duty, Porterchain sends your location to Fleetbase so dispatch can see the van.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Porterchain needs background location while you are on duty so dispatch can see the van with the screen locked.",
+        "NSCameraUsageDescription": "Camera is used to capture proof of delivery photos and scan package barcodes.",
+        "NSPhotoLibraryUsageDescription": "Photo library access is used when attaching proof of delivery images."
+      },
+      "associatedDomains": [
+        "applinks:porterchain.com",
+        "applinks:www.porterchain.com",
+        "applinks:driver.porterchain.com"
+      ]
+    },
+    "android": {
+      "package": "com.porterchain.PCD",
+      "googleServicesFile": "./google-services.json",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "android.permission.CAMERA"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "porterchain.com",
+              "pathPrefix": "/auth/driver-invite"
+            },
+            {
+              "scheme": "https",
+              "host": "www.porterchain.com",
+              "pathPrefix": "/auth/driver-invite"
+            },
+            {
+              "scheme": "https",
+              "host": "driver.porterchain.com",
+              "pathPrefix": "/auth/driver-invite"
+            },
+            {
+              "scheme": "https",
+              "host": "porterchain.com",
+              "pathPrefix": "/jobs"
+            },
+            {
+              "scheme": "https",
+              "host": "www.porterchain.com",
+              "pathPrefix": "/jobs"
+            },
+            {
+              "scheme": "https",
+              "host": "driver.porterchain.com",
+              "pathPrefix": "/jobs"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "@clerk/expo",
+        {
+          "appleSignIn": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#124835",
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "While you are on duty, Porterchain sends your location to Fleetbase so dispatch can see the van.",
+          "locationAlwaysAndWhenInUsePermission": "Porterchain needs background location while you are on duty so dispatch can see the van with the screen locked.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Camera is used to capture proof of delivery photos.",
+          "photosPermission": "Photo library access is used when attaching proof of delivery images."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Camera is used to scan package barcodes and capture proof of delivery.",
+          "barcodeScannerEnabled": true
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "71350ebb-2cdc-4cef-8bdb-e2ecd8363bb0"
+      }
+    }
+  }
+}

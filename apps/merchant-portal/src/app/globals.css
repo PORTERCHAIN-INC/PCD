@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+/* Tailwind v4 skips symlinked workspace packages; scan shared UI so its utilities are generated. */
+@source "../../../../packages/ui/src";
+
+:root {
+  color-scheme: light;
+  --primary: #0a1628;
+  --secondary: #2563eb;
+  --accent: #38bdf8;
+  --white: #ffffff;
+  --gray-bg: #f0f4f8;
+  --foreground: #0a1628;
+  --muted: #64748b;
+  --surface: #ffffff;
+  --surface-border: rgba(10, 22, 40, 0.08);
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-gray-bg: var(--gray-bg);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --font-sans: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
+}
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  background: var(--gray-bg);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+/** Portal cards/shell — light-only surfaces. */
+.portal-surface {
+  background: var(--surface);
+  border-color: var(--surface-border);
+}
+
+/* Merchant auth (/sign-in, /sign-up) — presence, not noise */
+@keyframes merchant-auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes merchant-auth-glow {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes merchant-auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.merchant-auth-brand {
+  animation: merchant-auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.merchant-auth-rise {
+  animation: merchant-auth-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.merchant-auth-rise-delay {
+  animation: merchant-auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+}
+
+.merchant-auth-glow {
+  background:
+    radial-gradient(ellipse 70% 55% at 20% 15%, rgba(56, 189, 248, 0.28), transparent 55%),
+    radial-gradient(ellipse 55% 45% at 85% 85%, rgba(37, 99, 235, 0.35), transparent 50%);
+  animation: merchant-auth-glow 10s ease-in-out infinite;
+}
+
+.merchant-auth-pulse {
+  animation: merchant-auth-spin 0.85s linear infinite;
+}
+
+.merchant-auth-form {
+  animation: merchant-auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merchant-auth-brand,
+  .merchant-auth-rise,
+  .merchant-auth-rise-delay,
+  .merchant-auth-form,
+  .merchant-auth-glow,
+  .merchant-auth-pulse {
+    animation: none;
+  }
+}
+
+.ops-tab-rail {
+  display: flex;
+  gap: 0.25rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  padding: 0.375rem;
+}
+
+.ops-tab-rail::-webkit-scrollbar {
+  height: 4px;
+}
+
+.ops-tab-rail::-webkit-scrollbar-thumb {
+  background: rgba(10, 22, 40, 0.18);
+  border-radius: 999px;
+}
+
+.ops-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+}
+
+.magic-card-spotlight {
+  background: radial-gradient(
+    var(--magic-size, 280px) circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(37, 99, 235, 0.1),
+    transparent 65%
+  );
+}
+
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-120%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-12deg);
+  }
+}
+
+.shimmer-button {
+  position: relative;
+  isolation: isolate;
+}
+
+.shimmer-button-glow {
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.38) 50%,
+    transparent 60%
+  );
+  animation: shimmer-slide 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-button-glow {
+    animation: none;
+  }
+}

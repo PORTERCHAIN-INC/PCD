@@ -1,0 +1,26 @@
+# Used when EAS_NO_VCS=1 (local Apple git is blocked by Xcode license).
+# Keep Firebase plists/JSON in the upload; keep local .env out so EAS env wins.
+
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
+*.pem
+.env
+.env.*
+.tsbuildinfo
+/ios
+/android

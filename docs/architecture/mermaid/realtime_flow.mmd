@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant Admin as Admin Portal
+  participant WS as WS /live-map/ws
+  participant LMS as LiveMapService
+  participant DB as Database
+  participant FB as Fleetbase Tracking
+
+  Admin->>WS: Connect ?token=clerk_jwt
+  WS->>WS: verify_clerk_token
+  loop every 5 seconds
+    WS->>LMS: snapshot()
+    LMS->>DB: active orders + drivers
+    LMS->>FB: live positions (via adapter)
+    LMS-->>WS: map data
+    WS-->>Admin: {"type":"snapshot","data":...}
+  end
+
+  Note over Admin,FB: Only WebSocket in codebase.<br/>No customer/merchant WS.

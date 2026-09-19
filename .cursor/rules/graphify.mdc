@@ -1,0 +1,20 @@
+---
+description: graphify knowledge graph context (architecture moment only)
+alwaysApply: false
+---
+
+This project has a graphify knowledge graph at `graphify-out/`.
+
+**Pipeline:** Graphify CLI (step 1) → CodeGraph MCP (steps 2–3) → Ripwire CLI (steps 4–6). Sequencing is mandatory in `.cursor/rules/graph-tools.mdc` and **takes precedence**.
+
+**When the question is architecture / mash-ups / “where does X live” / FastAPI ↔ Fleetbase PHP**, query Graphify before grepping:
+
+- `graphify query "<question>"`
+- `graphify path "<A>" "<B>"`
+- `graphify explain "<concept>"`
+
+Do not keep Graphify MCP hot. Do not run Graphify before every Read/Grep. Daily typing uses CodeGraph (models/routing) or Ripwire (adapters/UI).
+
+- Living blueprint: `ARCHITECTURE.md`
+- Broad review: `graphify-out/GRAPH_REPORT.md`
+- After a folder-graph change (not every line edit): `graphify update .`

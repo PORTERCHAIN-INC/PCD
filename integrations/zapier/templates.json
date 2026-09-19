@@ -1,0 +1,68 @@
+{
+  "version": "1.0.0",
+  "publisher": "porterchain",
+  "templates": [
+    {
+      "id": "new-shipment-webhook",
+      "name": "Create shipment from Zapier webhook",
+      "description": "Catch a Zapier webhook and create a Porterchain same-day shipment.",
+      "trigger": { "app": "Webhooks by Zapier", "event": "Catch Hook" },
+      "action": {
+        "method": "POST",
+        "path": "/v1/merchant-api/bookings",
+        "auth": "api_key_bearer",
+        "scopes": ["shipments:write"]
+      },
+      "setup_steps": [
+        "Generate a Porterchain API key with shipments:write",
+        "In Zapier, add Webhooks by Zapier → Catch Hook",
+        "Add Webhooks POST to Porterchain API URL with Authorization: Bearer pk_..."
+      ]
+    },
+    {
+      "id": "delivered-slack",
+      "name": "Slack alert on delivery",
+      "description": "Post to Slack when Porterchain marks an order delivered.",
+      "trigger": {
+        "app": "Webhooks by Zapier",
+        "event": "Catch Hook",
+        "porterchain_event": "order.delivered"
+      },
+      "action": { "app": "Slack", "event": "Send Channel Message" },
+      "setup_steps": [
+        "Register Porterchain webhook for order.delivered pointing to Zapier catch URL",
+        "Map tracking_number and dropoff.formatted to Slack message"
+      ]
+    },
+    {
+      "id": "netsuite-row-to-shipment",
+      "name": "NetSuite row → Porterchain shipment",
+      "description": "Map a spreadsheet or NetSuite export row to the NetSuite sync endpoint.",
+      "trigger": { "app": "Google Sheets", "event": "New Row" },
+      "action": {
+        "method": "POST",
+        "path": "/v1/merchant/integrations/netsuite/sync",
+        "auth": "merchant_session_or_api_key"
+      },
+      "setup_steps": [
+        "Map columns to inbound.schema.json fields",
+        "Use merchant portal session or API key for auth"
+      ]
+    },
+    {
+      "id": "tracking-email",
+      "name": "Email customer on tracking update",
+      "description": "Send Gmail when Porterchain emits order.tracking_updated.",
+      "trigger": {
+        "app": "Webhooks by Zapier",
+        "event": "Catch Hook",
+        "porterchain_event": "order.tracking_updated"
+      },
+      "action": { "app": "Gmail", "event": "Send Email" },
+      "setup_steps": [
+        "Register Porterchain webhook for order.tracking_updated",
+        "Connect Gmail and map tracking URL"
+      ]
+    }
+  ]
+}

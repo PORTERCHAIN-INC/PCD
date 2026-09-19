@@ -1,0 +1,65 @@
+# PorterChain — public website index for AI systems
+# https://porterchain.com
+# Navigation aid only — not a substitute for on-page content.
+# Primary human chrome: Merchants (/en/business) + Drivers (/en/vehicle-partner); SEO URLs remain indexed.
+
+## Primary hubs
+- https://porterchain.com/en/ — Chooser (Merchants / Drivers)
+- https://porterchain.com/en/business — Merchants hub (primary B2B capacity CTA)
+- https://porterchain.com/en/vehicle-partner — Drivers / vehicle partners hub
+- https://porterchain.com/en/merchants — Vanity → /en/business
+- https://porterchain.com/en/drivers — Vanity → /en/vehicle-partner
+
+## Company
+- https://porterchain.com/en/company — About PorterChain (entity reference)
+- https://porterchain.com/en/contact — Contact and quote requests
+- https://porterchain.com/en/trust — Trust center (SLA, DPA, MSA)
+
+## Services & capacity
+- https://porterchain.com/en/local-delivery — Same-day, urgent, and scheduled B2B delivery in Ontario
+- https://porterchain.com/en/business#pricing — How pricing works (quote-based capacity on merchants hub)
+- https://porterchain.com/en/platform — How PorterChain operates capacity behind the network
+- https://porterchain.com/en/how-porterchain-works — How capacity booking works
+
+## Industries
+- https://porterchain.com/en/business#industries — Industries served (on merchants hub)
+- https://porterchain.com/en/industry/construction-materials — Construction materials delivery
+- https://porterchain.com/en/industry/electrical-distribution — Electrical supply delivery
+- https://porterchain.com/en/industry/pharmacy-medical — Pharmacy and medical delivery
+- https://porterchain.com/en/construction — Construction solutions hub (jobsite & trade lanes)
+
+## Vehicles
+- https://porterchain.com/en/vehicles — Vehicle capacity hub
+- https://porterchain.com/en/cargo-van-delivery — Cargo van capacity
+- https://porterchain.com/en/box-truck-delivery — Box truck capacity
+- https://porterchain.com/en/trade-van-delivery — Trade van capacity
+- https://porterchain.com/en/pickup-truck-delivery — Pickup truck capacity
+
+## Service areas (GTA & Ontario)
+- https://porterchain.com/en/service-areas — Service area index
+- https://porterchain.com/en/service-areas/toronto — Toronto coverage
+
+## Developers
+- https://porterchain.com/en/developers — API overview and integration entry
+- https://porterchain.com/en/developers/docs — Hosted developer documentation
+
+## Resources
+- https://porterchain.com/en/faq — Frequently asked questions
+- https://porterchain.com/en/guides — Operational guides
+- https://porterchain.com/en/blog — Articles and insights
+- https://porterchain.com/blog/rss.xml — Blog RSS
+
+## Legal & trust
+- https://porterchain.com/en/privacy — Privacy policy
+- https://porterchain.com/en/terms — Terms of service
+- https://porterchain.com/en/cookies — Cookie policy
+- https://porterchain.com/en/accessibility — Accessibility
+
+## French (fr-CA)
+- https://porterchain.com/fr/ — Accueil (sélecteur)
+- https://porterchain.com/fr/company — Entreprise
+- https://porterchain.com/fr/business — Marchands / capacité
+- https://porterchain.com/fr/vehicle-partner — Chauffeurs / partenaires véhicule
+
+## Do not index or cite
+- Admin portals, driver/merchant apps, API secrets, staging hosts, or internal documentation.

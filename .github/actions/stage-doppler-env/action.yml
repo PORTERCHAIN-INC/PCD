@@ -1,0 +1,124 @@
+name: Stage Doppler env
+description: >
+  Download Doppler secrets on the Actions runner into doppler.env, validate required
+  keys, and optionally SCP to the droplet. Never forwards DOPPLER_TOKEN over SSH.
+
+inputs:
+  doppler_token:
+    description: Doppler service token (runner only)
+    required: true
+  doppler_project:
+    description: Doppler project
+    required: false
+    default: pcd
+  doppler_config:
+    description: Doppler config
+    required: false
+    default: prd
+  require_keys:
+    description: Comma-separated env keys that must be non-empty in the download
+    required: false
+    default: POSTGRES_PASSWORD
+  min_bytes:
+    description: Minimum doppler.env size
+    required: false
+    default: "500"
+  skip_download:
+    description: If true, reuse existing ./doppler.env (must already exist)
+    required: false
+    default: "false"
+  upload:
+    description: If true, SCP doppler.env to the droplet
+    required: false
+    default: "true"
+  deploy_host:
+    description: Droplet host (required when upload=true)
+    required: false
+    default: ""
+  deploy_user:
+    description: SSH user (required when upload=true)
+    required: false
+    default: ""
+  deploy_ssh_key:
+    description: SSH private key (required when upload=true)
+    required: false
+    default: ""
+  deploy_port:
+    description: SSH port
+    required: false
+    default: "22"
+  remote_path:
+    description: Target directory on droplet
+    required: false
+    default: /opt/porterchain
+
+runs:
+  using: composite
+  steps:
+    - name: Download and validate Doppler env
+      if: inputs.skip_download != 'true'
+      shell: bash
+      env:
+        DOPPLER_TOKEN: ${{ inputs.doppler_token }}
+        DOPPLER_PROJECT: ${{ inputs.doppler_project }}
+        DOPPLER_CONFIG: ${{ inputs.doppler_config }}
+        REQUIRE_KEYS: ${{ inputs.require_keys }}
+        MIN_BYTES: ${{ inputs.min_bytes }}
+      run: |
+        set -euo pipefail
+        umask 077
+        if [ -z "${DOPPLER_TOKEN}" ]; then
+          echo "::error::DOPPLER_TOKEN is required. Runtime secrets are in Doppler, not GitHub. See docs/SECRETS_MAP.md"
+          exit 1
+        fi
+        echo "DOPPLER_TOKEN length on runner: ${#DOPPLER_TOKEN}"
+        if [ "${#DOPPLER_TOKEN}" -lt 60 ]; then
+          echo "::warning::DOPPLER_TOKEN looks unusually short (${#DOPPLER_TOKEN} chars). Service tokens are typically longer — rotate if sync keeps failing."
+        fi
+        code="$(curl -sS -o doppler.env -w '%{http_code}' \
+          -H "Authorization: Bearer ${DOPPLER_TOKEN}" \
+          "https://api.doppler.com/v3/configs/config/secrets/download?project=${DOPPLER_PROJECT}&config=${DOPPLER_CONFIG}&format=env")"
+        if [ "$code" != "200" ]; then
+          echo "::error::DOPPLER_TOKEN cannot download ${DOPPLER_PROJECT}/${DOPPLER_CONFIG} (HTTP ${code}). Create a new service token in Doppler → Access → Service Tokens, then: gh secret set DOPPLER_TOKEN"
+          head -c 400 doppler.env || true
+          echo
+          exit 1
+        fi
+        bytes="$(wc -c < doppler.env)"
+        if [ "$bytes" -lt "$MIN_BYTES" ]; then
+          echo "::error::Doppler download too small (${bytes} bytes) — token or config likely wrong"
+          exit 1
+        fi
+        IFS=',' read -r -a keys <<< "${REQUIRE_KEYS}"
+        for key in "${keys[@]}"; do
+          key="$(echo "$key" | tr -d '[:space:]')"
+          [ -z "$key" ] && continue
+          if ! grep -qE "^${key}=.+" doppler.env; then
+            echo "::error::Staged doppler.env missing ${key}"
+            exit 1
+          fi
+        done
+        echo "Doppler env staged (${DOPPLER_PROJECT}/${DOPPLER_CONFIG}, ${bytes} bytes, keys=${REQUIRE_KEYS})"
+
+    - name: Require existing doppler.env
+      if: inputs.skip_download == 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ ! -f doppler.env ]; then
+          echo "::error::skip_download=true but ./doppler.env is missing"
+          exit 1
+        fi
+        bytes="$(wc -c < doppler.env)"
+        echo "Reusing ./doppler.env (${bytes} bytes)"
+
+    - name: SCP doppler.env to droplet
+      if: inputs.upload == 'true'
+      uses: appleboy/scp-action@v1.0.0
+      with:
+        host: ${{ inputs.deploy_host }}
+        username: ${{ inputs.deploy_user }}
+        key: ${{ inputs.deploy_ssh_key }}
+        port: ${{ inputs.deploy_port }}
+        source: doppler.env
+        target: ${{ inputs.remote_path }}

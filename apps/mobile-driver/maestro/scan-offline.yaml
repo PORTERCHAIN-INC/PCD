@@ -1,0 +1,41 @@
+# Field ops scan + offline sync controls when present on route
+appId: com.porterchain.PCD
+---
+- launchApp
+- assertVisible:
+    id: mobile-sign-in
+- tapOn:
+    id: dev-sign-in
+- runFlow:
+    when:
+      visible:
+        id: mobile-onboarding
+    commands:
+      - tapOn:
+          id: onboarding-skip-dev
+- extendedWaitUntil:
+    visible:
+      id: mobile-track
+    timeout: 20000
+- runFlow:
+    when:
+      visible:
+        id: field-ops
+    commands:
+      - assertVisible:
+          id: scan-input
+      - assertVisible:
+          id: scan-camera
+      - assertVisible:
+          id: scan-submit
+- runFlow:
+    when:
+      visible:
+        id: offline-pending
+    commands:
+      - assertVisible:
+          id: sync-offline
+      - tapOn:
+          id: sync-offline
+- assertVisible:
+    id: track-refresh

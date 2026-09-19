@@ -1,0 +1,8 @@
+[run]
+source = porterchain_api
+include =
+    */*_service.py
+
+[report]
+precision = 1
+show_missing = false

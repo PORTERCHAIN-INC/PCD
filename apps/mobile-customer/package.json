@@ -1,0 +1,32 @@
+{
+  "name": "@porterchain/mobile-customer",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "EXPO_PUBLIC_API_URL=http://10.0.2.2:8001 expo run:android",
+    "ios": "expo run:ios",
+    "prebuild": "expo prebuild && node ../../scripts/pin-android-gradle-jdk.mjs",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@porterchain/mobile-theme": "file:./vendor/mobile-theme",
+    "expo": "~57.0.4",
+    "expo-constants": "~57.0.18",
+    "expo-dev-client": "~57.0.19",
+    "expo-linking": "~7.0.5",
+    "expo-notifications": "~57.0.18",
+    "expo-status-bar": "~57.0.0",
+    "react": "19.2.3",
+    "react-native": "0.86.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "babel-preset-expo": "~57.0.2",
+    "typescript": "~6.0.3"
+  }
+}

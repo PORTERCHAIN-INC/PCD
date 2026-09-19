@@ -1,0 +1,39 @@
+# Dependabot — dependency updates (DD-10)
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # Frontend freeze until ~2026-10 — see .cursor/rules/dependency-freeze.mdc
+    ignore:
+      - dependency-name: "next"
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
+      - dependency-name: "eslint"
+      - dependency-name: "eslint-config-next"
+      - dependency-name: "typescript"
+      - dependency-name: "@clerk/nextjs"
+      - dependency-name: "@sentry/nextjs"
+      - dependency-name: "tailwindcss"
+      - dependency-name: "@tailwindcss/postcss"
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: pip
+    directory: /apps/api
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10

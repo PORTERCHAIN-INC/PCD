@@ -1,0 +1,104 @@
+# Local environment — never commit secrets
+.env
+.env.*
+!.env.example
+!env/*.env.example
+env/.env
+env/clerk.env
+env/clerk.env.prod-live.bak
+env/go-live-*.local.md
+doppler.token
+doppler.env
+
+# Credentials and key material
+secrets/
+apps/api/.secrets/
+**/firebase-service-account.json
+*firebase-adminsdk*.json
+/GoogleService-Info*.plist
+/google-services*.json
+/*.p8
+apps/mobile-*/credentials/
+
+# Docker local secrets
+infrastructure/docker/.env
+infrastructure/deploy/scripts/clerk-keys.local.env
+infrastructure/deploy/scripts/leads-keys.local.env
+infrastructure/deploy/scripts/mail-keys.local.env
+
+# Python
+.venv/
+**/.venv/
+*.db
+backups/*.sql.gz
+backups/*.sql
+backups/phase1-*.md
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Legacy secret dump
+details.md.local
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next
+out
+dist
+build
+coverage
+.turbo
+
+# OS / IDE
+.DS_Store
+*.pem
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+.logs/
+
+# Blog CMS uploaded media (local / API disk store)
+apps/api/data/blog-media/
+
+# Local Valhalla GTA extract + built tiles (not full Ontario)
+infrastructure/docker/valhalla/data/
+
+# Local OSRM GTA graph (same ±150 km PBF as Valhalla)
+infrastructure/docker/osrm/data/*
+!infrastructure/docker/osrm/data/README.md
+
+# TypeScript
+*.tsbuildinfo
+
+# Fleetbase OSS — clone via `pnpm docker:fleetbase:install` (do not commit upstream tree)
+apps/fleetbase/
+
+# local coverage artifacts
+.coverage
+coverage.json
+**/coverage.json
+
+# Graphify / CodeGraph / Ripwire local indexes (commit GRAPH_REPORT.md only)
+.codegraph/
+graphify-out/cache/
+graphify-out/graph.json
+graphify-out/graph.html
+graphify-out/manifest.json
+graphify-out/.graphify_*
+graphify-out/obsidian/
+graphify-out/20*/
+.ripwire/
+*.ripwire-cache
+tmp/
+
+# Playwright Clerk cookie jars (never commit)
+apps/merchant-portal/e2e/.auth/
+apps/admin/e2e/.auth/
+apps/merchant-portal/playwright-report/
+apps/merchant-portal/test-results/
+website/playwright-report/
+website/test-results/

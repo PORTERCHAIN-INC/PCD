@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>PorterChain · Opening dispatch console</title>
+    <style>
+      :root {
+        --primary: #0b1220;
+        --secondary: #2563eb;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --bg: #f8fafc;
+        --err: #b91c1c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        font-family: Calibri, Carlito, Candara, "Segoe UI", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        width: min(28rem, 100%);
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 2rem 1.75rem 1.75rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+        text-align: center;
+      }
+      .mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 10px;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        font-size: 0.85rem;
+      }
+      h1 {
+        margin: 1rem 0 0.35rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+      .spin {
+        width: 2rem;
+        height: 2rem;
+        margin: 1.25rem auto 0;
+        border-radius: 50%;
+        border: 3px solid #dbeafe;
+        border-top-color: var(--secondary);
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .error {
+        color: var(--err);
+        margin-top: 1rem;
+      }
+      a.btn {
+        display: inline-block;
+        margin-top: 1.25rem;
+        background: var(--secondary);
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.65rem 1.1rem;
+        border-radius: 10px;
+      }
+      a.btn:hover {
+        background: #1d4ed8;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="mark">PC</div>
+      <h1>PorterChain</h1>
+      <p id="status">Signing you into the dispatch console…</p>
+      <div id="spinner" class="spin" aria-hidden="true"></div>
+      <p id="error" class="error" hidden></p>
+      <a id="back" class="btn" href="https://admin.porterchain.com" hidden>Return to Admin</a>
+    </main>
+    <script>
+      (function () {
+        var status = document.getElementById("status");
+        var spinner = document.getElementById("spinner");
+        var errorEl = document.getElementById("error");
+        var back = document.getElementById("back");
+        var token = new URLSearchParams(window.location.search).get("token") || "";
+
+        function fail(message) {
+          spinner.hidden = true;
+          status.textContent = "Could not open the dispatch console";
+          errorEl.hidden = false;
+          errorEl.textContent = message;
+          back.hidden = false;
+        }
+
+        if (!token) {
+          fail("This sign-in link is incomplete. Open the console from PorterChain Admin.");
+          return;
+        }
+
+        fetch("/int/v1/porterchain/sso/exchange", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ token: token }),
+        })
+          .then(function (res) {
+            return res.json().then(function (data) {
+              return { ok: res.ok, data: data || {} };
+            });
+          })
+          .then(function (result) {
+            var data = result.data;
+            var sessionToken = data.token || data.sanctum_token;
+            if (!result.ok || !sessionToken) {
+              var code = data.error || "";
+              if (code === "sso_token_expired") {
+                fail("This sign-in link expired. Open the console again from Admin.");
+              } else if (code === "sso_token_invalid" || code === "sso_token_required") {
+                fail("This sign-in link is not valid. Open the console again from Admin.");
+              } else {
+                fail("Dispatch console could not verify your session. Try again from Admin.");
+              }
+              return;
+            }
+            try {
+              localStorage.setItem(
+                "ember_simple_auth-session",
+                JSON.stringify({
+                  authenticated: {
+                    authenticator: "authenticator:fleetbase",
+                    token: sessionToken,
+                  },
+                })
+              );
+            } catch (err) {
+              fail(
+                "Your browser blocked session storage. Allow local storage for this site and retry."
+              );
+              return;
+            }
+            window.location.replace("/");
+          })
+          .catch(function () {
+            fail("The dispatch console is temporarily unavailable. Please try again.");
+          });
+      })();
+    </script>
+  </body>
+</html>

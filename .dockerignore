@@ -1,0 +1,24 @@
+# Keep Docker build contexts small and reproducible.
+**/node_modules
+**/.venv
+**/.next
+**/.turbo
+**/__pycache__
+**/*.pyc
+**/*.pyo
+.git
+.git/**
+.github
+*.db
+**/*.db
+.pnpm-store
+**/.DS_Store
+**/.env
+**/.env.*
+!**/.env.example
+# Never bake local Clerk test keys into production images (next.config loads env/clerk.env).
+env/clerk.env
+env/clerk.env.*
+!env/clerk.env.example
+apps/fleetbase
+terminals

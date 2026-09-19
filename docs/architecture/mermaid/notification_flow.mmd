@@ -1,0 +1,42 @@
+flowchart TB
+  subgraph Triggers["Domain Event Triggers"]
+    OB[order.booked]
+    BC[booking.confirmed]
+    CO[claim.opened]
+    ST[support.ticket_created]
+    ER[event_router.handle_domain_event]
+  end
+
+  subgraph NE["notification_engine"]
+    ORCH[NotificationEngine.dispatch]
+    DEL[DeliveryService.enqueue]
+    LOG[NotificationDeliveryLog]
+  end
+
+  subgraph Bus["Event Bus"]
+    NQ[notification.queued]
+    H[_handle_notification_queued]
+  end
+
+  subgraph Worker["apps/worker"]
+    EP[emails processor]
+    SP[sms processor]
+    PP[push processor]
+  end
+
+  subgraph Channels["Delivery"]
+    EMAIL[Email provider]
+    SMS[SMS provider]
+    PUSH[Firebase push]
+  end
+
+  OB & BC & CO & ST --> ER
+  ER --> ORCH
+  ORCH --> DEL
+  DEL --> NQ
+  NQ --> H
+  H --> EP & SP & PP
+  EP --> EMAIL
+  SP --> SMS
+  PP --> PUSH
+  EP & SP & PP --> LOG

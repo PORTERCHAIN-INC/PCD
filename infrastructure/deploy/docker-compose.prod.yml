@@ -1,0 +1,543 @@
+# Production stack for the Porterchain droplet.
+# Image policy: exact tags or digests only — no :latest / floating minors (see .cursor/rules/dependency-freeze.mdc).
+# Caddy terminates TLS and routes subdomains to portal containers.
+#
+# Usage:
+#   export WEB_IMAGE=ghcr.io/<owner>/pcd-website:<tag>
+#   export API_IMAGE=ghcr.io/<owner>/pcd-api:<tag>
+#   export ADMIN_IMAGE=ghcr.io/<owner>/pcd-admin:<tag>
+#   export MERCHANT_IMAGE=ghcr.io/<owner>/pcd-merchant:<tag>
+#   export DRIVER_IMAGE=ghcr.io/<owner>/pcd-driver:<tag>
+#   export CUSTOMER_IMAGE=ghcr.io/<owner>/pcd-customer:<tag>
+#   docker compose -f docker-compose.prod.yml up -d
+
+name: porterchain-prod
+
+# 4GB droplet: cap Node heap without waiting for a new image build.
+x-node-ram: &node-ram
+  NODE_ENV: production
+  NODE_OPTIONS: "--max-old-space-size=192"
+
+services:
+  postgres:
+    # Prod volume was initialized on PG16 at /var/lib/postgresql/data — keep until pg_dump/pg_upgrade to 18.
+    image: postgres:16.10-alpine3.22
+    container_name: pcd-postgres
+    restart: unless-stopped
+    command:
+      [
+        "postgres",
+        "-c",
+        "shared_buffers=64MB",
+        "-c",
+        "work_mem=4MB",
+        "-c",
+        "effective_cache_size=256MB",
+        "-c",
+        "maintenance_work_mem=32MB",
+        "-c",
+        "max_connections=80",
+      ]
+    environment:
+      POSTGRES_USER: porterchain
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: porterchain
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U porterchain -d porterchain"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:8.8.0-alpine3.23
+    container_name: pcd-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy volatile-lru
+    expose:
+      - "6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+
+  # SpiceDB datastore DB (idempotent) — required before migrate/serve.
+  spicedb-db-init:
+    image: postgres:16.10-alpine3.22
+    container_name: pcd-spicedb-db-init
+    restart: "no"
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -e
+        until pg_isready -h postgres -U porterchain -d porterchain; do sleep 1; done
+        exists=$$(psql -h postgres -U porterchain -d porterchain -Atc "SELECT 1 FROM pg_database WHERE datname='spicedb'")
+        if [ "$$exists" != "1" ]; then
+          psql -h postgres -U porterchain -d porterchain -c "CREATE DATABASE spicedb"
+        fi
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  spicedb-migrate:
+    image: authzed/spicedb:v1.56.0
+    container_name: pcd-spicedb-migrate
+    restart: "no"
+    command: ["migrate", "head"]
+    environment:
+      SPICEDB_DATASTORE_ENGINE: postgres
+      SPICEDB_DATASTORE_CONN_URI: postgres://porterchain:${POSTGRES_PASSWORD}@postgres:5432/spicedb?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+      spicedb-db-init:
+        condition: service_completed_successfully
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  spicedb:
+    image: authzed/spicedb:v1.56.0
+    container_name: pcd-spicedb
+    restart: unless-stopped
+    command:
+      [
+        "serve",
+        "--grpc-preshared-key",
+        "${SPICEDB_PRESHARED_KEY:?SPICEDB_PRESHARED_KEY is required}",
+        "--datastore-engine",
+        "postgres",
+        "--datastore-conn-uri",
+        "postgres://porterchain:${POSTGRES_PASSWORD}@postgres:5432/spicedb?sslmode=disable",
+      ]
+    expose:
+      - "50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      spicedb-migrate:
+        condition: service_completed_successfully
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+
+  valhalla:
+    image: ghcr.io/valhalla/valhalla-scripted@sha256:9ba06c00f41fabec8d3cb2e7ec3c39023be7a410d245049d76af3b494e1ce674
+    container_name: pcd-valhalla
+    restart: unless-stopped
+    expose:
+      - "8002"
+    volumes:
+      - valhalla-tiles:/custom_files
+    environment:
+      # GTA ±150 km extract in the volume (rebuild-valhalla-gta.sh).
+      # Never point this at ontario-latest.osm.pbf — full Ontario OOMs a 4GB droplet.
+      tile_urls: ""
+      use_tiles_ignore_pbf: "True"
+      build_elevation: "False"
+      build_admins: "False"
+      build_time_zones: "False"
+      server_threads: "1"
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+
+  osrm:
+    profiles: ["osrm-fallback"]
+    image: ghcr.io/project-osrm/osrm-backend:v5.27.1
+    container_name: pcd-osrm
+    restart: unless-stopped
+    expose:
+      - "5000"
+    volumes:
+      - osrm-tiles:/data
+    command: osrm-routed --algorithm mld /data/gta-150km.osrm
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo >/dev/tcp/127.0.0.1/5000'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+
+  api:
+    image: ${API_IMAGE:-ghcr.io/porterchain/pcd-api:latest}
+    restart: unless-stopped
+    pull_policy: missing
+    # No container_name — required for `docker compose up --scale api=N` (ADR-012).
+    # 4GB droplet default is API_REPLICAS=1; scale to 2 when the host has ≥8 GB.
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      spicedb:
+        condition: service_healthy
+      valhalla:
+        condition: service_started
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DATABASE_URL: postgresql+psycopg://porterchain:${POSTGRES_PASSWORD}@postgres:5432/porterchain
+      REDIS_URL: redis://redis:6379/0
+      DB_POOL_SIZE: "5"
+      DB_MAX_OVERFLOW: "5"
+      PORTERCHAIN_API_URL: https://api.porterchain.com
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://porterchain.com,https://www.porterchain.com,https://admin.porterchain.com,https://merchant.porterchain.com,https://driver.porterchain.com,https://customer.porterchain.com}
+      WEBSITE_URL: https://porterchain.com
+      ADMIN_PORTAL_URL: https://admin.porterchain.com
+      MERCHANT_PORTAL_URL: https://merchant.porterchain.com
+      DRIVER_PORTAL_URL: https://driver.porterchain.com
+      DRIVER_PORTAL_BASE_URL: https://driver.porterchain.com
+      CUSTOMER_PORTAL_URL: https://customer.porterchain.com
+      RETAIL_CHECKOUT_SUCCESS_URL: https://porterchain.com/en/book/success
+      RETAIL_CHECKOUT_CANCEL_URL: https://porterchain.com/en/book/continue
+      CUSTOMER_CHECKOUT_SUCCESS_URL: https://customer.porterchain.com/book/success
+      CUSTOMER_CHECKOUT_CANCEL_URL: https://customer.porterchain.com/book
+      PORTERCHAIN_RETAIL_PAY_URL_BASE: https://porterchain.com/track
+      PORTERCHAIN_RETAIL_STRIPE_SUCCESS_URL: https://porterchain.com/track/{tracking_number}?paid=1
+      PORTERCHAIN_RETAIL_STRIPE_CANCEL_URL: https://porterchain.com/track/{tracking_number}?cancelled=1
+      PORTERCHAIN_STRIPE_SUCCESS_URL: https://merchant.porterchain.com/invoices?paid=1
+      PORTERCHAIN_STRIPE_CANCEL_URL: https://merchant.porterchain.com/invoices?cancelled=1
+      PORTERCHAIN_TRACKING_URL: https://porterchain.com/track/
+      FLEETBASE_DISPATCH_BRIDGE: ${FLEETBASE_DISPATCH_BRIDGE:-false}
+      FLEETBASE_SSO_ENABLED: ${FLEETBASE_SSO_ENABLED:-false}
+      FLEETBASE_API_URL: ${FLEETBASE_API_URL:-}
+      FLEETBASE_API_KEY: ${FLEETBASE_API_KEY:-}
+      FLEETBASE_WEBHOOK_SECRET: ${FLEETBASE_WEBHOOK_SECRET:-}
+      FLEETBASE_DEFAULT_COMPANY_UUID: ${FLEETBASE_DEFAULT_COMPANY_UUID:-}
+      FLEETBASE_CONSOLE_URL: ${FLEETBASE_CONSOLE_URL:-}
+      CLERK_DEV_BYPASS: "false"
+      SPICEDB_ENABLED: ${SPICEDB_ENABLED:-true}
+      SPICEDB_REQUIRED: ${SPICEDB_REQUIRED:-true}
+      SPICEDB_ENDPOINT: ${SPICEDB_ENDPOINT:-spicedb:50051}
+      SPICEDB_PRESHARED_KEY: ${SPICEDB_PRESHARED_KEY}
+      STRIPE_MOCK: "false"
+      CLERK_MODE: ${CLERK_MODE:-platform_driver}
+      CLERK_UNIFIED_MODE: ${CLERK_UNIFIED_MODE:-false}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
+      CLERK_JWKS_URL: ${CLERK_JWKS_URL:?CLERK_JWKS_URL is required}
+      CLERK_ADMIN_SECRET_KEY: ${CLERK_ADMIN_SECRET_KEY:-${CLERK_SECRET_KEY}}
+      CLERK_ADMIN_PUBLISHABLE_KEY: ${CLERK_ADMIN_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
+      CLERK_ADMIN_JWKS_URL: ${CLERK_ADMIN_JWKS_URL:-${CLERK_JWKS_URL}}
+      CLERK_CUSTOMER_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-${CLERK_SECRET_KEY}}
+      CLERK_CUSTOMER_PUBLISHABLE_KEY: ${CLERK_CUSTOMER_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
+      CLERK_CUSTOMER_JWKS_URL: ${CLERK_CUSTOMER_JWKS_URL:-${CLERK_JWKS_URL}}
+      CLERK_MERCHANT_SECRET_KEY: ${CLERK_MERCHANT_SECRET_KEY:-${CLERK_SECRET_KEY}}
+      CLERK_MERCHANT_PUBLISHABLE_KEY: ${CLERK_MERCHANT_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
+      CLERK_MERCHANT_JWKS_URL: ${CLERK_MERCHANT_JWKS_URL:-${CLERK_JWKS_URL}}
+      CLERK_DRIVER_SECRET_KEY: ${CLERK_DRIVER_SECRET_KEY:?CLERK_DRIVER_SECRET_KEY (Porterchain Driver) is required}
+      CLERK_DRIVER_PUBLISHABLE_KEY: ${CLERK_DRIVER_PUBLISHABLE_KEY:-}
+      CLERK_DRIVER_JWKS_URL: ${CLERK_DRIVER_JWKS_URL:?CLERK_DRIVER_JWKS_URL is required}
+      CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES:-}
+      CLERK_AUTHORIZED_ISSUERS: ${CLERK_AUTHORIZED_ISSUERS:-}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${CLERK_WEBHOOK_SIGNING_SECRET:-}
+      STRIPE_SECRET: ${STRIPE_SECRET}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      PORTERCHAIN_PUSH_ENABLED: ${PORTERCHAIN_PUSH_ENABLED:-false}
+      PORTERCHAIN_PUSH_SEND: ${PORTERCHAIN_PUSH_SEND:-false}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
+      FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
+      GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
+      # ZeptoMail Canada (HTTPS API). Not Zoho Mail SMTP — DigitalOcean blocks outbound SMTP.
+      MAIL_HOST: ${MAIL_HOST:-smtp.zeptomail.ca}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-emailapikey}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-noreply@porterchain.com}
+      MAIL_FROM_ADDRESS2: ${MAIL_FROM_ADDRESS2:-sales@porterchain.com}
+      MAIL_FROM_ADDRESS3: ${MAIL_FROM_ADDRESS3:-ravi@porterchain.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Porterchain}
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:-https}
+      ZEPTOMAIL_API_URL: ${ZEPTOMAIL_API_URL:-https://api.zeptomail.ca/v1.1/email}
+      ROUTING_ENGINE: valhalla
+      VALHALLA_BASE_URL: http://valhalla:8002
+      OSRM_HOST: ${OSRM_HOST:-}
+      PUBLIC_INGEST_API_KEY: ${PUBLIC_INGEST_API_KEY:-}
+      # Lead Ingest Bus / CAPI / territory (optional — empty = channel dark)
+      META_APP_SECRET: ${META_APP_SECRET:-}
+      META_WEBHOOK_VERIFY_TOKEN: ${META_WEBHOOK_VERIFY_TOKEN:-}
+      GOOGLE_LEAD_WEBHOOK_SECRET: ${GOOGLE_LEAD_WEBHOOK_SECRET:-}
+      SOCIAL_LEAD_WEBHOOK_SECRET: ${SOCIAL_LEAD_WEBHOOK_SECRET:-}
+      META_CAPI_ACCESS_TOKEN: ${META_CAPI_ACCESS_TOKEN:-}
+      META_PIXEL_ID: ${META_PIXEL_ID:-}
+      LINKEDIN_CAPI_TOKEN: ${LINKEDIN_CAPI_TOKEN:-}
+      LINKEDIN_CONVERSION_URN: ${LINKEDIN_CONVERSION_URN:-}
+      LEAD_TERRITORY_MAP_JSON: ${LEAD_TERRITORY_MAP_JSON:-}
+      LEAD_ROUND_ROBIN_JSON: ${LEAD_ROUND_ROBIN_JSON:-}
+      LEAD_SLA_MINUTES_JSON: ${LEAD_SLA_MINUTES_JSON:-}
+      LEAD_INGEST_ASYNC: ${LEAD_INGEST_ASYNC:-false}
+      REFERRAL_CREDIT_CENTS: ${REFERRAL_CREDIT_CENTS:-25000}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+      NVIDIA_API_BASE: ${NVIDIA_API_BASE:-}
+      NVIDIA_MODEL: ${NVIDIA_MODEL:-}
+      # Admin Settings → Lead Ingest write-through to Doppler
+      DOPPLER_TOKEN: ${DOPPLER_TOKEN:-}
+      PORTERCHAIN_DOPPLER_PROJECT: ${PORTERCHAIN_DOPPLER_PROJECT:-pcd}
+      PORTERCHAIN_DOPPLER_CONFIG: ${PORTERCHAIN_DOPPLER_CONFIG:-prd}
+    volumes:
+      - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
+    expose:
+      - "8001"
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  worker:
+    image: ${API_IMAGE:-ghcr.io/porterchain/pcd-api:latest}
+    container_name: pcd-worker
+    restart: unless-stopped
+    pull_policy: missing
+    working_dir: /app/apps/worker
+    command: ["python", "run.py"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      spicedb:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DATABASE_URL: postgresql+psycopg://porterchain:${POSTGRES_PASSWORD}@postgres:5432/porterchain
+      REDIS_URL: redis://redis:6379/0
+      DB_POOL_SIZE: "5"
+      DB_MAX_OVERFLOW: "5"
+      FLEETBASE_DISPATCH_BRIDGE: ${FLEETBASE_DISPATCH_BRIDGE:-false}
+      FLEETBASE_SSO_ENABLED: ${FLEETBASE_SSO_ENABLED:-false}
+      FLEETBASE_API_URL: ${FLEETBASE_API_URL:-}
+      FLEETBASE_API_KEY: ${FLEETBASE_API_KEY:-}
+      FLEETBASE_WEBHOOK_SECRET: ${FLEETBASE_WEBHOOK_SECRET:-}
+      FLEETBASE_DEFAULT_COMPANY_UUID: ${FLEETBASE_DEFAULT_COMPANY_UUID:-}
+      FLEETBASE_CONSOLE_URL: ${FLEETBASE_CONSOLE_URL:-}
+      STRIPE_MOCK: "false"
+      STRIPE_SECRET: ${STRIPE_SECRET}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      CLERK_DEV_BYPASS: "false"
+      SPICEDB_ENABLED: ${SPICEDB_ENABLED:-true}
+      SPICEDB_REQUIRED: ${SPICEDB_REQUIRED:-true}
+      SPICEDB_ENDPOINT: ${SPICEDB_ENDPOINT:-spicedb:50051}
+      SPICEDB_PRESHARED_KEY: ${SPICEDB_PRESHARED_KEY}
+      CLERK_MODE: ${CLERK_MODE:-platform_driver}
+      CLERK_UNIFIED_MODE: ${CLERK_UNIFIED_MODE:-false}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+      CLERK_JWKS_URL: ${CLERK_JWKS_URL:?CLERK_JWKS_URL is required}
+      CLERK_ADMIN_SECRET_KEY: ${CLERK_ADMIN_SECRET_KEY:-${CLERK_SECRET_KEY}}
+      CLERK_ADMIN_JWKS_URL: ${CLERK_ADMIN_JWKS_URL:-${CLERK_JWKS_URL}}
+      CLERK_CUSTOMER_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-${CLERK_SECRET_KEY}}
+      CLERK_CUSTOMER_JWKS_URL: ${CLERK_CUSTOMER_JWKS_URL:-${CLERK_JWKS_URL}}
+      CLERK_MERCHANT_SECRET_KEY: ${CLERK_MERCHANT_SECRET_KEY:-${CLERK_SECRET_KEY}}
+      CLERK_MERCHANT_JWKS_URL: ${CLERK_MERCHANT_JWKS_URL:-${CLERK_JWKS_URL}}
+      CLERK_DRIVER_SECRET_KEY: ${CLERK_DRIVER_SECRET_KEY:?CLERK_DRIVER_SECRET_KEY (Porterchain Driver) is required}
+      CLERK_DRIVER_JWKS_URL: ${CLERK_DRIVER_JWKS_URL:?CLERK_DRIVER_JWKS_URL is required}
+      CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES:-}
+      CLERK_AUTHORIZED_ISSUERS: ${CLERK_AUTHORIZED_ISSUERS:-}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${CLERK_WEBHOOK_SIGNING_SECRET:-}
+      PORTERCHAIN_PUSH_ENABLED: ${PORTERCHAIN_PUSH_ENABLED:-false}
+      PORTERCHAIN_PUSH_SEND: ${PORTERCHAIN_PUSH_SEND:-false}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
+      FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
+      GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
+      MAIL_HOST: ${MAIL_HOST:-smtp.zeptomail.ca}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-emailapikey}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-noreply@porterchain.com}
+      MAIL_FROM_ADDRESS2: ${MAIL_FROM_ADDRESS2:-sales@porterchain.com}
+      MAIL_FROM_ADDRESS3: ${MAIL_FROM_ADDRESS3:-ravi@porterchain.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Porterchain}
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:-https}
+      ZEPTOMAIL_API_URL: ${ZEPTOMAIL_API_URL:-https://api.zeptomail.ca/v1.1/email}
+      ROUTING_ENGINE: valhalla
+      VALHALLA_BASE_URL: http://valhalla:8002
+      OSRM_HOST: ${OSRM_HOST:-}
+    volumes:
+      - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
+    networks:
+      - edge
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import os,redis; r=redis.from_url(os.environ[''REDIS_URL'']); r.ping(); assert r.get(''porterchain:worker:heartbeat''), ''missing heartbeat''"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    security_opt:
+      - no-new-privileges:true
+
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/porterchain/pcd-website:latest}
+    container_name: pcd-website
+    restart: unless-stopped
+    pull_policy: missing
+    depends_on:
+      - api
+      - valhalla
+    environment:
+      <<: *node-ram
+      PORT: "3000"
+      GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+      ROUTING_ENGINE: valhalla
+      VALHALLA_BASE_URL: http://valhalla:8002
+      OSRM_HOST: ${OSRM_HOST:-}
+      PUBLIC_INGEST_API_KEY: ${PUBLIC_INGEST_API_KEY:-}
+    expose:
+      - "3000"
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  admin:
+    image: ${ADMIN_IMAGE:-ghcr.io/porterchain/pcd-admin:latest}
+    container_name: pcd-admin
+    restart: unless-stopped
+    pull_policy: missing
+    environment:
+      <<: *node-ram
+      PORT: "3002"
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+    expose:
+      - "3002"
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  merchant:
+    image: ${MERCHANT_IMAGE:-ghcr.io/porterchain/pcd-merchant:latest}
+    container_name: pcd-merchant
+    restart: unless-stopped
+    pull_policy: missing
+    environment:
+      <<: *node-ram
+      PORT: "3001"
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+    expose:
+      - "3001"
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  driver:
+    image: ${DRIVER_IMAGE:-ghcr.io/porterchain/pcd-driver:latest}
+    container_name: pcd-driver
+    restart: unless-stopped
+    pull_policy: missing
+    environment:
+      <<: *node-ram
+      PORT: "3003"
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+    expose:
+      - "3003"
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  customer:
+    image: ${CUSTOMER_IMAGE:-ghcr.io/porterchain/pcd-customer:latest}
+    container_name: pcd-customer
+    restart: unless-stopped
+    pull_policy: missing
+    environment:
+      <<: *node-ram
+      PORT: "3004"
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+    expose:
+      - "3004"
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: caddy:2.11.4-alpine
+    container_name: pcd-caddy
+    restart: unless-stopped
+    depends_on:
+      - web
+      - api
+      - worker
+      - admin
+      - merchant
+      - driver
+      - customer
+      - redis
+    ports:
+      - "80:80"
+      - "443:443"
+      # HTTP/3 (QUIC) disabled — UDP/443 left unpublished intentionally.
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./porterchain-sso:/etc/caddy/porterchain-sso:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  edge:
+    driver: bridge
+
+volumes:
+  caddy-data:
+  caddy-config:
+  postgres-data:
+  redis-data:
+  valhalla-tiles:
+  osrm-tiles:

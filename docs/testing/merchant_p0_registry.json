@@ -1,0 +1,496 @@
+{
+  "ssot": "docs/MERCHANT_DEVELOPMENT_TEST_MATRIX.md",
+  "version": 3,
+  "sensors": {
+    "graphify": "prior session — MerchantContext / Merchant god nodes",
+    "codegraph": "MapsService, MerchantBookingPreviewResponse, MerchantContext MODULE_PERMISSIONS, ShopifyShop",
+    "ripwire": "booking_preview/confirm, create_shipment → sync_order_from_event, ModuleGate, merchant Portal golden live"
+  },
+  "notes": "Extend, do not duplicate existing test_merchant_*. Live Playwright needs MERCHANT_E2E_LIVE + role storageState (see apps/merchant-portal/e2e/README.md). FleetbaseSyncJob after live confirm = pytest MP-BOOK-004; sandbox confirm must not enqueue.",
+  "cases": [
+    {
+      "id": "MP-AUTH-001",
+      "title": "Clerk merchant sign-in lands portal",
+      "persona": "owner",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-AUTH-003",
+      "title": "Viewer blocked on booking preview (matrix gate)",
+      "persona": "viewer",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_personas_http.py::test_viewer_cannot_hit_booking_preview"
+      ]
+    },
+    {
+      "id": "MP-AUTH-006",
+      "title": "Viewer /book soft-forbid + preview 403",
+      "persona": "viewer",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented",
+      "covers": [
+        "apps/merchant-portal/e2e/book.golden.p0.spec.ts",
+        "apps/merchant-portal/e2e/personas.p0.spec.ts"
+      ]
+    },
+    {
+      "id": "MP-ONB-001",
+      "title": "Onboarding company file gates unlock",
+      "persona": "owner",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-DASH-001",
+      "title": "Dashboard KPIs load / empty state",
+      "persona": "owner",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-BOOK-001",
+      "title": "Dispatcher preview+confirm under Clerk (sandbox)",
+      "persona": "dispatcher",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented",
+      "covers": ["apps/merchant-portal/e2e/book.golden.p0.spec.ts"]
+    },
+    {
+      "id": "MP-BOOK-002",
+      "title": "Preview routing_source valhalla|osrm (never google)",
+      "persona": "dispatcher",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_golden_book.py::test_preview_exposes_routing_source_never_google",
+        "tests/merchant_p0/test_p0_handshakes.py::test_hs_val_maps_route_with_source_labels"
+      ]
+    },
+    {
+      "id": "MP-BOOK-003",
+      "title": "Confirm idempotent (existing suite)",
+      "persona": "dispatcher",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/test_merchant_api_idempotency.py"]
+    },
+    {
+      "id": "MP-BOOK-004",
+      "title": "Live confirm → FleetbaseSyncJob via event handler",
+      "persona": "dispatcher",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_golden_book.py::test_live_confirm_path_enqueues_fleetbase_via_event_handler"
+      ]
+    },
+    {
+      "id": "MP-BOOK-GATE",
+      "title": "Dispatcher passes book module gate",
+      "persona": "dispatcher",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_personas_http.py::test_dispatcher_passes_book_module_gate"
+      ]
+    },
+    {
+      "id": "MP-RTE-001",
+      "title": "Route planner upload → optimize → confirm",
+      "persona": "dispatcher",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-RTE-002",
+      "title": "Optimize uses MapsService not Google geometry",
+      "persona": "dispatcher",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes.py::test_neg_no_google_distance_in_routing_facade"
+      ]
+    },
+    {
+      "id": "MP-ORD-001",
+      "title": "Orders list + Order 360",
+      "persona": "dispatcher",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-TRK-001",
+      "title": "Track page map tiles Google; GPS via API",
+      "persona": "viewer",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-BIL-001",
+      "title": "Billing hub invoices/statement",
+      "persona": "accounting",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-INT-001",
+      "title": "Integrations console keys/webhooks",
+      "persona": "owner",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-INT-GATE",
+      "title": "Accounting cannot open Shopify connection",
+      "persona": "accounting",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_personas_http.py::test_accounting_cannot_open_shopify_connection"
+      ]
+    },
+    {
+      "id": "MP-INT-OWNER",
+      "title": "Owner can open Shopify connection",
+      "persona": "owner",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_personas_http.py::test_owner_can_open_shopify_connection"
+      ]
+    },
+    {
+      "id": "MP-SHP-001",
+      "title": "Shopify install URL page",
+      "persona": "owner",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-SHP-002",
+      "title": "Shopify HMAC invalid → reject (existing)",
+      "persona": "owner",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/test_shopify_phase4.py::test_ingest_bad_hmac_raises_permission"]
+    },
+    {
+      "id": "MP-TEAM-002",
+      "title": "Persona jobs match MODULE_PERMISSIONS matrix",
+      "persona": "all",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_personas_http.py::test_persona_module_matrix_matches_job",
+        "tests/merchant_p0/test_p0_handshakes.py::test_mp_rbac_module_matrix_jobs"
+      ]
+    },
+    {
+      "id": "MP-JOB-OWNER",
+      "title": "Owner nav contract",
+      "persona": "owner",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented",
+      "covers": ["apps/merchant-portal/e2e/personas.p0.spec.ts"]
+    },
+    {
+      "id": "MP-JOB-DISPATCHER",
+      "title": "Dispatcher nav contract",
+      "persona": "dispatcher",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented",
+      "covers": ["apps/merchant-portal/e2e/personas.p0.spec.ts"]
+    },
+    {
+      "id": "MP-JOB-ACCOUNTING",
+      "title": "Accounting nav contract",
+      "persona": "accounting",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented",
+      "covers": ["apps/merchant-portal/e2e/personas.p0.spec.ts"]
+    },
+    {
+      "id": "MP-JOB-VIEWER",
+      "title": "Viewer nav contract",
+      "persona": "viewer",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented",
+      "covers": ["apps/merchant-portal/e2e/personas.p0.spec.ts"]
+    },
+    {
+      "id": "MP-SET-001",
+      "title": "Settings company/tax/warehouses",
+      "persona": "owner",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-NTF-001",
+      "title": "Notifications inbox",
+      "persona": "owner",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "MP-NTF-002",
+      "title": "Enable browser push (org-scoped FCM register)",
+      "persona": "dispatcher",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "implemented",
+      "covers": [
+        "apps/merchant-portal/e2e/push.p0.spec.ts",
+        "apps/api/tests/test_maps_firebase_push_gaps.py::test_gap07_merchant_notification_center_wires_register_browser_push"
+      ]
+    },
+    {
+      "id": "MP-REF-001",
+      "title": "Referrals page",
+      "persona": "owner",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+
+    {
+      "id": "AD-LIST-001",
+      "title": "Admin /merchants list",
+      "persona": "staff",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "AD-360-001",
+      "title": "Merchant 360 overview tab",
+      "persona": "staff",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "AD-360-006",
+      "title": "Merchant 360 pricing tab",
+      "persona": "staff",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "AD-360-007",
+      "title": "Merchant 360 people/team tab",
+      "persona": "staff",
+      "layer": "ui",
+      "runner": "playwright",
+      "status": "skeleton"
+    },
+    {
+      "id": "AD-LF-001",
+      "title": "Lifecycle approve/suspend/close (no DELETE)",
+      "persona": "staff",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/test_merchant_matrix_p0_arch.py::test_neg_arch_004_admin_merchants_router_has_no_hard_delete"
+      ]
+    },
+
+    {
+      "id": "HS-VAL-001",
+      "title": "MapsService Valhalla then OSRM source labels",
+      "persona": "system",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes.py::test_hs_val_maps_route_with_source_labels"
+      ]
+    },
+    {
+      "id": "HS-OSRM-001",
+      "title": "MapsService OSRM fallback when Valhalla None",
+      "persona": "system",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes.py::test_hs_osrm_fallback_when_valhalla_none"
+      ]
+    },
+    {
+      "id": "HS-CLERK-001",
+      "title": "Clerk merchant triad slot in registry",
+      "persona": "system",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/merchant_p0/test_p0_handshakes.py::test_hs_clerk_merchant_slot"]
+    },
+    {
+      "id": "HS-CLERK-002",
+      "title": "Clerk seat + merchant status portal gate",
+      "persona": "system",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes_wave2.py::test_hs_clerk_portal_denies_suspended_and_closed"
+      ]
+    },
+    {
+      "id": "HS-FB-001",
+      "title": "Fleetbase push_order enqueue-only",
+      "persona": "system",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes_wave2.py::test_hs_fb_push_order_enqueues_retry_queue"
+      ]
+    },
+    {
+      "id": "HS-FB-VALIDATE",
+      "title": "MerchantSync rejects suspended",
+      "persona": "system",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes_wave2.py::test_hs_fb_merchant_sync_rejects_suspended"
+      ]
+    },
+    {
+      "id": "HS-SHOP-001",
+      "title": "Shopify install URL OAuth shape",
+      "persona": "system",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes_wave2.py::test_hs_shop_install_url_oauth_shape"
+      ]
+    },
+    {
+      "id": "HS-SHOP-PUBLIC",
+      "title": "Public Shopify webhook router HMAC",
+      "persona": "system",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes_wave2.py::test_hs_shop_public_webhook_router_requires_hmac"
+      ]
+    },
+    {
+      "id": "HS-MAIL-001",
+      "title": "Local mail transport SMTP→Mailpit",
+      "persona": "system",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes_wave2.py::test_hs_mail_local_transport_is_smtp_for_mailpit"
+      ]
+    },
+    {
+      "id": "HS-MAIL-PROBE",
+      "title": "Diagnostics email probe labels Mailpit",
+      "persona": "system",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes_wave2.py::test_hs_mail_probe_labels_mailpit_host"
+      ]
+    },
+    {
+      "id": "HS-MAIL-COMPOSE",
+      "title": "Compose pins Mailpit not Mailhog",
+      "persona": "system",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/merchant_p0/test_p0_handshakes_wave2.py::test_hs_mail_compose_pins_mailpit_not_mailhog"
+      ]
+    },
+    {
+      "id": "HS-SHOP-ROUTER",
+      "title": "Shopify portal router stays thin (service call)",
+      "persona": "system",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/merchant_p0/test_p0_handshakes.py::test_thin_shopify_router"]
+    },
+    {
+      "id": "HS-BOOK-ROUTER",
+      "title": "booking_preview thin → _booking_flow.preview",
+      "persona": "system",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/merchant_p0/test_p0_handshakes.py::test_thin_booking_preview_router"]
+    },
+    {
+      "id": "API-SCHEMA-PREVIEW",
+      "title": "MerchantBookingPreviewResponse contract fields",
+      "persona": "system",
+      "layer": "api",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/merchant_p0/test_p0_handshakes.py::test_preview_schema_contract"]
+    },
+    {
+      "id": "NEG-ARCH-001",
+      "title": "Portal no Fleetbase/SocketCluster SDK",
+      "persona": "system",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": [
+        "tests/test_merchant_matrix_p0_arch.py::test_neg_arch_001_portal_never_imports_fleetbase_or_socketcluster"
+      ]
+    },
+    {
+      "id": "NAV-JOB-PARITY",
+      "title": "merchantPortalJob modules ↔ MODULE_PERMISSIONS",
+      "persona": "system",
+      "layer": "arch",
+      "runner": "pytest",
+      "status": "implemented",
+      "covers": ["tests/merchant_p0/test_p0_handshakes.py::test_nav_module_keys_exist_in_rbac"]
+    }
+  ]
+}
