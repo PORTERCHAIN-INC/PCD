@@ -116,6 +116,7 @@ def test_admin_operations_assign_and_queues(
     assert dispatch_order.state == OrderState.DISPATCH_READY.value
     assigned = svc.assign_driver(db, settings, admin_ctx, dispatch_order.id, driver.id)
     assert assigned.state == OrderState.DRIVER_ASSIGNED.value
+    assert assigned.assigned_driver_id == driver.id
 
 
 def test_admin_orders_force_transition_and_bulk(

@@ -148,9 +148,10 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
             add("driver_assigned", "in_app", "customer", customer_id)
             add("driver_assigned", "push", "customer", customer_id)
         if driver_id:
-            # D-13: job-facing copy for drivers (customer template stays driver_assigned).
-            add("job_assigned", "push", "driver", driver_id, category="tracking")
-            add("job_assigned", "in_app", "driver", driver_id, category="tracking")
+            # Loud ring on phone: high priority → ops_critical channel + sound/vibrate.
+            # category=orders so prefs/grouping treat this as a job offer, not quiet tracking.
+            add("job_assigned", "push", "driver", driver_id, category="orders", pri="high")
+            add("job_assigned", "in_app", "driver", driver_id, category="orders", pri="high")
         if merchant_id:
             add("driver_assigned", "in_app", "merchant", merchant_id)
         # Ops board already tracks assignment — skip staff in_app spam.

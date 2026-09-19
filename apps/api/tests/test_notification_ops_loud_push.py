@@ -71,6 +71,23 @@ def test_routine_parcel_events_do_not_staff_push(event_type: str) -> None:
     assert not staff_push, f"unexpected staff push for {event_type}: {staff_push}"
 
 
+def test_driver_assigned_rings_driver_phone() -> None:
+    """Assign must offer a high-priority job_assigned push so the phone rings for accept."""
+    specs = _specs_for_event(DomainEventType.DRIVER_ASSIGNED, _payload())
+    driver_push = [
+        s
+        for s in specs
+        if s["channel"] == "push"
+        and s["recipient_type"] == "driver"
+        and s["recipient_id"] == "drv-1"
+        and s["template_key"] == "job_assigned"
+    ]
+    assert len(driver_push) == 1, driver_push
+    assert driver_push[0]["priority"] == "high"
+    assert driver_push[0]["category"] == "orders"
+    assert resolve_channel_id(priority="high", category="orders") == CHANNEL_OPS_CRITICAL
+
+
 def test_resolve_channel_id_urgent() -> None:
     assert resolve_channel_id(priority="critical", category="orders") == CHANNEL_OPS_CRITICAL
     assert resolve_channel_id(priority="high", category="orders") == CHANNEL_OPS_CRITICAL

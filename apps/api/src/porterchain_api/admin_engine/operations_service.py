@@ -103,6 +103,19 @@ class AdminOperationsService:
             raise ValueError(gap)
         if requires_medical_certified(order.compliance_metadata) and not driver.medical_transport_certified:
             raise ValueError("driver_not_medical_certified")
+        # Bind driver before publish so job list + hydrate see assigned_driver_id
+        # when the phone rings (order.driver_assigned → job_assigned push).
+        order.assigned_driver_id = driver_id
+        db.flush()
+        assign_payload = {
+            "driver_id": driver_id,
+            "order_id": order.id,
+            "order_number": order.order_number,
+            "tracking_number": order.tracking_number,
+            "customer_id": order.customer_id,
+            "merchant_id": order.merchant_id,
+            "driver_deep_link": f"/jobs/{order.id}",
+        }
         transition_order_state(
             db,
             order,
@@ -110,17 +123,8 @@ class AdminOperationsService:
             event_type="order.driver_assigned",
             actor_type="admin",
             actor_id=ctx.user.id,
-            payload={
-                "driver_id": driver_id,
-                "order_id": order.id,
-                "order_number": order.order_number,
-                "tracking_number": order.tracking_number,
-                "customer_id": order.customer_id,
-                "merchant_id": order.merchant_id,
-            },
+            payload=assign_payload,
         )
-        order.assigned_driver_id = driver_id
-        db.flush()
         db.add(
             AdminAuditLog(
                 actor_user_id=ctx.user.id,
@@ -137,14 +141,7 @@ class AdminOperationsService:
             aggregate_id=order_id,
             actor_type="admin",
             actor_id=ctx.user.id,
-            payload={
-                "driver_id": driver_id,
-                "order_id": order.id,
-                "order_number": order.order_number,
-                "tracking_number": order.tracking_number,
-                "customer_id": order.customer_id,
-                "merchant_id": order.merchant_id,
-            },
+            payload=assign_payload,
         )
         return order
 

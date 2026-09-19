@@ -27,6 +27,9 @@ CUSTOMER_WEB = ROOT / "apps/customer/src/lib/api.ts"
 DRIVER_WEB_PROXY = ROOT / "apps/driver-portal/src/app/api/driver/[...path]/route.ts"
 DRIVER_WEB_API = ROOT / "apps/driver-portal/src/lib/api.ts"
 DRIVER_MOBILE_API = ROOT / "apps/mobile-driver/src/api.ts"
+DRIVER_JOB_SCHEMA = ROOT / "apps/api/src/porterchain_api/schemas_driver.py"
+DRIVER_WEB_JOBS = ROOT / "apps/driver-portal/src/lib/jobs.ts"
+DRIVER_MOBILE_TYPES = ROOT / "apps/mobile-driver/src/types.ts"
 
 
 def _customer_paths(path: Path) -> set[str]:
@@ -34,6 +37,67 @@ def _customer_paths(path: Path) -> set[str]:
     paths = set(re.findall(r"/v1/customers/me/[a-z/_${}]+", text))
     paths |= {m.replace("${v1}", "/v1") for m in re.findall(r"\$\{v1\}/customers/me/[a-z/_${}-]+", text)}
     return paths
+
+
+def _pydantic_model_fields(text: str, class_name: str) -> set[str]:
+    """Field names on a simple BaseModel block (stops at next top-level class)."""
+    match = re.search(
+        rf"^class {re.escape(class_name)}\(BaseModel\):\n(.*?)(?=^class |\Z)",
+        text,
+        flags=re.M | re.S,
+    )
+    if not match:
+        return set()
+    return set(re.findall(r"^    ([a-zA-Z_][a-zA-Z0-9_]*)\s*:", match.group(1), flags=re.M))
+
+
+def _ts_interface_fields(text: str, type_name: str) -> set[str]:
+    """Field names on `export interface|type Name = {{ ... }}` (one level)."""
+    match = re.search(
+        rf"export (?:interface|type) {re.escape(type_name)}\s*(?:=\s*)?\{{(.*?)\n\}}",
+        text,
+        flags=re.S,
+    )
+    if not match:
+        return set()
+    return set(re.findall(r"^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*[?]?:", match.group(1), flags=re.M))
+
+
+def _check_driver_job_summary_parity() -> list[str]:
+    """Client DriverJobSummary fields must be a subset of the API schema (no silent drift)."""
+    failures: list[str] = []
+    api_fields = _pydantic_model_fields(DRIVER_JOB_SCHEMA.read_text(), "DriverJobSummary")
+    if not api_fields:
+        return ["DriverJobSummary missing from schemas_driver.py"]
+    web_fields = _ts_interface_fields(DRIVER_WEB_JOBS.read_text(), "DriverJobSummary")
+    mobile_fields = _ts_interface_fields(DRIVER_MOBILE_TYPES.read_text(), "DriverJobSummary")
+    if not web_fields:
+        failures.append("driver-portal DriverJobSummary type missing")
+    if not mobile_fields:
+        failures.append("mobile-driver DriverJobSummary type missing")
+    for label, fields in (("web", web_fields), ("mobile", mobile_fields)):
+        unknown = sorted(fields - api_fields)
+        if unknown:
+            failures.append(f"DriverJobSummary {label} fields not on API: {', '.join(unknown)}")
+    # Web is the full desk mirror — require the API required-ish core set.
+    core = {
+        "order_id",
+        "order_number",
+        "tracking_number",
+        "state",
+        "status",
+        "bucket",
+        "pickup_address",
+        "delivery_address",
+    }
+    missing_web = sorted(core - web_fields)
+    if missing_web:
+        failures.append(f"driver-portal DriverJobSummary missing core fields: {', '.join(missing_web)}")
+    missing_mobile = sorted({"order_id", "order_number", "tracking_number"} - mobile_fields)
+    if missing_mobile:
+        failures.append(f"mobile-driver DriverJobSummary missing core fields: {', '.join(missing_mobile)}")
+    return failures
+
 
 
 
@@ -562,6 +626,7 @@ def main() -> int:
     failures.extend(_check_service_loc())
     failures.extend(_check_service_modularity())
     failures.extend(_check_engine_service_loc())
+    failures.extend(_check_driver_job_summary_parity())
 
     web_customer = _customer_paths(CUSTOMER_WEB)
 

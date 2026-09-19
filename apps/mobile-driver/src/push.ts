@@ -72,7 +72,8 @@ export async function collectPush(): Promise<PushState> {
     });
     await Notifications.setNotificationChannelAsync("assignments", {
       name: "Assignments",
-      importance: Notifications.AndroidImportance.HIGH,
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 400, 200, 400],
       sound: "default",
     });
     await Notifications.setNotificationChannelAsync("tracking", {

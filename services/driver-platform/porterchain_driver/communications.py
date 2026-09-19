@@ -17,7 +17,7 @@ NOTIFICATION_GROUPS = (
 )
 
 GROUP_TEMPLATES: dict[str, frozenset[str]] = {
-    "assignment": frozenset({"driver_assigned", "driver_accepted", "dispatch.assigned"}),
+    "assignment": frozenset({"driver_assigned", "job_assigned", "driver_accepted", "dispatch.assigned"}),
     "route_changes": frozenset({"driver_route_changed", "tracking_update", "in_transit", "near_delivery"}),
     "emergency": frozenset({"driver_alert", "driver.emergency"}),
     "support": frozenset({"support_ticket_created", "support_reply"}),
