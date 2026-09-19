@@ -1,8 +1,13 @@
 import { Platform } from "react-native";
 import type { PushState } from "./types";
-import { registerPush, unregisterPush } from "./api";
+import { acceptOrder, registerPush, rejectOrder, unregisterPush } from "./api";
 import { orderIdFromPushData } from "./linking";
 import { clearRememberedPushToken, readRememberedPushToken, rememberPushToken } from "./pushToken";
+
+/** Must match FCM `categoryId` / APNs `category` for job_assigned pushes. */
+export const JOB_OFFER_CATEGORY = "job_offer";
+export const JOB_OFFER_ACCEPT = "accept";
+export const JOB_OFFER_DECLINE = "decline";
 
 function isFcmToken(token: string): boolean {
   return token.includes(":APA91");
@@ -33,6 +38,55 @@ function dataFromResponse(response: {
 }): Record<string, unknown> | null {
   const data = response.notification.request.content.data;
   return data && typeof data === "object" ? (data as Record<string, unknown>) : null;
+}
+
+async function ensureJobOfferCategory(
+  Notifications: typeof import("expo-notifications")
+): Promise<void> {
+  await Notifications.setNotificationCategoryAsync(JOB_OFFER_CATEGORY, [
+    {
+      identifier: JOB_OFFER_ACCEPT,
+      buttonTitle: "Accept",
+      options: { opensAppToForeground: false },
+    },
+    {
+      identifier: JOB_OFFER_DECLINE,
+      buttonTitle: "Decline",
+      options: { opensAppToForeground: false, isDestructive: true },
+    },
+  ]);
+}
+
+const ACTIVE_JOB_NOTIF_ID = "porterchain-active-job";
+
+export async function setActiveJobNotification(
+  job: {
+    orderId: string;
+    orderNumber?: string | null;
+  } | null
+): Promise<void> {
+  const Notifications = await loadNotifications();
+  if (!Notifications) return;
+  try {
+    await Notifications.dismissNotificationAsync(ACTIVE_JOB_NOTIF_ID).catch(() => undefined);
+  } catch {
+    /* ignore */
+  }
+  if (!job) return;
+  await ensureJobOfferCategory(Notifications);
+  await Notifications.scheduleNotificationAsync({
+    identifier: ACTIVE_JOB_NOTIF_ID,
+    content: {
+      title: "Job in progress",
+      body: job.orderNumber
+        ? `Working ${job.orderNumber} — tap for details`
+        : "Active job — tap for details",
+      data: { order_id: job.orderId, categoryId: JOB_OFFER_CATEGORY },
+      sticky: true,
+      sound: undefined,
+    },
+    trigger: null,
+  });
 }
 
 /** Best-effort server revoke before local sign-out (still has bearer). */
@@ -81,6 +135,8 @@ export async function collectPush(): Promise<PushState> {
       importance: Notifications.AndroidImportance.DEFAULT,
     });
   }
+
+  await ensureJobOfferCategory(Notifications);
 
   const existing = await Notifications.getPermissionsAsync();
   let status = existing.status;
@@ -150,20 +206,67 @@ export async function collectPush(): Promise<PushState> {
   }
 }
 
-export type PushOpenPayload = { orderId: string | null };
+export type PushOpenPayload = {
+  orderId: string | null;
+  /** Default notification tap opens the job. Accept/Decline only open on API failure. */
+  action: "open" | "accept" | "decline";
+  error?: string;
+};
+
+async function handleJobOfferResponse(
+  response: {
+    actionIdentifier: string;
+    notification: { request: { content: { data?: Record<string, unknown> } } };
+  },
+  onOpen: (payload: PushOpenPayload) => void
+): Promise<void> {
+  const orderId = orderIdFromPushData(dataFromResponse(response));
+  const actionId = response.actionIdentifier;
+
+  if (actionId === JOB_OFFER_ACCEPT && orderId) {
+    try {
+      await acceptOrder(orderId);
+      onOpen({ orderId, action: "accept" });
+    } catch (err) {
+      onOpen({
+        orderId,
+        action: "accept",
+        error: err instanceof Error ? err.message : "accept_failed",
+      });
+    }
+    return;
+  }
+
+  if (actionId === JOB_OFFER_DECLINE && orderId) {
+    try {
+      await rejectOrder(orderId, "unavailable");
+      onOpen({ orderId, action: "decline" });
+    } catch (err) {
+      onOpen({
+        orderId,
+        action: "decline",
+        error: err instanceof Error ? err.message : "reject_failed",
+      });
+    }
+    return;
+  }
+
+  onOpen({ orderId, action: "open" });
+}
 
 export function attachPushListeners(onOpen: (payload: PushOpenPayload) => void): () => void {
   let remove: (() => void) | undefined;
   void loadNotifications().then(async (Notifications) => {
     if (!Notifications) return;
+    await ensureJobOfferCategory(Notifications);
 
     const cold = await Notifications.getLastNotificationResponseAsync();
     if (cold) {
-      onOpen({ orderId: orderIdFromPushData(dataFromResponse(cold)) });
+      await handleJobOfferResponse(cold, onOpen);
     }
 
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      onOpen({ orderId: orderIdFromPushData(dataFromResponse(response)) });
+      void handleJobOfferResponse(response, onOpen);
     });
     remove = () => sub.remove();
   });

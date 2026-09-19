@@ -18,6 +18,10 @@ CHANNEL_OPS_CRITICAL = "ops_critical"
 CHANNEL_ASSIGNMENTS = "assignments"
 CHANNEL_TRACKING = "tracking"
 
+# Expo notification category — Accept / Decline on lock screen (mobile-driver push.ts).
+JOB_OFFER_CATEGORY_ID = "job_offer"
+JOB_OFFER_TEMPLATES = frozenset({"job_assigned"})
+
 
 def resolve_channel_id(*, priority: str = "normal", category: str = "operational") -> str:
     """Map engine priority/category → Android channel_id."""
@@ -112,20 +116,31 @@ def build_fcm_platform_config(
     *,
     priority: str,
     channel_id: str,
+    notification_category: str | None = None,
 ) -> tuple[Any, Any]:
     """Return (android_config, apns_config) for OS-level urgency."""
     urgent = _is_urgent(priority)
+    android_notif: dict[str, Any] = {
+        "channel_id": channel_id,
+        "sound": "default",
+        "priority": (
+            "max"
+            if (priority or "").lower() == "critical"
+            else ("high" if urgent else "default")
+        ),
+        "default_vibrate_timings": urgent,
+    }
+    if notification_category:
+        # Maps to Expo categoryId / Android action category for Accept|Decline.
+        android_notif["click_action"] = notification_category
     android = messaging.AndroidConfig(
         priority="high" if urgent else "normal",
-        notification=messaging.AndroidNotification(
-            channel_id=channel_id,
-            sound="default",
-            priority="max" if (priority or "").lower() == "critical" else ("high" if urgent else "default"),
-            default_vibrate_timings=urgent,
-        ),
+        notification=messaging.AndroidNotification(**android_notif),
     )
     apns_headers = {"apns-priority": "10" if urgent else "5"}
     aps_kwargs: dict[str, Any] = {"sound": "default"}
+    if notification_category:
+        aps_kwargs["category"] = notification_category
     if urgent:
         # iOS 15+ time-sensitive (no Critical Alerts entitlement required)
         aps_kwargs["custom_data"] = {"interruption-level": "time-sensitive"}
@@ -154,6 +169,8 @@ class FCMService:
         priority: str = "normal",
         category: str = "operational",
         channel_id: str | None = None,
+        template_key: str | None = None,
+        notification_category: str | None = None,
     ) -> tuple[bool, str | None, bool]:
         """Returns (success, error_message, token_invalid)."""
         settings = get_platform_settings()
@@ -175,14 +192,24 @@ class FCMService:
         from firebase_admin import messaging
 
         ch = channel_id or resolve_channel_id(priority=priority, category=category)
+        offer_cat = notification_category
+        if offer_cat is None and template_key in JOB_OFFER_TEMPLATES:
+            offer_cat = JOB_OFFER_CATEGORY_ID
         payload_data = {k: str(v) for k, v in (data or {}).items() if v is not None}
         if deep_link:
             payload_data["deep_link"] = deep_link
         payload_data.setdefault("priority", str(priority or "normal"))
         payload_data.setdefault("category", str(category or "operational"))
         payload_data.setdefault("channel_id", ch)
+        if offer_cat:
+            payload_data.setdefault("categoryId", offer_cat)
 
-        android, apns = build_fcm_platform_config(messaging, priority=priority, channel_id=ch)
+        android, apns = build_fcm_platform_config(
+            messaging,
+            priority=priority,
+            channel_id=ch,
+            notification_category=offer_cat,
+        )
 
         message = messaging.Message(
             notification=messaging.Notification(title=title, body=body),

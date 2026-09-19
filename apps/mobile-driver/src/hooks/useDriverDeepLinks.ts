@@ -28,9 +28,16 @@ export function useDriverDeepLinks({ onInvite, onJob, onPushWithoutJob }: Option
   }, [onInvite, onJob]);
 
   useEffect(() => {
-    return attachPushListeners(({ orderId }) => {
-      if (orderId) {
-        onJob(orderId);
+    return attachPushListeners((payload) => {
+      // Lock-screen Accept/Decline: open JobDetail only when the API call failed.
+      if (payload.action === "accept" || payload.action === "decline") {
+        if (payload.error && payload.orderId) {
+          onJob(payload.orderId);
+        }
+        return;
+      }
+      if (payload.orderId) {
+        onJob(payload.orderId);
         return;
       }
       onPushWithoutJob();

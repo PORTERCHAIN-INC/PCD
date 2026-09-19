@@ -58,6 +58,15 @@ def test_api_d_02_jobs_lifecycle_openapi_routes() -> None:
 
 
 @pytest.mark.driver_p0
+def test_api_d_02_accept_reject_request_schema() -> None:
+    """Lock-screen Decline posts AcceptRejectRequest.reason; Accept may omit body."""
+    from porterchain_api.schemas_driver import AcceptRejectRequest
+
+    assert AcceptRejectRequest().reason is None
+    assert AcceptRejectRequest(reason="unavailable").reason == "unavailable"
+
+
+@pytest.mark.driver_p0
 def test_api_d_04_package_scan_phase_validation() -> None:
     """API-D-04 — scan_qr_from_body rejects invalid phase before package work."""
     order = SimpleNamespace(id="ord-scan")
@@ -94,6 +103,27 @@ def test_api_d_07_offline_executor_dispatches_arrive() -> None:
     )
     platform.stops.arrive_stop.assert_called_once_with(
         db, driver, "stop-1", fleetbase_bridge=bridge
+    )
+
+
+@pytest.mark.driver_p0
+def test_api_d_07_offline_executor_dispatches_deliver() -> None:
+    """API-D-07 — deliver_stop replays through StopsService (sync meter path)."""
+    platform = MagicMock()
+    executor = DriverOfflineExecutor(platform=platform)
+    db = MagicMock()
+    driver = SimpleNamespace(id="d1")
+    bridge = MagicMock()
+
+    executor.execute(
+        db,
+        driver,
+        "deliver_stop",
+        {"stop_id": "stop-2"},
+        fleetbase_bridge=bridge,
+    )
+    platform.stops.deliver_stop.assert_called_once_with(
+        db, driver, "stop-2", fleetbase_bridge=bridge
     )
 
 

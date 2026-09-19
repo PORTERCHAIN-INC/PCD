@@ -25,7 +25,7 @@ import type {
   WalletSnapshot,
 } from "../types";
 
-export function MoneyScreen() {
+export function MoneyScreen({ refreshToken = 0 }: { refreshToken?: number }) {
   const [wallet, setWallet] = useState<WalletSnapshot | null>(null);
   const [earnings, setEarnings] = useState<EarningsSnapshot | null>(null);
   const [todayCents, setTodayCents] = useState<number | null>(null);
@@ -56,7 +56,7 @@ export function MoneyScreen() {
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : "money_failed");
       });
-  }, []);
+  }, [refreshToken]);
 
   return (
     <Screen testID="mobile-money">

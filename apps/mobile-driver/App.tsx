@@ -15,6 +15,7 @@ import { useEnterRoute } from "./src/hooks/useEnterRoute";
 import { useFieldSession } from "./src/hooks/useFieldSession";
 import { openTurnByTurn } from "./src/maps";
 import { flushOfflineQueues, runOnlineOrQueue } from "./src/offline";
+import { setActiveJobNotification } from "./src/push";
 import { DocsScreen } from "./src/screens/DocsScreen";
 import { ForceUpdateScreen } from "./src/screens/ForceUpdateScreen";
 import { InboxScreen } from "./src/screens/InboxScreen";
@@ -44,6 +45,8 @@ function DriverApp() {
   const [navBusy, setNavBusy] = useState(false);
   const [podDraft, setPodDraft] = useState<PodDraft>(emptyPodDraft());
   const [focusOrderId, setFocusOrderId] = useState<string | null>(null);
+  const [scanComplete, setScanComplete] = useState(false);
+  const [moneyTick, setMoneyTick] = useState(0);
   const [updatePolicy, setUpdatePolicy] = useState<MobileDriverPolicy | null>(null);
   const [updateSoft, setUpdateSoft] = useState(false);
 
@@ -56,12 +59,25 @@ function DriverApp() {
     offlinePending,
     offlineNote,
     setOfflineNote,
+    lastFlush,
     applyFlush,
     refreshHandshake,
     refreshOfflineCount,
     goOnDuty,
     goOffDuty,
   } = useFieldSession();
+
+  useEffect(() => {
+    const orderId = handshake.currentOrderId;
+    if (!orderId || !handshake.online) {
+      void setActiveJobNotification(null);
+      return;
+    }
+    void setActiveJobNotification({
+      orderId,
+      orderNumber: handshake.currentOrderNumber,
+    });
+  }, [handshake.currentOrderId, handshake.currentOrderNumber, handshake.online]);
 
   useEffect(() => {
     void fetchPublicHealth()
@@ -196,8 +212,11 @@ function DriverApp() {
               podDraft={podDraft}
               offlinePending={offlinePending}
               offlineNote={offlineNote}
+              lastFlush={lastFlush}
+              scanComplete={scanComplete}
               onDismissOfflineNote={() => setOfflineNote(null)}
               onPodChange={setPodDraft}
+              onScanCompleteChange={setScanComplete}
               onRefresh={() => void refreshHandshake()}
               onDuty={() =>
                 void runAction("duty", async () => {
@@ -219,16 +238,17 @@ function DriverApp() {
                 })
               }
               onComplete={() =>
-                void runAction("deliver", () =>
-                  completeStopAction({
+                void runAction("deliver", async () => {
+                  await completeStopAction({
                     routeId: handshake.routeId,
                     stopId: handshake.stopId,
                     nextStopType: handshake.nextStopType,
                     otpRequired: handshake.otpRequired,
                     podDraft,
                     setPodDraft,
-                  })
-                )
+                  });
+                  setMoneyTick((n) => n + 1);
+                })
               }
               onAccept={() =>
                 void runAction("accept", () => {
@@ -286,7 +306,7 @@ function DriverApp() {
               onSequenceApplied={() => void refreshHandshake()}
             />
           ) : null}
-          {tab === "money" ? <MoneyScreen /> : null}
+          {tab === "money" ? <MoneyScreen refreshToken={moneyTick} /> : null}
           {tab === "docs" ? <DocsScreen /> : null}
           {tab === "more" ? (
             <MoreScreen

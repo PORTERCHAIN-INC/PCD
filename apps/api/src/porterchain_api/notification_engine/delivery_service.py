@@ -593,6 +593,7 @@ class DeliveryService:
                     priority=priority,
                     category=category,
                     channel_id=channel_id,
+                    template_key=template,
                 )
                 if invalid:
                     devices.invalidate_token(db, t)

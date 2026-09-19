@@ -88,6 +88,57 @@ def test_driver_assigned_rings_driver_phone() -> None:
     assert resolve_channel_id(priority="high", category="orders") == CHANNEL_OPS_CRITICAL
 
 
+def test_job_assigned_push_carries_order_id_and_deep_link() -> None:
+    """Lock-screen Accept needs order_id (+ optional /jobs/{id} deep link) in the push context."""
+    from porterchain_api.notification_engine.fcm_service import JOB_OFFER_CATEGORY_ID
+
+    payload = {
+        **_payload(),
+        "order_id": "ord-lock-1",
+        "driver_deep_link": "/jobs/ord-lock-1",
+    }
+    specs = _specs_for_event(DomainEventType.DRIVER_ASSIGNED, payload)
+    driver_push = next(
+        s
+        for s in specs
+        if s["channel"] == "push" and s["template_key"] == "job_assigned"
+    )
+    ctx = driver_push["context"]
+    assert ctx.get("order_id") == "ord-lock-1"
+    assert (driver_push.get("deep_link") or ctx.get("driver_deep_link") or "").endswith(
+        "ord-lock-1"
+    )
+    assert "job_assigned" in __import__(
+        "porterchain_api.notification_engine.fcm_service", fromlist=["JOB_OFFER_TEMPLATES"]
+    ).JOB_OFFER_TEMPLATES
+    assert JOB_OFFER_CATEGORY_ID == "job_offer"
+
+
+def test_build_fcm_job_offer_category() -> None:
+    from porterchain_api.notification_engine.fcm_service import (
+        JOB_OFFER_CATEGORY_ID,
+        build_fcm_platform_config,
+    )
+
+    messaging = SimpleNamespace(
+        AndroidConfig=MagicMock(side_effect=lambda **kw: ("android", kw)),
+        AndroidNotification=MagicMock(side_effect=lambda **kw: ("android_notif", kw)),
+        APNSConfig=MagicMock(side_effect=lambda **kw: ("apns", kw)),
+        APNSPayload=MagicMock(side_effect=lambda **kw: ("apns_payload", kw)),
+        Aps=MagicMock(side_effect=lambda **kw: ("aps", kw)),
+    )
+    build_fcm_platform_config(
+        messaging,
+        priority="high",
+        channel_id=CHANNEL_OPS_CRITICAL,
+        notification_category=JOB_OFFER_CATEGORY_ID,
+    )
+    notif_kwargs = messaging.AndroidNotification.call_args.kwargs
+    assert notif_kwargs.get("click_action") == JOB_OFFER_CATEGORY_ID
+    aps_kwargs = messaging.Aps.call_args.kwargs
+    assert aps_kwargs.get("category") == JOB_OFFER_CATEGORY_ID
+
+
 def test_resolve_channel_id_urgent() -> None:
     assert resolve_channel_id(priority="critical", category="orders") == CHANNEL_OPS_CRITICAL
     assert resolve_channel_id(priority="high", category="orders") == CHANNEL_OPS_CRITICAL
@@ -110,6 +161,18 @@ def test_build_fcm_platform_config_urgent() -> None:
     assert apns[1]["headers"]["apns-priority"] == "10"
     aps_kwargs = messaging.Aps.call_args.kwargs
     assert aps_kwargs.get("custom_data", {}).get("interruption-level") == "time-sensitive"
+
+
+def test_active_job_sticky_notification_wired_in_mobile_push() -> None:
+    """D8 — ongoing/sticky active-job notification (no Apple Live Activity entitlement required)."""
+    from pathlib import Path
+
+    push = Path(__file__).resolve().parents[2] / "mobile-driver/src/push.ts"
+    text = push.read_text()
+    assert "setActiveJobNotification" in text
+    assert "sticky: true" in text
+    assert "porterchain-active-job" in text
+    assert "Job in progress" in text
 
 
 def test_admin_cannot_mute_critical_push(db) -> None:

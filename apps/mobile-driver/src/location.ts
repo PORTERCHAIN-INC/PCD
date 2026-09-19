@@ -1,12 +1,28 @@
 import { Platform } from "react-native";
-import { pingLocation } from "./api";
+import { pingLocation, setAvailability } from "./api";
 import { locationPingMs } from "./config";
 import { enqueueGpsPing } from "./offline";
 import { DRIVER_LOCATION_TASK } from "./locationTask";
 import type { LocationState } from "./types";
 
+/** Soft-offline if no successful ping for this long while on duty. */
+export const STALE_LOCATION_MS = 5 * 60_000;
+
+let lastSuccessfulPingAt = 0;
+let softOfflineArmed = false;
+
 export function idleLocation(): LocationState {
   return { kind: "idle", detail: "Location idle — on-duty pings go to Fleetbase" };
+}
+
+export function markLocationPingSuccess(at = Date.now()): void {
+  lastSuccessfulPingAt = at;
+  softOfflineArmed = false;
+}
+
+export function isLocationStale(now = Date.now()): boolean {
+  if (!lastSuccessfulPingAt) return false;
+  return now - lastSuccessfulPingAt > STALE_LOCATION_MS;
 }
 
 async function loadLocation() {
@@ -53,6 +69,7 @@ export async function sendLocationPing(): Promise<LocationState> {
         heading: pos.coords.heading,
         speed_mps: pos.coords.speed,
       });
+      markLocationPingSuccess();
       return { kind: "granted", detail: "Location ping sent to Fleetbase" };
     } catch {
       await enqueueGpsPing({
@@ -69,6 +86,22 @@ export async function sendLocationPing(): Promise<LocationState> {
       kind: "error",
       detail: err instanceof Error ? err.message : "location_ping_failed",
     };
+  }
+}
+
+/** Signal soft-offline once when GPS goes stale while on duty (Fleetbase remains SoT). */
+export async function maybeSoftOfflineOnStale(online: boolean): Promise<LocationState | null> {
+  if (!online || softOfflineArmed || !isLocationStale()) return null;
+  softOfflineArmed = true;
+  try {
+    await setAvailability("offline");
+    return {
+      kind: "error",
+      detail: "GPS stale — soft offline signaled to dispatch",
+    };
+  } catch {
+    softOfflineArmed = false;
+    return null;
   }
 }
 
@@ -96,6 +129,7 @@ export async function startBackgroundLocation(): Promise<LocationState> {
             : undefined,
       });
     }
+    markLocationPingSuccess();
     return {
       kind: "granted",
       detail: "Background location active — Fleetbase keeps the van on the map",
@@ -129,6 +163,10 @@ export function startLocationLoop(
     if (cancelled || !shouldPing()) return;
     const next = await sendLocationPing();
     if (!cancelled) onState(next);
+    if (!cancelled && shouldPing()) {
+      const soft = await maybeSoftOfflineOnStale(true);
+      if (soft && !cancelled) onState(soft);
+    }
   };
   void tick();
   const timer = setInterval(() => void tick(), locationPingMs);

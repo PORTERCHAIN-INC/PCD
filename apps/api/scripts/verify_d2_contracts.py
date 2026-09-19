@@ -40,9 +40,9 @@ def _customer_paths(path: Path) -> set[str]:
 
 
 def _pydantic_model_fields(text: str, class_name: str) -> set[str]:
-    """Field names on a simple BaseModel block (stops at next top-level class)."""
+    """Field names on a BaseModel (or subclass) block (stops at next top-level class)."""
     match = re.search(
-        rf"^class {re.escape(class_name)}\(BaseModel\):\n(.*?)(?=^class |\Z)",
+        rf"^class {re.escape(class_name)}\([^)]+\):\n(.*?)(?=^class |\Z)",
         text,
         flags=re.M | re.S,
     )
@@ -52,15 +52,16 @@ def _pydantic_model_fields(text: str, class_name: str) -> set[str]:
 
 
 def _ts_interface_fields(text: str, type_name: str) -> set[str]:
-    """Field names on `export interface|type Name = {{ ... }}` (one level)."""
-    match = re.search(
+    """Field names on `export interface|type Name = {{ ... }}` (one level / intersection)."""
+    patterns = (
+        rf"export (?:interface|type) {re.escape(type_name)}\s*=\s*[A-Za-z_][\w.]*\s*&\s*\{{(.*?)\n\}}",
         rf"export (?:interface|type) {re.escape(type_name)}\s*(?:=\s*)?\{{(.*?)\n\}}",
-        text,
-        flags=re.S,
     )
-    if not match:
-        return set()
-    return set(re.findall(r"^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*[?]?:", match.group(1), flags=re.M))
+    for pat in patterns:
+        match = re.search(pat, text, flags=re.S)
+        if match:
+            return set(re.findall(r"^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*[?]?:", match.group(1), flags=re.M))
+    return set()
 
 
 def _check_driver_job_summary_parity() -> list[str]:
@@ -96,6 +97,31 @@ def _check_driver_job_summary_parity() -> list[str]:
     missing_mobile = sorted({"order_id", "order_number", "tracking_number"} - mobile_fields)
     if missing_mobile:
         failures.append(f"mobile-driver DriverJobSummary missing core fields: {', '.join(missing_mobile)}")
+
+    # Detail + offline request shapes — clients may be subsets, but must not invent fields.
+    detail_api = _pydantic_model_fields(DRIVER_JOB_SCHEMA.read_text(), "DriverJobDetailResponse")
+    detail_mobile = _ts_interface_fields(DRIVER_MOBILE_TYPES.read_text(), "DriverJobDetail")
+    # DriverJobDetail is an intersection type on mobile — also accept type alias fields via Summary.
+    if detail_mobile:
+        unknown_detail = sorted(detail_mobile - detail_api - api_fields)
+        if unknown_detail:
+            failures.append(
+                f"DriverJobDetail mobile fields not on API: {', '.join(unknown_detail)}"
+            )
+    for required in ("otp_required", "scan_pickup", "scan_delivery"):
+        if required not in detail_api:
+            failures.append(f"DriverJobDetailResponse missing {required}")
+
+    offline_api = _pydantic_model_fields(DRIVER_JOB_SCHEMA.read_text(), "OfflineActionRequest")
+    if not offline_api:
+        failures.append("OfflineActionRequest missing from schemas_driver.py")
+    elif "action_type" not in offline_api:
+        failures.append("OfflineActionRequest missing action_type")
+    mobile_types = DRIVER_MOBILE_TYPES.read_text()
+    if "OfflineStatus" not in mobile_types:
+        failures.append("mobile-driver missing OfflineStatus type")
+    if "OfflineSyncResult" not in mobile_types:
+        failures.append("mobile-driver missing OfflineSyncResult type")
     return failures
 
 

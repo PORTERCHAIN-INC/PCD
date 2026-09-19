@@ -297,8 +297,12 @@ class DriverJobDetailResponse(DriverJobSummary):
     incidents: list[dict] = Field(default_factory=list)
     amount_cents: int = 0
     currency: str = "cad"
+    cod_amount_cents: int | None = None
+    cod_status: str | None = None
     updated_at: str | None = None
     route_id: str | None = None
+    pickup_stop_id: str | None = None
+    delivery_stop_id: str | None = None
 
 
 class DriverDevLoginRequest(BaseModel):

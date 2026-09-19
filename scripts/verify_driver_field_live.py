@@ -29,6 +29,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BASE = os.environ.get("DRIVER_API_BASE", "http://127.0.0.1:8001").rstrip("/")
 TOKEN = os.environ.get("DRIVER_API_TOKEN", "dev")
+PUSH_TS = ROOT / "apps/mobile-driver/src/push.ts"
+FCM_PY = ROOT / "apps/api/src/porterchain_api/notification_engine/fcm_service.py"
+
+
+def _assert_job_offer_category_pins() -> None:
+    """EAS/live ring proof requires matching Expo category + FCM categoryId."""
+    push = PUSH_TS.read_text()
+    fcm = FCM_PY.read_text()
+    if 'JOB_OFFER_CATEGORY = "job_offer"' not in push:
+        raise SystemExit("FAIL: mobile push.ts missing JOB_OFFER_CATEGORY=job_offer")
+    if 'JOB_OFFER_CATEGORY_ID = "job_offer"' not in fcm:
+        raise SystemExit("FAIL: fcm_service missing JOB_OFFER_CATEGORY_ID=job_offer")
+    if "setNotificationCategoryAsync" not in push:
+        raise SystemExit("FAIL: mobile push.ts missing lock-screen Accept/Decline category")
+    print("  OK job_offer category pins (push.ts ↔ fcm_service)")
 
 
 def _call(method: str, path: str, body: dict | None = None) -> tuple[int, dict | str]:
@@ -63,6 +78,11 @@ def _call(method: str, path: str, body: dict | None = None) -> tuple[int, dict |
 def main() -> int:
     failures: list[str] = []
     print(f"Driver field-proof live ({BASE})")
+
+    try:
+        _assert_job_offer_category_pins()
+    except SystemExit as exc:
+        failures.append(str(exc))
 
     code, comms = _call("GET", "/driver-api/v1/communications")
     if code != 200 or not isinstance(comms, dict):

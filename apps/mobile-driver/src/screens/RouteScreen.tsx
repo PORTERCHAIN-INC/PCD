@@ -1,6 +1,8 @@
 import { Text, View, StyleSheet, ScrollView } from "react-native";
 import { colors, radius, spacing, typography } from "@porterchain/mobile-theme";
 import { formatCents, formatEtaMinutes } from "../format";
+import type { FlushResult } from "../offline";
+import { buildStopChecklist } from "../stopChecklist";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Kpi } from "../ui/Card";
 import { Screen } from "../ui/Screen";
@@ -18,8 +20,11 @@ type Props = {
   podDraft: PodDraft;
   offlinePending: number;
   offlineNote: string | null;
+  lastFlush: FlushResult | null;
+  scanComplete: boolean;
   onDismissOfflineNote: () => void;
   onPodChange: (next: PodDraft) => void;
+  onScanCompleteChange: (complete: boolean) => void;
   onRefresh: () => void;
   onDuty: () => void;
   onArrive: () => void;
@@ -39,8 +44,11 @@ export function RouteScreen({
   podDraft,
   offlinePending,
   offlineNote,
+  lastFlush,
+  scanComplete,
   onDismissOfflineNote,
   onPodChange,
+  onScanCompleteChange,
   onRefresh,
   onDuty,
   onArrive,
@@ -71,6 +79,24 @@ export function RouteScreen({
     canArrive &&
     (!needsPod || Boolean(podDraft.photoUrl)) &&
     (!otpRequired || Boolean(podDraft.otp.trim()));
+  const needsScan =
+    canArrive &&
+    ((handshake.scanPickup?.required ?? 0) > 0 || (handshake.scanDelivery?.required ?? 0) > 0);
+  const checklist = buildStopChecklist({
+    hasStop: canArrive,
+    arrived,
+    needsScan,
+    scanComplete: scanComplete || !needsScan,
+    needsPod,
+    podReady: Boolean(podDraft.photoUrl) && (!otpRequired || Boolean(podDraft.otp.trim())),
+    completed: false,
+  });
+  const syncedHint =
+    lastFlush && lastFlush.synced && (lastFlush.queued > 0 || lastFlush.gps_flushed > 0)
+      ? `Last sync OK · ${lastFlush.queued + lastFlush.gps_flushed} flushed`
+      : lastFlush && lastFlush.failed > 0
+        ? `${lastFlush.failed} failed last sync`
+        : null;
 
   return (
     <Screen testID="mobile-track">
@@ -102,19 +128,28 @@ export function RouteScreen({
         </Text>
         {handshake.routePolyline || handshake.navStopCount != null ? (
           <Text style={styles.meta} testID="nav-geometry">
-            {handshake.routePolyline ? "Route geometry ready (Fleetbase / Valhalla)" : "Navigation"}
+            {handshake.routePolyline ? "Route geometry ready (Valhalla / OSRM)" : "Navigation"}
             {handshake.navStopCount != null ? ` · ${handshake.navStopCount} stops on route` : ""}
           </Text>
         ) : null}
         <Text style={styles.status} testID="route-status">
           {handshake.api === "up"
-            ? "Live API · Maps for turn-by-turn · GPS → Fleetbase (incl. background)"
+            ? "Live API · Navigate uses Valhalla URL · GPS → Fleetbase"
             : "API down — actions queue offline when possible"}
         </Text>
-        {offlinePending > 0 ? (
-          <Text style={styles.warn} testID="offline-pending">
-            {offlinePending} offline action{offlinePending === 1 ? "" : "s"} waiting to sync
-          </Text>
+        {offlinePending > 0 || syncedHint ? (
+          <View style={styles.offlineBanner} testID="offline-banner">
+            {offlinePending > 0 ? (
+              <Text style={styles.warn} testID="offline-pending">
+                {offlinePending} offline action{offlinePending === 1 ? "" : "s"} waiting to sync
+              </Text>
+            ) : (
+              <Text style={styles.synced} testID="offline-synced">
+                Offline queue clear
+              </Text>
+            )}
+            {syncedHint ? <Text style={styles.meta}>{syncedHint}</Text> : null}
+          </View>
         ) : null}
         {offlineNote ? (
           <View style={styles.conflict} testID="offline-conflict">
@@ -125,6 +160,28 @@ export function RouteScreen({
         {handshake.error ? <Text style={styles.error}>{handshake.error}</Text> : null}
         <Text style={styles.push}>{handshake.push.detail}</Text>
         <Text style={styles.push}>{handshake.location.detail}</Text>
+
+        {checklist.length > 0 ? (
+          <View style={styles.checklist} testID="stop-checklist">
+            <Text style={styles.kicker}>This stop</Text>
+            {checklist
+              .filter((step) => step.status !== "skip")
+              .map((step, index) => (
+                <Text
+                  key={step.id}
+                  style={[
+                    styles.checkRow,
+                    step.status === "done" && styles.checkDone,
+                    step.status === "current" && styles.checkCurrent,
+                  ]}
+                  testID={`checklist-${step.id}`}
+                >
+                  {index + 1}. {step.label}
+                  {step.status === "done" ? " ✓" : step.status === "current" ? " ←" : ""}
+                </Text>
+              ))}
+          </View>
+        ) : null}
 
         <RouteControls
           routeId={handshake.routeId}
@@ -158,6 +215,7 @@ export function RouteScreen({
               currentOrderNumber: handshake.currentOrderNumber,
             }}
             onError={onPhotoError}
+            onScanProgress={(complete) => onScanCompleteChange(complete)}
           />
         ) : null}
 
@@ -303,6 +361,34 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.danger,
     fontWeight: "600",
+  },
+  synced: {
+    ...typography.caption,
+    color: colors.driverGreen,
+    fontWeight: "600",
+  },
+  offlineBanner: {
+    gap: spacing.xs,
+    backgroundColor: colors.white,
+    borderRadius: radius.xl,
+    padding: spacing.md,
+  },
+  checklist: {
+    gap: spacing.xs,
+    backgroundColor: colors.white,
+    borderRadius: radius.xl,
+    padding: spacing.md,
+  },
+  checkRow: {
+    ...typography.body,
+    color: colors.muted,
+  },
+  checkDone: {
+    color: colors.driverGreen,
+  },
+  checkCurrent: {
+    color: colors.primary,
+    fontWeight: "700",
   },
   conflict: {
     gap: spacing.sm,

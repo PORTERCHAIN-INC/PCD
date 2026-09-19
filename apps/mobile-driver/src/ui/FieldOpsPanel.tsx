@@ -22,6 +22,7 @@ type Props = {
     | "currentOrderNumber"
   > | null;
   onError: (message: string) => void;
+  onScanProgress?: (complete: boolean) => void;
 };
 
 function seedJob(orderId: string, seed: NonNullable<Props["seed"]>): DriverJobDetail {
@@ -37,7 +38,7 @@ function seedJob(orderId: string, seed: NonNullable<Props["seed"]>): DriverJobDe
   };
 }
 
-export function FieldOpsPanel({ orderId, stopType, busy, seed, onError }: Props) {
+export function FieldOpsPanel({ orderId, stopType, busy, seed, onError, onScanProgress }: Props) {
   const [job, setJob] = useState<DriverJobDetail | null>(
     orderId && seed ? seedJob(orderId, seed) : null
   );
@@ -64,6 +65,15 @@ export function FieldOpsPanel({ orderId, stopType, busy, seed, onError }: Props)
       cancelled = true;
     };
   }, [orderId, seed?.otpRequired, seed?.codAmountCents, seed?.codStatus]);
+
+  useEffect(() => {
+    if (!job || !onScanProgress) return;
+    const phase: "pickup" | "delivery" =
+      (stopType ?? job.current_leg ?? "pickup").toLowerCase() === "pickup" ? "pickup" : "delivery";
+    const scan: ScanProgress | undefined = phase === "pickup" ? job.scan_pickup : job.scan_delivery;
+    const required = scan?.required ?? 0;
+    onScanProgress(required <= 0 || Boolean(scan?.complete));
+  }, [job, stopType, onScanProgress]);
 
   if (!orderId || !job) return null;
 
