@@ -32,5 +32,5 @@ h3>=4.2.0
 -e ../../services/driver-platform
 
 # Thermal labels (4×6) + QR — LabelService only
-reportlab>=4.4.0
+reportlab>=5.0.1
 qrcode[pil]>=8.0
