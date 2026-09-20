@@ -33,4 +33,4 @@ h3>=4.2.0
 
 # Thermal labels (4×6) + QR — LabelService only
 reportlab>=4.4.0
-qrcode[pil]>=8.0
+qrcode[pil]>=8.2
