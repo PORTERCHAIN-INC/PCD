@@ -9,6 +9,7 @@
     "userInterfaceStyle": "light",
     "scheme": "porterchain-customer",
     "ios": {
+      "icon": "./assets/AppIcon.icon",
       "supportsTablet": true,
       "bundleIdentifier": "com.porterchain.customer",
       "googleServicesFile": "./GoogleService-Info.plist",
@@ -25,10 +26,8 @@
       "googleServicesFile": "./google-services.json",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/adaptive-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "permissions": ["android.permission.POST_NOTIFICATIONS"],

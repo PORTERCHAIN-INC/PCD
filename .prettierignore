@@ -20,6 +20,9 @@ apps/mobile-*/ios
 **/.cxx
 **/Pods
 
+# Local Lance/appicon.co zip extract (wired copies live under apps/mobile-*/assets)
+AppIcons (1)/
+
 # Playwright artifacts (local runs)
 **/playwright-report/**
 **/test-results/**

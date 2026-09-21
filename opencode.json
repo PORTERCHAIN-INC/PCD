@@ -50,5 +50,12 @@
         "bash": "ask"
       }
     }
+  },
+  "mcp": {
+    "lance": {
+      "type": "remote",
+      "url": "https://api.lance.app/mcp",
+      "enabled": true
+    }
   }
 }
