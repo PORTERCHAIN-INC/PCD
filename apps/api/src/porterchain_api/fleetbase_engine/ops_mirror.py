@@ -132,6 +132,32 @@ def overlay_driver_location(
         return False
 
 
+def porterchain_driver_pin(driver_id: str) -> dict[str, Any] | None:
+    """Public-safe last-known pin keyed by PorterChain driver id.
+
+    GPS cache lives in driver_engine. Booking/merchant readers use this wrap so
+    they do not import driver_engine (D2). Overlay onto Fleetbase ids stays in
+    overlay_driver_location.
+    """
+    if not driver_id:
+        return None
+    try:
+        from porterchain_api.driver_engine.last_known import read_last_known
+
+        known = read_last_known(driver_id)
+    except Exception:
+        logger.debug("ops_mirror porterchain_driver_pin failed", exc_info=True)
+        return None
+    if known is None:
+        return None
+    return {
+        "lat": known.lat,
+        "lng": known.lng,
+        "source": SOURCE_LAST_KNOWN,
+        "recorded_at": known.recorded_at.isoformat() if known.recorded_at else None,
+    }
+
+
 def write_drivers(drivers: list[dict[str, Any]]) -> bool:
     client = _client()
     if client is None:

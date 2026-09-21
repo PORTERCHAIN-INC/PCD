@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Bell,
   CheckCircle2,
@@ -16,8 +17,11 @@ import { StatCardsSkeleton } from "@porterchain/ui/loading";
 import DriverShell from "@/components/DriverShell";
 import { AssignmentPanel } from "@/components/dashboard/AssignmentPanel";
 import { MetricCard } from "@/components/dashboard/MetricCard";
+import { PretripGate } from "@/components/dashboard/PretripGate";
 import { QuickActions, VehicleCard } from "@/components/dashboard/QuickActions";
 import { useDriverWorkspace } from "@/hooks/useDriverWorkspace";
+import { actionErrorMessage } from "@/lib/jobs";
+import { emptyPretrip, pretripComplete, type PretripChecks } from "@/lib/pretrip";
 import { formatLastUpdated } from "@/lib/workspace";
 import { formatCents } from "@/lib/utils";
 
@@ -34,11 +38,12 @@ export default function DashboardPage() {
     triggerEmergency,
     refresh,
   } = useDriverWorkspace();
+  const [pretrip, setPretrip] = useState<PretripChecks>(emptyPretrip());
 
   if (error && !data) {
     return (
       <DriverShell>
-        <p className="text-red-600">{error}</p>
+        <p className="text-red-600">{actionErrorMessage(error)}</p>
       </DriverShell>
     );
   }
@@ -59,7 +64,9 @@ export default function DashboardPage() {
   return (
     <DriverShell>
       {error ? (
-        <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          {actionErrorMessage(error)}
+        </p>
       ) : null}
       <header className="flex flex-col gap-4 border-b border-[var(--primary)]/8 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -221,13 +228,15 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="mt-6">
+      <section className="mt-6 space-y-4">
+        {!shiftActive ? <PretripGate checks={pretrip} onChange={setPretrip} /> : null}
         <QuickActions
           isOnline={dashboard.is_online}
           shiftActive={shiftActive}
           hasRoute={Boolean(route?.route_id || dashboard.active_route_id)}
           actionPending={actionPending}
-          onStartShift={startShift}
+          pretripReady={pretripComplete(pretrip)}
+          onStartShift={() => startShift(pretrip)}
           onEndShift={endShift}
           onGoOnline={() => setOnline(true)}
           onGoOffline={() => setOnline(false)}

@@ -178,6 +178,7 @@ async function merchantFetch<T>(
   const { orgId, ...rest } = init ?? {};
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
     "Content-Type": "application/json",
   };
   if (orgId) headers["X-Merchant-Id"] = orgId;
@@ -317,6 +318,7 @@ export async function downloadMerchantFile(
 ) {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
     ...(init?.headers as Record<string, string> | undefined),
   };
   if (orgId) headers["X-Merchant-Id"] = orgId;

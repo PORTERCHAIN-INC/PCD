@@ -11,7 +11,7 @@ from porterchain_api.notification_engine.templates import TEMPLATES, template_me
 
 def test_job_assigned_template_exists() -> None:
     assert "job_assigned" in TEMPLATES
-    assert template_meta("job_assigned").get("category") == "tracking"
+    assert template_meta("job_assigned").get("category") == "orders"
     body = TEMPLATES["job_assigned"]["body"]
     assert "job" in body.lower()
     assert "{order_number}" in body or "{tracking_number}" in body

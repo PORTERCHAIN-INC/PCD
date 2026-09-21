@@ -166,6 +166,7 @@ export type ReportsOverview = {
 function reportHeaders(token: string, orgId?: string, body?: BodyInit): Record<string, string> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
   };
   if (orgId) headers["X-Merchant-Id"] = orgId;
   if (body && !(body instanceof FormData)) {

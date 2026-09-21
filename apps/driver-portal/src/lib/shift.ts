@@ -27,6 +27,7 @@ export interface ShiftRecord {
   mileage_km: number;
   vehicle_id: string | null;
   route_id: string | null;
+  pretrip?: Record<string, unknown> | null;
 }
 
 export interface ShiftActivity {

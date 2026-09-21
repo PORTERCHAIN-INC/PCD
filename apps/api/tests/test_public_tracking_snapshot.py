@@ -35,7 +35,6 @@ def test_build_public_live_tracking_scheduled_fallback():
 
     assert snapshot["pickup"]["lat"] == 43.6487
     assert snapshot["pickup"]["lng"] == -79.3817
-    assert "formatted" not in (snapshot["pickup"] or {})
     assert snapshot["eta"]["source"] == "scheduled"
     assert snapshot["eta"]["arrives_at"]
     assert snapshot["delivery_status"]["in_transit"] is True

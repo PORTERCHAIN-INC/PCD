@@ -364,7 +364,9 @@ def detail_payload(
     company = svc._linked_company(db, merchant_id)
     metrics = svc._metrics(db, merchant, company)
     health = svc._health(merchant, metrics)
-    ai = svc._ai_insights(merchant, company, metrics, health, db=db, flags=flags)
+    # Heuristic only on this GET — NIM paraphrase is 12s×retries and trips the
+    # admin 15s fetch abort (`porterchain_api_timeout` / endless Loading merchant).
+    ai = svc._ai_insights(merchant, company, metrics, health, db=None, flags=flags)
     row = svc._row(db, merchant, light=False)
     row.update(
         {

@@ -10,6 +10,25 @@ if TYPE_CHECKING:
 
 AVAILABILITY_MODES = frozenset({"online", "offline", "busy", "idle", "on_break"})
 
+PRETRIP_ITEMS: tuple[tuple[str, str], ...] = (
+    ("lights", "Lights working"),
+    ("tires", "Tires OK"),
+    ("plates", "Plates visible"),
+    ("leaks", "No fluid leaks"),
+    ("winter_kit", "Winter kit on board"),
+)
+
+
+def require_pretrip(raw: dict[str, Any] | None) -> dict[str, bool]:
+    if not isinstance(raw, dict):
+        raise ValueError("pretrip_required")
+    out: dict[str, bool] = {}
+    for key, _label in PRETRIP_ITEMS:
+        if raw.get(key) is not True:
+            raise ValueError("pretrip_required")
+        out[key] = True
+    return out
+
 
 class ShiftService:
     def snapshot(self, db: Session, driver: Any) -> dict[str, Any]:
@@ -56,8 +75,10 @@ class ShiftService:
         *,
         fleetbase_bridge: Any = None,
         route_id: str | None = None,
+        pretrip: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         self._require_approved(driver)
+        checks = require_pretrip(pretrip)
         if self._active_shift(db, driver.id):
             raise PermissionError("shift_already_active")
 
@@ -75,6 +96,7 @@ class ShiftService:
             status="active",
             vehicle_id=vehicle["id"] if vehicle else None,
             route_id=rid,
+            meta={"pretrip": {**checks, "completed_at": datetime.now(UTC).isoformat()}},
         )
         db.add(shift)
         db.flush()
@@ -190,6 +212,8 @@ class ShiftService:
         mode = mode.lower()
         if mode not in AVAILABILITY_MODES:
             raise ValueError(f"invalid_availability_mode:{mode}")
+        if mode != "offline" and not self._active_shift(db, driver.id):
+            raise ValueError("shift_required")
 
         driver.availability = "available" if mode == "online" else mode
         driver.is_online = mode in ("online", "busy", "idle", "available")
@@ -242,6 +266,7 @@ class ShiftService:
             "mileage_km": shift.mileage_km or 0,
             "vehicle_id": shift.vehicle_id,
             "route_id": shift.route_id,
+            "pretrip": (shift.meta or {}).get("pretrip") if isinstance(shift.meta, dict) else None,
         }
 
     @staticmethod

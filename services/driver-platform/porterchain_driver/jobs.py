@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
+import logging
 
 from porterchain_driver.job_legs import allowed_actions, current_leg, delivery_completed, pickup_completed
 from porterchain_driver.next_stop import NextStopResolver
@@ -16,6 +17,8 @@ from porterchain_driver.stops import StopsService
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 _COMPLETED_STATES = frozenset(
     {
@@ -47,9 +50,16 @@ class JobsService:
             SimpleNamespace(stops=(plan or {}).get("waypoints") or []) if plan else None
         )
         orders = self._today_orders(db, driver.id)
-        next_stop = self._next_stop.resolve(db, driver)
+        try:
+            next_stop = self._next_stop.resolve(db, driver)
+        except Exception:
+            logger.exception("next_stop resolve failed for driver %s", getattr(driver, "id", None))
+            next_stop = None
         next_order_id = next_stop.get("order_id") if next_stop else None
 
+        from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+        scan_by_order = ScanGateService().progress_by_order_ids(db, [o.id for o in orders])
         summaries = [
             self._job_summary(
                 db,
@@ -57,6 +67,7 @@ class JobsService:
                 order,
                 priority_ranks=priority_ranks,
                 next_order_id=next_order_id,
+                scan=scan_by_order.get(order.id),
             )
             for order in orders
         ]
@@ -66,7 +77,11 @@ class JobsService:
         )
         upcoming = self._sort_by_priority([j for j in summaries if j["bucket"] == "upcoming"])
         completed = [j for j in summaries if j["bucket"] == "completed"]
-        route = self._stops.assigned_route(db, driver)
+        try:
+            route = self._stops.assigned_route(db, driver)
+        except Exception:
+            logger.exception("assigned_route failed for driver %s", getattr(driver, "id", None))
+            route = None
         active_jobs = [j for j in summaries if j["bucket"] != "completed"]
         completed_jobs = [j for j in summaries if j["bucket"] == "completed"]
         prev_metrics = (plan or {}).get("metrics") if isinstance(plan, dict) else None
@@ -364,7 +379,19 @@ class JobsService:
             .limit(limit)
             .all()
         )
-        return [self._job_summary(db, driver, order, force_bucket="completed") for order in rows]
+        from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+        scan_by_order = ScanGateService().progress_by_order_ids(db, [o.id for o in rows])
+        return [
+            self._job_summary(
+                db,
+                driver,
+                order,
+                force_bucket="completed",
+                scan=scan_by_order.get(order.id),
+            )
+            for order in rows
+        ]
 
     def job_detail(self, db: Session, driver: Any, order_id: str) -> dict[str, Any]:
         order = self._require_order(db, driver.id, order_id)
@@ -372,10 +399,9 @@ class JobsService:
         from porterchain_api.booking_engine.compliance_metadata import otp_required_at_delivery
         from porterchain_api.driver_models import DriverIncident, DriverStopMeta
         from porterchain_api.merchant_models import Merchant
-        from porterchain_api.booking_models import Customer, Quote
+        from porterchain_api.booking_models import Customer, OrderException
 
         admin_orders = AdminOrdersService()
-        quote = db.query(Quote).filter(Quote.id == order.quote_id).first() if order.quote_id else None
         customer = (
             db.query(Customer).filter(Customer.id == order.customer_id).first()
             if order.customer_id
@@ -403,6 +429,13 @@ class JobsService:
         pickup_stop = self._stops._order_to_stop(order, "pickup")  # noqa: SLF001
         delivery_stop = self._stops._order_to_stop(order, "dropoff")  # noqa: SLF001
 
+        from porterchain_driver.stop_exceptions import MAX_DELIVERY_ATTEMPTS, prior_attempt_rows
+
+        attempt_rows = prior_attempt_rows(
+            db.query(OrderException).filter(OrderException.order_id == order_id).all()
+        )
+        delivery_attempts = len(attempt_rows)
+
         timeline = []
         for ev in admin_orders.order_timeline(db, order_id):
             timeline.append(
@@ -416,38 +449,11 @@ class JobsService:
                 }
             )
 
-        packages: list[dict[str, Any]] = []
-        scan_pickup: dict[str, Any] = {
-            "scanned": 0,
-            "required": 0,
-            "complete": True,
-            "missing_suffixes": [],
-        }
-        scan_delivery: dict[str, Any] = dict(scan_pickup)
-        try:
-            from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
-
-            gate = ScanGateService()
-            packages = gate.package_rows(db, order)
-            scan_pickup = gate.scan_progress(db, order, phase="pickup")
-            scan_delivery = gate.scan_progress(db, order, phase="delivery")
-        except Exception:  # noqa: BLE001 — job detail must not fail on package sync
-            packages = []
-            if quote:
-                packages.append(
-                    {
-                        "package_type": quote.package_type,
-                        "vehicle_class": quote.vehicle_class,
-                        "weight_kg": quote.weight_kg,
-                        "dimensions": quote.dimensions,
-                        "declared_value_cents": quote.declared_value_cents,
-                    }
-                )
+        packages, scan_pickup, scan_delivery, packages_error = self._load_packages(db, order)
 
         dropoff = order.dropoff or {}
         pickup = order.pickup or {}
 
-        route = self._stops.assigned_route(db, driver)
         next_stop = self._next_stop.resolve(db, driver)
         state = str(order.state)
         leg_meta = self._leg_metadata(state, stop_meta)
@@ -458,8 +464,8 @@ class JobsService:
                 driver,
                 order,
                 next_order_id=next_stop.get("order_id") if next_stop else None,
+                scan={"scan_pickup": scan_pickup, "scan_delivery": scan_delivery},
             ),
-            "route_id": route.route_id if route else None,
             "special_instructions": order.special_instructions,
             "pickup_detail": pickup,
             "delivery_detail": dropoff,
@@ -487,6 +493,7 @@ class JobsService:
                 "name": dropoff.get("name") or dropoff.get("contact_name") or pickup.get("name"),
             },
             "packages": packages,
+            "packages_error": packages_error,
             "scan_pickup": {
                 "scanned": scan_pickup.get("scanned", 0),
                 "required": scan_pickup.get("required", 0),
@@ -519,6 +526,8 @@ class JobsService:
                 }
                 for i in incidents
             ],
+            "delivery_attempts": delivery_attempts,
+            "max_delivery_attempts": MAX_DELIVERY_ATTEMPTS,
             "amount_cents": order.amount_cents,
             "cod_amount_cents": getattr(order, "cod_amount_cents", None),
             "cod_status": getattr(order, "cod_status", None),
@@ -538,6 +547,42 @@ class JobsService:
 
     def _today_orders(self, db: Session, driver_id: str) -> list:
         return self._stops._today_orders(db, driver_id)  # noqa: SLF001
+
+    @staticmethod
+    def route_id_for_order(order: Any) -> str | None:
+        dt = getattr(order, "scheduled_at", None) or getattr(order, "updated_at", None)
+        if dt is None:
+            return None
+        date = dt.date() if hasattr(dt, "date") else None
+        if date is None:
+            return None
+        return f"route-{date.isoformat()}"
+
+    @staticmethod
+    def _scan_view(progress: dict[str, Any] | None) -> dict[str, Any]:
+        src = progress or {}
+        return {
+            "scanned": int(src.get("scanned") or 0),
+            "required": int(src.get("required") or 0),
+            "complete": bool(src.get("complete")),
+            "missing_suffixes": list(src.get("missing_suffixes") or []),
+        }
+
+    def _load_packages(
+        self, db: Session, order: Any
+    ) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any], str | None]:
+        empty = self._scan_view(None)
+        try:
+            from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+            gate = ScanGateService()
+            packages = gate.package_rows(db, order)
+            pickup = self._scan_view(gate.scan_progress(db, order, phase="pickup"))
+            delivery = self._scan_view(gate.scan_progress(db, order, phase="delivery"))
+            return packages, pickup, delivery, None
+        except Exception:  # noqa: BLE001 — job stays up; never invent a fake box
+            logger.exception("scan_gate failed for order %s", getattr(order, "id", None))
+            return [], dict(empty), dict(empty), "packages_unavailable"
 
     def _require_order(self, db: Session, driver_id: str, order_id: str):
         from porterchain_api.booking_models import Order
@@ -560,6 +605,7 @@ class JobsService:
         force_bucket: str | None = None,
         priority_ranks: dict[str, int] | None = None,
         next_order_id: str | None = None,
+        scan: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         state = str(order.state)
         bucket = force_bucket or self._bucket_for_order(state, order.id, next_order_id)
@@ -567,6 +613,7 @@ class JobsService:
         dropoff = order.dropoff or {}
         urgency = compute_urgency(order)
         ranks = priority_ranks or {}
+        scan_block = scan or {}
         return {
             "order_id": order.id,
             "order_number": order.order_number,
@@ -587,6 +634,9 @@ class JobsService:
             "pickup_completed": pickup_completed(state),
             "delivery_completed": delivery_completed(state),
             "is_current_job": bool(next_order_id and next_order_id == order.id),
+            "route_id": self.route_id_for_order(order),
+            "scan_pickup": self._scan_view(scan_block.get("scan_pickup")),
+            "scan_delivery": self._scan_view(scan_block.get("scan_delivery")),
         }
 
     @staticmethod

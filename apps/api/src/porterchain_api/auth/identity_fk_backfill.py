@@ -15,6 +15,7 @@ from porterchain_api.admin_engine.staff_lookups import (
     list_admin_users,
     stamp_porterchain_user_id as stamp_admin_porterchain_user_id,
 )
+from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.ensure_user_service import normalize_email
 from porterchain_api.auth.unified_catalog import AccountStatus, OnboardingStatus
 from porterchain_api.identity_models import IdentityLink
@@ -41,7 +42,7 @@ def _is_skippable_clerk_id(clerk_user_id: str | None) -> bool:
     if not clerk_user_id or not str(clerk_user_id).strip():
         return True
     cid = str(clerk_user_id).strip()
-    return cid.startswith("pending:") or cid == "dev_clerk_user"
+    return cid.startswith("pending:") or is_dev_bypass_subject(cid)
 
 
 @dataclass

@@ -13,6 +13,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { clearStaffSession } from "@/lib/staff-session";
 import { createPasskey, credentialToJson, passkeysSupported } from "@/lib/staff-webauthn";
 import { adminFetch } from "@/lib/api";
+import { notifyStaffPasskeyChanged } from "@/lib/staff-security";
 import { useOptionalSessionContext } from "@porterchain/auth";
 
 /** Display labels for admin_users.role — never show a generic "Staff" for admins. */
@@ -115,6 +116,7 @@ export default function AdminAccountMenu() {
           device_label: "This device",
         }),
       });
+      notifyStaffPasskeyChanged();
       setPasskeyMsg("Passkey saved — use it on sign-in.");
     } catch (e) {
       setPasskeyMsg(e instanceof Error ? e.message : "passkey_failed");

@@ -153,6 +153,7 @@ async function integrationsFetch<T>(
   const { orgId, ...rest } = init ?? {};
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
   };
   if (orgId) headers["X-Merchant-Id"] = orgId;
   if (rest.body && !(rest.body instanceof FormData)) {
@@ -181,6 +182,7 @@ async function downloadCsv(path: string, token: string, orgId?: string, filename
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
       Authorization: `Bearer ${token}`,
+      "X-Porterchain-Portal": "merchant",
       ...(orgId ? { "X-Merchant-Id": orgId } : {}),
     },
   });

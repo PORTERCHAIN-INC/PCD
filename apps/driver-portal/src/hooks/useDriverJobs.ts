@@ -52,6 +52,7 @@ export function useDriverJobs() {
   const [data, setData] = useState<DriverJobsList | null>(null);
   const [history, setHistory] = useState<DriverJobsList["completed"]>([]);
   const [error, setError] = useState("");
+  const [historyError, setHistoryError] = useState("");
   const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
   const [optimizeMessage, setOptimizeMessage] = useState("");
@@ -60,17 +61,28 @@ export function useDriverJobs() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const mounted = useRef(true);
 
-  const refresh = useCallback(async (silent = false) => {
+  const refresh = useCallback(async (_silent = false) => {
     try {
-      const [jobs, hist] = await Promise.all([driverApi.jobs(), driverApi.jobsHistory()]);
-      if (mounted.current) {
-        setData(jobs);
-        setHistory(hist.history);
+      const [jobsResult, histResult] = await Promise.allSettled([
+        driverApi.jobs(),
+        driverApi.jobsHistory(),
+      ]);
+      if (!mounted.current) return;
+      if (jobsResult.status === "fulfilled") {
+        setData(jobsResult.value);
         setLastUpdated(new Date());
         setError("");
+      } else {
+        const reason = jobsResult.reason;
+        setError(reason instanceof Error ? reason.message : "refresh_failed");
       }
-    } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "refresh_failed");
+      if (histResult.status === "fulfilled") {
+        setHistory(histResult.value.history);
+        setHistoryError("");
+      } else {
+        const reason = histResult.reason;
+        setHistoryError(reason instanceof Error ? reason.message : "history_failed");
+      }
     } finally {
       if (mounted.current) setLoading(false);
     }
@@ -201,6 +213,7 @@ export function useDriverJobs() {
     data,
     history,
     error,
+    historyError,
     loading,
     optimizing,
     optimizeMessage,

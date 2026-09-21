@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { colors, radius, spacing, typography } from "@porterchain/mobile-theme";
 import type { Handshake } from "../types";
+import { DEV_MENU_GUTTER } from "./Screen";
 
 function Dot({ ok, warn }: { ok: boolean; warn?: boolean }) {
   return <View style={[styles.dot, ok ? styles.ok : warn ? styles.warn : styles.bad]} />;
@@ -47,7 +48,7 @@ export function StatusRail({ handshake }: { handshake: Handshake }) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: spacing.sm },
+  wrap: { gap: spacing.sm, paddingRight: DEV_MENU_GUTTER },
   rail: {
     flexDirection: "row",
     gap: spacing.sm,
@@ -59,8 +60,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     backgroundColor: colors.white,
     borderRadius: radius.xl,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
   },
   chipText: {
     ...typography.caption,

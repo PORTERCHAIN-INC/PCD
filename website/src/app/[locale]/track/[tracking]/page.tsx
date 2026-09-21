@@ -109,11 +109,16 @@ export default function TrackPage() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted type-small">{t("pickup")}</dt>
-                <dd className="type-small text-right max-w-[60%]">{pickup?.formatted}</dd>
+                <dd className="type-small text-right max-w-[60%]">
+                  {pickup?.formatted || [pickup?.city, pickup?.province].filter(Boolean).join(", ")}
+                </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted type-small">{t("dropoff")}</dt>
-                <dd className="type-small text-right max-w-[60%]">{dropoff?.formatted}</dd>
+                <dd className="type-small text-right max-w-[60%]">
+                  {dropoff?.formatted ||
+                    [dropoff?.city, dropoff?.province].filter(Boolean).join(", ")}
+                </dd>
               </div>
             </dl>
           </>

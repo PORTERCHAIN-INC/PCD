@@ -5,6 +5,7 @@ import type { DriverNextStop } from "@/lib/jobs";
 import { formatStopAddress } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
 import { formatNextStopMeta } from "@/lib/telemetryLabels";
+import { formatAccessLine } from "@/lib/jobs";
 
 function StopRow({ stop, highlight }: { stop: DriverStop; highlight?: boolean }) {
   return (
@@ -77,6 +78,16 @@ export function AssignmentPanel({
         source: resolved.source,
       })
     : "";
+  const accessLine = apiNextStop
+    ? formatAccessLine({
+        special_instructions: apiNextStop.special_instructions,
+        access_unit: apiNextStop.access_unit,
+        access_buzzer: apiNextStop.access_buzzer,
+        access_dock: apiNextStop.access_dock,
+        call_on_arrival: apiNextStop.call_on_arrival,
+        contact_phone_masked: apiNextStop.contact_phone_masked,
+      })
+    : null;
   return (
     <div className="rounded-2xl border border-transparent bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
@@ -106,6 +117,14 @@ export function AssignmentPanel({
             Next Stop
           </div>
           <p className="mt-2 text-base font-bold">{resolved.label}</p>
+          {accessLine ? (
+            <p className="mt-1 text-sm font-medium text-amber-900">{accessLine}</p>
+          ) : null}
+          {(apiNextStop?.delivery_attempts ?? 0) > 0 ? (
+            <p className="mt-1 text-xs font-semibold text-[var(--muted)]">
+              Attempt {apiNextStop?.delivery_attempts} of {apiNextStop?.max_delivery_attempts ?? 2}
+            </p>
+          ) : null}
           <p className="mt-1 text-sm text-[var(--muted)]">
             {resolved.stopType === "pickup" ? "Pickup" : "Delivery"} · {resolved.orderNumber}
             {nextMeta ? ` · ${nextMeta}` : ""}

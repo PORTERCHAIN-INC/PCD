@@ -180,10 +180,12 @@ class PackageService:
                 return existing
             meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
             stops = meta.get("stops") if isinstance(meta.get("stops"), list) else []
-            # Merchant sent stops with blank/default cargo stripped — do not invent a box.
+            # Empty packages[] means "no parcel list", not "zero boxes", when weight_kg is set
+            # (CSV bulk / API weight-only). Invent a box so scan-gate pickup can complete.
             if stops and all(isinstance(s, dict) and "packages" in s for s in stops):
-                self.project_packages_onto_stops(order, [])
-                return []
+                if meta.get("weight_kg") is None:
+                    self.project_packages_onto_stops(order, [])
+                    return []
             parcels = [
                 {
                     "name": "Parcel",

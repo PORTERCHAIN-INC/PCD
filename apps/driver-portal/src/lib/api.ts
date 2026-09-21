@@ -309,6 +309,15 @@ export const driverApi = {
     driverFetch(`/v1/routes/${routeId}/stops/${stopId}/arrive`, { method: "POST" }),
   deliverStop: (routeId: string, stopId: string) =>
     driverFetch(`/v1/routes/${routeId}/stops/${stopId}/deliver`, { method: "POST" }),
+  reportException: (
+    routeId: string,
+    stopId: string,
+    body: { exception_type: string; notes?: string; photo_url?: string }
+  ) =>
+    driverFetch(`/v1/routes/${routeId}/stops/${stopId}/exception`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   podPhoto: (routeId: string, stopId: string, fileUrl: string) =>
     driverFetch(`/v1/routes/${routeId}/stops/${stopId}/pod-photo`, {
       method: "POST",
@@ -383,10 +392,10 @@ export const driverApi = {
       body: JSON.stringify({ mode }),
     }),
   shift: () => driverFetch<DriverShiftSnapshot>("/v1/shift"),
-  shiftStart: (routeId?: string) =>
+  shiftStart: (routeId?: string, pretrip?: Record<string, boolean>) =>
     driverFetch<DriverShiftSnapshot>("/v1/shift/start", {
       method: "POST",
-      body: JSON.stringify({ route_id: routeId ?? null }),
+      body: JSON.stringify({ route_id: routeId ?? null, pretrip: pretrip ?? null }),
     }),
   shiftEnd: () => driverFetch<DriverShiftSnapshot>("/v1/shift/end", { method: "POST" }),
   shiftBreak: () => driverFetch<DriverShiftSnapshot>("/v1/shift/break", { method: "POST" }),

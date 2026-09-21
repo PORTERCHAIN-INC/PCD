@@ -212,19 +212,22 @@ export function useDriverWorkspace() {
     [refresh]
   );
 
-  const startShift = useCallback(async () => {
-    const routeId = data?.route?.route_id ?? data?.dashboard.active_route_id ?? undefined;
-    setActionPending("start");
-    try {
-      await driverApi.shiftStart(routeId);
-      await refresh(true);
-      if (mounted.current) setError("");
-    } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "start_shift_failed");
-    } finally {
-      if (mounted.current) setActionPending(null);
-    }
-  }, [data, refresh]);
+  const startShift = useCallback(
+    async (pretrip?: Record<string, boolean>) => {
+      const routeId = data?.route?.route_id ?? data?.dashboard.active_route_id ?? undefined;
+      setActionPending("start");
+      try {
+        await driverApi.shiftStart(routeId, pretrip);
+        await refresh(true);
+        if (mounted.current) setError("");
+      } catch (e) {
+        if (mounted.current) setError(e instanceof Error ? e.message : "start_shift_failed");
+      } finally {
+        if (mounted.current) setActionPending(null);
+      }
+    },
+    [data, refresh]
+  );
 
   const endShift = useCallback(async () => {
     setActionPending("end");

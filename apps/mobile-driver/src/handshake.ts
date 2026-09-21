@@ -9,7 +9,7 @@ import {
   probeApi,
 } from "./api";
 import { collectPush } from "./push";
-import { formatKm } from "./format";
+import { formatKm, formatAccessLine } from "./format";
 import { idleLocation } from "./location";
 import type { Handshake, LocationState, NavigationSession, PushState } from "./types";
 
@@ -45,6 +45,10 @@ function navBits(nav: NavigationSession | null, stopType: string | null) {
   };
 }
 
+export function isOnboardingBlocked(message: string | null | undefined): boolean {
+  return Boolean(message?.startsWith("driver_onboarding_blocked:"));
+}
+
 export const idleHandshake = (): Handshake => ({
   api: "idle",
   auth: "idle",
@@ -61,6 +65,9 @@ export const idleHandshake = (): Handshake => ({
   stopStatus: null,
   currentOrderId: null,
   currentOrderNumber: null,
+  accessNotes: null,
+  deliveryAttempts: null,
+  maxDeliveryAttempts: null,
   walletCents: null,
   todayEarningsCents: null,
   pendingDocuments: null,
@@ -109,14 +116,25 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
       }
     }
 
-    const [me, dash, jobs, push] = await Promise.all([
-      fetchMe(),
-      fetchDashboard(),
-      fetchJobs().catch(() => ({ next_stop: null, current: null, route_id: null })),
-      collectPush(),
-    ]);
+    const [me, push] = await Promise.all([fetchMe(), collectPush()]);
     next.auth = "up";
     next.driverName = me.full_name;
+    next.walletCents = me.wallet_balance_cents ?? null;
+    next.push = push;
+
+    const dash = await fetchDashboard().catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : "dashboard_failed";
+      next.error = message;
+      return null;
+    });
+    const jobs = await fetchJobs().catch(() => ({
+      next_stop: null,
+      current: null,
+      route_id: null,
+    }));
+    if (!dash) {
+      return next;
+    }
     next.availability = dash.availability;
     next.online = dash.is_online;
     next.stopsDone = dash.todays_stops_completed;
@@ -133,6 +151,18 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
     next.etaMinutes = jobs.next_stop?.eta_minutes ?? null;
     next.currentOrderId = jobs.current?.order_id ?? jobs.next_stop?.order_id ?? null;
     next.currentOrderNumber = jobs.current?.order_number ?? null;
+    next.accessNotes = jobs.next_stop
+      ? formatAccessLine({
+          special_instructions: jobs.next_stop.special_instructions,
+          access_unit: jobs.next_stop.access_unit,
+          access_buzzer: jobs.next_stop.access_buzzer,
+          access_dock: jobs.next_stop.access_dock,
+          call_on_arrival: jobs.next_stop.call_on_arrival,
+          contact_phone_masked: jobs.next_stop.contact_phone_masked,
+        })
+      : null;
+    next.deliveryAttempts = jobs.next_stop?.delivery_attempts ?? null;
+    next.maxDeliveryAttempts = jobs.next_stop?.max_delivery_attempts ?? null;
     next.push = push;
 
     if (next.currentOrderId) {
@@ -144,6 +174,11 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
         next.codAmountCents = job.cod_amount_cents ?? null;
         next.codStatus = job.cod_status ?? null;
         if (!next.currentOrderNumber) next.currentOrderNumber = job.order_number;
+        if (!next.accessNotes && job.special_instructions) {
+          next.accessNotes = formatAccessLine({ special_instructions: job.special_instructions });
+        }
+        if (job.delivery_attempts != null) next.deliveryAttempts = job.delivery_attempts;
+        if (job.max_delivery_attempts != null) next.maxDeliveryAttempts = job.max_delivery_attempts;
       } catch {
         /* FieldOps can still fetch */
       }

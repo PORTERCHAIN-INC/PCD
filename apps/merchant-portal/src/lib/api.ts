@@ -232,6 +232,7 @@ async function merchantFetch<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
   };
   // M-26: select merchant membership when the user has multiple seats.
   if (init?.orgId) {

@@ -17,6 +17,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from fastapi import HTTPException
+from starlette.requests import Request
 
 from porterchain_api.auth.clerk_webhook_idempotency import claim_clerk_event
 from porterchain_api.auth.clerk_webhook_service import ClerkWebhookService
@@ -125,10 +126,29 @@ def test_phase9_matrix_inventory() -> None:
 # --- 401 ---
 
 
+def _http_request() -> Request:
+    return Request(
+        {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "GET",
+            "scheme": "http",
+            "path": "/v1/auth/session-context",
+            "raw_path": b"/v1/auth/session-context",
+            "query_string": b"",
+            "headers": [],
+            "client": ("127.0.0.1", 123),
+            "server": ("test", 80),
+        }
+    )
+
+
 def test_missing_bearer_returns_401() -> None:
     async def _run():
         with pytest.raises(HTTPException) as exc:
             await get_authenticated_identity(
+                request=_http_request(),
                 authorization=None,
                 settings=_settings(clerk_dev_bypass=False),
                 db=MagicMock(),
@@ -143,6 +163,7 @@ def test_non_bearer_authorization_returns_401() -> None:
     async def _run():
         with pytest.raises(HTTPException) as exc:
             await get_authenticated_identity(
+                request=_http_request(),
                 authorization="Basic abc",
                 settings=_settings(clerk_dev_bypass=False),
                 db=MagicMock(),

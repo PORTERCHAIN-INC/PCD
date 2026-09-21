@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Annotated, Callable
 
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.claims import ClerkClaims
@@ -19,7 +19,7 @@ from porterchain_api.auth.clerk_identity_provider import (
     get_identity_provider,
 )
 from porterchain_api.auth.current_principal import CurrentPrincipal
-from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.auth.dev import DEV_PORTAL_HEADER, allow_auth_dev_bypass
 from porterchain_api.auth.identity import AuthenticatedIdentity
 from porterchain_api.auth.prepare import prepare_user_from_claims, resolve_principal_cached
 from porterchain_api.auth.unified_catalog import UnifiedPermission
@@ -100,13 +100,17 @@ def _identity_from_staff_bearer(db: Session, token: str) -> AuthenticatedIdentit
 
 
 async def get_authenticated_identity(
+    request: Request,
     authorization: Annotated[str | None, Header()] = None,
     settings: Settings = Depends(get_settings),
     db: Session = Depends(get_db),
+    x_porterchain_portal: Annotated[str | None, Header()] = None,
 ) -> AuthenticatedIdentity:
     """Authenticate bearer token via IdentityProvider. Does not authorize."""
+    portal_header = (x_porterchain_portal or request.headers.get(DEV_PORTAL_HEADER) or "").strip() or None
+    path = request.url.path
     if allow_auth_dev_bypass(settings) and (not authorization or authorization == "Bearer dev"):
-        claims = _dev_claims()
+        claims = _dev_claims(path=path, header=portal_header)
         prepare_user_from_claims(db, claims)
         return claims_to_identity(claims)
 
@@ -115,7 +119,7 @@ async def get_authenticated_identity(
 
     token = authorization.removeprefix("Bearer ").strip()
     if token == "dev" and allow_auth_dev_bypass(settings):
-        claims = _dev_claims()
+        claims = _dev_claims(path=path, header=portal_header)
         prepare_user_from_claims(db, claims)
         return claims_to_identity(claims)
 
@@ -335,7 +339,7 @@ def resolve_principal_for_claims(db: Session, claims: ClerkClaims) -> CurrentPri
     if not claims.clerk_user_id:
         return None
     try:
-        # Local CLERK_DEV_BYPASS uses synthetic subject ``dev_clerk_user``.
+        # Local CLERK_DEV_BYPASS uses synthetic Bearer-dev subjects.
         # Still sync/resolve so merchant/customer portal guards can run.
         prepare_user_from_claims(db, claims)
         return resolve_principal_cached(

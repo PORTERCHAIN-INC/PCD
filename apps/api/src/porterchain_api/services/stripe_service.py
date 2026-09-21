@@ -4,6 +4,16 @@ from porterchain_services.stripe import sdk as stripe_sdk
 
 StripeSignatureError = stripe_sdk.StripeSdkSignatureError
 
+_DUMMY_STRIPE_MARKERS = ("_local_", "_mock_")
+
+
+def is_dummy_stripe_id(value: str | None) -> bool:
+    """Local seed placeholders (cus_local_*, acct_mock_*) are not Stripe objects."""
+    raw = (value or "").strip()
+    if not raw:
+        return False
+    return any(marker in raw for marker in _DUMMY_STRIPE_MARKERS)
+
 
 def _checkout_urls(settings: Settings, checkout_channel: str) -> tuple[str, str]:
     if checkout_channel == "customer":
@@ -16,8 +26,9 @@ def ensure_stripe_customer(settings: Settings, customer: Customer) -> str | None
     if not settings.stripe_secret:
         return None
     stripe_sdk.configure(settings.stripe_secret)
-    if customer.stripe_customer_id:
-        return customer.stripe_customer_id
+    existing = (customer.stripe_customer_id or "").strip() or None
+    if existing and not is_dummy_stripe_id(existing):
+        return existing
     if not customer.email:
         return None
     created = stripe_sdk.create_customer(

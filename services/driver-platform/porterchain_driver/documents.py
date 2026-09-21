@@ -16,6 +16,38 @@ _UPLOADABLE_DOCS = _REQUIRED_DOCS + (
     "vehicle_photo",
     "abstract",
 )
+_FILE_ALIASES: dict[str, frozenset[str]] = {
+    "license": frozenset({"license", "driver_license", "drivers_license"}),
+    "insurance": frozenset({"insurance", "insurance_certificate"}),
+    "vehicle_registration": frozenset({"vehicle_registration", "vehicle_reg", "registration"}),
+}
+_VERIFIED_FLAGS = {
+    "license": "license_verified",
+    "insurance": "insurance_verified",
+    "vehicle_registration": "vehicle_verified",
+}
+
+
+def _file_entry(docs: dict[str, Any], doc_type: str) -> dict[str, Any]:
+    files = docs.get("files") or []
+    aliases = _FILE_ALIASES.get(doc_type, frozenset({doc_type}))
+    if not isinstance(files, list):
+        return {}
+    for file_entry in files:
+        if not isinstance(file_entry, dict):
+            continue
+        found = str(file_entry.get("doc_type") or "").lower()
+        if found not in aliases and not any(alias in found for alias in aliases):
+            continue
+        url = file_entry.get("file_url") or file_entry.get("url")
+        if not url:
+            continue
+        return {
+            "url": url,
+            "status": file_entry.get("status") or "uploaded",
+            "verified": bool(file_entry.get("verified")),
+        }
+    return {}
 
 
 class DocumentsService:
@@ -43,6 +75,15 @@ class DocumentsService:
             entry = docs.get(doc_type, {})
             if not isinstance(entry, dict):
                 entry = {}
+            if not (entry.get("url") or entry.get("file_url")):
+                entry = {**_file_entry(docs, doc_type), **entry}
+            flag = _VERIFIED_FLAGS.get(doc_type)
+            if flag and bool(getattr(driver, flag, False)):
+                entry = {**entry, "verified": True, "status": entry.get("status") or "verified"}
+            if doc_type == "abstract" and isinstance(docs.get("abstract"), dict):
+                abstract = docs["abstract"]
+                if abstract.get("verified"):
+                    entry = {**entry, "verified": True, "status": abstract.get("status") or "verified"}
             result.append(self._serialize_doc(doc_type, entry))
         return result
 
@@ -127,9 +168,9 @@ class DocumentsService:
         return {
             "type": doc_type,
             "label": labels.get(doc_type, doc_type.replace("_", " ").title()),
-            "status": entry.get("status", "missing"),
+            "status": entry.get("status") or ("verified" if entry.get("verified") else "missing"),
             "verified": entry.get("verified", False),
-            "url": entry.get("url"),
+            "url": entry.get("url") or entry.get("file_url"),
             "uploaded_at": entry.get("uploaded_at"),
             "expires_at": entry.get("expires_at"),
             "policy_number": entry.get("policy_number"),

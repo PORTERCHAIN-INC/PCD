@@ -7,7 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Driver
-from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.auth.dev import allow_auth_dev_bypass, resolve_dev_bypass_driver
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.admin_states import DriverStatus
@@ -26,7 +26,7 @@ async def get_driver_context(
 
     token = credentials.credentials if credentials and credentials.credentials else None
     if token == "dev" and allow_auth_dev_bypass(settings):
-        driver = db.query(Driver).filter(Driver.status == DriverStatus.APPROVED.value).first()
+        driver = resolve_dev_bypass_driver(db)
         if driver:
             return DriverContext(driver=driver)
     elif token:
@@ -34,7 +34,7 @@ async def get_driver_context(
     elif allow_auth_dev_bypass(settings) and x_driver_id:
         driver_id = x_driver_id
     elif allow_auth_dev_bypass(settings):
-        driver = db.query(Driver).filter(Driver.status == DriverStatus.APPROVED.value).first()
+        driver = resolve_dev_bypass_driver(db)
         if driver:
             _assert_driver_self_scope(db, driver)
             return DriverContext(driver=driver)

@@ -10,10 +10,12 @@ import {
   shiftBreak,
   shiftResume,
 } from "../api";
+import { fieldWarning, humanFieldCopy } from "../fieldCopy";
 import { clearSession } from "../session";
 import { Card, CardTitle, Kpi } from "../ui/Card";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
+import { ScreenHeader } from "../ui/ScreenHeader";
 import type { DriverPerformance, DriverProfile, Handshake, ShiftSnapshot } from "../types";
 
 type Props = {
@@ -58,10 +60,13 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
   const profilePhone = profileBlock?.phone || "—";
   const profileStatus = (profileBlock?.status || "—").replace(/_/g, " ");
 
+  const onDuty = Boolean(shift?.shift_active || handshake.online);
+  const pushWarn = fieldWarning(handshake.push.detail);
+  const locationWarn = fieldWarning(handshake.location.detail);
+
   return (
-    <Screen>
-      <Text style={styles.title}>More</Text>
-      <Text style={styles.lede}>Inbox, support, shift controls, and account.</Text>
+    <Screen includeBottomSafeArea={false}>
+      <ScreenHeader title="More" lede="Inbox, support, shift controls, and account." />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <ScrollView
         style={styles.flex}
@@ -103,8 +108,13 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
           <Text style={styles.body}>Deliveries today {perf?.deliveries_today ?? "—"}</Text>
           <Text style={styles.body}>Lifetime {perf?.deliveries_total ?? "—"}</Text>
           <Text style={styles.body}>Rating {perf?.rating ?? "—"}</Text>
-          <Text style={styles.meta}>{handshake.push.detail}</Text>
-          <Text style={styles.meta}>{handshake.location.detail}</Text>
+          {pushWarn ? <Text style={styles.meta}>{pushWarn}</Text> : null}
+          {locationWarn ? <Text style={styles.meta}>{locationWarn}</Text> : null}
+          {!onDuty ? (
+            <Text style={styles.meta}>
+              Start shift from Work (30-second vehicle check) before Idle or Busy.
+            </Text>
+          ) : null}
           <View style={styles.row}>
             <PrimaryButton
               tone="ghost"
@@ -126,7 +136,7 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
             <PrimaryButton
               tone="ghost"
               label={shiftBusy === "resume" ? "Resuming…" : "Resume duty"}
-              disabled={Boolean(shiftBusy)}
+              disabled={Boolean(shiftBusy) || !onDuty}
               onPress={() => {
                 setShiftBusy("resume");
                 void shiftResume()
@@ -145,7 +155,7 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
             <PrimaryButton
               tone="ghost"
               label="Idle"
-              disabled={Boolean(shiftBusy)}
+              disabled={Boolean(shiftBusy) || !onDuty}
               onPress={() => {
                 setShiftBusy("mode");
                 void setAvailability("idle")
@@ -154,7 +164,9 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
                     setShiftMsg("Marked idle");
                   })
                   .catch((err: unknown) => {
-                    setShiftMsg(err instanceof Error ? err.message : "availability_failed");
+                    setShiftMsg(
+                      humanFieldCopy(err instanceof Error ? err.message : "availability_failed")
+                    );
                   })
                   .finally(() => setShiftBusy(null));
               }}
@@ -162,7 +174,7 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
             <PrimaryButton
               tone="ghost"
               label="Busy"
-              disabled={Boolean(shiftBusy)}
+              disabled={Boolean(shiftBusy) || !onDuty}
               onPress={() => {
                 setShiftBusy("mode");
                 void setAvailability("busy")
@@ -171,7 +183,9 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
                     setShiftMsg("Marked busy");
                   })
                   .catch((err: unknown) => {
-                    setShiftMsg(err instanceof Error ? err.message : "availability_failed");
+                    setShiftMsg(
+                      humanFieldCopy(err instanceof Error ? err.message : "availability_failed")
+                    );
                   })
                   .finally(() => setShiftBusy(null));
               }}
@@ -223,8 +237,6 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
 }
 
 const styles = StyleSheet.create({
-  title: { ...typography.title, fontSize: 28, color: colors.primary },
-  lede: { ...typography.caption, color: colors.muted },
   error: { ...typography.caption, color: colors.danger },
   flex: { flex: 1 },
   list: { gap: spacing.md, paddingBottom: spacing.xl },

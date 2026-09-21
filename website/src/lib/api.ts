@@ -3,7 +3,11 @@ import { getPorterchainApiBase } from "@/lib/api-base";
 const API_BASE = getPorterchainApiBase();
 
 export interface AddressPayload {
-  formatted: string;
+  formatted?: string;
+  city?: string;
+  province?: string;
+  postal_code?: string;
+  country?: string;
   place_id?: string;
   lat?: number;
   lng?: number;
@@ -43,7 +47,7 @@ export interface OrderLiveTracking {
   live_tracking?: {
     pickup?: AddressPayload;
     dropoff?: AddressPayload;
-    driver_location?: { lat: number; lng: number };
+    driver_location?: { lat: number; lng: number; source?: string; recorded_at?: string };
     optimized_route?: { polyline?: string; source?: string };
     eta?: TrackingEta | null;
     delivery_status?: {

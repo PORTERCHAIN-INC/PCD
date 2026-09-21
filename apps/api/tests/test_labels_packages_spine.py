@@ -69,6 +69,51 @@ def test_thermal_pdf_page_count_and_media_box():
     assert b"288 432" in pdf
 
 
+def test_thermal_code128_renders_for_suffix() -> None:
+    pdf = render_thermal_labels(
+        [
+            {
+                "route_hint": "A",
+                "stop_sequence": 1,
+                "from_line": "WH",
+                "to_line": "Cust",
+                "order_number": "PC-1",
+                "tracking_base": "TRK1",
+                "cod_line": "—",
+                "qr_payload": encode_label_qr(order_id="o", package_id="p1"),
+                "tracking_suffix": "TRK1-01",
+                "parcel_index": 1,
+                "total_parcels": 1,
+            }
+        ]
+    )
+    assert pdf.startswith(b"%PDF")
+    from porterchain_api.reporting.thermal_pdf import _draw_code128
+
+    assert callable(_draw_code128)
+
+
+def test_weight_only_body_seeds_pickup_package():
+    from porterchain_api.merchant_engine.stop_cargo import book_stops_for_request, packages_from_stops
+
+    pickup = SimpleNamespace(formatted="123 Main St", lat=43.6, lng=-79.3, city=None, postal=None, name=None, phone=None, notes=None)
+    dropoff = SimpleNamespace(formatted="456 Queen St", lat=43.65, lng=-79.39, city=None, postal=None, name=None, phone=None, notes=None)
+    body = SimpleNamespace(
+        weight_kg=12.5,
+        package_type="looseParcel",
+        packages=None,
+        pickup=pickup,
+        dropoff=dropoff,
+        additional_stops=None,
+        pickup_window_start=None,
+        pickup_window_end=None,
+    )
+    stops = book_stops_for_request(body)
+    pkgs = packages_from_stops(stops)
+    assert len(pkgs) == 1
+    assert pkgs[0]["weight_kg"] == 12.5
+
+
 def test_cargo_dims_pass_through():
     body = SimpleNamespace(
         weight_kg=None,

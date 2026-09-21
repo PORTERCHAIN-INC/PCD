@@ -31,7 +31,7 @@ export function useMerchantRealtime(
         if (cancelled) return;
         const merchant = orgId ? `&merchant_id=${encodeURIComponent(orgId)}` : "";
         ws = new WebSocket(
-          `${apiWsBase()}/v1/notifications/ws?token=${encodeURIComponent(token)}${merchant}`
+          `${apiWsBase()}/v1/notifications/ws?token=${encodeURIComponent(token)}&portal=merchant${merchant}`
         );
 
         ws.onmessage = (event) => {

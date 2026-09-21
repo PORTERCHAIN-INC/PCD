@@ -28,6 +28,9 @@ def dashboard(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
+    from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
+
+    DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)
     guard_portal_ready(ctx, settings)
     snap = svc.platform.dashboard.snapshot(db, ctx.driver)
     return DriverDashboardResponse(
@@ -103,7 +106,7 @@ def earnings_statement_download(
 @router.get("/wallet")
 def wallet(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Session = Depends(get_db)):
     return {
-        "balance_cents": svc.platform.wallet.balance_cents(ctx.driver),
+        "balance_cents": svc.platform.wallet.balance_cents(ctx.driver, db),
         "transactions": [
             {
                 "id": t.id,
@@ -194,15 +197,21 @@ def start_shift(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
+    from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
+
+    DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)
+    guard_portal_ready(ctx, settings)
     bridge = svc.fleetbase_bridge(settings)
     try:
         with db_transaction(db):
             result = svc.platform.shift.start_shift(
-                db, ctx.driver, fleetbase_bridge=bridge, route_id=body.route_id
+                db, ctx.driver, fleetbase_bridge=bridge, route_id=body.route_id, pretrip=body.pretrip
             )
         return result
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/shift/end")

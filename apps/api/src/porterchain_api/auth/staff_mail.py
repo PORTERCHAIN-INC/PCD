@@ -21,10 +21,10 @@ def security_url(settings: Settings) -> str:
 
 
 def send_staff_activate_email(settings: Settings, *, email: str, token: str) -> bool:
-    """Send activate link. Returns True if delivery attempted without raising."""
+    """Send activate link. True only when delivery status is sent."""
     url = activate_url(settings, token)
     try:
-        DeliveryService().deliver(
+        log = DeliveryService().deliver(
             {
                 "channel": "email",
                 "template": "staff_activate",
@@ -32,7 +32,15 @@ def send_staff_activate_email(settings: Settings, *, email: str, token: str) -> 
                 "context": {"activate_url": url, "email": email},
             }
         )
-        return True
+        ok = getattr(log, "status", None) == "sent"
+        if not ok:
+            logger.warning(
+                "staff_activate_email_not_sent email=%s status=%s error=%s",
+                email,
+                getattr(log, "status", None),
+                getattr(log, "error", None),
+            )
+        return ok
     except Exception:  # noqa: BLE001 — auth flow must not fail on SMTP blips
         logger.exception("staff_activate_email_failed email=%s", email)
         return False
@@ -47,7 +55,7 @@ def send_staff_new_login_email(
 ) -> bool:
     """Notify staff of a sign-in from an unrecognized device/IP."""
     try:
-        DeliveryService().deliver(
+        log = DeliveryService().deliver(
             {
                 "channel": "email",
                 "template": "staff_new_login",
@@ -60,7 +68,7 @@ def send_staff_new_login_email(
                 },
             }
         )
-        return True
+        return getattr(log, "status", None) == "sent"
     except Exception:  # noqa: BLE001
         logger.exception("staff_new_login_email_failed email=%s", email)
         return False

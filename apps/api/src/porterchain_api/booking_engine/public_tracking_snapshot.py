@@ -98,6 +98,10 @@ def build_public_live_tracking(
     pickup_coords = _coords_from_address(pickup_raw)
     dropoff_coords = _coords_from_address(dropoff_raw)
     driver_loc = translated.get("location")
+    if not driver_loc and getattr(order, "assigned_driver_id", None):
+        from porterchain_api.fleetbase_engine.ops_mirror import porterchain_driver_pin
+
+        driver_loc = porterchain_driver_pin(order.assigned_driver_id)
 
     eta: dict[str, Any] | None = None
     if order.state not in DELIVERED_STATES:

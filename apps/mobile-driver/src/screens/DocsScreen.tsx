@@ -17,6 +17,7 @@ import { formatWhen } from "../format";
 import { Card, CardTitle } from "../ui/Card";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
+import { ScreenHeader } from "../ui/ScreenHeader";
 import type { DriverDocument, DriverVehicle, InsuranceStatus, TrainingModule } from "../types";
 
 export function DocsScreen() {
@@ -75,7 +76,7 @@ export function DocsScreen() {
     }
   }
 
-  const rows: DriverDocument[] =
+  const rows: DriverDocument[] = (
     docs.length > 0
       ? docs
       : FALLBACK_DOC_TYPES.map((item) => ({
@@ -85,14 +86,20 @@ export function DocsScreen() {
           verified: false,
           url: null,
           expires_at: null,
-        }));
+        }))
+  ).filter(
+    (doc) =>
+      ["license", "insurance", "vehicle_registration", "abstract"].includes(doc.type) ||
+      doc.verified ||
+      Boolean(doc.url)
+  );
 
   return (
-    <Screen testID="mobile-docs">
-      <Text style={styles.title}>Documents</Text>
-      <Text style={styles.lede}>
-        License, insurance, vehicle, and training — capture on device and sync.
-      </Text>
+    <Screen testID="mobile-docs" includeBottomSafeArea={false}>
+      <ScreenHeader
+        title="Documents"
+        lede="License, insurance, vehicle, and training — capture on device and sync."
+      />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <ScrollView
         style={styles.flex}
@@ -116,10 +123,19 @@ export function DocsScreen() {
 
         <Card>
           <CardTitle>Insurance</CardTitle>
-          <Text style={styles.status}>
-            {(insurance?.status || "unknown").replace(/_/g, " ")}
-            {insurance?.verified ? " · verified" : ""}
+          <Text
+            style={[
+              styles.status,
+              insurance?.verified || insurance?.insurance_verified ? styles.ok : styles.warn,
+            ]}
+          >
+            {insurance?.verified || insurance?.insurance_verified
+              ? "Verified"
+              : (insurance?.status || "not_on_file").replace(/_/g, " ")}
           </Text>
+          {insurance?.status === "expired" ? (
+            <Text style={styles.warn}>Expired — cannot work until you upload a current file.</Text>
+          ) : null}
           {insurance?.expires_at ? (
             <Text style={styles.meta}>Expires {formatWhen(insurance.expires_at)}</Text>
           ) : null}
@@ -131,10 +147,15 @@ export function DocsScreen() {
             <Text style={[styles.status, doc.verified ? styles.ok : styles.warn]}>
               {doc.verified ? "Verified" : (doc.status || "missing").replace(/_/g, " ")}
             </Text>
+            {doc.status === "expired" ? (
+              <Text style={styles.warn}>
+                Expired — cannot work until you upload a current file.
+              </Text>
+            ) : null}
             {doc.expires_at ? (
               <Text style={styles.meta}>Expires {formatWhen(doc.expires_at)}</Text>
             ) : null}
-            {doc.url ? (
+            {doc.url && !doc.url.includes("porterchain.local") ? (
               <PrimaryButton
                 tone="ghost"
                 label="Open file"
@@ -184,8 +205,6 @@ export function DocsScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { ...typography.title, fontSize: 28, color: colors.primary },
-  lede: { ...typography.caption, color: colors.muted },
   error: { ...typography.caption, color: colors.danger },
   flex: { flex: 1 },
   list: { gap: spacing.md, paddingBottom: spacing.xl },

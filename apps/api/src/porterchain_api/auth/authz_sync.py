@@ -7,6 +7,7 @@ import logging
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.account_lifecycle import activate_user_for_clerk
+from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.persona_bundle import invalidate_persona_bundle
 from porterchain_api.auth.prepare import invalidate_auth_prepare
 
@@ -19,7 +20,7 @@ def sync_authz_after_persona_mutation(db: Session, clerk_user_id: str | None) ->
     Call after creating/linking AdminUser, MerchantUser, Driver, or Customer rows
     so same-request Checks (organization#portal, profile#access) see fresh tuples.
     """
-    if not clerk_user_id or clerk_user_id == "dev_clerk_user":
+    if not clerk_user_id or is_dev_bypass_subject(clerk_user_id):
         return
     # pending: seats have no SpiceDB subject yet; staff:{admin_id} is a real IdP subject.
     if clerk_user_id.startswith("pending:"):

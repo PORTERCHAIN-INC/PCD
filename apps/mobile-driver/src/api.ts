@@ -136,10 +136,13 @@ export function unregisterPush(deviceToken?: string | null): Promise<{ unregiste
   });
 }
 
-export function startShift(routeId?: string | null): Promise<unknown> {
+export function startShift(
+  routeId?: string | null,
+  pretrip?: Record<string, boolean>
+): Promise<unknown> {
   return driverFetch(`${DRIVER_API}/shift/start`, {
     method: "POST",
-    body: JSON.stringify({ route_id: routeId ?? null }),
+    body: JSON.stringify({ route_id: routeId ?? null, pretrip: pretrip ?? null }),
   });
 }
 
@@ -302,7 +305,8 @@ export function reportException(
   routeId: string,
   stopId: string,
   exceptionType: string,
-  notes?: string
+  notes?: string,
+  photoUrl?: string
 ): Promise<unknown> {
   return driverFetch(
     `${DRIVER_API}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}/exception`,
@@ -311,6 +315,7 @@ export function reportException(
       body: JSON.stringify({
         exception_type: exceptionType,
         notes: notes ?? null,
+        photo_url: photoUrl ?? null,
       }),
     }
   );

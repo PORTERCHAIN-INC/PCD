@@ -3,6 +3,15 @@
 import { adminFetch } from "@/lib/api";
 import { STAFF_COOKIE_TOKEN } from "@/lib/staff-session";
 
+/** Dispatched after passkey register/remove so the recommend banner refreshes. */
+export const STAFF_PASSKEY_EVENT = "pc-staff-passkey";
+
+export function notifyStaffPasskeyChanged(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(STAFF_PASSKEY_EVENT));
+  }
+}
+
 export type StaffSecurityEvent = {
   ts: number;
   kind: string;

@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { ArrowRight, MapPin, Package } from "lucide-react";
 import type { DriverJobSummary } from "@/lib/jobs";
-import { jobStatusColor, jobStatusLabel, legLabel, urgencyColor, urgencyLabel } from "@/lib/jobs";
+import {
+  jobStatusColor,
+  jobStatusLabel,
+  legLabel,
+  parcelScanLabel,
+  urgencyColor,
+  urgencyLabel,
+} from "@/lib/jobs";
 import { cn } from "@/lib/utils";
 
 const BADGE: Record<string, string> = {
@@ -29,6 +36,7 @@ export function JobCard({
   const needsAssignment = job.state === "DRIVER_ASSIGNED" && onAccept && onReject;
   const leg = job.current_leg ?? (job.pickup_completed ? "delivery" : "pickup");
   const isActive = job.is_current_job || highlight;
+  const parcels = parcelScanLabel(job);
   return (
     <div
       className={cn(
@@ -85,6 +93,9 @@ export function JobCard({
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
             <span>{job.delivery_address}</span>
           </p>
+          {parcels ? (
+            <p className="text-xs font-semibold text-[var(--primary)]">{parcels}</p>
+          ) : null}
         </div>
         {job.special_instructions && (
           <p className="mt-2 line-clamp-2 text-xs text-amber-800 bg-amber-50 rounded-lg px-2 py-1">

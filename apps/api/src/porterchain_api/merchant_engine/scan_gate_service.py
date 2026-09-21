@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, Package
@@ -53,6 +54,43 @@ class ScanGateService:
             for p in rows
         ]
 
+    def progress_by_order_ids(self, db: Session, order_ids: list[str]) -> dict[str, dict[str, Any]]:
+        """Read-only parcel rollup. Does not create package rows."""
+        empty_scan = {
+            "scanned": 0,
+            "required": 0,
+            "complete": False,
+            "missing_suffixes": [],
+        }
+        if not order_ids:
+            return {}
+        rows = db.query(Package).filter(Package.order_id.in_(order_ids)).all()
+        by_order: dict[str, list[Package]] = {oid: [] for oid in order_ids}
+        for pkg in rows:
+            by_order.setdefault(pkg.order_id, []).append(pkg)
+        out: dict[str, dict[str, Any]] = {}
+        for oid, pkgs in by_order.items():
+            pickup_missing = [p for p in pkgs if p.status not in _PICKUP_DONE]
+            delivery_missing = [p for p in pkgs if p.status not in _DELIVERY_DONE]
+            required = len(pkgs)
+            out[oid] = {
+                "scan_pickup": {
+                    "scanned": required - len(pickup_missing),
+                    "required": required,
+                    "complete": required > 0 and not pickup_missing,
+                    "missing_suffixes": [p.tracking_suffix for p in pickup_missing],
+                },
+                "scan_delivery": {
+                    "scanned": required - len(delivery_missing),
+                    "required": required,
+                    "complete": required > 0 and not delivery_missing,
+                    "missing_suffixes": [p.tracking_suffix for p in delivery_missing],
+                },
+            }
+        for oid in order_ids:
+            out.setdefault(oid, {"scan_pickup": dict(empty_scan), "scan_delivery": dict(empty_scan)})
+        return out
+
     def scan_progress(self, db: Session, order: Order, *, phase: Phase) -> dict[str, Any]:
         rows = self._packages.ensure_for_order(db, order)
         required = _PICKUP_DONE if phase == "pickup" else _DELIVERY_DONE
@@ -85,6 +123,38 @@ class ScanGateService:
         """COD Payment Link requires pickup scans (boxes accounted for)."""
         self.assert_complete(db, order, phase="pickup")
 
+    def _package_for_scan(self, db: Session, order: Order, raw: str) -> Package:
+        """LOGISTICSv1 QR first; else unique tracking_suffix / barcode on this order."""
+        token = (raw or "").strip()
+        if not token:
+            raise ValueError("invalid_label_qr")
+        self._packages.ensure_for_order(db, order)
+        try:
+            decoded = decode_label_qr(token)
+        except InvalidLabelQr:
+            decoded = None
+        if decoded is not None:
+            if decoded.order_id != order.id:
+                raise ValueError("qr_order_mismatch")
+            pkg = (
+                db.query(Package)
+                .filter(Package.id == decoded.package_id, Package.order_id == order.id)
+                .first()
+            )
+            if not pkg:
+                raise LookupError("package_not_found")
+            return pkg
+        pkg = (
+            db.query(Package)
+            .filter(or_(Package.tracking_suffix == token, Package.barcode == token))
+            .first()
+        )
+        if not pkg:
+            raise ValueError("invalid_label_qr")
+        if pkg.order_id != order.id:
+            raise ValueError("qr_order_mismatch")
+        return pkg
+
     def scan_qr(
         self,
         db: Session,
@@ -94,21 +164,7 @@ class ScanGateService:
         phase: Phase,
         actor_id: str | None = None,
     ) -> dict[str, Any]:
-        try:
-            decoded = decode_label_qr(qr_payload)
-        except InvalidLabelQr as exc:
-            raise ValueError("invalid_label_qr") from exc
-        if decoded.order_id != order.id:
-            raise ValueError("qr_order_mismatch")
-
-        self._packages.ensure_for_order(db, order)
-        pkg = (
-            db.query(Package)
-            .filter(Package.id == decoded.package_id, Package.order_id == order.id)
-            .first()
-        )
-        if not pkg:
-            raise LookupError("package_not_found")
+        pkg = self._package_for_scan(db, order, qr_payload)
 
         if phase == "pickup":
             if pkg.status not in _PICKUP_DONE:

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -17,8 +17,11 @@ import {
   Route,
 } from "lucide-react";
 import DriverShell from "@/components/DriverShell";
+import { PretripGate } from "@/components/dashboard/PretripGate";
 import { useDriverShift } from "@/hooks/useDriverShift";
 import { hasDriverSession } from "@/lib/api";
+import { actionErrorMessage } from "@/lib/jobs";
+import { emptyPretrip, pretripComplete, type PretripChecks } from "@/lib/pretrip";
 import { availabilityColor, availabilityLabel, formatActivityTime } from "@/lib/shift";
 import { mileageCaption } from "@/lib/telemetryLabels";
 import { cn, formatCents } from "@/lib/utils";
@@ -38,6 +41,7 @@ export default function ShiftPage() {
     resumeShift,
     setAvailability,
   } = useDriverShift();
+  const [pretrip, setPretrip] = useState<PretripChecks>(emptyPretrip());
 
   useEffect(() => {
     hasDriverSession().then((ok) => {
@@ -48,7 +52,9 @@ export default function ShiftPage() {
   if (error && !data) {
     return (
       <DriverShell>
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          {actionErrorMessage(error)}
+        </p>
         <button
           type="button"
           onClick={() => refresh()}
@@ -99,7 +105,11 @@ export default function ShiftPage() {
         </button>
       </header>
 
-      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+      {error && (
+        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          {actionErrorMessage(error)}
+        </p>
+      )}
 
       <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center gap-3">
@@ -124,12 +134,18 @@ export default function ShiftPage() {
           </span>
         </div>
 
+        {!snap.shift_active ? (
+          <div className="mt-5">
+            <PretripGate checks={pretrip} onChange={setPretrip} />
+          </div>
+        ) : null}
+
         <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <ShiftButton
             label="Start Shift"
             icon={LogIn}
-            onClick={() => startShift(snap.current_route?.route_id)}
-            disabled={snap.shift_active || busy("start")}
+            onClick={() => startShift(snap.current_route?.route_id, pretrip)}
+            disabled={snap.shift_active || busy("start") || !pretripComplete(pretrip)}
             loading={busy("start")}
             variant="primary"
           />
@@ -160,7 +176,11 @@ export default function ShiftPage() {
 
       <section className="mt-6">
         <h2 className="text-lg font-bold">Availability</h2>
-        <p className="mt-1 text-sm text-[var(--muted)]">Set how dispatch sees your status</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          {snap.shift_active
+            ? "Set how dispatch sees your status"
+            : "Start shift (30-second vehicle check) before going online"}
+        </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {(["online", "offline", "busy", "idle"] as const).map((mode) => (
             <ShiftButton
@@ -169,7 +189,9 @@ export default function ShiftPage() {
               icon={mode === "offline" ? Pause : Activity}
               onClick={() => setAvailability(mode)}
               disabled={
-                busy(mode) || snap.availability === (mode === "online" ? "available" : mode)
+                busy(mode) ||
+                snap.availability === (mode === "online" ? "available" : mode) ||
+                (mode !== "offline" && !snap.shift_active)
               }
               loading={busy(mode)}
               variant={

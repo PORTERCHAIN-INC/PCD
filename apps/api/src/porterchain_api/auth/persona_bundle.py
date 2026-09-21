@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import AdminUser, Driver
+from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.merchant_models import MerchantUser
 from porterchain_api.booking_models import Customer
 
@@ -64,7 +65,7 @@ class PersonaBundle:
 
 def load_persona_bundle(db: Session, clerk_user_id: str, *, force: bool = False) -> PersonaBundle:
     """Load (and request-cache) persona rows for a Clerk subject."""
-    if not clerk_user_id or clerk_user_id.startswith("pending:") or clerk_user_id == "dev_clerk_user":
+    if not clerk_user_id or clerk_user_id.startswith("pending:") or is_dev_bypass_subject(clerk_user_id):
         return PersonaBundle(clerk_user_id=clerk_user_id or "")
 
     cache: dict[str, PersonaBundle] = db.info.setdefault(_CACHE_KEY, {})

@@ -1,4 +1,4 @@
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Platform, Pressable, Text, View, StyleSheet } from "react-native";
 import { colors, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
 import type { FieldTab } from "../types";
 
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: `${colors.primary}14`,
-    paddingBottom: spacing.sm,
+    paddingBottom: Platform.OS === "android" ? 20 : 28,
   },
   tab: {
     flex: 1,

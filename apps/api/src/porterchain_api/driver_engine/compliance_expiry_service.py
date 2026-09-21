@@ -103,3 +103,10 @@ class DriverComplianceExpiryService:
         if updated:
             db.commit()
         return {"scanned": scanned, "updated": updated, "actions": actions[:50]}
+
+    def refresh_and_commit(self, db: Session, driver: Driver) -> list[str]:
+        changed = self.refresh_driver(db, driver)
+        if changed:
+            db.commit()
+            db.refresh(driver)
+        return changed

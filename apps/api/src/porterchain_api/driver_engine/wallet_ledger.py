@@ -43,6 +43,11 @@ def record_transaction(
         description=description or None,
     )
     db.add(row)
+    from porterchain_api.admin_models import Driver
+
+    driver = db.query(Driver).filter(Driver.id == driver_id).one_or_none()
+    if driver is not None:
+        driver.wallet_balance_cents = int(balance_after_cents)
     if flush:
         db.flush()
     return row

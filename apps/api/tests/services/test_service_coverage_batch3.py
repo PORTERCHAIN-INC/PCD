@@ -133,8 +133,14 @@ def test_contacts_create(db, merchant_ctx) -> None:
     assert row["first_name"] == "Ops"
 
 
-def test_notification_delivery() -> None:
+def test_notification_delivery(monkeypatch) -> None:
     """No SMTP host is configured here, so delivery stays deferred instead of pretending it sent."""
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(
+        "porterchain_api.notification_engine.delivery_service.get_platform_settings",
+        lambda: SimpleNamespace(smtp_host="", smtp_password=""),
+    )
     log = DeliveryService().deliver(
         {
             "channel": "email",

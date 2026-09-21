@@ -1,7 +1,7 @@
 /** Shared document upload helper for Docs + Onboarding screens. */
 
-import { uploadDocument, uploadVehiclePhoto } from "../api";
-import { pickDocumentPhotoDataUrl } from "../pod";
+import { uploadDocument, uploadVehiclePhoto } from "./api";
+import { pickDocumentPhotoDataUrl } from "./pod";
 
 export const FALLBACK_DOC_TYPES = [
   { type: "license", label: "Driver license" },

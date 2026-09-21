@@ -29,4 +29,7 @@ def public_address_snapshot(addr: dict[str, Any] | None) -> dict[str, Any] | Non
                 out[coord] = float(addr[coord])
             except (TypeError, ValueError):
                 pass
+    parts = [out[key] for key in ("city", "province", "postal_code", "country") if out.get(key)]
+    if parts:
+        out["formatted"] = ", ".join(str(part) for part in parts)
     return out or None

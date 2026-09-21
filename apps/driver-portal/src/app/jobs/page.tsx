@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Briefcase, CheckCircle2, Clock, History, Route } from "lucide-react";
+import { Briefcase, History, Route } from "lucide-react";
 import { CardListSkeleton } from "@porterchain/ui/loading";
 import { EmptyState } from "@porterchain/ui/empty-state";
 import DriverShell from "@/components/DriverShell";
 import { JobCard } from "@/components/jobs/JobCard";
 import { useDriverJobs } from "@/hooks/useDriverJobs";
 import { driverApi, hasDriverSession } from "@/lib/api";
+import { groupJobsByDay } from "@/lib/jobs";
 import { cn } from "@/lib/utils";
 
-type Tab = "all" | "current" | "upcoming" | "completed" | "history";
+type Tab = "today" | "earlier";
 
 export default function JobsPage() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function JobsPage() {
     data,
     history,
     error,
+    historyError,
     loading,
     optimizing,
     optimizeMessage,
@@ -31,16 +33,8 @@ export default function JobsPage() {
     discardPreview,
     undoOptimize,
   } = useDriverJobs();
-  const [tab, setTab] = useState<Tab>("all");
-  const [tabInitialized, setTabInitialized] = useState(false);
+  const [tab, setTab] = useState<Tab>("today");
   const [assignPending, setAssignPending] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!tabInitialized && data?.current) {
-      setTab("current");
-      setTabInitialized(true);
-    }
-  }, [data?.current, tabInitialized]);
 
   const handleAccept = async (orderId: string) => {
     setAssignPending(orderId);
@@ -62,6 +56,18 @@ export default function JobsPage() {
     }
   };
 
+  const todayJobs = data?.jobs ?? [];
+  const todayIds = useMemo(
+    () => new Set((data?.jobs ?? []).map((job) => job.order_id)),
+    [data?.jobs]
+  );
+  const earlier = useMemo(
+    () => history.filter((job) => !todayIds.has(job.order_id)),
+    [history, todayIds]
+  );
+  const earlierGroups = useMemo(() => groupJobsByDay(earlier), [earlier]);
+  const restToday = todayJobs.filter((job) => job.order_id !== data?.current?.order_id);
+
   const cardProps = {
     onAccept: handleAccept,
     onReject: handleReject,
@@ -75,28 +81,9 @@ export default function JobsPage() {
   }, [router]);
 
   const tabs: { id: Tab; label: string; count: number }[] = [
-    { id: "all", label: "All Jobs", count: data?.jobs.length ?? 0 },
-    { id: "current", label: "Current", count: data?.current ? 1 : 0 },
-    { id: "upcoming", label: "Upcoming", count: data?.upcoming.length ?? 0 },
-    { id: "completed", label: "Completed", count: data?.completed.length ?? 0 },
-    { id: "history", label: "Order History", count: history.length },
+    { id: "today", label: "Today", count: todayJobs.length },
+    { id: "earlier", label: "Earlier", count: earlier.length },
   ];
-
-  const list = (() => {
-    if (!data) return [];
-    switch (tab) {
-      case "current":
-        return data.current ? [data.current] : [];
-      case "upcoming":
-        return data.upcoming;
-      case "completed":
-        return data.completed;
-      case "history":
-        return history;
-      default:
-        return data.jobs;
-    }
-  })();
 
   return (
     <DriverShell>
@@ -134,7 +121,7 @@ export default function JobsPage() {
         )}
       </header>
 
-      {data && data.optimize_available && tab !== "history" && tab !== "completed" && (
+      {data && data.optimize_available && tab === "today" && (
         <section className="mt-4 flex flex-col gap-3 rounded-2xl border border-[var(--secondary)]/20 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -221,7 +208,7 @@ export default function JobsPage() {
 
       {data && (
         <>
-          {data.current && (
+          {tab === "today" && data.current && (
             <section className="mt-6">
               <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
                 <Briefcase className="h-4 w-4 text-[var(--secondary)]" />
@@ -251,43 +238,60 @@ export default function JobsPage() {
           </div>
 
           <section className="mt-6">
-            {tab === "upcoming" && (
+            {tab === "earlier" ? (
               <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
-                <Clock className="h-4 w-4" /> Upcoming Jobs
+                <History className="h-4 w-4" /> Earlier routes
               </h2>
-            )}
-            {tab === "completed" && (
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
-                <CheckCircle2 className="h-4 w-4" /> Completed Jobs
-              </h2>
-            )}
-            {tab === "history" && (
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
-                <History className="h-4 w-4" /> Order History
-              </h2>
-            )}
+            ) : null}
 
-            {list.length === 0 ? (
+            {tab === "earlier" && historyError ? (
+              <p className="mb-3 text-sm text-red-600">{historyError}</p>
+            ) : null}
+
+            {tab === "today" && restToday.length === 0 && !data.current ? (
               <EmptyState
-                title="No jobs in this view"
-                hint="Check upcoming assignments or refresh when new routes are dispatched."
+                title="No jobs on this shift yet"
+                hint="Refresh when new routes are dispatched."
                 className="mt-2"
               />
-            ) : (
+            ) : null}
+
+            {tab === "today" && restToday.length > 0 ? (
               <ul className="space-y-3">
-                {list.map((job) => (
+                {restToday.map((job) => (
                   <li key={job.order_id}>
-                    <JobCard
-                      job={job}
-                      highlight={Boolean(
-                        job.is_current_job || job.order_id === data.current?.order_id
-                      )}
-                      {...cardProps}
-                    />
+                    <JobCard job={job} {...cardProps} />
                   </li>
                 ))}
               </ul>
-            )}
+            ) : null}
+
+            {tab === "earlier" && earlier.length === 0 && !historyError ? (
+              <EmptyState
+                title="No earlier jobs"
+                hint="Completed work from prior days shows up here."
+                className="mt-2"
+              />
+            ) : null}
+
+            {tab === "earlier" && earlierGroups.length > 0 ? (
+              <div className="space-y-6">
+                {earlierGroups.map((group) => (
+                  <div key={group.key}>
+                    <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--muted)]">
+                      {group.label} · {group.jobs.length} {group.jobs.length === 1 ? "job" : "jobs"}
+                    </h3>
+                    <ul className="space-y-3">
+                      {group.jobs.map((job) => (
+                        <li key={job.order_id}>
+                          <JobCard job={job} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </section>
         </>
       )}

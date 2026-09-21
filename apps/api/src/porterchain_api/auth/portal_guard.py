@@ -12,13 +12,14 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.clerk_registry import clerk_app_configs
+from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.config import Settings
 
 
 def clerk_id_staff_portal(db: Session, clerk_user_id: str) -> str | None:
     """Return admin, merchant, or driver when this Clerk id is provisioned outside retail."""
-    if not clerk_user_id or clerk_user_id.startswith("pending:") or clerk_user_id == "dev_clerk_user":
+    if not clerk_user_id or clerk_user_id.startswith("pending:") or is_dev_bypass_subject(clerk_user_id):
         return None
     return load_persona_bundle(db, clerk_user_id).staff_portal()
 
@@ -64,7 +65,7 @@ def assert_clerk_id_exclusive(
     _ = settings  # Platform-only; unused
 
     clerk_id = claims.clerk_user_id
-    if not clerk_id or clerk_id.startswith("pending:") or clerk_id == "dev_clerk_user":
+    if not clerk_id or clerk_id.startswith("pending:") or is_dev_bypass_subject(clerk_id):
         return
 
     portal_norm = "admin" if portal in ("admin", "staff") else portal

@@ -250,6 +250,9 @@ class StopsService:
         _validate_stop_action(order, stop_id, "arrive")
         if enforce_sequence:
             _validate_current_stop(db, driver, stop_id)
+        from porterchain_driver.navigation import assert_driver_inside_stop
+
+        assert_driver_inside_stop(driver.id, order, stop_id)
         steps = _PICKUP_ARRIVAL_STEPS if stop_id.endswith("-pickup") else _DELIVERY_ARRIVAL_STEPS
         _apply_state_chain(db, order, steps, actor_type="driver", actor_id=driver.id)
         if fleetbase_bridge and order.fleetbase_order_id:
@@ -300,12 +303,19 @@ class StopsService:
             target = OrderState.PICKED_UP
             _record_stop_completion(db, driver.id, order.id, "pickup")
         else:
-            _assert_dropoff_pod_ready(db, order)
-            steps = _DELIVERY_COMPLETE_STEPS
-            _apply_state_chain(db, order, steps, actor_type="driver", actor_id=driver.id)
-            target = OrderState.DELIVERED
-            _record_stop_completion(db, driver.id, order.id, "dropoff")
-            EarningsService().credit_delivery(db, driver, order_id=order.id)
+            already_pod = str(getattr(order, "state", "") or "") == OrderState.POD_COMPLETED.value
+            if already_pod:
+                # OTP complete_pod already walked AT_DESTINATION → DELIVERED → POD_COMPLETED.
+                target = OrderState.POD_COMPLETED
+                _record_stop_completion(db, driver.id, order.id, "dropoff")
+                EarningsService().credit_delivery(db, driver, order_id=order.id)
+            else:
+                _assert_dropoff_pod_ready(db, order)
+                steps = _DELIVERY_COMPLETE_STEPS
+                _apply_state_chain(db, order, steps, actor_type="driver", actor_id=driver.id)
+                target = OrderState.DELIVERED
+                _record_stop_completion(db, driver.id, order.id, "dropoff")
+                EarningsService().credit_delivery(db, driver, order_id=order.id)
         if fleetbase_bridge and order.fleetbase_order_id:
             fleetbase_bridge.sync_order_state(
                 db,
@@ -328,6 +338,7 @@ class StopsService:
         *,
         exception_type: str,
         notes: str | None = None,
+        photo_url: str | None = None,
         fleetbase_bridge: Any = None,
         auto_reoptimize: bool = False,
     ) -> dict:
@@ -335,42 +346,85 @@ class StopsService:
         from porterchain_api.booking_engine.order_transitions import transition_order_state
         from porterchain_api.booking_models import OrderException
         from porterchain_api.domain.states import OrderState
+        from porterchain_driver.stop_exceptions import (
+            MAX_DELIVERY_ATTEMPTS,
+            normalize_exception_type,
+            photo_required,
+            prior_attempt_rows,
+            resolve_outcome,
+            retryable_attempt_count,
+        )
+
+        coded = normalize_exception_type(exception_type)
+        if photo_required(coded) and not (photo_url or "").strip():
+            raise ValueError("photo_required")
 
         order = self._order_for_stop(db, driver.id, stop_id)
+        prior = prior_attempt_rows(
+            db.query(OrderException).filter(OrderException.order_id == order.id).all()
+        )
+        retryable_prior = retryable_attempt_count(prior)
+        attempt = retryable_prior + 1
+        outcome = resolve_outcome(coded, retryable_prior)
+
         exc = OrderException(
             order_id=order.id,
-            type=exception_type,
+            type=coded,
             status="open",
             reported_by_type="driver",
             reported_by_id=driver.id,
-            evidence={"notes": notes or "", "stop_id": stop_id},
+            evidence={
+                "notes": notes or "",
+                "stop_id": stop_id,
+                "photo_url": (photo_url or "").strip() or None,
+                "attempt": attempt,
+                "outcome": outcome,
+            },
         )
         db.add(exc)
         db.flush()
-        # Fail the stop's order so remaining-tour reopt excludes it (Phase 6).
-        try:
-            if str(order.state) not in {
+
+        close_state: str | None = None
+        if outcome == "failed":
+            close_state = OrderState.FAILED.value
+        elif outcome == "return_to_sender":
+            close_state = OrderState.RETURN_TO_SENDER.value
+
+        if close_state:
+            terminal = {
                 OrderState.FAILED.value,
                 OrderState.CANCELLED.value,
                 OrderState.DELIVERED.value,
-            }:
-                transition_order_state(
+                OrderState.RETURN_TO_SENDER.value,
+            }
+            try:
+                if str(order.state) not in terminal:
+                    transition_order_state(
+                        db,
+                        order,
+                        OrderState.FAILED,
+                        actor_type="driver",
+                        actor_id=driver.id,
+                        event_type="exception.opened",
+                    )
+                if close_state == OrderState.RETURN_TO_SENDER.value and str(order.state) == OrderState.FAILED.value:
+                    transition_order_state(
+                        db,
+                        order,
+                        OrderState.RETURN_TO_SENDER,
+                        actor_type="driver",
+                        actor_id=driver.id,
+                        event_type="exception.return_to_sender",
+                    )
+            except Exception:  # noqa: BLE001 — exception row already persisted
+                pass
+            if fleetbase_bridge and order.fleetbase_order_id:
+                fleetbase_bridge.sync_order_state(
                     db,
-                    order,
-                    OrderState.FAILED,
-                    actor_type="driver",
-                    actor_id=driver.id,
-                    event_type="exception.opened",
+                    order_id=order.id,
+                    fleetbase_order_id=order.fleetbase_order_id,
+                    order_state=str(order.state),
                 )
-        except Exception:  # noqa: BLE001 — exception row already persisted
-            pass
-        if fleetbase_bridge and order.fleetbase_order_id:
-            fleetbase_bridge.sync_order_state(
-                db,
-                order_id=order.id,
-                fleetbase_order_id=order.fleetbase_order_id,
-                order_state="FAILED",
-            )
         emit_event(
             db,
             event_type="incident.reported",
@@ -381,13 +435,15 @@ class StopsService:
             payload={
                 "order_id": order.id,
                 "driver_id": driver.id,
-                "exception_type": exception_type,
+                "exception_type": coded,
                 "exception_id": exc.id,
                 "notes": notes or "",
+                "attempt": attempt,
+                "outcome": outcome,
             },
         )
         reopt: dict | None = None
-        if auto_reoptimize:
+        if auto_reoptimize and close_state:
             try:
                 from porterchain_driver.route_optimizer import DriverRouteOptimizer
 
@@ -397,7 +453,10 @@ class StopsService:
         out: dict = {
             "exception_id": exc.id,
             "order_id": order.id,
-            "type": exception_type,
+            "type": coded,
+            "attempt": attempt,
+            "max_attempts": MAX_DELIVERY_ATTEMPTS,
+            "outcome": outcome,
         }
         if reopt:
             out["reoptimize"] = {

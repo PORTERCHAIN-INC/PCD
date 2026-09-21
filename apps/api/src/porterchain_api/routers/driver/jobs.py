@@ -317,17 +317,17 @@ def stop_exception(
     settings: Settings = Depends(get_settings),
 ):
     require_approved_driver(ctx)
-    bridge = svc.fleetbase_bridge(settings)
-    result = svc.platform.stops.report_exception(
-        db,
-        ctx.driver,
-        stop_id,
-        exception_type=body.exception_type,
-        notes=body.notes,
-        fleetbase_bridge=bridge,
-        auto_reoptimize=settings.enable_driver_auto_reoptimize,
-    )
-    return result
+    try:
+        with db_transaction(db):
+            return svc.platform.stops.report_exception(
+                db, ctx.driver, stop_id,
+                exception_type=body.exception_type, notes=body.notes, photo_url=body.photo_url,
+                fleetbase_bridge=svc.fleetbase_bridge(settings),
+                auto_reoptimize=settings.enable_driver_auto_reoptimize,
+            )
+    except (LookupError, ValueError) as exc:
+        code = 404 if isinstance(exc, LookupError) else 422
+        raise HTTPException(status_code=code, detail=str(exc)) from exc
 
 
 @router.post("/orders/{order_id}/accept")

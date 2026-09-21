@@ -7,7 +7,12 @@ import {
   startLocationLoop,
   stopBackgroundLocation,
 } from "../location";
-import { flushOfflineQueues, pendingOfflineCount, type FlushResult } from "../offline";
+import {
+  flushOfflineQueues,
+  pendingOfflineCount,
+  runOnlineOrQueue,
+  type FlushResult,
+} from "../offline";
 import type { Handshake, LocationState } from "../types";
 
 const OFFLINE_POLL_MS = 30_000;
@@ -88,13 +93,18 @@ export function useFieldSession() {
     );
   }, [handshake.online]);
 
-  const goOnDuty = useCallback(async (routeId: string | null) => {
-    const access = await requestLocationAccess();
-    setLocation(access);
-    await startShift(routeId);
-    const bg = await startBackgroundLocation();
-    setLocation(bg);
-  }, []);
+  const goOnDuty = useCallback(
+    async (routeId: string | null, pretrip?: Record<string, boolean>) => {
+      const access = await requestLocationAccess();
+      setLocation(access);
+      await runOnlineOrQueue("shift_start", { route_id: routeId, pretrip: pretrip ?? null }, () =>
+        startShift(routeId, pretrip)
+      );
+      const bg = await startBackgroundLocation();
+      setLocation(bg);
+    },
+    []
+  );
 
   const goOffDuty = useCallback(async () => {
     await stopBackgroundLocation();

@@ -52,6 +52,7 @@ async function referralFetch<T>(
   const { orgId, ...rest } = init ?? {};
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
   };
   if (orgId) headers["X-Merchant-Id"] = orgId;
   if (rest.body && !(rest.body instanceof FormData)) {

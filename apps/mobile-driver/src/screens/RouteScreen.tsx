@@ -1,16 +1,21 @@
 import { Text, View, StyleSheet, ScrollView } from "react-native";
 import { colors, radius, spacing, typography } from "@porterchain/mobile-theme";
 import { formatCents, formatEtaMinutes } from "../format";
+import { fieldWarning } from "../fieldCopy";
 import type { FlushResult } from "../offline";
 import { buildStopChecklist } from "../stopChecklist";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Kpi } from "../ui/Card";
-import { Screen } from "../ui/Screen";
+import { Screen, DEV_MENU_GUTTER } from "../ui/Screen";
 import { StatusRail } from "../ui/StatusRail";
 import { PodCapture, type PodDraft } from "../ui/PodCapture";
 import { FieldOpsPanel } from "../ui/FieldOpsPanel";
 import { RouteControls } from "../ui/RouteControls";
+import { capturePodPhotoDataUrl } from "../pod";
+import { STOP_EXCEPTION_TYPES, stopExceptionById } from "../stopExceptions";
+import { emptyPretrip, PRETRIP_ITEMS, pretripComplete, type PretripChecks } from "../pretrip";
 import type { Handshake } from "../types";
+import { useState } from "react";
 
 type Props = {
   handshake: Handshake;
@@ -26,12 +31,12 @@ type Props = {
   onPodChange: (next: PodDraft) => void;
   onScanCompleteChange: (complete: boolean) => void;
   onRefresh: () => void;
-  onDuty: () => void;
+  onDuty: (pretrip?: Record<string, boolean>) => void;
   onArrive: () => void;
   onComplete: () => void;
   onAccept: () => void;
   onNavigate: () => void;
-  onException: (reason: string) => void;
+  onException: (reason: string, notes?: string, photoUrl?: string) => void;
   onFlushOffline: () => void;
   onPhotoError: (message: string) => void;
 };
@@ -67,12 +72,12 @@ export function RouteScreen({
       ? `${handshake.stopsDone} / ${handshake.stopsTotal} stops today`
       : "Stops load after handshake";
   const busy = refreshing || Boolean(action);
+  const [pretrip, setPretrip] = useState<PretripChecks>(emptyPretrip());
+  const canStartDuty = handshake.online || pretripComplete(pretrip);
   const canArrive = Boolean(handshake.routeId && handshake.stopId);
   const arrived = (handshake.stopStatus ?? "").toLowerCase().includes("arriv");
   const canAccept = Boolean(handshake.currentOrderId) && !canArrive;
-  const canNav = Boolean(
-    handshake.nextStop || handshake.navigationUrl || handshake.destLat != null
-  );
+  const canNav = Boolean(handshake.navigationUrl || handshake.destLat != null);
   const needsPod = canArrive && (handshake.nextStopType ?? "").toLowerCase() !== "pickup";
   const otpRequired = handshake.otpRequired;
   const canComplete =
@@ -98,8 +103,12 @@ export function RouteScreen({
         ? `${lastFlush.failed} failed last sync`
         : null;
 
+  const pushWarn = fieldWarning(handshake.push.detail);
+  const locationWarn = fieldWarning(handshake.location.detail);
+  const handshakeWarn = fieldWarning(handshake.error);
+
   return (
-    <Screen testID="mobile-track">
+    <Screen testID="mobile-track" includeBottomSafeArea={false}>
       <StatusRail handshake={handshake} />
       <ScrollView
         style={styles.flex}
@@ -118,14 +127,26 @@ export function RouteScreen({
           {handshake.nextStopType ? `${handshake.nextStopType} stop` : "Next stop"}
         </Text>
         <Text style={styles.next}>{next}</Text>
+        {handshake.accessNotes ? (
+          <Text style={styles.access} testID="next-stop-access">
+            {handshake.accessNotes}
+          </Text>
+        ) : null}
+        {handshake.deliveryAttempts != null && handshake.deliveryAttempts > 0 ? (
+          <Text style={styles.meta} testID="delivery-attempts">
+            Attempt {handshake.deliveryAttempts} of {handshake.maxDeliveryAttempts ?? 2}
+          </Text>
+        ) : null}
         {handshake.currentOrderNumber ? (
           <Text style={styles.stops}>Job {handshake.currentOrderNumber}</Text>
         ) : null}
         <Text style={styles.stops}>{stops}</Text>
-        <Text style={styles.meta}>
-          ETA {handshake.etaLabel ?? formatEtaMinutes(handshake.etaMinutes)}
-          {handshake.distanceLabel ? ` · ${handshake.distanceLabel}` : ""}
-        </Text>
+        {handshake.etaLabel || handshake.etaMinutes != null ? (
+          <Text style={styles.meta}>
+            ETA {handshake.etaLabel ?? formatEtaMinutes(handshake.etaMinutes)}
+            {handshake.distanceLabel ? ` · ${handshake.distanceLabel}` : ""}
+          </Text>
+        ) : null}
         {handshake.routePolyline || handshake.navStopCount != null ? (
           <Text style={styles.meta} testID="nav-geometry">
             {handshake.routePolyline ? "Route geometry ready (Valhalla / OSRM)" : "Navigation"}
@@ -134,8 +155,8 @@ export function RouteScreen({
         ) : null}
         <Text style={styles.status} testID="route-status">
           {handshake.api === "up"
-            ? "Live API · Navigate uses Valhalla URL · GPS → Fleetbase"
-            : "API down — actions queue offline when possible"}
+            ? "On the network · GPS to Fleetbase"
+            : "API down — queued work syncs when you reconnect"}
         </Text>
         {offlinePending > 0 || syncedHint ? (
           <View style={styles.offlineBanner} testID="offline-banner">
@@ -157,9 +178,9 @@ export function RouteScreen({
             <PrimaryButton tone="ghost" label="Dismiss" onPress={onDismissOfflineNote} />
           </View>
         ) : null}
-        {handshake.error ? <Text style={styles.error}>{handshake.error}</Text> : null}
-        <Text style={styles.push}>{handshake.push.detail}</Text>
-        <Text style={styles.push}>{handshake.location.detail}</Text>
+        {handshakeWarn ? <Text style={styles.error}>{handshakeWarn}</Text> : null}
+        {pushWarn ? <Text style={styles.push}>{pushWarn}</Text> : null}
+        {locationWarn ? <Text style={styles.push}>{locationWarn}</Text> : null}
 
         {checklist.length > 0 ? (
           <View style={styles.checklist} testID="stop-checklist">
@@ -220,14 +241,15 @@ export function RouteScreen({
         ) : null}
 
         {canArrive && arrived ? <ExceptionRow busy={busy} onException={onException} /> : null}
+        {!handshake.online ? <PretripRow checks={pretrip} onChange={setPretrip} /> : null}
       </ScrollView>
       <View style={styles.cta}>
         <PrimaryButton
           label={
             action === "duty" ? "Updating duty…" : handshake.online ? "Go off duty" : "Go on duty"
           }
-          disabled={busy || handshake.auth !== "up"}
-          onPress={onDuty}
+          disabled={busy || handshake.auth !== "up" || !canStartDuty}
+          onPress={() => onDuty(handshake.online ? undefined : pretrip)}
         />
         {canAccept ? (
           <PrimaryButton
@@ -286,22 +308,114 @@ export function RouteScreen({
   );
 }
 
+function PretripRow({
+  checks,
+  onChange,
+}: {
+  checks: PretripChecks;
+  onChange: (next: PretripChecks) => void;
+}) {
+  return (
+    <View style={styles.exception} testID="pretrip-check">
+      <Text style={styles.kicker}>30-second pre-trip</Text>
+      <Text style={styles.meta}>Lights, tires, plates, leaks, winter kit — then go on duty.</Text>
+      {PRETRIP_ITEMS.map((item) => (
+        <PrimaryButton
+          key={item.id}
+          tone={checks[item.id] ? "primary" : "ghost"}
+          label={`${checks[item.id] ? "✓ " : ""}${item.label}`}
+          onPress={() => onChange({ ...checks, [item.id]: !checks[item.id] })}
+        />
+      ))}
+    </View>
+  );
+}
+
 function ExceptionRow({
   busy,
   onException,
 }: {
   busy: boolean;
-  onException: (reason: string) => void;
+  onException: (reason: string, notes?: string, photoUrl?: string) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [picking, setPicking] = useState(false);
+  const selected = code ? stopExceptionById(code) : undefined;
+  const needsPhoto = Boolean(selected?.photoRequired);
+  const canSubmit = Boolean(code) && (!needsPhoto || Boolean(photoUrl));
+
   return (
-    <View style={styles.exception}>
+    <View style={styles.exception} testID="stop-exception">
       <Text style={styles.kicker}>Cannot complete?</Text>
-      <PrimaryButton
-        tone="danger"
-        label="Report exception"
-        disabled={busy}
-        onPress={() => onException("unable_to_deliver")}
-      />
+      {!open ? (
+        <PrimaryButton
+          tone="danger"
+          label="Report exception"
+          disabled={busy}
+          onPress={() => setOpen(true)}
+        />
+      ) : (
+        <>
+          {STOP_EXCEPTION_TYPES.map((item) => (
+            <PrimaryButton
+              key={item.id}
+              tone={code === item.id ? "danger" : "ghost"}
+              label={item.label}
+              disabled={busy}
+              onPress={() => setCode(item.id)}
+            />
+          ))}
+          {needsPhoto ? (
+            <PrimaryButton
+              tone="ghost"
+              label={
+                picking ? "Opening camera…" : photoUrl ? "Retake exception photo" : "Photo required"
+              }
+              disabled={busy || picking}
+              onPress={() => {
+                setPicking(true);
+                void capturePodPhotoDataUrl()
+                  .then((url) => setPhotoUrl(url))
+                  .catch(() => setPhotoUrl(null))
+                  .finally(() => setPicking(false));
+              }}
+            />
+          ) : (
+            <PrimaryButton
+              tone="ghost"
+              label={
+                picking ? "Opening camera…" : photoUrl ? "Retake photo" : "Add photo (optional)"
+              }
+              disabled={busy || picking}
+              onPress={() => {
+                setPicking(true);
+                void capturePodPhotoDataUrl()
+                  .then((url) => setPhotoUrl(url))
+                  .catch(() => setPhotoUrl(null))
+                  .finally(() => setPicking(false));
+              }}
+            />
+          )}
+          <PrimaryButton
+            tone="danger"
+            testID="submit-exception"
+            label={
+              selected?.retryable
+                ? "Log attempt — stay on stop"
+                : selected
+                  ? "Fail this stop"
+                  : "Choose a reason"
+            }
+            disabled={busy || !canSubmit}
+            onPress={() => {
+              if (!code) return;
+              onException(code, selected?.label, photoUrl ?? undefined);
+            }}
+          />
+        </>
+      )}
     </View>
   );
 }
@@ -314,6 +428,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   identity: {
     gap: spacing.xs,
+    paddingRight: DEV_MENU_GUTTER,
   },
   hello: {
     ...typography.title,
@@ -343,6 +458,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     lineHeight: 34,
     color: colors.primary,
+  },
+  access: {
+    ...typography.body,
+    color: colors.secondary,
+    fontWeight: "600",
   },
   stops: {
     ...typography.body,

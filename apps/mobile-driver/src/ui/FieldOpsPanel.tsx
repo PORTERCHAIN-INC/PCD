@@ -104,7 +104,7 @@ export function FieldOpsPanel({ orderId, stopType, busy, seed, onError, onScanPr
             style={styles.input}
             value={code}
             onChangeText={setCode}
-            placeholder="Package QR / tracking"
+            placeholder="PorterChain QR or tracking line"
             placeholderTextColor={colors.muted}
             autoCapitalize="characters"
             editable={!locked}

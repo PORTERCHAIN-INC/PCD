@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from typing import TypeVar
 
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -16,7 +17,7 @@ from porterchain_api.fleetbase_engine import MerchantSyncService
 from porterchain_api.domain.states import OrderState, OrderSource
 from porterchain_api.merchant_engine import events as E
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.booking_models import Order
+from porterchain_api.booking_models import Customer, Order
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas import AddressInput
 from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest
@@ -290,12 +291,22 @@ class MerchantBookingService:
             # Test bookings never collect COD.
             cod_amount = None
 
+        customer_id = None
+        if consignee_email:
+            linked = (
+                db.query(Customer)
+                .filter(func.lower(Customer.email) == consignee_email.strip().lower())
+                .first()
+            )
+            if linked:
+                customer_id = linked.id
+
         order = Order(
             order_number=generate_order_number(),
             tracking_number=generate_tracking_number(),
             state=OrderState.BOOKED.value,
             merchant_id=ctx.merchant.id,
-            customer_id=None,
+            customer_id=customer_id,
             order_source=order_source,
             order_type=resolve_order_type(
                 schedule_mode=schedule_mode,

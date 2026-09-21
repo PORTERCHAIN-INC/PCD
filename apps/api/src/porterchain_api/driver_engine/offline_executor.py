@@ -98,7 +98,14 @@ class DriverOfflineExecutor:
                 )
             return
         if action == "shift_start":
-            self._platform.shift.start_shift(db, driver, fleetbase_bridge=fleetbase_bridge)
+            raw = payload.get("pretrip")
+            self._platform.shift.start_shift(
+                db,
+                driver,
+                fleetbase_bridge=fleetbase_bridge,
+                route_id=payload.get("route_id"),
+                pretrip=raw if isinstance(raw, dict) else None,
+            )
             return
         if action == "shift_end":
             self._platform.shift.end_shift(db, driver, fleetbase_bridge=fleetbase_bridge)

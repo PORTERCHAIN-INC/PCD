@@ -11,7 +11,13 @@ if TYPE_CHECKING:
 
 
 class WalletService:
-    def balance_cents(self, driver: Any) -> int:
+    def balance_cents(self, driver: Any, db: Session | None = None) -> int:
+        if db is not None:
+            from porterchain_api.driver_engine.wallet_ledger import wallet_balance_cents
+
+            return wallet_balance_cents(
+                db, driver.id, cached_cents=int(driver.wallet_balance_cents or 0)
+            )
         return int(driver.wallet_balance_cents or 0)
 
     def list_transactions(self, db: Session, driver_id: str, *, limit: int = 50) -> list[WalletTransactionView]:
@@ -69,21 +75,21 @@ class WalletService:
         reference_id: str | None = None,
         description: str = "",
     ) -> int:
-        from porterchain_api.driver_models import DriverWalletTransaction
+        from porterchain_api.driver_engine.wallet_ledger import record_transaction, wallet_balance_cents
 
-        new_balance = (driver.wallet_balance_cents or 0) + amount_cents
-        driver.wallet_balance_cents = new_balance
-        db.add(
-            DriverWalletTransaction(
-                driver_id=driver.id,
-                tx_type=tx_type,
-                amount_cents=amount_cents,
-                balance_after_cents=new_balance,
-                reference_id=reference_id,
-                description=description,
-            )
+        remaining = wallet_balance_cents(
+            db, driver.id, cached_cents=int(driver.wallet_balance_cents or 0)
         )
-        db.flush()
+        new_balance = remaining + amount_cents
+        record_transaction(
+            db,
+            driver_id=driver.id,
+            tx_type=tx_type,
+            amount_cents=amount_cents,
+            balance_after_cents=new_balance,
+            reference_id=reference_id,
+            description=description,
+        )
         return new_balance
 
     def debit(
@@ -96,7 +102,7 @@ class WalletService:
         reference_id: str | None = None,
         description: str = "",
     ) -> int:
-        if amount_cents > (driver.wallet_balance_cents or 0):
+        if amount_cents > self.balance_cents(driver, db):
             raise ValueError("insufficient_wallet_balance")
         return self.credit(
             db,

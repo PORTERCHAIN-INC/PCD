@@ -165,6 +165,59 @@ def test_job_detail_schema_keeps_scan_progress():
     )
     assert parsed.scan_pickup.required == 1
     assert parsed.scan_pickup.complete is False
+    assert "packages_error" in fields
+
+
+def test_progress_by_order_ids_is_read_only():
+    pkgs = [
+        SimpleNamespace(order_id="o1", status="picked_up", tracking_suffix="A-01"),
+        SimpleNamespace(order_id="o1", status="manifested", tracking_suffix="A-02"),
+        SimpleNamespace(order_id="o2", status="delivered", tracking_suffix="B-01"),
+    ]
+    db = MagicMock()
+    db.query.return_value.filter.return_value.all.return_value = pkgs
+    out = ScanGateService().progress_by_order_ids(db, ["o1", "o2", "o3"])
+    assert out["o1"]["scan_pickup"]["scanned"] == 1
+    assert out["o1"]["scan_pickup"]["required"] == 2
+    assert out["o1"]["scan_pickup"]["complete"] is False
+    assert out["o2"]["scan_delivery"]["complete"] is True
+    assert out["o3"]["scan_pickup"]["required"] == 0
+    db.add.assert_not_called()
+
+
+def test_route_id_for_order_uses_scheduled_date():
+    from datetime import UTC, datetime
+
+    from porterchain_driver.jobs import JobsService
+
+    order = SimpleNamespace(
+        scheduled_at=datetime(2026, 9, 16, tzinfo=UTC),
+        updated_at=datetime(2026, 9, 21, tzinfo=UTC),
+    )
+    assert JobsService.route_id_for_order(order) == "route-2026-09-16"
+    past = SimpleNamespace(scheduled_at=None, updated_at=datetime(2026, 9, 18, tzinfo=UTC))
+    assert JobsService.route_id_for_order(past) == "route-2026-09-18"
+    assert JobsService.route_id_for_order(SimpleNamespace(scheduled_at=None, updated_at=None)) is None
+
+
+def test_load_packages_failure_is_visible_not_a_fake_box(monkeypatch: pytest.MonkeyPatch):
+    from porterchain_driver.jobs import JobsService
+
+    svc = JobsService()
+
+    def boom(*_a, **_k):
+        raise RuntimeError("sync_failed")
+
+    monkeypatch.setattr(
+        "porterchain_api.merchant_engine.scan_gate_service.ScanGateService.package_rows",
+        boom,
+    )
+    packages, pickup, _delivery, err = svc._load_packages(MagicMock(), SimpleNamespace(id="o1"))
+    assert packages == []
+    assert err == "packages_unavailable"
+    assert pickup["complete"] is False
+    assert pickup["required"] == 0
+    assert not any("package_type" in (p or {}) for p in packages)
 
 
 def test_delivery_scan_requires_pickup_first():
@@ -186,3 +239,58 @@ def test_delivery_scan_requires_pickup_first():
     qr = encode_label_qr(order_id=order.id, package_id="pkg-1")
     with pytest.raises(ValueError, match="scan_pickup_required_first"):
         gate.scan_qr(db, order, qr, phase="delivery")  # type: ignore[arg-type]
+
+
+def test_scan_accepts_tracking_suffix_and_barcode_alias() -> None:
+    order = _order_with_three_boxes()
+    pkg = SimpleNamespace(
+        id="pkg-1",
+        order_id=order.id,
+        status="manifested",
+        tracking_suffix="TRK3BOX-01",
+        barcode="TRK3BOX-01",
+        parcel_index=1,
+        total_parcels=1,
+        weight_kg=None,
+        dimensions=None,
+    )
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = pkg
+    gate = ScanGateService()
+    gate._packages.ensure_for_order = lambda _db, _o: [pkg]  # type: ignore[method-assign]
+    gate._packages.list_for_order = lambda _db, _oid: [pkg]  # type: ignore[method-assign]
+
+    out = gate.scan_qr(db, order, "TRK3BOX-01", phase="pickup")  # type: ignore[arg-type]
+    assert pkg.status == "picked_up"
+    assert out["tracking_suffix"] == "TRK3BOX-01"
+
+    pkg.status = "manifested"
+    out = gate.scan_qr(db, order, "TRK3BOX-01", phase="pickup")  # type: ignore[arg-type]
+    assert out["package_id"] == "pkg-1"
+
+
+def test_scan_suffix_wrong_order_is_mismatch() -> None:
+    order = _order_with_three_boxes()
+    pkg = SimpleNamespace(
+        id="pkg-x",
+        order_id="ord-other",
+        status="manifested",
+        tracking_suffix="TRK-OTHER-01",
+        barcode="TRK-OTHER-01",
+    )
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = pkg
+    gate = ScanGateService()
+    gate._packages.ensure_for_order = lambda _db, _o: []  # type: ignore[method-assign]
+    with pytest.raises(ValueError, match="qr_order_mismatch"):
+        gate.scan_qr(db, order, "TRK-OTHER-01", phase="pickup")  # type: ignore[arg-type]
+
+
+def test_scan_garbage_payload_is_invalid_label() -> None:
+    order = _order_with_three_boxes()
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = None
+    gate = ScanGateService()
+    gate._packages.ensure_for_order = lambda _db, _o: []  # type: ignore[method-assign]
+    with pytest.raises(ValueError, match="invalid_label_qr"):
+        gate.scan_qr(db, order, "012345678905", phase="pickup")  # type: ignore[arg-type]

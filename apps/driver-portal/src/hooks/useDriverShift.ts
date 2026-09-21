@@ -67,7 +67,8 @@ export function useDriverShift() {
     refreshing,
     actionPending,
     refresh: () => refresh(true),
-    startShift: (routeId?: string) => runAction("start", () => driverApi.shiftStart(routeId)),
+    startShift: (routeId?: string, pretrip?: Record<string, boolean>) =>
+      runAction("start", () => driverApi.shiftStart(routeId, pretrip)),
     endShift: () => runAction("end", () => driverApi.shiftEnd()),
     startBreak: () => runAction("break", () => driverApi.shiftBreak()),
     resumeShift: () => runAction("resume", () => driverApi.shiftResume()),

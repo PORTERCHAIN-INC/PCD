@@ -15,6 +15,7 @@ from porterchain_api.services.stripe_service import (
     create_cod_checkout_session,
     create_connect_account_link,
     create_connect_express_account,
+    is_dummy_stripe_id,
 )
 
 logger = logging.getLogger(__name__)
@@ -93,7 +94,8 @@ class StripeCodService:
         except PackagesIncomplete:
             raise
 
-        if settings.allow_stripe_mock:
+        destination = (merchant.stripe_connect_account_id or "").strip()
+        if settings.allow_stripe_mock or is_dummy_stripe_id(destination):
             session_id = f"cs_mock_cod_{uuid.uuid4().hex[:12]}"
             url = f"{settings.driver_portal_url.rstrip('/')}/jobs?cod_mock={order.id}"
             order.cod_stripe_session_id = session_id

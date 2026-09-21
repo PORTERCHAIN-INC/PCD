@@ -167,7 +167,7 @@ export function startBooking(
 ) {
   return apiFetch<BookingStartResult>("/v1/bookings", {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}`, "X-Porterchain-Portal": "customer" },
     body: JSON.stringify({ checkout_channel: "customer", ...payload }),
   });
 }

@@ -33,6 +33,7 @@ def test_job_offer_category_matches_fcm_and_push() -> None:
     assert 'JOB_OFFER_CATEGORY_ID = "job_offer"' in fcm
     assert "JOB_OFFER_ACCEPT" in push and "JOB_OFFER_DECLINE" in push
     assert "setActiveJobNotification" in push
+    assert 'sound: "default"' not in push
 
 
 def test_soft_offline_stale_constant() -> None:
@@ -53,6 +54,53 @@ def test_money_screen_reads_wallet_and_earnings_contract() -> None:
     assert "/earnings/statements" in api
     for field in ("balance_cents", "today_cents", "week_cents", "month_cents"):
         assert field in types or field in money
+
+
+def test_field_copy_hides_corelocation_and_apns_stacks() -> None:
+    text = (MOBILE / "fieldCopy.ts").read_text()
+    assert "export function humanFieldCopy" in text
+    assert "export function fieldWarning" in text
+    assert "kCLErrorDomain" in text
+    assert 'key === "not_at_stop"' in text
+    assert 'key === "pretrip_required"' in text
+    assert 'key === "shift_required"' in text
+    push = (MOBILE / "push.ts").read_text()
+    assert "iOS Expo Go yields APNs" not in push
+    route = (MOBILE / "screens/RouteScreen.tsx").read_text()
+    assert "handshake.navigationUrl || handshake.destLat" in route
+    assert "includeBottomSafeArea={false}" in route
+    assert "PretripRow" in route
+    assert 'testID="pretrip-check"' in route
+    screen = (MOBILE / "ui/Screen.tsx").read_text()
+    assert "StatusBar.currentHeight" in screen
+
+
+def test_pretrip_checklist_keys_match_api() -> None:
+    text = (MOBILE / "pretrip.ts").read_text()
+    for key in ("lights", "tires", "plates", "leaks", "winter_kit"):
+        assert f'id: "{key}"' in text
+    api = (MOBILE / "api.ts").read_text()
+    compact = "".join(api.split())
+    assert "pretrip:pretrip??null" in compact
+
+
+def test_package_scan_camera_is_qr_and_code128_only() -> None:
+    scanner = (MOBILE / "ui/BarcodeScannerModal.tsx").read_text()
+    assert 'barcodeTypes: ["qr", "code128"]' in scanner
+    assert "ean13" not in scanner
+    field = (MOBILE / "ui/FieldOpsPanel.tsx").read_text()
+    assert "PorterChain QR or tracking line" in field
+
+
+def test_handshake_proves_auth_before_dashboard() -> None:
+    """Dashboard 403 (onboarding) must not drop Bearer-dev auth."""
+    text = (MOBILE / "handshake.ts").read_text()
+    assert "export function isOnboardingBlocked" in text
+    compact = "".join(text.split())
+    assert "Promise.all([fetchMe(),collectPush()])" in compact
+    assert text.index("fetchMe()") < text.index("fetchDashboard()")
+    gate = (MOBILE / "gate.ts").read_text()
+    assert "isOnboardingBlocked" in gate
 
 
 def test_route_screen_offline_banner_and_checklist() -> None:

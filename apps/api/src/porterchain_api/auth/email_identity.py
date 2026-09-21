@@ -125,7 +125,9 @@ def resolve_verified_clerk_email(
     if from_jwt:
         return from_jwt
 
-    if not clerk_user_id or clerk_user_id == "dev_clerk_user":
+    from porterchain_api.auth.dev import is_dev_bypass_subject
+
+    if not clerk_user_id or is_dev_bypass_subject(clerk_user_id):
         raise PermissionError(CLERK_EMAIL_REQUIRED)
     if clerk_user_id.startswith("pending:") or clerk_user_id.startswith("pending_"):
         raise PermissionError(CLERK_EMAIL_REQUIRED)
@@ -166,7 +168,9 @@ def enrich_claims_with_verified_email(claims: ClerkClaims, settings: Settings) -
     """Attach Clerk verified email onto claims before UserSync / portal authz."""
     if normalize_email(claims.email):
         return replace(claims, email=normalize_email(claims.email))
-    if not claims.clerk_user_id or claims.clerk_user_id == "dev_clerk_user":
+    from porterchain_api.auth.dev import is_dev_bypass_subject
+
+    if not claims.clerk_user_id or is_dev_bypass_subject(claims.clerk_user_id):
         return claims
     if claims.clerk_user_id.startswith("pending:") or claims.clerk_user_id.startswith("pending_"):
         return claims
@@ -204,7 +208,9 @@ def delete_email_mismatched_bindings(
     from porterchain_api.auth.persona_bundle import invalidate_persona_bundle, load_persona_bundle
 
     expected = normalize_email(clerk_email)
-    if not expected or not clerk_user_id or clerk_user_id == "dev_clerk_user":
+    from porterchain_api.auth.dev import is_dev_bypass_subject
+
+    if not expected or not clerk_user_id or is_dev_bypass_subject(clerk_user_id):
         return 0
     if clerk_user_id.startswith("pending:") or clerk_user_id.startswith("pending_"):
         return 0

@@ -9,7 +9,11 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import AdminUser, Driver
-from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.auth.dev import (
+    DEV_LEGACY_SUBJECT,
+    allow_auth_dev_bypass,
+    is_merchant_dev_subject,
+)
 from porterchain_api.auth.staff_session import STAFF_BEARER_PREFIX, get_session
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -85,7 +89,7 @@ def _resolve_merchant_recipient(
         if inbox:
             return inbox
 
-    if not allow_auth_dev_bypass(settings):
+    if not allow_auth_dev_bypass(settings) or not is_merchant_dev_subject(clerk_user_id):
         return None
     merchant = db.query(Merchant).filter(Merchant.clerk_org_id == "dev_merchant_org").first()
     return _merchant_inbox_user(merchant)
@@ -96,6 +100,8 @@ async def get_notification_user(
     settings: Settings = Depends(get_settings),
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)] = None,
     x_merchant_id: Annotated[str | None, Header()] = None,
+    x_porterchain_portal: Annotated[str | None, Header()] = None,
+    x_driver_id: Annotated[str | None, Header()] = None,
 ) -> NotificationUser:
     if not credentials or not credentials.credentials:
         raise HTTPException(status_code=401, detail="authentication_required")
@@ -118,30 +124,53 @@ async def get_notification_user(
     try:
         from porterchain_api.auth.clerk import verify_clerk_token
 
-        claims = await verify_clerk_token(token, settings)
+        portal = (x_porterchain_portal or "").strip().lower() or None
+        if not portal and (x_merchant_id or "").strip():
+            portal = "merchant"
+        claims = await verify_clerk_token(token, settings, portal=portal)
 
         # Prefer merchant/customer before admin — never auto-elevate merchants to admin
         # under CLERK_DEV_BYPASS (that stole inbox identity and masked membership bugs).
         # X-Merchant-Id is the company UUID, and the only company selector (BF).
         # Ignore Clerk org_id on the JWT.
         requested_merchant = (x_merchant_id or "").strip() or None
-        merchant_user = _resolve_merchant_recipient(
-            db,
-            settings,
-            claims.clerk_user_id,
-            requested_merchant,
-        )
-        if merchant_user:
-            return merchant_user
-        if requested_merchant and _active_merchant_seats(db, claims.clerk_user_id):
-            raise HTTPException(status_code=403, detail=MERCHANT_INBOX_FORBIDDEN)
+        skip_merchant = portal in {"admin", "customer", "driver"}
+        if not skip_merchant:
+            merchant_user = _resolve_merchant_recipient(
+                db,
+                settings,
+                claims.clerk_user_id,
+                requested_merchant,
+            )
+            if merchant_user:
+                return merchant_user
+            if requested_merchant and _active_merchant_seats(db, claims.clerk_user_id):
+                raise HTTPException(status_code=403, detail=MERCHANT_INBOX_FORBIDDEN)
 
-        customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()
-        if customer:
-            return NotificationUser("customer", customer.id)
+        if portal == "driver":
+            requested_driver = (x_driver_id or "").strip() or None
+            driver = None
+            if requested_driver:
+                driver = db.query(Driver).filter(Driver.id == requested_driver).first()
+            if driver is None:
+                driver = db.query(Driver).filter(Driver.clerk_user_id == claims.clerk_user_id).first()
+            if driver is None and allow_auth_dev_bypass(settings) and token == "dev":
+                from porterchain_api.auth.dev import resolve_dev_bypass_driver
+
+                driver = resolve_dev_bypass_driver(db)
+            if driver:
+                return NotificationUser("driver", driver.id)
+            raise HTTPException(status_code=401, detail="authentication_required")
+
+        if portal not in {"admin", "driver"}:
+            customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()
+            if customer:
+                return NotificationUser("customer", customer.id)
+            if portal == "customer":
+                raise HTTPException(status_code=401, detail="authentication_required")
 
         user = db.query(AdminUser).filter(AdminUser.clerk_user_id == claims.clerk_user_id).first()
-        if not user and allow_auth_dev_bypass(settings):
+        if not user and allow_auth_dev_bypass(settings) and claims.clerk_user_id == DEV_LEGACY_SUBJECT:
             from porterchain_api.auth.admin import _ensure_dev_admin
 
             user = _ensure_dev_admin(db, claims.clerk_user_id, None)
@@ -159,6 +188,7 @@ async def resolve_notification_ws_user(
     token: str,
     *,
     merchant_id: str | None = None,
+    portal: str | None = None,
 ) -> NotificationUser | None:
     """Resolve WebSocket subscriber from bearer token (admin, driver, or merchant).
 
@@ -191,19 +221,41 @@ async def resolve_notification_ws_user(
         try:
             from porterchain_api.auth.clerk import verify_clerk_token
 
-            claims = await verify_clerk_token(token, settings)
-            merchant_user = _resolve_merchant_recipient(
-                db, settings, claims.clerk_user_id, merchant_id
+            claims = await verify_clerk_token(
+                token,
+                settings,
+                portal=(portal or "").strip().lower() or ("merchant" if merchant_id else None),
             )
+            ws_portal = (portal or "").strip().lower() or ("merchant" if merchant_id else None)
+            skip_merchant = ws_portal in {"admin", "customer", "driver"}
+            merchant_user = None
+            if not skip_merchant:
+                merchant_user = _resolve_merchant_recipient(
+                    db, settings, claims.clerk_user_id, merchant_id
+                )
             if merchant_user:
                 return merchant_user
             if merchant_id and _active_merchant_seats(db, claims.clerk_user_id):
                 return None
-            customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()
-            if customer:
-                return NotificationUser("customer", customer.id)
+            if ws_portal == "driver":
+                driver = db.query(Driver).filter(Driver.clerk_user_id == claims.clerk_user_id).first()
+                if driver is None and allow_auth_dev_bypass(settings) and token == "dev":
+                    from porterchain_api.auth.dev import resolve_dev_bypass_driver
+
+                    driver = resolve_dev_bypass_driver(db)
+                return NotificationUser("driver", driver.id) if driver else None
+            if ws_portal not in {"admin", "driver"}:
+                customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()
+                if customer:
+                    return NotificationUser("customer", customer.id)
+                if ws_portal == "customer":
+                    return None
             admin = db.query(AdminUser).filter(AdminUser.clerk_user_id == claims.clerk_user_id).first()
-            if not admin and allow_auth_dev_bypass(settings):
+            if (
+                not admin
+                and allow_auth_dev_bypass(settings)
+                and claims.clerk_user_id == DEV_LEGACY_SUBJECT
+            ):
                 from porterchain_api.auth.admin import _ensure_dev_admin
 
                 admin = _ensure_dev_admin(db, claims.clerk_user_id, None)

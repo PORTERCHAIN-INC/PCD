@@ -7,6 +7,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.auth.dev import DEV_MERCHANT_EMAIL, is_merchant_dev_subject
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_models import Merchant, MerchantUser
 
@@ -57,12 +58,15 @@ def create_onboarding_merchant(
 def ensure_dev_merchant_seat(db: Session, clerk_user_id: str) -> MerchantUser:
     from porterchain_api.merchant_engine.lookups import get_merchant_by_clerk_org, seats_for_clerk
 
+    if not is_merchant_dev_subject(clerk_user_id):
+        raise LookupError("merchant_user_not_found")
+
     merchant = get_merchant_by_clerk_org(db, "dev_merchant_org")
     if not merchant:
         merchant = create_onboarding_merchant(
             db,
-            company_name="Dev Merchant Co.",
-            email="merchant@example.com",
+            company_name="Maple Leaf Wholesale Inc.",
+            email=DEV_MERCHANT_EMAIL,
             status=MerchantStatus.ACTIVE.value,
             clerk_org_id="dev_merchant_org",
             activated_at=datetime.now(UTC),
@@ -75,7 +79,7 @@ def ensure_dev_merchant_seat(db: Session, clerk_user_id: str) -> MerchantUser:
     user = MerchantUser(
         merchant_id=merchant.id,
         clerk_user_id=clerk_user_id,
-        email="admin@porterchain.com",
+        email=DEV_MERCHANT_EMAIL,
         role=MerchantRole.OWNER.value,
     )
     db.add(user)

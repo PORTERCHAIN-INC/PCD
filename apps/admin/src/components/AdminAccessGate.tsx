@@ -10,7 +10,7 @@ import type { AdminStaffProfile } from "@/lib/admin-access";
 import { publicEnv } from "@/lib/env";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { clearStaffSession } from "@/lib/staff-session";
-import { fetchStaffSecurityStatus } from "@/lib/staff-security";
+import { fetchStaffSecurityStatus, STAFF_PASSKEY_EVENT } from "@/lib/staff-security";
 import {
   humanAuthError,
   useOptionalSessionContext,
@@ -55,6 +55,7 @@ function PasskeyRecommendBanner({ show }: { show: boolean }) {
 
 export default function AdminAccessGate({ children }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isLoaded, isSignedIn, getApiToken, authReady } = useAdminAuth();
   const { setProfile } = useAdminProfile();
   const sessionCtx = useOptionalSessionContext();
@@ -97,22 +98,28 @@ export default function AdminAccessGate({ children }: Props) {
     onSignedOut,
   });
 
-  useEffect(() => {
+  const refreshPasskeyStatus = useCallback(async () => {
     if (!authReady) return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const token = await getApiToken();
-        const status = await fetchStaffSecurityStatus(token);
-        if (!cancelled) setPasskeyRecommended(Boolean(status.passkey_recommended));
-      } catch {
-        /* soft fail */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    try {
+      const token = await getApiToken();
+      const status = await fetchStaffSecurityStatus(token);
+      setPasskeyRecommended(status.passkey_count === 0 && Boolean(status.passkey_recommended));
+    } catch {
+      /* soft fail */
+    }
   }, [authReady, getApiToken]);
+
+  useEffect(() => {
+    void refreshPasskeyStatus();
+  }, [refreshPasskeyStatus, pathname]);
+
+  useEffect(() => {
+    const onPasskeyChanged = () => {
+      void refreshPasskeyStatus();
+    };
+    window.addEventListener(STAFF_PASSKEY_EVENT, onPasskeyChanged);
+    return () => window.removeEventListener(STAFF_PASSKEY_EVENT, onPasskeyChanged);
+  }, [refreshPasskeyStatus]);
 
   if (!isLoaded || checking) {
     return (

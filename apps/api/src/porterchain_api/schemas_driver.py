@@ -103,6 +103,7 @@ class AvailabilityRequest(BaseModel):
 
 class ShiftStartRequest(BaseModel):
     route_id: str | None = None
+    pretrip: dict[str, bool] | None = None
 
 
 class LocationPingRequest(BaseModel):
@@ -117,6 +118,7 @@ class LocationPingRequest(BaseModel):
 class ExceptionRequest(BaseModel):
     exception_type: str
     notes: str | None = None
+    photo_url: str | None = None
 
 
 class DocumentUploadRequest(BaseModel):
@@ -198,12 +200,28 @@ class DriverNextStop(BaseModel):
     order_id: str
     order_number: str | None = None
     tracking_number: str | None = None
-    sequence: int = 0
+    sequence: int | None = 0
     address: dict = Field(default_factory=dict)
     formatted_address: str = "—"
     distance_m: int | None = None
     eta_minutes: int | None = None
     status: str | None = None
+    source: str | None = None
+    special_instructions: str | None = None
+    access_unit: str | None = None
+    access_buzzer: str | None = None
+    access_dock: str | None = None
+    call_on_arrival: bool = False
+    contact_phone_masked: str | None = None
+    delivery_attempts: int = 0
+    max_delivery_attempts: int = 2
+
+
+class DriverScanProgress(BaseModel):
+    scanned: int = 0
+    required: int = 0
+    complete: bool = False
+    missing_suffixes: list[str] = Field(default_factory=list)
 
 
 class DriverJobSummary(BaseModel):
@@ -226,6 +244,9 @@ class DriverJobSummary(BaseModel):
     pickup_completed: bool = False
     delivery_completed: bool = False
     is_current_job: bool = False
+    route_id: str | None = None
+    scan_pickup: DriverScanProgress = Field(default_factory=DriverScanProgress)
+    scan_delivery: DriverScanProgress = Field(default_factory=DriverScanProgress)
 
 
 class DriverRouteMetrics(BaseModel):
@@ -233,6 +254,9 @@ class DriverRouteMetrics(BaseModel):
     order_count: int | None = None
     distance_km: float | None = None
     duration_minutes: float | None = None
+    estimated_fuel_cents: int | None = None
+    estimated_fuel_liters: float | None = None
+    source: str | None = None
 
 
 class DriverJobsListResponse(BaseModel):
@@ -267,13 +291,6 @@ class DriverJobsOptimizeResponse(BaseModel):
     error: str | None = None
 
 
-class DriverScanProgress(BaseModel):
-    scanned: int = 0
-    required: int = 0
-    complete: bool = False
-    missing_suffixes: list[str] = Field(default_factory=list)
-
-
 class DriverJobDetailResponse(DriverJobSummary):
     pickup_detail: dict = Field(default_factory=dict)
     delivery_detail: dict = Field(default_factory=dict)
@@ -286,6 +303,7 @@ class DriverJobDetailResponse(DriverJobSummary):
     merchant: dict | None = None
     customer: dict = Field(default_factory=dict)
     packages: list[dict] = Field(default_factory=list)
+    packages_error: str | None = None
     scan_pickup: DriverScanProgress = Field(default_factory=DriverScanProgress)
     scan_delivery: DriverScanProgress = Field(default_factory=DriverScanProgress)
     timeline: list[dict] = Field(default_factory=list)
@@ -300,9 +318,10 @@ class DriverJobDetailResponse(DriverJobSummary):
     cod_amount_cents: int | None = None
     cod_status: str | None = None
     updated_at: str | None = None
-    route_id: str | None = None
     pickup_stop_id: str | None = None
     delivery_stop_id: str | None = None
+    delivery_attempts: int = 0
+    max_delivery_attempts: int = 2
 
 
 class DriverDevLoginRequest(BaseModel):

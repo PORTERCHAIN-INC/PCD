@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollView, Text, View, StyleSheet } from "react-native";
-import { colors, spacing, typography } from "@porterchain/mobile-theme";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, ScrollView, Text, View, StyleSheet } from "react-native";
+import { colors, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
 import {
   acceptOrder,
   fetchJobs,
@@ -11,8 +11,10 @@ import {
   optimizeUndo,
   rejectOrder,
 } from "../api";
+import { formatDayLabel, jobIsClosed, parcelScanLabel } from "../format";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
+import { ScreenHeader } from "../ui/ScreenHeader";
 import { Card, CardTitle } from "../ui/Card";
 import type { DriverJobSummary, OptimizeResult } from "../types";
 
@@ -44,11 +46,39 @@ function deltaNote(result: OptimizeResult, applied: boolean): string {
   return parts.join(" · ");
 }
 
+function groupHistoryByDay(
+  jobs: DriverJobSummary[]
+): { key: string; label: string; jobs: DriverJobSummary[] }[] {
+  const groups: { key: string; label: string; jobs: DriverJobSummary[] }[] = [];
+  const index = new Map<string, number>();
+  for (const job of jobs) {
+    const fromRoute = (job.route_id || "").replace(/^route-/, "");
+    const key = /^\d{4}-\d{2}-\d{2}$/.test(fromRoute)
+      ? fromRoute
+      : (job.scheduled_at || "").slice(0, 10) || "unknown";
+    let i = index.get(key);
+    if (i === undefined) {
+      i = groups.length;
+      index.set(key, i);
+      groups.push({
+        key,
+        label: key === "unknown" ? "Earlier" : formatDayLabel(key),
+        jobs: [],
+      });
+    }
+    const group = groups[i];
+    if (!group) continue;
+    group.jobs.push(job);
+  }
+  return groups;
+}
+
 export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceApplied }: Props) {
   const [jobs, setJobs] = useState<DriverJobSummary[]>([]);
   const [history, setHistory] = useState<DriverJobSummary[]>([]);
   const [current, setCurrent] = useState<DriverJobSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [preview, setPreview] = useState<OptimizeResult | null>(null);
   const [canUndo, setCanUndo] = useState(false);
@@ -64,19 +94,24 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
 
   const load = useCallback(async () => {
     setError(null);
-    try {
-      const [data, hist] = await Promise.all([
-        fetchJobs(),
-        fetchJobsHistory().catch(() => ({ history: [] as DriverJobSummary[] })),
-      ]);
+    setHistoryError(null);
+    const [jobsResult, histResult] = await Promise.allSettled([fetchJobs(), fetchJobsHistory()]);
+    if (jobsResult.status === "fulfilled") {
+      const data = jobsResult.value;
       setCurrent(data.current ?? null);
       const rest = [...(data.upcoming ?? []), ...(data.completed ?? [])];
       const seen = new Set(rest.map((job) => job.order_id));
       if (data.current && !seen.has(data.current.order_id)) rest.unshift(data.current);
       setJobs(data.jobs?.length ? data.jobs : rest);
-      setHistory(hist.history ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "jobs_failed");
+    } else {
+      const reason = jobsResult.reason;
+      setError(reason instanceof Error ? reason.message : "jobs_failed");
+    }
+    if (histResult.status === "fulfilled") {
+      setHistory(histResult.value.history ?? []);
+    } else {
+      const reason = histResult.reason;
+      setHistoryError(reason instanceof Error ? reason.message : "history_failed");
     }
   }, []);
 
@@ -84,6 +119,13 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
     void load();
     return () => clearPoll();
   }, [load]);
+
+  const todayIds = useMemo(() => new Set(jobs.map((job) => job.order_id)), [jobs]);
+  const earlier = useMemo(
+    () => history.filter((job) => !todayIds.has(job.order_id)),
+    [history, todayIds]
+  );
+  const earlierGroups = useMemo(() => groupHistoryByDay(earlier), [earlier]);
 
   async function run(id: string, work: () => Promise<unknown>) {
     setBusy(id);
@@ -216,11 +258,11 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
   }
 
   return (
-    <Screen testID="mobile-jobs">
-      <Text style={styles.title}>Jobs</Text>
-      <Text style={styles.lede}>
-        Assigned work from Porterchain. Preview stop order, then Accept — Fleetbase stays SoT.
-      </Text>
+    <Screen testID="mobile-jobs" includeBottomSafeArea={false}>
+      <ScreenHeader
+        title="Jobs"
+        lede="Today’s assigned work, then earlier days. Open a job for parcel and POD history."
+      />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {note ? <Text style={styles.note}>{note}</Text> : null}
       <View style={styles.actions}>
@@ -280,10 +322,12 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
         style={styles.flex}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        testID="jobs-list"
       >
         {jobs.length === 0 ? <Text style={styles.empty}>No jobs on this shift yet.</Text> : null}
         {jobs.map((job) => {
           const active = job.order_id === (current?.order_id ?? currentOrderId);
+          const closed = jobIsClosed(job);
           return (
             <Card key={job.order_id} style={active ? styles.active : undefined}>
               <Text style={styles.jobNo}>{job.order_number}</Text>
@@ -294,6 +338,9 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
                 {(job.status || job.state || "assigned").replace(/_/g, " ")}
                 {job.urgency && job.urgency !== "normal" ? ` · ${job.urgency}` : ""}
               </Text>
+              {parcelScanLabel(job) ? (
+                <Text style={styles.meta}>{parcelScanLabel(job)}</Text>
+              ) : null}
               <View style={styles.row}>
                 <PrimaryButton
                   tone="ghost"
@@ -301,14 +348,14 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
                   disabled={Boolean(busy)}
                   onPress={() => onOpenJob(job.order_id)}
                 />
-                {!active ? (
+                {!active && !closed ? (
                   <PrimaryButton
                     label={busy === job.order_id ? "Accepting…" : "Accept"}
                     disabled={Boolean(busy)}
                     onPress={() => void run(job.order_id, () => acceptOrder(job.order_id))}
                   />
                 ) : null}
-                {!active ? (
+                {!active && !closed ? (
                   <PrimaryButton
                     tone="ghost"
                     label="Decline"
@@ -321,17 +368,41 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
           );
         })}
 
-        <Card>
-          <CardTitle>History</CardTitle>
-          {history.slice(0, 12).map((job) => (
-            <View key={`h-${job.order_id}`} style={styles.histRow}>
-              <Text style={styles.addr}>{job.order_number}</Text>
-              <Text style={styles.meta}>
-                {(job.status || job.state || "done").replace(/_/g, " ")}
+        <Card testID="jobs-history">
+          <CardTitle>Earlier</CardTitle>
+          {historyError ? (
+            <Text style={styles.error} testID="jobs-history-error">
+              {historyError}
+            </Text>
+          ) : null}
+          {earlierGroups.map((group) => (
+            <View key={group.key} style={styles.dayGroup}>
+              <Text style={styles.dayLabel}>
+                {group.label} · {group.jobs.length} {group.jobs.length === 1 ? "job" : "jobs"}
               </Text>
+              {group.jobs.map((job) => (
+                <Pressable
+                  key={`h-${job.order_id}`}
+                  accessibilityRole="button"
+                  testID={`history-job-${job.order_id}`}
+                  onPress={() => onOpenJob(job.order_id)}
+                  style={styles.histRow}
+                >
+                  <View style={styles.histText}>
+                    <Text style={styles.addr}>{job.order_number}</Text>
+                    <Text style={styles.meta}>
+                      {(job.status || job.state || "done").replace(/_/g, " ")}
+                      {parcelScanLabel(job) ? ` · ${parcelScanLabel(job)}` : ""}
+                    </Text>
+                  </View>
+                  <Text style={styles.openHint}>Open</Text>
+                </Pressable>
+              ))}
             </View>
           ))}
-          {history.length === 0 ? <Text style={styles.empty}>No completed jobs yet.</Text> : null}
+          {!historyError && earlier.length === 0 ? (
+            <Text style={styles.empty}>No earlier jobs.</Text>
+          ) : null}
         </Card>
       </ScrollView>
     </Screen>
@@ -339,8 +410,6 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
 }
 
 const styles = StyleSheet.create({
-  title: { ...typography.title, fontSize: 28, color: colors.primary },
-  lede: { ...typography.caption, color: colors.muted, marginBottom: spacing.sm },
   error: { ...typography.caption, color: colors.danger },
   note: { ...typography.caption, color: colors.primary, marginBottom: spacing.sm },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.md },
@@ -352,5 +421,16 @@ const styles = StyleSheet.create({
   addr: { ...typography.body, color: colors.primary },
   meta: { ...typography.caption, color: colors.muted },
   row: { gap: spacing.sm },
-  histRow: { marginTop: spacing.sm },
+  dayGroup: { marginTop: spacing.sm, gap: spacing.xs },
+  dayLabel: { ...typography.caption, color: colors.muted, fontWeight: "700" },
+  histRow: {
+    minHeight: Math.max(touchTargetMin, 44),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  histText: { flex: 1, gap: 2 },
+  openHint: { ...typography.caption, color: colors.secondary, fontWeight: "700" },
 });

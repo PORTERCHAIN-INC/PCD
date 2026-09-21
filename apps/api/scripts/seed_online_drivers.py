@@ -127,8 +127,19 @@ def _ensure_driver(db, spec: dict) -> Driver:
                         "label": "Vehicle registration",
                         "file_url": "https://storage.porterchain.local/seed/registration.pdf",
                     },
-                ]
+                ],
+                "abstract": {
+                    "verified": True,
+                    "status": "complete",
+                    "license_class": "G",
+                    "demerits": 0,
+                },
             }
+        else:
+            docs = dict(driver.documents or {})
+            abstract = dict(docs.get("abstract") or {})
+            abstract.update({"verified": True, "status": "complete"})
+            driver.documents = {**docs, "abstract": abstract}
 
     vehicle = (
         db.query(Vehicle)
@@ -152,8 +163,14 @@ def _ensure_driver(db, spec: dict) -> Driver:
 
 
 def _go_online_with_location(db, driver: Driver, spec: dict) -> None:
+    from porterchain_driver.shift import PRETRIP_ITEMS
+
     platform = DriverPlatform()
-    platform.availability.set_online(db, driver, online=True)
+    pretrip = {key: True for key, _label in PRETRIP_ITEMS}
+    try:
+        platform.shift.start_shift(db, driver, pretrip=pretrip)
+    except PermissionError:
+        platform.availability.set_online(db, driver, online=True)
     platform.location.record_ping(
         db,
         driver,

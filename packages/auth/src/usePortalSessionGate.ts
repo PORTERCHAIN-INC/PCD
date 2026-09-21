@@ -91,7 +91,7 @@ export function usePortalSessionGate(options: UsePortalSessionGateOptions): Port
           }
         }
 
-        const ctx = await fetchSessionContext(apiUrl, token);
+        const ctx = await fetchSessionContext(apiUrl, token, portal);
         if (cancelled) return;
         if (!canAccessPortal(ctx.permissions, portal)) {
           setDenied(true);

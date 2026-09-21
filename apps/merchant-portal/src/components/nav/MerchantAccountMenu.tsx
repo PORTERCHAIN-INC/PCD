@@ -14,7 +14,7 @@ import { merchantRoleLabel } from "@/lib/team";
 
 function LocalDevAccountMenu() {
   const { session } = useMerchantAuth();
-  const email = session?.user_email || "admin@porterchain.com";
+  const email = session?.user_email || "merchant@porterchain.com";
   const name = session?.company_name || "Dev Merchant Co.";
 
   return (

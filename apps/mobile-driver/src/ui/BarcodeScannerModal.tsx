@@ -37,7 +37,7 @@ export function BarcodeScannerModal({ visible, onClose, onScan }: Props) {
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.wrap} testID="barcode-scanner">
         <Text style={styles.title}>Scan barcode</Text>
-        <Text style={styles.lede}>Point at package QR / barcode. First read wins.</Text>
+        <Text style={styles.lede}>Point at PorterChain label QR or Code128. First read wins.</Text>
         {!permission?.granted ? (
           <Text style={styles.warn}>Camera permission required for scanning.</Text>
         ) : (
@@ -45,7 +45,7 @@ export function BarcodeScannerModal({ visible, onClose, onScan }: Props) {
             style={styles.camera}
             facing="back"
             barcodeScannerSettings={{
-              barcodeTypes: ["qr", "code128", "code39", "ean13", "ean8", "upc_a", "upc_e"],
+              barcodeTypes: ["qr", "code128"],
             }}
             onBarcodeScanned={locked ? undefined : handleScan}
           />

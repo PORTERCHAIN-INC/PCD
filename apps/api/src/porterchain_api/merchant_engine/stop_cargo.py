@@ -147,6 +147,18 @@ def book_stops_for_request(body: Any) -> list[dict[str, Any]]:
     packages = meaningful_packages(
         [p.model_dump() if hasattr(p, "model_dump") else p for p in (getattr(body, "packages", None) or [])]
     )
+    # Bulk / merchant-api often send weight_kg with no packages[] — one box so labels/scan work.
+    if not packages:
+        weight = getattr(body, "weight_kg", None)
+        if weight is not None and str(weight).strip() != "":
+            packages = [
+                {
+                    "name": "Parcel",
+                    "weight_kg": weight,
+                    "quantity": 1,
+                    "package_type": getattr(body, "package_type", None),
+                }
+            ]
     pickup = {
         **_addr_fields(body.pickup),
         "sequence": 1,

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import Container from "@porterchain/ui/container";
@@ -11,11 +12,20 @@ import AdminAppsMenu from "@/components/nav/AdminAppsMenu";
 import AdminMenuBar from "@/components/nav/AdminMenuBar";
 import NotificationBell from "@/components/nav/NotificationBell";
 
-export default function AdminShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+function HeaderPageLabel({ pathname }: { pathname: string }) {
   const searchParams = useSearchParams();
   const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
   const pageLabel = activeNavLabel(pathname, search);
+  if (!pageLabel) return null;
+  return (
+    <span className="hidden max-w-[8rem] truncate rounded-md bg-primary/5 px-2 py-1 text-xs font-medium text-muted lg:inline lg:max-w-xs">
+      {pageLabel}
+    </span>
+  );
+}
+
+export default function AdminShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
 
   // Access gate wraps header + main so the account menu always has the real
   // admin_users role (super_admin / admin / …), not a fake "staff" fallback.
@@ -39,11 +49,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               </span>
             </Link>
 
-            {pageLabel && (
-              <span className="hidden max-w-[8rem] truncate rounded-md bg-primary/5 px-2 py-1 text-xs font-medium text-muted lg:inline lg:max-w-xs">
-                {pageLabel}
-              </span>
-            )}
+            <Suspense fallback={null}>
+              <HeaderPageLabel pathname={pathname} />
+            </Suspense>
 
             <div className="mx-0.5 hidden h-6 w-px bg-primary/10 sm:block" />
 

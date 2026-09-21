@@ -6,6 +6,7 @@ export function QuickActions({
   shiftActive,
   hasRoute,
   actionPending,
+  pretripReady = true,
   onStartShift,
   onEndShift,
   onGoOnline,
@@ -16,6 +17,7 @@ export function QuickActions({
   shiftActive: boolean;
   hasRoute: boolean;
   actionPending: string | null;
+  pretripReady?: boolean;
   onStartShift: () => void;
   onEndShift: () => void;
   onGoOnline: () => void;
@@ -33,7 +35,7 @@ export function QuickActions({
           label="Start Shift"
           icon={LogIn}
           onClick={onStartShift}
-          disabled={shiftActive || busy("start")}
+          disabled={shiftActive || busy("start") || !pretripReady}
           loading={busy("start")}
           variant="primary"
         />
@@ -48,7 +50,7 @@ export function QuickActions({
           label={isOnline ? "Go Offline" : "Go Online"}
           icon={isOnline ? PowerOff : Power}
           onClick={isOnline ? onGoOffline : onGoOnline}
-          disabled={busy("online") || busy("offline")}
+          disabled={busy("online") || busy("offline") || (!isOnline && !shiftActive)}
           loading={busy("online") || busy("offline")}
           variant={isOnline ? "muted" : "success"}
         />

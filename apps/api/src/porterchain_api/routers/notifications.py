@@ -234,11 +234,12 @@ async def notifications_ws(
     websocket: WebSocket,
     token: str = Query(""),
     merchant_id: str | None = Query(None),
+    portal: str | None = Query(None),
 ):
     from porterchain_api.notification_engine.principal import resolve_notification_ws_user
 
     # merchant_id is the websocket twin of X-Merchant-Id — no second selector (BF).
-    user = await resolve_notification_ws_user(token, merchant_id=merchant_id)
+    user = await resolve_notification_ws_user(token, merchant_id=merchant_id, portal=portal)
     if not user:
         # Accept then close — Starlette maps close-before-accept to HTTP 403.
         await websocket.accept()

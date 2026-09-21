@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.clerk import verify_clerk_token
-from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.auth.dev import allow_auth_dev_bypass, is_dev_bypass_subject
 from porterchain_api.auth.driver_identity import bind_clerk_user_id
 from porterchain_api.auth.email_identity import assert_portal_email_identity
 from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
@@ -60,7 +60,7 @@ class DriverAuthService:
 
         prepare_user_from_claims(db, claims)
 
-        if claims.clerk_user_id and claims.clerk_user_id != "dev_clerk_user":
+        if claims.clerk_user_id and not is_dev_bypass_subject(claims.clerk_user_id):
             from porterchain_api.auth.identity import AuthenticatedIdentity
             from porterchain_api.auth.unified_catalog import UnifiedPermission
 

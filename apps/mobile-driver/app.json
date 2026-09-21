@@ -13,6 +13,7 @@
       "bundleIdentifier": "com.porterchain.PCD",
       "googleServicesFile": "./GoogleService-Info.plist",
       "buildNumber": "1",
+      "deploymentTarget": "16.4",
       "infoPlist": {
         "UIBackgroundModes": ["remote-notification", "location"],
         "ITSAppUsesNonExemptEncryption": false,

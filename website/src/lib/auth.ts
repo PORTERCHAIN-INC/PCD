@@ -53,7 +53,11 @@ export async function fetchSessionContext(token: string): Promise<SessionContext
 export async function ensureCustomerPersona(token: string): Promise<void> {
   const base = getPorterchainApiBase().replace(/\/$/, "");
   const res = await fetch(`${base}/v1/auth/customer/onboarding`, {
-    headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+      "X-Porterchain-Portal": "customer",
+    },
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => "");

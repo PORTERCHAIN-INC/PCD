@@ -122,13 +122,11 @@ export async function collectPush(): Promise<PushState> {
       name: "Ops critical",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 120, 250],
-      sound: "default",
     });
     await Notifications.setNotificationChannelAsync("assignments", {
       name: "Assignments",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 400, 200, 400],
-      sound: "default",
     });
     await Notifications.setNotificationChannelAsync("tracking", {
       name: "Tracking",
@@ -185,7 +183,7 @@ export async function collectPush(): Promise<PushState> {
         permission: status,
         tokenPreview: token ? preview(token) : null,
         registered: false,
-        detail: "iOS Expo Go yields APNs, not FCM — native EAS build required",
+        detail: "Job-ring alerts need a physical device. This simulator cannot register FCM.",
       };
     }
     return {

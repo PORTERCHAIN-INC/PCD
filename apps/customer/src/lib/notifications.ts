@@ -18,6 +18,7 @@ async function notificationsFetch<T>(path: string, token: string, init?: Request
     ...init,
     headers: {
       Authorization: `Bearer ${token}`,
+      "X-Porterchain-Portal": "customer",
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
       ...(init?.headers as Record<string, string>),
     },

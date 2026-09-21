@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
@@ -166,6 +167,7 @@ class EnsureUserService:
                 user = db.query(PorterchainUser).filter(PorterchainUser.id == link.platform_user_id).first()
 
         email = normalize_email(identity.email)
+        created = False
         if not user:
             user = PorterchainUser(
                 clerk_user_id=identity.subject,
@@ -175,8 +177,21 @@ class EnsureUserService:
                 onboarding_status=OnboardingStatus.NOT_STARTED.value,
                 profile={"provisioned": False, "source": "ensure_user"},
             )
-            db.add(user)
-            db.flush()
+            try:
+                with db.begin_nested():
+                    db.add(user)
+                    db.flush()
+                created = True
+            except IntegrityError:
+                existing = (
+                    db.query(PorterchainUser)
+                    .filter(PorterchainUser.clerk_user_id == identity.subject)
+                    .first()
+                )
+                if existing is None:
+                    raise
+                user = existing
+        if created:
             return user
 
         if email and user.email != email:

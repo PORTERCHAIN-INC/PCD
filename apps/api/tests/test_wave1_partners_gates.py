@@ -34,7 +34,8 @@ def test_public_address_strips_street_pii() -> None:
     assert snap["province"] == "ON"
     assert snap["postal_code"] == "M5H"
     assert snap["lat"] == 43.65
-    assert "formatted" not in snap
+    assert snap["formatted"] == "Toronto, ON, M5H"
+    assert "123 King" not in snap["formatted"]
     assert "street" not in snap
     assert "place_id" not in snap
     assert "contact_phone" not in snap
@@ -66,9 +67,11 @@ def test_public_live_tracking_redacts_addresses(monkeypatch: pytest.MonkeyPatch)
     )
     live = build_public_live_tracking(order, None, maps=MagicMock())
     assert live["pickup"]["city"] == "Mississauga"
-    assert "formatted" not in (live["pickup"] or {})
+    assert live["pickup"]["formatted"] == "Mississauga, ON"
+    assert "Secret" not in live["pickup"]["formatted"]
     assert live["dropoff"]["city"] == "Brampton"
-    assert "formatted" not in (live["dropoff"] or {})
+    assert live["dropoff"]["formatted"] == "Brampton, ON"
+    assert "Hidden" not in live["dropoff"]["formatted"]
 
 
 def test_customer_delete_forbidden() -> None:

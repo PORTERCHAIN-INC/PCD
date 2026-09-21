@@ -10,7 +10,7 @@ import httpx
 
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.clerk_registry import clerk_jwks_urls
-from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.auth.dev import allow_auth_dev_bypass, dev_claims_for, resolve_dev_portal
 from porterchain_api.auth.identity import AuthenticatedIdentity
 from porterchain_api.config import Settings
 
@@ -87,19 +87,9 @@ def _claims_from_payload(payload: dict, *, clerk_app: str | None = None) -> Cler
     )
 
 
-def _dev_claims() -> ClerkClaims:
-    return ClerkClaims(
-        clerk_user_id="dev_clerk_user",
-        email="admin@porterchain.com",
-        org_id=None,
-        org_role="dispatcher",
-        public_metadata={"role": "dispatcher"},
-        session_id="dev_session",
-        clerk_app="admin",
-        issuer="https://clerk.porterchain.local",
-        authorized_party="pk_dev",
-        auth_time=0,
-    )
+def _dev_claims(*, portal: str | None = None, path: str = "", header: str | None = None) -> ClerkClaims:
+    """Local Bearer ``dev`` — one Clerk subject per portal, never staff email on merchant/customer."""
+    return dev_claims_for(portal or resolve_dev_portal(path=path, header=header))
 
 
 def claims_to_identity(claims: ClerkClaims) -> AuthenticatedIdentity:
@@ -116,9 +106,16 @@ def claims_to_identity(claims: ClerkClaims) -> AuthenticatedIdentity:
     )
 
 
-async def verify_clerk_token(token: str, settings: Settings) -> ClerkClaims:
+async def verify_clerk_token(
+    token: str,
+    settings: Settings,
+    *,
+    portal: str | None = None,
+    path: str = "",
+    header: str | None = None,
+) -> ClerkClaims:
     if token == "dev" and allow_auth_dev_bypass(settings):
-        return _dev_claims()
+        return _dev_claims(portal=portal, path=path, header=header)
 
     jwks_entries = clerk_jwks_urls(settings)
     if not jwks_entries:

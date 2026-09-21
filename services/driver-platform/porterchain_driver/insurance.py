@@ -33,4 +33,14 @@ class InsuranceService:
             "is_expired": expired,
             "vehicle_compliance_expires_at": vehicle.get("compliance_expires_at") if vehicle else None,
             "compliant": driver.insurance_verified and driver.license_verified and not expired,
+            "verified": bool(driver.insurance_verified),
+            "status": (
+                "expired"
+                if expired
+                else "verified"
+                if driver.insurance_verified
+                else "uploaded"
+                if docs.get("url") or docs.get("file_url")
+                else "not_on_file"
+            ),
         }

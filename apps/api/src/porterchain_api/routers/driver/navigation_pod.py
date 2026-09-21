@@ -179,6 +179,8 @@ def pod_complete(
         return {"success": True, "state": "POD_COMPLETED"}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @router.post("/orders/{order_id}/otp")

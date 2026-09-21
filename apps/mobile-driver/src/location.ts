@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 import { pingLocation, setAvailability } from "./api";
 import { locationPingMs } from "./config";
+import { humanFieldCopy } from "./fieldCopy";
 import { enqueueGpsPing } from "./offline";
 import { DRIVER_LOCATION_TASK } from "./locationTask";
 import type { LocationState } from "./types";
@@ -13,6 +14,11 @@ let softOfflineArmed = false;
 
 export function idleLocation(): LocationState {
   return { kind: "idle", detail: "Location idle — on-duty pings go to Fleetbase" };
+}
+
+function humanLocationDetail(err: unknown): string {
+  const raw = err instanceof Error ? err.message : "location_unavailable";
+  return humanFieldCopy(raw) || raw;
 }
 
 export function markLocationPingSuccess(at = Date.now()): void {
@@ -51,7 +57,7 @@ export async function requestLocationAccess(): Promise<LocationState> {
   } catch (err) {
     return {
       kind: "error",
-      detail: err instanceof Error ? err.message : "location_unavailable",
+      detail: humanLocationDetail(err),
     };
   }
 }
@@ -84,7 +90,7 @@ export async function sendLocationPing(): Promise<LocationState> {
   } catch (err) {
     return {
       kind: "error",
-      detail: err instanceof Error ? err.message : "location_ping_failed",
+      detail: humanLocationDetail(err) || "location_ping_failed",
     };
   }
 }
@@ -137,7 +143,7 @@ export async function startBackgroundLocation(): Promise<LocationState> {
   } catch (err) {
     return {
       kind: "error",
-      detail: err instanceof Error ? err.message : "background_location_failed",
+      detail: humanLocationDetail(err) || "background_location_failed",
     };
   }
 }

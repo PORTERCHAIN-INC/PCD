@@ -76,7 +76,7 @@ function onboardingError(body: { detail?: unknown }, fallback: string): Error {
 
 export async function fetchMerchantOnboarding(token: string): Promise<PortalOnboardingStatus> {
   const res = await fetch(`${publicEnv.porterchainApiUrl}/v1/auth/merchant/onboarding`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}`, "X-Porterchain-Portal": "merchant" },
     cache: "no-store",
   });
   if (!res.ok) {
@@ -94,6 +94,7 @@ export async function saveMerchantVertical(
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
+      "X-Porterchain-Portal": "merchant",
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ vertical }),
@@ -113,6 +114,7 @@ export async function saveMerchantCompanyFile(
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
+      "X-Porterchain-Portal": "merchant",
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),

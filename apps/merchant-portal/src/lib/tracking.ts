@@ -69,6 +69,7 @@ async function trackingFetch<T>(
   const { orgId, ...rest } = init ?? {};
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
     "Content-Type": "application/json",
   };
   if (orgId) headers["X-Merchant-Id"] = orgId;

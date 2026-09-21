@@ -164,6 +164,7 @@ async function billingFetch<T>(
   const { orgId, ...rest } = init ?? {};
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
   };
   if (orgId) headers["X-Merchant-Id"] = orgId;
   if (rest.body && !(rest.body instanceof FormData)) {
@@ -187,6 +188,7 @@ async function billingFetch<T>(
 async function billingDownload(path: string, token: string, orgId?: string, filename?: string) {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
   };
   if (orgId) headers["X-Merchant-Id"] = orgId;
   const response = await fetch(`${API_BASE}${path}`, {

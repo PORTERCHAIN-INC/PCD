@@ -43,6 +43,7 @@ async function contactsFetch<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
   };
   if (init?.body && !(init.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";

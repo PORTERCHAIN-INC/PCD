@@ -18,7 +18,51 @@ from porterchain_api.merchant_models import Merchant, MerchantUser
 from porterchain_api.user_models import PorterchainUser as _PorterchainUser  # noqa: F401
 
 DEV_ORG = "dev_merchant_org"
-DEV_CLERK_USER = "dev_clerk_user"
+DEV_CLERK_USER = "dev_merchant_user"
+DEV_MERCHANT_EMAIL = "merchant@porterchain.com"
+
+SEED_COMPLIANCE_DOCS = {
+    "files": [
+        {
+            "doc_type": "driver_license",
+            "label": "Driver license",
+            "file_url": "https://storage.porterchain.local/seed/license.pdf",
+        },
+        {
+            "doc_type": "insurance",
+            "label": "Insurance certificate",
+            "file_url": "https://storage.porterchain.local/seed/insurance.pdf",
+        },
+        {
+            "doc_type": "vehicle_registration",
+            "label": "Vehicle registration",
+            "file_url": "https://storage.porterchain.local/seed/registration.pdf",
+        },
+    ],
+    "abstract": {
+        "verified": True,
+        "status": "complete",
+        "license_class": "G",
+        "demerits": 0,
+    },
+}
+
+
+def apply_local_driver_compliance(driver: Driver) -> None:
+    """Local Bearer-dev drivers must pass the same ops gate as a cleared field driver."""
+    driver.status = DriverStatus.APPROVED.value
+    driver.license_verified = True
+    driver.insurance_verified = True
+    driver.vehicle_verified = True
+    driver.background_check_status = "cleared"
+    docs = dict(driver.documents or {})
+    files = list(docs.get("files") or [])
+    if not files:
+        files = list(SEED_COMPLIANCE_DOCS["files"])
+    abstract = dict(docs.get("abstract") or {})
+    abstract.update(SEED_COMPLIANCE_DOCS["abstract"])
+    driver.documents = {**docs, "files": files, "abstract": abstract}
+
 
 DRIVERS = [
     {
@@ -76,10 +120,17 @@ def _ensure_dev_merchant(db) -> Merchant:
 
 
 def _ensure_merchant_user(db, merchant: Merchant) -> MerchantUser:
-    user = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == DEV_CLERK_USER).first()
+    user = (
+        db.query(MerchantUser)
+        .filter(
+            MerchantUser.clerk_user_id.in_((DEV_CLERK_USER, "dev_clerk_user")),
+            MerchantUser.merchant_id == merchant.id,
+        )
+        .first()
+    )
     if user:
-        # Keep local Bearer-dev claims (admin@porterchain.com) aligned.
-        user.email = "admin@porterchain.com"
+        user.clerk_user_id = DEV_CLERK_USER
+        user.email = DEV_MERCHANT_EMAIL
         user.merchant_id = merchant.id
         user.role = "merchant_owner"
         user.is_active = True
@@ -89,7 +140,7 @@ def _ensure_merchant_user(db, merchant: Merchant) -> MerchantUser:
     user = MerchantUser(
         merchant_id=merchant.id,
         clerk_user_id=DEV_CLERK_USER,
-        email="admin@porterchain.com",
+        email=DEV_MERCHANT_EMAIL,
         role="merchant_owner",
     )
     db.add(user)
@@ -106,22 +157,17 @@ def _ensure_driver(db, spec: dict) -> Driver:
             full_name=spec["full_name"],
             phone=spec["phone"],
             status=DriverStatus.APPROVED.value,
-            license_verified=True,
-            insurance_verified=True,
-            vehicle_verified=True,
-            background_check_status="cleared",
             rating=4.8,
             wallet_balance_cents=spec["wallet_cents"],
             performance={"score": 92, "on_time_pct": 96},
         )
         db.add(driver)
-        db.commit()
-        db.refresh(driver)
+        db.flush()
     else:
-        driver.status = DriverStatus.APPROVED.value
         driver.wallet_balance_cents = spec["wallet_cents"]
-        db.commit()
-        db.refresh(driver)
+    apply_local_driver_compliance(driver)
+    db.commit()
+    db.refresh(driver)
 
     vehicle = (
         db.query(Vehicle)

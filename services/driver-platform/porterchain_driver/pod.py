@@ -142,14 +142,46 @@ class ProofOfDeliveryService:
         from porterchain_api.booking_engine.order_transitions import transition_order_state
         from porterchain_shared.events.catalog import DomainEventType
 
-        transition_order_state(
-            db,
-            order,
-            OrderState.POD_COMPLETED,
-            event_type=DomainEventType.PROOF_COMPLETED,
-            actor_type="driver",
-            actor_id=driver.id,
-        )
+        payload = {"stop_id": stop_id, "method": "otp" if code else "pod"}
+        current = (order.state or "").strip()
+        if current != OrderState.POD_COMPLETED.value:
+            if current == OrderState.AT_DESTINATION.value:
+                try:
+                    transition_order_state(
+                        db,
+                        order,
+                        OrderState.DELIVERED,
+                        event_type=DomainEventType.PARCEL_DELIVERED,
+                        actor_type="driver",
+                        actor_id=driver.id,
+                        payload=payload,
+                    )
+                except ValueError as exc:
+                    return PodCaptureResult(
+                        success=False,
+                        proof_type="complete",
+                        proof_id=order.id,
+                        fleetbase_synced=False,
+                        message=str(exc),
+                    )
+            try:
+                transition_order_state(
+                    db,
+                    order,
+                    OrderState.POD_COMPLETED,
+                    event_type=DomainEventType.PROOF_COMPLETED,
+                    actor_type="driver",
+                    actor_id=driver.id,
+                    payload=payload,
+                )
+            except ValueError as exc:
+                return PodCaptureResult(
+                    success=False,
+                    proof_type="complete",
+                    proof_id=order.id,
+                    fleetbase_synced=False,
+                    message=str(exc),
+                )
         synced = False
         if fleetbase_bridge and order.fleetbase_order_id:
             synced = fleetbase_bridge.sync_order_state(

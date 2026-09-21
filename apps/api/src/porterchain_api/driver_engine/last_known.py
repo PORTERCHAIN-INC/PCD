@@ -249,6 +249,11 @@ def read_last_known(driver_id: str, *, client: Any | None = None) -> LastKnown |
     )
 
 
+def distance_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """Great-circle meters between two last-known points. Mileage + stop geofence only."""
+    return _haversine_m(lat1, lng1, lat2, lng2)
+
+
 def _haversine_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     r = 6_371_000.0
     p1, p2 = math.radians(lat1), math.radians(lat2)

@@ -91,7 +91,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 function authHeaders(token: string): HeadersInit {
-  return { Authorization: `Bearer ${token}` };
+  return { Authorization: `Bearer ${token}`, "X-Porterchain-Portal": "customer" };
 }
 
 export const customerApi = {

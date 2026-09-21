@@ -27,6 +27,8 @@ import {
   JOB_STEPS,
   resolveScanProgress,
   stepIndexForState,
+  STOP_EXCEPTION_TYPES,
+  formatAccessLine,
 } from "@/lib/jobs";
 import { cn, formatCents } from "@/lib/utils";
 
@@ -103,8 +105,9 @@ export default function Delivery360({
   const [otp, setOtp] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [signature, setSignature] = useState("");
-  const [incidentType, setIncidentType] = useState("delay");
+  const [incidentType, setIncidentType] = useState("customer_not_available");
   const [incidentNotes, setIncidentNotes] = useState("");
+  const [exceptionPhoto, setExceptionPhoto] = useState("");
   const [message, setMessage] = useState("");
   const [messageError, setMessageError] = useState(false);
 
@@ -117,6 +120,21 @@ export default function Delivery360({
   const scanPhase: "pickup" | "delivery" = deliveryPhase ? "delivery" : "pickup";
   const scanProgress = resolveScanProgress(job, scanPhase);
   const scansComplete = scanProgress.complete;
+  const exceptionMeta = STOP_EXCEPTION_TYPES.find((item) => item.id === incidentType);
+  const accessLine = formatAccessLine({
+    special_instructions: job.special_instructions,
+    access_unit:
+      typeof job.delivery_detail.unit === "string"
+        ? job.delivery_detail.unit
+        : typeof job.next_stop?.access_unit === "string"
+          ? job.next_stop.access_unit
+          : null,
+    access_buzzer: job.next_stop?.access_buzzer ?? null,
+    access_dock: job.next_stop?.access_dock ?? null,
+    call_on_arrival: job.next_stop?.call_on_arrival ?? false,
+    contact_phone_masked: job.next_stop?.contact_phone_masked ?? null,
+  });
+  const stopId = deliveryPhase ? job.delivery_stop_id : job.pickup_stop_id;
 
   async function run(action: string, fn: () => Promise<unknown>) {
     setPending(action);
@@ -233,6 +251,12 @@ export default function Delivery360({
           <p className="mt-1 text-lg font-bold">
             {primary.key.includes("pickup") ? job.pickup_address : job.delivery_address}
           </p>
+          {accessLine ? <p className="mt-2 text-sm text-amber-900">{accessLine}</p> : null}
+          {(job.delivery_attempts ?? 0) > 0 ? (
+            <p className="mt-1 text-xs font-semibold text-[var(--muted)]">
+              Attempt {job.delivery_attempts} of {job.max_delivery_attempts ?? 2}
+            </p>
+          ) : null}
           {primary.key.startsWith("confirm_") && !scansComplete ? (
             <p className="mt-2 text-sm text-amber-800">
               Scan all packages first ({scanProgress.scanned}/{scanProgress.required})
@@ -352,7 +376,9 @@ export default function Delivery360({
           Scanned {scanProgress.scanned}/{scanProgress.required}
           {scanProgress.complete ? " · ready" : " · scan all boxes before confirm"}
         </p>
-        {job.packages.length === 0 ? (
+        {job.packages_error ? (
+          <p className="text-sm text-red-600">Package list unavailable — refresh and try again.</p>
+        ) : job.packages.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">No package details on file</p>
         ) : (
           <ul className="space-y-3">
@@ -385,13 +411,13 @@ export default function Delivery360({
         {!completed ? (
           <div className="mt-3 space-y-2">
             <label className="text-xs font-semibold text-[var(--muted)]">
-              Scan label QR ({scanPhase})
+              Scan PorterChain label ({scanPhase})
             </label>
             <div className="flex gap-2">
               <input
                 value={scanInput}
                 onChange={(e) => setScanInput(e.target.value)}
-                placeholder="Paste LOGISTICSv1|…"
+                placeholder="QR payload or tracking line"
                 className="flex-1 rounded-xl border px-3 py-2 text-sm"
               />
               <button
@@ -596,35 +622,53 @@ export default function Delivery360({
       </Section>
 
       {!completed && (
-        <Section title="Incident Reporting" icon={AlertTriangle}>
+        <Section title="Cannot complete this stop" icon={AlertTriangle}>
           <div className="space-y-3">
             <select
               value={incidentType}
               onChange={(e) => setIncidentType(e.target.value)}
               className="w-full rounded-xl border px-3 py-2 text-sm"
             >
-              <option value="delay">Delay</option>
-              <option value="damage">Damage</option>
-              <option value="loss">Loss / Missing</option>
-              <option value="access">Access issue</option>
-              <option value="other">Other</option>
+              {STOP_EXCEPTION_TYPES.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
             </select>
+            {exceptionMeta?.photoRequired ? (
+              <input
+                value={exceptionPhoto}
+                onChange={(e) => setExceptionPhoto(e.target.value)}
+                placeholder="Photo URL required for this reason"
+                className="w-full rounded-xl border px-3 py-2 text-sm"
+              />
+            ) : (
+              <input
+                value={exceptionPhoto}
+                onChange={(e) => setExceptionPhoto(e.target.value)}
+                placeholder="Photo URL (optional)"
+                className="w-full rounded-xl border px-3 py-2 text-sm"
+              />
+            )}
             <textarea
               value={incidentNotes}
               onChange={(e) => setIncidentNotes(e.target.value)}
-              placeholder="Describe the incident…"
+              placeholder="Notes for ops / claims…"
               rows={3}
               className="w-full rounded-xl border px-3 py-2 text-sm"
             />
             <button
               type="button"
-              disabled={!incidentNotes.trim() || pending === "incident"}
+              disabled={
+                pending === "exception" ||
+                (Boolean(exceptionMeta?.photoRequired) && !exceptionPhoto.trim())
+              }
               onClick={() =>
-                run("incident", () =>
-                  driverApi.reportIncident({
-                    incident_type: incidentType,
-                    description: incidentNotes,
-                    order_id: job.order_id,
+                run("exception", () =>
+                  driverApi.reportException(rid, stopId, {
+                    exception_type: incidentType,
+                    notes: incidentNotes.trim() || exceptionMeta?.label,
+                    photo_url: exceptionPhoto.trim() || undefined,
                   })
                 )
               }
@@ -633,7 +677,11 @@ export default function Delivery360({
                 "bg-red-600 hover:bg-red-700 disabled:opacity-50"
               )}
             >
-              {pending === "incident" ? "Submitting…" : "Report Incident"}
+              {pending === "exception"
+                ? "Submitting…"
+                : exceptionMeta?.retryable
+                  ? "Log attempt — stay on stop"
+                  : "Fail this stop"}
             </button>
           </div>
           {job.incidents.length > 0 && (

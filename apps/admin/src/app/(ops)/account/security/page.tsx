@@ -9,7 +9,11 @@ import { adminFetch } from "@/lib/api";
 import { clearStaffSession } from "@/lib/staff-session";
 import { publicEnv } from "@/lib/env";
 import { createPasskey, credentialToJson, passkeysSupported } from "@/lib/staff-webauthn";
-import { fetchStaffSecurityStatus, type StaffSecurityEvent } from "@/lib/staff-security";
+import {
+  fetchStaffSecurityStatus,
+  notifyStaffPasskeyChanged,
+  type StaffSecurityEvent,
+} from "@/lib/staff-security";
 
 type StaffSessionRow = {
   session_id: string;
@@ -132,6 +136,7 @@ export default function AccountSecurityPage() {
         }),
       });
       setMsg("Passkey saved.");
+      notifyStaffPasskeyChanged();
       await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : "passkey_failed");
@@ -150,6 +155,7 @@ export default function AccountSecurityPage() {
         method: "DELETE",
       });
       setMsg("Passkey removed.");
+      notifyStaffPasskeyChanged();
       await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : "passkey_delete_failed");

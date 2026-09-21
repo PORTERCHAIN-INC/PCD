@@ -25,7 +25,7 @@ export async function fetchCustomerOnboarding(token: string): Promise<PortalOnbo
     ""
   );
   const res = await fetch(`${api}/v1/auth/customer/onboarding`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}`, "X-Porterchain-Portal": "customer" },
     cache: "no-store",
   });
   if (!res.ok) {

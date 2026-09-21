@@ -12,6 +12,7 @@ from porterchain_api.admin_engine.driver_lookups import get_driver, rebind_clerk
 from porterchain_api.admin_engine.rbac import parse_admin_role
 from porterchain_api.admin_engine.staff_lookups import get_admin_user, rebind_clerk_by_email as rebind_admin_clerk
 from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.email_identity import (
     emails_match,
     normalize_email,
@@ -36,7 +37,7 @@ from porterchain_shared.types.user_types import UserType
 def _is_pending_clerk_id(clerk_user_id: str | None) -> bool:
     if not clerk_user_id:
         return True
-    if clerk_user_id == "dev_clerk_user":
+    if is_dev_bypass_subject(clerk_user_id):
         return True
     return clerk_user_id.startswith("pending:") or clerk_user_id.startswith("pending_")
 

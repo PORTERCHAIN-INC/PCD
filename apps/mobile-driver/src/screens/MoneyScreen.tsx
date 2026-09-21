@@ -16,6 +16,7 @@ import { formatCents, formatWhen } from "../format";
 import { Card, CardTitle, Kpi } from "../ui/Card";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
+import { ScreenHeader } from "../ui/ScreenHeader";
 import type {
   BonusRow,
   EarningsSnapshot,
@@ -59,9 +60,8 @@ export function MoneyScreen({ refreshToken = 0 }: { refreshToken?: number }) {
   }, [refreshToken]);
 
   return (
-    <Screen testID="mobile-money">
-      <Text style={styles.title}>Money</Text>
-      <Text style={styles.lede}>Wallet, earnings, bonuses, and statements.</Text>
+    <Screen testID="mobile-money" includeBottomSafeArea={false}>
+      <ScreenHeader title="Money" lede="Wallet, earnings, bonuses, and statements." />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <ScrollView
         style={styles.flex}
@@ -206,8 +206,6 @@ export function MoneyScreen({ refreshToken = 0 }: { refreshToken?: number }) {
 }
 
 const styles = StyleSheet.create({
-  title: { ...typography.title, fontSize: 28, color: colors.primary },
-  lede: { ...typography.caption, color: colors.muted },
   error: { ...typography.caption, color: colors.danger },
   flex: { flex: 1 },
   list: { gap: spacing.md, paddingBottom: spacing.xl },

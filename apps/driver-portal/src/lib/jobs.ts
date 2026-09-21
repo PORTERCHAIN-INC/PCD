@@ -20,6 +20,21 @@ export interface DriverNextStop {
   eta_minutes?: number | null;
   source?: string | null;
   status?: string | null;
+  special_instructions?: string | null;
+  access_unit?: string | null;
+  access_buzzer?: string | null;
+  access_dock?: string | null;
+  call_on_arrival?: boolean;
+  contact_phone_masked?: string | null;
+  delivery_attempts?: number;
+  max_delivery_attempts?: number;
+}
+
+export interface DriverScanProgress {
+  scanned: number;
+  required: number;
+  complete: boolean;
+  missing_suffixes: string[];
 }
 
 export interface DriverJobSummary {
@@ -42,6 +57,9 @@ export interface DriverJobSummary {
   pickup_completed?: boolean;
   delivery_completed?: boolean;
   is_current_job?: boolean;
+  route_id?: string | null;
+  scan_pickup?: DriverScanProgress;
+  scan_delivery?: DriverScanProgress;
 }
 
 export interface DriverRouteMetrics {
@@ -82,13 +100,6 @@ export interface DriverJobsOptimizeResult {
   error?: string | null;
 }
 
-export interface DriverScanProgress {
-  scanned: number;
-  required: number;
-  complete: boolean;
-  missing_suffixes: string[];
-}
-
 export interface DriverJobDetail extends DriverJobSummary {
   pickup_detail: Record<string, unknown>;
   delivery_detail: Record<string, unknown>;
@@ -124,6 +135,7 @@ export interface DriverJobDetail extends DriverJobSummary {
     package_type?: string;
     vehicle_class?: string;
   }>;
+  packages_error?: string | null;
   scan_pickup?: DriverScanProgress;
   scan_delivery?: DriverScanProgress;
   timeline: Array<{
@@ -156,6 +168,8 @@ export interface DriverJobDetail extends DriverJobSummary {
   currency: string;
   updated_at: string | null;
   route_id: string | null;
+  delivery_attempts?: number;
+  max_delivery_attempts?: number;
 }
 
 const PICKUP_LEG = new Set(["DRIVER_ASSIGNED", "DRIVER_ACCEPTED", "DRIVER_EN_ROUTE", "AT_PICKUP"]);
@@ -240,9 +254,13 @@ export function actionErrorMessage(code: string): string {
     pickup_required: "Complete pickup before starting delivery.",
     pickup_already_completed: "Parcel already picked up.",
     not_current_stop: "This is not your next stop — finish the current job first.",
+    not_at_stop:
+      "GPS says you are not at this stop yet. Drive into the 150 m zone, then tap arrived.",
+    pretrip_required: "Complete the 30-second vehicle check before starting shift.",
+    shift_required: "Start shift (30-second vehicle check) before going online.",
     stop_not_found: "Stop not found or not assigned to you.",
     packages_incomplete: "Scan all package labels before confirming.",
-    invalid_label_qr: "That QR is not a valid PorterChain package label.",
+    invalid_label_qr: "That is not a PorterChain package label.",
     qr_order_mismatch: "That label belongs to a different order.",
     scan_pickup_required_first: "Scan this box at pickup before delivery scan.",
     invalid_otp: "That OTP does not match. Ask the receiver for the current code.",
@@ -315,4 +333,84 @@ export function isJobCompleted(
   return (
     job.current_leg === "completed" || job.delivery_completed || DONE.has(job.state.toUpperCase())
   );
+}
+
+export function groupJobsByDay(
+  jobs: DriverJobSummary[]
+): { key: string; label: string; jobs: DriverJobSummary[] }[] {
+  const groups: { key: string; label: string; jobs: DriverJobSummary[] }[] = [];
+  const index = new Map<string, number>();
+  for (const job of jobs) {
+    const fromRoute = (job.route_id || "").replace(/^route-/, "");
+    const key = /^\d{4}-\d{2}-\d{2}$/.test(fromRoute)
+      ? fromRoute
+      : (job.scheduled_at || "").slice(0, 10) || "unknown";
+    let i = index.get(key);
+    if (i === undefined) {
+      i = groups.length;
+      index.set(key, i);
+      const label =
+        key === "unknown"
+          ? "Earlier"
+          : new Date(`${key}T12:00:00Z`).toLocaleDateString("en-CA", {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            });
+      groups.push({ key, label, jobs: [] });
+    }
+    const group = groups[i];
+    if (!group) continue;
+    group.jobs.push(job);
+  }
+  return groups;
+}
+
+export function parcelScanLabel(
+  job: Pick<DriverJobSummary, "scan_pickup" | "scan_delivery">
+): string | null {
+  const pickup = job.scan_pickup;
+  const delivery = job.scan_delivery;
+  const required = Math.max(pickup?.required ?? 0, delivery?.required ?? 0);
+  if (required <= 0) return null;
+  return `Parcels pickup ${pickup?.scanned ?? 0}/${pickup?.required ?? 0} · delivery ${delivery?.scanned ?? 0}/${delivery?.required ?? 0}`;
+}
+
+export const STOP_EXCEPTION_TYPES = [
+  {
+    id: "customer_not_available",
+    label: "Not home / no answer",
+    retryable: true,
+    photoRequired: false,
+  },
+  { id: "closed", label: "Business closed", retryable: true, photoRequired: false },
+  {
+    id: "no_access",
+    label: "No access (condo / dock / buzzer)",
+    retryable: true,
+    photoRequired: false,
+  },
+  { id: "weather_ice", label: "Weather / ice", retryable: true, photoRequired: false },
+  { id: "refused", label: "Receiver refused", retryable: false, photoRequired: true },
+  { id: "damaged_parcel", label: "Parcel damaged", retryable: false, photoRequired: true },
+  { id: "unsafe", label: "Unsafe stop", retryable: false, photoRequired: true },
+  { id: "unable_to_deliver", label: "Unable to deliver", retryable: false, photoRequired: false },
+] as const;
+
+export function formatAccessLine(bits: {
+  special_instructions?: string | null;
+  access_unit?: string | null;
+  access_buzzer?: string | null;
+  access_dock?: string | null;
+  call_on_arrival?: boolean | null;
+  contact_phone_masked?: string | null;
+}): string | null {
+  const parts: string[] = [];
+  if (bits.access_unit) parts.push(`Unit ${bits.access_unit}`);
+  if (bits.access_buzzer) parts.push(`Buzzer ${bits.access_buzzer}`);
+  if (bits.access_dock) parts.push(`Dock ${bits.access_dock}`);
+  if (bits.call_on_arrival) parts.push("Call on arrival");
+  if (bits.contact_phone_masked) parts.push(bits.contact_phone_masked);
+  if (bits.special_instructions) parts.push(bits.special_instructions);
+  return parts.length ? parts.join(" · ") : null;
 }

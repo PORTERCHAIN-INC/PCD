@@ -19,6 +19,8 @@ class DashboardService:
         from porterchain_driver.performance import PerformanceService
         from porterchain_driver.documents import DocumentsService
 
+        from porterchain_api.driver_engine.wallet_ledger import wallet_balance_cents as ledger_balance
+
         earnings = EarningsService().today_cents(db, driver.id)
         stops = StopsService().today_stops(db, driver.id)
         completed = sum(1 for s in stops if s.status in ("delivered", "completed", "POD_COMPLETED"))
@@ -30,7 +32,9 @@ class DashboardService:
             todays_earnings_cents=earnings,
             todays_stops_total=len(stops),
             todays_stops_completed=completed,
-            wallet_balance_cents=driver.wallet_balance_cents or 0,
+            wallet_balance_cents=ledger_balance(
+                db, driver.id, cached_cents=driver.wallet_balance_cents or 0
+            ),
             is_online=bool(driver.is_online),
             availability=driver.availability or "offline",
             rating=driver.rating,

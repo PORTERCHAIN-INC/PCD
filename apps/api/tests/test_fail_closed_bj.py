@@ -109,8 +109,28 @@ def test_bearer_dev_is_refused_when_the_bypass_is_off() -> None:
     settings = _settings(app_env="local", clerk_dev_bypass=False)
 
     async def _run() -> None:
+        from starlette.requests import Request
+
+        scope = {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "GET",
+            "scheme": "http",
+            "path": "/v1/health",
+            "raw_path": b"/v1/health",
+            "query_string": b"",
+            "headers": [],
+            "client": ("127.0.0.1", 123),
+            "server": ("test", 80),
+        }
         with pytest.raises(HTTPException) as exc:
-            await get_clerk_claims(authorization="Bearer dev", settings=settings, db=None)
+            await get_clerk_claims(
+                request=Request(scope),
+                authorization="Bearer dev",
+                settings=settings,
+                db=None,
+            )
         assert exc.value.status_code == 401
         assert exc.value.detail == "dev_bypass_disabled"
 
@@ -159,8 +179,28 @@ def test_missing_bearer_is_refused_not_waved_through() -> None:
     settings = _live(app_env="production")
 
     async def _run() -> None:
+        from starlette.requests import Request
+
+        scope = {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "GET",
+            "scheme": "http",
+            "path": "/v1/health",
+            "raw_path": b"/v1/health",
+            "query_string": b"",
+            "headers": [],
+            "client": ("127.0.0.1", 123),
+            "server": ("test", 80),
+        }
         with pytest.raises(HTTPException) as exc:
-            await get_clerk_claims(authorization=None, settings=settings, db=None)
+            await get_clerk_claims(
+                request=Request(scope),
+                authorization=None,
+                settings=settings,
+                db=None,
+            )
         assert exc.value.status_code == 401
         assert exc.value.detail == "missing_bearer_token"
 

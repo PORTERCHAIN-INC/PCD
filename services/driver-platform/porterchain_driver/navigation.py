@@ -35,6 +35,36 @@ def _coords_from_address(addr: dict[str, Any] | None) -> tuple[float, float] | N
         return None
 
 
+STOP_GEOFENCE_RADIUS_M = 150
+
+
+def assert_driver_inside_stop(driver_id: str, order: Any, stop_id: str) -> None:
+    """Fail closed when last-known GPS (Fleetbase overlay) is outside the stop circle.
+
+    Missing GPS does not block arrive — last-known is a cache, not a hard lock.
+    """
+    from porterchain_api.driver_engine.last_known import distance_m, read_last_known
+
+    known = read_last_known(driver_id)
+    if known is None:
+        return
+    label = "pickup" if str(stop_id).endswith("-pickup") else "dropoff"
+    fence = next(
+        (g for g in NavigationService._stop_geofences(order) if g.get("geofence_type") == label),
+        None,
+    )
+    if not fence:
+        return
+    center = fence.get("center") if isinstance(fence.get("center"), dict) else {}
+    try:
+        clat, clng = float(center["lat"]), float(center["lng"])
+    except (KeyError, TypeError, ValueError):
+        return
+    radius = int(fence.get("radius_m") or STOP_GEOFENCE_RADIUS_M)
+    if int(distance_m(known.lat, known.lng, clat, clng)) > radius:
+        raise ValueError("not_at_stop")
+
+
 def _format_eta_label(seconds: int) -> str:
     if seconds < 60:
         return "< 1 min"
@@ -438,7 +468,8 @@ class NavigationService:
         frames.sort(key=lambda f: str(f.get("at") or ""))
         return frames
 
-    def _stop_geofences(self, order: Any) -> list[dict[str, Any]]:
+    @staticmethod
+    def _stop_geofences(order: Any) -> list[dict[str, Any]]:
         zones: list[dict[str, Any]] = []
         for label, addr in (("pickup", order.pickup), ("dropoff", order.dropoff)):
             coords = _coords_from_address(addr if isinstance(addr, dict) else None)
@@ -449,7 +480,7 @@ class NavigationService:
                         "name": f"{label.title()} — {order.tracking_number}",
                         "geofence_type": label,
                         "center": {"lat": coords[0], "lng": coords[1]},
-                        "radius_m": 150,
+                        "radius_m": STOP_GEOFENCE_RADIUS_M,
                     }
                 )
         return zones

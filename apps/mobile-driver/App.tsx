@@ -218,13 +218,13 @@ function DriverApp() {
               onPodChange={setPodDraft}
               onScanCompleteChange={setScanComplete}
               onRefresh={() => void refreshHandshake()}
-              onDuty={() =>
+              onDuty={(pretrip) =>
                 void runAction("duty", async () => {
                   if (handshake.online) {
                     await goOffDuty();
                     return;
                   }
-                  await goOnDuty(handshake.routeId);
+                  await goOnDuty(handshake.routeId, pretrip);
                 })
               }
               onArrive={() =>
@@ -272,10 +272,16 @@ function DriverApp() {
                   })
                   .finally(() => setNavBusy(false));
               }}
-              onException={(reason) =>
+              onException={(reason, notes, photoUrl) =>
                 void runAction("exception", async () => {
                   if (!handshake.routeId || !handshake.stopId) throw new Error("no_stop");
-                  await reportException(handshake.routeId, handshake.stopId, reason);
+                  await reportException(
+                    handshake.routeId,
+                    handshake.stopId,
+                    reason,
+                    notes,
+                    photoUrl
+                  );
                 })
               }
               onPhotoError={(message) => {

@@ -27,6 +27,13 @@ export type LocationState = {
   detail: string;
 };
 
+export type ScanProgress = {
+  scanned: number;
+  required: number;
+  complete: boolean;
+  missing_suffixes: string[];
+};
+
 export type Handshake = {
   api: LinkState;
   auth: LinkState;
@@ -43,6 +50,9 @@ export type Handshake = {
   stopStatus: string | null;
   currentOrderId: string | null;
   currentOrderNumber: string | null;
+  accessNotes: string | null;
+  deliveryAttempts: number | null;
+  maxDeliveryAttempts: number | null;
   walletCents: number | null;
   todayEarningsCents: number | null;
   pendingDocuments: number | null;
@@ -122,6 +132,14 @@ export type DriverNextStop = {
   status?: string | null;
   eta_minutes?: number | null;
   address?: { lat?: number; lng?: number };
+  special_instructions?: string | null;
+  access_unit?: string | null;
+  access_buzzer?: string | null;
+  access_dock?: string | null;
+  call_on_arrival?: boolean;
+  contact_phone_masked?: string | null;
+  delivery_attempts?: number;
+  max_delivery_attempts?: number;
 };
 
 export type DriverJobSummary = {
@@ -137,6 +155,9 @@ export type DriverJobSummary = {
   urgency?: string;
   is_current_job?: boolean;
   current_leg?: string;
+  route_id?: string | null;
+  scan_pickup?: ScanProgress;
+  scan_delivery?: ScanProgress;
 };
 
 export type DriverJobs = {
@@ -149,11 +170,36 @@ export type DriverJobs = {
   jobs?: DriverJobSummary[];
 };
 
-export type ScanProgress = {
-  scanned: number;
-  required: number;
-  complete: boolean;
-  missing_suffixes: string[];
+export type DriverPackage = {
+  id?: string;
+  parcel_index?: number;
+  total_parcels?: number;
+  tracking_suffix?: string;
+  status?: string;
+  weight_kg?: number | null;
+  scanned_pickup?: boolean;
+  scanned_delivery?: boolean;
+  package_type?: string;
+};
+
+export type DriverTimelineEvent = {
+  event_type: string;
+  label: string;
+  from_state?: string | null;
+  to_state?: string | null;
+  occurred_at?: string | null;
+  actor_type?: string | null;
+};
+
+export type DriverProof = {
+  type?: string;
+  value?: string;
+};
+
+export type DriverProofOfDelivery = {
+  completed?: boolean;
+  proofs?: DriverProof[];
+  otp_verified?: boolean;
 };
 
 export type DriverJobDetail = DriverJobSummary & {
@@ -167,6 +213,19 @@ export type DriverJobDetail = DriverJobSummary & {
   route_id?: string | null;
   pickup_stop_id?: string;
   delivery_stop_id?: string;
+  special_instructions?: string | null;
+  packages?: DriverPackage[];
+  packages_error?: string | null;
+  timeline?: DriverTimelineEvent[];
+  photos?: DriverProof[];
+  signatures?: DriverProof[];
+  documents?: DriverProof[];
+  proof_of_delivery?: DriverProofOfDelivery;
+  pickup_completed_at?: string | null;
+  delivery_completed_at?: string | null;
+  delivery_attempts?: number;
+  max_delivery_attempts?: number;
+  merchant?: { company_name?: string } | null;
 };
 
 export type DriverOnboardingStep = {
@@ -348,7 +407,9 @@ export type SupportHub = {
 };
 
 export type ShiftSnapshot = {
+  shift_active?: boolean;
   online?: boolean;
+  is_online?: boolean;
   availability?: string;
   on_break?: boolean;
   route_id?: string | null;
@@ -439,6 +500,7 @@ export type RatingsSummary = {
 export type InsuranceStatus = {
   status?: string;
   verified?: boolean;
+  insurance_verified?: boolean;
   provider?: string | null;
   expires_at?: string | null;
 };

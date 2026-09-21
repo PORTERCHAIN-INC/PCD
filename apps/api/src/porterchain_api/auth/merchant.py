@@ -6,7 +6,7 @@ from typing import Annotated, Any
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.auth.dev import allow_auth_dev_bypass, is_dev_bypass_subject, is_merchant_dev_subject
 from porterchain_api.auth.clerk import ClerkClaims, get_clerk_claims
 from porterchain_api.auth.email_identity import (
     CLERK_EMAIL_REQUIRED,
@@ -65,8 +65,8 @@ def get_merchant_context(
     assert_clerk_id_exclusive(db, claims, portal="merchant", settings=settings)
 
     user = _resolve_merchant_user(db, claims.clerk_user_id, x_merchant_id, settings)
-    # Local CLERK_DEV_BYPASS uses a shared synthetic clerk id; email may not match seed rows.
-    if claims.clerk_user_id != "dev_clerk_user":
+    # Local Bearer-dev synthetic subjects have no SpiceDB tuples; email is the portal persona.
+    if not is_dev_bypass_subject(claims.clerk_user_id):
         try:
             assert_portal_email_identity(user.email, claims.email)
         except PermissionError as exc:
@@ -77,7 +77,7 @@ def get_merchant_context(
 
     # SpiceDB ReBAC: organization#portal required — fail closed when unprovisioned.
     # Local CLERK_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
-    if claims.clerk_user_id != "dev_clerk_user":
+    if not is_dev_bypass_subject(claims.clerk_user_id):
         from porterchain_api.auth.dependencies import assert_organization_scope, resolve_principal_for_claims
 
         principal = resolve_principal_for_claims(db, claims)
@@ -117,12 +117,12 @@ def get_merchant_seats(
     assert_clerk_id_exclusive(db, claims, portal="merchant", settings=settings)
 
     seats = [s for s in seats_for_clerk(db, claims.clerk_user_id) if s.is_active]
-    if not seats and allow_auth_dev_bypass(settings):
+    if not seats and allow_auth_dev_bypass(settings) and is_merchant_dev_subject(claims.clerk_user_id):
         seats = [ensure_dev_merchant_seat(db, claims.clerk_user_id)]
     if not seats:
         raise HTTPException(status_code=403, detail="merchant_user_not_found")
 
-    if claims.clerk_user_id != "dev_clerk_user":
+    if not is_dev_bypass_subject(claims.clerk_user_id):
         try:
             assert_portal_email_identity(seats[0].email, claims.email)
         except PermissionError as exc:
@@ -155,7 +155,7 @@ def _resolve_merchant_user(
     if user:
         return user
 
-    if allow_auth_dev_bypass(settings):
+    if allow_auth_dev_bypass(settings) and is_merchant_dev_subject(clerk_user_id):
         return ensure_dev_merchant_seat(db, clerk_user_id)
 
     raise HTTPException(status_code=403, detail="merchant_user_not_found")

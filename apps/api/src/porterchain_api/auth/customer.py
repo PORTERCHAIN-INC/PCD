@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.auth.clerk import ClerkClaims
 from porterchain_api.auth.clerk_client import ClerkClient
 from porterchain_api.auth.clerk_registry import fetch_clerk_user, is_clerk_secret_configured
+from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
 from porterchain_api.booking_engine import CustomerService
 from porterchain_api.config import Settings
@@ -88,7 +89,7 @@ def require_customer(
     from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
 
     # Local CLERK_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
-    if claims.clerk_user_id != "dev_clerk_user":
+    if not is_dev_bypass_subject(claims.clerk_user_id):
         principal = resolve_principal_for_claims(db, claims)
         if not principal:
             raise HTTPException(status_code=403, detail="user_not_provisioned")

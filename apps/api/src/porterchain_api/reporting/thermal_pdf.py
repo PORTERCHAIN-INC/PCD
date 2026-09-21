@@ -23,6 +23,25 @@ def _qr_image(payload: str, box_size: int = 6) -> ImageReader:
     return ImageReader(buf)
 
 
+def _draw_code128(c: canvas.Canvas, value: str, y: float, margin: float) -> float:
+    """1D of tracking_suffix — same ScanGate alias the camera reads."""
+    from reportlab.graphics.barcode.code128 import Code128
+
+    bar_height = 0.42 * inch
+    usable = LABEL_WIDTH - 2 * margin
+    bar = Code128(value, barHeight=bar_height, barWidth=0.9, humanReadable=False)
+    if bar.width > usable:
+        bar = Code128(
+            value,
+            barHeight=bar_height,
+            barWidth=max(0.55, 0.9 * (usable / bar.width)),
+            humanReadable=False,
+        )
+    x = (LABEL_WIDTH - bar.width) / 2
+    bar.drawOn(c, x, y - bar.height)
+    return y - bar.height - 6
+
+
 def render_thermal_labels(pages: list[dict[str, Any]]) -> bytes:
     """
     Each page dict keys:
@@ -98,7 +117,7 @@ def _draw_page(c: canvas.Canvas, page: dict[str, Any]) -> None:
     y -= 18
 
     qr_payload = str(page.get("qr_payload") or "")
-    qr_size = 1.6 * inch
+    qr_size = 1.45 * inch
     if qr_payload:
         c.drawImage(
             _qr_image(qr_payload),
@@ -108,12 +127,14 @@ def _draw_page(c: canvas.Canvas, page: dict[str, Any]) -> None:
             height=qr_size,
             mask="auto",
         )
-    y = y - qr_size - 10
+    y = y - qr_size - 8
 
-    c.setFont("Helvetica-Bold", 12)
     suffix = str(page.get("tracking_suffix") or "")
-    c.drawCentredString(LABEL_WIDTH / 2, y, suffix)
-    y -= 18
+    if suffix:
+        y = _draw_code128(c, suffix, y, margin)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawCentredString(LABEL_WIDTH / 2, y, suffix or "—")
+    y -= 16
 
     c.setFont("Helvetica-Bold", 11)
     idx = page.get("parcel_index") or 1

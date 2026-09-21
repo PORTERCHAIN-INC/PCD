@@ -108,7 +108,7 @@ class MerchantTrackingService:
     ) -> dict[str, Any]:
         live_raw = self._fetch_live(db, settings, order)
         translated = self._translate_live(live_raw)
-        driver_loc = translated.get("location")
+        driver_loc = self._driver_location(db, order, translated)
         dropoff = coords_from_address(order.dropoff if isinstance(order.dropoff, dict) else None)
         eta = self._eta(driver_loc, dropoff, order_id=order.id) if driver_loc and dropoff else None
 
@@ -151,13 +151,13 @@ class MerchantTrackingService:
         translated = self._translate_live(live_raw)
         pickup = coords_from_address(order.pickup if isinstance(order.pickup, dict) else None)
         dropoff = coords_from_address(order.dropoff if isinstance(order.dropoff, dict) else None)
-        driver_loc = translated.get("location")
+        driver_loc = self._driver_location(db, order, translated)
 
         eta_origin = driver_loc or pickup
         eta = self._eta(eta_origin, dropoff, order_id=order.id) if eta_origin and dropoff else None
         optimized_route = self._route(pickup, dropoff) if pickup and dropoff else None
 
-        proofs = self._extract_proofs(live_raw)
+        proofs = self._extract_proofs(live_raw) + self._local_pod_proofs(db, order)
         history = self._tracking_history(db, order.id)
         pod = _normalize_pod(proofs)
         pod_events = [ev for ev in history if "pod" in str(ev.get("event_type", "")).lower()]
@@ -223,6 +223,46 @@ class MerchantTrackingService:
         if isinstance(proofs, list):
             return proofs
         return []
+
+    def _local_pod_proofs(self, db: Session, order: Order) -> list[dict[str, Any]]:
+        from porterchain_api.driver_models import DriverStopMeta
+
+        meta_row = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order.id).first()
+        if not meta_row:
+            return []
+        mapped: list[dict[str, Any]] = []
+        for item in list((meta_row.meta or {}).get("proofs", [])):
+            if not isinstance(item, dict):
+                continue
+            ptype = str(item.get("type") or "")
+            value = str(item.get("value") or "")
+            proof: dict[str, Any] = {"type": ptype, "id": f"local-{order.id}-{ptype}"}
+            if ptype == "photo":
+                proof["url"] = value
+            elif ptype == "signature":
+                proof["signature"] = value
+            elif ptype in {"otp", "barcode"}:
+                proof["otp"] = value
+            elif value:
+                proof["url"] = value
+            mapped.append(proof)
+        return mapped
+
+    def _driver_location(
+        self,
+        db: Session,
+        order: Order,
+        translated: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        loc = translated.get("location")
+        if loc:
+            return loc
+        driver_id = getattr(order, "assigned_driver_id", None)
+        if not driver_id:
+            return None
+        from porterchain_api.fleetbase_engine.ops_mirror import porterchain_driver_pin
+
+        return porterchain_driver_pin(driver_id)
 
     def _eta(
         self,

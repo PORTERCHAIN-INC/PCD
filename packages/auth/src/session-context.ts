@@ -113,13 +113,16 @@ const SESSION_CONTEXT_TIMEOUT_MS = 12_000;
 
 export async function fetchSessionContext(
   apiBaseUrl: string,
-  token: string
+  token: string,
+  portal?: PorterchainPortal
 ): Promise<SessionContext> {
   const base = apiBaseUrl.replace(/\/$/, "");
+  const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+  if (portal) headers["X-Porterchain-Portal"] = portal;
   let res: Response;
   try {
     res = await fetch(`${base}/v1/auth/session-context`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers,
       cache: "no-store",
       signal: AbortSignal.timeout(SESSION_CONTEXT_TIMEOUT_MS),
     });
