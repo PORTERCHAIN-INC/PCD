@@ -230,6 +230,11 @@ def driver_orders(
     return _invoke(ctx, "drivers_read", _d360.orders, db, driver_id, state=state, limit=limit, offset=offset)
 
 
+@router.get("/{driver_id}/vehicles")
+def driver_vehicles(driver_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> list[dict]:
+    return _invoke(ctx, "drivers_read", _d360.vehicles, db, driver_id)
+
+
 @router.get("/{driver_id}/payouts")
 def driver_payouts(driver_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     return _invoke(ctx, "drivers_read", _d360.payouts, db, driver_id)

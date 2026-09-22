@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
-from porterchain_api.routers.drivers_admin import Ctx, _d360, _drivers, _invoke, _mutated, _vehicle
+from porterchain_api.routers.drivers_admin import Ctx, _drivers, _invoke, _mutated, _vehicle
 from porterchain_api.schemas_admin import (
     DriverDocumentDecisionRequest,
     DriverProfilePatch,
@@ -42,11 +42,6 @@ def decide_driver_document(
         decision=body.decision,
         reason=body.reason,
     )
-
-
-@router.get("/{driver_id}/vehicles")
-def driver_vehicles(driver_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> list[dict]:
-    return _invoke(ctx, "drivers_read", _d360.vehicles, db, driver_id)
 
 
 @router.post("/{driver_id}/vehicles", status_code=201)
