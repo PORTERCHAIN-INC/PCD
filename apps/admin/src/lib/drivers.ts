@@ -39,6 +39,7 @@ export type DriverRow = {
   medical_transport_certified: boolean;
   background_check_status: string;
   fleetbase_driver_id?: string | null;
+  docs_pending_review?: boolean;
   last_active_at: string | null;
   created_at: string;
   tags: string[];
@@ -60,6 +61,9 @@ export type DriverDetail = DriverRow & {
   documents: Record<string, unknown>;
   performance: Record<string, unknown>;
   fleetbase_driver_id: string | null;
+  assignable?: boolean;
+  assign_blockers?: string[];
+  clerk_linked?: boolean;
   /** Present when suspend succeeded locally but Fleetbase offline sync failed (D-15). */
   fleetbase_sync_warning?: string | null;
   metrics: {
@@ -155,7 +159,6 @@ export type DriverDocuments = {
   >;
   files: Array<Record<string, unknown>>;
   expiries: Array<{ label: string; expires_at: string }>;
-  raw: Record<string, unknown>;
 };
 
 export type DriverIncidents = {
@@ -257,8 +260,11 @@ export const drivers = {
     adminFetch<DriverDetail>(`${B}/${id}/suspend`, t, { method: "POST" }),
   deactivate: (t: string, id: string) =>
     adminFetch<DriverDetail>(`${B}/${id}/deactivate`, t, { method: "POST" }),
-  reject: (t: string, id: string) =>
-    adminFetch<DriverDetail>(`${B}/${id}/reject`, t, { method: "POST" }),
+  reject: (t: string, id: string, reason?: string) =>
+    adminFetch<DriverDetail>(`${B}/${id}/reject`, t, {
+      method: "POST",
+      body: JSON.stringify({ reason: reason ?? null }),
+    }),
   rehire: (t: string, id: string) =>
     adminFetch<DriverDetail>(`${B}/${id}/rehire`, t, { method: "POST" }),
   verify: (
@@ -314,6 +320,61 @@ export const drivers = {
   vehicles: (t: string, id: string) => adminFetch<DriverVehicle[]>(`${B}/${id}/vehicles`, t),
   payouts: (t: string, id: string) => adminFetch<DriverPayouts>(`${B}/${id}/payouts`, t),
   documents: (t: string, id: string) => adminFetch<DriverDocuments>(`${B}/${id}/documents`, t),
+  decideDocument: (
+    t: string,
+    id: string,
+    body: { doc_type: string; decision: "verified" | "rejected"; reason?: string }
+  ) =>
+    adminFetch<DriverDetail>(`${B}/${id}/documents/decision`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateProfile: (
+    t: string,
+    id: string,
+    body: {
+      full_name?: string;
+      phone?: string;
+      license_class?: string;
+      service_area?: string;
+      employment_type?: string;
+      languages?: string[];
+      address?: { street?: string; city?: string; province?: string; postal_code?: string };
+      emergency_contact?: { name?: string; phone?: string; relationship?: string };
+    }
+  ) => adminFetch<DriverDetail>(`${B}/${id}`, t, { method: "PATCH", body: JSON.stringify(body) }),
+  addVehicle: (
+    t: string,
+    id: string,
+    body: {
+      vehicle_class: string;
+      plate_number: string;
+      make_model?: string;
+      capacity_kg?: number;
+    }
+  ) =>
+    adminFetch<DriverVehicle>(`${B}/${id}/vehicles`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateVehicle: (
+    t: string,
+    id: string,
+    vehicleId: string,
+    body: {
+      vehicle_class?: string;
+      plate_number?: string;
+      make_model?: string;
+      capacity_kg?: number;
+      is_active?: boolean;
+    }
+  ) =>
+    adminFetch<DriverVehicle>(`${B}/${id}/vehicles/${vehicleId}`, t, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  deactivateVehicle: (t: string, id: string, vehicleId: string) =>
+    adminFetch<DriverVehicle>(`${B}/${id}/vehicles/${vehicleId}/deactivate`, t, { method: "POST" }),
   addDocument: (t: string, id: string, body: DriverDocumentPayload) =>
     adminFetch<DriverDocuments>(`${B}/${id}/documents`, t, {
       method: "POST",

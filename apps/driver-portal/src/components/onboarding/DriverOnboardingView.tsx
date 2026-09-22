@@ -163,6 +163,7 @@ export default function DriverOnboardingView({
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-[var(--muted)]">{step.description}</p>
+                  {step.reason ? <p className="mt-2 text-sm text-red-700">{step.reason}</p> : null}
                 </div>
               </div>
             </li>

@@ -29,9 +29,9 @@ from porterchain_api.config import Settings, get_settings
 from porterchain_api.schemas_admin import (
     DriverCreateRequest,
     DriverDocumentInput,
+    DriverRejectRequest,
     DriverActionRequest,
     DriverPayoutCreateRequest,
-    DriverVehicleCreateInput,
     DriverVerifyRequest,
 )
 from porterchain_api.schemas_crm import ActivityOut, TaskOut
@@ -174,9 +174,20 @@ def deactivate_driver(
 
 @router.post("/{driver_id}/reject")
 def reject_driver(
-    driver_id: str, ctx: Ctx, db: Session = Depends(get_db), settings: Settings = Depends(get_settings)
+    driver_id: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    body: DriverRejectRequest | None = None,
 ) -> dict:
-    return _mutated(ctx, db, driver_id, _drivers.reject_driver, settings)
+    return _mutated(
+        ctx,
+        db,
+        driver_id,
+        _drivers.reject_driver,
+        settings,
+        reason=body.reason if body else None,
+    )
 
 
 @router.post("/{driver_id}/rehire")
@@ -217,50 +228,6 @@ def driver_orders(
     offset: int = Query(0, ge=0),
 ) -> dict:
     return _invoke(ctx, "drivers_read", _d360.orders, db, driver_id, state=state, limit=limit, offset=offset)
-
-
-@router.get("/{driver_id}/vehicles")
-def driver_vehicles(driver_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> list[dict]:
-    return _invoke(ctx, "drivers_read", _d360.vehicles, db, driver_id)
-
-
-@router.post("/{driver_id}/vehicles", status_code=201)
-def attach_driver_vehicle(
-    driver_id: str,
-    body: DriverVehicleCreateInput,
-    ctx: Ctx,
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> dict:
-    """D-29: attach vehicle and sync Fleetbase when bridge enabled."""
-    vehicle = _invoke(
-        ctx,
-        "drivers",
-        _drivers.attach_vehicle,
-        db,
-        ctx,
-        driver_id,
-        vehicle_class=body.vehicle_class,
-        plate_number=body.plate_number,
-        make_model=body.make_model,
-        capacity_kg=body.capacity_kg,
-        settings=settings,
-    )
-    return _vehicle(vehicle)
-
-
-@router.post("/{driver_id}/vehicles/{vehicle_id}/deactivate")
-def deactivate_driver_vehicle(
-    driver_id: str,
-    vehicle_id: str,
-    ctx: Ctx,
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> dict:
-    """D-29: deactivate vehicle and push inactive state to Fleetbase."""
-    return _vehicle(
-        _invoke(ctx, "drivers", _drivers.deactivate_vehicle, db, ctx, driver_id, vehicle_id, settings=settings)
-    )
 
 
 @router.get("/{driver_id}/payouts")

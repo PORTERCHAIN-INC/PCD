@@ -109,7 +109,7 @@ def test_approve_driver_pushes_fleetbase_when_settings_present() -> None:
     ), patch(
         "porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation",
     ):
-        out = svc.approve_driver(db, ctx, "d1", settings)
+        out, _warning = svc.approve_driver(db, ctx, "d1", settings)
 
     assert out.status == DriverStatus.APPROVED.value
     svc._fleetbase.push_driver.assert_called_once_with(db, settings, driver)

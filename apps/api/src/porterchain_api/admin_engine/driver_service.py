@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.admin_engine.driver_account_ops import DriverAccountOps
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
 from porterchain_api.auth.invitation_service import InvitationService
@@ -26,7 +27,7 @@ from porterchain_api.config import Settings
 logger = logging.getLogger(__name__)
 
 
-class AdminDriverService:
+class AdminDriverService(DriverAccountOps):
     def __init__(self) -> None:
         self._fleetbase = BookingSyncService()
 
@@ -141,7 +142,8 @@ class AdminDriverService:
 
     def approve_driver(
         self, db: Session, ctx: AdminContext, driver_id: str, settings: Settings | None = None
-    ) -> Driver:
+    ) -> tuple[Driver, str | None]:
+        """Approve a driver account. Documents may be filed later."""
         driver = self._get_or_raise(db, driver_id)
         driver.status = DriverStatus.APPROVED.value
         self._audit(db, ctx, "driver.approved", "driver", driver_id, {})
@@ -158,12 +160,30 @@ class AdminDriverService:
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
         sync_authz_after_persona_mutation(db, driver.clerk_user_id)
+        warning: str | None = None
         if settings:
-            for vehicle in driver.vehicles:
-                if vehicle.is_active:
-                    self._fleetbase.push_vehicle(db, settings, vehicle)
-            self._fleetbase.push_driver(db, settings, driver)
-        return driver
+            try:
+                for vehicle in driver.vehicles:
+                    if vehicle.is_active:
+                        self._fleetbase.push_vehicle(db, settings, vehicle)
+                self._fleetbase.push_driver(db, settings, driver)
+            except Exception as exc:
+                warning = "fleetbase_sync_failed"
+                logger.warning("fleetbase push failed for driver %s: %s", driver_id, exc)
+        try:
+            from porterchain_api.auth.driver_admin_action import run_admin_driver_action
+
+            if getattr(driver, "email", None):
+                run_admin_driver_action(
+                    db,
+                    driver,
+                    "email",
+                    "You are approved. You can be assigned once license, insurance, and background check are marked.",
+                    ctx.user.id if ctx.user else None,
+                )
+        except Exception as exc:
+            logger.warning("driver approve notice failed for %s: %s", driver_id, exc)
+        return driver, warning
 
     def suspend_driver(
         self, db: Session, ctx: AdminContext, driver_id: str, settings: Settings | None = None
@@ -215,14 +235,24 @@ class AdminDriverService:
         return self.suspend_driver(db, ctx, driver_id, settings)
 
     def reject_driver(
-        self, db: Session, ctx: AdminContext, driver_id: str, settings: Settings | None = None
+        self,
+        db: Session,
+        ctx: AdminContext,
+        driver_id: str,
+        settings: Settings | None = None,
+        reason: str | None = None,
     ) -> tuple[Driver, str | None]:
         """Reject an application / permanently bar from assignable pool (D-30)."""
         driver = self._get_or_raise(db, driver_id)
         driver.status = DriverStatus.REJECTED.value
         driver.is_online = False
         driver.availability = "offline"
-        self._audit(db, ctx, "driver.rejected", "driver", driver_id, {})
+        note = (reason or "").strip()
+        if note:
+            docs = dict(driver.documents or {})
+            docs["account_rejection"] = {"reason": note}
+            driver.documents = docs
+        self._audit(db, ctx, "driver.rejected", "driver", driver_id, {"reason": note or None})
         emit_event(
             db,
             event_type=E.DRIVER_REJECTED,
@@ -389,78 +419,6 @@ class AdminDriverService:
         db.refresh(payout)
         return payout
 
-    def attach_vehicle(
-        self,
-        db: Session,
-        ctx: AdminContext,
-        driver_id: str,
-        *,
-        vehicle_class: str,
-        plate_number: str,
-        make_model: str | None = None,
-        capacity_kg: float | None = None,
-        settings: Settings | None = None,
-    ) -> Vehicle:
-        """D-29: attach vehicle + push Fleetbase when bridge on."""
-        driver = self._get_or_raise(db, driver_id)
-        plate = plate_number.strip()
-        if not plate:
-            raise ValueError("plate_number_required")
-        vehicle = Vehicle(
-            driver_id=driver.id,
-            vehicle_class=vehicle_class.strip() or "cargoVan",
-            plate_number=plate,
-            make_model=make_model,
-            capacity_kg=capacity_kg,
-            is_active=True,
-        )
-        db.add(vehicle)
-        self._audit(
-            db,
-            ctx,
-            "driver.vehicle_attached",
-            "vehicle",
-            driver_id,
-            {"plate": plate, "vehicle_class": vehicle.vehicle_class},
-        )
-        db.commit()
-        db.refresh(vehicle)
-        if settings:
-            self._fleetbase.push_vehicle(db, settings, vehicle)
-        return vehicle
-
-    def deactivate_vehicle(
-        self,
-        db: Session,
-        ctx: AdminContext,
-        driver_id: str,
-        vehicle_id: str,
-        *,
-        settings: Settings | None = None,
-    ) -> Vehicle:
-        """D-29: detach locally and sync inactive state to Fleetbase."""
-        self._get_or_raise(db, driver_id)
-        vehicle = (
-            db.query(Vehicle)
-            .filter(Vehicle.id == vehicle_id, Vehicle.driver_id == driver_id)
-            .first()
-        )
-        if not vehicle:
-            raise LookupError("vehicle_not_found")
-        vehicle.is_active = False
-        self._audit(
-            db,
-            ctx,
-            "driver.vehicle_detached",
-            "vehicle",
-            vehicle_id,
-            {"driver_id": driver_id, "is_active": False},
-        )
-        db.commit()
-        db.refresh(vehicle)
-        if settings:
-            self._fleetbase.push_vehicle(db, settings, vehicle)
-        return vehicle
 
     def list_vehicles(self, db: Session, driver_id: str | None = None) -> list[Vehicle]:
         q = db.query(Vehicle).filter(Vehicle.is_active.is_(True))

@@ -142,6 +142,13 @@ class Driver360Service:
         q = q.order_by(Order.created_at.desc(), Order.id.desc())
         total = q.count()
         rows = q.offset(offset).limit(limit).all()
+        active_classes = [
+            v.vehicle_class
+            for v in db.query(Vehicle)
+            .filter(Vehicle.driver_id == driver_id, Vehicle.is_active.is_(True))
+            .all()
+            if v.vehicle_class
+        ]
         items = [
             {
                 "id": o.id,
@@ -152,6 +159,8 @@ class Driver360Service:
                 "scheduled_at": o.scheduled_at.isoformat() if o.scheduled_at else None,
                 "created_at": o.created_at.isoformat() if o.created_at else None,
                 "dropoff": o.dropoff,
+                "pickup": o.pickup,
+                "vehicle_classes": active_classes,
             }
             for o in rows
         ]
@@ -203,6 +212,7 @@ class Driver360Service:
 
     def documents(self, db: Session, driver_id: str) -> dict:
         from porterchain_api.admin_engine.driver360_board import verification_quality_bonus
+        from porterchain_api.admin_engine.driver_documents import admin_review_files
         from porterchain_api.driver_engine.verification_sources import verification_sources_payload
 
         driver = db.get(Driver, driver_id)
@@ -222,7 +232,7 @@ class Driver360Service:
                 "quality_bonus": verification_quality_bonus(driver),
             },
             "sources": sources,
-            "files": docs.get("files") or [],
+            "files": admin_review_files(docs),
             "expiries": [
                 {
                     "label": f"{v.make_model or v.vehicle_class} compliance",
@@ -231,7 +241,6 @@ class Driver360Service:
                 for v in vehicles
                 if v.compliance_expires_at
             ],
-            "raw": docs,
         }
 
     def incidents(self, db: Session, driver_id: str) -> dict:

@@ -20,6 +20,15 @@ import { Screen } from "../ui/Screen";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import type { DriverDocument, DriverVehicle, InsuranceStatus, TrainingModule } from "../types";
 
+function docStatusLabel(doc: DriverDocument): string {
+  if (doc.verified || doc.status === "verified") return "Verified";
+  if (doc.status === "pending_review") return "Waiting for PorterChain review";
+  if (doc.status === "rejected") return "Needs a new photo";
+  if (doc.status === "expired") return "Expired";
+  if (!doc.url || doc.status === "missing") return "Upload a photo";
+  return (doc.status || "missing").replace(/_/g, " ");
+}
+
 export function DocsScreen() {
   const [docs, setDocs] = useState<DriverDocument[]>([]);
   const [vehicle, setVehicle] = useState<DriverVehicle | null>(null);
@@ -145,8 +154,11 @@ export function DocsScreen() {
           <Card key={doc.type}>
             <Text style={styles.label}>{doc.label}</Text>
             <Text style={[styles.status, doc.verified ? styles.ok : styles.warn]}>
-              {doc.verified ? "Verified" : (doc.status || "missing").replace(/_/g, " ")}
+              {docStatusLabel(doc)}
             </Text>
+            {doc.status === "rejected" && doc.rejection_reason ? (
+              <Text style={styles.warn}>{doc.rejection_reason}</Text>
+            ) : null}
             {doc.status === "expired" ? (
               <Text style={styles.warn}>
                 Expired — cannot work until you upload a current file.

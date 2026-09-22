@@ -247,6 +247,16 @@ def metrics_payload(db: Session, driver: Driver, *, finance: dict[str, Any]) -> 
     }
 
 
+def _docs_pending_review(docs: dict) -> bool:
+    for key in ("license", "insurance", "vehicle_registration"):
+        entry = docs.get(key)
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("status") == "pending_review" and (entry.get("url") or entry.get("file_url")):
+            return True
+    return False
+
+
 def driver_row(svc: Any, db: Session, driver: Driver, *, light: bool = False) -> dict[str, Any]:
     metrics = svc._metrics(db, driver)
     health = svc._health(driver, metrics)
@@ -279,6 +289,7 @@ def driver_row(svc: Any, db: Session, driver: Driver, *, light: bool = False) ->
         "medical_transport_certified": bool(driver.medical_transport_certified),
         "background_check_status": driver.background_check_status,
         "fleetbase_driver_id": driver.fleetbase_driver_id,
+        "docs_pending_review": _docs_pending_review(docs),
         "last_active_at": metrics["last_active_at"],
         "created_at": driver.created_at,
         "tags": docs.get("tags") or [],
@@ -294,13 +305,21 @@ def detail_payload(svc: Any, db: Session, driver: Driver) -> dict[str, Any]:
     vehicles = db.query(Vehicle).filter(Vehicle.driver_id == driver.id).all()
     ai = svc._ai(driver, metrics, vehicles, db=db)
     row = svc._row(db, driver, light=False)
+    active_vehicles = [v for v in vehicles if v.is_active]
+    from porterchain_api.admin_engine.driver_documents import assign_blockers
+    from porterchain_api.auth.user_sync_service import _is_pending_clerk_id
+
+    blockers = assign_blockers(driver, active_vehicle_count=len(active_vehicles))
     row.update(
         {
             "health": health,
             "ai": ai,
-            "documents": driver.documents or {},
+            "documents": _redact_data_urls(driver.documents or {}),
             "performance": driver.performance or {},
             "fleetbase_driver_id": driver.fleetbase_driver_id,
+            "assignable": len(blockers) == 0,
+            "assign_blockers": blockers,
+            "clerk_linked": not _is_pending_clerk_id(driver.clerk_user_id),
             "counts": {
                 "vehicles": len(vehicles),
                 "open_tasks": db.query(CrmSalesTask).filter(
@@ -313,6 +332,21 @@ def detail_payload(svc: Any, db: Session, driver: Driver) -> dict[str, Any]:
         }
     )
     return row
+
+
+def _redact_data_urls(value: Any) -> Any:
+    """Keep identity fields on the driver page. Photo bytes load from the documents endpoint."""
+    if isinstance(value, dict):
+        out = {}
+        for key, item in value.items():
+            if isinstance(item, str) and item.startswith("data:"):
+                out[key] = None
+            else:
+                out[key] = _redact_data_urls(item)
+        return out
+    if isinstance(value, list):
+        return [_redact_data_urls(item) for item in value]
+    return value
 
 
 def incidents_payload(db: Session, driver_id: str, *, claim_meta: Callable[[Any], dict[str, Any]]) -> dict[str, Any]:

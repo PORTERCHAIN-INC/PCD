@@ -92,6 +92,7 @@ def test_attach_vehicle_pushes_fleetbase() -> None:
     svc._get_or_raise = MagicMock(return_value=driver)  # type: ignore[method-assign]
     svc._audit = MagicMock()  # type: ignore[method-assign]
     svc._fleetbase.push_vehicle = MagicMock(return_value="fb-v1")
+    db.query.return_value.filter.return_value.first.return_value = None
 
     vehicle = svc.attach_vehicle(
         db,

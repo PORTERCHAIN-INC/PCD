@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Activity as ActivityIcon,
   AlertTriangle,
@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { useApiData } from "@/hooks/useApiData";
 import { drivers, type DriverDetail } from "@/lib/drivers";
 import { AddDriverDocumentForm } from "@/components/drivers/AddDriverDocumentForm";
@@ -76,6 +77,32 @@ const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: 
   { id: "settings", label: "Settings", icon: ShieldCheck },
 ];
 
+const READ_ONLY_ROLES = new Set([
+  "support",
+  "support_lead",
+  "sales",
+  "sales_manager",
+  "finance",
+  "read_only",
+  "developer",
+  "marketing",
+]);
+
+const TAB_IDS = new Set<string>([
+  "overview",
+  "identity",
+  "documents",
+  "vehicles",
+  "orders",
+  "performance",
+  "wallet",
+  "incidents",
+  "activities",
+  "tasks",
+  "timeline",
+  "analytics",
+  "settings",
+]);
 const PRIMARY_TAB_IDS = new Set<TabId>(["overview", "identity", "documents", "vehicles", "orders"]);
 const PRIMARY_TABS = TABS.filter((t) => PRIMARY_TAB_IDS.has(t.id));
 const MORE_TABS = TABS.filter((t) => !PRIMARY_TAB_IDS.has(t.id));
@@ -83,17 +110,29 @@ const MORE_TABS = TABS.filter((t) => !PRIMARY_TAB_IDS.has(t.id));
 export default function DriverDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = params.id;
   const { getApiToken } = useAdminAuth();
+  const { profile } = useAdminProfile();
+  const canWrite = !READ_ONLY_ROLES.has((profile?.role || "").toLowerCase());
   const [version, setVersion] = useState(0);
-  const [tab, setTab] = useState<TabId>("overview");
+  const requested = searchParams.get("tab") || "overview";
+  const tab = (TAB_IDS.has(requested) ? requested : "overview") as TabId;
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
   const { data: d, error } = useApiData((t) => drivers.detail(t, id), [id, version], {
     key: `driver-detail-${id}`,
   });
   const refresh = () => setVersion((v) => v + 1);
+
+  function setTab(next: TabId) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", next);
+    router.replace(`/drivers/${id}?${params.toString()}`);
+  }
 
   async function lifecycle(action: "approve" | "suspend" | "reject" | "rehire") {
     setBusy(true);
@@ -103,7 +142,9 @@ export default function DriverDetailPage() {
       if (action === "approve") {
         await drivers.approve(token, id);
       } else if (action === "reject") {
-        const res = await drivers.reject(token, id);
+        const res = await drivers.reject(token, id, rejectReason.trim());
+        setRejectOpen(false);
+        setRejectReason("");
         if (res.fleetbase_sync_warning) {
           setActionError(
             "Driver rejected in PorterChain, but Fleetbase offline sync failed — verify they are not still assignable in Execution."
@@ -159,7 +200,12 @@ export default function DriverDetailPage() {
                 <h1 className="text-xl font-bold text-primary">{d.full_name}</h1>
                 <Badge tone={STATUS_TONE[d.status] ?? "slate"}>{titleCase(d.status)}</Badge>
                 {d.medical_transport_certified && <Badge tone="sky">Medical certified</Badge>}
-                {d.fleetbase_driver_id && <Badge tone="green">Fleetbase linked</Badge>}
+                {d.fleetbase_driver_id ? (
+                  <Badge tone="green">Fleetbase linked</Badge>
+                ) : (
+                  <Badge tone="amber">Not linked to execution</Badge>
+                )}
+                {d.clerk_linked === false && <Badge tone="amber">Sign-in not connected</Badge>}
                 {d.rating != null && (
                   <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -181,28 +227,85 @@ export default function DriverDetailPage() {
             >
               Users directory
             </Link>
-            {d.status !== "APPROVED" && d.status !== "REJECTED" && (
+            {canWrite && d.clerk_linked === false && (
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() => {
+                  setBusy(true);
+                  setActionError(null);
+                  void getApiToken()
+                    .then((token) => drivers.invite(token, id))
+                    .then(() => refresh())
+                    .catch((e) => setActionError(e instanceof Error ? e.message : "Invite failed"))
+                    .finally(() => setBusy(false));
+                }}
+              >
+                <Mail className="h-4 w-4" /> Resend invite
+              </Button>
+            )}
+            {canWrite && d.status !== "APPROVED" && d.status !== "REJECTED" && (
               <Button onClick={() => lifecycle("approve")} disabled={busy}>
                 <CheckCircle2 className="h-4 w-4" /> Approve
               </Button>
             )}
-            {(d.status === "REJECTED" || d.status === "SUSPENDED") && (
+            {canWrite && (d.status === "REJECTED" || d.status === "SUSPENDED") && (
               <Button onClick={() => lifecycle("rehire")} disabled={busy}>
                 Rehire
               </Button>
             )}
-            {d.status !== "SUSPENDED" && d.status !== "REJECTED" && (
+            {canWrite && d.status !== "SUSPENDED" && d.status !== "REJECTED" && (
               <Button variant="outline" onClick={() => lifecycle("suspend")} disabled={busy}>
                 Deactivate
               </Button>
             )}
-            {d.status !== "REJECTED" && (
-              <Button variant="outline" onClick={() => lifecycle("reject")} disabled={busy}>
+            {canWrite && d.status !== "REJECTED" && (
+              <Button variant="outline" onClick={() => setRejectOpen(true)} disabled={busy}>
                 Reject
               </Button>
             )}
           </div>
         </div>
+        {rejectOpen && (
+          <form
+            className="mt-3 flex flex-wrap items-end gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!rejectReason.trim()) {
+                setActionError("A reason is required to reject this driver.");
+                return;
+              }
+              void lifecycle("reject");
+            }}
+          >
+            <label className="min-w-[16rem] flex-1 text-sm">
+              <span className="text-xs text-muted">Reason for rejecting this driver</span>
+              <input
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
+                placeholder="Tell the driver why"
+              />
+            </label>
+            <Button type="submit" disabled={busy}>
+              Confirm reject
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setRejectOpen(false)}>
+              Cancel
+            </Button>
+          </form>
+        )}
+        {(d.assign_blockers?.length ?? 0) > 0 && (
+          <p className="mt-3 text-sm text-amber-800">
+            Dispatch will not assign this driver. {d.assign_blockers?.join(" ")}
+          </p>
+        )}
+        {!d.fleetbase_driver_id && (
+          <p className="mt-2 text-sm text-muted">
+            Not linked to execution — assigned jobs will not show on Orders until Fleetbase has this
+            driver.
+          </p>
+        )}
         {actionError && (
           <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
             {actionError}
@@ -231,22 +334,24 @@ export default function DriverDetailPage() {
         <AiPanel ai={d.ai} />
       </div>
 
-      <div className="sticky top-0 z-10 flex items-center gap-1 overflow-x-auto rounded-2xl border border-primary/10 bg-white/90 p-1.5 backdrop-blur">
-        {PRIMARY_TABS.map(({ id: tid, label, icon: Icon }) => (
-          <button
-            key={tid}
-            type="button"
-            onClick={() => setTab(tid)}
-            className={cn(
-              "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-              tab === tid ? "bg-secondary text-white" : "text-primary/70 hover:bg-gray-bg"
-            )}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
-        <details className="relative ml-auto shrink-0">
+      <div className="sticky top-0 z-30 flex items-center gap-1 rounded-2xl border border-primary/10 bg-white/95 p-1.5 backdrop-blur">
+        <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+          {PRIMARY_TABS.map(({ id: tid, label, icon: Icon }) => (
+            <button
+              key={tid}
+              type="button"
+              onClick={() => setTab(tid)}
+              className={cn(
+                "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                tab === tid ? "bg-secondary text-white" : "text-primary/70 hover:bg-gray-bg"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </button>
+          ))}
+        </div>
+        <details className="relative shrink-0">
           <summary
             className={cn(
               "flex cursor-pointer list-none items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium",
@@ -258,7 +363,7 @@ export default function DriverDetailPage() {
             {MORE_TABS.find((t) => t.id === tab)?.label ?? "More"}
             <ChevronDown className="h-3.5 w-3.5 opacity-70" />
           </summary>
-          <div className="absolute right-0 z-20 mt-1 min-w-[12rem] rounded-xl border border-primary/10 bg-white p-1 shadow-lg">
+          <div className="absolute right-0 z-40 mt-1 min-w-[12rem] rounded-xl border border-primary/10 bg-white p-1 shadow-lg">
             {MORE_TABS.map(({ id: tid, label, icon: Icon }) => (
               <button
                 key={tid}
@@ -284,10 +389,12 @@ export default function DriverDetailPage() {
 
       <div>
         {tab === "overview" && <OverviewTab d={d} onGoto={setTab} />}
-        {tab === "identity" && <IdentityTab d={d} />}
-        {tab === "documents" && <DocumentsTab id={id} driver={d} onChanged={refresh} />}
-        {tab === "vehicles" && <VehiclesTab id={id} />}
-        {tab === "orders" && <OrdersTab id={id} />}
+        {tab === "identity" && <IdentityTab d={d} canWrite={canWrite} onChanged={refresh} />}
+        {tab === "documents" && (
+          <DocumentsTab id={id} driver={d} canWrite={canWrite} onChanged={refresh} />
+        )}
+        {tab === "vehicles" && <VehiclesTab id={id} canWrite={canWrite} />}
+        {tab === "orders" && <OrdersTab id={id} blockers={d.assign_blockers ?? []} />}
         {tab === "performance" && <PerformanceTab d={d} />}
         {tab === "wallet" && <WalletTab id={id} />}
         {tab === "incidents" && <IncidentsTab id={id} />}
@@ -295,7 +402,7 @@ export default function DriverDetailPage() {
         {tab === "tasks" && <EntityTasks entityType="driver" entityId={id} />}
         {tab === "timeline" && <TimelineTab id={id} />}
         {tab === "analytics" && <AnalyticsTab id={id} />}
-        {tab === "settings" && <SettingsTab d={d} onChanged={refresh} />}
+        {tab === "settings" && <SettingsTab d={d} canWrite={canWrite} onChanged={refresh} />}
       </div>
     </div>
   );
@@ -401,6 +508,11 @@ function OverviewTab({ d, onGoto }: { d: DriverDetail; onGoto: (t: TabId) => voi
         <SectionCard title="At a glance">
           <div className="space-y-3 p-5 text-sm">
             <QuickRow
+              label="Documents"
+              value={d.docs_pending_review ? "Needs review" : "Open"}
+              onClick={() => onGoto("documents")}
+            />
+            <QuickRow
               label="Vehicles"
               value={String(d.counts.vehicles ?? 0)}
               onClick={() => onGoto("vehicles")}
@@ -423,7 +535,7 @@ function OverviewTab({ d, onGoto }: { d: DriverDetail; onGoto: (t: TabId) => voi
             <QuickRow
               label="Background check"
               value={titleCase(d.background_check_status)}
-              onClick={() => onGoto("settings")}
+              onClick={() => onGoto("documents")}
             />
           </div>
         </SectionCard>
@@ -458,40 +570,159 @@ function QuickRow({
   );
 }
 
-function IdentityTab({ d }: { d: DriverDetail }) {
+function IdentityTab({
+  d,
+  canWrite,
+  onChanged,
+}: {
+  d: DriverDetail;
+  canWrite: boolean;
+  onChanged: () => void;
+}) {
+  const { getApiToken } = useAdminAuth();
   const raw = d.documents as Record<string, unknown>;
   const addr = (raw.address as Record<string, string>) ?? {};
   const emergency = (raw.emergency_contact as Record<string, string>) ?? {};
+  const [editing, setEditing] = useState(false);
+  const [fullName, setFullName] = useState(d.full_name);
+  const [phone, setPhone] = useState(d.phone || "");
+  const [licenseClass, setLicenseClass] = useState(d.license_class || "");
+  const [serviceArea, setServiceArea] = useState(d.service_area || "");
+  const [street, setStreet] = useState(addr.street || "");
+  const [city, setCity] = useState(addr.city || "");
+  const [province, setProvince] = useState(addr.province || "");
+  const [postal, setPostal] = useState(addr.postal_code || "");
+  const [emergencyName, setEmergencyName] = useState(emergency.name || "");
+  const [emergencyPhone, setEmergencyPhone] = useState(emergency.phone || "");
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      const token = await getApiToken();
+      await drivers.updateProfile(token, d.id, {
+        full_name: fullName,
+        phone,
+        license_class: licenseClass,
+        service_area: serviceArea,
+        address: { street, city, province, postal_code: postal },
+        emergency_contact: { name: emergencyName, phone: emergencyPhone },
+      });
+      setEditing(false);
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save identity");
+    }
+  }
+
   return (
-    <SectionCard title="Identity & personal information">
-      <dl className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3">
-        <Detail label="Full name" value={d.full_name} />
-        <Detail label="Email" value={d.email} />
-        <Detail label="Phone" value={d.phone} />
-        <Detail
-          label="Address"
-          value={
-            [addr.street, addr.city, addr.province, addr.postal_code].filter(Boolean).join(", ") ||
-            null
-          }
-        />
-        <Detail label="Employment type" value={raw.employment_type as string} />
-        <Detail
-          label="Languages"
-          value={
-            Array.isArray(raw.languages)
-              ? (raw.languages as string[]).join(", ")
-              : (raw.languages as string)
-          }
-        />
-        <Detail label="Emergency contact" value={emergency.name} />
-        <Detail label="Emergency phone" value={emergency.phone} />
-        <Detail
-          label="Tax / SIN on file"
-          value={raw.sin ? "Provided" : raw.tax_id ? "Provided" : null}
-        />
-        <Detail label="Fleetbase driver id" value={d.fleetbase_driver_id} />
-      </dl>
+    <SectionCard
+      title="Identity & personal information"
+      action={
+        canWrite ? (
+          <Button variant="outline" onClick={() => setEditing((v) => !v)}>
+            {editing ? "Close" : "Edit"}
+          </Button>
+        ) : undefined
+      }
+    >
+      {editing ? (
+        <form onSubmit={save} className="grid gap-3 p-5 sm:grid-cols-2">
+          <input
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Full name"
+          />
+          <input
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Phone"
+          />
+          <input
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+            value={licenseClass}
+            onChange={(e) => setLicenseClass(e.target.value)}
+            placeholder="License class"
+          />
+          <input
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+            value={serviceArea}
+            onChange={(e) => setServiceArea(e.target.value)}
+            placeholder="Service area"
+          />
+          <input
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm sm:col-span-2"
+            value={street}
+            onChange={(e) => setStreet(e.target.value)}
+            placeholder="Street"
+          />
+          <input
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="City"
+          />
+          <input
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+            value={province}
+            onChange={(e) => setProvince(e.target.value)}
+            placeholder="Province"
+          />
+          <input
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+            value={postal}
+            onChange={(e) => setPostal(e.target.value)}
+            placeholder="Postal code"
+          />
+          <input
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+            value={emergencyName}
+            onChange={(e) => setEmergencyName(e.target.value)}
+            placeholder="Emergency contact"
+          />
+          <input
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+            value={emergencyPhone}
+            onChange={(e) => setEmergencyPhone(e.target.value)}
+            placeholder="Emergency phone"
+          />
+          {error && <p className="text-sm text-red-600 sm:col-span-2">{error}</p>}
+          <Button type="submit">Save identity</Button>
+        </form>
+      ) : (
+        <dl className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3">
+          <Detail label="Full name" value={d.full_name} />
+          <Detail label="Email" value={d.email} />
+          <Detail label="Phone" value={d.phone} />
+          <Detail
+            label="Address"
+            value={
+              [addr.street, addr.city, addr.province, addr.postal_code]
+                .filter(Boolean)
+                .join(", ") || null
+            }
+          />
+          <Detail label="Employment type" value={raw.employment_type as string} />
+          <Detail
+            label="Languages"
+            value={
+              Array.isArray(raw.languages)
+                ? (raw.languages as string[]).join(", ")
+                : (raw.languages as string)
+            }
+          />
+          <Detail label="Emergency contact" value={emergency.name} />
+          <Detail label="Emergency phone" value={emergency.phone} />
+          <Detail
+            label="Tax / SIN on file"
+            value={raw.sin ? "Provided" : raw.tax_id ? "Provided" : null}
+          />
+          <Detail label="Fleetbase driver id" value={d.fleetbase_driver_id} />
+        </dl>
+      )}
     </SectionCard>
   );
 }
@@ -499,13 +730,19 @@ function IdentityTab({ d }: { d: DriverDetail }) {
 function DocumentsTab({
   id,
   driver,
+  canWrite,
   onChanged,
 }: {
   id: string;
   driver: DriverDetail;
+  canWrite: boolean;
   onChanged: () => void;
 }) {
+  const { getApiToken } = useAdminAuth();
   const [docVersion, setDocVersion] = useState(0);
+  const [reasonFor, setReasonFor] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
+  const [docError, setDocError] = useState<string | null>(null);
   const { data, error } = useApiData((t) => drivers.documents(t, id), [id, docVersion], {
     key: `driver-documents-${id}`,
   });
@@ -522,12 +759,50 @@ function DocumentsTab({
     setDocVersion((n) => n + 1);
     onChanged();
   };
+  async function decide(docType: string, decision: "verified" | "rejected", why?: string) {
+    setDocError(null);
+    try {
+      const token = await getApiToken();
+      await drivers.decideDocument(token, id, { doc_type: docType, decision, reason: why });
+      setReasonFor(null);
+      setReason("");
+      refreshDocs();
+    } catch (err) {
+      setDocError(err instanceof Error ? err.message : "Could not update document");
+    }
+  }
+  const attestTypes = [
+    { type: "license", label: "License" },
+    { type: "insurance", label: "Insurance" },
+    { type: "vehicle_registration", label: "Vehicle" },
+    { type: "background_check", label: "Background check" },
+  ];
   return (
     <div className="space-y-5">
       {error && (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
           Could not load document metadata: {error}. Showing verification from driver profile.
         </p>
+      )}
+      {docError && (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {docError}
+        </p>
+      )}
+      {canWrite && (
+        <SectionCard title="Verify without a file">
+          <div className="flex flex-wrap gap-2 p-5">
+            {attestTypes.map((item) => (
+              <Button
+                key={item.type}
+                variant="outline"
+                onClick={() => void decide(item.type, "verified")}
+              >
+                Verify {item.label}
+              </Button>
+            ))}
+          </div>
+        </SectionCard>
       )}
       <div className="grid gap-5 md:grid-cols-2">
         <SectionCard title="Verification">
@@ -593,20 +868,33 @@ function DocumentsTab({
       >
         <div className="divide-y divide-primary/5">
           {files.map((file, i) => {
-            const f = file as Record<string, string | null | undefined>;
+            const f = file as Record<string, string | boolean | null | undefined>;
             const label = (f.label as string) || titleCase(String(f.doc_type ?? "document"));
+            const href = f.file_url ? String(f.file_url) : "";
+            const isDataImage = href.startsWith("data:image");
+            const isHttp = href.startsWith("http://") || href.startsWith("https://");
+            const status = String(f.status ?? (f.verified ? "verified" : ""));
             return (
               <div
                 key={String(f.id ?? i)}
                 className="flex flex-wrap items-start justify-between gap-3 px-5 py-3"
               >
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-primary">{label}</p>
                   <p className="text-xs text-muted">
                     {titleCase(String(f.doc_type ?? ""))}
                     {f.reference_number ? ` · Ref ${f.reference_number}` : ""}
                   </p>
                   {f.notes && <p className="mt-1 text-xs text-muted">{f.notes}</p>}
+                  {isDataImage ? (
+                    // Mobile uploads are stored as data URLs. A normal link cannot open them.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={href}
+                      alt={label}
+                      className="mt-2 max-h-48 max-w-full rounded-lg border border-primary/10 object-contain"
+                    />
+                  ) : null}
                 </div>
                 <div className="flex flex-col items-end gap-1 text-xs">
                   {(() => {
@@ -632,18 +920,64 @@ function DocumentsTab({
                       </Badge>
                     );
                   })()}
+                  {status ? (
+                    <Badge tone={status === "verified" || f.verified ? "green" : "amber"}>
+                      {titleCase(status.replace(/_/g, " "))}
+                    </Badge>
+                  ) : null}
                   {f.expires_at && (
                     <Badge tone="slate">Expires {shortDate(String(f.expires_at))}</Badge>
                   )}
-                  {f.file_url && (
+                  {isHttp ? (
                     <a
-                      href={String(f.file_url)}
+                      href={href}
                       target="_blank"
                       rel="noreferrer"
                       className="font-medium text-secondary hover:underline"
                     >
                       View file
                     </a>
+                  ) : null}
+                  {canWrite && (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="font-medium text-secondary hover:underline"
+                        onClick={() => void decide(String(f.doc_type ?? ""), "verified")}
+                      >
+                        Verify
+                      </button>
+                      <button
+                        type="button"
+                        className="font-medium text-red-700 hover:underline"
+                        onClick={() => {
+                          setReasonFor(String(f.doc_type ?? ""));
+                          setReason("");
+                        }}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                  {reasonFor === String(f.doc_type ?? "") && (
+                    <form
+                      className="mt-1 flex gap-1"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!reason.trim()) return;
+                        void decide(String(f.doc_type ?? ""), "rejected", reason.trim());
+                      }}
+                    >
+                      <input
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        placeholder="Reason"
+                        className="rounded-lg border border-primary/15 px-2 py-1 text-xs"
+                      />
+                      <button type="submit" className="text-xs font-medium text-red-700">
+                        Send
+                      </button>
+                    </form>
                   )}
                   {f.uploaded_at && (
                     <span className="text-muted">Added {shortDate(String(f.uploaded_at))}</span>
@@ -708,15 +1042,88 @@ function VerifyRow({
   );
 }
 
-function VehiclesTab({ id }: { id: string }) {
-  const { data } = useApiData((t) => drivers.vehicles(t, id), [id], {
+function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean }) {
+  const { getApiToken } = useAdminAuth();
+  const [version, setVersion] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [vehicleClass, setVehicleClass] = useState("cargoVan");
+  const [plate, setPlate] = useState("");
+  const [makeModel, setMakeModel] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const { data } = useApiData((t) => drivers.vehicles(t, id), [id, version], {
     key: `driver-vehicles-${id}`,
   });
+  async function addVehicle(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      const token = await getApiToken();
+      await drivers.addVehicle(token, id, {
+        vehicle_class: vehicleClass,
+        plate_number: plate,
+        make_model: makeModel || undefined,
+      });
+      setPlate("");
+      setMakeModel("");
+      setOpen(false);
+      setVersion((n) => n + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add vehicle");
+    }
+  }
+  async function setActive(vehicleId: string, active: boolean) {
+    const token = await getApiToken();
+    if (active) await drivers.updateVehicle(token, id, vehicleId, { is_active: true });
+    else await drivers.deactivateVehicle(token, id, vehicleId);
+    setVersion((n) => n + 1);
+  }
   return (
-    <SectionCard title={`Vehicles (${data?.length ?? 0})`}>
+    <SectionCard
+      title={`Vehicles (${data?.length ?? 0})`}
+      action={
+        canWrite ? (
+          <Button variant="outline" onClick={() => setOpen((v) => !v)}>
+            Add vehicle
+          </Button>
+        ) : undefined
+      }
+    >
+      {open && (
+        <form
+          onSubmit={addVehicle}
+          className="grid gap-2 border-b border-primary/10 p-5 sm:grid-cols-3"
+        >
+          <select
+            value={vehicleClass}
+            onChange={(e) => setVehicleClass(e.target.value)}
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+          >
+            {["sedan", "suv", "pickup", "cargoVan", "highRoof", "box16", "box20"].map((item) => (
+              <option key={item} value={item}>
+                {titleCase(item)}
+              </option>
+            ))}
+          </select>
+          <input
+            value={plate}
+            onChange={(e) => setPlate(e.target.value)}
+            placeholder="Plate"
+            required
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+          />
+          <input
+            value={makeModel}
+            onChange={(e) => setMakeModel(e.target.value)}
+            placeholder="Make and model"
+            className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+          />
+          <Button type="submit">Save vehicle</Button>
+          {error && <p className="text-sm text-red-600 sm:col-span-3">{error}</p>}
+        </form>
+      )}
       <div className="divide-y divide-primary/5">
         {(data ?? []).map((v) => (
-          <div key={v.id} className="flex items-center justify-between px-5 py-3">
+          <div key={v.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
             <div>
               <p className="text-sm font-medium text-primary">
                 {v.make_model ?? titleCase(v.vehicle_class)}{" "}
@@ -727,20 +1134,34 @@ function VehiclesTab({ id }: { id: string }) {
                 {v.capacity_kg ? `${v.capacity_kg} kg` : "—"}
               </p>
             </div>
-            {v.compliance_expires_at && (
-              <Badge tone="slate">Expires {shortDate(v.compliance_expires_at)}</Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {v.compliance_expires_at && (
+                <Badge tone="slate">Expires {shortDate(v.compliance_expires_at)}</Badge>
+              )}
+              {canWrite && v.is_active && (
+                <Button variant="outline" onClick={() => void setActive(v.id, false)}>
+                  Take off the road
+                </Button>
+              )}
+              {canWrite && !v.is_active && (
+                <Button variant="outline" onClick={() => void setActive(v.id, true)}>
+                  Set active
+                </Button>
+              )}
+            </div>
           </div>
         ))}
         {(!data || data.length === 0) && (
-          <p className="px-5 py-10 text-center text-sm text-muted">No vehicles registered.</p>
+          <p className="px-5 py-10 text-center text-sm text-muted">
+            No vehicles yet. {canWrite ? "Add the vehicle this driver will use." : ""}
+          </p>
         )}
       </div>
     </SectionCard>
   );
 }
 
-function OrdersTab({ id }: { id: string }) {
+function OrdersTab({ id, blockers }: { id: string; blockers: string[] }) {
   const [offset, setOffset] = useState(0);
   const { data } = useApiData((t) => drivers.orders(t, id, { limit: 50, offset }), [id, offset], {
     key: `driver-orders-${id}-${offset}`,
@@ -778,7 +1199,10 @@ function OrdersTab({ id }: { id: string }) {
           </tbody>
         </table>
         {items.length === 0 && (
-          <p className="px-5 py-10 text-center text-sm text-muted">No orders assigned yet.</p>
+          <p className="px-5 py-10 text-center text-sm text-muted">
+            No orders are assigned to this driver. Assign from the order.
+            {blockers.length > 0 ? ` ${blockers.join(" ")}` : ""}
+          </p>
         )}
       </div>
       <div className="px-4 pb-3">
@@ -1068,10 +1492,32 @@ function AnalyticsTab({ id }: { id: string }) {
   );
 }
 
-function SettingsTab({ d, onChanged }: { d: DriverDetail; onChanged: () => void }) {
+function SettingsTab({
+  d,
+  canWrite,
+  onChanged,
+}: {
+  d: DriverDetail;
+  canWrite: boolean;
+  onChanged: () => void;
+}) {
   const { getApiToken } = useAdminAuth();
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  async function decide(docType: string, decision: "verified" | "rejected", reason?: string) {
+    setBusy(true);
+    try {
+      const token = await getApiToken();
+      await drivers.decideDocument(token, d.id, { doc_type: docType, decision, reason });
+      onChanged();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Document update failed");
+      setTimeout(() => setToast(null), 3500);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function verify(patch: Record<string, boolean | string>) {
     setBusy(true);
@@ -1126,70 +1572,105 @@ function SettingsTab({ d, onChanged }: { d: DriverDetail; onChanged: () => void 
     <div className="grid gap-5 md:grid-cols-2">
       <SectionCard title="Verification & compliance">
         <div className="space-y-2 p-5">
-          <ToggleRow
-            label="License verified"
-            value={d.license_verified}
-            onToggle={() => verify({ license_verified: !d.license_verified })}
-            busy={busy}
-          />
-          <ToggleRow
-            label="Insurance verified"
-            value={d.insurance_verified}
-            onToggle={() => verify({ insurance_verified: !d.insurance_verified })}
-            busy={busy}
-          />
-          <ToggleRow
-            label="Vehicle verified"
-            value={d.vehicle_verified}
-            onToggle={() => verify({ vehicle_verified: !d.vehicle_verified })}
-            busy={busy}
-          />
-          <ToggleRow
-            label="Medical transport certified"
-            value={Boolean(d.medical_transport_certified)}
-            onToggle={() => verify({ medical_transport_certified: !d.medical_transport_certified })}
-            busy={busy}
-          />
-          <div className="flex items-center justify-between py-2">
-            <span className="text-sm text-primary">Background check</span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="px-2 py-1 text-xs"
-                onClick={() => verify({ background_check_status: "passed" })}
-                disabled={busy}
-              >
-                Pass
-              </Button>
-              <Button
-                variant="outline"
-                className="px-2 py-1 text-xs"
-                onClick={() => verify({ background_check_status: "failed" })}
-                disabled={busy}
-              >
-                Fail
-              </Button>
-            </div>
+          {canWrite ? (
+            <>
+              <ToggleRow
+                label="License verified"
+                value={d.license_verified}
+                onToggle={() =>
+                  void decide(
+                    "license",
+                    d.license_verified ? "rejected" : "verified",
+                    d.license_verified ? "Cleared by operations." : undefined
+                  )
+                }
+                busy={busy}
+              />
+              <ToggleRow
+                label="Insurance verified"
+                value={d.insurance_verified}
+                onToggle={() =>
+                  void decide(
+                    "insurance",
+                    d.insurance_verified ? "rejected" : "verified",
+                    d.insurance_verified ? "Cleared by operations." : undefined
+                  )
+                }
+                busy={busy}
+              />
+              <ToggleRow
+                label="Vehicle verified"
+                value={d.vehicle_verified}
+                onToggle={() =>
+                  void decide(
+                    "vehicle_registration",
+                    d.vehicle_verified ? "rejected" : "verified",
+                    d.vehicle_verified ? "Cleared by operations." : undefined
+                  )
+                }
+                busy={busy}
+              />
+              <ToggleRow
+                label="Medical transport certified"
+                value={Boolean(d.medical_transport_certified)}
+                onToggle={() =>
+                  verify({ medical_transport_certified: !d.medical_transport_certified })
+                }
+                busy={busy}
+              />
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-primary">Background check</span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="px-2 py-1 text-xs"
+                    onClick={() => void decide("background_check", "verified")}
+                    disabled={busy}
+                  >
+                    Pass
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="px-2 py-1 text-xs"
+                    onClick={() =>
+                      void decide("background_check", "rejected", "Background check failed.")
+                    }
+                    disabled={busy}
+                  >
+                    Fail
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted">
+              License {d.license_verified ? "verified" : "not verified"}. Insurance{" "}
+              {d.insurance_verified ? "verified" : "not verified"}. Vehicle{" "}
+              {d.vehicle_verified ? "verified" : "not verified"}. Background{" "}
+              {d.background_check_status || "pending"}.
+            </p>
+          )}
+          {toast && <p className="text-sm text-muted">{toast}</p>}
+        </div>
+      </SectionCard>
+      {canWrite && (
+        <SectionCard title="Operations">
+          <div className="flex flex-wrap gap-2 p-5">
+            <Button variant="outline" onClick={() => action("push")} disabled={busy}>
+              <Send className="h-4 w-4" /> Send push
+            </Button>
+            <Button variant="outline" onClick={() => action("sms")} disabled={busy}>
+              <Send className="h-4 w-4" /> Send SMS
+            </Button>
+            <Button variant="outline" onClick={() => action("email")} disabled={busy}>
+              <Mail className="h-4 w-4" /> Email driver
+            </Button>
+            <Button variant="outline" onClick={resendInvite} disabled={busy}>
+              <Mail className="h-4 w-4" /> Resend invite
+            </Button>
           </div>
-        </div>
-      </SectionCard>
-      <SectionCard title="Operations">
-        <div className="flex flex-wrap gap-2 p-5">
-          <Button variant="outline" onClick={() => action("push")} disabled={busy}>
-            <Send className="h-4 w-4" /> Send push
-          </Button>
-          <Button variant="outline" onClick={() => action("sms")} disabled={busy}>
-            <Send className="h-4 w-4" /> Send SMS
-          </Button>
-          <Button variant="outline" onClick={() => action("email")} disabled={busy}>
-            <Mail className="h-4 w-4" /> Email driver
-          </Button>
-          <Button variant="outline" onClick={resendInvite} disabled={busy}>
-            <Mail className="h-4 w-4" /> Resend invite
-          </Button>
-          {toast && <span className="w-full text-sm text-muted">{toast}</span>}
-        </div>
-      </SectionCard>
+        </SectionCard>
+      )}
     </div>
   );
 }

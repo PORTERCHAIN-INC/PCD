@@ -30,6 +30,25 @@ _DOC_TYPE_ALIASES: dict[str, frozenset[str]] = {
 }
 
 
+def _doc_step_status(driver: Driver, key: str, verified: bool) -> str:
+    if verified:
+        return "complete"
+    entry = (driver.documents or {}).get(key)
+    if isinstance(entry, dict):
+        status = str(entry.get("status") or "")
+        if status in {"rejected", "expired"}:
+            return status
+    return "pending_review"
+
+
+def _doc_rejection(driver: Driver, key: str) -> str | None:
+    entry = (driver.documents or {}).get(key)
+    if isinstance(entry, dict) and entry.get("status") == "rejected":
+        reason = entry.get("rejection_reason")
+        return str(reason) if reason else None
+    return None
+
+
 def _has_doc_file(driver: Driver, category: str) -> bool:
     docs = driver.documents or {}
     entry = docs.get(category)
@@ -91,6 +110,12 @@ def evaluate_driver_onboarding(driver: Driver, *, settings: Settings | None = No
                 if status == DriverStatus.SUSPENDED.value
                 else "pending"
             ),
+            "reason": (
+                ((driver.documents or {}).get("account_rejection") or {}).get("reason")
+                if isinstance((driver.documents or {}).get("account_rejection"), dict)
+                and status == DriverStatus.REJECTED.value
+                else None
+            ),
         },
         {
             "id": "documents_uploaded",
@@ -110,21 +135,24 @@ def evaluate_driver_onboarding(driver: Driver, *, settings: Settings | None = No
                 else "Admin reviews and verifies your license document."
             ),
             "complete": bool(driver.license_verified),
-            "status": "complete" if driver.license_verified else "pending_review",
+            "status": _doc_step_status(driver, "license", bool(driver.license_verified)),
+            "reason": _doc_rejection(driver, "license"),
         },
         {
             "id": "insurance_verified",
             "label": "Insurance verified",
             "description": "Admin verifies your insurance certificate.",
             "complete": bool(driver.insurance_verified),
-            "status": "complete" if driver.insurance_verified else "pending_review",
+            "status": _doc_step_status(driver, "insurance", bool(driver.insurance_verified)),
+            "reason": _doc_rejection(driver, "insurance"),
         },
         {
             "id": "vehicle_verified",
             "label": "Vehicle verified",
             "description": "Admin verifies your vehicle registration and details.",
             "complete": bool(driver.vehicle_verified),
-            "status": "complete" if driver.vehicle_verified else "pending_review",
+            "status": _doc_step_status(driver, "vehicle_registration", bool(driver.vehicle_verified)),
+            "reason": _doc_rejection(driver, "vehicle_registration"),
         },
         {
             "id": "background_check",

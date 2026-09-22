@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { useApiData } from "@/hooks/useApiData";
 import { drivers, healthTone, type DriverRow } from "@/lib/drivers";
 import { Dropdown, FilterChip, ProvincePills } from "@/components/crm/filters";
@@ -69,6 +70,17 @@ type SavedView = { name: string; visibility: VisibilityState };
 export default function DriversPage() {
   const router = useRouter();
   const { getApiToken } = useAdminAuth();
+  const { profile } = useAdminProfile();
+  const canWrite = !new Set([
+    "support",
+    "support_lead",
+    "sales",
+    "sales_manager",
+    "finance",
+    "read_only",
+    "developer",
+    "marketing",
+  ]).has((profile?.role || "").toLowerCase());
   const [version, setVersion] = useState(0);
   const { data, error } = useApiData((t) => drivers.list(t, { limit: "500" }), [version], {
     key: "drivers-list",
@@ -76,6 +88,7 @@ export default function DriversPage() {
   const { data: stats } = useApiData((t) => drivers.stats(t), [version], { key: "drivers-stats" });
 
   const [search, setSearch] = useState("");
+  const [docsOnly, setDocsOnly] = useState(false);
   const [status, setStatus] = useState("");
   const [vehicleType, setVehicleType] = useState("");
   const [province, setProvince] = useState("");
@@ -142,6 +155,7 @@ export default function DriversPage() {
       r = r.filter((d) =>
         `${d.full_name} ${d.email} ${d.phone ?? ""} ${d.city ?? ""}`.toLowerCase().includes(q)
       );
+    if (docsOnly) r = r.filter((d) => d.docs_pending_review);
     if (status) r = r.filter((d) => d.status === status);
     if (vehicleType) r = r.filter((d) => d.vehicle_type === vehicleType);
     if (province) r = r.filter((d) => d.province === province);
@@ -158,7 +172,7 @@ export default function DriversPage() {
     else if (sortBy === "orders") r.sort((a, b) => b.orders_today - a.orders_today);
     else if (sortBy === "name") r.sort((a, b) => a.full_name.localeCompare(b.full_name));
     return r;
-  }, [data, search, status, vehicleType, province, city, bg, rating, health, sortBy]);
+  }, [data, search, docsOnly, status, vehicleType, province, city, bg, rating, health, sortBy]);
 
   const activeFilters =
     [status, vehicleType, province, city, bg, rating, health].filter(Boolean).length +
@@ -213,7 +227,14 @@ export default function DriversPage() {
               )}
             </span>
             <div>
-              <p className="font-semibold text-primary">{row.original.full_name}</p>
+              <p className="font-semibold text-primary">
+                {row.original.full_name}
+                {row.original.docs_pending_review ? (
+                  <span className="ml-2 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+                    Docs to review
+                  </span>
+                ) : null}
+              </p>
               <p className="text-xs text-muted">{row.original.email}</p>
             </div>
           </div>
@@ -569,6 +590,13 @@ export default function DriversPage() {
               className="w-64 rounded-xl border border-primary/15 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
             />
           </div>
+          <Button
+            variant={docsOnly ? "primary" : "outline"}
+            className="text-xs"
+            onClick={() => setDocsOnly((v) => !v)}
+          >
+            Docs to review
+          </Button>
           <div className="flex items-center gap-2">
             {views.length > 0 && (
               <select
@@ -625,7 +653,7 @@ export default function DriversPage() {
           </div>
         </div>
 
-        {selectedIds.length > 0 && (
+        {canWrite && selectedIds.length > 0 && (
           <div className="flex items-center gap-3 border-b border-primary/10 bg-secondary/5 px-4 py-2 text-sm">
             <span className="font-medium text-primary">{selectedIds.length} selected</span>
             <Button

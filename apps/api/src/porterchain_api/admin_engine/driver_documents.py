@@ -15,6 +15,84 @@ if TYPE_CHECKING:
     from porterchain_api.schemas_admin import DriverDocumentInput
 
 
+_PORTAL_REVIEW_KEYS: tuple[tuple[str, str], ...] = (
+    ("license", "Driver license"),
+    ("insurance", "Insurance"),
+    ("vehicle_registration", "Vehicle registration"),
+    ("background_check", "Background check"),
+    ("abstract", "Ontario driver abstract"),
+    ("training_certificate", "Training certificate"),
+)
+
+
+def admin_review_files(docs: dict | None) -> list[dict]:
+    """Files the admin Documents tab can open.
+
+    Mobile uploads write ``documents[doc_type].url`` (and ``vehicle_photos``).
+    The admin Add-document form writes ``documents.files[].file_url``. Both
+    shapes must appear in the review list.
+    """
+    payload = docs or {}
+    files = payload.get("files") or []
+    out: list[dict] = []
+    seen: set[str] = set()
+    if isinstance(files, list):
+        for raw in files:
+            if not isinstance(raw, dict):
+                continue
+            item = dict(raw)
+            url = item.get("file_url") or item.get("url")
+            if url and not item.get("file_url"):
+                item["file_url"] = url
+            key = portal_doc_key(str(item.get("doc_type") or ""))
+            if key and url:
+                seen.add(key)
+            out.append(item)
+    for key, label in _PORTAL_REVIEW_KEYS:
+        if key in seen:
+            continue
+        entry = payload.get(key)
+        if not isinstance(entry, dict):
+            continue
+        url = entry.get("url") or entry.get("file_url")
+        if not url:
+            continue
+        out.append(
+            {
+                "id": key,
+                "doc_type": key,
+                "label": label,
+                "file_url": url,
+                "status": entry.get("status") or "pending_review",
+                "verified": bool(entry.get("verified")),
+                "uploaded_at": entry.get("uploaded_at"),
+                "expires_at": entry.get("expires_at"),
+                "reference_number": entry.get("reference_number") or entry.get("policy_number"),
+                "notes": entry.get("notes"),
+            }
+        )
+    photos = payload.get("vehicle_photos") or []
+    if isinstance(photos, list):
+        for index, photo in enumerate(photos):
+            if not isinstance(photo, dict):
+                continue
+            url = photo.get("url") or photo.get("file_url")
+            if not url:
+                continue
+            out.append(
+                {
+                    "id": photo.get("id") or f"vehicle_photo_{index}",
+                    "doc_type": "vehicle_photo",
+                    "label": photo.get("label") or f"Vehicle photo {index + 1}",
+                    "file_url": url,
+                    "status": photo.get("status") or "pending_review",
+                    "verified": bool(photo.get("verified")),
+                    "uploaded_at": photo.get("uploaded_at"),
+                }
+            )
+    return out
+
+
 def portal_doc_key(doc_type: str) -> str | None:
     raw = (doc_type or "").lower().strip()
     mapping = {
@@ -32,6 +110,112 @@ def portal_doc_key(doc_type: str) -> str | None:
         "mto_abstract": "abstract",
     }
     return mapping.get(raw)
+
+
+def assign_blockers(driver: Driver, *, active_vehicle_count: int) -> list[str]:
+    """Sentences the admin header and Orders tab can show without re-coding dispatch rules."""
+    from porterchain_api.domain.admin_states import DriverStatus
+    from porterchain_api.driver_engine.verification_sources import doc_entry
+
+    blockers: list[str] = []
+    if (driver.status or "") != DriverStatus.APPROVED.value:
+        blockers.append("Driver is not approved.")
+    expired = {
+        "license": "License is expired.",
+        "insurance": "Insurance is expired.",
+        "vehicle_registration": "Vehicle registration is expired.",
+    }
+    for key, sentence in expired.items():
+        entry = doc_entry(driver, key)
+        if str(entry.get("status") or "").lower() == "expired":
+            blockers.append(sentence)
+    if not driver.license_verified and "License is expired." not in blockers:
+        blockers.append("License is not verified.")
+    if not driver.insurance_verified and "Insurance is expired." not in blockers:
+        blockers.append("Insurance is not verified.")
+    bg = str(driver.background_check_status or "").lower()
+    if bg not in {"passed", "cleared", "approved"}:
+        blockers.append("Background check is not passed.")
+    if active_vehicle_count <= 0:
+        blockers.append("No active vehicle.")
+    return blockers
+
+
+def decide_document(
+    db: Session,
+    ctx: AdminContext,
+    driver: Driver,
+    *,
+    doc_type: str,
+    decision: str,
+    reason: str | None = None,
+    audit,
+) -> None:
+    """Verify or reject one compliance document. Does not change driver account status."""
+    from porterchain_api.driver_engine.verification_sources import mark_manual_source
+
+    key = portal_doc_key(doc_type)
+    if key is None:
+        raise ValueError("invalid_doc_type")
+    if decision not in {"verified", "rejected"}:
+        raise ValueError("invalid_decision")
+    note = (reason or "").strip()
+    if decision == "rejected" and not note:
+        raise ValueError("reason_required")
+
+    docs = dict(driver.documents or {})
+    entry = docs.get(key)
+    entry = dict(entry) if isinstance(entry, dict) else {}
+    verified = decision == "verified"
+    entry["verified"] = verified
+    entry["status"] = "verified" if verified else "rejected"
+    if verified:
+        entry.pop("rejection_reason", None)
+    else:
+        entry["rejection_reason"] = note
+    docs[key] = entry
+
+    aliases = {
+        "license": {"license", "driver_license", "drivers_license"},
+        "insurance": {"insurance", "insurance_certificate"},
+        "vehicle_registration": {"vehicle_registration", "vehicle_reg", "registration"},
+        "background_check": {"background_check"},
+        "abstract": {"abstract", "driver_abstract", "mto_abstract"},
+    }.get(key, {key})
+    updated_files = []
+    for file_entry in list(docs.get("files") or []):
+        if not isinstance(file_entry, dict):
+            updated_files.append(file_entry)
+            continue
+        found = str(file_entry.get("doc_type") or "").lower()
+        if found in aliases or any(alias in found for alias in aliases):
+            file_entry = {**file_entry, "status": entry["status"], "verified": verified}
+            if not verified:
+                file_entry["rejection_reason"] = note
+        updated_files.append(file_entry)
+    if updated_files or docs.get("files"):
+        docs["files"] = updated_files
+    driver.documents = docs
+
+    if key == "license":
+        driver.license_verified = verified
+    elif key == "insurance":
+        driver.insurance_verified = verified
+    elif key == "vehicle_registration":
+        driver.vehicle_verified = verified
+    elif key == "background_check":
+        driver.background_check_status = "passed" if verified else "failed"
+    elif key == "abstract":
+        pass
+    mark_manual_source(driver, key)
+    audit(
+        db,
+        ctx,
+        "driver.document_decided",
+        "driver",
+        driver.id,
+        {"doc_type": key, "decision": decision, "reason": note or None},
+    )
 
 
 def document_entry(body: DriverDocumentInput, ctx: AdminContext) -> dict:

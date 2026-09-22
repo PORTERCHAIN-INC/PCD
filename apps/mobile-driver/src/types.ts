@@ -288,6 +288,7 @@ export type DriverDocument = {
   verified: boolean;
   url?: string | null;
   expires_at?: string | null;
+  rejection_reason?: string | null;
 };
 
 export type DriverPerformance = {

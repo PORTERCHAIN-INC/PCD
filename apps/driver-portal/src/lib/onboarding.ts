@@ -14,6 +14,7 @@ export interface DriverOnboardingStep {
   complete: boolean;
   status: string;
   missing?: string[];
+  reason?: string | null;
 }
 
 export interface DriverOnboardingStatus {

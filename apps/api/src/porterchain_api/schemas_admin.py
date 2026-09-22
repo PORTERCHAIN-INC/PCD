@@ -203,6 +203,25 @@ class DriverVerifyRequest(BaseModel):
     background_check_status: str | None = None
 
 
+class DriverRejectRequest(BaseModel):
+    reason: str | None = Field(default=None, max_length=500)
+
+
+class DriverDocumentDecisionRequest(BaseModel):
+    doc_type: str = Field(min_length=1, max_length=64)
+    decision: str = Field(pattern="^(verified|rejected)$")
+    reason: str | None = Field(default=None, max_length=500)
+
+
+class DriverVehicleUpdate(BaseModel):
+    vehicle_class: str | None = None
+    plate_number: str | None = Field(default=None, max_length=32)
+    make_model: str | None = Field(default=None, max_length=128)
+    capacity_kg: float | None = None
+    compliance_expires_at: datetime | None = None
+    is_active: bool | None = None
+
+
 class DriverAddressInput(BaseModel):
     street: str | None = None
     city: str | None = None
@@ -214,6 +233,17 @@ class DriverEmergencyContactInput(BaseModel):
     name: str | None = None
     phone: str | None = None
     relationship: str | None = None
+
+
+class DriverProfilePatch(BaseModel):
+    full_name: str | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=32)
+    license_class: str | None = Field(default=None, max_length=32)
+    service_area: str | None = Field(default=None, max_length=128)
+    employment_type: str | None = Field(default=None, max_length=64)
+    languages: list[str] | None = None
+    address: DriverAddressInput | None = None
+    emergency_contact: DriverEmergencyContactInput | None = None
 
 
 class DriverVehicleCreateInput(BaseModel):

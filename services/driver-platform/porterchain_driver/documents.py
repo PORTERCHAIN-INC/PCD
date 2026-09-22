@@ -26,6 +26,25 @@ _VERIFIED_FLAGS = {
     "insurance": "insurance_verified",
     "vehicle_registration": "vehicle_verified",
 }
+_MAX_FILE_URL_CHARS = 380_000
+_REUPLOAD_STATUSES = frozenset({"pending_review", "rejected", "expired"})
+
+
+def _validate_file_url(file_url: str) -> str:
+    url = (file_url or "").strip()
+    if not url or len(url) > _MAX_FILE_URL_CHARS:
+        raise ValueError("file_too_large" if url else "file_url_required")
+    if url.startswith("data:image/") or url.startswith("https://") or url.startswith("http://"):
+        return url
+    raise ValueError("file_url_not_allowed")
+
+
+def _clear_verified_flag(driver: Any, doc_type: str) -> None:
+    flag = _VERIFIED_FLAGS.get(doc_type)
+    if flag and hasattr(driver, flag):
+        setattr(driver, flag, False)
+    if doc_type == "background_check" and hasattr(driver, "background_check_status"):
+        driver.background_check_status = "pending"
 
 
 def _file_entry(docs: dict[str, Any], doc_type: str) -> dict[str, Any]:
@@ -78,8 +97,9 @@ class DocumentsService:
             if not (entry.get("url") or entry.get("file_url")):
                 entry = {**_file_entry(docs, doc_type), **entry}
             flag = _VERIFIED_FLAGS.get(doc_type)
-            if flag and bool(getattr(driver, flag, False)):
-                entry = {**entry, "verified": True, "status": entry.get("status") or "verified"}
+            status = str(entry.get("status") or "")
+            if flag and bool(getattr(driver, flag, False)) and status not in _REUPLOAD_STATUSES:
+                entry = {**entry, "verified": True, "status": status or "verified"}
             if doc_type == "abstract" and isinstance(docs.get("abstract"), dict):
                 abstract = docs["abstract"]
                 if abstract.get("verified"):
@@ -115,6 +135,7 @@ class DocumentsService:
     ) -> dict:
         if doc_type not in _UPLOADABLE_DOCS:
             raise ValueError(f"invalid_doc_type:{doc_type}")
+        file_url = _validate_file_url(file_url)
         if doc_type == "vehicle_photo":
             return self.upload_vehicle_photo(db, driver, file_url=file_url, metadata=metadata)
 
@@ -127,6 +148,7 @@ class DocumentsService:
             "uploaded_at": datetime.now(UTC).isoformat(),
             **meta,
         }
+        _clear_verified_flag(driver, doc_type)
         driver.documents = docs
         db.flush()
         return self._serialize_doc(doc_type, docs[doc_type])
@@ -139,6 +161,7 @@ class DocumentsService:
         file_url: str,
         metadata: dict | None = None,
     ) -> dict:
+        file_url = _validate_file_url(file_url)
         docs = dict(driver.documents or {})
         photos = list(docs.get("vehicle_photos") or [])
         meta = metadata or {}
@@ -173,6 +196,7 @@ class DocumentsService:
             "url": entry.get("url") or entry.get("file_url"),
             "uploaded_at": entry.get("uploaded_at"),
             "expires_at": entry.get("expires_at"),
+            "rejection_reason": entry.get("rejection_reason"),
             "policy_number": entry.get("policy_number"),
             "provider": entry.get("provider"),
             "plate_number": entry.get("plate_number"),
