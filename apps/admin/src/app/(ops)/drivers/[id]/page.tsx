@@ -885,7 +885,10 @@ function DocumentsTab({
                     {titleCase(String(f.doc_type ?? ""))}
                     {f.reference_number ? ` · Ref ${f.reference_number}` : ""}
                   </p>
-                  {f.notes && <p className="mt-1 text-xs text-muted">{f.notes}</p>}
+                  {f.notes ? <p className="mt-1 text-xs text-muted">{String(f.notes)}</p> : null}
+                  {status === "rejected" && f.rejection_reason ? (
+                    <p className="mt-1 text-xs text-red-700">{String(f.rejection_reason)}</p>
+                  ) : null}
                   {isDataImage ? (
                     // Mobile uploads are stored as data URLs. A normal link cannot open them.
                     // eslint-disable-next-line @next/next/no-img-element
@@ -938,27 +941,41 @@ function DocumentsTab({
                       View file
                     </a>
                   ) : null}
-                  {canWrite && (
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        className="font-medium text-secondary hover:underline"
-                        onClick={() => void decide(String(f.doc_type ?? ""), "verified")}
-                      >
-                        Verify
-                      </button>
-                      <button
-                        type="button"
-                        className="font-medium text-red-700 hover:underline"
-                        onClick={() => {
-                          setReasonFor(String(f.doc_type ?? ""));
-                          setReason("");
-                        }}
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  )}
+                  {canWrite &&
+                    [
+                      "license",
+                      "driver_license",
+                      "drivers_license",
+                      "insurance",
+                      "insurance_certificate",
+                      "vehicle_registration",
+                      "vehicle_reg",
+                      "registration",
+                      "background_check",
+                      "abstract",
+                      "driver_abstract",
+                      "mto_abstract",
+                    ].includes(String(f.doc_type ?? "").toLowerCase()) && (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="font-medium text-secondary hover:underline"
+                          onClick={() => void decide(String(f.doc_type ?? ""), "verified")}
+                        >
+                          Verify
+                        </button>
+                        <button
+                          type="button"
+                          className="font-medium text-red-700 hover:underline"
+                          onClick={() => {
+                            setReasonFor(String(f.doc_type ?? ""));
+                            setReason("");
+                          }}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
                   {reasonFor === String(f.doc_type ?? "") && (
                     <form
                       className="mt-1 flex gap-1"
@@ -1050,6 +1067,13 @@ function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean }) {
   const [plate, setPlate] = useState("");
   const [makeModel, setMakeModel] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editClass, setEditClass] = useState("cargoVan");
+  const [editPlate, setEditPlate] = useState("");
+  const [editMake, setEditMake] = useState("");
+  const vehicleClasses = ["sedan", "suv", "pickup", "cargoVan", "highRoof", "box16", "box20"];
+  const classOptions = (current: string) =>
+    vehicleClasses.includes(current) ? vehicleClasses : [current, ...vehicleClasses];
   const { data } = useApiData((t) => drivers.vehicles(t, id), [id, version], {
     key: `driver-vehicles-${id}`,
   });
@@ -1072,10 +1096,32 @@ function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean }) {
     }
   }
   async function setActive(vehicleId: string, active: boolean) {
-    const token = await getApiToken();
-    if (active) await drivers.updateVehicle(token, id, vehicleId, { is_active: true });
-    else await drivers.deactivateVehicle(token, id, vehicleId);
-    setVersion((n) => n + 1);
+    setError(null);
+    try {
+      const token = await getApiToken();
+      if (active) await drivers.updateVehicle(token, id, vehicleId, { is_active: true });
+      else await drivers.deactivateVehicle(token, id, vehicleId);
+      setVersion((n) => n + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update vehicle");
+    }
+  }
+  async function saveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingId) return;
+    setError(null);
+    try {
+      const token = await getApiToken();
+      await drivers.updateVehicle(token, id, editingId, {
+        vehicle_class: editClass,
+        plate_number: editPlate,
+        make_model: editMake || undefined,
+      });
+      setEditingId(null);
+      setVersion((n) => n + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update vehicle");
+    }
   }
   return (
     <SectionCard
@@ -1098,7 +1144,7 @@ function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean }) {
             onChange={(e) => setVehicleClass(e.target.value)}
             className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
           >
-            {["sedan", "suv", "pickup", "cargoVan", "highRoof", "box16", "box20"].map((item) => (
+            {classOptions(vehicleClass).map((item) => (
               <option key={item} value={item}>
                 {titleCase(item)}
               </option>
@@ -1121,34 +1167,84 @@ function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean }) {
           {error && <p className="text-sm text-red-600 sm:col-span-3">{error}</p>}
         </form>
       )}
+      {error && <p className="px-5 pt-3 text-sm text-red-600">{error}</p>}
       <div className="divide-y divide-primary/5">
         {(data ?? []).map((v) => (
           <div key={v.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
-            <div>
-              <p className="text-sm font-medium text-primary">
-                {v.make_model ?? titleCase(v.vehicle_class)}{" "}
-                {v.is_active && <Badge tone="green">Active</Badge>}
-              </p>
-              <p className="text-xs text-muted">
-                {titleCase(v.vehicle_class)} · {v.plate_number} ·{" "}
-                {v.capacity_kg ? `${v.capacity_kg} kg` : "—"}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {v.compliance_expires_at && (
-                <Badge tone="slate">Expires {shortDate(v.compliance_expires_at)}</Badge>
-              )}
-              {canWrite && v.is_active && (
-                <Button variant="outline" onClick={() => void setActive(v.id, false)}>
-                  Take off the road
-                </Button>
-              )}
-              {canWrite && !v.is_active && (
-                <Button variant="outline" onClick={() => void setActive(v.id, true)}>
-                  Set active
-                </Button>
-              )}
-            </div>
+            {editingId === v.id ? (
+              <form onSubmit={saveEdit} className="grid w-full gap-2 sm:grid-cols-4">
+                <select
+                  value={editClass}
+                  onChange={(e) => setEditClass(e.target.value)}
+                  className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+                >
+                  {classOptions(editClass).map((item) => (
+                    <option key={item} value={item}>
+                      {titleCase(item)}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={editPlate}
+                  onChange={(e) => setEditPlate(e.target.value)}
+                  required
+                  className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+                />
+                <input
+                  value={editMake}
+                  onChange={(e) => setEditMake(e.target.value)}
+                  placeholder="Make and model"
+                  className="rounded-xl border border-primary/15 px-3 py-2 text-sm"
+                />
+                <div className="flex gap-2">
+                  <Button type="submit">Save</Button>
+                  <Button type="button" variant="outline" onClick={() => setEditingId(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div>
+                  <p className="text-sm font-medium text-primary">
+                    {v.make_model ?? titleCase(v.vehicle_class)}{" "}
+                    {v.is_active && <Badge tone="green">Active</Badge>}
+                  </p>
+                  <p className="text-xs text-muted">
+                    {titleCase(v.vehicle_class)} · {v.plate_number} ·{" "}
+                    {v.capacity_kg ? `${v.capacity_kg} kg` : "—"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {v.compliance_expires_at && (
+                    <Badge tone="slate">Expires {shortDate(v.compliance_expires_at)}</Badge>
+                  )}
+                  {canWrite && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setEditingId(v.id);
+                        setEditClass(v.vehicle_class);
+                        setEditPlate(v.plate_number);
+                        setEditMake(v.make_model ?? "");
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  {canWrite && v.is_active && (
+                    <Button variant="outline" onClick={() => void setActive(v.id, false)}>
+                      Take off the road
+                    </Button>
+                  )}
+                  {canWrite && !v.is_active && (
+                    <Button variant="outline" onClick={() => void setActive(v.id, true)}>
+                      Set active
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         ))}
         {(!data || data.length === 0) && (
@@ -1505,7 +1601,11 @@ function SettingsTab({
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  async function decide(docType: string, decision: "verified" | "rejected", reason?: string) {
+  async function decide(
+    docType: string,
+    decision: "verified" | "rejected" | "cleared",
+    reason?: string
+  ) {
     setBusy(true);
     try {
       const token = await getApiToken();
@@ -1577,24 +1677,14 @@ function SettingsTab({
               <ToggleRow
                 label="License verified"
                 value={d.license_verified}
-                onToggle={() =>
-                  void decide(
-                    "license",
-                    d.license_verified ? "rejected" : "verified",
-                    d.license_verified ? "Cleared by operations." : undefined
-                  )
-                }
+                onToggle={() => void decide("license", d.license_verified ? "cleared" : "verified")}
                 busy={busy}
               />
               <ToggleRow
                 label="Insurance verified"
                 value={d.insurance_verified}
                 onToggle={() =>
-                  void decide(
-                    "insurance",
-                    d.insurance_verified ? "rejected" : "verified",
-                    d.insurance_verified ? "Cleared by operations." : undefined
-                  )
+                  void decide("insurance", d.insurance_verified ? "cleared" : "verified")
                 }
                 busy={busy}
               />
@@ -1602,11 +1692,7 @@ function SettingsTab({
                 label="Vehicle verified"
                 value={d.vehicle_verified}
                 onToggle={() =>
-                  void decide(
-                    "vehicle_registration",
-                    d.vehicle_verified ? "rejected" : "verified",
-                    d.vehicle_verified ? "Cleared by operations." : undefined
-                  )
+                  void decide("vehicle_registration", d.vehicle_verified ? "cleared" : "verified")
                 }
                 busy={busy}
               />

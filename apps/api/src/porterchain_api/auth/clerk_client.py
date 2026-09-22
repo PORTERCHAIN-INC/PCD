@@ -14,6 +14,17 @@ logger = logging.getLogger(__name__)
 CLERK_API = "https://api.clerk.com/v1"
 
 
+def _clerk_error_text(res: httpx.Response) -> str:
+    try:
+        body = res.json()
+    except Exception:
+        return ""
+    errors = body.get("errors") if isinstance(body, dict) else None
+    if not isinstance(errors, list) or not errors or not isinstance(errors[0], dict):
+        return ""
+    return str(errors[0].get("long_message") or errors[0].get("message") or "").strip()
+
+
 @dataclass(frozen=True)
 class ClerkInviteResult:
     action: str
@@ -279,9 +290,12 @@ class ClerkClient:
         }
         with httpx.Client(timeout=20.0) as client:
             res = client.post(f"{CLERK_API}/invitations", headers=self._headers(), json=payload)
-            if res.status_code == 400 and "already" in res.text.lower():
+            message = _clerk_error_text(res)
+            if res.status_code >= 400 and "already" in f"{message} {res.text}".lower():
                 return ClerkInviteResult(action="invite_pending")
-            res.raise_for_status()
+            if res.status_code >= 400:
+                logger.warning("clerk_invite_failed status=%s", res.status_code)
+                raise ValueError(message or "Clerk could not send the invite.")
             body = res.json()
             invitation_id = body.get("id") if isinstance(body, dict) else None
             return ClerkInviteResult(action="invited", clerk_invitation_id=str(invitation_id) if invitation_id else None)

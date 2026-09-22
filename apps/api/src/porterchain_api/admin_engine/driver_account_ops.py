@@ -116,17 +116,19 @@ class DriverAccountOps:
         )
         db.commit()
         db.refresh(driver)
-        label = doc_type.replace("_", " ")
-        message = (
-            f"Your {label} was verified."
-            if decision == "verified"
-            else f"Your {label} needs a new photo. {(reason or '').strip()}"
-        )
-        try:
-            if getattr(driver, "email", None):
-                run_admin_driver_action(db, driver, "email", message, ctx.user.id if ctx.user else None)
-        except Exception as exc:
-            logger.warning("document decision notice failed for %s: %s", driver_id, exc)
+        if decision in {"verified", "rejected"} and getattr(driver, "email", None):
+            label = doc_type.replace("_", " ")
+            message = (
+                f"Your {label} was verified."
+                if decision == "verified"
+                else f"Your {label} needs a new photo. {(reason or '').strip()}"
+            )
+            try:
+                run_admin_driver_action(
+                    db, driver, "email", message, ctx.user.id if ctx.user else None
+                )
+            except Exception as exc:
+                logger.warning("document decision notice failed for %s: %s", driver_id, exc)
         return driver
 
     def update_profile(
@@ -205,6 +207,8 @@ class DriverAccountOps:
             vehicle.compliance_expires_at = compliance_expires_at
         if is_active is not None:
             vehicle.is_active = is_active
+        if vehicle.is_active and vehicle.plate_number:
+            self._reject_duplicate_plate(db, vehicle.plate_number, exclude_id=vehicle.id)
         self._audit(
             db,
             ctx,

@@ -323,7 +323,7 @@ export const drivers = {
   decideDocument: (
     t: string,
     id: string,
-    body: { doc_type: string; decision: "verified" | "rejected"; reason?: string }
+    body: { doc_type: string; decision: "verified" | "rejected" | "cleared"; reason?: string }
   ) =>
     adminFetch<DriverDetail>(`${B}/${id}/documents/decision`, t, {
       method: "POST",

@@ -65,6 +65,7 @@ def admin_review_files(docs: dict | None) -> list[dict]:
                 "file_url": url,
                 "status": entry.get("status") or "pending_review",
                 "verified": bool(entry.get("verified")),
+                "rejection_reason": entry.get("rejection_reason"),
                 "uploaded_at": entry.get("uploaded_at"),
                 "expires_at": entry.get("expires_at"),
                 "reference_number": entry.get("reference_number") or entry.get("policy_number"),
@@ -87,6 +88,7 @@ def admin_review_files(docs: dict | None) -> list[dict]:
                     "file_url": url,
                     "status": photo.get("status") or "pending_review",
                     "verified": bool(photo.get("verified")),
+                    "rejection_reason": photo.get("rejection_reason"),
                     "uploaded_at": photo.get("uploaded_at"),
                 }
             )
@@ -157,7 +159,7 @@ def decide_document(
     key = portal_doc_key(doc_type)
     if key is None:
         raise ValueError("invalid_doc_type")
-    if decision not in {"verified", "rejected"}:
+    if decision not in {"verified", "rejected", "cleared"}:
         raise ValueError("invalid_decision")
     note = (reason or "").strip()
     if decision == "rejected" and not note:
@@ -168,11 +170,16 @@ def decide_document(
     entry = dict(entry) if isinstance(entry, dict) else {}
     verified = decision == "verified"
     entry["verified"] = verified
-    entry["status"] = "verified" if verified else "rejected"
-    if verified:
+    if decision == "verified":
+        entry["status"] = "verified"
         entry.pop("rejection_reason", None)
-    else:
+    elif decision == "rejected":
+        entry["status"] = "rejected"
         entry["rejection_reason"] = note
+    else:
+        has_file = bool(entry.get("url") or entry.get("file_url"))
+        entry["status"] = "pending_review" if has_file else "missing"
+        entry.pop("rejection_reason", None)
     docs[key] = entry
 
     aliases = {
@@ -190,8 +197,10 @@ def decide_document(
         found = str(file_entry.get("doc_type") or "").lower()
         if found in aliases or any(alias in found for alias in aliases):
             file_entry = {**file_entry, "status": entry["status"], "verified": verified}
-            if not verified:
+            if decision == "rejected":
                 file_entry["rejection_reason"] = note
+            else:
+                file_entry.pop("rejection_reason", None)
         updated_files.append(file_entry)
     if updated_files or docs.get("files"):
         docs["files"] = updated_files
@@ -204,7 +213,9 @@ def decide_document(
     elif key == "vehicle_registration":
         driver.vehicle_verified = verified
     elif key == "background_check":
-        driver.background_check_status = "passed" if verified else "failed"
+        driver.background_check_status = (
+            "passed" if verified else "failed" if decision == "rejected" else "pending"
+        )
     elif key == "abstract":
         pass
     mark_manual_source(driver, key)

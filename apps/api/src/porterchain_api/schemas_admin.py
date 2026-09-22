@@ -209,7 +209,7 @@ class DriverRejectRequest(BaseModel):
 
 class DriverDocumentDecisionRequest(BaseModel):
     doc_type: str = Field(min_length=1, max_length=64)
-    decision: str = Field(pattern="^(verified|rejected)$")
+    decision: str = Field(pattern="^(verified|rejected|cleared)$")
     reason: str | None = Field(default=None, max_length=500)
 
 

@@ -80,6 +80,76 @@ def test_decide_document_rejects_without_reason() -> None:
         raise AssertionError("expected reason_required")
 
 
+def test_review_files_keep_rejection_reason() -> None:
+    files = admin_review_files(
+        {
+            "insurance": {
+                "url": "data:image/jpeg;base64,abc",
+                "status": "rejected",
+                "rejection_reason": "Photo is blurry",
+            }
+        }
+    )
+    assert files[0]["rejection_reason"] == "Photo is blurry"
+
+
+def test_decide_document_clear_keeps_the_photo_pending() -> None:
+    from types import SimpleNamespace
+
+    from porterchain_api.admin_engine.driver_documents import decide_document
+
+    driver = SimpleNamespace(
+        id="d1",
+        documents={
+            "license": {
+                "url": "data:image/jpeg;base64,abc",
+                "status": "verified",
+                "verified": True,
+                "rejection_reason": "old",
+            }
+        },
+        license_verified=True,
+        insurance_verified=False,
+        vehicle_verified=False,
+        background_check_status="pending",
+    )
+    decide_document(
+        None,
+        SimpleNamespace(user=SimpleNamespace(id="a")),
+        driver,
+        doc_type="license",
+        decision="cleared",
+        audit=lambda *args, **kwargs: None,
+    )
+    entry = driver.documents["license"]
+    assert entry["status"] == "pending_review"
+    assert entry["verified"] is False
+    assert "rejection_reason" not in entry
+    assert entry["url"].startswith("data:image")
+    assert driver.license_verified is False
+
+
+def test_decide_document_rejects_vehicle_photo() -> None:
+    from types import SimpleNamespace
+
+    from porterchain_api.admin_engine.driver_documents import decide_document
+
+    driver = SimpleNamespace(id="d1", documents={}, license_verified=False)
+    try:
+        decide_document(
+            None,
+            SimpleNamespace(user=SimpleNamespace(id="a")),
+            driver,
+            doc_type="vehicle_photo",
+            decision="verified",
+            audit=lambda *args, **kwargs: None,
+        )
+    except ValueError as exc:
+        assert str(exc) == "invalid_doc_type"
+    else:
+        raise AssertionError("expected invalid_doc_type")
+
+
 def test_upload_rejects_oversized_data_url() -> None:
     from types import SimpleNamespace
 
