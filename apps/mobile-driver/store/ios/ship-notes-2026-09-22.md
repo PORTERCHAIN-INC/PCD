@@ -92,9 +92,12 @@ A long list of `.pcm` files while ClerkKit compiles is the Swift compiler input 
 
 Customer web portal Clerk is separate from this native app. Turning on Native API, the redirect allowlist, and the native app row are dashboard steps on the customer instance, not copies of the driver instance `ins_3G8jSfoAqasg906yFw0NNTPS9Tx`.
 
+## Build 17 — 23 Sep 2026
+
+Uploaded with altool key VMAB8YF54D. Delivery UUID `bd9c6461-fc0d-4dea-b3d6-365cac2ffb9a`. IPA `apps/mobile-driver/build/export/PorterchainDriver.ipa`. `CFBundleVersion` 17, SDK `iphoneos27.0`. This is the clover icon plus the whole-vehicle job screen. Install 17, not 16.
+
 ## Before the next TestFlight install
 
-- Upload `PorterchainDriver.ipa` build 16 if it is not already processing.
-- Install build 16. Build 1 closes itself at launch on iOS 27.
+- Install build 17 once Apple finishes processing. Build 1 closes itself at launch on iOS 27.
 - Sign in with a Clerk user that is already linked to an approved driver. Otherwise the app stays on the provisioned error and needs Sign out.
 - Job-ring push on iOS will stay off until Firebase Messaging issues an FCM token.
