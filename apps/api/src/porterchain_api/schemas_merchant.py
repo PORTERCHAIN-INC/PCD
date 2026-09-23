@@ -761,6 +761,8 @@ class MerchantRateCardResponse(BaseModel):
     surcharges: dict[str, Any] = Field(default_factory=dict)
     liftgate_cents: int = 0
     fuel_surcharge_percent: float = 0.0
+    #: Merchant schedule defaults (fuel override, FSA miss, pickup, mins, compact).
+    schedule: dict[str, Any] = Field(default_factory=dict)
     tax: dict[str, Any] = Field(default_factory=dict)
     weight: dict[str, Any] = Field(default_factory=dict)
     fsa_rate_count: int = 0
