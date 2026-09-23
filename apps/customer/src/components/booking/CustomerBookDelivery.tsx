@@ -123,27 +123,6 @@ function CustomerBookDeliveryBody({
   const handoffQuoteId = searchParams.get("quote_id");
   const wantsRebook = searchParams.get("rebook") === "1";
 
-  useEffect(() => {
-    captureVisitorHandoff(searchParams);
-    const requested = canonicalVehicle(searchParams.get("vehicle"));
-    if (requested) setVehicleClass(requested);
-  }, [searchParams]);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`${publicEnv.porterchainApiUrl.replace(/\/$/, "")}/v1/booking-catalog`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((body: { vehicles?: BookingVehicle[]; presets?: BookingPreset[] } | null) => {
-        if (cancelled || !body) return;
-        if (Array.isArray(body.vehicles) && body.vehicles.length) setVehicles(body.vehicles);
-        if (Array.isArray(body.presets) && body.presets.length) setPresets(body.presets);
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const [step, setStep] = useState<Step>("details");
   const [pickup, setPickup] = useState<BookingAddress>({ formatted: "" });
   const [dropoff, setDropoff] = useState<BookingAddress>({ formatted: "" });
@@ -167,6 +146,27 @@ function CustomerBookDeliveryBody({
     amount_display: string;
     distance_km?: number | null;
   } | null>(null);
+
+  useEffect(() => {
+    captureVisitorHandoff(searchParams);
+    const requested = canonicalVehicle(searchParams.get("vehicle"));
+    if (requested) setVehicleClass(requested);
+  }, [searchParams]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${publicEnv.porterchainApiUrl.replace(/\/$/, "")}/v1/booking-catalog`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body: { vehicles?: BookingVehicle[]; presets?: BookingPreset[] } | null) => {
+        if (cancelled || !body) return;
+        if (Array.isArray(body.vehicles) && body.vehicles.length) setVehicles(body.vehicles);
+        if (Array.isArray(body.presets) && body.presets.length) setPresets(body.presets);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
