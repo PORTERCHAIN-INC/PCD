@@ -68,6 +68,7 @@ export const idleHandshake = (): Handshake => ({
   accessNotes: null,
   parcelLines: [],
   bookingMode: null,
+  vehicleClass: null,
   deliveryAttempts: null,
   maxDeliveryAttempts: null,
   walletCents: null,
@@ -180,6 +181,7 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
           next.accessNotes = formatAccessLine({ special_instructions: job.special_instructions });
         }
         next.bookingMode = job.booking_mode ?? null;
+        next.vehicleClass = job.vehicle_class ?? null;
         next.parcelLines = (job.packages ?? [])
           .map((pkg) => {
             const name = pkg.preset_label || "Parcel";

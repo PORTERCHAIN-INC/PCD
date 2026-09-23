@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ScrollView, Text, StyleSheet, Linking } from "react-native";
 import { colors, spacing, typography } from "@porterchain/mobile-theme";
 import { acceptOrder, codCheckout, fetchJob, rejectOrder } from "../api";
-import { formatCents, formatWhen, jobIsClosed } from "../format";
+import { formatCents, formatWhen, jobIsClosed, vehicleLabel } from "../format";
 import { Card, CardTitle } from "../ui/Card";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
@@ -96,12 +96,17 @@ export function JobDetailScreen({ orderId, onBack, onOpenWork }: Props) {
                   {(job.cod_status || "pending").replace(/_/g, " ")}
                 </Text>
               ) : null}
-              <Text style={styles.meta}>
-                Pickup scans {job.scan_pickup?.scanned ?? 0}/{job.scan_pickup?.required ?? 0}
-              </Text>
-              <Text style={styles.meta}>
-                Delivery scans {job.scan_delivery?.scanned ?? 0}/{job.scan_delivery?.required ?? 0}
-              </Text>
+              {job.booking_mode === "vehicle" ? null : (
+                <>
+                  <Text style={styles.meta}>
+                    Pickup scans {job.scan_pickup?.scanned ?? 0}/{job.scan_pickup?.required ?? 0}
+                  </Text>
+                  <Text style={styles.meta}>
+                    Delivery scans {job.scan_delivery?.scanned ?? 0}/
+                    {job.scan_delivery?.required ?? 0}
+                  </Text>
+                </>
+              )}
               {job.special_instructions ? (
                 <Text style={styles.body}>{job.special_instructions}</Text>
               ) : null}
@@ -117,9 +122,10 @@ export function JobDetailScreen({ orderId, onBack, onOpenWork }: Props) {
                 Declared value ${(job.declared_value_cents / 100).toFixed(2)}
               </Text>
             ) : null}
-            {job.booking_mode === "vehicle" ? (
-              <Text style={styles.meta}>Whole vehicle · {job.vehicle_class || "vehicle"}</Text>
-            ) : null}
+            <Text style={styles.meta}>
+              {job.booking_mode === "vehicle" ? "Whole vehicle" : "Vehicle"} ·{" "}
+              {vehicleLabel(job.vehicle_class)}
+            </Text>
             {job.booking_mode === "vehicle" ? null : (
               <Card testID="job-packages">
                 <CardTitle>Packages</CardTitle>

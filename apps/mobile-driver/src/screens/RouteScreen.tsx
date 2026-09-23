@@ -1,6 +1,6 @@
 import { Text, View, StyleSheet, ScrollView } from "react-native";
 import { colors, radius, spacing, typography } from "@porterchain/mobile-theme";
-import { formatCents, formatEtaMinutes } from "../format";
+import { formatCents, formatEtaMinutes, vehicleLabel } from "../format";
 import { fieldWarning } from "../fieldCopy";
 import type { FlushResult } from "../offline";
 import { buildStopChecklist } from "../stopChecklist";
@@ -133,7 +133,9 @@ export function RouteScreen({
           </Text>
         ) : null}
         {handshake.bookingMode === "vehicle" ? (
-          <Text style={styles.meta}>Whole vehicle</Text>
+          <Text style={styles.meta}>Whole vehicle · {vehicleLabel(handshake.vehicleClass)}</Text>
+        ) : handshake.vehicleClass ? (
+          <Text style={styles.meta}>Vehicle · {vehicleLabel(handshake.vehicleClass)}</Text>
         ) : null}
         {(handshake.parcelLines ?? []).map((line, index) => (
           <Text key={`${index}-${line}`} style={styles.meta}>

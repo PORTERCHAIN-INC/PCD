@@ -27,6 +27,7 @@ import {
   JOB_STEPS,
   resolveScanProgress,
   stepIndexForState,
+  vehicleLabel,
   STOP_EXCEPTION_TYPES,
   formatAccessLine,
 } from "@/lib/jobs";
@@ -119,7 +120,8 @@ export default function Delivery360({
   const primary = getPrimaryAction(job.state, job.allowed_actions ?? []);
   const scanPhase: "pickup" | "delivery" = deliveryPhase ? "delivery" : "pickup";
   const scanProgress = resolveScanProgress(job, scanPhase);
-  const scansComplete = scanProgress.complete;
+  const wholeVehicle = job.booking_mode === "vehicle";
+  const scansComplete = wholeVehicle || scanProgress.complete;
   const exceptionMeta = STOP_EXCEPTION_TYPES.find((item) => item.id === incidentType);
   const accessLine = formatAccessLine({
     special_instructions: job.special_instructions,
@@ -262,6 +264,11 @@ export default function Delivery360({
               Scan all packages first ({scanProgress.scanned}/{scanProgress.required})
             </p>
           ) : null}
+          {wholeVehicle ? (
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Whole vehicle · {vehicleLabel(job.vehicle_class)}. No parcel labels.
+            </p>
+          ) : null}
           <button
             type="button"
             disabled={
@@ -367,16 +374,35 @@ export default function Delivery360({
             <DetailRow label="Phone" value={job.customer.phone} />
             <DetailRow label="Email" value={job.customer.email} />
             <DetailRow label="Order value" value={formatCents(job.amount_cents)} />
+            {job.declared_value_cents ? (
+              <DetailRow label="Declared value" value={formatCents(job.declared_value_cents)} />
+            ) : null}
+            {job.vehicle_class || wholeVehicle ? (
+              <DetailRow
+                label="Vehicle"
+                value={
+                  wholeVehicle
+                    ? `Whole vehicle · ${vehicleLabel(job.vehicle_class)}`
+                    : vehicleLabel(job.vehicle_class)
+                }
+              />
+            ) : null}
           </dl>
         </Section>
       </div>
 
-      <Section title="Packages" icon={Package}>
-        <p className="mb-3 text-sm font-semibold text-[var(--primary)]">
-          Scanned {scanProgress.scanned}/{scanProgress.required}
-          {scanProgress.complete ? " · ready" : " · scan all boxes before confirm"}
-        </p>
-        {job.packages_error ? (
+      <Section title={wholeVehicle ? "Load" : "Packages"} icon={Package}>
+        {wholeVehicle ? (
+          <p className="text-sm text-[var(--muted)]">
+            Whole vehicle · {vehicleLabel(job.vehicle_class)}. Nothing to scan.
+          </p>
+        ) : (
+          <p className="mb-3 text-sm font-semibold text-[var(--primary)]">
+            Scanned {scanProgress.scanned}/{scanProgress.required}
+            {scanProgress.complete ? " · ready" : " · scan all boxes before confirm"}
+          </p>
+        )}
+        {wholeVehicle ? null : job.packages_error ? (
           <p className="text-sm text-red-600">Package list unavailable — refresh and try again.</p>
         ) : job.packages.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">No package details on file</p>
@@ -393,9 +419,11 @@ export default function Delivery360({
                   className="rounded-xl bg-[var(--gray-bg)] p-3 text-sm"
                 >
                   <p className="font-semibold">
-                    {pkg.tracking_suffix
-                      ? `BOX ${pkg.parcel_index ?? i + 1} of ${pkg.total_parcels ?? job.packages.length}`
-                      : String(pkg.package_type ?? "Package")}
+                    {pkg.preset_label ||
+                      (pkg.tracking_suffix
+                        ? `BOX ${pkg.parcel_index ?? i + 1} of ${pkg.total_parcels ?? job.packages.length}`
+                        : String(pkg.package_type ?? "Package"))}
+                    {pkg.instructions ? ` · ${pkg.instructions}` : ""}
                     {done ? " · scanned" : ""}
                   </p>
                   <p className="text-[var(--muted)]">

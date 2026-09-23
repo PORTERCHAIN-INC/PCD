@@ -64,6 +64,19 @@ def test_live_prove_three_boxes_three_labels_one_fee():
     assert b"$" in pdf and b"45" in pdf  # COD amount rendered on label
 
 
+def test_whole_vehicle_does_not_require_a_scan():
+    order = SimpleNamespace(
+        id="ord-vehicle",
+        compliance_metadata={"booking_mode": "vehicle", "parcels": {"booking_mode": "vehicle", "items": []}},
+    )
+    gate = ScanGateService()
+    progress = gate.scan_progress(MagicMock(), order, phase="pickup")  # type: ignore[arg-type]
+    assert progress["required"] == 0
+    assert progress["complete"] is True
+    gate.assert_complete(MagicMock(), order, phase="delivery")  # type: ignore[arg-type]
+    assert gate.package_rows(MagicMock(), order) == []  # type: ignore[arg-type]
+
+
 def test_scan_gate_blocks_until_all_three():
     order = _order_with_three_boxes()
     pkgs = []

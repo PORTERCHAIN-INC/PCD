@@ -53,6 +53,7 @@ export type Handshake = {
   accessNotes: string | null;
   parcelLines: string[];
   bookingMode: string | null;
+  vehicleClass: string | null;
   deliveryAttempts: number | null;
   maxDeliveryAttempts: number | null;
   walletCents: number | null;

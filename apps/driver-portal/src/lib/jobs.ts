@@ -134,7 +134,12 @@ export interface DriverJobDetail extends DriverJobSummary {
     scanned_delivery?: boolean;
     package_type?: string;
     vehicle_class?: string;
+    preset_label?: string | null;
+    instructions?: string | null;
   }>;
+  booking_mode?: string | null;
+  vehicle_class?: string | null;
+  declared_value_cents?: number | null;
   packages_error?: string | null;
   scan_pickup?: DriverScanProgress;
   scan_delivery?: DriverScanProgress;
@@ -193,6 +198,23 @@ export function getJobLeg(state: string): JobLeg {
   if (DONE.has(s)) return "completed";
   if (DELIVERY_LEG.has(s)) return "delivery";
   return "pickup";
+}
+
+const VEHICLE_LABELS: Record<string, string> = {
+  sedan_suv: "Sedan / SUV",
+  sedan: "Sedan",
+  suv: "SUV",
+  pickup: "Pickup",
+  cargo_van: "Cargo van",
+  box_16: "16 ft",
+  box_20: "20 ft",
+  box_truck: "Box truck",
+  sprinter_van: "Sprinter",
+};
+
+export function vehicleLabel(id?: string | null): string {
+  if (!id) return "vehicle";
+  return VEHICLE_LABELS[id] ?? id.replace(/_/g, " ");
 }
 
 export function legLabel(leg: JobLeg): string {

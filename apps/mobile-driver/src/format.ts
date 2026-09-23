@@ -77,6 +77,23 @@ export function formatAccessLine(bits: {
   return parts.length ? parts.join(" · ") : null;
 }
 
+const VEHICLE_LABELS: Record<string, string> = {
+  sedan_suv: "Sedan / SUV",
+  sedan: "Sedan",
+  suv: "SUV",
+  pickup: "Pickup",
+  cargo_van: "Cargo van",
+  box_16: "16 ft",
+  box_20: "20 ft",
+  box_truck: "Box truck",
+  sprinter_van: "Sprinter",
+};
+
+export function vehicleLabel(id?: string | null): string {
+  if (!id) return "vehicle";
+  return VEHICLE_LABELS[id] ?? id.replace(/_/g, " ");
+}
+
 export function parcelScanLabel(job: {
   scan_pickup?: { scanned?: number; required?: number };
   scan_delivery?: { scanned?: number; required?: number };

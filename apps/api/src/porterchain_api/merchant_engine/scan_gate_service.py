@@ -33,11 +33,22 @@ class PackagesIncomplete(Exception):
         super().__init__("packages_incomplete")
 
 
+def _whole_vehicle(order: Order) -> bool:
+    """A hired vehicle has no parcel labels. Scan-gate must not block pickup or delivery."""
+    meta = order.compliance_metadata if isinstance(getattr(order, "compliance_metadata", None), dict) else {}
+    if meta.get("booking_mode") == "vehicle":
+        return True
+    parcels = meta.get("parcels")
+    return isinstance(parcels, dict) and parcels.get("booking_mode") == "vehicle"
+
+
 class ScanGateService:
     def __init__(self) -> None:
         self._packages = PackageService()
 
     def package_rows(self, db: Session, order: Order) -> list[dict[str, Any]]:
+        if _whole_vehicle(order):
+            return []
         rows = self._packages.ensure_for_order(db, order)
         return [
             {
@@ -96,6 +107,15 @@ class ScanGateService:
         return out
 
     def scan_progress(self, db: Session, order: Order, *, phase: Phase) -> dict[str, Any]:
+        if _whole_vehicle(order):
+            return {
+                "phase": phase,
+                "scanned": 0,
+                "required": 0,
+                "complete": True,
+                "missing_suffixes": [],
+                "packages": [],
+            }
         rows = self._packages.ensure_for_order(db, order)
         required = _PICKUP_DONE if phase == "pickup" else _DELIVERY_DONE
         missing = [p for p in rows if p.status not in required]

@@ -8,6 +8,7 @@ import {
   fetchTraining,
   fetchVehicle,
 } from "../api";
+import { vehicleLabel } from "../format";
 import {
   FALLBACK_DOC_TYPES,
   captureAndUploadDocument,
@@ -119,7 +120,7 @@ export function DocsScreen() {
           <CardTitle>Vehicle</CardTitle>
           <Text style={styles.label}>
             {vehicle
-              ? `${vehicle.make_model || vehicle.vehicle_class || "Vehicle"} · ${vehicle.plate_number || "—"}`
+              ? `${vehicle.make_model || (vehicle.vehicle_class ? vehicleLabel(vehicle.vehicle_class) : "Vehicle")} · ${vehicle.plate_number || "—"}`
               : "No active vehicle on file"}
           </Text>
           <PrimaryButton
