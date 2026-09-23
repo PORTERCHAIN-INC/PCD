@@ -12,6 +12,7 @@ const COPY: Record<string, string> = {
   route_unavailable: "A road route is not available, so a price cannot be calculated yet.",
   quote_expired: "This price has expired. Get a new quote before paying.",
   parcels_required: "Add a parcel, or choose the whole vehicle.",
+  whole_vehicle_not_available: "Whole vehicle is not offered for this class.",
   pickup_outside_service_area: "That pickup is outside the service area.",
   quote_not_found: "This quote expired. Get a new quote.",
   order_not_found: "Shipment not found.",

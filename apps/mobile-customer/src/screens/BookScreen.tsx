@@ -17,6 +17,7 @@ import {
   bookingCatalog,
   createQuote,
   formatCad,
+  getQuote,
   mockComplete,
   pollCheckout,
   previewQuote,
@@ -60,7 +61,28 @@ const INSTRUCTIONS = [
   { label: "Buzz code", value: "Buzz code is on the door" },
 ];
 
-const VEHICLES: Array<{ id: string; label: string; allowed_presets?: string[] | null }> = [
+type CatalogVehicle = {
+  id: string;
+  label: string;
+  allowed_presets?: string[] | null;
+  whole_vehicle_enabled?: boolean;
+  capacity_kg?: number | null;
+  max_length_cm?: number | null;
+  max_width_cm?: number | null;
+  max_height_cm?: number | null;
+};
+
+type CatalogPreset = {
+  id: string;
+  label: string;
+  manual?: boolean;
+  length_in?: number | null;
+  width_in?: number | null;
+  height_in?: number | null;
+  weight_lb?: number | null;
+};
+
+const VEHICLES: CatalogVehicle[] = [
   { id: "sedan_suv", label: "Sedan / SUV" },
   { id: "pickup", label: "Pickup" },
   { id: "cargo_van", label: "Cargo van" },
@@ -68,7 +90,7 @@ const VEHICLES: Array<{ id: string; label: string; allowed_presets?: string[] | 
   { id: "box_20", label: "20 ft" },
 ];
 
-const PRESETS = [
+const PRESETS: CatalogPreset[] = [
   { id: "small", label: "Small" },
   { id: "medium", label: "Medium" },
   { id: "large", label: "Large" },
@@ -84,6 +106,18 @@ const VEHICLE_ALIAS: Record<string, string> = {
   cargoVan: "cargo_van",
   box16: "box_16",
   box20: "box_20",
+  box_truck: "box_16",
+  highRoof: "sprinter_van",
+  highroof: "sprinter_van",
+};
+
+const VEHICLE_LABELS: Record<string, string> = {
+  sedan_suv: "Sedan / SUV",
+  pickup: "Pickup",
+  cargo_van: "Cargo van",
+  box_16: "16 ft",
+  box_20: "20 ft",
+  sprinter_van: "Sprinter",
 };
 
 type BookStep = "details" | "quote" | "pay" | "done";
@@ -108,12 +142,58 @@ function blankRow(presetId = "small"): ParcelRow {
   };
 }
 
+function pieceFits(
+  vehicle: CatalogVehicle,
+  row: ParcelRow,
+  preset: CatalogPreset | undefined
+): boolean {
+  if (vehicle.allowed_presets?.length && !vehicle.allowed_presets.includes(row.preset_id))
+    return false;
+  const manual = preset?.manual || row.preset_id === "other";
+  const length = (manual ? Number(row.length_in) : Number(preset?.length_in)) * 2.54;
+  const width = (manual ? Number(row.width_in) : Number(preset?.width_in)) * 2.54;
+  const height = (manual ? Number(row.height_in) : Number(preset?.height_in)) * 2.54;
+  const weight = (manual ? Number(row.weight_lb) : Number(preset?.weight_lb)) * 0.45359237;
+  if (![length, width, height, weight].every((n) => Number.isFinite(n) && n > 0)) return true;
+  const dims = [length, width, height].sort((a, b) => b - a);
+  const limits = [vehicle.max_length_cm, vehicle.max_width_cm, vehicle.max_height_cm]
+    .map((n) => Number(n))
+    .filter((n) => Number.isFinite(n) && n > 0)
+    .sort((a, b) => b - a);
+  if (limits.length === 3 && dims.some((side, index) => side > limits[index]!)) return false;
+  if (vehicle.capacity_kg && weight > Number(vehicle.capacity_kg)) return false;
+  return true;
+}
+
+function rowsFromSaved(
+  items: Array<{
+    preset_id?: string;
+    instructions?: string | null;
+    length_cm?: number;
+    width_cm?: number;
+    height_cm?: number;
+    weight_kg?: number;
+  }>
+): ParcelRow[] {
+  return items.map((parcel) => ({
+    preset_id: parcel.preset_id || "small",
+    instructions: parcel.instructions || "",
+    length_in: parcel.length_cm ? String(Math.round((parcel.length_cm / 2.54) * 10) / 10) : "",
+    width_in: parcel.width_cm ? String(Math.round((parcel.width_cm / 2.54) * 10) / 10) : "",
+    height_in: parcel.height_cm ? String(Math.round((parcel.height_cm / 2.54) * 10) / 10) : "",
+    weight_lb: parcel.weight_kg
+      ? String(Math.round((parcel.weight_kg / 0.45359237) * 10) / 10)
+      : "",
+  }));
+}
+
 function emptyAddress(): Address {
   return { formatted: "" };
 }
 
 type Props = {
   rebookOrderId?: string;
+  quoteId?: string;
   vehicle?: string;
   visitorId?: string;
   visitorTracking?: VisitorTracking;
@@ -122,6 +202,7 @@ type Props = {
 
 export function BookScreen({
   rebookOrderId,
+  quoteId,
   vehicle,
   visitorId,
   visitorTracking,
@@ -136,7 +217,7 @@ export function BookScreen({
   const [bookingMode, setBookingMode] = useState<"parcels" | "vehicle">("parcels");
   const [rows, setRows] = useState<ParcelRow[]>([blankRow()]);
   const [activeParcel, setActiveParcel] = useState(0);
-  const [liveFare, setLiveFare] = useState<string | null>(null);
+  const [liveFare, setLiveFare] = useState<{ amount: string; km: number | null } | null>(null);
   const [pickup, setPickup] = useState<Address>(emptyAddress());
   const [dropoff, setDropoff] = useState<Address>(emptyAddress());
   const [extraStop, setExtraStop] = useState<Address>(emptyAddress());
@@ -175,11 +256,15 @@ export function BookScreen({
               id: row.id,
               label: row.label,
               allowed_presets: row.allowed_presets,
+              whole_vehicle_enabled: row.whole_vehicle_enabled,
+              capacity_kg: row.capacity_kg,
+              max_length_cm: row.max_length_cm,
+              max_width_cm: row.max_width_cm,
+              max_height_cm: row.max_height_cm,
             }))
           );
         }
-        if (catalog.presets?.length)
-          setPresets(catalog.presets.map((row) => ({ id: row.id, label: row.label })));
+        if (catalog.presets?.length) setPresets(catalog.presets);
         if (catalog.included_km) setIncludedKm(catalog.included_km);
       })
       .catch(() => undefined);
@@ -198,26 +283,9 @@ export function BookScreen({
           setVehicleClass(VEHICLE_ALIAS[payload.vehicle_class] ?? payload.vehicle_class);
         if (payload.booking_mode === "vehicle" || payload.booking_mode === "parcels")
           setBookingMode(payload.booking_mode);
-        if (payload.parcels?.length) {
-          setRows(
-            payload.parcels.map((parcel) => ({
-              preset_id: parcel.preset_id || "small",
-              instructions: parcel.instructions || "",
-              length_in: parcel.length_cm
-                ? String(Math.round((parcel.length_cm / 2.54) * 10) / 10)
-                : "",
-              width_in: parcel.width_cm
-                ? String(Math.round((parcel.width_cm / 2.54) * 10) / 10)
-                : "",
-              height_in: parcel.height_cm
-                ? String(Math.round((parcel.height_cm / 2.54) * 10) / 10)
-                : "",
-              weight_lb: parcel.weight_kg
-                ? String(Math.round((parcel.weight_kg / 0.45359237) * 10) / 10)
-                : "",
-            }))
-          );
-        }
+        if (payload.parcels?.length) setRows(rowsFromSaved(payload.parcels));
+        const extra = payload.additional_stops?.[0];
+        if (extra?.formatted) setExtraStop(extra);
         if (payload.declared_value_cents)
           setDeclared((payload.declared_value_cents / 100).toFixed(2));
       })
@@ -225,6 +293,35 @@ export function BookScreen({
         setError(humanCustomerError(err instanceof Error ? err.message : "request_failed"));
       });
   }, [rebookOrderId]);
+
+  useEffect(() => {
+    if (!quoteId) return;
+    let cancelled = false;
+    void getQuote(quoteId)
+      .then((resumed) => {
+        if (cancelled) return;
+        if (resumed.pickup?.formatted) setPickup(resumed.pickup);
+        if (resumed.dropoff?.formatted) setDropoff(resumed.dropoff);
+        if (resumed.vehicle_class)
+          setVehicleClass(VEHICLE_ALIAS[resumed.vehicle_class] ?? resumed.vehicle_class);
+        if (resumed.booking_mode === "vehicle" || resumed.booking_mode === "parcels")
+          setBookingMode(resumed.booking_mode);
+        if (resumed.parcels?.length) setRows(rowsFromSaved(resumed.parcels));
+        const extra = resumed.additional_stops?.[0];
+        if (extra?.formatted) setExtraStop(extra);
+        if (resumed.declared_value_cents)
+          setDeclared((resumed.declared_value_cents / 100).toFixed(2));
+        setQuote(resumed);
+        setStep("quote");
+      })
+      .catch((err: unknown) => {
+        if (!cancelled)
+          setError(humanCustomerError(err instanceof Error ? err.message : "request_failed"));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [quoteId]);
 
   function quoteBody() {
     return {
@@ -252,7 +349,7 @@ export function BookScreen({
       schedule_mode: later ? ("later" as const) : ("now" as const),
       anonymous_session_id: visitorId,
       visitor_session_id: visitorId,
-      tracking: { device: Platform.OS, ...visitorTracking },
+      tracking: { ...visitorTracking, device: Platform.OS === "android" ? "android" : "ios" },
     };
   }
 
@@ -265,7 +362,8 @@ export function BookScreen({
     const timer = setTimeout(() => {
       previewQuote(quoteBody())
         .then((fare) => {
-          if (!cancelled) setLiveFare(fare.amount_display);
+          if (!cancelled)
+            setLiveFare({ amount: fare.amount_display, km: fare.distance_km ?? null });
         })
         .catch(() => {
           if (!cancelled) setLiveFare(null);
@@ -379,6 +477,47 @@ export function BookScreen({
 
   const days = dayChoices();
   const slots = slotsFor(days[dayIndex] ?? days[0]!);
+  const selectedVehicle = vehicles.find((row) => row.id === vehicleClass);
+  const wholeVehicleOk = selectedVehicle?.whole_vehicle_enabled !== false;
+  const nextVehicle =
+    bookingMode === "parcels" && selectedVehicle
+      ? vehicles.find(
+          (row) =>
+            row.id !== selectedVehicle.id &&
+            rows.every((parcel) =>
+              pieceFits(
+                row,
+                parcel,
+                presets.find((item) => item.id === parcel.preset_id)
+              )
+            ) &&
+            rows.some(
+              (parcel) =>
+                !pieceFits(
+                  selectedVehicle,
+                  parcel,
+                  presets.find((item) => item.id === parcel.preset_id)
+                )
+            )
+        )
+      : undefined;
+
+  function changeRows(updater: (current: ParcelRow[]) => ParcelRow[]) {
+    setRows(updater);
+    setQuote(null);
+  }
+
+  function vehicleName(id?: string | null) {
+    if (!id) return "";
+    return vehicles.find((row) => row.id === id)?.label ?? VEHICLE_LABELS[id] ?? id;
+  }
+
+  useEffect(() => {
+    if (!wholeVehicleOk && bookingMode === "vehicle") {
+      setBookingMode("parcels");
+      setQuote(null);
+    }
+  }, [wholeVehicleOk, bookingMode]);
 
   return (
     <Screen>
@@ -399,8 +538,11 @@ export function BookScreen({
               <Text style={styles.lede}>
                 {done.booking_mode === "vehicle"
                   ? "Whole vehicle"
-                  : `${done.parcels?.length || 0} parcels`}
-                {done.vehicle_class ? ` · ${done.vehicle_class}` : ""}
+                  : done.parcels
+                      ?.map((item) => item.preset_label)
+                      .filter(Boolean)
+                      .join(", ") || `${done.parcels?.length || 0} parcels`}
+                {done.vehicle_class ? ` · ${vehicleName(done.vehicle_class)}` : ""}
                 {done.invoice_number ? ` · Invoice ${done.invoice_number}` : ""}
                 {` · ${formatCad(done.amount_cents, done.currency)}`}
               </Text>
@@ -473,7 +615,10 @@ export function BookScreen({
                     {vehicles.map((item) => (
                       <Pressable
                         key={item.id}
-                        onPress={() => setVehicleClass(item.id)}
+                        onPress={() => {
+                          setVehicleClass(item.id);
+                          setQuote(null);
+                        }}
                         style={item.id === vehicleClass ? styles.chipOn : styles.chip}
                       >
                         <Text
@@ -488,22 +633,45 @@ export function BookScreen({
                   <Text style={styles.label}>Load</Text>
                   <View style={styles.chips}>
                     <Pressable
-                      onPress={() => setBookingMode("parcels")}
+                      onPress={() => {
+                        setBookingMode("parcels");
+                        setQuote(null);
+                      }}
                       style={bookingMode === "parcels" ? styles.chipOn : styles.chip}
                     >
                       <Text style={bookingMode === "parcels" ? styles.chipOnText : styles.chipText}>
                         Parcels
                       </Text>
                     </Pressable>
+                    {wholeVehicleOk ? (
+                      <Pressable
+                        onPress={() => {
+                          setBookingMode("vehicle");
+                          setQuote(null);
+                        }}
+                        style={bookingMode === "vehicle" ? styles.chipOn : styles.chip}
+                      >
+                        <Text
+                          style={bookingMode === "vehicle" ? styles.chipOnText : styles.chipText}
+                        >
+                          Whole vehicle
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                  {nextVehicle ? (
                     <Pressable
-                      onPress={() => setBookingMode("vehicle")}
-                      style={bookingMode === "vehicle" ? styles.chipOn : styles.chip}
+                      onPress={() => {
+                        setVehicleClass(nextVehicle.id);
+                        setQuote(null);
+                      }}
+                      style={styles.chip}
                     >
-                      <Text style={bookingMode === "vehicle" ? styles.chipOnText : styles.chipText}>
-                        Whole vehicle
+                      <Text style={styles.chipText}>
+                        This load needs {nextVehicle.label}. Switch vehicle.
                       </Text>
                     </Pressable>
-                  </View>
+                  ) : null}
                   {bookingMode === "parcels" ? (
                     <>
                       <Text style={styles.label}>Parcels</Text>
@@ -538,7 +706,7 @@ export function BookScreen({
                             <Pressable
                               key={item.id}
                               onPress={() =>
-                                setRows((current) =>
+                                changeRows((current) =>
                                   current.map((row, index) =>
                                     index === activeParcel ? { ...row, preset_id: item.id } : row
                                   )
@@ -566,7 +734,7 @@ export function BookScreen({
                         label="Note for this parcel"
                         value={rows[activeParcel]?.instructions ?? ""}
                         onChange={(value) =>
-                          setRows((current) =>
+                          changeRows((current) =>
                             current.map((row, index) =>
                               index === activeParcel ? { ...row, instructions: value } : row
                             )
@@ -582,7 +750,7 @@ export function BookScreen({
                             label="Length (in)"
                             value={rows[activeParcel]?.length_in ?? ""}
                             onChange={(value) =>
-                              setRows((current) =>
+                              changeRows((current) =>
                                 current.map((row, index) =>
                                   index === activeParcel ? { ...row, length_in: value } : row
                                 )
@@ -597,7 +765,7 @@ export function BookScreen({
                             label="Width (in)"
                             value={rows[activeParcel]?.width_in ?? ""}
                             onChange={(value) =>
-                              setRows((current) =>
+                              changeRows((current) =>
                                 current.map((row, index) =>
                                   index === activeParcel ? { ...row, width_in: value } : row
                                 )
@@ -612,7 +780,7 @@ export function BookScreen({
                             label="Height (in)"
                             value={rows[activeParcel]?.height_in ?? ""}
                             onChange={(value) =>
-                              setRows((current) =>
+                              changeRows((current) =>
                                 current.map((row, index) =>
                                   index === activeParcel ? { ...row, height_in: value } : row
                                 )
@@ -627,7 +795,7 @@ export function BookScreen({
                             label="Weight (lb)"
                             value={rows[activeParcel]?.weight_lb ?? ""}
                             onChange={(value) =>
-                              setRows((current) =>
+                              changeRows((current) =>
                                 current.map((row, index) =>
                                   index === activeParcel ? { ...row, weight_lb: value } : row
                                 )
@@ -642,7 +810,7 @@ export function BookScreen({
                       ) : null}
                       <Pressable
                         onPress={() => {
-                          setRows((current) => [...current, blankRow()]);
+                          changeRows((current) => [...current, blankRow()]);
                           setActiveParcel(rows.length);
                           setQuote(null);
                         }}
@@ -650,17 +818,35 @@ export function BookScreen({
                       >
                         <Text style={styles.chipText}>Add parcel</Text>
                       </Pressable>
+                      {rows.length > 1 ? (
+                        <Pressable
+                          onPress={() => {
+                            changeRows((current) =>
+                              current.filter((_, index) => index !== activeParcel)
+                            );
+                            setActiveParcel((current) => Math.max(0, current - 1));
+                          }}
+                          style={styles.chip}
+                        >
+                          <Text style={styles.chipText}>Remove parcel</Text>
+                        </Pressable>
+                      ) : null}
                     </>
                   ) : null}
                   {liveFare ? (
                     <Text style={styles.lede}>
-                      Estimated fare {liveFare}. Save the quote before paying.
+                      Estimated fare {liveFare.amount}
+                      {liveFare.km != null ? ` · ${liveFare.km} km` : ""}. Save the quote before
+                      paying.
                     </Text>
                   ) : null}
                   <SuggestField
                     label="Declared value (CAD)"
                     value={declared}
-                    onChange={setDeclared}
+                    onChange={(value) => {
+                      setDeclared(value);
+                      setQuote(null);
+                    }}
                     placeholder="Dollars, or pick one"
                     suggestions={VALUES}
                     keyboardType="decimal-pad"
@@ -691,7 +877,10 @@ export function BookScreen({
                     placeholder="Promo code"
                     autoCapitalize="characters"
                     value={promo}
-                    onChangeText={setPromo}
+                    onChangeText={(text) => {
+                      setPromo(text);
+                      setQuote(null);
+                    }}
                     placeholderTextColor={colors.muted}
                     inputAccessoryViewID={KEYBOARD_BAR}
                   />
@@ -700,6 +889,7 @@ export function BookScreen({
                       onPress={() => {
                         setLater(false);
                         setSlot(null);
+                        setQuote(null);
                       }}
                       style={!later ? styles.chipOn : styles.chip}
                     >
@@ -708,7 +898,10 @@ export function BookScreen({
                       </Text>
                     </Pressable>
                     <Pressable
-                      onPress={() => setLater(true)}
+                      onPress={() => {
+                        setLater(true);
+                        setQuote(null);
+                      }}
                       style={later ? styles.chipOn : styles.chip}
                     >
                       <Text style={later ? styles.chipOnText : styles.chipText}>Schedule</Text>
@@ -724,6 +917,7 @@ export function BookScreen({
                             onPress={() => {
                               setDayIndex(index);
                               setSlot(null);
+                              setQuote(null);
                             }}
                             style={index === dayIndex ? styles.chipOn : styles.chip}
                           >
@@ -739,7 +933,10 @@ export function BookScreen({
                           slots.map((iso) => (
                             <Pressable
                               key={iso}
-                              onPress={() => setSlot(iso)}
+                              onPress={() => {
+                                setSlot(iso);
+                                setQuote(null);
+                              }}
                               style={iso === slot ? styles.chipOn : styles.chip}
                             >
                               <Text style={iso === slot ? styles.chipOnText : styles.chipText}>

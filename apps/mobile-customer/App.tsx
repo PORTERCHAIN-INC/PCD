@@ -39,6 +39,7 @@ function Root() {
   const [showTrack, setShowTrack] = useState(false);
   const [rebookOrderId, setRebookOrderId] = useState<string | undefined>();
   const [vehicle, setVehicle] = useState<string | undefined>();
+  const [quoteId, setQuoteId] = useState<string | undefined>();
   const [visitorId, setVisitorId] = useState<string | undefined>();
   const [visitorTracking, setVisitorTracking] = useState<VisitorTracking | undefined>();
   const [apiUp, setApiUp] = useState<boolean | null>(null);
@@ -98,6 +99,7 @@ function Root() {
       if (next.screen === "book") {
         setTab("book");
         setVehicle(next.vehicle);
+        setQuoteId(next.quoteId);
         setVisitorId(next.visitorId);
         setVisitorTracking(next.visitorTracking);
       }
@@ -202,6 +204,7 @@ function Root() {
         <BookScreen
           rebookOrderId={rebookOrderId}
           vehicle={vehicle}
+          quoteId={quoteId}
           visitorId={visitorId}
           visitorTracking={visitorTracking}
           onTracked={(number) => {

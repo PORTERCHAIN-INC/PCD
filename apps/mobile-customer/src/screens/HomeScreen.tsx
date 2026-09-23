@@ -69,6 +69,7 @@ export function HomeScreen({ onBook, onTrack }: Props) {
             <Pressable onPress={() => onTrack(order.tracking_number)}>
               <Text style={styles.rowTitle}>{order.tracking_number}</Text>
               <Text style={styles.lede}>
+                {order.goods_summary ? `${order.goods_summary} · ` : ""}
                 {order.state}
                 {order.amount_cents != null
                   ? ` · ${formatCad(order.amount_cents, order.currency)}`

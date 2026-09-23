@@ -17,6 +17,20 @@ import { Screen } from "../ui/Screen";
 
 type Segment = "orders" | "bookings" | "parcels" | "billing";
 
+const VEHICLE_LABELS: Record<string, string> = {
+  sedan_suv: "Sedan / SUV",
+  pickup: "Pickup",
+  cargo_van: "Cargo van",
+  box_16: "16 ft",
+  box_20: "20 ft",
+  sprinter_van: "Sprinter",
+};
+
+function vehicleLabel(id?: string | null) {
+  if (!id) return "vehicle";
+  return VEHICLE_LABELS[id] ?? id;
+}
+
 export function ActivityScreen({ onTrack }: { onTrack: (tracking: string) => void }) {
   const [segment, setSegment] = useState<Segment>("orders");
   const [data, setData] = useState<CustomerDashboard | null>(null);
@@ -117,8 +131,13 @@ export function ActivityScreen({ onTrack }: { onTrack: (tracking: string) => voi
                 <Text key={booking.booking_id} style={styles.rowText}>
                   {quote
                     ? quote.booking_mode === "vehicle"
-                      ? `Whole vehicle · ${quote.vehicle_class}`
-                      : `${quote.parcels?.length || 0} parcels · ${quote.vehicle_class}${
+                      ? `Whole vehicle · ${vehicleLabel(quote.vehicle_class)}`
+                      : `${
+                          quote.parcels
+                            ?.map((item) => item.preset_label)
+                            .filter(Boolean)
+                            .join(", ") || `${quote.parcels?.length || 0} parcels`
+                        } · ${vehicleLabel(quote.vehicle_class)}${
                           quote.declared_value_cents
                             ? ` · $${(quote.declared_value_cents / 100).toFixed(2)}`
                             : ""

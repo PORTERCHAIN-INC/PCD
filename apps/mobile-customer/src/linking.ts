@@ -1,7 +1,7 @@
 import * as Linking from "expo-linking";
 
 export type VisitorTracking = {
-  device: "ios";
+  device?: "ios" | "android";
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -15,6 +15,7 @@ export type AppLink = {
   screen: "sign-in" | "track" | "book";
   tracking?: string;
   vehicle?: string;
+  quoteId?: string;
   visitorId?: string;
   visitorTracking?: VisitorTracking;
 };
@@ -33,7 +34,6 @@ function visitorTrackingFromQuery(
   query: Record<string, string | string[] | undefined>
 ): VisitorTracking | undefined {
   const tracking: VisitorTracking = {
-    device: "ios",
     utm_source: queryString(query, "utm_source"),
     utm_medium: queryString(query, "utm_medium"),
     utm_campaign: queryString(query, "utm_campaign"),
@@ -52,6 +52,7 @@ export function screenFromUrl(url: string | null): AppLink | null {
   const path = parsed.path ?? "";
   const query = parsed.queryParams ?? {};
   const vehicle = queryString(query, "vehicle");
+  const quoteId = queryString(query, "quote_id");
   const visitorId = queryString(query, "pc_vid")?.slice(0, 64);
   const visitorTracking = visitorTrackingFromQuery(query);
   if (path.includes("track")) {
@@ -60,7 +61,8 @@ export function screenFromUrl(url: string | null): AppLink | null {
     const tracking = idx >= 0 ? parts[idx + 1] : undefined;
     return { screen: "track", tracking };
   }
-  if (path.includes("book")) return { screen: "book", vehicle, visitorId, visitorTracking };
+  if (path.includes("book"))
+    return { screen: "book", vehicle, quoteId, visitorId, visitorTracking };
   if (path.includes("login") || path.includes("sign-in")) return { screen: "sign-in" };
   return null;
 }

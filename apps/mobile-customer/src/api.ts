@@ -22,6 +22,9 @@ export type OrderResult = {
   pickup?: Address;
   dropoff?: Address;
   tracking_page_message?: string | null;
+  goods_summary?: string | null;
+  vehicle_class?: string | null;
+  booking_mode?: string | null;
 };
 
 export type OrderLiveTracking = {
@@ -139,6 +142,7 @@ export type RebookPayload = {
     weight_kg?: number;
   }> | null;
   declared_value_cents?: number | null;
+  additional_stops?: Address[] | null;
   source_order_id: string;
   tracking_number: string;
 };
@@ -159,8 +163,19 @@ export type QuoteResult = {
   weight_kg?: number | null;
   dimensions?: string | null;
   booking_mode?: string | null;
-  parcels?: Array<{ preset_label?: string; instructions?: string | null }> | null;
+  parcels?: Array<{
+    preset_id?: string;
+    preset_label?: string;
+    instructions?: string | null;
+    length_cm?: number;
+    width_cm?: number;
+    height_cm?: number;
+    weight_kg?: number;
+  }> | null;
   declared_value_cents?: number | null;
+  pickup?: Address;
+  dropoff?: Address;
+  additional_stops?: Address[] | null;
 };
 
 export type BookingStart = {

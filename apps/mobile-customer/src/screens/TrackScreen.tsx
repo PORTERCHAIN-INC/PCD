@@ -85,6 +85,7 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
           <Text style={styles.kicker}>Shipment</Text>
           <Text style={styles.status}>{status ?? order.state}</Text>
           <Text style={styles.meta}>{order.order_number}</Text>
+          {order.goods_summary ? <Text style={styles.meta}>{order.goods_summary}</Text> : null}
           {order.pickup?.formatted ? (
             <Text style={styles.meta}>Pickup: {order.pickup.formatted}</Text>
           ) : null}
