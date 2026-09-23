@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
@@ -14,10 +14,19 @@ import {
   createQuote,
   formatCents,
   getQuote,
+  previewQuote,
   mockCompleteCheckout,
   startBooking,
   type QuoteResult,
 } from "@/lib/booking";
+import CustomerMotion from "@/components/motion/CustomerMotion";
+import {
+  FieldSuggestions,
+  INSTRUCTION_OPTIONS,
+  VALUE_OPTIONS,
+  formatCanadianPhone,
+  parseDeclaredCents,
+} from "@/components/booking/FieldSuggestions";
 import { REBOOK_STORAGE_KEY } from "@/lib/api";
 import { isClerkConfigured, publicEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
@@ -27,23 +36,19 @@ import {
   getVisitorTrackingPayload,
 } from "@/lib/visitor-session";
 
-const VEHICLES = [
-  { id: "sedan", label: "Sedan" },
-  { id: "suv", label: "SUV" },
-  { id: "pickup", label: "Pickup" },
-  { id: "cargoVan", label: "Cargo van" },
-  { id: "highRoof", label: "High roof" },
-  { id: "box16", label: "16' box truck" },
-  { id: "box20", label: "20' box truck" },
-];
-
-const PACKAGES = [
-  { id: "looseParcel", label: "Parcel" },
-  { id: "documents", label: "Documents" },
-  { id: "medical", label: "Medical" },
-  { id: "furniture", label: "Furniture" },
-  { id: "foodBeverage", label: "Food & beverage" },
-];
+import ParcelEditor from "./ParcelEditor";
+import {
+  FALLBACK_PRESETS,
+  FALLBACK_VEHICLES,
+  blankParcel,
+  canonicalVehicle,
+  humanQuoteError,
+  nextFittingVehicle,
+  pieceFits,
+  type BookingPreset,
+  type BookingVehicle,
+  type ParcelDraft,
+} from "./parcelModel";
 
 const FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 focus-visible:ring-offset-2";
@@ -56,7 +61,33 @@ function toPayload(addr: BookingAddress) {
     lat: addr.lat,
     lng: addr.lng,
     place_id: addr.placeId,
+    postal: addr.postal,
   };
+}
+
+function placeChosen(address: BookingAddress, mapsOn: boolean): boolean {
+  if (!address.formatted.trim()) return false;
+  if (!mapsOn) return true;
+  return address.lat != null && address.lng != null && Boolean(address.placeId);
+}
+
+function editAddress(current: BookingAddress, next: string): BookingAddress {
+  return next === current.formatted ? current : { formatted: next };
+}
+
+function draftsFromSaved(items: Array<Record<string, unknown>> | null | undefined): ParcelDraft[] {
+  if (!items?.length) return [blankParcel()];
+  return items.map((item) => ({
+    preset_id: String(item.preset_id || "small"),
+    quantity: 1,
+    instructions: String(item.instructions || ""),
+    length_in: item.length_cm ? String(Math.round((Number(item.length_cm) / 2.54) * 10) / 10) : "",
+    width_in: item.width_cm ? String(Math.round((Number(item.width_cm) / 2.54) * 10) / 10) : "",
+    height_in: item.height_cm ? String(Math.round((Number(item.height_cm) / 2.54) * 10) / 10) : "",
+    weight_lb: item.weight_kg
+      ? String(Math.round((Number(item.weight_kg) / 0.45359237) * 10) / 10)
+      : "",
+  }));
 }
 
 function defaultScheduledAt(): string {
@@ -94,14 +125,37 @@ function CustomerBookDeliveryBody({
 
   useEffect(() => {
     captureVisitorHandoff(searchParams);
+    const requested = canonicalVehicle(searchParams.get("vehicle"));
+    if (requested) setVehicleClass(requested);
   }, [searchParams]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${publicEnv.porterchainApiUrl.replace(/\/$/, "")}/v1/booking-catalog`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body: { vehicles?: BookingVehicle[]; presets?: BookingPreset[] } | null) => {
+        if (cancelled || !body) return;
+        if (Array.isArray(body.vehicles) && body.vehicles.length) setVehicles(body.vehicles);
+        if (Array.isArray(body.presets) && body.presets.length) setPresets(body.presets);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const [step, setStep] = useState<Step>("details");
   const [pickup, setPickup] = useState<BookingAddress>({ formatted: "" });
   const [dropoff, setDropoff] = useState<BookingAddress>({ formatted: "" });
-  const [vehicleClass, setVehicleClass] = useState("cargoVan");
-  const [packageType, setPackageType] = useState("looseParcel");
-  const [weightKg, setWeightKg] = useState("");
+  const [vehicles, setVehicles] = useState<BookingVehicle[]>(FALLBACK_VEHICLES);
+  const [presets, setPresets] = useState<BookingPreset[]>(FALLBACK_PRESETS);
+  const [vehicleClass, setVehicleClass] = useState("sedan_suv");
+  const [bookingMode, setBookingMode] = useState<"parcels" | "vehicle">("parcels");
+  const [parcels, setParcels] = useState<ParcelDraft[]>([blankParcel()]);
+  const [declared, setDeclared] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const [extraStop, setExtraStop] = useState<BookingAddress>({ formatted: "" });
+  const [promo, setPromo] = useState("");
   const [scheduleMode, setScheduleMode] = useState<"now" | "later">("now");
   const [scheduledAt, setScheduledAt] = useState(defaultScheduledAt);
   const [phone, setPhone] = useState("");
@@ -109,6 +163,10 @@ function CustomerBookDeliveryBody({
   const [privacy, setPrivacy] = useState(false);
   const [dangerous, setDangerous] = useState(false);
   const [quote, setQuote] = useState<QuoteResult | null>(null);
+  const [liveFare, setLiveFare] = useState<{
+    amount_display: string;
+    distance_km?: number | null;
+  } | null>(null);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -123,6 +181,9 @@ function CustomerBookDeliveryBody({
         pickup?: { formatted?: string; lat?: number; lng?: number; place_id?: string };
         dropoff?: { formatted?: string; lat?: number; lng?: number; place_id?: string };
         vehicle_class?: string | null;
+        booking_mode?: "parcels" | "vehicle" | null;
+        parcels?: Array<Record<string, unknown>> | null;
+        declared_value_cents?: number | null;
       };
       if (payload.pickup?.formatted) {
         setPickup({
@@ -140,7 +201,13 @@ function CustomerBookDeliveryBody({
           placeId: payload.dropoff.place_id,
         });
       }
-      if (payload.vehicle_class) setVehicleClass(payload.vehicle_class);
+      if (payload.vehicle_class) setVehicleClass(canonicalVehicle(payload.vehicle_class));
+      if (payload.booking_mode === "vehicle" || payload.booking_mode === "parcels") {
+        setBookingMode(payload.booking_mode);
+      }
+      if (payload.parcels?.length) setParcels(draftsFromSaved(payload.parcels));
+      if (payload.declared_value_cents)
+        setDeclared((payload.declared_value_cents / 100).toFixed(2));
     } catch {
       /* ignore bad rebook payload */
     }
@@ -171,8 +238,13 @@ function CustomerBookDeliveryBody({
             placeId: resumed.dropoff.place_id,
           });
         }
-        if (resumed.vehicle_class) setVehicleClass(resumed.vehicle_class);
-        if (resumed.package_type) setPackageType(resumed.package_type);
+        if (resumed.vehicle_class) setVehicleClass(canonicalVehicle(resumed.vehicle_class));
+        if (resumed.booking_mode === "vehicle" || resumed.booking_mode === "parcels") {
+          setBookingMode(resumed.booking_mode);
+        }
+        if (resumed.parcels?.length) setParcels(draftsFromSaved(resumed.parcels));
+        if (resumed.declared_value_cents)
+          setDeclared((resumed.declared_value_cents / 100).toFixed(2));
         setQuote({
           quote_id: resumed.quote_id,
           state: resumed.state,
@@ -196,33 +268,104 @@ function CustomerBookDeliveryBody({
     };
   }, [handoffQuoteId]);
 
+  const quotePayload = useMemo(
+    () => ({
+      pickup: toPayload(pickup),
+      dropoff: toPayload(dropoff),
+      vehicle_class: vehicleClass,
+      booking_mode: bookingMode,
+      parcels:
+        bookingMode === "vehicle"
+          ? undefined
+          : parcels.map((parcel) => ({
+              preset_id: parcel.preset_id,
+              quantity: parcel.quantity,
+              instructions: parcel.instructions.trim() || undefined,
+              length_in: parcel.length_in ? Number(parcel.length_in) : undefined,
+              width_in: parcel.width_in ? Number(parcel.width_in) : undefined,
+              height_in: parcel.height_in ? Number(parcel.height_in) : undefined,
+              weight_lb: parcel.weight_lb ? Number(parcel.weight_lb) : undefined,
+            })),
+      declared_value_cents: parseDeclaredCents(declared),
+      special_instructions: instructions.trim() || undefined,
+      additional_stops: extraStop.formatted.trim() ? [toPayload(extraStop)] : undefined,
+      promo_code: promo.trim() || undefined,
+      scheduled_at:
+        scheduleMode === "now" ? new Date().toISOString() : new Date(scheduledAt).toISOString(),
+      schedule_mode: scheduleMode,
+      anonymous_session_id: getVisitorSessionId() ?? undefined,
+      visitor_session_id: getVisitorSessionId() ?? undefined,
+      tracking: getVisitorTrackingPayload(),
+    }),
+    [
+      pickup,
+      dropoff,
+      extraStop,
+      vehicleClass,
+      bookingMode,
+      parcels,
+      declared,
+      instructions,
+      promo,
+      scheduleMode,
+      scheduledAt,
+    ]
+  );
+
+  useEffect(() => {
+    if (step !== "details") return;
+    const mapsOn = Boolean(publicEnv.googleMapsApiKey);
+    if (!placeChosen(pickup, mapsOn) || !placeChosen(dropoff, mapsOn)) {
+      setLiveFare(null);
+      return;
+    }
+    if (extraStop.formatted.trim() && !placeChosen(extraStop, mapsOn)) {
+      setLiveFare(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      previewQuote(quotePayload)
+        .then((fare) => {
+          if (!cancelled)
+            setLiveFare({ amount_display: fare.amount_display, distance_km: fare.distance_km });
+        })
+        .catch(() => {
+          if (!cancelled) setLiveFare(null);
+        });
+    }, 450);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [quotePayload, step, pickup, dropoff, extraStop]);
+
   async function onGetQuote() {
-    if (!pickup.formatted || !dropoff.formatted) {
-      setError("Enter pickup and drop-off addresses.");
+    const mapsOn = Boolean(publicEnv.googleMapsApiKey);
+    if (!placeChosen(pickup, mapsOn)) {
+      setError("Choose the pickup address from the Google suggestions.");
+      return;
+    }
+    if (!placeChosen(dropoff, mapsOn)) {
+      setError("Choose the drop-off address from the Google suggestions.");
+      return;
+    }
+    if (extraStop.formatted.trim() && !placeChosen(extraStop, mapsOn)) {
+      setError("Choose the extra stop from the Google suggestions, or clear it.");
+      return;
+    }
+    if (scheduleMode === "later" && Number.isNaN(new Date(scheduledAt).getTime())) {
+      setError("Pick a pickup time between 6:00 and 22:00.");
       return;
     }
     setLoading(true);
     setError("");
     try {
-      const scheduled =
-        scheduleMode === "now" ? new Date().toISOString() : new Date(scheduledAt).toISOString();
-      const sessionId = getVisitorSessionId() ?? undefined;
-      const result = await createQuote({
-        pickup: toPayload(pickup),
-        dropoff: toPayload(dropoff),
-        vehicle_class: vehicleClass,
-        package_type: packageType,
-        weight_kg: weightKg ? Number(weightKg) : undefined,
-        scheduled_at: scheduled,
-        schedule_mode: scheduleMode,
-        anonymous_session_id: sessionId,
-        visitor_session_id: sessionId,
-        tracking: getVisitorTrackingPayload(),
-      });
+      const result = await createQuote(quotePayload);
       setQuote(result);
       setStep("quote");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not get quote");
+      setError(humanQuoteError(err instanceof Error ? err.message : "Could not get quote"));
     } finally {
       setLoading(false);
     }
@@ -274,6 +417,7 @@ function CustomerBookDeliveryBody({
   if (step === "confirmed") {
     return (
       <div className="rounded-2xl border border-emerald-200 bg-white p-8 text-center shadow-sm">
+        <CustomerMotion name="shipment" size={150} />
         <h1 className="text-2xl font-bold text-primary">Booking confirmed</h1>
         <p className="mt-2 text-sm text-muted">
           Your delivery is booked and will appear on your dashboard.
@@ -353,24 +497,63 @@ function CustomerBookDeliveryBody({
               <AddressAutocompleteInput
                 id="customer-pickup"
                 value={pickup.formatted}
-                onChange={(v) => setPickup((p) => ({ ...p, formatted: v }))}
-                onPlaceSelect={setPickup}
+                onChange={(v) => {
+                  setPickup((p) => editAddress(p, v));
+                  setQuote(null);
+                }}
+                onPlaceSelect={(next) => {
+                  setPickup(next);
+                  setQuote(null);
+                }}
                 placeholder="Pickup address"
                 apiKey={publicEnv.googleMapsApiKey}
               />
+              {pickup.postal ? (
+                <p className="mt-1 text-xs text-muted">Google · {pickup.postal}</p>
+              ) : null}
             </label>
             <label className="block text-sm">
               <span className="mb-2 block font-medium text-primary">Drop-off</span>
               <AddressAutocompleteInput
                 id="customer-dropoff"
                 value={dropoff.formatted}
-                onChange={(v) => setDropoff((p) => ({ ...p, formatted: v }))}
-                onPlaceSelect={setDropoff}
+                onChange={(v) => {
+                  setDropoff((p) => editAddress(p, v));
+                  setQuote(null);
+                }}
+                onPlaceSelect={(next) => {
+                  setDropoff(next);
+                  setQuote(null);
+                }}
                 placeholder="Delivery address"
                 apiKey={publicEnv.googleMapsApiKey}
               />
+              {dropoff.postal ? (
+                <p className="mt-1 text-xs text-muted">Google · {dropoff.postal}</p>
+              ) : null}
             </label>
           </div>
+
+          <label className="block text-sm">
+            <span className="mb-2 block font-medium text-primary">Extra stop (optional)</span>
+            <AddressAutocompleteInput
+              id="customer-extra-stop"
+              value={extraStop.formatted}
+              onChange={(v) => {
+                setExtraStop((p) => editAddress(p, v));
+                setQuote(null);
+              }}
+              onPlaceSelect={(next) => {
+                setExtraStop(next);
+                setQuote(null);
+              }}
+              placeholder="Stop between pickup and drop-off"
+              apiKey={publicEnv.googleMapsApiKey}
+            />
+            {extraStop.postal ? (
+              <p className="mt-1 text-xs text-muted">Google · {extraStop.postal}</p>
+            ) : null}
+          </label>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label htmlFor="customer-vehicle" className="block text-sm">
@@ -378,46 +561,101 @@ function CustomerBookDeliveryBody({
               <select
                 id="customer-vehicle"
                 value={vehicleClass}
-                onChange={(e) => setVehicleClass(e.target.value)}
+                onChange={(e) => {
+                  setVehicleClass(e.target.value);
+                  setQuote(null);
+                }}
                 className={`w-full rounded-xl border border-primary/10 px-4 py-3 ${FOCUS_RING}`}
               >
-                {VEHICLES.map((v) => (
+                {vehicles.map((v) => (
                   <option key={v.id} value={v.id}>
                     {v.label}
+                    {v.included_km ? ` · includes ${v.included_km} km` : ""}
                   </option>
                 ))}
               </select>
             </label>
-            <label htmlFor="customer-package" className="block text-sm">
-              <span className="mb-2 block font-medium text-primary">Package type</span>
-              <select
-                id="customer-package"
-                value={packageType}
-                onChange={(e) => setPackageType(e.target.value)}
-                className={`w-full rounded-xl border border-primary/10 px-4 py-3 ${FOCUS_RING}`}
-              >
-                {PACKAGES.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="block text-sm">
+              <span className="mb-2 block font-medium text-primary">What are we moving</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className={`flex-1 rounded-xl border px-3 py-3 text-sm ${bookingMode === "parcels" ? "border-secondary bg-secondary/10" : "border-primary/10"}`}
+                  onClick={() => {
+                    setBookingMode("parcels");
+                    setQuote(null);
+                  }}
+                >
+                  Parcels
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 rounded-xl border px-3 py-3 text-sm ${bookingMode === "vehicle" ? "border-secondary bg-secondary/10" : "border-primary/10"}`}
+                  onClick={() => {
+                    setBookingMode("vehicle");
+                    setQuote(null);
+                  }}
+                >
+                  Whole vehicle
+                </button>
+              </div>
+            </div>
           </div>
 
+          {bookingMode === "parcels" &&
+            (() => {
+              const current = vehicles.find((item) => item.id === vehicleClass);
+              const fitsHere =
+                !current ||
+                parcels.every((draft) =>
+                  pieceFits(
+                    current,
+                    draft,
+                    presets.find((preset) => preset.id === draft.preset_id)
+                  )
+                );
+              const next = fitsHere
+                ? null
+                : nextFittingVehicle(
+                    vehicles.filter((item) => item.id !== vehicleClass),
+                    parcels,
+                    presets
+                  );
+              if (!next) return null;
+              return (
+                <p className="text-sm text-primary">
+                  This piece fits{" "}
+                  <button
+                    type="button"
+                    className="font-semibold text-secondary underline"
+                    onClick={() => {
+                      setVehicleClass(next.id);
+                      setQuote(null);
+                    }}
+                  >
+                    {next.label}
+                  </button>
+                  .
+                </p>
+              );
+            })()}
+
+          {bookingMode === "parcels" && (
+            <ParcelEditor
+              parcels={parcels}
+              presets={presets.filter((preset) => {
+                const vehicle = vehicles.find((item) => item.id === vehicleClass);
+                const allowed = vehicle?.allowed_presets;
+                return !allowed?.length || allowed.includes(preset.id);
+              })}
+              onChange={(next) => {
+                setParcels(next);
+                setQuote(null);
+              }}
+            />
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm">
-              <span className="mb-2 block font-medium text-primary">Weight (kg, optional)</span>
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={weightKg}
-                onChange={(e) => setWeightKg(e.target.value)}
-                className="w-full rounded-xl border border-primary/10 px-4 py-3"
-                placeholder="e.g. 5"
-              />
-            </label>
             <div className="block text-sm">
               <span className="mb-2 block font-medium text-primary">Schedule</span>
               <div className="flex gap-2">
@@ -453,6 +691,62 @@ function CustomerBookDeliveryBody({
             </div>
           </div>
 
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-sm">
+              <span className="mb-2 block font-medium text-primary">
+                Declared value for the whole booking, CAD (optional)
+              </span>
+              <input
+                inputMode="decimal"
+                value={declared}
+                onChange={(e) => setDeclared(e.target.value)}
+                className="w-full rounded-xl border border-primary/10 px-4 py-3"
+                placeholder="Or type dollars"
+              />
+              <FieldSuggestions value={declared} onChange={setDeclared} options={VALUE_OPTIONS} />
+            </label>
+          </div>
+
+          <label className="block text-sm">
+            <span className="mb-2 block font-medium text-primary">
+              Instructions for the driver (optional)
+            </span>
+            <input
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              className="w-full rounded-xl border border-primary/10 px-4 py-3"
+              placeholder="Or type your own note"
+            />
+            <FieldSuggestions
+              value={instructions}
+              onChange={setInstructions}
+              options={INSTRUCTION_OPTIONS}
+            />
+          </label>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-sm">
+              <span className="mb-2 block font-medium text-primary">Phone</span>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(formatCanadianPhone(e.target.value))}
+                className="w-full rounded-xl border border-primary/10 px-4 py-3"
+                placeholder="+1 xxx-xxx-xxxx"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="mb-2 block font-medium text-primary">Promo code (optional)</span>
+              <input
+                value={promo}
+                onChange={(e) => setPromo(e.target.value.toUpperCase())}
+                className="w-full rounded-xl border border-primary/10 px-4 py-3"
+                placeholder="Promo code"
+                autoCapitalize="characters"
+              />
+            </label>
+          </div>
+
           {scheduleMode === "later" && (
             <div className="block text-sm">
               <span className="mb-2 block font-medium text-primary">Pickup date & time</span>
@@ -469,6 +763,14 @@ function CustomerBookDeliveryBody({
               />
             </div>
           )}
+
+          {liveFare ? (
+            <p className="text-sm font-medium text-primary">
+              Estimated fare {liveFare.amount_display}
+              {liveFare.distance_km != null ? ` · ${liveFare.distance_km} km` : ""}. Save the quote
+              before paying.
+            </p>
+          ) : null}
 
           <button
             type="button"
@@ -493,6 +795,7 @@ function CustomerBookDeliveryBody({
           <ul className="mt-4 space-y-2 text-sm text-muted">
             <li>From: {pickup.formatted}</li>
             <li>To: {dropoff.formatted}</li>
+            {extraStop.formatted ? <li>Stop: {extraStop.formatted}</li> : null}
           </ul>
           {quote.pricing_breakdown && quote.pricing_breakdown.length > 0 && (
             <ul className="mt-4 space-y-1 border-t border-primary/10 pt-4 text-sm">
@@ -514,7 +817,10 @@ function CustomerBookDeliveryBody({
             </button>
             <button
               type="button"
-              onClick={() => setStep("details")}
+              onClick={() => {
+                setQuote(null);
+                setStep("details");
+              }}
               className="rounded-xl border border-primary/10 px-6 py-3 text-sm font-medium"
             >
               Edit details
@@ -530,17 +836,7 @@ function CustomerBookDeliveryBody({
             Total: <strong>{quote.amount_display || formatCents(quote.amount_cents)}</strong>
           </p>
           <p className="mt-1 text-sm text-muted">Signed in as {email}</p>
-
-          <label className="mt-6 block text-sm">
-            <span className="mb-2 block font-medium text-primary">Phone (optional)</span>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full rounded-xl border border-primary/10 px-4 py-3"
-              placeholder="+1 …"
-            />
-          </label>
+          <p className="mt-1 text-sm text-muted">{phone || "No phone on this booking"}</p>
 
           <fieldset className="mt-6 space-y-3 text-sm">
             <legend className="sr-only">Required declarations</legend>

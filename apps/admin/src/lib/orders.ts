@@ -96,6 +96,8 @@ export const orderDetailSchema = orderRowSchema.extend({
   weight_kg: z.number().nullable().optional(),
   dimensions: z.string().nullable().optional(),
   declared_value_cents: z.number().nullable().optional(),
+  booking_mode: z.string().nullable().optional(),
+  parcels: z.array(z.record(z.string(), z.unknown())).optional(),
   distance_meters: z.number().nullable().optional(),
   quote_amount_cents: z.number().nullable().optional(),
   pricing_breakdown: z.record(z.string(), z.unknown()).nullable().optional(),

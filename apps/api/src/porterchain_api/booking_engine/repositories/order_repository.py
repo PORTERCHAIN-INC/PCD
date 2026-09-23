@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import func
+from sqlalchemy import func, or_, text
 from sqlalchemy.orm import Query, Session
 
 from porterchain_api.domain.tenant_access import assert_order_visible
@@ -17,6 +17,16 @@ def _same_text(column, value: str):
     ``_``, and those must be characters to match, not wildcards.
     """
     return func.lower(column) == value.lower()
+
+
+def _stop_external_ref_is(value: str):
+    """A stop in ``compliance_metadata.stops`` carries this merchant reference (CSV row)."""
+    return text(
+        "EXISTS (SELECT 1 FROM jsonb_array_elements("
+        "CASE WHEN jsonb_typeof(orders.compliance_metadata::jsonb -> 'stops') = 'array' "
+        "THEN orders.compliance_metadata::jsonb -> 'stops' ELSE '[]'::jsonb END"
+        ") AS stop(value) WHERE lower(stop.value ->> 'external_ref') = lower(:stop_ref))"
+    ).bindparams(stop_ref=value)
 
 
 class OrderRepository:
@@ -113,11 +123,12 @@ class OrderRepository:
         merchant_id: str,
         query: str,
     ) -> list[Order]:
-        """Tracking number, order number, or PO — exact, case-insensitive, company-scoped (BK).
+        """Tracking number, order number, PO, or a stop's CSV reference — exact,
+        case-insensitive, company-scoped (BK).
 
         Tracking and order numbers are unique, so a hit on either wins outright.
-        A PO is the customer's own reference and can cover several drops, so every
-        match is returned newest first and the caller decides what to show.
+        A PO or stop reference is the customer's own number and can cover several
+        drops, so every match is returned newest first and the caller decides.
         """
         q = (query or "").strip()
         if not q:
@@ -133,7 +144,7 @@ class OrderRepository:
             db.query(Order)
             .filter(
                 Order.merchant_id == merchant_id,
-                _same_text(Order.purchase_order_number, q),
+                or_(_same_text(Order.purchase_order_number, q), _stop_external_ref_is(q)),
             )
             .order_by(Order.created_at.desc())
             .all()

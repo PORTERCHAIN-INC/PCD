@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
-from porterchain_api.merchant_engine.address_normalize import compose_raw_from_parts
+from porterchain_api.merchant_engine.address_normalize import compose_raw_from_parts, normalize_address
 from porterchain_api.merchant_engine.stop_cargo import clean_packages, legacy_cargo, write_legacy_cargo
 
 _KG_PER_LB = 0.45359237
@@ -109,7 +110,96 @@ def collapse_parcel_rows(stops: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [grouped[key] for key in order if grouped[key].get("address")]
 
 
+_REGION_WORDS = frozenset({"on", "ont", "ontario", "canada", "ca"})
+
+
+def _same_address_key(raw: str) -> str:
+    """Same place typed two ways ("91 Breton Ave, Mississauga" / "91 breton avenue
+    mississauga") gives the same key."""
+    query = normalize_address(raw).geocode_query.lower()
+    words = re.sub(r"[^\w\s]", " ", query).split()
+    seen: list[str] = []
+    for word in words:
+        if word not in _REGION_WORDS and word not in seen:
+            seen.append(word)
+    return " ".join(seen)
+
+
+def _is_pair_sheet(mapped_rows: list[dict[str, Any]]) -> bool:
+    return any(optional_text(r.get("pickup_address")) or optional_text(r.get("dropoff_address")) for r in mapped_rows)
+
+
+def _merchant_sequence(row: dict[str, Any]) -> int | None:
+    try:
+        return int(float(row["sequence"])) if row.get("sequence") not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
+def pair_rows_to_stops(mapped_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One row = pickup cell + dropoff cell. Every row shares one pickup; drops merge by
+    sequence (when given) or by the same dropoff address."""
+    pickup: dict[str, Any] | None = None
+    pickup_key: str | None = None
+    drops: dict[str, dict[str, Any]] = {}
+    first_seen: dict[str, tuple[int, int]] = {}
+
+    for i, row in enumerate(mapped_rows):
+        pickup_raw = optional_text(row.get("pickup_address"))
+        if pickup_raw:
+            key = _same_address_key(pickup_raw)
+            if pickup is None:
+                pickup = {
+                    "sequence": 1,
+                    "row": i + 2,
+                    "stop_type": "pickup",
+                    "address": pickup_raw,
+                    "packages": [],
+                }
+                pickup_key = key
+            elif key != pickup_key:
+                raise ValueError("route_import_multiple_pickups")
+
+        drop_raw = optional_text(row.get("dropoff_address"))
+        if not drop_raw:
+            continue
+        seq = _merchant_sequence(row)
+        drop_key = f"seq:{seq}" if seq is not None else f"addr:{_same_address_key(drop_raw)}"
+        packages = packages_from_row(row, i + 2)
+        if drop_key in drops:
+            drops[drop_key]["packages"].extend(packages)
+            continue
+        first_seen[drop_key] = (seq if seq is not None else i, i)
+        drops[drop_key] = {
+            "row": i + 2,
+            "stop_type": "drop",
+            "address": drop_raw,
+            "unit": row.get("unit"),
+            "city": row.get("city"),
+            "province": row.get("province"),
+            "postal": row.get("postal"),
+            "contact_name": row.get("contact_name"),
+            "contact_phone": row.get("contact_phone"),
+            "external_ref": row.get("external_ref"),
+            "notes": row.get("notes"),
+            "lat": None,
+            "lng": None,
+            "packages": packages,
+        }
+
+    if pickup is None:
+        return list(drops.values())
+    ordered = sorted(drops, key=lambda k: first_seen[k])
+    stops = [pickup]
+    for n, key in enumerate(ordered, start=2):
+        drops[key]["sequence"] = n
+        stops.append(drops[key])
+    return stops
+
+
 def rows_to_stops(mapped_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if _is_pair_sheet(mapped_rows):
+        return pair_rows_to_stops(mapped_rows)
     stops: list[dict[str, Any]] = []
     for i, row in enumerate(mapped_rows):
         address = compose_raw_from_parts(row)

@@ -37,20 +37,30 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.porterchain.com",
         "EXPO_PUBLIC_APP_ENV": "preview",
-        "EXPO_PUBLIC_ALLOW_DEV_AUTH": "false"
+        "EXPO_PUBLIC_ALLOW_DEV_AUTH": "false",
+        "EXPO_USE_PRECOMPILED_MODULES": "0"
       }
     },
     "production": {
       "autoIncrement": true,
       "environment": "production",
+      "node": "24.18.0",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.porterchain.com",
         "EXPO_PUBLIC_APP_ENV": "production",
-        "EXPO_PUBLIC_ALLOW_DEV_AUTH": "false"
+        "EXPO_PUBLIC_ALLOW_DEV_AUTH": "false",
+        "EXPO_USE_PRECOMPILED_MODULES": "0"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "porterchaininc@gmail.com",
+        "ascAppId": "6781880626",
+        "appleTeamId": "4XWFT5A8C3",
+        "bundleIdentifier": "com.porterchain.PCD"
+      }
+    }
   }
 }

@@ -91,6 +91,8 @@ VEHICLE_ALIAS: dict[str, str] = {
 
 _VEHICLE_RATE_KEYS = ("base_price", "extra_km_rate", "extra_pick_fee", "extra_drop_fee")
 
+CUSTOMER_VEHICLE_IDS = ("sedan_suv", "cargo_van", "pickup", "sprinter_van", "box_16", "box_20")
+
 
 @dataclass
 class GtaRateConfig:
@@ -102,17 +104,42 @@ class GtaRateConfig:
     vehicles: dict[str, dict[str, float]] = field(
         default_factory=lambda: deepcopy(DEFAULT_VEHICLE_MATRIX)
     )
+    #: Customer distance card: a missing vehicle is no price, not another class.
+    strict_vehicles: bool = False
+    weight_threshold_kg: float | None = None
+    weight_cents_per_kg: int | None = None
+    volume_threshold_cm3: float | None = None
+    cents_per_10k_cm3: int | None = None
+    declared_value_threshold_cents: int | None = None
+    declared_value_rate: float | None = None
 
     def vehicle(self, matrix_key: str) -> dict[str, float]:
-        return self.vehicles.get(matrix_key) or DEFAULT_VEHICLE_MATRIX[matrix_key]
+        row = self.vehicles.get(matrix_key)
+        if row:
+            return row
+        if self.strict_vehicles or matrix_key not in DEFAULT_VEHICLE_MATRIX:
+            raise ValueError("vehicle_rate_missing")
+        return DEFAULT_VEHICLE_MATRIX[matrix_key]
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "base_km_limit": self.base_km_limit,
             "downtown_fee_cad": self.downtown_fee_cad,
             "upper_zone_fee_cad": self.upper_zone_fee_cad,
             "vehicles": {k: dict(v) for k, v in self.vehicles.items()},
         }
+        for key in (
+            "weight_threshold_kg",
+            "weight_cents_per_kg",
+            "volume_threshold_cm3",
+            "cents_per_10k_cm3",
+            "declared_value_threshold_cents",
+            "declared_value_rate",
+        ):
+            value = getattr(self, key)
+            if value is not None:
+                out[key] = value
+        return out
 
 
 def default_gta_rate_config() -> GtaRateConfig:
@@ -138,9 +165,19 @@ def gta_rate_config_from_dict(
             if not isinstance(rates, dict):
                 continue
             matrix_key = _LEGACY_MATRIX_KEYS.get(str(key), str(key))
-            if matrix_key not in DEFAULT_VEHICLE_MATRIX and matrix_key not in vehicles:
+            if (
+                matrix_key not in DEFAULT_VEHICLE_MATRIX
+                and matrix_key not in vehicles
+                and matrix_key not in CUSTOMER_VEHICLE_IDS
+            ):
                 continue
-            merged = dict(vehicles.get(matrix_key) or DEFAULT_VEHICLE_MATRIX.get(matrix_key, {}))
+            seed = vehicles.get(matrix_key) or DEFAULT_VEHICLE_MATRIX.get(matrix_key) or {
+                "base_price": 0.0,
+                "extra_km_rate": 0.0,
+                "extra_pick_fee": 0.0,
+                "extra_drop_fee": 0.0,
+            }
+            merged = dict(seed)
             for rk in _VEHICLE_RATE_KEYS:
                 if rk in rates and rates[rk] is not None:
                     merged[rk] = float(rates[rk])
@@ -157,7 +194,68 @@ def gta_rate_config_from_dict(
             else card.upper_zone_fee_cad
         ),
         vehicles=vehicles,
+        strict_vehicles=bool(data.get("strict_vehicles", card.strict_vehicles)),
+        weight_threshold_kg=_optional_float(data, "weight_threshold_kg", card.weight_threshold_kg),
+        weight_cents_per_kg=_optional_int(data, "weight_cents_per_kg", card.weight_cents_per_kg),
+        volume_threshold_cm3=_optional_float(data, "volume_threshold_cm3", card.volume_threshold_cm3),
+        cents_per_10k_cm3=_optional_int(data, "cents_per_10k_cm3", card.cents_per_10k_cm3),
+        declared_value_threshold_cents=_optional_int(
+            data, "declared_value_threshold_cents", card.declared_value_threshold_cents
+        ),
+        declared_value_rate=_optional_float(data, "declared_value_rate", card.declared_value_rate),
     )
+
+
+def _optional_float(data: Mapping[str, Any], key: str, fallback: float | None) -> float | None:
+    if key not in data or data.get(key) is None or data.get(key) == "":
+        return fallback
+    return float(data[key])
+
+
+def _optional_int(data: Mapping[str, Any], key: str, fallback: int | None) -> int | None:
+    if key not in data or data.get(key) is None or data.get(key) == "":
+        return fallback
+    return int(data[key])
+
+
+def default_customer_distance_dict() -> dict[str, Any]:
+    """Day-one customer card, collapsed from the current merchant distance rates."""
+    sedan = DEFAULT_VEHICLE_MATRIX["sedan"]
+    box = DEFAULT_VEHICLE_MATRIX["box_truck"]
+    return {
+        "strict_vehicles": True,
+        "base_km_limit": DEFAULT_BASE_KM_LIMIT,
+        "downtown_fee_cad": DEFAULT_DOWNTOWN_FEE_CAD,
+        "upper_zone_fee_cad": DEFAULT_UPPER_ZONE_FEE_CAD,
+        "weight_threshold_kg": 50,
+        "weight_cents_per_kg": 0,
+        "volume_threshold_cm3": 100_000,
+        "cents_per_10k_cm3": 0,
+        "declared_value_threshold_cents": 0,
+        "declared_value_rate": 0,
+        "vehicles": {
+            "sedan_suv": dict(sedan),
+            "cargo_van": dict(DEFAULT_VEHICLE_MATRIX["cargo_van"]),
+            "pickup": dict(DEFAULT_VEHICLE_MATRIX["pickup"]),
+            "sprinter_van": dict(DEFAULT_VEHICLE_MATRIX["sprinter_van"]),
+            "box_16": dict(box),
+            "box_20": dict(box),
+        },
+    }
+
+
+def customer_gta_from_dict(data: dict[str, Any] | None) -> GtaRateConfig:
+    """Customer card only. Unknown vehicles are kept; missing ones are not filled from sedan."""
+    raw = data if isinstance(data, dict) else default_customer_distance_dict()
+    empty = GtaRateConfig(vehicles={}, strict_vehicles=True)
+    card = gta_rate_config_from_dict(raw, base=empty)
+    card.strict_vehicles = True
+    card.vehicles = {
+        key: rates
+        for key, rates in card.vehicles.items()
+        if key in CUSTOMER_VEHICLE_IDS
+    }
+    return card
 
 
 def merge_merchant_gta_overlay(system: GtaRateConfig, merchant_config: dict[str, Any] | None) -> GtaRateConfig:
@@ -209,26 +307,69 @@ class GtaRateResult:
         return int(round(self.upper_zone_fee_cad * 100))
 
 
+# Retail catalog ids. Applied only when that id is actually on the rate card,
+# so a merchant card that still stores sedan and suv separately keeps both.
+_CATALOG_COLLAPSE = {
+    "sedan": "sedan_suv",
+    "suv": "sedan_suv",
+    "sedan_suv": "sedan_suv",
+    "sedansuv": "sedan_suv",
+    "box16": "box_16",
+    "box_16": "box_16",
+    "box16ft": "box_16",
+    "box_truck": "box_16",
+    "boxtruck": "box_16",
+    "box20": "box_20",
+    "box_20": "box_20",
+    "cargovan": "cargo_van",
+    "cargo_van": "cargo_van",
+    "pickup": "pickup",
+    "pickup_truck": "pickup",
+    "highroof": "sprinter_van",
+    "high_roof": "sprinter_van",
+    "sprinter": "sprinter_van",
+    "sprinter_van": "sprinter_van",
+    "sprintervans": "sprinter_van",
+}
+
+
+def vehicle_classes_match(stored: str | None, requested: str | None) -> bool:
+    """A saved suv or box_truck row still matches the merged catalog id."""
+    if not stored:
+        return True
+    if not requested:
+        return False
+    if stored == requested:
+        return True
+
+    def canon(value: str) -> str:
+        key = value.strip().lower().replace("-", "_").replace(" ", "_")
+        compact = key.replace("_", "")
+        return _CATALOG_COLLAPSE.get(key) or _CATALOG_COLLAPSE.get(compact) or key
+
+    return canon(stored) == canon(requested)
+
+
 def normalize_vehicle_type(vehicle_type: str, *, known: Mapping[str, Any] | None = None) -> str:
     matrix = known or DEFAULT_VEHICLE_MATRIX
     raw = (vehicle_type or "").strip()
     if not raw:
         raise ValueError("Invalid vehicle type selected.")
-    if raw in VEHICLE_ALIAS:
-        return VEHICLE_ALIAS[raw]
     key = raw.lower().replace("-", "_").replace(" ", "_")
     compact = key.replace("_", "")
-    if key in matrix:
-        return key
-    if key in VEHICLE_ALIAS:
-        return VEHICLE_ALIAS[key]
-    if compact in VEHICLE_ALIAS:
-        return VEHICLE_ALIAS[compact]
     snake = "".join(f"_{c.lower()}" if c.isupper() else c for c in raw).lstrip("_").lower()
-    if snake in VEHICLE_ALIAS:
-        return VEHICLE_ALIAS[snake]
-    if snake in matrix:
-        return snake
+    candidates = [raw, key, compact, snake]
+    for candidate in candidates:
+        if candidate in matrix:
+            return candidate
+    for candidate in candidates:
+        alias = VEHICLE_ALIAS.get(candidate)
+        if alias and alias in matrix:
+            return alias
+    for candidate in candidates:
+        collapsed = _CATALOG_COLLAPSE.get(candidate) or _CATALOG_COLLAPSE.get(candidate.replace("_", ""))
+        if collapsed and collapsed in matrix:
+            return collapsed
     raise ValueError("Invalid vehicle type selected.")
 
 

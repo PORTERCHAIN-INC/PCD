@@ -618,6 +618,16 @@ function OverviewTab({
         <div>
           <h3 className="mb-3 font-semibold text-primary">Shipment</h3>
           <Row label="Service" value={detail.service_type || detail.vehicle_class || "—"} />
+          <Row
+            label="Goods"
+            value={
+              detail.booking_mode === "vehicle"
+                ? "Whole vehicle"
+                : (detail.parcels ?? [])
+                    .map((parcel) => String(parcel.preset_label || parcel.name || "Parcel"))
+                    .join(", ") || "—"
+            }
+          />
           <Row label="Pickup" value={detail.pickup} />
           <Row label="Destination" value={detail.destination} />
           <Row label="Special instructions" value={detail.special_instructions || "—"} />

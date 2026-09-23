@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { endShift, startShift } from "../api";
+import { endShift, probeApi, startShift } from "../api";
 import { idleHandshake, runHandshake } from "../handshake";
 import {
   requestLocationAccess,
@@ -13,6 +13,8 @@ import {
   runOnlineOrQueue,
   type FlushResult,
 } from "../offline";
+import { collectPush } from "../push";
+import { getSessionSnapshot, subscribeSession } from "../session";
 import type { Handshake, LocationState } from "../types";
 
 const OFFLINE_POLL_MS = 30_000;
@@ -24,6 +26,9 @@ export function useFieldSession() {
   const [offlinePending, setOfflinePending] = useState(0);
   const [offlineNote, setOfflineNote] = useState<string | null>(null);
   const [lastFlush, setLastFlush] = useState<FlushResult | null>(null);
+  const [signedIn, setSignedIn] = useState(() => getSessionSnapshot().signedIn);
+
+  useEffect(() => subscribeSession(() => setSignedIn(getSessionSnapshot().signedIn)), []);
 
   const refreshOfflineCount = useCallback(async () => {
     setOfflinePending(await pendingOfflineCount());
@@ -64,9 +69,34 @@ export function useFieldSession() {
     }
   }, [applyFlush, location, refreshOfflineCount]);
 
+  // Full /me handshake only after Clerk is live — unsigned mount used to paint a false auth error.
   useEffect(() => {
+    if (!signedIn) return;
     void refreshHandshake();
-  }, [refreshHandshake]);
+  }, [refreshHandshake, signedIn]);
+
+  // Unsigned: probe API + push only (no /me) so the sign-in screen still shows push status.
+  useEffect(() => {
+    if (signedIn) return;
+    let cancelled = false;
+    void (async () => {
+      const next = idleHandshake();
+      next.location = location;
+      try {
+        next.api = (await probeApi()) ? "up" : "down";
+        if (next.api === "down") {
+          next.error = "API unreachable — start Porterchain API on :8001";
+        }
+        next.push = await collectPush().catch(() => next.push);
+      } catch {
+        /* keep idle */
+      }
+      if (!cancelled) setHandshake(next);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [location, signedIn]);
 
   useEffect(() => {
     const timer = setInterval(() => {

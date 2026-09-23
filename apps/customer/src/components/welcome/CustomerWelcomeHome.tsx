@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FileText, MapPinned, MessageCircle, Package, ShieldCheck, Truck } from "lucide-react";
+import CustomerMotion from "@/components/motion/CustomerMotion";
 import Marquee from "@/components/magic/Marquee";
 import ShimmerLink from "@/components/magic/ShimmerLink";
 import { customerApi, REBOOK_STORAGE_KEY, type CustomerDashboard } from "@/lib/api";
@@ -18,8 +19,8 @@ const HIGHLIGHTS = [
 const FLEET = [
   {
     src: "/images/brand/vehicles/sedan.jpg",
-    alt: "Sedan delivery capacity",
-    label: "Sedan",
+    alt: "Sedan and SUV delivery capacity",
+    label: "Sedan / SUV",
   },
   {
     src: "/images/brand/vehicles/cargo-van.jpg",
@@ -106,7 +107,10 @@ export default function CustomerWelcomeHome({ dashboard, error, getToken }: Prop
                 <span className="block truncate font-mono text-sm font-semibold">
                   {active.tracking_number}
                 </span>
-                <span className="block text-xs text-accent">{active.state}</span>
+                <span className="block text-xs text-accent">
+                  {active.goods_summary ? `${active.goods_summary} · ` : ""}
+                  {active.state}
+                </span>
               </span>
             </Link>
           ) : null}
@@ -191,10 +195,13 @@ export default function CustomerWelcomeHome({ dashboard, error, getToken }: Prop
       >
         <h2 className="text-sm font-semibold text-primary sm:text-base">Recent activity</h2>
         {!hasHistory && !active ? (
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
-            No shipments yet. Get a quote and book your first delivery — tracking and invoices show
-            up here.
-          </p>
+          <div className="mt-2 flex flex-col items-center px-2 py-2 text-center">
+            <CustomerMotion name="shipment" size={148} />
+            <p className="max-w-xl text-sm leading-relaxed text-muted">
+              No shipments yet. Get a quote and book your first delivery — tracking and invoices
+              show up here.
+            </p>
+          </div>
         ) : (
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {(dashboard?.orders ?? []).slice(0, 4).map((o) => (
@@ -209,7 +216,10 @@ export default function CustomerWelcomeHome({ dashboard, error, getToken }: Prop
                   <span className="block font-mono text-xs font-semibold text-secondary">
                     {o.tracking_number}
                   </span>
-                  <span className="text-xs text-muted">{o.state}</span>
+                  <span className="text-xs text-muted">
+                    {o.goods_summary ? `${o.goods_summary} · ` : ""}
+                    {o.state}
+                  </span>
                 </Link>
                 <button
                   type="button"

@@ -34,6 +34,8 @@ class PricingRequest:
     service_type: str = "same_day"
     weight_kg: float | None = None
     dimensions: dict[str, float] | str | None = None
+    #: Sum of parcel volumes in cm³. When set, oversize uses this instead of one box.
+    volume_cm3: float | None = None
     declared_value_cents: int | None = None
     schedule_mode: str = "now"
     scheduled_at: datetime | None = None

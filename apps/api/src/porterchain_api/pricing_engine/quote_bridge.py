@@ -24,7 +24,17 @@ def _geo(addr: AddressInput) -> GeoPoint:
     )
 
 
-def _request_from_quote_body(body: CreateQuoteRequest, *, channel: str = "retail", merchant_id: str | None = None) -> PricingRequest:
+def _request_from_quote_body(
+    body: CreateQuoteRequest,
+    *,
+    channel: str = "retail",
+    merchant_id: str | None = None,
+    weight_kg: float | None = None,
+    volume_cm3: float | None = None,
+    dimensions: str | None = None,
+    package_type: str | None = None,
+    use_overrides: bool = False,
+) -> PricingRequest:
     stops = [_geo(s) for s in (body.additional_stops or [])]
     pickup = _geo(body.pickup)
     dropoff = _geo(body.dropoff)
@@ -34,10 +44,11 @@ def _request_from_quote_body(body: CreateQuoteRequest, *, channel: str = "retail
         pickup=pickup,
         dropoff=dropoff,
         vehicle_class=body.vehicle_class,
-        package_type=body.package_type,
+        package_type=package_type or body.package_type,
         service_type=service_type,
-        weight_kg=body.weight_kg,
-        dimensions=body.dimensions,
+        weight_kg=weight_kg if use_overrides else body.weight_kg,
+        dimensions=dimensions if use_overrides else body.dimensions,
+        volume_cm3=volume_cm3 if use_overrides else None,
         declared_value_cents=body.declared_value_cents,
         schedule_mode=body.schedule_mode,
         scheduled_at=body.scheduled_at,
@@ -112,19 +123,40 @@ def _address_from_dict(data: dict) -> AddressInput:
 
 
 def _request_from_quote(quote: Quote) -> PricingRequest:
+    payload = quote.parcels if isinstance(quote.parcels, dict) else {}
+    mode = payload.get("booking_mode")
+    volume = None
+    weight = None if mode == "vehicle" else quote.weight_kg
+    dimensions = None if mode == "vehicle" else quote.dimensions
+    if mode != "vehicle":
+        cubes = 0.0
+        for item in payload.get("items") or []:
+            if not isinstance(item, dict):
+                continue
+            if item.get("length_cm") and item.get("width_cm") and item.get("height_cm"):
+                cubes += float(item["length_cm"]) * float(item["width_cm"]) * float(item["height_cm"])
+        volume = cubes or None
     body = CreateQuoteRequest(
         pickup=_address_from_dict(quote.pickup or {}),
         dropoff=_address_from_dict(quote.dropoff or {}),
         vehicle_class=quote.vehicle_class,
         package_type=quote.package_type,
-        weight_kg=quote.weight_kg,
-        dimensions=quote.dimensions,
+        weight_kg=weight,
+        dimensions=dimensions,
         declared_value_cents=quote.declared_value_cents,
         additional_stops=[_address_from_dict(s) for s in (quote.additional_stops or [])],
         scheduled_at=quote.scheduled_at,
         schedule_mode=quote.schedule_mode,
+        booking_mode="vehicle" if mode == "vehicle" else "parcels",
     )
-    return _request_from_quote_body(body)
+    return _request_from_quote_body(
+        body,
+        weight_kg=weight,
+        volume_cm3=volume,
+        dimensions=dimensions,
+        package_type=quote.package_type,
+        use_overrides=True,
+    )
 
 
 def PricingRequest_replace(request: PricingRequest, **kwargs) -> PricingRequest:
@@ -136,6 +168,7 @@ def PricingRequest_replace(request: PricingRequest, **kwargs) -> PricingRequest:
         "service_type": request.service_type,
         "weight_kg": request.weight_kg,
         "dimensions": request.dimensions,
+        "volume_cm3": request.volume_cm3,
         "declared_value_cents": request.declared_value_cents,
         "schedule_mode": request.schedule_mode,
         "scheduled_at": request.scheduled_at,
@@ -169,6 +202,8 @@ def revalidate_retail_quote(db: Session, quote: Quote) -> Quote:
 
     service = get_pricing_service(db)
     request = _request_from_quote(quote)
+    if request.routing_source == "haversine":
+        raise ValueError("route_unavailable")
     breakdown = service.calculate_retail(request)
     items = [PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items]
     summary = service.to_api_breakdown(breakdown)

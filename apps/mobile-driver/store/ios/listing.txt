@@ -1,0 +1,51 @@
+Porterchain Driver — App Store Connect listing (iPhone, Apple only)
+
+Name
+  Porterchain Driver
+
+Subtitle (≤30)
+  Assigned work on the van
+
+Promotional text (≤170)
+  See your stop, go on duty, scan the label, and capture proof of delivery. Built for Porterchain’s Transportation Capacity Network — not a courier marketplace.
+
+Description
+  Porterchain Driver is the field app for drivers on Porterchain’s Transportation Capacity Network.
+
+  You get the work that is assigned to you — the next stop, the job number, wallet and today’s earnings — and you run the loop on the van:
+
+  • Start a shift only after a short pre-trip check
+  • Navigate to the stop and mark arrival when you are actually there
+  • Scan package QR or Code 128 labels that belong to this order
+  • Capture proof of delivery photos
+  • Keep licence, insurance, and vehicle documents current
+  • See jobs, money, and messages without a dispatch console on your phone
+
+  Location is used while you are on duty so dispatch can see the van, including with the screen locked. Camera is used for proof of delivery and label scans. Sign-in is for approved Porterchain drivers only.
+
+  Porterchain is not a consumer courier, a trucking company, or marketplace software. This app is the driver side of our capacity network.
+
+Keywords (≤100)
+  driver,delivery,logistics,GTA,van,capacity,route,proof of delivery
+
+Support URL
+  https://porterchain.com/contact
+
+Marketing URL
+  https://porterchain.com
+
+Privacy policy
+  https://porterchain.com/privacy
+
+Category
+  Business
+  Secondary: Navigation
+
+Age rating
+  4+ (no user-generated public content; no gambling)
+
+Copyright
+  2026 Porterchain
+
+Contact
+  porterchaininc@gmail.com

@@ -34,6 +34,17 @@ def driver_notes(stops: list[dict[str, Any]]) -> str | None:
     return " | ".join(bits) if bits else None
 
 
+def _address_input(stop: dict[str, Any]) -> AddressInput:
+    """The geocoded point, as the booking's pickup/dropoff and ``addresses`` row."""
+    return AddressInput(
+        formatted=stop.get("formatted") or stop.get("raw_address") or "",
+        lat=stop.get("lat"),
+        lng=stop.get("lng"),
+        place_id=stop.get("place_id"),
+        postal=stop.get("postal"),
+    )
+
+
 def attach_route_cargo(
     db: Session,
     order: Any,
@@ -92,25 +103,9 @@ def confirm_import(
         scheduled = datetime.now(UTC)
 
     body = MerchantBookDeliveryRequest(
-        pickup=AddressInput(
-            formatted=pickup["formatted"] or pickup.get("raw_address") or "",
-            lat=pickup.get("lat"),
-            lng=pickup.get("lng"),
-        ),
-        dropoff=AddressInput(
-            formatted=dropoff["formatted"] or dropoff.get("raw_address") or "",
-            lat=dropoff.get("lat"),
-            lng=dropoff.get("lng"),
-        ),
-        additional_stops=[
-            AddressInput(
-                formatted=s.get("formatted") or s.get("raw_address") or "",
-                lat=s.get("lat"),
-                lng=s.get("lng"),
-            )
-            for s in additional
-        ]
-        or None,
+        pickup=_address_input(pickup),
+        dropoff=_address_input(dropoff),
+        additional_stops=[_address_input(s) for s in additional] or None,
         vehicle_class=cfg.get("vehicle_class") or "cargoVan",
         package_type=cfg.get("package_type") or "looseParcel",
         weight_kg=optional_float(cfg.get("weight_kg")),
@@ -131,6 +126,13 @@ def confirm_import(
         sandbox=bool(cfg.get("is_sandbox")),
     )
     attach_route_cargo(db, order, stops, cfg, job_id=job.id)
+    # Cargo lands after create_shipment's first package sync — rewrite from the rich stops.
+    from porterchain_api.merchant_engine.package_service import PackageService
+
+    PackageService().sync_from_order(db, order)
+    db.commit()
+    db.refresh(order)
+
     job.status = BulkImportStatus.CONFIRMED.value
     job.order_ids = [order.id]
     cfg["order_id"] = order.id

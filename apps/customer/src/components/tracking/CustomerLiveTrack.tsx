@@ -95,6 +95,12 @@ export default function CustomerLiveTrack({ order, live, refreshing, onRefresh }
             <h1 className="mt-1 font-mono text-xl font-bold text-secondary sm:text-2xl">
               {order.tracking_number}
             </h1>
+            {order.goods_summary ? (
+              <p className="mt-1 text-sm text-primary">
+                {order.goods_summary}
+                {order.vehicle_class ? ` · ${order.vehicle_class}` : ""}
+              </p>
+            ) : null}
             <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
               <span
                 className={cn(

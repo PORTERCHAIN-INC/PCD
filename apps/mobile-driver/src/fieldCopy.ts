@@ -10,8 +10,12 @@ export function humanFieldCopy(raw: string | null | undefined): string | null {
   ) {
     return "Can't read GPS yet. Enable Location for Porterchain Driver.";
   }
-  if (/Expo Go yields APNs|native EAS build required/i.test(key)) {
-    return "Job-ring alerts need a physical device. This simulator cannot register FCM.";
+  if (
+    /Expo Go yields APNs|native EAS build required|APNs, not FCM|simulator cannot register FCM/i.test(
+      key
+    )
+  ) {
+    return "Job-ring push needs Firebase Messaging on this iOS build (APNs token alone is not enough).";
   }
   if (key.startsWith("driver_onboarding_blocked:")) {
     return "Finish onboarding before field jobs.";
@@ -40,7 +44,9 @@ export function fieldWarning(raw: string | null | undefined): string | null {
   if (/^Location (idle|on|ping sent)|Background location active|FCM registered/i.test(text)) {
     return null;
   }
-  if (/physical device|simulator cannot register FCM/i.test(text)) {
+  if (
+    /physical device|simulator cannot register FCM|APNs, not FCM|Firebase Messaging/i.test(text)
+  ) {
     return null;
   }
   return text;

@@ -1,0 +1,113 @@
+App Store Connect — fill every field (PCDC / com.porterchain.customer)
+
+ASC app name on record: PCDC
+On-device name: Porterchain Customer
+Bundle ID: com.porterchain.customer
+Apple ID: 6787763001
+SKU: 202222
+Team: 4XWFT5A8C3
+
+────────────────────────────────────────
+Promotional Text (optional, ≤170 chars)
+────────────────────────────────────────
+Get a quote for capacity, book the delivery, and follow the shipment. Prices come from Porterchain. Built for the Transportation Capacity Network.
+
+────────────────────────────────────────
+Description (required)
+────────────────────────────────────────
+Porterchain Customer is how you request capacity on Porterchain’s Transportation Capacity Network.
+
+You can:
+
+• Get a quote for a pickup and drop-off
+• Book and pay in Stripe Checkout
+• Track a shipment, including without an account
+• See orders, bookings, parcel details, and billing
+• Report a problem and export or request deletion of your data
+
+Sign-in uses Porterchain Platform. The amount on the quote is the Porterchain price. This app does not set its own rates.
+
+Porterchain is not a consumer courier, a trucking company, or marketplace software. This app is the customer side of the capacity network.
+
+────────────────────────────────────────
+Keywords (≤100 characters)
+────────────────────────────────────────
+delivery,quote,booking,tracking,GTA,capacity,logistics,shipment
+
+────────────────────────────────────────
+Support URL (required)
+────────────────────────────────────────
+https://porterchain.com/contact
+
+────────────────────────────────────────
+Marketing URL (optional)
+────────────────────────────────────────
+https://porterchain.com
+
+────────────────────────────────────────
+Copyright
+────────────────────────────────────────
+2026 Porterchain
+
+────────────────────────────────────────
+Routing App Coverage File
+────────────────────────────────────────
+Leave blank / None. This app does not provide turn-by-turn routing.
+
+────────────────────────────────────────
+App Review Information → Sign-in required
+────────────────────────────────────────
+Yes. Public track works without an account. Booking requires sign-in.
+
+────────────────────────────────────────
+User name (demo / App Review)
+────────────────────────────────────────
+PorterChain Platform (clerk.admin.porterchain.com), not the driver instance:
+
+  ravichauhan7434@gmail.com
+
+The user must be a provisioned Porterchain customer. Do not use the local seed customer@porterchain.com. Do not use a driver account.
+
+────────────────────────────────────────
+Password
+────────────────────────────────────────
+Set the password yourself in the PorterChain Platform Clerk dashboard, then paste it into App Store Connect. Never commit the password.
+
+────────────────────────────────────────
+Contact Information (App Review)
+────────────────────────────────────────
+First name: Ravi
+Last name: Chauhan
+Phone: use the same mobile already on the driver app review contact
+Email: porterchaininc@gmail.com
+
+────────────────────────────────────────
+Notes (paste as one block)
+────────────────────────────────────────
+Porterchain Customer (ASC name: PCDC, bundle com.porterchain.customer) is the customer app for Porterchain’s Transportation Capacity Network.
+
+Sign-in is PorterChain Platform (clerk.admin.porterchain.com), not the driver Clerk app. Tap Sign in and use ravichauhan7434@gmail.com with the password in this form. Create account is public self sign-up. Sign out is not shown on the empty form. It is at the bottom of Account and asks for confirmation.
+
+Without an account, tap “Track a shipment without an account”. An unknown number says “Shipment not found.”
+
+After sign-in, Home shows recent shipments. Book requests a quote. The price is returned by Porterchain. Pay opens Stripe Checkout in the browser. Activity has orders, bookings, parcels, and billing. Account has support, privacy export, and deletion request.
+
+Push to the phone is off. Alerts still lists in-app updates. The app does not request location or camera. Face ID only unlocks a saved session.
+
+Encryption: HTTPS only (ITSAppUsesNonExemptEncryption = false).
+
+Please do not reject for missing push, or because Stripe returns through the Porterchain website as well as the in-app check.
+
+────────────────────────────────────────
+App Store Version Release
+────────────────────────────────────────
+Manually release this version.
+
+────────────────────────────────────────
+Also confirm
+────────────────────────────────────────
+Privacy Policy URL: https://porterchain.com/privacy
+Category: Business
+Age Rating: 4+
+Screenshots: store/ios/screenshots/asc-6.9/ (1320×2868) for the 6.9" slot — 01-home, 02-book, 03-activity, 04-alerts, 05-account. The debug Tools button is in the corner. 05-account shows the local ticket “Customer app gate check”; replace that frame before upload if the ticket should not appear on the listing.
+Build: select the Xcode IPA for 6787763001 after processing. Do not create a second ASC app.

@@ -173,11 +173,12 @@
       "responseTime": "Response within 1 business day"
     },
     "vehicles": {
-      "sedan": "Sedan",
+      "sedan": "Sedan / SUV",
       "suv": "SUV",
       "pickup": "Pickup truck",
       "van": "Cargo van",
       "boxTruck": "Box truck (16 ft)",
+      "box20": "Box truck (20 ft)",
       "unsure": "Not sure yet"
     }
   },

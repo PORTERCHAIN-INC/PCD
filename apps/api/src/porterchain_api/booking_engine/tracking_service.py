@@ -38,6 +38,9 @@ class TrackingService:
             pickup = public_address_snapshot(pickup if isinstance(pickup, dict) else None) or {}
             dropoff = public_address_snapshot(dropoff if isinstance(dropoff, dict) else None) or {}
         branding = self._shipper_branding(db, order) if public else {}
+        from porterchain_api.domain.customer_goods import goods_line
+
+        goods = goods_line(order.compliance_metadata if isinstance(order.compliance_metadata, dict) else None)
         return OrderResponse(
             order_id=order.id,
             order_number=order.order_number,
@@ -54,6 +57,11 @@ class TrackingService:
             company_name=branding.get("company_name"),
             logo_url=branding.get("logo_url"),
             tracking_page_message=branding.get("tracking_page_message"),
+            vehicle_class=goods.get("vehicle_class"),
+            booking_mode=goods.get("booking_mode"),
+            goods_summary=goods.get("goods_summary"),
+            parcel_count=goods.get("parcel_count"),
+            declared_value_cents=goods.get("declared_value_cents"),
         )
 
     def get_order_response_by_tracking(self, db: Session, tracking_number: str) -> OrderResponse | None:
@@ -184,6 +192,9 @@ class TrackingService:
         }
 
     def _serialize_order(self, order: Order) -> dict:
+        from porterchain_api.domain.customer_goods import goods_line
+
+        goods = goods_line(order.compliance_metadata if isinstance(order.compliance_metadata, dict) else None)
         return {
             "order_id": order.id,
             "order_number": order.order_number,
@@ -196,6 +207,11 @@ class TrackingService:
             "dropoff": order.dropoff,
             "fleetbase_order_id": order.fleetbase_order_id,
             "created_at": order.created_at.isoformat(),
+            "vehicle_class": goods.get("vehicle_class"),
+            "booking_mode": goods.get("booking_mode"),
+            "goods_summary": goods.get("goods_summary"),
+            "parcel_count": goods.get("parcel_count"),
+            "declared_value_cents": goods.get("declared_value_cents"),
         }
 
     def _serialize_booking(self, booking: Booking) -> dict:

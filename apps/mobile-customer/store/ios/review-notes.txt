@@ -1,0 +1,31 @@
+App Review notes — Porterchain Customer (com.porterchain.customer, ASC PCDC)
+
+What to test
+  1. On the signed-out screen, confirm Sign in and Create account. Sign out is not on that empty form.
+  2. Track a shipment without an account: “Track a shipment without an account”. An unknown number says “Shipment not found.”
+  3. Sign in as ravichauhan7434@gmail.com (hosted Clerk on PorterChain Platform).
+  4. Home opens only for a provisioned customer. Book a quote. The amount is returned by Porterchain. Pay opens Stripe Checkout in the browser.
+  5. Activity shows orders, bookings, parcels, and billing. Account shows the profile, a support form, privacy export, deletion request, and Sign out at the bottom. Sign out asks for confirmation.
+
+Sign-in
+  PorterChain Platform at clerk.admin.porterchain.com. This is not the driver Clerk instance. Demo user: ravichauhan7434@gmail.com. That user must already be a customer. A driver or staff account stays on onboarding or Access denied and can sign out.
+
+Push
+  Shipment push to the phone is off in this build. Alerts says updates stay in the in-app list. That does not block quote, book, or track.
+
+Face ID
+  Optional unlock of a saved session. The review device can skip it.
+
+Location and camera
+  The app does not request device location or camera.
+
+Encryption
+  ITSAppUsesNonExemptEncryption = false (HTTPS only).
+
+Account deletion
+  Account → Request deletion. That opens a hold for review. Booking stops while the hold is open. Support is the form on the same screen, or porterchaininc@gmail.com.
+
+Do not reject for
+  • Push not registered on the review device
+  • Payment completing on the Porterchain website after Stripe Checkout; the app also checks the booking when the browser closes
+  • No map of live GPS in the app. Status and ETA come from Porterchain

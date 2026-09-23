@@ -114,7 +114,14 @@ export function resolveVehicle(
   parcels: Parcel[],
   options?: { requested?: VehicleRequest; constructionSite?: boolean }
 ): VehicleAllocation {
-  const requested = options?.requested ?? "auto";
+  const alias: Record<string, VehicleRequest> = {
+    sedan_suv: "sedan",
+    box_16: "box16",
+    cargo_van: "cargoVan",
+    box_20: "box20",
+  };
+  const requestedRaw = options?.requested ?? "auto";
+  const requested = alias[requestedRaw] ?? requestedRaw;
   const constructionSite = Boolean(options?.constructionSite);
   const chargeableWeightKg = sumChargeableWeightKg(parcels);
   const sized = parcels.filter(hasCompleteSize);

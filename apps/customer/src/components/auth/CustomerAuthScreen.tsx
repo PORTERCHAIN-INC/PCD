@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { platformLoginUrl } from "@porterchain/auth";
+import CustomerMotion from "@/components/motion/CustomerMotion";
 import { publicEnv } from "@/lib/env";
 
 const AUTH_FONT = 'Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif';
@@ -111,7 +112,10 @@ function BrandPanel({ mode }: { mode: CustomerAuthMode }) {
         </p>
       </div>
 
-      <div className="relative z-10 mt-10 max-w-md lg:mt-0 lg:pb-4">
+      <div className="relative z-10 mt-8 max-w-md lg:mt-0">
+        <div className="mb-6 w-56 rounded-3xl bg-white/95 p-2 shadow-lg shadow-black/10">
+          <CustomerMotion name="route" size={208} />
+        </div>
         <p className="customer-auth-rise text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl lg:text-[1.75rem]">
           {mode === "sign-up"
             ? "One place for every delivery that matters."

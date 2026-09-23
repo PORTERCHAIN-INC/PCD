@@ -55,8 +55,9 @@ export default function PricingCenterClient() {
       .filter((m) => m.id);
   }, [merchantRows]);
 
+  const [audience, setAudience] = useState<"customer" | "merchant">("customer");
   const [merchantId, setMerchantId] = useState("");
-  const [vehicle, setVehicle] = useState("cargo_van");
+  const [vehicle, setVehicle] = useState("sedan_suv");
   const [km, setKm] = useState("15");
   const [destPostal, setDestPostal] = useState("M5V 2T6");
   const [busy, setBusy] = useState(false);
@@ -69,8 +70,8 @@ export default function PricingCenterClient() {
     try {
       const meters = Math.max(0, Number(km) || 0) * 1000;
       const out = await pricingApi.simulate(await getApiToken(), {
-        merchant_id: merchantId || null,
-        channel: merchantId ? "merchant" : "retail",
+        merchant_id: audience === "customer" ? null : merchantId || null,
+        channel: audience === "customer" ? "retail" : "merchant",
         vehicle_class: vehicle,
         distance_meters: meters,
         dropoff: { postal: destPostal, lat: 43.6426, lng: -79.3871, formatted: "Toronto, ON" },
@@ -117,14 +118,28 @@ export default function PricingCenterClient() {
             Loads live merchant overlays (FSA / Distance / surcharges). Shows which layer set the
             base.
           </p>
+          <div className="flex gap-2">
+            <Button
+              variant={audience === "customer" ? "primary" : "outline"}
+              onClick={() => setAudience("customer")}
+            >
+              Customer
+            </Button>
+            <Button
+              variant={audience === "merchant" ? "primary" : "outline"}
+              onClick={() => setAudience("merchant")}
+            >
+              Merchant
+            </Button>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-xs font-medium text-primary/70">
               Merchant
               <select
                 className="mt-1 w-full rounded-lg border border-primary/15 px-3 py-2 text-sm"
-                value={merchantId}
+                value={audience === "customer" ? "" : merchantId}
                 onChange={(e) => setMerchantId(e.target.value)}
-                disabled={merchantsLoading}
+                disabled={audience === "customer" || merchantsLoading}
               >
                 <option value="">Retail (no merchant)</option>
                 {merchantList.map((m) => (
@@ -141,10 +156,26 @@ export default function PricingCenterClient() {
                 value={vehicle}
                 onChange={(e) => setVehicle(e.target.value)}
               >
-                <option value="sedan">Sedan</option>
-                <option value="cargo_van">Cargo van</option>
-                <option value="sprinter_van">Sprinter</option>
-                <option value="box_truck">Box truck</option>
+                {(audience === "customer"
+                  ? [
+                      ["sedan_suv", "Sedan / SUV"],
+                      ["cargo_van", "Cargo van"],
+                      ["pickup", "Pickup"],
+                      ["box_16", "16 ft"],
+                      ["box_20", "20 ft"],
+                    ]
+                  : [
+                      ["sedan", "Sedan"],
+                      ["suv", "SUV"],
+                      ["cargo_van", "Cargo van"],
+                      ["sprinter_van", "Sprinter"],
+                      ["box_truck", "Box truck"],
+                    ]
+                ).map(([id, label]) => (
+                  <option key={id} value={id}>
+                    {label}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="text-xs font-medium text-primary/70">

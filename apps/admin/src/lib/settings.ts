@@ -431,6 +431,8 @@ export type VehicleClassConfig = {
   booking_enabled?: boolean;
   retail_enabled?: boolean;
   merchant_enabled?: boolean;
+  whole_vehicle_enabled?: boolean;
+  allowed_presets?: string[];
   description?: string;
   sort_order?: number;
 };

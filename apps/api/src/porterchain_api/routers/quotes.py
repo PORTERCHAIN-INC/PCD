@@ -52,6 +52,9 @@ def _quote_response(quote) -> QuoteResponse:
         dimensions=quote.dimensions,
         additional_stops=quote.additional_stops,
         special_instructions=quote.special_instructions,
+        booking_mode=(quote.parcels or {}).get("booking_mode") if isinstance(quote.parcels, dict) else None,
+        parcels=(quote.parcels or {}).get("items") if isinstance(quote.parcels, dict) else None,
+        declared_value_cents=quote.declared_value_cents,
     )
 
 
@@ -69,6 +72,54 @@ def get_booking_confirmation(
     )
 
 
+@router.get("/booking-catalog")
+def get_booking_catalog(db: Session = Depends(get_db)) -> dict:
+    """Public retail vehicles and parcel presets. Prices stay on POST /quotes."""
+    from porterchain_api.admin_engine.settings_service import AdminSettingsService
+    from porterchain_api.domain.customer_goods import presets_from_card
+
+    from porterchain_pricing.gta_rate import customer_gta_from_dict, normalize_vehicle_type
+
+    svc = AdminSettingsService()
+    catalog = svc.get_config_value(db, "vehicle_types")
+    card = svc.get_config_value(db, "pricing_customer_distance")
+    rates = customer_gta_from_dict(card if isinstance(card, dict) else {})
+    vehicles = []
+    if isinstance(catalog, list):
+        for row in catalog:
+            if not isinstance(row, dict):
+                continue
+            if row.get("booking_enabled") is False or row.get("retail_enabled") is False:
+                continue
+            raw_id = str(row.get("id") or "").strip()
+            if not raw_id:
+                continue
+            try:
+                vid = normalize_vehicle_type(raw_id, known=rates.vehicles)
+            except ValueError:
+                continue
+            if vid not in rates.vehicles:
+                continue
+            vehicles.append(
+                {
+                    "id": vid,
+                    "label": row.get("label"),
+                    "capacity_kg": row.get("capacity_kg"),
+                    "max_length_cm": row.get("max_length_cm"),
+                    "max_width_cm": row.get("max_width_cm"),
+                    "max_height_cm": row.get("max_height_cm"),
+                    "whole_vehicle_enabled": row.get("whole_vehicle_enabled", True),
+                    "allowed_presets": row.get("allowed_presets"),
+                    "included_km": rates.base_km_limit,
+                }
+            )
+    return {
+        "vehicles": vehicles,
+        "presets": presets_from_card(card if isinstance(card, dict) else None),
+        "included_km": rates.base_km_limit,
+    }
+
+
 @router.post("/quotes", response_model=QuoteResponse)
 def post_quote(
     body: CreateQuoteRequest,
@@ -82,6 +133,19 @@ def post_quote(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return _quote_response(quote)
+
+
+@router.post("/quotes/preview")
+def post_quote_preview(
+    body: CreateQuoteRequest,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Live fare. Does not insert a quote, visitor, or draft."""
+    try:
+        return _quote_service.preview_quote(db, settings, body)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/quotes/{quote_id}", response_model=QuoteResponse)

@@ -13,13 +13,17 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.porterchain.customer",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "buildNumber": "1",
+      "buildNumber": "3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["remote-notification"],
         "NSUserNotificationsUsageDescription": "Porterchain can notify you when a shipment status changes."
       },
-      "associatedDomains": ["applinks:porterchain.com", "applinks:www.porterchain.com"]
+      "associatedDomains": [
+        "applinks:porterchain.com",
+        "applinks:www.porterchain.com",
+        "webcredentials:clerk.admin.porterchain.com"
+      ]
     },
     "android": {
       "package": "com.porterchain.customer",
@@ -67,6 +71,30 @@
       ]
     },
     "plugins": [
+      "./plugins/with-packager-connection-link.js",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "usePrecompiledModules": false,
+            "enableSceneSupport": true
+          }
+        }
+      ],
+      "expo-secure-store",
+      "expo-web-browser",
+      [
+        "@clerk/expo",
+        {
+          "appleSignIn": false
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Porterchain uses Face ID to unlock your saved customer session on this device."
+        }
+      ],
       [
         "expo-notifications",
         {

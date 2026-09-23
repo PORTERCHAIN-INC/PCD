@@ -2,7 +2,7 @@
   "expo": {
     "name": "Porterchain Driver",
     "slug": "porterchain-driver",
-    "owner": "porterchain",
+    "owner": "porterchains-organization",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,20 +14,23 @@
       "bundleIdentifier": "com.porterchain.PCD",
       "googleServicesFile": "./GoogleService-Info.plist",
       "buildNumber": "1",
-      "deploymentTarget": "16.4",
+      "deploymentTarget": "17.0",
       "infoPlist": {
         "UIBackgroundModes": ["remote-notification", "location"],
         "ITSAppUsesNonExemptEncryption": false,
         "NSUserNotificationsUsageDescription": "Porterchain notifies you when a job is assigned or a stop changes.",
         "NSLocationWhenInUseUsageDescription": "While you are on duty, Porterchain sends your location to Fleetbase so dispatch can see the van.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Porterchain needs background location while you are on duty so dispatch can see the van with the screen locked.",
+        "NSLocationAlwaysUsageDescription": "Porterchain needs background location while you are on duty so dispatch can see the van with the screen locked.",
         "NSCameraUsageDescription": "Camera is used to capture proof of delivery photos and scan package barcodes.",
-        "NSPhotoLibraryUsageDescription": "Photo library access is used when attaching proof of delivery images."
+        "NSPhotoLibraryUsageDescription": "Photo library access is used when attaching proof of delivery images.",
+        "NSFaceIDUsageDescription": "Porterchain uses Face ID to unlock your saved driver session on this device."
       },
       "associatedDomains": [
         "applinks:porterchain.com",
         "applinks:www.porterchain.com",
-        "applinks:driver.porterchain.com"
+        "applinks:driver.porterchain.com",
+        "webcredentials:clerk.driver.porterchain.com"
       ]
     },
     "android": {
@@ -89,6 +92,16 @@
       ]
     },
     "plugins": [
+      "./plugins/with-rn-spm-nil-guard.js",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "usePrecompiledModules": false,
+            "enableSceneSupport": true
+          }
+        }
+      ],
       "expo-secure-store",
       [
         "@clerk/expo",
@@ -124,13 +137,20 @@
         "expo-camera",
         {
           "cameraPermission": "Camera is used to scan package barcodes and capture proof of delivery.",
+          "microphonePermission": false,
           "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Porterchain uses Face ID to unlock your saved driver session on this device."
         }
       ]
     ],
     "extra": {
       "eas": {
-        "projectId": "71350ebb-2cdc-4cef-8bdb-e2ecd8363bb0"
+        "projectId": "4beda39e-2c2c-4cda-b994-262e646438ca"
       }
     }
   }

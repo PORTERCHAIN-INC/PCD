@@ -113,57 +113,13 @@ class QuoteService:
                 signals=self._visitor.signals_from_tracking(body.tracking),
             )
 
-        from porterchain_api.domain.retail_vehicles import enabled_retail_vehicle_ids
-        from porterchain_pricing.gta_rate import normalize_vehicle_type
-
-        enabled = enabled_retail_vehicle_ids(db)
-        if enabled:
-            try:
-                matrix_id = normalize_vehicle_type(body.vehicle_class)
-            except ValueError as exc:
-                raise ValueError("vehicle_class_not_available") from exc
-            if matrix_id not in enabled:
-                raise ValueError("vehicle_class_not_available")
-
-        from porterchain_api.admin_engine.platform_settings import address_in_coverage
-
-        pickup_formatted = None
-        pickup_postal = None
-        if body.pickup is not None:
-            if hasattr(body.pickup, "formatted"):
-                pickup_formatted = getattr(body.pickup, "formatted", None)
-            if hasattr(body.pickup, "postal"):
-                pickup_postal = getattr(body.pickup, "postal", None)
-        if not address_in_coverage(
-            db,
-            formatted=pickup_formatted if isinstance(pickup_formatted, str) else None,
-            postal=pickup_postal if isinstance(pickup_postal, str) else None,
-        ):
-            raise ValueError("pickup_outside_service_area")
-
-        request = _request_from_quote_body(body)
-
-        pricing = get_pricing_service(db)
-        breakdown = pricing.calculate_retail(request)
-        distance_meters = breakdown.metadata.get("distance_meters")
-        breakdown_items = [
-            PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items
-        ]
-        amount_cents = breakdown.final_cents
-        pricing_summary = pricing.to_api_breakdown(breakdown)
-        pricing_summary["engine"] = "porterchain_pricing"
-
-        if body.website_pricing:
-            client_cents = int(round(body.website_pricing.customer_price_cad * 100))
-            tolerance = max(
-                settings.pricing_client_tolerance_cents,
-                int(amount_cents * settings.pricing_client_tolerance_percent),
-            )
-            pricing_summary["client_estimate_cents"] = client_cents
-            pricing_summary["client_engine"] = body.website_pricing.quote_engine
-            if abs(client_cents - amount_cents) > tolerance:
-                pricing_summary["client_estimate_rejected"] = True
-                pricing_summary["client_server_delta_cents"] = client_cents - amount_cents
+        priced = self._price_body(db, settings, body)
+        load = priced["load"]
+        matrix_id = priced["matrix_id"]
+        amount_cents = priced["amount_cents"]
+        breakdown_items = priced["items"]
+        pricing_summary = priced["summary"]
+        distance_meters = priced["distance_meters"]
 
         expires_at = datetime.now(UTC) + timedelta(minutes=settings.quote_ttl_minutes)
         quote = Quote(
@@ -172,10 +128,11 @@ class QuoteService:
             visitor_session_id=session_id,
             pickup=body.pickup.model_dump(),
             dropoff=body.dropoff.model_dump(),
-            vehicle_class=body.vehicle_class,
-            package_type=body.package_type,
-            weight_kg=body.weight_kg,
-            dimensions=body.dimensions,
+            vehicle_class=matrix_id,
+            package_type=load.package_type,
+            weight_kg=load.weight_kg,
+            dimensions=load.dimensions,
+            parcels=priced["parcels"],
             declared_value_cents=body.declared_value_cents,
             additional_stops=[s.model_dump() for s in body.additional_stops] if body.additional_stops else None,
             special_instructions=body.special_instructions,
@@ -209,6 +166,103 @@ class QuoteService:
         self._drafts.attach_quote(db, quote, session_id)
 
         return quote
+
+    def preview_quote(self, db: Session, settings: Settings, body: CreateQuoteRequest) -> dict[str, Any]:
+        """Same fare as a saved quote, without inserting a quotes row."""
+        priced = self._price_body(db, settings, body)
+        cents = int(priced["amount_cents"])
+        meters = priced.get("distance_meters")
+        return {
+            "amount_cents": cents,
+            "amount_display": f"${cents / 100:.2f} CAD",
+            "distance_km": round(meters / 1000, 1) if meters else None,
+            "pricing_breakdown": [i.model_dump() for i in priced["items"]],
+            "vehicle_class": priced["matrix_id"],
+            "included_km": priced["included_km"],
+            "booking_mode": priced["load"].booking_mode,
+            "parcel_count": len(priced["load"].items),
+        }
+
+    def _price_body(self, db: Session, settings: Settings, body: CreateQuoteRequest) -> dict[str, Any]:
+        from porterchain_api.admin_engine.platform_settings import address_in_coverage
+        from porterchain_api.admin_engine.settings_service import AdminSettingsService
+        from porterchain_api.domain.customer_goods import parcels_payload, presets_from_card, resolve_load
+        from porterchain_api.domain.retail_vehicles import enabled_retail_vehicle_ids
+        from porterchain_pricing.gta_rate import customer_gta_from_dict, normalize_vehicle_type
+
+        settings_svc = AdminSettingsService()
+        catalog = settings_svc.get_config_value(db, "vehicle_types")
+        customer_card = settings_svc.get_config_value(db, "pricing_customer_distance")
+        if not isinstance(catalog, list):
+            catalog = []
+        if not isinstance(customer_card, dict):
+            customer_card = {}
+        customer_rates = customer_gta_from_dict(customer_card)
+        enabled = enabled_retail_vehicle_ids(db)
+        try:
+            matrix_id = normalize_vehicle_type(body.vehicle_class, known=customer_rates.vehicles)
+        except ValueError as exc:
+            raise ValueError("vehicle_class_not_available") from exc
+        if enabled and matrix_id not in enabled:
+            raise ValueError("vehicle_class_not_available")
+        if matrix_id not in customer_rates.vehicles:
+            raise ValueError("vehicle_rate_missing")
+
+        load = resolve_load(
+            booking_mode=body.booking_mode,
+            parcels=body.parcels,
+            vehicle_id=matrix_id,
+            catalog=catalog,
+            presets=presets_from_card(customer_card),
+            fallback_weight_kg=body.weight_kg,
+            fallback_dimensions=body.dimensions,
+        )
+        pickup_formatted = getattr(body.pickup, "formatted", None) if body.pickup is not None else None
+        pickup_postal = getattr(body.pickup, "postal", None) if body.pickup is not None else None
+        if not address_in_coverage(
+            db,
+            formatted=pickup_formatted if isinstance(pickup_formatted, str) else None,
+            postal=pickup_postal if isinstance(pickup_postal, str) else None,
+        ):
+            raise ValueError("pickup_outside_service_area")
+
+        request = _request_from_quote_body(
+            body,
+            weight_kg=load.weight_kg,
+            volume_cm3=load.volume_cm3,
+            dimensions=load.dimensions,
+            package_type=load.package_type,
+            use_overrides=True,
+        )
+        if request.routing_source == "haversine":
+            raise ValueError("route_unavailable")
+
+        pricing = get_pricing_service(db)
+        breakdown = pricing.calculate_retail(request)
+        items = [PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items]
+        summary = pricing.to_api_breakdown(breakdown)
+        summary["engine"] = "porterchain_pricing"
+        if body.website_pricing:
+            client_cents = int(round(body.website_pricing.customer_price_cad * 100))
+            tolerance = max(
+                settings.pricing_client_tolerance_cents,
+                int(breakdown.final_cents * settings.pricing_client_tolerance_percent),
+            )
+            summary["client_estimate_cents"] = client_cents
+            summary["client_engine"] = body.website_pricing.quote_engine
+            if abs(client_cents - breakdown.final_cents) > tolerance:
+                summary["client_estimate_rejected"] = True
+                summary["client_server_delta_cents"] = client_cents - breakdown.final_cents
+        return {
+            "matrix_id": matrix_id,
+            "load": load,
+            "amount_cents": breakdown.final_cents,
+            "items": items,
+            "summary": summary,
+            "distance_meters": breakdown.metadata.get("distance_meters"),
+            "included_km": customer_rates.base_km_limit,
+            "parcels": parcels_payload(load, body.declared_value_cents),
+        }
 
     def get_quote(self, db: Session, quote_id: str) -> Quote | None:
         quote = self._quotes.get_by_id(db, quote_id)

@@ -1,0 +1,19 @@
+# App Store screenshots — iPhone portrait, production-looking field loop.
+appId: com.porterchain.PCD
+---
+- launchApp
+- tapOn:
+    id: tab-work
+- takeScreenshot: store/ios/screenshots/raw/01-work
+- tapOn:
+    id: tab-jobs
+- takeScreenshot: store/ios/screenshots/raw/02-jobs
+- tapOn:
+    id: tab-money
+- takeScreenshot: store/ios/screenshots/raw/03-money
+- tapOn:
+    id: tab-docs
+- takeScreenshot: store/ios/screenshots/raw/04-docs
+- tapOn:
+    id: tab-more
+- takeScreenshot: store/ios/screenshots/raw/05-more

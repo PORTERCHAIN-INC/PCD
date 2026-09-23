@@ -1,0 +1,26 @@
+App Store privacy nutrition — Porterchain Customer (PCDC)
+
+Data used to provide the app (linked to identity, not used for tracking):
+
+  Contact info
+    Email and name from the Porterchain Platform account. Phone number entered on the booking form.
+
+  User content
+    Pickup and drop-off addresses, delivery instructions, support messages.
+
+  Identifiers
+    User ID from Clerk. This build does not register a push token.
+
+  Purchases
+    No in-app purchases. Card payment happens in Stripe Checkout in the browser. The app shows invoice and receipt links returned by Porterchain.
+
+Not collected
+  Precise device location, photos, advertising data, health, contacts, browsing history.
+  Address suggestions, when a Maps key is configured, are typed addresses sent to Google Places. The app does not request the device location permission. Distance and price are calculated by Porterchain, not by Google.
+
+Tracking
+  No. No advertising SDK. App Tracking Transparency is not required.
+
+Third parties
+  Clerk (PorterChain Platform sign-in), Stripe (Checkout in the browser), Porterchain API.
+  Google Places is optional and is used only for address autocomplete.

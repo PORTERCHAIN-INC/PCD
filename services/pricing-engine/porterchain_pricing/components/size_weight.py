@@ -158,6 +158,7 @@ class SizeWeightService:
         weight_kg: float | None = None,
         dimensions: dict[str, float] | str | None = None,
         declared_value_cents: int | None = None,
+        volume_cm3: float | None = None,
         config: SizeWeightConfig | None = None,
     ) -> ComponentQuote:
         cfg = config or SizeWeightConfig()
@@ -178,7 +179,7 @@ class SizeWeightService:
             }
         )
 
-        volume = parse_volume_cm3(dimensions)
+        volume = float(volume_cm3) if volume_cm3 is not None else parse_volume_cm3(dimensions)
         billable_volume = max(volume - float(cfg.volume_threshold_cm3), 0.0)
         blocks = billable_volume / _CM3_BLOCK
         volume_cents = int(round(blocks * int(cfg.cents_per_10k_cm3)))

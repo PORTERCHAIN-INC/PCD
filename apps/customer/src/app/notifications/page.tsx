@@ -4,6 +4,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import CustomerShell from "@/components/CustomerShell";
+import CustomerMotion from "@/components/motion/CustomerMotion";
 import { isClerkConfigured } from "@/lib/env";
 import { notificationsApi, type InboxNotification } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
@@ -86,9 +87,11 @@ function CustomerNotificationsWithClerk() {
         ) : loading && items.length === 0 ? (
           <p className="text-muted">Loading…</p>
         ) : items.length === 0 ? (
-          <p className="rounded-2xl border border-primary/10 bg-white px-6 py-12 text-center text-sm text-muted">
-            No notifications yet.
-          </p>
+          <div className="rounded-2xl border border-primary/10 bg-white px-6 py-8 text-center">
+            <CustomerMotion name="inbox" size={140} />
+            <p className="text-sm font-semibold text-primary">No alerts yet</p>
+            <p className="mt-1 text-sm text-muted">Shipment updates appear in this list.</p>
+          </div>
         ) : (
           <ul className="divide-y divide-primary/5 overflow-hidden rounded-2xl border border-primary/10 bg-white">
             {items.map((n) => (

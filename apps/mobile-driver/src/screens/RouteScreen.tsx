@@ -132,6 +132,14 @@ export function RouteScreen({
             {handshake.accessNotes}
           </Text>
         ) : null}
+        {handshake.bookingMode === "vehicle" ? (
+          <Text style={styles.meta}>Whole vehicle</Text>
+        ) : null}
+        {(handshake.parcelLines ?? []).map((line, index) => (
+          <Text key={`${index}-${line}`} style={styles.meta}>
+            {line}
+          </Text>
+        ))}
         {handshake.deliveryAttempts != null && handshake.deliveryAttempts > 0 ? (
           <Text style={styles.meta} testID="delivery-attempts">
             Attempt {handshake.deliveryAttempts} of {handshake.maxDeliveryAttempts ?? 2}

@@ -467,6 +467,16 @@ class JobsService:
                 scan={"scan_pickup": scan_pickup, "scan_delivery": scan_delivery},
             ),
             "special_instructions": order.special_instructions,
+            "declared_value_cents": (
+                (order.compliance_metadata or {}).get("parcels", {}).get("declared_value_cents")
+                if isinstance(order.compliance_metadata, dict)
+                and isinstance((order.compliance_metadata or {}).get("parcels"), dict)
+                else None
+            ),
+            "booking_mode": (order.compliance_metadata or {}).get("booking_mode")
+            if isinstance(order.compliance_metadata, dict)
+            else None,
+            "vehicle_class": self._order_vehicle_class(db, order),
             "pickup_detail": pickup,
             "delivery_detail": dropoff,
             "pickup_stop": self._stop_dict(pickup_stop),
@@ -535,6 +545,16 @@ class JobsService:
             "scheduled_at": order.scheduled_at.isoformat() if order.scheduled_at else None,
             "updated_at": order.updated_at.isoformat() if order.updated_at else None,
         }
+
+    @staticmethod
+    def _order_vehicle_class(db: Session, order: Any) -> str | None:
+        quote_id = getattr(order, "quote_id", None)
+        if not quote_id:
+            return None
+        from porterchain_api.booking_models import Quote
+
+        quote = db.query(Quote).filter(Quote.id == quote_id).first()
+        return getattr(quote, "vehicle_class", None) if quote else None
 
     @staticmethod
     def _leg_metadata(state: str, stop_meta: dict[str, Any]) -> dict[str, Any]:

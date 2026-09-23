@@ -3,7 +3,7 @@ import { fetchOnboarding } from "../api";
 import { allowDevAuth } from "../config";
 import { canEnterRoute } from "../gate";
 import { runHandshake } from "../handshake";
-import { getSessionSnapshot } from "../session";
+import { getSessionSnapshot, waitForSignedSession } from "../session";
 import type { FieldTab, Handshake, LocationState, Screen } from "../types";
 
 type Options = {
@@ -16,13 +16,18 @@ type Options = {
 
 export function useEnterRoute({ location, setBusy, setHandshake, setTab, setScreen }: Options) {
   return useCallback(() => {
-    const session = getSessionSnapshot();
     void (async () => {
       setBusy(true);
+      setHandshake((prev) => ({ ...prev, error: null }));
       try {
+        // Hosted auth / Face ID can finish before SessionGate publishes signedIn + getToken.
+        if (!allowDevAuth()) {
+          await waitForSignedSession();
+        }
         const next = await runHandshake(location);
         setHandshake(next);
-        const gate = canEnterRoute(next, session.signedIn, allowDevAuth());
+        const signedIn = getSessionSnapshot().signedIn;
+        const gate = canEnterRoute(next, signedIn, allowDevAuth());
         if (!gate.ok) {
           setHandshake({ ...next, error: gate.reason });
           return;

@@ -15,7 +15,7 @@ from porterchain_api.booking_engine.payment_service import PaymentService
 from porterchain_api.booking_engine.quote_service import QuoteService
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import Customer, Quote
-from porterchain_api.schemas_booking import AddressInput, CreateQuoteRequest
+from porterchain_api.schemas_booking import AddressInput, CreateQuoteRequest, ParcelInput
 
 
 class CustomerBookingAdminService:
@@ -47,13 +47,32 @@ class CustomerBookingAdminService:
             raise ValueError("customer_privacy_hold")
 
         session_id = f"admin-cust-{customer_id[:8]}-{uuid.uuid4().hex[:12]}"
+        preset = {
+            "pallet": "skid",
+            "skid": "skid",
+            "furniture": "furniture",
+            "document": "small",
+            "documents": "small",
+            "looseParcel": "small",
+        }.get(package_type or "small", package_type or "small")
+        whole = package_type == "whole_vehicle"
         body = CreateQuoteRequest(
             anonymous_session_id=session_id,
             visitor_session_id=session_id,
             pickup=AddressInput(**pickup),
             dropoff=AddressInput(**dropoff),
             vehicle_class=vehicle_class,
-            package_type=package_type or "looseParcel",
+            package_type=package_type or "small",
+            booking_mode="vehicle" if whole else "parcels",
+            parcels=None
+            if whole
+            else [
+                ParcelInput(
+                    preset_id=preset if preset in {"small", "medium", "large", "extra_large", "skid", "furniture", "other"} else "small",
+                    quantity=1,
+                    instructions=special_instructions,
+                )
+            ],
             weight_kg=weight_kg,
             dimensions=dimensions,
             declared_value_cents=declared_value_cents,

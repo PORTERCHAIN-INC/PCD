@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import CustomerShell from "@/components/CustomerShell";
+import CustomerMotion from "@/components/motion/CustomerMotion";
 
 export default function TrackLookupPage() {
   const router = useRouter();
@@ -22,7 +23,8 @@ export default function TrackLookupPage() {
         <Link href="/dashboard" className="text-sm font-medium text-secondary hover:underline">
           ← Back to dashboard
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-primary">
+        <CustomerMotion name="shipment" size={150} />
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-primary">
           Track a shipment
         </h1>
         <p className="mt-2 text-sm text-muted">

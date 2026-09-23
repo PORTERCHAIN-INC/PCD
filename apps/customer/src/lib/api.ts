@@ -13,6 +13,10 @@ export interface CustomerOrderSummary {
   pickup?: Record<string, unknown> | null;
   dropoff?: Record<string, unknown> | null;
   created_at?: string;
+  vehicle_class?: string | null;
+  booking_mode?: string | null;
+  goods_summary?: string | null;
+  declared_value_cents?: number | null;
 }
 
 export interface CustomerBookingSummary {

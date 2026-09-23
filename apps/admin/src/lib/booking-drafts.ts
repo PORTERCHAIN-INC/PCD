@@ -38,6 +38,8 @@ export const draftDetailSchema = draftItemSchema.extend({
   weight_kg: z.number().nullable().optional(),
   dimensions: z.string().nullable().optional(),
   declared_value_cents: z.number().nullable().optional(),
+  booking_mode: z.string().nullable().optional(),
+  parcels: z.array(z.record(z.string(), z.unknown())).optional(),
   special_instructions: z.string().nullable().optional(),
   pricing_breakdown: z.record(z.string(), z.unknown()).nullable().optional(),
   taxes_cents: z.number().optional(),

@@ -6,11 +6,15 @@ from enum import StrEnum
 class VehicleClass(StrEnum):
     SEDAN = "sedan"
     SUV = "suv"
+    SEDAN_SUV = "sedan_suv"
     PICKUP = "pickup"
     CARGO_VAN = "cargoVan"
+    CARGO_VAN_SNAKE = "cargo_van"
     HIGH_ROOF = "highRoof"
     BOX_16 = "box16"
+    BOX_16_SNAKE = "box_16"
     BOX_20 = "box20"
+    BOX_20_SNAKE = "box_20"
 
 
 class ServiceType(StrEnum):

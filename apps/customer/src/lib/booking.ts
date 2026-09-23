@@ -5,6 +5,7 @@ export type AddressPayload = {
   place_id?: string;
   lat?: number;
   lng?: number;
+  postal?: string;
 };
 
 export type QuoteResult = {
@@ -31,6 +32,10 @@ export type BookingConfirmation = {
   booking_number: string;
   amount_cents: number;
   state: string;
+  vehicle_class?: string | null;
+  booking_mode?: string | null;
+  parcels?: Array<{ preset_label?: string }> | null;
+  invoice_number?: string | null;
 };
 
 export type OrderResult = {
@@ -46,6 +51,10 @@ export type OrderResult = {
   company_name?: string | null;
   logo_url?: string | null;
   tracking_page_message?: string | null;
+  vehicle_class?: string | null;
+  booking_mode?: string | null;
+  goods_summary?: string | null;
+  declared_value_cents?: number | null;
 };
 
 export type TrackingEta = {
@@ -105,13 +114,45 @@ export function formatCents(cents: number, currency = "CAD"): string {
   return new Intl.NumberFormat("en-CA", { style: "currency", currency }).format(cents / 100);
 }
 
+export type QuotePreview = {
+  amount_cents: number;
+  amount_display: string;
+  distance_km?: number | null;
+  included_km?: number | null;
+  vehicle_class?: string;
+  booking_mode?: string;
+  parcel_count?: number;
+  pricing_breakdown?: Array<{ code: string; label: string; amount_cents: number }>;
+};
+
+export function previewQuote(payload: Parameters<typeof createQuote>[0]) {
+  return apiFetch<QuotePreview>("/v1/quotes/preview", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export function createQuote(payload: {
   pickup: AddressPayload;
   dropoff: AddressPayload;
   vehicle_class: string;
-  package_type: string;
+  package_type?: string;
+  booking_mode?: "parcels" | "vehicle";
+  parcels?: Array<{
+    preset_id: string;
+    quantity: number;
+    instructions?: string;
+    length_in?: number;
+    width_in?: number;
+    height_in?: number;
+    weight_lb?: number;
+  }>;
   weight_kg?: number;
   dimensions?: string;
+  declared_value_cents?: number;
+  special_instructions?: string;
+  additional_stops?: AddressPayload[];
+  promo_code?: string;
   scheduled_at: string;
   schedule_mode: "now" | "later";
   anonymous_session_id?: string;
@@ -131,6 +172,9 @@ export function getQuote(quoteId: string) {
       dropoff?: AddressPayload;
       vehicle_class?: string;
       package_type?: string;
+      booking_mode?: string | null;
+      parcels?: Array<Record<string, unknown>> | null;
+      declared_value_cents?: number | null;
     }
   >(`/v1/quotes/${encodeURIComponent(quoteId)}`).then((raw) => ({
     quote_id:
@@ -147,6 +191,9 @@ export function getQuote(quoteId: string) {
     dropoff: raw.dropoff,
     vehicle_class: raw.vehicle_class,
     package_type: raw.package_type,
+    booking_mode: raw.booking_mode,
+    parcels: raw.parcels,
+    declared_value_cents: raw.declared_value_cents,
   }));
 }
 

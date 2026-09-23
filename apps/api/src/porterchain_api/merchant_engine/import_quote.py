@@ -61,10 +61,14 @@ def geo_fields(geo: Any, *, sequence: Any, stop_type: Any) -> dict[str, Any]:
         "unit": geo.unit,
         "lat": geo.lat,
         "lng": geo.lng,
+        "place_id": geo.place_id,
+        "geocode_source": geo.source,
         "geocode_status": geo.status,
         "confidence": geo.confidence,
         "geocode_query": geo.geocode_query,
         "issues": list(geo.issues),
+        "city": geo.city,
+        "postal": geo.postal,
     }
 
 
@@ -99,6 +103,8 @@ def resolve_stops(
                 postal=s.get("postal"),
                 lat=s.get("lat"),
                 lng=s.get("lng"),
+                place_id=s.get("place_id"),
+                source=s.get("geocode_source"),
             )
         else:
             geo = GeocodeResult(
@@ -116,7 +122,10 @@ def resolve_stops(
             **geo_fields(geo, sequence=s.get("sequence"), stop_type=s.get("stop_type")),
             "id": s.get("id") or f"pc-stop-{s.get('sequence') or i + 1}",
             "row": s.get("row"),
-            "postal": s.get("postal"),
+            # Prefer values Nominatim/normalize just found when the CSV cell was freeform.
+            "postal": geo.postal or s.get("postal"),
+            "city": geo.city or s.get("city"),
+            "province": s.get("province") or "ON",
             "contact_name": s.get("contact_name"),
             "contact_phone": s.get("contact_phone"),
             "contact_email": s.get("contact_email"),

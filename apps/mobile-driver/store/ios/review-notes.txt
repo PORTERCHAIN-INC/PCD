@@ -1,0 +1,35 @@
+App Review notes — Porterchain Driver (com.porterchain.PCD)
+
+What to test
+  1. Sign in with the App Review account (hosted Clerk: tap “Sign in with Porterchain”).
+  2. Land on Work. Profile shows an approved driver.
+  3. Open Jobs, Money, Docs, and More. None of these require a live route.
+  4. Work shows the assigned stop when dispatch has given this driver a job. If no job is on the board, Work still shows wallet, duty, and the field actions.
+
+Sign-in
+  Use the demo driver account supplied in App Store Connect (Notes field). This app is not a public consumer product. Only approved Porterchain drivers can complete handshake.
+
+Background location (Guideline 5.1.4)
+  NSLocationWhenInUseUsageDescription, NSLocationAlwaysAndWhenInUseUsageDescription, and NSLocationAlwaysUsageDescription are set.
+  UIBackgroundModes includes location.
+  Precise location is used only while the driver is on duty so Porterchain dispatch (Fleetbase) can see the van with the screen locked. It is not used for advertising or cross-app tracking. The driver can go off duty to stop the on-duty ping.
+
+Camera
+  Used for proof-of-delivery photos and scanning this-order package QR / Code 128 labels. Microphone is not requested.
+
+Face ID
+  Optional unlock of a saved Clerk session on this device. Simulator skips hardware.
+
+Push
+  APNs job-assigned and stop-change alerts. The review device may show Push as not registered; that does not block Work.
+
+Encryption
+  ITSAppUsesNonExemptEncryption = false (HTTPS only).
+
+Account deletion
+  Drivers are provisioned by Porterchain operations. To delete a review account, email porterchaininc@gmail.com. In-app support is under More → Support.
+
+Do not reject for
+  • No public sign-up (invite / ops-provisioned drivers only)
+  • Simulator GPS / geofence “I've arrived” may stay honest-fail until the pin is inside the stop geofence
+  • Expo / TestFlight vs Simulator: production binary has no developer Tools button

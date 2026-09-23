@@ -152,3 +152,34 @@ def test_merge_merchant_gta_overlay_uses_platform_as_base():
     assert a.base_cents == 5000
     assert b.base_cents == 9000
     assert a.base_cents != b.base_cents
+
+
+def test_customer_sedan_suv_28km_extra_drop_downtown_is_95():
+    from porterchain_pricing.gta_rate import customer_gta_from_dict, default_customer_distance_dict
+
+    cfg = customer_gta_from_dict(default_customer_distance_dict())
+    result = calculate_gta_delivery_rate(
+        vehicle_type="sedan_suv",
+        total_km=28,
+        total_pickups=1,
+        total_drops=2,
+        is_downtown=True,
+        config=cfg,
+    )
+    assert result.total_cents == 9500
+
+
+def test_stored_suv_matches_sedan_suv():
+    from porterchain_pricing.components.fsa import FsaRateService
+    from porterchain_pricing.gta_rate import vehicle_classes_match
+    from porterchain_pricing.types import FsaRateRecord
+
+    assert vehicle_classes_match("suv", "sedan_suv")
+    assert vehicle_classes_match("box_truck", "box_16")
+    chosen = FsaRateService().select(
+        [FsaRateRecord(id="1", dest_fsa="M5V", flat_cents=1800, vehicle_class="suv")],
+        dest_fsa="M5V",
+        vehicle_class="sedan_suv",
+    )
+    assert chosen is not None
+    assert chosen.flat_cents == 1800

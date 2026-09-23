@@ -36,6 +36,52 @@ _ABBREV = (
     (re.compile(r"\bDr\.?\b", re.I), "Drive"),
 )
 
+# Longest-first so "richmond hill" wins over "richmond".
+_ON_CITIES = tuple(
+    sorted(
+        (
+            "richmond hill",
+            "niagara falls",
+            "st catharines",
+            "st. catharines",
+            "north york",
+            "east york",
+            "scarborough",
+            "etobicoke",
+            "mississauga",
+            "brampton",
+            "vaughan",
+            "markham",
+            "oakville",
+            "burlington",
+            "hamilton",
+            "toronto",
+            "ottawa",
+            "london",
+            "kitchener",
+            "waterloo",
+            "cambridge",
+            "guelph",
+            "windsor",
+            "oshawa",
+            "ajax",
+            "pickering",
+            "milton",
+            "newmarket",
+            "aurora",
+            "barrie",
+            "kingston",
+            "sudbury",
+            "thunder bay",
+            "whitby",
+            "orillia",
+            "peterborough",
+        ),
+        key=len,
+        reverse=True,
+    )
+)
+
 
 @dataclass(frozen=True)
 class NormalizedAddress:
@@ -70,6 +116,22 @@ def _extract_unit(text: str) -> tuple[str, str | None]:
             unit = unit[1:].strip()
         return rest, unit
     return cleaned, None
+
+
+def _extract_city(street: str) -> tuple[str, str | None]:
+    """Pull a known Ontario city out of a freeform one-cell address."""
+    for city in _ON_CITIES:
+        # Word boundary so "ton" does not match inside "eton".
+        pat = re.compile(rf"(^|[\s,]){re.escape(city)}([\s,]|$)", re.I)
+        m = pat.search(street)
+        if not m:
+            continue
+        before = street[: m.start()].strip(" ,")
+        after = street[m.end() :].strip(" ,")
+        rest = ", ".join(p for p in (before, after) if p)
+        display = " ".join(w.capitalize() for w in city.replace(".", "").split())
+        return rest or street, display
+    return street, None
 
 
 def normalize_address(
@@ -108,8 +170,12 @@ def normalize_address(
         m = _POSTAL_CA.search(street)
         if m:
             postal_final = f"{m.group(1).upper()} {m.group(2).upper()}"
+            # Keep the civic line clean for Nominatim.
+            street = (street[: m.start()] + street[m.end() :]).strip(" ,")
 
     city_final = (city or "").strip() or None
+    if not city_final:
+        street, city_final = _extract_city(street)
     province_final = (province or "").strip() or "ON"
 
     parts = [street]

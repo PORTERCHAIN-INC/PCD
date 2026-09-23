@@ -1,0 +1,45 @@
+Apple-only submit — Porterchain Driver / ASC “PCD”
+
+Preferred path: Xcode (no EAS Build / EAS Submit)
+=================================================
+
+Bundle ID: com.porterchain.PCD
+ASC App ID: 6781880626
+Apple Team: 4XWFT5A8C3
+Workspace: apps/mobile-driver/ios/PorterchainDriver.xcworkspace
+Scheme: PorterchainDriver
+
+Note: The app still uses the Expo SDK for RN modules (@clerk/expo, camera,
+notifications, location). “Without Expo” here means without Expo Application
+Services cloud build/submit — not deleting those packages.
+
+1) One-shot archive + IPA (from apps/mobile-driver):
+
+  export EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY='pk_live_…'   # or use clerk-keys.local.env
+  bash scripts/archive-ios-testflight.sh
+
+2) Or manually in Xcode:
+
+  open ios/PorterchainDriver.xcworkspace
+  Scheme → Any iOS Device (arm64)
+  Product → Archive
+  Organizer → Distribute App → App Store Connect → Upload
+
+3) Or upload an existing IPA with Transporter:
+
+  open -a Transporter
+  # Deliver to ASC app PCD (6781880626)
+
+Production env baked at archive time:
+  EXPO_PUBLIC_API_URL=https://api.porterchain.com
+  EXPO_PUBLIC_APP_ENV=production
+  EXPO_PUBLIC_ALLOW_DEV_AUTH=false
+  EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_…
+
+Screenshots (6.9"): store/ios/screenshots/asc-6.9/
+Listing / privacy / review notes: store/ios/*.txt
+
+Legacy EAS (optional fallback only):
+  @porterchains-organization/porterchain-driver
+  npx eas-cli build --platform ios --profile production
+  # then download IPA → Transporter (skip eas submit if queued)

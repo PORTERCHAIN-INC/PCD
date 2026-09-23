@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { ActivityIndicator } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { colors } from "@porterchain/mobile-theme";
 import {
   acceptOrder,
   arriveStop,
@@ -16,29 +18,61 @@ import { useFieldSession } from "./src/hooks/useFieldSession";
 import { openTurnByTurn } from "./src/maps";
 import { flushOfflineQueues, runOnlineOrQueue } from "./src/offline";
 import { setActiveJobNotification } from "./src/push";
-import { DocsScreen } from "./src/screens/DocsScreen";
 import { ForceUpdateScreen } from "./src/screens/ForceUpdateScreen";
-import { InboxScreen } from "./src/screens/InboxScreen";
-import { InviteScreen } from "./src/screens/InviteScreen";
-import { JobDetailScreen } from "./src/screens/JobDetailScreen";
-import { JobsScreen } from "./src/screens/JobsScreen";
-import { MoneyScreen } from "./src/screens/MoneyScreen";
-import { MoreScreen } from "./src/screens/MoreScreen";
-import { OnboardingScreen } from "./src/screens/OnboardingScreen";
-import { RouteScreen } from "./src/screens/RouteScreen";
 import { SignInScreen } from "./src/screens/SignInScreen";
-import { SupportScreen } from "./src/screens/SupportScreen";
 import { FieldShell } from "./src/ui/FieldShell";
 import { AppErrorBoundary } from "./src/ui/AppErrorBoundary";
-import { emptyPodDraft, type PodDraft } from "./src/ui/PodCapture";
-import type { FieldTab, MobileDriverPolicy, Screen } from "./src/types";
+import { emptyPodDraft, type PodDraft } from "./src/ui/podDraft";
+import { Screen } from "./src/ui/Screen";
+import type { FieldTab, MobileDriverPolicy, Screen as AppScreen } from "./src/types";
 import { currentAppVersion, isBelowMinVersion } from "./src/version";
+
+// Defer camera / field screens until after Clerk boot — eager imports load ExpoCamera
+// during module eval and can stall clerk-js FAPI callbacks on release builds.
+const DocsScreen = lazy(() =>
+  import("./src/screens/DocsScreen").then((m) => ({ default: m.DocsScreen }))
+);
+const InboxScreen = lazy(() =>
+  import("./src/screens/InboxScreen").then((m) => ({ default: m.InboxScreen }))
+);
+const InviteScreen = lazy(() =>
+  import("./src/screens/InviteScreen").then((m) => ({ default: m.InviteScreen }))
+);
+const JobDetailScreen = lazy(() =>
+  import("./src/screens/JobDetailScreen").then((m) => ({ default: m.JobDetailScreen }))
+);
+const JobsScreen = lazy(() =>
+  import("./src/screens/JobsScreen").then((m) => ({ default: m.JobsScreen }))
+);
+const MoneyScreen = lazy(() =>
+  import("./src/screens/MoneyScreen").then((m) => ({ default: m.MoneyScreen }))
+);
+const MoreScreen = lazy(() =>
+  import("./src/screens/MoreScreen").then((m) => ({ default: m.MoreScreen }))
+);
+const OnboardingScreen = lazy(() =>
+  import("./src/screens/OnboardingScreen").then((m) => ({ default: m.OnboardingScreen }))
+);
+const RouteScreen = lazy(() =>
+  import("./src/screens/RouteScreen").then((m) => ({ default: m.RouteScreen }))
+);
+const SupportScreen = lazy(() =>
+  import("./src/screens/SupportScreen").then((m) => ({ default: m.SupportScreen }))
+);
+
+function LazyFallback() {
+  return (
+    <Screen>
+      <ActivityIndicator color={colors.secondary} />
+    </Screen>
+  );
+}
 
 // Universal / App Link: /auth/driver-invite · /jobs/{id}
 // Background location task must register before App mounts (see index.ts).
 
 function DriverApp() {
-  const [screen, setScreen] = useState<Screen>("sign-in");
+  const [screen, setScreen] = useState<AppScreen>("sign-in");
   const [tab, setTab] = useState<FieldTab>("work");
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [action, setAction] = useState<string | null>(null);
@@ -134,7 +168,7 @@ function DriverApp() {
   };
 
   return (
-    <>
+    <Suspense fallback={<LazyFallback />}>
       {screen === "force-update" && updatePolicy ? (
         <ForceUpdateScreen
           policy={updatePolicy}
@@ -330,7 +364,7 @@ function DriverApp() {
         </FieldShell>
       ) : null}
       <StatusBar style="dark" />
-    </>
+    </Suspense>
   );
 }
 

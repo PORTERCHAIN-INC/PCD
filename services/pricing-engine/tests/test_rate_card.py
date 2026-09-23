@@ -36,8 +36,16 @@ def test_retail_uses_gta_matrix_not_rate_card_per_km():
     card.vehicles["cargoVan"] = card.vehicles.get("cargoVan") or card.vehicle("cargoVan")
     engine = PricingEngine()
     breakdown = engine.calculate(_req(channel="retail", vehicle_class="cargoVan"), PricingContext(rate_card=card))
-    # cargo_van base $65 for 10 km, 1 drop
+    # cargo_van base $65 for 10 km, 1 drop. Fuel stays off the customer fare.
+    from porterchain_pricing.types import FuelConfig
+
+    fueled = engine.calculate(
+        _req(channel="retail", vehicle_class="cargoVan"),
+        PricingContext(rate_card=card, fuel=FuelConfig(surcharge_percent=5.0)),
+    )
     assert breakdown.final_cents == 6500
+    assert fueled.final_cents == 6500
+    assert fueled.fuel_cents == 0
     assert breakdown.metadata.get("pricing_model") == "gta_delivery_rate"
     assert breakdown.metadata.get("gta_vehicle_type") == "cargo_van"
 
@@ -104,3 +112,23 @@ def test_rate_card_from_dict_driver_payout_fields():
     assert card.driver_payout_mode == "percent"
     assert card.driver_flat_per_delivery_cents == 900
     assert card.compute_driver_payout_cents(order_amount_cents=2000) == 1300
+
+
+def test_merchant_fuel_and_wait_and_hst():
+    from porterchain_pricing.types import FuelConfig, TaxConfig
+
+    engine = PricingEngine()
+    card = RateCard(wait_cents_per_minute=100)
+    breakdown = engine.calculate(
+        _req(channel="merchant", vehicle_class="cargo_van", wait_minutes=10),
+        PricingContext(
+            rate_card=card,
+            fuel=FuelConfig(surcharge_percent=5.0),
+            tax=TaxConfig(hst_percent=13.0),
+        ),
+    )
+    # $65 base + $10 wait = $75. Fuel 5% = $3.75. HST 13% of $78.75 truncates.
+    assert breakdown.fuel_cents == 375
+    assert any(item.code == "wait" and item.amount_cents == 1000 for item in breakdown.items)
+    assert breakdown.tax_cents == int(7875 * 0.13)
+    assert breakdown.final_cents == 7875 + breakdown.tax_cents

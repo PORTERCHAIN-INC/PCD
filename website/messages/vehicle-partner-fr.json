@@ -173,11 +173,12 @@
       "responseTime": "Réponse en 1 jour ouvrable"
     },
     "vehicles": {
-      "sedan": "Berline",
+      "sedan": "Berline / VUS",
       "suv": "VUS",
       "pickup": "Camionnette",
       "van": "Fourgonnette",
       "boxTruck": "Camion boîte (16 pi)",
+      "box20": "Camion boîte (20 pi)",
       "unsure": "Pas encore certain"
     }
   },

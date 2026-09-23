@@ -23,6 +23,17 @@ def test_postal_spacing():
     assert n.postal == "M5J 2J2" or "M5J" in (n.geocode_query or "")
 
 
+def test_freeform_ontario_cell_splits_city_and_postal():
+    """CSV one-cell addresses like a merchant types them — Nominatim needs city + postal."""
+    n = normalize_address("91 breton avenue mississauga l4z 4k5")
+    assert n.city == "Mississauga"
+    assert n.postal == "L4Z 4K5"
+    assert "Mississauga" in n.geocode_query
+    assert "L4Z 4K5" in n.geocode_query
+    assert "mississauga" not in n.street.lower()
+    assert "Breton" in n.street or "breton" in n.street.lower()
+
+
 def test_column_mapper_address_synonym():
     headers = ["ship_to", "name", "phone"]
     mapping = suggest_mapping(headers)

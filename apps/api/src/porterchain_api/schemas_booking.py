@@ -47,6 +47,16 @@ class WebsitePricingSnapshot(BaseModel):
     quote_engine: str = "website_v1"
 
 
+class ParcelInput(BaseModel):
+    preset_id: str = "other"
+    quantity: int = 1
+    instructions: str | None = None
+    length_in: float | None = None
+    width_in: float | None = None
+    height_in: float | None = None
+    weight_lb: float | None = None
+
+
 class CreateQuoteRequest(BaseModel):
     anonymous_session_id: str | None = None
     visitor_session_id: str | None = None
@@ -54,6 +64,9 @@ class CreateQuoteRequest(BaseModel):
     dropoff: AddressInput
     vehicle_class: str
     package_type: str = "looseParcel"
+    #: parcels = sized pieces on one load. vehicle = the whole vehicle, no invented box.
+    booking_mode: Literal["parcels", "vehicle"] = "parcels"
+    parcels: list[ParcelInput] | None = None
     weight_kg: float | None = None
     dimensions: str | None = None
     declared_value_cents: int | None = None
@@ -91,6 +104,9 @@ class QuoteResponse(BaseModel):
     dimensions: str | None = None
     additional_stops: list[dict[str, Any]] | None = None
     special_instructions: str | None = None
+    booking_mode: str | None = None
+    parcels: list[dict[str, Any]] | None = None
+    declared_value_cents: int | None = None
 
 
 class StartBookingRequest(BaseModel):
@@ -134,6 +150,11 @@ class OrderResponse(BaseModel):
     company_name: str | None = None
     logo_url: str | None = None
     tracking_page_message: str | None = None
+    vehicle_class: str | None = None
+    booking_mode: str | None = None
+    goods_summary: str | None = None
+    parcel_count: int | None = None
+    declared_value_cents: int | None = None
 
 
 class OrderTrackingResponse(BaseModel):
@@ -164,6 +185,9 @@ class BookingConfirmationResponse(BaseModel):
     scheduled_at: datetime
     pickup: dict[str, Any]
     dropoff: dict[str, Any]
+    vehicle_class: str | None = None
+    booking_mode: str | None = None
+    parcels: list[dict[str, Any]] | None = None
     fleetbase_order_id: str | None = None
     dashboard_url: str = "http://localhost:3004/dashboard"
 
@@ -205,6 +229,10 @@ class CustomerRebookResponse(BaseModel):
     pickup: dict[str, Any]
     dropoff: dict[str, Any]
     vehicle_class: str | None = None
+    booking_mode: str | None = None
+    parcels: list[dict[str, Any]] | None = None
+    declared_value_cents: int | None = None
+    additional_stops: list[dict[str, Any]] | None = None
     source_order_id: str
     tracking_number: str
 

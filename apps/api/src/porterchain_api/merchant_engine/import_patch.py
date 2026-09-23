@@ -86,6 +86,14 @@ def patch_stop(
 
     stop = dict(stops[index])
     packages = patch.get("packages")
+    new_address = patch.get("address")
+    address_changed = new_address is not None and str(new_address).strip() != str(
+        stop.get("address") or stop.get("raw_address") or ""
+    ).strip()
+    if address_changed and (patch.get("lat") is None or patch.get("lng") is None):
+        # The old pin belongs to the old address.
+        for key in ("lat", "lng", "place_id", "geocode_source"):
+            stop[key] = None
     stop.update({k: v for k, v in patch.items() if v is not None and k != "packages"})
     if packages is not None:
         stop["packages"] = packages_clean(packages)
@@ -99,8 +107,14 @@ def patch_stop(
             postal=stop.get("postal"),
             lat=stop.get("lat"),
             lng=stop.get("lng"),
+            place_id=stop.get("place_id"),
+            source=stop.get("geocode_source"),
         )
         stop.update(svc._geo_fields(geo, sequence=stop.get("sequence"), stop_type=stop.get("stop_type")))
+        if geo.postal:
+            stop["postal"] = geo.postal
+        if geo.city:
+            stop["city"] = geo.city
     else:
         stop["geocode_status"] = "pending"
         stop["lat"] = None

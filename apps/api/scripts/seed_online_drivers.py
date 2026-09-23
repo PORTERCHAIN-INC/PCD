@@ -60,7 +60,7 @@ DRIVERS = [
         "email": "devon.clark@porterchain.com",
         "full_name": "Devon Clark",
         "phone": "+1 416-555-0204",
-        "vehicle_class": "box_truck",
+        "vehicle_class": "box_16",
         "plate": "GTA-204",
         "make_model": "Isuzu NPR",
         "lat": 43.6205,

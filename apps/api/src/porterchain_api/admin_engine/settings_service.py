@@ -81,6 +81,7 @@ CONFIG_KEYS = {
     "automation": "settings_automation",
     "vehicles": "vehicle_types",
     "pricing": "pricing_gta_rate",
+    "pricing_customer": "pricing_customer_distance",
     "pricing_tax": "pricing_tax",
     "pricing_fuel": "pricing_fuel",
     "pricing_rate_card": "pricing_rate_card",
@@ -105,7 +106,7 @@ DEFAULTS: dict[str, Any] = {
         "quote_ttl_minutes": 30,
         "booking_draft_ttl_minutes": 1440,
         "default_currency": "cad",
-        "default_vehicle_class": "sedan",
+        "default_vehicle_class": "sedan_suv",
         # ASAP / INSTANT promise window used by order SLA (not the same as scheduled_at).
         "instant_delivery_sla_hours": 4,
     },
@@ -145,14 +146,7 @@ DEFAULTS: dict[str, Any] = {
         "queue_retry_max": 5,
         "dispatch_retry_seconds": 60,
     },
-    "vehicle_types": [
-        {"id": "sedan", "label": "Sedan", "capacity_kg": 50, "booking_enabled": True, "retail_enabled": True, "merchant_enabled": True, "sort_order": 1},
-        {"id": "suv", "label": "SUV", "capacity_kg": 80, "booking_enabled": True, "retail_enabled": True, "merchant_enabled": True, "sort_order": 2},
-        {"id": "pickup", "label": "Pickup", "capacity_kg": 500, "booking_enabled": True, "retail_enabled": True, "merchant_enabled": True, "sort_order": 3},
-        {"id": "cargo_van", "label": "Cargo Van", "capacity_kg": 900, "booking_enabled": True, "retail_enabled": True, "merchant_enabled": True, "sort_order": 4},
-        {"id": "sprinter_van", "label": "Sprinter Van", "capacity_kg": 1200, "booking_enabled": True, "retail_enabled": True, "merchant_enabled": True, "sort_order": 5},
-        {"id": "box_truck", "label": "Box Truck", "capacity_kg": 3000, "booking_enabled": True, "retail_enabled": False, "merchant_enabled": True, "sort_order": 6},
-    ],
+    "vehicle_types": None,  # filled below from customer_goods so one catalog is the source
     # GTA delivery rate matrix — CAD dollars; keys match vehicle_types ids
     "pricing_gta_rate": {
         "base_km_limit": 20.0,
@@ -167,9 +161,10 @@ DEFAULTS: dict[str, Any] = {
             "box_truck": {"base_price": 125.0, "extra_km_rate": 3.5, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
         },
     },
-    "pricing_tax": {"hst_percent": 0.0, "tax_included": False, "exempt_merchant_ids": []},
+    "pricing_customer_distance": None,
+    "pricing_tax": {"hst_percent": 13.0, "tax_included": False, "exempt_merchant_ids": []},
     "pricing_fuel": {
-        "surcharge_percent": 0.0,
+        "surcharge_percent": 5.0,
         "base_fuel_price_cents": 145,
         "current_fuel_price_cents": 158,
     },
@@ -190,6 +185,11 @@ DEFAULTS: dict[str, Any] = {
     "service_areas": [{"city": "Toronto", "region": "GTA", "active": True}],
     "settings_delivery_zones": [],
 }
+
+from porterchain_api.domain.customer_goods import default_customer_pricing, default_vehicle_catalog
+
+DEFAULTS["vehicle_types"] = default_vehicle_catalog()
+DEFAULTS["pricing_customer_distance"] = default_customer_pricing()
 
 
 def _is_pending_subject(subject: str | None) -> bool:
@@ -664,6 +664,10 @@ class AdminSettingsService:
             value = DEFAULTS.get(key, {})
         if key == "pricing_gta_rate" and isinstance(value, dict):
             return self._normalize_pricing_gta(value)
+        if key == "pricing_customer_distance" and isinstance(value, dict):
+            from porterchain_api.domain.customer_goods import normalize_customer_pricing
+
+            return normalize_customer_pricing(value)
         if key == "pricing_rate_card" and isinstance(value, dict):
             return self._normalize_pricing_rate_card(value)
         if key == "settings_coverage":
@@ -718,7 +722,9 @@ class AdminSettingsService:
         for row in catalog:
             if not isinstance(row, dict):
                 continue
-            vid = str(row.get("id") or "").strip()
+            from porterchain_api.domain.customer_goods import canonical_vehicle_id
+
+            vid = canonical_vehicle_id(str(row.get("id") or "").strip())
             if not vid:
                 continue
             if row.get("booking_enabled") is False:
@@ -740,6 +746,27 @@ class AdminSettingsService:
         record = self.get_config(db, key)
         if key == "pricing_gta_rate" and isinstance(value, dict):
             value = self._normalize_pricing_gta(value)
+        if key == "pricing_customer_distance" and isinstance(value, dict):
+            from porterchain_api.domain.customer_goods import normalize_customer_pricing
+
+            value = normalize_customer_pricing(value)
+        if key == "vehicle_types" and isinstance(value, list):
+            from porterchain_api.domain.customer_goods import canonical_vehicle_id
+
+            kept = {
+                canonical_vehicle_id(str(row.get("id") or ""))
+                for row in value
+                if isinstance(row, dict) and str(row.get("id") or "").strip()
+            }
+            kept.discard("")
+            card_rec = self.get_config(db, "pricing_customer_distance")
+            if card_rec and isinstance(card_rec.value, dict) and isinstance(card_rec.value.get("vehicles"), dict):
+                vehicles = card_rec.value["vehicles"]
+                next_vehicles = {
+                    vid: rate for vid, rate in vehicles.items() if canonical_vehicle_id(str(vid)) in kept
+                }
+                if next_vehicles != vehicles:
+                    card_rec.value = {**card_rec.value, "vehicles": next_vehicles}
         if key == "pricing_rate_card" and isinstance(value, dict):
             existing = record.value if record and isinstance(record.value, dict) else None
             value = self._normalize_pricing_rate_card(value, existing=existing)
@@ -1089,17 +1116,20 @@ class AdminSettingsService:
         # Commercial integrity
         catalog = self.get_config_value(db, "vehicle_types")
         pricing = self.get_config_value(db, "pricing_gta_rate")
+        customer_pricing = self.get_config_value(db, "pricing_customer_distance")
         booking = self.get_config_value(db, "settings_booking")
         catalog_ids: set[str] = set()
+        customer_vehicles = (
+            customer_pricing.get("vehicles") if isinstance(customer_pricing, dict) else None
+        )
         if isinstance(catalog, list):
             for row in catalog:
                 if isinstance(row, dict) and row.get("id"):
                     catalog_ids.add(str(row["id"]))
                     if row.get("booking_enabled") is not False and row.get("retail_enabled") is not False:
                         vid = str(row["id"])
-                        vehicles = pricing.get("vehicles") if isinstance(pricing, dict) else None
-                        if isinstance(vehicles, dict) and vid not in vehicles:
-                            issues.append(f"Enabled vehicle '{vid}' has no GTA pricing row")
+                        if isinstance(customer_vehicles, dict) and vid not in customer_vehicles:
+                            issues.append(f"Enabled vehicle '{vid}' has no customer distance rate")
         if isinstance(pricing, dict):
             vehicles = pricing.get("vehicles")
             if isinstance(vehicles, dict):
@@ -1159,6 +1189,7 @@ class AdminSettingsService:
             k for k in DEFAULTS if k.startswith("settings_") or k in (
                 "vehicle_types",
                 "pricing_gta_rate",
+                "pricing_customer_distance",
                 "pricing_tax",
                 "pricing_fuel",
                 "pricing_rate_card",
@@ -1215,6 +1246,7 @@ class AdminSettingsService:
             in (
                 "vehicle_types",
                 "pricing_gta_rate",
+                "pricing_customer_distance",
                 "pricing_tax",
                 "pricing_fuel",
                 "pricing_rate_card",

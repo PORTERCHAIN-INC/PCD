@@ -1,0 +1,12 @@
+appId: com.porterchain.PCD
+---
+- stopApp
+- openLink: porterchain-driver://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: "Sign in with Porterchain|env=production|Couldn’t finish starting"
+    timeout: 90000
+- takeScreenshot: /tmp/pcd-metro-clerk-boot

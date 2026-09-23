@@ -151,6 +151,12 @@ class AdminBookingDraftService:
             "weight_kg": draft.weight_kg,
             "dimensions": draft.dimensions,
             "declared_value_cents": draft.declared_value_cents,
+            "booking_mode": (quote.parcels or {}).get("booking_mode")
+            if quote and isinstance(quote.parcels, dict)
+            else None,
+            "parcels": (quote.parcels or {}).get("items")
+            if quote and isinstance(quote.parcels, dict) and isinstance(quote.parcels.get("items"), list)
+            else [],
             "special_instructions": draft.special_instructions,
             "pricing_breakdown": sanitize_pricing_breakdown(draft.pricing_breakdown),
             "taxes_cents": draft.taxes_cents,

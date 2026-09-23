@@ -7,6 +7,10 @@ from typing import Any
 _ROUTE_IMPORT_ERRORS = {
     "route_import_empty_file": "That spreadsheet has no rows.",
     "route_import_needs_two_stops": "This file needs at least a pickup and a drop.",
+    "route_import_multiple_pickups": (
+        "This file has more than one pickup address. One route import picks up from one place — "
+        "split the file by pickup address."
+    ),
     "route_import_no_mapping_to_save": "Map the columns first, then save that mapping.",
     "route_import_no_raw_rows": "Upload the spreadsheet again, then load a mapping.",
     "mapping_profile_not_found": "That saved mapping was not found.",

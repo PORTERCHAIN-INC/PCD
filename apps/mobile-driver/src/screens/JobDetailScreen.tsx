@@ -15,6 +15,10 @@ type Props = {
 };
 
 function packageLabel(pkg: DriverPackage, index: number, total: number): string {
+  const name = pkg.preset_label?.trim();
+  if (name) {
+    return `${name} · ${pkg.parcel_index ?? index + 1} of ${pkg.total_parcels ?? total}`;
+  }
   if (pkg.tracking_suffix) {
     return `BOX ${pkg.parcel_index ?? index + 1} of ${pkg.total_parcels ?? total}`;
   }
@@ -108,25 +112,36 @@ export function JobDetailScreen({ orderId, onBack, onOpenWork }: Props) {
               ) : null}
             </Card>
 
-            <Card testID="job-packages">
-              <CardTitle>Packages</CardTitle>
-              {job.packages_error ? (
-                <Text style={styles.error}>Package list unavailable — refresh.</Text>
-              ) : packages.length === 0 ? (
-                <Text style={styles.meta}>No package details on file</Text>
-              ) : (
-                packages.map((pkg, i) => (
-                  <Text key={String(pkg.id ?? pkg.tracking_suffix ?? i)} style={styles.body}>
-                    {packageLabel(pkg, i, packages.length)}
-                    {pkg.tracking_suffix ? ` · ${pkg.tracking_suffix}` : ""}
-                    {pkg.scanned_pickup ? " · pickup scanned" : ""}
-                    {pkg.scanned_delivery ? " · delivered" : ""}
-                    {pkg.status ? ` · ${pkg.status.replace(/_/g, " ")}` : ""}
-                    {pkg.weight_kg != null ? ` · ${pkg.weight_kg} kg` : ""}
-                  </Text>
-                ))
-              )}
-            </Card>
+            {job.declared_value_cents ? (
+              <Text style={styles.meta}>
+                Declared value ${(job.declared_value_cents / 100).toFixed(2)}
+              </Text>
+            ) : null}
+            {job.booking_mode === "vehicle" ? (
+              <Text style={styles.meta}>Whole vehicle · {job.vehicle_class || "vehicle"}</Text>
+            ) : null}
+            {job.booking_mode === "vehicle" ? null : (
+              <Card testID="job-packages">
+                <CardTitle>Packages</CardTitle>
+                {job.packages_error ? (
+                  <Text style={styles.error}>Package list unavailable — refresh.</Text>
+                ) : packages.length === 0 ? (
+                  <Text style={styles.meta}>No package details on file</Text>
+                ) : (
+                  packages.map((pkg, i) => (
+                    <Text key={String(pkg.id ?? pkg.tracking_suffix ?? i)} style={styles.body}>
+                      {packageLabel(pkg, i, packages.length)}
+                      {pkg.tracking_suffix ? ` · ${pkg.tracking_suffix}` : ""}
+                      {pkg.scanned_pickup ? " · pickup scanned" : ""}
+                      {pkg.scanned_delivery ? " · delivered" : ""}
+                      {pkg.status ? ` · ${pkg.status.replace(/_/g, " ")}` : ""}
+                      {pkg.weight_kg != null ? ` · ${pkg.weight_kg} kg` : ""}
+                      {pkg.instructions ? ` · ${pkg.instructions}` : ""}
+                    </Text>
+                  ))
+                )}
+              </Card>
+            )}
 
             <Card testID="job-timeline">
               <CardTitle>Timeline</CardTitle>

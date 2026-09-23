@@ -6,6 +6,7 @@ from porterchain_pricing.components.distance import DistanceRateService
 from porterchain_pricing.components.fsa import FsaRateService
 from porterchain_pricing.components.location import LocationSurchargeService
 from porterchain_pricing.components.size_weight import (
+    DEFAULT_VOLUME_THRESHOLD_CM3,
     SizeWeightService,
     config_from_rate_card as size_weight_config_from_rate_card,
 )
@@ -21,7 +22,7 @@ from porterchain_pricing.policy import MODEL_DISTANCE, MODEL_FSA, MerchantPricin
 from porterchain_pricing.promotion import PromotionService
 from porterchain_pricing.rate_card import default_rate_card
 from porterchain_pricing.tax import TaxService
-from porterchain_pricing.types import PriceBreakdown, PricingContext, PricingRequest
+from porterchain_pricing.types import PriceBreakdown, PricingContext, PricingRequest, SizeWeightConfig
 from porterchain_pricing.zone import ZoneService
 
 
@@ -134,6 +135,23 @@ class PricingEngine:
         if request.channel == "merchant" and request.requires_liftgate and card.liftgate_cents:
             breakdown.add_item("liftgate", "Liftgate service", card.liftgate_cents)
 
+        wait_rate = int(card.wait_cents_per_minute or 0)
+        wait_minutes = float(request.wait_minutes or 0)
+        if wait_rate > 0 and wait_minutes > 0:
+            wait_cents = int(round(wait_minutes * wait_rate))
+            breakdown.add_item("wait", f"Wait time ({wait_minutes:g} min)", wait_cents)
+            breakdown.metadata["wait_minutes"] = wait_minutes
+
+        # Customer distance fare has no fuel line. Merchant fuel is a percent of
+        # the pre-tax charges, same truncation as HST.
+        if request.channel != "retail":
+            fuel_percent = float(ctx.fuel.surcharge_percent or 0)
+            if fuel_percent > 0:
+                fuel_base = sum(i.amount_cents for i in breakdown.items)
+                fuel_cents = int(fuel_base * (fuel_percent / 100.0))
+                breakdown.fuel_cents = fuel_cents
+                breakdown.add_item("fuel", f"Fuel surcharge ({fuel_percent:g}%)", fuel_cents)
+
         breakdown.subtotal_cents = sum(i.amount_cents for i in breakdown.items)
         self.promotions.apply(request, ctx, breakdown)
         breakdown.subtotal_cents = sum(i.amount_cents for i in breakdown.items)
@@ -160,6 +178,8 @@ class PricingEngine:
         try:
             return normalize_vehicle_type(request.vehicle_class, known=gta_cfg.vehicles)
         except ValueError:
+            if request.channel == "retail":
+                raise
             return "cargo_van"
 
     def _location_quote(
@@ -253,15 +273,36 @@ class PricingEngine:
         pricing should not also collect a per-kg overweight fee.
         """
         policy = ctx.merchant_policy or MerchantPricingPolicy()
-        if policy.size_tiers:
+        gta_cfg = ctx.gta_rate
+        if request.channel != "retail" and policy.size_tiers:
             quote = self.size_weight.quote_tiers(
                 policy.size_tiers, weight_kg=request.weight_kg, dimensions=request.dimensions
+            )
+        elif request.channel == "retail" and gta_cfg is not None and gta_cfg.weight_threshold_kg is not None:
+            quote = self.size_weight.quote(
+                weight_kg=request.weight_kg,
+                dimensions=request.dimensions,
+                declared_value_cents=request.declared_value_cents,
+                volume_cm3=request.volume_cm3,
+                config=SizeWeightConfig(
+                    weight_threshold_kg=float(gta_cfg.weight_threshold_kg),
+                    weight_cents_per_kg=int(gta_cfg.weight_cents_per_kg or 0),
+                    volume_threshold_cm3=float(
+                        gta_cfg.volume_threshold_cm3
+                        if gta_cfg.volume_threshold_cm3 is not None
+                        else DEFAULT_VOLUME_THRESHOLD_CM3
+                    ),
+                    cents_per_10k_cm3=int(gta_cfg.cents_per_10k_cm3 or 0),
+                    declared_value_threshold_cents=int(gta_cfg.declared_value_threshold_cents or 0),
+                    declared_value_rate=float(gta_cfg.declared_value_rate or 0),
+                ),
             )
         else:
             quote = self.size_weight.quote(
                 weight_kg=request.weight_kg,
                 dimensions=request.dimensions,
                 declared_value_cents=request.declared_value_cents,
+                volume_cm3=request.volume_cm3,
                 config=size_weight_config_from_rate_card(ctx.rate_card or default_rate_card()),
             )
         if not quote.applies:

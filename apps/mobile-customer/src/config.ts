@@ -8,6 +8,9 @@ export const appEnv = process.env.EXPO_PUBLIC_APP_ENV ?? "development";
 
 export const clerkPublishableKey = (process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim();
 
+/** Places autocomplete only. Distance and price stay on the API. */
+export const googleMapsApiKey = (process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? "").trim();
+
 /** Release and preview builds never skip auth, even if the flag is set. */
 export const allowDevAuth = (): boolean => {
   if (!__DEV__) return false;

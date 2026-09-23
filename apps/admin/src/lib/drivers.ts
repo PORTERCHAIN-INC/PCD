@@ -3,13 +3,12 @@ import type { Activity, Task } from "@/lib/crm";
 
 /** Vehicle class IDs used for driver registration / fleet (matches API catalog). */
 export const VEHICLE_CLASSES = [
-  "sedan",
-  "suv",
+  "sedan_suv",
   "pickup",
-  "cargoVan",
-  "highRoof",
-  "box16",
-  "box20",
+  "cargo_van",
+  "sprinter_van",
+  "box_16",
+  "box_20",
 ] as const;
 
 export type DriverRow = {

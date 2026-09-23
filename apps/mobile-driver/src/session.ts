@@ -41,6 +41,22 @@ export async function requireBearer(): Promise<string> {
   throw new Error("signed_out");
 }
 
+/** Wait for ClerkBridge to publish a live session after hosted / token-cache restore. */
+export async function waitForSignedSession(timeoutMs = 5_000): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const current = getSessionSnapshot();
+    if (current.signedIn) {
+      const token = await current.getToken();
+      if (token) return true;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  const last = getSessionSnapshot();
+  if (!last.signedIn) return false;
+  return Boolean(await last.getToken());
+}
+
 /** Clears local session view after Clerk/dev sign-out. */
 export async function clearSession(): Promise<void> {
   // Dynamic import avoids session ↔ push ↔ api cycle.

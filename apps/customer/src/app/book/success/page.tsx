@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import CustomerMotion from "@/components/motion/CustomerMotion";
 import { syncBookingCheckout, type BookingConfirmation } from "@/lib/booking";
 
 function SuccessContent() {
@@ -64,6 +65,7 @@ function SuccessContent() {
   if (processing) {
     return (
       <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <CustomerMotion name="shipment" size={140} />
         <h1 className="text-2xl font-bold text-slate-900">Finalizing your booking…</h1>
         <p className="mt-2 text-sm text-slate-600">Confirming payment with Stripe.</p>
       </div>
@@ -91,8 +93,16 @@ function SuccessContent() {
 
   return (
     <div className="mx-auto max-w-lg rounded-2xl border border-emerald-200 bg-white p-8 text-center shadow-sm">
+      <CustomerMotion name="shipment" size={150} />
       <h1 className="text-2xl font-bold text-slate-900">Booking confirmed</h1>
       <p className="mt-2 text-sm text-slate-600">Your delivery is booked.</p>
+      {confirmation?.vehicle_class ? (
+        <p className="mt-3 text-sm text-slate-700">
+          {confirmation.booking_mode === "vehicle"
+            ? `${confirmation.vehicle_class} · Whole vehicle`
+            : `${confirmation.vehicle_class} · ${(confirmation.parcels ?? []).map((parcel) => parcel.preset_label || "Parcel").join(", ") || "Parcels"}`}
+        </p>
+      ) : null}
       {tracking ? (
         <>
           <p className="mt-6 font-mono text-lg font-semibold text-emerald-800">{tracking}</p>

@@ -1,0 +1,31 @@
+App Store privacy nutrition — Porterchain Driver
+
+Data used to provide the app (linked to identity, not used for tracking):
+
+  Contact info
+    Email, name, phone — Clerk driver account and ops profile.
+
+  Location
+    Precise location — on-duty GPS pings to Porterchain API / Fleetbase so dispatch can see the van.
+
+  Photos
+    Proof of delivery and document uploads (licence, insurance, vehicle). User-provided.
+
+  User content
+    Support messages, exception notes, pre-trip checks.
+
+  Identifiers
+    User ID (Clerk), device push token (APNs).
+
+  Product interaction
+    Job accept/complete, scan events, duty status.
+
+Not collected
+  Advertising data, browsing history, health, purchases (no IAP), other financial accounts.
+
+Tracking
+  No. No third-party advertising SDK. ATT not required.
+
+Third parties
+  Clerk (authentication), Apple (APNs, Map tap-out to Apple Maps), Porterchain API.
+  Google Maps is not used as a routing engine in this app.

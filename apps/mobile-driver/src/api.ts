@@ -68,6 +68,7 @@ async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
       Accept: "application/json",
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
+      "X-Porterchain-Portal": "driver",
       ...(init?.headers ?? {}),
     },
   });

@@ -31,18 +31,38 @@ def persist_invoice_status(
     return status
 
 
+def _delivery_description(order: Order | None) -> str:
+    if order is None:
+        return "Delivery"
+    meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
+    vehicle = str(meta.get("vehicle_class") or "Delivery")
+    if meta.get("booking_mode") == "vehicle":
+        return f"{vehicle} · Whole vehicle"
+    items = []
+    parcels = meta.get("parcels")
+    if isinstance(parcels, dict):
+        items = parcels.get("items") or []
+    count = len(items) if isinstance(items, list) else 0
+    if count:
+        return f"{vehicle} · {count} parcel{'s' if count != 1 else ''}"
+    return "Delivery"
+
+
 def ensure_invoice_line(db: Session, invoice: Invoice, order: Order | None) -> InvoiceLine:
+    description = _delivery_description(order)
     existing = db.query(InvoiceLine).filter(InvoiceLine.invoice_id == invoice.id).first()
     if existing:
         existing.amount_cents = int(invoice.amount_cents or 0)
         existing.tax_cents = int(invoice.tax_cents or 0)
         if order and not existing.order_id:
             existing.order_id = order.id
+        if not existing.description or existing.description == "Delivery":
+            existing.description = description
         return existing
     line = InvoiceLine(
         invoice_id=invoice.id,
         order_id=order.id if order else invoice.order_id,
-        description="Delivery",
+        description=_delivery_description(order),
         amount_cents=int(invoice.amount_cents or 0),
         tax_cents=int(invoice.tax_cents or 0),
     )

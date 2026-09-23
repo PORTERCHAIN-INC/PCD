@@ -322,6 +322,9 @@ class DriverJobDetailResponse(DriverJobSummary):
     delivery_stop_id: str | None = None
     delivery_attempts: int = 0
     max_delivery_attempts: int = 2
+    declared_value_cents: int | None = None
+    booking_mode: str | None = None
+    vehicle_class: str | None = None
 
 
 class DriverDevLoginRequest(BaseModel):

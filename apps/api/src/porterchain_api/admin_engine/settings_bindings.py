@@ -108,7 +108,7 @@ SETTINGS_BINDINGS: list[dict[str, Any]] = [
         "readers": ["PricingRepository._load_gta_rate_config", "porterchain_pricing.gta_rate"],
         "ui_editable": True,
         "summary": "GTA matrix, FSA, liftgate/weight card, tax, and fuel — quotes use these immediately.",
-        "related_keys": ["pricing_tax", "pricing_fuel", "pricing_rate_card"],
+        "related_keys": ["pricing_tax", "pricing_fuel", "pricing_rate_card", "pricing_customer_distance"],
     },
     {
         "id": "coverage",

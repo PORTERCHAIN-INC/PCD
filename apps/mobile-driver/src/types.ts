@@ -51,6 +51,8 @@ export type Handshake = {
   currentOrderId: string | null;
   currentOrderNumber: string | null;
   accessNotes: string | null;
+  parcelLines: string[];
+  bookingMode: string | null;
   deliveryAttempts: number | null;
   maxDeliveryAttempts: number | null;
   walletCents: number | null;
@@ -177,6 +179,8 @@ export type DriverPackage = {
   tracking_suffix?: string;
   status?: string;
   weight_kg?: number | null;
+  preset_label?: string | null;
+  instructions?: string | null;
   scanned_pickup?: boolean;
   scanned_delivery?: boolean;
   package_type?: string;
@@ -214,6 +218,9 @@ export type DriverJobDetail = DriverJobSummary & {
   pickup_stop_id?: string;
   delivery_stop_id?: string;
   special_instructions?: string | null;
+  declared_value_cents?: number | null;
+  booking_mode?: string | null;
+  vehicle_class?: string | null;
   packages?: DriverPackage[];
   packages_error?: string | null;
   timeline?: DriverTimelineEvent[];

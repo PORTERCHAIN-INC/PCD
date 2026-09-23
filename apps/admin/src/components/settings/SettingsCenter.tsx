@@ -442,11 +442,13 @@ function SectionRouter({
         fuelData={config.pricing_fuel}
         rateCardData={config.pricing_rate_card}
         vehicleCatalog={config.vehicles}
+        customerData={config.pricing_customer}
         saving={saving}
         onSaveGta={(value, reason) => onSaveConfig("pricing", value, reason)}
         onSaveTax={(value, reason) => onSaveConfig("pricing_tax", value, reason)}
         onSaveFuel={(value, reason) => onSaveConfig("pricing_fuel", value, reason)}
         onSaveRateCard={(value, reason) => onSaveConfig("pricing_rate_card", value, reason)}
+        onSaveCustomer={(value, reason) => onSaveConfig("pricing_customer", value, reason)}
       />
     );
   }

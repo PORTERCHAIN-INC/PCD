@@ -49,6 +49,10 @@ function normalizeList(raw: unknown): VehicleClassConfig[] {
       booking_enabled: item.booking_enabled !== false,
       retail_enabled: item.retail_enabled !== false,
       merchant_enabled: item.merchant_enabled !== false,
+      whole_vehicle_enabled: item.whole_vehicle_enabled !== false,
+      allowed_presets: Array.isArray(item.allowed_presets)
+        ? item.allowed_presets.map(String)
+        : undefined,
       description: item.description ? String(item.description) : undefined,
       sort_order: item.sort_order != null ? Number(item.sort_order) : index + 1,
     }))
@@ -64,6 +68,8 @@ function blankVehicle(existing: VehicleClassConfig[]): VehicleClassConfig {
     booking_enabled: true,
     retail_enabled: true,
     merchant_enabled: true,
+    whole_vehicle_enabled: true,
+    allowed_presets: ["small", "medium", "large", "extra_large", "skid", "furniture", "other"],
     sort_order: nextOrder,
   };
 }
@@ -545,7 +551,43 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
                 checked={editor.merchant_enabled !== false}
                 onChange={(v) => setEditor({ ...editor, merchant_enabled: v })}
               />
+              <Toggle
+                label="Whole vehicle"
+                hint="Customer can book the vehicle with no parcel list"
+                checked={editor.whole_vehicle_enabled !== false}
+                onChange={(v) => setEditor({ ...editor, whole_vehicle_enabled: v })}
+              />
             </div>
+            <Field label="Allowed parcel sizes" className="sm:col-span-2">
+              <div className="flex flex-wrap gap-2">
+                {["small", "medium", "large", "extra_large", "skid", "furniture", "other"].map(
+                  (preset) => {
+                    const selected = (editor.allowed_presets ?? []).includes(preset);
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        className={cn(
+                          "rounded-full border px-3 py-1 text-sm",
+                          selected ? "border-sky bg-sky/10" : "border-gray-line text-muted"
+                        )}
+                        onClick={() => {
+                          const current = new Set(editor.allowed_presets ?? []);
+                          if (preset !== "other") {
+                            if (current.has(preset)) current.delete(preset);
+                            else current.add(preset);
+                          }
+                          current.add("other");
+                          setEditor({ ...editor, allowed_presets: [...current] });
+                        }}
+                      >
+                        {preset.replaceAll("_", " ")}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            </Field>
           </div>
         )}
       </Drawer>

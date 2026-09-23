@@ -3,36 +3,9 @@ import { colors, radius, spacing, typography } from "@porterchain/mobile-theme";
 import type { Handshake } from "../types";
 import { DEV_MENU_GUTTER } from "./Screen";
 
-function Dot({ ok, warn }: { ok: boolean; warn?: boolean }) {
-  return <View style={[styles.dot, ok ? styles.ok : warn ? styles.warn : styles.bad]} />;
-}
-
 export function StatusRail({ handshake }: { handshake: Handshake }) {
-  const pushOk = handshake.push.registered;
-  const pushWarn = handshake.push.kind === "apns" || handshake.push.kind === "expo";
-  const platformOk = handshake.platformStatus === "ok" || handshake.platformStatus === "unknown";
-  const platformWarn = handshake.platformStatus === "degraded";
-
   return (
     <View style={styles.wrap} testID="handshake-rail">
-      <View style={styles.rail}>
-        <View style={styles.chip}>
-          <Dot ok={handshake.api === "up"} />
-          <Text style={styles.chipText}>API</Text>
-        </View>
-        <View style={styles.chip}>
-          <Dot ok={handshake.auth === "up"} />
-          <Text style={styles.chipText}>Auth</Text>
-        </View>
-        <View style={styles.chip}>
-          <Dot ok={pushOk} warn={pushWarn && !pushOk} />
-          <Text style={styles.chipText}>Push</Text>
-        </View>
-        <View style={styles.chip}>
-          <Dot ok={platformOk && !platformWarn} warn={platformWarn} />
-          <Text style={styles.chipText}>Platform</Text>
-        </View>
-      </View>
       {handshake.platformDetail ? (
         <Text style={styles.banner} testID="platform-degraded">
           {handshake.platformDetail}
@@ -49,25 +22,6 @@ export function StatusRail({ handshake }: { handshake: Handshake }) {
 
 const styles = StyleSheet.create({
   wrap: { gap: spacing.sm, paddingRight: DEV_MENU_GUTTER },
-  rail: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    flexWrap: "wrap",
-  },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    backgroundColor: colors.white,
-    borderRadius: radius.xl,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
-  },
-  chipText: {
-    ...typography.caption,
-    color: colors.primary,
-    fontWeight: "600",
-  },
   banner: {
     ...typography.caption,
     color: "#92400e",
@@ -86,12 +40,4 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     fontWeight: "600",
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  ok: { backgroundColor: colors.success },
-  warn: { backgroundColor: "#d97706" },
-  bad: { backgroundColor: colors.danger },
 });

@@ -111,6 +111,7 @@ class Quote(Base):
     currency: Mapped[str] = mapped_column(String(8), default="cad")
     pricing_breakdown: Mapped[dict] = mapped_column(JSON)
     distance_meters: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    parcels: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     consent: Mapped[dict | None] = mapped_column(JSON, nullable=True)

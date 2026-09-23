@@ -66,6 +66,8 @@ export const idleHandshake = (): Handshake => ({
   currentOrderId: null,
   currentOrderNumber: null,
   accessNotes: null,
+  parcelLines: [],
+  bookingMode: null,
   deliveryAttempts: null,
   maxDeliveryAttempts: null,
   walletCents: null,
@@ -177,6 +179,13 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
         if (!next.accessNotes && job.special_instructions) {
           next.accessNotes = formatAccessLine({ special_instructions: job.special_instructions });
         }
+        next.bookingMode = job.booking_mode ?? null;
+        next.parcelLines = (job.packages ?? [])
+          .map((pkg) => {
+            const name = pkg.preset_label || "Parcel";
+            return pkg.instructions ? `${name}: ${pkg.instructions}` : name;
+          })
+          .filter(Boolean);
         if (job.delivery_attempts != null) next.deliveryAttempts = job.delivery_attempts;
         if (job.max_delivery_attempts != null) next.maxDeliveryAttempts = job.max_delivery_attempts;
       } catch {

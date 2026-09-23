@@ -305,7 +305,20 @@ function PackageTab({ detail }: { detail: BookingDraftDetail }) {
   return (
     <>
       <Row label="Vehicle" value={detail.vehicle_class ?? "—"} />
-      <Row label="Package type" value={detail.package_type ?? "—"} />
+      <Row
+        label="Package type"
+        value={detail.booking_mode === "vehicle" ? "Whole vehicle" : (detail.package_type ?? "—")}
+      />
+      <Row
+        label="Parcels"
+        value={
+          detail.booking_mode === "vehicle"
+            ? "Whole vehicle"
+            : (detail.parcels ?? [])
+                .map((parcel) => String(parcel.preset_label || "Parcel"))
+                .join(", ") || "—"
+        }
+      />
       <Row label="Weight" value={detail.weight_kg != null ? `${detail.weight_kg} kg` : "—"} />
       <Row label="Dimensions" value={detail.dimensions ?? "—"} />
       <Row

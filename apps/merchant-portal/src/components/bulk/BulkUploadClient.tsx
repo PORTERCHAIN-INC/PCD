@@ -20,6 +20,8 @@ import {
   type RouteImportMappingProfile,
 } from "@/lib/api";
 import { VEHICLE_OPTIONS, vehicleLabel } from "@/lib/catalog";
+import { publicEnv } from "@/lib/env";
+import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
 import { Download } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -28,6 +30,8 @@ const SAMPLE_CSV_URL = "/samples/bulk-bookings-sample.csv";
 const ROUTE_SAMPLE_CSV_URL = "/samples/route-import-sample.csv";
 const VEHICLES = VEHICLE_OPTIONS.map((v) => v.id);
 const MAP_FIELDS = [
+  "pickup_address",
+  "dropoff_address",
   "address",
   "unit",
   "city",
@@ -54,6 +58,13 @@ const MAP_FIELDS = [
 type Tab = "route" | "classic";
 type MappingRow = { canonical: string; source: string | null; confidence?: number };
 
+/** Matches the API gate: one address column, or both pickup and dropoff columns. */
+function addressMappingConfident(mapping: MappingRow[]): boolean {
+  const confident = (field: string) =>
+    mapping.some((m) => m.canonical === field && m.source && (m.confidence ?? 0) >= 0.8);
+  return confident("address") || (confident("pickup_address") && confident("dropoff_address"));
+}
+
 export default function BulkPage() {
   const { getApiToken, orgId, isLoaded, isSignedIn } = useMerchantAuth();
   const [tab, setTab] = useState<Tab>("route");
@@ -77,6 +88,8 @@ export default function BulkPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editAddress, setEditAddress] = useState("");
+  /** Set when the merchant picks a Places suggestion — same shape as Book Delivery. */
+  const [editPlace, setEditPlace] = useState<BookingAddress | null>(null);
   const [draftMapping, setDraftMapping] = useState<MappingRow[]>([]);
   const [profiles, setProfiles] = useState<RouteImportMappingProfile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState("");
@@ -276,15 +289,21 @@ export default function BulkPage() {
     setError(null);
     try {
       const token = await getApiToken();
-      const job = await patchRouteImportStop(
-        token,
-        routeJob.job_id,
-        editingIndex,
-        { address: editAddress },
-        orgId
-      );
+      // Places pick → lat/lng already known (Book Delivery path). Typed-only → Nominatim.
+      const patch: Record<string, unknown> = {
+        address: (editPlace?.formatted || editAddress).trim(),
+      };
+      if (editPlace?.lat != null && editPlace?.lng != null) {
+        patch.lat = editPlace.lat;
+        patch.lng = editPlace.lng;
+        patch.geocode_source = "places";
+        if (editPlace.placeId) patch.place_id = editPlace.placeId;
+        if (editPlace.postal) patch.postal = editPlace.postal;
+      }
+      const job = await patchRouteImportStop(token, routeJob.job_id, editingIndex, patch, orgId);
       setRouteJob(job);
       setEditingIndex(null);
+      setEditPlace(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Address update failed");
     } finally {
@@ -327,11 +346,7 @@ export default function BulkPage() {
           e.error === "mapping.address_low_confidence"
       )
     ) ||
-    Boolean(
-      draftMapping.some(
-        (m) => m.canonical === "address" && (!m.source || (m.confidence ?? 0) < 0.8)
-      )
-    );
+    (draftMapping.length > 0 && !addressMappingConfident(draftMapping));
   const headerOptions = routeJob?.headers?.length
     ? routeJob.headers
     : Array.from(new Set(draftMapping.map((m) => m.source).filter((s): s is string => Boolean(s))));
@@ -605,49 +620,89 @@ export default function BulkPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {routeJob.stops.map((stop, idx) => (
-                      <tr key={idx} className="border-b border-primary/5">
-                        <td className="py-2 pr-3">{String(stop.sequence ?? idx + 1)}</td>
-                        <td className="py-2 pr-3">{String(stop.stop_type ?? "")}</td>
-                        <td className="py-2 pr-3 max-w-md truncate">
-                          {String(stop.formatted || stop.raw_address || stop.address || "")}
-                        </td>
-                        <td className="py-2 pr-3">{String(stop.unit ?? "—")}</td>
-                        <td className="py-2 pr-3">{String(stop.geocode_status ?? "")}</td>
-                        <td className="py-2">
-                          <button
-                            type="button"
-                            className="text-primary underline"
-                            onClick={() => {
-                              setEditingIndex(idx);
-                              setEditAddress(
-                                String(stop.raw_address || stop.address || stop.formatted || "")
-                              );
-                            }}
-                          >
-                            Edit
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {routeJob.stops.map((stop, idx) => {
+                      const geo = String(stop.geocode_status ?? "");
+                      const needsFix = geo === "failed" || geo === "pending";
+                      return (
+                        <tr
+                          key={idx}
+                          className={
+                            needsFix
+                              ? "border-b border-amber-100 bg-amber-50/50"
+                              : "border-b border-primary/5"
+                          }
+                        >
+                          <td className="py-2 pr-3">{String(stop.sequence ?? idx + 1)}</td>
+                          <td className="py-2 pr-3">{String(stop.stop_type ?? "")}</td>
+                          <td className="py-2 pr-3 max-w-md truncate">
+                            {String(stop.formatted || stop.raw_address || stop.address || "")}
+                          </td>
+                          <td className="py-2 pr-3">{String(stop.unit ?? "—")}</td>
+                          <td className="py-2 pr-3">
+                            {needsFix ? (
+                              <span className="font-medium text-amber-800">{geo || "pending"}</span>
+                            ) : (
+                              geo
+                            )}
+                          </td>
+                          <td className="py-2">
+                            <button
+                              type="button"
+                              className="text-primary underline"
+                              onClick={() => {
+                                setEditingIndex(idx);
+                                setEditPlace(null);
+                                setEditAddress(
+                                  String(stop.raw_address || stop.address || stop.formatted || "")
+                                );
+                              }}
+                            >
+                              {needsFix ? "Fix location" : "Edit"}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
               {editingIndex != null && (
                 <div className="flex flex-wrap items-end gap-2 rounded-xl border border-primary/10 p-3">
-                  <label className="flex-1 text-sm">
+                  <label className="min-w-[16rem] flex-1 text-sm">
                     <span className="mb-1 block font-medium">Stop {editingIndex + 1} address</span>
-                    <input
-                      className="w-full rounded-xl border border-primary/15 px-3 py-2"
+                    <AddressAutocompleteInput
+                      id={`bulk-stop-fix-${editingIndex}`}
                       value={editAddress}
-                      onChange={(e) => setEditAddress(e.target.value)}
+                      onChange={(value) => {
+                        setEditAddress(value);
+                        setEditPlace(null);
+                      }}
+                      onPlaceSelect={(place) => {
+                        setEditAddress(place.formatted);
+                        setEditPlace(place);
+                      }}
+                      placeholder="Start typing — pick a suggestion to lock the pin"
+                      apiKey={publicEnv.googleMapsApiKey}
+                      className="w-full"
+                      fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2"
                     />
+                    <span className="mt-1 block text-xs text-muted">
+                      {editPlace?.lat != null
+                        ? "Location locked from Places (same as Book Delivery)."
+                        : "Pick a suggestion to set the map pin. Typed-only addresses use OpenStreetMap."}
+                    </span>
                   </label>
-                  <Button onClick={onSaveStop} disabled={loading}>
-                    Re-geocode
+                  <Button onClick={onSaveStop} disabled={loading || !editAddress.trim()}>
+                    {editPlace?.lat != null ? "Save location" : "Look up address"}
                   </Button>
-                  <Button variant="secondary" onClick={() => setEditingIndex(null)}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setEditingIndex(null);
+                      setEditPlace(null);
+                    }}
+                  >
                     Cancel
                   </Button>
                 </div>

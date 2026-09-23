@@ -20,7 +20,7 @@ const COUNTRY_CODES = [
   { code: "+91", label: "IN +91" },
 ] as const;
 
-const VEHICLE_KEYS = ["sedan", "suv", "pickup", "van", "boxTruck", "unsure"] as const;
+const VEHICLE_KEYS = ["sedan", "pickup", "van", "boxTruck", "box20", "unsure"] as const;
 
 const inputClass =
   "w-full rounded-xl border border-primary/10 px-4 py-3 text-sm text-primary outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/15 transition-shadow";

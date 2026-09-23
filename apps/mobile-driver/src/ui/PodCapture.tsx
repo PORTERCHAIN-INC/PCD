@@ -6,13 +6,10 @@ import { PrimaryButton } from "./PrimaryButton";
 import { SignaturePad } from "./SignaturePad";
 import { BarcodeScannerModal } from "./BarcodeScannerModal";
 import { capturePodPhotoDataUrl } from "../pod";
+import { type PodDraft } from "./podDraft";
 
-export type PodDraft = {
-  photoUrl: string | null;
-  signature: string;
-  barcode: string;
-  otp: string;
-};
+export type { PodDraft } from "./podDraft";
+export { emptyPodDraft } from "./podDraft";
 
 type Props = {
   busy: boolean;
@@ -22,13 +19,6 @@ type Props = {
   onChange: (next: PodDraft) => void;
   onPhotoError: (message: string) => void;
 };
-
-export const emptyPodDraft = (): PodDraft => ({
-  photoUrl: null,
-  signature: "",
-  barcode: "",
-  otp: "",
-});
 
 export function PodCapture({ busy, draft, orderId, otpRequired, onChange, onPhotoError }: Props) {
   const [picking, setPicking] = useState(false);

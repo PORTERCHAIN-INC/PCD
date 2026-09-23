@@ -87,7 +87,7 @@ DRIVERS = [
         "email": "liam@porterchain.com",
         "full_name": "Liam Tremblay",
         "phone": "+1 416-555-0103",
-        "vehicle_class": "box_truck",
+        "vehicle_class": "box_16",
         "plate": "BOX99",
         "make_model": "Isuzu NPR",
         "wallet_cents": 210_00,

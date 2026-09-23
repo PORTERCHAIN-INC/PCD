@@ -1,0 +1,46 @@
+Porterchain Customer — App Store Connect listing (iPhone)
+
+Name on the device
+  Porterchain Customer
+
+ASC app name on record
+  PCDC
+
+Subtitle (≤30)
+  Quote, book, and track
+
+Promotional text (≤170)
+  Get a quote for capacity, book the delivery, and follow the shipment. Prices come from Porterchain. Built for the Transportation Capacity Network.
+
+Description
+  Porterchain Customer is how you request capacity on Porterchain’s Transportation Capacity Network.
+
+  You can:
+
+  • Get a quote for a pickup and drop-off
+  • Book and pay in Stripe Checkout
+  • Track a shipment, including without an account
+  • See orders, bookings, parcel details, and billing
+  • Report a problem and export or request deletion of your data
+
+  Sign-in uses Porterchain Platform. The amount on the quote is the Porterchain price. This app does not set its own rates.
+
+  Porterchain is not a consumer courier, a trucking company, or marketplace software. This app is the customer side of the capacity network.
+
+Keywords (≤100)
+  delivery,quote,booking,tracking,GTA,capacity,logistics,shipment
+
+Support URL
+  https://porterchain.com/contact
+
+Marketing URL
+  https://porterchain.com
+
+Privacy policy
+  https://porterchain.com/privacy
+
+Category
+  Business
+
+Age rating
+  4+

@@ -81,7 +81,7 @@ export function FieldOpsPanel({ orderId, stopType, busy, seed, onError, onScanPr
     (stopType ?? job.current_leg ?? "pickup").toLowerCase() === "pickup" ? "pickup" : "delivery";
   const scan: ScanProgress | undefined = phase === "pickup" ? job.scan_pickup : job.scan_delivery;
   const codCents = job.cod_amount_cents ?? 0;
-  const showScan = (scan?.required ?? 0) > 0;
+  const showScan = job.booking_mode !== "vehicle" && (scan?.required ?? 0) > 0;
   const showCod = codCents > 0;
 
   if (!showScan && !showCod) return null;
@@ -97,6 +97,13 @@ export function FieldOpsPanel({ orderId, stopType, busy, seed, onError, onScanPr
             {phase} scans {scan?.scanned ?? 0}/{scan?.required ?? 0}
             {scan?.complete ? " · complete" : ""}
           </Text>
+          {(job.packages ?? []).map((pkg, index) => (
+            <Text key={pkg.id ?? pkg.tracking_suffix ?? String(index)} style={styles.meta}>
+              {pkg.preset_label || `Parcel ${index + 1}`}
+              {pkg.instructions ? ` · ${pkg.instructions}` : ""}
+              {pkg.tracking_suffix ? ` · ${pkg.tracking_suffix}` : ""}
+            </Text>
+          ))}
           {(scan?.missing_suffixes?.length ?? 0) > 0 ? (
             <Text style={styles.meta}>Missing: {scan?.missing_suffixes?.join(", ")}</Text>
           ) : null}

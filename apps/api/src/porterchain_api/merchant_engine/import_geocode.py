@@ -1,4 +1,7 @@
-"""Nominatim-only geocoding for route import (no Google / paid APIs)."""
+"""Nominatim geocoding for route import (no Google / paid geocode APIs).
+
+The point is for Valhalla/OSRM. CSV-supplied lat/lng skip the lookup.
+"""
 
 from __future__ import annotations
 
@@ -37,6 +40,10 @@ class GeocodeResult:
     raw: str
     geocode_query: str
     issues: list[str]
+    place_id: str | None = None
+    source: str | None = None  # csv | nominatim | places
+    city: str | None = None
+    postal: str | None = None
 
 
 def _throttle() -> None:
@@ -119,7 +126,11 @@ def geocode_stop(
     postal: str | None = None,
     lat: float | None = None,
     lng: float | None = None,
+    place_id: str | None = None,
+    source: str | None = None,
 ) -> GeocodeResult:
+    """``place_id``/``source`` only matter with ``lat``/``lng``: a stop re-resolved with
+    coordinates it already had keeps where they came from."""
     norm = normalize_address(address, unit=unit, city=city, province=province, postal=postal)
     issues = list(norm.issues)
 
@@ -127,13 +138,18 @@ def geocode_stop(
         return GeocodeResult(
             lat=float(lat),
             lng=float(lng),
-            formatted=norm.street or address,
+            # Prefer the merchant/Places string; normalize only fills gaps.
+            formatted=(address or "").strip() or norm.street or address,
             status="supplied",
             confidence=1.0,
             unit=norm.unit,
             raw=norm.raw,
             geocode_query=norm.geocode_query,
             issues=issues,
+            place_id=place_id,
+            source=source or "csv",
+            city=norm.city,
+            postal=norm.postal,
         )
 
     attempts = [
@@ -184,6 +200,9 @@ def geocode_stop(
                 raw=norm.raw,
                 geocode_query=q,
                 issues=issues + (["address.approximate"] if status == "approximate" else []),
+                source="nominatim",
+                city=norm.city,
+                postal=norm.postal,
             )
         except (KeyError, TypeError, ValueError):
             continue
@@ -199,6 +218,8 @@ def geocode_stop(
         raw=norm.raw,
         geocode_query=norm.geocode_query,
         issues=issues,
+        city=norm.city,
+        postal=norm.postal,
     )
 
 

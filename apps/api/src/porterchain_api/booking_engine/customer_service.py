@@ -320,16 +320,27 @@ class CustomerService:
             raise LookupError("order_not_found")
         # C-24: vehicle from quote (not pickup address blob).
         vehicle = None
-        if order.quote_id:
-            quote = db.get(Quote, order.quote_id)
-            if quote and quote.vehicle_class:
-                vehicle = quote.vehicle_class
+        quote = db.get(Quote, order.quote_id) if order.quote_id else None
+        if quote and quote.vehicle_class:
+            vehicle = quote.vehicle_class
         if not vehicle and isinstance(order.pickup, dict):
             vehicle = order.pickup.get("vehicle_class")
+        blob = quote.parcels if quote and isinstance(quote.parcels, dict) else {}
+        if not blob and isinstance(order.compliance_metadata, dict):
+            stored = order.compliance_metadata.get("parcels")
+            blob = stored if isinstance(stored, dict) else {}
+        mode = blob.get("booking_mode")
+        if not mode and isinstance(order.compliance_metadata, dict):
+            mode = order.compliance_metadata.get("booking_mode")
         return {
             "pickup": order.pickup,
             "dropoff": order.dropoff,
             "vehicle_class": vehicle,
+            "booking_mode": mode,
+            "parcels": blob.get("items") if isinstance(blob.get("items"), list) else [],
+            "declared_value_cents": (quote.declared_value_cents if quote else None)
+            or blob.get("declared_value_cents"),
+            "additional_stops": quote.additional_stops if quote else None,
             "source_order_id": order.id,
             "tracking_number": order.tracking_number,
         }

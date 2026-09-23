@@ -60,24 +60,27 @@ export const BILLING_CYCLES = ["WEEKLY", "BIWEEKLY", "MONTHLY", "CUSTOM"] as con
 
 /** Retail vehicle class IDs — must stay ⊆ Settings vehicle_types catalog (M-6). */
 export const RETAIL_VEHICLE_OPTIONS = [
-  "sedan",
-  "suv",
+  "sedan_suv",
   "pickup",
-  "cargoVan",
-  "highRoof",
-  "box16",
-  "box20",
+  "cargo_van",
+  "box_16",
+  "box_20",
 ] as const;
 
 const VEHICLE_CLASS_LABELS: Record<string, string> = {
-  sedan: "Sedan",
-  suv: "SUV",
+  sedan: "Sedan / SUV",
+  suv: "Sedan / SUV",
+  sedan_suv: "Sedan / SUV",
   pickup: "Pickup",
   cargoVan: "Cargo van",
   cargo_van: "Cargo van",
-  highRoof: "High-roof van",
-  box16: "16 ft box truck",
-  box20: "20 ft box truck",
+  highRoof: "Sprinter / high-roof",
+  sprinter_van: "Sprinter / high-roof",
+  box16: "16 ft",
+  box_16: "16 ft",
+  box_truck: "16 ft",
+  box20: "20 ft",
+  box_20: "20 ft",
 };
 
 export function vehicleClassLabel(id: string): string {

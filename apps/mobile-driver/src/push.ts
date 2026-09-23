@@ -178,12 +178,16 @@ export async function collectPush(): Promise<PushState> {
       }
     }
     if (Platform.OS === "ios") {
+      // Physical iPhones often return a raw APNs token until Firebase Messaging
+      // is wired; that is not a simulator. Only FCM (:APA91) registers today.
       return {
         kind: "apns",
         permission: status,
         tokenPreview: token ? preview(token) : null,
         registered: false,
-        detail: "Job-ring alerts need a physical device. This simulator cannot register FCM.",
+        detail: token
+          ? "Push token is APNs, not FCM — job-ring alerts need Firebase Messaging on this build."
+          : "Could not read a push token on this device.",
       };
     }
     return {

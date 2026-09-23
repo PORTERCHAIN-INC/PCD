@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
-import { buildVehicleMetadata, VehicleDeliveryPageContent } from "@/lib/seo/vehicle-page";
-import { routing, type Locale } from "@/i18n/routing";
+import { redirect } from "next/navigation";
+import { buildVehicleMetadata } from "@/lib/seo/vehicle-page";
+import { routing } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -17,10 +16,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SuvDeliveryPage({ params }: Props) {
   const { locale } = await params;
-  setRequestLocale(locale);
-  return (
-    <CorporateShell>
-      <VehicleDeliveryPageContent locale={locale as Locale} segment="suv-delivery" />
-    </CorporateShell>
-  );
+  redirect(`/${locale}/sedan-delivery`);
 }

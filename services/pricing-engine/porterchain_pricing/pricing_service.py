@@ -42,6 +42,7 @@ class PricingService:
             distance_meters=request.distance_meters,
             estimated_duration_minutes=request.estimated_duration_minutes,
             routing_source=request.routing_source,
+            volume_cm3=request.volume_cm3,
             channel="retail",
             promo_code=request.promo_code,
             wallet_credit_cents=request.wallet_credit_cents,

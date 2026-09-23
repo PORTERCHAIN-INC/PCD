@@ -48,6 +48,10 @@ class ScanGateService:
                 "status": p.status,
                 "weight_kg": float(p.weight_kg) if p.weight_kg is not None else None,
                 "dimensions": p.dimensions,
+                "preset_label": (p.dimensions or {}).get("preset_label") or (p.dimensions or {}).get("display_name")
+                if isinstance(p.dimensions, dict)
+                else None,
+                "instructions": (p.dimensions or {}).get("instructions") if isinstance(p.dimensions, dict) else None,
                 "scanned_pickup": p.status in _PICKUP_DONE,
                 "scanned_delivery": p.status in _DELIVERY_DONE,
             }

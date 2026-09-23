@@ -38,7 +38,7 @@ export function CustomerAddOrderModal({
   const [pickup, setPickup] = useState<BookingAddress>(emptyAddress);
   const [dropoff, setDropoff] = useState<BookingAddress>(emptyAddress);
   const [vehicleClass, setVehicleClass] = useState<string>(RETAIL_VEHICLE_OPTIONS[0]);
-  const [packageType, setPackageType] = useState("looseParcel");
+  const [packageType, setPackageType] = useState("small");
   const [scheduledAt, setScheduledAt] = useState(() => toLocalInputValue(new Date()));
   const [instructions, setInstructions] = useState("");
   const [sendLink, setSendLink] = useState(true);
@@ -182,9 +182,13 @@ export function CustomerAddOrderModal({
             <label className="block">
               <span className="mb-1 block text-xs font-medium text-muted">Package</span>
               <Select value={packageType} onChange={(e) => setPackageType(e.target.value)}>
-                <option value="looseParcel">Loose parcel</option>
-                <option value="pallet">Pallet</option>
-                <option value="document">Document</option>
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+                <option value="extra_large">Extra large</option>
+                <option value="skid">Skid</option>
+                <option value="furniture">Furniture</option>
+                <option value="whole_vehicle">Whole vehicle</option>
               </Select>
             </label>
           </div>

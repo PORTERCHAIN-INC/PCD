@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Text, TextInput, StyleSheet } from "react-native";
+import { Pressable, Text, TextInput, StyleSheet } from "react-native";
 import { colors, radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
 import {
   getOrderByTracking,
@@ -7,14 +7,17 @@ import {
   type OrderLiveTracking,
   type OrderResult,
 } from "../api";
+import { humanCustomerError } from "../errors";
+import { Motion } from "../ui/Motion";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
 
 type Props = {
   initialTracking?: string;
+  onBack?: () => void;
 };
 
-export function TrackScreen({ initialTracking = "" }: Props) {
+export function TrackScreen({ initialTracking = "", onBack }: Props) {
   const [trackingNumber, setTrackingNumber] = useState(initialTracking);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,9 +43,7 @@ export function TrackScreen({ initialTracking = "" }: Props) {
       setOrder(null);
       setLive(null);
       const msg = err instanceof Error ? err.message : "lookup_failed";
-      setError(
-        `${msg}. Test/sandbox tracking numbers are not available on the public track screen.`
-      );
+      setError(humanCustomerError(msg));
     } finally {
       setBusy(false);
     }
@@ -50,9 +51,15 @@ export function TrackScreen({ initialTracking = "" }: Props) {
 
   return (
     <Screen testID="mobile-track">
+      {onBack ? (
+        <Pressable accessibilityRole="button" onPress={onBack}>
+          <Text style={styles.meta}>Back</Text>
+        </Pressable>
+      ) : null}
+      {!order ? <Motion name="shipment" size={140} /> : null}
       <Text style={styles.title}>Track delivery</Text>
       <Text style={styles.lede}>
-        Status comes from Porterchain API. Live GPS stays in Fleetbase.
+        Enter a tracking number. Status and ETA come from Porterchain.
       </Text>
       <TextInput
         accessibilityLabel="Tracking number"

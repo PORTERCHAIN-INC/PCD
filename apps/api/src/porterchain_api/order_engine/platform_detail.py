@@ -390,6 +390,12 @@ class OrderPlatformDetailMixin:
             "weight_kg": (quote.weight_kg if quote else None) or meta.get("weight_kg"),
             "dimensions": (quote.dimensions if quote else None) or meta.get("dimensions"),
             "declared_value_cents": quote.declared_value_cents if quote else None,
+            "booking_mode": (quote.parcels or {}).get("booking_mode")
+            if quote and isinstance(quote.parcels, dict)
+            else None,
+            "parcels": (quote.parcels or {}).get("items")
+            if quote and isinstance(quote.parcels, dict) and isinstance((quote.parcels or {}).get("items"), list)
+            else [],
             "distance_meters": (quote.distance_meters if quote else None)
             or quote_snap.get("distance_meters"),
             "quote_amount_cents": quote_amount,

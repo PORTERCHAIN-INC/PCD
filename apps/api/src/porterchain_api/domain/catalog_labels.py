@@ -26,13 +26,17 @@ ORDER_STATE_LABELS: dict[str, str] = {
 }
 
 VEHICLE_LABELS: dict[str, str] = {
-    "sedan": "Sedan",
-    "suv": "SUV",
+    "sedan": "Sedan / SUV",
+    "suv": "Sedan / SUV",
+    "sedan_suv": "Sedan / SUV",
+    "sedanSuv": "Sedan / SUV",
     "pickup": "Pickup",
     "cargoVan": "Cargo van",
     "cargo_van": "Cargo van",
     "highRoof": "High-roof van",
     "sprinter_van": "High-roof van",
+    "box_truck": "16 ft box",
+    "boxTruck": "16 ft box",
     "box16": "16 ft box truck",
     "box_16": "16 ft box truck",
     "box20": "20 ft box truck",

@@ -28,9 +28,10 @@ from porterchain_api.booking_engine.row_locks import (
 
 
 def _retail_compliance_from_quote(quote: Quote) -> dict | None:
-    """Persist quote stops onto the order so Fleetbase sync sees multi-stop retail."""
+    """Persist quote stops and parcels onto the order. Extra stops are drops, not parcel splits."""
     extras = quote.additional_stops if isinstance(quote.additional_stops, list) else []
-    if not extras:
+    payload = quote.parcels if isinstance(quote.parcels, dict) else {}
+    if not extras and not payload:
         return None
     pickup = quote.pickup if isinstance(quote.pickup, dict) else {}
     dropoff = quote.dropoff if isinstance(quote.dropoff, dict) else {}
@@ -79,12 +80,21 @@ def _retail_compliance_from_quote(quote: Quote) -> dict | None:
                 "city": dropoff.get("city"),
             }
         )
+    items = [] if payload.get("booking_mode") == "vehicle" else list(payload.get("items") or [])
+    if items:
+        for stop in reversed(stops):
+            if stop.get("type") == "dropoff":
+                stop["packages"] = items
+                break
     return {
         "stops": stops,
         "order_kind": "hub_spoke" if len(extras) >= 1 else "single",
         "additional_stops": extras,
         "vehicle_class": quote.vehicle_class,
         "schedule_mode": quote.schedule_mode,
+        "booking_mode": payload.get("booking_mode") or "parcels",
+        "parcels": payload,
+        "weight_kg": None if payload.get("booking_mode") == "vehicle" else quote.weight_kg,
     }
 
 
@@ -368,6 +378,16 @@ class BookingConfirmationService:
             "scheduled_at": order.scheduled_at,
             "pickup": order.pickup,
             "dropoff": order.dropoff,
+            "vehicle_class": (order.compliance_metadata or {}).get("vehicle_class")
+            if isinstance(order.compliance_metadata, dict)
+            else None,
+            "booking_mode": (order.compliance_metadata or {}).get("booking_mode")
+            if isinstance(order.compliance_metadata, dict)
+            else None,
+            "parcels": ((order.compliance_metadata or {}).get("parcels") or {}).get("items")
+            if isinstance(order.compliance_metadata, dict)
+            and isinstance((order.compliance_metadata or {}).get("parcels"), dict)
+            else None,
             "fleetbase_order_id": order.fleetbase_order_id,
         }
 

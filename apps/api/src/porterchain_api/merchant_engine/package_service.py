@@ -41,9 +41,16 @@ def _dims(pkg: dict[str, Any]) -> dict[str, Any] | None:
         raw = pkg.get("dimensions")
         if isinstance(raw, dict):
             out = dict(raw)
-    name = str(pkg.get("name") or "").strip()
+    name = str(pkg.get("name") or pkg.get("preset_label") or "").strip()
     if name:
         out["display_name"] = name
+    if pkg.get("preset_id"):
+        out["preset_id"] = pkg.get("preset_id")
+    if pkg.get("preset_label"):
+        out["preset_label"] = pkg.get("preset_label")
+    instructions = str(pkg.get("instructions") or "").strip()
+    if instructions:
+        out["instructions"] = instructions
     sku = str(pkg.get("sku") or "").strip()
     if sku:
         out["sku"] = sku
@@ -81,6 +88,17 @@ def extract_json_parcels(order: Order) -> list[dict[str, Any]]:
             row["_stop_key"] = str(stop_key) if stop_key else None
             row["_stop_sequence"] = seq_i
             out.append(row)
+    if out:
+        return out
+    stored = meta.get("parcels")
+    if isinstance(stored, dict):
+        if stored.get("booking_mode") == "vehicle":
+            return []
+        stored = stored.get("items")
+    if isinstance(stored, list):
+        for pkg in stored:
+            if isinstance(pkg, dict):
+                out.append(dict(pkg))
     return out
 
 
@@ -179,6 +197,9 @@ class PackageService:
                 self.project_packages_onto_stops(order, existing)
                 return existing
             meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
+            if meta.get("booking_mode") == "vehicle":
+                self.project_packages_onto_stops(order, [])
+                return []
             stops = meta.get("stops") if isinstance(meta.get("stops"), list) else []
             # Empty packages[] means "no parcel list", not "zero boxes", when weight_kg is set
             # (CSV bulk / API weight-only). Invent a box so scan-gate pickup can complete.

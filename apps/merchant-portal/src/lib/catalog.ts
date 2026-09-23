@@ -1,13 +1,12 @@
 /** English words. API IDs stay camelCase / SCREAMING_SNAKE. */
 
 export const VEHICLE_OPTIONS = [
-  { id: "sedan", label: "Sedan" },
-  { id: "suv", label: "SUV" },
+  { id: "sedan_suv", label: "Sedan / SUV" },
   { id: "pickup", label: "Pickup" },
-  { id: "cargoVan", label: "Cargo van" },
-  { id: "highRoof", label: "High-roof van" },
-  { id: "box16", label: "16 ft box truck" },
-  { id: "box20", label: "20 ft box truck" },
+  { id: "cargo_van", label: "Cargo van" },
+  { id: "sprinter_van", label: "Sprinter / high-roof" },
+  { id: "box_16", label: "16 ft" },
+  { id: "box_20", label: "20 ft" },
 ] as const;
 
 export const PACKAGE_OPTIONS = [
@@ -42,8 +41,9 @@ const ORDER_STATE_LABELS: Record<string, string> = {
 };
 
 const VEHICLE_LABELS: Record<string, string> = {
-  sedan: "Sedan",
-  suv: "SUV",
+  sedan: "Sedan / SUV",
+  suv: "Sedan / SUV",
+  sedan_suv: "Sedan / SUV",
   pickup: "Pickup",
   cargoVan: "Cargo van",
   cargo_van: "Cargo van",

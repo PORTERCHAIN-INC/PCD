@@ -1,0 +1,10 @@
+{
+  "name": "@porterchain/customer-motion",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./shipment.json": "./lottie/shipment.json",
+    "./route.json": "./lottie/route.json",
+    "./inbox.json": "./lottie/inbox.json"
+  }
+}

@@ -1,0 +1,150 @@
+App Store Connect — fill every field (PCD / com.porterchain.PCD)
+
+ASC app name on record: PCD
+On-device / Expo name: Porterchain Driver
+Bundle ID: com.porterchain.PCD
+Apple ID: 6781880626
+SKU: 7434
+
+────────────────────────────────────────
+Promotional Text (optional, ≤170 chars — editable anytime without a new version)
+────────────────────────────────────────
+See your stop, go on duty, scan the label, and capture proof of delivery. Built for Porterchain’s Transportation Capacity Network.
+
+────────────────────────────────────────
+Description (required)
+────────────────────────────────────────
+Porterchain Driver is the field app for drivers on Porterchain’s Transportation Capacity Network.
+
+You get the work that is assigned to you — the next stop, the job number, wallet and today’s earnings — and you run the loop on the van:
+
+• Start a shift only after a short pre-trip check
+• Navigate to the stop and mark arrival when you are actually there
+• Scan package QR or Code 128 labels that belong to this order
+• Capture proof of delivery photos
+• Keep licence, insurance, and vehicle documents current
+• See jobs, money, and messages without a dispatch console on your phone
+
+Location is used while you are on duty so dispatch can see the van, including with the screen locked. Camera is used for proof of delivery and label scans. Sign-in is for approved Porterchain drivers only.
+
+Porterchain is not a consumer courier, a trucking company, or marketplace software. This app is the driver side of our capacity network.
+
+────────────────────────────────────────
+Keywords (≤100 characters, comma-separated, no spaces after commas preferred)
+────────────────────────────────────────
+driver,delivery,logistics,GTA,van,capacity,route,proof of delivery,fleet
+
+────────────────────────────────────────
+Support URL (required)
+────────────────────────────────────────
+https://porterchain.com/contact
+
+────────────────────────────────────────
+Marketing URL (optional)
+────────────────────────────────────────
+https://porterchain.com
+
+────────────────────────────────────────
+Copyright
+────────────────────────────────────────
+2026 Porterchain
+
+────────────────────────────────────────
+Routing App Coverage File
+────────────────────────────────────────
+Leave blank / None.
+
+This app is not an Apple Maps routing provider. Navigate opens the system Maps app for turn-by-turn. Do not upload a .geojson coverage file.
+
+────────────────────────────────────────
+App Review Information → Sign-in required
+────────────────────────────────────────
+Yes (check Sign-in required)
+
+────────────────────────────────────────
+User name (demo / App Review)
+────────────────────────────────────────
+Suggested production Clerk email (provision first if missing):
+
+  review.driver@porterchain.com
+
+Alternate already used in ops scripts (only if that live Clerk user exists and is APPROVED):
+
+  priya.sharma@porterchain.com
+
+Do NOT use local-only marco@porterchain.com for App Review — that is a local seed, not guaranteed on production Clerk.
+
+────────────────────────────────────────
+Password
+────────────────────────────────────────
+YOU MUST SET THIS YOURSELF in Clerk (production driver instance), then paste here.
+
+Steps:
+  1. Create/approve the driver in production (or run provision_production_driver.py on the droplet).
+  2. In Clerk Dashboard → Drivers app → Users → set a known password for that user.
+  3. Paste the same password into App Store Connect → App Review Information → Password.
+
+Never commit the password to git.
+
+────────────────────────────────────────
+Contact Information (App Review)
+────────────────────────────────────────
+First name: Ravi
+Last name: Chauhan
+Phone: (use your real mobile for Apple callback — required)
+Email: porterchaininc@gmail.com
+
+────────────────────────────────────────
+Notes (App Review Information — paste as one block)
+────────────────────────────────────────
+Porterchain Driver (ASC name: PCD) is for approved Porterchain network drivers only. There is no public self-signup.
+
+Sign in: tap “Sign in with Porterchain”, then use the User name / Password in this form (Clerk hosted auth).
+
+After sign-in you should land on Work. Check Jobs, Money, Docs, and More — none require a live route. Work shows the assigned stop when a job is on the board; otherwise wallet and duty controls still appear.
+
+Background location (5.1.4): precise location is sent only while the driver is On duty so dispatch (Fleetbase) can see the van with the screen locked. Off duty stops the on-duty ping. Not used for ads or tracking.
+
+Camera: proof of delivery photos and package QR / Code 128 scans for this order. Microphone is not used.
+
+Face ID: optional unlock of a saved session.
+
+Push: APNs for job assigned / stop changes. Missing push registration on the review device does not block core flows.
+
+Encryption: standard HTTPS only (ITSAppUsesNonExemptEncryption = false).
+
+Account deletion: email porterchaininc@gmail.com (drivers are ops-provisioned). In-app: More → Support.
+
+Please do not reject for: no public registration; geofence “I’ve arrived” may refuse until the device pin is inside the stop.
+
+────────────────────────────────────────
+Attachment
+────────────────────────────────────────
+Optional. If you attach anything, use a one-page PDF with:
+  • Sign-in steps (Sign in with Porterchain → email/password)
+  • Tab map: Work / Jobs / Money / Docs / More
+Otherwise leave Attachment empty — Notes above are enough.
+
+────────────────────────────────────────
+App Store Version Release
+────────────────────────────────────────
+Recommended for first release:
+
+  Manually release this version
+
+So you control go-live after Apple Approves (check screenshots, TestFlight smoke, then Release).
+
+Alternative (later versions):
+
+  Automatically release this version
+
+Do NOT choose “Automatically release after App Review, no earlier than…” unless you have a planned launch date.
+
+────────────────────────────────────────
+Also confirm elsewhere (not asked, but required)
+────────────────────────────────────────
+Privacy Policy URL: https://porterchain.com/privacy
+Category: Business (Secondary: Navigation optional)
+Age Rating: 4+
+Screenshots: use store/ios/screenshots/asc-6.5/ (1284×2778) for 6.5" slot
+Build: select the finished production IPA when Processing completes

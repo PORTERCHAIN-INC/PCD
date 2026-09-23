@@ -60,6 +60,12 @@ def create_checkout_session(
     }
     success_base, cancel_base = _checkout_urls(settings, checkout_channel)
     stripe_customer_id = ensure_stripe_customer(settings, customer)
+    goods = quote.parcels if isinstance(getattr(quote, "parcels", None), dict) else {}
+    if goods.get("booking_mode") == "vehicle":
+        description = f"{quote.vehicle_class} · Whole vehicle"
+    else:
+        count = len(goods.get("items") or [])
+        description = f"{quote.vehicle_class} · {count or 1} parcel{'s' if count != 1 else ''}"
     session_kwargs: dict = {
         "mode": "payment",
         # Apple Pay & Google Pay are presented automatically by Stripe Checkout
@@ -74,7 +80,7 @@ def create_checkout_session(
                     "unit_amount": quote.amount_cents,
                     "product_data": {
                         "name": "Porterchain delivery",
-                        "description": f"Quote {quote.id}",
+                        "description": description,
                     },
                 },
                 "quantity": 1,
@@ -88,6 +94,8 @@ def create_checkout_session(
     }
     if stripe_customer_id:
         session_kwargs["customer"] = stripe_customer_id
+        # Stripe keeps the card. Porterchain never stores the number.
+        session_kwargs["saved_payment_method_options"] = {"payment_method_save": "enabled"}
     else:
         session_kwargs["customer_email"] = customer.email
     session = stripe_sdk.create_checkout_session(**session_kwargs)

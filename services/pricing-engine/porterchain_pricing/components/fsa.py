@@ -12,7 +12,12 @@ from __future__ import annotations
 import re
 
 from porterchain_pricing.components.quote import ComponentQuote, _item
+from porterchain_pricing.gta_rate import vehicle_classes_match
 from porterchain_pricing.types import FsaRateRecord, GeoPoint
+
+
+def _vehicle_match(stored: str | None, requested: str | None) -> bool:
+    return vehicle_classes_match(stored, requested)
 
 COMPONENT = "fsa_rate"
 
@@ -77,7 +82,7 @@ class FsaRateService:
             # A blank filter on the row means "any", so it always matches.
             and (not r.merchant_id or r.merchant_id == merchant_id)
             and (not r.origin_fsa or normalize_fsa(r.origin_fsa) == origin)
-            and (not r.vehicle_class or r.vehicle_class == vehicle_class)
+            and (not r.vehicle_class or _vehicle_match(r.vehicle_class, vehicle_class))
         ]
         if not matches:
             return None

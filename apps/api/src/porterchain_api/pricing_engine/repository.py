@@ -16,7 +16,13 @@ from porterchain_api.admin_models import (
 )
 from porterchain_api.db import engine
 from porterchain_api.merchant_models import Merchant
-from porterchain_pricing.gta_rate import default_gta_rate_config, gta_rate_config_from_dict, merge_merchant_gta_overlay
+from porterchain_pricing.gta_rate import (
+    customer_gta_from_dict,
+    default_customer_distance_dict,
+    default_gta_rate_config,
+    gta_rate_config_from_dict,
+    merge_merchant_gta_overlay,
+)
 from porterchain_pricing.policy import MODEL_DISTANCE, MODEL_FSA, policy_from_config
 from porterchain_pricing.rate_card import default_rate_card, merge_merchant_overlay, rate_card_from_dict
 from porterchain_pricing.types import (
@@ -47,8 +53,16 @@ class SqlAlchemyPricingRepository:
         ctx.zones = self._load_zones()
         ctx.tax = self._load_tax_config()
         ctx.fuel = self._load_fuel_config()
-        ctx.gta_rate = self._load_gta_rate_config()
         system_card = self._load_rate_card()
+        if request.channel == "retail":
+            # Customer distance card only. Merchant FSA, rate card, and fuel stay off this quote.
+            ctx.gta_rate = self._load_customer_distance()
+            ctx.fsa_rates = []
+            ctx.tariffs = []
+            ctx.rate_card = system_card
+            return ctx
+
+        ctx.gta_rate = self._load_gta_rate_config()
         ctx.fsa_rates = self._load_fsa_rates(request.merchant_id) if is_merchant else []
 
         if is_merchant:
@@ -219,27 +233,39 @@ class SqlAlchemyPricingRepository:
 
     def _load_tax_config(self) -> TaxConfig:
         if not self._has_table("system_config"):
-            return TaxConfig()
+            return TaxConfig(hst_percent=13.0)
         try:
             row = self.db.query(SystemConfig).filter(SystemConfig.key == "pricing_tax").first()
         except ProgrammingError:
             self.db.rollback()
-            return TaxConfig()
+            return TaxConfig(hst_percent=13.0)
         if row and row.value:
             return TaxConfig(**{k: v for k, v in row.value.items() if k in TaxConfig.__dataclass_fields__})
-        return TaxConfig()
+        return TaxConfig(hst_percent=13.0)
 
     def _load_fuel_config(self) -> FuelConfig:
         if not self._has_table("system_config"):
-            return FuelConfig()
+            return FuelConfig(surcharge_percent=5.0)
         try:
             row = self.db.query(SystemConfig).filter(SystemConfig.key == "pricing_fuel").first()
         except ProgrammingError:
             self.db.rollback()
-            return FuelConfig()
+            return FuelConfig(surcharge_percent=5.0)
         if row and row.value:
             return FuelConfig(**{k: v for k, v in row.value.items() if k in FuelConfig.__dataclass_fields__})
-        return FuelConfig()
+        return FuelConfig(surcharge_percent=5.0)
+
+    def _load_customer_distance(self):
+        if not self._has_table("system_config"):
+            return customer_gta_from_dict(default_customer_distance_dict())
+        try:
+            row = self.db.query(SystemConfig).filter(SystemConfig.key == "pricing_customer_distance").first()
+        except ProgrammingError:
+            self.db.rollback()
+            return customer_gta_from_dict(default_customer_distance_dict())
+        if row and isinstance(row.value, dict):
+            return customer_gta_from_dict(row.value)
+        return customer_gta_from_dict(default_customer_distance_dict())
 
     def _load_gta_rate_config(self):
         if not self._has_table("system_config"):
