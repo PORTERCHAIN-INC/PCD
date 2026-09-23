@@ -15,7 +15,7 @@ def validate_preferred_vehicles(db: Session, preferred: list[str]) -> list[str]:
     """Preferred vehicles must be a subset of the enabled retail catalog (M-6)."""
     from porterchain_api.domain.customer_goods import canonical_vehicle_id
 
-    catalog = enabled_retail_vehicle_ids(db)
+    catalog = {canonical_vehicle_id(x) for x in enabled_retail_vehicle_ids(db)}
     cleaned: list[str] = []
     for raw in preferred:
         vid = canonical_vehicle_id(str(raw or "").strip())

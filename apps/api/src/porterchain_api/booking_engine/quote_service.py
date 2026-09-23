@@ -234,7 +234,11 @@ class QuoteService:
             package_type=load.package_type,
             use_overrides=True,
         )
-        if request.routing_source == "haversine":
+        # Production quotes need Valhalla/OSRM. Local/CI may fall back to haversine
+        # when those services are not running (never Google).
+        from porterchain_shared.redis_health import is_local_env
+
+        if request.routing_source == "haversine" and not is_local_env(settings.app_env):
             raise ValueError("route_unavailable")
 
         pricing = get_pricing_service(db)

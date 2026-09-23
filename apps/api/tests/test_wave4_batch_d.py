@@ -15,7 +15,7 @@ def test_preferred_vehicles_rejects_outside_catalog() -> None:
     db = MagicMock()
     with patch(
         "porterchain_api.admin_engine.settings_service.AdminSettingsService.enabled_retail_vehicle_ids",
-        return_value={"sedan", "cargoVan"},
+        return_value={"sedan_suv", "cargo_van"},
     ):
         with pytest.raises(ValueError, match="preferred_vehicle_not_in_catalog:truck"):
             AdminMerchantService._validate_preferred_vehicles(db, ["sedan", "truck"])
@@ -28,7 +28,7 @@ def test_preferred_vehicles_accepts_catalog_subset() -> None:
         return_value={"sedan", "cargoVan", "suv"},
     ):
         out = AdminMerchantService._validate_preferred_vehicles(db, [" sedan ", "cargoVan", "sedan"])
-    assert out == ["sedan", "cargoVan"]
+    assert out == ["sedan_suv", "cargo_van"]
 
 
 def test_preferred_vehicles_empty_catalog_allows_any() -> None:
@@ -38,7 +38,7 @@ def test_preferred_vehicles_empty_catalog_allows_any() -> None:
         return_value=set(),
     ):
         out = AdminMerchantService._validate_preferred_vehicles(db, ["customClass"])
-    assert out == ["customClass"]
+    assert out == ["customclass"]
 
 
 def test_update_merchant_billing_cycle_invalid() -> None:

@@ -202,7 +202,10 @@ def revalidate_retail_quote(db: Session, quote: Quote) -> Quote:
 
     service = get_pricing_service(db)
     request = _request_from_quote(quote)
-    if request.routing_source == "haversine":
+    from porterchain_api.config import get_settings
+    from porterchain_shared.redis_health import is_local_env
+
+    if request.routing_source == "haversine" and not is_local_env(get_settings().app_env):
         raise ValueError("route_unavailable")
     breakdown = service.calculate_retail(request)
     items = [PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items]

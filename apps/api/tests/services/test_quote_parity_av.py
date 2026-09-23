@@ -156,7 +156,8 @@ def test_admin_save_card_get_and_preview_cents_match(db, settings, admin_ctx, me
         assert items["size_tier"] == size_cents
         assert items["liftgate"] == LIFTGATE_CENTS
 
-        subtotal = distance_cents + size_cents + LIFTGATE_CENTS
+        fuel = int(items.get("fuel") or 0)
+        subtotal = distance_cents + size_cents + LIFTGATE_CENTS + fuel
         tax = portal_quote["pricing_breakdown"]["tax_cents"] or 0
         assert portal_quote["amount_cents"] == subtotal + tax
         assert portal_quote["pricing_breakdown"]["final_cents"] == portal_quote["amount_cents"]
