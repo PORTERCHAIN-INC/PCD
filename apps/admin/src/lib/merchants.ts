@@ -360,12 +360,53 @@ export type MerchantGtaRate = {
   vehicles?: Record<string, MerchantGtaVehicleRates>;
 };
 
+export type MerchantScheduleCompact = {
+  enabled: boolean;
+  vehicle_classes: string[];
+  max_packed_inches: number[];
+  parcels_per_stop: number;
+  stop_rates_cents: Array<{ max_stops: number | null; cents: number }>;
+  route_minimum_cents: number;
+};
+
+export type MerchantSchedule = {
+  fuel_surcharge_percent: number | null;
+  fsa_miss: "fallback_distance" | "refuse";
+  origin_pickup_cents: number;
+  origin_pickup_vehicle_classes: string[];
+  route_minimums_cents: Record<string, number>;
+  compact: MerchantScheduleCompact;
+  size_match: "all" | "any";
+};
+
+export const DEFAULT_MERCHANT_SCHEDULE: MerchantSchedule = {
+  fuel_surcharge_percent: null,
+  fsa_miss: "fallback_distance",
+  origin_pickup_cents: 0,
+  origin_pickup_vehicle_classes: ["cargo_van"],
+  route_minimums_cents: {},
+  compact: {
+    enabled: false,
+    vehicle_classes: ["sedan_suv", "sedan", "suv"],
+    max_packed_inches: [10, 10],
+    parcels_per_stop: 3,
+    stop_rates_cents: [
+      { max_stops: 4, cents: 1000 },
+      { max_stops: null, cents: 600 },
+    ],
+    route_minimum_cents: 5000,
+  },
+  size_match: "all",
+};
+
 export type MerchantPricing = {
   pricing_model: PricingModel;
   surcharges: { downtown: boolean; upper_zone: boolean };
   size_tiers: MerchantSizeTier[];
   /** Distance overlay — omit / null means platform GTA. */
   gta_rate?: MerchantGtaRate | null;
+  /** Commercial schedule knobs (fuel, pickup, mins, compact). */
+  schedule?: MerchantSchedule | null;
 };
 
 /** Form shell only — GTA downtown/upper-zone fees live on the API catalog, not in this UI. */
@@ -374,6 +415,7 @@ export const DEFAULT_MERCHANT_PRICING: MerchantPricing = {
   surcharges: { downtown: false, upper_zone: false },
   size_tiers: [],
   gta_rate: null,
+  schedule: { ...DEFAULT_MERCHANT_SCHEDULE },
 };
 
 export const BLANK_SIZE_TIER: MerchantSizeTier = {
@@ -419,6 +461,7 @@ export type MerchantRateCard = {
   };
   liftgate_cents: number;
   fuel_surcharge_percent: number;
+  schedule?: MerchantSchedule;
   tax: { hst_percent: number; tax_included: boolean };
   weight: { threshold_kg: number; cents_per_kg: number };
   fsa_rate_count: number;

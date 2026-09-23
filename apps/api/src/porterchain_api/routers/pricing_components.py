@@ -136,6 +136,7 @@ def quote_size_weight(body: SizeWeightRequest, _: AdminDep, db: DbDep) -> Compon
                     policy.size_tiers,
                     weight_kg=body.weight_kg,
                     dimensions=body.dimensions,
+                    size_match=policy.schedule.size_match,
                 )
                 return ComponentResponse(**quote.to_dict())
             card = merge_merchant_overlay(card, config)

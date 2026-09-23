@@ -21,13 +21,14 @@ const BLANK: FsaRateInput = {
   includes_location_fees: true,
   label: null,
   is_active: true,
+  config: null,
 };
 
 function dollars(cents: number): string {
   return (cents / 100).toFixed(2);
 }
 
-/** Parse lines like `M5V,45.00` or `M5V 45` into rate inputs. */
+/** Parse lines like `M5V,45.00` or `M5V,30,T1` into rate inputs. */
 function parseBulkLines(text: string, merchantId?: string): FsaRateInput[] {
   const out: FsaRateInput[] = [];
   for (const raw of text.split(/\n+/)) {
@@ -38,21 +39,27 @@ function parseBulkLines(text: string, merchantId?: string): FsaRateInput[] {
     const dest = normalizeFsa(parts[0] || "");
     const price = Number(parts[1]);
     if (!dest || !Number.isFinite(price) || price < 0) continue;
+    const tier = parts[2]?.trim();
     out.push({
       ...BLANK,
       dest_fsa: dest,
       flat_cents: Math.round(price * 100),
       merchant_id: merchantId ?? null,
+      config: tier ? { tier } : null,
     });
   }
   return out;
 }
 
 /** Draft form state — prices are edited in dollars, stored in cents. */
-type Draft = Omit<FsaRateInput, "flat_cents"> & { price: string };
+type Draft = Omit<FsaRateInput, "flat_cents" | "config"> & {
+  price: string;
+  tier: string;
+};
 
 function toDraft(rate?: FsaRate): Draft {
   const base = rate ?? BLANK;
+  const cfg = (base.config || {}) as Record<string, unknown>;
   return {
     dest_fsa: base.dest_fsa,
     price: rate ? dollars(rate.flat_cents) : "",
@@ -62,6 +69,7 @@ function toDraft(rate?: FsaRate): Draft {
     includes_location_fees: base.includes_location_fees,
     label: base.label,
     is_active: base.is_active,
+    tier: typeof cfg.tier === "string" ? cfg.tier : "",
   };
 }
 
@@ -162,6 +170,7 @@ export default function FsaRatesCard({
       includes_location_fees: draft.includes_location_fees,
       label: draft.label?.trim() || null,
       is_active: draft.is_active,
+      config: draft.tier.trim() ? { tier: draft.tier.trim() } : {},
     };
 
     setBusy(true);
@@ -191,7 +200,7 @@ export default function FsaRatesCard({
   async function runBulk() {
     const parsed = parseBulkLines(bulkText, merchantId);
     if (!parsed.length) {
-      setMessage("Paste lines like M5V,45.00 (one FSA + CAD price per line).");
+      setMessage("Paste lines like M5V,45.00 or M5V,30,T1 (FSA + CAD + optional tier).");
       return;
     }
     setBusy(true);
@@ -312,12 +321,12 @@ export default function FsaRatesCard({
         <div className="mb-4 rounded-xl border border-secondary/30 bg-secondary/5 p-4">
           <Field
             label="Bulk FSA flats"
-            hint="One per line: M5V,45.00 — out-of-tile codes are rejected"
+            hint="One per line: M5V,45.00 or M5V,30,T1 — out-of-tile codes are rejected"
           >
             <textarea
               className="min-h-[96px] w-full rounded-lg border border-primary/15 bg-white px-3 py-2 text-sm"
               value={bulkText}
-              placeholder={"M5V,45.00\nL4W,52.50"}
+              placeholder={"M5V,30,T1\nL4W,45,T2"}
               onChange={(e) => setBulkText(e.target.value)}
             />
           </Field>
@@ -363,6 +372,14 @@ export default function FsaRatesCard({
                 value={draft.price}
                 placeholder="18.00"
                 onChange={(e) => setDraft({ ...draft, price: e.target.value })}
+              />
+            </Field>
+            <Field label="Tier" hint="For route minimums — e.g. T1">
+              <Input
+                value={draft.tier}
+                placeholder="T1"
+                maxLength={8}
+                onChange={(e) => setDraft({ ...draft, tier: e.target.value })}
               />
             </Field>
             <Field label="Pick up from FSA" hint="Blank = any origin">
@@ -462,6 +479,7 @@ export default function FsaRatesCard({
                 <th className="py-2 pr-3">From</th>
                 <th className="py-2 pr-3">To</th>
                 <th className="py-2 pr-3">Price</th>
+                <th className="py-2 pr-3">Tier</th>
                 {!merchantId && <th className="py-2 pr-3">Merchant</th>}
                 <th className="py-2 pr-3">Vehicle</th>
                 <th className="py-2 pr-3">All-in</th>
@@ -475,6 +493,11 @@ export default function FsaRatesCard({
                   <td className="py-2 pr-3 text-muted">{rate.origin_fsa ?? "Any"}</td>
                   <td className="py-2 pr-3 font-medium">{rate.dest_fsa}</td>
                   <td className="py-2 pr-3 tabular-nums">${dollars(rate.flat_cents)}</td>
+                  <td className="py-2 pr-3 text-muted">
+                    {typeof (rate.config as { tier?: string } | null | undefined)?.tier === "string"
+                      ? (rate.config as { tier: string }).tier
+                      : "—"}
+                  </td>
                   {!merchantId && (
                     <td className="py-2 pr-3">
                       {rate.merchant_id

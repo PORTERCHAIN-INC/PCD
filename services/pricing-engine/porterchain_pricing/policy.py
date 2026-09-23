@@ -51,6 +51,168 @@ def _b(value: Any, default: bool) -> bool:
     return default if value is None else bool(value)
 
 
+#: How size/weight tier limits combine when matching a shipment.
+SIZE_MATCH_ALL = "all"
+SIZE_MATCH_ANY = "any"
+SIZE_MATCHES = (SIZE_MATCH_ALL, SIZE_MATCH_ANY)
+
+#: When no FSA flat covers the destination.
+FSA_MISS_FALLBACK = "fallback_distance"
+FSA_MISS_REFUSE = "refuse"
+FSA_MISS_MODES = (FSA_MISS_FALLBACK, FSA_MISS_REFUSE)
+
+
+@dataclass
+class CompactStopBand:
+    """Bill this cents when billable stop count is ≤ max_stops (None = open-ended)."""
+
+    cents: int = 0
+    max_stops: int | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"cents": self.cents, "max_stops": self.max_stops}
+
+
+@dataclass
+class CompactSchedule:
+    """Compact-vehicle stop banding (e.g. sedan/SUV territory rates)."""
+
+    enabled: bool = False
+    vehicle_classes: list[str] = field(default_factory=lambda: ["sedan_suv", "sedan", "suv"])
+    max_packed_inches: tuple[float, float] = (10.0, 10.0)
+    parcels_per_stop: int = 3
+    stop_rates: list[CompactStopBand] = field(
+        default_factory=lambda: [
+            CompactStopBand(cents=1000, max_stops=4),
+            CompactStopBand(cents=600, max_stops=None),
+        ]
+    )
+    route_minimum_cents: int = 5000
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "enabled": self.enabled,
+            "vehicle_classes": list(self.vehicle_classes),
+            "max_packed_inches": list(self.max_packed_inches),
+            "parcels_per_stop": self.parcels_per_stop,
+            "stop_rates_cents": [b.to_dict() for b in self.stop_rates],
+            "route_minimum_cents": self.route_minimum_cents,
+        }
+
+
+@dataclass
+class MerchantSchedule:
+    """
+    Commercial schedule knobs on `pricing_config.schedule`.
+
+    Defaults preserve today's engine behavior for merchants with no schedule block.
+    """
+
+    fuel_surcharge_percent: float | None = None
+    fsa_miss: str = FSA_MISS_FALLBACK
+    origin_pickup_cents: int = 0
+    origin_pickup_vehicle_classes: list[str] = field(default_factory=lambda: ["cargo_van"])
+    route_minimums_cents: dict[str, int] = field(default_factory=dict)
+    compact: CompactSchedule = field(default_factory=CompactSchedule)
+    size_match: str = SIZE_MATCH_ALL
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "fuel_surcharge_percent": self.fuel_surcharge_percent,
+            "fsa_miss": self.fsa_miss,
+            "origin_pickup_cents": self.origin_pickup_cents,
+            "origin_pickup_vehicle_classes": list(self.origin_pickup_vehicle_classes),
+            "route_minimums_cents": dict(self.route_minimums_cents),
+            "compact": self.compact.to_dict(),
+            "size_match": self.size_match,
+        }
+
+
+def _compact_from_dict(raw: Any) -> CompactSchedule:
+    if not isinstance(raw, dict):
+        return CompactSchedule()
+    bands_raw = raw.get("stop_rates_cents") or raw.get("stop_rates") or []
+    bands: list[CompactStopBand] = []
+    if isinstance(bands_raw, list):
+        for row in bands_raw:
+            if not isinstance(row, dict):
+                continue
+            max_stops = row.get("max_stops")
+            bands.append(
+                CompactStopBand(
+                    cents=max(_i(row.get("cents")), 0),
+                    max_stops=None if max_stops is None else max(_i(max_stops), 0),
+                )
+            )
+    packed = raw.get("max_packed_inches")
+    if isinstance(packed, (list, tuple)) and len(packed) >= 2:
+        try:
+            packed_t = (float(packed[0]), float(packed[1]))
+        except (TypeError, ValueError):
+            packed_t = (10.0, 10.0)
+    else:
+        packed_t = (10.0, 10.0)
+    classes = raw.get("vehicle_classes")
+    return CompactSchedule(
+        enabled=_b(raw.get("enabled"), False),
+        vehicle_classes=(
+            [str(c) for c in classes if c]
+            if isinstance(classes, list)
+            else ["sedan_suv", "sedan", "suv"]
+        ),
+        max_packed_inches=packed_t,
+        parcels_per_stop=max(_i(raw.get("parcels_per_stop"), 3), 1),
+        stop_rates=bands
+        or [
+            CompactStopBand(cents=1000, max_stops=4),
+            CompactStopBand(cents=600, max_stops=None),
+        ],
+        route_minimum_cents=max(_i(raw.get("route_minimum_cents")), 0),
+    )
+
+
+def schedule_from_dict(raw: Any) -> MerchantSchedule:
+    """Parse `pricing_config.schedule`; junk → defaults (today's behavior)."""
+    if not isinstance(raw, dict):
+        return MerchantSchedule()
+
+    # Missing / null → no override (platform fuel). Number including 0 → override.
+    if "fuel_surcharge_percent" not in raw or raw.get("fuel_surcharge_percent") is None:
+        fuel: float | None = None
+    else:
+        try:
+            fuel = float(raw["fuel_surcharge_percent"])
+        except (TypeError, ValueError):
+            fuel = None
+
+    miss = str(raw.get("fsa_miss") or FSA_MISS_FALLBACK).lower()
+    size_match = str(raw.get("size_match") or SIZE_MATCH_ALL).lower()
+    vehicles = raw.get("origin_pickup_vehicle_classes")
+    mins_raw = raw.get("route_minimums_cents")
+    mins: dict[str, int] = {}
+    if isinstance(mins_raw, dict):
+        for k, v in mins_raw.items():
+            if k is None:
+                continue
+            try:
+                mins[str(k)] = max(int(v), 0)
+            except (TypeError, ValueError):
+                continue
+    return MerchantSchedule(
+        fuel_surcharge_percent=fuel,
+        fsa_miss=miss if miss in FSA_MISS_MODES else FSA_MISS_FALLBACK,
+        origin_pickup_cents=max(_i(raw.get("origin_pickup_cents")), 0),
+        origin_pickup_vehicle_classes=(
+            [str(c) for c in vehicles if c]
+            if isinstance(vehicles, list)
+            else ["cargo_van"]
+        ),
+        route_minimums_cents=mins,
+        compact=_compact_from_dict(raw.get("compact")),
+        size_match=size_match if size_match in SIZE_MATCHES else SIZE_MATCH_ALL,
+    )
+
+
 @dataclass
 class SizeTier:
     """
@@ -91,19 +253,74 @@ class SizeTier:
         width_cm: float | None,
         height_cm: float | None,
         weight_kg: float | None,
+        size_match: str = SIZE_MATCH_ALL,
     ) -> bool:
         """
-        True when the shipment fits inside every limit this row sets.
+        True when the shipment fits this row's limits.
 
-        An unknown shipment value cannot violate a limit — we do not charge an
-        oversize fee because a dimension was left off the booking.
+        `size_match=all` (default): every set limit must pass (AND).
+        `size_match=any`: weight within its limit OR two-longest-sides footprint
+        within the two longest tier limits (OR). Unknown shipment values never
+        fail a limit (omit a dim → that check does not block).
         """
-        for limit, actual in zip(self.limits_cm(), (length_cm, width_cm, height_cm)):
-            if limit is not None and actual is not None and actual > limit:
-                return False
+        weight_ok = self._weight_ok(weight_kg)
+        dims_ok = self._dims_ok(length_cm, width_cm, height_cm)
+        footprint_ok = self._footprint_ok(length_cm, width_cm, height_cm)
+
+        if size_match == SIZE_MATCH_ANY:
+            # OR of weight vs footprint when both axis families have limits;
+            # if only one family is set, that family alone decides.
+            has_weight_limit = self.limit_kg() is not None
+            has_footprint_limit = any(x is not None for x in self.limits_cm())
+            if has_weight_limit and has_footprint_limit:
+                return weight_ok or footprint_ok
+            if has_weight_limit:
+                return weight_ok
+            if has_footprint_limit:
+                return footprint_ok
+            return True
+
+        return weight_ok and dims_ok
+
+    def _weight_ok(self, weight_kg: float | None) -> bool:
         weight_limit = self.limit_kg()
         if weight_limit is not None and weight_kg is not None and weight_kg > weight_limit:
             return False
+        return True
+
+    def _dims_ok(
+        self,
+        length_cm: float | None,
+        width_cm: float | None,
+        height_cm: float | None,
+    ) -> bool:
+        for limit, actual in zip(self.limits_cm(), (length_cm, width_cm, height_cm)):
+            if limit is not None and actual is not None and actual > limit:
+                return False
+        return True
+
+    def _footprint_ok(
+        self,
+        length_cm: float | None,
+        width_cm: float | None,
+        height_cm: float | None,
+    ) -> bool:
+        """
+        Two longest shipment sides vs two longest set tier limits (cm).
+        Missing shipment sides that would be needed do not fail the check.
+        """
+        limits = sorted((x for x in self.limits_cm() if x is not None), reverse=True)
+        if not limits:
+            return True
+        sides = sorted(
+            (x for x in (length_cm, width_cm, height_cm) if x is not None),
+            reverse=True,
+        )
+        if not sides:
+            return True
+        for limit, actual in zip(limits[:2], sides[:2]):
+            if actual > limit:
+                return False
         return True
 
     def describe(self) -> str:
@@ -155,6 +372,7 @@ class MerchantPricingPolicy:
     charge_downtown: bool = True
     charge_upper_zone: bool = True
     size_tiers: list[SizeTier] = field(default_factory=list)
+    schedule: MerchantSchedule = field(default_factory=MerchantSchedule)
 
     @property
     def suppresses_location_fees(self) -> bool:
@@ -168,6 +386,7 @@ class MerchantPricingPolicy:
                 "upper_zone": self.charge_upper_zone,
             },
             "size_tiers": [t.to_dict() for t in self.size_tiers],
+            "schedule": self.schedule.to_dict(),
         }
 
 
@@ -187,4 +406,5 @@ def policy_from_config(config: dict[str, Any] | None) -> MerchantPricingPolicy:
         charge_downtown=_b(surcharges.get("downtown"), True),
         charge_upper_zone=_b(surcharges.get("upper_zone"), True),
         size_tiers=tiers,
+        schedule=schedule_from_dict(cfg.get("schedule")),
     )

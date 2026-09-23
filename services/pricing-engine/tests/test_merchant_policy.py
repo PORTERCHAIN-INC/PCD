@@ -17,8 +17,8 @@ DROPOFF = GeoPoint(lat=43.6426, lng=-79.3871, formatted="Toronto, ON", postal="M
 
 def _request(**kw) -> PricingRequest:
     return PricingRequest(
-        pickup=PICKUP,
-        dropoff=DROPOFF,
+        pickup=kw.pop("pickup", PICKUP),
+        dropoff=kw.pop("dropoff", DROPOFF),
         vehicle_class=kw.pop("vehicle_class", "cargo_van"),
         channel=kw.pop("channel", "merchant"),
         merchant_id=kw.pop("merchant_id", "m1"),
@@ -189,6 +189,137 @@ def test_an_fsa_merchant_still_gets_a_quote_where_no_rate_exists():
     assert result.metadata["pricing_model"] == "gta_delivery_rate"
     assert result.metadata["fsa_fallback"] is True
     assert result.final_cents > 0
+
+
+def test_fsa_miss_refuse_skips_distance_fallback():
+    from porterchain_pricing.policy import MerchantSchedule
+
+    rates = [FsaRateRecord(id="r1", dest_fsa="K1A", flat_cents=1800)]
+    policy = MerchantPricingPolicy(
+        pricing_model="fsa",
+        schedule=MerchantSchedule(fsa_miss="refuse"),
+    )
+    result = PricingEngine().calculate(_request(), _ctx(policy=policy, fsa=rates))
+    assert result.metadata.get("fsa_refused") is True
+    assert "fsa_fallback" not in result.metadata
+    assert result.base_cents == 0
+
+
+def test_schedule_fuel_override_zero_skips_platform_fuel():
+    from porterchain_pricing.policy import MerchantSchedule
+    from porterchain_pricing.types import FuelConfig
+
+    rates = [FsaRateRecord(id="r1", dest_fsa="M5V", flat_cents=3000)]
+    policy = MerchantPricingPolicy(
+        pricing_model="fsa",
+        schedule=MerchantSchedule(fuel_surcharge_percent=0),
+    )
+    ctx = _ctx(policy=policy, fsa=rates)
+    ctx.fuel = FuelConfig(surcharge_percent=5.0)
+    result = PricingEngine().calculate(_request(), ctx)
+    assert "fuel" not in _codes(result)
+    assert result.metadata.get("fuel_surcharge_percent") == 0
+
+
+def test_origin_pickup_and_route_minimum_top_up():
+    from porterchain_pricing.policy import MerchantSchedule
+
+    rates = [
+        FsaRateRecord(
+            id="r1", dest_fsa="M5V", flat_cents=3000, config={"tier": "T1"}
+        )
+    ]
+    policy = MerchantPricingPolicy(
+        pricing_model="fsa",
+        schedule=MerchantSchedule(
+            fuel_surcharge_percent=0,
+            origin_pickup_cents=4000,
+            origin_pickup_vehicle_classes=["cargo_van"],
+            route_minimums_cents={"T1": 12000},
+        ),
+    )
+    result = PricingEngine().calculate(_request(), _ctx(policy=policy, fsa=rates))
+    assert "origin_pickup" in _codes(result)
+    assert "route_minimum" in _codes(result)
+    # 30 + 40 = 70 → floor 120 → top-up 50
+    assert result.metadata["route_minimum_cents"] == 12000
+    pre_tax = sum(i.amount_cents for i in result.items)
+    assert pre_tax == 12000
+
+
+def test_schedule_parses_from_config():
+    p = policy_from_config(
+        {
+            "schedule": {
+                "fuel_surcharge_percent": 0,
+                "fsa_miss": "refuse",
+                "origin_pickup_cents": 4000,
+                "size_match": "any",
+            }
+        }
+    )
+    assert p.schedule.fuel_surcharge_percent == 0
+    assert p.schedule.fsa_miss == "refuse"
+    assert p.schedule.origin_pickup_cents == 4000
+    assert p.schedule.size_match == "any"
+
+
+def test_kaylulu_pdf_sample_t1_pickup_floors_to_120():
+    """PDF: T1 $30 + $40 pickup = $70 → route min $120."""
+    from porterchain_pricing.policy import MerchantSchedule
+    from porterchain_pricing.types import FuelConfig
+
+    rates = [
+        FsaRateRecord(id="r1", dest_fsa="L5M", flat_cents=3000, config={"tier": "T1"})
+    ]
+    policy = MerchantPricingPolicy(
+        pricing_model="fsa",
+        schedule=MerchantSchedule(
+            fuel_surcharge_percent=0,
+            fsa_miss="refuse",
+            origin_pickup_cents=4000,
+            route_minimums_cents={"T1": 12000, "T2": 20000, "T3": 25000},
+        ),
+    )
+    drop = GeoPoint(lat=43.58, lng=-79.72, formatted="Mississauga", postal="L5M 1A1")
+    ctx = _ctx(policy=policy, fsa=rates)
+    ctx.fuel = FuelConfig(surcharge_percent=5.0)
+    result = PricingEngine().calculate(
+        _request(dropoff=drop, weight_kg=20),
+        ctx,
+    )
+    assert "fuel" not in _codes(result)
+    assert sum(i.amount_cents for i in result.items) == 12000
+
+
+def test_kaylulu_pdf_sample_handling_plus_min():
+    """PDF: T1 + $30 handling + pickup under min still floors to $120."""
+    from porterchain_pricing.policy import MerchantSchedule, SizeTier
+
+    rates = [
+        FsaRateRecord(id="r1", dest_fsa="L5M", flat_cents=3000, config={"tier": "T1"})
+    ]
+    policy = MerchantPricingPolicy(
+        pricing_model="fsa",
+        size_tiers=[
+            SizeTier(label="Standard", max_weight=50, weight_unit="lb", surcharge_cents=0),
+            SizeTier(label="Large", max_weight=110, weight_unit="lb", surcharge_cents=3000),
+            SizeTier(label="XL", surcharge_cents=6000),
+        ],
+        schedule=MerchantSchedule(
+            fuel_surcharge_percent=0,
+            origin_pickup_cents=4000,
+            route_minimums_cents={"T1": 12000},
+        ),
+    )
+    drop = GeoPoint(lat=43.58, lng=-79.72, formatted="Mississauga", postal="L5M 1A1")
+    # ~99 lb ≈ 45 kg → Large +$30; true bill 30+40+30=100 → floor 120
+    result = PricingEngine().calculate(
+        _request(dropoff=drop, weight_kg=45.0),
+        _ctx(policy=policy, fsa=rates),
+    )
+    assert "size_tier" in _codes(result)
+    assert sum(i.amount_cents for i in result.items) == 12000
 
 
 def test_no_fallback_flag_when_the_merchant_never_asked_for_fsa():

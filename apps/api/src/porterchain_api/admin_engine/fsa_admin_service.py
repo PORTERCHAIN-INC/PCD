@@ -43,6 +43,7 @@ class FsaAdminService:
             includes_location_fees=bool(row.includes_location_fees),
             label=row.label,
             is_active=bool(row.is_active),
+            config=dict(row.config or {}) or None,
         )
 
     def list_rates(
@@ -66,7 +67,7 @@ class FsaAdminService:
             includes_location_fees=body.includes_location_fees,
             label=body.label,
             is_active=body.is_active,
-            config={},
+            config=dict(body.config or {}),
         )
         db.add(row)
         try:
@@ -89,6 +90,8 @@ class FsaAdminService:
         row.includes_location_fees = body.includes_location_fees
         row.label = body.label
         row.is_active = body.is_active
+        if body.config is not None:
+            row.config = dict(body.config)
         db.commit()
         db.refresh(row)
         return self.to_out(row)
@@ -134,6 +137,8 @@ class FsaAdminService:
                     existing.includes_location_fees = body.includes_location_fees
                     existing.label = body.label
                     existing.is_active = body.is_active
+                    if body.config is not None:
+                        existing.config = dict(body.config)
                     updated += 1
                 else:
                     db.add(
@@ -146,7 +151,7 @@ class FsaAdminService:
                             includes_location_fees=body.includes_location_fees,
                             label=body.label,
                             is_active=body.is_active,
-                            config={},
+                            config=dict(body.config or {}),
                         )
                     )
                     created += 1

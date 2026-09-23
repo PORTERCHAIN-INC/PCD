@@ -19,6 +19,19 @@ function stripDetail(d: MerchantPricingDetail): MerchantPricing {
     surcharges: { ...d.surcharges },
     size_tiers: d.size_tiers.map((t) => ({ ...t })),
     gta_rate: d.gta_rate ?? null,
+    schedule: d.schedule
+      ? {
+          ...d.schedule,
+          route_minimums_cents: { ...(d.schedule.route_minimums_cents || {}) },
+          origin_pickup_vehicle_classes: [...(d.schedule.origin_pickup_vehicle_classes || [])],
+          compact: {
+            ...d.schedule.compact,
+            vehicle_classes: [...(d.schedule.compact?.vehicle_classes || [])],
+            max_packed_inches: [...(d.schedule.compact?.max_packed_inches || [10, 10])],
+            stop_rates_cents: (d.schedule.compact?.stop_rates_cents || []).map((b) => ({ ...b })),
+          },
+        }
+      : null,
   };
 }
 

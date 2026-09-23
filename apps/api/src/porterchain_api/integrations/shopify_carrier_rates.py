@@ -130,6 +130,162 @@ def _weight_kg_from_items(items: list[Any] | None) -> float | None:
     return total_g / 1000.0
 
 
+def _parcel_count_from_items(items: list[Any] | None) -> int:
+    if not items:
+        return 1
+    total = 0
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        try:
+            qty = int(item.get("quantity") or 1)
+        except (TypeError, ValueError):
+            qty = 1
+        total += max(1, qty)
+    return max(total, 1)
+
+
+def _dimensions_from_items(items: list[Any] | None) -> dict[str, float] | None:
+    """Best-effort dims from Shopify line properties (inches → cm for engine)."""
+    if not items:
+        return None
+    # Use the largest single line's L×W×H when present on properties.
+    best: tuple[float, float, float] | None = None
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        props = item.get("properties")
+        if not isinstance(props, list):
+            continue
+        got: dict[str, float] = {}
+        for prop in props:
+            if not isinstance(prop, dict):
+                continue
+            name = str(prop.get("name") or "").strip().lower()
+            try:
+                val = float(prop.get("value"))
+            except (TypeError, ValueError):
+                continue
+            if name in ("length", "width", "height", "l", "w", "h"):
+                key = {"l": "length", "w": "width", "h": "height"}.get(name, name)
+                got[key] = val
+        if len(got) >= 2:
+            dims = (
+                float(got.get("length") or 0),
+                float(got.get("width") or 0),
+                float(got.get("height") or 0),
+            )
+            if best is None or sum(dims) > sum(best):
+                best = dims
+    if not best:
+        return None
+    # Shopify furniture props are typically inches; engine SizeTier use cm when unit=cm.
+    return {
+        "length": best[0] * 2.54,
+        "width": best[1] * 2.54,
+        "height": best[2] * 2.54,
+    }
+
+
+def resolve_shopify_vehicle(
+    merchant: Merchant,
+    *,
+    dropoff: AddressInput | None = None,
+    dimensions: dict[str, float] | None = None,
+) -> str:
+    """
+    cargo_van by default; compact-class when schedule.compact is on, parcel
+    fits max_packed_inches, and dest FSA has a compact vehicle row (checked at
+    quote time via engine — here we only gate on packed size).
+    """
+    from porterchain_pricing.policy import policy_from_config
+
+    policy = policy_from_config(getattr(merchant, "pricing_config", None) or {})
+    compact = policy.schedule.compact
+    if not compact.enabled:
+        return "cargo_van"
+    # Without dims, stay on van (furniture default for Kaylulu).
+    if not dimensions:
+        return "cargo_van"
+    # dimensions are cm; packed limit is inches.
+    sides_in = sorted(
+        (
+            float(dimensions.get("length") or 0) / 2.54,
+            float(dimensions.get("width") or 0) / 2.54,
+            float(dimensions.get("height") or 0) / 2.54,
+        ),
+        reverse=True,
+    )
+    lim = sorted(
+        (float(compact.max_packed_inches[0]), float(compact.max_packed_inches[1])),
+        reverse=True,
+    )
+    if sides_in[0] <= lim[0] + 1e-6 and sides_in[1] <= lim[1] + 1e-6:
+        classes = compact.vehicle_classes or ["sedan_suv"]
+        return str(classes[0])
+    return "cargo_van"
+
+
+def apply_shopify_book_vehicle(merchant: Merchant, body: Any, payload: dict[str, Any]) -> Any:
+    """Align book vehicle_class with carrier quote resolve (Quote≡Book). Never raises."""
+    try:
+        line_items = (
+            payload.get("line_items") if isinstance(payload.get("line_items"), list) else []
+        )
+        dims = _dimensions_from_items(line_items)
+        vehicle = resolve_shopify_vehicle(merchant, dropoff=body.dropoff, dimensions=dims)
+        vehicle_body = "cargoVan" if vehicle == "cargo_van" else vehicle
+        return body.model_copy(update={"vehicle_class": vehicle_body})
+    except Exception:  # noqa: BLE001
+        logger.exception(
+            "shopify_book_vehicle_resolve_failed merchant=%s",
+            getattr(merchant, "id", None),
+        )
+        return body
+
+
+def quote_merchant_rate(
+    db: Session,
+    merchant: Merchant,
+    *,
+    pickup: AddressInput,
+    dropoff: AddressInput,
+    weight_kg: float | None,
+    items: list[Any] | None = None,
+    vehicle_class: str | None = None,
+) -> tuple[int, dict[str, Any]]:
+    """Same engine path as MerchantBookingService.create_shipment."""
+    pickup_geo = _to_geo(pickup)
+    dropoff_geo = _to_geo(dropoff)
+    distance, duration_seconds, routing_source = resolve_route_distance(pickup_geo, dropoff_geo)
+    dims = _dimensions_from_items(items)
+    vehicle = vehicle_class or resolve_shopify_vehicle(
+        merchant, dropoff=dropoff, dimensions=dims
+    )
+    request = PricingRequest(
+        pickup=pickup_geo,
+        dropoff=dropoff_geo,
+        vehicle_class=vehicle,
+        package_type="looseParcel",
+        service_type="same_day",
+        weight_kg=weight_kg,
+        dimensions=dims,
+        schedule_mode="now",
+        is_rush=True,
+        distance_meters=distance,
+        estimated_duration_minutes=int(duration_seconds / 60) if duration_seconds else None,
+        routing_source=routing_source,
+        channel="merchant",
+        merchant_id=merchant.id,
+        parcel_count=_parcel_count_from_items(items),
+    )
+    breakdown = get_pricing_service(db).calculate_merchant(request)
+    meta = dict(getattr(breakdown, "metadata", None) or {})
+    if meta.get("fsa_refused"):
+        return 0, _breakdown_dict(breakdown)
+    return int(breakdown.final_cents), _breakdown_dict(breakdown)
+
+
 def _request_hash(
     *,
     shop_id: str,
@@ -233,37 +389,6 @@ def find_quote_for_book(
     return rows[0]
 
 
-def quote_merchant_rate(
-    db: Session,
-    merchant: Merchant,
-    *,
-    pickup: AddressInput,
-    dropoff: AddressInput,
-    weight_kg: float | None,
-) -> tuple[int, dict[str, Any]]:
-    """Same engine path as MerchantBookingService.create_shipment."""
-    pickup_geo = _to_geo(pickup)
-    dropoff_geo = _to_geo(dropoff)
-    distance, duration_seconds, routing_source = resolve_route_distance(pickup_geo, dropoff_geo)
-    request = PricingRequest(
-        pickup=pickup_geo,
-        dropoff=dropoff_geo,
-        vehicle_class="cargo_van",
-        package_type="looseParcel",
-        service_type="same_day",
-        weight_kg=weight_kg,
-        schedule_mode="now",
-        is_rush=True,
-        distance_meters=distance,
-        estimated_duration_minutes=int(duration_seconds / 60) if duration_seconds else None,
-        routing_source=routing_source,
-        channel="merchant",
-        merchant_id=merchant.id,
-    )
-    breakdown = get_pricing_service(db).calculate_merchant(request)
-    return int(breakdown.final_cents), _breakdown_dict(breakdown)
-
-
 def carrier_service_rates(
     db: Session,
     settings: Settings,
@@ -326,7 +451,12 @@ def carrier_service_rates(
     t0 = time.perf_counter()
     try:
         cents, breakdown = quote_merchant_rate(
-            db, merchant, pickup=pickup, dropoff=dropoff, weight_kg=weight_kg
+            db,
+            merchant,
+            pickup=pickup,
+            dropoff=dropoff,
+            weight_kg=weight_kg,
+            items=items,
         )
     except Exception:  # noqa: BLE001 — checkout must not 500; omit rates
         logger.exception(
@@ -347,7 +477,7 @@ def carrier_service_rates(
         except Exception:
             pass
 
-    if cents <= 0:
+    if cents <= 0 or (breakdown.get("metadata") or {}).get("fsa_refused"):
         return _EMPTY
 
     req_hash = _request_hash(

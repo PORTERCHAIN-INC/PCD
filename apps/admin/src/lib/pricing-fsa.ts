@@ -18,6 +18,8 @@ export type FsaRate = {
   includes_location_fees: boolean;
   label: string | null;
   is_active: boolean;
+  /** e.g. `{ tier: "T1" }` for schedule route minimums. */
+  config?: Record<string, unknown> | null;
 };
 
 export type FsaRateInput = Omit<FsaRate, "id">;

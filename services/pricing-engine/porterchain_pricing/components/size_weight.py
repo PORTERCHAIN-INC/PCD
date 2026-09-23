@@ -109,6 +109,7 @@ class SizeWeightService:
         *,
         weight_kg: float | None = None,
         dimensions: dict[str, float] | str | None = None,
+        size_match: str = "all",
     ) -> ComponentQuote:
         """
         Charge the merchant's own size / weight band for this shipment.
@@ -124,7 +125,11 @@ class SizeWeightService:
 
         for index, tier in enumerate(tiers):
             if not tier.accepts(
-                length_cm=length, width_cm=width, height_cm=height, weight_kg=weight
+                length_cm=length,
+                width_cm=width,
+                height_cm=height,
+                weight_kg=weight,
+                size_match=size_match,
             ):
                 continue
             return ComponentQuote(
@@ -138,6 +143,7 @@ class SizeWeightService:
                     "surcharge_cents": tier.surcharge_cents,
                     "shipment_cm": [length, width, height],
                     "shipment_kg": weight,
+                    "size_match": size_match,
                 },
             )
 
@@ -149,6 +155,7 @@ class SizeWeightService:
                 "reason": "no_matching_tier",
                 "shipment_cm": [length, width, height],
                 "shipment_kg": weight,
+                "size_match": size_match,
             },
         )
 

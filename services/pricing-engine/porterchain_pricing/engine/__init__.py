@@ -18,7 +18,12 @@ from porterchain_pricing.gta_rate import (
     default_gta_rate_config,
     normalize_vehicle_type,
 )
-from porterchain_pricing.policy import MODEL_DISTANCE, MODEL_FSA, MerchantPricingPolicy
+from porterchain_pricing.policy import (
+    FSA_MISS_REFUSE,
+    MODEL_DISTANCE,
+    MODEL_FSA,
+    MerchantPricingPolicy,
+)
 from porterchain_pricing.promotion import PromotionService
 from porterchain_pricing.rate_card import default_rate_card
 from porterchain_pricing.tax import TaxService
@@ -111,24 +116,43 @@ class PricingEngine:
 
         # Retail is the published GTA card only — injected platform FSA rows
         # must not price a website quote.
+        fsa_applied = False
         if (
             request.channel != "retail"
             and breakdown.base_cents == 0
             and ctx.fsa_rates
             and policy.pricing_model != MODEL_DISTANCE
         ):
-            self._apply_fsa_rate(request, ctx, breakdown, gta_cfg=gta_cfg)
+            fsa_applied = self._apply_fsa_rate(request, ctx, breakdown, gta_cfg=gta_cfg)
 
         if breakdown.base_cents == 0:
             if policy.pricing_model == MODEL_FSA:
+                if policy.schedule.fsa_miss == FSA_MISS_REFUSE:
+                    breakdown.metadata["fsa_refused"] = True
+                    breakdown.metadata["pricing_model"] = "fsa_refused"
+                    # Fail closed — no size / pickup / fuel / tax on a refused FSA miss.
+                    breakdown.finalize()
+                    return breakdown
                 breakdown.metadata["fsa_fallback"] = True
-            self._apply_gta_rate(
-                request,
-                breakdown,
-                distance_km=distance_km,
-                gta_cfg=gta_cfg,
-                policy=policy,
-            )
+                self._apply_gta_rate(
+                    request,
+                    breakdown,
+                    distance_km=distance_km,
+                    gta_cfg=gta_cfg,
+                    policy=policy,
+                )
+            else:
+                self._apply_gta_rate(
+                    request,
+                    breakdown,
+                    distance_km=distance_km,
+                    gta_cfg=gta_cfg,
+                    policy=policy,
+                )
+
+        # Compact banding can replace FSA base when schedule says so.
+        if request.channel != "retail" and not breakdown.metadata.get("fsa_refused"):
+            self._apply_compact_banding(request, ctx, breakdown)
 
         self._apply_size_weight(request, ctx, breakdown)
 
@@ -142,10 +166,18 @@ class PricingEngine:
             breakdown.add_item("wait", f"Wait time ({wait_minutes:g} min)", wait_cents)
             breakdown.metadata["wait_minutes"] = wait_minutes
 
+        if request.channel == "merchant":
+            self._apply_origin_pickup(request, policy, breakdown)
+            self._apply_route_minimum(request, ctx, policy, breakdown, fsa_applied=fsa_applied)
+
         # Customer distance fare has no fuel line. Merchant fuel is a percent of
-        # the pre-tax charges, same truncation as HST.
+        # the pre-tax charges, same truncation as HST. Schedule override wins.
         if request.channel != "retail":
-            fuel_percent = float(ctx.fuel.surcharge_percent or 0)
+            if policy.schedule.fuel_surcharge_percent is not None:
+                fuel_percent = float(policy.schedule.fuel_surcharge_percent)
+            else:
+                fuel_percent = float(ctx.fuel.surcharge_percent or 0)
+            breakdown.metadata["fuel_surcharge_percent"] = fuel_percent
             if fuel_percent > 0:
                 fuel_base = sum(i.amount_cents for i in breakdown.items)
                 fuel_cents = int(fuel_base * (fuel_percent / 100.0))
@@ -232,6 +264,14 @@ class PricingEngine:
         if not quote.applies:
             return False
 
+        rate_id = quote.metadata.get("rate_id")
+        for row in ctx.fsa_rates:
+            if row.id == rate_id:
+                tier = (row.config or {}).get("tier")
+                if tier:
+                    breakdown.metadata["fsa_tier"] = str(tier)
+                break
+
         breakdown.base_cents = quote.total_cents
         breakdown.distance_cents = 0
         for item in quote.items:
@@ -276,7 +316,10 @@ class PricingEngine:
         gta_cfg = ctx.gta_rate
         if request.channel != "retail" and policy.size_tiers:
             quote = self.size_weight.quote_tiers(
-                policy.size_tiers, weight_kg=request.weight_kg, dimensions=request.dimensions
+                policy.size_tiers,
+                weight_kg=request.weight_kg,
+                dimensions=request.dimensions,
+                size_match=policy.schedule.size_match,
             )
         elif request.channel == "retail" and gta_cfg is not None and gta_cfg.weight_threshold_kg is not None:
             quote = self.size_weight.quote(
@@ -371,3 +414,154 @@ class PricingEngine:
             (distance_cents + stops_q.total_cents + location_q.total_cents) / 100.0, 2
         )
         breakdown.metadata["base_km_limit"] = gta_cfg.base_km_limit
+
+    def _apply_origin_pickup(
+        self,
+        request: PricingRequest,
+        policy: MerchantPricingPolicy,
+        breakdown: PriceBreakdown,
+    ) -> None:
+        schedule = policy.schedule
+        cents = int(schedule.origin_pickup_cents or 0)
+        if cents <= 0:
+            return
+        allow = {str(v).lower() for v in schedule.origin_pickup_vehicle_classes}
+        vehicle = str(request.vehicle_class or "").lower()
+        if allow and vehicle not in allow:
+            return
+        breakdown.add_item("origin_pickup", "Origin pickup", cents)
+        breakdown.metadata["origin_pickup_cents"] = cents
+
+    def _matched_fsa_tier(self, request: PricingRequest, ctx: PricingContext) -> str | None:
+        """Tier from the FSA row that would price this quote, if any."""
+        quote = self.fsa.quote(
+            ctx.fsa_rates,
+            pickup=request.pickup,
+            dropoff=request.dropoff,
+            merchant_id=request.merchant_id,
+            vehicle_class=request.vehicle_class,
+        )
+        if not quote.applies:
+            return None
+        rate_id = quote.metadata.get("rate_id")
+        for row in ctx.fsa_rates:
+            if row.id == rate_id:
+                tier = (row.config or {}).get("tier")
+                return str(tier) if tier else None
+        return None
+
+    def _apply_route_minimum(
+        self,
+        request: PricingRequest,
+        ctx: PricingContext,
+        policy: MerchantPricingPolicy,
+        breakdown: PriceBreakdown,
+        *,
+        fsa_applied: bool,
+    ) -> None:
+        schedule = policy.schedule
+        # Compact path has its own route minimum.
+        if breakdown.metadata.get("compact_banding"):
+            min_cents = int(schedule.compact.route_minimum_cents or 0)
+        else:
+            mins = schedule.route_minimums_cents or {}
+            if not mins:
+                return
+            tier = breakdown.metadata.get("fsa_tier") or (
+                self._matched_fsa_tier(request, ctx) if fsa_applied else None
+            )
+            if not tier or tier not in mins:
+                return
+            min_cents = int(mins[tier])
+        if min_cents <= 0:
+            return
+        true_bill = sum(i.amount_cents for i in breakdown.items)
+        top_up = min_cents - true_bill
+        if top_up <= 0:
+            return
+        breakdown.add_item("route_minimum", "Route minimum", top_up)
+        breakdown.metadata["route_minimum_cents"] = min_cents
+        breakdown.metadata["route_minimum_top_up_cents"] = top_up
+
+    def _apply_compact_banding(
+        self,
+        request: PricingRequest,
+        ctx: PricingContext,
+        breakdown: PriceBreakdown,
+    ) -> None:
+        """
+        When compact schedule is on and vehicle is compact-class, replace the
+        base with stop banding if dest has a compact-class FSA row (territory).
+        """
+        import math
+
+        policy = ctx.merchant_policy or MerchantPricingPolicy()
+        compact = policy.schedule.compact
+        if not compact.enabled:
+            return
+        vehicle = str(request.vehicle_class or "").lower()
+        classes = {str(c).lower() for c in compact.vehicle_classes}
+        if vehicle not in classes:
+            return
+
+        # Territory: dest has an active FSA row for a compact-class vehicle.
+        from porterchain_pricing.components.fsa import fsa_from_point
+
+        dest = fsa_from_point(request.dropoff) if request.dropoff else ""
+        if not dest:
+            return
+        in_territory = False
+        for row in ctx.fsa_rates:
+            if not row.is_active:
+                continue
+            if str(row.dest_fsa).upper() != dest.upper():
+                continue
+            vc = (row.vehicle_class or "").lower()
+            if vc in classes or vc == vehicle:
+                in_territory = True
+                break
+        if not in_territory:
+            return
+
+        parcels = max(int(request.parcel_count or 1), 1)
+        billable_stops = max(1, math.ceil(parcels / max(compact.parcels_per_stop, 1)))
+        band_cents = 0
+        for band in sorted(
+            compact.stop_rates,
+            key=lambda b: (b.max_stops is None, b.max_stops or 0),
+        ):
+            if band.max_stops is None or billable_stops <= band.max_stops:
+                band_cents = int(band.cents)
+                break
+        if band_cents <= 0:
+            return
+
+        # Replace prior base / FSA / GTA line items with compact stop charge.
+        kept = [
+            i
+            for i in breakdown.items
+            if i.code
+            not in {
+                "fsa_rate",
+                "base",
+                "distance",
+                "extra_km",
+                "extra_pickup",
+                "extra_drop",
+                "downtown",
+                "upper_zone",
+            }
+        ]
+        breakdown.items = kept
+        breakdown.base_cents = band_cents
+        breakdown.distance_cents = 0
+        breakdown.add_item(
+            "compact_stop",
+            f"Compact delivery ({billable_stops} stop{'s' if billable_stops != 1 else ''})",
+            band_cents,
+        )
+        breakdown.metadata["pricing_model"] = "compact_banding"
+        breakdown.metadata["compact_banding"] = True
+        breakdown.metadata["compact_billable_stops"] = billable_stops
+        breakdown.metadata["compact_parcel_count"] = parcels
+

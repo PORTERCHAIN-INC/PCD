@@ -60,6 +60,40 @@ export default function RateCardPreview({ card }: { card: MerchantRateCard }) {
           <dt className="text-muted">Fuel</dt>
           <dd>{card.fuel_surcharge_percent}%</dd>
         </div>
+        {card.schedule ? (
+          <>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted">FSA miss</dt>
+              <dd>{card.schedule.fsa_miss === "refuse" ? "Refuse quote" : "Distance fallback"}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted">Origin pickup</dt>
+              <dd>
+                {card.schedule.origin_pickup_cents > 0
+                  ? money(card.schedule.origin_pickup_cents)
+                  : "—"}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4 sm:col-span-2">
+              <dt className="text-muted">Route minimums</dt>
+              <dd>
+                {Object.keys(card.schedule.route_minimums_cents || {}).length
+                  ? Object.entries(card.schedule.route_minimums_cents)
+                      .map(([k, v]) => `${k} ${money(v)}`)
+                      .join(" · ")
+                  : "—"}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted">Size match</dt>
+              <dd>{card.schedule.size_match === "any" ? "Weight or footprint" : "All limits"}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted">Compact banding</dt>
+              <dd>{card.schedule.compact?.enabled ? "On" : "Off"}</dd>
+            </div>
+          </>
+        ) : null}
         <div className="flex justify-between gap-4">
           <dt className="text-muted">HST</dt>
           <dd>

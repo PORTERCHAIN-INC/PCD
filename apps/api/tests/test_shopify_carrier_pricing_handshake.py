@@ -160,7 +160,7 @@ def test_destination_affects_quote_call():
     )
     seen: list[str] = []
 
-    def fake_quote(_db, _merchant, *, pickup, dropoff, weight_kg):  # noqa: ARG001
+    def fake_quote(_db, _merchant, *, pickup, dropoff, weight_kg, **_kw):  # noqa: ARG001
         seen.append(dropoff.postal or "")
         return 5200, {"final_cents": 5200}
 
@@ -536,3 +536,108 @@ def test_quote_merchant_rate_calls_pricing_service():
     assert req.merchant_id == "m1"
     assert req.channel == "merchant"
     assert req.distance_meters == 12000
+
+
+def test_quote_merchant_rate_returns_zero_when_fsa_refused():
+    db = MagicMock()
+    merchant = _active_merchant(pricing_config={})
+    pickup = SimpleNamespace(formatted="a", postal="L9T0A1", lat=43.5, lng=-79.8)
+    dropoff = SimpleNamespace(formatted="b", postal="L3V1A1", lat=44.6, lng=-79.4)
+    breakdown = SimpleNamespace(
+        final_cents=0,
+        subtotal_cents=0,
+        tax_cents=0,
+        contract_id=None,
+        items=[],
+        metadata={"fsa_refused": True, "pricing_model": "fsa_refused"},
+    )
+    svc = MagicMock()
+    svc.calculate_merchant.return_value = breakdown
+
+    with (
+        patch(
+            "porterchain_api.integrations.shopify_carrier_rates.resolve_route_distance",
+            return_value=(80000, 3600, "valhalla"),
+        ),
+        patch(
+            "porterchain_api.integrations.shopify_carrier_rates.get_pricing_service",
+            return_value=svc,
+        ),
+    ):
+        cents, meta = quote_merchant_rate(
+            db,
+            merchant,
+            pickup=pickup,  # type: ignore[arg-type]
+            dropoff=dropoff,  # type: ignore[arg-type]
+            weight_kg=5.0,
+            items=[{"quantity": 2, "grams": 5000}],
+        )
+    assert cents == 0
+    assert meta["metadata"]["fsa_refused"] is True
+    req = svc.calculate_merchant.call_args[0][0]
+    assert req.parcel_count == 2
+    assert req.vehicle_class == "cargo_van"
+
+
+def test_carrier_empty_rates_when_quote_refused():
+    """Checkout must omit PorterChain when schedule.fsa_miss=refuse."""
+    db = MagicMock()
+    settings = _settings()
+    payload = _payload(destination_postal="L3V1A1")
+    import json
+
+    body = json.dumps(payload).encode()
+    header = _hmac(body, settings.shopify_api_secret)
+    shop = SimpleNamespace(
+        id="s1",
+        merchant_id="m1",
+        shop_domain="kaylulu.myshopify.com",
+        encrypted_webhook_secret=None,
+    )
+    merchant = _active_merchant()
+    db.get.return_value = merchant
+    pickup = SimpleNamespace(
+        formatted="Milton", postal="L9T0A1", lat=43.5, lng=-79.8, place_id=None
+    )
+
+    with (
+        patch(
+            "porterchain_api.integrations.shopify_carrier_rates._active_shop",
+            return_value=shop,
+        ),
+        patch(
+            "porterchain_api.integrations.shopify_carrier_rates.default_pickup_address",
+            return_value=pickup,
+        ),
+        patch(
+            "porterchain_api.integrations.shopify_carrier_rates.address_from_saved",
+            side_effect=lambda row: SimpleNamespace(
+                formatted=row.formatted,
+                postal=row.postal,
+                lat=row.lat,
+                lng=row.lng,
+                place_id=None,
+            ),
+        ),
+        patch(
+            "porterchain_api.integrations.shopify_carrier_rates.service_area_error",
+            return_value=None,
+        ),
+        patch(
+            "porterchain_api.integrations.shopify_carrier_rates._ensure_geo",
+            side_effect=lambda a: a,
+        ),
+        patch(
+            "porterchain_api.integrations.shopify_carrier_rates.quote_merchant_rate",
+            return_value=(0, {"final_cents": 0, "metadata": {"fsa_refused": True}}),
+        ),
+    ):
+        out = carrier_service_rates(
+            db,
+            settings,
+            raw_body=body,
+            hmac_header=header,
+            shop_domain="kaylulu.myshopify.com",
+            payload=payload,
+        )
+    assert out.get("rates") == [] or out == {"rates": []}

@@ -5,8 +5,10 @@ import type { ReactNode } from "react";
 import { Button, Input, Select } from "@/components/crm/primitives";
 import {
   BLANK_SIZE_TIER,
+  DEFAULT_MERCHANT_SCHEDULE,
   type DimensionUnit,
   type MerchantPricing,
+  type MerchantSchedule,
   type MerchantSizeTier,
   type PricingModel,
   type WeightUnit,
@@ -25,7 +27,7 @@ const MODELS: { id: PricingModel; label: string; blurb: string }[] = [
     id: "fsa",
     label: "FSA flat rates",
     blurb:
-      "Price from the postal-code table for this merchant. Destinations without a rate still quote by distance.",
+      "Price from the postal-code table for this merchant. Destinations without a rate use distance — or refuse, when the schedule says so.",
   },
 ];
 
@@ -136,6 +138,11 @@ export default function MerchantPricingFields({
           ))}
         </div>
       </section>
+
+      <ScheduleFields
+        value={value.schedule ?? DEFAULT_MERCHANT_SCHEDULE}
+        onChange={(schedule) => patch({ schedule })}
+      />
 
       <section>
         <div className="mb-3 flex items-center justify-between gap-2">
@@ -275,5 +282,186 @@ export default function MerchantPricingFields({
         )}
       </section>
     </div>
+  );
+}
+
+function ScheduleFields({
+  value,
+  onChange,
+}: {
+  value: MerchantSchedule;
+  onChange: (next: MerchantSchedule) => void;
+}) {
+  function patch(next: Partial<MerchantSchedule>) {
+    onChange({ ...value, ...next });
+  }
+
+  const fuelBlank =
+    value.fuel_surcharge_percent === null || value.fuel_surcharge_percent === undefined;
+  const minsText = Object.entries(value.route_minimums_cents || {})
+    .map(([k, v]) => `${k}=${(v / 100).toFixed(2)}`)
+    .join(", ");
+
+  return (
+    <section>
+      <h3 className="text-sm font-semibold text-primary">Commercial schedule</h3>
+      <p className="mb-3 mt-0.5 text-xs text-muted">
+        Fuel override, FSA miss behaviour, origin pickup, route minimums by FSA tier, compact
+        banding, and size-match mode. Leave fuel blank to use platform Settings → Pricing.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <span className="text-xs font-medium text-primary/70">
+            Fuel surcharge % (blank = platform)
+          </span>
+          <Input
+            className="mt-1"
+            type="number"
+            min="0"
+            step="0.1"
+            value={fuelBlank ? "" : String(value.fuel_surcharge_percent)}
+            placeholder="platform"
+            onChange={(e) => {
+              const raw = e.target.value.trim();
+              patch({
+                fuel_surcharge_percent: raw === "" ? null : Math.max(0, Number(raw) || 0),
+              });
+            }}
+          />
+        </div>
+        <div>
+          <span className="text-xs font-medium text-primary/70">
+            When destination has no FSA rate
+          </span>
+          <Select
+            className="mt-1"
+            value={value.fsa_miss}
+            onChange={(e) => patch({ fsa_miss: e.target.value as MerchantSchedule["fsa_miss"] })}
+          >
+            <option value="fallback_distance">Fall back to distance (default)</option>
+            <option value="refuse">Refuse quote (no rate)</option>
+          </Select>
+        </div>
+        <div>
+          <span className="text-xs font-medium text-primary/70">Origin pickup (CAD)</span>
+          <Input
+            className="mt-1"
+            type="number"
+            min="0"
+            step="0.01"
+            value={(value.origin_pickup_cents / 100).toFixed(2)}
+            onChange={(e) =>
+              patch({
+                origin_pickup_cents: Math.max(0, Math.round(Number(e.target.value || 0) * 100)),
+              })
+            }
+          />
+        </div>
+        <div>
+          <span className="text-xs font-medium text-primary/70">Pickup vehicle classes</span>
+          <Input
+            className="mt-1"
+            value={(value.origin_pickup_vehicle_classes || []).join(", ")}
+            placeholder="cargo_van"
+            onChange={(e) =>
+              patch({
+                origin_pickup_vehicle_classes: e.target.value
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean),
+              })
+            }
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <span className="text-xs font-medium text-primary/70">
+            Route minimums by FSA tier (e.g. T1=120, T2=200)
+          </span>
+          <Input
+            className="mt-1"
+            value={minsText}
+            placeholder="T1=120, T2=200, T3=250"
+            onChange={(e) => {
+              const next: Record<string, number> = {};
+              for (const part of e.target.value.split(",")) {
+                const [k, v] = part.split("=").map((s) => s.trim());
+                if (!k) continue;
+                const dollars = Number(v);
+                if (!Number.isFinite(dollars) || dollars < 0) continue;
+                next[k] = Math.round(dollars * 100);
+              }
+              patch({ route_minimums_cents: next });
+            }}
+          />
+        </div>
+        <div>
+          <span className="text-xs font-medium text-primary/70">Size match</span>
+          <Select
+            className="mt-1"
+            value={value.size_match}
+            onChange={(e) =>
+              patch({ size_match: e.target.value as MerchantSchedule["size_match"] })
+            }
+          >
+            <option value="all">All limits (AND)</option>
+            <option value="any">Weight or footprint (OR)</option>
+          </Select>
+        </div>
+        <div className="flex items-end">
+          <label className="flex items-center gap-2 text-sm text-primary">
+            <input
+              type="checkbox"
+              checked={value.compact.enabled}
+              onChange={(e) => patch({ compact: { ...value.compact, enabled: e.target.checked } })}
+            />
+            Enable compact stop banding
+          </label>
+        </div>
+        {value.compact.enabled ? (
+          <>
+            <div>
+              <span className="text-xs font-medium text-primary/70">
+                Compact route minimum (CAD)
+              </span>
+              <Input
+                className="mt-1"
+                type="number"
+                min="0"
+                step="0.01"
+                value={(value.compact.route_minimum_cents / 100).toFixed(2)}
+                onChange={(e) =>
+                  patch({
+                    compact: {
+                      ...value.compact,
+                      route_minimum_cents: Math.max(
+                        0,
+                        Math.round(Number(e.target.value || 0) * 100)
+                      ),
+                    },
+                  })
+                }
+              />
+            </div>
+            <div>
+              <span className="text-xs font-medium text-primary/70">Parcels per stop</span>
+              <Input
+                className="mt-1"
+                type="number"
+                min="1"
+                value={value.compact.parcels_per_stop}
+                onChange={(e) =>
+                  patch({
+                    compact: {
+                      ...value.compact,
+                      parcels_per_stop: Math.max(1, Math.round(Number(e.target.value || 1))),
+                    },
+                  })
+                }
+              />
+            </div>
+          </>
+        ) : null}
+      </div>
+    </section>
   );
 }

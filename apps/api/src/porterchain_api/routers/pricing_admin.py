@@ -54,6 +54,8 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
         total_pickups=body.total_pickups,
         total_drops=body.total_drops,
         weight_kg=body.weight_kg,
+        dimensions=body.dimensions,
+        parcel_count=body.parcel_count,
         requires_liftgate=body.requires_liftgate,
         is_downtown=body.is_downtown,
         is_upper_zone=body.is_upper_zone,

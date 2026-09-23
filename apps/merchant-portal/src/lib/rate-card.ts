@@ -30,6 +30,15 @@ export type MerchantRateCard = {
   };
   liftgate_cents: number;
   fuel_surcharge_percent: number;
+  schedule?: {
+    fuel_surcharge_percent: number | null;
+    fsa_miss: string;
+    origin_pickup_cents: number;
+    origin_pickup_vehicle_classes: string[];
+    route_minimums_cents: Record<string, number>;
+    compact: { enabled: boolean; route_minimum_cents: number };
+    size_match: string;
+  };
   tax: { hst_percent: number; tax_included: boolean };
   weight: { threshold_kg: number; cents_per_kg: number };
   fsa_rate_count: number;

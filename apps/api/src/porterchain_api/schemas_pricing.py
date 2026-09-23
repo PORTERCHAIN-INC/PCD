@@ -75,6 +75,8 @@ class FsaRateBody(BaseModel):
     includes_location_fees: bool = True
     label: str | None = None
     is_active: bool = True
+    #: Opaque JSON — e.g. ``{"tier": "T1"}`` for schedule route minimums.
+    config: dict[str, Any] | None = None
 
 
 class FsaRateBulkBody(BaseModel):
@@ -98,6 +100,8 @@ class SimulateQuoteRequest(BaseModel):
     pickup: PointInput | None = None
     dropoff: PointInput | None = None
     weight_kg: float | None = None
+    dimensions: dict[str, float] | str | None = None
+    parcel_count: int = Field(default=1, ge=1)
     requires_liftgate: bool = False
     is_downtown: bool | None = None
     is_upper_zone: bool | None = None

@@ -74,15 +74,41 @@ class MerchantSurcharges(BaseModel):
     upper_zone: bool = True
 
 
+class MerchantScheduleCompact(BaseModel):
+    enabled: bool = False
+    vehicle_classes: list[str] = Field(default_factory=lambda: ["sedan_suv", "sedan", "suv"])
+    max_packed_inches: list[float] = Field(default_factory=lambda: [10.0, 10.0])
+    parcels_per_stop: int = Field(default=3, ge=1)
+    stop_rates_cents: list[dict[str, Any]] = Field(
+        default_factory=lambda: [
+            {"max_stops": 4, "cents": 1000},
+            {"max_stops": None, "cents": 600},
+        ]
+    )
+    route_minimum_cents: int = Field(default=5000, ge=0)
+
+
+class MerchantSchedule(BaseModel):
+    """Per-merchant commercial schedule — fuel, FSA miss, pickup, mins, compact."""
+
+    fuel_surcharge_percent: float | None = None
+    fsa_miss: Literal["fallback_distance", "refuse"] = "fallback_distance"
+    origin_pickup_cents: int = Field(default=0, ge=0)
+    origin_pickup_vehicle_classes: list[str] = Field(default_factory=lambda: ["cargo_van"])
+    route_minimums_cents: dict[str, int] = Field(default_factory=dict)
+    compact: MerchantScheduleCompact = Field(default_factory=MerchantScheduleCompact)
+    size_match: Literal["all", "any"] = "all"
+
+
 class MerchantPricingRequest(BaseModel):
     """
     The pricing controls an admin owns for one merchant.
 
     Deliberately narrower than `pricing_config`: writing this must not disturb
     the contract-era keys (`custom_rules`, `volume_discounts`) that live in the
-    same JSON column. `gta_rate` and `rate_card` are explicit overlays — omit
-    them (`exclude_unset`) to leave stored values alone; send null to clear
-    `gta_rate`.
+    same JSON column. `gta_rate`, `rate_card`, and `schedule` are explicit
+    overlays — omit them (`exclude_unset`) to leave stored values alone; send
+    null to clear `gta_rate` / `schedule`.
     """
 
     pricing_model: Literal["distance", "fsa"] = "distance"
@@ -92,6 +118,8 @@ class MerchantPricingRequest(BaseModel):
     gta_rate: dict[str, Any] | None = None
     #: Optional RateCard surcharge knobs (liftgate, weight, extra stop, …).
     rate_card: dict[str, Any] | None = None
+    #: Commercial schedule (fuel override, pickup, mins, compact, size_match).
+    schedule: MerchantSchedule | None = None
 
 
 class MerchantPricingResponse(MerchantPricingRequest):

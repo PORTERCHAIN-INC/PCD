@@ -87,6 +87,11 @@ def merchant_rate_card(db: Session, merchant: Merchant) -> dict[str, Any]:
     model = policy.pricing_model
     downtown_cents = _cad_to_cents(gta.downtown_fee_cad) if gta else 0
     upper_cents = _cad_to_cents(gta.upper_zone_fee_cad) if gta else 0
+    schedule = policy.schedule
+    if schedule.fuel_surcharge_percent is not None:
+        effective_fuel = float(schedule.fuel_surcharge_percent)
+    else:
+        effective_fuel = float(fuel.surcharge_percent) if fuel else 0.0
     return {
         "pricing_model": model,
         "what_wins": _WHAT_WINS.get(model, _WHAT_WINS[MODEL_DISTANCE]),
@@ -100,7 +105,8 @@ def merchant_rate_card(db: Session, merchant: Merchant) -> dict[str, Any]:
             "upper_zone_cents": upper_cents,
         },
         "liftgate_cents": int(card.liftgate_cents) if card else 0,
-        "fuel_surcharge_percent": float(fuel.surcharge_percent) if fuel else 0.0,
+        "fuel_surcharge_percent": effective_fuel,
+        "schedule": schedule.to_dict(),
         "tax": {
             "hst_percent": float(tax.hst_percent) if tax else 0.0,
             "tax_included": bool(tax.tax_included) if tax else False,
@@ -132,6 +138,7 @@ def admin_pricing_view(db: Session, merchant: Merchant) -> dict[str, Any]:
         "size_tiers": [t.to_dict() for t in policy.size_tiers],
         "gta_rate": gta_overlay,
         "rate_card": dict(cfg.get("rate_card") or {}) or None,
+        "schedule": policy.schedule.to_dict(),
         "has_custom_gta": bool(gta_overlay),
         "platform_gta_rate": system_gta.to_dict() if system_gta else None,
         "fsa_rate_count": own,

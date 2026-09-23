@@ -305,6 +305,13 @@ def merge_pricing_config(db: Session, ctx: AdminContext, merchant_id: str, patch
         elif isinstance(gta, dict):
             config["gta_rate"] = dict(gta)
 
+    if "schedule" in overlay:
+        schedule = overlay.pop("schedule")
+        if schedule is None or schedule == {}:
+            config.pop("schedule", None)
+        elif isinstance(schedule, dict):
+            config["schedule"] = dict(schedule)
+
     if "rate_card" in overlay:
         card = overlay.pop("rate_card")
         if card is None:

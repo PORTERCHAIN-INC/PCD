@@ -57,6 +57,8 @@ class PricingRequest:
     total_drops: int | None = None
     is_downtown: bool | None = None
     is_upper_zone: bool | None = None
+    #: Parcel / carton count for compact stop banding (default 1).
+    parcel_count: int = 1
 
 
 @dataclass
