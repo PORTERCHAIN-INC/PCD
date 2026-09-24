@@ -1,7 +1,7 @@
 """Admin Customer 360 — list/detail for Partners retail demand nodes.
 
-Identity SoT remains Settings Users / Clerk. This service never creates or
-invites customers (self SignUp only). Reuses Order customer_360 fields.
+Admin create/invite lives in ``customer_admin_mutations`` (phone-book orphan + optional
+Platform Clerk invite). Identity SoT remains Settings Users / Clerk when linked.
 """
 
 from __future__ import annotations
@@ -33,6 +33,16 @@ _OPEN_CLAIMS = frozenset({
 
 
 class CustomerAdminService:
+    def create_customer(self, db: Session, ctx, settings, **kwargs: Any) -> dict[str, Any]:
+        from porterchain_api.admin_engine.customer_admin_mutations import create_customer
+
+        return create_customer(db, ctx, settings, **kwargs)
+
+    def send_invite(self, db: Session, ctx, settings, customer_id: str) -> dict[str, Any]:
+        from porterchain_api.admin_engine.customer_admin_mutations import send_invite
+
+        return send_invite(db, ctx, settings, customer_id)
+
     def stats(self, db: Session) -> dict[str, Any]:
         total = db.query(func.count(Customer.id)).scalar() or 0
         # Orphan = missing clerk id or pending:* placeholder from pre-signup rows
@@ -369,6 +379,8 @@ class CustomerAdminService:
 
     @staticmethod
     def _display_name(customer: Customer) -> str:
+        if customer.full_name and customer.full_name.strip():
+            return customer.full_name.strip()
         if customer.customer_reference:
             return customer.customer_reference
         email = (customer.email or "").strip()

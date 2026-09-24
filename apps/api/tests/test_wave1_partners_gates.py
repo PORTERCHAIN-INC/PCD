@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -86,11 +86,26 @@ def test_customer_delete_forbidden() -> None:
         )
 
 
-def test_customer_provision_branch_unreachable() -> None:
+def test_customer_provision_from_clerk_links_row() -> None:
     svc = ClerkDirectoryService()
-    with pytest.raises(ValueError, match="customer_self_signup_only"):
-        svc._provision_from_clerk(
-            MagicMock(),
+    customer = SimpleNamespace(
+        id="cust-1",
+        email="c@example.com",
+        clerk_user_id="pending:c@example.com",
+        full_name=None,
+    )
+    db = MagicMock()
+    with (
+        patch(
+            "porterchain_api.admin_engine.merchant_lifecycle.ensure_retail_customer",
+            return_value=customer,
+        ) as ensure,
+        patch(
+            "porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation"
+        ) as sync,
+    ):
+        platform_id = svc._provision_from_clerk(
+            db,
             MagicMock(),
             "customer",
             email="c@example.com",
@@ -99,6 +114,10 @@ def test_customer_provision_branch_unreachable() -> None:
             role=None,
             merchant_id=None,
         )
+    assert platform_id == "cust-1"
+    assert customer.clerk_user_id == "user_x"
+    ensure.assert_called_once()
+    sync.assert_called_once()
 
 
 def test_dsr_sets_privacy_hold() -> None:

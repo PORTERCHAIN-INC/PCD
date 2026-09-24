@@ -15,11 +15,14 @@ import {
   Phone,
   Plus,
   Receipt,
+  Send,
   Settings as SettingsIcon,
   ShieldAlert,
   Users,
 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { useApiData } from "@/hooks/useApiData";
 import {
   customersApi,
@@ -36,6 +39,15 @@ import {
 import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
 import { money, shortDate, titleCase } from "@/lib/crmFormat";
 
+/** Mirrors API MODULE_PERMISSIONS["customers"]. */
+const CUSTOMERS_WRITE_ROLES = new Set([
+  "super_admin",
+  "admin",
+  "support",
+  "support_lead",
+  "compliance",
+]);
+
 type TabId = "overview" | "orders" | "care" | "billing" | "trust" | "activity" | "tasks";
 
 const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -51,18 +63,58 @@ const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: 
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { getApiToken } = useAdminAuth();
+  const { profile } = useAdminProfile();
+  const canWrite = !profile?.role || CUSTOMERS_WRITE_ROLES.has((profile.role || "").toLowerCase());
   const [tab, setTab] = useState<TabId>("overview");
   const [addOrderOpen, setAddOrderOpen] = useState(false);
   const [createdDraft, setCreatedDraft] = useState<CreateCustomerBookingDraftResult | null>(null);
   const [ordersVersion, setOrdersVersion] = useState(0);
-  const { data, error, loading } = useApiData((t) => customersApi.detail(t, id), [id], {
-    key: `customer-${id}`,
-  });
+  const [detailVersion, setDetailVersion] = useState(0);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteOk, setInviteOk] = useState<string | null>(null);
+  const { data, error, loading } = useApiData(
+    (t) => customersApi.detail(t, id),
+    [id, detailVersion],
+    {
+      key: `customer-${id}-${detailVersion}`,
+    }
+  );
+
+  async function sendInvite() {
+    setInviteBusy(true);
+    setInviteError(null);
+    setInviteOk(null);
+    try {
+      const token = await getApiToken();
+      const result = await customersApi.invite(token, id);
+      setInviteOk(
+        result.clerk_action === "found"
+          ? "Existing Clerk user linked."
+          : "Invite sent to customer portal SignUp."
+      );
+      setDetailVersion((v) => v + 1);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Invite failed";
+      if (msg === "clerk_not_configured") {
+        setInviteError("Platform Clerk is not configured — cannot send invite.");
+      } else if (msg === "customer_already_clerk_linked") {
+        setInviteError("Already Clerk-linked.");
+      } else {
+        setInviteError(msg);
+      }
+    } finally {
+      setInviteBusy(false);
+    }
+  }
 
   if (loading && !data) return <Spinner label="Loading customer…" />;
   if (error || !data) {
     return <EmptyState title="Customer not found" hint={error || "Unknown customer"} />;
   }
+
+  const showInvite = canWrite && !data.clerk_linked && data.privacy_status !== "deletion_hold";
 
   return (
     <div className="space-y-5">
@@ -100,18 +152,30 @@ export default function CustomerDetailPage() {
                 <span className="font-mono text-xs">Stripe {data.stripe_customer_id}</span>
               )}
             </p>
+            {(inviteError || inviteOk) && (
+              <p className={`mt-2 text-sm ${inviteError ? "text-red-600" : "text-green-700"}`}>
+                {inviteError || inviteOk}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={() => {
-              setTab("orders");
-              setAddOrderOpen(true);
-            }}
-            disabled={data.privacy_status === "deletion_hold"}
-          >
-            <Plus className="h-4 w-4" /> Add order
-          </Button>
+          {showInvite && (
+            <Button variant="outline" disabled={inviteBusy} onClick={() => void sendInvite()}>
+              <Send className="h-4 w-4" /> {inviteBusy ? "Sending…" : "Send invite"}
+            </Button>
+          )}
+          {canWrite && (
+            <Button
+              onClick={() => {
+                setTab("orders");
+                setAddOrderOpen(true);
+              }}
+              disabled={data.privacy_status === "deletion_hold"}
+            >
+              <Plus className="h-4 w-4" /> Add order
+            </Button>
+          )}
           <Link
             href={`/support?customer_id=${data.id}`}
             className="inline-flex items-center gap-2 rounded-xl border border-primary/15 bg-white px-3.5 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
@@ -177,7 +241,7 @@ export default function CustomerDetailPage() {
           id={id}
           version={ordersVersion}
           onAddOrder={() => setAddOrderOpen(true)}
-          canAddOrder={data.privacy_status !== "deletion_hold"}
+          canAddOrder={canWrite && data.privacy_status !== "deletion_hold"}
         />
       )}
       {tab === "care" && <CareTab id={id} />}

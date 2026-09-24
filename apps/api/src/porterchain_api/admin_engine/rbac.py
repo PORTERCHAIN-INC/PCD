@@ -109,7 +109,7 @@ MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
             AdminRole.READ_ONLY,
         }
     ),
-    # Retail customers — care/read for ops; write reserved for support leads (no Admin create).
+    # Retail customers — create + phone-book write; broader roles get customers_read.
     "customers": frozenset(
         {
             AdminRole.SUPER_ADMIN,

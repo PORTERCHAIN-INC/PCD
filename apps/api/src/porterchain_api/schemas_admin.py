@@ -1295,6 +1295,38 @@ class AdminCustomerAddressInput(BaseModel):
     lng: float | None = None
 
 
+class AdminCreateCustomerRequest(BaseModel):
+    """Admin mint retail customer row (orphan until Platform SignUp / invite accepted)."""
+
+    email: str = Field(min_length=3, max_length=320)
+    phone: str | None = Field(default=None, max_length=32)
+    full_name: str | None = Field(default=None, max_length=255)
+    send_invite: bool = False
+
+
+class AdminCreateCustomerResponse(BaseModel):
+    id: str
+    email: str
+    phone: str | None = None
+    customer_reference: str | None = None
+    display_name: str
+    clerk_user_id: str | None = None
+    clerk_linked: bool = False
+    identity_status: str
+    clerk_action: str | None = None
+    created: bool = True
+    created_at: str | None = None
+
+
+class AdminCustomerInviteResponse(BaseModel):
+    id: str
+    email: str
+    clerk_user_id: str | None = None
+    clerk_linked: bool = False
+    identity_status: str
+    clerk_action: str | None = None
+
+
 class AdminCreateCustomerBookingDraftRequest(BaseModel):
     """Admin phone-book: create retail quote + draft for an existing customer (Stripe only)."""
 
@@ -1410,6 +1442,8 @@ class OptimizeRunBody(BaseModel):
     merchant_id: str | None = None
     vehicle_ids: list[str] | None = None
     driver_ids: list[str] | None = None
+    #: Page into the eligible pool when order_ids is omitted. One page is PREVIEW_ORDER_CAP.
+    offset: int = 0
 
 
 class OptimizeCommitBody(BaseModel):

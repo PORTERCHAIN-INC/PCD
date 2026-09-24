@@ -1,8 +1,8 @@
-"""Invitation workflows — Driver Clerk invites only.
+"""Invitation workflows — Driver + optional Admin customer Clerk invites.
 
 Staff use staff IdP enroll (``StaffIdpService``). Merchant seats are email-bind via
-``merchant_engine.team_service.ensure_merchant_seat``. Customer signup is open on
-PorterChain Platform.
+``merchant_engine.team_service.ensure_merchant_seat``. Retail customers may self-signup
+on Platform Clerk; Admin can also mint a local customer row and optionally invite.
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ def pending_clerk_id(email: str) -> str:
 
 
 class InvitationService:
-    """Send Clerk invitations for drivers only. Staff use staff IdP enroll (no Clerk)."""
+    """Send Clerk invitations for drivers and Admin-created retail customers."""
 
     def invite_driver(
         self,
@@ -98,6 +98,55 @@ class InvitationService:
             "invitation_status": invitation.status,
             "clerk_action": invitation.invitation_metadata.get("clerk_action"),
         }
+
+    def invite_customer(
+        self,
+        db: Session,
+        ctx: AdminContext | None,
+        settings: Settings,
+        customer: Any,
+    ) -> UserInvitation:
+        """Invite (or link) a retail customer on Platform Clerk. Does not commit."""
+        if not is_clerk_secret_configured(settings, "customer"):
+            raise ValueError("clerk_not_configured")
+        normalized = (customer.email or "").lower().strip()
+        if not normalized:
+            raise ValueError("email_required")
+        clerk = clerk_client_for_kind(settings, "customer")
+        redirect = f"{settings.customer_portal_url.rstrip('/')}/sign-up"
+        metadata = {
+            "role": "customer",
+            "porterchain_role": "customer",
+            "user_type": "customer",
+            "customer_id": customer.id,
+        }
+        clerk_result = clerk.invite_user(normalized, redirect_url=redirect, public_metadata=metadata)
+        if clerk_result.clerk_user_id:
+            customer.clerk_user_id = clerk_result.clerk_user_id
+            from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+
+            sync_authz_after_persona_mutation(db, clerk_result.clerk_user_id)
+        invitation = self._record_invitation(
+            db,
+            email=normalized,
+            user_type="customer",
+            role="customer",
+            clerk_result=clerk_result,
+            platform_user_id=customer.id,
+            invited_by=ctx.user.id if ctx and ctx.user else None,
+            redirect_url=redirect,
+            metadata={"full_name": getattr(customer, "full_name", None)},
+        )
+        if ctx:
+            log_admin_audit(
+                db,
+                ctx,
+                action="customer.invited",
+                resource_type="customer",
+                resource_id=customer.id,
+                payload={"email": normalized, "clerk_action": clerk_result.action},
+            )
+        return invitation
 
     def mark_accepted(self, db: Session, *, email: str, clerk_user_id: str) -> None:
         normalized = email.lower().strip()

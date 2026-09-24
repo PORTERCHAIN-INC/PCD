@@ -106,14 +106,29 @@ class ClerkDirectoryService:
         normalized = email.lower().strip()
         if not normalized:
             raise ValueError("email_required")
-        # Retail personas self-serve on Platform Clerk — Admin must not set passwords
-        # or invent Clerk users for merchant/customer. Staff use staff IdP enroll.
-        if user_type == "customer":
-            raise ValueError("customer_self_signup_only")
+        # Retail / staff guards: never set passwords for merchant/customer; staff use IdP enroll.
         if user_type == "staff":
             raise ValueError("staff_use_enroll_endpoint")
         if user_type in ("merchant", "customer") and password:
             raise ValueError("password_create_forbidden_for_retail")
+        # Customers: mint local row (+ optional Platform invite) — same path as Customers page.
+        if user_type == "customer":
+            from porterchain_api.admin_engine.customer_admin_service import CustomerAdminService
+
+            row = CustomerAdminService().create_customer(
+                db,
+                ctx,
+                settings,
+                email=normalized,
+                full_name=name,
+                send_invite=send_invite,
+            )
+            return {
+                "platform_user_id": row["id"],
+                "clerk_user_id": row.get("clerk_user_id"),
+                "clerk_action": row.get("clerk_action") or "created",
+                "email": normalized,
+            }
         kind = clerk_kind_for_user_type(user_type)
         if not is_clerk_secret_configured(settings, kind):
             raise ValueError("clerk_not_configured")
@@ -187,7 +202,7 @@ class ClerkDirectoryService:
                 inv.invite_driver(db, ctx, settings, driver)
                 db.commit()
                 return {"platform_user_id": driver.id, "clerk_action": "invited", "email": normalized}
-            raise ValueError("customer_self_signup_only")
+            raise ValueError(f"invite_unsupported_for_{user_type}")
         else:
             clerk_user = client.create_user(
                 normalized,
@@ -405,8 +420,21 @@ class ClerkDirectoryService:
             db.flush()
             return driver.id
         if user_type == "customer":
-            # C-0b: retail personas self-signup only — never provision from Admin Clerk create.
-            raise ValueError("customer_self_signup_only")
+            from porterchain_api.admin_engine.merchant_lifecycle import ensure_retail_customer
+
+            customer = ensure_retail_customer(
+                db, email=email, phone=None, full_name=name
+            )
+            if customer.clerk_user_id and not str(customer.clerk_user_id).startswith("pending"):
+                if customer.clerk_user_id != clerk_user_id:
+                    raise ValueError("customer_email_exists")
+            customer.clerk_user_id = clerk_user_id
+            if name and name.strip() and not customer.full_name:
+                customer.full_name = name.strip()[:255]
+            from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+
+            sync_authz_after_persona_mutation(db, clerk_user_id)
+            return customer.id
         if user_type == "merchant" and merchant_id:
             mu = get_merchant_user_by_email(db, email, merchant_id=merchant_id)
             if mu:

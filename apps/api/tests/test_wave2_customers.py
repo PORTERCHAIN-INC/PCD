@@ -26,6 +26,81 @@ def test_customer_admin_detail_missing() -> None:
         CustomerAdminService().detail(db, "missing")
 
 
+def test_create_customer_rejects_linked_email() -> None:
+    linked = SimpleNamespace(
+        id="cust-1",
+        email="c@example.com",
+        clerk_user_id="user_abc",
+        full_name="C",
+        phone=None,
+    )
+    db = MagicMock()
+    db.query.return_value.filter.return_value.order_by.return_value.first.return_value = linked
+    ctx = MagicMock()
+    settings = MagicMock()
+    with pytest.raises(ValueError, match="customer_email_exists"):
+        CustomerAdminService().create_customer(
+            db, ctx, settings, email="c@example.com", send_invite=False
+        )
+
+
+def test_create_customer_mints_orphan_row() -> None:
+    orphan = SimpleNamespace(
+        id="cust-new",
+        email="new@example.com",
+        clerk_user_id="pending:new@example.com",
+        full_name="New User",
+        phone=None,
+        customer_reference="PC-1",
+        stripe_customer_id=None,
+        privacy_status=None,
+        privacy_hold_reference=None,
+        privacy_hold_at=None,
+        created_at=None,
+    )
+    db = MagicMock()
+    db.query.return_value.filter.return_value.order_by.return_value.first.return_value = None
+    db.get.return_value = orphan
+    ctx = MagicMock()
+    settings = MagicMock()
+
+    with (
+        patch(
+            "porterchain_api.admin_engine.customer_admin_mutations.ensure_retail_customer",
+            return_value=orphan,
+        ),
+        patch(
+            "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+            return_value=False,
+        ),
+        patch("porterchain_api.admin_engine.customer_admin_mutations.log_admin_audit"),
+        patch.object(
+            CustomerAdminService,
+            "detail",
+            return_value={
+                "id": orphan.id,
+                "email": orphan.email,
+                "display_name": "New User",
+                "clerk_linked": False,
+                "identity_status": "orphan",
+            },
+        ),
+    ):
+        row = CustomerAdminService().create_customer(
+            db,
+            ctx,
+            settings,
+            email="new@example.com",
+            full_name="New User",
+            send_invite=False,
+        )
+
+    assert row["id"] == "cust-new"
+    assert row["created"] is True
+    assert row["clerk_action"] == "created"
+    db.commit.assert_called_once()
+
+
 def test_upsert_rejects_email_mismatch_on_bound_customer() -> None:
     existing = SimpleNamespace(
         id="c1",

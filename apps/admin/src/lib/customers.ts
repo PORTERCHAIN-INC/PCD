@@ -148,6 +148,36 @@ export type CustomerPaymentLinkResult = {
   stripe_checkout_session_id: string | null;
 };
 
+export type CreateCustomerInput = {
+  email: string;
+  phone?: string | null;
+  full_name?: string | null;
+  send_invite?: boolean;
+};
+
+export type CreateCustomerResult = {
+  id: string;
+  email: string;
+  phone: string | null;
+  customer_reference: string | null;
+  display_name: string;
+  clerk_user_id: string | null;
+  clerk_linked: boolean;
+  identity_status: string;
+  clerk_action: string | null;
+  created: boolean;
+  created_at: string | null;
+};
+
+export type CustomerInviteResult = {
+  id: string;
+  email: string;
+  clerk_user_id: string | null;
+  clerk_linked: boolean;
+  identity_status: string;
+  clerk_action: string | null;
+};
+
 const B = "/v1/admin/customers";
 
 const qs = (params: Record<string, string | undefined>) => {
@@ -161,6 +191,13 @@ export const customersApi = {
   stats: (t: string) => adminFetch<CustomerStats>(`${B}/stats`, t),
   list: (t: string, params: CustomerListParams = {}) =>
     adminFetch<CustomerRow[]>(`${B}${qs(params)}`, t),
+  create: (t: string, body: CreateCustomerInput) =>
+    adminFetch<CreateCustomerResult>(B, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  invite: (t: string, id: string) =>
+    adminFetch<CustomerInviteResult>(`${B}/${id}/invite`, t, { method: "POST" }),
   detail: (t: string, id: string) => adminFetch<CustomerDetail>(`${B}/${id}`, t),
   orders: (t: string, id: string, params: { limit?: number; state?: string } = {}) =>
     adminFetch<CustomerOrder[]>(

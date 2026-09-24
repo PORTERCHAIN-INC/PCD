@@ -191,17 +191,18 @@ Clerk (customer triad) · Stripe Checkout · Mailpit/email · notification inbox
 
 ### 3.1 List `/customers`
 
-| ID       | P   | Case                                                                     |
-| -------- | --- | ------------------------------------------------------------------------ |
-| A-UI-001 | P0  | Page requires admin auth; unauthenticated redirected                     |
-| A-UI-002 | P0  | Stats tiles: total, clerk_linked, orphan, dsr_hold, revenue_30d          |
-| A-UI-003 | P0  | Search filters list via `customersApi.list`                              |
-| A-UI-004 | P0  | Chips: linked / orphan / dsr map to `clerk_linked` / `privacy_status`    |
-| A-UI-005 | P0  | Copy states Admin **cannot** create/invite customers (self SignUp only)  |
-| A-UI-006 | P1  | Row click → `/customers/[id]`                                            |
-| A-UI-007 | P1  | Link “Open in Settings → Users” → `/settings?section=users&tab=customer` |
-| A-UI-008 | P1  | RBAC: role without `customers_read` sees 403 / empty gated UI            |
-| A-UI-009 | P2  | Empty search results EmptyState                                          |
+| ID        | P   | Case                                                                            |
+| --------- | --- | ------------------------------------------------------------------------------- |
+| A-UI-001  | P0  | Page requires admin auth; unauthenticated redirected                            |
+| A-UI-002  | P0  | Stats tiles: total, clerk_linked, orphan, dsr_hold, revenue_30d                 |
+| A-UI-003  | P0  | Search filters list via `customersApi.list`                                     |
+| A-UI-004  | P0  | Chips: linked / orphan / dsr map to `clerk_linked` / `privacy_status`           |
+| A-UI-005  | P0  | **Add customer** opens create modal; optional Clerk invite; navigates to detail |
+| A-UI-005b | P1  | Detail **Send invite** for orphan rows (customers write roles only)             |
+| A-UI-006  | P1  | Row click → `/customers/[id]`                                                   |
+| A-UI-007  | P1  | Link “Open in Settings → Users” → `/settings?section=users&tab=customer`        |
+| A-UI-008  | P1  | RBAC: role without `customers_read` sees 403 / empty gated UI                   |
+| A-UI-009  | P2  | Empty search results EmptyState                                                 |
 
 ### 3.2 Detail `/customers/[id]` — shell
 
@@ -287,22 +288,23 @@ Clerk (customer triad) · Stripe Checkout · Mailpit/email · notification inbox
 
 ## 5. Admin Customers API (`API-A-*`) — `/v1/admin/customers`
 
-| ID        | P   | Endpoint                                                                      | Case                                                        |
-| --------- | --- | ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| API-A-001 | P0  | `GET /stats`                                                                  | requires `customers_read`                                   |
-| API-A-002 | P0  | `GET /`                                                                       | search, clerk_linked, privacy_status, limit clamps          |
-| API-A-003 | P0  | `GET /{id}`                                                                   | 200 detail; 404 `customer_not_found`                        |
-| API-A-004 | P0  | `GET /{id}/orders`                                                            | filter `state`; limit bounds                                |
-| API-A-005 | P0  | `GET /{id}/invoices`                                                          | customer-scoped only                                        |
-| API-A-006 | P0  | `GET /{id}/payments`                                                          | customer-scoped only                                        |
-| API-A-007 | P0  | `GET /{id}/care`                                                              | tickets + claims                                            |
-| API-A-008 | P0  | `POST /{id}/booking-drafts`                                                   | requires `customers` module; creates quote+draft            |
-| API-A-009 | P0  | same                                                                          | `send_payment_link=true` returns checkout_url (Stripe test) |
-| API-A-010 | P0  | same                                                                          | DSR hold / invalid address → 400                            |
-| API-A-011 | P0  | `POST .../booking-drafts/{draft_id}/send-payment-link`                        | 200 link; wrong customer → 404                              |
-| API-A-012 | P0  | Staff without module → 403                                                    |
-| API-A-013 | P1  | Pagination defaults match `DEFAULT_LIST_LIMIT` / `MAX_LIST_LIMIT`             |
-| API-A-014 | P1  | Admin **cannot** POST create-customer identity (no endpoint) — assert OpenAPI |
+| ID        | P   | Endpoint                                                                                                | Case                                                        |
+| --------- | --- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| API-A-001 | P0  | `GET /stats`                                                                                            | requires `customers_read`                                   |
+| API-A-002 | P0  | `GET /`                                                                                                 | search, clerk_linked, privacy_status, limit clamps          |
+| API-A-003 | P0  | `GET /{id}`                                                                                             | 200 detail; 404 `customer_not_found`                        |
+| API-A-004 | P0  | `GET /{id}/orders`                                                                                      | filter `state`; limit bounds                                |
+| API-A-005 | P0  | `GET /{id}/invoices`                                                                                    | customer-scoped only                                        |
+| API-A-006 | P0  | `GET /{id}/payments`                                                                                    | customer-scoped only                                        |
+| API-A-007 | P0  | `GET /{id}/care`                                                                                        | tickets + claims                                            |
+| API-A-008 | P0  | `POST /{id}/booking-drafts`                                                                             | requires `customers` module; creates quote+draft            |
+| API-A-009 | P0  | same                                                                                                    | `send_payment_link=true` returns checkout_url (Stripe test) |
+| API-A-010 | P0  | same                                                                                                    | DSR hold / invalid address → 400                            |
+| API-A-011 | P0  | `POST .../booking-drafts/{draft_id}/send-payment-link`                                                  | 200 link; wrong customer → 404                              |
+| API-A-012 | P0  | Staff without module → 403                                                                              |
+| API-A-013 | P1  | Pagination defaults match `DEFAULT_LIST_LIMIT` / `MAX_LIST_LIMIT`                                       |
+| API-A-014 | P1  | `POST /v1/admin/customers` creates orphan row; optional `send_invite`; 409 if Clerk-linked email exists |
+| API-A-015 | P1  | `POST /{id}/invite` for orphans; 409 if already linked; 400 if clerk_not_configured                     |
 
 ---
 
@@ -513,7 +515,7 @@ Clerk (customer triad) · Stripe Checkout · Mailpit/email · notification inbox
 3. **Idempotency-Key** on support tickets
 4. **Visitor session** website → portal handoff
 5. **RBAC split** `customers` vs `customers_read`
-6. **Admin cannot mint customers** (product rule)
+6. **Admin can mint customers** (local orphan + optional Platform Clerk invite; no password mint)
 7. **IDOR** across customer and admin draft ownership
 8. **Quote≡Book cents** invariant
 9. **Mobile intentional thin shell** vs web full portal
@@ -523,6 +525,7 @@ Clerk (customer triad) · Stripe Checkout · Mailpit/email · notification inbox
 13. **Lead → customer conversion** path
 14. **Referral credits** (migration present)
 15. **Settings → Users → customer** directory cross-link
+16. **Resend invite** on Admin customer detail for orphan rows
 
 ---
 
@@ -544,7 +547,7 @@ pytest apps/api/tests/test_customer_persona_p0.py \
 python scripts/verify_customer_persona_surface.py
 ```
 
-- [x] A-UI page/tab inventory + “self SignUp only” + Add-order Stripe wiring
+- [x] A-UI page/tab inventory + Add customer + Add-order Stripe wiring
 - [x] C-UI book contract (Clerk + createQuote + mock/sync complete + `checkout_channel: customer`)
 - [x] API-C-001/002/004/005/007/008/009/010 (HTTP + service)
 - [x] API-A-001/002/003/008/009/011/012 (+ dispatcher cannot POST drafts)

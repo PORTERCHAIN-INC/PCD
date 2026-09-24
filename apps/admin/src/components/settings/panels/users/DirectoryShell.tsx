@@ -15,6 +15,7 @@ import { SettingsCard } from "../../ui/SettingsPrimitives";
 import { tabMeta } from "./constants";
 import { CreateDriverModal } from "./driver/CreateDriverModal";
 import { AddMerchantSeatModal } from "./merchant/AddMerchantSeatModal";
+import { CustomerCreateModal } from "@/components/customers/CustomerCreateModal";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import { requireApiToken } from "./requireApiToken";
 import { ChangeRoleModal } from "./staff/ChangeRoleModal";
@@ -22,6 +23,16 @@ import { EMPTY_ENROLL_FORM, EnrollStaffModal, type EnrollForm } from "./staff/En
 import { EMPTY_FILTERS, filterChromeFor, UserFiltersBar } from "./UserFiltersBar";
 import { UserDirectoryTable } from "./UserDirectoryTable";
 import { useUserDirectory, usersQueryKey } from "./useUserDirectory";
+import { useAdminProfile } from "@/components/nav/AdminProfileContext";
+
+/** Mirrors API MODULE_PERMISSIONS["customers"]. */
+const CUSTOMERS_WRITE_ROLES = new Set([
+  "super_admin",
+  "admin",
+  "support",
+  "support_lead",
+  "compliance",
+]);
 
 function staffFromPlatform(user: PlatformUser): StaffUser {
   return {
@@ -35,7 +46,7 @@ function staffFromPlatform(user: PlatformUser): StaffUser {
 
 function cardDescription(tab: UserDirectoryTab): string {
   if (tab === "customer") {
-    return "All retail customers in PorterChain — Clerk status when linked; Admin cannot create them.";
+    return "All retail customers in PorterChain — create here or under Customers; Clerk status when linked.";
   }
   if (tab === "staff") {
     return "All AdminUser rows — enroll via Staff IdP; reissue activation link if session expired.";
@@ -61,6 +72,9 @@ export function DirectoryShell({
   onRefetch?: () => void;
 }) {
   const qc = useQueryClient();
+  const { profile } = useAdminProfile();
+  const canWriteCustomers =
+    !profile?.role || CUSTOMERS_WRITE_ROLES.has((profile.role || "").toLowerCase());
   const [filters, setFilters] = useState<UserDirectoryFilters>(EMPTY_FILTERS);
   const [createOpen, setCreateOpen] = useState(false);
   const [roleModal, setRoleModal] = useState<StaffUser | null>(null);
@@ -157,7 +171,13 @@ export function DirectoryShell({
   }
 
   const actionButton =
-    tab === "customer" ? undefined : tab === "staff" ? (
+    tab === "customer" ? (
+      canWriteCustomers ? (
+        <Button onClick={() => setCreateOpen(true)}>
+          <UserPlus className="h-4 w-4" /> Add customer
+        </Button>
+      ) : undefined
+    ) : tab === "staff" ? (
       <Button
         onClick={() => {
           setEnrollmentToken(null);
@@ -297,6 +317,18 @@ export function DirectoryShell({
           getApiToken={getApiToken}
           onClose={() => setCreateOpen(false)}
           onCreated={refresh}
+        />
+      )}
+
+      {tab === "customer" && (
+        <CustomerCreateModal
+          open={createOpen}
+          getApiToken={getApiToken}
+          onClose={() => setCreateOpen(false)}
+          onCreated={() => {
+            setCreateOpen(false);
+            refresh();
+          }}
         />
       )}
     </>

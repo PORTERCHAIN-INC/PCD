@@ -15,6 +15,9 @@ from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIM
 from porterchain_api.schemas_admin import (
     AdminCreateCustomerBookingDraftRequest,
     AdminCreateCustomerBookingDraftResponse,
+    AdminCreateCustomerRequest,
+    AdminCreateCustomerResponse,
+    AdminCustomerInviteResponse,
     BookingDraftPaymentLinkResponse,
 )
 
@@ -57,6 +60,45 @@ def list_customers(
     )
 
 
+@router.post("", response_model=AdminCreateCustomerResponse)
+def create_customer(
+    body: AdminCreateCustomerRequest,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> AdminCreateCustomerResponse:
+    """Create a retail customer for phone-book / care. Optional Platform Clerk invite."""
+    _guard(ctx, "customers")
+    try:
+        result = _svc.create_customer(
+            db,
+            ctx,
+            settings,
+            email=body.email,
+            phone=body.phone,
+            full_name=body.full_name,
+            send_invite=body.send_invite,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        if detail == "customer_email_exists":
+            raise HTTPException(status_code=409, detail=detail) from exc
+        raise HTTPException(status_code=400, detail=detail) from exc
+    return AdminCreateCustomerResponse(
+        id=result["id"],
+        email=result["email"],
+        phone=result.get("phone"),
+        customer_reference=result.get("customer_reference"),
+        display_name=result["display_name"],
+        clerk_user_id=result.get("clerk_user_id"),
+        clerk_linked=bool(result.get("clerk_linked")),
+        identity_status=result.get("identity_status") or "orphan",
+        clerk_action=result.get("clerk_action"),
+        created=bool(result.get("created", True)),
+        created_at=result.get("created_at"),
+    )
+
+
 @router.get("/{customer_id}")
 def customer_detail(customer_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     _guard(ctx, "customers_read")
@@ -64,6 +106,34 @@ def customer_detail(customer_id: str, ctx: Ctx, db: Session = Depends(get_db)) -
         return _svc.detail(db, customer_id)
     except LookupError:
         raise HTTPException(status_code=404, detail="customer_not_found") from None
+
+
+@router.post("/{customer_id}/invite", response_model=AdminCustomerInviteResponse)
+def invite_customer(
+    customer_id: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> AdminCustomerInviteResponse:
+    """Send or re-send Platform Clerk invite for an orphan retail customer."""
+    _guard(ctx, "customers")
+    try:
+        result = _svc.send_invite(db, ctx, settings, customer_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="customer_not_found") from None
+    except ValueError as exc:
+        detail = str(exc)
+        if detail == "customer_already_clerk_linked":
+            raise HTTPException(status_code=409, detail=detail) from exc
+        raise HTTPException(status_code=400, detail=detail) from exc
+    return AdminCustomerInviteResponse(
+        id=result["id"],
+        email=result["email"],
+        clerk_user_id=result.get("clerk_user_id"),
+        clerk_linked=bool(result.get("clerk_linked")),
+        identity_status=result.get("identity_status") or "orphan",
+        clerk_action=result.get("clerk_action"),
+    )
 
 
 @router.get("/{customer_id}/orders")

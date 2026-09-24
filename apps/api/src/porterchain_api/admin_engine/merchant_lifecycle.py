@@ -71,10 +71,18 @@ def apply_closed(
     return merchant
 
 
-def ensure_retail_customer(db: Session, *, email: str, phone: str | None) -> Customer:
+def ensure_retail_customer(
+    db: Session,
+    *,
+    email: str,
+    phone: str | None,
+    full_name: str | None = None,
+) -> Customer:
     from porterchain_api.booking_engine.customer_service import CustomerService
 
-    return CustomerService().ensure_from_email(db, email=email, phone=phone)
+    return CustomerService().ensure_from_email(
+        db, email=email, phone=phone, full_name=full_name
+    )
 
 
 def owner_email(db: Session, merchant: Merchant) -> str:

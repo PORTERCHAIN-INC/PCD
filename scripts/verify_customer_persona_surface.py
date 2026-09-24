@@ -55,6 +55,7 @@ def main() -> int:
         "app/(ops)/customers/page.tsx",
         "app/(ops)/customers/[id]/page.tsx",
         "components/customers/CustomerAddOrderModal.tsx",
+        "components/customers/CustomerCreateModal.tsx",
         "lib/customers.ts",
     )
     for rel in admin_pages:
@@ -67,9 +68,14 @@ def main() -> int:
             failures.append(f"admin customer detail missing tab {tab}")
 
     list_page = _read(ADMIN / "app/(ops)/customers/page.tsx")
-    if "SignUp" not in list_page and "sign up" not in list_page.lower():
-        failures.append("admin customers list should state self SignUp only")
+    if "Add customer" not in list_page or "CustomerCreateModal" not in list_page:
+        failures.append("admin customers list should expose Add customer / CustomerCreateModal")
 
+    lib_customers = _read(ADMIN / "lib/customers.ts")
+    if "create:" not in lib_customers and 'create: (t:' not in lib_customers:
+        # customersApi.create must exist for Admin mint
+        if "create:" not in lib_customers:
+            failures.append("admin lib/customers.ts missing create()")
     booking = _read(CUSTOMER / "lib/booking.ts")
     for needle in ("/v1/quotes", "/v1/bookings", "/v1/orders/", 'checkout_channel: "customer"'):
         if needle not in booking:
@@ -101,8 +107,12 @@ def main() -> int:
         failures.append("customers.py prefix drift")
     if 'prefix="/v1/admin/customers"' not in admin_router:
         failures.append("customers_admin.py prefix drift")
-    if '@router.post("")' in admin_router:
-        failures.append("admin customers must not POST create identity")
+    if '@router.post(""' not in admin_router or "def create_customer" not in admin_router:
+        failures.append("admin customers must POST create_customer")
+    if "/invite" not in admin_router and 'invite"' not in admin_router:
+        failures.append("admin customers must POST invite")
+    if "booking-drafts" not in admin_router:
+        failures.append("admin customers missing booking-drafts")
 
     forbidden_blob = (
         _glob_text(CUSTOMER, "*.ts")

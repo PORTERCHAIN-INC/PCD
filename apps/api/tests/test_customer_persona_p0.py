@@ -95,11 +95,17 @@ def _website_pricing() -> WebsitePricingSnapshot:
     )
 
 
-def _make_customer(db: Session, *, suffix: str | None = None, clerk_user_id: str | None = None) -> Customer:
+def _make_customer(
+    db: Session,
+    *,
+    suffix: str | None = None,
+    clerk_user_id: str | None = None,
+    email: str | None = None,
+) -> Customer:
     tag = f"{suffix or 'c'}-{uuid4().hex[:10]}"
     customer = Customer(
         clerk_user_id=clerk_user_id or f"customer_clerk_{tag}",
-        email=f"customer-{tag}@p0.test",
+        email=email or f"customer-{tag}@p0.test",
         phone="+14165550100",
     )
     db.add(customer)
@@ -177,16 +183,20 @@ def test_arch_customer_portal_pages_exist() -> None:
 
 
 def test_arch_admin_customers_pages_and_tabs() -> None:
-    """A-UI inventory: list/detail + tabs + Add order modal."""
+    """A-UI inventory: list/detail + tabs + Add order + Create customer modal."""
     list_page = (ADMIN_SRC / "app/(ops)/customers/page.tsx").read_text(encoding="utf-8")
     detail = (ADMIN_SRC / "app/(ops)/customers/[id]/page.tsx").read_text(encoding="utf-8")
     lib = (ADMIN_SRC / "lib/customers.ts").read_text(encoding="utf-8")
-    assert "cannot create or invite" in list_page.lower() or "self SignUp only" in list_page
+    assert "Add customer" in list_page
+    assert "CustomerCreateModal" in list_page
     for tab in ("overview", "orders", "care", "billing", "trust", "activity", "tasks"):
         assert tab in detail
     assert "CustomerAddOrderModal" in detail
+    assert "Send invite" in detail or "customersApi.invite" in lib
     assert (ADMIN_SRC / "components/customers/CustomerAddOrderModal.tsx").is_file()
+    assert (ADMIN_SRC / "components/customers/CustomerCreateModal.tsx").is_file()
     assert "/v1/admin/customers" in lib
+    assert "invite:" in lib or "invite:" in lib.replace(" ", "")
     assert "customers" in (ADMIN_SRC / "lib/admin-nav.ts").read_text(encoding="utf-8")
 
 
@@ -226,16 +236,18 @@ def test_arch_no_vroom_client_in_api() -> None:
     assert list(API_SRC.rglob("*vroom*")) == []
 
 
-def test_arch_admin_cannot_post_create_customer_identity() -> None:
-    """API-A-014 / A-UI-005: no Admin mint-customer route."""
+def test_arch_admin_can_post_create_customer() -> None:
+    """API-A-014 / A-UI-005: Admin POST create-customer identity is available."""
     router = (API_SRC / "routers" / "customers_admin.py").read_text(encoding="utf-8")
-    assert '@router.post("")' not in router
-    assert "create_customer" not in router.lower() or "booking-drafts" in router
-    # Positive: read + phone-book draft only
-    assert '@router.get("")' in router
+    assert '@router.post(""' in router
+    assert "def create_customer" in router
+    assert "AdminCreateCustomerRequest" in router
+    # Positive: read + create + phone-book draft
+    assert '@router.get("")' in router or '@router.get(""' in router
     assert "booking-drafts" in router
     svc = (API_SRC / "admin_engine" / "customer_admin_service.py").read_text(encoding="utf-8")
-    assert "never creates or invites" in svc.lower() or "self SignUp only" in svc
+    assert "def create_customer" in svc
+    assert "pending:" in svc or "send_invite" in svc
 
 
 def test_arch_openapi_keeps_customer_prefixes() -> None:
@@ -508,6 +520,112 @@ def test_http_admin_dispatcher_cannot_create_booking_draft(admin_client, db: Ses
         },
     )
     assert resp.status_code == 403
+
+
+def test_http_admin_create_customer_orphan(admin_client, db: Session, monkeypatch: pytest.MonkeyPatch) -> None:
+    """API-A-014: POST creates orphan retail customer."""
+    monkeypatch.setattr(
+        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        lambda *a, **k: False,
+    )
+    client, _holder = admin_client
+    email = f"mint-{uuid4().hex[:8]}@p0.test"
+    resp = client.post(
+        "/v1/admin/customers",
+        json={"email": email, "full_name": "Minted P0", "send_invite": False},
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["email"] == email
+    assert body["created"] is True
+    assert body["clerk_linked"] is False
+    assert body["identity_status"] == "orphan"
+    assert body["id"]
+
+    listed = client.get("/v1/admin/customers", params={"search": email})
+    assert listed.status_code == 200
+    assert any(row["id"] == body["id"] for row in listed.json())
+
+
+def test_http_admin_create_customer_conflict_when_linked(
+    admin_client, db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """API-A-014: 409 when email already Clerk-linked."""
+    monkeypatch.setattr(
+        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        lambda *a, **k: False,
+    )
+    client, _holder = admin_client
+    email = f"linked-{uuid4().hex[:8]}@p0.test"
+    _make_customer(db, suffix="lnk", clerk_user_id=f"user_{uuid4().hex[:10]}", email=email)
+    db.commit()
+
+    resp = client.post(
+        "/v1/admin/customers",
+        json={"email": email, "send_invite": False},
+    )
+    assert resp.status_code == 409
+    assert resp.json()["detail"] == "customer_email_exists"
+
+
+def test_http_admin_create_customer_invite_requires_clerk(
+    admin_client, db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """API-A-014: send_invite without Clerk secrets → 400 clerk_not_configured."""
+    monkeypatch.setattr(
+        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        lambda *a, **k: False,
+    )
+    client, _holder = admin_client
+    resp = client.post(
+        "/v1/admin/customers",
+        json={"email": f"invite-{uuid4().hex[:8]}@p0.test", "send_invite": True},
+    )
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "clerk_not_configured"
+
+
+def test_http_admin_dispatcher_cannot_create_customer(admin_client, db: Session) -> None:
+    """API-A-014 / AUTH-004: customers_read without customers cannot POST create."""
+    client, holder = admin_client
+    holder["ctx"] = _admin_ctx("dispatcher")
+    resp = client.post(
+        "/v1/admin/customers",
+        json={"email": f"disp-{uuid4().hex[:6]}@p0.test", "send_invite": False},
+    )
+    assert resp.status_code == 403
+
+
+def test_http_admin_invite_orphan_customer(admin_client, db: Session, monkeypatch: pytest.MonkeyPatch) -> None:
+    """API-A-014 companion: POST /{id}/invite for orphan rows."""
+    from porterchain_api.auth.clerk_client import ClerkInviteResult
+
+    client, _holder = admin_client
+    customer = _make_customer(db, suffix="inv", clerk_user_id=f"pending:inv-{uuid4().hex[:6]}@p0.test")
+    db.commit()
+
+    class _FakeClerk:
+        def invite_user(self, email, *, redirect_url, public_metadata):
+            return ClerkInviteResult(action="invited", clerk_invitation_id="inv_test")
+
+    monkeypatch.setattr(
+        "porterchain_api.auth.invitation_service.is_clerk_secret_configured",
+        lambda *a, **k: True,
+    )
+    monkeypatch.setattr(
+        "porterchain_api.auth.invitation_service.clerk_client_for_kind",
+        lambda *a, **k: _FakeClerk(),
+    )
+    monkeypatch.setattr(
+        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        lambda *a, **k: True,
+    )
+
+    resp = client.post(f"/v1/admin/customers/{customer.id}/invite")
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["id"] == customer.id
+    assert body["clerk_action"] == "invited"
 
 
 @pytest.fixture

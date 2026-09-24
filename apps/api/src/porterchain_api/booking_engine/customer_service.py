@@ -105,8 +105,15 @@ class CustomerService:
 
         return customer
 
-    def ensure_from_email(self, db: Session, *, email: str, phone: str | None) -> Customer:
-        """Create or reuse a retail Customer for merchant convert-to-customer (flush only)."""
+    def ensure_from_email(
+        self,
+        db: Session,
+        *,
+        email: str,
+        phone: str | None,
+        full_name: str | None = None,
+    ) -> Customer:
+        """Create or reuse a retail Customer for Admin create / merchant convert (flush only)."""
         from porterchain_api.auth.email_identity import normalize_email
         from porterchain_api.auth.invitation_service import pending_clerk_id
         from porterchain_api.booking_engine.numbers import generate_customer_reference
@@ -123,17 +130,24 @@ class CustomerService:
         if existing:
             if phone and not existing.phone:
                 existing.phone = phone
+            if full_name and not existing.full_name:
+                existing.full_name = full_name.strip()[:255]
             return existing
         pending = pending_clerk_id(normalized)
         clash = db.query(Customer).filter(Customer.clerk_user_id == pending).first()
         if clash:
+            if phone and not clash.phone:
+                clash.phone = phone
+            if full_name and not clash.full_name:
+                clash.full_name = full_name.strip()[:255]
             return clash
+        name = (full_name or "").strip()[:255] or _name_from_email(normalized)
         customer = Customer(
             clerk_user_id=pending,
             email=normalized,
             phone=phone,
             customer_reference=generate_customer_reference(),
-            full_name=_name_from_email(normalized),
+            full_name=name,
         )
         db.add(customer)
         db.flush()

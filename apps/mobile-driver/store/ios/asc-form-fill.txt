@@ -143,8 +143,8 @@ Do NOT choose “Automatically release after App Review, no earlier than…” u
 ────────────────────────────────────────
 Also confirm elsewhere (not asked, but required)
 ────────────────────────────────────────
-Privacy Policy URL: https://porterchain.com/privacy
-Category: Business (Secondary: Navigation optional)
-Age Rating: 4+
+  Privacy Policy URL: https://porterchain.com/privacy
+  Category: Business (Secondary: Navigation optional)
+  Age Rating: 4+
 Screenshots: use store/ios/screenshots/asc-6.5/ (1284×2778) for 6.5" slot
 Build: select the finished production IPA when Processing completes

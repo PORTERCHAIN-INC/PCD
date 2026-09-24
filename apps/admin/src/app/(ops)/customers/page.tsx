@@ -2,21 +2,38 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Link2, Search, ShieldAlert, TrendingUp, UserX, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Link2, Search, ShieldAlert, TrendingUp, UserPlus, UserX, Users } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { useApiData } from "@/hooks/useApiData";
 import { customersApi } from "@/lib/customers";
+import { CustomerCreateModal } from "@/components/customers/CustomerCreateModal";
 import { FilterChip } from "@/components/crm/filters";
-import { Badge, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
 import { money, shortDate } from "@/lib/crmFormat";
 import { cn } from "@porterchain/ui/utils";
+
+/** Mirrors API MODULE_PERMISSIONS["customers"]. */
+const CUSTOMERS_WRITE_ROLES = new Set([
+  "super_admin",
+  "admin",
+  "support",
+  "support_lead",
+  "compliance",
+]);
 
 type IdentityFilter = "" | "linked" | "orphan" | "dsr";
 
 export default function CustomersPage() {
+  const router = useRouter();
   const { isLoaded, isSignedIn, authReady } = useAdminAuth();
+  const { profile } = useAdminProfile();
+  const canWrite = !profile?.role || CUSTOMERS_WRITE_ROLES.has((profile.role || "").toLowerCase());
   const [search, setSearch] = useState("");
   const [identity, setIdentity] = useState<IdentityFilter>("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [version, setVersion] = useState(0);
   const enabled = authReady && isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
 
   const listParams = useMemo(() => {
@@ -29,14 +46,14 @@ export default function CustomersPage() {
     return params;
   }, [search, identity]);
 
-  const { data: stats } = useApiData((t) => customersApi.stats(t), [enabled], {
-    key: "customers-stats",
+  const { data: stats } = useApiData((t) => customersApi.stats(t), [enabled, version], {
+    key: `customers-stats-${version}`,
     enabled,
   });
   const { data, error, loading } = useApiData(
     (t) => customersApi.list(t, listParams),
-    [listParams, enabled],
-    { key: `customers-${JSON.stringify(listParams)}`, enabled }
+    [listParams, enabled, version],
+    { key: `customers-${JSON.stringify(listParams)}-${version}`, enabled }
   );
 
   const rows = useMemo(() => data ?? [], [data]);
@@ -47,18 +64,25 @@ export default function CustomersPage() {
         <div>
           <h1 className="text-2xl font-bold text-primary">Customers</h1>
           <p className="text-sm text-muted">
-            Retail demand nodes — self SignUp only; Admin cannot create or invite.
+            Retail demand nodes — create for phone-book, or they arrive via website SignUp.
           </p>
         </div>
-        <Link
-          href="/settings?section=users&tab=customer"
-          className={cn(
-            "inline-flex items-center justify-center gap-2 rounded-xl border border-primary/15",
-            "bg-white px-3.5 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
+        <div className="flex flex-wrap items-center gap-2">
+          {canWrite && (
+            <Button onClick={() => setCreateOpen(true)}>
+              <UserPlus className="h-4 w-4" /> Add customer
+            </Button>
           )}
-        >
-          Open in Settings → Users
-        </Link>
+          <Link
+            href="/settings?section=users&tab=customer"
+            className={cn(
+              "inline-flex items-center justify-center gap-2 rounded-xl border border-primary/15",
+              "bg-white px-3.5 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
+            )}
+          >
+            Open in Settings → Users
+          </Link>
+        </div>
       </div>
 
       {stats && (
@@ -139,7 +163,7 @@ export default function CustomersPage() {
         ) : rows.length === 0 ? (
           <EmptyState
             title="No retail customers match"
-            hint="Customers appear after Platform SignUp / website booking."
+            hint="Add a customer for phone-book, or they appear after website SignUp / booking."
           />
         ) : (
           <div className="overflow-x-auto">
@@ -194,6 +218,16 @@ export default function CustomersPage() {
           </div>
         )}
       </SectionCard>
+
+      <CustomerCreateModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(result) => {
+          setCreateOpen(false);
+          setVersion((v) => v + 1);
+          router.push(`/customers/${result.id}`);
+        }}
+      />
     </div>
   );
 }
