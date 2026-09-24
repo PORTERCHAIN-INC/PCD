@@ -60,6 +60,47 @@ def resolve_sla_deadline(
     return base + timedelta(hours=hours)
 
 
+def stamp_sla_deadline(
+    order: Any,
+    *,
+    instant_sla_hours: float = DEFAULT_INSTANT_SLA_HOURS,
+) -> datetime | None:
+    deadline = resolve_sla_deadline(order, instant_sla_hours=instant_sla_hours)
+    order.sla_deadline_at = deadline
+    return deadline
+
+
+def refresh_open_sla_deadlines(db: Any, *, instant_sla_hours: float | None = None) -> int:
+    from porterchain_api.admin_models import SystemConfig
+    from porterchain_api.booking_models import Order
+
+    # Keep in sync with order_engine.buckets WAITING + IN_FLIGHT (avoid engine import).
+    _open_states = (
+        "DISPATCH_READY",
+        "DRIVER_ASSIGNED",
+        "DRIVER_ACCEPTED",
+        "DRIVER_EN_ROUTE",
+        "AT_PICKUP",
+        "PICKED_UP",
+        "IN_TRANSIT",
+        "AT_DESTINATION",
+    )
+
+    hours = DEFAULT_INSTANT_SLA_HOURS if instant_sla_hours is None else instant_sla_hours
+    if instant_sla_hours is None:
+        row = db.query(SystemConfig).filter(SystemConfig.key == "settings_booking").first()
+        cfg = row.value if row and isinstance(row.value, dict) else {}
+        if cfg.get("instant_delivery_sla_hours") is not None:
+            try:
+                hours = max(float(cfg["instant_delivery_sla_hours"]), 0.25)
+            except (TypeError, ValueError):
+                hours = DEFAULT_INSTANT_SLA_HOURS
+    rows = db.query(Order).filter(Order.state.in_(_open_states)).all()
+    for order in rows:
+        stamp_sla_deadline(order, instant_sla_hours=hours)
+    return len(rows)
+
+
 def order_sla_status(
     order: Any,
     now: datetime | None = None,
@@ -73,9 +114,12 @@ def order_sla_status(
         return "met"
 
     ref = _naive_utc(now) or datetime.now(UTC).replace(tzinfo=None)
-    deadline = resolve_sla_deadline(order, instant_sla_hours=instant_sla_hours)
+    stored = _naive_utc(getattr(order, "sla_deadline_at", None))
+    deadline = stored if stored is not None else resolve_sla_deadline(
+        order, instant_sla_hours=instant_sla_hours
+    )
     if deadline is None:
-        return "ok"
+        return "breached"
 
     if ref > deadline:
         return "breached"

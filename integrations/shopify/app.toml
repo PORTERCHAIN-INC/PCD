@@ -1,6 +1,7 @@
 # Shopify Partners manifest stub for a later public listing.
 # Runtime SSOT: PorterChain API (OAuth scopes, install webhooks, CarrierService).
 # Keep client_id empty until Partners publish is an explicit ops decision.
+# Merchant portal already offers one-click OAuth install (invite / known shop domain).
 # FO request topics stay out of this file — they register only when
 # SHOPIFY_FULFILLMENT_SERVICE_ENABLED=true (default off).
 

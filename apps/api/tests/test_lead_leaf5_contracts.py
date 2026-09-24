@@ -8,6 +8,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+from porterchain_api.admin_engine.driver_service import AdminDriverService
+from porterchain_api.admin_models import Driver
 from porterchain_api.collaboration_engine import CrmSalesService, LeadIngestService
 from porterchain_api.collaboration_engine.lead_ingest_service import CanonicalLeadEvent
 from porterchain_api.collaboration_engine.lead_ops import (
@@ -16,12 +18,14 @@ from porterchain_api.collaboration_engine.lead_ops import (
 )
 from porterchain_api.config import Settings
 from porterchain_api.crm_models import CrmLead, CrmSalesTask
+from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.crm_states import (
     LeadDecisionStatus,
     LeadIdentityKind,
     LeadIntentType,
     LeadSourceChannel,
 )
+from porterchain_api.fleetbase_models import FleetbaseSyncJob
 from porterchain_api.intelligence_engine.lead_assist import build_lead_assist
 
 
@@ -175,6 +179,18 @@ def test_convert_merchant_and_retail_and_driver_branches(db) -> None:
             "entity_id": driver.id,
             "priority": "high",
         },
+    )
+    provisioned = AdminDriverService().provision_pending_from_lead(db, ctx, driver)
+    again = AdminDriverService().provision_pending_from_lead(db, ctx, driver)
+    assert provisioned.id == again.id
+    assert provisioned.status == DriverStatus.PENDING.value
+    assert provisioned.crm_lead_id == driver.id
+    assert db.query(Driver).filter(Driver.crm_lead_id == driver.id).count() == 1
+    assert (
+        db.query(FleetbaseSyncJob)
+        .filter(FleetbaseSyncJob.idempotency_key == f"driver_profile:{provisioned.id}")
+        .count()
+        == 0
     )
     db.refresh(driver)
     assert "driver_partner_converted" in (driver.tags or [])

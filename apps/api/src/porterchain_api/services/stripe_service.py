@@ -179,14 +179,23 @@ def handle_checkout_completed(settings: Settings, session: dict) -> dict | None:
     }
 
 
-def create_refund(settings: Settings, order, amount_cents: int | None = None) -> str | None:
+def create_refund(
+    settings: Settings,
+    order,
+    amount_cents: int | None = None,
+    *,
+    idempotency_key: str | None = None,
+) -> str | None:
     if not settings.stripe_secret or not order.stripe_payment_intent_id:
         return None
     stripe_sdk.configure(settings.stripe_secret)
-    refund = stripe_sdk.create_refund(
-        payment_intent=order.stripe_payment_intent_id,
-        amount=amount_cents,
-    )
+    kwargs: dict = {
+        "payment_intent": order.stripe_payment_intent_id,
+        "amount": amount_cents,
+    }
+    if idempotency_key:
+        kwargs["idempotency_key"] = idempotency_key
+    refund = stripe_sdk.create_refund(**kwargs)
     return refund.id
 
 

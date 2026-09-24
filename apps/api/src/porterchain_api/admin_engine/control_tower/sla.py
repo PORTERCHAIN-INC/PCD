@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.order_sla import DEFAULT_INSTANT_SLA_HOURS, order_sla_status
+from porterchain_api.booking_engine.order_sla import (
+    AT_RISK_MINUTES,
+    DEFAULT_INSTANT_SLA_HOURS,
+    order_sla_status,
+)
 from porterchain_api.booking_models import Order
 from porterchain_api.order_engine.buckets import IN_FLIGHT, WAITING
 
@@ -45,7 +50,16 @@ class SlaMixin:
         merchants = self._merchant_names(db)
         drivers = self._driver_names(db)
         hours = self._instant_sla_hours(db)
-        rows = db.query(Order).filter(Order.state.in_(WAITING + IN_FLIGHT)).all()
+        risk_end = now + timedelta(minutes=AT_RISK_MINUTES)
+        rows = (
+            db.query(Order)
+            .filter(
+                Order.state.in_(WAITING + IN_FLIGHT),
+                or_(Order.sla_deadline_at.is_(None), Order.sla_deadline_at <= risk_end),
+            )
+            .limit(limit * 2)
+            .all()
+        )
         at_risk: list[dict] = []
         breached: list[dict] = []
         for o in rows:

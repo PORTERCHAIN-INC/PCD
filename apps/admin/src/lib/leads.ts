@@ -321,7 +321,7 @@ export const leadsApi = {
     outcome?: string;
     customer_id?: string;
     merchant?: { merchant_id: string; created: boolean };
-    driver_partner?: { queued: boolean; hint?: string };
+    driver_partner?: { queued: boolean; hint?: string; driver_id?: string };
   }> {
     return adminFetch(`/v1/admin/leads/${id}/convert`, token, {
       method: "POST",

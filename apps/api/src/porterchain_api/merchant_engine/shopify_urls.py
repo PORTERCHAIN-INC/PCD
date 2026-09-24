@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import secrets
 import time
+from dataclasses import dataclass
 from urllib.parse import urlencode
 
 from porterchain_api.config import Settings
@@ -12,6 +13,14 @@ from porterchain_api.merchant_engine.secrets import decrypt_signing_secret, encr
 
 _SHOP_RE = r"^[a-z0-9][a-z0-9\-]*\.myshopify\.com$"
 _STATE_TTL_S = 600
+
+
+@dataclass(frozen=True, slots=True)
+class OAuthState:
+    """Signed install state: merchant seat + optional one-click pickup bind."""
+
+    merchant_id: str | None
+    pickup_address_id: str | None = None
 
 
 def normalize_shop_domain(value: str) -> str:
@@ -28,17 +37,27 @@ def is_shop_domain(value: str) -> bool:
     return bool(re.fullmatch(_SHOP_RE, value))
 
 
-def sign_oauth_state(merchant_id: str | None, settings: Settings) -> str:
+def sign_oauth_state(
+    merchant_id: str | None,
+    settings: Settings,
+    *,
+    pickup_address_id: str | None = None,
+) -> str:
     payload = json.dumps(
-        {"m": merchant_id or "", "n": secrets.token_hex(8), "t": int(time.time())},
+        {
+            "m": merchant_id or "",
+            "p": (pickup_address_id or "").strip(),
+            "n": secrets.token_hex(8),
+            "t": int(time.time()),
+        },
         separators=(",", ":"),
     )
     return encrypt_signing_secret(payload, encryption_key=settings.jwt_secret)
 
 
-def read_oauth_state(state: str | None, settings: Settings) -> str | None:
+def read_oauth_state(state: str | None, settings: Settings) -> OAuthState:
     if not state:
-        return None
+        return OAuthState(merchant_id=None)
     try:
         raw = decrypt_signing_secret(state, encryption_key=settings.jwt_secret)
         data = json.loads(raw)
@@ -47,8 +66,9 @@ def read_oauth_state(state: str | None, settings: Settings) -> str | None:
     ts = int(data.get("t") or 0)
     if abs(time.time() - ts) > _STATE_TTL_S:
         raise ValueError("oauth_state_expired")
-    merchant_id = str(data.get("m") or "").strip()
-    return merchant_id or None
+    merchant_id = str(data.get("m") or "").strip() or None
+    pickup = str(data.get("p") or "").strip() or None
+    return OAuthState(merchant_id=merchant_id, pickup_address_id=pickup)
 
 
 def webhook_url(settings: Settings) -> str:
@@ -83,7 +103,13 @@ def oauth_configured(settings: Settings) -> bool:
     return bool(settings.shopify_api_key and settings.shopify_api_secret)
 
 
-def install_url(shop_domain: str, settings: Settings, *, merchant_id: str | None) -> str:
+def install_url(
+    shop_domain: str,
+    settings: Settings,
+    *,
+    merchant_id: str | None,
+    pickup_address_id: str | None = None,
+) -> str:
     if not oauth_configured(settings):
         raise ValueError("shopify_oauth_not_configured")
     shop = normalize_shop_domain(shop_domain)
@@ -93,6 +119,8 @@ def install_url(shop_domain: str, settings: Settings, *, merchant_id: str | None
         "client_id": settings.shopify_api_key,
         "scope": settings.shopify_api_scopes,
         "redirect_uri": callback_url(settings),
-        "state": sign_oauth_state(merchant_id, settings),
+        "state": sign_oauth_state(
+            merchant_id, settings, pickup_address_id=pickup_address_id
+        ),
     }
     return f"https://{shop}/admin/oauth/authorize?{urlencode(params)}"

@@ -187,7 +187,7 @@ def test_approve_driver_pushes_fleetbase_when_settings_present() -> None:
         out, _warning = svc.approve_driver(db, ctx, "d1", settings)
 
     assert out.status == DriverStatus.APPROVED.value
-    svc._fleetbase.push_driver.assert_called_once_with(db, settings, driver)
+    svc._fleetbase.push_driver.assert_called_once_with(db, settings, driver, commit=False)
 
 
 def test_approve_driver_skips_fleetbase_without_settings() -> None:

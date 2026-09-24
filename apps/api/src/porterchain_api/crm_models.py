@@ -132,6 +132,7 @@ class CrmLead(Base):
     primary_contact_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True, index=True)
+    quote_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
     estimated_deliveries_per_month: Mapped[int | None] = mapped_column(Integer, nullable=True)
     estimated_revenue_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)

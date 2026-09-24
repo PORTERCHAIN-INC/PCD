@@ -121,12 +121,29 @@ export type ShopifyShopConnection = {
   has_webhook_secret: boolean;
 };
 
+export type ShopifyGoLive = {
+  ready: boolean;
+  one_click_available: boolean;
+  checks: {
+    oauth_configured?: boolean;
+    shop_connected?: boolean;
+    pickup_set?: boolean;
+    merchant_active?: boolean;
+    has_rate_card?: boolean;
+  };
+  blocking: string[];
+};
+
 export type ShopifyConnection = {
   oauth_configured: boolean;
   webhook_url: string;
   carrier_rates_url?: string;
+  fulfillment_service_url?: string;
+  fulfillment_service_enabled?: boolean;
   app_url?: string;
   shops: ShopifyShopConnection[];
+  go_live?: ShopifyGoLive;
+  hooks?: { ok?: boolean; errors?: string[] };
 };
 
 export type OAuthProvider = {
@@ -371,12 +388,15 @@ export const integrationsApi = {
   shopify: (token: string, orgId?: string) =>
     integrationsFetch<ShopifyConnection>("/v1/merchant/shopify", token, { orgId }),
 
-  shopifyInstallUrl: (token: string, shop: string, orgId?: string) =>
-    integrationsFetch<{ url: string; shop_domain: string }>(
-      `/v1/merchant/shopify/install-url?shop=${encodeURIComponent(shop)}`,
+  shopifyInstallUrl: (token: string, shop: string, orgId?: string, pickupAddressId?: string) => {
+    const qs = new URLSearchParams({ shop });
+    if (pickupAddressId) qs.set("pickup_address_id", pickupAddressId);
+    return integrationsFetch<{ url: string; shop_domain: string }>(
+      `/v1/merchant/shopify/install-url?${qs.toString()}`,
       token,
       { orgId }
-    ),
+    );
+  },
 
   shopifyConnect: (
     token: string,
@@ -389,6 +409,17 @@ export const integrationsApi = {
     orgId?: string
   ) =>
     integrationsFetch<ShopifyConnection>("/v1/merchant/shopify", token, {
+      method: "POST",
+      body: JSON.stringify(body),
+      orgId,
+    }),
+
+  shopifyGoLive: (
+    token: string,
+    body: { shop_id?: string; pickup_address_id?: string },
+    orgId?: string
+  ) =>
+    integrationsFetch<ShopifyConnection>("/v1/merchant/shopify/go-live", token, {
       method: "POST",
       body: JSON.stringify(body),
       orgId,

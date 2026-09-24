@@ -113,11 +113,6 @@ class AdminDashboardService:
             "todays_bookings": todays_bookings,
             "pending_quotes": pending_quotes,
             "pending_merchant_approvals": pending_merchants,
-            # Live driver online/offline is Fleetbase-owned (fleetbase-first).
-            # Schema still requires these keys — stub zeros until Control Tower
-            # reads capacity from the Fleetbase adapter.
-            "drivers_online": 0,
-            "drivers_offline": 0,
             "orders_waiting_dispatch": dispatch_queue,
             "orders_in_transit": in_transit,
             "completed_today": completed_today,

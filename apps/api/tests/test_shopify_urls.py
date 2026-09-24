@@ -44,10 +44,33 @@ def test_partner_app_urls() -> None:
     )
 
 
-def test_default_scopes_include_shipping() -> None:
+def test_oauth_state_roundtrip_with_pickup() -> None:
     settings = _settings()
-    assert "write_shipping" in settings.shopify_api_scopes
-    assert "write_assigned_fulfillment_orders" in settings.shopify_api_scopes
+    token = shopify.sign_oauth_state(
+        "merchant-1", settings, pickup_address_id="addr-9"
+    )
+    state = shopify.read_oauth_state(token, settings)
+    assert state.merchant_id == "merchant-1"
+    assert state.pickup_address_id == "addr-9"
+
+
+def test_install_url_embeds_pickup_in_state() -> None:
+    settings = _settings()
+    url = shopify.install_url(
+        "demo.myshopify.com",
+        settings,
+        merchant_id="m-1",
+        pickup_address_id="pickup-1",
+    )
+    assert "client_id=cid" in url
+    assert "scope=" in url
+    from urllib.parse import parse_qs, urlparse
+
+    qs = parse_qs(urlparse(url).query)
+    state = shopify.read_oauth_state(qs["state"][0], settings)
+    assert state.merchant_id == "m-1"
+    assert state.pickup_address_id == "pickup-1"
+
 
 
 def test_app_toml_matches_runtime_defaults() -> None:

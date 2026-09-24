@@ -791,6 +791,11 @@ class AdminSettingsService:
             payload={"old": old_value, "new": value, "reason": reason},
         )
         db.commit()
+        if key == "settings_booking":
+            from porterchain_api.booking_engine.order_sla import refresh_open_sla_deadlines
+
+            refresh_open_sla_deadlines(db)
+            db.commit()
         db.refresh(record)
         return record
 

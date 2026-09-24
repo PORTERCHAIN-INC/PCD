@@ -70,10 +70,21 @@ class EventsMixin:
         now = now_utc()
         merchants = self._merchant_names(db)
         drivers = self._driver_names(db)
+        from datetime import timedelta
+
+        from sqlalchemy import or_
+
+        from porterchain_api.booking_engine.order_sla import AT_RISK_MINUTES
+
         hours = self._instant_sla_hours(db)
+        risk_end = now + timedelta(minutes=AT_RISK_MINUTES)
         rows = (
             db.query(Order)
-            .filter(Order.is_sandbox.is_(False), Order.state.in_(WAITING + IN_FLIGHT))
+            .filter(
+                Order.is_sandbox.is_(False),
+                Order.state.in_(WAITING + IN_FLIGHT),
+                or_(Order.sla_deadline_at.is_(None), Order.sla_deadline_at <= risk_end),
+            )
             .all()
         )
         risk_orders: list[dict] = []

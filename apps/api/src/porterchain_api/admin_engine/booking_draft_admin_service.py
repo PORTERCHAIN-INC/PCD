@@ -45,7 +45,8 @@ class AdminDraftFilters:
     price_max_cents: int | None = None
     expired_only: bool = False
     abandoned_only: bool = False
-    limit: int = 500
+    limit: int = 50
+    offset: int = 0
 
 
 class AdminBookingDraftService:
@@ -104,7 +105,9 @@ class AdminBookingDraftService:
                 )
             )
 
-        rows = q.limit(filters.limit).all()
+        page_size = max(1, min(int(filters.limit or 50), 100))
+        skip = max(int(filters.offset or 0), 0)
+        rows = q.offset(skip).limit(page_size).all()
         out: list[dict[str, Any]] = []
         for draft in rows:
             row = self._row(db, draft, now)

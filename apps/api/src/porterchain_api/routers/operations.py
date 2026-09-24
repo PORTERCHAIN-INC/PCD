@@ -27,14 +27,20 @@ from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.db import get_db
 from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
+from porterchain_api.config import Settings
+from porterchain_api.routers.admin._deps import _order_item, get_settings
 from porterchain_api.schemas_admin import (
+    AssignDriverRequest,
     BoardMoveBody,
     CopilotActionBody,
     CopilotLlmSuggestBody,
     ExceptionResolveBody,
     OptimizeCommitBody,
     OptimizeRunBody,
+    OrderAdminItem,
 )
+
+dispatch_router = APIRouter(prefix="/v1/admin", tags=["dispatch"])
 
 router = APIRouter(prefix="/v1/admin/operations", tags=["operations"])
 
@@ -290,14 +296,14 @@ def copilot_llm_suggest(
     db: Session = Depends(get_db),
 ) -> dict:
     """Phase-2 LLM ops suggestions via NVIDIA NIM when configured (read-only)."""
-    from porterchain_api.intelligence_engine.copilot_service import suggest_ops_action
+    from porterchain_api.intelligence_engine.copilot_service import suggest_ops_action_committed
 
     def _run():
         flags = {
             "intelligence": body.enable_intelligence,
             "ai_dispatch": body.enable_intelligence,
         }
-        result = suggest_ops_action(
+        return suggest_ops_action_committed(
             body.context,
             flags=flags,
             db=db,
@@ -306,8 +312,6 @@ def copilot_llm_suggest(
             merchant_id=body.merchant_id,
             include_sla_queue=body.include_sla_queue,
         )
-        db.commit()
-        return result
 
     return _invoke(ctx, "dispatch_read", _run)
 
@@ -389,3 +393,21 @@ def sync_process(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
 @router.post("/sync/requeue/{job_id}")
 def sync_requeue(job_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     return _invoke(ctx, "dispatch", _ops.requeue_sync_job, db, job_id)
+
+
+@dispatch_router.post("/dispatch/orders/{order_id}/assign", response_model=OrderAdminItem)
+def assign_driver(
+    order_id: str,
+    body: AssignDriverRequest,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> OrderAdminItem:
+    require_module(ctx, "dispatch")
+    try:
+        order = _ops.assign_driver(db, settings, ctx, order_id, body.driver_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _order_item(order)

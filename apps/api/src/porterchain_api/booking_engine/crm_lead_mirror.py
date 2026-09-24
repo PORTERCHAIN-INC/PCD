@@ -77,4 +77,6 @@ def mirror_booking_lead_to_crm(
             seed_conversation=False,
         ),
     )
+    if result.lead is not None and quote_id and not result.lead.quote_id:
+        result.lead.quote_id = quote_id
     return result.lead

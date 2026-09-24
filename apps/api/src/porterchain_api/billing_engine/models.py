@@ -26,6 +26,7 @@ class BillingLedgerEntry(Base):
     amount_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
     currency: Mapped[str] = mapped_column(String(8), default="cad")
     status: Mapped[str] = mapped_column(String(32), default="recorded")
+    idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
     metadata_json: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

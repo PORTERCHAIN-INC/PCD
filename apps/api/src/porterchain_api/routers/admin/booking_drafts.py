@@ -93,6 +93,8 @@ def list_booking_drafts(
     price_max_cents: int | None = None,
     expired_only: bool = False,
     abandoned_only: bool = False,
+    limit: int = 50,
+    offset: int = 0,
 ) -> list[BookingDraftAdminItem]:
     require_module(ctx, "bookings")
     from datetime import datetime
@@ -112,6 +114,8 @@ def list_booking_drafts(
         price_max_cents=price_max_cents,
         expired_only=expired_only,
         abandoned_only=abandoned_only,
+        limit=limit,
+        offset=offset,
     )
     return [BookingDraftAdminItem(**row) for row in _draft_admin.list_drafts(db, filters)]
 

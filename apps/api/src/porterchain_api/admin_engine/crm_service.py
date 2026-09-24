@@ -3,9 +3,9 @@
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
-from porterchain_api.booking_models import AbandonedCheckout, Lead, VisitorSession
+from porterchain_api.booking_models import AbandonedCheckout, VisitorSession
 from porterchain_api.collaboration_engine import CrmSalesService
-from porterchain_api.crm_models import CrmActivity, CrmSalesTask
+from porterchain_api.crm_models import CrmActivity, CrmLead, CrmSalesTask
 
 
 class AdminCrmService:
@@ -13,20 +13,20 @@ class AdminCrmService:
         self._sales = CrmSalesService()
 
     def pipeline_summary(self, db: Session) -> dict:
-        leads = db.query(Lead).order_by(Lead.created_at.desc()).limit(100).all()
+        leads = db.query(CrmLead).order_by(CrmLead.created_at.desc()).limit(100).all()
         abandoned = db.query(AbandonedCheckout).order_by(AbandonedCheckout.created_at.desc()).limit(50).all()
         visitors = db.query(VisitorSession).order_by(VisitorSession.created_at.desc()).limit(50).all()
         tasks = db.query(CrmSalesTask).filter(CrmSalesTask.status == "open").count()
         return {
             "visitor_leads": len(visitors),
-            "quote_requests": len([l for l in leads if l.quote_id]),
+            "quote_requests": len([l for l in leads if l.quote_id or l.source == "website_booking"]),
             "abandoned_checkouts": len(abandoned),
             "business_inquiries": len([l for l in leads if l.source == "for_business"]),
             "open_tasks": tasks,
         }
 
-    def list_leads(self, db: Session, *, limit: int = 50) -> list[Lead]:
-        return db.query(Lead).order_by(Lead.created_at.desc()).limit(limit).all()
+    def list_leads(self, db: Session, *, limit: int = 50) -> list[CrmLead]:
+        return db.query(CrmLead).order_by(CrmLead.created_at.desc()).limit(limit).all()
 
     def list_abandoned(self, db: Session, *, limit: int = 50) -> list[AbandonedCheckout]:
         return db.query(AbandonedCheckout).order_by(AbandonedCheckout.created_at.desc()).limit(limit).all()

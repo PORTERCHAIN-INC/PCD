@@ -42,6 +42,30 @@ Rules (non-negotiable):
 6. Be specific to the given context; no generic filler."""
 
 
+def suggest_ops_action_committed(
+    context: str,
+    *,
+    flags: dict[str, bool],
+    db: Session,
+    actor_type: str | None = None,
+    actor_id: str | None = None,
+    merchant_id: str | None = None,
+    include_sla_queue: bool = True,
+) -> dict[str, Any]:
+    """Suggest, then commit any usage rows written during the call."""
+    result = suggest_ops_action(
+        context,
+        flags=flags,
+        db=db,
+        actor_type=actor_type,
+        actor_id=actor_id,
+        merchant_id=merchant_id,
+        include_sla_queue=include_sla_queue,
+    )
+    db.commit()
+    return result
+
+
 def suggest_ops_action(
     context: str,
     *,

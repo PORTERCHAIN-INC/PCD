@@ -46,6 +46,14 @@ from porterchain_api.merchant_models import Merchant, MerchantUser, SavedAddress
 from porterchain_api.booking_models import Order
 from porterchain_api.schemas_merchant import AddressInput
 
+from porterchain_api.merchant_engine.shopify_one_click import (  # noqa: F401
+    connection_payload,
+    go_live,
+)
+from porterchain_api.merchant_engine.shopify_one_click import (
+    handle_gdpr_topic as _handle_gdpr_topic,
+)
+
 logger = logging.getLogger(__name__)
 
 _GDPR_TOPICS = frozenset({"shop/redact", "customers/redact", "customers/data_request"})
@@ -158,39 +166,6 @@ def _active_shop(db: Session, shop_domain: str) -> ShopifyShop | None:
     )
 
 
-def connection_payload(db: Session, merchant_id: str, settings: Settings) -> dict[str, Any]:
-    shops = (
-        db.query(ShopifyShop)
-        .filter(ShopifyShop.merchant_id == merchant_id)
-        .order_by(ShopifyShop.created_at.desc())
-        .all()
-    )
-    rows = []
-    for shop in shops:
-        pickup = default_pickup_address(db, merchant_id, shop=shop)
-        rows.append(
-            {
-                "id": shop.id,
-                "shop_domain": shop.shop_domain,
-                "connected": shop.uninstalled_at is None and bool(shop.encrypted_access_token),
-                "installed_at": shop.installed_at.isoformat() if shop.installed_at else None,
-                "uninstalled_at": shop.uninstalled_at.isoformat() if shop.uninstalled_at else None,
-                "default_pickup_address_id": shop.default_pickup_address_id,
-                "default_pickup": pickup.formatted if pickup else None,
-                "has_webhook_secret": bool(shop.encrypted_webhook_secret),
-            }
-        )
-    return {
-        "oauth_configured": oauth_configured(settings),
-        "webhook_url": webhook_url(settings),
-        "carrier_rates_url": carrier_rates_url(settings),
-        "fulfillment_service_url": fulfillment_service_url(settings),
-        "fulfillment_service_enabled": bool(settings.shopify_fulfillment_service_enabled),
-        "app_url": app_home_url(settings),
-        "shops": rows,
-    }
-
-
 def connect_custom_app(
     db: Session,
     ctx: MerchantContext,
@@ -294,7 +269,8 @@ def complete_oauth(
     shop = normalize_shop_domain(shop_domain)
     if not is_shop_domain(shop):
         raise ValueError("shop_domain_invalid")
-    merchant_id = read_oauth_state(state, settings)
+    oauth_state = read_oauth_state(state, settings)
+    merchant_id = oauth_state.merchant_id
     token_body = _exchange_token(shop, code, settings)
     access_token = str(token_body.get("access_token") or "")
     if not access_token:
@@ -315,6 +291,23 @@ def complete_oauth(
     row.shopify_shop_gid = str(gid) if gid else row.shopify_shop_gid
     row.uninstalled_at = None
     row.installed_at = datetime.now(UTC)
+    # One-click: bind pickup from signed state, else merchant default warehouse.
+    preferred_pickup = oauth_state.pickup_address_id
+    if preferred_pickup:
+        addr = (
+            db.query(SavedAddress)
+            .filter(
+                SavedAddress.id == preferred_pickup,
+                SavedAddress.merchant_id == merchant.id,
+            )
+            .first()
+        )
+        if addr:
+            row.default_pickup_address_id = addr.id
+    elif not row.default_pickup_address_id:
+        fallback = default_pickup_address(db, merchant.id)
+        if fallback:
+            row.default_pickup_address_id = fallback.id
     apply_signup_policy(db, merchant, source=SIGNUP_SOURCE_SHOPIFY)
     db.commit()
     db.refresh(row)
@@ -350,7 +343,9 @@ def ingest_webhook(
 
     topic_name = (topic or "").strip().lower().replace("_", "/")
     if topic_name in _GDPR_TOPICS:
-        return {"ok": True, "ignored": topic_name}
+        return _handle_gdpr_topic(
+            db, settings, topic=topic_name, shop=shop, raw_body=raw_body
+        )
     if topic_name in {"app/uninstalled"}:
         if shop:
             shop.uninstalled_at = datetime.now(UTC)

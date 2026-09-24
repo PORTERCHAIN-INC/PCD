@@ -299,6 +299,18 @@ def driver_row(svc: Any, db: Session, driver: Driver, *, light: bool = False) ->
     return row
 
 
+def _fleetbase_profile_status(db: Session, driver_id: str) -> str | None:
+    from porterchain_api.fleetbase_models import FleetbaseSyncJob
+
+    job = (
+        db.query(FleetbaseSyncJob)
+        .filter(FleetbaseSyncJob.idempotency_key == f"driver_profile:{driver_id}")
+        .order_by(FleetbaseSyncJob.created_at.desc())
+        .first()
+    )
+    return job.status if job else None
+
+
 def detail_payload(svc: Any, db: Session, driver: Driver) -> dict[str, Any]:
     metrics = svc._metrics(db, driver)
     health = svc._health(driver, metrics)
@@ -317,6 +329,7 @@ def detail_payload(svc: Any, db: Session, driver: Driver) -> dict[str, Any]:
             "documents": _redact_data_urls(driver.documents or {}),
             "performance": driver.performance or {},
             "fleetbase_driver_id": driver.fleetbase_driver_id,
+            "fleetbase_sync": _fleetbase_profile_status(db, driver.id),
             "assignable": len(blockers) == 0,
             "assign_blockers": blockers,
             "clerk_linked": not _is_pending_clerk_id(driver.clerk_user_id),

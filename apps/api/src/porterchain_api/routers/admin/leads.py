@@ -592,7 +592,17 @@ def convert_lead(
                 "priority": "high",
             },
         )
-        out["driver_partner"] = {"queued": True, "hint": "/drivers"}
+        from porterchain_api.admin_engine.driver_service import AdminDriverService
+
+        try:
+            provisioned = AdminDriverService().provision_pending_from_lead(db, ctx, lead)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        out["driver_partner"] = {
+            "queued": True,
+            "hint": f"/drivers/{provisioned.id}",
+            "driver_id": provisioned.id,
+        }
         _crm.log_activity(
             db,
             entity_type="lead",

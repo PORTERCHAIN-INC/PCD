@@ -234,13 +234,23 @@ async function settingsFetch<T>(
   if (rest.body && !(rest.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...rest,
-    headers: { ...headers, ...(rest.headers as Record<string, string> | undefined) },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...rest,
+      headers: { ...headers, ...(rest.headers as Record<string, string> | undefined) },
+    });
+  } catch {
+    throw new Error(
+      "Could not reach PorterChain settings. Check your connection and try again — if this continues, contact PorterChain support."
+    );
+  }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(body.detail || `API error ${response.status}`);
+    const detail = (body as { detail?: unknown }).detail;
+    throw new Error(
+      typeof detail === "string" ? detail : `Could not load settings (${response.status})`
+    );
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;

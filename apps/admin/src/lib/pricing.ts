@@ -5,6 +5,7 @@ export type SimulateQuoteBody = {
   channel?: string;
   vehicle_class?: string;
   distance_meters?: number;
+  use_typed_distance?: boolean;
   total_pickups?: number;
   total_drops?: number;
   weight_kg?: number | null;

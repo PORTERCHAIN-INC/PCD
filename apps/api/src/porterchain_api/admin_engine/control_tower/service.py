@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.control_tower._helpers import (
@@ -29,7 +29,11 @@ from porterchain_api.admin_engine.control_tower.exceptions import ExceptionsMixi
 from porterchain_api.admin_engine.control_tower.sla import SlaMixin
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import Claim, SupportTicket, Vehicle
-from porterchain_api.booking_engine.order_sla import DEFAULT_INSTANT_SLA_HOURS, resolve_sla_deadline
+from porterchain_api.booking_engine.order_sla import (
+    AT_RISK_MINUTES,
+    DEFAULT_INSTANT_SLA_HOURS,
+    resolve_sla_deadline,
+)
 from porterchain_api.booking_engine.order_transitions import transition_order_state
 from porterchain_api.domain.states import OrderState
 from porterchain_api.booking_models import Order, OrderException
@@ -53,7 +57,6 @@ class ControlTowerService(AssignmentMixin, ExceptionsMixin, SlaMixin, EventsMixi
         now = now_utc()
         sod = datetime.combine(now.date(), time.min)
         yesterday_start = sod - timedelta(days=1)
-        hours = self._instant_sla_hours(db)
 
         def count(states: tuple[str, ...]) -> int:
             return (
@@ -143,14 +146,30 @@ class ControlTowerService(AssignmentMixin, ExceptionsMixin, SlaMixin, EventsMixi
         )
         open_exceptions = int(open_exceptions) + int(shopify_dlq_open)
 
-        sla_at_risk = 0
-        sla_breached = 0
-        for o in db.query(Order).filter(Order.is_sandbox.is_(False), Order.state.in_(WAITING + IN_FLIGHT)).all():
-            status = self._sla_status(o, now, instant_sla_hours=hours)
-            if status == "breached":
-                sla_breached += 1
-            elif status == "at_risk":
-                sla_at_risk += 1
+        open_states = WAITING + IN_FLIGHT
+        risk_end = now + timedelta(minutes=AT_RISK_MINUTES)
+        sla_breached = (
+            db.query(func.count(Order.id))
+            .filter(
+                Order.is_sandbox.is_(False),
+                Order.state.in_(open_states),
+                or_(Order.sla_deadline_at.is_(None), Order.sla_deadline_at < now),
+            )
+            .scalar()
+            or 0
+        )
+        sla_at_risk = (
+            db.query(func.count(Order.id))
+            .filter(
+                Order.is_sandbox.is_(False),
+                Order.state.in_(open_states),
+                Order.sla_deadline_at.isnot(None),
+                Order.sla_deadline_at >= now,
+                Order.sla_deadline_at <= risk_end,
+            )
+            .scalar()
+            or 0
+        )
 
         return {
             "orders_today": orders_today,
@@ -228,7 +247,8 @@ class ControlTowerService(AssignmentMixin, ExceptionsMixin, SlaMixin, EventsMixi
         pickup = o.pickup or {}
         dropoff = o.dropoff or {}
         hours = instant_sla_hours if instant_sla_hours is not None else DEFAULT_INSTANT_SLA_HOURS
-        deadline = resolve_sla_deadline(o, instant_sla_hours=hours)
+        stored = getattr(o, "sla_deadline_at", None)
+        deadline = stored if stored is not None else resolve_sla_deadline(o, instant_sla_hours=hours)
         sla_minutes: int | None = None
         if deadline is not None and o.state not in DONE_STATES:
             sla_minutes = int((deadline - now).total_seconds() // 60)

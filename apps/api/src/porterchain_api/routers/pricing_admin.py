@@ -43,6 +43,13 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
     """Preview a full quote with live merchant overlays (no persistence)."""
     pickup = (body.pickup or _DEFAULT_PICKUP).to_geo()
     dropoff = (body.dropoff or _DEFAULT_DROPOFF).to_geo()
+    distance_meters = body.distance_meters
+    if not body.use_typed_distance and pickup.lat is not None and dropoff.lat is not None:
+        from porterchain_api.services.routing import resolve_route_distance
+
+        routed, _seconds, _source = resolve_route_distance(pickup, dropoff)
+        if routed is not None:
+            distance_meters = routed
     channel = "merchant" if body.merchant_id else (body.channel or "retail")
     request = PricingRequest(
         pickup=pickup,
@@ -50,7 +57,7 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
         vehicle_class=body.vehicle_class,
         channel=channel,
         merchant_id=body.merchant_id,
-        distance_meters=body.distance_meters,
+        distance_meters=distance_meters,
         total_pickups=body.total_pickups,
         total_drops=body.total_drops,
         weight_kg=body.weight_kg,

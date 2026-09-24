@@ -9,6 +9,7 @@ from datetime import datetime
 
 from decimal import Decimal
 
+from sqlalchemy import event
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
@@ -190,6 +191,9 @@ class Order(Base):
     cost_centre: Mapped[str | None] = mapped_column(String(64), nullable=True)
     special_instructions: Mapped[str | None] = mapped_column(Text, nullable=True)
     compliance_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    sla_deadline_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -446,3 +450,13 @@ class Stop(Base):
 
     order: Mapped[Order] = relationship(back_populates="stops")
     address: Mapped[Address | None] = relationship()
+
+
+def _stamp_order_sla(_mapper, _connection, target: Order) -> None:
+    from porterchain_api.booking_engine.order_sla import stamp_sla_deadline
+
+    stamp_sla_deadline(target)
+
+
+event.listen(Order, "before_insert", _stamp_order_sla)
+event.listen(Order, "before_update", _stamp_order_sla)

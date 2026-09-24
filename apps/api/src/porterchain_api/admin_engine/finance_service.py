@@ -524,3 +524,18 @@ class AdminFinanceService:
         db.commit()
         db.refresh(entry)
         return entry
+
+    def refund_invoice(
+        self,
+        db: Session,
+        ctx: AdminContext,
+        settings: Any,
+        invoice_id: str,
+        *,
+        amount_cents: int | None = None,
+    ) -> dict[str, Any]:
+        from porterchain_api.admin_engine.finance_refund import refund_invoice
+
+        return refund_invoice(
+            self, db, ctx, settings, invoice_id, amount_cents=amount_cents
+        )

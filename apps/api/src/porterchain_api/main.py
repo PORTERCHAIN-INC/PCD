@@ -131,6 +131,7 @@ def create_app() -> FastAPI:
     app.include_router(notifications.router)
     app.include_router(security.router)
     app.include_router(operations.router)
+    app.include_router(operations.dispatch_router)
     app.include_router(diagnostics.router)
     app.include_router(driver.router)
 

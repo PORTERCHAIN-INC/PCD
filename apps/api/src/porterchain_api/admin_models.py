@@ -17,8 +17,8 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    clerk_user_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
-    # Phase 8 — internal UUID FK (nullable until backfill); clerk_user_id retained
+    clerk_user_id: Mapped[str | None] = mapped_column(String(128), unique=True, index=True, nullable=True)
+    # Staff subject may be staff:{id}. Nullable once porterchain_user_id is the join key.
     porterchain_user_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
     )
@@ -65,6 +65,9 @@ class Driver(Base):
         String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
     )
     email: Mapped[str] = mapped_column(String(320), index=True)
+    crm_lead_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("crm_leads.id", ondelete="SET NULL"), nullable=True
+    )
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     full_name: Mapped[str] = mapped_column(String(255))
     license_verified: Mapped[bool] = mapped_column(Boolean, default=False)

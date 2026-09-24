@@ -281,6 +281,13 @@ services:
       FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
       FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
+      # Shopify partner app (merchant OAuth + CarrierService). Keys live in Doppler → .env;
+      # must be passed explicitly — compose does not auto-inject unused .env keys.
+      SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
+      SHOPIFY_API_SECRET: ${SHOPIFY_API_SECRET:-}
+      SHOPIFY_API_VERSION: ${SHOPIFY_API_VERSION:-2025-01}
+      SHOPIFY_API_SCOPES: ${SHOPIFY_API_SCOPES:-}
+      SHOPIFY_FULFILLMENT_SERVICE_ENABLED: ${SHOPIFY_FULFILLMENT_SERVICE_ENABLED:-false}
       # ZeptoMail Canada (HTTPS API). Not Zoho Mail SMTP — DigitalOcean blocks outbound SMTP.
       MAIL_HOST: ${MAIL_HOST:-smtp.zeptomail.ca}
       MAIL_PORT: ${MAIL_PORT:-587}
@@ -385,6 +392,11 @@ services:
       FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
       FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
+      SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
+      SHOPIFY_API_SECRET: ${SHOPIFY_API_SECRET:-}
+      SHOPIFY_API_VERSION: ${SHOPIFY_API_VERSION:-2025-01}
+      SHOPIFY_API_SCOPES: ${SHOPIFY_API_SCOPES:-}
+      SHOPIFY_FULFILLMENT_SERVICE_ENABLED: ${SHOPIFY_FULFILLMENT_SERVICE_ENABLED:-false}
       MAIL_HOST: ${MAIL_HOST:-smtp.zeptomail.ca}
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME:-emailapikey}

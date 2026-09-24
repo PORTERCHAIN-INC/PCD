@@ -106,6 +106,13 @@ class AdminDriverService(DriverAccountOps):
             actor_type="admin",
             actor_id=ctx.user.id,
         )
+        if body.auto_approve and settings:
+            db.flush()
+            for vehicle in db.query(Vehicle).filter(
+                Vehicle.driver_id == driver.id, Vehicle.is_active.is_(True)
+            ):
+                self._fleetbase.push_vehicle(db, settings, vehicle, commit=False)
+            self._fleetbase.push_driver(db, settings, driver, commit=False)
         db.commit()
         db.refresh(driver)
 
@@ -115,12 +122,36 @@ class AdminDriverService(DriverAccountOps):
             except Exception as exc:
                 logger.warning("driver_clerk_invite_failed: %s", exc)
 
-        if body.auto_approve and settings:
-            for vehicle in driver.vehicles:
-                if vehicle.is_active:
-                    self._fleetbase.push_vehicle(db, settings, vehicle)
-            self._fleetbase.push_driver(db, settings, driver)
+        return driver
 
+    def provision_pending_from_lead(self, db: Session, ctx: AdminContext, lead) -> Driver:
+        """Idempotent PENDING driver. No Clerk invite and no Fleetbase enqueue."""
+        existing = db.query(Driver).filter(Driver.crm_lead_id == lead.id).first()
+        if existing:
+            return existing
+        email = (getattr(lead, "email", None) or "").strip().lower()
+        if not email:
+            raise ValueError("driver_email_required")
+        by_email = db.query(Driver).filter(Driver.email == email).first()
+        if by_email:
+            if not by_email.crm_lead_id:
+                by_email.crm_lead_id = lead.id
+                db.commit()
+            return by_email
+        name = getattr(lead, "primary_contact_name", None) or getattr(lead, "company_name", None) or email
+        driver = Driver(
+            full_name=str(name).strip()[:255],
+            email=email,
+            phone=getattr(lead, "phone", None) or None,
+            status=DriverStatus.PENDING.value,
+            crm_lead_id=lead.id,
+            documents={},
+        )
+        db.add(driver)
+        db.flush()
+        self._audit(db, ctx, "driver.provisioned_from_lead", "driver", driver.id, {"crm_lead_id": lead.id})
+        db.commit()
+        db.refresh(driver)
         return driver
 
     def add_document(
@@ -155,21 +186,17 @@ class AdminDriverService(DriverAccountOps):
             actor_type="admin",
             actor_id=ctx.user.id,
         )
+        if settings:
+            for vehicle in driver.vehicles:
+                if vehicle.is_active:
+                    self._fleetbase.push_vehicle(db, settings, vehicle, commit=False)
+            self._fleetbase.push_driver(db, settings, driver, commit=False)
         db.commit()
         db.refresh(driver)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
         sync_authz_after_persona_mutation(db, driver.clerk_user_id)
         warning: str | None = None
-        if settings:
-            try:
-                for vehicle in driver.vehicles:
-                    if vehicle.is_active:
-                        self._fleetbase.push_vehicle(db, settings, vehicle)
-                self._fleetbase.push_driver(db, settings, driver)
-            except Exception as exc:
-                warning = "fleetbase_sync_failed"
-                logger.warning("fleetbase push failed for driver %s: %s", driver_id, exc)
         try:
             from porterchain_api.auth.driver_admin_action import run_admin_driver_action
 

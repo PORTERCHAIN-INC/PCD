@@ -16,7 +16,11 @@ from porterchain_api.routers.merchant._deps import (
     require_module,
     router,
 )
-from porterchain_api.schemas_merchant import ShopifyConnectRequest, ShopifyPickupRequest
+from porterchain_api.schemas_merchant import (
+    ShopifyConnectRequest,
+    ShopifyGoLiveRequest,
+    ShopifyPickupRequest,
+)
 
 
 @router.get("/shopify")
@@ -34,10 +38,16 @@ def shopify_install_url(
     shop: str,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
     settings: Settings = Depends(get_settings),
+    pickup_address_id: str | None = None,
 ):
     require_module(ctx, "api_keys")
     try:
-        url = shopify.install_url(shop, settings, merchant_id=ctx.merchant.id)
+        url = shopify.install_url(
+            shop,
+            settings,
+            merchant_id=ctx.merchant.id,
+            pickup_address_id=pickup_address_id,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=integration_error_message(str(exc))) from exc
     return {"url": url, "shop_domain": shopify.normalize_shop_domain(shop)}
@@ -66,6 +76,29 @@ def shopify_connect(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=integration_error_message(str(exc))) from None
     return shopify.connection_payload(db, ctx.merchant.id, settings) | {"connected_shop_id": shop.id}
+
+
+@router.post("/shopify/go-live")
+def shopify_go_live(
+    body: ShopifyGoLiveRequest,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """One-click finish: bind pickup + re-register carrier/webhooks."""
+    require_module(ctx, "api_keys")
+    try:
+        return shopify.go_live(
+            db,
+            ctx,
+            settings,
+            shop_id=body.shop_id,
+            pickup_address_id=body.pickup_address_id,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=integration_error_message(str(exc))) from None
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=integration_error_message(str(exc))) from None
 
 
 @router.put("/shopify/{shop_id}/pickup")

@@ -310,6 +310,26 @@ def finance_remind_invoice(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@router.post("/finance/invoices/{invoice_id}/refund")
+def finance_refund_invoice(
+    invoice_id: str,
+    request: Request,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    authorization: Annotated[str | None, Header()] = None,
+    amount_cents: int | None = None,
+) -> dict:
+    require_module(ctx, "finance")
+    _step_up(request, authorization, settings)
+    try:
+        return _finance.refund_invoice(db, ctx, settings, invoice_id, amount_cents=amount_cents)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.get("/finance/summary")
 def finance_summary(ctx: Annotated[AdminContext, Depends(get_admin_context)], db: Session = Depends(get_db)):
     require_module(ctx, "finance_read")

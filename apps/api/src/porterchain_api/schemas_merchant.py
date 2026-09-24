@@ -1116,5 +1116,10 @@ class ShopifyPickupRequest(BaseModel):
     address_id: str = Field(min_length=1)
 
 
+class ShopifyGoLiveRequest(BaseModel):
+    shop_id: str | None = None
+    pickup_address_id: str | None = None
+
+
 class PrivacyDeleteRequest(BaseModel):
     reason: str | None = Field(default=None, max_length=500)

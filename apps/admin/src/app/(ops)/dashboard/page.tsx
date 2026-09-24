@@ -27,6 +27,7 @@ import { cn, formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Button, Spinner } from "@/components/crm/primitives";
 import ReportChart, { lineChartOption } from "@/components/reports/ReportChart";
+import { ops } from "@/lib/operations";
 import {
   dashboardApi,
   DASHBOARD_WIDGETS,
@@ -45,16 +46,10 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [layoutOpen, setLayoutOpen] = useState(false);
   const [widgets, setWidgets] = useState<Record<WidgetId, boolean>>(() => loadWidgetLayout());
-  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(t);
-  }, []);
-
-  useEffect(() => {
-    const poll = setInterval(() => setTick((x) => x + 1), 20_000);
-    return () => clearInterval(poll);
   }, []);
 
   const {
@@ -65,10 +60,18 @@ export default function DashboardPage() {
     refetch,
     dataUpdatedAt,
   } = useQuery({
-    queryKey: ["dashboard-center", tick],
+    queryKey: ["dashboard-center"],
     enabled,
     queryFn: async () => dashboardApi.center(await getApiToken()),
+    refetchInterval: 120_000,
     retry: 1,
+  });
+
+  const { data: liveOps } = useQuery({
+    queryKey: ["dashboard-ops-stats"],
+    enabled: enabled && widgets.operations,
+    queryFn: async () => ops.stats(await getApiToken()),
+    refetchInterval: 20_000,
   });
 
   const { data: searchHits = [] } = useQuery({
@@ -76,6 +79,8 @@ export default function DashboardPage() {
     enabled: enabled && search.length >= 2,
     queryFn: async () => dashboardApi.search(await getApiToken(), search),
   });
+
+  const operations = { ...(center?.operations ?? {}), ...(liveOps ?? {}) };
 
   const chartOption = useMemo(() => {
     if (!center?.trends) return null;
@@ -166,38 +171,21 @@ export default function DashboardPage() {
           {widgets.operations && (
             <Panel title="Operations center" icon={<Zap className="h-4 w-4" />}>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <MiniKpi
-                  label="Dispatch queue"
-                  value={Number(center.operations.waiting_dispatch ?? 0)}
-                />
+                <MiniKpi label="Dispatch queue" value={Number(operations.waiting_dispatch ?? 0)} />
                 <MiniKpi label="Assigned" value={Number(center.orders.assigned ?? 0)} />
-                <MiniKpi
-                  label="Pickup queue"
-                  value={Number(center.operations.pending_pickups ?? 0)}
-                />
+                <MiniKpi label="Pickup queue" value={Number(operations.pending_pickups ?? 0)} />
                 <MiniKpi
                   label="Delivery queue"
-                  value={Number(center.operations.pending_deliveries ?? 0)}
+                  value={Number(operations.pending_deliveries ?? 0)}
                 />
-                <MiniKpi
-                  label="Delayed"
-                  value={Number(center.operations.delayed_orders ?? 0)}
-                  alert
-                />
+                <MiniKpi label="Delayed" value={Number(operations.delayed_orders ?? 0)} alert />
                 <MiniKpi
                   label="Emergency"
-                  value={Number(center.operations.high_priority_orders ?? 0)}
+                  value={Number(operations.high_priority_orders ?? 0)}
                   alert
                 />
-                <MiniKpi
-                  label="SLA breached"
-                  value={Number(center.operations.sla_breached ?? 0)}
-                  alert
-                />
-                <MiniKpi
-                  label="Exceptions"
-                  value={Number(center.operations.open_exceptions ?? 0)}
-                />
+                <MiniKpi label="SLA breached" value={Number(operations.sla_breached ?? 0)} alert />
+                <MiniKpi label="Exceptions" value={Number(operations.open_exceptions ?? 0)} />
               </div>
               <Link
                 href="/operations"

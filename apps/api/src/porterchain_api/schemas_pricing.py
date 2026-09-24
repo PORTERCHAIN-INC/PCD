@@ -95,6 +95,7 @@ class SimulateQuoteRequest(BaseModel):
     channel: str = "merchant"
     vehicle_class: str = "cargo_van"
     distance_meters: float = Field(default=15_000, ge=0)
+    use_typed_distance: bool = False
     total_pickups: int = Field(default=1, ge=1)
     total_drops: int = Field(default=1, ge=1)
     pickup: PointInput | None = None

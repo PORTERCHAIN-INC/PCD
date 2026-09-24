@@ -93,8 +93,12 @@ export default function BillingClient() {
     setError(null);
     try {
       const token = await getApiToken();
-      const [ov, inv, stmt, pay, cr, hist, ap] = await Promise.all([
-        billingApi.overview(token, orgId),
+      // Overview is required; the rest settle independently so one 403/module miss
+      // does not blank the whole Billing page (Kaylulu / partial SpiceDB seats).
+      const overviewResult = await billingApi.overview(token, orgId);
+      setOverview(overviewResult);
+
+      const settled = await Promise.allSettled([
         billingApi.invoices(token, orgId),
         billingApi.statementDetail(token, orgId),
         billingApi.payments(token, orgId),
@@ -102,13 +106,23 @@ export default function BillingClient() {
         billingApi.history(token, orgId),
         settingsApi.listBillingContacts(token, orgId),
       ]);
-      setOverview(ov);
-      setInvoices(inv);
-      setStatement(stmt);
-      setPayments(pay);
-      setCredits(cr);
-      setHistory(hist);
-      setContacts(ap);
+      const [inv, stmt, pay, cr, hist, ap] = settled;
+      if (inv.status === "fulfilled") setInvoices(inv.value);
+      if (stmt.status === "fulfilled") setStatement(stmt.value);
+      if (pay.status === "fulfilled") setPayments(pay.value);
+      if (cr.status === "fulfilled") setCredits(cr.value);
+      if (hist.status === "fulfilled") setHistory(hist.value);
+      if (ap.status === "fulfilled") setContacts(ap.value);
+
+      const firstFail = settled.find((r) => r.status === "rejected") as
+        PromiseRejectedResult | undefined;
+      if (firstFail) {
+        const msg =
+          firstFail.reason instanceof Error
+            ? firstFail.reason.message
+            : "Some billing panels could not load.";
+        setError(msg);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load billing");
     } finally {
@@ -152,6 +166,11 @@ export default function BillingClient() {
 
   return (
     <div className="space-y-6">
+      {error ? (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          {error}
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-primary">Billing</h1>

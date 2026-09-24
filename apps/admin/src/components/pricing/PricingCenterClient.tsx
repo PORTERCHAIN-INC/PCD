@@ -59,6 +59,7 @@ export default function PricingCenterClient() {
   const [merchantId, setMerchantId] = useState("");
   const [vehicle, setVehicle] = useState("sedan_suv");
   const [km, setKm] = useState("15");
+  const [useTypedKm, setUseTypedKm] = useState(false);
   const [destPostal, setDestPostal] = useState("M5V 2T6");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +75,7 @@ export default function PricingCenterClient() {
         channel: audience === "customer" ? "retail" : "merchant",
         vehicle_class: vehicle,
         distance_meters: meters,
+        use_typed_distance: useTypedKm,
         dropoff: { postal: destPostal, lat: 43.6426, lng: -79.3871, formatted: "Toronto, ON" },
         pickup: { postal: "L4W 5N5", lat: 43.589, lng: -79.6441, formatted: "Mississauga, ON" },
       });
@@ -179,7 +181,7 @@ export default function PricingCenterClient() {
               </select>
             </label>
             <label className="text-xs font-medium text-primary/70">
-              Distance (km)
+              Override kilometers
               <Input
                 className="mt-1"
                 type="number"
@@ -188,6 +190,14 @@ export default function PricingCenterClient() {
                 value={km}
                 onChange={(e) => setKm(e.target.value)}
               />
+              <span className="mt-1 flex items-center gap-2 font-normal">
+                <input
+                  type="checkbox"
+                  checked={useTypedKm}
+                  onChange={(e) => setUseTypedKm(e.target.checked)}
+                />
+                Use typed kilometers instead of the road network
+              </span>
             </label>
             <label className="text-xs font-medium text-primary/70">
               Dest postal (FSA)

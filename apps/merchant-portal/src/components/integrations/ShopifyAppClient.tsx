@@ -37,8 +37,9 @@ export default function ShopifyAppClient() {
       <div className="mx-auto max-w-xl space-y-4 py-8">
         <h1 className="text-2xl font-semibold text-primary">PorterChain for Shopify</h1>
         <p className="text-sm text-muted">
-          Sign in to finish configuring pickup, rates, and order sync
-          {shop ? ` for ${shop}` : ""}.
+          One-click install connects Shopify rates and order sync
+          {shop ? ` for ${shop}` : ""}. Sign in to finish if you are not already in the merchant
+          portal.
         </p>
         <div className="flex flex-wrap gap-2">
           <Link
@@ -65,7 +66,7 @@ export default function ShopifyAppClient() {
       <div>
         <h1 className="text-2xl font-semibold text-primary">PorterChain for Shopify</h1>
         <p className="mt-1 text-sm text-muted">
-          Set default pickup, confirm OAuth, and let Shopify orders book into PorterChain capacity.
+          One-click OAuth installs the app, binds your default pickup, and registers carrier rates.
         </p>
         {justConnected && shop ? (
           <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
