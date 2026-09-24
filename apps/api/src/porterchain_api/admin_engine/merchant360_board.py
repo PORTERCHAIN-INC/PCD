@@ -518,9 +518,195 @@ def onboarding_payload(db: Session, merchant: Merchant) -> dict[str, Any]:
 
 
 def api_keys_payload(db: Session, merchant_id: str) -> dict:
+    """Integrations health for admin merchant 360 — mirrors merchant portal overview.
+
+    Mint/connect stay merchant-owned; this payload is read + ops (revoke/RPM/disable).
+    """
+    from datetime import UTC, datetime, timedelta
+
+    from porterchain_api.booking_models import Order
+    from porterchain_api.config import get_settings
+    from porterchain_api.domain.states import OrderSource
+    from porterchain_api.gateway_engine import merchant_api as gateway
+    from porterchain_api.merchant_engine.shopify_service import default_pickup_address
+    from porterchain_api.merchant_engine.shopify_urls import (
+        carrier_rates_url,
+        fulfillment_service_url,
+        webhook_url,
+    )
+    from porterchain_api.merchant_models import (
+        MerchantAuditLog,
+        MerchantWebhookDelivery,
+        ShopifyRateQuote,
+    )
+
+    settings = get_settings()
+    merchant = db.query(Merchant).filter(Merchant.id == merchant_id).first()
     keys = db.query(MerchantApiKey).filter(MerchantApiKey.merchant_id == merchant_id).all()
     hooks = db.query(MerchantWebhook).filter(MerchantWebhook.merchant_id == merchant_id).all()
-    shops = db.query(ShopifyShop).filter(ShopifyShop.merchant_id == merchant_id).all()
+    shops = (
+        db.query(ShopifyShop)
+        .filter(ShopifyShop.merchant_id == merchant_id)
+        .order_by(ShopifyShop.created_at.desc())
+        .all()
+    )
+    usage = gateway.usage_summary(db, merchant_id)
+    limits = gateway.rate_limits_for_merchant(db, merchant_id)
+    delivery_rows = (
+        db.query(MerchantWebhookDelivery)
+        .filter(MerchantWebhookDelivery.merchant_id == merchant_id)
+        .order_by(MerchantWebhookDelivery.created_at.desc())
+        .limit(10)
+        .all()
+    )
+
+    def _delivery(row: MerchantWebhookDelivery) -> dict[str, Any]:
+        return {
+            "id": row.id,
+            "webhook_id": row.webhook_id,
+            "event_type": row.event_type,
+            "response_status": row.response_status,
+            "success": row.success,
+            "attempt": row.attempt,
+            "error_message": row.error_message,
+            "duration_ms": row.duration_ms,
+            "next_retry_at": row.next_retry_at.isoformat() if row.next_retry_at else None,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+        }
+
+    shopify_shops: list[dict[str, Any]] = []
+    for shop in shops:
+        pickup = default_pickup_address(db, merchant_id, shop=shop)
+        installed = shop.uninstalled_at is None
+        shopify_shops.append(
+            {
+                "id": shop.id,
+                "shop_domain": shop.shop_domain,
+                "installed": installed,
+                "installed_at": shop.installed_at.isoformat() if shop.installed_at else None,
+                "last_webhook_at": shop.last_webhook_at.isoformat() if shop.last_webhook_at else None,
+                "default_pickup": pickup.formatted if pickup else None,
+                "default_pickup_address_id": shop.default_pickup_address_id,
+                "missing_pickup": installed and not shop.default_pickup_address_id,
+            }
+        )
+
+    audit_actions = (
+        "api_key.",
+        "webhook.",
+        "shopify.",
+        "partner_api.",
+    )
+    audit_rows = (
+        db.query(MerchantAuditLog)
+        .filter(MerchantAuditLog.merchant_id == merchant_id)
+        .order_by(MerchantAuditLog.created_at.desc())
+        .limit(40)
+        .all()
+    )
+    audit_events = [
+        {
+            "id": row.id,
+            "action": row.action,
+            "resource_type": row.resource_type,
+            "resource_id": row.resource_id,
+            "actor_user_id": row.actor_user_id,
+            "payload": row.payload or {},
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+        }
+        for row in audit_rows
+        if any(row.action.startswith(prefix) for prefix in audit_actions)
+    ][:20]
+
+    last_quote = (
+        db.query(ShopifyRateQuote)
+        .filter(ShopifyRateQuote.merchant_id == merchant_id)
+        .order_by(ShopifyRateQuote.created_at.desc())
+        .first()
+    )
+    since_24h = datetime.now(UTC) - timedelta(hours=24)
+    quotes_24h = (
+        db.query(ShopifyRateQuote)
+        .filter(
+            ShopifyRateQuote.merchant_id == merchant_id,
+            ShopifyRateQuote.created_at >= since_24h,
+        )
+        .count()
+    )
+    last_book = (
+        db.query(Order)
+        .filter(
+            Order.merchant_id == merchant_id,
+            Order.order_source == OrderSource.SHOPIFY.value,
+        )
+        .order_by(Order.created_at.desc())
+        .first()
+    )
+    last_fulfill_meta: dict[str, Any] | None = None
+    last_fulfill_at: str | None = None
+    if last_book:
+        shopify_meta = ((last_book.compliance_metadata or {}).get("shopify") or {})
+        if shopify_meta.get("fulfillment_id"):
+            last_fulfill_meta = {
+                "order_id": last_book.id,
+                "fulfillment_id": str(shopify_meta.get("fulfillment_id")),
+                "rate_quote_id": shopify_meta.get("rate_quote_id"),
+                "rate_quote_cents": shopify_meta.get("rate_quote_cents"),
+                "last_tracking_push_at": shopify_meta.get("last_tracking_push_at"),
+                "last_tracking_state": shopify_meta.get("last_tracking_state"),
+            }
+            last_fulfill_at = last_book.updated_at.isoformat() if getattr(last_book, "updated_at", None) else None
+    if not last_fulfill_meta:
+        fulfill_orders = (
+            db.query(Order)
+            .filter(
+                Order.merchant_id == merchant_id,
+                Order.order_source == OrderSource.SHOPIFY.value,
+            )
+            .order_by(Order.created_at.desc())
+            .limit(25)
+            .all()
+        )
+        for order in fulfill_orders:
+            meta = ((order.compliance_metadata or {}).get("shopify") or {})
+            if meta.get("fulfillment_id"):
+                last_fulfill_meta = {
+                    "order_id": order.id,
+                    "fulfillment_id": str(meta.get("fulfillment_id")),
+                    "rate_quote_id": meta.get("rate_quote_id"),
+                    "rate_quote_cents": meta.get("rate_quote_cents"),
+                    "last_tracking_push_at": meta.get("last_tracking_push_at"),
+                    "last_tracking_state": meta.get("last_tracking_state"),
+                }
+                last_fulfill_at = order.updated_at.isoformat() if getattr(order, "updated_at", None) else (
+                    order.created_at.isoformat() if order.created_at else None
+                )
+                break
+
+    quote_book_locked = False
+    if last_book:
+        book_meta = ((last_book.compliance_metadata or {}).get("shopify") or {})
+        quote_book_locked = bool(book_meta.get("rate_quote_id"))
+
+    shopify_partner = {
+        "carrier_rates_url": carrier_rates_url(settings),
+        "last_rate_quote_at": last_quote.created_at.isoformat() if last_quote and last_quote.created_at else None,
+        "last_rate_quote_cents": last_quote.total_cents if last_quote else None,
+        "rate_quotes_24h": quotes_24h,
+        "last_book_at": last_book.created_at.isoformat() if last_book and last_book.created_at else None,
+        "last_book_order_id": last_book.id if last_book else None,
+        "last_fulfillment_at": last_fulfill_at,
+        "last_fulfillment": last_fulfill_meta,
+        "quote_book_locked": quote_book_locked,
+        "oauth_configured": bool(settings.shopify_api_key and settings.shopify_api_secret),
+        "mid_flight_tracking": True,
+        "fo_partner_path": (
+            "flag_stub" if settings.shopify_fulfillment_service_enabled else "flag_off"
+        ),
+        "fulfillment_service_url": fulfillment_service_url(settings),
+        "fulfillment_service_enabled": bool(settings.shopify_fulfillment_service_enabled),
+    }
+
     return {
         "api_keys": [
             {
@@ -528,28 +714,45 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
                 "name": k.name,
                 "key_prefix": k.key_prefix,
                 "environment": k.environment,
-                "scopes": k.scopes,
+                "scopes": k.scopes or [],
                 "rate_limit_per_minute": k.rate_limit_per_minute,
                 "is_active": k.is_active,
                 "last_used_at": k.last_used_at.isoformat() if k.last_used_at else None,
-                "created_at": k.created_at.isoformat(),
+                "created_at": k.created_at.isoformat() if k.created_at else None,
             }
             for k in keys
         ],
         "webhooks": [
-            {"id": w.id, "url": w.url, "events": w.events, "is_active": w.is_active, "created_at": w.created_at.isoformat()}
+            {
+                "id": w.id,
+                "url": w.url,
+                "events": w.events or [],
+                "environment": w.environment or "production",
+                "is_active": w.is_active,
+                "created_at": w.created_at.isoformat() if w.created_at else None,
+            }
             for w in hooks
         ],
-        "shopify_shops": [
-            {
-                "id": s.id,
-                "shop_domain": s.shop_domain,
-                "installed": s.uninstalled_at is None,
-                "installed_at": s.installed_at.isoformat() if s.installed_at else None,
-                "last_webhook_at": s.last_webhook_at.isoformat() if s.last_webhook_at else None,
-            }
-            for s in shops
-        ],
+        "shopify_shops": shopify_shops,
+        "shopify_connected": any(s["installed"] for s in shopify_shops),
+        "shopify_webhook_url": webhook_url(settings),
+        "sandbox_mode": gateway.sandbox_mode_enabled(merchant) if merchant else False,
+        "booking_env_preference": gateway.booking_env_preference(merchant) if merchant else "live",
+        "api_keys_count": len(keys),
+        "sandbox_keys": sum(1 for k in keys if k.environment == "sandbox"),
+        "production_keys": sum(1 for k in keys if k.environment == "production"),
+        "webhooks_count": len(hooks),
+        "active_webhooks": sum(1 for h in hooks if h.is_active),
+        "usage": usage,
+        "rate_limits": limits,
+        "recent_webhook_deliveries": [_delivery(r) for r in delivery_rows],
+        "health": {
+            "failed_deliveries_recent": sum(1 for r in delivery_rows if not r.success),
+            "throttled_keys": sum(1 for row in limits if row.get("throttled")),
+        },
+        "audit_events": audit_events,
+        "shopify_partner": shopify_partner,
+        "available_integrations": ["shopify", "merchant-api"],
     }
 
 

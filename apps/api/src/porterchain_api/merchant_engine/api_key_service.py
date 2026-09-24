@@ -128,6 +128,18 @@ class MerchantApiKeyService:
         self._audit(db, ctx, "webhook.disabled", "webhook", webhook_id, {})
         db.commit()
 
+    def activate_webhook(self, db: Session, ctx: MerchantContext, webhook_id: str) -> None:
+        record = (
+            db.query(MerchantWebhook)
+            .filter(MerchantWebhook.id == webhook_id, MerchantWebhook.merchant_id == ctx.merchant.id)
+            .first()
+        )
+        if not record:
+            raise LookupError("webhook_not_found")
+        record.is_active = True
+        self._audit(db, ctx, "webhook.enabled", "webhook", webhook_id, {})
+        db.commit()
+
     def _audit(
         self,
         db: Session,

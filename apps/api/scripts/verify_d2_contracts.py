@@ -387,6 +387,8 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "admin_engine->driver_engine:admin_engine/driver_documents.py",
         "admin_engine->driver_engine:admin_engine/driver_service.py",
         "admin_engine->intelligence_engine:admin_engine/merchant360_board.py",
+        "admin_engine->gateway_engine:admin_engine/merchant360_board.py",
+        "admin_engine->merchant_engine:admin_engine/merchant360_board.py",
         "admin_engine->intelligence_engine:admin_engine/orchestrator_ops_service.py",
         "admin_engine->intelligence_engine:admin_engine/order_assist_service.py",
         "admin_engine->merchant_engine:admin_engine/platform_settings.py",

@@ -58,6 +58,9 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
   const [draft, setDraft] = useState<MerchantPricing | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [cloneSourceId, setCloneSourceId] = useState("");
+  const [cloneIncludeFsa, setCloneIncludeFsa] = useState(false);
+  const [templateBusy, setTemplateBusy] = useState<string | null>(null);
 
   useEffect(() => {
     if (data) setDraft(stripDetail(data));
@@ -87,6 +90,55 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
     }
   }
 
+  async function applyKaylulu() {
+    if (
+      !window.confirm(
+        "Apply Kaylulu schedule + A3 handling tiers? This sets FSA model, schedule, and size tiers. Existing FSA rows are kept."
+      )
+    ) {
+      return;
+    }
+    setTemplateBusy("kaylulu");
+    setMessage(null);
+    try {
+      await merchants.applyKayluluPricing(await getApiToken(), merchantId);
+      await refetch();
+      setMessage("Kaylulu schedule and A3 handling tiers applied.");
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Kaylulu template failed");
+    } finally {
+      setTemplateBusy(null);
+    }
+  }
+
+  async function cloneFrom() {
+    const source = cloneSourceId.trim();
+    if (!source) {
+      setMessage("Enter the source merchant id to clone from.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Clone pricing from ${source}? ${
+          cloneIncludeFsa ? "This also replaces FSA rows." : "FSA rows stay as-is."
+        }`
+      )
+    ) {
+      return;
+    }
+    setTemplateBusy("clone");
+    setMessage(null);
+    try {
+      await merchants.clonePricingFrom(await getApiToken(), merchantId, source, cloneIncludeFsa);
+      await refetch();
+      setMessage("Pricing cloned from source merchant.");
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Clone failed");
+    } finally {
+      setTemplateBusy(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -109,6 +161,60 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
       </div>
 
       {message && <p className="text-sm text-secondary">{message}</p>}
+
+      <SectionCard title="Templates">
+        <div className="space-y-4 p-5 text-sm">
+          <div>
+            <p className="font-medium text-primary">Kaylulu commercial schedule</p>
+            <p className="mt-1 text-xs text-muted">
+              Loads PDF schedule (T1–T3 mins, Milton pickup, compact, fsa_miss=refuse) and A3
+              handling tiers (Standard / Tier 1–2 / Tier 3 custom). Does not overwrite FSA flats.
+            </p>
+            <Button
+              variant="outline"
+              className="mt-2 text-xs"
+              disabled={templateBusy !== null}
+              onClick={() => void applyKaylulu()}
+            >
+              {templateBusy === "kaylulu" ? "Applying…" : "Apply Kaylulu template"}
+            </Button>
+          </div>
+          <div className="border-t border-primary/5 pt-4">
+            <p className="font-medium text-primary">Clone from another merchant</p>
+            <p className="mt-1 text-xs text-muted">
+              Copies pricing model, schedule, size tiers, and surcharges. Optionally replace FSA
+              rows too.
+            </p>
+            <div className="mt-2 flex flex-wrap items-end gap-2">
+              <label className="text-xs text-muted">
+                Source merchant id
+                <input
+                  className="mt-1 block w-72 rounded-lg border border-primary/15 bg-white px-3 py-2 text-sm text-primary"
+                  value={cloneSourceId}
+                  onChange={(e) => setCloneSourceId(e.target.value)}
+                  placeholder="uuid"
+                />
+              </label>
+              <label className="flex items-center gap-2 text-xs text-primary">
+                <input
+                  type="checkbox"
+                  checked={cloneIncludeFsa}
+                  onChange={(e) => setCloneIncludeFsa(e.target.checked)}
+                />
+                Include FSA rows
+              </label>
+              <Button
+                variant="outline"
+                className="text-xs"
+                disabled={templateBusy !== null}
+                onClick={() => void cloneFrom()}
+              >
+                {templateBusy === "clone" ? "Cloning…" : "Clone pricing"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
 
       {data?.card && (
         <SectionCard title="What this merchant sees">

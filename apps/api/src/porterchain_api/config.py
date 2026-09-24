@@ -364,7 +364,8 @@ class Settings(BaseSettings):
             "read_orders,write_fulfillments,write_shipping,"
             "read_merchant_managed_fulfillment_orders,"
             "write_merchant_managed_fulfillment_orders,"
-            "read_assigned_fulfillment_orders"
+            "read_assigned_fulfillment_orders,"
+            "write_assigned_fulfillment_orders"
         ),
         validation_alias=AliasChoices("shopify_api_scopes", "SHOPIFY_API_SCOPES"),
     )
@@ -384,6 +385,15 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices(
             "shopify_webhook_rate_limit_per_minute",
             "SHOPIFY_WEBHOOK_RATE_LIMIT_PER_MINUTE",
+        ),
+    )
+    #: When true, register Shopify FulfillmentService + FO request webhooks on install.
+    #: Default off — orders/create + mid-flight tracking remain the live path until ops enables.
+    shopify_fulfillment_service_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices(
+            "shopify_fulfillment_service_enabled",
+            "SHOPIFY_FULFILLMENT_SERVICE_ENABLED",
         ),
     )
 

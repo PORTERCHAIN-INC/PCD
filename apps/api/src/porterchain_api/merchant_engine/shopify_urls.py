@@ -61,6 +61,13 @@ def carrier_rates_url(settings: Settings) -> str:
     )
 
 
+def fulfillment_service_url(settings: Settings) -> str:
+    return (
+        f"{settings.porterchain_api_url.rstrip('/')}"
+        "/v1/integrations/shopify/fulfillment-order-notification"
+    )
+
+
 def app_home_url(settings: Settings, *, shop_domain: str | None = None) -> str:
     base = f"{settings.merchant_portal_url.rstrip('/')}/shopify"
     if shop_domain:

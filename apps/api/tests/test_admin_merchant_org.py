@@ -28,6 +28,10 @@ def merchant(db):
 @pytest.fixture
 def client(db, monkeypatch):
     monkeypatch.setattr("porterchain_api.routers.merchants.require_module", lambda ctx, module: None)
+    monkeypatch.setattr(
+        "porterchain_api.routers.merchants_integrations.require_module",
+        lambda ctx, module: None,
+    )
     admin = AdminContext(
         user=AdminUser(clerk_user_id="org-admin", email="ops@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
@@ -116,9 +120,16 @@ def test_admin_revoke_api_key(client, merchant, db):
 
     listed = client.get(f"/v1/admin/merchants/{merchant.id}/api")
     assert listed.status_code == 200, listed.text
-    found = next(k for k in listed.json()["api_keys"] if k["id"] == key_id)
+    body = listed.json()
+    found = next(k for k in body["api_keys"] if k["id"] == key_id)
     assert found["is_active"] is False
-    assert "shopify_shops" in listed.json()
+    assert "shopify_shops" in body
+    assert "usage" in body
+    assert "rate_limits" in body
+    assert "sandbox_mode" in body
+    assert "recent_webhook_deliveries" in body
+    assert body["shopify_connected"] is False
+    assert "shopify_webhook_url" in body
 
 
 def test_admin_deactivate_webhook(client, merchant, db):
@@ -129,6 +140,7 @@ def test_admin_deactivate_webhook(client, merchant, db):
         url="https://example.com/hooks/porterchain",
         events=["order.delivered"],
         secret_hash="deadbeef",
+        environment="sandbox",
         is_active=True,
     )
     db.add(row)
@@ -142,6 +154,105 @@ def test_admin_deactivate_webhook(client, merchant, db):
     assert listed.status_code == 200, listed.text
     found = next(w for w in listed.json()["webhooks"] if w["id"] == hook_id)
     assert found["is_active"] is False
+    assert found["environment"] == "sandbox"
+
+
+def test_admin_reenable_webhook(client, merchant, db):
+    from porterchain_api.merchant_models import MerchantWebhook
+
+    row = MerchantWebhook(
+        merchant_id=merchant.id,
+        url="https://example.com/hooks/porterchain-reenable",
+        events=["order.delivered"],
+        secret_hash="deadbeef",
+        environment="production",
+        is_active=False,
+    )
+    db.add(row)
+    db.commit()
+    hook_id = row.id
+
+    enabled = client.post(f"/v1/admin/merchants/{merchant.id}/webhooks/{hook_id}/enable")
+    assert enabled.status_code == 204, enabled.text
+
+    listed = client.get(f"/v1/admin/merchants/{merchant.id}/api")
+    assert listed.status_code == 200, listed.text
+    body = listed.json()
+    found = next(w for w in body["webhooks"] if w["id"] == hook_id)
+    assert found["is_active"] is True
+    assert "audit_events" in body
+    assert "shopify_partner" in body
+    assert "carrier_rates_url" in body["shopify_partner"]
+
+
+def test_admin_freeze_partner_api(client, merchant, db):
+    from porterchain_api.merchant_models import MerchantApiKey, MerchantWebhook
+
+    key = MerchantApiKey(
+        merchant_id=merchant.id,
+        name="live",
+        key_prefix="pk_test_live",
+        key_hash="cafebabe",
+        scopes=[],
+        environment="production",
+        is_active=True,
+    )
+    hook = MerchantWebhook(
+        merchant_id=merchant.id,
+        url="https://example.com/hooks/freeze",
+        events=["order.booked"],
+        secret_hash="deadbeef",
+        environment="production",
+        is_active=True,
+    )
+    db.add(key)
+    db.add(hook)
+    db.commit()
+
+    frozen = client.post(
+        f"/v1/admin/merchants/{merchant.id}/integrations/freeze",
+        json={"reason": "abuse investigation"},
+    )
+    assert frozen.status_code == 200, frozen.text
+    assert frozen.json()["keys_revoked"] == 1
+    assert frozen.json()["webhooks_disabled"] == 1
+
+    listed = client.get(f"/v1/admin/merchants/{merchant.id}/api")
+    body = listed.json()
+    assert next(k for k in body["api_keys"] if k["id"] == key.id)["is_active"] is False
+    assert next(w for w in body["webhooks"] if w["id"] == hook.id)["is_active"] is False
+    actions = [e["action"] for e in body.get("audit_events") or []]
+    assert "partner_api.frozen" in actions
+
+
+def test_admin_apply_kaylulu_and_clone_pricing(client, merchant, db):
+    from porterchain_api.merchant_models import Merchant
+
+    source = Merchant(
+        company_name="Kaylulu Source",
+        email="kaylulu-source@example.com",
+        status="ACTIVE",
+        pricing_model="distance",
+    )
+    db.add(source)
+    db.commit()
+
+    applied = client.post(f"/v1/admin/merchants/{source.id}/pricing/apply-kaylulu")
+    assert applied.status_code == 200, applied.text
+    body = applied.json()
+    assert body["pricing_model"] == "fsa"
+    assert body["schedule"]["fsa_miss"] == "refuse"
+    assert body["schedule"]["origin_pickup_cents"] == 4000
+    assert len(body["size_tiers"]) == 4
+    assert body["size_tiers"][1]["label"] == "Handling Tier 1"
+    assert body["size_tiers"][1]["surcharge_cents"] == 3000
+
+    cloned = client.post(f"/v1/admin/merchants/{merchant.id}/pricing/clone-from/{source.id}")
+    assert cloned.status_code == 200, cloned.text
+    cloned_body = cloned.json()
+    assert cloned_body["pricing_model"] == "fsa"
+    assert cloned_body["schedule"]["route_minimums_cents"]["T1"] == 12000
+    assert len(cloned_body["size_tiers"]) == 4
 
 
 def test_admin_ar_preview_on_merchant_file(client, merchant):

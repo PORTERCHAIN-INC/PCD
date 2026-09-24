@@ -121,6 +121,38 @@ async def shopify_webhooks(
         return JSONResponse({"ok": False, "code": str(exc)}, headers=headers)
 
 
+@router.post("/fulfillment-order-notification")
+async def shopify_fulfillment_order_notification(
+    request: Request,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    hmac_header: Annotated[str | None, Header(alias="X-Shopify-Hmac-Sha256")] = None,
+    shop_domain: Annotated[str | None, Header(alias="X-Shopify-Shop-Domain")] = None,
+) -> JSONResponse:
+    """FulfillmentService callback (flag-gated). Accept→book remains intentional hold."""
+    headers = _enforce_shopify_limit(
+        traffic=TRAFFIC_SHOPIFY_WEBHOOK,
+        identity=(shop_domain or "unknown").lower(),
+        limit=int(settings.shopify_webhook_rate_limit_per_minute or 300),
+    )
+    raw = await request.body()
+    try:
+        result = shopify.ingest_fulfillment_order_notification(
+            db,
+            settings,
+            raw_body=raw,
+            hmac_header=hmac_header,
+            shop_domain_header=shop_domain,
+        )
+        return JSONResponse(result, headers=headers)
+    except PermissionError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        return JSONResponse({"ok": False, "code": str(exc)}, status_code=503, headers=headers)
+
+
 @router.post("/carrier-service/rates")
 async def shopify_carrier_service_rates(
     request: Request,

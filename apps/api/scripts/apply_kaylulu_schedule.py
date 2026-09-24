@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Apply Kaylulu commercial schedule + FSA tier tags (data only — no hardcode in engine).
+Apply Kaylulu commercial schedule + A3 handling tiers + FSA tier tags (data only).
 
 Usage (from repo root, API venv + DATABASE_URL):
 
@@ -18,41 +18,16 @@ import sys
 
 from sqlalchemy.orm import Session
 
-# Ensure API package is importable when run as a script.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from porterchain_api.db import SessionLocal  # noqa: E402
 from porterchain_api.admin_models import PricingFsaRate  # noqa: E402
+from porterchain_api.merchant_engine.kaylulu_template import (  # noqa: E402
+    DEFAULT_KAYLULU_MERCHANT_ID,
+    FLAT_TO_TIER,
+    kaylulu_pricing_config,
+)
 from porterchain_api.merchant_models import Merchant  # noqa: E402
-
-DEFAULT_MERCHANT_ID = "8a1704f3-eaa1-46bb-a848-0ccb5d38f870"
-
-KAYLULU_SCHEDULE = {
-    "fuel_surcharge_percent": 0,
-    "fsa_miss": "refuse",
-    "origin_pickup_cents": 4000,
-    "origin_pickup_vehicle_classes": ["cargo_van"],
-    "route_minimums_cents": {"T1": 12000, "T2": 20000, "T3": 25000},
-    "compact": {
-        "enabled": True,
-        "vehicle_classes": ["sedan_suv", "sedan", "suv"],
-        "max_packed_inches": [10, 10],
-        "parcels_per_stop": 3,
-        "stop_rates_cents": [
-            {"max_stops": 4, "cents": 1000},
-            {"max_stops": None, "cents": 600},
-        ],
-        "route_minimum_cents": 5000,
-    },
-    "size_match": "any",
-}
-
-# PDF van flats → tier
-FLAT_TO_TIER = {
-    3000: "T1",
-    4500: "T2",
-    6000: "T3",
-}
 
 
 def apply(db: Session, merchant_id: str) -> dict:
@@ -60,9 +35,7 @@ def apply(db: Session, merchant_id: str) -> dict:
     if not merchant:
         raise SystemExit(f"merchant_not_found: {merchant_id}")
 
-    cfg = dict(merchant.pricing_config or {})
-    cfg["schedule"] = dict(KAYLULU_SCHEDULE)
-    merchant.pricing_config = cfg
+    merchant.pricing_config = kaylulu_pricing_config(existing=merchant.pricing_config)
     merchant.pricing_model = "fsa"
 
     tagged = 0
@@ -78,7 +51,6 @@ def apply(db: Session, merchant_id: str) -> dict:
         tier = FLAT_TO_TIER.get(int(row.flat_cents))
         if not tier:
             continue
-        # Only tag cargo_van / blank vehicle (compact aliases keep their own flats).
         vc = (row.vehicle_class or "").lower()
         if vc and vc not in ("cargo_van", "cargovan", "van"):
             continue
@@ -94,13 +66,14 @@ def apply(db: Session, merchant_id: str) -> dict:
         "merchant_id": merchant_id,
         "company": merchant.company_name,
         "schedule": True,
+        "size_tiers": len((merchant.pricing_config or {}).get("size_tiers") or []),
         "fsa_tiers_tagged": tagged,
         "fsa_rows_seen": len(rows),
     }
 
 
 def main() -> None:
-    merchant_id = os.environ.get("MERCHANT_ID") or DEFAULT_MERCHANT_ID
+    merchant_id = os.environ.get("MERCHANT_ID") or DEFAULT_KAYLULU_MERCHANT_ID
     db = SessionLocal()
     try:
         result = apply(db, merchant_id)

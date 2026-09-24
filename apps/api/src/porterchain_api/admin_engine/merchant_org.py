@@ -45,6 +45,13 @@ ORG_ERROR_MESSAGES: dict[str, str] = {
     "contract_not_found": "That contract was not found for this company.",
     "merchant_has_no_crm_company": "Link a CRM company before managing contracts.",
     "delivery_not_found": "That webhook delivery was not found.",
+    "shop_not_found": "That Shopify shop was not found.",
+    "shopify_oauth_not_configured": "Shopify OAuth is not configured on this environment.",
+    "shop_domain_invalid": "Enter a valid myshopify.com shop domain.",
+    "reason_required": "A reason is required for this action.",
+    "integrations_elevated_required": "Only Superadmin or Compliance can freeze Partner API or force-disconnect Shopify.",
+    "source_merchant_not_found": "That source company was not found.",
+    "cannot_clone_from_self": "Pick a different company as the pricing template source.",
 }
 
 
@@ -399,6 +406,101 @@ def merge_pricing_view(db: Session, ctx: AdminContext, merchant_id: str, patch: 
     return admin_pricing_view(db, merge_pricing_config(db, ctx, merchant_id, patch))
 
 
+def apply_kaylulu_pricing_template(db: Session, ctx: AdminContext, merchant_id: str) -> dict:
+    """Write Kaylulu schedule + A3 size_tiers onto this merchant (FSA rows unchanged)."""
+    from porterchain_api.merchant_engine.kaylulu_template import kaylulu_pricing_config
+    from porterchain_api.merchant_engine.rate_card_view import admin_pricing_view
+
+    merchant = require_merchant(db, merchant_id)
+    merchant.pricing_config = kaylulu_pricing_config(existing=merchant.pricing_config)
+    merchant.pricing_model = "fsa"
+    db.flush()
+    write_staff_audit(
+        db,
+        ctx,
+        merchant_id,
+        action="pricing.kaylulu_template_applied",
+        resource_type="pricing",
+        resource_id=merchant_id,
+        payload={},
+    )
+    return admin_pricing_view(db, merchant)
+
+
+def clone_pricing_from(
+    db: Session,
+    ctx: AdminContext,
+    merchant_id: str,
+    source_merchant_id: str,
+    *,
+    include_fsa: bool = False,
+) -> dict:
+    """Copy pricing_model + pricing_config (and optionally FSA rows) from source → target."""
+    from copy import deepcopy
+
+    from porterchain_api.admin_models import PricingFsaRate
+    from porterchain_api.merchant_engine.rate_card_view import admin_pricing_view
+
+    if source_merchant_id == merchant_id:
+        raise ValueError("cannot_clone_from_self")
+    target = require_merchant(db, merchant_id)
+    source = require_merchant(db, source_merchant_id)
+    if not source:
+        raise LookupError("source_merchant_not_found")
+
+    target.pricing_model = source.pricing_model
+    target.pricing_config = deepcopy(source.pricing_config or {})
+    db.flush()
+
+    fsa_copied = 0
+    if include_fsa:
+        db.query(PricingFsaRate).filter(PricingFsaRate.merchant_id == merchant_id).delete(
+            synchronize_session=False
+        )
+        rows = (
+            db.query(PricingFsaRate)
+            .filter(PricingFsaRate.merchant_id == source_merchant_id)
+            .all()
+        )
+        for row in rows:
+            db.add(
+                PricingFsaRate(
+                    merchant_id=merchant_id,
+                    origin_fsa=row.origin_fsa,
+                    dest_fsa=row.dest_fsa,
+                    vehicle_class=row.vehicle_class,
+                    flat_cents=row.flat_cents,
+                    includes_location_fees=row.includes_location_fees,
+                    label=row.label,
+                    is_active=row.is_active,
+                    config=deepcopy(row.config or {}),
+                )
+            )
+            fsa_copied += 1
+        db.flush()
+
+    write_staff_audit(
+        db,
+        ctx,
+        merchant_id,
+        action="pricing.cloned_from",
+        resource_type="pricing",
+        resource_id=merchant_id,
+        payload={
+            "source_merchant_id": source_merchant_id,
+            "include_fsa": include_fsa,
+            "fsa_rows_copied": fsa_copied,
+        },
+    )
+    view = admin_pricing_view(db, target)
+    view["clone"] = {
+        "source_merchant_id": source_merchant_id,
+        "include_fsa": include_fsa,
+        "fsa_rows_copied": fsa_copied,
+    }
+    return view
+
+
 def timeline_for(db: Session, merchant_id: str) -> list[dict]:
     from porterchain_api.admin_engine.merchant360_service import Merchant360Service
 
@@ -572,11 +674,57 @@ def delete_contact(db: Session, ctx: AdminContext, merchant_id: str, contact_id:
     MerchantContactsService().delete_contact(db, seat, contact_id)
 
 
+def _staff_payload(ctx: AdminContext, extra: dict | None = None) -> dict:
+    body = {
+        "admin_user_id": ctx.user.id,
+        "admin_email": getattr(ctx.user, "email", None),
+        "admin_role": ctx.role.value,
+    }
+    if extra:
+        body.update(extra)
+    return body
+
+
+def write_staff_audit(
+    db: Session,
+    ctx: AdminContext,
+    merchant_id: str,
+    *,
+    action: str,
+    resource_type: str,
+    resource_id: str | None,
+    payload: dict | None = None,
+) -> None:
+    from porterchain_api.merchant_models import MerchantAuditLog
+
+    db.add(
+        MerchantAuditLog(
+            merchant_id=merchant_id,
+            actor_user_id=f"admin:{ctx.user.id}",
+            action=action,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            payload=_staff_payload(ctx, payload),
+        )
+    )
+    db.commit()
+
+
+def require_integrations_elevated(ctx: AdminContext) -> None:
+    from porterchain_api.admin_engine.rbac import AdminRole
+
+    if ctx.role not in (AdminRole.SUPER_ADMIN, AdminRole.COMPLIANCE):
+        raise PermissionError(org_error_message("integrations_elevated_required"))
+
+
 def revoke_api_key(db: Session, ctx: AdminContext, merchant_id: str, key_id: str) -> None:
     from porterchain_api.merchant_engine.api_key_service import MerchantApiKeyService
 
     seat = admin_merchant_context(db, merchant_id, ctx)
     MerchantApiKeyService().revoke_key(db, seat, key_id)
+    write_staff_audit(
+        db, ctx, merchant_id, action="api_key.revoked", resource_type="api_key", resource_id=key_id
+    )
 
 
 def deactivate_webhook(db: Session, ctx: AdminContext, merchant_id: str, webhook_id: str) -> None:
@@ -584,6 +732,142 @@ def deactivate_webhook(db: Session, ctx: AdminContext, merchant_id: str, webhook
 
     seat = admin_merchant_context(db, merchant_id, ctx)
     MerchantApiKeyService().deactivate_webhook(db, seat, webhook_id)
+    write_staff_audit(
+        db,
+        ctx,
+        merchant_id,
+        action="webhook.disabled",
+        resource_type="webhook",
+        resource_id=webhook_id,
+    )
+
+
+def activate_webhook(db: Session, ctx: AdminContext, merchant_id: str, webhook_id: str) -> None:
+    from porterchain_api.merchant_engine.api_key_service import MerchantApiKeyService
+
+    seat = admin_merchant_context(db, merchant_id, ctx)
+    MerchantApiKeyService().activate_webhook(db, seat, webhook_id)
+    write_staff_audit(
+        db,
+        ctx,
+        merchant_id,
+        action="webhook.enabled",
+        resource_type="webhook",
+        resource_id=webhook_id,
+    )
+
+
+def freeze_partner_api(
+    db: Session, ctx: AdminContext, merchant_id: str, *, reason: str | None = None
+) -> dict:
+    from porterchain_api.merchant_engine.api_key_service import MerchantApiKeyService
+    from porterchain_api.merchant_models import MerchantApiKey, MerchantWebhook
+
+    require_integrations_elevated(ctx)
+    note = (reason or "").strip()
+    if not note:
+        raise ValueError("reason_required")
+
+    seat = admin_merchant_context(db, merchant_id, ctx)
+    svc = MerchantApiKeyService()
+    keys = (
+        db.query(MerchantApiKey)
+        .filter(MerchantApiKey.merchant_id == merchant_id, MerchantApiKey.is_active.is_(True))
+        .all()
+    )
+    hooks = (
+        db.query(MerchantWebhook)
+        .filter(MerchantWebhook.merchant_id == merchant_id, MerchantWebhook.is_active.is_(True))
+        .all()
+    )
+    for key in keys:
+        svc.revoke_key(db, seat, key.id)
+    for hook in hooks:
+        svc.deactivate_webhook(db, seat, hook.id)
+
+    write_staff_audit(
+        db,
+        ctx,
+        merchant_id,
+        action="partner_api.frozen",
+        resource_type="partner_api",
+        resource_id=merchant_id,
+        payload={"reason": note, "keys_revoked": len(keys), "webhooks_disabled": len(hooks)},
+    )
+    return {"keys_revoked": len(keys), "webhooks_disabled": len(hooks), "reason": note}
+
+
+def force_disconnect_shopify(
+    db: Session,
+    ctx: AdminContext,
+    merchant_id: str,
+    shop_id: str,
+    *,
+    reason: str | None = None,
+) -> None:
+    from porterchain_api.merchant_engine.shopify_service import disconnect_shop
+
+    require_integrations_elevated(ctx)
+    note = (reason or "").strip()
+    if not note:
+        raise ValueError("reason_required")
+
+    seat = admin_merchant_context(db, merchant_id, ctx)
+    disconnect_shop(db, seat, shop_id)
+    write_staff_audit(
+        db,
+        ctx,
+        merchant_id,
+        action="shopify.force_disconnected",
+        resource_type="shopify_shop",
+        resource_id=shop_id,
+        payload={"reason": note},
+    )
+
+
+def shopify_install_url_for(
+    db: Session, ctx: AdminContext, merchant_id: str, settings, *, shop: str
+) -> dict:
+    from porterchain_api.merchant_engine.shopify_urls import install_url
+
+    require_merchant(db, merchant_id)
+    url = install_url(shop, settings, merchant_id=merchant_id)
+    write_staff_audit(
+        db,
+        ctx,
+        merchant_id,
+        action="shopify.install_url_copied",
+        resource_type="shopify_shop",
+        resource_id=None,
+        payload={"shop_domain": shop},
+    )
+    return {"install_url": url, "shop_domain": shop, "merchant_id": merchant_id}
+
+
+def test_webhook(
+    db: Session,
+    ctx: AdminContext,
+    merchant_id: str,
+    webhook_id: str,
+    *,
+    encryption_key: str,
+) -> dict:
+    from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
+
+    seat = admin_merchant_context(db, merchant_id, ctx)
+    result = MerchantIntegrationsService().test_webhook(
+        db, seat, webhook_id, encryption_key=encryption_key
+    )
+    write_staff_audit(
+        db,
+        ctx,
+        merchant_id,
+        action="webhook.test",
+        resource_type="webhook",
+        resource_id=webhook_id,
+        payload={"success": bool(result.get("success")) if isinstance(result, dict) else None},
+    )
+    return result
 
 
 def preview_cycle_ar(db: Session, merchant_id: str) -> dict:

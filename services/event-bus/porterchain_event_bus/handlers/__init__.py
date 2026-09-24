@@ -33,6 +33,8 @@ def register_default_handlers() -> None:
     registry.subscribe(DomainEventType.WEBHOOK_RECEIVED, _handle_webhook_received)
     registry.subscribe(DomainEventType.NOTIFICATION_QUEUED, _handle_notification_queued)
     registry.subscribe("order.*", _handle_merchant_webhook_fanout)
+    registry.subscribe(DomainEventType.PARCEL_PICKED_UP, _handle_shopify_fulfillment)
+    registry.subscribe(DomainEventType.DELIVERY_STARTED, _handle_shopify_fulfillment)
     registry.subscribe(DomainEventType.PARCEL_DELIVERED, _handle_shopify_fulfillment)
 
     from porterchain_api.notification_engine.event_router import register_notification_handlers

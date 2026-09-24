@@ -10,14 +10,14 @@ from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.merchant_engine.standing_order_service import MerchantStandingOrderService
 from porterchain_api.merchant_engine.privacy import MerchantPrivacyService
 from porterchain_api.admin_engine.merchant_org import (
-    activate_users_payload, after_admin_write, admin_merchant_context, complete_onboarding_payload,
+    activate_users_payload, activate_webhook, after_admin_write, admin_merchant_context,
+    complete_onboarding_payload,
     create_address, create_contact, create_linked_contract, create_recipient,
-    create_with_onboarding, deactivate_webhook, delete_address, delete_billing_contact,
+    create_with_onboarding, delete_address, delete_billing_contact,
     delete_contact, delete_recipient, generate_cycle_ar, list_activities,
     list_billing_contacts, list_contacts, list_contracts, list_tasks, merge_pricing_view,
     org_error_message, patch_billing_contact, preview_cycle_ar, pricing_view_for, raise_org_http,
-    require_detail, reserve_owner_seat, reserve_team_seat, revoke_api_key,
-    save_billing_contact, set_default_address, subsidiaries_payload, team_member_payload,
+    require_detail, reserve_owner_seat, reserve_team_seat, save_billing_contact, set_default_address, subsidiaries_payload, team_member_payload,
     timeline_for, update_address, update_contact, update_linked_contract, update_recipient,
 )
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
@@ -536,20 +536,6 @@ def complete_merchant_onboarding(
 @router.get("/{merchant_id}/api")
 def merchant_api(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     return _invoke(ctx, "merchants_read", _m360.api_keys, db, merchant_id)
-
-
-@router.delete("/{merchant_id}/api-keys/{key_id}", status_code=204)
-def revoke_merchant_api_key(
-    merchant_id: str, key_id: str, ctx: Ctx, db: Session = Depends(get_db)
-) -> None:
-    _invoke(ctx, "merchants", revoke_api_key, db, ctx, merchant_id, key_id, org=True)
-
-
-@router.delete("/{merchant_id}/webhooks/{webhook_id}", status_code=204)
-def deactivate_merchant_webhook(
-    merchant_id: str, webhook_id: str, ctx: Ctx, db: Session = Depends(get_db)
-) -> None:
-    _invoke(ctx, "merchants", deactivate_webhook, db, ctx, merchant_id, webhook_id, org=True)
 
 
 @router.get("/{merchant_id}/ar/preview")

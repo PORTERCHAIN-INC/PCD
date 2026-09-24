@@ -30,6 +30,9 @@ def process_webhook(payload: dict[str, Any]) -> None:
     if action in ("shopify_orders_create", "shopify_orders_cancelled"):
         _shopify_ingress(payload)
         return
+    if action in ("shopify_fo_request", "shopify_fo_cancel_request"):
+        _shopify_ingress(payload)
+        return
     if source == "fleetbase":
         logger.info("webhook ingress ack: fleetbase order=%s", payload.get("update", {}).get("porterchain_order_id"))
         return

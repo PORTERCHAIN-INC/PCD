@@ -36,7 +36,13 @@ export type MerchantRateCard = {
     origin_pickup_cents: number;
     origin_pickup_vehicle_classes: string[];
     route_minimums_cents: Record<string, number>;
-    compact: { enabled: boolean; route_minimum_cents: number };
+    compact: {
+      enabled: boolean;
+      route_minimum_cents: number;
+      parcels_per_stop?: number;
+      stop_rates_cents?: Array<{ cents: number; max_stops: number | null }>;
+      vehicle_classes?: string[];
+    };
     size_match: string;
   };
   tax: { hst_percent: number; tax_included: boolean };

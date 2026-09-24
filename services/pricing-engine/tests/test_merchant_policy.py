@@ -141,6 +141,58 @@ def test_pounds_are_compared_against_kilogram_shipments():
     assert svc.quote_tiers(tiers, weight_kg=6).total_cents == 0  # 6 kg ≈ 13.2 lb
 
 
+def test_size_match_any_picks_highest_surcharge_among_fits():
+    """Kaylulu A3: higher of weight-tier vs footprint-tier (PDF examples A–C)."""
+    tiers = [
+        SizeTier(
+            label="Standard",
+            max_weight=100,
+            weight_unit="lb",
+            max_length=70,
+            max_width=45,
+            dimension_unit="in",
+            surcharge_cents=0,
+        ),
+        SizeTier(
+            label="Handling Tier 1",
+            max_weight=125,
+            weight_unit="lb",
+            max_length=80,
+            max_width=45,
+            dimension_unit="in",
+            surcharge_cents=3000,
+        ),
+        SizeTier(
+            label="Handling Tier 2",
+            max_weight=150,
+            weight_unit="lb",
+            max_length=90,
+            max_width=50,
+            dimension_unit="in",
+            surcharge_cents=6000,
+        ),
+        SizeTier(label="Handling Tier 3 — custom", surcharge_cents=0),
+    ]
+    svc = SizeWeightService()
+    # Example C: 110 lb (T1) + 85×45 in (T2) → Tier 2
+    q = svc.quote_tiers(
+        tiers,
+        weight_kg=110 * 0.453592,
+        dimensions={"length": 85 * 2.54, "width": 45 * 2.54},
+        size_match="any",
+    )
+    assert q.total_cents == 6000
+    assert q.metadata["tier_label"] == "Handling Tier 2"
+    # Example B: 130 lb / 70×45 → Tier 2 (weight), not Tier 1 footprint-only
+    q_b = svc.quote_tiers(
+        tiers,
+        weight_kg=130 * 0.453592,
+        dimensions={"length": 70 * 2.54, "width": 45 * 2.54},
+        size_match="any",
+    )
+    assert q_b.total_cents == 6000
+
+
 # -------------------------------------------------------- engine integration
 
 

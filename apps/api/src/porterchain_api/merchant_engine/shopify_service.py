@@ -33,6 +33,7 @@ from porterchain_api.merchant_engine.shopify_urls import (
     app_home_url,
     callback_url,
     carrier_rates_url,
+    fulfillment_service_url,
     install_url,
     is_shop_domain,
     normalize_shop_domain,
@@ -183,6 +184,8 @@ def connection_payload(db: Session, merchant_id: str, settings: Settings) -> dic
         "oauth_configured": oauth_configured(settings),
         "webhook_url": webhook_url(settings),
         "carrier_rates_url": carrier_rates_url(settings),
+        "fulfillment_service_url": fulfillment_service_url(settings),
+        "fulfillment_service_enabled": bool(settings.shopify_fulfillment_service_enabled),
         "app_url": app_home_url(settings),
         "shops": rows,
     }
@@ -357,7 +360,26 @@ def ingest_webhook(
 
     create_topics = {"orders/create"}
     cancel_topics = {"orders/cancelled", "orders/canceled"}
-    if topic_name not in create_topics | cancel_topics:
+    # Topics after ingest normalize: lower + "_" → "/".
+    # Shopify header example: fulfillment_orders/fulfillment_request_submitted
+    # → fulfillment/orders/fulfillment/request/submitted
+    fo_topics = {
+        "fulfillment/orders/fulfillment/request/submitted",
+        "fulfillment/orders/cancellation/request/submitted",
+    }
+    if topic_name in fo_topics:
+        if not settings.shopify_fulfillment_service_enabled:
+            return {"ok": True, "ignored": topic_name, "reason": "fo_flag_off"}
+        action = (
+            "shopify_fo_request"
+            if "fulfillment_request" in topic_name
+            else "shopify_fo_cancel_request"
+        )
+    elif topic_name in create_topics:
+        action = "shopify_orders_create"
+    elif topic_name in cancel_topics:
+        action = "shopify_orders_cancelled"
+    else:
         return {"ok": True, "ignored": topic_name}
 
     if not shop or shop.uninstalled_at is not None:
@@ -366,7 +388,6 @@ def ingest_webhook(
     shop.last_webhook_at = datetime.now(UTC)
     db.commit()
 
-    action = "shopify_orders_create" if topic_name in create_topics else "shopify_orders_cancelled"
     try:
         from porterchain_shared.queue.names import QueueName
         from porterchain_shared.queue.publisher import get_queue_publisher
@@ -403,6 +424,17 @@ def process_queued_webhook(db: Session, settings: Settings, payload: dict[str, A
         return _book_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
     if action == "shopify_orders_cancelled":
         return _cancel_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
+    if action in {"shopify_fo_request", "shopify_fo_cancel_request"}:
+        # Foundation: enqueue + ack only. Accept→book is intentional hold (PCD_INTENTIONAL_SKIPS).
+        if not settings.shopify_fulfillment_service_enabled:
+            return {"ok": True, "skipped": "fo_flag_off", "action": action}
+        logger.info(
+            "shopify_fo_stub action=%s shop=%s keys=%s",
+            action,
+            shop_domain,
+            list(body.keys())[:12],
+        )
+        return {"ok": True, "stub": True, "action": action, "detail": "fo_accept_book_held"}
     raise ValueError(f"unknown_shopify_action:{action}")
 
 
@@ -572,57 +604,6 @@ def capture_cod_transaction(db: Session, settings: Settings, order: Order) -> No
         logger.info("shopify_cod_captured order=%s shopify=%s", order.id, shopify_order_id)
 
 
-def push_fulfillment(db: Session, settings: Settings, order: Order) -> None:
-    if order.order_source != OrderSource.SHOPIFY.value:
-        return
-    meta = (order.compliance_metadata or {}).get("shopify") or {}
-    shop_domain = str(meta.get("shop_domain") or "")
-    shopify_order_id = str(meta.get("order_id") or order.purchase_order_number or "")
-    if not shop_domain or not shopify_order_id:
-        return
-    shop = _active_shop(db, shop_domain)
-    if not shop:
-        return
-    token = _decrypt(shop.encrypted_access_token, settings)
-    if not token:
-        return
-    tracking = order.tracking_number or ""
-    tracking_url = f"{settings.website_url.rstrip('/')}/track/{tracking}" if tracking else f"{settings.website_url.rstrip('/')}/track"
-    fo = _admin_get(shop.shop_domain, token, f"/orders/{shopify_order_id}/fulfillment_orders.json", settings)
-    fulfillment_orders = (fo or {}).get("fulfillment_orders") if isinstance(fo, dict) else None
-    if not fulfillment_orders:
-        logger.info("shopify_no_fulfillment_orders order=%s shopify=%s", order.id, shopify_order_id)
-        return
-    line_items = [{"fulfillment_order_id": item.get("id")} for item in fulfillment_orders if item.get("id")]
-    resp = _admin_post(
-        shop.shop_domain,
-        token,
-        "/fulfillments.json",
-        settings,
-        {
-            "fulfillment": {
-                "line_items_by_fulfillment_order": line_items,
-                "tracking_info": {
-                    "number": tracking,
-                    "url": tracking_url,
-                    "company": "PorterChain",
-                },
-                "notify_customer": True,
-            }
-        },
-    )
-    if isinstance(resp, dict):
-        fulfillment = resp.get("fulfillment") if isinstance(resp.get("fulfillment"), dict) else {}
-        fid = fulfillment.get("id") if fulfillment else None
-        if fid:
-            extra = dict(order.compliance_metadata or {})
-            shopify_meta = dict(extra.get("shopify") or {})
-            shopify_meta["fulfillment_id"] = str(fid)
-            extra["shopify"] = shopify_meta
-            order.compliance_metadata = extra
-            db.commit()
-
-
 def _merchant_for_install(
     db: Session,
     merchant_id: str | None,
@@ -752,61 +733,15 @@ def _admin_post(
     return body if isinstance(body, dict) else None
 
 
+
+
+# Re-exports — fulfillment / FO live in shopify_fulfillment_service (ENG-G2 LOC).
+from porterchain_api.merchant_engine.shopify_fulfillment_service import (  # noqa: E402
+    ingest_fulfillment_order_notification,
+    push_fulfillment,
+)
+from porterchain_api.merchant_engine import shopify_fulfillment_service as _fo  # noqa: E402
+
+
 def _post_install_hooks(shop: ShopifyShop, settings: Settings) -> None:
-    try:
-        _register_webhooks(shop, settings)
-    except Exception:  # noqa: BLE001
-        logger.warning(
-            "shopify_webhook_register_failed shop=%s", shop.shop_domain, exc_info=True
-        )
-    try:
-        _register_carrier_service(shop, settings)
-    except Exception:  # noqa: BLE001
-        logger.warning(
-            "shopify_carrier_register_failed shop=%s", shop.shop_domain, exc_info=True
-        )
-
-
-def _register_webhooks(shop: ShopifyShop, settings: Settings) -> None:
-    token = _decrypt(shop.encrypted_access_token, settings)
-    if not token:
-        return
-    address = webhook_url(settings)
-    topics = (
-        "orders/create",
-        "orders/cancelled",
-        "app/uninstalled",
-        "customers/data_request",
-        "customers/redact",
-        "shop/redact",
-    )
-    for topic in topics:
-        _admin_post(
-            shop.shop_domain,
-            token,
-            "/webhooks.json",
-            settings,
-            {"webhook": {"topic": topic, "address": address, "format": "json"}},
-        )
-
-
-def _register_carrier_service(shop: ShopifyShop, settings: Settings) -> None:
-    """Register Shopify CarrierService so checkout can call our rate callback."""
-    token = _decrypt(shop.encrypted_access_token, settings)
-    if not token:
-        return
-    _admin_post(
-        shop.shop_domain,
-        token,
-        "/carrier_services.json",
-        settings,
-        {
-            "carrier_service": {
-                "name": "PorterChain",
-                "callback_url": carrier_rates_url(settings),
-                "service_discovery": True,
-                "carrier_service_type": "api",
-                "format": "json",
-            }
-        },
-    )
+    _fo._post_install_hooks(shop, settings)

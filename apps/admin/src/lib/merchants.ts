@@ -282,6 +282,41 @@ export type MerchantOnboarding = {
   can_invite_owner: boolean;
 };
 
+export type MerchantApiUsage = {
+  total_requests: number;
+  error_requests: number;
+  by_day: Array<{ date: string; count: number }>;
+  by_path: Array<{ path: string; count: number }>;
+  by_environment: Record<string, number>;
+};
+
+export type MerchantApiRateLimit = {
+  api_key_id: string;
+  name: string;
+  environment: string;
+  rate_limit_per_minute: number;
+  requests_last_minute: number;
+  remaining: number;
+  throttled: boolean;
+};
+
+export type MerchantWebhookDeliveryRow = {
+  id: string;
+  webhook_id: string;
+  event_type?: string | null;
+  response_status?: number | null;
+  success?: boolean;
+  attempt: number;
+  error_message?: string | null;
+  duration_ms?: number;
+  next_retry_at?: string | null;
+  created_at: string | null;
+  /** Legacy aliases some clients mapped — prefer success / response_status */
+  status?: string;
+  http_status?: number | null;
+  error?: string | null;
+};
+
 export type MerchantApi = {
   api_keys: Array<{
     id: string;
@@ -292,14 +327,15 @@ export type MerchantApi = {
     rate_limit_per_minute: number;
     is_active: boolean;
     last_used_at: string | null;
-    created_at: string;
+    created_at: string | null;
   }>;
   webhooks: Array<{
     id: string;
     url: string;
     events: string[];
+    environment?: string;
     is_active: boolean;
-    created_at: string;
+    created_at: string | null;
   }>;
   shopify_shops?: Array<{
     id: string;
@@ -307,7 +343,59 @@ export type MerchantApi = {
     installed: boolean;
     installed_at: string | null;
     last_webhook_at: string | null;
+    default_pickup?: string | null;
+    default_pickup_address_id?: string | null;
+    missing_pickup?: boolean;
   }>;
+  shopify_connected?: boolean;
+  shopify_webhook_url?: string | null;
+  sandbox_mode?: boolean;
+  booking_env_preference?: string;
+  api_keys_count?: number;
+  sandbox_keys?: number;
+  production_keys?: number;
+  webhooks_count?: number;
+  active_webhooks?: number;
+  usage?: MerchantApiUsage;
+  rate_limits?: MerchantApiRateLimit[];
+  recent_webhook_deliveries?: MerchantWebhookDeliveryRow[];
+  health?: {
+    failed_deliveries_recent: number;
+    throttled_keys: number;
+  };
+  audit_events?: Array<{
+    id: string;
+    action: string;
+    resource_type: string;
+    resource_id: string | null;
+    actor_user_id: string | null;
+    payload: Record<string, unknown>;
+    created_at: string | null;
+  }>;
+  shopify_partner?: {
+    carrier_rates_url?: string | null;
+    last_rate_quote_at?: string | null;
+    last_rate_quote_cents?: number | null;
+    rate_quotes_24h?: number;
+    last_book_at?: string | null;
+    last_book_order_id?: string | null;
+    last_fulfillment_at?: string | null;
+    last_fulfillment?: {
+      order_id: string;
+      fulfillment_id: string;
+      rate_quote_id?: string | null;
+      rate_quote_cents?: number | null;
+      last_tracking_push_at?: string | null;
+      last_tracking_state?: string | null;
+    } | null;
+    quote_book_locked?: boolean;
+    oauth_configured?: boolean;
+    mid_flight_tracking?: boolean;
+    fo_partner_path?: string;
+    fulfillment_service_url?: string;
+    fulfillment_service_enabled?: boolean;
+  };
+  available_integrations?: string[];
 };
 
 export type MerchantAnalytics = {
@@ -589,6 +677,14 @@ export const merchants = {
       method: "PUT",
       body: JSON.stringify(body),
     }),
+  applyKayluluPricing: (t: string, id: string) =>
+    adminFetch<MerchantPricingDetail>(`${B}/${id}/pricing/apply-kaylulu`, t, { method: "POST" }),
+  clonePricingFrom: (t: string, id: string, sourceId: string, includeFsa = false) =>
+    adminFetch<MerchantPricingDetail>(
+      `${B}/${id}/pricing/clone-from/${sourceId}${qs({ include_fsa: includeFsa || undefined })}`,
+      t,
+      { method: "POST" }
+    ),
   standingOrders: (t: string, id: string) =>
     adminFetch<MerchantStandingOrder[]>(`${B}/${id}/standing-orders`, t),
   deactivateStandingOrder: (t: string, id: string, standingOrderId: string) =>
@@ -740,6 +836,28 @@ export const merchants = {
     adminFetch<void>(`${B}/${id}/api-keys/${keyId}`, t, { method: "DELETE" }),
   disableWebhook: (t: string, id: string, webhookId: string) =>
     adminFetch<void>(`${B}/${id}/webhooks/${webhookId}`, t, { method: "DELETE" }),
+  enableWebhook: (t: string, id: string, webhookId: string) =>
+    adminFetch<void>(`${B}/${id}/webhooks/${webhookId}/enable`, t, { method: "POST" }),
+  testWebhook: (t: string, id: string, webhookId: string) =>
+    adminFetch<Record<string, unknown>>(`${B}/${id}/webhooks/${webhookId}/test`, t, {
+      method: "POST",
+    }),
+  freezePartnerApi: (t: string, id: string, reason: string) =>
+    adminFetch<{ keys_revoked: number; webhooks_disabled: number; reason: string }>(
+      `${B}/${id}/integrations/freeze`,
+      t,
+      { method: "POST", body: JSON.stringify({ reason }) }
+    ),
+  forceDisconnectShopify: (t: string, id: string, shopId: string, reason: string) =>
+    adminFetch<void>(`${B}/${id}/shopify/${shopId}/force-disconnect`, t, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+  shopifyInstallUrl: (t: string, id: string, shop: string) =>
+    adminFetch<{ install_url: string; shop_domain: string; merchant_id: string }>(
+      `${B}/${id}/shopify/install-url${qs({ shop })}`,
+      t
+    ),
   arPreview: (t: string, id: string) =>
     adminFetch<{
       merchant_id: string;
@@ -852,17 +970,7 @@ export const merchants = {
       period_end: string;
     }>(`${B}/${id}/statement`, t),
   webhookDeliveries: (t: string, id: string, webhookId: string) =>
-    adminFetch<
-      Array<{
-        id: string;
-        webhook_id: string;
-        status: string;
-        attempt: number;
-        http_status: number | null;
-        error: string | null;
-        created_at: string | null;
-      }>
-    >(`${B}/${id}/webhooks/${webhookId}/deliveries`, t),
+    adminFetch<MerchantWebhookDeliveryRow[]>(`${B}/${id}/webhooks/${webhookId}/deliveries`, t),
   retryWebhookDelivery: (t: string, id: string, deliveryId: string) =>
     adminFetch<Record<string, unknown>>(`${B}/${id}/webhooks/deliveries/${deliveryId}/retry`, t, {
       method: "POST",
@@ -911,6 +1019,12 @@ const MERCHANT_ACTION_MESSAGES: Record<string, string> = {
   hst_number_invalid: "Enter a valid GST/HST number (BN or BN+RTxxxx).",
   tax_region_invalid: "Tax region must be a Canadian province or territory code (e.g. ON).",
   rate_limit_invalid: "Rate limit must be at least 10 requests per minute.",
+  reason_required: "A reason is required for this action.",
+  shop_domain_invalid: "Enter a valid myshopify.com shop domain.",
+  shopify_oauth_not_configured: "Shopify OAuth is not configured on this environment.",
+  integrations_elevated_required:
+    "Only Superadmin or Compliance can freeze Partner API or force-disconnect Shopify.",
+  shop_not_found: "That Shopify shop was not found.",
   contract_not_found: "That contract was not found for this company.",
   merchant_has_no_crm_company: "Link a CRM company before managing contracts.",
   delivery_not_found: "That webhook delivery was not found.",

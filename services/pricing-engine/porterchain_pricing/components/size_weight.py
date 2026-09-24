@@ -114,48 +114,58 @@ class SizeWeightService:
         """
         Charge the merchant's own size / weight band for this shipment.
 
-        Rows are evaluated in the order the admin arranged them and the first
-        one that fits wins, so a merchant controls precedence directly rather
-        than inferring it from the numbers. A shipment that fits no row is not
-        charged — a merchant who wants to catch everything adds a final row
-        with no limits.
+        With ``size_match=all`` (default), rows are evaluated in admin order and
+        the first fit wins. With ``size_match=any`` (Kaylulu A3), every accepting
+        row is considered and the **highest surcharge** wins — weight axis and
+        footprint axis do not stack; the higher handling tier applies.
+        A shipment that fits no row is not charged — a merchant who wants to
+        catch everything adds a final row with no limits.
         """
         length, width, height = parse_dimensions_cm(dimensions)
         weight = float(weight_kg) if weight_kg else None
 
+        matches: list[tuple[int, SizeTier]] = []
         for index, tier in enumerate(tiers):
-            if not tier.accepts(
+            if tier.accepts(
                 length_cm=length,
                 width_cm=width,
                 height_cm=height,
                 weight_kg=weight,
                 size_match=size_match,
             ):
-                continue
+                matches.append((index, tier))
+
+        if not matches:
             return ComponentQuote(
                 component=COMPONENT,
-                items=_item("size_tier", tier.describe(), tier.surcharge_cents),
                 metadata={
                     "mode": "tiers",
-                    "matched": True,
-                    "tier_index": index,
-                    "tier_label": tier.describe(),
-                    "surcharge_cents": tier.surcharge_cents,
+                    "matched": False,
+                    "reason": "no_matching_tier",
                     "shipment_cm": [length, width, height],
                     "shipment_kg": weight,
                     "size_match": size_match,
                 },
             )
 
+        if size_match == "any" and len(matches) > 1:
+            index, tier = max(matches, key=lambda pair: (pair[1].surcharge_cents, pair[0]))
+        else:
+            index, tier = matches[0]
+
         return ComponentQuote(
             component=COMPONENT,
+            items=_item("size_tier", tier.describe(), tier.surcharge_cents),
             metadata={
                 "mode": "tiers",
-                "matched": False,
-                "reason": "no_matching_tier",
+                "matched": True,
+                "tier_index": index,
+                "tier_label": tier.describe(),
+                "surcharge_cents": tier.surcharge_cents,
                 "shipment_cm": [length, width, height],
                 "shipment_kg": weight,
                 "size_match": size_match,
+                "candidates": len(matches),
             },
         )
 
