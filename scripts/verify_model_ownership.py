@@ -28,6 +28,9 @@ _DB_STRUCTURAL_MUTATION = re.compile(
 _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
     {
         "admin_engine/merchant_org.py",  # Wave compose — shrink via merchant_engine APIs
+        "admin_engine/shopify_control_service.py",  # Shopify control plane (shop policy / hold / repush)
+        "admin_engine/control_tower/exceptions.py",  # exception board Shopify hold/release
+        "admin_engine/control_tower/service.py",  # control tower Shopify ops side-effects
         "integrations/shopify_carrier_rates.py",  # carrier quote persistence
     }
 )

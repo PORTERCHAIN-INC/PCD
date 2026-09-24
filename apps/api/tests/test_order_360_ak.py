@@ -26,6 +26,13 @@ def test_shopify_snapshot_from_metadata() -> None:
         "shop_domain": "acme.myshopify.com",
         "order_id": "123",
         "order_name": "#1001",
+        "fulfillment_id": None,
+        "last_tracking_push_at": None,
+        "last_tracking_state": None,
+        "last_fulfillment_error": None,
+        "held_for_ops": False,
+        "auto_dispatch": None,
+        "last_repush_at": None,
     }
     assert order_source_label("SHOPIFY") == "Shopify"
 
