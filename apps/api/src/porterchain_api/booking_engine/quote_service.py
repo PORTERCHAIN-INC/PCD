@@ -120,6 +120,11 @@ class QuoteService:
         breakdown_items = priced["items"]
         pricing_summary = priced["summary"]
         distance_meters = priced["distance_meters"]
+        parcels = dict(priced["parcels"] or {})
+        # Persist promo on the quote so payment revalidation does not drop it
+        # (Quote has no promo_code column; Stripe uses revalidate_retail_quote).
+        if body.promo_code and str(body.promo_code).strip():
+            parcels["promo_code"] = str(body.promo_code).strip()
 
         expires_at = datetime.now(UTC) + timedelta(minutes=settings.quote_ttl_minutes)
         quote = Quote(
@@ -132,7 +137,7 @@ class QuoteService:
             package_type=load.package_type,
             weight_kg=load.weight_kg,
             dimensions=load.dimensions,
-            parcels=priced["parcels"],
+            parcels=parcels,
             declared_value_cents=body.declared_value_cents,
             additional_stops=[s.model_dump() for s in body.additional_stops] if body.additional_stops else None,
             special_instructions=body.special_instructions,

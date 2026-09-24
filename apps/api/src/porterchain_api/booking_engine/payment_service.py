@@ -49,6 +49,45 @@ class PaymentService:
         )
 
         checkout_url: str | None = None
+        # 100% promo (or other full waive) → $0. Stripe Checkout rejects unit_amount=0.
+        if int(quote.amount_cents or 0) <= 0:
+            from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
+
+            payment.status = PaymentStatus.PROCESSING.value
+            quote.state = QuoteState.PAYMENT_PENDING.value
+            emit_event(
+                db,
+                event_type=E.CHECKOUT_STARTED,
+                aggregate_type="quote",
+                aggregate_id=quote.id,
+                correlation_id=quote.id,
+                payload={"free_promo": True, "payment_id": payment.id, "amount_cents": 0},
+            )
+            self._drafts.on_payment_started(
+                db,
+                quote,
+                stripe_session_id=None,
+                settings=settings,
+            )
+            db.flush()
+            BookingConfirmationService().complete_payment_and_create_order(
+                db,
+                settings,
+                quote,
+                payment_method="promo",
+                transaction_id=f"promo_free_{payment.id}",
+            )
+            success_base = (
+                settings.customer_checkout_success_url
+                if checkout_channel == "customer"
+                else settings.retail_checkout_success_url
+            )
+            checkout_url = f"{success_base}?quote_id={quote.id}&free=1"
+            db.commit()
+            db.refresh(payment)
+            db.refresh(quote)
+            return checkout_url, payment
+
         if settings.allow_stripe_mock:
             payment.status = PaymentStatus.PROCESSING.value
             emit_event(

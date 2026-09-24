@@ -122,6 +122,20 @@ def _address_from_dict(data: dict) -> AddressInput:
     )
 
 
+def _promo_code_from_quote(quote: Quote) -> str | None:
+    """Promo is not a Quote column — recover it from parcels or the last breakdown."""
+    payload = quote.parcels if isinstance(quote.parcels, dict) else {}
+    raw = payload.get("promo_code")
+    if isinstance(raw, str) and raw.strip():
+        return raw.strip()
+    breakdown = quote.pricing_breakdown if isinstance(quote.pricing_breakdown, dict) else {}
+    summary = breakdown.get("summary") if isinstance(breakdown.get("summary"), dict) else {}
+    from_summary = summary.get("promo_code")
+    if isinstance(from_summary, str) and from_summary.strip():
+        return from_summary.strip()
+    return None
+
+
 def _request_from_quote(quote: Quote) -> PricingRequest:
     payload = quote.parcels if isinstance(quote.parcels, dict) else {}
     mode = payload.get("booking_mode")
@@ -148,6 +162,7 @@ def _request_from_quote(quote: Quote) -> PricingRequest:
         scheduled_at=quote.scheduled_at,
         schedule_mode=quote.schedule_mode,
         booking_mode="vehicle" if mode == "vehicle" else "parcels",
+        promo_code=_promo_code_from_quote(quote),
     )
     return _request_from_quote_body(
         body,
