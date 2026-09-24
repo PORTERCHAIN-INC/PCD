@@ -40,6 +40,7 @@ export function OptimizePanel({
   const [vehicleId, setVehicleId] = useState<string>("");
   const [pageOffset, setPageOffset] = useState(0);
   const [commitBusy, setCommitBusy] = useState(false);
+  const [runBusy, setRunBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<OptimizeRunResult | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
