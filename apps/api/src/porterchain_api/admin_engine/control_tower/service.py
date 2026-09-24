@@ -133,6 +133,15 @@ class ControlTowerService(AssignmentMixin, ExceptionsMixin, SlaMixin, EventsMixi
             .scalar()
             or 0
         )
+        from porterchain_api.merchant_models import ShopifyIngressDlq
+
+        shopify_dlq_open = (
+            db.query(func.count(ShopifyIngressDlq.id))
+            .filter(ShopifyIngressDlq.status.in_(("open", "held")))
+            .scalar()
+            or 0
+        )
+        open_exceptions = int(open_exceptions) + int(shopify_dlq_open)
 
         sla_at_risk = 0
         sla_breached = 0
@@ -159,6 +168,7 @@ class ControlTowerService(AssignmentMixin, ExceptionsMixin, SlaMixin, EventsMixi
             "open_claims": db.query(func.count(Claim.id)).filter(Claim.status == "open").scalar() or 0,
             "support_tickets": db.query(func.count(SupportTicket.id)).filter(SupportTicket.status == "open").scalar() or 0,
             "open_exceptions": open_exceptions,
+            "shopify_ingress_dlq_open": shopify_dlq_open,
             "sla_at_risk": sla_at_risk,
             "sla_breached": sla_breached,
             "deltas": {

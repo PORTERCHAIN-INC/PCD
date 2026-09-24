@@ -1,4 +1,4 @@
-"""Admin merchant Integrations ops — thin routes (M1–M7 + Kaylulu pricing)."""
+"""Admin merchant Integrations ops — thin routes (M1–M7 + Kaylulu pricing + Shopify control)."""
 
 from typing import Annotated
 
@@ -18,6 +18,14 @@ from porterchain_api.admin_engine.merchant_org import (
     test_webhook,
 )
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
+from porterchain_api.admin_engine.shopify_control_service import (
+    list_merchant_ingress_dlq,
+    replay_ingress_dlq,
+    reregister_shop_hooks,
+    set_auto_dispatch,
+    set_booking_policy,
+    set_ingress_paused,
+)
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -189,6 +197,144 @@ def merchant_shopify_install_url(
         merchant_id,
         settings,
         shop=shop,
+        org=True,
+        copy=org_error_message,
+    )
+
+
+@router.post("/{merchant_id}/shopify/{shop_id}/ingress-pause")
+def merchant_shopify_ingress_pause(
+    merchant_id: str,
+    shop_id: str,
+    body: dict,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+) -> dict:
+    return _invoke(
+        ctx,
+        "merchants",
+        set_ingress_paused,
+        db,
+        ctx,
+        merchant_id,
+        shop_id,
+        paused=bool(body.get("paused")),
+        reason=body.get("reason"),
+        org=True,
+        copy=org_error_message,
+    )
+
+
+@router.post("/{merchant_id}/shopify/{shop_id}/auto-dispatch")
+def merchant_shopify_auto_dispatch(
+    merchant_id: str,
+    shop_id: str,
+    body: dict,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+) -> dict:
+    return _invoke(
+        ctx,
+        "merchants",
+        set_auto_dispatch,
+        db,
+        ctx,
+        merchant_id,
+        shop_id,
+        enabled=bool(body.get("enabled")),
+        reason=body.get("reason"),
+        org=True,
+        copy=org_error_message,
+    )
+
+
+@router.get("/{merchant_id}/shopify/ingress-dlq")
+def merchant_shopify_ingress_dlq(
+    merchant_id: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    status: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+) -> dict:
+    return _invoke(
+        ctx,
+        "merchants",
+        list_merchant_ingress_dlq,
+        db,
+        ctx,
+        merchant_id,
+        status=status,
+        limit=limit,
+        org=True,
+        copy=org_error_message,
+    )
+
+
+@router.post("/{merchant_id}/shopify/ingress-dlq/{dlq_id}/replay")
+def merchant_shopify_ingress_dlq_replay(
+    merchant_id: str,
+    dlq_id: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    return _invoke(
+        ctx,
+        "merchants",
+        replay_ingress_dlq,
+        db,
+        ctx,
+        merchant_id,
+        dlq_id,
+        settings,
+        org=True,
+        copy=org_error_message,
+    )
+
+
+@router.post("/{merchant_id}/shopify/{shop_id}/reregister-hooks")
+def merchant_shopify_reregister_hooks(
+    merchant_id: str,
+    shop_id: str,
+    body: dict,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    return _invoke(
+        ctx,
+        "merchants",
+        reregister_shop_hooks,
+        db,
+        ctx,
+        merchant_id,
+        shop_id,
+        settings,
+        reason=body.get("reason"),
+        org=True,
+        copy=org_error_message,
+    )
+
+
+@router.post("/{merchant_id}/shopify/{shop_id}/booking-policy")
+def merchant_shopify_booking_policy(
+    merchant_id: str,
+    shop_id: str,
+    body: dict,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+) -> dict:
+    return _invoke(
+        ctx,
+        "merchants",
+        set_booking_policy,
+        db,
+        ctx,
+        merchant_id,
+        shop_id,
+        default_vehicle_class=body.get("default_vehicle_class"),
+        default_package_type=body.get("default_package_type"),
+        reason=body.get("reason"),
         org=True,
         copy=org_error_message,
     )

@@ -22,12 +22,26 @@ def shopify_snapshot(order: Order) -> dict[str, Any] | None:
             "shop_domain": raw.get("shop_domain"),
             "order_id": str(raw.get("order_id") or "") or None,
             "order_name": raw.get("order_name") or raw.get("name"),
+            "fulfillment_id": str(raw.get("fulfillment_id") or "") or None,
+            "last_tracking_push_at": raw.get("last_tracking_push_at"),
+            "last_tracking_state": raw.get("last_tracking_state"),
+            "last_fulfillment_error": raw.get("last_fulfillment_error"),
+            "held_for_ops": bool(raw.get("held_for_ops")),
+            "auto_dispatch": raw.get("auto_dispatch"),
+            "last_repush_at": raw.get("last_repush_at"),
         }
     if source == "SHOPIFY":
         return {
             "shop_domain": None,
             "order_id": order.purchase_order_number,
             "order_name": order.internal_reference,
+            "fulfillment_id": None,
+            "last_tracking_push_at": None,
+            "last_tracking_state": None,
+            "last_fulfillment_error": None,
+            "held_for_ops": order.state == "BOOKED",
+            "auto_dispatch": None,
+            "last_repush_at": None,
         }
     return None
 

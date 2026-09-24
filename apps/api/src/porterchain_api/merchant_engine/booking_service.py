@@ -220,6 +220,7 @@ class MerchantBookingService:
         order_source: str = OrderSource.MERCHANT.value,
         idempotency_key: str | None = None,
         sandbox: bool = False,
+        auto_dispatch: bool = True,
     ) -> Order:
         if ctx.merchant.status != MerchantStatus.ACTIVE.value:
             raise BookingValidationError(
@@ -368,6 +369,11 @@ class MerchantBookingService:
         db.commit()
 
         if is_sandbox:
+            db.refresh(order)
+            return order
+
+        if not auto_dispatch:
+            # Hold at BOOKED — admin Release to Fleetbase (Shopify control plane).
             db.refresh(order)
             return order
 

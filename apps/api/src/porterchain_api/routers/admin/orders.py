@@ -331,3 +331,39 @@ def order_run_playbook(
     return _invoke(
         ctx, "orders_write", _orders.run_playbook_from_body, db, settings, ctx, order_id, playbook_id, body
     )
+
+
+@router.post("/orders/{order_id}/shopify/release")
+def order_shopify_release(
+    order_id: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+) -> dict:
+    """Release a held Shopify BOOKED order to Fleetbase (DISPATCH_READY)."""
+    from porterchain_api.admin_engine.shopify_control_service import release_shopify_order_to_fleetbase
+
+    return _invoke(ctx, "orders_write", release_shopify_order_to_fleetbase, db, ctx, order_id)
+
+
+@router.post("/orders/{order_id}/shopify/repush-fulfillment")
+def order_shopify_repush_fulfillment(
+    order_id: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Manually re-push Shopify fulfillment / tracking for a Shopify order."""
+    from porterchain_api.admin_engine.shopify_control_service import repush_shopify_fulfillment
+
+    try:
+        require_module(ctx, "orders_write")
+        return repush_shopify_fulfillment(db, ctx, order_id, settings)
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+

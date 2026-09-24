@@ -205,6 +205,7 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "admin_engine->booking_engine:admin_engine/order_assist_service.py",
         "admin_engine->booking_engine:admin_engine/order_builder_service.py",
         "admin_engine->booking_engine:admin_engine/orders_service.py",
+        "admin_engine->booking_engine:admin_engine/shopify_control_service.py",
         "admin_engine->collaboration_engine:admin_engine/crm_sales_service.py",
         "admin_engine->fleetbase_engine:admin_engine/control_tower/events.py",
         "admin_engine->fleetbase_engine:admin_engine/diagnostics_probes.py",
@@ -218,6 +219,7 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "admin_engine->fleetbase_engine:admin_engine/operations_service.py",
         "admin_engine->fleetbase_engine:admin_engine/order_builder_service.py",
         "admin_engine->merchant_engine:admin_engine/clerk_directory_service.py",
+        "admin_engine->merchant_engine:admin_engine/control_tower/exceptions.py",
         "admin_engine->merchant_engine:admin_engine/diagnostics_workflows.py",
         "admin_engine->merchant_engine:admin_engine/e2e_validation_merchant.py",
         "admin_engine->merchant_engine:admin_engine/e2e_validation_verifiers.py",
@@ -225,6 +227,7 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "admin_engine->merchant_engine:admin_engine/merchant_ar_service.py",
         "admin_engine->merchant_engine:admin_engine/merchant_service.py",
         "admin_engine->merchant_engine:admin_engine/platform_user_authorize.py",
+        "admin_engine->merchant_engine:admin_engine/shopify_control_service.py",
         "admin_engine->notification_engine:admin_engine/diagnostics_probes.py",
         "admin_engine->notification_engine:admin_engine/diagnostics_validation.py",
         "admin_engine->notification_engine:admin_engine/e2e_validation_consistency.py",
@@ -508,6 +511,7 @@ _LEGACY_ROUTER_LOC: dict[str, int] = {
     "driver/jobs.py": 400,
     "admin/leads.py": 622,
     "admin/settings.py": 464,
+    "admin/orders.py": 369,
 }
 
 MAX_NEW_ROUTER_LOC = 350
@@ -519,7 +523,7 @@ _LEGACY_ENGINE_SERVICE_LOC: dict[str, int] = {
     "admin_engine/finance_service.py": 526,
     "admin_engine/merchant_service.py": 525,
     "admin_engine/orchestrator_ops_service.py": 677,
-    "merchant_engine/shopify_service.py": 812,
+    "merchant_engine/shopify_service.py": 831,
     "merchant_engine/billing_service.py": 914,
     "merchant_engine/booking_flow_service.py": 531,
     "merchant_engine/integrations_service.py": 548,

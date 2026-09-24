@@ -63,6 +63,13 @@ const orderRowSchema = z.object({
       shop_domain: z.string().nullable().optional(),
       order_id: z.string().nullable().optional(),
       order_name: z.string().nullable().optional(),
+      fulfillment_id: z.string().nullable().optional(),
+      last_tracking_push_at: z.string().nullable().optional(),
+      last_tracking_state: z.string().nullable().optional(),
+      last_fulfillment_error: z.string().nullable().optional(),
+      held_for_ops: z.boolean().nullable().optional(),
+      auto_dispatch: z.boolean().nullable().optional(),
+      last_repush_at: z.string().nullable().optional(),
     })
     .nullable()
     .optional(),
@@ -271,6 +278,20 @@ export const ordersApi = {
       token,
       { method: "POST", body: JSON.stringify(body) }
     ),
+  shopifyRelease: (token: string, id: string) =>
+    adminFetch<{ ok: boolean; order_id: string; state: string }>(
+      `${B}/${id}/shopify/release`,
+      token,
+      { method: "POST", body: "{}" }
+    ),
+  shopifyRepushFulfillment: (token: string, id: string) =>
+    adminFetch<{
+      ok: boolean;
+      order_id: string;
+      fulfillment_id?: string | null;
+      last_tracking_push_at?: string | null;
+      last_tracking_state?: string | null;
+    }>(`${B}/${id}/shopify/repush-fulfillment`, token, { method: "POST", body: "{}" }),
   amendParcels: (
     token: string,
     id: string,

@@ -322,7 +322,9 @@ export default function OrderDetailView({
             animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl border border-primary/10 bg-white p-5 lg:p-6"
           >
-            {section === "overview" && <OverviewTab detail={detail} live={live} />}
+            {section === "overview" && (
+              <OverviewTab detail={detail} live={live} onRefresh={onRefresh} />
+            )}
             {section === "assist" && (
               <OrderAssistPanel
                 orderId={detail.order_id}
@@ -608,10 +610,44 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
 function OverviewTab({
   detail,
   live,
+  onRefresh,
 }: {
   detail: OrderDetail;
   live?: Record<string, unknown> | null;
+  onRefresh?: () => void;
 }) {
+  const { getApiToken } = useAdminAuth();
+  const [shopifyBusy, setShopifyBusy] = useState<string | null>(null);
+  const [shopifyErr, setShopifyErr] = useState<string | null>(null);
+
+  async function releaseShopify() {
+    setShopifyBusy("release");
+    setShopifyErr(null);
+    try {
+      const token = await getApiToken();
+      await ordersApi.shopifyRelease(token, detail.order_id);
+      onRefresh?.();
+    } catch (e) {
+      setShopifyErr(e instanceof Error ? e.message : "Release failed");
+    } finally {
+      setShopifyBusy(null);
+    }
+  }
+
+  async function repushShopify() {
+    setShopifyBusy("repush");
+    setShopifyErr(null);
+    try {
+      const token = await getApiToken();
+      await ordersApi.shopifyRepushFulfillment(token, detail.order_id);
+      onRefresh?.();
+    } catch (e) {
+      setShopifyErr(e instanceof Error ? e.message : "Re-push failed");
+    } finally {
+      setShopifyBusy(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
@@ -656,6 +692,46 @@ function OverviewTab({
               value={detail.shopify.order_name || detail.shopify.order_id || "—"}
             />
             <Row label="Shop" value={detail.shopify.shop_domain || "—"} />
+            <Row label="Fulfillment id" value={detail.shopify.fulfillment_id || "—"} mono />
+            <Row
+              label="Last tracking push"
+              value={
+                detail.shopify.last_tracking_push_at
+                  ? relativeTime(detail.shopify.last_tracking_push_at)
+                  : "—"
+              }
+            />
+            <Row label="Tracking state" value={detail.shopify.last_tracking_state || "—"} />
+            {detail.shopify.last_fulfillment_error ? (
+              <p className="mt-1 text-xs text-red-700">{detail.shopify.last_fulfillment_error}</p>
+            ) : null}
+            {detail.shopify.held_for_ops || detail.state === "BOOKED" ? (
+              <p className="mt-2 text-xs text-amber-700">
+                Held for ops — release to Fleetbase when ready.
+              </p>
+            ) : null}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(detail.shopify.held_for_ops || detail.state === "BOOKED") &&
+              detail.order_source === "SHOPIFY" ? (
+                <Button
+                  variant="primary"
+                  className="text-xs"
+                  disabled={shopifyBusy === "release"}
+                  onClick={() => void releaseShopify()}
+                >
+                  {shopifyBusy === "release" ? "…" : "Release to Fleetbase"}
+                </Button>
+              ) : null}
+              <Button
+                variant="outline"
+                className="text-xs"
+                disabled={shopifyBusy === "repush"}
+                onClick={() => void repushShopify()}
+              >
+                {shopifyBusy === "repush" ? "…" : "Re-push fulfillment"}
+              </Button>
+            </div>
+            {shopifyErr ? <p className="mt-1 text-xs text-red-700">{shopifyErr}</p> : null}
             {shopifyAdminUrl(detail.shopify) ? (
               <p className="mt-2 text-sm">
                 <a

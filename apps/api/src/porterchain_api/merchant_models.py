@@ -275,12 +275,45 @@ class ShopifyShop(Base):
     installed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     uninstalled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_webhook_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Soft pause: accept webhooks but do not book capacity (≠ force-disconnect).
+    ingress_paused: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    # When False, book stays BOOKED until admin Release to Fleetbase.
+    # New shops default False (ops release); set True only after onboarding is green.
+    auto_dispatch: Mapped[bool] = mapped_column(Boolean, default=False)
+    default_vehicle_class: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    default_package_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
     merchant: Mapped[Merchant] = relationship(back_populates="shopify_shops")
+
+
+class ShopifyIngressDlq(Base):
+    """Failed / held Shopify webhook books — admin ledger + replay source."""
+
+    __tablename__ = "shopify_ingress_dlq"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    shop_id: Mapped[str | None] = mapped_column(ForeignKey("shopify_shops.id"), nullable=True, index=True)
+    shop_domain: Mapped[str] = mapped_column(String(255))
+    topic: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    action: Mapped[str] = mapped_column(String(64))
+    shopify_order_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    reason_code: Mapped[str] = mapped_column(String(64))
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    raw_body: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(32), default="open", index=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    porterchain_order_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_by_admin_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class ShopifyRateQuote(Base):

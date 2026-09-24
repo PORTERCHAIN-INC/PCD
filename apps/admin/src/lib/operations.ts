@@ -15,6 +15,7 @@ export type OpsStats = {
   open_claims: number;
   support_tickets: number;
   open_exceptions: number;
+  shopify_ingress_dlq_open?: number;
   sla_at_risk?: number;
   sla_breached?: number;
   deltas?: {
@@ -74,6 +75,7 @@ export type OpsException = {
   order_state?: string;
   tracking_number: string;
   merchant: string | null;
+  merchant_id?: string | null;
   customer_email?: string | null;
   reported_by: string;
   created_at: string | null;
@@ -81,6 +83,10 @@ export type OpsException = {
   acknowledged_by?: string | null;
   resolution_note?: string | null;
   resolved_at?: string | null;
+  source?: string;
+  dlq_id?: string;
+  shop_domain?: string | null;
+  reason_code?: string;
 };
 export type ActivityEvent = {
   id: string;

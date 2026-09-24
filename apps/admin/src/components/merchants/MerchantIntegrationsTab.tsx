@@ -63,6 +63,21 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
   const [deliveries, setDeliveries] = useState<MerchantWebhookDeliveryRow[]>([]);
   const [installShop, setInstallShop] = useState("");
   const [freezeReason, setFreezeReason] = useState("");
+  const [dlqOpen, setDlqOpen] = useState(false);
+  const [dlqRows, setDlqRows] = useState<
+    Array<{
+      id: string;
+      shop_domain: string;
+      action: string;
+      shopify_order_id: string | null;
+      reason_code: string;
+      detail: string | null;
+      status: string;
+      attempts: number;
+      porterchain_order_id: string | null;
+      created_at: string | null;
+    }>
+  >([]);
 
   const apiKeys = data?.api_keys ?? [];
   const webhooks = data?.webhooks ?? [];
@@ -228,6 +243,154 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
       setVersion((v) => v + 1);
     } catch (e) {
       setError(merchantActionMessage(e instanceof Error ? e.message : "Force-disconnect failed"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function toggleIngressPause(shopId: string, domain: string, currentlyPaused: boolean) {
+    if (!canElevate) return;
+    const next = !currentlyPaused;
+    const reason =
+      window.prompt(
+        `${next ? "Pause" : "Resume"} Shopify ingress for ${domain}? Enter reason (required):`
+      ) || "";
+    if (!reason.trim()) {
+      setError(merchantActionMessage("reason_required"));
+      return;
+    }
+    setBusy(`pause-${shopId}`);
+    setError(null);
+    try {
+      const token = await getApiToken();
+      await merchants.shopifyIngressPause(token, id, shopId, next, reason.trim());
+      setVersion((v) => v + 1);
+    } catch (e) {
+      setError(merchantActionMessage(e instanceof Error ? e.message : "Ingress pause failed"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function toggleAutoDispatch(shopId: string, domain: string, currentlyOn: boolean) {
+    if (!canElevate) return;
+    const next = !currentlyOn;
+    const reason =
+      window.prompt(
+        `${next ? "Enable" : "Disable"} auto-dispatch for ${domain}? Enter reason (required):`
+      ) || "";
+    if (!reason.trim()) {
+      setError(merchantActionMessage("reason_required"));
+      return;
+    }
+    setBusy(`auto-${shopId}`);
+    setError(null);
+    try {
+      const token = await getApiToken();
+      await merchants.shopifyAutoDispatch(token, id, shopId, next, reason.trim());
+      setVersion((v) => v + 1);
+    } catch (e) {
+      setError(
+        merchantActionMessage(e instanceof Error ? e.message : "Auto-dispatch update failed")
+      );
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function loadDlq() {
+    if (dlqOpen) {
+      setDlqOpen(false);
+      return;
+    }
+    setBusy("dlq");
+    setError(null);
+    try {
+      const token = await getApiToken();
+      const res = await merchants.shopifyIngressDlq(token, id);
+      setDlqRows(res.items);
+      setDlqOpen(true);
+    } catch (e) {
+      setError(
+        merchantActionMessage(e instanceof Error ? e.message : "Could not load ingress DLQ")
+      );
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function replayDlq(dlqId: string) {
+    if (!canMutate) return;
+    setBusy(`replay-${dlqId}`);
+    setError(null);
+    try {
+      const token = await getApiToken();
+      await merchants.shopifyIngressDlqReplay(token, id, dlqId);
+      const res = await merchants.shopifyIngressDlq(token, id);
+      setDlqRows(res.items);
+      setVersion((v) => v + 1);
+    } catch (e) {
+      setError(merchantActionMessage(e instanceof Error ? e.message : "Replay failed"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function reregisterHooks(shopId: string, domain: string) {
+    if (!canElevate) return;
+    const reason =
+      window.prompt(`Re-register Shopify webhooks + CarrierService for ${domain}? Reason:`) || "";
+    if (!reason.trim()) {
+      setError(merchantActionMessage("reason_required"));
+      return;
+    }
+    setBusy(`reg-${shopId}`);
+    setError(null);
+    try {
+      const token = await getApiToken();
+      await merchants.shopifyReregisterHooks(token, id, shopId, reason.trim());
+      setVersion((v) => v + 1);
+    } catch (e) {
+      setError(merchantActionMessage(e instanceof Error ? e.message : "Re-register failed"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function editBookingPolicy(
+    shopId: string,
+    domain: string,
+    vehicle?: string | null,
+    pkg?: string | null
+  ) {
+    if (!canElevate) return;
+    const vehicleNext =
+      window.prompt(
+        `Default vehicle for ${domain} (e.g. cargoVan, boxTruck):`,
+        vehicle || "cargoVan"
+      ) ?? "";
+    const packageNext =
+      window.prompt(
+        `Default package for ${domain} (e.g. looseParcel, ltlPallet):`,
+        pkg || "looseParcel"
+      ) ?? "";
+    const reason = window.prompt("Reason for booking policy change:") || "";
+    if (!reason.trim()) {
+      setError(merchantActionMessage("reason_required"));
+      return;
+    }
+    setBusy(`policy-${shopId}`);
+    setError(null);
+    try {
+      const token = await getApiToken();
+      await merchants.shopifyBookingPolicy(token, id, shopId, {
+        default_vehicle_class: vehicleNext.trim() || null,
+        default_package_type: packageNext.trim() || null,
+        reason: reason.trim(),
+      });
+      setVersion((v) => v + 1);
+    } catch (e) {
+      setError(merchantActionMessage(e instanceof Error ? e.message : "Policy update failed"));
     } finally {
       setBusy(null);
     }
@@ -480,6 +643,7 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
               label="Last fulfillment"
               value={partner.last_fulfillment_at ? relativeTime(partner.last_fulfillment_at) : "—"}
             />
+            <Metric label="Ingress DLQ open" value={String(partner.ingress_dlq_open ?? 0)} />
             {partner.carrier_rates_url ? (
               <div className="sm:col-span-2 lg:col-span-4 flex flex-wrap items-center gap-2 text-xs">
                 <span className="text-muted">CarrierService callback</span>
@@ -571,6 +735,14 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
                     </p>
                   ) : null}
                   <div className="mt-2 flex flex-wrap gap-2">
+                    {s.ingress_paused ? <Badge tone="amber">Ingress paused</Badge> : null}
+                    {s.auto_dispatch === false ? <Badge tone="amber">Hold at BOOKED</Badge> : null}
+                    {s.default_vehicle_class || s.default_package_type ? (
+                      <Badge tone="slate">
+                        {s.default_vehicle_class || "cargoVan"} /{" "}
+                        {s.default_package_type || "looseParcel"}
+                      </Badge>
+                    ) : null}
                     {canMutate && s.installed ? (
                       <Button
                         variant="outline"
@@ -579,6 +751,65 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
                         onClick={() => void copyInstallUrl(s.shop_domain)}
                       >
                         Copy install URL
+                      </Button>
+                    ) : null}
+                    {canElevate && s.installed ? (
+                      <Button
+                        variant="outline"
+                        className="text-xs"
+                        disabled={busy === `reg-${s.id}`}
+                        onClick={() => void reregisterHooks(s.id, s.shop_domain)}
+                      >
+                        {busy === `reg-${s.id}` ? "…" : "Re-register hooks"}
+                      </Button>
+                    ) : null}
+                    {canElevate && s.installed ? (
+                      <Button
+                        variant="outline"
+                        className="text-xs"
+                        disabled={busy === `policy-${s.id}`}
+                        onClick={() =>
+                          void editBookingPolicy(
+                            s.id,
+                            s.shop_domain,
+                            s.default_vehicle_class,
+                            s.default_package_type
+                          )
+                        }
+                      >
+                        {busy === `policy-${s.id}` ? "…" : "Booking policy"}
+                      </Button>
+                    ) : null}
+                    {canElevate && s.installed ? (
+                      <Button
+                        variant="outline"
+                        className="text-xs"
+                        disabled={busy === `pause-${s.id}`}
+                        onClick={() =>
+                          void toggleIngressPause(s.id, s.shop_domain, Boolean(s.ingress_paused))
+                        }
+                      >
+                        {busy === `pause-${s.id}`
+                          ? "…"
+                          : s.ingress_paused
+                            ? "Resume ingress"
+                            : "Pause ingress"}
+                      </Button>
+                    ) : null}
+                    {canElevate && s.installed ? (
+                      <Button
+                        variant="outline"
+                        className="text-xs"
+                        disabled={busy === `auto-${s.id}`}
+                        onClick={() =>
+                          void toggleAutoDispatch(s.id, s.shop_domain, s.auto_dispatch !== false)
+                        }
+                      >
+                        {busy === `auto-${s.id}`
+                          ? "…"
+                          : s.auto_dispatch === false
+                            ? "Enable auto-dispatch"
+                            : "Hold at BOOKED"}
                       </Button>
                     ) : null}
                     {canElevate && s.installed ? (
@@ -600,6 +831,52 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
             ))}
           </div>
         )}
+        <div className="border-t border-primary/5 px-5 py-3">
+          <Button
+            variant="outline"
+            className="text-xs"
+            disabled={busy === "dlq"}
+            onClick={() => void loadDlq()}
+          >
+            {busy === "dlq" ? "…" : dlqOpen ? "Hide ingress DLQ" : "Show ingress DLQ"}
+          </Button>
+          {dlqOpen ? (
+            <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto text-xs">
+              {dlqRows.length === 0 ? (
+                <li className="text-muted">No DLQ rows.</li>
+              ) : (
+                dlqRows.map((row) => (
+                  <li
+                    key={row.id}
+                    className="flex flex-wrap items-start justify-between gap-2 rounded-lg bg-gray-bg px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium text-primary">
+                        {row.reason_code} · {row.status}
+                      </p>
+                      <p className="text-muted">
+                        {row.shop_domain}
+                        {row.shopify_order_id ? ` · #${row.shopify_order_id}` : ""}
+                        {row.created_at ? ` · ${relativeTime(row.created_at)}` : ""}
+                      </p>
+                      {row.detail ? <p className="mt-0.5 text-muted">{row.detail}</p> : null}
+                    </div>
+                    {canMutate && row.status !== "resolved" ? (
+                      <Button
+                        variant="outline"
+                        className="text-xs"
+                        disabled={busy === `replay-${row.id}`}
+                        onClick={() => void replayDlq(row.id)}
+                      >
+                        {busy === `replay-${row.id}` ? "…" : "Replay"}
+                      </Button>
+                    ) : null}
+                  </li>
+                ))
+              )}
+            </ul>
+          ) : null}
+        </div>
       </SectionCard>
 
       <div className="grid gap-5 lg:grid-cols-2">

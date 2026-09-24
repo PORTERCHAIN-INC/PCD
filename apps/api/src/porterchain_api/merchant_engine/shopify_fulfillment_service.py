@@ -84,19 +84,33 @@ def push_fulfillment(db: Session, settings: Settings, order: Order) -> None:
     First call (no ``fulfillment_id`` yet) creates the fulfillment via FO line
     items. Later lifecycle events (picked up / in transit / delivered) update
     tracking only so the buyer sees mid-flight status — Stripe-like trust.
+    Silent no-ops persist ``last_fulfillment_error`` so admin can see why.
     """
     if order.order_source != OrderSource.SHOPIFY.value:
         return
+
+    def _record_error(code: str) -> None:
+        extra = dict(order.compliance_metadata or {})
+        shopify_meta = dict(extra.get("shopify") or {})
+        shopify_meta["last_fulfillment_error"] = code
+        shopify_meta["last_fulfillment_error_at"] = datetime.now(UTC).isoformat()
+        extra["shopify"] = shopify_meta
+        order.compliance_metadata = extra
+        db.commit()
+
     meta = (order.compliance_metadata or {}).get("shopify") or {}
     shop_domain = str(meta.get("shop_domain") or "")
     shopify_order_id = str(meta.get("order_id") or order.purchase_order_number or "")
     if not shop_domain or not shopify_order_id:
+        _record_error("missing_shopify_ids")
         return
     shop = _helpers()._active_shop(db, shop_domain)
     if not shop:
+        _record_error("shop_not_connected")
         return
     token = _helpers()._decrypt(shop.encrypted_access_token, settings)
     if not token:
+        _record_error("missing_access_token")
         return
     tracking = order.tracking_number or ""
     tracking_url = (
@@ -128,9 +142,13 @@ def push_fulfillment(db: Session, settings: Settings, order: Order) -> None:
             shopify_meta = dict(extra.get("shopify") or {})
             shopify_meta["last_tracking_push_at"] = datetime.now(UTC).isoformat()
             shopify_meta["last_tracking_state"] = order.state
+            shopify_meta.pop("last_fulfillment_error", None)
+            shopify_meta.pop("last_fulfillment_error_at", None)
             extra["shopify"] = shopify_meta
             order.compliance_metadata = extra
             db.commit()
+        else:
+            _record_error("update_tracking_failed")
         return
 
     fo = _helpers()._admin_get(
@@ -139,6 +157,7 @@ def push_fulfillment(db: Session, settings: Settings, order: Order) -> None:
     fulfillment_orders = (fo or {}).get("fulfillment_orders") if isinstance(fo, dict) else None
     if not fulfillment_orders:
         logger.info("shopify_no_fulfillment_orders order=%s shopify=%s", order.id, shopify_order_id)
+        _record_error("no_fulfillment_orders")
         return
     line_items = [{"fulfillment_order_id": item.get("id")} for item in fulfillment_orders if item.get("id")]
     resp = _helpers()._admin_post(
@@ -163,10 +182,46 @@ def push_fulfillment(db: Session, settings: Settings, order: Order) -> None:
             shopify_meta["fulfillment_id"] = str(fid)
             shopify_meta["last_tracking_push_at"] = datetime.now(UTC).isoformat()
             shopify_meta["last_tracking_state"] = order.state
+            shopify_meta.pop("last_fulfillment_error", None)
+            shopify_meta.pop("last_fulfillment_error_at", None)
             extra["shopify"] = shopify_meta
             order.compliance_metadata = extra
             db.commit()
+            return
+        _record_error("fulfillment_create_no_id")
+        return
+    _record_error("fulfillment_create_failed")
 
+
+def re_register_shop_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, Any]:
+    """Admin heal: re-run webhook + carrier (+ FO if flag) registration."""
+    errors: list[str] = []
+    try:
+        _register_webhooks(shop, settings)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("shopify_webhook_reregister_failed shop=%s", shop.shop_domain, exc_info=True)
+        errors.append(f"webhooks:{exc}")
+    try:
+        _register_carrier_service(shop, settings)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("shopify_carrier_reregister_failed shop=%s", shop.shop_domain, exc_info=True)
+        errors.append(f"carrier:{exc}")
+    if settings.shopify_fulfillment_service_enabled:
+        try:
+            _register_fulfillment_service(shop, settings)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "shopify_fulfillment_service_reregister_failed shop=%s",
+                shop.shop_domain,
+                exc_info=True,
+            )
+            errors.append(f"fulfillment_service:{exc}")
+    return {
+        "shop_id": shop.id,
+        "shop_domain": shop.shop_domain,
+        "ok": not errors,
+        "errors": errors,
+    }
 
 
 def _post_install_hooks(shop: ShopifyShop, settings: Settings) -> None:

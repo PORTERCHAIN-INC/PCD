@@ -1,24 +1,27 @@
-# This file is the Shopify Partners manifest for a later public listing.
-# Runtime lives in the PorterChain API (`POST /v1/integrations/shopify/webhooks`).
+# Shopify Partners manifest stub for a later public listing.
+# Runtime SSOT: PorterChain API (OAuth scopes, install webhooks, CarrierService).
+# Keep client_id empty until Partners publish is an explicit ops decision.
+# FO request topics stay out of this file — they register only when
+# SHOPIFY_FULFILLMENT_SERVICE_ENABLED=true (default off).
 
 name = "PorterChain"
 client_id = ""
-application_url = "https://merchant.porterchain.com/api"
+application_url = "https://merchant.porterchain.com/shopify"
 embedded = false
 
 [access_scopes]
-scopes = "read_orders,write_fulfillments,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_assigned_fulfillment_orders"
+scopes = "read_orders,write_fulfillments,write_shipping,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders"
 
 [auth]
 redirect_urls = [ "https://api.porterchain.com/v1/integrations/shopify/callback" ]
 
 [webhooks]
-api_version = "2025-01"
+api_version = "2026-07"
 
   [[webhooks.subscriptions]]
-  topics = [ "orders/create" ]
+  topics = [ "orders/create", "orders/cancelled", "app/uninstalled" ]
   uri = "https://api.porterchain.com/v1/integrations/shopify/webhooks"
 
   [[webhooks.subscriptions]]
-  topics = [ "app/uninstalled" ]
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
   uri = "https://api.porterchain.com/v1/integrations/shopify/webhooks"

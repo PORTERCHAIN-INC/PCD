@@ -588,6 +588,10 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
                 "default_pickup": pickup.formatted if pickup else None,
                 "default_pickup_address_id": shop.default_pickup_address_id,
                 "missing_pickup": installed and not shop.default_pickup_address_id,
+                "ingress_paused": bool(getattr(shop, "ingress_paused", False)),
+                "auto_dispatch": bool(getattr(shop, "auto_dispatch", False)),
+                "default_vehicle_class": getattr(shop, "default_vehicle_class", None),
+                "default_package_type": getattr(shop, "default_package_type", None),
             }
         )
 
@@ -688,6 +692,17 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
         book_meta = ((last_book.compliance_metadata or {}).get("shopify") or {})
         quote_book_locked = bool(book_meta.get("rate_quote_id"))
 
+    from porterchain_api.merchant_models import ShopifyIngressDlq
+
+    dlq_open = (
+        db.query(ShopifyIngressDlq)
+        .filter(
+            ShopifyIngressDlq.merchant_id == merchant_id,
+            ShopifyIngressDlq.status.in_(("open", "held")),
+        )
+        .count()
+    )
+
     shopify_partner = {
         "carrier_rates_url": carrier_rates_url(settings),
         "last_rate_quote_at": last_quote.created_at.isoformat() if last_quote and last_quote.created_at else None,
@@ -705,6 +720,7 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
         ),
         "fulfillment_service_url": fulfillment_service_url(settings),
         "fulfillment_service_enabled": bool(settings.shopify_fulfillment_service_enabled),
+        "ingress_dlq_open": dlq_open,
     }
 
     return {

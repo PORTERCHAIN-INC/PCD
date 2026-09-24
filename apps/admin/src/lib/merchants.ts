@@ -346,6 +346,10 @@ export type MerchantApi = {
     default_pickup?: string | null;
     default_pickup_address_id?: string | null;
     missing_pickup?: boolean;
+    ingress_paused?: boolean;
+    auto_dispatch?: boolean;
+    default_vehicle_class?: string | null;
+    default_package_type?: string | null;
   }>;
   shopify_connected?: boolean;
   shopify_webhook_url?: string | null;
@@ -392,8 +396,9 @@ export type MerchantApi = {
     oauth_configured?: boolean;
     mid_flight_tracking?: boolean;
     fo_partner_path?: string;
-    fulfillment_service_url?: string;
+    fulfillment_service_url?: string | null;
     fulfillment_service_enabled?: boolean;
+    ingress_dlq_open?: number;
   };
   available_integrations?: string[];
 };
@@ -858,6 +863,64 @@ export const merchants = {
       `${B}/${id}/shopify/install-url${qs({ shop })}`,
       t
     ),
+  shopifyIngressPause: (t: string, id: string, shopId: string, paused: boolean, reason: string) =>
+    adminFetch<{ shop_id: string; shop_domain: string; ingress_paused: boolean }>(
+      `${B}/${id}/shopify/${shopId}/ingress-pause`,
+      t,
+      { method: "POST", body: JSON.stringify({ paused, reason }) }
+    ),
+  shopifyAutoDispatch: (t: string, id: string, shopId: string, enabled: boolean, reason: string) =>
+    adminFetch<{ shop_id: string; shop_domain: string; auto_dispatch: boolean }>(
+      `${B}/${id}/shopify/${shopId}/auto-dispatch`,
+      t,
+      { method: "POST", body: JSON.stringify({ enabled, reason }) }
+    ),
+  shopifyIngressDlq: (t: string, id: string, status?: string) =>
+    adminFetch<{
+      items: Array<{
+        id: string;
+        shop_domain: string;
+        action: string;
+        shopify_order_id: string | null;
+        reason_code: string;
+        detail: string | null;
+        status: string;
+        attempts: number;
+        porterchain_order_id: string | null;
+        created_at: string | null;
+      }>;
+      count: number;
+    }>(`${B}/${id}/shopify/ingress-dlq${qs({ status })}`, t),
+  shopifyIngressDlqReplay: (t: string, id: string, dlqId: string) =>
+    adminFetch<Record<string, unknown>>(`${B}/${id}/shopify/ingress-dlq/${dlqId}/replay`, t, {
+      method: "POST",
+      body: "{}",
+    }),
+  shopifyReregisterHooks: (t: string, id: string, shopId: string, reason: string) =>
+    adminFetch<{ shop_id: string; shop_domain: string; ok: boolean; errors: string[] }>(
+      `${B}/${id}/shopify/${shopId}/reregister-hooks`,
+      t,
+      { method: "POST", body: JSON.stringify({ reason }) }
+    ),
+  shopifyBookingPolicy: (
+    t: string,
+    id: string,
+    shopId: string,
+    body: {
+      default_vehicle_class?: string | null;
+      default_package_type?: string | null;
+      reason: string;
+    }
+  ) =>
+    adminFetch<{
+      shop_id: string;
+      shop_domain: string;
+      default_vehicle_class: string | null;
+      default_package_type: string | null;
+    }>(`${B}/${id}/shopify/${shopId}/booking-policy`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   arPreview: (t: string, id: string) =>
     adminFetch<{
       merchant_id: string;
@@ -1023,8 +1086,13 @@ const MERCHANT_ACTION_MESSAGES: Record<string, string> = {
   shop_domain_invalid: "Enter a valid myshopify.com shop domain.",
   shopify_oauth_not_configured: "Shopify OAuth is not configured on this environment.",
   integrations_elevated_required:
-    "Only Superadmin or Compliance can freeze Partner API or force-disconnect Shopify.",
+    "Only Superadmin or Compliance can freeze Partner API, pause Shopify ingress, or force-disconnect Shopify.",
   shop_not_found: "That Shopify shop was not found.",
+  dlq_not_found: "That Shopify ingress DLQ row was not found.",
+  ingress_still_paused: "Resume Shopify ingress on this shop before replaying held webhooks.",
+  vehicle_class_invalid: "Pick a valid vehicle class (e.g. cargoVan).",
+  package_type_invalid: "Pick a valid package type (e.g. looseParcel).",
+  shop_not_connected: "That Shopify shop is not connected.",
   contract_not_found: "That contract was not found for this company.",
   merchant_has_no_crm_company: "Link a CRM company before managing contracts.",
   delivery_not_found: "That webhook delivery was not found.",

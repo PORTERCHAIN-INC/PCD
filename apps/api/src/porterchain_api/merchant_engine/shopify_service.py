@@ -222,7 +222,7 @@ def connect_custom_app(
     if row and row.merchant_id != ctx.merchant.id:
         raise ValueError("shop_already_connected")
     if row is None:
-        row = ShopifyShop(merchant_id=ctx.merchant.id, shop_domain=shop)
+        row = ShopifyShop(merchant_id=ctx.merchant.id, shop_domain=shop, auto_dispatch=False)
         db.add(row)
     row.merchant_id = ctx.merchant.id
     row.encrypted_access_token = _encrypt(token, settings)
@@ -306,7 +306,7 @@ def complete_oauth(
     if row and row.merchant_id != merchant.id:
         raise ValueError("shop_already_connected")
     if row is None:
-        row = ShopifyShop(merchant_id=merchant.id, shop_domain=shop)
+        row = ShopifyShop(merchant_id=merchant.id, shop_domain=shop, auto_dispatch=False)
         db.add(row)
     row.merchant_id = merchant.id
     row.encrypted_access_token = _encrypt(access_token, settings)
@@ -409,33 +409,100 @@ def ingest_webhook(
 
 def process_queued_webhook(db: Session, settings: Settings, payload: dict[str, Any]) -> dict[str, Any]:
     """Worker entry: create shipment or cancel from a queued Shopify webhook."""
+    from porterchain_api.merchant_engine.shopify_ingress_dlq import (
+        REASON_INGRESS_PAUSED,
+        REASON_PAYLOAD,
+        reason_from_exc,
+        record_ingress_dlq,
+    )
+
     action = payload.get("action")
     shop_domain = normalize_shop_domain(str(payload.get("shop_domain") or ""))
+    topic = str(payload.get("topic") or "") or None
     raw = payload.get("raw_body") or "{}"
     if isinstance(raw, bytes):
         raw_text = raw.decode("utf-8")
     else:
         raw_text = str(raw)
-    body = json.loads(raw_text or "{}")
+    from_dlq = bool(payload.get("_from_dlq_replay"))
+
+    try:
+        body = json.loads(raw_text or "{}")
+    except json.JSONDecodeError as exc:
+        shop = _active_shop(db, shop_domain) or (
+            db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop_domain).first()
+        )
+        if shop and not from_dlq:
+            record_ingress_dlq(
+                db,
+                shop=shop,
+                shop_domain=shop_domain,
+                action=str(action or "unknown"),
+                topic=topic,
+                raw_body=raw_text,
+                reason_code=REASON_PAYLOAD,
+                detail=str(exc),
+                status="open",
+            )
+        raise ValueError("payload_invalid") from exc
     if not isinstance(body, dict):
         raise ValueError("payload_invalid")
 
-    if action == "shopify_orders_create":
-        return _book_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
-    if action == "shopify_orders_cancelled":
-        return _cancel_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
-    if action in {"shopify_fo_request", "shopify_fo_cancel_request"}:
-        # Foundation: enqueue + ack only. Accept→book is intentional hold (PCD_INTENTIONAL_SKIPS).
-        if not settings.shopify_fulfillment_service_enabled:
-            return {"ok": True, "skipped": "fo_flag_off", "action": action}
-        logger.info(
-            "shopify_fo_stub action=%s shop=%s keys=%s",
-            action,
-            shop_domain,
-            list(body.keys())[:12],
-        )
-        return {"ok": True, "stub": True, "action": action, "detail": "fo_accept_book_held"}
-    raise ValueError(f"unknown_shopify_action:{action}")
+    shop = _active_shop(db, shop_domain)
+    if action == "shopify_orders_create" and shop and shop.ingress_paused:
+        if not from_dlq:
+            record_ingress_dlq(
+                db,
+                shop=shop,
+                shop_domain=shop_domain,
+                action=str(action),
+                topic=topic,
+                raw_body=raw_text,
+                reason_code=REASON_INGRESS_PAUSED,
+                detail="ingress_paused",
+                status="held",
+                payload=body,
+            )
+        return {"ok": True, "skipped": "ingress_paused", "held": True}
+
+    try:
+        if action == "shopify_orders_create":
+            return _book_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
+        if action == "shopify_orders_cancelled":
+            return _cancel_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
+        if action in {"shopify_fo_request", "shopify_fo_cancel_request"}:
+            # Foundation: enqueue + ack only. Accept→book is intentional hold (PCD_INTENTIONAL_SKIPS).
+            if not settings.shopify_fulfillment_service_enabled:
+                return {"ok": True, "skipped": "fo_flag_off", "action": action}
+            logger.info(
+                "shopify_fo_stub action=%s shop=%s keys=%s",
+                action,
+                shop_domain,
+                list(body.keys())[:12],
+            )
+            return {"ok": True, "stub": True, "action": action, "detail": "fo_accept_book_held"}
+        raise ValueError(f"unknown_shopify_action:{action}")
+    except Exception as exc:  # noqa: BLE001 — persist DLQ then re-raise for worker visibility
+        if action in {"shopify_orders_create", "shopify_orders_cancelled"} and not from_dlq:
+            shop_row = shop or db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop_domain).first()
+            if shop_row:
+                reason, detail = reason_from_exc(exc)
+                try:
+                    record_ingress_dlq(
+                        db,
+                        shop=shop_row,
+                        shop_domain=shop_domain,
+                        action=str(action),
+                        topic=topic,
+                        raw_body=raw_text,
+                        reason_code=reason,
+                        detail=detail,
+                        status="open",
+                        payload=body,
+                    )
+                except Exception:  # noqa: BLE001
+                    logger.exception("shopify_dlq_record_failed shop=%s", shop_domain)
+        raise
 
 
 def _book_from_shopify_payload(
@@ -454,8 +521,15 @@ def _book_from_shopify_payload(
         raise RuntimeError("default_pickup_required")
     pickup = _ensure_coords(address_from_saved(pickup_row))
     body = map_shopify_order(payload, pickup=pickup)
+    vehicle = (getattr(shop, "default_vehicle_class", None) or "").strip() or "cargoVan"
+    package = (getattr(shop, "default_package_type", None) or "").strip() or "looseParcel"
     body = body.model_copy(
-        update={"pickup": _ensure_coords(body.pickup), "dropoff": _ensure_coords(body.dropoff)}
+        update={
+            "pickup": _ensure_coords(body.pickup),
+            "dropoff": _ensure_coords(body.dropoff),
+            "vehicle_class": vehicle,
+            "package_type": package,
+        }
     )
     assert_ontario_booking(body)
 
@@ -472,6 +546,7 @@ def _book_from_shopify_payload(
 
     # Shopify marks test checkouts with test=true; never book live capacity for those.
     is_sandbox = bool(payload.get("test")) or bool(payload.get("test_order"))
+    auto_dispatch = bool(getattr(shop, "auto_dispatch", True))
     try:
         order = _booking.create_shipment(
             db,
@@ -481,6 +556,7 @@ def _book_from_shopify_payload(
             order_source=OrderSource.SHOPIFY.value,
             idempotency_key=key,
             sandbox=is_sandbox,
+            auto_dispatch=auto_dispatch,
         )
     except IntegrityError:
         db.rollback()
@@ -493,6 +569,8 @@ def _book_from_shopify_payload(
         "shop_domain": shop.shop_domain,
         "order_id": order_id,
         "order_name": _name,
+        "held_for_ops": (not is_sandbox) and (not auto_dispatch),
+        "auto_dispatch": auto_dispatch,
     }
     try:
         from porterchain_api.integrations.shopify_carrier_rates import find_quote_for_book
@@ -508,7 +586,13 @@ def _book_from_shopify_payload(
     extra["shopify"] = shopify_meta
     order.compliance_metadata = extra
     db.commit()
-    return {"ok": True, "order_id": order.id, "tracking_number": order.tracking_number}
+    return {
+        "ok": True,
+        "order_id": order.id,
+        "tracking_number": order.tracking_number,
+        "held_for_ops": shopify_meta.get("held_for_ops"),
+        "state": order.state,
+    }
 
 
 def _cancel_from_shopify_payload(
