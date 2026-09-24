@@ -27,12 +27,12 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-website
-  API_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-api
-  ADMIN_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-admin
-  MERCHANT_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-merchant
-  DRIVER_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-driver
-  CUSTOMER_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pcd-customer
+  IMAGE_NAME: ghcr.io/${{ lower(github.repository_owner) }}/pcd-website
+  API_IMAGE_NAME: ghcr.io/${{ lower(github.repository_owner) }}/pcd-api
+  ADMIN_IMAGE_NAME: ghcr.io/${{ lower(github.repository_owner) }}/pcd-admin
+  MERCHANT_IMAGE_NAME: ghcr.io/${{ lower(github.repository_owner) }}/pcd-merchant
+  DRIVER_IMAGE_NAME: ghcr.io/${{ lower(github.repository_owner) }}/pcd-driver
+  CUSTOMER_IMAGE_NAME: ghcr.io/${{ lower(github.repository_owner) }}/pcd-customer
   PROD_API_URL: https://api.porterchain.com
   PROD_SITE_URL: https://porterchain.com
 
