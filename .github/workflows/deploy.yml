@@ -9,7 +9,8 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-    branches: [main]
+    # Default branch is base-code; keep main for future cutover.
+    branches: [main, base-code]
   workflow_dispatch:
     inputs:
       scope:

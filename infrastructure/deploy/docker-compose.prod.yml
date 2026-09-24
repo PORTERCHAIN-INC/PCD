@@ -199,7 +199,7 @@ services:
       - no-new-privileges:true
 
   api:
-    image: ${API_IMAGE:-ghcr.io/porterchain/pcd-api:latest}
+    image: ${API_IMAGE:-ghcr.io/porterchain-inc/pcd-api:latest}
     restart: unless-stopped
     pull_policy: missing
     # No container_name — required for `docker compose up --scale api=N` (ADR-012).
@@ -327,7 +327,7 @@ services:
       - no-new-privileges:true
 
   worker:
-    image: ${API_IMAGE:-ghcr.io/porterchain/pcd-api:latest}
+    image: ${API_IMAGE:-ghcr.io/porterchain-inc/pcd-api:latest}
     container_name: pcd-worker
     restart: unless-stopped
     pull_policy: missing
@@ -416,7 +416,7 @@ services:
       - no-new-privileges:true
 
   web:
-    image: ${WEB_IMAGE:-ghcr.io/porterchain/pcd-website:latest}
+    image: ${WEB_IMAGE:-ghcr.io/porterchain-inc/pcd-website:latest}
     container_name: pcd-website
     restart: unless-stopped
     pull_policy: missing
@@ -440,7 +440,7 @@ services:
       - no-new-privileges:true
 
   admin:
-    image: ${ADMIN_IMAGE:-ghcr.io/porterchain/pcd-admin:latest}
+    image: ${ADMIN_IMAGE:-ghcr.io/porterchain-inc/pcd-admin:latest}
     container_name: pcd-admin
     restart: unless-stopped
     pull_policy: missing
@@ -456,7 +456,7 @@ services:
       - no-new-privileges:true
 
   merchant:
-    image: ${MERCHANT_IMAGE:-ghcr.io/porterchain/pcd-merchant:latest}
+    image: ${MERCHANT_IMAGE:-ghcr.io/porterchain-inc/pcd-merchant:latest}
     container_name: pcd-merchant
     restart: unless-stopped
     pull_policy: missing
@@ -472,7 +472,7 @@ services:
       - no-new-privileges:true
 
   driver:
-    image: ${DRIVER_IMAGE:-ghcr.io/porterchain/pcd-driver:latest}
+    image: ${DRIVER_IMAGE:-ghcr.io/porterchain-inc/pcd-driver:latest}
     container_name: pcd-driver
     restart: unless-stopped
     pull_policy: missing
@@ -488,7 +488,7 @@ services:
       - no-new-privileges:true
 
   customer:
-    image: ${CUSTOMER_IMAGE:-ghcr.io/porterchain/pcd-customer:latest}
+    image: ${CUSTOMER_IMAGE:-ghcr.io/porterchain-inc/pcd-customer:latest}
     container_name: pcd-customer
     restart: unless-stopped
     pull_policy: missing

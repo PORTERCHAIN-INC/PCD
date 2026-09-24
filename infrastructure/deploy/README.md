@@ -55,7 +55,9 @@ Runtime secrets live in **Doppler**, not GitHub. `stage-doppler-env` downloads o
 | `pcd-driver`   | `apps/driver-portal/Dockerfile`   |
 | `pcd-customer` | `apps/customer/Dockerfile`        |
 
-Tags: `:latest` and `:<git-sha>`.
+Tags: `:latest` and `:<git-sha>`. Registry owner follows the GitHub org (lowercase): `ghcr.io/porterchain-inc/pcd-*`. Compose defaults match that path; Deploy also exports `*_IMAGE` env vars explicitly.
+
+Org stays on **GitHub Free** (no Team). CI/Deploy/Packages work without Team; private branch protection does not.
 
 ## Droplet layout
 
