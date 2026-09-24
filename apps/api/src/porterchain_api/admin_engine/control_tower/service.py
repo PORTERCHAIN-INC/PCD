@@ -8,7 +8,7 @@ This service reads the Porterchain order mirror; it never calls Fleetbase.
 
 from __future__ import annotations
 
-from datetime import datetime, time, timedelta
+from datetime import UTC, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy import func, or_
@@ -251,7 +251,10 @@ class ControlTowerService(AssignmentMixin, ExceptionsMixin, SlaMixin, EventsMixi
         deadline = stored if stored is not None else resolve_sla_deadline(o, instant_sla_hours=hours)
         sla_minutes: int | None = None
         if deadline is not None and o.state not in DONE_STATES:
-            sla_minutes = int((deadline - now).total_seconds() // 60)
+            # resolve_sla_deadline / DB columns are naive UTC; now_utc() is aware.
+            dl = deadline.astimezone(UTC).replace(tzinfo=None) if deadline.tzinfo else deadline
+            ref = now.astimezone(UTC).replace(tzinfo=None) if now.tzinfo else now
+            sla_minutes = int((dl - ref).total_seconds() // 60)
         stops_done, stop_count = self._stop_progress(o)
         return {
             "id": o.id,
