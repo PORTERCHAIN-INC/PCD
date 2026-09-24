@@ -364,12 +364,24 @@ export type OptimizeRunResult = {
 
 export type OptimizePool = {
   order_count: number;
+  eligible_count?: number;
+  preview_cap?: number;
+  offset?: number;
+  remaining_after_page?: number;
+  excluded?: {
+    missing_fleetbase_id?: number;
+    sandbox?: number;
+    shopify_ingress_paused?: number;
+  };
   orders: Array<{
     id: string;
     tracking_number: string;
     state: string;
+    order_source?: string;
     fleetbase_order_id: string | null;
     merchant_id?: string | null;
+    scheduled_at?: string | null;
+    weight_kg?: number | null;
   }>;
   merchants?: Array<{ merchant_id: string | null; order_count: number }>;
   vehicle_ids?: string[];
@@ -521,6 +533,7 @@ export const ops = {
       merchant_id?: string | null;
       vehicle_ids?: string[];
       driver_ids?: string[];
+      offset?: number;
     }
   ) =>
     adminFetch<OptimizeRunResult>(`${B}/optimize/run`, t, {

@@ -55,7 +55,10 @@ class AdminOperationsService:
         order = self._assign_driver_no_commit(db, ctx, order_id, driver_id)
         db.commit()
         db.refresh(order)
-        self._enqueue_driver_book_optimize(db, driver_id, insert_order_id=order.id)
+        from porterchain_api.fleetbase_engine.optimize_run_store import fleet_optimize_open
+
+        if not fleet_optimize_open():
+            self._enqueue_driver_book_optimize(db, driver_id, insert_order_id=order.id)
         return order
 
     @staticmethod

@@ -38,7 +38,7 @@ export function OptimizePanel({
   const [shape, setShape] = useState<"fleet" | "merchant" | "vehicle">("fleet");
   const [merchantId, setMerchantId] = useState<string>("");
   const [vehicleId, setVehicleId] = useState<string>("");
-  const [runBusy, setRunBusy] = useState(false);
+  const [pageOffset, setPageOffset] = useState(0);
   const [commitBusy, setCommitBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<OptimizeRunResult | null>(null);
@@ -103,6 +103,7 @@ export function OptimizePanel({
         shape,
         merchant_id: shape === "merchant" && merchantId ? merchantId : undefined,
         vehicle_ids: shape === "vehicle" && vehicleId ? [vehicleId] : undefined,
+        offset: pageOffset,
       });
       setPlan(result);
       if (result.status === "pending" && result.run_id) {
@@ -119,8 +120,11 @@ export function OptimizePanel({
     }
   }
 
+  const capacityBlocked =
+    (plan?.metrics?.capacity_reject_count ?? 0) > 0 && (plan?.unassigned?.length ?? 0) > 0;
+
   async function commit() {
-    if (!plan?.assignments?.length || plan.status === "pending") return;
+    if (!plan?.assignments?.length || plan.status === "pending" || capacityBlocked) return;
     setCommitBusy(true);
     setError(null);
     try {
@@ -242,10 +246,20 @@ export function OptimizePanel({
             >
               <Play className="h-3.5 w-3.5" /> {runBusy ? "Building plan…" : "Run preview"}
             </Button>
+            {(pool?.eligible_count ?? 0) > pageOffset + 20 && (
+              <Button
+                variant="ghost"
+                className="text-xs"
+                disabled={runBusy}
+                onClick={() => setPageOffset((n) => n + 20)}
+              >
+                Next 20
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => void commit()}
-              disabled={commitBusy || !ready}
+              disabled={commitBusy || !ready || capacityBlocked}
               className="text-xs"
             >
               <Upload className="h-3.5 w-3.5" /> Commit manifests
@@ -284,16 +298,24 @@ export function OptimizePanel({
           {poolLoading && !pool ? (
             <Spinner />
           ) : (
-            <p className="text-xs text-primary">
-              Pool: {pool?.order_count ?? 0} synced order
-              {(pool?.order_count ?? 0) === 1 ? "" : "s"} ready for orchestrator
-              {(pool?.placeholder_skipped ?? 0) > 0
-                ? ` · ${pool?.placeholder_skipped} placeholder ids skipped`
-                : ""}
-              {(plan?.missing_sync?.length ?? 0) > 0
-                ? ` · ${plan?.missing_sync?.length} selected without Fleetbase sync`
-                : ""}
-            </p>
+            <>
+              <p className="text-xs text-primary">
+                Pool: {pool?.eligible_count ?? pool?.order_count ?? 0} eligible. This preview packs
+                20 starting at {pageOffset}.
+                {(pool?.excluded?.missing_fleetbase_id ?? 0) > 0
+                  ? ` · ${pool?.excluded?.missing_fleetbase_id} without Fleetbase id`
+                  : ""}
+                {(pool?.excluded?.sandbox ?? 0) > 0 ? ` · ${pool?.excluded?.sandbox} sandbox` : ""}
+                {(pool?.excluded?.shopify_ingress_paused ?? 0) > 0
+                  ? ` · ${pool?.excluded?.shopify_ingress_paused} paused Shopify`
+                  : ""}
+              </p>
+              {capacityBlocked && (
+                <p className="text-xs text-red-700">
+                  Capacity rejects left stops unassigned. Fix the van load before commit.
+                </p>
+              )}
+            </>
           )}
 
           {m && (ready || readyEmpty) && (

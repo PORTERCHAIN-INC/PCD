@@ -76,47 +76,18 @@ PREVIEW_ORDER_CAP = 20
 
 
 class OrchestratorOpsService:
-    def pool(self, db: Session, *, limit: int = 100) -> dict[str, Any]:
-        candidates = (
-            db.query(Order)
-            .filter(
-                Order.state.in_(OPTIMIZE_STATES),
-                Order.fleetbase_order_id.isnot(None),
-            )
-            .order_by(Order.scheduled_at.asc())
-            .limit(limit * 4)
-            .all()
-        )
-        live = [o for o in candidates if is_consumable_public_id(o.fleetbase_order_id)]
-        skipped = len(candidates) - len(live)
-        rows = live[:limit]
-        merchant_counts: dict[str, int] = {}
-        for o in rows:
-            mid = o.merchant_id or "_none"
-            merchant_counts[mid] = merchant_counts.get(mid, 0) + 1
+    def pool(self, db: Session, *, limit: int = 100, offset: int = 0) -> dict[str, Any]:
+        from porterchain_api.admin_engine.optimize_pool import build_optimize_pool
+
         vehicle_ids, driver_ids = self._synced_fleet(db)
-        return {
-            "order_count": len(rows),
-            "synced_count": len(rows),
-            "placeholder_skipped": skipped,
-            "merchants": [
-                {"merchant_id": mid if mid != "_none" else None, "order_count": count}
-                for mid, count in sorted(merchant_counts.items(), key=lambda kv: (-kv[1], kv[0]))
-            ],
-            "vehicle_ids": vehicle_ids,
-            "driver_ids": driver_ids,
-            "orders": [
-                {
-                    "id": o.id,
-                    "tracking_number": o.tracking_number,
-                    "state": o.state,
-                    "fleetbase_order_id": o.fleetbase_order_id,
-                    "scheduled_at": o.scheduled_at.isoformat() if o.scheduled_at else None,
-                    "merchant_id": o.merchant_id,
-                }
-                for o in rows
-            ],
-        }
+        return build_optimize_pool(
+            db,
+            limit=limit,
+            offset=offset,
+            vehicle_ids=vehicle_ids,
+            driver_ids=driver_ids,
+            is_live_id=is_consumable_public_id,
+        )
 
     def _shape_order_ids(
         self,
@@ -125,12 +96,13 @@ class OrchestratorOpsService:
         shape: str,
         order_ids: list[str] | None,
         merchant_id: str | None,
+        offset: int = 0,
     ) -> list[str] | None:
         """Filter order ids for merchant-wise / fleet shaping (Fleetbase input only)."""
         if order_ids:
             base = list(order_ids)
         else:
-            pool = self.pool(db, limit=PREVIEW_ORDER_CAP)
+            pool = self.pool(db, limit=PREVIEW_ORDER_CAP, offset=offset)
             base = [row["id"] for row in pool["orders"] if row.get("id")]
         if shape != "merchant" or not merchant_id:
             return base or None
@@ -209,6 +181,7 @@ class OrchestratorOpsService:
         prior_assignments: list[dict[str, Any]] | None = None,
         pc_driver_id: str | None = None,
         apply_on_ready: bool = True,
+        offset: int = 0,
     ) -> dict[str, Any]:
         """Accept a preview request. Fleetbase HTTP runs in the worker only.
 
@@ -220,7 +193,7 @@ class OrchestratorOpsService:
         finishes — set False for driver Preview→Accept UX.
         """
         shaped_orders = self._shape_order_ids(
-            db, shape=shape, order_ids=order_ids, merchant_id=merchant_id
+            db, shape=shape, order_ids=order_ids, merchant_id=merchant_id, offset=offset
         )
         fb_ids, _fb_to_pc, missing = self._resolve_fleetbase_ids(db, shaped_orders)
         if not fb_ids:
@@ -301,6 +274,10 @@ class OrchestratorOpsService:
         try:
             write_optimize_run(run_id, pending)
             enqueue_optimize_job(run_id)
+            if not pc_driver_id:
+                from porterchain_api.fleetbase_engine.optimize_run_store import mark_fleet_optimize_open
+
+                mark_fleet_optimize_open()
             from porterchain_api.fleetbase_engine.optimize_events import emit_enqueued
 
             emit_enqueued(
@@ -382,6 +359,10 @@ class OrchestratorOpsService:
         except Exception as exc:
             logger.warning("optimize result store failed: %s", exc)
         pc_driver_id = merged.get("pc_driver_id") or rec.get("pc_driver_id")
+        if not pc_driver_id:
+            from porterchain_api.fleetbase_engine.optimize_run_store import clear_fleet_optimize_open
+
+            clear_fleet_optimize_open()
         if status == STATUS_READY:
             from porterchain_api.fleetbase_engine.optimize_events import emit_ready
 
@@ -606,12 +587,18 @@ class OrchestratorOpsService:
     ) -> dict[str, Any]:
         if not assignments:
             raise ValueError("assignments_required")
-        del db
         rid = (run_id or "").strip() or None
         if rid:
             prior = _read_commit_cache(rid)
             if prior:
                 return {**prior, "idempotent": True}
+            stored = read_optimize_run(rid) or {}
+            metrics = stored.get("metrics") if isinstance(stored.get("metrics"), dict) else {}
+            rejects = int(metrics.get("capacity_reject_count") or 0)
+            unassigned = stored.get("unassigned") or stored.get("unassigned_details") or []
+            if rejects > 0 and unassigned:
+                raise ValueError("capacity_rejects_block_commit")
+        del db
 
         if pc_driver_id and expected_sequence_version is not None:
             from porterchain_driver.sequence_store import (
@@ -653,6 +640,9 @@ class OrchestratorOpsService:
         }
         if rid:
             _write_commit_cache(rid, payload)
+            from porterchain_api.fleetbase_engine.optimize_run_store import clear_fleet_optimize_open
+
+            clear_fleet_optimize_open()
         if pc_driver_id:
             try:
                 from porterchain_driver.sequence_store import apply_run_to_driver

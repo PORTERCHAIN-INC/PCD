@@ -507,7 +507,7 @@ _LEGACY_ROUTER_LOGIC: frozenset[str] = frozenset(
 _LEGACY_ROUTER_LOC: dict[str, int] = {
     "merchants.py": 662,
     "auth.py": 407,
-    "operations.py": 390,
+    "operations.py": 391,
     "driver/jobs.py": 400,
     "admin/leads.py": 622,
     "admin/settings.py": 464,

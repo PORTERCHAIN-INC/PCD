@@ -13,6 +13,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 CACHE_KEY = "porterchain:optimize:{run_id}"
+FLEET_OPEN_KEY = "porterchain:optimize:fleet_open"
 CACHE_TTL_SECONDS = 15 * 60
 STATUS_PENDING = "pending"
 STATUS_READY = "ready"
@@ -45,6 +46,35 @@ def write_optimize_run(run_id: str, payload: dict[str, Any]) -> None:
         CACHE_TTL_SECONDS,
         json.dumps(payload),
     )
+
+
+def mark_fleet_optimize_open() -> None:
+    """Fleet preview is uncommitted. Manual assign must not resequence."""
+    try:
+        from porterchain_shared.redis_client import get_redis_client
+
+        get_redis_client().setex(FLEET_OPEN_KEY, CACHE_TTL_SECONDS, "1")
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("fleet optimize open flag failed: %s", exc)
+
+
+def clear_fleet_optimize_open() -> None:
+    try:
+        from porterchain_shared.redis_client import get_redis_client
+
+        get_redis_client().delete(FLEET_OPEN_KEY)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("fleet optimize open clear failed: %s", exc)
+
+
+def fleet_optimize_open() -> bool:
+    try:
+        from porterchain_shared.redis_client import get_redis_client
+
+        return bool(get_redis_client().get(FLEET_OPEN_KEY))
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("fleet optimize open read failed: %s", exc)
+        return False
 
 
 def enqueue_optimize_job(run_id: str) -> None:

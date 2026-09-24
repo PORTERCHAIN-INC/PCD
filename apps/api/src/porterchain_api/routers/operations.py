@@ -217,6 +217,7 @@ def optimize_run(body: OptimizeRunBody, ctx: Ctx, db: Session = Depends(get_db))
         merchant_id=body.merchant_id,
         vehicle_ids=body.vehicle_ids,
         driver_ids=body.driver_ids,
+        offset=body.offset,
     )
 
 
