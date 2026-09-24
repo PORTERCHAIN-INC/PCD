@@ -18,7 +18,7 @@ OPTIMIZE_STATES = frozenset(
 SCAN_CAP = 400
 
 
-def build_optimize_pool(
+def build_optimize_pool(  # fleetbase-first:ok — eligibility page for Fleetbase orchestrator; no local solver
     db: Session,
     *,
     limit: int,
