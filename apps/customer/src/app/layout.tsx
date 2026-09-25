@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Carlito } from "next/font/google";
-import { AppClerkProvider, SessionContextProvider } from "@porterchain/auth";
+import { AppClerkProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
+import CustomerQueryProvider from "@/components/providers/CustomerQueryProvider";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -16,8 +17,6 @@ export const metadata: Metadata = {
   description: "Track deliveries, invoices, and support",
 };
 
-export const dynamic = "force-dynamic";
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={brand.variable} style={{ colorScheme: "light" }}>
@@ -29,7 +28,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           afterSignOutUrl="/sign-in"
           fallbackRedirect="/dashboard"
         >
-          <SessionContextProvider>{children}</SessionContextProvider>
+          <CustomerQueryProvider>
+            <SessionContextProvider>
+              <ImpersonationBanner portal="customer" />
+              {children}
+            </SessionContextProvider>
+          </CustomerQueryProvider>
         </AppClerkProvider>
       </body>
     </html>

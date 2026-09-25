@@ -37,7 +37,7 @@ function PasskeyRecommendBanner({ show }: { show: boolean }) {
   if (!show || pathname?.startsWith("/account/security")) return null;
   return (
     <div className="border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-950">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
+      <div className="mx-auto flex w-full max-w-none flex-wrap items-center justify-between gap-2 px-3 sm:px-4 lg:px-6 xl:px-8">
         <p className="inline-flex items-center gap-2">
           <KeyRound className="h-4 w-4 shrink-0" />
           Add a passkey for phishing-resistant sign-in and step-up on sensitive actions.
@@ -55,7 +55,6 @@ function PasskeyRecommendBanner({ show }: { show: boolean }) {
 
 export default function AdminAccessGate({ children }: Props) {
   const router = useRouter();
-  const pathname = usePathname();
   const { isLoaded, isSignedIn, getApiToken, authReady } = useAdminAuth();
   const { setProfile } = useAdminProfile();
   const sessionCtx = useOptionalSessionContext();
@@ -109,9 +108,10 @@ export default function AdminAccessGate({ children }: Props) {
     }
   }, [authReady, getApiToken]);
 
+  // Once per authReady — not on every route change (was doubling shell cost on nav).
   useEffect(() => {
     void refreshPasskeyStatus();
-  }, [refreshPasskeyStatus, pathname]);
+  }, [refreshPasskeyStatus]);
 
   useEffect(() => {
     const onPasskeyChanged = () => {

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Carlito } from "next/font/google";
-import { AppClerkProvider, SessionContextProvider } from "@porterchain/auth";
+import { AppClerkProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
 import { CommunicationsProvider } from "@/components/providers/CommunicationsProvider";
-import { GoogleMapsProvider } from "@porterchain/maps";
+import DriverQueryProvider from "@/components/providers/DriverQueryProvider";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -32,11 +32,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fallbackRedirect="/onboarding"
         >
           <SessionContextProvider>
-            <CommunicationsProvider>
-              <GoogleMapsProvider apiKey={publicEnv.googleMapsApiKey}>
-                {children}
-              </GoogleMapsProvider>
-            </CommunicationsProvider>
+            <ImpersonationBanner portal="driver" />
+            <DriverQueryProvider>
+              <CommunicationsProvider>{children}</CommunicationsProvider>
+            </DriverQueryProvider>
           </SessionContextProvider>
         </AppClerkProvider>
       </body>

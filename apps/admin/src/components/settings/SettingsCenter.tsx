@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Download, RefreshCw, Search, Settings2, Upload } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
+import AdminPage from "@/components/layout/AdminPage";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Button, Spinner } from "@/components/crm/primitives";
 import {
@@ -20,18 +20,58 @@ import { SECTION_ALIASES, SECTION_DESCRIPTIONS, SECTION_ICONS } from "@/lib/sett
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import SettingsSidebar from "./SettingsSidebar";
 import { MasterruleCallout } from "./ui/SettingsPrimitives";
-import DashboardPanel from "./panels/DashboardPanel";
-import ConfigFormPanel from "./panels/ConfigFormPanel";
-import IntegrationPanel from "./panels/IntegrationPanel";
-import VehiclesPanel from "./panels/VehiclesPanel";
-import PricingPanel from "./panels/PricingPanel";
-import CoveragePanel from "./panels/CoveragePanel";
-import EnvOwnedPanel from "./panels/EnvOwnedPanel";
-import LeadIngestPanel from "./panels/LeadIngestPanel";
-import { RolesPanel } from "./panels/RolesPanel";
-import { UsersPanel } from "./panels/users/UsersPanel";
-import { AuditPanel, PlatformPanel } from "./panels/PlatformPanels";
-import { ImportConfigModal } from "./panels/ImportConfigModal";
+import dynamic from "next/dynamic";
+
+const panelFallback = () => (
+  <div className="flex justify-center py-16">
+    <Spinner />
+  </div>
+);
+
+const DashboardPanel = dynamic(() => import("./panels/DashboardPanel"), {
+  loading: panelFallback,
+});
+const ConfigFormPanel = dynamic(() => import("./panels/ConfigFormPanel"), {
+  loading: panelFallback,
+});
+const IntegrationPanel = dynamic(() => import("./panels/IntegrationPanel"), {
+  loading: panelFallback,
+});
+const VehiclesPanel = dynamic(() => import("./panels/VehiclesPanel"), {
+  loading: panelFallback,
+});
+const PricingPanel = dynamic(() => import("./panels/PricingPanel"), {
+  loading: panelFallback,
+});
+const CoveragePanel = dynamic(() => import("./panels/CoveragePanel"), {
+  loading: panelFallback,
+});
+const EnvOwnedPanel = dynamic(() => import("./panels/EnvOwnedPanel"), {
+  loading: panelFallback,
+});
+const LeadIngestPanel = dynamic(() => import("./panels/LeadIngestPanel"), {
+  loading: panelFallback,
+});
+const RolesPanel = dynamic(
+  () => import("./panels/RolesPanel").then((m) => ({ default: m.RolesPanel })),
+  { loading: panelFallback }
+);
+const UsersPanel = dynamic(
+  () => import("./panels/users/UsersPanel").then((m) => ({ default: m.UsersPanel })),
+  { loading: panelFallback }
+);
+const AuditPanel = dynamic(
+  () => import("./panels/PlatformPanels").then((m) => ({ default: m.AuditPanel })),
+  { loading: panelFallback }
+);
+const PlatformPanel = dynamic(
+  () => import("./panels/PlatformPanels").then((m) => ({ default: m.PlatformPanel })),
+  { loading: panelFallback }
+);
+const ImportConfigModal = dynamic(
+  () => import("./panels/ImportConfigModal").then((m) => ({ default: m.ImportConfigModal })),
+  { ssr: false }
+);
 
 function resolveSection(raw: string | null): string {
   const id = raw ?? "dashboard";
@@ -182,7 +222,7 @@ export default function SettingsCenter() {
   const ActiveIcon = SECTION_ICONS[tab] ?? Settings2;
 
   return (
-    <div className="space-y-6">
+    <AdminPage>
       <div className="relative overflow-hidden rounded-2xl border border-primary/10 bg-gradient-to-br from-white via-white to-secondary/5 px-4 py-5 shadow-sm sm:px-6 sm:py-6">
         <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -317,30 +357,24 @@ export default function SettingsCenter() {
             {activeSection?.label ?? tab}
           </div>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={tab}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="min-w-0 overflow-x-auto rounded-2xl border border-primary/10 bg-white p-4 shadow-sm sm:p-5 md:p-6 lg:p-8"
-            >
-              <SectionRouter
-                tab={tab}
-                center={center}
-                dash={dash}
-                config={config}
-                saving={saving}
-                bindingEffect={bindingEffect}
-                onDirty={() => setDirty(true)}
-                onSaveConfig={saveConfig}
-                onRefetch={() => void refetch()}
-                onExport={() => void handleExport()}
-                onImport={() => setImportOpen(true)}
-              />
-            </motion.div>
-          </AnimatePresence>
+          <div
+            key={tab}
+            className="min-w-0 overflow-x-auto rounded-2xl border border-primary/10 bg-white p-4 shadow-sm sm:p-5 md:p-6 lg:p-8"
+          >
+            <SectionRouter
+              tab={tab}
+              center={center}
+              dash={dash}
+              config={config}
+              saving={saving}
+              bindingEffect={bindingEffect}
+              onDirty={() => setDirty(true)}
+              onSaveConfig={saveConfig}
+              onRefetch={() => void refetch()}
+              onExport={() => void handleExport()}
+              onImport={() => setImportOpen(true)}
+            />
+          </div>
         </main>
       </div>
 
@@ -352,7 +386,7 @@ export default function SettingsCenter() {
           void refetch();
         }}
       />
-    </div>
+    </AdminPage>
   );
 }
 

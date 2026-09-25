@@ -13,10 +13,11 @@ type UseApiDataOptions = {
 function shouldRetryQuery(error: unknown, failureCount: number) {
   if (failureCount >= 2) return false;
   const message = error instanceof Error ? error.message : String(error);
+  // Never retry 404 — missing entities won't appear; retries only add lag.
+  if (message.includes("404")) return false;
   return (
     message.includes("401") ||
     message.includes("403") ||
-    message.includes("404") ||
     message.includes("porterchain_api_timeout") ||
     message.includes("Failed to fetch")
   );

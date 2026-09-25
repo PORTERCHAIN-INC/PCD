@@ -30,18 +30,39 @@ export function useAdminNotificationRealtime(
 ) {
   const onEventRef = useRef(onEvent);
   onEventRef.current = onEvent;
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
 
   useEffect(() => {
     if (!enabled) return;
 
     let ws: WebSocket | null = null;
     let pingTimer: ReturnType<typeof setInterval> | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let cancelled = false;
 
+    function clearPing() {
+      if (pingTimer) {
+        clearInterval(pingTimer);
+        pingTimer = null;
+      }
+    }
+
+    function teardownSocket() {
+      clearPing();
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+        ws = null;
+      }
+    }
+
     async function connect() {
+      if (cancelled || document.hidden) return;
+      teardownSocket();
       try {
-        const token = await resolveWsToken(getToken);
-        if (cancelled || !token) return;
+        const token = await resolveWsToken(() => getTokenRef.current());
+        if (cancelled || document.hidden || !token) return;
         ws = new WebSocket(`${apiWsBase()}/v1/notifications/ws?token=${encodeURIComponent(token)}`);
 
         ws.onmessage = (event) => {
@@ -56,8 +77,10 @@ export function useAdminNotificationRealtime(
         };
 
         ws.onclose = () => {
-          if (!cancelled) {
-            window.setTimeout(() => void connect(), 5000);
+          clearPing();
+          ws = null;
+          if (!cancelled && !document.hidden) {
+            reconnectTimer = setTimeout(() => void connect(), 5000);
           }
         };
 
@@ -69,12 +92,26 @@ export function useAdminNotificationRealtime(
       }
     }
 
-    void connect();
+    function onVisibility() {
+      if (document.hidden) {
+        if (reconnectTimer) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = null;
+        }
+        teardownSocket();
+        return;
+      }
+      void connect();
+    }
+
+    if (!document.hidden) void connect();
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelled = true;
-      if (pingTimer) clearInterval(pingTimer);
-      ws?.close();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      document.removeEventListener("visibilitychange", onVisibility);
+      teardownSocket();
     };
-  }, [enabled, getToken]);
+  }, [enabled]);
 }

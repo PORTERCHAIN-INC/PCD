@@ -330,7 +330,10 @@ export default function OrdersGrid({ rows, selected, onSelect, loading }: Props)
             <Spinner />
           </div>
         ) : (
-          <table className="w-full text-left text-sm" style={{ width: table.getCenterTotalSize() }}>
+          <table
+            className="min-w-full text-left text-sm"
+            style={{ minWidth: Math.max(table.getCenterTotalSize(), 960) }}
+          >
             <thead className="border-b border-primary/10 bg-gray-bg/50">
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id}>
@@ -355,7 +358,11 @@ export default function OrdersGrid({ rows, selected, onSelect, loading }: Props)
               {table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className="border-b border-primary/5 hover:bg-secondary/5">
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-3 py-2.5">
+                    <td
+                      key={cell.id}
+                      className="px-3 py-2.5"
+                      style={{ width: cell.column.getSize() }}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}

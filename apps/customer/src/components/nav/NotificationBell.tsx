@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
-import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HeaderDropdown from "@/components/nav/HeaderDropdown";
 import { isClerkConfigured } from "@/lib/env";
-import { notificationsApi, type InboxNotification } from "@/lib/notifications";
+import { notificationsApi } from "@/lib/notifications";
 
 function relativeTime(iso: string): string {
   const t = Date.parse(iso);
@@ -31,33 +31,26 @@ export default function NotificationBell({
 
 function NotificationBellWithClerk({ viewAllHref }: { viewAllHref: string }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
-  const [items, setItems] = useState<InboxNotification[]>([]);
-  const [unread, setUnread] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const enabled = Boolean(isLoaded && isSignedIn);
 
-  const refresh = useCallback(async () => {
-    if (!isSignedIn) return;
-    try {
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ["customer-notification-inbox"],
+    enabled,
+    staleTime: 30_000,
+    refetchInterval: () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
+      return 90_000;
+    },
+    queryFn: async () => {
       const token = await getToken();
-      if (!token) return;
-      const data = await notificationsApi.inbox(token, 20);
-      setItems(data.items);
-      setUnread(data.unread_count);
-    } catch {
-      /* keep last */
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken, isSignedIn]);
+      if (!token) throw new Error("Not authenticated");
+      return notificationsApi.inbox(token, 20);
+    },
+  });
 
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
-    void refresh();
-    const id = window.setInterval(() => {
-      if (document.visibilityState === "visible") void refresh();
-    }, 45_000);
-    return () => window.clearInterval(id);
-  }, [isLoaded, isSignedIn, refresh]);
+  const items = data?.items ?? [];
+  const unread = data?.unread_count ?? 0;
 
   if (!isLoaded || !isSignedIn) return null;
 
@@ -99,7 +92,7 @@ function NotificationBellWithClerk({ viewAllHref }: { viewAllHref: string }) {
                   const token = await getToken();
                   if (!token) return;
                   await notificationsApi.markAllRead(token);
-                  await refresh();
+                  await qc.invalidateQueries({ queryKey: ["customer-notification-inbox"] });
                 })()
               }
               className="text-xs font-medium text-secondary hover:underline"
@@ -124,7 +117,7 @@ function NotificationBellWithClerk({ viewAllHref }: { viewAllHref: string }) {
                   if (!n.is_read) {
                     const token = await getToken();
                     if (token) await notificationsApi.markRead(token, n.id);
-                    await refresh();
+                    await qc.invalidateQueries({ queryKey: ["customer-notification-inbox"] });
                   }
                   if (n.deep_link) window.location.href = n.deep_link;
                 })()

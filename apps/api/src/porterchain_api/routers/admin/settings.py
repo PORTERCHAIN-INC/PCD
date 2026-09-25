@@ -39,7 +39,9 @@ from porterchain_api.routers.admin._deps import (
 
 _staff_idp = StaffIdpService()
 T = TypeVar("T")
-_SETTINGS_UNAVAILABLE = frozenset({"clerk_not_configured", "staff_enrollment_redis_unavailable"})
+_SETTINGS_UNAVAILABLE = frozenset(
+    {"clerk_not_configured", "staff_enrollment_redis_unavailable", "impersonation_redis_unavailable"}
+)
 
 
 def _reject_staff_clerk_route(user_type: str) -> None:

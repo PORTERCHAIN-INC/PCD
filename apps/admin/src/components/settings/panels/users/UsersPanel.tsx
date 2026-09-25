@@ -23,7 +23,7 @@ export function UsersPanel({ onRefetch }: { onRefetch: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const [tab, setTab] = useState<UserDirectoryTab>(() => resolveUserTab(searchParams.get("tab")));
-  const enabled = isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
+  const enabled = isLoaded && isSignedIn;
 
   useEffect(() => {
     setTab(resolveUserTab(searchParams.get("tab")));
@@ -42,9 +42,9 @@ export function UsersPanel({ onRefetch }: { onRefetch: () => void }) {
       <SettingsPageHeader title="Users" description={SECTION_DESCRIPTIONS.users} />
 
       <div className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
-        <strong>Directory rule:</strong> Every PorterChain DB persona is listed. Identity shows
-        Staff IdP (staff) or Clerk status (drivers / merchants / customers) — red means not linked
-        yet. Merchants may also show Clerk-only orphans awaiting a seat.
+        <strong>Concierge rule:</strong> Super Admin operates via Staff IdP — create users,
+        authorize access, and book deliveries here without waiting for Clerk. Clerk invite is only
+        for their portal/mobile login. Red identity = not linked yet (invite or they sign up).
       </div>
 
       <div className="flex flex-wrap gap-2 border-b border-primary/10 pb-1">

@@ -6,6 +6,7 @@ const API_BASE = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localho
   /\/$/,
   ""
 );
+const IMP_COOKIE = "pc_imp_bearer";
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
@@ -29,7 +30,10 @@ async function proxy(request: NextRequest, context: RouteContext) {
   const headers = new Headers(request.headers);
   headers.delete("host");
 
-  if (userId) {
+  const impBearer = request.cookies.get(IMP_COOKIE)?.value?.trim();
+  if (impBearer?.startsWith("pc_imp_")) {
+    headers.set("Authorization", `Bearer ${impBearer}`);
+  } else if (userId) {
     const token = await getToken();
     if (!token) {
       return NextResponse.json({ detail: "unauthorized" }, { status: 401 });

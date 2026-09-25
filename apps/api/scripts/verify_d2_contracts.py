@@ -227,6 +227,7 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "admin_engine->merchant_engine:admin_engine/e2e_validation_merchant.py",
         "admin_engine->merchant_engine:admin_engine/e2e_validation_verifiers.py",
         "admin_engine->merchant_engine:admin_engine/execution_metrics.py",
+        "admin_engine->merchant_engine:admin_engine/impersonation_service.py",
         "admin_engine->merchant_engine:admin_engine/merchant_ar_service.py",
         "admin_engine->merchant_engine:admin_engine/merchant_service.py",
         "admin_engine->merchant_engine:admin_engine/platform_user_authorize.py",

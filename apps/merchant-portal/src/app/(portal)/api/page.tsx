@@ -1,9 +1,14 @@
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
-import IntegrationsClient from "@/components/integrations/IntegrationsClient";
+import { PageSkeleton } from "@porterchain/ui/loading";
+
+const IntegrationsClient = dynamic(() => import("@/components/integrations/IntegrationsClient"), {
+  loading: () => <PageSkeleton rows={6} />,
+});
 
 export default function ApiPage() {
   return (
-    <Suspense fallback={<p className="text-muted">Loading integrations…</p>}>
+    <Suspense fallback={<PageSkeleton rows={6} />}>
       <IntegrationsClient />
     </Suspense>
   );

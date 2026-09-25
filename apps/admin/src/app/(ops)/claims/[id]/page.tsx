@@ -1,10 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { Spinner } from "@/components/crm/primitives";
 import { use } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import ClaimDetailView from "@/components/claims/ClaimDetailView";
 import { claimsApi } from "@/lib/claims";
+
+const ClaimDetailView = dynamic(() => import("@/components/claims/ClaimDetailView"), {
+  loading: () => <Spinner label="Loading…" />,
+  ssr: false,
+});
 
 export default function ClaimDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
   },
   transpilePackages: ["@porterchain/ui", "@porterchain/config"],
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
   env: driverPublicEnv(),
   async rewrites() {
     return [{ source: "/favicon.ico", destination: "/icon.svg" }];

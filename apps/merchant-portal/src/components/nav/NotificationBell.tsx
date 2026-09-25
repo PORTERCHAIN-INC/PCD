@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HeaderDropdown from "@/components/nav/HeaderDropdown";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
-import { notificationsApi, type InboxNotification } from "@/lib/notifications";
+import { notificationsApi } from "@/lib/notifications";
 
 function relativeTime(iso: string): string {
   const t = Date.parse(iso);
@@ -25,43 +25,33 @@ export default function NotificationBell({
   viewAllHref?: string;
 }) {
   const { getApiToken, orgId, isLoaded, isSignedIn } = useMerchantAuth();
-  const [items, setItems] = useState<InboxNotification[]>([]);
-  const [unread, setUnread] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const enabled = Boolean(isLoaded && isSignedIn && orgId);
 
-  const refresh = useCallback(async () => {
-    if (!isSignedIn || !orgId) return;
-    try {
-      const token = await getApiToken();
-      const data = await notificationsApi.inbox(token, orgId, 20);
-      setItems(data.items);
-      setUnread(data.unread_count);
-    } catch {
-      /* keep last snapshot */
-    } finally {
-      setLoading(false);
-    }
-  }, [getApiToken, isSignedIn, orgId]);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ["merchant-notification-inbox", orgId],
+    enabled,
+    staleTime: 30_000,
+    refetchInterval: (query) => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
+      return 90_000;
+    },
+    queryFn: async () => notificationsApi.inbox(await getApiToken(), orgId, 20),
+  });
 
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn || !orgId) return;
-    void refresh();
-    const id = window.setInterval(() => {
-      if (document.visibilityState === "visible") void refresh();
-    }, 45_000);
-    return () => window.clearInterval(id);
-  }, [isLoaded, isSignedIn, refresh]);
+  const items = data?.items ?? [];
+  const unread = data?.unread_count ?? 0;
 
   const markRead = async (id: string) => {
     const token = await getApiToken();
     await notificationsApi.markRead(token, id, orgId);
-    await refresh();
+    await qc.invalidateQueries({ queryKey: ["merchant-notification-inbox", orgId] });
   };
 
   const markAll = async () => {
     const token = await getApiToken();
     await notificationsApi.markAllRead(token, orgId);
-    await refresh();
+    await qc.invalidateQueries({ queryKey: ["merchant-notification-inbox", orgId] });
   };
 
   if (!isLoaded || !isSignedIn) return null;
@@ -78,12 +68,12 @@ export default function NotificationBell({
             "relative flex h-9 w-9 items-center justify-center rounded-full border border-primary/10 bg-white text-primary shadow-sm transition hover:bg-gray-bg",
             open && "bg-gray-bg ring-2 ring-secondary/20"
           )}
-          aria-label={unread > 0 ? `${unread} unread alerts` : "Inbox"}
-          title="Inbox"
+          aria-label={unread > 0 ? `${unread} unread notifications` : "Notifications"}
+          title="Notifications"
         >
           <Bell className="h-4 w-4" />
           {unread > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+            <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
               {unread > 99 ? "99+" : unread}
             </span>
           ) : null}
@@ -92,10 +82,7 @@ export default function NotificationBell({
     >
       <div className="border-b border-primary/8 px-4 py-3">
         <div className="flex items-center justify-between gap-2">
-          <div>
-            <p className="text-sm font-semibold text-primary">Inbox</p>
-            <p className="text-xs text-muted">{unread} unread</p>
-          </div>
+          <p className="text-sm font-semibold text-primary">Notifications</p>
           {unread > 0 ? (
             <button
               type="button"
@@ -107,40 +94,48 @@ export default function NotificationBell({
           ) : null}
         </div>
       </div>
-      <div className="max-h-[min(50dvh,360px)] overflow-y-auto">
+      <div className="max-h-[min(52dvh,360px)] overflow-y-auto">
         {loading ? (
           <p className="px-4 py-8 text-center text-sm text-muted">Loading…</p>
         ) : items.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted">No notifications yet</p>
         ) : (
-          items.map((n) => (
-            <button
-              key={n.id}
-              type="button"
-              onClick={() => {
-                if (!n.is_read) void markRead(n.id);
-                if (n.deep_link) window.location.href = n.deep_link;
-              }}
-              className={cn(
-                "flex w-full flex-col gap-0.5 border-b border-primary/5 px-4 py-3 text-left transition hover:bg-gray-bg",
-                !n.is_read && "bg-secondary/5"
-              )}
-            >
-              <span className="flex items-center justify-between gap-2">
-                <span className="truncate text-sm font-medium text-primary">
-                  {n.title || "Update"}
-                </span>
-                <span className="shrink-0 text-[10px] text-muted">
-                  {relativeTime(n.created_at)}
-                </span>
-              </span>
-              <span className="line-clamp-2 text-xs text-muted">{n.body}</span>
-            </button>
-          ))
+          <ul>
+            {items.map((n) => (
+              <li key={n.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!n.is_read) void markRead(n.id);
+                    if (n.deep_link) window.location.href = n.deep_link;
+                  }}
+                  className={cn(
+                    "flex w-full flex-col gap-0.5 border-b border-primary/5 px-4 py-3 text-left hover:bg-gray-bg",
+                    !n.is_read && "bg-secondary/[0.04]"
+                  )}
+                >
+                  <span className="flex items-center justify-between gap-2">
+                    <span
+                      className={cn(
+                        "truncate text-sm text-primary",
+                        !n.is_read ? "font-semibold" : "font-medium"
+                      )}
+                    >
+                      {n.title || "Update"}
+                    </span>
+                    <span className="shrink-0 text-[10px] text-muted">
+                      {relativeTime(n.created_at)}
+                    </span>
+                  </span>
+                  <span className="line-clamp-2 text-xs text-muted">{n.body}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
       <div className="border-t border-primary/8 px-4 py-2.5">
-        <Link href={viewAllHref} className="text-xs font-medium text-secondary hover:underline">
+        <Link href={viewAllHref} className="text-xs font-semibold text-secondary hover:underline">
           View all
         </Link>
       </div>

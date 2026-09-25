@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { ArrowLeft, Copy, CreditCard, ExternalLink, RefreshCw, Timer, XCircle } from "lucide-react";
 import { formatCents } from "@porterchain/ui/utils";
 import { QuoteLines } from "@porterchain/ui/quote-lines";
@@ -10,6 +9,7 @@ import { cn } from "@porterchain/ui/utils";
 import { PAYMENT_STATUS_STYLES, STATE_STYLES, type BookingDraftDetail } from "@/lib/booking-drafts";
 import { relativeTime } from "@/lib/crmFormat";
 import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import AdminPage from "@/components/layout/AdminPage";
 
 type Tab =
   | "overview"
@@ -80,7 +80,7 @@ export default function BookingDraftDetailView({
     detail.display_state === "CONVERTED_TO_ORDER";
 
   return (
-    <div className="space-y-6">
+    <AdminPage>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link
@@ -166,12 +166,7 @@ export default function BookingDraftDetailView({
         ))}
       </nav>
 
-      <motion.div
-        key={tab}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-primary/10 bg-white p-6"
-      >
+      <div key={tab} className="rounded-2xl border border-primary/10 bg-white p-6">
         {tab === "overview" && <OverviewTab detail={detail} />}
         {tab === "quote" && <QuoteTab detail={detail} />}
         {tab === "customer" && <CustomerTab detail={detail} />}
@@ -183,8 +178,8 @@ export default function BookingDraftDetailView({
         {tab === "timeline" && <TimelineTab detail={detail} />}
         {tab === "audit" && <AuditTab detail={detail} />}
         {tab === "events" && <EventsTab detail={detail} />}
-      </motion.div>
-    </div>
+      </div>
+    </AdminPage>
   );
 }
 

@@ -74,6 +74,21 @@ body {
     padding-bottom: 1.25rem;
   }
 
+  /* Full-bleed ops content — never re-cap page width under the shell */
+  .admin-page-rail {
+    width: 100%;
+    max-width: none;
+  }
+
+  .admin-page-rail > * {
+    width: 100%;
+    max-width: none;
+  }
+
+  .admin-page-rail table {
+    width: 100%;
+  }
+
   @media (min-width: 640px) {
     .ops-main {
       padding-top: 1.5rem;

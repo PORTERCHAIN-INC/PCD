@@ -8,6 +8,7 @@ import { DiagnosticsHealthView } from "@/components/diagnostics/DiagnosticsHealt
 import { DiagnosticsTestCenter } from "@/components/diagnostics/DiagnosticsTestCenter";
 import { SettingsPageHeader } from "@/components/settings/ui/SettingsPrimitives";
 import { cn } from "@porterchain/ui/utils";
+import AdminPage from "@/components/layout/AdminPage";
 
 type SystemTab = "health" | "tests" | "ai";
 
@@ -58,7 +59,7 @@ export function SystemCenter() {
   }
 
   return (
-    <div className="space-y-5">
+    <AdminPage>
       <SettingsPageHeader
         title="System"
         description="Platform health, validation, and AI usage — live probes and metering in one place."
@@ -95,6 +96,6 @@ export function SystemCenter() {
       ) : (
         <DiagnosticsAiUsageView embedded />
       )}
-    </div>
+    </AdminPage>
   );
 }

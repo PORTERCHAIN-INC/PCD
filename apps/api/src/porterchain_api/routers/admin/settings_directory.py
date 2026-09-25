@@ -13,6 +13,7 @@ from porterchain_api.routers.admin._deps import (
     PlatformUserAuthorizeResponse,
     PlatformUserCreateRequest,
     PlatformUserDeleteRequest,
+    PlatformUserInviteRequest,
     PlatformUserUpdateRequest,
     PlatformUsersResponse,
     StaffEnrollResponse,
@@ -168,6 +169,31 @@ def authorize_platform_user(
         email=body.email,
         name=body.name,
         reason=body.reason,
+        module="settings_identity",
+    )
+
+
+@router.post("/settings/users/{user_type}/invite")
+def invite_platform_user(
+    user_type: str,
+    body: PlatformUserInviteRequest,
+    request: Request,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    authorization: Annotated[str | None, Header()] = None,
+) -> dict:
+    """Re-send Clerk invite for driver/customer. Merchant seats bind on sign-in."""
+    _reject_staff_clerk_route(user_type)
+    _step_up(request, authorization, settings)
+    return _invoke(
+        ctx,
+        _clerk_directory.invite_user,
+        db,
+        ctx,
+        settings,
+        user_type,
+        platform_user_id=body.platform_user_id,
         module="settings_identity",
     )
 

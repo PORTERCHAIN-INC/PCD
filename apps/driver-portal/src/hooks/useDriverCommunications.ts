@@ -52,7 +52,8 @@ export function useDriverCommunications() {
   useEffect(() => {
     mounted.current = true;
     refresh();
-    registerWebPush().catch(() => undefined);
+    // Push registration is owned by CommunicationsProvider (idle-deferred once).
+    // Do not re-register on every communications page visit.
 
     const interval = window.setInterval(() => {
       if (document.visibilityState === "visible") refresh(true);

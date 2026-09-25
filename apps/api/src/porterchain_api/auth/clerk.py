@@ -67,6 +67,33 @@ async def get_clerk_claims(
             raise HTTPException(status_code=401, detail="dev_bypass_disabled")
         return _sync_and_ensure(db, _dev_claims(path=path, header=portal_header))
 
+    from porterchain_api.auth.impersonation_session import (
+        IMP_BEARER_PREFIX,
+        resolve_from_bearer,
+    )
+
+    if token.startswith(IMP_BEARER_PREFIX):
+        session = resolve_from_bearer(token)
+        if not session:
+            raise HTTPException(status_code=401, detail="impersonation_expired")
+        portal = (portal_header or "").strip().lower()
+        if portal in ("driver", "merchant", "customer") and portal != session.target_type:
+            raise HTTPException(status_code=403, detail="impersonation_portal_mismatch")
+        request.state.impersonation = session
+        # Synthetic claims — never a forged Clerk JWT. Persona resolvers key off metadata.
+        return ClerkClaims(
+            clerk_user_id=session.target_clerk_user_id
+            or f"impersonation:{session.target_id}",
+            email=session.target_email,
+            public_metadata={
+                "impersonation": True,
+                "user_type": session.target_type,
+                "target_id": session.target_id,
+                "actor_admin_id": session.actor_admin_id,
+                "session_id": session.session_id,
+            },
+        )
+
     claims = await verify_clerk_token(token, settings, path=path, header=portal_header)
     return _sync_and_ensure(db, claims)
 

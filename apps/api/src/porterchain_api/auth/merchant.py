@@ -62,6 +62,10 @@ def get_merchant_context(
     Optional X-Merchant-Id selects membership when a user belongs to multiple merchants.
     Role is always taken from merchant_users.role — never from request headers.
     """
+    meta = claims.public_metadata or {}
+    if meta.get("impersonation") and meta.get("user_type") == "merchant":
+        return _merchant_context_from_impersonation(db, str(meta.get("target_id") or ""))
+
     assert_clerk_id_exclusive(db, claims, portal="merchant", settings=settings)
 
     user = _resolve_merchant_user(db, claims.clerk_user_id, x_merchant_id, settings)
@@ -102,6 +106,26 @@ def get_merchant_context(
     return MerchantContext(merchant=merchant, user=user, role=role)
 
 
+def _merchant_context_from_impersonation(db: Session, merchant_user_id: str) -> MerchantContext:
+    from porterchain_api.merchant_engine.lookups import get_merchant_user
+
+    if not merchant_user_id:
+        raise HTTPException(status_code=401, detail="impersonation_expired")
+    user = get_merchant_user(db, merchant_user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="merchant_user_not_found")
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="merchant_user_inactive")
+    merchant = get_merchant(db, user.merchant_id)
+    if not merchant:
+        raise HTTPException(status_code=404, detail="merchant_not_found")
+    denied = portal_access_denied(merchant)
+    if denied:
+        raise HTTPException(status_code=403, detail=denied)
+    role = parse_merchant_role(user.role)
+    return MerchantContext(merchant=merchant, user=user, role=role)
+
+
 def get_merchant_seats(
     claims: Annotated[ClerkClaims, Depends(get_clerk_claims)],
     db: Session = Depends(get_db),
@@ -114,6 +138,19 @@ def get_merchant_seats(
     would hide the switcher exactly when someone needs it to move to a company
     that still works. Identity checks stay; only the status gate is dropped.
     """
+    meta = claims.public_metadata or {}
+    if meta.get("impersonation") and meta.get("user_type") == "merchant":
+        from porterchain_api.merchant_engine.lookups import get_merchant_user
+
+        mu = get_merchant_user(db, str(meta.get("target_id") or ""))
+        if not mu or not mu.is_active:
+            raise HTTPException(status_code=403, detail="merchant_user_not_found")
+        return MerchantSeats(
+            clerk_user_id=claims.clerk_user_id,
+            seats=[mu],
+            selected_merchant_id=mu.merchant_id,
+        )
+
     assert_clerk_id_exclusive(db, claims, portal="merchant", settings=settings)
 
     seats = [s for s in seats_for_clerk(db, claims.clerk_user_id) if s.is_active]

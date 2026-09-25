@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { SignOutButton, useAuth } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
@@ -8,6 +8,7 @@ import { fetchCustomerOnboarding, isPendingCustomerPath } from "@/lib/onboarding
 import { isClerkConfigured, publicEnv } from "@/lib/env";
 import {
   platformLoginUrl,
+  readImpersonationBearer,
   useOptionalSessionContext,
   usePortalSessionGate,
   type SessionContext,
@@ -28,10 +29,21 @@ function CustomerAccessGateWithClerk({ children }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { isLoaded, isSignedIn, getToken } = useAuth();
+  const [impToken, setImpToken] = useState<string | null>(null);
   const sessionCtx = useOptionalSessionContext();
   const setSession = sessionCtx?.setSession;
   const setActiveWorkspaceId = sessionCtx?.setActiveWorkspaceId;
   const onPendingPath = isPendingCustomerPath(pathname);
+
+  useEffect(() => {
+    setImpToken(readImpersonationBearer());
+  }, []);
+
+  const getTokenOrImp = useCallback(async () => {
+    const imp = readImpersonationBearer() || impToken;
+    if (imp) return imp;
+    return getToken();
+  }, [getToken, impToken]);
 
   const onSession = useCallback(
     (ctx: SessionContext) => {
@@ -52,20 +64,22 @@ function CustomerAccessGateWithClerk({ children }: Props) {
     router.replace("/onboarding");
   }, [router]);
 
+  const effectivelySignedIn = !!isSignedIn || !!impToken;
+
   const { checking, denied, errorDetail } = usePortalSessionGate({
     portal: "customer",
     apiUrl: publicEnv.porterchainApiUrl,
     isLoaded,
-    isSignedIn: !!isSignedIn,
-    getToken,
-    skipCheck: onPendingPath,
+    isSignedIn: effectivelySignedIn,
+    getToken: getTokenOrImp,
+    skipCheck: onPendingPath || !!impToken,
     fetchOnboarding: fetchCustomerOnboarding,
     onSession,
     onSignedOut,
     onNeedOnboarding,
   });
 
-  if (!isLoaded || (checking && !onPendingPath)) {
+  if (!isLoaded || (checking && !onPendingPath && !impToken)) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3" role="status">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" />
@@ -74,7 +88,7 @@ function CustomerAccessGateWithClerk({ children }: Props) {
     );
   }
 
-  if (denied || errorDetail) {
+  if ((denied || errorDetail) && !impToken) {
     const loginUrl = platformLoginUrl(publicEnv.websiteUrl);
     const deniedAccess = errorDetail === "missing_portal_permission" || denied;
     return (

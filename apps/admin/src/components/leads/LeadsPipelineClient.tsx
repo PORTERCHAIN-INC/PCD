@@ -1,0 +1,115 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, RefreshCw } from "lucide-react";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { leadsApi } from "@/lib/leads";
+import AdminPage from "@/components/layout/AdminPage";
+
+function money(cents: number): string {
+  return (cents / 100).toLocaleString(undefined, {
+    style: "currency",
+    currency: "CAD",
+    maximumFractionDigits: 0,
+  });
+}
+
+export default function LeadsPipelineClient() {
+  const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
+  const [search, setSearch] = useState("");
+
+  const {
+    data: columns = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["leads-pipeline", search],
+    enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
+    queryFn: async () => leadsApi.pipeline(await getApiToken(), { search: search || undefined }),
+  });
+
+  return (
+    <AdminPage>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <Link
+            href="/leads"
+            className="mb-2 inline-flex items-center gap-2 text-sm text-secondary"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to inbox
+          </Link>
+          <h1 className="text-2xl font-bold text-primary">Acquisition pipeline</h1>
+          <p className="text-sm text-muted">Leads + deals by stage — origin channel on each card</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="search"
+            placeholder="Search…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+          />
+          <Button variant="outline" onClick={() => void refetch()}>
+            <RefreshCw className="h-4 w-4" /> Refresh
+          </Button>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <Spinner />
+        </div>
+      ) : (
+        <div className="flex gap-3 overflow-x-auto pb-4">
+          {columns.map((col) => (
+            <div
+              key={col.stage}
+              className="w-72 shrink-0 rounded-2xl border border-primary/10 bg-slate-50/80 p-3"
+            >
+              <div className="mb-3 flex items-baseline justify-between gap-2">
+                <h2 className="text-sm font-semibold capitalize text-primary">
+                  {col.stage.replace(/_/g, " ")}
+                </h2>
+                <span className="text-xs text-muted">{col.count}</span>
+              </div>
+              <p className="mb-3 text-xs text-muted">{money(col.value_cents)}</p>
+              <ul className="space-y-2">
+                {col.cards.map((card) => (
+                  <li
+                    key={`${card.type}-${card.id}`}
+                    className="rounded-xl border border-primary/10 bg-white p-3 shadow-sm"
+                  >
+                    <Link
+                      href={card.type === "lead" ? `/leads/${card.id}` : `/leads`}
+                      className="text-sm font-medium text-secondary hover:underline"
+                    >
+                      {card.title}
+                    </Link>
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      <Badge tone="slate">{card.type}</Badge>
+                      {card.channel ? (
+                        <Badge tone="slate">{card.channel.replace(/_/g, " ")}</Badge>
+                      ) : null}
+                    </div>
+                    {card.secondary ? (
+                      <p className="mt-1 text-xs text-muted">{card.secondary}</p>
+                    ) : null}
+                    {card.value_cents ? (
+                      <p className="mt-0.5 text-xs text-muted">{money(card.value_cents)}</p>
+                    ) : null}
+                  </li>
+                ))}
+                {col.hidden > 0 ? (
+                  <li className="text-xs text-muted">+{col.hidden} more leads</li>
+                ) : null}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+    </AdminPage>
+  );
+}

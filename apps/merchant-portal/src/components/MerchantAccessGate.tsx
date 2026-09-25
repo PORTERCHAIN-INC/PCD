@@ -51,14 +51,45 @@ function MerchantSignInUnavailable() {
   );
 }
 
+/** ACTIVE/APPROVED merchant session already proves portal access — skip session-context. */
+function sessionFromMerchant(merchant: {
+  merchant_id: string;
+  company_name: string;
+  role: string;
+  modules: string[];
+  user_email: string;
+  status?: string;
+}): SessionContext {
+  return {
+    user_id: merchant.user_email,
+    status: merchant.status ?? "active",
+    onboarding_status: "complete",
+    default_workspace: merchant.merchant_id,
+    email: merchant.user_email,
+    roles: [merchant.role],
+    permissions: ["merchant_portal.access"],
+    modules: merchant.modules,
+    organization_ids: [merchant.merchant_id],
+    workspaces: [
+      {
+        id: merchant.merchant_id,
+        label: merchant.company_name,
+        kind: "merchant",
+        organization_id: merchant.merchant_id,
+      },
+    ],
+    legacy_profile_ids: {},
+  };
+}
+
 function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isLoaded, isSignedIn } = useAuth();
-  const { getApiToken } = useMerchantAuth();
-  const sessionBag = useOptionalSessionContext();
-  const setSession = sessionBag?.setSession;
-  const setActiveWorkspaceId = sessionBag?.setActiveWorkspaceId;
+  const { isLoaded: clerkLoaded, isSignedIn } = useAuth();
+  const { isLoaded: merchantAuthLoaded, getApiToken, session: merchantSession } = useMerchantAuth();
+  const sessionCtx = useOptionalSessionContext();
+  const setSession = sessionCtx?.setSession;
+  const setActiveWorkspaceId = sessionCtx?.setActiveWorkspaceId;
   const onPendingPath = isPendingMerchantPath(pathname);
 
   const onSession = useCallback(
@@ -67,9 +98,20 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
       if (ctx.default_workspace) {
         setActiveWorkspaceId?.(ctx.default_workspace);
       }
-      onProfile?.(merchantProfileFromSession(ctx));
+      if (merchantSession) {
+        onProfile?.({
+          company_name: merchantSession.company_name,
+          email: merchantSession.user_email,
+          status: merchantSession.status ?? ctx.status,
+          merchant_id: merchantSession.merchant_id,
+          enterprise_role: merchantSession.role,
+          logo_url: merchantSession.logo_url,
+        });
+      } else {
+        onProfile?.(merchantProfileFromSession(ctx));
+      }
     },
-    [onProfile, setActiveWorkspaceId, setSession]
+    [merchantSession, onProfile, setActiveWorkspaceId, setSession]
   );
 
   const onSignedOut = useCallback(() => {
@@ -81,20 +123,45 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
     router.replace("/onboarding");
   }, [router]);
 
+  // MerchantAuth already loaded /v1/merchant/session — skip onboarding API when clearly active.
+  const fetchOnboarding = useCallback(
+    async (token: string) => {
+      const st = (merchantSession?.status || "").toUpperCase();
+      if (st === "ACTIVE" || st === "APPROVED") {
+        return { ready: true };
+      }
+      return fetchMerchantOnboarding(token);
+    },
+    [merchantSession?.status]
+  );
+
+  const resolveSession = useCallback(
+    async (_token: string): Promise<SessionContext | null> => {
+      const st = (merchantSession?.status || "").toUpperCase();
+      if (!merchantSession || (st !== "ACTIVE" && st !== "APPROVED")) return null;
+      return sessionFromMerchant(merchantSession);
+    },
+    [merchantSession]
+  );
+
+  // Wait for merchant session so ACTIVE users skip the duplicate session-context call.
+  const gateReady = clerkLoaded && merchantAuthLoaded;
+
   const { checking, denied, errorDetail } = usePortalSessionGate({
     portal: "merchant",
     apiUrl: publicEnv.porterchainApiUrl,
-    isLoaded,
+    isLoaded: gateReady,
     isSignedIn: !!isSignedIn,
     getToken: getApiToken,
     skipCheck: onPendingPath,
-    fetchOnboarding: fetchMerchantOnboarding,
+    fetchOnboarding,
+    resolveSession,
     onSession,
     onSignedOut,
     onNeedOnboarding,
   });
 
-  if (!isLoaded || checking) {
+  if (!gateReady || checking) {
     return <Spinner label="Loading session…" />;
   }
 

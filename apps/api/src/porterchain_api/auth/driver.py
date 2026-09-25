@@ -30,6 +30,21 @@ async def get_driver_context(
         if driver:
             return DriverContext(driver=driver)
     elif token:
+        from porterchain_api.auth.impersonation_session import (
+            IMP_BEARER_PREFIX,
+            resolve_from_bearer,
+        )
+
+        if token.startswith(IMP_BEARER_PREFIX):
+            session = resolve_from_bearer(token)
+            if not session or session.target_type != "driver":
+                raise HTTPException(status_code=401, detail="impersonation_expired")
+            driver = db.query(Driver).filter(Driver.id == session.target_id).first()
+            if not driver:
+                raise HTTPException(status_code=404, detail="driver_not_found")
+            if driver.status == DriverStatus.SUSPENDED.value:
+                raise HTTPException(status_code=403, detail="driver_suspended")
+            return DriverContext(driver=driver)
         driver_id = await _clerk_driver_id(db, token, settings)
     elif allow_auth_dev_bypass(settings) and x_driver_id:
         driver_id = x_driver_id

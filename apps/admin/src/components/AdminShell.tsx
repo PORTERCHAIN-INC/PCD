@@ -68,7 +68,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         </header>
 
         <main className={cn("ops-main min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-clip")}>
-          <Container className="min-w-0">{children}</Container>
+          {/* Fluid rail — every ops page uses full viewport width for tables/KPIs. */}
+          <Container width="fluid" className="admin-page-rail min-w-0">
+            {children}
+          </Container>
         </main>
       </div>
     </AdminAccessGate>

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { MerchantAccessProfile } from "@/lib/merchant-access";
 
 const MerchantProfileContext = createContext<{
@@ -10,10 +10,9 @@ const MerchantProfileContext = createContext<{
 
 export function MerchantProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<MerchantAccessProfile | null>(null);
+  const value = useMemo(() => ({ profile, setProfile }), [profile]);
   return (
-    <MerchantProfileContext.Provider value={{ profile, setProfile }}>
-      {children}
-    </MerchantProfileContext.Provider>
+    <MerchantProfileContext.Provider value={value}>{children}</MerchantProfileContext.Provider>
   );
 }
 

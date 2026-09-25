@@ -1,12 +1,24 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { AlertTriangle } from "lucide-react";
 import { DispatchQueuePanel } from "@/components/operations/DispatchQueuePanel";
-import { LiveMapPanel } from "@/components/operations/LiveMapPanel";
 import { ActivityPanel } from "@/components/operations/ActivityPanel";
-import { Button } from "@/components/crm/primitives";
+import { Button, Spinner } from "@/components/crm/primitives";
 import { pressureCounts } from "@/components/operations/opsViews";
 import type { OpsStats } from "@/lib/operations";
+
+const LiveMapPanel = dynamic(
+  () => import("@/components/operations/LiveMapPanel").then((m) => ({ default: m.LiveMapPanel })),
+  {
+    loading: () => (
+      <div className="flex h-64 items-center justify-center rounded-xl border border-primary/10 bg-white">
+        <Spinner />
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 export function OpsDeskLayout({
   tick,

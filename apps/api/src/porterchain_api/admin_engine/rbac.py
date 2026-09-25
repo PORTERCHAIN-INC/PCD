@@ -182,6 +182,8 @@ MODULE_PERMISSIONS: dict[str, frozenset[AdminRole]] = {
     "settings": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN}),
     "settings_commercial": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN}),
     "settings_identity": frozenset({AdminRole.SUPER_ADMIN, AdminRole.ADMIN}),
+    # Break-glass \"open as user\" — Super Admin only (never default support path).
+    "impersonation": frozenset({AdminRole.SUPER_ADMIN}),
     "notifications": frozenset(
         {AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.DISPATCHER, AdminRole.SUPPORT_LEAD, AdminRole.MARKETING}
     ),

@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
 import { Bell, CheckCheck, Inbox, Sparkles } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@porterchain/ui/utils";
@@ -60,16 +59,36 @@ export default function NotificationBell({
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const qc = useQueryClient();
   const enabled = isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
+  /** WS is deferred until idle / first open — Query poll covers the gap. */
+  const [wsArmed, setWsArmed] = useState(false);
+
+  useEffect(() => {
+    if (!enabled || wsArmed) return;
+    let idleId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const arm = () => setWsArmed(true);
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(arm, { timeout: 4000 });
+    } else {
+      timeoutId = setTimeout(arm, 2500);
+    }
+    return () => {
+      if (idleId !== undefined && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [enabled, wsArmed]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-notification-inbox"],
     enabled,
-    // Slow fallback; live updates arrive via WS.
+    // Slow fallback; live updates arrive via WS once armed.
     refetchInterval: 120_000,
     queryFn: async () => loadInbox(await getApiToken()),
   });
 
-  useAdminNotificationRealtime(enabled, getApiToken, () => {
+  useAdminNotificationRealtime(enabled && wsArmed, getApiToken, () => {
     void qc.invalidateQueries({ queryKey: ["admin-notification-inbox"] });
   });
 
@@ -100,6 +119,10 @@ export default function NotificationBell({
         <button
           type="button"
           {...triggerProps}
+          onClick={() => {
+            setWsArmed(true);
+            triggerProps.onClick();
+          }}
           className={cn(
             "group relative flex h-10 w-10 items-center justify-center rounded-full border border-primary/10 bg-white text-primary shadow-sm transition",
             "hover:border-secondary/25 hover:bg-gradient-to-br hover:from-secondary/5 hover:to-white",
@@ -124,19 +147,11 @@ export default function NotificationBell({
               unread > 0 && "text-secondary"
             )}
           />
-          <AnimatePresence>
-            {unread > 0 ? (
-              <motion.span
-                key="badge"
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.5, opacity: 0 }}
-                className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-rose-600 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white"
-              >
-                {unread > 99 ? "99+" : unread}
-              </motion.span>
-            ) : null}
-          </AnimatePresence>
+          {unread > 0 ? (
+            <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-rose-600 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+              {unread > 99 ? "99+" : unread}
+            </span>
+          ) : null}
         </button>
       )}
     >
@@ -194,13 +209,10 @@ export default function NotificationBell({
           </div>
         ) : (
           <ul>
-            {items.map((n, index) => (
+            {items.map((n) => (
               <li key={n.id}>
-                <motion.button
+                <button
                   type="button"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(index * 0.03, 0.2) }}
                   onClick={() => {
                     if (!n.is_read) void markRead(n.id);
                     if (n.deep_link) window.location.href = n.deep_link;
@@ -235,7 +247,7 @@ export default function NotificationBell({
                       </span>
                     ) : null}
                   </span>
-                </motion.button>
+                </button>
               </li>
             ))}
           </ul>

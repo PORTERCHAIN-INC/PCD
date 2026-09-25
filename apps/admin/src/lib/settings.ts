@@ -325,6 +325,36 @@ export const settingsApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  /** Approve / activate portal access (driver or merchant). Staff use enroll; customers invite. */
+  authorizeUser: (
+    token: string,
+    userType: "driver" | "merchant",
+    body: {
+      platform_user_id?: string;
+      clerk_user_id?: string;
+      email?: string;
+      name?: string;
+      reason?: string;
+    }
+  ) =>
+    adminFetch<{
+      platform_user_id: string;
+      user_type: string;
+      email: string;
+      role: string | null;
+      access_status: string;
+      modules: string[];
+      actions_taken: string[];
+    }>(`${B}/users/${userType}/authorize`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  /** Re-send Clerk invite for an existing driver or customer. */
+  inviteUser: (token: string, userType: "driver" | "customer", platformUserId: string) =>
+    adminFetch<Record<string, unknown>>(`${B}/users/${userType}/invite`, token, {
+      method: "POST",
+      body: JSON.stringify({ platform_user_id: platformUserId }),
+    }),
   enrollStaff: (token: string, body: { email: string; role: string; name?: string }) =>
     adminFetch<{
       admin_user_id: string;
@@ -366,6 +396,32 @@ export const settingsApi = {
     adminFetch<StaffUser>(`${B}/staff/${userId}/role`, token, {
       method: "PATCH",
       body: JSON.stringify({ role, reason }),
+    }),
+  /** Super Admin break-glass — opens portal as target for 15 minutes (audited). */
+  startImpersonation: (
+    token: string,
+    body: { target_type: "driver" | "merchant" | "customer"; target_id: string; reason: string }
+  ) =>
+    adminFetch<{
+      session_id: string;
+      actor_email: string;
+      target_type: string;
+      target_id: string;
+      target_email: string;
+      target_label: string;
+      reason: string;
+      expires_at: number;
+      seconds_remaining: number;
+      bearer_token?: string | null;
+      portal_bootstrap_url?: string | null;
+    }>("/v1/admin/impersonation/start", token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  stopImpersonation: (token: string, sessionId: string) =>
+    adminFetch<{ ok: boolean }>("/v1/admin/impersonation/stop", token, {
+      method: "POST",
+      body: JSON.stringify({ session_id: sessionId }),
     }),
   config: (token: string) =>
     adminFetch<{ config: Record<string, unknown>; module_config: Record<string, unknown> }>(

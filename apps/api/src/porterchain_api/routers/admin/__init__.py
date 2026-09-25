@@ -10,6 +10,7 @@ from porterchain_api.routers.admin import finance  # noqa: F401
 from porterchain_api.routers.admin import support  # noqa: F401
 from porterchain_api.routers.admin import settings  # noqa: F401
 from porterchain_api.routers.admin import settings_directory  # noqa: F401
+from porterchain_api.routers.admin import impersonation  # noqa: F401
 from porterchain_api.routers.admin import data_moat  # noqa: F401
 from porterchain_api.routers.admin import platform_metrics  # noqa: F401
 from porterchain_api.routers.admin import monopoly_metrics  # noqa: F401

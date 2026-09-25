@@ -12,63 +12,41 @@ import CompanyCompletenessBanner from "@/components/onboarding/CompanyCompletene
 import { StatCard } from "@/components/portal/StatCard";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
-import { getDashboard, type MerchantDashboard } from "@/lib/api";
+import { getDashboard } from "@/lib/api";
 import { merchantPortalJob } from "@/lib/merchant-nav";
 import { formatPercent } from "@/lib/reports";
 import { formatCents } from "@/lib/utils";
-import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 
 export default function DashboardPage() {
   const { getApiToken, orgId, isLoaded, isSignedIn, modules } = useMerchantAuth();
   const job = merchantPortalJob(modules);
-  const [data, setData] = useState<MerchantDashboard | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const qc = useQueryClient();
+  const enabled = Boolean(isLoaded && isSignedIn && orgId);
 
-  const loadDashboard = useCallback(async () => {
-    const token = await getApiToken();
-    return getDashboard(token, orgId);
-  }, [getApiToken, orgId]);
+  const { data, error, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["merchant-dashboard", orgId],
+    enabled,
+    queryFn: async () => getDashboard(await getApiToken(), orgId),
+  });
 
-  const refresh = useCallback(async () => {
-    if (!isSignedIn || !orgId) return;
-    setRefreshing(true);
-    try {
-      const dash = await loadDashboard();
-      setData(dash);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load dashboard");
-    } finally {
-      setRefreshing(false);
-    }
-  }, [isSignedIn, orgId, loadDashboard]);
+  const refresh = useCallback(() => {
+    void qc.invalidateQueries({ queryKey: ["merchant-dashboard", orgId] });
+  }, [orgId, qc]);
 
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn || !orgId) return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const dash = await loadDashboard();
-        if (!cancelled) {
-          setData(dash);
-          setError(null);
-        }
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load dashboard");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoaded, isSignedIn, orgId, loadDashboard]);
-
-  useMerchantRealtime(Boolean(isLoaded && isSignedIn && orgId), orgId, getApiToken, refresh);
+  useMerchantRealtime(enabled, orgId, getApiToken, refresh);
 
   if (!isLoaded) return <p className="text-muted">Loading…</p>;
   if (!isSignedIn) return <p className="text-muted">Please sign in.</p>;
-  if (error && !data) return <p className="text-red-600">{error}</p>;
-  if (!data) return <p className="text-muted">Loading dashboard…</p>;
+  if (error && !data) {
+    return (
+      <p className="text-red-600">
+        {error instanceof Error ? error.message : "Failed to load dashboard"}
+      </p>
+    );
+  }
+  if (isLoading || !data) return <p className="text-muted">Loading dashboard…</p>;
 
   const invoiceUrl =
     data.latest_invoice?.pdf_url ?? data.latest_invoice?.stripe_receipt_url ?? null;
@@ -94,7 +72,7 @@ export default function DashboardPage() {
             {showFinance && data.payment_terms
               ? ` · ${data.payment_terms.replaceAll("_", " ")}`
               : ""}
-            {refreshing && <span className="ml-2 text-secondary">Updating…</span>}
+            {isFetching && !isLoading && <span className="ml-2 text-secondary">Updating…</span>}
           </p>
         </div>
       </div>
@@ -162,7 +140,7 @@ export default function DashboardPage() {
           items={data.notifications}
           getToken={getApiToken}
           orgId={orgId}
-          onRead={() => void refresh()}
+          onRead={() => void refetch()}
         />
       </div>
 

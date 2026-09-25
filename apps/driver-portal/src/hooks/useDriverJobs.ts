@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { driverApi } from "@/lib/api";
 import type { DriverJobsList, DriverJobsOptimizeResult } from "@/lib/jobs";
 import { formatLastUpdated } from "@/lib/workspace";
@@ -49,50 +50,59 @@ function formatDeltaMessage(result: DriverJobsOptimizeResult, applied: boolean):
 }
 
 export function useDriverJobs() {
-  const [data, setData] = useState<DriverJobsList | null>(null);
-  const [history, setHistory] = useState<DriverJobsList["completed"]>([]);
-  const [error, setError] = useState("");
-  const [historyError, setHistoryError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const mounted = useRef(true);
   const [optimizing, setOptimizing] = useState(false);
   const [optimizeMessage, setOptimizeMessage] = useState("");
   const [preview, setPreview] = useState<DriverJobsOptimizeResult | null>(null);
   const [canUndo, setCanUndo] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const mounted = useRef(true);
+  const [actionError, setActionError] = useState("");
 
-  const refresh = useCallback(async (_silent = false) => {
-    try {
-      const [jobsResult, histResult] = await Promise.allSettled([
-        driverApi.jobs(),
-        driverApi.jobsHistory(),
-      ]);
-      if (!mounted.current) return;
-      if (jobsResult.status === "fulfilled") {
-        setData(jobsResult.value);
-        setLastUpdated(new Date());
-        setError("");
-      } else {
-        const reason = jobsResult.reason;
-        setError(reason instanceof Error ? reason.message : "refresh_failed");
-      }
-      if (histResult.status === "fulfilled") {
-        setHistory(histResult.value.history);
-        setHistoryError("");
-      } else {
-        const reason = histResult.reason;
-        setHistoryError(reason instanceof Error ? reason.message : "history_failed");
-      }
-    } finally {
-      if (mounted.current) setLoading(false);
-    }
-  }, []);
+  const jobsQuery = useQuery({
+    queryKey: ["driver-jobs"],
+    queryFn: async () => {
+      const jobs = await driverApi.jobs();
+      return { jobs, at: new Date() };
+    },
+    refetchInterval: () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
+      return POLL_MS;
+    },
+  });
+
+  const historyQuery = useQuery({
+    queryKey: ["driver-jobs-history"],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const hist = await driverApi.jobsHistory();
+      return hist.history;
+    },
+    refetchInterval: () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
+      return POLL_MS * 2;
+    },
+  });
+
+  const refresh = useCallback(async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ["driver-jobs"] }),
+      qc.invalidateQueries({ queryKey: ["driver-jobs-history"] }),
+    ]);
+  }, [qc]);
+
+  const setJobsData = useCallback(
+    (jobs: DriverJobsList) => {
+      qc.setQueryData(["driver-jobs"], { jobs, at: new Date() });
+    },
+    [qc]
+  );
 
   const optimize = useCallback(async () => {
+    mounted.current = true;
     setOptimizing(true);
     setOptimizeMessage("Building stop order preview…");
     setPreview(null);
-    setError("");
+    setActionError("");
     try {
       let result = await driverApi.optimizeJobs();
       const runId = result.run_id;
@@ -117,52 +127,45 @@ export function useDriverJobs() {
       setPreview(result);
       setOptimizeMessage(formatDeltaMessage(result, false));
     } catch (e) {
-      if (mounted.current) {
-        const msg = e instanceof Error ? e.message : "optimize_failed";
-        setError(
-          msg.includes("sequence_version_conflict") || msg.includes("Sequence conflict")
-            ? "Stop order conflict — refresh and try again."
-            : msg
-        );
-        setOptimizeMessage("");
-        setPreview(null);
-      }
+      const msg = e instanceof Error ? e.message : "optimize_failed";
+      setActionError(
+        msg.includes("sequence_version_conflict") || msg.includes("Sequence conflict")
+          ? "Stop order conflict — refresh and try again."
+          : msg
+      );
+      setOptimizeMessage("");
+      setPreview(null);
     } finally {
-      if (mounted.current) setOptimizing(false);
+      setOptimizing(false);
     }
   }, []);
 
   const acceptPreview = useCallback(async () => {
     if (!preview?.run_id) return;
     setOptimizing(true);
-    setError("");
+    setActionError("");
     try {
       const result = await driverApi.optimizeAccept(preview.run_id, preview.sequence_version);
-      if (!mounted.current) return;
-      setData(result.jobs);
+      setJobsData(result.jobs);
       setPreview(null);
       setCanUndo(true);
-      setLastUpdated(new Date());
       setOptimizeMessage(formatDeltaMessage(result, true));
-      // Nav polyline follows applied sequence — force immediate refresh.
       try {
         window.dispatchEvent(new CustomEvent("pc:sequence-applied"));
       } catch {
-        /* SSR / non-DOM */
+        /* SSR */
       }
     } catch (e) {
-      if (mounted.current) {
-        const msg = e instanceof Error ? e.message : "accept_failed";
-        setError(
-          msg.includes("sequence_version_conflict") || msg.includes("Sequence conflict")
-            ? "Stop order conflict — refresh and request a new preview."
-            : msg
-        );
-      }
+      const msg = e instanceof Error ? e.message : "accept_failed";
+      setActionError(
+        msg.includes("sequence_version_conflict") || msg.includes("Sequence conflict")
+          ? "Stop order conflict — refresh and request a new preview."
+          : msg
+      );
     } finally {
-      if (mounted.current) setOptimizing(false);
+      setOptimizing(false);
     }
-  }, [preview]);
+  }, [preview, setJobsData]);
 
   const discardPreview = useCallback(() => {
     setPreview(null);
@@ -171,57 +174,58 @@ export function useDriverJobs() {
 
   const undoOptimize = useCallback(async () => {
     setOptimizing(true);
-    setError("");
+    setActionError("");
     try {
       const result = await driverApi.optimizeUndo();
-      if (!mounted.current) return;
       if (result.error === "nothing_to_undo" || result.ok === false) {
         setOptimizeMessage(result.message || "Nothing to undo");
         setCanUndo(false);
         return;
       }
-      setData(result.jobs);
+      setJobsData(result.jobs);
       setCanUndo(false);
       setPreview(null);
-      setLastUpdated(new Date());
       setOptimizeMessage(result.message || "Previous stop order restored.");
       try {
         window.dispatchEvent(new CustomEvent("pc:sequence-applied"));
       } catch {
-        /* SSR / non-DOM */
+        /* SSR */
       }
     } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "undo_failed");
+      setActionError(e instanceof Error ? e.message : "undo_failed");
     } finally {
-      if (mounted.current) setOptimizing(false);
+      setOptimizing(false);
     }
-  }, []);
+  }, [setJobsData]);
 
-  useEffect(() => {
-    mounted.current = true;
-    refresh();
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh(true);
-    }, POLL_MS);
-    return () => {
-      mounted.current = false;
-      window.clearInterval(interval);
-    };
-  }, [refresh]);
+  const lastUpdated = jobsQuery.data?.at ?? null;
+  const jobsError =
+    actionError ||
+    (jobsQuery.error instanceof Error
+      ? jobsQuery.error.message
+      : jobsQuery.error
+        ? String(jobsQuery.error)
+        : "");
+  const historyError =
+    historyQuery.error instanceof Error
+      ? historyQuery.error.message
+      : historyQuery.error
+        ? String(historyQuery.error)
+        : "";
 
   return {
-    data,
-    history,
-    error,
+    data: jobsQuery.data?.jobs ?? null,
+    history: historyQuery.data ?? [],
+    error: jobsError,
     historyError,
-    loading,
+    loading: jobsQuery.isLoading,
     optimizing,
     optimizeMessage,
     preview,
     canUndo,
     lastUpdated,
     lastUpdatedLabel: lastUpdated ? formatLastUpdated(lastUpdated) : null,
-    refresh: () => refresh(true),
+    refresh,
     optimize,
     acceptPreview,
     discardPreview,

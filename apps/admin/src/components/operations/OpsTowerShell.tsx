@@ -24,6 +24,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
+import AdminPage from "@/components/layout/AdminPage";
 import { useApiData } from "@/hooks/useApiData";
 import { ops } from "@/lib/operations";
 import { OpsPressureBar } from "@/components/operations/OpsPressureBar";
@@ -38,9 +39,20 @@ import { ScheduledBatchesPanel } from "@/components/operations/ScheduledBatchesP
 import { OptimizePanel } from "@/components/operations/OptimizePanel";
 import { UtilizationPanel } from "@/components/operations/UtilizationPanel";
 import { DispatcherCopilotPanel } from "@/components/operations/DispatcherCopilotPanel";
-import { Order360Drawer } from "@/components/orders/Order360Drawer";
-import { OrderBuilderModal } from "@/components/orders/OrderBuilderModal";
-import { Button } from "@/components/crm/primitives";
+import { Button, Spinner } from "@/components/crm/primitives";
+import dynamic from "next/dynamic";
+
+const Order360Drawer = dynamic(
+  () => import("@/components/orders/Order360Drawer").then((m) => ({ default: m.Order360Drawer })),
+  { loading: () => null, ssr: false }
+);
+const OrderBuilderModal = dynamic(
+  () =>
+    import("@/components/orders/OrderBuilderModal").then((m) => ({
+      default: m.OrderBuilderModal,
+    })),
+  { loading: () => <Spinner />, ssr: false }
+);
 import {
   parseOpsSearchParams,
   writeOpsSearchParams,
@@ -154,196 +166,203 @@ export function OpsTowerShell() {
   const activeTool = tool ?? "optimize";
 
   return (
-    <div
-      className={cn(
-        "ops-tower space-y-3",
-        display === "dark" && "ops-tower--dark",
-        wall && "ops-tower--dark ops-tower--wall"
-      )}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-primary">
-            <Radio className="h-5 w-5 text-secondary" /> Operations Control Tower
-          </h1>
-          {!wall && (
-            <p className="text-sm text-muted">
-              Dispatch desk — assign waiting work, clear exceptions, watch the network.
-            </p>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <PushHealthStrip tick={tick} compactWhenOk />
-          <span className="flex items-center gap-1.5 text-xs text-muted">
-            <Clock className="h-3.5 w-3.5" /> Updated {updatedAt.toLocaleTimeString("en-CA")}
-            {auto && <span className="text-muted/70">· every {Math.round(pollMs / 1000)}s</span>}
-          </span>
-          <Button variant="outline" onClick={cycleDisplay} className="text-xs" title="Display mode">
-            {display === "wall" ? (
-              <Monitor className="h-4 w-4" />
-            ) : display === "dark" ? (
-              <Moon className="h-4 w-4" />
-            ) : (
-              <Monitor className="h-4 w-4" />
+    <AdminPage className="!space-y-3">
+      <div
+        className={cn(
+          "ops-tower space-y-3",
+          display === "dark" && "ops-tower--dark",
+          wall && "ops-tower--dark ops-tower--wall"
+        )}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-primary">
+              <Radio className="h-5 w-5 text-secondary" /> Operations Control Tower
+            </h1>
+            {!wall && (
+              <p className="text-sm text-muted">
+                Dispatch desk — assign waiting work, clear exceptions, watch the network.
+              </p>
             )}
-            {display === "default" ? "Light" : display === "dark" ? "Dark" : "Wall"}
-          </Button>
-          <Button variant="outline" onClick={() => setSound((s) => !s)} className="text-xs">
-            {sound ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            {sound ? "Sound on" : "Sound off"}
-          </Button>
-          <Button variant="outline" onClick={() => setAuto((a) => !a)} className="text-xs">
-            {auto ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            {auto ? "Live" : "Paused"}
-          </Button>
-          <Button variant="outline" onClick={() => setTick((x) => x + 1)} className="text-xs">
-            Refresh
-          </Button>
-          {!wall && (
-            <Button onClick={() => setBuilderOpen(true)} className="text-xs">
-              <Plus className="h-4 w-4" /> New order
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <PushHealthStrip tick={tick} compactWhenOk />
+            <span className="flex items-center gap-1.5 text-xs text-muted">
+              <Clock className="h-3.5 w-3.5" /> Updated {updatedAt.toLocaleTimeString("en-CA")}
+              {auto && <span className="text-muted/70">· every {Math.round(pollMs / 1000)}s</span>}
+            </span>
+            <Button
+              variant="outline"
+              onClick={cycleDisplay}
+              className="text-xs"
+              title="Display mode"
+            >
+              {display === "wall" ? (
+                <Monitor className="h-4 w-4" />
+              ) : display === "dark" ? (
+                <Moon className="h-4 w-4" />
+              ) : (
+                <Monitor className="h-4 w-4" />
+              )}
+              {display === "default" ? "Light" : display === "dark" ? "Dark" : "Wall"}
             </Button>
-          )}
+            <Button variant="outline" onClick={() => setSound((s) => !s)} className="text-xs">
+              {sound ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              {sound ? "Sound on" : "Sound off"}
+            </Button>
+            <Button variant="outline" onClick={() => setAuto((a) => !a)} className="text-xs">
+              {auto ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {auto ? "Live" : "Paused"}
+            </Button>
+            <Button variant="outline" onClick={() => setTick((x) => x + 1)} className="text-xs">
+              Refresh
+            </Button>
+            {!wall && (
+              <Button onClick={() => setBuilderOpen(true)} className="text-xs">
+                <Plus className="h-4 w-4" /> New order
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {stats && <OpsPressureBar stats={stats} onDrill={(t) => goView(t)} />}
+        {stats && <OpsPressureBar stats={stats} onDrill={(t) => goView(t)} />}
 
-      <div className="ops-table-scroll flex gap-1 rounded-2xl border border-primary/10 bg-white p-1.5 ops-tower-tabs">
-        {PRIMARY.filter((p) => !(wall && p.wallHide)).map(({ id, label, icon: Icon }) => {
-          if (id === "tools") {
-            return (
-              <div key={id} className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (view === "tools") {
-                      setToolsOpen((o) => !o);
-                    } else {
-                      goView("tools", activeTool);
-                    }
-                  }}
-                  className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-                    view === "tools"
-                      ? "bg-secondary text-white"
-                      : "text-primary/70 hover:bg-gray-bg"
+        <div className="ops-table-scroll flex gap-1 rounded-2xl border border-primary/10 bg-white p-1.5 ops-tower-tabs">
+          {PRIMARY.filter((p) => !(wall && p.wallHide)).map(({ id, label, icon: Icon }) => {
+            if (id === "tools") {
+              return (
+                <div key={id} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (view === "tools") {
+                        setToolsOpen((o) => !o);
+                      } else {
+                        goView("tools", activeTool);
+                      }
+                    }}
+                    className={cn(
+                      "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                      view === "tools"
+                        ? "bg-secondary text-white"
+                        : "text-primary/70 hover:bg-gray-bg"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                    <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                  </button>
+                  {toolsOpen && view === "tools" && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-20"
+                        onClick={() => setToolsOpen(false)}
+                        aria-hidden
+                      />
+                      <div className="absolute left-0 z-30 mt-1 min-w-[11rem] rounded-xl border border-primary/10 bg-white p-1 shadow-lg">
+                        {TOOLS.map(({ id: tid, label: tlabel, icon: TIcon }) => (
+                          <button
+                            key={tid}
+                            type="button"
+                            onClick={() => {
+                              setTool(tid);
+                              setView("tools");
+                              setToolsOpen(false);
+                            }}
+                            className={cn(
+                              "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm",
+                              activeTool === tid
+                                ? "bg-secondary/10 font-medium text-secondary"
+                                : "text-primary hover:bg-gray-bg"
+                            )}
+                          >
+                            <TIcon className="h-4 w-4" />
+                            {tlabel}
+                          </button>
+                        ))}
+                      </div>
+                    </>
                   )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                  <ChevronDown className="h-3.5 w-3.5 opacity-70" />
-                </button>
-                {toolsOpen && view === "tools" && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-20"
-                      onClick={() => setToolsOpen(false)}
-                      aria-hidden
-                    />
-                    <div className="absolute left-0 z-30 mt-1 min-w-[11rem] rounded-xl border border-primary/10 bg-white p-1 shadow-lg">
-                      {TOOLS.map(({ id: tid, label: tlabel, icon: TIcon }) => (
-                        <button
-                          key={tid}
-                          type="button"
-                          onClick={() => {
-                            setTool(tid);
-                            setView("tools");
-                            setToolsOpen(false);
-                          }}
-                          className={cn(
-                            "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm",
-                            activeTool === tid
-                              ? "bg-secondary/10 font-medium text-secondary"
-                              : "text-primary hover:bg-gray-bg"
-                          )}
-                        >
-                          <TIcon className="h-4 w-4" />
-                          {tlabel}
-                        </button>
-                      ))}
-                    </div>
-                  </>
+                </div>
+              );
+            }
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => goView(id)}
+                className={cn(
+                  "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                  view === id ? "bg-secondary text-white" : "text-primary/70 hover:bg-gray-bg"
                 )}
-              </div>
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </button>
             );
-          }
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => goView(id)}
-              className={cn(
-                "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-                view === id ? "bg-secondary text-white" : "text-primary/70 hover:bg-gray-bg"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
-      {view === "tools" && !wall && (
-        <div className="flex flex-wrap gap-1">
-          {TOOLS.map(({ id: tid, label: tlabel, icon: TIcon }) => (
-            <button
-              key={tid}
-              type="button"
-              onClick={() => setTool(tid)}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium",
-                activeTool === tid
-                  ? "bg-secondary text-white"
-                  : "border border-primary/10 text-primary/70 hover:bg-gray-bg"
-              )}
-            >
-              <TIcon className="h-3.5 w-3.5" />
-              {tlabel}
-            </button>
-          ))}
+          })}
         </div>
-      )}
 
-      {view === "desk" && (
-        <OpsDeskLayout
-          tick={tick}
-          stats={stats}
-          onAssigned={refresh}
-          onOpenOrder={openOrder}
-          onOpenAttention={() => goView("attention")}
+        {view === "tools" && !wall && (
+          <div className="flex flex-wrap gap-1">
+            {TOOLS.map(({ id: tid, label: tlabel, icon: TIcon }) => (
+              <button
+                key={tid}
+                type="button"
+                onClick={() => setTool(tid)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium",
+                  activeTool === tid
+                    ? "bg-secondary text-white"
+                    : "border border-primary/10 text-primary/70 hover:bg-gray-bg"
+                )}
+              >
+                <TIcon className="h-3.5 w-3.5" />
+                {tlabel}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {view === "desk" && (
+          <OpsDeskLayout
+            tick={tick}
+            stats={stats}
+            onAssigned={refresh}
+            onOpenOrder={openOrder}
+            onOpenAttention={() => goView("attention")}
+          />
+        )}
+        {view === "board" && <BoardPanel tick={tick} onMoved={refresh} onOpenOrder={openOrder} />}
+        {view === "orders" && <OrdersTablePanel tick={tick} onOpenOrder={openOrder} />}
+        {view === "attention" && <AttentionPanel tick={tick} onOpenOrder={openOrder} />}
+        {view === "tools" && activeTool === "scheduled" && (
+          <ScheduledBatchesPanel tick={tick} onOpenOrder={openOrder} />
+        )}
+        {view === "tools" && activeTool === "optimize" && (
+          <OptimizePanel tick={tick} onOpenOrder={openOrder} onCommitted={refresh} />
+        )}
+        {view === "tools" && activeTool === "utilization" && <UtilizationPanel tick={tick} />}
+        {view === "tools" && activeTool === "ai" && (
+          <DispatcherCopilotPanel tick={tick} onOpenOrder={openOrder} onChanged={refresh} />
+        )}
+
+        <Order360Drawer
+          orderId={drawerOrderId}
+          onClose={() => setDrawerOrderId(null)}
+          onChanged={refresh}
         />
-      )}
-      {view === "board" && <BoardPanel tick={tick} onMoved={refresh} onOpenOrder={openOrder} />}
-      {view === "orders" && <OrdersTablePanel tick={tick} onOpenOrder={openOrder} />}
-      {view === "attention" && <AttentionPanel tick={tick} onOpenOrder={openOrder} />}
-      {view === "tools" && activeTool === "scheduled" && (
-        <ScheduledBatchesPanel tick={tick} onOpenOrder={openOrder} />
-      )}
-      {view === "tools" && activeTool === "optimize" && (
-        <OptimizePanel tick={tick} onOpenOrder={openOrder} onCommitted={refresh} />
-      )}
-      {view === "tools" && activeTool === "utilization" && <UtilizationPanel tick={tick} />}
-      {view === "tools" && activeTool === "ai" && (
-        <DispatcherCopilotPanel tick={tick} onOpenOrder={openOrder} onChanged={refresh} />
-      )}
-
-      <Order360Drawer
-        orderId={drawerOrderId}
-        onClose={() => setDrawerOrderId(null)}
-        onChanged={refresh}
-      />
-      <OrderBuilderModal
-        open={builderOpen}
-        onClose={() => setBuilderOpen(false)}
-        onCreated={(id) => {
-          refresh();
-          openOrder(id);
-        }}
-      />
-      <OpsCommandPalette onOpenOrder={openOrder} onJumpView={(v, t) => goView(v, t)} />
-      <OpsAlertToast stats={stats} soundEnabled={sound} />
-    </div>
+        <OrderBuilderModal
+          open={builderOpen}
+          onClose={() => setBuilderOpen(false)}
+          onCreated={(id) => {
+            refresh();
+            openOrder(id);
+          }}
+        />
+        <OpsCommandPalette onOpenOrder={openOrder} onJumpView={(v, t) => goView(v, t)} />
+        <OpsAlertToast stats={stats} soundEnabled={sound} />
+      </div>
+    </AdminPage>
   );
 }

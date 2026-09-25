@@ -8,14 +8,13 @@ This module must not treat staff as a Clerk application kind.
 from __future__ import annotations
 
 import logging
-import uuid
-from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_engine.audit import log_admin_audit
+from porterchain_api.admin_engine.clerk_directory_local import create_local_driver, invite_directory_user
 from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.auth.clerk_client import ClerkClient
 from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
@@ -129,22 +128,9 @@ class ClerkDirectoryService:
                 "clerk_action": row.get("clerk_action") or "created",
                 "email": normalized,
             }
-        kind = clerk_kind_for_user_type(user_type)
-        if not is_clerk_secret_configured(settings, kind):
-            raise ValueError("clerk_not_configured")
-
-        first_name = None
-        last_name = None
-        if name and name.strip():
-            parts = name.strip().split(None, 1)
-            first_name = parts[0]
-            last_name = parts[1] if len(parts) > 1 else None
-
-        client = clerk_client_for_kind(settings, kind)
-        clerk_user: dict[str, Any] | None = None
-        clerk_action = "created"
 
         # Merchant seats are always reserved locally — never Clerk-invite from Settings (M-16).
+        # Must run before clerk_not_configured so Super Admin can add seats without Clerk.
         if user_type == "merchant":
             if not merchant_id:
                 raise ValueError("merchant_id_required")
@@ -179,6 +165,26 @@ class ClerkDirectoryService:
                 "clerk_action": "seat_reserved",
                 "email": normalized,
             }
+
+        # Driver: local PENDING row when Super Admin skips Clerk, or when Clerk is down.
+        if user_type == "driver" and not password and not send_invite:
+            return create_local_driver(db, ctx, email=normalized, name=name)
+        kind = clerk_kind_for_user_type(user_type)
+        if not is_clerk_secret_configured(settings, kind):
+            if user_type == "driver":
+                return create_local_driver(db, ctx, email=normalized, name=name)
+            raise ValueError("clerk_not_configured")
+
+        first_name = None
+        last_name = None
+        if name and name.strip():
+            parts = name.strip().split(None, 1)
+            first_name = parts[0]
+            last_name = parts[1] if len(parts) > 1 else None
+
+        client = clerk_client_for_kind(settings, kind)
+        clerk_user: dict[str, Any] | None = None
+        clerk_action = "created"
 
         if password:
             clerk_user = client.create_user(
@@ -241,6 +247,19 @@ class ClerkDirectoryService:
             "clerk_action": clerk_action,
             "email": normalized,
         }
+
+    def invite_user(
+        self,
+        db: Session,
+        ctx: AdminContext,
+        settings: Settings,
+        user_type: str,
+        *,
+        platform_user_id: str,
+    ) -> dict[str, Any]:
+        return invite_directory_user(
+            db, ctx, settings, user_type, platform_user_id=platform_user_id
+        )
 
     def update_clerk_user(
         self,

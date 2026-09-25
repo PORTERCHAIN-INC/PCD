@@ -7,7 +7,8 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./devBypass": "./src/devBypass.ts"
+    "./devBypass": "./src/devBypass.ts",
+    "./clerkEdgeSession": "./src/clerkEdgeSession.ts"
   },
   "scripts": {
     "lint": "tsc --noEmit",

@@ -16,6 +16,8 @@ export function useMerchantRealtime(
 ) {
   const onRefreshRef = useRef(onRefresh);
   onRefreshRef.current = onRefresh;
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
 
   useEffect(() => {
     if (!enabled) return;
@@ -23,16 +25,56 @@ export function useMerchantRealtime(
     let ws: WebSocket | null = null;
     let pingTimer: ReturnType<typeof setInterval> | null = null;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let cancelled = false;
+    let wsOpen = false;
+
+    function clearPing() {
+      if (pingTimer) {
+        clearInterval(pingTimer);
+        pingTimer = null;
+      }
+    }
+
+    function startPollFallback() {
+      if (pollTimer || cancelled) return;
+      pollTimer = setInterval(() => {
+        if (document.visibilityState === "visible") onRefreshRef.current();
+      }, 60_000);
+    }
+
+    function stopPollFallback() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    function teardownSocket() {
+      clearPing();
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+        ws = null;
+      }
+      wsOpen = false;
+    }
 
     async function connect() {
+      if (cancelled || document.hidden) return;
+      teardownSocket();
       try {
-        const token = await getToken();
-        if (cancelled) return;
+        const token = await getTokenRef.current();
+        if (cancelled || document.hidden) return;
         const merchant = orgId ? `&merchant_id=${encodeURIComponent(orgId)}` : "";
         ws = new WebSocket(
           `${apiWsBase()}/v1/notifications/ws?token=${encodeURIComponent(token)}&portal=merchant${merchant}`
         );
+
+        ws.onopen = () => {
+          wsOpen = true;
+          stopPollFallback();
+        };
 
         ws.onmessage = (event) => {
           try {
@@ -50,8 +92,12 @@ export function useMerchantRealtime(
         };
 
         ws.onclose = () => {
-          if (!cancelled) {
-            window.setTimeout(() => void connect(), 5000);
+          clearPing();
+          ws = null;
+          wsOpen = false;
+          startPollFallback();
+          if (!cancelled && !document.hidden) {
+            reconnectTimer = setTimeout(() => void connect(), 5000);
           }
         };
 
@@ -59,18 +105,36 @@ export function useMerchantRealtime(
           if (ws?.readyState === WebSocket.OPEN) ws.send("ping");
         }, 30000);
       } catch {
-        /* fall back to polling */
+        startPollFallback();
       }
     }
 
-    void connect();
-    pollTimer = setInterval(() => onRefreshRef.current(), 60000);
+    function onVisibility() {
+      if (document.hidden) {
+        if (reconnectTimer) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = null;
+        }
+        teardownSocket();
+        stopPollFallback();
+        return;
+      }
+      void connect();
+    }
+
+    if (!document.hidden) void connect();
+    const openSoon = window.setTimeout(() => {
+      if (!cancelled && !wsOpen && !document.hidden) startPollFallback();
+    }, 3000);
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelled = true;
-      if (pingTimer) clearInterval(pingTimer);
-      if (pollTimer) clearInterval(pollTimer);
-      ws?.close();
+      window.clearTimeout(openSoon);
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      document.removeEventListener("visibilitychange", onVisibility);
+      stopPollFallback();
+      teardownSocket();
     };
-  }, [enabled, orgId, getToken]);
+  }, [enabled, orgId]);
 }

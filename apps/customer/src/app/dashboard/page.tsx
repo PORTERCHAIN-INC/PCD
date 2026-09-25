@@ -1,12 +1,13 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@porterchain/ui/loading";
 import CustomerShell from "@/components/CustomerShell";
 import CustomerWelcomeHome from "@/components/welcome/CustomerWelcomeHome";
-import { customerApi, type CustomerDashboard } from "@/lib/api";
+import { customerApi } from "@/lib/api";
 import { isClerkConfigured } from "@/lib/env";
 
 export default function DashboardPage() {
@@ -44,41 +45,32 @@ function DashboardBody({
   isSignedIn: boolean;
   getToken: () => Promise<string | null>;
 }) {
-  const [dashboard, setDashboard] = useState<CustomerDashboard | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!isSignedIn) return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const token = await getToken();
-        if (!token || cancelled) return;
-        const data = await customerApi.dashboard(token);
-        if (!cancelled) {
-          setDashboard(data);
-          setError("");
-        }
-      } catch {
-        if (!cancelled) setError("Could not refresh deliveries. You can still book capacity.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [isSignedIn, getToken]);
+  const {
+    data: dashboard,
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ["customer-dashboard"],
+    enabled: isSignedIn,
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
+      return customerApi.dashboard(token);
+    },
+  });
 
   return (
     <CustomerShell>
-      {loading && !dashboard ? (
+      {isLoading && !dashboard ? (
         <div className="flex min-h-[50vh] items-center justify-center">
           <Spinner label="Opening your home…" />
         </div>
       ) : (
-        <CustomerWelcomeHome dashboard={dashboard} error={error || undefined} getToken={getToken} />
+        <CustomerWelcomeHome
+          dashboard={dashboard ?? null}
+          error={error ? "Could not refresh deliveries. You can still book capacity." : undefined}
+          getToken={getToken}
+        />
       )}
     </CustomerShell>
   );

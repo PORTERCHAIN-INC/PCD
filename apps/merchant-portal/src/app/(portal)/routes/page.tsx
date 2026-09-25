@@ -1,16 +1,28 @@
 "use client";
 
-import BookDeliveryClient from "@/components/booking/BookDeliveryClient";
-import BulkUploadClient from "@/components/bulk/BulkUploadClient";
+import dynamic from "next/dynamic";
 import MagicCard from "@/components/magic/MagicCard";
 import ShimmerButton from "@/components/magic/ShimmerButton";
+import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import RouteList from "@/components/routes/RouteList";
-import RouteModuleForm from "@/components/routes/RouteModuleForm";
-import StandingOrdersClient from "@/components/routes/StandingOrdersClient";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 type Tab = "plan" | "single" | "csv" | "recurring";
+
+const BookDeliveryClient = dynamic(() => import("@/components/booking/BookDeliveryClient"), {
+  loading: () => <PageSkeleton rows={5} />,
+});
+const BulkUploadClient = dynamic(() => import("@/components/bulk/BulkUploadClient"), {
+  loading: () => <PageSkeleton rows={4} />,
+});
+const StandingOrdersClient = dynamic(() => import("@/components/routes/StandingOrdersClient"), {
+  loading: () => <PageSkeleton rows={3} />,
+});
+const RouteModuleForm = dynamic(() => import("@/components/routes/RouteModuleForm"), {
+  loading: () => <PageSkeleton rows={5} />,
+});
 
 function parseTab(value: string | null): Tab {
   if (value === "single" || value === "csv" || value === "plan" || value === "recurring")
@@ -103,9 +115,18 @@ function RoutesPageInner() {
         </div>
       </MagicCard>
 
+      {/* List-only plan tab: no Maps JS. Maps load for Single tab + planner dialog only. */}
       {tab === "plan" ? <RouteList refreshKey={refreshKey} /> : null}
-      {tab === "single" ? <BookDeliveryClient embedded /> : null}
-      {tab === "csv" ? <BulkUploadClient /> : null}
+      {tab === "single" ? (
+        <WithGoogleMaps>
+          <BookDeliveryClient embedded />
+        </WithGoogleMaps>
+      ) : null}
+      {tab === "csv" ? (
+        <WithGoogleMaps>
+          <BulkUploadClient />
+        </WithGoogleMaps>
+      ) : null}
       {tab === "recurring" ? <StandingOrdersClient /> : null}
 
       {tab === "plan" && open ? (
@@ -173,7 +194,9 @@ function RoutePlannerDialog({
           </button>
         </div>
         <div className="min-h-0 overflow-y-auto px-4 py-5 sm:px-6">
-          <RouteModuleForm key={plannerKey} showTitle={false} onConfirmed={onConfirmed} />
+          <WithGoogleMaps>
+            <RouteModuleForm key={plannerKey} showTitle={false} onConfirmed={onConfirmed} />
+          </WithGoogleMaps>
         </div>
       </div>
     </div>

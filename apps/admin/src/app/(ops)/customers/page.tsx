@@ -8,11 +8,17 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { useApiData } from "@/hooks/useApiData";
 import { customersApi } from "@/lib/customers";
-import { CustomerCreateModal } from "@/components/customers/CustomerCreateModal";
 import { FilterChip } from "@/components/crm/filters";
 import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
 import { money, shortDate } from "@/lib/crmFormat";
 import { cn } from "@porterchain/ui/utils";
+import AdminPage from "@/components/layout/AdminPage";
+import dynamic from "next/dynamic";
+
+const CustomerCreateModal = dynamic(
+  () => import("@/components/customers/CustomerCreateModal").then((m) => m.CustomerCreateModal),
+  { ssr: false }
+);
 
 /** Mirrors API MODULE_PERMISSIONS["customers"]. */
 const CUSTOMERS_WRITE_ROLES = new Set([
@@ -59,7 +65,7 @@ export default function CustomersPage() {
   const rows = useMemo(() => data ?? [], [data]);
 
   return (
-    <div className="space-y-5">
+    <AdminPage>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-primary">Customers</h1>
@@ -228,7 +234,7 @@ export default function CustomersPage() {
           router.push(`/customers/${result.id}`);
         }}
       />
-    </div>
+    </AdminPage>
   );
 }
 

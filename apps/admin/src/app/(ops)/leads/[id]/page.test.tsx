@@ -78,7 +78,7 @@ vi.mock("@/lib/leads", async () => {
   };
 });
 
-import { LeadDetailView } from "./page";
+import { LeadDetailView } from "@/components/leads/LeadDetailClient";
 
 describe("LeadDetailView", () => {
   beforeEach(() => {

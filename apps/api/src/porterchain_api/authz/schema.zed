@@ -26,6 +26,8 @@ definition platform {
     permission portal = super_admin + admin + dispatcher + support + support_lead + sales + sales_manager + finance + compliance + developer + marketing + read_only + fleet_manager
     // God-mode unified permission — super_admin only
     permission system_all = super_admin
+    // Break-glass portal impersonation — super_admin only (audited Redis session)
+    permission impersonation = super_admin
 
     permission dashboard = super_admin + admin + dispatcher + support + support_lead + sales + sales_manager + finance + compliance + developer + marketing + read_only + fleet_manager
     permission crm = super_admin + admin + sales + sales_manager + marketing

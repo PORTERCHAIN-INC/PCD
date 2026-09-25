@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HeaderDropdown from "@/components/nav/HeaderDropdown";
 import { driverApi } from "@/lib/api";
-import type { NotificationItem } from "@/lib/communications";
 
 function relativeTime(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -25,38 +24,35 @@ export default function NotificationBell({
 }: {
   viewAllHref?: string;
 }) {
-  const [items, setItems] = useState<NotificationItem[]>([]);
-  const [unread, setUnread] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
 
-  const refresh = useCallback(async () => {
-    try {
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ["driver-notification-inbox"],
+    staleTime: 20_000,
+    refetchInterval: () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
+      return 60_000;
+    },
+    queryFn: async () => {
       const snap = await driverApi.communicationsHub();
-      setItems(snap.notifications.items.slice(0, 20));
-      setUnread(snap.notifications.unread_count);
-    } catch {
-      /* keep last */
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return {
+        items: snap.notifications.items.slice(0, 20),
+        unread: snap.notifications.unread_count,
+      };
+    },
+  });
 
-  useEffect(() => {
-    void refresh();
-    const id = window.setInterval(() => {
-      if (document.visibilityState === "visible") void refresh();
-    }, 30_000);
-    return () => window.clearInterval(id);
-  }, [refresh]);
+  const items = data?.items ?? [];
+  const unread = data?.unread ?? 0;
 
   const markRead = async (id: string) => {
     await driverApi.markNotificationRead(id);
-    await refresh();
+    await qc.invalidateQueries({ queryKey: ["driver-notification-inbox"] });
   };
 
   const markAll = async () => {
     await driverApi.markAllNotificationsRead();
-    await refresh();
+    await qc.invalidateQueries({ queryKey: ["driver-notification-inbox"] });
   };
 
   return (

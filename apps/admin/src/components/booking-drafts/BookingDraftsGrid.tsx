@@ -292,11 +292,14 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-primary/10 bg-white">
+      <div className="min-w-0 overflow-x-auto rounded-2xl border border-primary/10 bg-white">
         {loading ? (
           <p className="p-8 text-center text-sm text-muted">Loading drafts…</p>
         ) : (
-          <table className="w-full text-left text-sm" style={{ width: table.getCenterTotalSize() }}>
+          <table
+            className="w-full min-w-full text-left text-sm"
+            style={{ minWidth: Math.max(table.getCenterTotalSize(), 960) }}
+          >
             <thead className="border-b border-primary/10 bg-gray-bg/50">
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id}>

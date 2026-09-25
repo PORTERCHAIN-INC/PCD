@@ -66,6 +66,13 @@ def require_customer(
     claims: ClerkClaims,
     settings: Settings,
 ) -> Customer:
+    meta = claims.public_metadata or {}
+    if meta.get("impersonation") and meta.get("user_type") == "customer":
+        customer = db.get(Customer, str(meta.get("target_id") or ""))
+        if not customer:
+            raise HTTPException(status_code=404, detail="customer_not_found")
+        return customer
+
     assert_clerk_id_exclusive(db, claims, portal="customer", settings=settings)
     email, phone = resolve_customer_contact(db, claims, settings)
     try:

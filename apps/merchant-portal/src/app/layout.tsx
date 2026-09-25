@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Carlito } from "next/font/google";
-import { AppClerkProvider, SessionContextProvider } from "@porterchain/auth";
+import { AppClerkProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
 import { MerchantAuthProvider } from "@/components/providers/MerchantAuthProvider";
+import MerchantQueryProvider from "@/components/providers/MerchantQueryProvider";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -34,7 +35,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fallbackRedirect="/dashboard"
         >
           <MerchantAuthProvider>
-            <SessionContextProvider>{children}</SessionContextProvider>
+            <MerchantQueryProvider>
+              <SessionContextProvider>
+                <ImpersonationBanner portal="merchant" />
+                {children}
+              </SessionContextProvider>
+            </MerchantQueryProvider>
           </MerchantAuthProvider>
         </AppClerkProvider>
       </body>

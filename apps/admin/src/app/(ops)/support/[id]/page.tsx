@@ -1,10 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { Spinner } from "@/components/crm/primitives";
 import { use, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import SupportDetailView from "@/components/support/SupportDetailView";
 import { supportApi } from "@/lib/support";
+
+const SupportDetailView = dynamic(() => import("@/components/support/SupportDetailView"), {
+  loading: () => <Spinner label="Loading…" />,
+  ssr: false,
+});
 
 export default function SupportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -19,7 +25,10 @@ export default function SupportDetailPage({ params }: { params: Promise<{ id: st
   } = useQuery({
     queryKey: ["support-ticket", id],
     enabled,
-    refetchInterval: 15_000,
+    refetchInterval: () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
+      return 15_000;
+    },
     queryFn: async () => supportApi.detail(await getApiToken(), id),
   });
 

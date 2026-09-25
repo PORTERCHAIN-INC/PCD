@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   canAccessPortal,
   fetchSessionContext,
@@ -22,6 +22,11 @@ export type UsePortalSessionGateOptions = {
   skipCheck?: boolean;
   /** Optional onboarding probe before session-context (merchant/customer). */
   fetchOnboarding?: (token: string) => Promise<PortalOnboardingSnapshot>;
+  /**
+   * When set, called after onboarding. Non-null skips `/session-context`
+   * (e.g. merchant ACTIVE session already proves portal access).
+   */
+  resolveSession?: (token: string) => Promise<SessionContext | null>;
   onSession?: (ctx: SessionContext) => void;
   onNeedOnboarding?: () => void;
   onSignedOut?: () => void;
@@ -36,7 +41,7 @@ export type PortalSessionGateState = {
 
 /**
  * Shared portal entry check: optional onboarding → session-context → canAccessPortal.
- * Portals keep their own loading/denied chrome; this owns the fetch logic.
+ * Completes once per signed-in session — callback identity churn does not re-fetch.
  */
 export function usePortalSessionGate(options: UsePortalSessionGateOptions): PortalSessionGateState {
   const {
@@ -47,6 +52,7 @@ export function usePortalSessionGate(options: UsePortalSessionGateOptions): Port
     getToken,
     skipCheck = false,
     fetchOnboarding,
+    resolveSession,
     onSession,
     onNeedOnboarding,
     onSignedOut,
@@ -56,18 +62,38 @@ export function usePortalSessionGate(options: UsePortalSessionGateOptions): Port
   const [denied, setDenied] = useState(false);
   const [errorDetail, setErrorDetail] = useState("");
   const [session, setSession] = useState<SessionContext | null>(null);
+  const gatedRef = useRef(false);
+
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
+  const fetchOnboardingRef = useRef(fetchOnboarding);
+  fetchOnboardingRef.current = fetchOnboarding;
+  const resolveSessionRef = useRef(resolveSession);
+  resolveSessionRef.current = resolveSession;
+  const onSessionRef = useRef(onSession);
+  onSessionRef.current = onSession;
+  const onNeedOnboardingRef = useRef(onNeedOnboarding);
+  onNeedOnboardingRef.current = onNeedOnboarding;
+  const onSignedOutRef = useRef(onSignedOut);
+  onSignedOutRef.current = onSignedOut;
 
   useEffect(() => {
     if (!isLoaded) return;
     if (!isSignedIn) {
+      gatedRef.current = false;
       setSession(null);
       setDenied(false);
       setErrorDetail("");
       setChecking(false);
-      onSignedOut?.();
+      onSignedOutRef.current?.();
       return;
     }
     if (skipCheck) {
+      setChecking(false);
+      return;
+    }
+    // Already passed gate for this signed-in session — do not re-hit APIs.
+    if (gatedRef.current) {
       setChecking(false);
       return;
     }
@@ -78,20 +104,22 @@ export function usePortalSessionGate(options: UsePortalSessionGateOptions): Port
       setDenied(false);
       setErrorDetail("");
       try {
-        const token = await getToken();
+        const token = await getTokenRef.current();
         if (!token) throw new Error("missing_token");
 
-        if (fetchOnboarding) {
-          const onboarding = await fetchOnboarding(token);
+        const onboard = fetchOnboardingRef.current;
+        if (onboard) {
+          const onboarding = await onboard(token);
           if (cancelled) return;
           if (!onboarding.ready) {
-            // Keep checking=true so children do not flash before navigation.
-            onNeedOnboarding?.();
+            onNeedOnboardingRef.current?.();
             return;
           }
         }
 
-        const ctx = await fetchSessionContext(apiUrl, token, portal);
+        const resolved = await resolveSessionRef.current?.(token);
+        if (cancelled) return;
+        const ctx = resolved ?? (await fetchSessionContext(apiUrl, token, portal));
         if (cancelled) return;
         if (!canAccessPortal(ctx.permissions, portal)) {
           setDenied(true);
@@ -99,12 +127,12 @@ export function usePortalSessionGate(options: UsePortalSessionGateOptions): Port
           setChecking(false);
           return;
         }
+        gatedRef.current = true;
         setSession(ctx);
-        onSession?.(ctx);
+        onSessionRef.current?.(ctx);
         setChecking(false);
       } catch (err) {
         if (cancelled) return;
-        // Do NOT treat session-context failures as onboarding — that loops dashboard ↔ onboarding.
         setErrorDetail(err instanceof Error ? err.message : "session_failed");
         setChecking(false);
       }
@@ -113,18 +141,7 @@ export function usePortalSessionGate(options: UsePortalSessionGateOptions): Port
     return () => {
       cancelled = true;
     };
-  }, [
-    apiUrl,
-    fetchOnboarding,
-    getToken,
-    isLoaded,
-    isSignedIn,
-    onNeedOnboarding,
-    onSession,
-    onSignedOut,
-    portal,
-    skipCheck,
-  ]);
+  }, [apiUrl, isLoaded, isSignedIn, portal, skipCheck]);
 
   return { checking, denied, errorDetail, session };
 }

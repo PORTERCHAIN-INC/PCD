@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
   },
   transpilePackages: ["@porterchain/ui", "@porterchain/config"],
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
   env: merchantPublicEnv(),
   async headers() {
     return [

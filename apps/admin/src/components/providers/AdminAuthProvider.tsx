@@ -54,11 +54,17 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(STAFF_AUTH_EVENT, onAuth);
   }, [refreshCookie]);
 
+  // Prefer in-memory cookieReady — BFF already attaches the real bearer.
+  // Re-probe only when state says signed-out (avoids N round-trips per page).
   const getApiToken = useCallback(async () => {
+    if (cookieReady) return STAFF_COOKIE_TOKEN;
     const ok = await probeStaffCookie();
-    if (ok) return STAFF_COOKIE_TOKEN;
+    if (ok) {
+      setCookieReady(true);
+      return STAFF_COOKIE_TOKEN;
+    }
     throw new Error("Not authenticated");
-  }, []);
+  }, [cookieReady]);
 
   const isSignedIn = cookieReady;
   const authReady = loaded && isSignedIn;
@@ -72,23 +78,36 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       /* private mode */
     }
     let cancelled = false;
-    void (async () => {
-      try {
-        const { registerBrowserPush } = await import("@/lib/web-push");
-        const ok = await registerBrowserPush(getApiToken);
-        if (!cancelled && ok) {
-          try {
-            window.localStorage.setItem(key, "1");
-          } catch {
-            /* ignore */
+    const run = () => {
+      if (cancelled) return;
+      void (async () => {
+        try {
+          const { registerBrowserPush } = await import("@/lib/web-push");
+          const ok = await registerBrowserPush(getApiToken);
+          if (!cancelled && ok) {
+            try {
+              window.localStorage.setItem(key, "1");
+            } catch {
+              /* ignore */
+            }
           }
+        } catch {
+          /* permission denied / FCM unavailable — soft fail */
         }
-      } catch {
-        /* permission denied / FCM unavailable — soft fail */
-      }
-    })();
+      })();
+    };
+    // Defer past first paint so page queries win the network/main-thread race.
+    const idle =
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(run, { timeout: 4000 })
+        : window.setTimeout(run, 2500);
     return () => {
       cancelled = true;
+      if (typeof window.cancelIdleCallback === "function" && typeof idle === "number") {
+        window.cancelIdleCallback(idle);
+      } else {
+        window.clearTimeout(idle as number);
+      }
     };
   }, [authReady, getApiToken]);
 
@@ -96,35 +115,48 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     if (!authReady || typeof window === "undefined") return;
     let unsub: (() => void) | null = null;
     let cancelled = false;
-    void (async () => {
-      try {
-        const { attachForegroundMessaging } = await import("@/lib/firebase-messaging");
-        const stop = await attachForegroundMessaging((msg) => {
-          if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
-          const urgent = msg.priority === "critical" || msg.priority === "high";
-          try {
-            new Notification(msg.title, {
-              body: msg.body,
-              tag: msg.tag,
-              requireInteraction: urgent,
-              silent: false,
-            });
-          } catch {
-            /* Notification constructor may fail in some browsers */
+    const run = () => {
+      if (cancelled) return;
+      void (async () => {
+        try {
+          const { attachForegroundMessaging } = await import("@/lib/firebase-messaging");
+          const stop = await attachForegroundMessaging((msg) => {
+            if (typeof Notification === "undefined" || Notification.permission !== "granted")
+              return;
+            const urgent = msg.priority === "critical" || msg.priority === "high";
+            try {
+              new Notification(msg.title, {
+                body: msg.body,
+                tag: msg.tag,
+                requireInteraction: urgent,
+                silent: false,
+              });
+            } catch {
+              /* Notification constructor may fail in some browsers */
+            }
+          });
+          if (cancelled) {
+            stop?.();
+            return;
           }
-        });
-        if (cancelled) {
-          stop?.();
-          return;
+          unsub = stop;
+        } catch {
+          /* FCM unsupported */
         }
-        unsub = stop;
-      } catch {
-        /* FCM unsupported */
-      }
-    })();
+      })();
+    };
+    const idle =
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(run, { timeout: 5000 })
+        : window.setTimeout(run, 3000);
     return () => {
       cancelled = true;
       unsub?.();
+      if (typeof window.cancelIdleCallback === "function" && typeof idle === "number") {
+        window.cancelIdleCallback(idle);
+      } else {
+        window.clearTimeout(idle as number);
+      }
     };
   }, [authReady]);
 

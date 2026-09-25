@@ -74,8 +74,9 @@ export function CreateDriverModal({
     >
       <div className="space-y-4">
         <p className="text-sm text-muted">
-          Creates a PENDING identity + optional Clerk invite. For full compliance profile (license,
-          vehicle, docs), use{" "}
+          Creates a PENDING driver in PorterChain. Uncheck invite to create without Clerk (authorize
+          and assign jobs immediately). Check invite to email Clerk login when they need the portal.
+          Full compliance profile:{" "}
           <Link href="/drivers" className="font-medium text-secondary hover:underline">
             Drivers → Add driver
           </Link>
@@ -103,7 +104,7 @@ export function CreateDriverModal({
               checked={sendInvite}
               onChange={(e) => setSendInvite(e.target.checked)}
             />
-            Send Clerk invitation email
+            Send Clerk invitation email (required for portal login; optional for ops)
           </label>
         )}
         {createdHref && (

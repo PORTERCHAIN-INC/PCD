@@ -1,10 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { Spinner } from "@/components/crm/primitives";
 import { use } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import BookingDraftDetailView from "@/components/booking-drafts/BookingDraftDetailView";
 import { bookingDraftsApi } from "@/lib/booking-drafts";
+
+const BookingDraftDetailView = dynamic(
+  () => import("@/components/booking-drafts/BookingDraftDetailView"),
+  { loading: () => <Spinner label="Loading…" />, ssr: false }
+);
 
 export default function BookingDraftDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

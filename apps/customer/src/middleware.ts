@@ -1,34 +1,52 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { isDevelopmentBuild } from "@porterchain/auth/devBypass";
+import { clerkDevBypassEnabled, isDevelopmentBuild } from "@porterchain/auth/devBypass";
+import { hasClerkSessionHint } from "@porterchain/auth/clerkEdgeSession";
 import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/impersonate(.*)"]);
 
 const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim());
 
+/**
+ * Clerk edge gate — light when session cookies exist (admin ``pc_staff_sid`` posture).
+ * AccessGate + API Bearer still enforce identity; ``await auth()`` only when unsigned.
+ */
 export default clerkMiddleware(
   async (auth, req) => {
+    // Local: API Bearer `dev` — do not send the browser through Clerk.
+    if (clerkDevBypassEnabled()) return;
     if (isPublicRoute(req)) return;
-    // Missing publishable key must fail closed in a shipped build (BJ).
+    if (req.cookies.get("pc_imp_bearer")?.value?.startsWith("pc_imp_")) return;
+
     if (!clerkConfigured) {
       if (isDevelopmentBuild()) return;
       return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
-    const { userId } = await auth();
-    if (!userId) {
-      const signIn = new URL("/sign-in", req.url);
-      const returnPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
-      if (
-        returnPath !== "/sign-in" &&
-        !returnPath.startsWith("/sign-in/") &&
-        returnPath !== "/sign-up" &&
-        !returnPath.startsWith("/sign-up/")
-      ) {
-        signIn.searchParams.set("redirect_url", returnPath);
-      }
-      return NextResponse.redirect(signIn);
+    if (hasClerkSessionHint(req.cookies)) {
+      return NextResponse.next();
     }
+
+    const { userId } = await auth();
+    if (userId) {
+      return NextResponse.next();
+    }
+
+    if (req.nextUrl.pathname.startsWith("/api/")) {
+      return NextResponse.json({ detail: "missing_bearer_token" }, { status: 401 });
+    }
+
+    const signIn = new URL("/sign-in", req.url);
+    const returnPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+    if (
+      returnPath !== "/sign-in" &&
+      !returnPath.startsWith("/sign-in/") &&
+      returnPath !== "/sign-up" &&
+      !returnPath.startsWith("/sign-up/")
+    ) {
+      signIn.searchParams.set("redirect_url", returnPath);
+    }
+    return NextResponse.redirect(signIn);
   },
   { signInUrl: "/sign-in" }
 );

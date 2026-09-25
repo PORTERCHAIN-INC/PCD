@@ -157,7 +157,7 @@ export function UserDirectoryTable({
                   <td className="py-3">
                     <div className="flex flex-wrap gap-2">
                       {rowActions?.(u)}
-                      {tab === "driver" && u.clerk_user_id && (
+                      {tab === "driver" && u.provisioned && !u.id.startsWith("clerk:") && (
                         <Button variant="outline" onClick={() => setManageUser(u)}>
                           Manage
                         </Button>
@@ -181,7 +181,7 @@ export function UserDirectoryTable({
           <p className="py-8 text-center text-sm text-muted">No users match the current filters.</p>
         )}
       </div>
-      {tab === "driver" && manageUser?.clerk_user_id && (
+      {tab === "driver" && manageUser && (
         <ManageDriverModal
           user={manageUser}
           getApiToken={getApiToken}

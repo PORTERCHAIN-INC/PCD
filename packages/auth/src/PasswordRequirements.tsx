@@ -16,12 +16,13 @@ export type PasswordRequirementsCopy = {
 
 const DEFAULT_COPY: Required<PasswordRequirementsCopy> = {
   title: "How to set your password",
-  intro: "If you create an email password, use all of the following so it is accepted:",
+  intro:
+    "Use at least 8 characters and Fair strength. Uppercase, lowercase, a number, and an allowed symbol are recommended so the strength meter clears — they are not each required on their own.",
   minLength: `At least ${PASSWORD_MIN_LENGTH} characters`,
-  uppercase: "An uppercase letter (A–Z)",
-  lowercase: "A lowercase letter (a–z)",
-  number: "A number (0–9)",
-  special: "One allowed symbol (list below)",
+  uppercase: "An uppercase letter (A–Z) — recommended",
+  lowercase: "A lowercase letter (a–z) — recommended",
+  number: "A number (0–9) — recommended",
+  special: "One allowed symbol (list below) — recommended",
   allowedLabel: "Allowed symbols",
   strength:
     "A strength meter appears as you type. Common or leaked passwords are blocked even if they match this pattern.",
@@ -32,8 +33,9 @@ type Props = {
 };
 
 /**
- * Visible password recipe for Clerk SignUp. Clerk still enforces strength
- * (Fair+) and breach checks; this lists the character mix users should use.
+ * Visible password recipe for Clerk SignUp. Clerk enforces min length, Fair+
+ * strength, and breach checks; composition flags are off — list classes as
+ * recommended, not required.
  */
 export function PasswordRequirements({ copy }: Props) {
   const t = { ...DEFAULT_COPY, ...copy };

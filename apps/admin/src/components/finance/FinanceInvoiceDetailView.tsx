@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { QuoteLines } from "@porterchain/ui/quote-lines";
 import { cn, formatCents } from "@porterchain/ui/utils";
@@ -17,6 +16,7 @@ import { relativeTime } from "@/lib/crmFormat";
 import { Button, Spinner } from "@/components/crm/primitives";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { withStaffStepUp } from "@/lib/staff-step-up";
+import AdminPage from "@/components/layout/AdminPage";
 
 type Props = { detail: InvoiceDetail | null; loading: boolean };
 
@@ -74,7 +74,7 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
     detail.outstanding_cents > 0 && detail.status !== "paid" && detail.status !== "void";
 
   return (
-    <div className="space-y-6">
+    <AdminPage>
       <div>
         <Link
           href="/finance"
@@ -94,11 +94,7 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-primary/10 bg-white p-6"
-        >
+        <div className="rounded-2xl border border-primary/10 bg-white p-6">
           <h2 className="mb-3 font-semibold">Invoice</h2>
           <Row label="Amount" value={formatCents(detail.amount_cents)} />
           <Row label="Outstanding" value={formatCents(detail.outstanding_cents)} />
@@ -118,13 +114,9 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
               Download PDF
             </a>
           )}
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-primary/10 bg-white p-6"
-        >
+        <div className="rounded-2xl border border-primary/10 bg-white p-6">
           <h2 className="mb-3 font-semibold">Payment</h2>
           {payment ? (
             <>
@@ -189,15 +181,11 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
               {msg && <p className="text-xs text-secondary">{msg}</p>}
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
 
       {(detail.pricing_breakdown || detail.pricing_model) && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-primary/10 bg-white p-6"
-        >
+        <div className="rounded-2xl border border-primary/10 bg-white p-6">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-semibold">Quote lineage</h2>
             <div className="flex flex-wrap gap-2 text-xs">
@@ -236,7 +224,7 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
           ) : (
             <p className="text-sm text-muted">No stored quote breakdown on this invoice.</p>
           )}
-        </motion.div>
+        </div>
       )}
 
       <div className="rounded-2xl border border-primary/10 bg-white p-6">
@@ -254,7 +242,7 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
           {!detail.timeline.length && <p className="text-sm text-muted">No events recorded</p>}
         </ol>
       </div>
-    </div>
+    </AdminPage>
   );
 }
 

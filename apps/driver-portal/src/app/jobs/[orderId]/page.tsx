@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import DriverShell from "@/components/DriverShell";
-import Delivery360 from "@/components/jobs/Delivery360";
 import { useJobDetail } from "@/hooks/useJobDetail";
 import { hasDriverSession } from "@/lib/api";
+
+const Delivery360 = dynamic(() => import("@/components/jobs/Delivery360"), {
+  loading: () => <p className="text-[var(--muted)]">Loading job workspace…</p>,
+});
 
 export default function JobDetailPage() {
   const router = useRouter();

@@ -38,6 +38,14 @@ export {
   porterchainClerkAppearanceInviteOnly,
 } from "./clerkAppearance";
 export {
+  PC_IMP_COOKIE,
+  PC_IMP_STORAGE_KEY,
+  clearImpersonationBearer,
+  readImpersonationBearer,
+  storeImpersonationBearer,
+} from "./impersonation";
+export { ImpersonationBanner } from "./ImpersonationBanner";
+export {
   PASSWORD_ALLOWED_SPECIAL,
   PASSWORD_ALLOWED_SPECIAL_DISPLAY,
   PASSWORD_MIN_LENGTH,
@@ -48,5 +56,7 @@ export { PortalAuthScreen } from "./PortalAuthScreen";
 export type { PortalAuthMode, PortalAuthScreenProps } from "./PortalAuthScreen";
 export { safeAppRedirect } from "./safeRedirect";
 export { clerkDevBypassEnabled, clerkDevBypassIgnored, isDevelopmentBuild } from "./devBypass";
+export { hasClerkSessionHint } from "./clerkEdgeSession";
+export type { CookieReader } from "./clerkEdgeSession";
 export { humanAuthError } from "./authErrors";
 export { signInUnavailableCopy, signUpUnavailableCopy } from "./authUnavailable";

@@ -14,11 +14,12 @@
   "dependencies": {
     "@clerk/nextjs": "^7.5.14",
     "@porterchain/auth": "workspace:*",
+    "@porterchain/customer-motion": "workspace:*",
     "@porterchain/maps": "workspace:*",
     "@porterchain/ui": "workspace:*",
     "@sentry/nextjs": "^10.64.0",
+    "@tanstack/react-query": "^5.101.2",
     "@vis.gl/react-google-maps": "^1.9.0",
-    "@porterchain/customer-motion": "workspace:*",
     "lottie-react": "2.4.1",
     "lucide-react": "^1.23.0",
     "next": "16.3.3",

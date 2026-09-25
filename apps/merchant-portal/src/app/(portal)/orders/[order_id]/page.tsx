@@ -1,19 +1,26 @@
 "use client";
 
-import { Order360View } from "@/components/orders/Order360View";
+import dynamic from "next/dynamic";
+import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
 import type { LiveTracking } from "@/lib/tracking";
 import { ordersApi, type OrderDetail } from "@/lib/orders";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
-const TRACKING_POLL_MS = 10_000;
+const Order360View = dynamic(
+  () => import("@/components/orders/Order360View").then((m) => m.Order360View),
+  { loading: () => <PageSkeleton rows={5} /> }
+);
 
 export default function OrderDetailPage() {
   return (
     <Suspense fallback={<p className="text-muted">Loading order…</p>}>
-      <OrderDetailPageInner />
+      <WithGoogleMaps>
+        <OrderDetailPageInner />
+      </WithGoogleMaps>
     </Suspense>
   );
 }
@@ -52,12 +59,8 @@ function OrderDetailPageInner() {
     void refresh();
   }, [ready, refresh]);
 
-  useEffect(() => {
-    if (!ready) return;
-    const timer = setInterval(() => void refresh(), TRACKING_POLL_MS);
-    return () => clearInterval(timer);
-  }, [ready, refresh]);
-
+  // Live updates via WS; hook falls back to 60s poll when disconnected.
+  // Do not also hammer HTTP every 10s — that doubles load with the socket.
   useMerchantRealtime(ready, orgId, getApiToken, refresh);
 
   if (!isLoaded) return <p className="text-muted">Loading…</p>;

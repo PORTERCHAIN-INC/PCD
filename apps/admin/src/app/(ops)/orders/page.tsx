@@ -7,10 +7,16 @@ import { Plus, RefreshCw } from "lucide-react";
 import { cn, formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import OrdersGrid from "@/components/orders/OrdersGrid";
-import { OrderBuilderModal } from "@/components/orders/OrderBuilderModal";
+import dynamic from "next/dynamic";
 import { ListPager } from "@/components/crm/ListPager";
 import { Button } from "@/components/crm/primitives";
 import { ORDER_PAGE_SIZE, ORDER_STATES, ordersApi, type OrderFilters } from "@/lib/orders";
+import AdminPage from "@/components/layout/AdminPage";
+
+const OrderBuilderModal = dynamic(
+  () => import("@/components/orders/OrderBuilderModal").then((m) => m.OrderBuilderModal),
+  { ssr: false, loading: () => null }
+);
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -54,7 +60,7 @@ export default function OrdersPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <AdminPage>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-primary">Orders</h1>
@@ -195,7 +201,7 @@ export default function OrdersPage() {
           router.push(`/orders/${orderId}`);
         }}
       />
-    </div>
+    </AdminPage>
   );
 }
 

@@ -9,6 +9,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { merchants } from "@/lib/merchants";
 import { pricingApi, type SimulateQuoteResult } from "@/lib/pricing";
+import AdminPage from "@/components/layout/AdminPage";
 
 const LINKS = [
   {
@@ -89,7 +90,7 @@ export default function PricingCenterClient() {
   }
 
   return (
-    <div className="space-y-6">
+    <AdminPage>
       <div>
         <h1 className="text-2xl font-bold text-primary">Pricing Center</h1>
         <p className="mt-1 text-sm text-muted">
@@ -246,6 +247,6 @@ export default function PricingCenterClient() {
           )}
         </div>
       </SectionCard>
-    </div>
+    </AdminPage>
   );
 }

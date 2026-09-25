@@ -24,6 +24,7 @@ import { EMPTY_FILTERS, filterChromeFor, UserFiltersBar } from "./UserFiltersBar
 import { UserDirectoryTable } from "./UserDirectoryTable";
 import { useUserDirectory, usersQueryKey } from "./useUserDirectory";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
+import { ImpersonateModal, type ImpersonationTargetType } from "./ImpersonateModal";
 
 /** Mirrors API MODULE_PERMISSIONS["customers"]. */
 const CUSTOMERS_WRITE_ROLES = new Set([
@@ -75,9 +76,15 @@ export function DirectoryShell({
   const { profile } = useAdminProfile();
   const canWriteCustomers =
     !profile?.role || CUSTOMERS_WRITE_ROLES.has((profile.role || "").toLowerCase());
+  const canImpersonate = (profile?.role || "").toLowerCase() === "super_admin";
   const [filters, setFilters] = useState<UserDirectoryFilters>(EMPTY_FILTERS);
   const [createOpen, setCreateOpen] = useState(false);
   const [roleModal, setRoleModal] = useState<StaffUser | null>(null);
+  const [impersonateTarget, setImpersonateTarget] = useState<{
+    type: ImpersonationTargetType;
+    id: string;
+    label: string;
+  } | null>(null);
   const [enrollOpen, setEnrollOpen] = useState(false);
   const [enrollForm, setEnrollForm] = useState<EnrollForm>(EMPTY_ENROLL_FORM);
   const [enrollError, setEnrollError] = useState<string | null>(null);
@@ -85,6 +92,8 @@ export function DirectoryShell({
   const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
   const [reissueBusy, setReissueBusy] = useState<string | null>(null);
   const [recoverBusy, setRecoverBusy] = useState<string | null>(null);
+  const [conciergeBusy, setConciergeBusy] = useState<string | null>(null);
+  const [conciergeError, setConciergeError] = useState<string | null>(null);
 
   const meta = tabMeta(tab);
   const chrome = filterChromeFor(tab);
@@ -170,6 +179,43 @@ export function DirectoryShell({
     setEnrollForm(EMPTY_ENROLL_FORM);
   }
 
+  async function authorizePersona(user: PlatformUser, userType: "driver" | "merchant") {
+    if (!user.provisioned || user.id.startsWith("clerk:")) return;
+    setConciergeBusy(user.id);
+    setConciergeError(null);
+    try {
+      const token = await requireApiToken(getApiToken);
+      await withStaffStepUp(token, () =>
+        settingsApi.authorizeUser(token, userType, {
+          platform_user_id: user.id,
+          clerk_user_id: user.clerk_user_id ?? undefined,
+          email: user.email,
+          name: user.name ?? undefined,
+        })
+      );
+      refresh();
+    } catch (e) {
+      setConciergeError(e instanceof Error ? e.message : "Authorize failed");
+    } finally {
+      setConciergeBusy(null);
+    }
+  }
+
+  async function invitePersona(user: PlatformUser, userType: "driver" | "customer") {
+    if (!user.provisioned || user.id.startsWith("clerk:")) return;
+    setConciergeBusy(user.id);
+    setConciergeError(null);
+    try {
+      const token = await requireApiToken(getApiToken);
+      await withStaffStepUp(token, () => settingsApi.inviteUser(token, userType, user.id));
+      refresh();
+    } catch (e) {
+      setConciergeError(e instanceof Error ? e.message : "Invite failed");
+    } finally {
+      setConciergeBusy(null);
+    }
+  }
+
   const actionButton =
     tab === "customer" ? (
       canWriteCustomers ? (
@@ -236,6 +282,11 @@ export function DirectoryShell({
                   })()
                 : null}
             </p>
+            {conciergeError && (
+              <p className="mb-3 text-xs text-red-600" role="alert">
+                {conciergeError}
+              </p>
+            )}
             <UserDirectoryTable
               users={users}
               tab={tab}
@@ -273,12 +324,115 @@ export function DirectoryShell({
                         )}
                       </div>
                     )
-                  : undefined
+                  : tab === "merchant"
+                    ? (user) =>
+                        user.provisioned && !user.id.startsWith("clerk:") ? (
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant="outline"
+                              disabled={conciergeBusy === user.id}
+                              onClick={() => void authorizePersona(user, "merchant")}
+                            >
+                              {conciergeBusy === user.id
+                                ? "…"
+                                : user.access_status === "authorized"
+                                  ? "Re-check access"
+                                  : "Authorize"}
+                            </Button>
+                            {canImpersonate && (
+                              <Button
+                                variant="ghost"
+                                className="text-xs"
+                                onClick={() =>
+                                  setImpersonateTarget({
+                                    type: "merchant",
+                                    id: user.id,
+                                    label: user.name || user.email,
+                                  })
+                                }
+                              >
+                                Open as…
+                              </Button>
+                            )}
+                          </div>
+                        ) : null
+                    : tab === "customer"
+                      ? (user) =>
+                          user.provisioned && !user.id.startsWith("clerk:") ? (
+                            <div className="flex flex-wrap gap-2">
+                              {!user.clerk_linked && (
+                                <Button
+                                  variant="outline"
+                                  disabled={conciergeBusy === user.id}
+                                  onClick={() => void invitePersona(user, "customer")}
+                                >
+                                  {conciergeBusy === user.id ? "…" : "Send Clerk invite"}
+                                </Button>
+                              )}
+                              {canImpersonate && (
+                                <Button
+                                  variant="ghost"
+                                  className="text-xs"
+                                  onClick={() =>
+                                    setImpersonateTarget({
+                                      type: "customer",
+                                      id: user.id,
+                                      label: user.name || user.email,
+                                    })
+                                  }
+                                >
+                                  Open as…
+                                </Button>
+                              )}
+                            </div>
+                          ) : null
+                      : tab === "driver"
+                        ? (user) =>
+                            user.provisioned && !user.id.startsWith("clerk:") ? (
+                              <div className="flex flex-wrap gap-2">
+                                {user.access_status !== "authorized" && (
+                                  <Button
+                                    variant="outline"
+                                    disabled={conciergeBusy === user.id}
+                                    onClick={() => void authorizePersona(user, "driver")}
+                                  >
+                                    {conciergeBusy === user.id ? "…" : "Authorize"}
+                                  </Button>
+                                )}
+                                {canImpersonate && (
+                                  <Button
+                                    variant="ghost"
+                                    className="text-xs"
+                                    onClick={() =>
+                                      setImpersonateTarget({
+                                        type: "driver",
+                                        id: user.id,
+                                        label: user.name || user.email,
+                                      })
+                                    }
+                                  >
+                                    Open as…
+                                  </Button>
+                                )}
+                              </div>
+                            ) : null
+                        : undefined
               }
             />
           </>
         )}
       </SettingsCard>
+
+      {impersonateTarget && (
+        <ImpersonateModal
+          open
+          targetType={impersonateTarget.type}
+          targetId={impersonateTarget.id}
+          targetLabel={impersonateTarget.label}
+          getApiToken={getApiToken}
+          onClose={() => setImpersonateTarget(null)}
+        />
+      )}
 
       {tab === "staff" && (
         <>

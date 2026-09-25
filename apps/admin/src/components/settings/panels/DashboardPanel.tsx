@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Activity, Clock, Database, Globe, Mail, Server, Shield } from "lucide-react";
 import { relativeTime } from "@/lib/crmFormat";
 import type { SettingsDashboard } from "@/lib/settings";
@@ -142,12 +141,7 @@ export default function DashboardPanel({
                     .join(" · ")
                 : undefined;
             return (
-              <motion.div
-                key={key}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="rounded-xl border border-primary/10 bg-gray-bg/30 p-4"
-              >
+              <div key={key} className="rounded-xl border border-primary/10 bg-gray-bg/30 p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-sm font-semibold text-primary">{meta.label}</p>
@@ -156,7 +150,7 @@ export default function DashboardPanel({
                   <StatusPill status={status} />
                 </div>
                 {extra && <p className="mt-2 truncate text-[10px] font-mono text-muted">{extra}</p>}
-              </motion.div>
+              </div>
             );
           })}
         </div>

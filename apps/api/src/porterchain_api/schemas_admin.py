@@ -926,6 +926,10 @@ class PlatformUserDeleteRequest(BaseModel):
     platform_user_id: str | None = None
 
 
+class PlatformUserInviteRequest(BaseModel):
+    platform_user_id: str
+
+
 class PlatformUserAuthorizeRequest(BaseModel):
     platform_user_id: str | None = None
     clerk_user_id: str | None = None
@@ -942,6 +946,32 @@ class PlatformUserAuthorizeResponse(BaseModel):
     access_status: str
     modules: list[str] = Field(default_factory=list)
     actions_taken: list[str] = Field(default_factory=list)
+
+
+class ImpersonationStartRequest(BaseModel):
+    target_type: str  # driver | merchant | customer
+    target_id: str
+    reason: str = Field(min_length=10, max_length=500)
+
+
+class ImpersonationStopRequest(BaseModel):
+    session_id: str
+
+
+class ImpersonationSessionResponse(BaseModel):
+    session_id: str
+    actor_email: str
+    actor_role: str
+    target_type: str
+    target_id: str
+    target_email: str
+    target_label: str = ""
+    reason: str
+    created_at: float
+    expires_at: float
+    seconds_remaining: int = 0
+    bearer_token: str | None = None
+    portal_bootstrap_url: str | None = None
 
 
 class StaffRoleUpdateRequest(BaseModel):

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown, LayoutGrid } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { ADMIN_NAV_GROUPS, ALL_ADMIN_NAV_ITEMS, isNavActive } from "@/lib/admin-nav";
@@ -24,13 +24,11 @@ function NavLinkItem({
   search: string;
   onNavigate?: () => void;
 }) {
-  const router = useRouter();
   const active = isNavActive(pathname, href, search);
   return (
     <Link
       href={href}
-      prefetch
-      onMouseEnter={() => router.prefetch(href)}
+      prefetch={false}
       onClick={onNavigate}
       role="menuitem"
       className={cn(

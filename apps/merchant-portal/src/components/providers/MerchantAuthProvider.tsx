@@ -6,10 +6,12 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { readImpersonationBearer } from "@porterchain/auth";
 import { isClerkConfigured, useClerkDevApiBypass } from "@/lib/env";
 import { getMerchantSession, type MerchantSession } from "@/lib/api";
 
@@ -105,8 +107,17 @@ function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
   const [orgId, setOrgIdState] = useState<string | undefined>(undefined);
   const [session, setSession] = useState<MerchantSession | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
+  const [hasImpersonation, setHasImpersonation] = useState(false);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+
+  useEffect(() => {
+    setHasImpersonation(Boolean(readImpersonationBearer()));
+  }, []);
 
   const getApiToken = useCallback(async () => {
+    const imp = readImpersonationBearer();
+    if (imp) return imp;
     if (isSignedIn) {
       const token = await getToken();
       if (token) return token;
@@ -148,12 +159,13 @@ function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isLoaded) return;
-    if (!isSignedIn && !devApiBypass) {
+    if (!isSignedIn && !devApiBypass && !hasImpersonation) {
       setSession(null);
       setSessionReady(true);
       return;
     }
-    setSessionReady(false);
+    // Keep prior session painted while refreshing — blanking sessionReady flashes ModuleGate.
+    if (!sessionRef.current) setSessionReady(false);
     void refreshSession()
       .catch(() => {
         setSession(null);
@@ -161,12 +173,12 @@ function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
       .finally(() => {
         setSessionReady(true);
       });
-  }, [devApiBypass, isLoaded, isSignedIn, refreshSession]);
+  }, [devApiBypass, hasImpersonation, isLoaded, isSignedIn, refreshSession]);
 
   const value = useMemo<MerchantAuthState>(
     () => ({
       isLoaded: isLoaded && sessionReady,
-      isSignedIn: Boolean(isSignedIn) || (devApiBypass && !isSignedIn),
+      isSignedIn: Boolean(isSignedIn) || hasImpersonation || (devApiBypass && !isSignedIn),
       orgId,
       modules: session?.modules ?? [],
       role: session?.role,
@@ -178,6 +190,7 @@ function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
     [
       devApiBypass,
       getApiToken,
+      hasImpersonation,
       isLoaded,
       isSignedIn,
       orgId,

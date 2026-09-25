@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { driverApi } from "@/lib/api";
 import type {
   DriverDashboard,
@@ -159,54 +160,33 @@ async function fetchWorkspace(): Promise<Omit<WorkspaceData, "lastUpdated">> {
 }
 
 export function useDriverWorkspace() {
-  const [data, setData] = useState<WorkspaceData | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const qc = useQueryClient();
   const [actionPending, setActionPending] = useState<string | null>(null);
-  const mounted = useRef(true);
 
-  const refresh = useCallback(async (silent = false) => {
-    if (!silent) setRefreshing(true);
-    try {
+  const query = useQuery({
+    queryKey: ["driver-workspace"],
+    queryFn: async () => {
       const next = await fetchWorkspace();
-      if (mounted.current) {
-        setData({ ...next, lastUpdated: new Date() });
-        setError("");
-      }
-    } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "refresh_failed");
-    } finally {
-      if (mounted.current) {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    }
-  }, []);
+      return { ...next, lastUpdated: new Date() } satisfies WorkspaceData;
+    },
+    refetchInterval: () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
+      return POLL_MS;
+    },
+  });
 
-  useEffect(() => {
-    mounted.current = true;
-    refresh();
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh(true);
-    }, POLL_MS);
-    return () => {
-      mounted.current = false;
-      window.clearInterval(interval);
-    };
-  }, [refresh]);
+  const refresh = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ["driver-workspace"] });
+  }, [qc]);
 
   const setOnline = useCallback(
     async (online: boolean) => {
       setActionPending(online ? "online" : "offline");
       try {
         await driverApi.setOnline(online);
-        await refresh(true);
-        if (mounted.current) setError("");
-      } catch (e) {
-        if (mounted.current) setError(e instanceof Error ? e.message : "availability_failed");
+        await refresh();
       } finally {
-        if (mounted.current) setActionPending(null);
+        setActionPending(null);
       }
     },
     [refresh]
@@ -214,31 +194,26 @@ export function useDriverWorkspace() {
 
   const startShift = useCallback(
     async (pretrip?: Record<string, boolean>) => {
-      const routeId = data?.route?.route_id ?? data?.dashboard.active_route_id ?? undefined;
+      const routeId =
+        query.data?.route?.route_id ?? query.data?.dashboard.active_route_id ?? undefined;
       setActionPending("start");
       try {
         await driverApi.shiftStart(routeId, pretrip);
-        await refresh(true);
-        if (mounted.current) setError("");
-      } catch (e) {
-        if (mounted.current) setError(e instanceof Error ? e.message : "start_shift_failed");
+        await refresh();
       } finally {
-        if (mounted.current) setActionPending(null);
+        setActionPending(null);
       }
     },
-    [data, refresh]
+    [query.data, refresh]
   );
 
   const endShift = useCallback(async () => {
     setActionPending("end");
     try {
       await driverApi.shiftEnd();
-      await refresh(true);
-      if (mounted.current) setError("");
-    } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "end_shift_failed");
+      await refresh();
     } finally {
-      if (mounted.current) setActionPending(null);
+      setActionPending(null);
     }
   }, [refresh]);
 
@@ -254,21 +229,19 @@ export function useDriverWorkspace() {
         );
       });
       await driverApi.emergency(location);
-      if (mounted.current) setError("");
-    } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "emergency_failed");
     } finally {
-      if (mounted.current) setActionPending(null);
+      setActionPending(null);
     }
   }, []);
 
   return {
-    data,
-    error,
-    loading,
-    refreshing,
+    data: query.data ?? null,
+    error:
+      query.error instanceof Error ? query.error.message : query.error ? String(query.error) : "",
+    loading: query.isLoading,
+    refreshing: query.isFetching && !query.isLoading,
     actionPending,
-    refresh: () => refresh(true),
+    refresh,
     setOnline,
     startShift,
     endShift,

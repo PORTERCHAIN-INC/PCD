@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { ArrowLeft, Shield, Sparkles } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { formatCents } from "@porterchain/ui/utils";
 import { formatClaimType, PRIORITY_STYLES, STATUS_STYLES, type ClaimDetail } from "@/lib/claims";
 import { relativeTime } from "@/lib/crmFormat";
 import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import AdminPage from "@/components/layout/AdminPage";
 
 type Tab =
   | "overview"
@@ -72,7 +72,7 @@ export default function ClaimDetailView({
   const terminal = ["closed", "archived", "rejected"].includes(detail.display_status);
 
   return (
-    <div className="space-y-6">
+    <AdminPage>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link
@@ -167,12 +167,7 @@ export default function ClaimDetailView({
         ))}
       </nav>
 
-      <motion.div
-        key={tab}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-primary/10 bg-white p-6"
-      >
+      <div key={tab} className="rounded-2xl border border-primary/10 bg-white p-6">
         {tab === "overview" && <OverviewTab detail={detail} />}
         {tab === "timeline" && <TimelineTab detail={detail} />}
         {tab === "evidence" && <EvidenceTab detail={detail} onAdd={onAddEvidence} />}
@@ -185,8 +180,8 @@ export default function ClaimDetailView({
         {tab === "communication" && <CommunicationTab detail={detail} onAddNote={onAddNote} />}
         {tab === "audit" && <AuditTab detail={detail} />}
         {tab === "notes" && <NotesTab detail={detail} onAddNote={onAddNote} />}
-      </motion.div>
-    </div>
+      </div>
+    </AdminPage>
   );
 }
 
