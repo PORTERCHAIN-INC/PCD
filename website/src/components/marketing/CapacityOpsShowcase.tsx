@@ -310,6 +310,7 @@ const DEMO: Record<FeatureKey, (props: { t: OpsT }) => ReactNode> = {
 
 export default function CapacityOpsShowcase({ from = HUB_FROM.chooser, className }: Props) {
   const t = useTranslations("capacityOps");
+  const tCta = useTranslations("common.cta");
   const reduce = useReducedMotion();
   const quoteHref = `/sign-up?intent=quote&from=${from}-ops-showcase`;
 
@@ -373,7 +374,7 @@ export default function CapacityOpsShowcase({ from = HUB_FROM.chooser, className
             href={quoteHref}
             className="inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-xl bg-secondary px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
           >
-            {t("cta")}
+            {tCta("quote")}
           </Link>
           <p className="mt-3 text-sm text-muted">{t("ctaHint")}</p>
         </div>

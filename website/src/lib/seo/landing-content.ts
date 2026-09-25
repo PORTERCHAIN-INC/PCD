@@ -1,6 +1,7 @@
 import { getMessages } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
 import type { NicheLandingContent } from "@/components/seo/IndustryLandingView";
+import { quoteCtaLabel } from "@/lib/cta";
 
 function isCompleteNiche(content: Partial<NicheLandingContent> | undefined): boolean {
   return Boolean(
@@ -107,7 +108,7 @@ function withLandingDefaults(content: Partial<NicheLandingContent>): NicheLandin
     cta: content.cta ?? {
       title: "Ready to simplify your delivery?",
       description: "Tell us your volume and routes. We'll show you how Porterchain fits.",
-      primary: "Get a quote",
+      primary: quoteCtaLabel("en"),
       secondary: "Contact us",
     },
   };

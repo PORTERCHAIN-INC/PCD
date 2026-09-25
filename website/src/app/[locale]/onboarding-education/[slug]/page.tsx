@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import ContentClusterView from "@/components/seo/ContentClusterView";
 import {
   ONBOARDING_EDUCATION_PAGES,

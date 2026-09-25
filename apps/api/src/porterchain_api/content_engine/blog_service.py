@@ -9,6 +9,10 @@ from typing import Any
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from porterchain_api.content_engine.blog_author_service import (
+    BLOG_AUTHOR_ID_MAX,
+    BlogAuthorMixin,
+)
 from porterchain_api.website_content_models import BlogPost
 
 BLOG_STATUSES = frozenset({"draft", "published", "archived"})
@@ -32,6 +36,7 @@ BLOG_BODY_MAX = 100_000
 BLOG_TAG_MAX_COUNT = 32
 BLOG_TAG_MAX_LEN = 40
 _SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+_AUTHOR_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 _SLUG_CONSTRAINT = "uq_blog_posts_locale_slug"
 _WORDS_PER_MINUTE = 200
 
@@ -41,7 +46,7 @@ def reading_minutes_for(body_md: str) -> int:
     return max(1, (words + _WORDS_PER_MINUTE - 1) // _WORDS_PER_MINUTE)
 
 
-class BlogService:
+class BlogService(BlogAuthorMixin):
     def list_posts(
         self,
         db: Session,
@@ -159,6 +164,26 @@ class BlogService:
         if q.first():
             raise ValueError("blog_slug_exists")
 
+    def _validate_author_id(self, author_id: str) -> str:
+        normalized = author_id.strip().lower()
+        if (
+            not normalized
+            or len(normalized) > BLOG_AUTHOR_ID_MAX
+            or not _AUTHOR_ID_RE.match(normalized)
+        ):
+            raise ValueError("blog_invalid_author_id")
+        return normalized
+
+    def _normalize_schedule(
+        self, when: datetime | None, *, status: str
+    ) -> datetime | None:
+        """Schedule only applies to drafts; strip tz-naive → UTC."""
+        if when is None or status == "published":
+            return None
+        if when.tzinfo is None:
+            return when.replace(tzinfo=timezone.utc)
+        return when.astimezone(timezone.utc)
+
     def _commit(self, db: Session) -> None:
         try:
             db.commit()
@@ -190,6 +215,7 @@ class BlogService:
         published_at: date | None,
         created_by: str | None,
         cover_image_url: str | None = None,
+        scheduled_publish_at: datetime | None = None,
     ) -> BlogPost:
         loc = self._validate_locale(locale)
         sl = self._validate_slug(slug)
@@ -219,6 +245,7 @@ class BlogService:
             tags=clean_tags,
             cover_image_url=(cover_image_url or "").strip() or None,
             published_at=pub_date,
+            scheduled_publish_at=self._normalize_schedule(scheduled_publish_at, status=st),
             created_by=created_by,
         )
         db.add(record)
@@ -250,6 +277,8 @@ class BlogService:
         clear_published_at: bool = False,
         cover_image_url: str | None = None,
         clear_cover_image_url: bool = False,
+        scheduled_publish_at: datetime | None = None,
+        clear_scheduled_publish_at: bool = False,
     ) -> BlogPost:
         record = self.get_post(db, post_id)
         if not record:
@@ -279,6 +308,8 @@ class BlogService:
             record.status = st
             if st == "published" and record.published_at is None and published_at is None:
                 record.published_at = datetime.now(timezone.utc).date()
+            if st == "published":
+                record.scheduled_publish_at = None
         if featured is not None:
             record.featured = featured
         if trending is not None:
@@ -301,6 +332,12 @@ class BlogService:
             record.cover_image_url = None
         elif cover_image_url is not None:
             record.cover_image_url = cover_image_url.strip() or None
+        if clear_scheduled_publish_at:
+            record.scheduled_publish_at = None
+        elif scheduled_publish_at is not None:
+            record.scheduled_publish_at = self._normalize_schedule(
+                scheduled_publish_at, status=record.status
+            )
 
         self._commit(db)
         db.refresh(record)
@@ -313,7 +350,39 @@ class BlogService:
         db.delete(record)
         self._commit(db)
 
+    def publish_due_posts(
+        self, db: Session, *, now: datetime | None = None, limit: int = 20
+    ) -> list[BlogPost]:
+        """Flip due draft schedules to published. Returns updated rows."""
+        clock = now or datetime.now(timezone.utc)
+        if clock.tzinfo is None:
+            clock = clock.replace(tzinfo=timezone.utc)
+        due = (
+            db.query(BlogPost)
+            .filter(
+                BlogPost.status == "draft",
+                BlogPost.scheduled_publish_at.isnot(None),
+                BlogPost.scheduled_publish_at <= clock,
+            )
+            .order_by(BlogPost.scheduled_publish_at.asc())
+            .limit(max(1, min(int(limit), 100)))
+            .all()
+        )
+        if not due:
+            return []
+        today = clock.date()
+        for record in due:
+            record.status = "published"
+            if record.published_at is None:
+                record.published_at = today
+            record.scheduled_publish_at = None
+        self._commit(db)
+        for record in due:
+            db.refresh(record)
+        return due
+
     def serialize(self, record: BlogPost, *, include_body: bool = True) -> dict[str, Any]:
+        scheduled = record.scheduled_publish_at
         out: dict[str, Any] = {
             "id": record.id,
             "slug": record.slug,
@@ -332,6 +401,7 @@ class BlogService:
             "tags": record.tags or [],
             "cover_image_url": record.cover_image_url,
             "published_at": record.published_at.isoformat() if record.published_at else None,
+            "scheduled_publish_at": scheduled.isoformat() if scheduled else None,
             "reading_minutes": reading_minutes_for(record.body_md or ""),
             "created_by": record.created_by,
             "created_at": record.created_at,
@@ -344,4 +414,5 @@ class BlogService:
     def serialize_public(self, record: BlogPost, *, include_body: bool = True) -> dict[str, Any]:
         data = self.serialize(record, include_body=include_body)
         data.pop("created_by", None)
+        data.pop("scheduled_publish_at", None)
         return data

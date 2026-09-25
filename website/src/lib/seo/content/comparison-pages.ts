@@ -6,6 +6,7 @@
  */
 
 import type { Locale } from "@/i18n/routing";
+import { quoteCtaLabel } from "@/lib/cta";
 import {
   industrySlug,
   serviceAreaSlug,
@@ -440,7 +441,7 @@ export const COMPARISON_PAGES: ComparisonPage[] = [
     industrySlugs: ["ecommerce", "electrical-distribution", "construction-materials"],
     serviceAreaSlugs: ["toronto", "mississauga", "brampton", "vaughan"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "serviceAreas", label: "Service areas" },
     ],
   },

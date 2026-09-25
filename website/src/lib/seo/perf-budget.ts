@@ -32,7 +32,6 @@ const LOCALE_HUB_SLUGS = new Set([
   "business",
   "contact",
   "company",
-  "customers",
   "developers",
   "enterprise",
   "faq",

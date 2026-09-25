@@ -1,9 +1,9 @@
 import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getPageHeroImage } from "@/data/site-images";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import FaqSection from "@/components/corporate/sections/FaqSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
+import MarketingFaq from "@/components/marketing/MarketingFaq";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
 import PageBreadcrumbs, { type BreadcrumbItem } from "@/components/seo/PageBreadcrumbs";
 import { JsonLd } from "@/components/seo";
@@ -11,6 +11,7 @@ import { buildFAQPageSchema, buildServiceSchema } from "@/lib/seo/schema";
 import dynamic from "next/dynamic";
 import type { Locale } from "@/i18n/routing";
 import { contact, quoteContact, platform } from "@/lib/seo/routes";
+import { quoteCtaLabel } from "@/lib/cta";
 import {
   buildProductLinksForIndustrySeoSlug,
   buildIntentHubLinks,
@@ -30,7 +31,7 @@ type CitySectionLabels = {
 };
 import type { CityIndustryContent } from "@/lib/seo/city-industry-delivery";
 import Container from "@/components/ui/Container";
-import FadeIn from "@/components/corporate/motion/FadeIn";
+import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
 import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
 
 const PostalCoverageChecker = dynamic(() => import("@/components/seo/PostalCoverageChecker"), {
@@ -66,6 +67,7 @@ export default async function CityIndustryLandingView({
   const contactHref = contact(locale, { from: path });
   const quoteHref = quoteContact(locale, path);
   const platformHref = platform(locale, { from: path });
+  const quoteLabel = quoteCtaLabel(locale);
   const productLinks = buildProductLinksForIndustrySeoSlug(locale, industrySlug, path);
 
   const titleBySlug: Partial<Record<(typeof INTENT_HUB_FAQ_SLUGS)[number], string>> = {};
@@ -92,7 +94,7 @@ export default async function CityIndustryLandingView({
         badge={sectionLabels.localDelivery}
         title={content.hero.title}
         subtitle={content.hero.subtitle}
-        primaryCta={content.cta.primary}
+        primaryCta={quoteLabel}
         primaryHref={quoteHref}
         secondaryCta={content.cta.secondary}
         secondaryHref={contactHref}
@@ -114,7 +116,7 @@ export default async function CityIndustryLandingView({
         </div>
       </section>
       {content.faq.items.length > 0 && (
-        <FaqSection title={content.faq.title} items={content.faq.items} />
+        <MarketingFaq title={content.faq.title} items={content.faq.items} />
       )}
       <div className="perf-defer-section">
         <PostalCoverageChecker
@@ -173,10 +175,10 @@ export default async function CityIndustryLandingView({
         )}
       />
       <PlatformBridgeSection from={path} />
-      <CtaSection
+      <MarketingCloser
         title={content.cta.title}
         subtitle={content.cta.description}
-        primaryLabel={content.cta.primary}
+        primaryLabel={quoteLabel}
         primaryHref={quoteHref}
         secondaryLabel={content.cta.secondary}
         secondaryHref={platformHref}

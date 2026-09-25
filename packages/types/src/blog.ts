@@ -53,11 +53,22 @@ export const publicBlogPostItemSchema = publicBlogPostMetaSchema.extend({
 
 export const adminBlogPostSchema = publicBlogPostItemSchema.extend({
   created_by: z.string().nullable().optional(),
+  scheduled_publish_at: z.string().nullable().optional(),
+});
+
+export const blogAuthorSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  role: z.string().default(""),
+  bio: z.string().default(""),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
 });
 
 export type PublicBlogPostMeta = z.infer<typeof publicBlogPostMetaSchema>;
 export type PublicBlogPostItem = z.infer<typeof publicBlogPostItemSchema>;
 export type AdminBlogPost = z.infer<typeof adminBlogPostSchema>;
+export type BlogAuthorRow = z.infer<typeof blogAuthorSchema>;
 
 export function isBlogCategory(value: string): value is BlogCategory {
   return (BLOG_CATEGORIES as readonly string[]).includes(value);

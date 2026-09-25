@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BUSINESS_EN = ROOT / "website/messages/business-en.json"
 BUSINESS_FR = ROOT / "website/messages/business-fr.json"
-BILLING_SECTION = ROOT / "website/src/components/business/sections/BillingOptions.tsx"
+BILLING_SECTION = ROOT / "website/src/components/marketing/business/sections/BillingOptions.tsx"
 
 EN_TITLE = "How capacity pricing works"
 EN_SUBTITLE_MARKERS = ("transportation capacity executed", "not software seats")

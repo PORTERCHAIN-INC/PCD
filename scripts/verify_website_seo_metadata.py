@@ -21,7 +21,7 @@ INDEX_PAGES = (
     "developers/docs/page.tsx",
     "solutions/page.tsx",
     "enterprise/page.tsx",
-    "customers/page.tsx",
+    "success-stories/page.tsx",
     "trust/page.tsx",
     "blog/page.tsx",
     "careers/page.tsx",

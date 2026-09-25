@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
-import SolutionVerticalPageView from "@/components/solutions/SolutionVerticalPageView";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
+import SolutionVerticalPageView from "@/components/marketing/solutions/SolutionVerticalPageView";
 import { routing } from "@/i18n/routing";
 import { SOLUTION_MESSAGE_KEYS } from "@/lib/solutions-hub-config";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";

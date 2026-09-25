@@ -5,11 +5,11 @@ import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
 import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import FaqSection from "@/components/corporate/sections/FaqSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
+import MarketingFaq from "@/components/marketing/MarketingFaq";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import SolutionsTabNav from "@/components/solutions/SolutionsTabNav";
+import SolutionsTabNav from "@/components/marketing/solutions/SolutionsTabNav";
 import { siteImages } from "@/data/site-images";
 import { SERVICE_AREA_REGIONS } from "@/lib/solutions-hub-config";
 import { SERVICE_AREA_SLUGS } from "@/lib/seo/service-areas";
@@ -21,6 +21,7 @@ interface ServiceAreasHubViewProps {
 
 export default async function ServiceAreasHubView({ locale: _locale }: ServiceAreasHubViewProps) {
   const t = await getTranslations("serviceAreasIndex");
+  const tCta = await getTranslations("common.cta");
   const tBc = await getTranslations("corporate.breadcrumbs");
   const source = "service-areas";
 
@@ -44,7 +45,7 @@ export default async function ServiceAreasHubView({ locale: _locale }: ServiceAr
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
-        primaryCta={t("cta.primary")}
+        primaryCta={tCta("quote")}
         primaryHref={`/sign-up?intent=quote&from=${source}`}
         secondaryCta={t("cta.secondary")}
         secondaryHref="/solutions"
@@ -111,12 +112,12 @@ export default async function ServiceAreasHubView({ locale: _locale }: ServiceAr
         className="bg-white"
       />
 
-      <FaqSection label={t("faq.label")} title={t("faq.title")} items={faqItems} />
+      <MarketingFaq label={t("faq.label")} title={t("faq.title")} items={faqItems} />
 
-      <CtaSection
+      <MarketingCloser
         title={t("cta.title")}
         subtitle={t("cta.description")}
-        primaryLabel={t("cta.primary")}
+        primaryLabel={tCta("quote")}
         primaryHref={`/sign-up?intent=quote&from=${source}`}
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/business#fleet"

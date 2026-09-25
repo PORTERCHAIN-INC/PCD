@@ -4,8 +4,8 @@ import Container from "@/components/ui/Container";
 import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getPageHeroImage } from "@/data/site-images";
-import FaqSection from "@/components/corporate/sections/FaqSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import MarketingFaq from "@/components/marketing/MarketingFaq";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
 import PageBreadcrumbs, { type BreadcrumbItem } from "@/components/seo/PageBreadcrumbs";
 import { JsonLd } from "@/components/seo";
@@ -51,6 +51,7 @@ export default async function ContentClusterView({
   topNav,
 }: ContentClusterViewProps) {
   const tCta = await getTranslations("common.cta");
+  const tSeo = await getTranslations("corporate.seo.sectionLabels");
   const quoteLabel = tCta("quote");
   const quoteHref = quoteContact(locale, ctaSource);
   const faqItems = data.items ?? [];
@@ -59,6 +60,7 @@ export default async function ContentClusterView({
     faqItems.length > 0
       ? buildServiceSchema({ name: data.title, description: data.description })
       : null;
+  const secondaryLabel = secondaryCta === "See vehicles" ? tSeo("seeVehicles") : secondaryCta;
 
   return (
     <>
@@ -71,14 +73,14 @@ export default async function ContentClusterView({
         subtitle={data.intro}
         primaryCta={quoteLabel}
         primaryHref={quoteHref}
-        secondaryCta={secondaryCta}
+        secondaryCta={secondaryLabel}
         secondaryHref={secondaryHref}
         variant="light-centered"
         illustration={<HeroPhoto image={getPageHeroImage(ctaSource)} />}
         trackSource={ctaSource}
       />
 
-      {faqItems.length > 0 && <FaqSection title="Frequently asked questions" items={faqItems} />}
+      {faqItems.length > 0 && <MarketingFaq title={tSeo("faqTitle")} items={faqItems} />}
 
       {data.sections?.map((section) => (
         <section key={section.heading} className="site-section bg-white">
@@ -132,12 +134,12 @@ export default async function ContentClusterView({
       )}
 
       <PlatformBridgeSection from={ctaSource} />
-      <CtaSection
-        title="Ready for transportation capacity on your lanes?"
-        subtitle="Tell us what needs to move. We'll quote the right vehicle-and-driver capacity for your operation."
+      <MarketingCloser
+        title={tSeo("readyForCapacityTitle")}
+        subtitle={tSeo("readyForCapacitySubtitle")}
         primaryLabel={quoteLabel}
         primaryHref={quoteHref}
-        secondaryLabel="See vehicles"
+        secondaryLabel={tSeo("seeVehicles")}
         secondaryHref="/business#fleet"
         variant="gradient"
         trackSource={ctaSource}

@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import PorterchainWordmark from "@/components/brand/PorterchainWordmark";
+import PorterchainWordmark from "@/components/marketing/brand/PorterchainWordmark";
 
 export type PlatformAuthMode = "sign-in" | "sign-up";
 

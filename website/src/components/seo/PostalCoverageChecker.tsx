@@ -6,6 +6,7 @@ import { resolveZoneByFsa } from "@/lib/traffic/zones";
 import { isGta150Fsa } from "@/lib/seo/gta150FsaCodes";
 import type { Locale } from "@/i18n/routing";
 import { quoteContact } from "@/lib/seo/routes";
+import { QUOTE_CTA } from "@/lib/cta";
 
 type Props = {
   locale: Locale;
@@ -26,7 +27,7 @@ const COPY = {
       "This Ontario postal code sits outside our same-day GTA ±150 km tile — share your lanes on a quote and we confirm extended coverage within one business day.",
     unknown:
       "Share your full routes on a quote — we confirm GTA and Ontario coverage within one business day.",
-    cta: "Get a quote",
+    cta: QUOTE_CTA.en,
   },
   fr: {
     title: "Vérifier la couverture",
@@ -40,7 +41,7 @@ const COPY = {
       "Ce code postal ontarien est hors de notre tuile RGT ±150 km — partagez vos trajets via un devis; confirmation en un jour ouvrable.",
     unknown:
       "Partagez vos trajets complets via un devis — nous confirmons la couverture RGT et Ontario en un jour ouvrable.",
-    cta: "Obtenir un devis",
+    cta: QUOTE_CTA.fr,
   },
 } as const;
 

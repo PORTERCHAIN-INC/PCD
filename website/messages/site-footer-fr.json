@@ -14,7 +14,7 @@
     "product": {
       "title": "Produit",
       "links": {
-        "getQuote": "Obtenir un devis",
+        "getQuote": "",
         "pricing": "Tarification",
         "capabilities": "Toutes les capacités",
         "multiStop": "Livraison multi-arrêts",

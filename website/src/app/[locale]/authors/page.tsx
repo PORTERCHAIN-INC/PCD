@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import Container from "@/components/ui/Container";
-import { blogAuthors } from "@/data/blog-authors";
+import { listBlogAuthors } from "@/lib/blog";
 import { localeStaticParams, buildPageMetadata } from "@/lib/seo/page-helpers";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -20,7 +20,7 @@ export default async function AuthorsHubPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("authors");
-  const authors = Object.values(blogAuthors);
+  const authors = await listBlogAuthors();
 
   return (
     <CorporateShell>

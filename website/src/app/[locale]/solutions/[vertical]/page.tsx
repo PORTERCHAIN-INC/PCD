@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
-import SolutionVerticalPageView from "@/components/solutions/SolutionVerticalPageView";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
+import SolutionVerticalPageView from "@/components/marketing/solutions/SolutionVerticalPageView";
 import { routing } from "@/i18n/routing";
 import {
   SOLUTION_VERTICAL_SLUGS,

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
@@ -232,3 +232,49 @@ def test_blog_media_save_and_resolve(tmp_path: Path, monkeypatch: pytest.MonkeyP
         save_blog_image(filename="note.txt", content=b"hi", content_type="text/plain")
     with pytest.raises(ValueError, match="blog_media_invalid_type"):
         save_blog_image(filename="pic.jpg", content=b"hi", content_type="application/octet-stream")
+
+
+def test_scheduled_publish_due(db: Session) -> None:
+    from datetime import timedelta
+
+    svc = BlogService()
+    past = datetime.now(timezone.utc) - timedelta(minutes=5)
+    future = datetime.now(timezone.utc) + timedelta(hours=2)
+    due = _create(db, slug=_slug("due"), status="draft")
+    waiting = _create(db, slug=_slug("wait"), status="draft")
+    svc.update_post(db, due.id, scheduled_publish_at=past)
+    svc.update_post(db, waiting.id, scheduled_publish_at=future)
+
+    published = svc.publish_due_posts(db, limit=10)
+    assert len(published) == 1
+    assert published[0].id == due.id
+    assert published[0].status == "published"
+    assert published[0].scheduled_publish_at is None
+    assert published[0].published_at is not None
+
+    still = svc.get_post(db, waiting.id)
+    assert still is not None
+    assert still.status == "draft"
+    assert still.scheduled_publish_at is not None
+
+
+def test_blog_authors_crud(db: Session) -> None:
+    svc = BlogService()
+    aid = f"author-{uuid4().hex[:8]}"
+    row = svc.create_author(
+        db, author_id=aid, name="Test Author", role="Editor", bio="Writes capacity notes."
+    )
+    assert row.id == aid
+    assert any(a.id == aid for a in svc.list_authors(db))
+
+    updated = svc.update_author(db, aid, role="Senior Editor")
+    assert updated.role == "Senior Editor"
+
+    post = _create(db, slug=_slug("by-author"), status="draft")
+    svc.update_post(db, post.id, author_id=aid)
+    with pytest.raises(ValueError, match="blog_author_in_use"):
+        svc.delete_author(db, aid)
+
+    svc.update_post(db, post.id, author_id="porterchain")
+    svc.delete_author(db, aid)
+    assert svc.get_author(db, aid) is None

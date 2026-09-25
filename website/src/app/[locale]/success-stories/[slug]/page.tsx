@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getNicheHeroImage } from "@/data/site-images";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import AuthorCard from "@/components/blog/AuthorCard";
 import { JsonLd } from "@/components/seo";
 import { buildArticleSchema, buildReviewSchema } from "@/lib/seo/schema";
@@ -15,6 +15,7 @@ import {
   hasProgrammaticLocale,
   listLocalizedSuccessStorySlugs,
 } from "@/lib/seo/programmatic-content";
+import { getSuccessStoryBySlug, isPublicSuccessStory } from "@/lib/seo/content/success-stories";
 import { getAuthor } from "@/data/blog-authors";
 import { INDUSTRY_PAGE_LABELS } from "@/lib/seo/internal-linking";
 import { business, contact, industrySlug } from "@/lib/seo/routes";
@@ -37,6 +38,8 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
+  const base = getSuccessStoryBySlug(slug);
+  if (!base || !isPublicSuccessStory(base)) return {};
   const story = await getLocalizedSuccessStory(locale as Locale, slug);
   if (!story) return {};
   const localized = await hasProgrammaticLocale(locale, "successStories", slug);
@@ -52,11 +55,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SuccessStoryPage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  const base = getSuccessStoryBySlug(slug);
+  if (!base || !isPublicSuccessStory(base)) notFound();
   const story = await getLocalizedSuccessStory(locale as Locale, slug);
   if (!story) notFound();
 
   const loc = locale as Locale;
   const t = await getTranslations("corporate.seo.sectionLabels");
+  const tCta = await getTranslations("common.cta");
   const author = story.authorId ? getAuthor(story.authorId) : null;
   const showMetric = Boolean(story.permissioned && story.outcomeMetric);
   const schemas = [
@@ -77,7 +83,7 @@ export default async function SuccessStoryPage({ params }: Props) {
         badge={t("successStory")}
         title={story.headline}
         subtitle={story.challenge}
-        primaryCta={locale === "fr" ? "Obtenir un devis" : "Get a quote"}
+        primaryCta={tCta("quote")}
         primaryHref={contact(loc, { intent: "quote", from: `success-stories/${slug}` })}
         secondaryCta={locale === "fr" ? "Contact" : "Contact"}
         secondaryHref={contact(loc, { from: `success-stories/${slug}` })}
@@ -133,7 +139,7 @@ export default async function SuccessStoryPage({ params }: Props) {
           </p>
         </Container>
       </section>
-      <CtaSection
+      <MarketingCloser
         title={
           locale === "fr" ? "Prêt pour des résultats similaires?" : "Ready for similar results?"
         }

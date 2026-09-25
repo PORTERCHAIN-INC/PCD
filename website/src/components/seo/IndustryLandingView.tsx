@@ -1,22 +1,23 @@
 import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getNicheHeroImage, getPageHeroImage } from "@/data/site-images";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import FaqSection from "@/components/corporate/sections/FaqSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
+import MarketingFaq from "@/components/marketing/MarketingFaq";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
 import PageBreadcrumbs, { type BreadcrumbItem } from "@/components/seo/PageBreadcrumbs";
 import { JsonLd } from "@/components/seo";
 import { buildFAQPageSchema, buildServiceSchema } from "@/lib/seo/schema";
 import type { Locale } from "@/i18n/routing";
 import { contact, localePath, quoteContact } from "@/lib/seo/routes";
+import { quoteCtaLabel } from "@/lib/cta";
 import PersonaAudienceSection from "@/components/seo/PersonaAudienceSection";
 import { buildPersonaItems, collectNicheFaqItems } from "@/lib/seo/niche-personas";
 import { CONSTRUCTION_NICHE_SLUGS } from "@/lib/seo/niche-landing";
 import { buildProductLinksForNiche } from "@/lib/seo/internal-linking";
 import type { SeoSectionLabels } from "@/components/seo/seo-section-labels";
 import Container from "@/components/ui/Container";
-import FadeIn from "@/components/corporate/motion/FadeIn";
+import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
 import PlatformBridgeSection from "@/components/seo/PlatformBridgeSection";
 
 export type NicheLandingContent = {
@@ -126,6 +127,7 @@ export default function IndustryLandingView({
   const source = `industry/${slug}`;
   const contactHref = contact(locale, { from: source });
   const quoteHref = quoteContact(locale, source);
+  const quoteLabel = quoteCtaLabel(locale);
   const productLinks = buildProductLinksForNiche(locale, slug, source);
   const heroImage = slug.startsWith("campaigns/")
     ? getPageHeroImage(slug)
@@ -165,7 +167,7 @@ export default function IndustryLandingView({
         badge={sectionLabels.industries}
         title={niche.hero.title}
         subtitle={niche.hero.subtitle}
-        primaryCta={niche.cta.primary}
+        primaryCta={quoteLabel}
         primaryHref={quoteHref}
         secondaryCta={niche.cta.secondary}
         secondaryHref={contactHref}
@@ -244,7 +246,9 @@ export default function IndustryLandingView({
           (link, index, all) => all.findIndex((item) => item.href === link.href) === index
         )}
       />
-      {faqItems.length > 0 && niche.faq && <FaqSection title={niche.faq.title} items={faqItems} />}
+      {faqItems.length > 0 && niche.faq && (
+        <MarketingFaq title={niche.faq.title} items={faqItems} />
+      )}
       {(niche.inquiryHeading || niche.inquirySubheadline) && (
         <section className="site-section bg-white">
           <Container size="narrow" className="text-center">
@@ -260,10 +264,10 @@ export default function IndustryLandingView({
         </section>
       )}
       <PlatformBridgeSection from={source} />
-      <CtaSection
+      <MarketingCloser
         title={niche.cta.title}
         subtitle={niche.cta.description}
-        primaryLabel={niche.cta.primary}
+        primaryLabel={quoteLabel}
         primaryHref={quoteHref}
         secondaryLabel={niche.cta.secondary}
         secondaryHref={contactHref}

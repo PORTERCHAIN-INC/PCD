@@ -3,12 +3,15 @@ import {
   BLOG_LOCALES,
   BLOG_STATUSES,
   adminBlogPostSchema,
+  blogAuthorSchema,
   type AdminBlogPost,
+  type BlogAuthorRow,
 } from "@porterchain/types";
 import { adminFetch } from "@/lib/api";
 
 export { BLOG_CATEGORIES, BLOG_LOCALES, BLOG_STATUSES };
 export type BlogPost = AdminBlogPost;
+export type BlogAuthor = BlogAuthorRow;
 export type BlogPostInput = {
   slug: string;
   locale: string;
@@ -27,6 +30,7 @@ export type BlogPostInput = {
   tags: string[];
   cover_image_url?: string | null;
   published_at?: string | null;
+  scheduled_publish_at?: string | null;
 };
 
 export type BlogFilters = {
@@ -66,15 +70,56 @@ export const blogApi = {
   },
 
   async update(token: string, id: string, patch: Partial<BlogPostInput>): Promise<BlogPost> {
+    const body: Record<string, unknown> = { ...patch };
+    if ("scheduled_publish_at" in patch) {
+      if (patch.scheduled_publish_at) {
+        body.scheduled_publish_at = patch.scheduled_publish_at;
+      } else {
+        delete body.scheduled_publish_at;
+        body.clear_scheduled_publish_at = true;
+      }
+    }
     const row = await adminFetch<unknown>(`/v1/admin/blog/posts/${id}`, token, {
       method: "PATCH",
-      body: JSON.stringify(patch),
+      body: JSON.stringify(body),
     });
     return adminBlogPostSchema.parse(row);
   },
 
   async remove(token: string, id: string): Promise<void> {
     await adminFetch<void>(`/v1/admin/blog/posts/${id}`, token, { method: "DELETE" });
+  },
+
+  async listAuthors(token: string): Promise<BlogAuthor[]> {
+    const rows = await adminFetch<unknown[]>("/v1/admin/blog/authors", token);
+    return blogAuthorSchema.array().parse(rows);
+  },
+
+  async createAuthor(
+    token: string,
+    body: { id: string; name: string; role?: string; bio?: string }
+  ): Promise<BlogAuthor> {
+    const row = await adminFetch<unknown>("/v1/admin/blog/authors", token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    return blogAuthorSchema.parse(row);
+  },
+
+  async updateAuthor(
+    token: string,
+    id: string,
+    patch: { name?: string; role?: string; bio?: string }
+  ): Promise<BlogAuthor> {
+    const row = await adminFetch<unknown>(`/v1/admin/blog/authors/${id}`, token, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+    return blogAuthorSchema.parse(row);
+  },
+
+  async removeAuthor(token: string, id: string): Promise<void> {
+    await adminFetch<void>(`/v1/admin/blog/authors/${id}`, token, { method: "DELETE" });
   },
 
   async uploadMedia(token: string, file: File): Promise<{ url: string }> {
@@ -97,6 +142,10 @@ export const blogApi = {
       throw new Error(typeof detail === "string" ? detail : `Upload failed (${res.status})`);
     }
     return res.json() as Promise<{ url: string }>;
+  },
+
+  async previewUrl(token: string, id: string): Promise<{ url: string }> {
+    return adminFetch<{ url: string }>(`/v1/admin/blog/posts/${id}/preview-url`, token);
   },
 };
 

@@ -133,7 +133,7 @@ export const BUSINESS_TRUSTED_KEYS = [
   "foodDistribution",
 ] as const;
 
-import type { VehicleIllustrationType } from "@/components/illustrations/VehicleIllustration";
+import type { VehicleIllustrationType } from "@/components/marketing/illustrations/VehicleIllustration";
 
 export const FLEET_ILLUSTRATIONS: Record<
   (typeof BUSINESS_FLEET_KEYS)[number],

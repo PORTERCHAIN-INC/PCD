@@ -17,6 +17,7 @@ from porterchain_api.routers.admin import investor_metrics  # noqa: F401
 from porterchain_api.routers.admin import audit  # noqa: F401
 from porterchain_api.routers.admin import leads  # noqa: F401
 from porterchain_api.routers.admin import blog  # noqa: F401
+from porterchain_api.routers.admin import blog_authors  # noqa: F401
 from porterchain_api.routers.admin import visitor_intelligence  # noqa: F401
 from porterchain_api.routers.admin import route_templates  # noqa: F401
 

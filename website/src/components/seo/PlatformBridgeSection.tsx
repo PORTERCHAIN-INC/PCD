@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
-import LinkButton from "@/components/corporate/ui/LinkButton";
-import FadeIn from "@/components/corporate/motion/FadeIn";
+import LinkButton from "@/components/marketing/corporate/ui/LinkButton";
+import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
 import { ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 import { Check } from "lucide-react";
 

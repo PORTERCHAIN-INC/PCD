@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import MarketingHero from "@/components/marketing/MarketingHero";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Container from "@/components/ui/Container";
 import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";
-import TrustDocumentsSection from "@/components/corporate/sections/TrustDocumentsSection";
+import { TrustDocuments as TrustDocumentsSection } from "@/components/marketing/MarketingProof";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -88,7 +88,7 @@ export default async function TrustPage({ params }: Props) {
         variant="grid"
       />
       <TrustDocumentsSection />
-      <CtaSection
+      <MarketingCloser
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}

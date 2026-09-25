@@ -22,10 +22,9 @@ import { DEVELOPER_DOC_SLUGS } from "@/lib/developer-docs";
 import { getAllCitySegmentPairs } from "./city-segment-seo";
 import { isPublishableCitySegment } from "./city-segment-publication";
 import { INDEXABLE_VEHICLE_SEGMENTS, shouldIndexVehicleRoute } from "./vehicle-publication";
-import { getAllPosts } from "@/lib/blog";
+import { getAllPosts, listBlogAuthors } from "@/lib/blog";
 import { SOLUTION_VERTICAL_SLUGS, solutionVerticalPathSegment } from "@/lib/solutions-verticals";
 import { BLOG_CATEGORIES } from "@/data/blog-categories";
-import { blogAuthors } from "@/data/blog-authors";
 import { isPublishableNiche } from "./landing-content";
 import { isDraftNicheSlug } from "./content/draft-expansions";
 import { isPublishableServiceArea, type ServiceAreaMessageContent } from "./service-area-content";
@@ -147,7 +146,6 @@ export function buildStaticSitemapEntries(): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
   for (const locale of routing.locales) {
     for (const { segment, priority, freq } of STATIC_PATHS) {
-      if (locale === "fr" && segment === "service-areas") continue;
       if (locale === "fr" && EN_ONLY_STATIC_SEGMENTS.has(segment)) continue;
       push(entries, locale, segment, priority, freq);
     }
@@ -160,6 +158,7 @@ export function buildStaticSitemapEntries(): SitemapEntry[] {
       push(entries, locale, `campaigns/${slug}`, 0.75);
     }
   }
+  // Intentional: founder personal contact card at /ravi (non-locale, public).
   entries.push({
     url: `${siteConfig.baseUrl.replace(/\/$/, "")}/ravi`,
     changeFrequency: "monthly",
@@ -224,8 +223,10 @@ export function buildLocationSitemapEntries(): SitemapEntry[] {
   return entries;
 }
 
-export function buildResourceSitemapEntries(): SitemapEntry[] {
+export async function buildResourceSitemapEntries(): Promise<SitemapEntry[]> {
   const entries: SitemapEntry[] = [];
+  const authors = await listBlogAuthors();
+  const authorIds = authors.map((a) => a.id);
   for (const locale of routing.locales) {
     for (const cluster of FAQ_CLUSTERS) {
       if (locale === "fr" && !hasFrProgrammaticSlug("faq", cluster.slug)) continue;
@@ -255,7 +256,7 @@ export function buildResourceSitemapEntries(): SitemapEntry[] {
     for (const category of BLOG_CATEGORIES) {
       push(entries, locale, `blog/category/${category}`, 0.65);
     }
-    for (const id of Object.keys(blogAuthors)) {
+    for (const id of authorIds) {
       push(entries, locale, `authors/${id}`, 0.55, "monthly");
     }
   }
@@ -273,9 +274,22 @@ export async function buildArticleSitemapEntries(): Promise<SitemapEntry[]> {
   return entries;
 }
 
-export function buildCaseStudySitemapEntries(): SitemapEntry[] {
-  // Success-stories hub retired until permissioned customer stories ship.
-  return [];
+export async function buildCaseStudySitemapEntries(): Promise<SitemapEntry[]> {
+  const entries: SitemapEntry[] = [];
+  const { listPublicSuccessStories } = await import("./content/success-stories");
+  const { listLocalizedSuccessStorySlugs } = await import("./programmatic-content");
+  const publicSlugs = new Set(listPublicSuccessStories().map((s) => s.slug));
+  for (const locale of routing.locales) {
+    if (publicSlugs.size > 0) {
+      push(entries, locale, "success-stories", 0.7, "monthly");
+    }
+    const localized = await listLocalizedSuccessStorySlugs(locale);
+    for (const slug of localized) {
+      if (!publicSlugs.has(slug)) continue;
+      push(entries, locale, `success-stories/${slug}`, 0.65, "monthly");
+    }
+  }
+  return entries;
 }
 
 export function buildDeveloperSitemapEntries(): SitemapEntry[] {

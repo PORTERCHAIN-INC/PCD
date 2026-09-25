@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import SiteShell from "@/components/layout/SiteShell";
-import HomeChooser from "@/components/home/HomeChooser";
+import HomeChooser from "@/components/marketing/home/HomeChooser";
 import HomeDeliverySchema from "@/components/seo/HomeDeliverySchema";
 import { routing } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";

@@ -13,9 +13,12 @@ const GoogleAnalytics = dynamic(() => import("@/components/seo/GoogleAnalytics")
 const WebVitalsReporter = dynamic(() => import("@/components/seo/WebVitalsReporter"), {
   ssr: false,
 });
-const CapacityGuideWidget = dynamic(() => import("@/components/home/CapacityGuideWidget"), {
-  ssr: false,
-});
+const CapacityGuideWidget = dynamic(
+  () => import("@/components/marketing/home/CapacityGuideWidget"),
+  {
+    ssr: false,
+  }
+);
 const MarketingTags = dynamic(() => import("@/components/marketing/MarketingTags"), { ssr: false });
 const MobileWhatsAppChat = dynamic(() => import("@/components/integrations/MobileWhatsAppChat"), {
   ssr: false,

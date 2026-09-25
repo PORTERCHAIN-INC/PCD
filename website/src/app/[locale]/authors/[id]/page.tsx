@@ -2,26 +2,27 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import Container from "@/components/ui/Container";
 import ArticleCard from "@/components/blog/ArticleCard";
-import { blogAuthors, getAuthor } from "@/data/blog-authors";
-import { getAllPosts } from "@/lib/blog";
+import { blogAuthors } from "@/data/blog-authors";
+import { getAllPosts, getBlogAuthorRemote, listBlogAuthors } from "@/lib/blog";
 import type { BlogCategory } from "@/data/blog-categories";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import { routing, type Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
-export function generateStaticParams() {
-  const ids = Object.keys(blogAuthors);
+export async function generateStaticParams() {
+  const authors = await listBlogAuthors();
+  const ids = authors.length > 0 ? authors.map((a) => a.id) : Object.keys(blogAuthors);
   return routing.locales.flatMap((locale) => ids.map((id) => ({ locale, id })));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, id } = await params;
-  if (!blogAuthors[id]) return {};
-  const author = getAuthor(id);
+  const author = await getBlogAuthorRemote(id);
+  if (!author.id) return {};
   const t = await getTranslations({ locale, namespace: "authors" });
   return buildPageMetadata(
     locale,
@@ -33,13 +34,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AuthorProfilePage({ params }: Props) {
   const { locale, id } = await params;
-  if (!blogAuthors[id]) notFound();
+  const author = await getBlogAuthorRemote(id);
+  const knownIds = new Set((await listBlogAuthors()).map((a) => a.id));
+  if (!knownIds.has(id) && !blogAuthors[id]) notFound();
   setRequestLocale(locale);
 
   const t = await getTranslations("authors");
   const tBlog = await getTranslations("blog");
   const tHome = await getTranslations("blog.home");
-  const author = getAuthor(id);
   const loc = locale as Locale;
   const posts = (await getAllPosts(loc)).filter((p) => p.authorId === id);
   const initials = author.name

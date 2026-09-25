@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
-import TrustScaffoldPage, { trustScaffoldMetadata } from "@/components/trust/TrustScaffoldPage";
+import TrustScaffoldPage, {
+  trustScaffoldMetadata,
+} from "@/components/marketing/trust/TrustScaffoldPage";
 
 type Props = { params: Promise<{ locale: string }> };
 

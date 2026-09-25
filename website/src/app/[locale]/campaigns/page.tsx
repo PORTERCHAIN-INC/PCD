@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import HubIndexView from "@/components/seo/HubIndexView";
 import { CAMPAIGN_SLUGS } from "@/lib/seo/campaign-landing";
 import { localeStaticParams, buildPageMetadata } from "@/lib/seo/page-helpers";

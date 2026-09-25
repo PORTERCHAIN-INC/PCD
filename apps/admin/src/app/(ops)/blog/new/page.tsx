@@ -24,6 +24,7 @@ const EMPTY: BlogPostInput = {
   tags: [],
   cover_image_url: null,
   published_at: null,
+  scheduled_publish_at: null,
 };
 
 export default function NewBlogPostPage() {

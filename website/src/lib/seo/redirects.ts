@@ -129,6 +129,24 @@ function retiredMarketingHubRedirects(): WebsiteRedirect[] {
       note: "Pricing hub → merchants billing section",
     },
     {
+      source: `/${locale}/customers`,
+      destination: `/${locale}/success-stories`,
+      permanent: true,
+      note: "Customers orphan hub → permissioned success stories",
+    },
+    {
+      source: `/${locale}/drive`,
+      destination: `/${locale}/vehicle-partner`,
+      permanent: true,
+      note: "Legacy /drive → vehicle partner",
+    },
+    {
+      source: `/${locale}/suv-delivery`,
+      destination: `/${locale}/sedan-delivery`,
+      permanent: true,
+      note: "SUV segment folded into sedan delivery",
+    },
+    {
       source: `/${locale}/industry`,
       destination: `/${locale}/business#industries`,
       permanent: true,

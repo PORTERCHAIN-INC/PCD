@@ -1,5 +1,15 @@
 import "server-only";
 
+import {
+  publicBlogPostItemSchema,
+  publicBlogPostMetaSchema,
+  blogAuthorSchema,
+  type BlogAuthor,
+  type PublicBlogPostItem,
+  type PublicBlogPostMeta,
+  BLOG_AUTHORS,
+  getBlogAuthor,
+} from "@porterchain/types";
 import readingTime from "reading-time";
 import { getAuthor } from "@/data/blog-authors";
 import { BLOG_CATEGORIES, isBlogCategory, type BlogCategory } from "@/data/blog-categories";
@@ -15,8 +25,11 @@ import {
 export type { BlogPost, BlogPostMeta };
 export { POSTS_PER_PAGE, resolveBlogCover };
 
-/** Matches API MAX_LIST_LIMIT. A full page means the oldest rows were cut. */
+/** Matches API MAX_LIST_LIMIT — hard ceiling, not the default page size. */
 export const BLOG_LIST_LIMIT = 500;
+
+/** Matches API DEFAULT_LIST_LIMIT — preferred page size for catalog fetches. */
+export const BLOG_PAGE_SIZE = 100;
 
 /** Image build has no Caddy and must not call the public site. Runtime fetches do. */
 function catalogSkippedDuringImageBuild(): boolean {
@@ -32,25 +45,6 @@ export function getBlogMediaBase(): string {
   return getPorterchainApiBase();
 }
 
-type ApiBlogRow = {
-  slug: string;
-  title: string;
-  description: string;
-  category: string;
-  author_id: string;
-  featured?: boolean;
-  trending?: boolean;
-  case_study?: boolean;
-  on_time_percent?: string | null;
-  cost_delta_percent?: string | null;
-  volume_metric?: string | null;
-  tags?: string[];
-  cover_image_url?: string | null;
-  published_at?: string | null;
-  reading_minutes?: number;
-  body_md?: string;
-};
-
 function readingMinutesFor(content: string, fromApi?: number): number {
   if (typeof fromApi === "number" && fromApi >= 1) return Math.floor(fromApi);
   return Math.max(1, Math.ceil(readingTime(content).minutes));
@@ -61,16 +55,15 @@ function rewriteBodyMedia(body: string): string {
   return body.replace(MEDIA_SRC, (_match, path: string) => `](${base}${path})`);
 }
 
-function apiRowToMeta(row: ApiBlogRow): BlogPostMeta {
+function metaFromApi(row: PublicBlogPostMeta): BlogPostMeta {
   const category = isBlogCategory(row.category) ? row.category : "logistics";
-  const body = row.body_md ?? "";
   return {
     slug: row.slug,
     title: row.title,
     description: row.description,
     date: row.published_at ?? new Date().toISOString().slice(0, 10),
     category,
-    authorId: row.author_id ?? "porterchain",
+    authorId: row.author_id || "porterchain",
     featured: Boolean(row.featured),
     trending: Boolean(row.trending),
     caseStudy: Boolean(row.case_study),
@@ -79,32 +72,37 @@ function apiRowToMeta(row: ApiBlogRow): BlogPostMeta {
     volumeMetric: row.volume_metric ?? undefined,
     tags: row.tags ?? [],
     coverImageUrl: row.cover_image_url ?? undefined,
-    readingMinutes: readingMinutesFor(body, row.reading_minutes),
+    readingMinutes: readingMinutesFor("", row.reading_minutes),
   };
 }
 
-function apiRowToPost(row: ApiBlogRow): BlogPost {
-  const meta = apiRowToMeta(row);
-  return { ...meta, content: rewriteBodyMedia(row.body_md ?? "") };
+function postFromApi(row: PublicBlogPostItem): BlogPost {
+  const meta = metaFromApi(row);
+  const body = row.body_md ?? "";
+  return {
+    ...meta,
+    readingMinutes: readingMinutesFor(body, row.reading_minutes),
+    content: rewriteBodyMedia(body),
+  };
 }
 
-async function fetchApiPosts(
-  locale: Locale,
-  opts: {
-    category?: BlogCategory;
-    search?: string;
-    featured?: boolean;
-    trending?: boolean;
-    caseStudy?: boolean;
-    limit?: number;
-    offset?: number;
-  } = {}
-): Promise<BlogPostMeta[]> {
+type ListOpts = {
+  category?: BlogCategory;
+  search?: string;
+  featured?: boolean;
+  trending?: boolean;
+  caseStudy?: boolean;
+  limit?: number;
+  offset?: number;
+};
+
+async function fetchApiPostsPage(locale: Locale, opts: ListOpts = {}): Promise<BlogPostMeta[]> {
   if (catalogSkippedDuringImageBuild()) return [];
   const base = getPorterchainApiBase();
+  const limit = Math.min(opts.limit ?? BLOG_PAGE_SIZE, BLOG_LIST_LIMIT);
   const params = new URLSearchParams({
     locale,
-    limit: String(opts.limit ?? BLOG_LIST_LIMIT),
+    limit: String(limit),
   });
   if (opts.offset && opts.offset > 0) params.set("offset", String(opts.offset));
   if (opts.category) params.set("category", opts.category);
@@ -118,12 +116,32 @@ async function fetchApiPosts(
   if (!res.ok) {
     throw new Error(`blog_catalog_unavailable:${res.status}`);
   }
-  const rows = (await res.json()) as ApiBlogRow[];
-  const limit = opts.limit ?? BLOG_LIST_LIMIT;
-  if (rows.length === limit && limit >= BLOG_LIST_LIMIT) {
+  const raw: unknown = await res.json();
+  const rows = publicBlogPostMetaSchema.array().parse(raw);
+  return rows.map(metaFromApi);
+}
+
+/** Page through the public catalog until exhausted or the API ceiling. */
+async function fetchAllApiPosts(
+  locale: Locale,
+  opts: Omit<ListOpts, "limit" | "offset"> = {}
+): Promise<BlogPostMeta[]> {
+  const all: BlogPostMeta[] = [];
+  let offset = 0;
+  while (offset < BLOG_LIST_LIMIT) {
+    const page = await fetchApiPostsPage(locale, {
+      ...opts,
+      limit: BLOG_PAGE_SIZE,
+      offset,
+    });
+    all.push(...page);
+    if (page.length < BLOG_PAGE_SIZE) break;
+    offset += BLOG_PAGE_SIZE;
+  }
+  if (all.length >= BLOG_LIST_LIMIT) {
     throw new Error("blog_catalog_truncated");
   }
-  return rows.map(apiRowToMeta);
+  return all;
 }
 
 async function fetchApiPost(locale: Locale, slug: string): Promise<BlogPost | null> {
@@ -136,8 +154,31 @@ async function fetchApiPost(locale: Locale, slug: string): Promise<BlogPost | nu
   if (!res.ok) {
     throw new Error(`blog_catalog_unavailable:${res.status}`);
   }
-  const row = (await res.json()) as ApiBlogRow;
-  return apiRowToPost(row);
+  const raw: unknown = await res.json();
+  return postFromApi(publicBlogPostItemSchema.parse(raw));
+}
+
+/** Signed draft/archive preview — never cached; requires admin token query. */
+export async function getPreviewPost(
+  locale: Locale,
+  slug: string,
+  token: string
+): Promise<BlogPost | null> {
+  if (catalogSkippedDuringImageBuild()) return null;
+  const base = getPorterchainApiBase();
+  const params = new URLSearchParams({ locale, token });
+  const res = await fetch(
+    `${base}/v1/public/blog/posts/${encodeURIComponent(slug)}/preview?${params}`,
+    {
+      cache: "no-store",
+    }
+  );
+  if (res.status === 401 || res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`blog_preview_unavailable:${res.status}`);
+  }
+  const raw: unknown = await res.json();
+  return postFromApi(publicBlogPostItemSchema.parse(raw));
 }
 
 export async function getAllPostSlugs(locale: Locale): Promise<string[]> {
@@ -146,7 +187,7 @@ export async function getAllPostSlugs(locale: Locale): Promise<string[]> {
 }
 
 export async function getAllPosts(locale: Locale): Promise<BlogPostMeta[]> {
-  return fetchApiPosts(locale);
+  return fetchAllApiPosts(locale);
 }
 
 export async function getPost(locale: Locale, slug: string): Promise<BlogPost | null> {
@@ -154,18 +195,18 @@ export async function getPost(locale: Locale, slug: string): Promise<BlogPost | 
 }
 
 export async function getCaseStudyPosts(locale: Locale): Promise<BlogPostMeta[]> {
-  return fetchApiPosts(locale, { caseStudy: true, limit: 100 });
+  return fetchApiPostsPage(locale, { caseStudy: true, limit: BLOG_PAGE_SIZE });
 }
 
 export async function getFeaturedPost(locale: Locale): Promise<BlogPostMeta | null> {
-  const featured = await fetchApiPosts(locale, { featured: true, limit: 1 });
+  const featured = await fetchApiPostsPage(locale, { featured: true, limit: 1 });
   if (featured[0]) return featured[0];
   const posts = await getAllPosts(locale);
   return posts[0] ?? null;
 }
 
 export async function getTrendingPosts(locale: Locale, limit = 5): Promise<BlogPostMeta[]> {
-  const trending = await fetchApiPosts(locale, { trending: true, limit });
+  const trending = await fetchApiPostsPage(locale, { trending: true, limit });
   if (trending.length >= limit) return trending.slice(0, limit);
   const posts = await getAllPosts(locale);
   return [...trending, ...posts.filter((p) => !p.trending)].slice(0, limit);
@@ -175,7 +216,7 @@ export async function getPostsByCategory(
   locale: Locale,
   category: BlogCategory
 ): Promise<BlogPostMeta[]> {
-  return fetchApiPosts(locale, { category, limit: BLOG_LIST_LIMIT });
+  return fetchAllApiPosts(locale, { category });
 }
 
 export async function getRelatedPosts(
@@ -183,7 +224,7 @@ export async function getRelatedPosts(
   post: BlogPostMeta,
   limit = 3
 ): Promise<BlogPostMeta[]> {
-  const sameCategory = await fetchApiPosts(locale, {
+  const sameCategory = await fetchApiPostsPage(locale, {
     category: post.category,
     limit: limit + 5,
   });
@@ -200,7 +241,7 @@ export async function getRelatedPosts(
 export async function searchPosts(locale: Locale, query: string): Promise<BlogPostMeta[]> {
   const q = query.trim();
   if (!q) return getAllPosts(locale);
-  return fetchApiPosts(locale, { search: q, limit: BLOG_LIST_LIMIT });
+  return fetchAllApiPosts(locale, { search: q });
 }
 
 export function paginatePosts<T>(posts: T[], page: number, perPage = POSTS_PER_PAGE) {
@@ -228,4 +269,40 @@ export async function getCategoryPostCounts(locale: Locale): Promise<Record<Blog
 
 export function getAuthorForPost(authorId: string) {
   return getAuthor(authorId);
+}
+
+/** CMS authors with static fallback for image build / API down. */
+export async function listBlogAuthors(): Promise<BlogAuthor[]> {
+  if (catalogSkippedDuringImageBuild()) {
+    return Object.values(BLOG_AUTHORS);
+  }
+  try {
+    const res = await fetch(`${getPorterchainApiBase()}/v1/public/blog/authors`, {
+      next: { revalidate: 300, tags: ["blog-authors"] },
+    });
+    if (!res.ok) return Object.values(BLOG_AUTHORS);
+    const rows = blogAuthorSchema.array().parse(await res.json());
+    return rows.length > 0
+      ? rows.map((r) => ({ id: r.id, name: r.name, role: r.role, bio: r.bio }))
+      : Object.values(BLOG_AUTHORS);
+  } catch {
+    return Object.values(BLOG_AUTHORS);
+  }
+}
+
+export async function getBlogAuthorRemote(id: string): Promise<BlogAuthor> {
+  if (catalogSkippedDuringImageBuild()) {
+    return getBlogAuthor(id);
+  }
+  try {
+    const res = await fetch(
+      `${getPorterchainApiBase()}/v1/public/blog/authors/${encodeURIComponent(id)}`,
+      { next: { revalidate: 300, tags: ["blog-authors"] } }
+    );
+    if (!res.ok) return getBlogAuthor(id);
+    const row = blogAuthorSchema.parse(await res.json());
+    return { id: row.id, name: row.name, role: row.role, bio: row.bio };
+  } catch {
+    return getBlogAuthor(id);
+  }
 }

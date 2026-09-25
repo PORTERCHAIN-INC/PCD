@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import MarketingHero from "@/components/marketing/MarketingHero";
-import DeveloperDocsHubBody from "@/components/developers/DeveloperDocsHubBody";
+import DeveloperDocsHubBody from "@/components/marketing/developers/DeveloperDocsHubBody";
 import { listDeveloperDocs } from "@/lib/developer-docs";
 import { getDeveloperLinks } from "@/lib/developer-links";
 import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";
@@ -25,6 +25,7 @@ export default async function DeveloperDocsHubPage({ params }: Props) {
   setRequestLocale(locale);
   const loc = locale as Locale;
   const t = await getTranslations("corporate.developers.docs");
+  const tCta = await getTranslations("common.cta");
   const tBc = await getTranslations("corporate.breadcrumbs");
   const links = getDeveloperLinks();
   const apiHost = portalDisplayHost(links.openApiDocs.href);
@@ -64,7 +65,7 @@ export default async function DeveloperDocsHubPage({ params }: Props) {
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
-        primaryCta={t("hero.primaryCta")}
+        primaryCta={tCta("quote")}
         primaryHref={links.openApiDocs.href}
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/developers"

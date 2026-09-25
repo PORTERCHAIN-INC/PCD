@@ -29,6 +29,7 @@ function toInput(post: Awaited<ReturnType<typeof blogApi.detail>>): BlogPostInpu
     tags: post.tags,
     cover_image_url: post.cover_image_url ?? null,
     published_at: post.published_at,
+    scheduled_publish_at: post.scheduled_publish_at ?? null,
   };
 }
 
@@ -121,7 +122,7 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ id: str
       {error ? (
         <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
       ) : null}
-      <BlogPostForm value={form} onChange={setForm} getToken={getApiToken} />
+      <BlogPostForm value={form} onChange={setForm} getToken={getApiToken} postId={post.id} />
       <div className="flex gap-3">
         <Button onClick={() => void handleSave()} disabled={saving || !form.title.trim()}>
           {saving ? "Saving…" : "Save changes"}

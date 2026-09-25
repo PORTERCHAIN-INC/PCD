@@ -13,7 +13,7 @@ NAVBAR = ROOT / "website/src/components/layout/SiteNavbar.tsx"
 ANALYTICS = ROOT / "website/src/lib/seo/analytics.ts"
 DEVICE = ROOT / "website/src/lib/device.ts"
 DEFERRED = ROOT / "website/src/components/integrations/DeferredSiteIntegrations.tsx"
-WIDGET = ROOT / "website/src/components/home/CapacityGuideWidget.tsx"
+WIDGET = ROOT / "website/src/components/marketing/home/CapacityGuideWidget.tsx"
 MOBILE_CHAT = ROOT / "website/src/components/integrations/MobileWhatsAppChat.tsx"
 
 

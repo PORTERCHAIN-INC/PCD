@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import Container from "@/components/ui/Container";
 import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { siteImages } from "@/data/site-images";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import FaqSection from "@/components/corporate/sections/FaqSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
+import MarketingFaq from "@/components/marketing/MarketingFaq";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
 import { JsonLd } from "@/components/seo";
-import FadeIn from "@/components/corporate/motion/FadeIn";
+import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
 import {
   SERVICE_AREA_SLUGS,
   getServiceAreaMessageKey,
@@ -85,6 +85,8 @@ export default async function ServiceAreaPage({ params }: Props) {
 
   const messages = await getMessages({ locale });
   const tSeo = await getTranslations("corporate.seo.sectionLabels");
+  const tCta = await getTranslations("common.cta");
+  const quoteLabel = tCta("quote");
 
   const loc = locale as Locale;
   const quoteHref = contact(loc, { intent: "quote", from: `service-areas/${slug}` });
@@ -137,7 +139,7 @@ export default async function ServiceAreaPage({ params }: Props) {
         badge={serviceAreaBadge}
         title={area.hero.title}
         subtitle={heroSubtitle}
-        primaryCta={area.cta.primary}
+        primaryCta={quoteLabel}
         primaryHref={quoteHref}
         secondaryCta={area.cta.secondary}
         secondaryHref={businessHref}
@@ -239,11 +241,11 @@ export default async function ServiceAreaPage({ params }: Props) {
           (link, index, all) => all.findIndex((item) => item.href === link.href) === index
         )}
       />
-      <FaqSection title={area.faq.title} items={faqItems} />
-      <CtaSection
+      <MarketingFaq title={area.faq.title} items={faqItems} />
+      <MarketingCloser
         title={area.cta.title}
         subtitle={area.cta.description}
-        primaryLabel={area.cta.primary}
+        primaryLabel={quoteLabel}
         primaryHref={quoteHref}
         secondaryLabel={area.cta.secondary}
         secondaryHref={businessHref}

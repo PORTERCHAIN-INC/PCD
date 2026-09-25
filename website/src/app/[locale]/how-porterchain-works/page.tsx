@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
-import HowPorterchainWorksView from "@/components/how-it-works/HowPorterchainWorksView";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
+import HowPorterchainWorksView from "@/components/marketing/how-it-works/HowPorterchainWorksView";
 import { JsonLd } from "@/components/seo";
 import { buildHowToSchema, buildOrganizationSchema } from "@/lib/seo/schema";
 import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";

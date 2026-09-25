@@ -2,19 +2,19 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
-import CareersHero from "@/components/corporate/sections/CareersHero";
-import BenefitsSection from "@/components/corporate/sections/BenefitsSection";
-import OpenPositionsSection from "@/components/corporate/sections/OpenPositionsSection";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
+import { CareersHero } from "@/components/marketing/MarketingHero";
+import BenefitsSection from "@/components/marketing/corporate/sections/BenefitsSection";
+import OpenPositionsSection from "@/components/marketing/corporate/sections/OpenPositionsSection";
 import { buildPositionsFromTranslations } from "@/lib/careers-content";
-import TimelineSection from "@/components/corporate/sections/TimelineSection";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import TestimonialsSection from "@/components/corporate/sections/TestimonialsSection";
-import FaqSection from "@/components/corporate/sections/FaqSection";
-import CareersCtaSection from "@/components/corporate/sections/CareersCtaSection";
+import TimelineSection from "@/components/marketing/corporate/sections/TimelineSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
+import TestimonialsSection from "@/components/marketing/corporate/sections/TestimonialsSection";
+import MarketingFaq from "@/components/marketing/MarketingFaq";
+import { CareersCloser } from "@/components/marketing/MarketingCloser";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
-import FadeIn from "@/components/corporate/motion/FadeIn";
+import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
 import { collectFaqItems, collectTimelineSteps } from "@/lib/corporate-content";
 import type { CareerDepartment } from "@/data/careers";
 import { Wifi, Clock, GraduationCap, Laptop, TrendingUp, Heart, CheckCircle2 } from "lucide-react";
@@ -203,14 +203,14 @@ export default async function CareersPage({ params }: Props) {
         items={testimonials}
       />
 
-      <FaqSection
+      <MarketingFaq
         label={t("faq.label")}
         title={t("faq.title")}
         items={collectFaqItems(t, "faq.items", 5)}
         className="bg-gray-bg"
       />
 
-      <CareersCtaSection
+      <CareersCloser
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}

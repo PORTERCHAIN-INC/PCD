@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
-import TimelineSection from "@/components/corporate/sections/TimelineSection";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
+import TimelineSection from "@/components/marketing/corporate/sections/TimelineSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
 import CardGridSection, {
   RelatedResourcesSection,
-} from "@/components/corporate/sections/CardGridSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
-import FaqSection from "@/components/corporate/sections/FaqSection";
+} from "@/components/marketing/corporate/sections/CardGridSection";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
+import MarketingFaq from "@/components/marketing/MarketingFaq";
 import { siteImages } from "@/data/site-images";
 import {
   collectCardItems,
@@ -41,6 +41,7 @@ export default async function PlatformPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("corporate.platform");
+  const tCta = await getTranslations("common.cta");
   const tBc = await getTranslations("corporate.breadcrumbs");
 
   const featureItems = [
@@ -73,7 +74,7 @@ export default async function PlatformPage({ params }: Props) {
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
-        primaryCta={t("hero.primaryCta")}
+        primaryCta={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=platform"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/business#fleet"
@@ -110,15 +111,15 @@ export default async function PlatformPage({ params }: Props) {
         variant="mosaic"
         className="bg-gray-bg"
       />
-      <FaqSection
+      <MarketingFaq
         label={t("faq.label")}
         title={t("faq.title")}
         items={collectFaqItems(t, "faq.items", 4)}
       />
-      <CtaSection
+      <MarketingCloser
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
-        primaryLabel={t("cta.primary")}
+        primaryLabel={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=platform"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/business"

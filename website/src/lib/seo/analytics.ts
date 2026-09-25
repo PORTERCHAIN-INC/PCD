@@ -121,16 +121,18 @@ export const ANALYTICS_EVENTS = {
   RETURNING_VISITOR: "returning_visitor",
 } as const;
 
-/** Mark these as conversions in GA4 Admin → Events → Mark as conversion. */
+/**
+ * Mark these as conversions in GA4 Admin → Events → Mark as conversion.
+ * Website fires the quote/contact/partner events below. Booking quote success
+ * lives on the customer portal (BOOKING_* kept in ANALYTICS_EVENTS for taxonomy).
+ */
 export const GA4_CONVERSION_EVENTS: readonly string[] = [
   ANALYTICS_EVENTS.CONTACT_FORM_SUBMIT_SUCCESS,
-  ANALYTICS_EVENTS.DEMO_REQUEST,
   ANALYTICS_EVENTS.QUOTE_REQUEST,
   ANALYTICS_EVENTS.BUSINESS_INQUIRY_SUBMIT,
   ANALYTICS_EVENTS.DRIVER_PARTNER_INQUIRY_SUBMIT,
-  ANALYTICS_EVENTS.BOOKING_QUOTE_SUCCESS,
-  ANALYTICS_EVENTS.BOOKING_CONTINUE,
-  ANALYTICS_EVENTS.ZOHO_CHAT_OPEN,
+  ANALYTICS_EVENTS.CAPACITY_GUIDE_LEAD_CAPTURED,
   ANALYTICS_EVENTS.WHATSAPP_CHAT_CLICK,
+  ANALYTICS_EVENTS.WHATSAPP_QUOTE_CLICK,
   ANALYTICS_EVENTS.GBP_REVIEW_CLICK,
 ];

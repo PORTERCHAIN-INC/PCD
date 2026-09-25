@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import ServiceAreasHubView from "@/components/seo/ServiceAreasHubView";
 import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";
 import type { Locale } from "@/i18n/routing";

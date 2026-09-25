@@ -215,10 +215,28 @@ export function getSuccessStoryBySlug(slug: string): SuccessStory | null {
   return SUCCESS_STORIES.find((s) => s.slug === slug) ?? null;
 }
 
+/** Public hub + sitemap + SSG — permissioned, indexed, published only. */
+export function isPublicSuccessStory(story: SuccessStory): boolean {
+  return (
+    story.status === "published" &&
+    story.index === true &&
+    story.permissioned === true &&
+    story.customerApproved === true
+  );
+}
+
+export function listPublicSuccessStories(): SuccessStory[] {
+  return SUCCESS_STORIES.filter(isPublicSuccessStory);
+}
+
 export function getSuccessStoriesByMerchantType(type: SuccessStoryMerchantType): SuccessStory[] {
   return SUCCESS_STORIES.filter((s) => s.merchantType === type);
 }
 
 export function getAllSuccessStorySlugs(): string[] {
   return SUCCESS_STORIES.map((s) => s.slug);
+}
+
+export function getPublicSuccessStorySlugs(): string[] {
+  return listPublicSuccessStories().map((s) => s.slug);
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getMessages, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import ContentClusterView from "@/components/seo/ContentClusterView";
 import { localeStaticParams, buildPageMetadata } from "@/lib/seo/page-helpers";
 import { integrationsEducationSlug, guideSlug, capabilitySlug } from "@/lib/seo/routes";

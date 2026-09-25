@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import MarketingHero from "@/components/marketing/MarketingHero";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";
-import type { FeatureIconName } from "@/components/corporate/icons/feature-icons";
+import type { FeatureIconName } from "@/components/marketing/corporate/icons/feature-icons";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -64,7 +64,7 @@ export default async function SubprocessorsPage({ params }: Props) {
         variant="grid"
         className="bg-gray-bg"
       />
-      <CtaSection
+      <MarketingCloser
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={t("cta.primary")}

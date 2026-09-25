@@ -1,4 +1,5 @@
 import { getMessages } from "next-intl/server";
+import { quoteCtaLabel } from "@/lib/cta";
 
 export type ServiceAreaContent = {
   meta?: { title?: string; description?: string };
@@ -131,7 +132,7 @@ function withServiceAreaDefaults(content: ServiceAreaMessageContent): ServiceAre
       description:
         content.cta?.description ??
         "Tell us your volume and routes. We'll show you how we can run your recurring delivery.",
-      primary: content.cta?.primary ?? "Get a quote",
+      primary: content.cta?.primary || quoteCtaLabel("en"),
       secondary: content.cta?.secondary ?? "Contact us",
     },
   };

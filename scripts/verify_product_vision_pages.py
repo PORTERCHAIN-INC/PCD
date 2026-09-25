@@ -26,7 +26,6 @@ HOME_FORBIDDEN_IMPORTS = (
 )
 
 HERO_FORBIDDEN = "BookingWidget"
-HERO_REQUIRED = ("corporate.home.hero", "/business#fleet")
 
 NAV_QUOTE_HREFS = (
     'quoteHref = "/contact?intent=quote"',
@@ -82,21 +81,24 @@ def main() -> int:
         if not APP.joinpath(rel).is_file():
             failures.append(f"missing page {rel}")
 
-    hero = WEBSITE / "src/components/sections/Hero.tsx"
-    hero_copy = WEBSITE / "src/components/sections/HeroCopy.tsx"
+    # Capacity-first home uses HomeChooser + MarketingHero kit (corporate HeroSection).
+    home_chooser = WEBSITE / "src/components/marketing/home/HomeChooser.tsx"
+    marketing_hero = WEBSITE / "src/components/marketing/MarketingHero.tsx"
+    corporate_hero = WEBSITE / "src/components/marketing/corporate/sections/HeroSection.tsx"
     hero_blob = ""
-    if hero.is_file():
-        hero_blob += hero.read_text(encoding="utf-8")
-    if hero_copy.is_file():
-        hero_blob += hero_copy.read_text(encoding="utf-8")
-    if not hero_blob.strip():
-        failures.append("missing homepage Hero.tsx / HeroCopy.tsx")
+    for path in (home_chooser, marketing_hero, corporate_hero):
+        if path.is_file():
+            hero_blob += path.read_text(encoding="utf-8")
+    if not home_chooser.is_file() or not marketing_hero.is_file():
+        failures.append("missing HomeChooser / MarketingHero (capacity-first home kit)")
     else:
         if HERO_FORBIDDEN in hero_blob:
-            failures.append("homepage Hero still embeds BookingWidget (§1.1.3)")
-        for needle in HERO_REQUIRED:
-            if needle not in hero_blob:
-                failures.append(f"homepage hero missing {needle}")
+            failures.append("homepage hero kit still embeds BookingWidget (§1.1.3)")
+        chooser_text = home_chooser.read_text(encoding="utf-8")
+        if "sign-up?intent=quote" not in chooser_text and "sign-up?intent=quote" not in hero_blob:
+            failures.append("homepage capacity kit missing quote CTA (sign-up?intent=quote)")
+        if "/business" not in chooser_text and "/vehicles" not in chooser_text:
+            failures.append("homepage capacity kit missing business/vehicles path")
 
     book_page = APP / "book/page.tsx"
     if book_page.is_file():
@@ -132,10 +134,8 @@ def main() -> int:
         for forbidden in HOME_FORBIDDEN_IMPORTS:
             if forbidden in home_text:
                 failures.append(f"homepage still imports consumer section {forbidden} (PV-G2)")
-        if "HomeChooser" not in home_text and "HomePlatformBody" not in home_text:
-            failures.append(
-                "homepage must render HomeChooser (welcome capacity guide) or HomePlatformBody"
-            )
+        if "HomeChooser" not in home_text:
+            failures.append("homepage must render HomeChooser (welcome capacity guide)")
         if "LaneASoftwareSchema" in home_text:
             failures.append("homepage must not emit SoftwareApplication schema during Phase 1 capacity positioning")
         if "HomeDeliverySchema" not in home_text:

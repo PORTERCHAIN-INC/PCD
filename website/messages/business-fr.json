@@ -12,7 +12,7 @@
     "resources": "Ressources",
     "about": "À propos",
     "contact": "Contact",
-    "requestConsultation": "Obtenir un devis",
+    "requestConsultation": "",
     "toggleMenu": "Basculer le menu",
     "solutionItems": {
       "recurring": "Livraison récurrente",
@@ -26,7 +26,7 @@
     "titleLine1": "Quand votre flotte ne peut pas couvrir,",
     "titleLine2": "PorterChain livre.",
     "subtitle": "Urgence le jour même, débordement de flotte, livraison chantier et routes de gros récurrentes — chauffeurs professionnels de la berline au camion cube à Toronto, Peel, York et Durham. Suivi en direct et preuve à chaque arrêt · sur devis, sans frais plateforme.",
-    "ctaPrimary": "Obtenir un devis",
+    "ctaPrimary": "",
     "ctaSecondary": "Voir les véhicules"
   },
   "brandBand": {
@@ -99,7 +99,10 @@
         "label": "Appariement et répartition",
         "detail": "Le réseau assigne véhicule + chauffeur"
       },
-      "deliver": { "label": "Livrer avec preuve", "detail": "Suivi et POD à chaque arrêt" }
+      "deliver": {
+        "label": "Livrer avec preuve",
+        "detail": "Suivi et POD à chaque arrêt"
+      }
     }
   },
   "inquiry": {
@@ -381,10 +384,22 @@
       "settings": "Paramètres marchand"
     },
     "stats": {
-      "deliveries": { "value": "247", "label": "Livraisons aujourd'hui" },
-      "onTime": { "value": "98%", "label": "Taux à l'heure" },
-      "revenue": { "value": "12,4 k$", "label": "Cette semaine" },
-      "active": { "value": "18", "label": "Chauffeurs actifs" }
+      "deliveries": {
+        "value": "247",
+        "label": "Livraisons aujourd'hui"
+      },
+      "onTime": {
+        "value": "98%",
+        "label": "Taux à l'heure"
+      },
+      "revenue": {
+        "value": "12,4 k$",
+        "label": "Cette semaine"
+      },
+      "active": {
+        "value": "18",
+        "label": "Chauffeurs actifs"
+      }
     }
   },
   "technology": {
@@ -392,16 +407,46 @@
     "title": "Intégrations et technologie",
     "subtitle": "Connectez Porterchain aux outils que votre entreprise utilise déjà.",
     "items": {
-      "shopify": { "abbr": "S", "name": "Shopify" },
-      "woocommerce": { "abbr": "W", "name": "WooCommerce" },
-      "csv": { "abbr": "CSV", "name": "Téléversement CSV" },
-      "api": { "abbr": "API", "name": "API REST" },
-      "erp": { "abbr": "ERP", "name": "Systèmes ERP" },
-      "inventory": { "abbr": "INV", "name": "Systèmes d'inventaire" },
-      "barcode": { "abbr": "BC", "name": "Lecteur de codes-barres" },
-      "stripe": { "abbr": "St", "name": "Stripe" },
-      "email": { "abbr": "@", "name": "Notifications courriel" },
-      "sms": { "abbr": "SMS", "name": "Alertes SMS" }
+      "shopify": {
+        "abbr": "S",
+        "name": "Shopify"
+      },
+      "woocommerce": {
+        "abbr": "W",
+        "name": "WooCommerce"
+      },
+      "csv": {
+        "abbr": "CSV",
+        "name": "Téléversement CSV"
+      },
+      "api": {
+        "abbr": "API",
+        "name": "API REST"
+      },
+      "erp": {
+        "abbr": "ERP",
+        "name": "Systèmes ERP"
+      },
+      "inventory": {
+        "abbr": "INV",
+        "name": "Systèmes d'inventaire"
+      },
+      "barcode": {
+        "abbr": "BC",
+        "name": "Lecteur de codes-barres"
+      },
+      "stripe": {
+        "abbr": "St",
+        "name": "Stripe"
+      },
+      "email": {
+        "abbr": "@",
+        "name": "Notifications courriel"
+      },
+      "sms": {
+        "abbr": "SMS",
+        "name": "Alertes SMS"
+      }
     }
   },
   "billing": {
@@ -409,7 +454,7 @@
     "title": "Comment fonctionne la tarification de capacité",
     "subtitle": "Vous payez pour la capacité de transport exécutée — pas des sièges logiciels. Les devis reflètent la classe de véhicule, la distance, les arrêts et l'urgence (jour même vs planifié).",
     "recommended": "Le plus courant",
-    "cta": "Obtenir un devis",
+    "cta": "",
     "footnote": "Toute tarification est confirmée par écrit avant l'expédition. Aucuns frais de sièges logiciels.",
     "factors": {
       "vehicle": {

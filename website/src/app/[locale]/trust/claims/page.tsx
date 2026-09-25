@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import MarketingHero from "@/components/marketing/MarketingHero";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { buildPageMetadata, localeStaticParams } from "@/lib/seo/page-helpers";
-import type { FeatureIconName } from "@/components/corporate/icons/feature-icons";
+import type { FeatureIconName } from "@/components/marketing/corporate/icons/feature-icons";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -24,6 +24,7 @@ export default async function ClaimsPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("corporate.trust.claims");
+  const tCta = await getTranslations("common.cta");
   const tBc = await getTranslations("corporate.breadcrumbs");
 
   const icons = [
@@ -51,7 +52,7 @@ export default async function ClaimsPage({ params }: Props) {
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
-        primaryCta={t("cta.primary")}
+        primaryCta={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=trust-claims"
         secondaryCta={t("cta.secondary")}
         secondaryHref="/trust"
@@ -71,10 +72,10 @@ export default async function ClaimsPage({ params }: Props) {
           <p className="mt-4 text-muted leading-relaxed">{t("note.body")}</p>
         </Container>
       </section>
-      <CtaSection
+      <MarketingCloser
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
-        primaryLabel={t("cta.primary")}
+        primaryLabel={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=trust-claims"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/trust"

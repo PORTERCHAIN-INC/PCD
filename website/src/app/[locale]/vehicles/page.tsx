@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import VehiclesTabNav from "@/components/vehicles/VehiclesTabNav";
+import VehiclesTabNav from "@/components/marketing/vehicles/VehiclesTabNav";
 import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
-import FadeIn from "@/components/corporate/motion/FadeIn";
-import LinkButton from "@/components/corporate/ui/LinkButton";
+import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
+import LinkButton from "@/components/marketing/corporate/ui/LinkButton";
 import { siteImages } from "@/data/site-images";
 import { VEHICLES_TAB_ITEMS } from "@/data/vehicles-navigation";
 
@@ -33,6 +33,7 @@ export default async function VehiclesHubPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("corporate.vehiclesIndex");
+  const tCta = await getTranslations("common.cta");
   const tBc = await getTranslations("corporate.breadcrumbs");
   const tMenu = await getTranslations("corporate.nav.vehiclesMenu");
 
@@ -54,7 +55,7 @@ export default async function VehiclesHubPage({ params }: Props) {
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
-        primaryCta={t("hero.primaryCta")}
+        primaryCta={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=vehicles"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/business"
@@ -84,10 +85,10 @@ export default async function VehiclesHubPage({ params }: Props) {
           </div>
         </Container>
       </section>
-      <CtaSection
+      <MarketingCloser
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
-        primaryLabel={t("cta.primary")}
+        primaryLabel={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=vehicles"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/solutions"

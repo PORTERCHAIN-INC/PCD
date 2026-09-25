@@ -9,12 +9,24 @@ export const HREFLANG_LOCALE_MAP: Record<Locale, string> = {
   fr: "fr-CA",
 };
 
-/** Default Open Graph image — root opengraph-image route or static fallback. */
-export function defaultOpenGraphImages(title: string) {
+/** Hubs with dedicated `opengraph-image.tsx` under `app/[locale]/<hub>/`. */
+const HUB_OPENGRAPH_SEGMENTS = new Set(["business", "blog", "vehicle-partner", "trust"]);
+
+/** Default Open Graph image — hub route when available, else site root. */
+export function defaultOpenGraphImages(
+  title: string,
+  pathSegment: string = "",
+  locale: Locale = "en"
+) {
   const base = siteConfig.baseUrl.replace(/\/$/, "");
+  const first = (pathSegment.split("/")[0] || "").trim();
+  const ogPath =
+    first && HUB_OPENGRAPH_SEGMENTS.has(first)
+      ? `${localePath(locale, first)}/opengraph-image`
+      : "/opengraph-image";
   return [
     {
-      url: `${base}/opengraph-image`,
+      url: `${base}${ogPath}`,
       width: 1200,
       height: 630,
       alt: title,
@@ -63,7 +75,7 @@ export function buildSeoMetadata(params: {
     index = true,
   } = params;
   const allowIndex = shouldIndexInEnvironment(index);
-  const ogImages = defaultOpenGraphImages(title);
+  const ogImages = defaultOpenGraphImages(title, pathSegment, locale);
   return {
     metadataBase: new URL(siteConfig.baseUrl),
     title,

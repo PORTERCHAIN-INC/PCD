@@ -6,6 +6,7 @@
 import type { Locale } from "@/i18n/routing";
 import { industrySlug, serviceAreaSlug, business, platform, serviceAreas } from "../routes";
 import { INDUSTRY_PAGE_LABELS } from "../internal-linking";
+import { quoteCtaLabel } from "@/lib/cta";
 
 export type CapabilitySection = {
   heading: string;
@@ -55,7 +56,7 @@ export const CAPABILITY_PAGES: CapabilityPage[] = [
     serviceAreaSlugs: ["toronto", "mississauga", "brampton"],
     relatedClusterSlugs: ["recurring-routes", "exception-recovery", "multi-location-routing"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "platform", label: "How we operate" },
     ],
   },
@@ -84,7 +85,7 @@ export const CAPABILITY_PAGES: CapabilityPage[] = [
     serviceAreaSlugs: ["toronto", "mississauga", "markham"],
     relatedClusterSlugs: ["multi-stop-delivery", "branded-tracking", "inventory-transfers"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "serviceAreas", label: "Service areas" },
     ],
   },
@@ -113,7 +114,7 @@ export const CAPABILITY_PAGES: CapabilityPage[] = [
     serviceAreaSlugs: ["toronto", "vaughan", "hamilton"],
     relatedClusterSlugs: ["delivery-verification", "exception-recovery"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "trustClaims", label: "Proof & claims" },
     ],
   },
@@ -142,7 +143,7 @@ export const CAPABILITY_PAGES: CapabilityPage[] = [
     serviceAreaSlugs: ["toronto", "mississauga", "brampton"],
     relatedClusterSlugs: ["delivery-verification", "ai-dispatch"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "platform", label: "How we operate" },
     ],
   },
@@ -171,7 +172,7 @@ export const CAPABILITY_PAGES: CapabilityPage[] = [
     serviceAreaSlugs: ["toronto", "mississauga", "kitchener-waterloo"],
     relatedClusterSlugs: ["exception-recovery", "multi-stop-delivery"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "platform", label: "How we operate" },
     ],
   },
@@ -201,7 +202,7 @@ export const CAPABILITY_PAGES: CapabilityPage[] = [
     relatedClusterSlugs: ["branded-tracking", "exception-recovery"],
     extraLinks: [
       { path: "trustClaims", label: "Proof & claims" },
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
     ],
   },
   {
@@ -229,7 +230,7 @@ export const CAPABILITY_PAGES: CapabilityPage[] = [
     serviceAreaSlugs: ["toronto", "mississauga", "brampton", "vaughan"],
     relatedClusterSlugs: ["inventory-transfers", "multi-stop-delivery", "recurring-routes"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "platform", label: "How we operate" },
     ],
   },
@@ -258,7 +259,7 @@ export const CAPABILITY_PAGES: CapabilityPage[] = [
     serviceAreaSlugs: ["toronto", "mississauga", "brampton"],
     relatedClusterSlugs: ["multi-location-routing", "exception-recovery", "delivery-verification"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "trustClaims", label: "Proof & claims" },
     ],
   },
@@ -287,7 +288,7 @@ export const CAPABILITY_PAGES: CapabilityPage[] = [
     serviceAreaSlugs: ["toronto", "mississauga", "vaughan"],
     relatedClusterSlugs: ["exception-recovery", "delivery-verification", "inventory-transfers"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "trustClaims", label: "Proof & claims" },
     ],
   },

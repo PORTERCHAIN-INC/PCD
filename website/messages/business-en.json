@@ -12,7 +12,7 @@
     "resources": "Resources",
     "about": "About",
     "contact": "Contact",
-    "requestConsultation": "Get a quote",
+    "requestConsultation": "",
     "toggleMenu": "Toggle menu",
     "solutionItems": {
       "recurring": "Recurring Delivery",
@@ -26,7 +26,7 @@
     "titleLine1": "Vehicle and driver capacity",
     "titleLine2": "for every delivery scenario.",
     "subtitle": "From emergency delivery and same-day urgent runs to recurring intra-city logistics — one commercial delivery partner across Toronto, Peel, York, and Durham. Live tracking and proof on every stop · quote-based, no platform fees.",
-    "ctaPrimary": "Get a quote",
+    "ctaPrimary": "",
     "ctaSecondary": "See vehicles"
   },
   "brandBand": {
@@ -95,8 +95,14 @@
         "label": "Request capacity",
         "detail": "Share lanes, windows, and vehicle needs"
       },
-      "match": { "label": "Match & dispatch", "detail": "Network assigns vehicle + driver" },
-      "deliver": { "label": "Deliver with proof", "detail": "Tracking and POD on every stop" }
+      "match": {
+        "label": "Match & dispatch",
+        "detail": "Network assigns vehicle + driver"
+      },
+      "deliver": {
+        "label": "Deliver with proof",
+        "detail": "Tracking and POD on every stop"
+      }
     }
   },
   "inquiry": {
@@ -129,7 +135,7 @@
   },
   "stickyCta": {
     "message": "Need same-day or emergency delivery capacity?",
-    "button": "Get a quote"
+    "button": ""
   },
   "trustedBy": {
     "label": "Industries we serve across the GTA",
@@ -378,10 +384,22 @@
       "settings": "Merchant Settings"
     },
     "stats": {
-      "deliveries": { "value": "247", "label": "Deliveries Today" },
-      "onTime": { "value": "98%", "label": "On-Time Rate" },
-      "revenue": { "value": "$12.4k", "label": "This Week" },
-      "active": { "value": "18", "label": "Active Drivers" }
+      "deliveries": {
+        "value": "247",
+        "label": "Deliveries Today"
+      },
+      "onTime": {
+        "value": "98%",
+        "label": "On-Time Rate"
+      },
+      "revenue": {
+        "value": "$12.4k",
+        "label": "This Week"
+      },
+      "active": {
+        "value": "18",
+        "label": "Active Drivers"
+      }
     }
   },
   "technology": {
@@ -389,16 +407,46 @@
     "title": "Integrations & Technology",
     "subtitle": "Connect Porterchain to the tools your business already uses.",
     "items": {
-      "shopify": { "abbr": "S", "name": "Shopify" },
-      "woocommerce": { "abbr": "W", "name": "WooCommerce" },
-      "csv": { "abbr": "CSV", "name": "CSV Upload" },
-      "api": { "abbr": "API", "name": "REST API" },
-      "erp": { "abbr": "ERP", "name": "ERP Systems" },
-      "inventory": { "abbr": "INV", "name": "Inventory Systems" },
-      "barcode": { "abbr": "BC", "name": "Barcode Scanner" },
-      "stripe": { "abbr": "St", "name": "Stripe" },
-      "email": { "abbr": "@", "name": "Email Notifications" },
-      "sms": { "abbr": "SMS", "name": "SMS Alerts" }
+      "shopify": {
+        "abbr": "S",
+        "name": "Shopify"
+      },
+      "woocommerce": {
+        "abbr": "W",
+        "name": "WooCommerce"
+      },
+      "csv": {
+        "abbr": "CSV",
+        "name": "CSV Upload"
+      },
+      "api": {
+        "abbr": "API",
+        "name": "REST API"
+      },
+      "erp": {
+        "abbr": "ERP",
+        "name": "ERP Systems"
+      },
+      "inventory": {
+        "abbr": "INV",
+        "name": "Inventory Systems"
+      },
+      "barcode": {
+        "abbr": "BC",
+        "name": "Barcode Scanner"
+      },
+      "stripe": {
+        "abbr": "St",
+        "name": "Stripe"
+      },
+      "email": {
+        "abbr": "@",
+        "name": "Email Notifications"
+      },
+      "sms": {
+        "abbr": "SMS",
+        "name": "SMS Alerts"
+      }
     }
   },
   "billing": {
@@ -406,7 +454,7 @@
     "title": "How capacity pricing works",
     "subtitle": "You pay for transportation capacity executed — not software seats. Quotes reflect vehicle class, distance, stops, and urgency (same-day vs scheduled).",
     "recommended": "Most common",
-    "cta": "Get a quote",
+    "cta": "",
     "footnote": "All pricing is confirmed in writing before dispatch. No software-seat fees.",
     "factors": {
       "vehicle": {

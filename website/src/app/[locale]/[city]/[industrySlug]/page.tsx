@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import CityIndustryLandingView from "@/components/seo/CityIndustryLandingView";
 import { getCityIndustryContent } from "@/lib/seo/city-industry-delivery";
 import { getCityLocalSegmentContent } from "@/lib/seo/city-local-segment-content";

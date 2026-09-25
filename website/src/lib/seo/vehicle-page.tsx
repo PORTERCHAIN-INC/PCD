@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getMessages, getTranslations } from "next-intl/server";
 import ContentClusterView from "@/components/seo/ContentClusterView";
-import VehiclesTabNav from "@/components/vehicles/VehiclesTabNav";
+import VehiclesTabNav from "@/components/marketing/vehicles/VehiclesTabNav";
 import { localePath } from "@/lib/seo/routes";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import { buildVehicleConstructionLinks } from "@/lib/seo/vehicle-construction-links";

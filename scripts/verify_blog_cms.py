@@ -180,7 +180,7 @@ def main() -> int:
             failures.append(f"admin blog router missing {method}")
 
     business_hero = (
-        ROOT / "website/src/components/business/sections/BusinessHero.tsx"
+        ROOT / "website/src/components/marketing/business/sections/BusinessHero.tsx"
     ).read_text(encoding="utf-8")
     # Regression: deleted MerchantSsoButtons must not return on BusinessHero
     if "MerchantSsoButtons" in business_hero:
@@ -245,6 +245,36 @@ def _closed_set_drift(root: Path) -> list[str]:
         failures.append("packages/types BLOG_STATUSES drifted from BlogService")
     if '@porterchain/types' not in admin or "BLOG_STATUSES" not in admin:
         failures.append("admin lib/blog.ts must re-export BLOG_STATUSES from @porterchain/types")
+    website_loader = (root / "website/src/lib/blog.ts").read_text(encoding="utf-8")
+    if "ApiBlogRow" in website_loader:
+        failures.append("website lib/blog.ts must not define ApiBlogRow — use @porterchain/types")
+    if '@porterchain/types' not in website_loader or "publicBlogPostMetaSchema" not in website_loader:
+        failures.append(
+            "website lib/blog.ts must parse public blog rows via @porterchain/types schemas"
+        )
+    if "BLOG_PAGE_SIZE" not in website_loader:
+        failures.append("website lib/blog.ts must define BLOG_PAGE_SIZE for paged catalog fetches")
+    if "getPreviewPost" not in website_loader:
+        failures.append("website lib/blog.ts must expose getPreviewPost for draft preview")
+    preview_page = ROOT / "website/src/app/[locale]/blog/preview/[slug]/page.tsx"
+    if not preview_page.is_file():
+        failures.append("missing website blog preview route")
+    public_blog = (ROOT / "apps/api/src/porterchain_api/routers/public_blog.py").read_text(
+        encoding="utf-8"
+    )
+    if "/preview" not in public_blog or "verify_blog_preview_token" not in public_blog:
+        failures.append("public_blog missing signed preview endpoint")
+    admin_blog = (ROOT / "apps/api/src/porterchain_api/routers/admin/blog.py").read_text(
+        encoding="utf-8"
+    )
+    if "preview-url" not in admin_blog or "make_blog_preview_token" not in admin_blog:
+        failures.append("admin blog missing preview-url endpoint")
+    authors = (ROOT / "website/src/data/blog-authors.ts").read_text(encoding="utf-8")
+    if '@porterchain/types' not in authors or "getBlogAuthor" not in authors:
+        failures.append("website blog-authors must re-export from @porterchain/types")
+    ownership = ROOT / "website/src/lib/seo/OWNERSHIP.ts"
+    if not ownership.is_file():
+        failures.append("missing website/src/lib/seo/OWNERSHIP.ts dual-tree lock")
     return failures
 
 

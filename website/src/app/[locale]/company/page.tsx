@@ -3,17 +3,17 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import MarketingHero from "@/components/marketing/MarketingHero";
-import BrandMergeBand from "@/components/brand/BrandMergeBand";
-import TimelineSection from "@/components/corporate/sections/TimelineSection";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
-import FaqSection from "@/components/corporate/sections/FaqSection";
-import { RelatedResourcesSection } from "@/components/corporate/sections/CardGridSection";
+import BrandMergeBand from "@/components/marketing/brand/BrandMergeBand";
+import TimelineSection from "@/components/marketing/corporate/sections/TimelineSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
+import MarketingFaq from "@/components/marketing/MarketingFaq";
+import { RelatedResourcesSection } from "@/components/marketing/corporate/sections/CardGridSection";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
-import FadeIn from "@/components/corporate/motion/FadeIn";
+import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
 import {
   collectFaqItems,
   collectResourceItems,
@@ -39,6 +39,7 @@ export default async function CompanyPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("corporate.company");
+  const tCta = await getTranslations("common.cta");
   const tBc = await getTranslations("corporate.breadcrumbs");
 
   const missionItems = [
@@ -78,7 +79,7 @@ export default async function CompanyPage({ params }: Props) {
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
-        primaryCta={t("hero.primaryCta")}
+        primaryCta={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=company"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/careers"
@@ -121,16 +122,16 @@ export default async function CompanyPage({ params }: Props) {
         items={valueItems}
         variant="grid"
       />
-      <CtaSection
+      <MarketingCloser
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
-        primaryLabel={t("cta.primary")}
+        primaryLabel={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=company"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/vehicle-partner"
         variant="gradient"
       />
-      <FaqSection
+      <MarketingFaq
         label={t("faq.label")}
         title={t("faq.title")}
         items={collectFaqItems(t, "faq.items", 5)}

@@ -1,4 +1,4 @@
-import type { VehicleIllustrationType } from "@/components/illustrations/VehicleIllustration";
+import type { VehicleIllustrationType } from "@/components/marketing/illustrations/VehicleIllustration";
 
 export interface Vehicle {
   id: string;

@@ -7,6 +7,7 @@ import BlurFade from "@/components/magic/blur-fade";
 import AnimatedGradientText from "@/components/magic/animated-gradient-text";
 import BorderBeam from "@/components/magic/border-beam";
 import MagicCard from "@/components/magic/magic-card";
+import { QUOTE_CTA } from "@/lib/cta";
 import { cn } from "@/lib/utils";
 
 const MARQUEE_CHIPS = [
@@ -132,7 +133,7 @@ export function RaviContactCard() {
                 "inline-flex w-full items-center justify-center"
               )}
             >
-              <span className="relative z-10">Get a quote · Merchant setup</span>
+              <span className="relative z-10">{QUOTE_CTA.en} · Merchant setup</span>
               <span className="shimmer-button-glow absolute inset-0" aria-hidden />
             </a>
             <a href={raviContact.links.website} className="ravi-card__footer-link">

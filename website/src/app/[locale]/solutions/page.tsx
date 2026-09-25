@@ -2,19 +2,19 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import SolutionsTabNav from "@/components/solutions/SolutionsTabNav";
+import SolutionsTabNav from "@/components/marketing/solutions/SolutionsTabNav";
 import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
-import TimelineSection from "@/components/corporate/sections/TimelineSection";
-import FeatureSection from "@/components/corporate/sections/FeatureSection";
-import CtaSection from "@/components/corporate/sections/CtaSection";
-import FaqSection from "@/components/corporate/sections/FaqSection";
+import TimelineSection from "@/components/marketing/corporate/sections/TimelineSection";
+import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
+import MarketingFaq from "@/components/marketing/MarketingFaq";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
-import FadeIn from "@/components/corporate/motion/FadeIn";
-import LinkButton from "@/components/corporate/ui/LinkButton";
+import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
+import LinkButton from "@/components/marketing/corporate/ui/LinkButton";
 import { siteImages } from "@/data/site-images";
 import { collectCardItems, collectFaqItems, collectTimelineSteps } from "@/lib/corporate-content";
 import { SOLUTION_VERTICAL_SLUGS, solutionVerticalPath } from "@/lib/solutions-verticals";
@@ -36,6 +36,7 @@ export default async function SolutionsPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("corporate.solutions");
+  const tCta = await getTranslations("common.cta");
   const tBc = await getTranslations("corporate.breadcrumbs");
 
   const verticalCards = collectCardItems(
@@ -76,7 +77,7 @@ export default async function SolutionsPage({ params }: Props) {
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
-        primaryCta={t("hero.primaryCta")}
+        primaryCta={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=solutions"
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/vehicles"
@@ -137,15 +138,15 @@ export default async function SolutionsPage({ params }: Props) {
         variant="horizontal"
         className="bg-gray-bg"
       />
-      <FaqSection
+      <MarketingFaq
         label={t("faq.label")}
         title={t("faq.title")}
         items={collectFaqItems(t, "faq.items", 4)}
       />
-      <CtaSection
+      <MarketingCloser
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
-        primaryLabel={t("cta.primary")}
+        primaryLabel={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=solutions"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/vehicles"

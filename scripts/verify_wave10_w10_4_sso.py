@@ -6,8 +6,8 @@ from __future__ import annotations
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-BUSINESS_HERO = ROOT / "website/src/components/business/sections/BusinessHero.tsx"
-BUSINESS_FINAL = ROOT / "website/src/components/business/sections/FinalCta.tsx"
+BUSINESS_HERO = ROOT / "website/src/components/marketing/business/sections/BusinessHero.tsx"
+BUSINESS_FINAL = ROOT / "website/src/components/marketing/business/sections/FinalCta.tsx"
 LOGIN = ROOT / "website/src/app/[locale]/login/[[...sign-in]]/page.tsx"
 UNIFIED = ROOT / "website/src/components/portal/UnifiedSignIn.tsx"
 MERCHANT_SIGNIN = ROOT / "apps/merchant-portal/src/app/sign-in/[[...sign-in]]/page.tsx"

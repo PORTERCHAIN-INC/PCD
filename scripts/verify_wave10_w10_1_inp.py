@@ -13,7 +13,7 @@ REPORT = WEBSITE / "src/lib/seo/web-vitals-report.ts"
 REPORTER = WEBSITE / "src/components/seo/WebVitalsReporter.tsx"
 INTEGRATIONS = WEBSITE / "src/components/integrations/DeferredSiteIntegrations.tsx"
 ANALYTICS = WEBSITE / "src/lib/seo/analytics.ts"
-BUSINESS_SECTIONS = WEBSITE / "src/components/business/BusinessPageSections.tsx"
+BUSINESS_SECTIONS = WEBSITE / "src/components/marketing/business/BusinessPageSections.tsx"
 CITY_VIEW = WEBSITE / "src/components/seo/CityIndustryLandingView.tsx"
 GLOBALS = WEBSITE / "src/app/globals.css"
 

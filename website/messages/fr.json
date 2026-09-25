@@ -23,6 +23,11 @@
     },
     "brand": {
       "networkLine": "Réseau de capacité de transport"
+    },
+    "notFound": {
+      "title": "Page introuvable",
+      "body": "La page demandée n'est pas disponible. Retournez à l'accueil ou demandez de la capacité de transport pour votre entreprise.",
+      "home": "Accueil"
     }
   },
   "productTrust": {
@@ -31,11 +36,11 @@
     "subtitle": "Le même réseau de capacité, technologie visible. Trois moments avant d'acheter un corridor.",
     "tabsAria": "Moments produit",
     "tabs": {
-      "quote": "Obtenir un devis",
+      "quote": "",
       "track": "Suivi en direct",
       "pod": "Preuve de livraison"
     },
-    "cta": "Obtenir un devis",
+    "cta": "",
     "ctaHint": "Indiquez corridors et classe de véhicule — nous confirmons la capacité par écrit.",
     "panels": {
       "quote": {
@@ -116,7 +121,7 @@
     "eyebrow": "Ce que nous faisons",
     "title": "Votre opération de capacité, gérée de bout en bout.",
     "subtitle": "Technologie, chauffeurs, véhicules et ops — pas un tableau de bord que vous staffez seul. Voici comment un envoi RGT passe du devis à une clôture prête pour réclamations.",
-    "cta": "Obtenir un devis",
+    "cta": "",
     "ctaHint": "Indiquez corridors et classe de véhicule — nous confirmons la capacité par écrit.",
     "features": {
       "monitor": {
@@ -348,7 +353,7 @@
     "about": "À propos",
     "contact": "Contact",
     "login": "Connexion",
-    "bookNow": "Obtenir un devis",
+    "bookNow": "",
     "merchants": "Marchands",
     "drivers": "Chauffeurs",
     "toggleMenu": "Basculer le menu",
@@ -363,7 +368,7 @@
     "eyebrow": "PorterChain · Grand Toronto",
     "headline": "Votre demande de livraison. Notre capacité logistique.",
     "subtitle": "Logistique locale pleine pile pour les entreprises du RGT — technologie propriétaire plus chauffeurs et véhicules professionnels pour capacité jour même, débordement et récurrente. Sur devis. Sans sièges logiciels.",
-    "primaryCta": "Obtenir un devis",
+    "primaryCta": "",
     "primaryCtaHint": "Indiquez corridors et besoins véhicules — nous répondons avec des options de capacité par écrit.",
     "businessAccountCta": "Obtenir un compte affaires",
     "secondaryCta": "Parler à un spécialiste logistique",
@@ -418,7 +423,7 @@
       "toolWorking": "En cours…",
       "toolFailed": "Étape impossible — réessayez ou parlez à un spécialiste.",
       "actions": {
-        "quote": "Obtenir un devis",
+        "quote": "",
         "merchants": "Obtenir un compte affaires",
         "drivers": "Partenaires chauffeurs",
         "pricing": "Comment fonctionne la tarification",
@@ -1390,7 +1395,7 @@
       "cta": {
         "title": "Obtenir un devis pour vos corridors chantier",
         "description": "Indiquez matériaux, urgence et zones RGT. Jour même, urgent ou récurrent — réponse dans un jour ouvrable avec véhicule adapté et devis écrit.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Commencer avec la livraison de matériaux de construction",
@@ -1502,7 +1507,7 @@
       "cta": {
         "title": "Obtenir un devis pour vos corridors électriques",
         "description": "Partagez tournées, cut-offs et zones chantier. Nous alignons la capacité sur votre opération grossiste.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Commencer avec la livraison pour distributeurs électriques",
@@ -1614,7 +1619,7 @@
       "cta": {
         "title": "Obtenir un devis pour vos corridors plomberie",
         "description": "Partagez tournées et comptes métier. Livraison grossiste avec capacité prévisible.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Commencer avec la livraison pour fournitures de plomberie",
@@ -1718,7 +1723,7 @@
       "cta": {
         "title": "Prêt à gérer votre livraison café avec nous?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison torréfacteurs",
@@ -1788,7 +1793,7 @@
       "cta": {
         "title": "Prêt à gérer votre livraison pharmacie avec nous?",
         "description": "Décrivez votre volume et exigences. Nous vous montrerons comment gérer votre livraison ordonnances et récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison pharmacie et médical",
@@ -1856,7 +1861,7 @@
       "cta": {
         "title": "Prêt à gérer votre livraison beauté avec nous?",
         "description": "Décrivez votre volume et zones. Nous vous montrerons comment gérer votre livraison D2C et détaillants — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison cosmétiques et beauté",
@@ -1924,7 +1929,7 @@
       "cta": {
         "title": "Obtenir un devis pour capacité livraison chocolat",
         "description": "Décrivez vos trajets, volume et exigences de manutention. Nous alignerons capacité véhicule-chauffeur pour vos routes détaillants et cafés.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison chocolat et confiserie",
@@ -1994,7 +1999,7 @@
       "cta": {
         "title": "Prêt à gérer votre livraison d'échantillons de labo avec nous?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment supporter votre livraison de spécimens et d'échantillons — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison d'échantillons de labo",
@@ -2064,7 +2069,7 @@
       "cta": {
         "title": "Prêt pour une livraison commerce en ligne fiable?",
         "description": "Décrivez votre volume et vos zones. Nous alignerons véhicules et capacité pour votre exécution RGT.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Nous contacter"
       },
       "inquiryHeading": "Démarrez avec la livraison commerce en ligne",
@@ -2111,7 +2116,7 @@
     "cta": {
       "title": "Prêt à démarrer?",
       "description": "Soumettez une demande et nous vous guiderons pour les prochaines étapes. Aucun engagement avant d'avoir confirmé l'adéquation et la tarification.",
-      "primary": "Obtenir un devis",
+      "primary": "",
       "secondary": "Contactez-nous"
     }
   },
@@ -2159,7 +2164,7 @@
     "cta": {
       "title": "Vous ne savez pas quelle option convient?",
       "description": "Décrivez-nous comment vous gérez les opérations aujourd'hui. Nous recommanderons la bonne méthode de connexion et vous mettrons en place.",
-      "primary": "Obtenir un devis",
+      "primary": "",
       "secondary": "Contactez-nous"
     },
     "sms": {
@@ -2209,7 +2214,7 @@
     "cta": {
       "title": "Obtenir une discussion tarifaire ou une mise en place",
       "description": "Décrivez-nous votre volume, vos zones et comment vous expédiez. Nous recommanderons un modèle de tarification et vous guiderons pour les prochaines étapes.",
-      "primary": "Obtenir un devis",
+      "primary": "",
       "secondary": "Contactez-nous"
     }
   },
@@ -2233,7 +2238,7 @@
       "subtitle": "Guide pratique pour préparer vos commandes, organiser les arrêts, choisir le bon véhicule, mettre en place des livraisons récurrentes et vous intégrer en douceur avec Porterchain."
     },
     "ctaTitle": "Prêt à commencer?",
-    "ctaPrimary": "Obtenir un devis",
+    "ctaPrimary": "",
     "relatedTitle": "Voir aussi"
   },
   "knowledge": {
@@ -2514,7 +2519,7 @@
     "cta": {
       "title": "Prêt à gérer votre livraison avec nous?",
       "description": "Décrivez votre volume et zone. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-      "primary": "Obtenir un devis",
+      "primary": "",
       "secondary": "Contactez-nous"
     }
   },
@@ -2585,7 +2590,7 @@
       "cta": {
         "title": "Prêt pour une livraison locale fiable?",
         "description": "Décrivez votre volume et zone. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison dans votre région",
@@ -2657,7 +2662,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Toronto?",
         "description": "Décrivez votre volume et trajets GTA. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Toronto et dans le GTA",
@@ -2733,7 +2738,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Mississauga?",
         "description": "Décrivez votre volume et trajets Peel. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Mississauga et Peel",
@@ -2809,7 +2814,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Brampton?",
         "description": "Décrivez votre volume et trajets Brampton/Peel. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Brampton et Peel",
@@ -2877,7 +2882,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Vaughan?",
         "description": "Décrivez votre volume et trajets dans York Region. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Vaughan et York Region",
@@ -2945,7 +2950,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Markham?",
         "description": "Décrivez votre volume et trajets dans York Region. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Markham et York Region",
@@ -3013,7 +3018,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Oakville?",
         "description": "Décrivez votre volume et trajets à Halton. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Oakville et Halton",
@@ -3081,7 +3086,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Burlington?",
         "description": "Décrivez votre volume et trajets à Halton. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Burlington et Halton",
@@ -3149,7 +3154,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Cambridge?",
         "description": "Décrivez votre volume et trajets dans la région de Waterloo. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Cambridge et la région de Waterloo",
@@ -3213,7 +3218,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Guelph?",
         "description": "Décrivez votre volume et trajets à Guelph. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Guelph",
@@ -3277,7 +3282,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Hamilton?",
         "description": "Décrivez votre volume et trajets à Hamilton. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Hamilton",
@@ -3341,7 +3346,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Ajax?",
         "description": "Décrivez votre volume et trajets Durham. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Ajax et la région de Durham",
@@ -3405,7 +3410,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Pickering?",
         "description": "Décrivez votre volume et trajets Durham. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Pickering et la région de Durham",
@@ -3473,7 +3478,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Kitchener-Waterloo?",
         "description": "Décrivez votre volume et trajets dans la région de Waterloo. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Kitchener-Waterloo",
@@ -3545,7 +3550,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Niagara?",
         "description": "Décrivez votre volume et trajets Niagara. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison dans la région de Niagara",
@@ -3567,7 +3572,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à Oshawa?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment gérer votre livraison récurrente.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à Oshawa et Durham",
@@ -3610,7 +3615,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à London?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment gérer votre livraison récurrente.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à London, Ontario",
@@ -3691,7 +3696,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable à St. Catharines?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison à St. Catharines et Niagara",
@@ -3761,7 +3766,7 @@
     "cta": {
       "titlePattern": "Prêt pour la livraison {industryLabel} à {cityLabel}?",
       "descriptionPattern": "Décrivez votre volume et trajets à {cityLabel} et {region}. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-      "primary": "Obtenir un devis",
+      "primary": "",
       "secondary": "Contactez-nous"
     },
     "inquiry": {
@@ -4125,7 +4130,7 @@
       "cta": {
         "title": "Prêt pour une livraison récurrente fiable?",
         "description": "Décrivez votre volume et zone. Nous vous montrerons comment gérer votre livraison — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez",
@@ -4149,7 +4154,7 @@
       "cta": {
         "title": "Obtenez une livraison prévisible",
         "description": "Décrivez votre volume et zone. Nous vous montrerons comment nous gérons la livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison récurrente",
@@ -4198,7 +4203,7 @@
       "cta": {
         "title": "Prêt à simplifier la livraison café?",
         "description": "Décrivez votre volume et trajets. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison torréfacteurs",
@@ -4247,7 +4252,7 @@
       "cta": {
         "title": "Prêt à simplifier la livraison pharmacie?",
         "description": "Décrivez votre volume et exigences. Nous vous montrerons comment gérer votre livraison récurrente — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison pharmacie et médical",
@@ -4296,7 +4301,7 @@
       "cta": {
         "title": "Prêt à simplifier la livraison beauté?",
         "description": "Décrivez votre volume et canaux. Nous vous montrerons comment gérer votre livraison abonnement et D2C — de façon fiable et simple.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Démarrez avec la livraison cosmétiques et beauté",
@@ -4364,7 +4369,7 @@
       "cta": {
         "title": "Prêt pour une livraison fiable de matériaux de construction?",
         "description": "Décrivez vos trajets et volumes. Nous gérons la livraison chantier et distributeur.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Commencer avec la livraison de matériaux de construction",
@@ -4432,7 +4437,7 @@
       "cta": {
         "title": "Prêt pour la livraison distribution électrique?",
         "description": "Partagez vos trajets. Nous adaptons la capacité à votre opération grossiste.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Commencer avec la livraison pour distributeurs électriques",
@@ -4500,7 +4505,7 @@
       "cta": {
         "title": "Prêt pour la livraison fournitures plomberie?",
         "description": "Décrivez vos trajets. Nous gérons votre livraison grossiste.",
-        "primary": "Obtenir un devis",
+        "primary": "",
         "secondary": "Contactez-nous"
       },
       "inquiryHeading": "Commencer avec la livraison pour fournitures de plomberie",
@@ -4649,7 +4654,7 @@
       "onDemand": "Livraison à la demande"
     },
     "cta": {
-      "primary": "Obtenir un devis",
+      "primary": "",
       "secondary": "Nous contacter"
     },
     "coverage": {

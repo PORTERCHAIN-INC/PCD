@@ -1356,6 +1356,28 @@ class AdminCreateCustomerBookingDraftResponse(BaseModel):
     stripe_checkout_session_id: str | None = None
 
 
+class BlogAuthorItem(BaseModel):
+    id: str
+    name: str
+    role: str = ""
+    bio: str = ""
+    created_at: datetime
+    updated_at: datetime
+
+
+class BlogAuthorCreateRequest(BaseModel):
+    id: str = Field(min_length=2, max_length=64)
+    name: str = Field(min_length=1, max_length=256)
+    role: str = Field(default="", max_length=256)
+    bio: str = Field(default="", max_length=4000)
+
+
+class BlogAuthorUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=256)
+    role: str | None = Field(default=None, max_length=256)
+    bio: str | None = Field(default=None, max_length=4000)
+
+
 class BlogPostItem(BaseModel):
     id: str
     slug: str
@@ -1375,6 +1397,7 @@ class BlogPostItem(BaseModel):
     tags: list[str] = Field(default_factory=list)
     cover_image_url: str | None = None
     published_at: str | None = None
+    scheduled_publish_at: str | None = None
     reading_minutes: int = 1
     created_by: str | None = None
     created_at: datetime
@@ -1399,6 +1422,7 @@ class BlogPostCreateRequest(BaseModel):
     tags: list[BlogTag] = Field(default_factory=list, max_length=32)
     cover_image_url: str | None = Field(default=None, max_length=1024)
     published_at: date | None = None
+    scheduled_publish_at: datetime | None = None
 
 
 class BlogPostUpdateRequest(BaseModel):
@@ -1421,6 +1445,8 @@ class BlogPostUpdateRequest(BaseModel):
     clear_cover_image_url: bool = False
     published_at: date | None = None
     clear_published_at: bool = False
+    scheduled_publish_at: datetime | None = None
+    clear_scheduled_publish_at: bool = False
 
 
 class BoardMoveBody(BaseModel):

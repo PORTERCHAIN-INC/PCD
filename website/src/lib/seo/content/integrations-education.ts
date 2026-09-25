@@ -8,6 +8,7 @@
 import type { Locale } from "@/i18n/routing";
 import { industrySlug, serviceAreaSlug, business, integrations, serviceAreas } from "../routes";
 import { INDUSTRY_PAGE_LABELS } from "../internal-linking";
+import { quoteCtaLabel } from "@/lib/cta";
 
 export type IntegrationsEducationSection = {
   heading: string;
@@ -180,7 +181,7 @@ export const INTEGRATIONS_EDUCATION_PAGES: IntegrationsEducationPage[] = [
     ],
     extraLinks: [
       { path: "integrations", label: "Integrations" },
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
     ],
   },
   {
@@ -213,7 +214,7 @@ export const INTEGRATIONS_EDUCATION_PAGES: IntegrationsEducationPage[] = [
     ],
     extraLinks: [
       { path: "integrations", label: "Integrations" },
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
     ],
   },
   {
@@ -246,7 +247,7 @@ export const INTEGRATIONS_EDUCATION_PAGES: IntegrationsEducationPage[] = [
     ],
     extraLinks: [
       { path: "integrations", label: "Integrations" },
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
     ],
   },
   {
@@ -279,7 +280,7 @@ export const INTEGRATIONS_EDUCATION_PAGES: IntegrationsEducationPage[] = [
     ],
     extraLinks: [
       { path: "integrations", label: "Integrations" },
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
     ],
   },
 ];

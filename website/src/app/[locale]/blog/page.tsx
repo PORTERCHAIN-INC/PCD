@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing, type Locale } from "@/i18n/routing";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import Container from "@/components/ui/Container";
 import BlogSearch from "@/components/blog/BlogSearch";
 import ArticleCard, { FeaturedArticleCard } from "@/components/blog/ArticleCard";

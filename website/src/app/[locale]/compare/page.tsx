@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import HubIndexView from "@/components/seo/HubIndexView";
 import { COMPARISON_PAGES } from "@/lib/seo/content/comparison-pages";
 import {

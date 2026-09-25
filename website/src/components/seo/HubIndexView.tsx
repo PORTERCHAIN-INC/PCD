@@ -4,7 +4,7 @@ import Container from "@/components/ui/Container";
 import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getPageHeroImage } from "@/data/site-images";
-import CtaSection from "@/components/corporate/sections/CtaSection";
+import MarketingCloser from "@/components/marketing/MarketingCloser";
 import type { Locale } from "@/i18n/routing";
 import { quoteContact, contact } from "@/lib/seo/routes";
 
@@ -59,7 +59,7 @@ export default async function HubIndexView({
           </div>
         </Container>
       </section>
-      <CtaSection
+      <MarketingCloser
         title="Need help choosing the right dispatch setup?"
         primaryLabel={quoteLabel}
         primaryHref={quoteContact(locale, ctaSource)}

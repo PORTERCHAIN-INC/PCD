@@ -102,3 +102,9 @@ apps/merchant-portal/playwright-report/
 apps/merchant-portal/test-results/
 website/playwright-report/
 website/test-results/
+
+# Accidental absolute-path write leftovers from agent plan paths
+/Users/
+
+# Website local graphify artifacts
+website/graphify-out/

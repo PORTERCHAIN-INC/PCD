@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations, getMessages } from "next-intl/server";
 import SiteShell from "@/components/layout/SiteShell";
-import StickyCta from "@/components/business/StickyCta";
+import { BusinessStickyCloser } from "@/components/marketing/MarketingCloser";
 import { JsonLd } from "@/components/seo";
 import {
   buildFAQPageSchema,
@@ -9,7 +9,7 @@ import {
 } from "@/lib/seo/schema";
 import { siteConfig } from "@/lib/seo/config";
 import { business as businessRoute } from "@/lib/seo/routes";
-import BusinessPageSections from "@/components/business/BusinessPageSections";
+import BusinessPageSections from "@/components/marketing/business/BusinessPageSections";
 import { BUSINESS_FAQ_KEYS } from "@/data/business";
 import { routing, type Locale } from "@/i18n/routing";
 
@@ -57,7 +57,7 @@ export default async function BusinessPage({ params }: Props) {
       <SiteShell>
         <BusinessPageSections locale={loc} />
       </SiteShell>
-      <StickyCta />
+      <BusinessStickyCloser />
     </>
   );
 }

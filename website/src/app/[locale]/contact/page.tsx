@@ -3,16 +3,16 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
-import ContactHero from "@/components/corporate/sections/ContactHero";
-import ContactInfoPanel from "@/components/corporate/sections/ContactInfoPanel";
-import ContactInquiryForm from "@/components/corporate/sections/ContactInquiryForm";
-import ContactDepartmentCards from "@/components/corporate/sections/ContactDepartmentCards";
-import ContactSocialBar from "@/components/corporate/sections/ContactSocialBar";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
+import { ContactHero } from "@/components/marketing/MarketingHero";
+import ContactInfoPanel from "@/components/marketing/corporate/sections/ContactInfoPanel";
+import ContactInquiryForm from "@/components/marketing/corporate/sections/ContactInquiryForm";
+import ContactDepartmentCards from "@/components/marketing/corporate/sections/ContactDepartmentCards";
+import ContactSocialBar from "@/components/marketing/corporate/sections/ContactSocialBar";
 import GoogleBusinessProfileLink from "@/components/integrations/GoogleBusinessProfileLink";
-import FaqSection from "@/components/corporate/sections/FaqSection";
+import MarketingFaq from "@/components/marketing/MarketingFaq";
 import Container from "@/components/ui/Container";
-import FadeIn from "@/components/corporate/motion/FadeIn";
+import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
 import ShimmerButton from "@/components/magic/shimmer-button";
 import SlaResponseCountdown from "@/components/seo/SlaResponseCountdown";
 import WhatsAppQuoteLink from "@/components/seo/WhatsAppQuoteLink";
@@ -141,7 +141,7 @@ export default async function ContactPage({ params, searchParams }: Props) {
         items={departmentCards}
       />
 
-      <FaqSection
+      <MarketingFaq
         label={t("faq.label")}
         title={t("faq.title")}
         items={collectFaqItems(t, "faq.items", 5)}

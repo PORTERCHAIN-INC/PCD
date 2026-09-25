@@ -154,6 +154,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         description: "Marketing content (EN / FR)",
         icon: Newspaper,
       },
+      {
+        href: "/blog/authors",
+        label: "Blog authors",
+        description: "CMS author profiles for /authors",
+        icon: Users,
+      },
     ],
   },
   {
@@ -234,6 +240,7 @@ export const ADMIN_TOP_LEVEL_ROUTES = [
   "/leads/pipeline",
   "/leads/calendar",
   "/blog",
+  "/blog/authors",
   "/finance",
   "/pricing",
   "/support",

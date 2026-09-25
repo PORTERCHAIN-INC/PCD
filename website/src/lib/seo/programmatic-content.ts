@@ -178,10 +178,11 @@ export async function listLocalizedGuideSlugs(locale: Locale): Promise<string[]>
 }
 
 export async function listLocalizedSuccessStorySlugs(locale: Locale): Promise<string[]> {
-  const { SUCCESS_STORIES } = await import("./content/success-stories");
-  if (locale === "en") return SUCCESS_STORIES.map((s) => s.slug);
+  const { listPublicSuccessStories } = await import("./content/success-stories");
+  const publicStories = listPublicSuccessStories();
+  if (locale === "en") return publicStories.map((s) => s.slug);
   const fr = await loadFrProgrammatic();
-  return SUCCESS_STORIES.map((s) => s.slug).filter((slug) => Boolean(fr.successStories?.[slug]));
+  return publicStories.map((s) => s.slug).filter((slug) => Boolean(fr.successStories?.[slug]));
 }
 
 export async function getLocalizedCapability(

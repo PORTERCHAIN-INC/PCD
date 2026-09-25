@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import Container from "@/components/ui/Container";
 import MarkdownContent from "@/components/blog/MarkdownContent";
-import LinkButton from "@/components/corporate/ui/LinkButton";
+import LinkButton from "@/components/marketing/corporate/ui/LinkButton";
 import {
   DEVELOPER_DOC_SLUGS,
   getDeveloperDoc,

@@ -1,4 +1,4 @@
-"""Website-managed content — blog posts (admin CRUD, public read)."""
+"""Website-managed content — blog posts + authors (admin CRUD, public read)."""
 
 import uuid
 from datetime import date, datetime
@@ -12,6 +12,19 @@ from porterchain_api.db import Base
 
 def _uuid() -> str:
     return str(uuid.uuid4())
+
+
+class BlogAuthor(Base):
+    __tablename__ = "blog_authors"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    name: Mapped[str] = mapped_column(String(256))
+    role: Mapped[str] = mapped_column(String(256), default="")
+    bio: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class BlogPost(Base):
@@ -36,6 +49,9 @@ class BlogPost(Base):
     tags: Mapped[list] = mapped_column(JSON, default=list)
     cover_image_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     published_at: Mapped[date | None] = mapped_column(Date, nullable=True)
+    scheduled_publish_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
     created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

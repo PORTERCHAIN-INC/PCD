@@ -10,6 +10,7 @@ from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.content_engine.blog_media import save_blog_image
+from porterchain_api.content_engine.blog_preview import make_blog_preview_token
 from porterchain_api.content_engine.blog_revalidate import notify_blog_revalidate
 from porterchain_api.db import get_db
 from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
@@ -133,6 +134,7 @@ def create_blog_post(
             tags=body.tags,
             cover_image_url=body.cover_image_url,
             published_at=body.published_at,
+            scheduled_publish_at=body.scheduled_publish_at,
             created_by=ctx.user.id,
         )
     except ValueError as exc:
@@ -184,6 +186,8 @@ def update_blog_post(
             clear_cover_image_url=body.clear_cover_image_url,
             published_at=body.published_at,
             clear_published_at=body.clear_published_at,
+            scheduled_publish_at=body.scheduled_publish_at,
+            clear_scheduled_publish_at=body.clear_scheduled_publish_at,
         )
     except LookupError:
         raise HTTPException(status_code=404, detail="blog_post_not_found") from None
@@ -199,6 +203,34 @@ def update_blog_post(
     )
     _bump_website(settings, record)
     return _serialize(record)
+
+
+@router.get("/blog/posts/{post_id}/preview-url")
+def blog_post_preview_url(
+    post_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict[str, str]:
+    """Signed website preview URL (works for draft / published / archived)."""
+    try:
+        require_module(ctx, "content_read")
+    except PermissionError as exc:
+        _perm(exc)
+    record = _blog.get_post(db, post_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="blog_post_not_found")
+    secret = (settings.website_revalidate_secret or "").strip()
+    if not secret:
+        raise HTTPException(status_code=503, detail="revalidate_secret_unset")
+    token = make_blog_preview_token(
+        locale=record.locale,
+        slug=record.slug,
+        secret=secret,
+    )
+    base = (settings.website_url or "http://localhost:3000").rstrip("/")
+    url = f"{base}/{record.locale}/blog/preview/{record.slug}?token={token}"
+    return {"url": url, "token": token}
 
 
 @router.delete("/blog/posts/{post_id}", status_code=204)

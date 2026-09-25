@@ -5,6 +5,7 @@
  */
 
 import type { Locale } from "@/i18n/routing";
+import { quoteCtaLabel } from "@/lib/cta";
 import {
   industrySlug,
   serviceAreaSlug,
@@ -323,7 +324,7 @@ export const AUTHORITY_PAGES: AuthorityPage[] = [
     industrySlugs: ["construction-materials", "pharmacy-medical", "electrical-distribution"],
     serviceAreaSlugs: ["toronto", "mississauga", "hamilton"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "support", label: "Contact" },
     ],
   },
@@ -352,7 +353,7 @@ export const AUTHORITY_PAGES: AuthorityPage[] = [
     serviceAreaSlugs: ["toronto", "mississauga", "brampton"],
     extraLinks: [
       { path: "workflow", label: "How delivery works" },
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
     ],
   },
   {
@@ -379,7 +380,7 @@ export const AUTHORITY_PAGES: AuthorityPage[] = [
     industrySlugs: ["ecommerce", "construction-materials", "coffee-roasters"],
     serviceAreaSlugs: ["toronto", "mississauga", "markham", "vaughan"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "serviceAreas", label: "Service areas" },
     ],
   },
@@ -435,7 +436,7 @@ export const AUTHORITY_PAGES: AuthorityPage[] = [
     industrySlugs: ["ecommerce", "electrical-distribution", "construction-materials"],
     serviceAreaSlugs: ["toronto", "mississauga", "brampton", "vaughan"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "serviceAreas", label: "Service areas" },
     ],
   },
@@ -463,7 +464,7 @@ export const AUTHORITY_PAGES: AuthorityPage[] = [
     industrySlugs: ["ecommerce", "construction-materials", "coffee-roasters"],
     serviceAreaSlugs: ["toronto", "mississauga", "brampton"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "workflow", label: "How delivery works" },
     ],
   },
@@ -495,7 +496,7 @@ export const AUTHORITY_PAGES: AuthorityPage[] = [
     industrySlugs: ["construction-materials", "electrical-distribution", "coffee-roasters"],
     serviceAreaSlugs: ["toronto", "mississauga", "brampton", "vaughan"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "pricing", label: "How pricing works" },
     ],
   },
@@ -527,7 +528,7 @@ export const AUTHORITY_PAGES: AuthorityPage[] = [
     industrySlugs: ["ecommerce", "coffee-roasters", "construction-materials"],
     serviceAreaSlugs: ["toronto", "mississauga", "brampton", "vaughan"],
     extraLinks: [
-      { path: "onboarding", label: "Get a quote" },
+      { path: "onboarding", label: quoteCtaLabel("en") },
       { path: "serviceAreas", label: "Service areas" },
     ],
   },

@@ -133,6 +133,13 @@ class PublicBlogPostItem(PublicBlogPostMeta):
     body_md: str = ""
 
 
+class PublicBlogAuthor(BaseModel):
+    id: str
+    name: str
+    role: str = ""
+    bio: str = ""
+
+
 class SecurityAuditEvent(BaseModel):
     event_type: str
     app_kind: str = Field(pattern="^(customer|driver)$")

@@ -56,6 +56,9 @@ export default function BlogListPage() {
           <Button variant="outline" onClick={() => void refetch()}>
             <RefreshCw className="h-4 w-4" /> Refresh
           </Button>
+          <Link href="/blog/authors">
+            <Button variant="outline">Authors</Button>
+          </Link>
           <Button onClick={() => router.push("/blog/new")}>
             <Plus className="h-4 w-4" /> New post
           </Button>

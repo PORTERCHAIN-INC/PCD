@@ -6,11 +6,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from porterchain_api.config import Settings, get_settings
 from porterchain_api.content_engine.blog_media import resolve_media_file
+from porterchain_api.content_engine.blog_preview import verify_blog_preview_token
 from porterchain_api.content_engine.blog_service import BlogService
 from porterchain_api.db import get_db
 from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
-from porterchain_api.schemas_public import PublicBlogPostItem, PublicBlogPostMeta
+from porterchain_api.schemas_public import (
+    PublicBlogAuthor,
+    PublicBlogPostItem,
+    PublicBlogPostMeta,
+)
 
 router = APIRouter(prefix="/v1/public/blog", tags=["public-blog"])
 _blog = BlogService()
@@ -32,6 +38,25 @@ def _meta(record) -> PublicBlogPostMeta:
 def _full(record) -> PublicBlogPostItem:
     data = _blog.serialize_public(record, include_body=True)
     return PublicBlogPostItem(**data)
+
+
+@router.get("/authors", response_model=list[PublicBlogAuthor])
+def list_public_authors(db: Session = Depends(get_db)) -> list[PublicBlogAuthor]:
+    rows = _blog.list_authors(db)
+    return [
+        PublicBlogAuthor(id=row.id, name=row.name, role=row.role or "", bio=row.bio or "")
+        for row in rows
+    ]
+
+
+@router.get("/authors/{author_id}", response_model=PublicBlogAuthor)
+def get_public_author(author_id: str, db: Session = Depends(get_db)) -> PublicBlogAuthor:
+    record = _blog.get_author(db, author_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="blog_author_not_found")
+    return PublicBlogAuthor(
+        id=record.id, name=record.name, role=record.role or "", bio=record.bio or ""
+    )
 
 
 @router.get("/posts", response_model=list[PublicBlogPostMeta])
@@ -59,6 +84,26 @@ def list_published_posts(
         offset=offset,
     )
     return [_meta(row) for row in rows]
+
+
+@router.get("/posts/{slug}/preview", response_model=PublicBlogPostItem)
+def get_preview_post(
+    slug: str,
+    token: Annotated[str, Query(min_length=8)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    locale: Annotated[str, Query(min_length=2, max_length=8)] = "en",
+) -> PublicBlogPostItem:
+    """Draft/archived/published preview — requires signed token from admin CMS."""
+    loc = locale.strip().lower()
+    sl = slug.strip().lower()
+    secret = (settings.website_revalidate_secret or "").strip()
+    if not verify_blog_preview_token(locale=loc, slug=sl, token=token, secret=secret):
+        raise HTTPException(status_code=401, detail="blog_preview_unauthorized")
+    record = _blog.get_by_locale_slug(db, locale=loc, slug=sl)
+    if not record:
+        raise HTTPException(status_code=404, detail="blog_post_not_found")
+    return _full(record)
 
 
 @router.get("/posts/{slug}", response_model=PublicBlogPostItem)

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
-import LegalDocument from "@/components/corporate/sections/LegalDocument";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
+import LegalDocument from "@/components/marketing/corporate/sections/LegalDocument";
 
 type Props = { params: Promise<{ locale: string }> };
 

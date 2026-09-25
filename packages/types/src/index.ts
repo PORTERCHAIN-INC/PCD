@@ -18,6 +18,7 @@ export {
   publicBlogPostMetaSchema,
   publicBlogPostItemSchema,
   adminBlogPostSchema,
+  blogAuthorSchema,
   isBlogCategory,
 } from "./blog";
 export type {
@@ -27,4 +28,7 @@ export type {
   PublicBlogPostMeta,
   PublicBlogPostItem,
   AdminBlogPost,
+  BlogAuthorRow,
 } from "./blog";
+export type { BlogAuthor } from "./blog-authors";
+export { BLOG_AUTHORS, getBlogAuthor } from "./blog-authors";

@@ -8,7 +8,7 @@ import Container from "@/components/ui/Container";
 import { OrganizedFooterLinks } from "@/components/layout/OrganizedFooterLinks";
 import SocialLinks from "@/components/layout/SocialLinks";
 import GoogleBusinessProfileLink from "@/components/integrations/GoogleBusinessProfileLink";
-import PorterchainWordmark from "@/components/brand/PorterchainWordmark";
+import PorterchainWordmark from "@/components/marketing/brand/PorterchainWordmark";
 import { driverPortalUrl, merchantPortalUrl } from "@/data/portal-links";
 import { submitInquiry } from "@/lib/submit-inquiry";
 import type { FooterSectionId } from "@/data/footer-navigation";

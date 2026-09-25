@@ -14,7 +14,7 @@
     "product": {
       "title": "Product",
       "links": {
-        "getQuote": "Get a quote",
+        "getQuote": "",
         "pricing": "Pricing",
         "capabilities": "All capabilities",
         "multiStop": "Multi-stop delivery",

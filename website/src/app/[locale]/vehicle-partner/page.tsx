@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
-import CorporateShell from "@/components/corporate/layout/CorporateShell";
-import VehiclePartnerLandingView from "@/components/vehicle-partner/VehiclePartnerLandingView";
+import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
+import VehiclePartnerLandingView from "@/components/marketing/vehicle-partner/VehiclePartnerLandingView";
 import { localeStaticParams, buildPageMetadata } from "@/lib/seo/page-helpers";
 import type { Locale } from "@/i18n/routing";
 

@@ -20,6 +20,7 @@ _last_webhook_retry_at = 0.0
 _last_ops_mirror_at = 0.0
 _last_compliance_expiry_at = 0.0
 _last_lead_nurture_at = 0.0
+_last_blog_schedule_at = 0.0
 DRAFT_RECONCILE_INTERVAL_SECONDS = 300
 STANDING_ORDERS_INTERVAL_SECONDS = 300
 NOTIFICATION_RETRY_INTERVAL_SECONDS = 60
@@ -27,6 +28,7 @@ WEBHOOK_RETRY_INTERVAL_SECONDS = 60
 OPS_MIRROR_INTERVAL_SECONDS = 30
 COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
 LEAD_NURTURE_INTERVAL_SECONDS = 300
+BLOG_SCHEDULE_INTERVAL_SECONDS = 60
 TRACKING_DRAIN_LIMIT = 10
 # Vehicles/drivers must land in Fleetbase before Optimize can assign. Do not
 # starve them behind a backlog of order sync jobs (commercial drain is limit=1).
@@ -303,6 +305,29 @@ def _drain_lead_nurture() -> int:
     return int(result.get("sent", 0))
 
 
+def _drain_blog_scheduled_publish() -> int:
+    """Publish drafts whose scheduled_publish_at has elapsed."""
+    global _last_blog_schedule_at
+    now = time.monotonic()
+    if now - _last_blog_schedule_at < BLOG_SCHEDULE_INTERVAL_SECONDS:
+        return 0
+    _last_blog_schedule_at = now
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.content_engine.blog_revalidate import notify_blog_revalidate
+    from porterchain_api.content_engine.blog_service import BlogService
+    from porterchain_api.db import SessionLocal
+
+    settings = get_settings()
+    with SessionLocal() as db:
+        published = BlogService().publish_due_posts(db, limit=20)
+    for record in published:
+        notify_blog_revalidate(settings, locale=record.locale, slug=record.slug)
+    if published:
+        logger.info("blog scheduled publish: count=%s", len(published))
+    return len(published)
+
+
 def _drain_driver_compliance_expiry() -> int:
     """Revoke insurance/registration/license flags when document expiry lapses."""
     global _last_compliance_expiry_at
@@ -404,6 +429,7 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_merchant_webhook_retries()
                 processed += _drain_driver_compliance_expiry()
                 processed += _drain_lead_nurture()
+                processed += _drain_blog_scheduled_publish()
             if mode_includes(mode, "fleetbase"):
                 processed += _drain_fleetbase_retry_queue()
                 processed += _refresh_fleetbase_ops_mirror()

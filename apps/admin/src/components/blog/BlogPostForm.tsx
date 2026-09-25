@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { publicEnv } from "@/lib/env";
 import { DateField } from "@porterchain/ui/date-fields";
@@ -9,6 +9,7 @@ import {
   BLOG_LOCALES,
   BLOG_STATUSES,
   blogApi,
+  type BlogAuthor,
   type BlogPostInput,
 } from "@/lib/blog";
 
@@ -16,6 +17,8 @@ type Props = {
   value: BlogPostInput;
   onChange: (next: BlogPostInput) => void;
   getToken: () => Promise<string>;
+  /** Saved post id — enables signed website draft preview. */
+  postId?: string;
 };
 
 function fieldClassName() {
@@ -29,13 +32,46 @@ function absoluteMediaUrl(url: string): string {
   return `${base}${url.startsWith("/") ? url : `/${url}`}`;
 }
 
-export default function BlogPostForm({ value, onChange, getToken }: Props) {
+function toDatetimeLocal(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromDatetimeLocal(value: string): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
+export default function BlogPostForm({ value, onChange, getToken, postId }: Props) {
   const coverInputRef = useRef<HTMLInputElement>(null);
   const bodyInputRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingBody, setUploadingBody] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [previewBusy, setPreviewBusy] = useState(false);
+  const [previewError, setPreviewError] = useState("");
+  const [authors, setAuthors] = useState<BlogAuthor[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await blogApi.listAuthors(await getToken());
+        if (!cancelled) setAuthors(rows);
+      } catch {
+        if (!cancelled) setAuthors([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken]);
 
   function patch(partial: Partial<BlogPostInput>) {
     onChange({ ...value, ...partial });
@@ -96,6 +132,20 @@ export default function BlogPostForm({ value, onChange, getToken }: Props) {
     }
   }
 
+  async function openWebsitePreview() {
+    if (!postId) return;
+    setPreviewBusy(true);
+    setPreviewError("");
+    try {
+      const { url } = await blogApi.previewUrl(await getToken(), postId);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setPreviewError(err instanceof Error ? err.message : "Preview link failed");
+    } finally {
+      setPreviewBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-primary/10 bg-[#F4F6FA] p-4 text-sm">
@@ -119,9 +169,30 @@ export default function BlogPostForm({ value, onChange, getToken }: Props) {
           </li>
           <li className={value.status === "published" ? "text-secondary" : ""}>
             Status: {value.status}
-            {value.status === "published" ? " · will revalidate website" : " · draft stays private"}
+            {value.status === "published"
+              ? " · will revalidate website"
+              : value.scheduled_publish_at
+                ? " · scheduled publish armed"
+                : " · draft stays private"}
           </li>
         </ul>
+        {postId ? (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={previewBusy}
+              onClick={() => void openWebsitePreview()}
+              className="inline-flex items-center rounded-lg border border-primary/15 bg-white px-3 py-1.5 text-xs font-semibold text-primary hover:bg-white/80 disabled:opacity-60"
+            >
+              {previewBusy ? "Opening…" : "Open website preview"}
+            </button>
+            {previewError ? <span className="text-xs text-red-600">{previewError}</span> : null}
+          </div>
+        ) : (
+          <p className="mt-3 text-xs text-muted">
+            Save the post once to enable website draft preview.
+          </p>
+        )}
       </div>
 
       <div className="grid gap-6 rounded-2xl border border-primary/10 bg-white p-6 lg:grid-cols-2">
@@ -259,12 +330,29 @@ export default function BlogPostForm({ value, onChange, getToken }: Props) {
               </select>
             </label>
             <label className="block space-y-1 text-sm">
-              <span className="font-medium text-primary">Author ID</span>
-              <input
-                className={fieldClassName()}
-                value={value.author_id}
-                onChange={(e) => patch({ author_id: e.target.value })}
-              />
+              <span className="font-medium text-primary">Author</span>
+              {authors.length > 0 ? (
+                <select
+                  className={fieldClassName()}
+                  value={value.author_id}
+                  onChange={(e) => patch({ author_id: e.target.value })}
+                >
+                  {authors.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+                  {!authors.some((a) => a.id === value.author_id) ? (
+                    <option value={value.author_id}>{value.author_id}</option>
+                  ) : null}
+                </select>
+              ) : (
+                <input
+                  className={fieldClassName()}
+                  value={value.author_id}
+                  onChange={(e) => patch({ author_id: e.target.value })}
+                />
+              )}
             </label>
           </div>
           <label className="block space-y-1 text-sm">
@@ -288,6 +376,19 @@ export default function BlogPostForm({ value, onChange, getToken }: Props) {
             onChange={(published) => patch({ published_at: published || null })}
             datePlaceholder="Publish date"
           />
+          <label className="block space-y-1 text-sm">
+            <span className="font-medium text-primary">Schedule publish (draft only)</span>
+            <input
+              type="datetime-local"
+              className={fieldClassName()}
+              value={toDatetimeLocal(value.scheduled_publish_at)}
+              onChange={(e) => patch({ scheduled_publish_at: fromDatetimeLocal(e.target.value) })}
+              disabled={value.status === "published"}
+            />
+            <span className="text-xs text-muted">
+              Worker flips draft → published when due. Clear to cancel.
+            </span>
+          </label>
           <div className="flex flex-wrap gap-4 text-sm">
             <label className="inline-flex items-center gap-2">
               <input
