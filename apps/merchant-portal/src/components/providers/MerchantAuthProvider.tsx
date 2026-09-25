@@ -107,13 +107,12 @@ function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
   const [orgId, setOrgIdState] = useState<string | undefined>(undefined);
   const [session, setSession] = useState<MerchantSession | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
-  const [hasImpersonation, setHasImpersonation] = useState(false);
+  // Sync init so AccessGate / getApiToken see the audited bearer before the first paint.
+  const [hasImpersonation] = useState(() =>
+    typeof window === "undefined" ? false : Boolean(readImpersonationBearer())
+  );
   const sessionRef = useRef(session);
   sessionRef.current = session;
-
-  useEffect(() => {
-    setHasImpersonation(Boolean(readImpersonationBearer()));
-  }, []);
 
   const getApiToken = useCallback(async () => {
     const imp = readImpersonationBearer();

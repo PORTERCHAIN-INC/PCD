@@ -519,14 +519,16 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
               that user.
             </p>
           ) : null}
-          <a
-            href={keysHref}
-            className="inline-flex items-center gap-1 text-xs text-secondary underline"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Merchant portal (your own seat) <ExternalLink className="h-3 w-3" />
-          </a>
+          {!canImpersonate ? (
+            <a
+              href={keysHref}
+              className="inline-flex items-center gap-1 text-xs text-secondary underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Merchant portal (your own seat) <ExternalLink className="h-3 w-3" />
+            </a>
+          ) : null}
         </div>
       </div>
 

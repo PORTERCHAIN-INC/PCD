@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { SignOutButton, useAuth } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
@@ -11,6 +11,7 @@ import { fetchMerchantOnboarding, isPendingMerchantPath } from "@/lib/onboarding
 import { isClerkConfigured, publicEnv, useLocalDevAuth } from "@/lib/env";
 import {
   platformLoginUrl,
+  readImpersonationBearer,
   useOptionalSessionContext,
   usePortalSessionGate,
   type SessionContext,
@@ -87,10 +88,16 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
   const pathname = usePathname();
   const { isLoaded: clerkLoaded, isSignedIn } = useAuth();
   const { isLoaded: merchantAuthLoaded, getApiToken, session: merchantSession } = useMerchantAuth();
+  // Sync init — async useEffect is too late; PortalSessionGate would call onSignedOut → /sign-in.
+  const [impToken] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : readImpersonationBearer()
+  );
   const sessionCtx = useOptionalSessionContext();
   const setSession = sessionCtx?.setSession;
   const setActiveWorkspaceId = sessionCtx?.setActiveWorkspaceId;
   const onPendingPath = isPendingMerchantPath(pathname);
+
+  const effectivelySignedIn = !!isSignedIn || !!impToken;
 
   const onSession = useCallback(
     (ctx: SessionContext) => {
@@ -151,7 +158,7 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
     portal: "merchant",
     apiUrl: publicEnv.porterchainApiUrl,
     isLoaded: gateReady,
-    isSignedIn: !!isSignedIn,
+    isSignedIn: effectivelySignedIn,
     getToken: getApiToken,
     skipCheck: onPendingPath,
     fetchOnboarding,
@@ -162,10 +169,10 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
   });
 
   if (!gateReady || checking) {
-    return <Spinner label="Loading session…" />;
+    return <Spinner label={impToken ? "Loading impersonation…" : "Loading session…"} />;
   }
 
-  if (denied || errorDetail) {
+  if ((denied || errorDetail) && !impToken) {
     const loginUrl = platformLoginUrl(publicEnv.websiteUrl);
     const deniedAccess = errorDetail === "missing_portal_permission" || denied;
     return (
