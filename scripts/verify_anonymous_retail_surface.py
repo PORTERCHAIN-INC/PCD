@@ -31,7 +31,7 @@ def main() -> int:
         ("book/continue/page.tsx", ("portal-book-redirect", "customerPortalBookUrl")),
         ("book/success/page.tsx", ("portal-book-redirect", "customerPortalBookUrl")),
         # Legacy /quote is a capacity CTA → sign-up quote (not customer-portal book).
-        ("quote/page.tsx", ("intent=quote", "portal-book-redirect")),
+        ("quote/page.tsx", ('intent: "quote"', "intent=quote", "portal-book-redirect")),
     )
     for rel, needles in required:
         path = WEBSITE_APP / rel
