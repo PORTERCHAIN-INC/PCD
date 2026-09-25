@@ -12,7 +12,7 @@ CHECKS: tuple[tuple[str, str], ...] = (
     ("apps/api/src/porterchain_api/services/stripe_service.py", 'checkout_channel == "customer"'),
     ("apps/api/src/porterchain_api/schemas_booking.py", 'checkout_channel: Literal["retail", "customer"]'),
     ("apps/customer/src/lib/booking.ts", 'checkout_channel: "customer"'),
-    ("apps/customer/src/app/book/success/page.tsx", "syncBookingCheckout"),
+    ("apps/customer/src/components/booking/BookSuccessClient.tsx", "syncBookingCheckout"),
     ("apps/api/.env.example", "CUSTOMER_CHECKOUT_SUCCESS_URL=http://localhost:3004/book/success"),
     ("env/production.env.example", "CUSTOMER_CHECKOUT_SUCCESS_URL=https://customer.porterchain.com/book/success"),
     (
