@@ -4,21 +4,28 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { clearImpersonationBearer, storeImpersonationBearer } from "@porterchain/auth";
 
+function safeNextPath(raw: string | null): string {
+  const next = (raw || "").trim();
+  if (!next.startsWith("/") || next.startsWith("//")) return "/";
+  return next;
+}
+
 export default function MerchantImpersonatePage() {
   return (
     <Suspense fallback={<p className="p-8 text-sm text-muted">Preparing impersonation…</p>}>
-      <ImpersonateBootstrap home="/" />
+      <ImpersonateBootstrap />
     </Suspense>
   );
 }
 
-function ImpersonateBootstrap({ home }: { home: string }) {
+function ImpersonateBootstrap() {
   const router = useRouter();
   const params = useSearchParams();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = params.get("token")?.trim() || "";
+    const home = safeNextPath(params.get("next"));
     if (!token.startsWith("pc_imp_")) {
       setError("invalid_impersonation_token");
       return;
@@ -40,7 +47,7 @@ function ImpersonateBootstrap({ home }: { home: string }) {
         clearImpersonationBearer();
         setError(e instanceof Error ? e.message : "impersonation_bootstrap_failed");
       });
-  }, [home, params, router]);
+  }, [params, router]);
 
   if (error) {
     return (

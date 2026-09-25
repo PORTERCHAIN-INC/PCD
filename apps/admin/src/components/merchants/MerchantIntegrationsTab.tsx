@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
+import { ImpersonateModal } from "@/components/settings/panels/users/ImpersonateModal";
 import { getSystemLinks } from "@/lib/system-links";
-import { merchants, merchantActionMessage, type MerchantWebhookDeliveryRow } from "@/lib/merchants";
+import {
+  merchants,
+  merchantActionMessage,
+  type MerchantTeamUser,
+  type MerchantWebhookDeliveryRow,
+} from "@/lib/merchants";
 import { Badge, Button, Field, Input, SectionCard } from "@/components/crm/primitives";
 import { relativeTime, titleCase } from "@/lib/crmFormat";
 
@@ -21,6 +27,18 @@ const MERCHANTS_WRITE_ROLES = new Set([
 
 /** Freeze / force-disconnect — Superadmin or Compliance only. */
 const INTEGRATIONS_ELEVATED_ROLES = new Set(["super_admin", "compliance"]);
+
+/** Merchant seats that can mint keys / webhooks (matches merchant MODULE_PERMISSIONS.api_keys). */
+const MERCHANT_KEYS_ROLES = new Set(["merchant_owner", "merchant_admin"]);
+
+function pickIntegrationsSeat(
+  team: MerchantTeamUser[] | null | undefined
+): MerchantTeamUser | null {
+  const active = (team ?? []).filter((u) => u.is_active);
+  const owner = active.find((u) => u.role === "merchant_owner");
+  if (owner) return owner;
+  return active.find((u) => MERCHANT_KEYS_ROLES.has(u.role)) ?? null;
+}
 
 function deliveryFailed(d: MerchantWebhookDeliveryRow): boolean {
   if (typeof d.success === "boolean") return !d.success;
@@ -48,13 +66,19 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
   const role = profile?.role?.toLowerCase() || "";
   const canMutate = !profile?.role || MERCHANTS_WRITE_ROLES.has(role);
   const canElevate = INTEGRATIONS_ELEVATED_ROLES.has(role);
+  const canImpersonate = role === "super_admin";
   const merchantPortalBase =
-    getSystemLinks().find((l) => l.id === "merchant")?.href ?? "http://localhost:3001";
+    getSystemLinks().find((l) => l.id === "merchant")?.href ?? "https://merchant.porterchain.com";
 
   const [version, setVersion] = useState(0);
   const { data } = useApiData((t) => merchants.api(t, id), [id, version], {
     key: `merchant-api-${id}-${version}`,
   });
+  const { data: team } = useApiData((t) => merchants.team(t, id), [id, version], {
+    key: `merchant-team-integrations-${id}-${version}`,
+  });
+  const integrationsSeat = useMemo(() => pickIntegrationsSeat(team), [team]);
+  const [impersonateOpen, setImpersonateOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -477,13 +501,46 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
         </p>
       )}
 
-      <p className="text-sm text-muted">
-        Integrations health for this merchant. Keys, webhooks, and Shopify connect are minted in the{" "}
-        <a href={keysHref} className="text-secondary underline" target="_blank" rel="noreferrer">
-          merchant portal
-        </a>
-        . Admin revokes, throttles, re-enables, and retries.
-      </p>
+      <div className="space-y-2 rounded-xl border border-primary/10 bg-gray-bg/40 px-4 py-3 text-sm">
+        <p className="text-muted">
+          Integrations health for this merchant. Keys, webhooks, and Shopify connect are minted in
+          the merchant portal by an Owner/Manager seat — staff Super Admin on this page cannot mint
+          while signed into Admin. Admin revokes, throttles, re-enables, and retries.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          {canImpersonate && integrationsSeat ? (
+            <Button variant="outline" className="text-xs" onClick={() => setImpersonateOpen(true)}>
+              Open Integrations as {integrationsSeat.role_label || "Owner"}
+            </Button>
+          ) : null}
+          {canImpersonate && !integrationsSeat ? (
+            <p className="text-xs text-amber-800">
+              No active Owner/Manager seat yet — add one on the Team tab, then open Integrations as
+              that user.
+            </p>
+          ) : null}
+          <a
+            href={keysHref}
+            className="inline-flex items-center gap-1 text-xs text-secondary underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Merchant portal (your own seat) <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
+      </div>
+
+      {impersonateOpen && integrationsSeat ? (
+        <ImpersonateModal
+          open
+          targetType="merchant"
+          targetId={integrationsSeat.id}
+          targetLabel={integrationsSeat.email}
+          getApiToken={getApiToken}
+          nextPath="/api?tab=keys"
+          onClose={() => setImpersonateOpen(false)}
+        />
+      ) : null}
 
       {/* 1. Health — Overview mirror */}
       <SectionCard title="Health">
@@ -963,14 +1020,24 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
                   Merchant Owner generates keys at Integrations → API keys (sandbox first, then
                   production).
                 </p>
-                <a
-                  href={keysHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-secondary underline"
-                >
-                  Open merchant API keys <ExternalLink className="h-3.5 w-3.5" />
-                </a>
+                {canImpersonate && integrationsSeat ? (
+                  <Button
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => setImpersonateOpen(true)}
+                  >
+                    Open Integrations as {integrationsSeat.role_label || "Owner"}
+                  </Button>
+                ) : (
+                  <a
+                    href={keysHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-secondary underline"
+                  >
+                    Open merchant API keys <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                )}
               </div>
             )}
           </div>
@@ -1165,14 +1232,20 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
           >
             Merchant docs <ExternalLink className="h-3.5 w-3.5" />
           </a>
-          <a
-            href={keysHref}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-secondary underline"
-          >
-            Merchant Integrations <ExternalLink className="h-3.5 w-3.5" />
-          </a>
+          {canImpersonate && integrationsSeat ? (
+            <Button variant="outline" className="text-xs" onClick={() => setImpersonateOpen(true)}>
+              Open Integrations as {integrationsSeat.role_label || "Owner"}
+            </Button>
+          ) : (
+            <a
+              href={keysHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-secondary underline"
+            >
+              Merchant Integrations <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          )}
         </div>
       </SectionCard>
     </div>

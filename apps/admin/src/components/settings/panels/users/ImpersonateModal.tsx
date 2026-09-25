@@ -8,6 +8,13 @@ import { requireApiToken } from "@/components/settings/panels/users/requireApiTo
 
 export type ImpersonationTargetType = "driver" | "merchant" | "customer";
 
+/** Relative portal path only — blocks open redirects. */
+function safeNextPath(raw: string | undefined): string | null {
+  const next = (raw || "").trim();
+  if (!next.startsWith("/") || next.startsWith("//")) return null;
+  return next;
+}
+
 export function ImpersonateModal({
   open,
   targetType,
@@ -15,6 +22,7 @@ export function ImpersonateModal({
   targetLabel,
   getApiToken,
   onClose,
+  nextPath,
 }: {
   open: boolean;
   targetType: ImpersonationTargetType;
@@ -22,6 +30,8 @@ export function ImpersonateModal({
   targetLabel: string;
   getApiToken: () => Promise<string | null>;
   onClose: () => void;
+  /** Optional post-bootstrap path in the target portal (e.g. `/api?tab=keys`). */
+  nextPath?: string;
 }) {
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
@@ -40,7 +50,18 @@ export function ImpersonateModal({
         })
       );
       if (session.portal_bootstrap_url) {
-        window.open(session.portal_bootstrap_url, "_blank", "noopener,noreferrer");
+        const next = safeNextPath(nextPath);
+        let href = session.portal_bootstrap_url;
+        if (next) {
+          try {
+            const u = new URL(href);
+            u.searchParams.set("next", next);
+            href = u.toString();
+          } catch {
+            /* keep bootstrap URL as returned */
+          }
+        }
+        window.open(href, "_blank", "noopener,noreferrer");
       }
       onClose();
       setReason("");
