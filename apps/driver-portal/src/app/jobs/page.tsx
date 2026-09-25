@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
 const JobsListClient = dynamic(() => import("@/components/jobs/JobsListClient"), {
-  loading: () => <p className="p-4 text-sm text-[var(--muted)]">Loading…</p>,
+  loading: () => <PageSkeleton rows={5} />,
 });
 
 export default function JobsPage() {
