@@ -4,7 +4,7 @@ import { routing } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import BrandMergeBand from "@/components/brand/BrandMergeBand";
 import TimelineSection from "@/components/corporate/sections/TimelineSection";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
@@ -74,7 +74,7 @@ export default async function CompanyPage({ params }: Props) {
     <CorporateShell>
       <JsonLd data={[buildOrganizationSchema(), buildCorporationSchema()]} />
       <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: t("hero.badge") }]} />
-      <HeroSection
+      <MarketingHero
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}

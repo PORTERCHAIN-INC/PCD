@@ -39,14 +39,24 @@ def list_published_posts(
     db: Session = Depends(get_db),
     locale: Annotated[str, Query(min_length=2, max_length=8)] = "en",
     category: str | None = None,
+    search: str | None = None,
+    featured: bool | None = None,
+    trending: bool | None = None,
+    case_study: bool | None = None,
     limit: int = Query(DEFAULT_LIST_LIMIT, ge=1, le=MAX_LIST_LIMIT),
+    offset: int = Query(0, ge=0),
 ) -> list[PublicBlogPostMeta]:
     rows = _blog.list_posts(
         db,
         locale=locale.strip().lower(),
         category=category,
+        search=search,
+        featured=featured,
+        trending=trending,
+        case_study=case_study,
         published_only=True,
         limit=limit,
+        offset=offset,
     )
     return [_meta(row) for row in rows]
 

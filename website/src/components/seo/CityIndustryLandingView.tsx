@@ -1,4 +1,4 @@
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getPageHeroImage } from "@/data/site-images";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
@@ -88,7 +88,7 @@ export default async function CityIndustryLandingView({
         ].filter(Boolean)}
       />
       {breadcrumbs && breadcrumbs.length > 0 && <PageBreadcrumbs items={breadcrumbs} />}
-      <HeroSection
+      <MarketingHero
         badge={sectionLabels.localDelivery}
         title={content.hero.title}
         subtitle={content.hero.subtitle}

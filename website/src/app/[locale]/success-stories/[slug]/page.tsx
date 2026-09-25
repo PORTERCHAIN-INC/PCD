@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getNicheHeroImage } from "@/data/site-images";
 import CtaSection from "@/components/corporate/sections/CtaSection";
@@ -73,7 +73,7 @@ export default async function SuccessStoryPage({ params }: Props) {
   return (
     <CorporateShell>
       <JsonLd data={schemas} />
-      <HeroSection
+      <MarketingHero
         badge={t("successStory")}
         title={story.headline}
         subtitle={story.challenge}

@@ -45,6 +45,11 @@ def main() -> int:
         failures.append("industry/[slug]/page.tsx must force noindex for draft niches")
     if "isDraftNicheSlug" not in sitemap:
         failures.append("sitemap-entries.ts must skip draft niches")
+    city_pairs = (
+        ROOT / "website/src/lib/seo/city-industry-delivery.ts"
+    ).read_text(encoding="utf-8")
+    if "isDraftNicheSlug" not in city_pairs:
+        failures.append("city-industry-delivery must skip draft niches in slug pairs")
 
     print("Website draft expansion gate")
     if failures:

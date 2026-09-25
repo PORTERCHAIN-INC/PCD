@@ -15,6 +15,7 @@ import type { FooterSectionId } from "@/data/footer-navigation";
 
 export default function SiteFooter() {
   const t = useTranslations("siteFooter");
+  const tBrand = useTranslations("common.brand");
   const tLegacy = useTranslations("footer");
   const year = new Date().getFullYear();
   const [newsletterEmail, setNewsletterEmail] = useState("");
@@ -106,6 +107,7 @@ export default function SiteFooter() {
             <Link href="/" className="inline-flex mb-4 transition-opacity hover:opacity-90">
               <PorterchainWordmark tone="dark" size="lg" />
             </Link>
+            <p className="text-white/50 type-small leading-relaxed mb-1">{tBrand("networkLine")}</p>
             <p className="text-white/50 type-small leading-relaxed mb-6">{t("tagline")}</p>
             <div className="flex gap-3 justify-center sm:justify-start flex-wrap items-center">
               <SocialLinks variant="footer" />

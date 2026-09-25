@@ -26,23 +26,88 @@ const LABELS: Record<NicheSlug, string> = {
 
 const KEYWORDS: Partial<Record<NicheSlug, string[]>> = {
   "construction-materials": [
-    "construction materials",
-    "building supply",
-    "jobsite delivery",
-    "lumber",
-    "drywall",
-    "pallet delivery",
+    "construction materials delivery GTA",
+    "building supply same-day",
+    "jobsite delivery Toronto",
+    "lumber delivery Mississauga",
+    "drywall delivery GTA",
+    "pallet delivery contractors",
   ],
   "electrical-distribution": [
-    "electrical distributor",
-    "electrical wholesaler",
-    "wire delivery",
-    "panel delivery",
-    "electrical supply",
+    "electrical distributor delivery",
+    "electrical wholesaler same-day GTA",
+    "wire and cable delivery Toronto",
+    "panel delivery contractors",
+    "electrical supply house logistics",
   ],
-  "plumbing-supply": ["plumbing supply", "pipe delivery", "fixture courier", "plumbing wholesaler"],
-  "coffee-roasters": ["coffee", "roasters", "cafés", "subscription", "wholesale"],
-  ecommerce: ["e-commerce", "last mile", "D2C", "parcel delivery", "fulfillment"],
+  "plumbing-supply": [
+    "plumbing supply delivery GTA",
+    "pipe and fitting same-day",
+    "fixture delivery contractors",
+    "plumbing wholesaler logistics Toronto",
+  ],
+  "coffee-roasters": [
+    "coffee wholesale delivery GTA",
+    "roaster café delivery Toronto",
+    "coffee subscription logistics",
+    "bean delivery cafés Ontario",
+  ],
+  "pharmacy-medical": [
+    "pharmacy delivery GTA",
+    "medical supply same-day Toronto",
+    "clinic sample logistics",
+    "B2B pharmacy courier overflow",
+    "temperature-aware medical capacity",
+  ],
+  cosmetics: [
+    "cosmetics delivery GTA",
+    "beauty wholesale same-day",
+    "D2C beauty logistics Toronto",
+    "salon supply delivery Ontario",
+  ],
+  chocolate: [
+    "chocolate wholesale delivery GTA",
+    "confectionery same-day Toronto",
+    "temperature-sensitive chocolate logistics",
+    "candy distributor capacity Ontario",
+  ],
+  "lab-sample-delivery": [
+    "lab sample delivery GTA",
+    "specimen courier Toronto",
+    "clinic to lab same-day",
+    "diagnostic sample logistics Ontario",
+  ],
+  ecommerce: [
+    "e-commerce last mile GTA",
+    "D2C same-day Toronto",
+    "parcel overflow capacity",
+    "fulfillment delivery partners Ontario",
+  ],
+  "hvac-mechanical": [
+    "HVAC parts delivery GTA",
+    "mechanical contractor same-day",
+    "furnace and A/C parts logistics",
+  ],
+  "automotive-parts": [
+    "auto parts delivery GTA",
+    "dealer parts same-day Toronto",
+    "aftermarket parts logistics",
+  ],
+  manufacturing: [
+    "manufacturing parts delivery GTA",
+    "plant-to-plant capacity Ontario",
+    "industrial same-day logistics",
+  ],
+  "retail-replenishment": [
+    "retail replenishment delivery GTA",
+    "store restock same-day Toronto",
+    "multi-stop retail capacity",
+  ],
+  "food-distribution": [
+    "food distribution delivery GTA",
+    "wholesale food same-day Toronto",
+    "cold-chain overflow capacity Ontario",
+  ],
 };
 
 /** Industry configs for all niches. Used for industry pages and city-industry page generation. */
@@ -55,7 +120,7 @@ export const INDUSTRY_CONFIGS: IndustryConfig[] = NICHE_SLUGS.map((slug) => ({
     keywords: KEYWORDS[slug],
     audience:
       slug === "pharmacy-medical"
-        ? ["pharmacy", "medical", "patients", "B2B"]
+        ? ["pharmacy", "medical", "patients", "B2B", "clinics"]
         : slug === "construction-materials"
           ? ["distributors", "contractors", "jobsite", "building supply"]
           : slug === "electrical-distribution"
@@ -64,8 +129,23 @@ export const INDUSTRY_CONFIGS: IndustryConfig[] = NICHE_SLUGS.map((slug) => ({
               ? ["plumbing wholesalers", "contractors", "supply houses"]
               : slug === "ecommerce"
                 ? ["e-commerce", "D2C", "online retail", "last mile"]
-                : undefined,
-    tone: slug === "cosmetics" ? ["beauty", "subscription", "D2C", "retail"] : undefined,
+                : slug === "coffee-roasters"
+                  ? ["roasters", "cafés", "wholesale coffee", "subscriptions"]
+                  : slug === "cosmetics"
+                    ? ["beauty brands", "salons", "D2C", "wholesale"]
+                    : slug === "chocolate"
+                      ? ["confectionery", "wholesale chocolate", "specialty food"]
+                      : slug === "lab-sample-delivery"
+                        ? ["labs", "clinics", "diagnostics", "specimen logistics"]
+                        : undefined,
+    tone:
+      slug === "cosmetics"
+        ? ["beauty", "subscription", "D2C", "retail"]
+        : slug === "chocolate"
+          ? ["temperature-aware", "specialty food", "wholesale"]
+          : slug === "lab-sample-delivery"
+            ? ["chain of custody", "time-critical", "clinical"]
+            : undefined,
   },
 }));
 

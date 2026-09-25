@@ -1,4 +1,5 @@
 import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import Container from "@/components/ui/Container";
 import CtaSection from "@/components/corporate/sections/CtaSection";
 import type { Locale } from "@/i18n/routing";
@@ -18,12 +19,15 @@ interface DeveloperDocsHubBodyProps {
   items: DocsHubItem[];
 }
 
-export default function DeveloperDocsHubBody({
+export default async function DeveloperDocsHubBody({
   locale,
   title,
   subtitle,
   items,
 }: DeveloperDocsHubBodyProps) {
+  const tCta = await getTranslations("common.cta");
+  const quoteLabel = tCta("quote");
+
   return (
     <>
       <section className="site-section bg-gray-bg">
@@ -67,7 +71,7 @@ export default function DeveloperDocsHubBody({
       <CtaSection
         title="Need integration support?"
         subtitle="Our partner engineering team helps with ERP, WMS, and webhook rollouts."
-        primaryLabel="Get a quote"
+        primaryLabel={quoteLabel}
         primaryHref={contact(locale, { from: "developers-docs" })}
         secondaryLabel="Back to developers"
         secondaryHref="/developers"

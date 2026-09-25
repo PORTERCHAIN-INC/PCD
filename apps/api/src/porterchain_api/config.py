@@ -102,6 +102,57 @@ class Settings(BaseSettings):
     driver_portal_url: str = "http://localhost:3003"
     customer_portal_url: str = "http://localhost:3004"
     website_url: str = "http://localhost:3000"
+    website_revalidate_secret: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "website_revalidate_secret",
+            "WEBSITE_REVALIDATE_SECRET",
+        ),
+        description="Shared secret for POST website /api/revalidate/blog after CMS publish.",
+    )
+    blog_media_public_base_url: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "blog_media_public_base_url",
+            "BLOG_MEDIA_PUBLIC_BASE_URL",
+        ),
+        description=(
+            "Optional CDN/origin prefix for blog media URLs (no trailing slash). "
+            "When empty, uploads return relative /v1/public/blog/media/… paths."
+        ),
+    )
+    blog_media_s3_endpoint: str = Field(
+        default="",
+        validation_alias=AliasChoices("blog_media_s3_endpoint", "BLOG_MEDIA_S3_ENDPOINT"),
+        description="S3-compatible endpoint (e.g. https://ACCOUNT.r2.cloudflarestorage.com).",
+    )
+    blog_media_s3_bucket: str = Field(
+        default="",
+        validation_alias=AliasChoices("blog_media_s3_bucket", "BLOG_MEDIA_S3_BUCKET"),
+    )
+    blog_media_s3_access_key_id: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "blog_media_s3_access_key_id",
+            "BLOG_MEDIA_S3_ACCESS_KEY_ID",
+        ),
+    )
+    blog_media_s3_secret_access_key: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "blog_media_s3_secret_access_key",
+            "BLOG_MEDIA_S3_SECRET_ACCESS_KEY",
+        ),
+    )
+    blog_media_s3_region: str = Field(
+        default="auto",
+        validation_alias=AliasChoices("blog_media_s3_region", "BLOG_MEDIA_S3_REGION"),
+    )
+    blog_media_s3_prefix: str = Field(
+        default="blog-media",
+        validation_alias=AliasChoices("blog_media_s3_prefix", "BLOG_MEDIA_S3_PREFIX"),
+        description="Object key prefix inside the bucket.",
+    )
     public_ingest_api_key: str = Field(
         default="",
         validation_alias=AliasChoices("public_ingest_api_key", "PUBLIC_INGEST_API_KEY"),

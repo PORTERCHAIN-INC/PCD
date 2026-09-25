@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import GuestTrackLookup from "@/components/portal/GuestTrackLookup";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { siteImages } from "@/data/site-images";
 import { localeStaticParams, buildPageMetadata } from "@/lib/seo/page-helpers";
@@ -24,14 +24,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function TrackPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const tCta = await getTranslations("common.cta");
 
   return (
     <CorporateShell>
-      <HeroSection
+      <MarketingHero
         badge="Tracking"
         title="Track your shipment"
         subtitle="Enter your tracking number to see status, ETA when available, and delivery confirmation."
-        primaryCta="Get a quote"
+        primaryCta={tCta("quote")}
         primaryHref="/business#pricing"
         variant="light-centered"
         clearNav

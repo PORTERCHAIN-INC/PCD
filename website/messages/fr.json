@@ -16,6 +16,15 @@
       "Porterchain"
     ]
   },
+  "common": {
+    "cta": {
+      "quote": "Obtenir une soumission",
+      "requestCapacity": "Demander de la capacité"
+    },
+    "brand": {
+      "networkLine": "Réseau de capacité de transport"
+    }
+  },
   "productTrust": {
     "eyebrow": "Voyez par vous-même",
     "title": "Devis, suivi et preuve — parcourez les écrans que les ops utilisent.",
@@ -62,10 +71,22 @@
         "ref": "PC-48291 · comptoir vers chantier",
         "status": "En route",
         "steps": {
-          "dispatched": { "title": "Réparti", "meta": "14 h 08 · véhicule confirmé" },
-          "pickup": { "title": "Au ramassage", "meta": "14 h 31 · photo quai capturée" },
-          "enRoute": { "title": "En route", "meta": "Statut partageable pour le destinataire" },
-          "eta": { "title": "Fenêtre ETA", "meta": "16 h 10–16 h 40 · mises à jour en direct" }
+          "dispatched": {
+            "title": "Réparti",
+            "meta": "14 h 08 · véhicule confirmé"
+          },
+          "pickup": {
+            "title": "Au ramassage",
+            "meta": "14 h 31 · photo quai capturée"
+          },
+          "enRoute": {
+            "title": "En route",
+            "meta": "Statut partageable pour le destinataire"
+          },
+          "eta": {
+            "title": "Fenêtre ETA",
+            "meta": "16 h 10–16 h 40 · mises à jour en direct"
+          }
         }
       },
       "pod": {
@@ -1323,31 +1344,31 @@
       },
       "vehicleFit": {
         "title": "Vehicle fit for construction delivery",
-        "description": "Pickups and vans for smaller runs and tight sites; 16 ft box trucks for palletized lumber, drywall, and bulk materials. We match capacity to weight, dimensions, and access."
+        "description": "Camionnettes et fourgons pour les petites courses et sites étroits; camions-cubes de 16 pi pour bois, gypse et matériaux palettisés. Nous adaptons la capacité au poids, aux dimensions et à l’accès."
       },
       "workflow": {
         "title": "How construction delivery works",
-        "description": "From your yard or warehouse to the job site — predictable ops end to end.",
+        "description": "De votre cour ou entrepôt au chantier — des opérations prévisibles de bout en bout.",
         "step1Title": "You share routes and site details",
-        "step1Description": "Tell us your recurring stops, jobsite zones, time windows, and any access notes. We align vehicles and capacity.",
+        "step1Description": "Indiquez vos arrêts récurrents, zones de chantier, fenêtres horaires et notes d’accès. Nous alignons véhicules et capacité.",
         "step2Title": "We pick up and deliver",
-        "step2Description": "Our drivers complete the route with tracking on every stop. Site contacts get ETA and status updates.",
+        "step2Description": "Nos chauffeurs complètent la route avec suivi à chaque arrêt. Les contacts sur place reçoivent ETA et mises à jour.",
         "step3Title": "You and your sites stay informed",
-        "step3Description": "Proof of delivery, reporting, and live status in one dashboard — no chasing drivers for updates."
+        "step3Description": "Preuve de livraison, rapports et statut en direct dans un tableau de bord — plus besoin de courir après les chauffeurs."
       },
       "coverage": {
-        "title": "Ontario coverage for construction delivery",
-        "description": "GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara, and expanding regions — same reliability in every zone."
+        "title": "Couverture en Ontario pour la livraison construction",
+        "description": "GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara et régions en expansion — même fiabilité dans chaque zone."
       },
       "onboarding": {
-        "title": "Simple onboarding for distributors and contractors",
-        "description": "Get set up for jobsite delivery without building an in-house fleet.",
+        "title": "Intégration simple pour distributeurs et entrepreneurs",
+        "description": "Démarrez la livraison chantier sans bâtir une flotte interne.",
         "step1Title": "Connect",
-        "step1Description": "Share volume, service areas, and typical materials. We align capacity and SLAs.",
+        "step1Description": "Partagez volume, zones de service et matériaux typiques. Nous alignons capacité et SLA.",
         "step2Title": "We deliver",
-        "step2Description": "Drivers run your routes with live tracking and proof of delivery on every stop.",
+        "step2Description": "Les chauffeurs exécutent vos routes avec suivi en direct et preuve de livraison à chaque arrêt.",
         "step3Title": "You stay in control",
-        "step3Description": "Track every shipment, see ETAs, and get clear reporting for ops and billing."
+        "step3Description": "Suivez chaque envoi, voyez les ETA et obtenez des rapports clairs pour les opérations et la facturation."
       },
       "faq": {
         "title": "FAQ — livraison construction",
@@ -1372,8 +1393,8 @@
         "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
-      "inquiryHeading": "Get started with construction material delivery",
-      "inquirySubheadline": "A few details and we'll match capacity and vehicles to your distributor or jobsite routes.",
+      "inquiryHeading": "Commencer avec la livraison de matériaux de construction",
+      "inquirySubheadline": "Quelques détails et nous assortissons capacité et véhicules à vos routes distributeur ou chantier.",
       "personas": {
         "label": "Pour qui",
         "title": "Conçu pour fournisseurs, entrepreneurs et équipes chantier",
@@ -1421,10 +1442,10 @@
         "subtitle": "Pour grossistes électriques, entrepreneurs électriciens, chargés de projet et contremaîtres — tournées récurrentes comptoir-chantier, capacité jour même pour fil et panneaux, et débordement de flotte avec suivi et preuve. Sur devis — demandez un devis écrit."
       },
       "painPoints": {
-        "title": "Delivery needs for electrical distributors",
-        "item1": "Hitting contractor cut-offs and job-site windows without ad-hoc couriers",
-        "item2": "Scaling delivery volume across the GTA without adding fleet or dispatch staff",
-        "item3": "Trade customers expect tracking, ETAs, and proof on every run"
+        "title": "Besoins de livraison pour distributeurs électriques",
+        "item1": "Respecter les heures limites des entrepreneurs et les fenêtres chantier sans coursiers ad hoc",
+        "item2": "Augmenter le volume dans le GTA sans ajouter de flotte ni de dispatch",
+        "item3": "Les clients du commerce exigent suivi, ETA et preuve à chaque course"
       },
       "solution": {
         "title": "Porterchain pour grossistes électriques",
@@ -1435,31 +1456,31 @@
       },
       "vehicleFit": {
         "title": "Vehicle fit for electrical supply",
-        "description": "Cars and vans for counter and small contractor runs; larger vans and trucks for palletized stock and bulk wire. Matched to your product mix and routes."
+        "description": "Autos et fourgons pour comptoir et petites courses entrepreneurs; plus grands fourgons et camions pour stock palettisé et câble en vrac. Adaptés à votre mix produits et routes."
       },
       "workflow": {
-        "title": "Typical delivery workflow for electrical distributors",
-        "description": "From your warehouse to contractors and sites — reliable and trackable.",
+        "title": "Flux de livraison typique pour distributeurs électriques",
+        "description": "De votre entrepôt aux entrepreneurs et chantiers — fiable et traçable.",
         "step1Title": "You share volume and cut-offs",
-        "step1Description": "Routes, zones, same-day cut-off times, and account types. We align capacity to your dispatch pattern.",
+        "step1Description": "Routes, zones, heures limites le jour même et types de comptes. Nous alignons la capacité sur votre rythme de dispatch.",
         "step2Title": "We pick up and deliver",
-        "step2Description": "Drivers complete runs with tracking links per shipment. Contractors see status and ETA.",
+        "step2Description": "Les chauffeurs complètent les courses avec un lien de suivi par envoi. Les entrepreneurs voient le statut et l’ETA.",
         "step3Title": "Your team stays in the loop",
-        "step3Description": "Inside sales and ops get live status, POD, and reporting without chasing drivers."
+        "step3Description": "Les ventes internes et les ops obtiennent statut en direct, POD et rapports sans courir après les chauffeurs."
       },
       "coverage": {
         "title": "Service areas for electrical delivery",
-        "description": "GTA, Hamilton, Kitchener-Waterloo, London, Niagara, and Ontario regions — consistent local ops for wholesale delivery."
+        "description": "GTA, Hamilton, Kitchener-Waterloo, London, Niagara et régions ontariennes — opérations locales cohérentes pour la livraison en gros."
       },
       "onboarding": {
         "title": "Onboarding for electrical wholesalers",
-        "description": "Live in days, not weeks — without building your own delivery fleet.",
+        "description": "En ligne en quelques jours, pas des semaines — sans bâtir votre propre flotte.",
         "step1Title": "Connect",
-        "step1Description": "Share routes, cut-offs, and service areas. We align drivers and vehicles.",
+        "step1Description": "Partagez routes, heures limites et zones de service. Nous alignons chauffeurs et véhicules.",
         "step2Title": "We deliver",
-        "step2Description": "Recurring and same-day runs with tracking and proof on every stop.",
+        "step2Description": "Courses récurrentes et le jour même avec suivi et preuve à chaque arrêt.",
         "step3Title": "You scale with confidence",
-        "step3Description": "Add volume and zones as you grow — one partner, one dashboard."
+        "step3Description": "Ajoutez volume et zones à mesure que vous grandissez — un partenaire, un tableau de bord."
       },
       "faq": {
         "title": "FAQ — livraison électrique",
@@ -1484,8 +1505,8 @@
         "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
-      "inquiryHeading": "Get started with electrical distributor delivery",
-      "inquirySubheadline": "Tell us about your routes and we'll match capacity for your wholesale delivery.",
+      "inquiryHeading": "Commencer avec la livraison pour distributeurs électriques",
+      "inquirySubheadline": "Parlez-nous de vos routes et nous assortissons la capacité pour votre livraison en gros.",
       "personas": {
         "label": "Pour qui",
         "title": "Conçu pour grossistes électriques, entrepreneurs et équipes chantier",
@@ -1534,9 +1555,9 @@
       },
       "painPoints": {
         "title": "Delivery challenges for plumbing supply",
-        "item1": "Reliable delivery to contractors without managing your own drivers",
-        "item2": "Handling pipe, fixtures, and pallet stock with the right vehicles",
-        "item3": "Customers expect tracking and on-time delivery to job sites and shops"
+        "item1": "Livraison fiable aux entrepreneurs sans gérer vos propres chauffeurs",
+        "item2": "Gérer tuyaux, appareils et palettes avec les bons véhicules",
+        "item3": "Les clients attendent suivi et ponctualité vers chantiers et ateliers"
       },
       "solution": {
         "title": "Porterchain pour grossistes plomberie",
@@ -1547,31 +1568,31 @@
       },
       "vehicleFit": {
         "title": "Vehicle fit for plumbing supply",
-        "description": "Cargo vans for pipe and fixture runs; box trucks for palletized stock and larger orders. Sized for your typical wholesale freight."
+        "description": "Fourgons cargo pour tuyaux et appareils; camions-cubes pour stock palettisé et commandes plus larges. Dimensionnés pour votre fret de gros typique."
       },
       "workflow": {
         "title": "How plumbing supply delivery works",
-        "description": "From your warehouse to contractors — simple and predictable.",
+        "description": "De votre entrepôt aux entrepreneurs — simple et prévisible.",
         "step1Title": "You share routes and volume",
-        "step1Description": "Stops per day, zones, time windows, and product types. We align vehicles and drivers.",
+        "step1Description": "Arrêts par jour, zones, fenêtres horaires et types de produits. Nous alignons véhicules et chauffeurs.",
         "step2Title": "We pick up and deliver",
-        "step2Description": "Drivers complete routes with tracking per shipment. Contractors get ETA updates.",
+        "step2Description": "Les chauffeurs complètent les routes avec suivi par envoi. Les entrepreneurs reçoivent les mises à jour ETA.",
         "step3Title": "You keep visibility",
-        "step3Description": "Ops and counter staff see live status, POD, and clear reporting."
+        "step3Description": "Les ops et le personnel au comptoir voient le statut en direct, le POD et des rapports clairs."
       },
       "coverage": {
         "title": "Ontario coverage for plumbing delivery",
-        "description": "GTA, Hamilton, Kitchener-Waterloo, and surrounding regions — local ops for wholesale plumbing supply."
+        "description": "GTA, Hamilton, Kitchener-Waterloo et régions environnantes — opérations locales pour la plomberie en gros."
       },
       "onboarding": {
         "title": "Onboarding for plumbing wholesalers",
-        "description": "Start delivering with Porterchain in days — no fleet to build.",
+        "description": "Commencez à livrer avec Porterchain en quelques jours — aucune flotte à bâtir.",
         "step1Title": "Connect",
-        "step1Description": "Share your routes, volume, and service areas.",
+        "step1Description": "Partagez vos routes, votre volume et vos zones de service.",
         "step2Title": "We deliver",
-        "step2Description": "Recurring and on-demand runs with full tracking.",
+        "step2Description": "Courses récurrentes et à la demande avec suivi complet.",
         "step3Title": "You grow",
-        "step3Description": "Scale routes and zones with one capacity partner."
+        "step3Description": "Élargissez routes et zones avec un seul partenaire de capacité."
       },
       "faq": {
         "title": "FAQ — livraison plomberie",
@@ -1596,8 +1617,8 @@
         "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
-      "inquiryHeading": "Get started with plumbing supply delivery",
-      "inquirySubheadline": "Share your delivery patterns and we'll align capacity for your wholesale routes.",
+      "inquiryHeading": "Commencer avec la livraison pour fournitures de plomberie",
+      "inquirySubheadline": "Partagez vos schémas de livraison et nous alignons la capacité pour vos routes de gros.",
       "personas": {
         "label": "Pour qui",
         "title": "Conçu pour grossistes plomberie, entrepreneurs et équipes chantier",
@@ -2335,54 +2356,54 @@
     "regions": {
       "gta": {
         "label": "Greater Toronto Area",
-        "description": "Core GTA — construction jobsite, wholesale counter, and intra-city logistics across Toronto, Peel, and York."
+        "description": "Cœur du GTA — chantiers construction, comptoir de gros et logistique intra-ville à Toronto, Peel et York."
       },
       "peelHalton": {
         "label": "Halton & west GTA",
-        "description": "Warehouse corridors and industrial parks — van and box truck capacity for distributors."
+        "description": "Corridors d’entrepôts et parcs industriels — capacité fourgon et camion-cube pour distributeurs."
       },
       "durham": {
         "label": "Durham Region",
-        "description": "East GTA — construction, industrial, and recurring B2B lanes."
+        "description": "Est du GTA — construction, industriel et corridors B2B récurrents."
       },
       "southwest": {
         "label": "Southwestern Ontario",
-        "description": "Kitchener–Waterloo, Hamilton, London, Cambridge, and Guelph — manufacturing, food, and medical freight."
+        "description": "Kitchener–Waterloo, Hamilton, London, Cambridge et Guelph — fret fabrication, alimentaire et médical."
       },
       "niagara": {
         "label": "Niagara",
-        "description": "St. Catharines and Niagara Region — trade, food, and distribution."
+        "description": "St. Catharines et région de Niagara — métiers, alimentaire et distribution."
       }
     },
     "cities": {
       "toronto": {
         "title": "Toronto",
-        "tagline": "GTA core — same-day B2B, jobsite, and wholesale routes",
+        "tagline": "Cœur du GTA — routes B2B le jour même, chantiers et gros",
         "region": "GTA"
       },
       "mississauga": {
         "title": "Mississauga",
-        "tagline": "Pearson corridor distribution & fleet overflow",
+        "tagline": "Distribution corridor Pearson et débordement de flotte",
         "region": "Peel"
       },
       "brampton": {
         "title": "Brampton",
-        "tagline": "Warehouse hub — pallet and multi-stop freight",
+        "tagline": "Pôle entrepôts — fret palettes et multi-arrêts",
         "region": "Peel"
       },
       "vaughan": {
         "title": "Vaughan",
-        "tagline": "Industrial and trade distribution across York",
+        "tagline": "Distribution industrielle et métiers à travers York",
         "region": "York"
       },
       "markham": {
         "title": "Markham",
-        "tagline": "Tech corridor B2B and recurring replenishment",
+        "tagline": "Corridor tech B2B et réapprovisionnement récurrent",
         "region": "York"
       },
       "oakville": {
         "title": "Oakville",
-        "tagline": "Halton B2B and suburban multi-stop routes",
+        "tagline": "B2B Halton et routes multi-arrêts en banlieue",
         "region": "Halton"
       },
       "burlington": {
@@ -2392,7 +2413,7 @@
       },
       "oshawa": {
         "title": "Oshawa",
-        "tagline": "Durham construction and industrial delivery",
+        "tagline": "Livraison construction et industrielle Durham",
         "region": "Durham"
       },
       "kitchener-waterloo": {
@@ -2447,19 +2468,19 @@
       "items": {
         "0": {
           "title": "Same-day & urgent",
-          "description": "Emergency freight when your fleet cannot cover the lane."
+          "description": "Fret d’urgence lorsque votre flotte ne peut pas couvrir la voie."
         },
         "1": {
           "title": "Recurring routes",
-          "description": "Fixed multi-stop programs with predictable capacity."
+          "description": "Programmes multi-arrêts fixes avec capacité prévisible."
         },
         "2": {
           "title": "Vehicle-matched",
-          "description": "Sedan through box truck — matched to weight and access."
+          "description": "De la berline au camion-cube — assorti au poids et à l’accès."
         },
         "3": {
           "title": "Proof every stop",
-          "description": "Photo, signature, GPS, and shareable tracking."
+          "description": "Photo, signature, GPS et suivi partageable."
         }
       }
     },
@@ -2473,20 +2494,20 @@
       "title": "Service areas FAQ",
       "items": {
         "0": {
-          "q": "Do you offer same-day delivery in every city?",
-          "a": "Same-day is available across listed metros subject to cut-off, vehicle class, and capacity. See each city page for local detail."
+          "q": "Offrez-vous la livraison le jour même dans chaque ville ?",
+          "a": "La livraison le jour même est disponible dans les métropoles listées selon l’heure limite, la classe de véhicule et la capacité. Voir chaque page ville pour le détail local."
         },
         "1": {
-          "q": "How do I confirm coverage for my postal codes?",
-          "a": "Request a quote with your zones — we confirm within one business day."
+          "q": "Comment confirmer la couverture pour mes codes postaux ?",
+          "a": "Demandez une soumission avec vos zones — nous confirmons en un jour ouvrable."
         },
         "2": {
-          "q": "Can I start with one city and expand?",
-          "a": "Yes. Most customers pilot one metro before adding recurring routes."
+          "q": "Puis-je commencer par une ville puis m’étendre ?",
+          "a": "Oui. La plupart des clients testent une métropole avant d’ajouter des routes récurrentes."
         },
         "3": {
-          "q": "What industries run in these cities?",
-          "a": "Construction, wholesale, medical, food, e-commerce, and manufacturing — see industries and solutions hubs."
+          "q": "Quels secteurs desservez-vous ?",
+          "a": "Construction, gros, médical, alimentation, e-commerce et fabrication — voir les hubs industries et solutions."
         }
       }
     },
@@ -4298,47 +4319,47 @@
       },
       "solution": {
         "title": "Porterchain for construction materials",
-        "description": "One partner for distributor runs and jobsite delivery across Ontario. Local drivers, vehicles matched to pallet weight and site access, and full tracking from warehouse to site.",
-        "bullet1": "Scheduled and same-day routes for distributors, yards, and job sites",
-        "bullet2": "Pickups, cargo vans, and 16 ft box trucks for materials and pallet freight",
-        "bullet3": "Photo proof, signatures, and tracking links for every shipment"
+        "description": "Un partenaire pour les courses distributeur et la livraison chantier partout en Ontario. Chauffeurs locaux, véhicules adaptés au poids des palettes et à l’accès site, suivi complet de l’entrepôt au chantier.",
+        "bullet1": "Routes planifiées et le jour même pour distributeurs, cours et chantiers",
+        "bullet2": "Camionnettes, fourgons cargo et camions-cubes de 16 pi pour matériaux et fret palettisé",
+        "bullet3": "Preuve photo, signatures et liens de suivi pour chaque envoi"
       },
       "vehicleFit": {
         "title": "Vehicle fit for construction delivery",
-        "description": "Pickups and vans for smaller runs and tight sites; 16 ft box trucks for palletized lumber, drywall, and bulk materials. We match capacity to weight, dimensions, and access."
+        "description": "Camionnettes et fourgons pour les petites courses et sites étroits; camions-cubes de 16 pi pour bois, gypse et matériaux palettisés. Nous adaptons la capacité au poids, aux dimensions et à l’accès."
       },
       "workflow": {
         "title": "How construction delivery works",
-        "description": "From your yard or warehouse to the job site — predictable ops end to end.",
+        "description": "De votre cour ou entrepôt au chantier — des opérations prévisibles de bout en bout.",
         "step1Title": "You share routes and site details",
-        "step1Description": "Tell us your recurring stops, jobsite zones, time windows, and any access notes. We align vehicles and capacity.",
+        "step1Description": "Indiquez vos arrêts récurrents, zones de chantier, fenêtres horaires et notes d’accès. Nous alignons véhicules et capacité.",
         "step2Title": "We pick up and deliver",
-        "step2Description": "Our drivers complete the route with tracking on every stop. Site contacts get ETA and status updates.",
+        "step2Description": "Nos chauffeurs complètent la route avec suivi à chaque arrêt. Les contacts sur place reçoivent ETA et mises à jour.",
         "step3Title": "You and your sites stay informed",
-        "step3Description": "Proof of delivery, reporting, and live status in one dashboard — no chasing drivers for updates."
+        "step3Description": "Preuve de livraison, rapports et statut en direct dans un tableau de bord — plus besoin de courir après les chauffeurs."
       },
       "coverage": {
-        "title": "Ontario coverage for construction delivery",
-        "description": "GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara, and expanding regions — same reliability in every zone."
+        "title": "Couverture en Ontario pour la livraison construction",
+        "description": "GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara et régions en expansion — même fiabilité dans chaque zone."
       },
       "onboarding": {
-        "title": "Simple onboarding for distributors and contractors",
-        "description": "Get set up for jobsite delivery without building an in-house fleet.",
+        "title": "Intégration simple pour distributeurs et entrepreneurs",
+        "description": "Démarrez la livraison chantier sans bâtir une flotte interne.",
         "step1Title": "Connect",
-        "step1Description": "Share volume, service areas, and typical materials. We align capacity and SLAs.",
+        "step1Description": "Partagez volume, zones de service et matériaux typiques. Nous alignons capacité et SLA.",
         "step2Title": "We deliver",
-        "step2Description": "Drivers run your routes with live tracking and proof of delivery on every stop.",
+        "step2Description": "Les chauffeurs exécutent vos routes avec suivi en direct et preuve de livraison à chaque arrêt.",
         "step3Title": "You stay in control",
-        "step3Description": "Track every shipment, see ETAs, and get clear reporting for ops and billing."
+        "step3Description": "Suivez chaque envoi, voyez les ETA et obtenez des rapports clairs pour les opérations et la facturation."
       },
       "faq": {
-        "title": "Frequently asked questions — construction delivery",
-        "q1": "Do you deliver to job sites and trade customers?",
-        "a1": "Yes. We deliver to job sites, contractors, and trade accounts from distributors and yards. Share zones and access requirements and we'll confirm coverage.",
-        "q2": "What vehicles do you use for building materials?",
-        "a2": "Pickups and vans for smaller loads; 16 ft box trucks for palletized freight. We match the vehicle to your materials and site access.",
+        "title": "Questions fréquentes — livraison construction",
+        "q1": "Livrez-vous aux chantiers et aux clients du commerce ?",
+        "a1": "Oui. Nous livrons aux chantiers, entrepreneurs et comptes professionnels depuis distributeurs et cours. Partagez zones et exigences d’accès et nous confirmons la couverture.",
+        "q2": "Quels véhicules utilisez-vous pour les matériaux de construction ?",
+        "a2": "Camionnettes et fourgons pour petites charges; camions-cubes de 16 pi pour fret palettisé. Nous assortissons le véhicule à vos matériaux et à l’accès du site.",
         "q3": "Do you provide proof of delivery?",
-        "a3": "Every shipment includes photo proof, signatures where needed, and a shareable tracking link with real-time status."
+        "a3": "Chaque envoi inclut preuve photo, signatures au besoin, et un lien de suivi partageable avec statut en temps réel."
       },
       "cta": {
         "title": "Prêt pour une livraison fiable de matériaux de construction?",
@@ -4346,8 +4367,8 @@
         "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
-      "inquiryHeading": "Get started with construction material delivery",
-      "inquirySubheadline": "A few details and we'll match capacity and vehicles to your distributor or jobsite routes."
+      "inquiryHeading": "Commencer avec la livraison de matériaux de construction",
+      "inquirySubheadline": "Quelques détails et nous assortissons capacité et véhicules à vos routes distributeur ou chantier."
     },
     "electricalDistribution": {
       "meta": {
@@ -4359,54 +4380,54 @@
         "subtitle": "Partenaire dernier kilomètre pour grossistes électriques. Tournées récurrentes vers entrepreneurs et chantiers, avec suivi sur chaque envoi."
       },
       "painPoints": {
-        "title": "Delivery needs for electrical distributors",
-        "item1": "Hitting contractor cut-offs and job-site windows without ad-hoc couriers",
-        "item2": "Scaling delivery volume across the GTA without adding fleet or dispatch staff",
-        "item3": "Trade customers expect tracking, ETAs, and proof on every run"
+        "title": "Besoins de livraison pour distributeurs électriques",
+        "item1": "Respecter les heures limites des entrepreneurs et les fenêtres chantier sans coursiers ad hoc",
+        "item2": "Augmenter le volume dans le GTA sans ajouter de flotte ni de dispatch",
+        "item3": "Les clients du commerce exigent suivi, ETA et preuve à chaque course"
       },
       "solution": {
         "title": "Porterchain for electrical wholesalers",
-        "description": "One partner for counter, contractor, and jobsite delivery. Local drivers, flexible vehicles, and a single dashboard for ops and customer visibility.",
-        "bullet1": "Recurring routes and same-day capacity for wire, panel, and equipment",
-        "bullet2": "Cars, vans, and trucks sized for your typical electrical freight",
-        "bullet3": "Live tracking and proof of delivery for contractors and inside sales"
+        "description": "Un partenaire pour comptoir, entrepreneurs et chantiers. Chauffeurs locaux, véhicules flexibles, et un seul tableau de bord pour les ops et la visibilité client.",
+        "bullet1": "Routes récurrentes et capacité le jour même pour câble, panneaux et équipement",
+        "bullet2": "Autos, fourgons et camions dimensionnés pour votre fret électrique typique",
+        "bullet3": "Suivi en direct et preuve de livraison pour entrepreneurs et ventes internes"
       },
       "vehicleFit": {
         "title": "Vehicle fit for electrical supply",
-        "description": "Cars and vans for counter and small contractor runs; larger vans and trucks for palletized stock and bulk wire. Matched to your product mix and routes."
+        "description": "Autos et fourgons pour comptoir et petites courses entrepreneurs; plus grands fourgons et camions pour stock palettisé et câble en vrac. Adaptés à votre mix produits et routes."
       },
       "workflow": {
-        "title": "Typical delivery workflow for electrical distributors",
-        "description": "From your warehouse to contractors and sites — reliable and trackable.",
+        "title": "Flux de livraison typique pour distributeurs électriques",
+        "description": "De votre entrepôt aux entrepreneurs et chantiers — fiable et traçable.",
         "step1Title": "You share volume and cut-offs",
-        "step1Description": "Routes, zones, same-day cut-off times, and account types. We align capacity to your dispatch pattern.",
+        "step1Description": "Routes, zones, heures limites le jour même et types de comptes. Nous alignons la capacité sur votre rythme de dispatch.",
         "step2Title": "We pick up and deliver",
-        "step2Description": "Drivers complete runs with tracking links per shipment. Contractors see status and ETA.",
+        "step2Description": "Les chauffeurs complètent les courses avec un lien de suivi par envoi. Les entrepreneurs voient le statut et l’ETA.",
         "step3Title": "Your team stays in the loop",
-        "step3Description": "Inside sales and ops get live status, POD, and reporting without chasing drivers."
+        "step3Description": "Les ventes internes et les ops obtiennent statut en direct, POD et rapports sans courir après les chauffeurs."
       },
       "coverage": {
         "title": "Service areas for electrical delivery",
-        "description": "GTA, Hamilton, Kitchener-Waterloo, London, Niagara, and Ontario regions — consistent local ops for wholesale delivery."
+        "description": "GTA, Hamilton, Kitchener-Waterloo, London, Niagara et régions ontariennes — opérations locales cohérentes pour la livraison en gros."
       },
       "onboarding": {
         "title": "Onboarding for electrical wholesalers",
-        "description": "Live in days, not weeks — without building your own delivery fleet.",
+        "description": "En ligne en quelques jours, pas des semaines — sans bâtir votre propre flotte.",
         "step1Title": "Connect",
-        "step1Description": "Share routes, cut-offs, and service areas. We align drivers and vehicles.",
+        "step1Description": "Partagez routes, heures limites et zones de service. Nous alignons chauffeurs et véhicules.",
         "step2Title": "We deliver",
-        "step2Description": "Recurring and same-day runs with tracking and proof on every stop.",
+        "step2Description": "Courses récurrentes et le jour même avec suivi et preuve à chaque arrêt.",
         "step3Title": "You scale with confidence",
-        "step3Description": "Add volume and zones as you grow — one partner, one dashboard."
+        "step3Description": "Ajoutez volume et zones à mesure que vous grandissez — un partenaire, un tableau de bord."
       },
       "faq": {
-        "title": "Frequently asked questions — electrical delivery",
-        "q1": "Do you work with electrical wholesalers and distributors?",
-        "a1": "Yes. We run recurring and same-day delivery for electrical supply houses and distributors across our Ontario service areas.",
+        "title": "Questions fréquentes — livraison électrique",
+        "q1": "Travaillez-vous avec grossistes et distributeurs électriques ?",
+        "a1": "Oui. Nous assurons des livraisons récurrentes et le jour même pour les maisons de fournitures électriques et distributeurs dans nos zones en Ontario.",
         "q2": "Can you meet same-day cut-offs?",
-        "a2": "Same-day is available subject to cut-off times and capacity. We confirm windows when we set up your account.",
+        "a2": "Le jour même est disponible selon heures limites et capacité. Nous confirmons les fenêtres à l’ouverture du compte.",
         "q3": "How do contractors track deliveries?",
-        "a3": "Every shipment has a tracking link with live status and ETA — share it with contractors or site contacts."
+        "a3": "Chaque envoi a un lien de suivi avec statut et ETA en direct — partagez-le avec entrepreneurs ou contacts sur place."
       },
       "cta": {
         "title": "Prêt pour la livraison distribution électrique?",
@@ -4414,8 +4435,8 @@
         "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
-      "inquiryHeading": "Get started with electrical distributor delivery",
-      "inquirySubheadline": "Tell us about your routes and we'll match capacity for your wholesale delivery."
+      "inquiryHeading": "Commencer avec la livraison pour distributeurs électriques",
+      "inquirySubheadline": "Parlez-nous de vos routes et nous assortissons la capacité pour votre livraison en gros."
     },
     "plumbingSupply": {
       "meta": {
@@ -4428,53 +4449,53 @@
       },
       "painPoints": {
         "title": "Delivery challenges for plumbing supply",
-        "item1": "Reliable delivery to contractors without managing your own drivers",
-        "item2": "Handling pipe, fixtures, and pallet stock with the right vehicles",
-        "item3": "Customers expect tracking and on-time delivery to job sites and shops"
+        "item1": "Livraison fiable aux entrepreneurs sans gérer vos propres chauffeurs",
+        "item2": "Gérer tuyaux, appareils et palettes avec les bons véhicules",
+        "item3": "Les clients attendent suivi et ponctualité vers chantiers et ateliers"
       },
       "solution": {
         "title": "Porterchain for plumbing wholesalers",
-        "description": "One partner for trade delivery across your service area. Vans and trucks for pipe and fixtures, recurring routes aligned to your dispatch rhythm.",
-        "bullet1": "Recurring routes to contractors, renovators, and commercial accounts",
-        "bullet2": "Vans and box trucks for pipe, fixtures, and palletized inventory",
-        "bullet3": "Tracking and proof of delivery on every stop"
+        "description": "Un partenaire pour la livraison aux métiers dans votre zone. Fourgons et camions pour tuyaux et appareils, routes récurrentes alignées sur votre rythme de dispatch.",
+        "bullet1": "Routes récurrentes vers entrepreneurs, rénovateurs et comptes commerciaux",
+        "bullet2": "Fourgons et camions-cubes pour tuyaux, appareils et inventaire palettisé",
+        "bullet3": "Suivi et preuve de livraison à chaque arrêt"
       },
       "vehicleFit": {
         "title": "Vehicle fit for plumbing supply",
-        "description": "Cargo vans for pipe and fixture runs; box trucks for palletized stock and larger orders. Sized for your typical wholesale freight."
+        "description": "Fourgons cargo pour tuyaux et appareils; camions-cubes pour stock palettisé et commandes plus larges. Dimensionnés pour votre fret de gros typique."
       },
       "workflow": {
         "title": "How plumbing supply delivery works",
-        "description": "From your warehouse to contractors — simple and predictable.",
+        "description": "De votre entrepôt aux entrepreneurs — simple et prévisible.",
         "step1Title": "You share routes and volume",
-        "step1Description": "Stops per day, zones, time windows, and product types. We align vehicles and drivers.",
+        "step1Description": "Arrêts par jour, zones, fenêtres horaires et types de produits. Nous alignons véhicules et chauffeurs.",
         "step2Title": "We pick up and deliver",
-        "step2Description": "Drivers complete routes with tracking per shipment. Contractors get ETA updates.",
+        "step2Description": "Les chauffeurs complètent les routes avec suivi par envoi. Les entrepreneurs reçoivent les mises à jour ETA.",
         "step3Title": "You keep visibility",
-        "step3Description": "Ops and counter staff see live status, POD, and clear reporting."
+        "step3Description": "Les ops et le personnel au comptoir voient le statut en direct, le POD et des rapports clairs."
       },
       "coverage": {
         "title": "Ontario coverage for plumbing delivery",
-        "description": "GTA, Hamilton, Kitchener-Waterloo, and surrounding regions — local ops for wholesale plumbing supply."
+        "description": "GTA, Hamilton, Kitchener-Waterloo et régions environnantes — opérations locales pour la plomberie en gros."
       },
       "onboarding": {
         "title": "Onboarding for plumbing wholesalers",
-        "description": "Start delivering with Porterchain in days — no fleet to build.",
+        "description": "Commencez à livrer avec Porterchain en quelques jours — aucune flotte à bâtir.",
         "step1Title": "Connect",
-        "step1Description": "Share your routes, volume, and service areas.",
+        "step1Description": "Partagez vos routes, votre volume et vos zones de service.",
         "step2Title": "We deliver",
-        "step2Description": "Recurring and on-demand runs with full tracking.",
+        "step2Description": "Courses récurrentes et à la demande avec suivi complet.",
         "step3Title": "You grow",
-        "step3Description": "Scale routes and zones with one capacity partner."
+        "step3Description": "Élargissez routes et zones avec un seul partenaire de capacité."
       },
       "faq": {
-        "title": "Frequently asked questions — plumbing supply delivery",
+        "title": "Questions fréquentes — livraison fournitures de plomberie",
         "q1": "Do you deliver for plumbing wholesalers?",
-        "a1": "Yes. We support plumbing supply houses with recurring and same-day delivery to contractors and trade accounts.",
+        "a1": "Oui. Nous soutenons les maisons de plomberie avec des livraisons récurrentes et le jour même vers entrepreneurs et comptes professionnels.",
         "q2": "Can you handle pipe and long stock?",
-        "a2": "We use vans and trucks suited to your freight. Share dimensions and weight for specialty runs.",
+        "a2": "Nous utilisons fourgons et camions adaptés à votre fret. Partagez dimensions et poids pour les courses spéciales.",
         "q3": "Do you offer proof of delivery?",
-        "a3": "Yes — photo proof, signatures, and tracking links on every shipment."
+        "a3": "Oui — preuve photo, signatures et liens de suivi à chaque envoi."
       },
       "cta": {
         "title": "Prêt pour la livraison fournitures plomberie?",
@@ -4482,8 +4503,8 @@
         "primary": "Obtenir un devis",
         "secondary": "Contactez-nous"
       },
-      "inquiryHeading": "Get started with plumbing supply delivery",
-      "inquirySubheadline": "Share your delivery patterns and we'll align capacity for your wholesale routes."
+      "inquiryHeading": "Commencer avec la livraison pour fournitures de plomberie",
+      "inquirySubheadline": "Partagez vos schémas de livraison et nous alignons la capacité pour vos routes de gros."
     }
   },
   "links": {

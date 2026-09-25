@@ -8,7 +8,9 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.platform_settings import document_allowed_types, document_max_bytes
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
+from porterchain_api.config import Settings, get_settings
 from porterchain_api.content_engine.blog_media import save_blog_image
+from porterchain_api.content_engine.blog_revalidate import notify_blog_revalidate
 from porterchain_api.db import get_db
 from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
 from porterchain_api.routers.admin._deps import (
@@ -27,6 +29,15 @@ _IMAGE_EXT = frozenset({"jpg", "jpeg", "png", "webp", "gif"})
 
 def _serialize(record) -> BlogPostItem:
     return BlogPostItem(**_blog.serialize(record, include_body=True))
+
+
+def _bump_website(settings: Settings, record) -> None:
+    """Invalidate website blog cache after CMS mutations."""
+    notify_blog_revalidate(
+        settings,
+        locale=getattr(record, "locale", None),
+        slug=getattr(record, "slug", None),
+    )
 
 
 @router.get("/blog/posts", response_model=list[BlogPostItem])
@@ -96,6 +107,7 @@ def create_blog_post(
     body: BlogPostCreateRequest,
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
     db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> BlogPostItem:
     try:
         require_module(ctx, "content")
@@ -133,6 +145,7 @@ def create_blog_post(
         resource_id=record.id,
         payload={"slug": record.slug, "locale": record.locale, "status": record.status},
     )
+    _bump_website(settings, record)
     return _serialize(record)
 
 
@@ -142,6 +155,7 @@ def update_blog_post(
     body: BlogPostUpdateRequest,
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
     db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> BlogPostItem:
     try:
         require_module(ctx, "content")
@@ -183,6 +197,7 @@ def update_blog_post(
         resource_id=post_id,
         payload=body.model_dump(exclude_unset=True),
     )
+    _bump_website(settings, record)
     return _serialize(record)
 
 
@@ -191,11 +206,16 @@ def delete_blog_post(
     post_id: str,
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
     db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> None:
     try:
         require_module(ctx, "content")
     except PermissionError as exc:
         _perm(exc)
+    record = _blog.get_post(db, post_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="blog_post_not_found")
+    locale, slug = record.locale, record.slug
     try:
         _blog.delete_post(db, post_id)
     except LookupError:
@@ -207,3 +227,4 @@ def delete_blog_post(
         resource_type="blog_post",
         resource_id=post_id,
     )
+    notify_blog_revalidate(settings, locale=locale, slug=slug)

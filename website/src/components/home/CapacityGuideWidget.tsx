@@ -5,16 +5,10 @@ import { useEffect, useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import CapacityGuideChat from "@/components/home/CapacityGuideChat";
 import { usePathname } from "@/i18n/navigation";
+import { isCapacityGuideFabHidden } from "@/lib/capacity-guide-fab";
 import { OPEN_LOGISTICS_CHAT_EVENT } from "@/lib/home/open-logistics-chat";
 import { ANALYTICS_EVENTS, track } from "@/lib/seo/analytics";
 import { cn } from "@/lib/utils";
-
-/** Routes where the floating launcher is hidden (inline chat or auth). */
-function shouldHideLauncher(pathname: string): boolean {
-  if (pathname === "/" || pathname === "") return true;
-  if (pathname.startsWith("/login")) return true;
-  return false;
-}
 
 /**
  * Site-wide Logistics line — FAB + panel on every page except home (inline) and login.
@@ -27,7 +21,7 @@ export default function CapacityGuideWidget() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const hidden = shouldHideLauncher(pathname);
+  const hidden = isCapacityGuideFabHidden(pathname);
 
   useEffect(() => {
     if (hidden) setOpen(false);

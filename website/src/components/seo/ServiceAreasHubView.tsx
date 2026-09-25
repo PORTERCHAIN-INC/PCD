@@ -3,7 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { MapPin } from "lucide-react";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import FaqSection from "@/components/corporate/sections/FaqSection";
@@ -40,7 +40,7 @@ export default async function ServiceAreasHubView({ locale: _locale }: ServiceAr
     <>
       <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: t("breadcrumb") }]} />
       <SolutionsTabNav />
-      <HeroSection
+      <MarketingHero
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}

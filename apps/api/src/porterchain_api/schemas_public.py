@@ -124,6 +124,7 @@ class PublicBlogPostMeta(BaseModel):
     tags: list[str] = Field(default_factory=list)
     cover_image_url: str | None = None
     published_at: str | None = None
+    reading_minutes: int = 1
     created_at: datetime
     updated_at: datetime
 

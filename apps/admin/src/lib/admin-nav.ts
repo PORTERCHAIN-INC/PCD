@@ -10,6 +10,8 @@ import {
   Headphones,
   HeartPulse,
   LayoutDashboard,
+  Mail,
+  MessageSquare,
   Newspaper,
   Package,
   Settings,
@@ -34,6 +36,8 @@ export type AdminNavGroup = {
 };
 
 export const DRIVER_LEAD_SOURCE = "website_driver_partner";
+export const WEBSITE_CONTACT_LEAD_SOURCE = "website_contact";
+export const WEBSITE_NEWSLETTER_LEAD_SOURCE = "website_newsletter";
 
 /**
  * Admin primary nav — ordered by daily ops workflow.
@@ -131,6 +135,18 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         label: "Driver Applications",
         description: "Vehicle partner applications",
         icon: HardHat,
+      },
+      {
+        href: `/leads?source=${WEBSITE_CONTACT_LEAD_SOURCE}`,
+        label: "Contact Form",
+        description: "Website /contact inquiries",
+        icon: MessageSquare,
+      },
+      {
+        href: `/leads?source=${WEBSITE_NEWSLETTER_LEAD_SOURCE}`,
+        label: "Newsletter",
+        description: "Blog + footer subscriptions",
+        icon: Mail,
       },
       {
         href: "/blog",

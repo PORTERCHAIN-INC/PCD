@@ -8,6 +8,7 @@ import type { CTAVariantConfig } from "./types";
 import { NICHE_SLUGS } from "../niche-landing";
 import { SERVICE_AREA_SLUGS } from "../service-areas";
 import { CAMPAIGN_SLUGS } from "../campaign-landing";
+import { isDraftNicheSlug } from "../content/draft-expansions";
 
 const DEFAULT_CTA: CTAVariantConfig = {
   variantKey: "default",
@@ -17,7 +18,9 @@ const DEFAULT_CTA: CTAVariantConfig = {
   },
 };
 
-const INDUSTRY_CTA_VARIANTS: CTAVariantConfig[] = NICHE_SLUGS.map((slug) => ({
+const INDUSTRY_CTA_VARIANTS: CTAVariantConfig[] = NICHE_SLUGS.filter(
+  (slug) => !isDraftNicheSlug(slug)
+).map((slug) => ({
   variantKey: `industry-${slug}`,
   context: "industry",
   entitySlug: slug,

@@ -9,6 +9,7 @@ import type { FAQVariantConfig } from "./types";
 import { NICHE_SLUGS } from "../niche-landing";
 import { SERVICE_AREA_SLUGS } from "../service-areas";
 import { CAMPAIGN_SLUGS } from "../campaign-landing";
+import { isDraftNicheSlug } from "../content/draft-expansions";
 
 /** Standard number of FAQ items per page (matches current message shape: q1/q2/q3, a1/a2/a3). */
 const DEFAULT_FAQ_ITEM_COUNT = 3;
@@ -24,7 +25,9 @@ const DEFAULT_FAQ: FAQVariantConfig = {
 };
 
 /** Industry-specific FAQ variants (nicheLanding.<messageKey>.faq). */
-const INDUSTRY_FAQ_VARIANTS: FAQVariantConfig[] = NICHE_SLUGS.map((slug) => ({
+const INDUSTRY_FAQ_VARIANTS: FAQVariantConfig[] = NICHE_SLUGS.filter(
+  (slug) => !isDraftNicheSlug(slug)
+).map((slug) => ({
   variantKey: `industry-${slug}`,
   context: "industry",
   entitySlug: slug,

@@ -233,6 +233,7 @@ export default function CapacityProductTrust({
   className,
 }: Props) {
   const t = useTranslations("productTrust");
+  const tCta = useTranslations("common.cta");
   const reduce = useReducedMotion();
   const [active, setActive] = useState<PanelKey>("quote");
   const quoteHref = `/sign-up?intent=quote&from=${from}-product-trust`;
@@ -353,7 +354,7 @@ export default function CapacityProductTrust({
                 : "bg-secondary text-white hover:bg-[#1d4ed8]"
             )}
           >
-            {t("cta")}
+            {tCta("quote")}
           </Link>
           <p className={cn("mt-3 text-sm", tone === "ink" ? "text-white/55" : "text-muted")}>
             {t("ctaHint")}

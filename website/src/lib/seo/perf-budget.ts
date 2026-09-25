@@ -5,7 +5,10 @@
 
 export const PERF_BUDGET_INP_GOOD_MS = 200;
 export const PERF_BUDGET_INP_POOR_MS = 500;
+/** Default CWV “good” LCP. */
 export const PERF_BUDGET_LCP_GOOD_MS = 2500;
+/** Marketing hub + editorial blog target (plan edge-fast). */
+export const PERF_BUDGET_LCP_MARKETING_MS = 1000;
 export const PERF_BUDGET_CLS_GOOD = 0.1;
 
 export type PageRouteClass = "business" | "matrix" | "other";
@@ -74,4 +77,10 @@ export function isOverPerfBudget(metricName: "INP" | "LCP" | "CLS", value: numbe
   if (metricName === "INP") return value > PERF_BUDGET_INP_GOOD_MS;
   if (metricName === "LCP") return value > PERF_BUDGET_LCP_GOOD_MS;
   return value > PERF_BUDGET_CLS_GOOD;
+}
+
+/** Stricter LCP check for hub/blog (business + other); matrix keeps CWV default. */
+export function isOverMarketingLcpBudget(routeClass: PageRouteClass, lcpMs: number): boolean {
+  if (routeClass === "matrix") return lcpMs > PERF_BUDGET_LCP_GOOD_MS;
+  return lcpMs > PERF_BUDGET_LCP_MARKETING_MS;
 }

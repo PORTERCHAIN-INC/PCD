@@ -28,6 +28,7 @@ function isNavPathActive(pathname: string, href: string) {
 
 export default function SiteNavbar() {
   const t = useTranslations("corporate.nav");
+  const tCta = useTranslations("common.cta");
   const locale = useLocale();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
@@ -58,7 +59,7 @@ export default function SiteNavbar() {
   }, [pathname]);
 
   const quoteHref = "/sign-up?intent=quote&from=nav";
-  const quoteLabel = t("bookNow");
+  const quoteLabel = tCta("quote");
   const quoteExternal = false;
 
   const linkClass = (active?: boolean) =>

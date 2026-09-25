@@ -1,23 +1,14 @@
-import { z } from "zod";
+import {
+  BLOG_CATEGORIES,
+  BLOG_LOCALES,
+  BLOG_STATUSES,
+  adminBlogPostSchema,
+  type AdminBlogPost,
+} from "@porterchain/types";
 import { adminFetch } from "@/lib/api";
 
-export const BLOG_STATUSES = ["draft", "published", "archived"] as const;
-export const BLOG_LOCALES = ["en", "fr"] as const;
-export const BLOG_CATEGORIES = [
-  "logistics",
-  "technology",
-  "business",
-  "route-optimization",
-  "supply-chain",
-  "same-day-delivery",
-  "wholesale",
-  "construction",
-  "medical",
-  "retail",
-  "coffee",
-] as const;
-
-export type BlogPost = z.infer<typeof blogPostSchema>;
+export { BLOG_CATEGORIES, BLOG_LOCALES, BLOG_STATUSES };
+export type BlogPost = AdminBlogPost;
 export type BlogPostInput = {
   slug: string;
   locale: string;
@@ -45,30 +36,6 @@ export type BlogFilters = {
   search?: string;
 };
 
-const blogPostSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  locale: z.string(),
-  title: z.string(),
-  description: z.string(),
-  body_md: z.string(),
-  category: z.string(),
-  author_id: z.string(),
-  status: z.string(),
-  featured: z.boolean(),
-  trending: z.boolean(),
-  case_study: z.boolean(),
-  on_time_percent: z.string().nullable(),
-  cost_delta_percent: z.string().nullable(),
-  volume_metric: z.string().nullable(),
-  tags: z.array(z.string()),
-  cover_image_url: z.string().nullable().optional(),
-  published_at: z.string().nullable(),
-  created_by: z.string().nullable(),
-  created_at: z.string(),
-  updated_at: z.string(),
-});
-
 function qs(filters: BlogFilters): string {
   const params = new URLSearchParams();
   if (filters.locale) params.set("locale", filters.locale);
@@ -82,12 +49,12 @@ function qs(filters: BlogFilters): string {
 export const blogApi = {
   async list(token: string, filters: BlogFilters = {}): Promise<BlogPost[]> {
     const rows = await adminFetch<unknown[]>(`/v1/admin/blog/posts${qs(filters)}`, token);
-    return z.array(blogPostSchema).parse(rows);
+    return adminBlogPostSchema.array().parse(rows);
   },
 
   async detail(token: string, id: string): Promise<BlogPost> {
     const row = await adminFetch<unknown>(`/v1/admin/blog/posts/${id}`, token);
-    return blogPostSchema.parse(row);
+    return adminBlogPostSchema.parse(row);
   },
 
   async create(token: string, body: BlogPostInput): Promise<BlogPost> {
@@ -95,7 +62,7 @@ export const blogApi = {
       method: "POST",
       body: JSON.stringify(body),
     });
-    return blogPostSchema.parse(row);
+    return adminBlogPostSchema.parse(row);
   },
 
   async update(token: string, id: string, patch: Partial<BlogPostInput>): Promise<BlogPost> {
@@ -103,7 +70,7 @@ export const blogApi = {
       method: "PATCH",
       body: JSON.stringify(patch),
     });
-    return blogPostSchema.parse(row);
+    return adminBlogPostSchema.parse(row);
   },
 
   async remove(token: string, id: string): Promise<void> {

@@ -27,6 +27,7 @@ export default function PlatformAuthLayout({
   children,
 }: Props) {
   const t = useTranslations("login");
+  const tBrand = useTranslations("common.brand");
 
   return (
     <div className="relative flex min-h-[calc(100dvh-var(--nav-height))] flex-col lg:flex-row">
@@ -62,7 +63,7 @@ export default function PlatformAuthLayout({
         </div>
 
         <p className="relative z-10 mt-8 hidden text-[0.7rem] uppercase tracking-[0.18em] text-white/35 lg:block">
-          {t("networkLine")}
+          {tBrand("networkLine")}
         </p>
       </aside>
 

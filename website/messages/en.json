@@ -16,6 +16,15 @@
       "Porterchain"
     ]
   },
+  "common": {
+    "cta": {
+      "quote": "Get a quote",
+      "requestCapacity": "Request capacity"
+    },
+    "brand": {
+      "networkLine": "Transportation Capacity Network"
+    }
+  },
   "productTrust": {
     "eyebrow": "See it yourself",
     "title": "Quote, track, and proof — tap through the screens ops uses.",
@@ -62,10 +71,22 @@
         "ref": "PC-48291 · counter to jobsite",
         "status": "En route",
         "steps": {
-          "dispatched": { "title": "Dispatched", "meta": "14:08 · vehicle confirmed" },
-          "pickup": { "title": "At pickup", "meta": "14:31 · dock photo captured" },
-          "enRoute": { "title": "En route", "meta": "Shareable status for receiver" },
-          "eta": { "title": "ETA window", "meta": "16:10–16:40 · updates live" }
+          "dispatched": {
+            "title": "Dispatched",
+            "meta": "14:08 · vehicle confirmed"
+          },
+          "pickup": {
+            "title": "At pickup",
+            "meta": "14:31 · dock photo captured"
+          },
+          "enRoute": {
+            "title": "En route",
+            "meta": "Shareable status for receiver"
+          },
+          "eta": {
+            "title": "ETA window",
+            "meta": "16:10–16:40 · updates live"
+          }
         }
       },
       "pod": {

@@ -54,13 +54,25 @@ def main() -> int:
         failures.append("missing CapacityGuideWidget.tsx")
     else:
         widget = WIDGET.read_text(encoding="utf-8")
-        if "CapacityGuideChat" not in widget or "shouldHideLauncher" not in widget:
-            failures.append("CapacityGuideWidget must wrap CapacityGuideChat and hide on home/login")
+        if "CapacityGuideChat" not in widget:
+            failures.append("CapacityGuideWidget must wrap CapacityGuideChat")
+        if "isCapacityGuideFabHidden" not in widget:
+            failures.append("CapacityGuideWidget must use isCapacityGuideFabHidden")
 
     if MOBILE_CHAT.is_file():
         mobile_chat = MOBILE_CHAT.read_text(encoding="utf-8")
         if "buildWhatsAppDeepLink" not in mobile_chat or "WHATSAPP_CHAT_CLICK" not in mobile_chat:
             failures.append("MobileWhatsAppChat missing deep link or tracking")
+        if "MOBILE_WHATSAPP_FAB_OFFSET_ABOVE_GUIDE" not in mobile_chat:
+            failures.append("MobileWhatsAppChat must offset above Capacity Guide FAB")
+
+    fab_helper = ROOT / "website/src/lib/capacity-guide-fab.ts"
+    if not fab_helper.is_file():
+        failures.append("missing capacity-guide-fab.ts")
+    else:
+        fab = fab_helper.read_text(encoding="utf-8")
+        if "isCapacityGuideFabHidden" not in fab:
+            failures.append("capacity-guide-fab.ts missing isCapacityGuideFabHidden")
 
     print("Wave 10 w10-5 guard (WhatsApp quote confirmation + site logistics chat)")
     if failures:

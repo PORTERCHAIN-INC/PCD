@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import DeveloperDocsHubBody from "@/components/developers/DeveloperDocsHubBody";
 import { listDeveloperDocs } from "@/lib/developer-docs";
 import { getDeveloperLinks } from "@/lib/developer-links";
@@ -60,7 +60,7 @@ export default async function DeveloperDocsHubPage({ params }: Props) {
           { label: t("hero.badge") },
         ]}
       />
-      <HeroSection
+      <MarketingHero
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}

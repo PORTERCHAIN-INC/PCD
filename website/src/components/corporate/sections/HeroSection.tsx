@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * Marketing hero implementation. Prefer importing
+ * `@/components/marketing/MarketingHero` from page views.
+ */
 import { motion, useReducedMotion } from "framer-motion";
 import Container from "@/components/ui/Container";
 import LinkButton from "@/components/corporate/ui/LinkButton";

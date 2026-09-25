@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import SolutionsTabNav from "@/components/solutions/SolutionsTabNav";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import SolutionVerticalHub from "@/components/solutions/SolutionVerticalHub";
 import { solutionVerticalPath, type SolutionVerticalSlug } from "@/lib/solutions-verticals";
 import { SOLUTION_MESSAGE_KEYS } from "@/lib/solutions-hub-config";
@@ -40,7 +40,7 @@ export default async function SolutionVerticalPageView({
         ]}
       />
       <SolutionsTabNav />
-      <HeroSection
+      <MarketingHero
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}

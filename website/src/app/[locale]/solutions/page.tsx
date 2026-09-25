@@ -5,7 +5,7 @@ import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import SolutionsTabNav from "@/components/solutions/SolutionsTabNav";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import TimelineSection from "@/components/corporate/sections/TimelineSection";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
@@ -72,7 +72,7 @@ export default async function SolutionsPage({ params }: Props) {
     <CorporateShell>
       <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: tBc("solutions") }]} />
       <SolutionsTabNav />
-      <HeroSection
+      <MarketingHero
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}

@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: monorepoRoot,
   },
-  transpilePackages: ["@porterchain/config"],
+  transpilePackages: ["@porterchain/config", "@porterchain/types"],
   env: websitePublicEnv(),
   async redirects() {
     return toNextRedirects();

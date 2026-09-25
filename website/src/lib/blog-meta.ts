@@ -31,6 +31,12 @@ export interface BlogPost extends BlogPostMeta {
   content: string;
 }
 
+function blogMediaOrigin(): string {
+  const cdn = process.env.NEXT_PUBLIC_BLOG_MEDIA_CDN?.trim().replace(/\/$/, "");
+  if (cdn) return cdn;
+  return getPorterchainApiBase();
+}
+
 /** Cover for cards/hero — CMS upload when set, else category stock image. */
 export function resolveBlogCover(
   post: Pick<BlogPostMeta, "title" | "category" | "coverImageUrl">
@@ -40,7 +46,7 @@ export function resolveBlogCover(
     const src =
       url.startsWith("http://") || url.startsWith("https://")
         ? url
-        : `${getPorterchainApiBase()}${url.startsWith("/") ? url : `/${url}`}`;
+        : `${blogMediaOrigin()}${url.startsWith("/") ? url : `/${url}`}`;
     return { src, alt: post.title, width: 1200, height: 630 };
   }
   return getBlogCoverImage(post.category);

@@ -5,7 +5,7 @@ import { routing } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { siteImages } from "@/data/site-images";
 import Container from "@/components/ui/Container";
@@ -78,7 +78,7 @@ export default async function DevelopersPage({ params }: Props) {
   return (
     <CorporateShell>
       <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: tBc("developers") }]} />
-      <HeroSection
+      <MarketingHero
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}

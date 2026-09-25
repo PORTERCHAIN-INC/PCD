@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import CardGridSection from "@/components/corporate/sections/CardGridSection";
 import CustomersPageCloser from "@/components/customers/CustomersPageCloser";
 import { collectCardItems } from "@/lib/corporate-content";
@@ -27,7 +27,7 @@ export default async function CustomersPage({ params }: Props) {
   return (
     <CorporateShell>
       <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: tBc("customers") }]} />
-      <HeroSection
+      <MarketingHero
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}

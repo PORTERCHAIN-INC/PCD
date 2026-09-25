@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
+import { getTranslations } from "next-intl/server";
 import Container from "@/components/ui/Container";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getPageHeroImage } from "@/data/site-images";
 import FaqSection from "@/components/corporate/sections/FaqSection";
@@ -40,7 +41,7 @@ interface ContentClusterViewProps {
   topNav?: ReactNode;
 }
 
-export default function ContentClusterView({
+export default async function ContentClusterView({
   locale,
   data,
   ctaSource,
@@ -49,6 +50,8 @@ export default function ContentClusterView({
   secondaryHref = "/vehicles",
   topNav,
 }: ContentClusterViewProps) {
+  const tCta = await getTranslations("common.cta");
+  const quoteLabel = tCta("quote");
   const quoteHref = quoteContact(locale, ctaSource);
   const faqItems = data.items ?? [];
   const faqSchema = buildFAQPageSchema(faqItems);
@@ -62,11 +65,11 @@ export default function ContentClusterView({
       <JsonLd data={[faqSchema, serviceSchema].filter(Boolean)} />
       {breadcrumbs && breadcrumbs.length > 0 && <PageBreadcrumbs items={breadcrumbs} />}
       {topNav}
-      <HeroSection
+      <MarketingHero
         badge="Porterchain"
         title={data.title}
         subtitle={data.intro}
-        primaryCta="Get a quote"
+        primaryCta={quoteLabel}
         primaryHref={quoteHref}
         secondaryCta={secondaryCta}
         secondaryHref={secondaryHref}
@@ -132,7 +135,7 @@ export default function ContentClusterView({
       <CtaSection
         title="Ready for transportation capacity on your lanes?"
         subtitle="Tell us what needs to move. We'll quote the right vehicle-and-driver capacity for your operation."
-        primaryLabel="Get a quote"
+        primaryLabel={quoteLabel}
         primaryHref={quoteHref}
         secondaryLabel="See vehicles"
         secondaryHref="/business#fleet"

@@ -8,6 +8,7 @@ import type { OnboardingVariantConfig } from "./types";
 import { NICHE_SLUGS } from "../niche-landing";
 import { SERVICE_AREA_SLUGS } from "../service-areas";
 import { CAMPAIGN_SLUGS } from "../campaign-landing";
+import { isDraftNicheSlug } from "../content/draft-expansions";
 
 const DEFAULT_ONBOARDING_STEP_COUNT = 3;
 
@@ -21,7 +22,9 @@ const DEFAULT_ONBOARDING: OnboardingVariantConfig = {
   },
 };
 
-const INDUSTRY_ONBOARDING_VARIANTS: OnboardingVariantConfig[] = NICHE_SLUGS.map((slug) => ({
+const INDUSTRY_ONBOARDING_VARIANTS: OnboardingVariantConfig[] = NICHE_SLUGS.filter(
+  (slug) => !isDraftNicheSlug(slug)
+).map((slug) => ({
   variantKey: `industry-${slug}`,
   context: "industry",
   entitySlug: slug,

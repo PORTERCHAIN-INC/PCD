@@ -1,6 +1,7 @@
 import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import Container from "@/components/ui/Container";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getPageHeroImage } from "@/data/site-images";
 import CtaSection from "@/components/corporate/sections/CtaSection";
@@ -17,7 +18,7 @@ interface HubIndexViewProps {
   clearNav?: boolean;
 }
 
-export default function HubIndexView({
+export default async function HubIndexView({
   locale,
   title,
   description,
@@ -25,13 +26,16 @@ export default function HubIndexView({
   ctaSource,
   clearNav = true,
 }: HubIndexViewProps) {
+  const tCta = await getTranslations("common.cta");
+  const quoteLabel = tCta("quote");
+
   return (
     <>
-      <HeroSection
+      <MarketingHero
         badge="Resources"
         title={title}
         subtitle={description}
-        primaryCta="Get a quote"
+        primaryCta={quoteLabel}
         primaryHref={quoteContact(locale, ctaSource)}
         secondaryCta="Contact"
         secondaryHref={contact(locale, { from: ctaSource })}
@@ -57,7 +61,7 @@ export default function HubIndexView({
       </section>
       <CtaSection
         title="Need help choosing the right dispatch setup?"
-        primaryLabel="Get a quote"
+        primaryLabel={quoteLabel}
         primaryHref={quoteContact(locale, ctaSource)}
         secondaryLabel="Contact us"
         secondaryHref={contact(locale, { from: ctaSource })}

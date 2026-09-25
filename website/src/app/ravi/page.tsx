@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { RaviContactCard } from "@/components/ravi/RaviContactCard";
+import { RaviContactCard } from "@/components/personal/ravi/RaviContactCard";
 import { raviContact } from "@/lib/ravi-contact";
 import "./ravi-contact.css";
 

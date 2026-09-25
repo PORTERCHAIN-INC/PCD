@@ -33,6 +33,12 @@ BLOG_TAG_MAX_COUNT = 32
 BLOG_TAG_MAX_LEN = 40
 _SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 _SLUG_CONSTRAINT = "uq_blog_posts_locale_slug"
+_WORDS_PER_MINUTE = 200
+
+
+def reading_minutes_for(body_md: str) -> int:
+    words = len((body_md or "").split())
+    return max(1, (words + _WORDS_PER_MINUTE - 1) // _WORDS_PER_MINUTE)
 
 
 class BlogService:
@@ -45,7 +51,11 @@ class BlogService:
         category: str | None = None,
         search: str | None = None,
         published_only: bool = False,
+        featured: bool | None = None,
+        trending: bool | None = None,
+        case_study: bool | None = None,
         limit: int = 100,
+        offset: int = 0,
     ) -> list[BlogPost]:
         q = db.query(BlogPost)
         if published_only:
@@ -63,8 +73,16 @@ class BlogService:
                 | (BlogPost.slug.ilike(term))
                 | (BlogPost.description.ilike(term))
             )
+        if featured is not None:
+            q = q.filter(BlogPost.featured.is_(featured))
+        if trending is not None:
+            q = q.filter(BlogPost.trending.is_(trending))
+        if case_study is not None:
+            q = q.filter(BlogPost.case_study.is_(case_study))
+        start = max(0, int(offset))
         return (
             q.order_by(BlogPost.published_at.desc().nullslast(), BlogPost.updated_at.desc())
+            .offset(start)
             .limit(max(1, limit))
             .all()
         )
@@ -314,6 +332,7 @@ class BlogService:
             "tags": record.tags or [],
             "cover_image_url": record.cover_image_url,
             "published_at": record.published_at.isoformat() if record.published_at else None,
+            "reading_minutes": reading_minutes_for(record.body_md or ""),
             "created_by": record.created_by,
             "created_at": record.created_at,
             "updated_at": record.updated_at,

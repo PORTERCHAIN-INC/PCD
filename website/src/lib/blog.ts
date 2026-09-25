@@ -25,6 +25,13 @@ function catalogSkippedDuringImageBuild(): boolean {
 
 const MEDIA_SRC = /\]\((\/v1\/public\/blog\/media\/[a-zA-Z0-9._-]+)\)/g;
 
+/** Prefer CDN when set; else API origin (local disk via public media route). */
+export function getBlogMediaBase(): string {
+  const cdn = process.env.NEXT_PUBLIC_BLOG_MEDIA_CDN?.trim().replace(/\/$/, "");
+  if (cdn) return cdn;
+  return getPorterchainApiBase();
+}
+
 type ApiBlogRow = {
   slug: string;
   title: string;
@@ -40,15 +47,17 @@ type ApiBlogRow = {
   tags?: string[];
   cover_image_url?: string | null;
   published_at?: string | null;
+  reading_minutes?: number;
   body_md?: string;
 };
 
-function readingMinutesFor(content: string): number {
+function readingMinutesFor(content: string, fromApi?: number): number {
+  if (typeof fromApi === "number" && fromApi >= 1) return Math.floor(fromApi);
   return Math.max(1, Math.ceil(readingTime(content).minutes));
 }
 
 function rewriteBodyMedia(body: string): string {
-  const base = getPorterchainApiBase();
+  const base = getBlogMediaBase();
   return body.replace(MEDIA_SRC, (_match, path: string) => `](${base}${path})`);
 }
 
@@ -70,7 +79,7 @@ function apiRowToMeta(row: ApiBlogRow): BlogPostMeta {
     volumeMetric: row.volume_metric ?? undefined,
     tags: row.tags ?? [],
     coverImageUrl: row.cover_image_url ?? undefined,
-    readingMinutes: readingMinutesFor(body),
+    readingMinutes: readingMinutesFor(body, row.reading_minutes),
   };
 }
 
@@ -79,18 +88,39 @@ function apiRowToPost(row: ApiBlogRow): BlogPost {
   return { ...meta, content: rewriteBodyMedia(row.body_md ?? "") };
 }
 
-async function fetchApiPosts(locale: Locale): Promise<BlogPostMeta[]> {
+async function fetchApiPosts(
+  locale: Locale,
+  opts: {
+    category?: BlogCategory;
+    search?: string;
+    featured?: boolean;
+    trending?: boolean;
+    caseStudy?: boolean;
+    limit?: number;
+    offset?: number;
+  } = {}
+): Promise<BlogPostMeta[]> {
   if (catalogSkippedDuringImageBuild()) return [];
   const base = getPorterchainApiBase();
-  const res = await fetch(
-    `${base}/v1/public/blog/posts?locale=${locale}&limit=${BLOG_LIST_LIMIT}`,
-    { next: { revalidate: 60 } }
-  );
+  const params = new URLSearchParams({
+    locale,
+    limit: String(opts.limit ?? BLOG_LIST_LIMIT),
+  });
+  if (opts.offset && opts.offset > 0) params.set("offset", String(opts.offset));
+  if (opts.category) params.set("category", opts.category);
+  if (opts.search?.trim()) params.set("search", opts.search.trim());
+  if (opts.featured != null) params.set("featured", String(opts.featured));
+  if (opts.trending != null) params.set("trending", String(opts.trending));
+  if (opts.caseStudy != null) params.set("case_study", String(opts.caseStudy));
+  const res = await fetch(`${base}/v1/public/blog/posts?${params}`, {
+    next: { revalidate: 3600, tags: ["blog", `blog:${locale}`] },
+  });
   if (!res.ok) {
     throw new Error(`blog_catalog_unavailable:${res.status}`);
   }
   const rows = (await res.json()) as ApiBlogRow[];
-  if (rows.length === BLOG_LIST_LIMIT) {
+  const limit = opts.limit ?? BLOG_LIST_LIMIT;
+  if (rows.length === limit && limit >= BLOG_LIST_LIMIT) {
     throw new Error("blog_catalog_truncated");
   }
   return rows.map(apiRowToMeta);
@@ -100,7 +130,7 @@ async function fetchApiPost(locale: Locale, slug: string): Promise<BlogPost | nu
   if (catalogSkippedDuringImageBuild()) return null;
   const base = getPorterchainApiBase();
   const res = await fetch(`${base}/v1/public/blog/posts/${slug}?locale=${locale}`, {
-    next: { revalidate: 60 },
+    next: { revalidate: 3600, tags: ["blog", `blog:${locale}`] },
   });
   if (res.status === 404) return null;
   if (!res.ok) {
@@ -124,18 +154,20 @@ export async function getPost(locale: Locale, slug: string): Promise<BlogPost | 
 }
 
 export async function getCaseStudyPosts(locale: Locale): Promise<BlogPostMeta[]> {
-  return (await getAllPosts(locale)).filter((p) => p.caseStudy);
+  return fetchApiPosts(locale, { caseStudy: true, limit: 100 });
 }
 
 export async function getFeaturedPost(locale: Locale): Promise<BlogPostMeta | null> {
+  const featured = await fetchApiPosts(locale, { featured: true, limit: 1 });
+  if (featured[0]) return featured[0];
   const posts = await getAllPosts(locale);
-  return posts.find((p) => p.featured) ?? posts[0] ?? null;
+  return posts[0] ?? null;
 }
 
 export async function getTrendingPosts(locale: Locale, limit = 5): Promise<BlogPostMeta[]> {
-  const posts = await getAllPosts(locale);
-  const trending = posts.filter((p) => p.trending);
+  const trending = await fetchApiPosts(locale, { trending: true, limit });
   if (trending.length >= limit) return trending.slice(0, limit);
+  const posts = await getAllPosts(locale);
   return [...trending, ...posts.filter((p) => !p.trending)].slice(0, limit);
 }
 
@@ -143,7 +175,7 @@ export async function getPostsByCategory(
   locale: Locale,
   category: BlogCategory
 ): Promise<BlogPostMeta[]> {
-  return (await getAllPosts(locale)).filter((p) => p.category === category);
+  return fetchApiPosts(locale, { category, limit: BLOG_LIST_LIMIT });
 }
 
 export async function getRelatedPosts(
@@ -151,7 +183,11 @@ export async function getRelatedPosts(
   post: BlogPostMeta,
   limit = 3
 ): Promise<BlogPostMeta[]> {
-  return (await getAllPosts(locale))
+  const sameCategory = await fetchApiPosts(locale, {
+    category: post.category,
+    limit: limit + 5,
+  });
+  return sameCategory
     .filter((p) => p.slug !== post.slug)
     .sort((a, b) => {
       const aScore = (a.category === post.category ? 2 : 0) + (a.trending ? 1 : 0);
@@ -162,16 +198,9 @@ export async function getRelatedPosts(
 }
 
 export async function searchPosts(locale: Locale, query: string): Promise<BlogPostMeta[]> {
-  const q = query.trim().toLowerCase();
-  const posts = await getAllPosts(locale);
-  if (!q) return posts;
-  return posts.filter(
-    (p) =>
-      p.title.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.tags?.some((t) => t.toLowerCase().includes(q)) ||
-      p.category.includes(q)
-  );
+  const q = query.trim();
+  if (!q) return getAllPosts(locale);
+  return fetchApiPosts(locale, { search: q, limit: BLOG_LIST_LIMIT });
 }
 
 export function paginatePosts<T>(posts: T[], page: number, perPage = POSTS_PER_PAGE) {

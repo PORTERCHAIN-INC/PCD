@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import TimelineSection from "@/components/corporate/sections/TimelineSection";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
 import CtaSection from "@/components/corporate/sections/CtaSection";
@@ -82,7 +82,7 @@ export default async function HowPorterchainWorksView({ locale }: Props) {
         items={[{ label: tBc("home"), href: "/" }, { label: tBc("howPorterchainWorks") }]}
       />
 
-      <HeroSection
+      <MarketingHero
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}

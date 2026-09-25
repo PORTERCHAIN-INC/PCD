@@ -15,6 +15,7 @@ REQUIRED = [
     ("public router", ROOT / "apps/api/src/porterchain_api/routers/public_blog.py"),
     ("migration", ROOT / "apps/api/alembic/versions/t3u4v5w6x7y8_blog_posts.py"),
     ("admin lib", ROOT / "apps/admin/src/lib/blog.ts"),
+    ("shared types", ROOT / "packages/types/src/blog.ts"),
     ("admin list", ROOT / "apps/admin/src/app/(ops)/blog/page.tsx"),
     ("admin new", ROOT / "apps/admin/src/app/(ops)/blog/new/page.tsx"),
     ("admin edit", ROOT / "apps/admin/src/app/(ops)/blog/[id]/page.tsx"),
@@ -54,9 +55,35 @@ def main() -> int:
         failures.append("admin-nav.ts missing Driver Leads / Driver Applications")
     if "website_driver_partner" not in nav:
         failures.append("admin-nav.ts missing driver partner lead source href")
+    if "website_contact" not in nav:
+        failures.append("admin-nav.ts missing website_contact lead source href")
+    if "website_newsletter" not in nav:
+        failures.append("admin-nav.ts missing website_newsletter lead source href")
+
+    revalidate_route = ROOT / "website/src/app/api/revalidate/blog/route.ts"
+    if not revalidate_route.is_file():
+        failures.append("missing website /api/revalidate/blog route")
+    else:
+        rev = revalidate_route.read_text(encoding="utf-8")
+        if "revalidateTag" not in rev or "WEBSITE_REVALIDATE_SECRET" not in rev:
+            failures.append("revalidate/blog route missing revalidateTag or secret")
+    revalidate_py = ROOT / "apps/api/src/porterchain_api/content_engine/blog_revalidate.py"
+    if not revalidate_py.is_file():
+        failures.append("missing content_engine/blog_revalidate.py")
+    admin_blog = (ROOT / "apps/api/src/porterchain_api/routers/admin/blog.py").read_text(
+        encoding="utf-8"
+    )
+    if "notify_blog_revalidate" not in admin_blog:
+        failures.append("admin blog router must call notify_blog_revalidate")
 
     form = (ROOT / "apps/admin/src/components/blog/BlogPostForm.tsx").read_text(encoding="utf-8")
-    for marker in ("Upload cover", "Insert image in body", "cover_image_url"):
+    for marker in (
+        "Upload cover",
+        "Insert image in body",
+        "cover_image_url",
+        "Publish checklist",
+        "Preview",
+    ):
         if marker not in form:
             failures.append(f"BlogPostForm missing {marker}")
     lib = (ROOT / "apps/admin/src/lib/blog.ts").read_text(encoding="utf-8")
@@ -64,6 +91,18 @@ def main() -> int:
         failures.append("admin lib/blog.ts missing uploadMedia")
     if "cover_image_url" not in lib:
         failures.append("admin lib/blog.ts missing cover_image_url")
+    media_py = (ROOT / "apps/api/src/porterchain_api/content_engine/blog_media.py").read_text(
+        encoding="utf-8"
+    )
+    if "blog_media_public_base" not in media_py:
+        failures.append("blog_media.py missing CDN public base helper")
+    media_s3 = ROOT / "apps/api/src/porterchain_api/content_engine/blog_media_s3.py"
+    if not media_s3.is_file():
+        failures.append("missing blog_media_s3.py optional R2/S3 uploader")
+    elif "put_blog_media_object" not in media_s3.read_text(encoding="utf-8"):
+        failures.append("blog_media_s3.py missing put_blog_media_object")
+    if "put_blog_media_object" not in media_py:
+        failures.append("blog_media.save_blog_image must call S3 mirror helper")
 
     media = ROOT / "apps/api/src/porterchain_api/content_engine/blog_media.py"
     if not media.is_file():
@@ -76,12 +115,31 @@ def main() -> int:
         failures.append("public blog missing media route")
 
     blog_ts = (ROOT / "website/src/lib/blog.ts").read_text(encoding="utf-8")
+    if "getBlogMediaBase" not in blog_ts and "NEXT_PUBLIC_BLOG_MEDIA_CDN" not in blog_ts:
+        failures.append("website blog.ts missing CDN media base")
     if "/v1/public/blog/posts" not in blog_ts:
         failures.append("website blog.ts missing public API fetch")
     if "content/blog" in blog_ts or "getAllPostSlugsSync" in blog_ts:
         failures.append("website blog.ts still reads the markdown catalog")
     if "blog_catalog_truncated" not in blog_ts:
         failures.append("website blog.ts missing truncation tripwire")
+    if "`blog:${locale}`" not in blog_ts and 'tags: ["blog"' not in blog_ts:
+        failures.append("website blog.ts missing cache tags")
+    if "case_study" not in blog_ts or "featured" not in blog_ts:
+        failures.append("website blog.ts missing public list filter opts")
+    playbook = ROOT / "docs/WEBSITE_PAGE_PLAYBOOK.md"
+    if not playbook.is_file():
+        failures.append("missing docs/WEBSITE_PAGE_PLAYBOOK.md")
+    service = (ROOT / "apps/api/src/porterchain_api/content_engine/blog_service.py").read_text(
+        encoding="utf-8"
+    )
+    if "reading_minutes_for" not in service:
+        failures.append("BlogService missing reading_minutes_for")
+    if "offset" not in service or "case_study" not in service:
+        failures.append("BlogService list_posts missing offset/case_study filters")
+    pub = (ROOT / "apps/api/src/porterchain_api/routers/public_blog.py").read_text(encoding="utf-8")
+    if "offset" not in pub or "case_study" not in pub:
+        failures.append("public_blog list missing offset/case_study query params")
     blog_meta = (ROOT / "website/src/lib/blog-meta.ts").read_text(encoding="utf-8")
     if 'source?: "api" | "file"' in blog_meta:
         failures.append("website blog-meta.ts still has the file merge marker")
@@ -103,10 +161,6 @@ def main() -> int:
         failures.append("public_blog.py imports admin_engine")
     if "serialize_public" not in pub:
         failures.append("public_blog.py must use serialize_public")
-
-    service = (ROOT / "apps/api/src/porterchain_api/content_engine/blog_service.py").read_text(
-        encoding="utf-8"
-    )
     if 'data.pop("created_by"' not in service:
         failures.append("serialize_public must drop created_by")
 
@@ -121,7 +175,6 @@ def main() -> int:
     failures.extend(_closed_set_drift(ROOT))
     failures.extend(_list_limit_drift(ROOT))
 
-    admin_blog = (ROOT / "apps/api/src/porterchain_api/routers/admin/blog.py").read_text(encoding="utf-8")
     for method in ("@router.post", "@router.patch", "@router.delete"):
         if method not in admin_blog:
             failures.append(f"admin blog router missing {method}")
@@ -164,24 +217,34 @@ def _closed_set_drift(root: Path) -> list[str]:
     service = (root / "apps/api/src/porterchain_api/content_engine/blog_service.py").read_text(
         encoding="utf-8"
     )
+    shared = (root / "packages/types/src/blog.ts").read_text(encoding="utf-8")
     admin = (root / "apps/admin/src/lib/blog.ts").read_text(encoding="utf-8")
     website = (root / "website/src/data/blog-categories.ts").read_text(encoding="utf-8")
     routing = (root / "website/src/i18n/routing.ts").read_text(encoding="utf-8")
     failures: list[str] = []
     py_categories = _py_set(service, "BLOG_CATEGORIES")
-    if py_categories != _ts_array(admin, "BLOG_CATEGORIES"):
-        failures.append("admin BLOG_CATEGORIES drifted from BlogService")
-    if py_categories != _ts_array(website, "BLOG_CATEGORIES"):
-        failures.append("website BLOG_CATEGORIES drifted from BlogService")
+    shared_categories = _ts_array(shared, "BLOG_CATEGORIES")
+    if py_categories != shared_categories:
+        failures.append("packages/types BLOG_CATEGORIES drifted from BlogService")
+    if '@porterchain/types' not in admin or "BLOG_CATEGORIES" not in admin:
+        failures.append("admin lib/blog.ts must re-export BLOG_CATEGORIES from @porterchain/types")
+    if '@porterchain/types' not in website or "BLOG_CATEGORIES" not in website:
+        failures.append(
+            "website blog-categories.ts must re-export BLOG_CATEGORIES from @porterchain/types"
+        )
     py_locales = _py_set(service, "BLOG_LOCALES")
-    if py_locales != _ts_array(admin, "BLOG_LOCALES"):
-        failures.append("admin BLOG_LOCALES drifted from BlogService")
+    if py_locales != _ts_array(shared, "BLOG_LOCALES"):
+        failures.append("packages/types BLOG_LOCALES drifted from BlogService")
+    if '@porterchain/types' not in admin or "BLOG_LOCALES" not in admin:
+        failures.append("admin lib/blog.ts must re-export BLOG_LOCALES from @porterchain/types")
     route_match = re.search(r"locales:\s*\[(.*?)\]", routing, re.S)
     route_locales = _quoted(route_match.group(1)) if route_match else []
     if py_locales != route_locales:
         failures.append("website routing locales drifted from BlogService")
-    if _py_set(service, "BLOG_STATUSES") != _ts_array(admin, "BLOG_STATUSES"):
-        failures.append("admin BLOG_STATUSES drifted from BlogService")
+    if _py_set(service, "BLOG_STATUSES") != _ts_array(shared, "BLOG_STATUSES"):
+        failures.append("packages/types BLOG_STATUSES drifted from BlogService")
+    if '@porterchain/types' not in admin or "BLOG_STATUSES" not in admin:
+        failures.append("admin lib/blog.ts must re-export BLOG_STATUSES from @porterchain/types")
     return failures
 
 

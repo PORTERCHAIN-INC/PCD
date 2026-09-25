@@ -1,4 +1,4 @@
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { getNicheHeroImage, getPageHeroImage } from "@/data/site-images";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
@@ -161,7 +161,7 @@ export default function IndustryLandingView({
         ].filter(Boolean)}
       />
       {breadcrumbs && breadcrumbs.length > 0 && <PageBreadcrumbs items={breadcrumbs} />}
-      <HeroSection
+      <MarketingHero
         badge={sectionLabels.industries}
         title={niche.hero.title}
         subtitle={niche.hero.subtitle}

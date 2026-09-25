@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/corporate/layout/CorporateShell";
 import Container from "@/components/ui/Container";
-import HeroSection from "@/components/corporate/sections/HeroSection";
+import MarketingHero from "@/components/marketing/MarketingHero";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { siteImages } from "@/data/site-images";
 import FeatureSection from "@/components/corporate/sections/FeatureSection";
@@ -133,7 +133,7 @@ export default async function ServiceAreaPage({ params }: Props) {
           }),
         ].filter(Boolean)}
       />
-      <HeroSection
+      <MarketingHero
         badge={serviceAreaBadge}
         title={area.hero.title}
         subtitle={heroSubtitle}

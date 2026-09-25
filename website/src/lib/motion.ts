@@ -64,3 +64,13 @@ export const cardHover = {
 };
 
 export const viewportOnce = { once: true, margin: "-80px" as const, amount: 0.25 };
+
+/** Motion budget (playbook) — keep Magic UI + framer-motion; no new kits. */
+export const MOTION_BUDGET = {
+  /** Max intentional moments in a marketing hero (entrance + optional ambient). */
+  heroMomentsMax: 2,
+  /** SEO matrix / city×industry pages: no Lottie / MagicCard in hero. */
+  matrixHeroMotion: false as const,
+  /** Prefer CSS / static for matrix LCP. */
+  allowLottie: ["home", "business", "platform"] as const,
+} as const;
