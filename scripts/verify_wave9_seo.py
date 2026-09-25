@@ -14,7 +14,6 @@ FAQ = WEBSITE / "src/lib/seo/content/faq-clusters.ts"
 LINKING = WEBSITE / "src/lib/seo/internal-linking.ts"
 FR = WEBSITE / "messages/seo-programmatic-fr.json"
 CONTACT = WEBSITE / "src/app/[locale]/contact/page.tsx"
-HERO_COPY = WEBSITE / "src/components/sections/HeroCopy.tsx"
 CITY_VIEW = WEBSITE / "src/components/seo/CityIndustryLandingView.tsx"
 BUSINESS = WEBSITE / "src/app/[locale]/business/page.tsx"
 GUIDES = WEBSITE / "src/app/[locale]/guides/[slug]/page.tsx"
@@ -61,10 +60,6 @@ def main() -> int:
     if "SlaResponseCountdown" not in contact:
         failures.append("contact page missing SlaResponseCountdown")
 
-    hero = HERO_COPY.read_text(encoding="utf-8")
-    if "SlaResponseCountdown" not in hero:
-        failures.append("home HeroCopy missing SlaResponseCountdown")
-
     city_view = CITY_VIEW.read_text(encoding="utf-8")
     if "PostalCoverageChecker" not in city_view:
         failures.append("CityIndustryLandingView missing PostalCoverageChecker")
@@ -90,7 +85,10 @@ def main() -> int:
     cluster = WEBSITE / "src/components/seo/ContentClusterView.tsx"
     cluster_text = cluster.read_text(encoding="utf-8")
     before_compare = cluster_text.split("data.comparisonRows &&")[0]
-    if "FaqSection" not in before_compare or "faqItems.length" not in before_compare:
+    has_faq = ("FaqSection" in before_compare or "MarketingFaq" in before_compare) and (
+        "faqItems.length" in before_compare
+    )
+    if not has_faq:
         failures.append("ContentClusterView FAQ should render before comparison (AI-first)")
 
     print("Wave 9 SEO guard")

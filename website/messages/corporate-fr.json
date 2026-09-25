@@ -382,7 +382,7 @@
     },
     "platformCta": "Voir les véhicules",
     "demoCta": "",
-    "quoteCta": ""
+    "quoteCta": "Obtenir un devis"
   },
   "seo": {
     "sectionLabels": {
@@ -428,7 +428,7 @@
       "title": "Quand votre flotte ne suffit pas,",
       "titleHighlight": "PorterChain peut.",
       "subtitle": "Livraison B2B le jour même, urgente, d'urgence et récurrente dans le RGT — logistique intra-urbaine et livraison locale avec chauffeurs professionnels, de la berline au camion cube, suivi en direct et preuve à chaque arrêt.",
-      "primaryCta": "",
+      "primaryCta": "Obtenir un devis",
       "secondaryCta": "Voir les véhicules",
       "trustLine": "Réponse en un jour ouvrable · Sur devis, sans frais plateforme",
       "trustProof": "Preuve de livraison à chaque arrêt",
@@ -584,7 +584,7 @@
       "cta": {
         "title": "Obtenez de la capacité sur vos corridors",
         "subtitle": "Indiquez-nous vos expéditions, urgence et zones RGT. Jour même, urgent ou récurrent — nous répondons dans un jour ouvrable avec le bon véhicule et un devis écrit.",
-        "primary": ""
+        "primary": "Obtenir un devis"
       }
     },
     "logos": {
@@ -742,7 +742,7 @@
     "cta": {
       "title": "Besoin de capacité de transport?",
       "subtitle": "Partagez l'envoi, la classe de véhicule, la zone et l'horaire. Nous vous aiderons à choisir la bonne capacité et un devis écrit.",
-      "primary": "",
+      "primary": "Obtenir un devis",
       "secondary": "Voir les solutions"
     },
     "faq": {
@@ -794,7 +794,7 @@
       "badge": "Comment nous opérons",
       "title": "Comment Porterchain exécute vos livraisons",
       "subtitle": "Chaque demande de capacité dans le RGT et les métropoles ontariennes que nous desservons passe par notre couche opérationnelle — répartition, routage, coordination chauffeur, suivi en direct, preuve de livraison et facturation. Vous achetez de la capacité de transport; c'est le moteur derrière.",
-      "primaryCta": "",
+      "primaryCta": "Obtenir un devis",
       "secondaryCta": "Voir les véhicules"
     },
     "timeline": {
@@ -868,7 +868,7 @@
     "cta": {
       "title": "Voir comment les opérations réseau s'adaptent à vos corridors",
       "subtitle": "Dites-nous ce qui doit bouger. Nous deviserons la bonne capacité véhicule-chauffeur pour votre corridor.",
-      "primary": "",
+      "primary": "Obtenir un devis",
       "secondary": "Parler à la répartition"
     },
     "faq": {
@@ -969,7 +969,7 @@
       "badge": "Capacité flotte",
       "title": "Véhicules commerciaux adaptés à votre fret",
       "subtitle": "Fourgonnettes cargo, fourgons métier, camions cube et pickups — chauffeurs professionnels avec suivi et preuve à chaque arrêt dans la RGT et en Ontario.",
-      "primaryCta": "",
+      "primaryCta": "Obtenir un devis",
       "secondaryCta": "Voir les services"
     },
     "cards": {
@@ -980,7 +980,7 @@
     "cta": {
       "title": "Besoin du bon véhicule pour votre prochaine course?",
       "subtitle": "Indiquez taille du fret, arrêts et horaire — nous confirmons la classe de véhicule et envoyons un devis écrit.",
-      "primary": "",
+      "primary": "Obtenir un devis",
       "secondary": "Parcourir les solutions"
     }
   },
@@ -989,7 +989,7 @@
       "badge": "Services B2B",
       "title": "Capacité de transport pour entreprises du RGT",
       "subtitle": "Urgence le jour même, débordement de flotte, routes de gros récurrentes, livraison chantier et distribution du dernier kilomètre — capacité véhicule et chauffeur avec suivi et preuve pour construction, médical, alimentation et distribution métier dans la région du Grand Toronto.",
-      "primaryCta": "",
+      "primaryCta": "Obtenir un devis",
       "secondaryCta": "Voir les véhicules"
     },
     "cards": {
@@ -1079,7 +1079,7 @@
     "cta": {
       "title": "Trouver de la capacité pour votre opération",
       "subtitle": "Indiquez votre secteur, corridors et besoins véhicule — nous recommanderons le bon programme de capacité.",
-      "primary": "",
+      "primary": "Obtenir un devis",
       "secondary": "Voir les véhicules"
     },
     "faq": {
@@ -1137,14 +1137,14 @@
         "badge": "Solutions construction",
         "title": "Capacité de livraison construction dans le RGT",
         "subtitle": "Un hub pour fournitures construction, gros électrique et plomberie — livraison chantier, tournées comptoir-entrepreneur, débordement de flotte et urgence jour même pour fournisseurs, entrepreneurs, chargés de projet et contremaîtres à Toronto, Peel et York.",
-        "primaryCta": "",
+        "primaryCta": "Obtenir un devis",
         "secondaryCta": "Matériaux construction"
       },
       "programs": {
         "label": "Programmes métiers",
         "title": "Choisissez votre corridor livraison construction",
         "subtitle": "Chaque programme a son guide secteur — personas, véhicules, flux et FAQ pour votre rôle sur le chantier.",
-        "quoteCta": "",
+        "quoteCta": "Obtenir un devis",
         "alsoBrowse": "Parcourir aussi",
         "allIndustries": "toutes les industries",
         "allSolutions": "toutes les solutions",
@@ -1245,7 +1245,7 @@
       "cta": {
         "title": "Obtenir un devis pour vos corridors construction",
         "subtitle": "Indiquez métier, matériaux et zones RGT — nous confirmons le véhicule adapté et répondons dans un jour ouvrable.",
-        "primary": "",
+        "primary": "Obtenir un devis",
         "secondary": "Voir les véhicules"
       },
       "resources": {
@@ -1282,14 +1282,14 @@
         "badge": "Solutions gros",
         "title": "Capacité distribution en gros dans le RGT",
         "subtitle": "Recurring B2B delivery for distributors who cannot miss cut-offs — counter-to-jobsite routes, fleet overflow, multi-stop distribution, and same-day urgent capacity across Toronto, Peel, and York with tracking and proof.",
-        "primaryCta": "",
+        "primaryCta": "Obtenir un devis",
         "secondaryCta": "E-commerce delivery"
       },
       "programs": {
         "label": "Distribution lanes",
         "title": "Wholesale programs that match your freight",
         "subtitle": "Each lane links to an industry playbook with vehicle fit, buyer personas, and quote paths for ops leaders.",
-        "quoteCta": "",
+        "quoteCta": "Obtenir un devis",
         "alsoBrowse": "Also browse",
         "allIndustries": "all industries",
         "allSolutions": "all solutions",
@@ -1389,7 +1389,7 @@
       "cta": {
         "title": "Get a quote for wholesale lanes",
         "subtitle": "Share routes, cut-offs, and GTA zones — response within one business day.",
-        "primary": "",
+        "primary": "Obtenir un devis",
         "secondary": "See vehicles"
       },
       "resources": {
@@ -1426,14 +1426,14 @@
         "badge": "Medical solutions",
         "title": "Healthcare delivery capacity in the GTA",
         "subtitle": "Pharmacy runs, lab specimen transport, and clinic supply — time-sensitive B2B delivery with chain-of-custody proof, same-day urgency, and audit-ready documentation.",
-        "primaryCta": "",
+        "primaryCta": "Obtenir un devis",
         "secondaryCta": "Pharmacy delivery"
       },
       "programs": {
         "label": "Healthcare lanes",
         "title": "Medical delivery programs by use case",
         "subtitle": "Regulated freight needs documented execution — each program links to an industry playbook.",
-        "quoteCta": "",
+        "quoteCta": "Obtenir un devis",
         "alsoBrowse": "Also browse",
         "allIndustries": "all industries",
         "allSolutions": "all solutions",
@@ -1533,7 +1533,7 @@
       "cta": {
         "title": "Get a quote for healthcare lanes",
         "subtitle": "Share routes, handling needs, and service areas.",
-        "primary": "",
+        "primary": "Obtenir un devis",
         "secondary": "See vehicles"
       },
       "resources": {
@@ -1570,14 +1570,14 @@
         "badge": "Food & beverage solutions",
         "title": "Food and beverage delivery capacity in the GTA",
         "subtitle": "Recurring B2B delivery for roasters and food wholesalers — café routes, wholesale drops, perishable freight, and same-day overflow with tracking and proof.",
-        "primaryCta": "",
+        "primaryCta": "Obtenir un devis",
         "secondaryCta": "Coffee roaster delivery"
       },
       "programs": {
         "label": "Food & beverage lanes",
         "title": "Programs for perishable and recurring freight",
         "subtitle": "Freshness and window discipline — each program links to an industry playbook.",
-        "quoteCta": "",
+        "quoteCta": "Obtenir un devis",
         "alsoBrowse": "Also browse",
         "allIndustries": "all industries",
         "allSolutions": "all solutions",
@@ -1677,7 +1677,7 @@
       "cta": {
         "title": "Get a quote for food & beverage lanes",
         "subtitle": "Share routes, perishability needs, and service areas.",
-        "primary": "",
+        "primary": "Obtenir un devis",
         "secondary": "See vehicles"
       },
       "resources": {
@@ -1714,14 +1714,14 @@
         "badge": "Solutions 3PL",
         "title": "Capacité pour entrepôts 3PL dans le RGT",
         "subtitle": "Sorties multi-arrêts, libérations jour même et débordement quand le volume quai explose — chauffeurs professionnels et véhicules commerciaux avec suivi et preuve pour tenir les SLA sans ajouter de flotte.",
-        "primaryCta": "",
+        "primaryCta": "Obtenir un devis",
         "secondaryCta": "Guide e-commerce"
       },
       "programs": {
         "label": "Corridors entrepôt",
         "title": "Programmes 3PL adaptés au volume sortant",
         "subtitle": "Chaque corridor mène à un playbook industrie avec véhicule adapté et devis pour les leaders entrepôt.",
-        "quoteCta": "",
+        "quoteCta": "Obtenir un devis",
         "alsoBrowse": "Parcourir aussi",
         "allIndustries": "toutes les industries",
         "allSolutions": "toutes les solutions",
@@ -1821,7 +1821,7 @@
       "cta": {
         "title": "Obtenir un devis pour sorties 3PL",
         "subtitle": "Partagez l'emplacement du quai, le volume de vagues et les zones RGT — réponse sous un jour ouvrable.",
-        "primary": "",
+        "primary": "Obtenir un devis",
         "secondary": "Voir les véhicules"
       },
       "resources": {
@@ -1858,14 +1858,14 @@
         "badge": "Capacité de débordement",
         "title": "Débordement quand vos camions ne suffisent plus",
         "subtitle": "Véhicules et chauffeurs de renfort pour pics, pannes et heures limites dures — mêmes standards de suivi et de preuve que vos corridors principaux.",
-        "primaryCta": "",
+        "primaryCta": "Obtenir un devis",
         "secondaryCta": "Toutes les industries"
       },
       "programs": {
         "label": "Déclencheurs de débordement",
         "title": "Quand les équipes réservent du débordement",
         "subtitle": "Traitez le débordement comme une soupape planifiée — pas une panique de dernière minute.",
-        "quoteCta": "",
+        "quoteCta": "Obtenir un devis",
         "alsoBrowse": "Parcourir aussi",
         "allIndustries": "toutes les industries",
         "allSolutions": "toutes les solutions",
@@ -1965,7 +1965,7 @@
       "cta": {
         "title": "Obtenir un devis pour capacité de débordement",
         "subtitle": "Partagez les pics, la classe de véhicule et les zones RGT — réponse sous un jour ouvrable.",
-        "primary": "",
+        "primary": "Obtenir un devis",
         "secondary": "Voir les véhicules"
       },
       "resources": {
@@ -1996,7 +1996,7 @@
       "badge": "Entreprise",
       "title": "Construire le réseau de capacité de transport sur lequel les entreprises ontariennes comptent",
       "subtitle": "Porterchain élimine les goulots de transport pour que les entreprises ne s'arrêtent jamais. Nous orchestrons chauffeurs professionnels, véhicules commerciaux et opérations logistiques dans un réseau intelligent.",
-      "primaryCta": "",
+      "primaryCta": "Obtenir un devis",
       "secondaryCta": "Carrières"
     },
     "brandBand": {
@@ -2070,7 +2070,7 @@
     "cta": {
       "title": "Déplacer des marchandises avec Porterchain",
       "subtitle": "Besoin de capacité pour votre entreprise ou envie de rejoindre notre réseau chauffeurs — nous aimerions vous entendre.",
-      "primary": "",
+      "primary": "Obtenir un devis",
       "secondary": "Partenaires chauffeurs"
     },
     "faq": {
@@ -2999,7 +2999,7 @@
       "cta": {
         "title": "Besoin de capacité prête pour réclamations?",
         "subtitle": "Partagez le type de fret, les exigences de preuve et les zones RGT — nous alignons les standards POD dans le devis.",
-        "primary": "",
+        "primary": "Obtenir un devis",
         "secondary": "Retour à la confiance"
       }
     }
@@ -3009,7 +3009,7 @@
       "badge": "Clients",
       "title": "Les entreprises qui font confiance à Porterchain pour la capacité",
       "subtitle": "Les expéditeurs ontariens utilisent Porterchain quand ils ont besoin d'une capacité véhicule-chauffeur fiable — urgence, débordement et distribution récurrente avec suivi et preuve.",
-      "primaryCta": "",
+      "primaryCta": "Obtenir un devis",
       "secondaryCta": "Voir les véhicules"
     },
     "metrics": {
@@ -3051,7 +3051,7 @@
       "badge": "Vos corridors",
       "title": "Voir Porterchain sur vos corridors",
       "subtitle": "Partagez vos expéditions, besoins véhicule et zones de service. Nous mapperons le bon programme de capacité.",
-      "primary": "",
+      "primary": "Obtenir un devis",
       "secondary": "Voir la tarification",
       "lanes": {
         "0": "Corridors RGT",
@@ -3080,7 +3080,7 @@
       "badge": "Programmes dédiés",
       "title": "Capacité récurrente pour les opérations en croissance",
       "subtitle": "Pour les entreprises qui ont besoin de Porterchain comme extension de leur logistique — routes structurées, couverture débordement, standards de preuve et contact répartition nommé.",
-      "primaryCta": "",
+      "primaryCta": "Obtenir un devis",
       "secondaryCta": "Confiance et assurance"
     },
     "features": {
@@ -3116,7 +3116,7 @@
     "cta": {
       "title": "Concevoir votre programme de capacité",
       "subtitle": "Partagez vos routes, besoins véhicule et exigences de preuve. Nous mapperons capacité dédiée et support répartition.",
-      "primary": "",
+      "primary": "Obtenir un devis",
       "secondary": "Comparer les alternatives"
     }
   },
@@ -3125,7 +3125,7 @@
       "badge": "Tarification",
       "title": "Comment fonctionne la tarification livraison",
       "subtitle": "Vous payez pour la capacité de transport exécutée — pas pour des licences logicielles. Le prix reflète la classe de véhicule, la distance, les arrêts et l'urgence (jour même vs planifié).",
-      "primaryCta": "",
+      "primaryCta": "Obtenir un devis",
       "secondaryCta": "Voir les véhicules"
     },
     "model": {
@@ -3229,7 +3229,7 @@
     "cta": {
       "title": "Associer la capacité à votre envoi",
       "subtitle": "Partagez classe de véhicule, adresses, horaire et preuve requise. Nous répondrons avec le bon chemin de capacité.",
-      "primary": "",
+      "primary": "Obtenir un devis",
       "secondary": "Voir les services"
     }
   },
@@ -3245,7 +3245,7 @@
       "badge": "Industries",
       "title": "Industry delivery capacity across the GTA",
       "subtitle": "PorterChain is a transportation capacity network. Each industry page explains who we serve, which vehicles fit your freight, and how to get a written quote for same-day, recurring, or overflow lanes.",
-      "primaryCta": "",
+      "primaryCta": "Obtenir un devis",
       "secondaryCta": "Construction solutions"
     },
     "featured": {
@@ -3350,7 +3350,7 @@
     "cta": {
       "title": "Get a quote for your industry lanes",
       "subtitle": "Tell us your vertical and service areas — response within one business day.",
-      "primary": "",
+      "primary": "Obtenir un devis",
       "secondary": "See vehicles"
     }
   },
@@ -3359,7 +3359,7 @@
       "badge": "Comment PorterChain fonctionne",
       "title": "La capacité de transport, de bout en bout",
       "subtitle": "PorterChain est un réseau de capacité de transport pour les entreprises ontariennes. Vous demandez un véhicule et un chauffeur — nous apparions, exécutons, suivons et prouvons la livraison. Pas de logiciel de flotte à acheter.",
-      "primaryCta": "",
+      "primaryCta": "Obtenir un devis",
       "secondaryCta": "Programmes marchands"
     },
     "steps": {
@@ -3451,7 +3451,7 @@
     "cta": {
       "title": "Besoin de capacité quand votre flotte ne suffit pas ?",
       "subtitle": "Indiquez la classe de véhicule, les arrêts, le timing et les preuves. Nous répondons avec un parcours de capacité écrit.",
-      "primary": "",
+      "primary": "Obtenir un devis",
       "secondary": "Programmes marchands"
     }
   }
