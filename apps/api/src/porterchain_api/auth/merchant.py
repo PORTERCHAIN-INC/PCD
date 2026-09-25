@@ -13,13 +13,14 @@ from porterchain_api.auth.email_identity import (
     CLERK_EMAIL_UNVERIFIED,
     EMAIL_CLERK_MISMATCH,
     assert_portal_email_identity,
+    normalize_email,
 )
 from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import PORTAL_OPEN_STATUSES, MerchantStatus
 from porterchain_api.merchant_engine.lookups import get_merchant, seats_for_clerk
-from porterchain_api.merchant_engine.portal_signup import first_open_seat
+from porterchain_api.merchant_engine.portal_signup import claim_pending_seats_for_clerk, first_open_seat
 from porterchain_api.merchant_engine.provision import ensure_dev_merchant_seat
 from porterchain_api.merchant_engine.rbac import MerchantContext, parse_merchant_role
 
@@ -67,6 +68,12 @@ def get_merchant_context(
         return _merchant_context_from_impersonation(db, str(meta.get("target_id") or ""))
 
     assert_clerk_id_exclusive(db, claims, portal="merchant", settings=settings)
+
+    # Heal Admin-reserved pending seats even when AccessGate skips onboarding
+    # because another company for this Clerk user is already ACTIVE.
+    email = normalize_email(claims.email)
+    if email and claim_pending_seats_for_clerk(db, email=email, clerk_id=claims.clerk_user_id):
+        db.commit()
 
     user = _resolve_merchant_user(db, claims.clerk_user_id, x_merchant_id, settings)
     # Local Bearer-dev synthetic subjects have no SpiceDB tuples; email is the portal persona.

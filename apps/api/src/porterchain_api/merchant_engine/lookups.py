@@ -69,16 +69,22 @@ def get_merchant_user(db: Session, user_id: str | None) -> MerchantUser | None:
 
 
 def get_merchant_user_by_email(db: Session, email: str, *, merchant_id: str | None = None) -> MerchantUser | None:
-    q = db.query(MerchantUser).filter(MerchantUser.email == email)
+    from porterchain_api.auth.email_identity import normalize_email
+
+    normalized = normalize_email(email) or email
+    q = db.query(MerchantUser).filter(MerchantUser.email == normalized)
     if merchant_id:
         q = q.filter(MerchantUser.merchant_id == merchant_id)
     return q.first()
 
 
 def get_merchant_by_email(db: Session, email: str) -> Merchant | None:
+    from porterchain_api.auth.email_identity import normalize_email
+
+    normalized = normalize_email(email) or email
     return (
         db.query(Merchant)
-        .filter(Merchant.email == email)
+        .filter(Merchant.email == normalized)
         .order_by(Merchant.created_at.desc())
         .first()
     )

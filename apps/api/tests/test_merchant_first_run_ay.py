@@ -63,6 +63,38 @@ def test_reserved_seat_links_clerk_id_on_first_sign_in(db, settings) -> None:
     assert seat.role == MerchantRole.OPS.value
 
 
+def test_second_company_pending_owner_claimed_when_already_linked_elsewhere(db, settings) -> None:
+    """Kaylulu-class bug: OTP linked auto-company B; Admin reserved Owner on A stays pending."""
+    auto = _company(db, status=MerchantStatus.ACTIVE.value)
+    kaylulu = _company(db, status=MerchantStatus.ACTIVE.value)
+    email = f"tracy_{uuid.uuid4().hex[:8]}@firstrun.test"
+    clerk_id = f"user_{uuid.uuid4().hex[:12]}"
+    linked = MerchantUser(
+        merchant_id=auto.id,
+        clerk_user_id=clerk_id,
+        email=email,
+        role=MerchantRole.OWNER.value,
+        is_active=True,
+    )
+    pending = MerchantUser(
+        merchant_id=kaylulu.id,
+        clerk_user_id=f"pending:{email}",
+        email=email,
+        role=MerchantRole.OWNER.value,
+        is_active=True,
+    )
+    db.add_all([linked, pending])
+    db.commit()
+    settings.clerk_dev_bypass = False
+
+    ensure_merchant_portal_signup(db, _claims(clerk_id, email), settings=settings)
+
+    db.refresh(pending)
+    db.refresh(linked)
+    assert linked.clerk_user_id == clerk_id
+    assert pending.clerk_user_id == clerk_id
+
+
 def test_seat_turned_off_stays_off_after_sign_in(db, settings) -> None:
     merchant = _company(db)
     email = f"off_{uuid.uuid4().hex[:8]}@firstrun.test"
