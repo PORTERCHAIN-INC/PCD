@@ -108,9 +108,9 @@ def test_web_pretrip_gate_on_shift_and_dashboard() -> None:
     root = Path(__file__).resolve().parents[3]
     gate = (root / "apps/driver-portal/src/components/dashboard/PretripGate.tsx").read_text()
     assert "30-second pre-trip" in gate
-    dash = (root / "apps/driver-portal/src/app/dashboard/page.tsx").read_text()
+    dash = (root / "apps/driver-portal/src/components/dashboard/DashboardClient.tsx").read_text()
     assert "startShift(pretrip)" in dash
-    shift = (root / "apps/driver-portal/src/app/shift/page.tsx").read_text()
+    shift = (root / "apps/driver-portal/src/components/shift/ShiftClient.tsx").read_text()
     assert "startShift(snap.current_route?.route_id, pretrip)" in shift
     assert "mode !== \"offline\" && !snap.shift_active" in shift
     qa = (root / "apps/driver-portal/src/components/dashboard/QuickActions.tsx").read_text()

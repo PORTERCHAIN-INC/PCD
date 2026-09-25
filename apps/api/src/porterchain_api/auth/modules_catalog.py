@@ -47,6 +47,7 @@ ADMIN_MODULE_TO_PERMISSION: dict[str, UnifiedPermission] = {
     "routes_dispatch": UnifiedPermission.DISPATCH_MANAGE,
     "content": UnifiedPermission.SETTINGS_MANAGE,
     "content_read": UnifiedPermission.OPERATIONS_READ,
+    "impersonation": UnifiedPermission.SETTINGS_MANAGE,
 }
 
 MERCHANT_MODULE_TO_PERMISSION: dict[str, UnifiedPermission] = {

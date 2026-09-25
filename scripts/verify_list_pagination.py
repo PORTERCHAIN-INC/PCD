@@ -74,6 +74,9 @@ _LEGACY_UNPAGINATED_LISTS: frozenset[str] = frozenset(
         "admin/leads.py:list_lead_conversations",
         "pricing_components.py:list_fsa_rates",
         "admin/route_templates.py:list_route_templates",
+        # Bounded author directories (small catalog, not unbounded ops lists).
+        "admin/blog_authors.py:list_blog_authors",
+        "public_blog.py:list_public_authors",
     }
 )
 

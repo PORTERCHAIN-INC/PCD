@@ -258,10 +258,10 @@ class TestAdminLeadsFilesystem:
 
     def test_page_imports_leads_api(self) -> None:
         for rel in (
-            "app/(ops)/leads/page.tsx",
-            "app/(ops)/leads/pipeline/page.tsx",
-            "app/(ops)/leads/calendar/page.tsx",
-            "app/(ops)/leads/[id]/page.tsx",
+            "components/leads/LeadsListClient.tsx",
+            "components/leads/LeadsPipelineClient.tsx",
+            "components/leads/LeadsCalendarClient.tsx",
+            "components/leads/LeadDetailClient.tsx",
         ):
             text = (ADMIN_SRC / rel).read_text(encoding="utf-8")
             assert "leadsApi" in text

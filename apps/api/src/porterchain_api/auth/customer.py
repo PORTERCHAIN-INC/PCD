@@ -66,7 +66,7 @@ def require_customer(
     claims: ClerkClaims,
     settings: Settings,
 ) -> Customer:
-    meta = claims.public_metadata or {}
+    meta = getattr(claims, "public_metadata", None) or {}
     if meta.get("impersonation") and meta.get("user_type") == "customer":
         customer = db.get(Customer, str(meta.get("target_id") or ""))
         if not customer:
