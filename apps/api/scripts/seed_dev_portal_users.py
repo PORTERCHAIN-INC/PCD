@@ -11,6 +11,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from porterchain_api.admin_models import Driver, Vehicle
+# Driver.crm_lead_id → crm_leads; register CrmLead so SQLAlchemy can resolve the FK on flush.
+from porterchain_api.crm_models import CrmLead as _CrmLead  # noqa: F401
 from porterchain_api.db import SessionLocal, init_db
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.merchant_states import MerchantStatus
