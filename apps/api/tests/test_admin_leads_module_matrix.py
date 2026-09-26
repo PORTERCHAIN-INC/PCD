@@ -127,11 +127,14 @@ _PAGE_API_MATRIX: dict[str, list[tuple[str, str]]] = {
 @pytest.fixture
 def admin_client(db, monkeypatch):
     monkeypatch.setattr(leads_mod, "require_module", lambda ctx, module: None)
+    import porterchain_api.routers.admin.leads_360 as leads_360_mod
     import porterchain_api.routers.admin.settings as settings_mod
     from porterchain_api.admin_engine import rbac as rbac_mod
     from porterchain_api.user_models import PorterchainUser
 
     # settings._invoke calls require_module from rbac import inside settings module
+    # assist / calendar / merge live on leads_360 (separate import binding)
+    monkeypatch.setattr(leads_360_mod, "require_module", lambda ctx, module: None)
     monkeypatch.setattr(settings_mod, "require_module", lambda ctx, module: None)
     monkeypatch.setattr(rbac_mod, "require_module", lambda ctx, module: None)
 
@@ -423,7 +426,7 @@ class TestInboxPageApi:
         lead = _seed(db, suffix=s, company_name=f"Inbox {s}")
         listed = admin_client.get("/v1/admin/leads", params={"search": s})
         assert listed.status_code == 200
-        assert any(r["id"] == lead.id for r in listed.json())
+        assert any(r["id"] == lead.id for r in listed.json()["items"])
         metrics = admin_client.get("/v1/admin/leads/metrics", params={"days": 7})
         assert metrics.status_code == 200
         body = metrics.json()
@@ -443,7 +446,7 @@ class TestInboxPageApi:
         _seed(db, suffix=f"m{s[:6]}", source="website_contact", company_name=f"Merchant {s}")
         rows = admin_client.get(
             "/v1/admin/leads", params={"source": "website_driver_partner", "search": s}
-        ).json()
+        ).json()["items"]
         assert any(r["id"] == driver.id for r in rows)
         assert all(r["source"] == "website_driver_partner" for r in rows)
 
@@ -458,17 +461,17 @@ class TestInboxPageApi:
                 "source": "phone_call",
                 "channel": "phone_call",
                 "priority": "urgent",
-                "consent": {"marketing": True, "sms": False},
+                "consent": {"marketing": True, "sms": False, "legal_basis": "consent"},
             },
         )
-        assert created.status_code == 201
+        assert created.status_code == 201, created.text
         LeadOut.model_validate(created.json())
         filtered = admin_client.get(
             "/v1/admin/leads",
             params={"channel": "phone_call", "priority": "urgent", "search": s},
         )
         assert filtered.status_code == 200
-        assert any(r["id"] == created.json()["id"] for r in filtered.json())
+        assert any(r["id"] == created.json()["id"] for r in filtered.json()["items"])
 
 
 class TestPipelinePageApi:

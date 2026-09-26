@@ -113,11 +113,7 @@ export function getSystemLinks(): SystemLink[] {
       id: "fleetbase-api",
       label: "Fleetbase API",
       description: "Permanent bond target (engineers)",
-      href: url(
-        "NEXT_PUBLIC_FLEETBASE_API_URL",
-        "http://localhost:8000",
-        "https://api.fleetbase.io"
-      ),
+      href: url("NEXT_PUBLIC_FLEETBASE_API_URL", "http://localhost:8000", "http://localhost:8000"),
       port: 8000,
     },
     {

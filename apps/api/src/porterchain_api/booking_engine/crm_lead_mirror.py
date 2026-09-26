@@ -40,18 +40,19 @@ def _apply_spine(
     booking_draft_id: str | None,
     consent: dict[str, Any] | None,
 ) -> None:
-    if quote_id and not lead.quote_id:
+    if quote_id and not getattr(lead, "quote_id", None):
         lead.quote_id = quote_id
-    if visitor_session_id and not lead.visitor_session_id:
+    if visitor_session_id and not getattr(lead, "visitor_session_id", None):
         lead.visitor_session_id = visitor_session_id[:64]
-        fields = dict(lead.custom_fields) if isinstance(lead.custom_fields, dict) else {}
+        raw_fields = getattr(lead, "custom_fields", None)
+        fields = dict(raw_fields) if isinstance(raw_fields, dict) else {}
         fields.setdefault("visitor_id", visitor_session_id[:64])
         lead.custom_fields = fields
-    if booking_draft_id and not lead.booking_draft_id:
+    if booking_draft_id and not getattr(lead, "booking_draft_id", None):
         lead.booking_draft_id = booking_draft_id[:36]
     merged = _consent_from_booking(consent)
     if merged:
-        c = dict(lead.consent or {})
+        c = dict(getattr(lead, "consent", None) or {})
         c.update(merged)
         lead.consent = c
 
@@ -162,7 +163,11 @@ def mirror_booking_lead_to_crm(
             consent=None,  # already merged via ingest
         )
         # ingest() already commits; refresh spine if we mutated after.
-        if lead.quote_id != quote_id or lead.visitor_session_id or lead.booking_draft_id:
+        if (
+            getattr(lead, "quote_id", None) != quote_id
+            or getattr(lead, "visitor_session_id", None)
+            or getattr(lead, "booking_draft_id", None)
+        ):
             db.add(lead)
             db.commit()
             db.refresh(lead)

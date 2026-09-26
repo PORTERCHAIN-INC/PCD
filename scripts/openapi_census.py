@@ -31,6 +31,7 @@ _KEEP_PREFIXES: tuple[str, ...] = (
     "/v1/public",
     "/v1/customers",
     "/v1/booking-drafts",
+    "/v1/booking-catalog",
     "/v1/quotes",
     "/v1/bookings",
     "/v1/orders",

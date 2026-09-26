@@ -56,11 +56,28 @@ def staff_ctx() -> SimpleNamespace:
 @pytest.fixture
 def admin_client(db, monkeypatch):
     monkeypatch.setattr(leads_mod, "require_module", lambda ctx, module: None)
+    import porterchain_api.routers.admin.leads_360 as leads_360_mod
+    from porterchain_api.user_models import PorterchainUser
+
+    # assist / calendar / merge live on leads_360 (separate import binding)
+    monkeypatch.setattr(leads_360_mod, "require_module", lambda ctx, module: None)
+
+    pc = PorterchainUser(
+        id="user-leads-dev",
+        clerk_user_id="clerk-leads-dev",
+        email="leads-dev@porterchain.com",
+        role="super_admin",
+        status="active",
+    )
+    db.merge(pc)
+    db.flush()
+
     admin = AdminContext(
         user=AdminUser(
             clerk_user_id="clerk-leads-dev",
             email="leads-dev@porterchain.com",
             role="super_admin",
+            porterchain_user_id="user-leads-dev",
         ),
         role=parse_admin_role("super_admin"),
     )
@@ -312,7 +329,7 @@ class TestLeadsApi:
 
         listed = admin_client.get("/v1/admin/leads", params={"search": s})
         assert listed.status_code == 200
-        assert any(row["id"] == lead_id for row in listed.json())
+        assert any(row["id"] == lead_id for row in listed.json()["items"])
 
         got = admin_client.get(f"/v1/admin/leads/{lead_id}")
         assert got.status_code == 200
@@ -505,7 +522,7 @@ class TestLeadsFlow:
             params={"channel": "website", "search": s},
         )
         assert rows.status_code == 200
-        assert any(r["id"] == lead_id for r in rows.json())
+        assert any(r["id"] == lead_id for r in rows.json()["items"])
 
         patched = admin_client.patch(
             f"/v1/admin/leads/{lead_id}",

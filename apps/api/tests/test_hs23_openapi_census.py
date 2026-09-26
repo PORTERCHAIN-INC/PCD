@@ -11,7 +11,7 @@ CENSUS = REPO_ROOT / "scripts" / "openapi_census.py"
 SNAPSHOT = REPO_ROOT / "docs" / "api" / "openapi.json"
 
 # DEVELOPMENT_TEST_CASES HS-23 baseline — bump only when intentional surface growth is classified.
-EXPECTED_KEEP = 639
+EXPECTED_KEEP = 757
 
 
 def test_hs23_openapi_census_pass_and_keep_count() -> None:

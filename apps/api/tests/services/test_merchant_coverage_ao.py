@@ -36,7 +36,7 @@ def test_assigned_vehicle_labels_are_english() -> None:
     )
     labels = {row["id"]: row["label"] for row in snap["assigned_vehicles"]}
     assert labels["cargoVan"] == "Cargo van"
-    assert labels["highRoof"] == "High-roof van"
+    assert labels["highRoof"] == "Sprinter / high-roof"
 
 
 def test_admin_apply_projects_service_area(db, admin_ctx, merchant_ctx) -> None:
