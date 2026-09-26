@@ -16,6 +16,7 @@ from porterchain_api.booking_engine.numbers import generate_order_number, genera
 from porterchain_api.booking_engine.order_metadata import resolve_order_type
 from porterchain_api.booking_engine.order_transitions import transition_to_dispatch_ready
 from porterchain_api.config import Settings
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.fleetbase_engine import MerchantSyncService
 from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
@@ -119,7 +120,7 @@ class OrderBuilderService:
         pricing_request = PricingRequest(
             pickup=pickup_geo,
             dropoff=dropoff_geo,
-            vehicle_class=body.vehicle_class,
+            vehicle_class=persist_vehicle_class(body.vehicle_class),
             package_type=body.package_type,
             service_type="scheduled" if schedule_mode == "later" else "same_day",
             weight_kg=body.weight_kg,
@@ -151,7 +152,7 @@ class OrderBuilderService:
             "stops": stops,
             "order_kind": body.order_kind,
             "schedule_mode": schedule_mode,
-            "vehicle_class": body.vehicle_class,
+            "vehicle_class": persist_vehicle_class(body.vehicle_class),
             "additional_stops": [_stop_addr(s) for s in middles],
         }
 

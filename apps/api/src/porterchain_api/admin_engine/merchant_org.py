@@ -48,7 +48,7 @@ ORG_ERROR_MESSAGES: dict[str, str] = {
     "shop_not_found": "That Shopify shop was not found.",
     "dlq_not_found": "That Shopify ingress DLQ row was not found.",
     "ingress_still_paused": "Resume Shopify ingress on this shop before replaying held webhooks.",
-    "vehicle_class_invalid": "Pick a valid vehicle class (e.g. cargoVan).",
+    "vehicle_class_invalid": "Pick a valid vehicle class (e.g. cargo_van).",
     "package_type_invalid": "Pick a valid package type (e.g. looseParcel).",
     "shop_not_connected": "That Shopify shop is not connected.",
     "shopify_oauth_not_configured": "Shopify OAuth is not configured on this environment.",

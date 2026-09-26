@@ -123,7 +123,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
   const [readyFrom, setReadyFrom] = useState("");
   const [pickupBy, setPickupBy] = useState("");
   const [cargo, setCargo] = useState<Parcel[]>([emptyParcel()]);
-  const [vehicleClass, setVehicleClass] = useState("cargoVan");
+  const [vehicleClass, setVehicleClass] = useState("cargo_van");
   const [packageType, setPackageType] = useState("looseParcel");
   const [internalRef, setInternalRef] = useState("");
   const [poNumber, setPoNumber] = useState("");
@@ -263,7 +263,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
       setDraftId(draft.draft_id);
       setPickup(payloadToAddress(draft.pickup));
       setDropoff(payloadToAddress(draft.dropoff));
-      setVehicleClass(draft.vehicle_class || "cargoVan");
+      setVehicleClass(draft.vehicle_class || "cargo_van");
       setPackageType(draft.package_type || "looseParcel");
       setInstructions(draft.special_instructions || "");
       setSiteAccessNotes(

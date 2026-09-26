@@ -1,4 +1,4 @@
-"""English words merchants see. API IDs stay camelCase / SCREAMING_SNAKE."""
+"""English words merchants see. Capacity class IDs are snake (SoT1); aliases accepted."""
 
 from __future__ import annotations
 
@@ -33,14 +33,14 @@ VEHICLE_LABELS: dict[str, str] = {
     "pickup": "Pickup",
     "cargoVan": "Cargo van",
     "cargo_van": "Cargo van",
-    "highRoof": "High-roof van",
-    "sprinter_van": "High-roof van",
+    "highRoof": "Sprinter / high-roof",
+    "sprinter_van": "Sprinter / high-roof",
     "box_truck": "16 ft box",
     "boxTruck": "16 ft box",
-    "box16": "16 ft box truck",
-    "box_16": "16 ft box truck",
-    "box20": "20 ft box truck",
-    "box_20": "20 ft box truck",
+    "box16": "16 ft box",
+    "box_16": "16 ft box",
+    "box20": "20 ft box",
+    "box_20": "20 ft box",
 }
 
 PACKAGE_LABELS: dict[str, str] = {
@@ -173,7 +173,16 @@ def order_state_label(state: str | None) -> str:
 
 
 def vehicle_label(code: str | None) -> str:
-    return _lookup(VEHICLE_LABELS, code)
+    mapped = _lookup(VEHICLE_LABELS, code)
+    if mapped != "—" and code:
+        raw = str(code).strip()
+        if raw in VEHICLE_LABELS or raw.lower() in VEHICLE_LABELS:
+            return mapped
+        from porterchain_api.domain.customer_goods import canonical_vehicle_id
+
+        canon = canonical_vehicle_id(raw)
+        return VEHICLE_LABELS.get(canon) or mapped
+    return mapped
 
 
 def package_label(code: str | None) -> str:

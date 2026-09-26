@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.merchant_states import BulkImportStatus, MerchantRole
 from porterchain_api.merchant_engine.import_errors import normalize_route_errors
 from porterchain_api.merchant_engine.import_quote import (
@@ -40,7 +41,7 @@ def apply_geocode_job(db: Session, job_id: str) -> None:
         quote_if_ready(
             db,
             ctx,
-            cfg.get("vehicle_class") or "cargoVan",
+            persist_vehicle_class(cfg.get("vehicle_class")),
             cfg.get("scheduled_at"),
             resolved,
             requires_liftgate=bool(cfg.get("requires_liftgate")),
@@ -80,7 +81,7 @@ def apply_optimize_job(db: Session, job_id: str) -> None:
         quote_if_ready(
             db,
             ctx,
-            cfg.get("vehicle_class") or "cargoVan",
+            persist_vehicle_class(cfg.get("vehicle_class")),
             cfg.get("scheduled_at"),
             reordered,
             requires_liftgate=bool(cfg.get("requires_liftgate")),

@@ -10,6 +10,14 @@ export type { EventActor, EventEnvelope, DomainEventType } from "./events";
 export type { QueueName } from "./queue";
 export type { DataOwnership } from "./ownership";
 export { PORTERCHAIN_OWNED, FLEETBASE_OWNED } from "./ownership";
+export type { CapacityClassId } from "./capacity";
+export {
+  CAPACITY_CLASS_IDS,
+  CAPACITY_CLASS_LABELS,
+  CAPACITY_CLASS_OPTIONS,
+  DEFAULT_CAPACITY_CLASS,
+  vehicleLabel,
+} from "./capacity";
 export type { MerchantOrder } from "./merchant";
 export {
   BLOG_STATUSES,

@@ -87,7 +87,7 @@ def _smoke_pricing() -> None:
         request = PricingRequest(
             pickup=GeoPoint(lat=43.65, lng=-79.38, formatted="repair smoke pickup"),
             dropoff=GeoPoint(lat=43.66, lng=-79.40, formatted="repair smoke dropoff"),
-            vehicle_class="cargoVan",
+            vehicle_class="cargo_van",
             scheduled_at=datetime.now(UTC),
         )
         breakdown = get_pricing_service(db).calculate_retail(request)

@@ -1,3 +1,5 @@
+import { vehicleLabel as capacityVehicleLabel } from "@porterchain/types";
+
 export function formatCents(cents: number | null | undefined, currency = "CAD"): string {
   if (cents == null || Number.isNaN(cents)) return "—";
   return new Intl.NumberFormat("en-CA", { style: "currency", currency }).format(cents / 100);
@@ -77,21 +79,9 @@ export function formatAccessLine(bits: {
   return parts.length ? parts.join(" · ") : null;
 }
 
-const VEHICLE_LABELS: Record<string, string> = {
-  sedan_suv: "Sedan / SUV",
-  sedan: "Sedan",
-  suv: "SUV",
-  pickup: "Pickup",
-  cargo_van: "Cargo van",
-  box_16: "16 ft",
-  box_20: "20 ft",
-  box_truck: "Box truck",
-  sprinter_van: "Sprinter",
-};
-
 export function vehicleLabel(id?: string | null): string {
   if (!id) return "vehicle";
-  return VEHICLE_LABELS[id] ?? id.replace(/_/g, " ");
+  return capacityVehicleLabel(id, id.replace(/_/g, " "));
 }
 
 export function parcelScanLabel(job: {

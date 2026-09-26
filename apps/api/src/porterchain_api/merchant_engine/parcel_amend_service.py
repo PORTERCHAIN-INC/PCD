@@ -13,6 +13,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.merchant_engine import events as E
 from porterchain_api.merchant_engine.route_import_service import (
     KIND_ROUTE_V1,
@@ -214,7 +215,7 @@ class ParcelAmendService:
             raise ParcelAmendError(PARCEL_AMEND_STOPS, PARCEL_AMEND_STOPS_MSG) from exc
 
         meta = _as_dict(order.compliance_metadata)
-        vehicle = vehicle_class or meta.get("vehicle_class") or "cargoVan"
+        vehicle = persist_vehicle_class(vehicle_class or meta.get("vehicle_class"))
         liftgate = bool(meta.get("requires_liftgate"))
         ctx = SimpleNamespace(merchant=merchant, user=SimpleNamespace(id=actor_id or "system"))
         quote, geometry = split_route_quote(

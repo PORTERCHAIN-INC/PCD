@@ -13,7 +13,7 @@ def _req(**kwargs) -> PricingRequest:
     base = dict(
         pickup=GeoPoint(lat=43.65, lng=-79.38, formatted="Toronto"),
         dropoff=GeoPoint(lat=43.70, lng=-79.40, formatted="North York"),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         distance_meters=10_000,
         estimated_duration_minutes=20,
         scheduled_at=datetime(2026, 7, 13, 12, 0, tzinfo=UTC),  # Monday
@@ -33,14 +33,14 @@ def test_default_rate_card_matches_catalog_floor():
 def test_retail_uses_gta_matrix_not_rate_card_per_km():
     """Retail quotes ignore legacy per-km rate card — GTA matrix is authoritative."""
     card = default_rate_card()
-    card.vehicles["cargoVan"] = card.vehicles.get("cargoVan") or card.vehicle("cargoVan")
+    card.vehicles["cargo_van"] = card.vehicles.get("cargo_van") or card.vehicle("cargo_van")
     engine = PricingEngine()
-    breakdown = engine.calculate(_req(channel="retail", vehicle_class="cargoVan"), PricingContext(rate_card=card))
+    breakdown = engine.calculate(_req(channel="retail", vehicle_class="cargo_van"), PricingContext(rate_card=card))
     # cargo_van base $65 for 10 km, 1 drop. Fuel stays off the customer fare.
     from porterchain_pricing.types import FuelConfig
 
     fueled = engine.calculate(
-        _req(channel="retail", vehicle_class="cargoVan"),
+        _req(channel="retail", vehicle_class="cargo_van"),
         PricingContext(rate_card=card, fuel=FuelConfig(surcharge_percent=5.0)),
     )
     assert breakdown.final_cents == 6500
@@ -54,8 +54,10 @@ def test_merge_merchant_overlay_still_builds_card():
     system = default_rate_card()
     effective = merge_merchant_overlay(
         system,
-        {"rate_card": {"vehicles": {"cargoVan": {"per_km_cents": 100, "minimum_cents": 5000, "surcharge_cents": 0}}}},
+        {"rate_card": {"vehicles": {"cargo_van": {"per_km_cents": 100, "minimum_cents": 5000, "surcharge_cents": 0}}}},
     )
+    assert effective.vehicle("cargo_van").minimum_cents == 5000
+    # Legacy camel lookup still resolves snake-primary card keys.
     assert effective.vehicle("cargoVan").minimum_cents == 5000
 
 

@@ -19,7 +19,7 @@ from porterchain_fleetbase_adapter.orchestrator import OrchestratorService
 from porterchain_fleetbase_adapter.pod import PodService
 from porterchain_fleetbase_adapter.routes import RouteService
 from porterchain_fleetbase_adapter.tracking import TrackingService
-from porterchain_fleetbase_adapter.vehicles import VehicleService
+from porterchain_fleetbase_adapter.vehicles import FleetbaseVehicleService as VehicleService
 from porterchain_fleetbase_adapter.webhooks import WebhookService
 from porterchain_fleetbase_adapter.zones import ZonesService
 

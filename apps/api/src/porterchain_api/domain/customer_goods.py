@@ -48,10 +48,46 @@ VEHICLE_ALIASES = {
 }
 
 
+# Capacity Catalog ids (SoT1). Aliases above map legacy dialects into this set.
+CATALOG_VEHICLE_IDS = frozenset(
+    {"sedan_suv", "pickup", "cargo_van", "sprinter_van", "box_16", "box_20"}
+)
+DEFAULT_CAPACITY_CLASS = "cargo_van"
+
+
 def canonical_vehicle_id(raw: str) -> str:
     key = (raw or "").strip().lower().replace("-", "_").replace(" ", "_")
     compact = key.replace("_", "")
     return VEHICLE_ALIASES.get(key) or VEHICLE_ALIASES.get(compact) or key
+
+
+def persist_vehicle_class(raw: str | None, *, default: str = DEFAULT_CAPACITY_CLASS) -> str:
+    """Write-path: always a catalog id (or default). Never persist camel."""
+    cid = canonical_vehicle_id(raw or "")
+    return cid if cid else default
+
+
+def vehicle_classes_match(required: str | None, classes: set[str] | list[str]) -> bool:
+    if not required:
+        return True
+    want = canonical_vehicle_id(required)
+    if not want:
+        return False
+    return want in {canonical_vehicle_id(c) for c in classes if c}
+
+
+def booked_capacity_class(
+    *,
+    quote_vehicle_class: str | None = None,
+    compliance_metadata: dict[str, Any] | None = None,
+) -> str | None:
+    """SoT3 read: Quote first, compliance denorm fallback. Always canonical snake."""
+    raw = quote_vehicle_class
+    if not raw and isinstance(compliance_metadata, dict):
+        raw = compliance_metadata.get("vehicle_class")
+    if not raw:
+        return None
+    return persist_vehicle_class(str(raw))
 
 
 def default_vehicle_catalog() -> list[dict[str, Any]]:

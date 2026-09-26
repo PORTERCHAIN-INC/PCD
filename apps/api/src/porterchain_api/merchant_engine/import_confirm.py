@@ -9,6 +9,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.merchant_states import BulkImportStatus
 from porterchain_api.domain.states import OrderSource
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
@@ -106,7 +107,7 @@ def confirm_import(
         pickup=_address_input(pickup),
         dropoff=_address_input(dropoff),
         additional_stops=[_address_input(s) for s in additional] or None,
-        vehicle_class=cfg.get("vehicle_class") or "cargoVan",
+        vehicle_class=persist_vehicle_class(cfg.get("vehicle_class")),
         package_type=cfg.get("package_type") or "looseParcel",
         weight_kg=optional_float(cfg.get("weight_kg")),
         dimensions=optional_text(cfg.get("dimensions")),

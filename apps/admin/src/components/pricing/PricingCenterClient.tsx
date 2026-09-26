@@ -168,11 +168,12 @@ export default function PricingCenterClient() {
                       ["box_20", "20 ft"],
                     ]
                   : [
-                      ["sedan", "Sedan"],
-                      ["suv", "SUV"],
+                      ["sedan_suv", "Sedan / SUV"],
+                      ["pickup", "Pickup"],
                       ["cargo_van", "Cargo van"],
                       ["sprinter_van", "Sprinter"],
-                      ["box_truck", "Box truck"],
+                      ["box_16", "16 ft"],
+                      ["box_20", "20 ft"],
                     ]
                 ).map(([id, label]) => (
                   <option key={id} value={id}>

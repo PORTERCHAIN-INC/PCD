@@ -234,8 +234,9 @@ def apply_shopify_book_vehicle(merchant: Merchant, body: Any, payload: dict[str,
         )
         dims = _dimensions_from_items(line_items)
         vehicle = resolve_shopify_vehicle(merchant, dropoff=body.dropoff, dimensions=dims)
-        vehicle_body = "cargoVan" if vehicle == "cargo_van" else vehicle
-        return body.model_copy(update={"vehicle_class": vehicle_body})
+        from porterchain_api.domain.customer_goods import persist_vehicle_class
+
+        return body.model_copy(update={"vehicle_class": persist_vehicle_class(vehicle)})
     except Exception:  # noqa: BLE001
         logger.exception(
             "shopify_book_vehicle_resolve_failed merchant=%s",

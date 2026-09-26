@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 from uuid import UUID
 
@@ -335,7 +336,22 @@ def build_vehicle_payload(vehicle: dict[str, Any], *, company_uuid: str | None =
     if company_uuid:
         payload["company_uuid"] = company_uuid
     if vehicle.get("vehicle_class"):
-        payload["type"] = vehicle["vehicle_class"]
+        raw = str(vehicle["vehicle_class"])
+        spaced = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", raw).lower().replace("-", "_")
+        compact = spaced.replace("_", "").replace(" ", "")
+        aliases = {
+            "cargovan": "cargo_van",
+            "highroof": "sprinter_van",
+            "sprinter": "sprinter_van",
+            "sprintervan": "sprinter_van",
+            "box16": "box_16",
+            "boxtruck": "box_16",
+            "box20": "box_20",
+            "sedan": "sedan_suv",
+            "suv": "sedan_suv",
+            "sedansuv": "sedan_suv",
+        }
+        payload["type"] = aliases.get(compact) or aliases.get(spaced) or spaced
     # Fleetbase VROOM capacity SoT: payload_capacity* first-class columns.
     capacity_kg = vehicle.get("capacity_kg") or vehicle.get("payload_capacity")
     if capacity_kg is not None:

@@ -110,7 +110,7 @@ def test_upload_uses_named_saved_mapping(db) -> None:
             ctx,
             filename="stops.csv",
             data=csv,
-            vehicle_class="cargoVan",
+            vehicle_class="cargo_van",
             scheduled_at=None,
             mapping_profile_id=saved["id"],
         )
@@ -146,7 +146,7 @@ def test_apply_saved_mapping_to_open_job(db) -> None:
             ctx,
             filename="other.csv",
             data=csv,
-            vehicle_class="cargoVan",
+            vehicle_class="cargo_van",
             scheduled_at=None,
         )
         applied = svc.apply_mapping_profile(db, ctx, job.id, saved["id"])

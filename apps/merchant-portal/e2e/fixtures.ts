@@ -150,7 +150,7 @@ export function gtaBookPayload() {
       lat: 43.6466,
       lng: -79.3795,
     },
-    vehicle_class: "cargoVan",
+    vehicle_class: "cargo_van",
     package_type: "looseParcel",
     scheduled_at,
     schedule_mode: "now",

@@ -97,7 +97,13 @@ class BookingService:
             payload={"email": email},
         )
         self._customers.create_lead(
-            db, email=email, phone=phone, quote_id=quote.id, customer_id=customer.id
+            db,
+            email=email,
+            phone=phone,
+            quote_id=quote.id,
+            customer_id=customer.id,
+            visitor_session_id=session_id,
+            consent=consent,
         )
         emit_event(
             db,

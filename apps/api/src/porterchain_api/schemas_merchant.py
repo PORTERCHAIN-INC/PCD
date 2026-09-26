@@ -21,7 +21,7 @@ class MerchantBookDeliveryRequest(BaseModel):
     pickup: AddressInput
     dropoff: AddressInput
     additional_stops: list[AddressInput] | None = None
-    vehicle_class: str = "cargoVan"
+    vehicle_class: str = "cargo_van"
     package_type: str = "looseParcel"
     weight_kg: float | None = None
     dimensions: str | None = None
@@ -343,7 +343,7 @@ class RouteImportCreateRequest(BaseModel):
     schema_version: str = "route_import.v1"
     source: str = "api"
     idempotency_key: str | None = None
-    vehicle_class: str = "cargoVan"
+    vehicle_class: str = "cargo_van"
     scheduled_at: datetime | None = None
     package_type: str = "looseParcel"
     internal_reference: str | None = None
@@ -361,7 +361,7 @@ class RouteImportCreateRequest(BaseModel):
                     "schema_version": "route_import.v1",
                     "source": "agent",
                     "idempotency_key": "agent-run-2026-08-07-001",
-                    "vehicle_class": "highRoof",
+                    "vehicle_class": "sprinter_van",
                     "scheduled_at": "2026-08-07T09:00:00-04:00",
                     "stops": [
                         {

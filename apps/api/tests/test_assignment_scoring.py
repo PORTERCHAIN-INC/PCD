@@ -51,7 +51,20 @@ class TestHardFilters:
             classes={"sedan"},
             skills_needed=[],
         )
-        assert reason and "cargoVan" in reason
+        assert reason and "cargo_van" in reason
+
+    def test_vehicle_class_dialect_match(self):
+        d = _verified()
+        assert (
+            hard_filter_driver(
+                d,
+                medical_required=False,
+                required_class="cargoVan",
+                classes={"cargo_van"},
+                skills_needed=[],
+            )
+            is None
+        )
 
     def test_skills_missing_excluded(self):
         d = _verified(documents={"skills": ["hazmat"]})

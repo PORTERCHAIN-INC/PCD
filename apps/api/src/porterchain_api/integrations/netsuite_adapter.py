@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
 
 
@@ -45,7 +46,7 @@ def map_netsuite_fulfillment(payload: dict[str, Any]) -> MerchantBookDeliveryReq
         cost_centre=payload.get("subsidiary"),
         special_instructions=payload.get("memo"),
         weight_kg=payload.get("weight_kg"),
-        vehicle_class=payload.get("vehicle_class") or "cargoVan",
+        vehicle_class=persist_vehicle_class(payload.get("vehicle_class")),
         package_type=payload.get("package_type") or "looseParcel",
     )
 

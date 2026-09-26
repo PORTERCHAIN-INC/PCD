@@ -20,15 +20,14 @@ export const WeightUnit = {
 
 export type WeightUnit = (typeof WeightUnit)[keyof typeof WeightUnit];
 
-/** Catalog ids accepted by POST /v1/merchant/route-imports. */
+/** Catalog ids accepted by POST /v1/merchant/route-imports (Capacity Catalog SoT). */
 export const MerchantVehicleClass = {
-  SEDAN: "sedan",
-  SUV: "suv",
+  SEDAN_SUV: "sedan_suv",
   PICKUP: "pickup",
-  CARGO_VAN: "cargoVan",
-  HIGH_ROOF: "highRoof",
-  BOX_16: "box16",
-  BOX_20: "box20",
+  CARGO_VAN: "cargo_van",
+  HIGH_ROOF: "sprinter_van",
+  BOX_16: "box_16",
+  BOX_20: "box_20",
 } as const;
 
 export type MerchantVehicleClass = (typeof MerchantVehicleClass)[keyof typeof MerchantVehicleClass];

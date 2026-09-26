@@ -18,6 +18,7 @@
     "@clerk/expo": "^4.6.6",
     "@porterchain/customer-motion": "workspace:*",
     "@porterchain/mobile-theme": "file:./vendor/mobile-theme",
+    "@porterchain/types": "workspace:*",
     "lottie-react-native": "~7.3.8",
     "expo": "~57.0.24",
     "expo-auth-session": "~57.0.12",

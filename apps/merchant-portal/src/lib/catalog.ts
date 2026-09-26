@@ -1,13 +1,8 @@
-/** English words. API IDs stay camelCase / SCREAMING_SNAKE. */
+/** English words. Capacity class IDs are snake (SoT1). */
 
-export const VEHICLE_OPTIONS = [
-  { id: "sedan_suv", label: "Sedan / SUV" },
-  { id: "pickup", label: "Pickup" },
-  { id: "cargo_van", label: "Cargo van" },
-  { id: "sprinter_van", label: "Sprinter / high-roof" },
-  { id: "box_16", label: "16 ft" },
-  { id: "box_20", label: "20 ft" },
-] as const;
+import { CAPACITY_CLASS_OPTIONS, vehicleLabel as capacityVehicleLabel } from "@porterchain/types";
+
+export const VEHICLE_OPTIONS = CAPACITY_CLASS_OPTIONS;
 
 export const PACKAGE_OPTIONS = [
   { id: "looseParcel", label: "Loose parcel" },
@@ -38,21 +33,6 @@ const ORDER_STATE_LABELS: Record<string, string> = {
   LOST: "Lost",
   CLAIM_OPEN: "Claim open",
   REFUNDED: "Refunded",
-};
-
-const VEHICLE_LABELS: Record<string, string> = {
-  sedan: "Sedan / SUV",
-  suv: "Sedan / SUV",
-  sedan_suv: "Sedan / SUV",
-  pickup: "Pickup",
-  cargoVan: "Cargo van",
-  cargo_van: "Cargo van",
-  highRoof: "High-roof van",
-  sprinter_van: "High-roof van",
-  box16: "16 ft box truck",
-  box_16: "16 ft box truck",
-  box20: "20 ft box truck",
-  box_20: "20 ft box truck",
 };
 
 const PACKAGE_LABELS: Record<string, string> = Object.fromEntries(
@@ -180,7 +160,7 @@ export function orderStateLabel(state: string | null | undefined): string {
 }
 
 export function vehicleLabel(code: string | null | undefined): string {
-  return lookup(VEHICLE_LABELS, code);
+  return capacityVehicleLabel(code);
 }
 
 export function packageLabel(code: string | null | undefined): string {

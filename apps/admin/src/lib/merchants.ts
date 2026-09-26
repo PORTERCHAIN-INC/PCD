@@ -1,5 +1,6 @@
 import { adminFetch } from "@/lib/api";
 import type { Activity, Contract, Invoice, Task } from "@/lib/crm";
+import { CAPACITY_CLASS_IDS, vehicleLabel } from "@porterchain/types";
 
 export type MerchantRow = {
   id: string;
@@ -65,26 +66,10 @@ export const RETAIL_VEHICLE_OPTIONS = [
   "cargo_van",
   "box_16",
   "box_20",
-] as const;
-
-const VEHICLE_CLASS_LABELS: Record<string, string> = {
-  sedan: "Sedan / SUV",
-  suv: "Sedan / SUV",
-  sedan_suv: "Sedan / SUV",
-  pickup: "Pickup",
-  cargoVan: "Cargo van",
-  cargo_van: "Cargo van",
-  highRoof: "Sprinter / high-roof",
-  sprinter_van: "Sprinter / high-roof",
-  box16: "16 ft",
-  box_16: "16 ft",
-  box_truck: "16 ft",
-  box20: "20 ft",
-  box_20: "20 ft",
-};
+] as const satisfies readonly (typeof CAPACITY_CLASS_IDS)[number][];
 
 export function vehicleClassLabel(id: string): string {
-  return VEHICLE_CLASS_LABELS[id] ?? id;
+  return vehicleLabel(id, id);
 }
 
 export type MerchantCoverage = {
@@ -1090,7 +1075,7 @@ const MERCHANT_ACTION_MESSAGES: Record<string, string> = {
   shop_not_found: "That Shopify shop was not found.",
   dlq_not_found: "That Shopify ingress DLQ row was not found.",
   ingress_still_paused: "Resume Shopify ingress on this shop before replaying held webhooks.",
-  vehicle_class_invalid: "Pick a valid vehicle class (e.g. cargoVan).",
+  vehicle_class_invalid: "Pick a valid vehicle class (e.g. cargo_van).",
   package_type_invalid: "Pick a valid package type (e.g. looseParcel).",
   shop_not_connected: "That Shopify shop is not connected.",
   contract_not_found: "That contract was not found for this company.",

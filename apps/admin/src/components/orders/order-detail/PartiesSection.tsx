@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { User, Truck } from "lucide-react";
+import { vehicleLabel } from "@porterchain/types";
 import { formatCents } from "@porterchain/ui/utils";
 import { formatState, type OrderDetail } from "@/lib/orders";
 import { Button } from "@/components/crm/primitives";
@@ -93,9 +94,29 @@ export function Driver360Tab({ detail }: { detail: OrderDetail }) {
 }
 
 export function Vehicle360Tab({ detail }: { detail: OrderDetail }) {
+  const booked =
+    detail.vehicle_label?.trim() || vehicleLabel(detail.vehicle_class, detail.vehicle_class || "—");
   const v = detail.vehicle;
-  if (!v) return <p className="text-sm text-muted">No vehicle assigned</p>;
-  return <EntityRows data={v} />;
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">Booked capacity</p>
+        <p className="mt-1 text-sm">{booked}</p>
+      </div>
+      <div>
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">
+          Assigned fleet unit
+        </p>
+        {v ? (
+          <div className="mt-1">
+            <EntityRows data={v} />
+          </div>
+        ) : (
+          <p className="mt-1 text-sm text-muted">No vehicle assigned</p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function PartiesSection({ detail }: { detail: OrderDetail }) {

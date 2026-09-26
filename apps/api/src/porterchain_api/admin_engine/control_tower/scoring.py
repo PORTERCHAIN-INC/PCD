@@ -27,6 +27,7 @@ from porterchain_api.admin_engine.dispatch_suggestions_service import (
 from porterchain_api.admin_models import Driver
 from porterchain_api.booking_engine.compliance_metadata import requires_medical_certified
 from porterchain_api.booking_models import Order
+from porterchain_api.domain.customer_goods import canonical_vehicle_id, persist_vehicle_class, vehicle_classes_match
 
 logger = logging.getLogger(__name__)
 
@@ -136,8 +137,8 @@ def hard_filter_driver(
     # D-28: required class with no registered vehicles → hard exclude (not soft-rank).
     if required_class and not classes:
         return f"No vehicles registered (need {required_class})"
-    if required_class and classes and required_class not in classes:
-        return f"No {required_class} vehicle"
+    if required_class and classes and not vehicle_classes_match(required_class, classes):
+        return f"No {canonical_vehicle_id(required_class)} vehicle"
     if skills_needed:
         have = driver_skills(driver)
         missing = [s for s in skills_needed if s not in have]
@@ -343,7 +344,7 @@ def compute_ranked_suggestions(
         load = loads.get(d.id, 0)
         classes = classes_by_driver.get(d.id, set())
         capability = (
-            None if not required_class or not classes else required_class in classes
+            None if not required_class or not classes else vehicle_classes_match(required_class, classes)
         )
         live = live_payloads.get(d.id)
         online = _driver_online(live, d)
@@ -392,7 +393,7 @@ def compute_ranked_suggestions(
     return {
         "order_id": order_id,
         "pickup_coords": bool(pickup_coords),
-        "vehicle_class": required_class,
+        "vehicle_class": persist_vehicle_class(required_class) if required_class else required_class,
         "medical_required": medical_required,
         "required_skills": skills_needed,
         "matrix_source": matrix_source,

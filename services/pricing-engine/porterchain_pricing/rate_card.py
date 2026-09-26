@@ -65,10 +65,13 @@ class RateCard:
     def vehicle(self, vehicle_class: str) -> VehicleRate:
         if vehicle_class in self.vehicles:
             return self.vehicles[vehicle_class]
-        # Normalize legacy snake_case (cargo_van → cargoVan)
+        # Legacy camel card keys ↔ snake Capacity Catalog ids.
         camel = _to_camel(vehicle_class)
         if camel in self.vehicles:
             return self.vehicles[camel]
+        snake = _to_snake(vehicle_class)
+        if snake in self.vehicles:
+            return self.vehicles[snake]
         return VehicleRate()
 
     def to_dict(self) -> dict[str, Any]:
@@ -227,3 +230,10 @@ def _to_camel(value: str) -> str:
     if len(parts) == 1:
         return value
     return parts[0] + "".join(p.title() for p in parts[1:])
+
+
+def _to_snake(value: str) -> str:
+    import re
+
+    spaced = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", value or "")
+    return spaced.lower().replace("-", "_")

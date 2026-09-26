@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { colors, radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
+import { CAPACITY_CLASS_OPTIONS, vehicleLabel as capacityVehicleLabel } from "@porterchain/types";
 import {
   bookingCatalog,
   createQuote,
@@ -82,13 +83,10 @@ type CatalogPreset = {
   weight_lb?: number | null;
 };
 
-const VEHICLES: CatalogVehicle[] = [
-  { id: "sedan_suv", label: "Sedan / SUV" },
-  { id: "pickup", label: "Pickup" },
-  { id: "cargo_van", label: "Cargo van" },
-  { id: "box_16", label: "16 ft" },
-  { id: "box_20", label: "20 ft" },
-];
+const VEHICLES: CatalogVehicle[] = CAPACITY_CLASS_OPTIONS.map((row) => ({
+  id: row.id,
+  label: row.label,
+}));
 
 const PRESETS: CatalogPreset[] = [
   { id: "small", label: "Small" },
@@ -109,15 +107,6 @@ const VEHICLE_ALIAS: Record<string, string> = {
   box_truck: "box_16",
   highRoof: "sprinter_van",
   highroof: "sprinter_van",
-};
-
-const VEHICLE_LABELS: Record<string, string> = {
-  sedan_suv: "Sedan / SUV",
-  pickup: "Pickup",
-  cargo_van: "Cargo van",
-  box_16: "16 ft",
-  box_20: "20 ft",
-  sprinter_van: "Sprinter",
 };
 
 type BookStep = "details" | "quote" | "pay" | "done";
@@ -509,7 +498,7 @@ export function BookScreen({
 
   function vehicleName(id?: string | null) {
     if (!id) return "";
-    return vehicles.find((row) => row.id === id)?.label ?? VEHICLE_LABELS[id] ?? id;
+    return vehicles.find((row) => row.id === id)?.label ?? capacityVehicleLabel(id, id);
   }
 
   useEffect(() => {

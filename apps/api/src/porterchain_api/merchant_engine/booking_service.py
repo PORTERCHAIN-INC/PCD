@@ -72,13 +72,9 @@ def confirm_replay_payload(order: Order) -> dict:
 
 
 def _canonical_vehicle(code: str | None) -> str:
-    raw = (code or "").strip() or "cargoVan"
-    try:
-        from porterchain_pricing.gta_rate import normalize_vehicle_type
+    from porterchain_api.domain.customer_goods import persist_vehicle_class
 
-        return normalize_vehicle_type(raw)
-    except ValueError:
-        return raw
+    return persist_vehicle_class(code)
 
 
 def _geo(addr: AddressInput) -> GeoPoint:
@@ -251,7 +247,7 @@ class MerchantBookingService:
 
         snapshot = merchant_quote_picture(
             api_breakdown,
-            vehicle_class=body.vehicle_class,
+            vehicle_class=_canonical_vehicle(body.vehicle_class),
             package_type=body.package_type,
             distance_meters=breakdown.metadata.get("distance_meters")
             if isinstance(breakdown.metadata, dict)
@@ -266,7 +262,7 @@ class MerchantBookingService:
             compliance["additional_stops"] = [s.model_dump() for s in body.additional_stops]
         # Order.is_sandbox is SoT — do not write compliance.sandbox (legacy rows still dual-read).
         compliance["quote"] = snapshot
-        compliance["vehicle_class"] = body.vehicle_class
+        compliance["vehicle_class"] = _canonical_vehicle(body.vehicle_class)
         compliance["package_type"] = body.package_type
         if consignee_email:
             compliance["consignee"] = {"email": consignee_email}
@@ -437,7 +433,7 @@ class MerchantBookingService:
             additional_stops=[
                 s for s in additional or [] if isinstance(s, dict) and s.get("formatted")
             ],
-            vehicle_class=str(meta.get("vehicle_class") or "cargoVan"),
+            vehicle_class=_canonical_vehicle(str(meta.get("vehicle_class") or "")),
             package_type=str(meta.get("package_type") or "looseParcel"),
             weight_kg=meta.get("weight_kg"),
             dimensions=meta.get("dimensions"),

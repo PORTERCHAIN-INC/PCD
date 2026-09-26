@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from porterchain_api.schemas_admin import DriverCreateRequest, DriverDocumentInput
 from porterchain_api.admin_models import AdminAuditLog, Driver, DriverPayout, Vehicle
 from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.admin_engine import events as E
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
@@ -82,7 +83,7 @@ class AdminDriverService(DriverAccountOps):
             db.add(
                 Vehicle(
                     driver_id=driver.id,
-                    vehicle_class=body.vehicle.vehicle_class,
+                    vehicle_class=persist_vehicle_class(body.vehicle.vehicle_class),
                     plate_number=body.vehicle.plate_number.strip(),
                     make_model=body.vehicle.make_model,
                     capacity_kg=body.vehicle.capacity_kg,

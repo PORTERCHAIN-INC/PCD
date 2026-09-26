@@ -1,3 +1,9 @@
+import {
+  CAPACITY_CLASS_LABELS,
+  CAPACITY_CLASS_OPTIONS,
+  type CapacityClassId,
+} from "@porterchain/types";
+
 export type BookingVehicle = {
   id: string;
   label: string;
@@ -30,18 +36,23 @@ export type ParcelDraft = {
   weight_lb: string;
 };
 
-export const FALLBACK_VEHICLES: BookingVehicle[] = [
-  {
-    id: "sedan_suv",
-    label: "Sedan / SUV",
-    whole_vehicle_enabled: true,
-    allowed_presets: ["small", "medium", "large", "other"],
-  },
-  { id: "pickup", label: "Pickup", whole_vehicle_enabled: true, allowed_presets: null },
-  { id: "cargo_van", label: "Cargo van", whole_vehicle_enabled: true, allowed_presets: null },
-  { id: "box_16", label: "16 ft", whole_vehicle_enabled: true, allowed_presets: null },
-  { id: "box_20", label: "20 ft", whole_vehicle_enabled: true, allowed_presets: null },
+const RETAIL_FALLBACK_IDS: CapacityClassId[] = [
+  "sedan_suv",
+  "pickup",
+  "cargo_van",
+  "box_16",
+  "box_20",
 ];
+
+export const FALLBACK_VEHICLES: BookingVehicle[] = RETAIL_FALLBACK_IDS.map((id) => {
+  const row = CAPACITY_CLASS_OPTIONS.find((opt) => opt.id === id)!;
+  return {
+    id: row.id,
+    label: CAPACITY_CLASS_LABELS[id],
+    whole_vehicle_enabled: true,
+    allowed_presets: id === "sedan_suv" ? ["small", "medium", "large", "other"] : null,
+  };
+});
 
 export const FALLBACK_PRESETS: BookingPreset[] = [
   { id: "small", label: "Small" },

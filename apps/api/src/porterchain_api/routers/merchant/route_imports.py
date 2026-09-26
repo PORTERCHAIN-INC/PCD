@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.auth.merchant import get_merchant_context
 from porterchain_api.config import Settings, get_settings
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.db import get_db
 from porterchain_api.merchant_engine.rbac import MerchantContext, require_module
 from porterchain_api.merchant_engine.route_import_service import (
@@ -88,7 +89,7 @@ async def create_route_import_upload(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
-    vehicle_class: str = Form("cargoVan"),
+    vehicle_class: str = Form("cargo_van"),
     scheduled_at: str | None = Form(None),
     package_type: str = Form("looseParcel"),
     requires_liftgate: bool = Form(False),
@@ -103,7 +104,7 @@ async def create_route_import_upload(
             ctx,
             filename=file.filename or "upload.csv",
             data=data,
-            vehicle_class=vehicle_class or "cargoVan",
+            vehicle_class=persist_vehicle_class(vehicle_class),
             scheduled_at=scheduled_at,
             package_type=package_type or "looseParcel",
             requires_liftgate=requires_liftgate,

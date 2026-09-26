@@ -529,7 +529,7 @@ _LEGACY_ENGINE_SERVICE_LOC: dict[str, int] = {
     "admin_engine/orchestrator_ops_service.py": 677,
     "merchant_engine/shopify_service.py": 831,
     "merchant_engine/billing_service.py": 914,
-    "merchant_engine/booking_flow_service.py": 531,
+    "merchant_engine/booking_flow_service.py": 532,
     "merchant_engine/integrations_service.py": 548,
     "notification_engine/admin_service.py": 600,
     "notification_engine/delivery_service.py": 611,

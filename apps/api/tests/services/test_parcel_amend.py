@@ -57,7 +57,7 @@ def _order(db, merchant_id: str, *, state: str = OrderState.BOOKED.value, driver
         dropoff={"formatted": "1 Dundas St E, Toronto", "lat": 43.6561, "lng": -79.3802, "postal": "M5B 2R8"},
         scheduled_at=datetime.now(UTC),
         compliance_metadata={
-            "vehicle_class": "cargoVan",
+            "vehicle_class": "cargo_van",
             "stops": [
                 {
                     "id": "s1",

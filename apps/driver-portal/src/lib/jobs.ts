@@ -1,3 +1,5 @@
+import { vehicleLabel as capacityVehicleLabel } from "@porterchain/types";
+
 export type JobBucket = "current" | "upcoming" | "completed";
 
 export type JobUrgency = "critical" | "high" | "medium" | "normal";
@@ -200,21 +202,9 @@ export function getJobLeg(state: string): JobLeg {
   return "pickup";
 }
 
-const VEHICLE_LABELS: Record<string, string> = {
-  sedan_suv: "Sedan / SUV",
-  sedan: "Sedan",
-  suv: "SUV",
-  pickup: "Pickup",
-  cargo_van: "Cargo van",
-  box_16: "16 ft",
-  box_20: "20 ft",
-  box_truck: "Box truck",
-  sprinter_van: "Sprinter",
-};
-
 export function vehicleLabel(id?: string | null): string {
   if (!id) return "vehicle";
-  return VEHICLE_LABELS[id] ?? id.replace(/_/g, " ");
+  return capacityVehicleLabel(id, id.replace(/_/g, " "));
 }
 
 export function legLabel(leg: JobLeg): string {

@@ -66,7 +66,7 @@ def _book_body() -> dict:
             "lat": 43.65,
             "lng": -79.38,
         },
-        "vehicle_class": "cargoVan",
+        "vehicle_class": "cargo_van",
         "package_type": "looseParcel",
         "scheduled_at": datetime.now(UTC).isoformat(),
     }
@@ -142,7 +142,7 @@ def test_dispatcher_passes_book_module_gate(persona_client) -> None:
                 "valid": True,
                 "amount_cents": 2500,
                 "currency": "cad",
-                "vehicle_class": "cargoVan",
+                "vehicle_class": "cargo_van",
                 "distance_meters": 1000,
                 "estimated_duration_minutes": 15,
             },

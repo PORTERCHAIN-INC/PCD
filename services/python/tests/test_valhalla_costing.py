@@ -12,6 +12,13 @@ def test_box_truck_uses_truck_costing() -> None:
     assert valhalla_costing_for_vehicle_class("box_truck") == "truck"
     assert valhalla_costing_for_vehicle_class("boxTruck") == "truck"
     assert valhalla_costing_for_vehicle_class("straight-truck") == "truck"
+    assert valhalla_costing_for_vehicle_class("box_16") == "truck"
+    assert valhalla_costing_for_vehicle_class("box16") == "truck"
+    assert valhalla_costing_for_vehicle_class("box_20") == "truck"
+    assert valhalla_costing_for_vehicle_class("box20") == "truck"
+    assert valhalla_costing_for_vehicle_class("box_16") == "truck"
+    assert valhalla_costing_for_vehicle_class("box_20") == "truck"
+    assert valhalla_costing_for_vehicle_class("box16") == "truck"
 
 
 def test_vans_and_cars_use_auto() -> None:

@@ -416,7 +416,7 @@ class AdminCreateOrderRequest(BaseModel):
         description="single | hub_spoke | multi_pickup_delivery | scheduled_pickup",
     )
     stops: list[AdminOrderStopInput] = Field(..., min_length=2)
-    vehicle_class: str = "cargoVan"
+    vehicle_class: str = "cargo_van"
     package_type: str = "looseParcel"
     weight_kg: float | None = None
     scheduled_at: datetime

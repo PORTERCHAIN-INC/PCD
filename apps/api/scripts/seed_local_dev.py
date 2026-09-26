@@ -286,7 +286,7 @@ def create_merchant_order(db, settings, merchant: Merchant, user: MerchantUser, 
     body = MerchantBookDeliveryRequest(
         pickup=MerchantAddressInput(**PICKUP2.model_dump()),
         dropoff=MerchantAddressInput(**DROPOFF2.model_dump()),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         scheduled_at=_now() + timedelta(hours=4),
         internal_reference=f"{SEED_MARKER}-{label}",
         special_instructions=f"Merchant seed — {label}",

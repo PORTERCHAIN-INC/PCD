@@ -117,25 +117,30 @@ def recommend_vehicle(
     package_type: str | None = None,
 ) -> dict[str, Any]:
     """Capacity-first recommendation; preferred_vehicles only soft-rank among eligible (M-23)."""
+    from porterchain_api.domain.customer_goods import persist_vehicle_class
     from porterchain_pricing.catalog import VEHICLE_MINIMUM_CENTS, WEIGHT_THRESHOLD_KG
 
-    preferred = _vehicle_ids(merchant)
-    candidates = list(VEHICLE_MINIMUM_CENTS.keys())
+    preferred = [persist_vehicle_class(v) for v in _vehicle_ids(merchant)]
+    candidates: list[str] = []
+    for key in VEHICLE_MINIMUM_CENTS:
+        cid = persist_vehicle_class(key)
+        if cid not in candidates:
+            candidates.append(cid)
 
     if package_type in ("ltlPallet", "ftlLoad"):
-        capacity_pick = "box20" if "box20" in candidates else candidates[-1]
+        capacity_pick = "box_20" if "box_20" in candidates else candidates[-1]
     elif package_type == "furniture":
-        capacity_pick = "highRoof" if "highRoof" in candidates else "cargoVan"
+        capacity_pick = "sprinter_van" if "sprinter_van" in candidates else "cargo_van"
     elif weight_kg and weight_kg > 1000:
-        capacity_pick = "box20" if "box20" in candidates else "box16"
+        capacity_pick = "box_20" if "box_20" in candidates else "box_16"
     elif weight_kg and weight_kg > WEIGHT_THRESHOLD_KG:
-        capacity_pick = "highRoof" if "highRoof" in candidates else "cargoVan"
+        capacity_pick = "sprinter_van" if "sprinter_van" in candidates else "cargo_van"
     elif weight_kg and weight_kg > 50:
-        capacity_pick = "cargoVan" if "cargoVan" in candidates else "highRoof"
+        capacity_pick = "cargo_van" if "cargo_van" in candidates else "sprinter_van"
     else:
-        capacity_pick = preferred[0] if preferred and preferred[0] in candidates else "sedan"
+        capacity_pick = preferred[0] if preferred and preferred[0] in candidates else "sedan_suv"
         if capacity_pick not in candidates:
-            capacity_pick = "cargoVan" if "cargoVan" in candidates else candidates[0]
+            capacity_pick = "cargo_van" if "cargo_van" in candidates else candidates[0]
 
     try:
         floor_idx = candidates.index(capacity_pick)

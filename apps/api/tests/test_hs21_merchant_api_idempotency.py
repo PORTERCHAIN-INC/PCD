@@ -33,7 +33,7 @@ def _booking_body() -> dict:
             "lat": 43.64,
             "lng": -79.37,
         },
-        "vehicle_class": "cargoVan",
+        "vehicle_class": "cargo_van",
         "package_type": "looseParcel",
         "weight_kg": 10,
         "scheduled_at": (datetime.now(UTC) + timedelta(hours=4)).isoformat(),

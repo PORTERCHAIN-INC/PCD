@@ -516,7 +516,9 @@ def _book_from_shopify_payload(
         raise RuntimeError("default_pickup_required")
     pickup = _ensure_coords(address_from_saved(pickup_row))
     body = map_shopify_order(payload, pickup=pickup)
-    vehicle = (getattr(shop, "default_vehicle_class", None) or "").strip() or "cargoVan"
+    from porterchain_api.domain.customer_goods import persist_vehicle_class
+
+    vehicle = persist_vehicle_class(getattr(shop, "default_vehicle_class", None))
     package = (getattr(shop, "default_package_type", None) or "").strip() or "looseParcel"
     body = body.model_copy(
         update={

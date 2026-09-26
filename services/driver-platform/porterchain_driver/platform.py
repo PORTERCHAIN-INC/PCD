@@ -26,7 +26,7 @@ from porterchain_driver.stops import StopsService
 from porterchain_driver.support import SupportService
 from porterchain_driver.support_bridge import DriverSupportBridgeService
 from porterchain_driver.training import TrainingService
-from porterchain_driver.vehicle import VehicleService
+from porterchain_driver.vehicle import DriverVehicleProfileService as VehicleService
 from porterchain_driver.wallet import WalletService
 
 

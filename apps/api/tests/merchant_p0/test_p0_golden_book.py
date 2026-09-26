@@ -46,7 +46,7 @@ def _body(**extra: object) -> MerchantBookDeliveryRequest:
         pickup=AddressInput(formatted="100 King St W, Toronto, ON", postal="M5X 1A1", lat=43.65, lng=-79.38),
         dropoff=AddressInput(formatted="200 Bay St, Toronto, ON", postal="M5J 2J2", lat=43.66, lng=-79.39),
         scheduled_at=datetime.now(UTC),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         package_type="looseParcel",
     )
     payload.update(extra)
@@ -102,7 +102,7 @@ def test_preview_exposes_routing_source_never_google(db: Session, merchant_ctx: 
             flow,
             "recommend_vehicle",
             return_value={
-                "recommended_vehicle": "cargoVan",
+                "recommended_vehicle": "cargo_van",
                 "preferred_vehicles": [],
                 "alternatives": [],
             },

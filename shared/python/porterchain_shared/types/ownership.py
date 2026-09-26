@@ -28,6 +28,8 @@ PORTERCHAIN_OWNED: frozenset[str] = frozenset(
     }
 )
 
+# Dispatch SoR: Fleetbase vehicles. PC ORM `vehicles` is a class/plate mirror
+# (Capacity Catalog ids). Quotes + vehicle_types stay PorterChain-owned.
 FLEETBASE_OWNED: frozenset[str] = frozenset(
     {
         "vehicles",

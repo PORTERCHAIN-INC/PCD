@@ -131,10 +131,15 @@ def set_booking_policy(
         raise ValueError("reason_required")
     shop = _require_shop(db, merchant_id, shop_id)
     if default_vehicle_class is not None:
-        vc = (default_vehicle_class or "").strip()
-        if vc and vc not in VEHICLE_LABELS:
-            raise ValueError("vehicle_class_invalid")
-        shop.default_vehicle_class = vc or None
+        from porterchain_api.domain.customer_goods import CATALOG_VEHICLE_IDS, persist_vehicle_class
+
+        if not (default_vehicle_class or "").strip():
+            shop.default_vehicle_class = None
+        else:
+            vc = persist_vehicle_class(default_vehicle_class)
+            if vc not in CATALOG_VEHICLE_IDS:
+                raise ValueError("vehicle_class_invalid")
+            shop.default_vehicle_class = vc
     if default_package_type is not None:
         pt = (default_package_type or "").strip()
         if pt and pt not in PACKAGE_LABELS:

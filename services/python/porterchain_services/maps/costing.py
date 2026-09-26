@@ -14,6 +14,10 @@ _TRUCK_COSTING_IDS = frozenset(
     {
         "box_truck",
         "boxtruck",
+        "box_16",
+        "box16",
+        "box_20",
+        "box20",
         "straight_truck",
         "straighttruck",
         "truck",

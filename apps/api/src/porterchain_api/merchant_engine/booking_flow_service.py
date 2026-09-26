@@ -16,6 +16,7 @@ from porterchain_api.booking_engine.site_access import (
     extract_site_access_notes,
 )
 from porterchain_api.config import Settings
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import BookingDraftState
 from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError, MerchantSyncService
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
@@ -287,7 +288,7 @@ class MerchantBookingFlowService:
             pickup=draft.pickup or {},
             dropoff=dropoff_address_fields(draft.dropoff),
             additional_stops=list(draft.additional_stops or []),
-            vehicle_class=draft.vehicle_class or "cargoVan",
+            vehicle_class=persist_vehicle_class(draft.vehicle_class),
             package_type=draft.package_type or "looseParcel",
             weight_kg=draft.weight_kg,
             dimensions=draft.dimensions,

@@ -98,7 +98,7 @@ export function OrderBuilderModal({
   const [stops, setStops] = useState<StopDraft[]>(() => seedStops("single"));
   const [merchantId, setMerchantId] = useState("");
   const [merchantList, setMerchantList] = useState<MerchantRow[]>([]);
-  const [vehicleClass, setVehicleClass] = useState("cargoVan");
+  const [vehicleClass, setVehicleClass] = useState("cargo_van");
   const [scheduledAt, setScheduledAt] = useState(defaultSchedule);
   const [instructions, setInstructions] = useState("");
   const [busy, setBusy] = useState(false);
@@ -116,7 +116,7 @@ export function OrderBuilderModal({
       setStops(seedStops("single"));
     }
     setMerchantId(prefill?.merchant_id?.trim() || "");
-    setVehicleClass(prefill?.vehicle_class?.trim() || "cargoVan");
+    setVehicleClass(prefill?.vehicle_class?.trim() || "cargo_van");
     setInstructions(prefill?.special_instructions?.trim() || "");
   }, [open, prefill]);
 
@@ -266,10 +266,12 @@ export function OrderBuilderModal({
               onChange={(e) => setVehicleClass(e.target.value)}
               className="mt-1 w-full"
             >
-              <option value="cargoVan">Cargo van</option>
-              <option value="sprinter">Sprinter</option>
-              <option value="cube">Cube</option>
-              <option value="straightTruck">Straight truck</option>
+              <option value="sedan_suv">Sedan / SUV</option>
+              <option value="pickup">Pickup</option>
+              <option value="cargo_van">Cargo van</option>
+              <option value="sprinter_van">Sprinter / high-roof</option>
+              <option value="box_16">16 ft</option>
+              <option value="box_20">20 ft</option>
             </Select>
           </label>
           <div className="sm:col-span-2">

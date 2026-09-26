@@ -1,20 +1,27 @@
-"""Vehicle, service, and package catalogs."""
+"""Vehicle, service, and package catalogs.
+
+Capacity class SoT is snake (`cargo_van`, `box_16`, …). Camel enum members
+remain as ingress aliases for legacy rate-card keys; look up via normalize.
+"""
 
 from enum import StrEnum
 
 
 class VehicleClass(StrEnum):
-    SEDAN = "sedan"
-    SUV = "suv"
+    # Primary Continuity Catalog ids (snake).
     SEDAN_SUV = "sedan_suv"
     PICKUP = "pickup"
-    CARGO_VAN = "cargoVan"
-    CARGO_VAN_SNAKE = "cargo_van"
-    HIGH_ROOF = "highRoof"
-    BOX_16 = "box16"
-    BOX_16_SNAKE = "box_16"
-    BOX_20 = "box20"
-    BOX_20_SNAKE = "box_20"
+    CARGO_VAN = "cargo_van"
+    HIGH_ROOF = "sprinter_van"
+    BOX_16 = "box_16"
+    BOX_20 = "box_20"
+    # Legacy aliases (still accepted by normalize / rate_card._to_camel).
+    SEDAN = "sedan"
+    SUV = "suv"
+    CARGO_VAN_CAMEL = "cargoVan"
+    HIGH_ROOF_CAMEL = "highRoof"
+    BOX_16_CAMEL = "box16"
+    BOX_20_CAMEL = "box20"
 
 
 class ServiceType(StrEnum):

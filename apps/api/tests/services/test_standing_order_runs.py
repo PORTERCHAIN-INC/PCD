@@ -18,7 +18,7 @@ def _template(db, merchant_id: str, name: str = "Weekly King") -> MerchantBookin
     row = MerchantBookingTemplate(
         merchant_id=merchant_id,
         name=name,
-        payload={"vehicle_class": "cargoVan"},
+        payload={"vehicle_class": "cargo_van"},
     )
     db.add(row)
     db.flush()

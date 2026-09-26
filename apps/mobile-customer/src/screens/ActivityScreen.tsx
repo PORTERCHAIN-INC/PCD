@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Linking, Pressable, ScrollView, Text, StyleSheet } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { colors, typography } from "@porterchain/mobile-theme";
+import { vehicleLabel as capacityVehicleLabel } from "@porterchain/types";
 import {
   fetchDashboard,
   formatCad,
@@ -17,18 +18,9 @@ import { Screen } from "../ui/Screen";
 
 type Segment = "orders" | "bookings" | "parcels" | "billing";
 
-const VEHICLE_LABELS: Record<string, string> = {
-  sedan_suv: "Sedan / SUV",
-  pickup: "Pickup",
-  cargo_van: "Cargo van",
-  box_16: "16 ft",
-  box_20: "20 ft",
-  sprinter_van: "Sprinter",
-};
-
 function vehicleLabel(id?: string | null) {
   if (!id) return "vehicle";
-  return VEHICLE_LABELS[id] ?? id;
+  return capacityVehicleLabel(id, id);
 }
 
 export function ActivityScreen({ onTrack }: { onTrack: (tracking: string) => void }) {

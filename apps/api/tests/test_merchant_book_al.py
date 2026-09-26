@@ -49,7 +49,7 @@ def _body(**extra: object) -> MerchantBookDeliveryRequest:
         pickup=AddressInput(formatted="100 King St W, Toronto", postal="M5X 1A1", lat=43.65, lng=-79.38),
         dropoff=AddressInput(formatted="200 Bay St, Toronto", postal="M5J 2J2", lat=43.65, lng=-79.38),
         scheduled_at=datetime(2026, 9, 10, 12, 0, tzinfo=UTC),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         package_type="looseParcel",
     )
     payload.update(extra)
@@ -175,7 +175,7 @@ def test_draft_to_request_restores_window_and_parcels() -> None:
         pickup={"formatted": "100 King St W, Toronto", "postal": "M5X 1A1", "lat": 43.65, "lng": -79.38},
         dropoff={"formatted": "200 Bay St, Toronto", "postal": "M5J 2J2", "lat": 43.65, "lng": -79.38},
         additional_stops=[],
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         package_type="looseParcel",
         weight_kg=4.5,
         dimensions="1x [parcel]",

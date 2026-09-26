@@ -6,6 +6,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.merchant_states import BulkImportStatus
 from porterchain_api.merchant_engine.import_column_mapper import (
     adapt_mapping_to_headers,
@@ -44,7 +45,7 @@ def patch_mapping(
         svc._quote_if_ready(
             db,
             ctx,
-            cfg.get("vehicle_class") or "cargoVan",
+            persist_vehicle_class(cfg.get("vehicle_class")),
             cfg.get("scheduled_at"),
             resolved,
             requires_liftgate=bool(cfg.get("requires_liftgate")),
@@ -132,7 +133,7 @@ def patch_stop(
         svc._quote_if_ready(
             db,
             ctx,
-            cfg.get("vehicle_class") or "cargoVan",
+            persist_vehicle_class(cfg.get("vehicle_class")),
             cfg.get("scheduled_at"),
             stops,
             requires_liftgate=bool(cfg.get("requires_liftgate")),

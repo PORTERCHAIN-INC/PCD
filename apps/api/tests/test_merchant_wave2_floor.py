@@ -18,7 +18,7 @@ from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryR
 
 def test_order_and_vehicle_words() -> None:
     assert order_state_label("DISPATCH_READY") == "Ready for pickup"
-    assert vehicle_label("cargoVan") == "Cargo van"
+    assert vehicle_label("cargo_van") == "Cargo van"
     assert vehicle_label("cargo_van") == "Cargo van"
 
 
@@ -44,7 +44,7 @@ def test_quote_picture_drops_vendor_metadata() -> None:
             "items": [{"code": "base", "label": "Base fare", "amount_cents": 2000}],
             "metadata": {"routing_source": "valhalla", "distance_meters": 5400},
         },
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         package_type="looseParcel",
     )
     blob = str(picture)
@@ -86,7 +86,7 @@ def _body(**extra: object) -> MerchantBookDeliveryRequest:
         pickup=AddressInput(formatted="100 King St W, Toronto", postal="M5X 1A1", lat=43.65, lng=-79.38),
         dropoff=AddressInput(formatted="200 Bay St, Toronto", postal="M5J 2J2", lat=43.65, lng=-79.38),
         scheduled_at=datetime.now(UTC),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         package_type="looseParcel",
     )
     payload.update(extra)
@@ -107,7 +107,7 @@ def test_create_shipment_stores_quote_snapshot(db, settings) -> None:
     assert snap.get("line_items") is not None
     assert "routing_source" not in snap
     assert "valhalla" not in str(snap).lower()
-    assert (order.compliance_metadata or {}).get("vehicle_class") == "cargoVan"
+    assert (order.compliance_metadata or {}).get("vehicle_class") == "cargo_van"
 
 
 def test_consignee_email_from_recipient_and_direct(db) -> None:

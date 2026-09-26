@@ -4,93 +4,40 @@ import {
   type MerchantVehicleClass as VehicleClassId,
   type Parcel,
 } from "./types";
+import {
+  CAPACITY_CATALOG_FALLBACK,
+  canonicalizeCapacityClassId,
+  type CapacityCatalogRow,
+} from "../capacity-catalog";
 import { convertToCm, parcelVolumeCm3, sumChargeableWeightKg } from "./units";
 
-/** Cargo bay in centimetres. A parcel may be rotated; it must fit all three sides. */
-const VEHICLES: Array<{
-  id: VehicleClassId;
-  label: string;
+type PackVehicle = CapacityCatalogRow & {
   band: FleetBand;
   bandLabel: string;
-  capacityKg: number;
-  bayCm: [number, number, number];
-  passenger: boolean;
-}> = [
-  {
-    id: MerchantVehicleClass.SEDAN,
-    label: "Sedan",
-    band: FleetBand.SEDAN,
-    bandLabel: "Sedan",
-    capacityKg: 50,
-    bayCm: [110, 70, 45],
-    passenger: true,
-  },
-  {
-    id: MerchantVehicleClass.SUV,
-    label: "SUV",
-    band: FleetBand.SEDAN,
-    bandLabel: "Sedan",
-    capacityKg: 80,
-    bayCm: [140, 100, 70],
-    passenger: true,
-  },
-  {
-    id: MerchantVehicleClass.PICKUP,
-    label: "Pickup",
-    band: FleetBand.SEDAN,
-    bandLabel: "Sedan",
-    capacityKg: 500,
-    bayCm: [180, 150, 80],
-    passenger: false,
-  },
-  {
-    id: MerchantVehicleClass.CARGO_VAN,
-    label: "Cargo van",
-    band: FleetBand.CARGO_VAN,
-    bandLabel: "Cargo van",
-    capacityKg: 900,
-    bayCm: [300, 170, 140],
-    passenger: false,
-  },
-  {
-    id: MerchantVehicleClass.HIGH_ROOF,
-    label: "High-roof van",
-    band: FleetBand.CARGO_VAN,
-    bandLabel: "Cargo van",
-    capacityKg: 1200,
-    bayCm: [340, 170, 180],
-    passenger: false,
-  },
-  {
-    id: MerchantVehicleClass.BOX_16,
-    label: "16 ft box truck",
-    band: FleetBand.BOX_TRUCK,
-    bandLabel: "Box truck",
-    capacityKg: 3000,
-    bayCm: [480, 245, 220],
-    passenger: false,
-  },
-  {
-    id: MerchantVehicleClass.BOX_20,
-    label: "20 ft box truck",
-    band: FleetBand.BOX_TRUCK,
-    bandLabel: "Box truck",
-    capacityKg: 4500,
-    bayCm: [610, 245, 240],
-    passenger: false,
-  },
-];
+};
+
+/** Packing table driven by Capacity Catalog fallback (SoT1 dims). */
+const VEHICLES: PackVehicle[] = CAPACITY_CATALOG_FALLBACK.map((row) => ({
+  ...row,
+  band:
+    row.band === "sedan"
+      ? FleetBand.SEDAN
+      : row.band === "cargo_van"
+        ? FleetBand.CARGO_VAN
+        : FleetBand.BOX_TRUCK,
+  bandLabel: row.bandLabel,
+}));
 
 const PACKING_FACTOR = 0.85;
 
 export const VEHICLE_CHOICES: Array<{ id: VehicleClassId; label: string }> = VEHICLES.map(
   (vehicle) => ({
-    id: vehicle.id,
+    id: vehicle.id as VehicleClassId,
     label: vehicle.label,
   })
 );
 
-export type VehicleRequest = "auto" | VehicleClassId;
+export type VehicleRequest = "auto" | VehicleClassId | string;
 
 export interface VehicleAllocation {
   band: FleetBand;
@@ -114,14 +61,9 @@ export function resolveVehicle(
   parcels: Parcel[],
   options?: { requested?: VehicleRequest; constructionSite?: boolean }
 ): VehicleAllocation {
-  const alias: Record<string, VehicleRequest> = {
-    sedan_suv: "sedan",
-    box_16: "box16",
-    cargo_van: "cargoVan",
-    box_20: "box20",
-  };
   const requestedRaw = options?.requested ?? "auto";
-  const requested = alias[requestedRaw] ?? requestedRaw;
+  const requested =
+    requestedRaw === "auto" ? "auto" : canonicalizeCapacityClassId(String(requestedRaw));
   const constructionSite = Boolean(options?.constructionSite);
   const chargeableWeightKg = sumChargeableWeightKg(parcels);
   const sized = parcels.filter(hasCompleteSize);
@@ -185,14 +127,14 @@ export function resolveVehicle(
 
 function recommendationReason(
   parcels: Parcel[],
-  vehicle: (typeof VEHICLES)[number],
+  vehicle: PackVehicle,
   constructionSite: boolean
 ): string {
   if (constructionSite && vehicle.id === MerchantVehicleClass.CARGO_VAN) {
     return "Construction site. Cargo van with liftgate will be dispatched. Choose a larger vehicle if you need one.";
   }
-  const sedan = vehicleById(MerchantVehicleClass.SEDAN);
-  if (vehicle.id !== MerchantVehicleClass.SEDAN && !fits(parcels, sedan)) {
+  const sedan = vehicleById(MerchantVehicleClass.SEDAN_SUV);
+  if (vehicle.id !== MerchantVehicleClass.SEDAN_SUV && !fits(parcels, sedan)) {
     return `${vehicle.label} will be dispatched. Parcel size or weight does not fit a sedan.`;
   }
   if (!parcels.every(hasCompleteSize)) {
@@ -203,7 +145,7 @@ function recommendationReason(
 
 function unfitReason(
   parcels: Parcel[],
-  vehicle: (typeof VEHICLES)[number],
+  vehicle: PackVehicle,
   chargeableWeightKg: number,
   constructionSite: boolean
 ): string | null {
@@ -238,7 +180,7 @@ function unfitReason(
   return null;
 }
 
-function fits(parcels: Parcel[], vehicle: (typeof VEHICLES)[number]): boolean {
+function fits(parcels: Parcel[], vehicle: PackVehicle): boolean {
   return unfitReason(parcels, vehicle, sumChargeableWeightKg(parcels), false) === null;
 }
 
@@ -258,12 +200,17 @@ function parcelFitsBay(parcel: Parcel, bayCm: [number, number, number]): boolean
   return sides[0] <= bay[0] && sides[1] <= bay[1] && sides[2] <= bay[2];
 }
 
-function vehicleById(id: VehicleClassId): (typeof VEHICLES)[number] {
-  return VEHICLES.find((vehicle) => vehicle.id === id) ?? VEHICLES[3];
+function vehicleById(id: string): PackVehicle {
+  const cid = canonicalizeCapacityClassId(id);
+  return (
+    VEHICLES.find((vehicle) => vehicle.id === cid) ||
+    VEHICLES.find((vehicle) => vehicle.id === MerchantVehicleClass.CARGO_VAN) ||
+    VEHICLES[0]
+  );
 }
 
 function result(input: {
-  vehicle: (typeof VEHICLES)[number];
+  vehicle: PackVehicle;
   chargeableWeightKg: number;
   blocked: boolean;
   requestedByMerchant: boolean;
@@ -272,7 +219,7 @@ function result(input: {
   return {
     band: input.blocked ? FleetBand.OVER_CAPACITY : input.vehicle.band,
     bandLabel: input.vehicle.bandLabel,
-    vehicleClass: input.vehicle.id,
+    vehicleClass: input.vehicle.id as VehicleClassId,
     vehicleLabel: input.vehicle.label,
     chargeableWeightKg: input.chargeableWeightKg,
     blocked: input.blocked,

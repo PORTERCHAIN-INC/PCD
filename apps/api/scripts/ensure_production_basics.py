@@ -30,7 +30,7 @@ def ensure_pricing_tariffs(db) -> int:
             PricingTariff(
                 name="GTA Standard Sprinter",
                 tariff_type="retail",
-                vehicle_class="sprinter",
+                vehicle_class="sprinter_van",
                 zone="gta",
                 base_cents=1800,
                 per_km_cents=110,

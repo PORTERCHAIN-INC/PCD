@@ -7,6 +7,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import QuoteState
 from porterchain_api.booking_models import DomainEvent, Quote
 from porterchain_api.pricing_engine import get_pricing_service
@@ -43,7 +44,7 @@ def _request_from_quote_body(
     return PricingRequest(
         pickup=pickup,
         dropoff=dropoff,
-        vehicle_class=body.vehicle_class,
+        vehicle_class=persist_vehicle_class(body.vehicle_class),
         package_type=package_type or body.package_type,
         service_type=service_type,
         weight_kg=weight_kg if use_overrides else body.weight_kg,
@@ -270,7 +271,7 @@ def create_quote(db: Session, settings: Settings, body: CreateQuoteRequest) -> Q
         anonymous_session_id=body.anonymous_session_id,
         pickup=body.pickup.model_dump(),
         dropoff=body.dropoff.model_dump(),
-        vehicle_class=body.vehicle_class,
+        vehicle_class=persist_vehicle_class(body.vehicle_class),
         package_type=body.package_type,
         weight_kg=body.weight_kg,
         dimensions=body.dimensions,

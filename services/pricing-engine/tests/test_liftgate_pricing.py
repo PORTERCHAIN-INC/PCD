@@ -14,7 +14,7 @@ def test_liftgate_adds_line_item():
     base = PricingRequest(
         pickup=GeoPoint(lat=43.65, lng=-79.38, formatted="Toronto ON"),
         dropoff=GeoPoint(lat=43.70, lng=-79.40, formatted="North York ON"),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         distance_meters=12_000,
         estimated_duration_minutes=25,
         scheduled_at=datetime.now(UTC),

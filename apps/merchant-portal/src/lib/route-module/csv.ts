@@ -6,6 +6,7 @@ import {
   type PickupLocation,
   type RouteStop,
 } from "./types";
+import { canonicalizeCapacityClassId } from "../capacity-catalog";
 import { withVolumetricWeight } from "./units";
 
 /** Columns match the route planner form. Repeat sequence to add another parcel to the same stop. */
@@ -52,7 +53,7 @@ const SAMPLE = [
     "cm",
     "0",
     "kg",
-    "cargoVan",
+    "cargo_van",
     "no",
     "",
     "PO-100",
@@ -322,12 +323,13 @@ export function parseRouteCsv(
   }
 
   const knownVehicles = new Set<string>(Object.values(MerchantVehicleClass));
+  const resolved = canonicalizeCapacityClassId(vehicleClass);
   return {
     ok: true,
     route: {
       pickup,
       stops,
-      vehicleClass: knownVehicles.has(vehicleClass) ? vehicleClass : undefined,
+      vehicleClass: knownVehicles.has(resolved) ? (resolved as MerchantVehicleClass) : undefined,
       constructionSite,
       siteAccessNotes,
       internalReference,

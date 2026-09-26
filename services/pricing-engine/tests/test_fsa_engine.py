@@ -129,7 +129,7 @@ def test_global_retail_and_merchant_catalog_tariffs_do_not_steal_fsa():
             id="merchant-global",
             name="GTA Merchant Cargo Van",
             tariff_type="merchant",
-            vehicle_class="cargoVan",
+            vehicle_class="cargo_van",
             zone="gta",
             base_cents=1500,
             per_km_cents=110,

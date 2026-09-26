@@ -98,7 +98,7 @@ def test_attach_vehicle_pushes_fleetbase() -> None:
         db,
         ctx,
         "d1",
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         plate_number=" ABC123 ",
         settings=settings,
     )

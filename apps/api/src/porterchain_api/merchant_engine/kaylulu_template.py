@@ -20,7 +20,7 @@ KAYLULU_SCHEDULE: dict[str, Any] = {
     "route_minimums_cents": {"T1": 12000, "T2": 20000, "T3": 25000},
     "compact": {
         "enabled": True,
-        "vehicle_classes": ["sedan_suv", "sedan", "suv"],
+        "vehicle_classes": ["sedan_suv"],
         "max_packed_inches": [10, 10],
         "parcels_per_stop": 3,
         "stop_rates_cents": [

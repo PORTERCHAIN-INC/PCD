@@ -13,6 +13,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.merchant_states import BulkImportStatus
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.import_column_mapper import (
@@ -93,7 +94,7 @@ class MerchantRouteImportService:
             if existing is not None:
                 return existing
 
-        vehicle_class = body.get("vehicle_class") or "cargoVan"
+        vehicle_class = persist_vehicle_class(body.get("vehicle_class"))
         scheduled_at = body.get("scheduled_at")
         stops_in = list(body.get("stops") or [])
         if len(stops_in) < 2:

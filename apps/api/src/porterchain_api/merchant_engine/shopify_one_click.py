@@ -44,6 +44,8 @@ def _go_live_status(
     *,
     shops: list[ShopifyShop],
 ) -> dict[str, Any]:
+    from porterchain_api.merchant_engine.shopify_service import default_pickup_address
+
     connected = [
         s
         for s in shops

@@ -548,13 +548,20 @@ class JobsService:
 
     @staticmethod
     def _order_vehicle_class(db: Session, order: Any) -> str | None:
-        quote_id = getattr(order, "quote_id", None)
-        if not quote_id:
-            return None
-        from porterchain_api.booking_models import Quote
+        from porterchain_api.domain.customer_goods import booked_capacity_class
 
-        quote = db.query(Quote).filter(Quote.id == quote_id).first()
-        return getattr(quote, "vehicle_class", None) if quote else None
+        quote_id = getattr(order, "quote_id", None)
+        quote_vc = None
+        if quote_id:
+            from porterchain_api.booking_models import Quote
+
+            quote = db.query(Quote).filter(Quote.id == quote_id).first()
+            quote_vc = getattr(quote, "vehicle_class", None) if quote else None
+        meta = getattr(order, "compliance_metadata", None)
+        return booked_capacity_class(
+            quote_vehicle_class=quote_vc,
+            compliance_metadata=meta if isinstance(meta, dict) else None,
+        )
 
     @staticmethod
     def _leg_metadata(state: str, stop_meta: dict[str, Any]) -> dict[str, Any]:

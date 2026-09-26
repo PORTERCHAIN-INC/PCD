@@ -1,15 +1,9 @@
 import { adminFetch } from "@/lib/api";
 import type { Activity, Task } from "@/lib/crm";
+import { CAPACITY_CLASS_IDS } from "@porterchain/types";
 
-/** Vehicle class IDs used for driver registration / fleet (matches API catalog). */
-export const VEHICLE_CLASSES = [
-  "sedan_suv",
-  "pickup",
-  "cargo_van",
-  "sprinter_van",
-  "box_16",
-  "box_20",
-] as const;
+/** Vehicle class IDs used for driver registration / fleet (Capacity Catalog SoT). */
+export const VEHICLE_CLASSES = CAPACITY_CLASS_IDS;
 
 export type DriverRow = {
   id: string;

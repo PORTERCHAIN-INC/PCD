@@ -390,8 +390,8 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
     if (!canElevate) return;
     const vehicleNext =
       window.prompt(
-        `Default vehicle for ${domain} (e.g. cargoVan, boxTruck):`,
-        vehicle || "cargoVan"
+        `Default vehicle for ${domain} (e.g. cargo_van, box_16):`,
+        vehicle || "cargo_van"
       ) ?? "";
     const packageNext =
       window.prompt(
@@ -798,7 +798,7 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
                     {s.auto_dispatch === false ? <Badge tone="amber">Hold at BOOKED</Badge> : null}
                     {s.default_vehicle_class || s.default_package_type ? (
                       <Badge tone="slate">
-                        {s.default_vehicle_class || "cargoVan"} /{" "}
+                        {s.default_vehicle_class || "cargo_van"} /{" "}
                         {s.default_package_type || "looseParcel"}
                       </Badge>
                     ) : null}

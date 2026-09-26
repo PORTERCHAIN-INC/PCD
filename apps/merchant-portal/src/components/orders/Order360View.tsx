@@ -355,7 +355,12 @@ export function Order360View({
       {activeSection === "parties" && (
         <div className="space-y-6">
           <DriverTab driver={detail.driver} status={detail.driver_status} />
-          <VehicleTab vehicle={detail.vehicle} status={detail.vehicle_status} />
+          <VehicleTab
+            vehicle={detail.vehicle}
+            status={detail.vehicle_status}
+            bookedClass={detail.vehicle_class}
+            bookedLabel={detail.vehicle_label}
+          />
         </div>
       )}
       {activeSection === "money" && (

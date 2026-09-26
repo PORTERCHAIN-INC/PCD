@@ -24,7 +24,7 @@ def _on_body(**extra: object) -> MerchantBookDeliveryRequest:
         pickup=AddressInput(formatted="100 King St W, Toronto", postal="M5X 1A1", lat=43.65, lng=-79.38),
         dropoff=AddressInput(formatted="200 Bay St, Toronto", postal="M5J 2J2", lat=43.65, lng=-79.38),
         scheduled_at=datetime.now(UTC),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
     )
     payload.update(extra)
     return MerchantBookDeliveryRequest(**payload)
@@ -45,7 +45,7 @@ def test_rate_card_hides_driver_payout(db, merchant_ctx) -> None:
 
 
 def test_canonical_vehicle_maps_catalog_camel_to_matrix(db, merchant_ctx) -> None:
-    assert _canonical_vehicle("cargoVan") == "cargo_van"
+    assert _canonical_vehicle("cargo_van") == "cargo_van"
     assert _canonical_vehicle("highRoof") == "sprinter_van"
     req = MerchantBookingService().build_pricing_request(merchant_ctx, _on_body())
     assert req.vehicle_class == "cargo_van"

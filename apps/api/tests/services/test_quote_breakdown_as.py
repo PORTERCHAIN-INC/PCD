@@ -27,7 +27,7 @@ def _book_body() -> MerchantBookDeliveryRequest:
         dropoff=AddressInput(
             formatted="200 Bay St, Toronto", postal="M5J 2J2", lat=43.64, lng=-79.37
         ),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         package_type="looseParcel",
         weight_kg=10.0,
         scheduled_at=datetime.now(UTC) + timedelta(hours=4),

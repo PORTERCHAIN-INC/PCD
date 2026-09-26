@@ -131,7 +131,7 @@ def test_customer_dashboard_schema_has_bookings_and_stats() -> None:
         {
             "pickup": {"formatted": "A"},
             "dropoff": {"formatted": "B"},
-            "vehicle_class": "cargoVan",
+            "vehicle_class": "cargo_van",
             "source_order_id": "o1",
             "tracking_number": "TRK",
         }

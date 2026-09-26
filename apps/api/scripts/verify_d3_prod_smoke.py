@@ -102,7 +102,7 @@ def main() -> int:
     quote_body = {
         "pickup": {"formatted": "Prod Smoke Pickup, Toronto ON", "lat": 43.65, "lng": -79.38},
         "dropoff": {"formatted": "Prod Smoke Dropoff, Toronto ON", "lat": 43.66, "lng": -79.40},
-        "vehicle_class": "cargoVan",
+        "vehicle_class": "cargo_van",
         "scheduled_at": "2026-07-05T18:00:00Z",
     }
     status, quote = _http(f"{api}/v1/quotes", method="POST", body=quote_body)

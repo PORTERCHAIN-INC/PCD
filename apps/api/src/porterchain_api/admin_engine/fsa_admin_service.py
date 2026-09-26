@@ -7,6 +7,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import PricingFsaRate
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.schemas_pricing import FsaRateBody, FsaRateOut
 from porterchain_pricing.components import normalize_fsa
 from porterchain_pricing.gta150_fsa import is_gta150_fsa
@@ -63,7 +64,7 @@ class FsaAdminService:
             origin_fsa=self.validated_fsa(body.origin_fsa, field="origin_fsa", required=False),
             flat_cents=body.flat_cents,
             merchant_id=body.merchant_id,
-            vehicle_class=body.vehicle_class,
+            vehicle_class=persist_vehicle_class(body.vehicle_class) if body.vehicle_class else None,
             includes_location_fees=body.includes_location_fees,
             label=body.label,
             is_active=body.is_active,
@@ -86,7 +87,7 @@ class FsaAdminService:
         row.origin_fsa = self.validated_fsa(body.origin_fsa, field="origin_fsa", required=False)
         row.flat_cents = body.flat_cents
         row.merchant_id = body.merchant_id
-        row.vehicle_class = body.vehicle_class
+        row.vehicle_class = persist_vehicle_class(body.vehicle_class) if body.vehicle_class else None
         row.includes_location_fees = body.includes_location_fees
         row.label = body.label
         row.is_active = body.is_active
@@ -147,7 +148,7 @@ class FsaAdminService:
                             origin_fsa=origin,
                             flat_cents=body.flat_cents,
                             merchant_id=mid,
-                            vehicle_class=body.vehicle_class,
+                            vehicle_class=persist_vehicle_class(body.vehicle_class) if body.vehicle_class else None,
                             includes_location_fees=body.includes_location_fees,
                             label=body.label,
                             is_active=body.is_active,

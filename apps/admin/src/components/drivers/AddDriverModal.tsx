@@ -57,7 +57,7 @@ export function AddDriverModal({
   const [emergencyName, setEmergencyName] = useState("");
   const [emergencyPhone, setEmergencyPhone] = useState("");
   const [addVehicle, setAddVehicle] = useState(false);
-  const [vehicleClass, setVehicleClass] = useState("cargoVan");
+  const [vehicleClass, setVehicleClass] = useState("cargo_van");
   const [plateNumber, setPlateNumber] = useState("");
   const [makeModel, setMakeModel] = useState("");
   const [autoApprove, setAutoApprove] = useState(false);
@@ -77,7 +77,7 @@ export function AddDriverModal({
     setEmergencyName("");
     setEmergencyPhone("");
     setAddVehicle(false);
-    setVehicleClass("cargoVan");
+    setVehicleClass("cargo_van");
     setPlateNumber("");
     setMakeModel("");
     setAutoApprove(false);

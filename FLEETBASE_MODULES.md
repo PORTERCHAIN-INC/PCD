@@ -307,12 +307,12 @@ For each module: purpose, Porterchain fit, and recommended action.
 
 **Table:** `fleetbase_contacts`
 
-| Question                         | Answer                                                                           |
-| -------------------------------- | -------------------------------------------------------------------------------- |
-| Can Porterchain use it directly? | **Optional** — as order customer reference                                       |
-| Remain unchanged?                | **Yes**                                                                          |
-| Extend?                          | Create Fleetbase contact from merchant org on first order                        |
-| Replace?                         | **Yes** — Porterchain CRM (`AdminCrmService`, merchant records) is authoritative |
+| Question                         | Answer                                                                                       |
+| -------------------------------- | -------------------------------------------------------------------------------------------- |
+| Can Porterchain use it directly? | **Optional** — as order customer reference                                                   |
+| Remain unchanged?                | **Yes**                                                                                      |
+| Extend?                          | Create Fleetbase contact from merchant org on first order                                    |
+| Replace?                         | **Yes** — Porterchain CRM (`CrmLead` / Lead 360; `AdminCrmService` removed) is authoritative |
 
 ---
 

@@ -13,7 +13,7 @@ from porterchain_fleetbase_adapter.mappers import build_vehicle_payload
 logger = logging.getLogger(__name__)
 
 
-class VehicleService:
+class FleetbaseVehicleService:
     def __init__(
         self,
         settings: FleetbaseSettings,
@@ -45,3 +45,7 @@ class VehicleService:
         except Exception as exc:
             self.errors.log_and_suppress(exc, "Fleetbase vehicle fetch failed")
             return None
+
+
+# Prefer FleetbaseVehicleService; alias keeps older imports working.
+VehicleService = FleetbaseVehicleService

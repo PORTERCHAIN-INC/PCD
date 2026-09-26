@@ -78,7 +78,7 @@ export default function BulkPage() {
     errors: Array<Record<string, unknown>>;
   } | null>(null);
   const [routeJob, setRouteJob] = useState<RouteImportJob | null>(null);
-  const [vehicleClass, setVehicleClass] = useState("highRoof");
+  const [vehicleClass, setVehicleClass] = useState("sprinter_van");
   const [scheduledAt, setScheduledAt] = useState("");
   const [constructionSite, setConstructionSite] = useState(false);
   const [siteAccessNotes, setSiteAccessNotes] = useState("");
@@ -194,8 +194,8 @@ export default function BulkPage() {
     try {
       const token = await getApiToken();
       const routeVehicle =
-        constructionSite && ["sedan", "suv", "pickup"].includes(vehicleClass)
-          ? "cargoVan"
+        constructionSite && ["sedan", "suv", "sedan_suv", "pickup"].includes(vehicleClass)
+          ? "cargo_van"
           : vehicleClass;
       const job = await uploadRouteImport(token, file, {
         vehicleClass: routeVehicle,

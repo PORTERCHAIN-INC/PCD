@@ -624,7 +624,7 @@ function SandboxTab({
                   lng: -79.38,
                 },
                 scheduled_at: new Date().toISOString(),
-                vehicle_class: "cargoVan",
+                vehicle_class: "cargo_van",
                 is_sandbox: true,
               },
             }

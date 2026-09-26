@@ -27,7 +27,7 @@ def _book_body() -> MerchantBookDeliveryRequest:
     return MerchantBookDeliveryRequest(
         pickup=MerchantAddressInput(formatted="100 King St W, Toronto", lat=43.65, lng=-79.38),
         dropoff=MerchantAddressInput(formatted="200 Bay St, Toronto", lat=43.64, lng=-79.37),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         package_type="looseParcel",
         weight_kg=10.0,
         scheduled_at=datetime.now(UTC) + timedelta(hours=4),
@@ -179,7 +179,7 @@ def test_booking_draft_update(db, settings) -> None:
         draft,
         UpdateBookingDraftRequest(
             dropoff=AddressInput(formatted="2 Bay St, Toronto", lat=43.64, lng=-79.37),
-            vehicle_class="cargoVan",
+            vehicle_class="cargo_van",
         ),
     )
     assert updated.dropoff is not None

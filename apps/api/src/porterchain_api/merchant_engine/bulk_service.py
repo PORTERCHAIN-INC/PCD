@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.config import Settings
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.merchant_states import BulkImportStatus
 from porterchain_api.domain.states import OrderSource
 from porterchain_api.merchant_engine import events as E
@@ -155,7 +156,7 @@ class MerchantBulkService:
                 pickup=pickup,
                 dropoff=dropoff,
                 scheduled_at=scheduled,
-                vehicle_class=row.get("vehicle_class") or "cargoVan",
+                vehicle_class=persist_vehicle_class(row.get("vehicle_class")),
                 package_type=row.get("package_type") or "looseParcel",
                 weight_kg=float(row["weight_kg"]) if row.get("weight_kg") else None,
                 internal_reference=row.get("internal_reference") or None,
@@ -237,7 +238,7 @@ class MerchantBulkService:
                 pickup=self._address_from_row(row, prefix="pickup"),
                 dropoff=self._address_from_row(row, prefix="dropoff"),
                 scheduled_at=scheduled,
-                vehicle_class=row.get("vehicle_class") or "cargoVan",
+                vehicle_class=persist_vehicle_class(row.get("vehicle_class")),
                 package_type=row.get("package_type") or "looseParcel",
                 weight_kg=float(row["weight_kg"]) if row.get("weight_kg") else None,
                 internal_reference=row.get("internal_reference"),

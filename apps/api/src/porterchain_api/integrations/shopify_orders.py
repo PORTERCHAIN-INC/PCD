@@ -113,6 +113,6 @@ def map_shopify_order(
         purchase_order_number=order_id,
         special_instructions=notes,
         weight_kg=line_weight_kg(payload),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         package_type="looseParcel",
     )

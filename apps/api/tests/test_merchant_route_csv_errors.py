@@ -88,7 +88,7 @@ def test_file_geocode_failure_uses_spreadsheet_row(db) -> None:
             ctx,
             filename="stops.csv",
             data=csv,
-            vehicle_class="cargoVan",
+            vehicle_class="cargo_van",
             scheduled_at=None,
         )
         svc.apply_geocode_job(db, job.id)

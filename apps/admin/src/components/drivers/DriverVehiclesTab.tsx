@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
-import { drivers } from "@/lib/drivers";
+import { drivers, VEHICLE_CLASSES } from "@/lib/drivers";
 import { Badge, Button, SectionCard } from "@/components/crm/primitives";
 import { shortDate, titleCase } from "@/lib/crmFormat";
 
@@ -11,15 +11,15 @@ export function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean })
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
   const [open, setOpen] = useState(false);
-  const [vehicleClass, setVehicleClass] = useState("cargoVan");
+  const [vehicleClass, setVehicleClass] = useState("cargo_van");
   const [plate, setPlate] = useState("");
   const [makeModel, setMakeModel] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editClass, setEditClass] = useState("cargoVan");
+  const [editClass, setEditClass] = useState("cargo_van");
   const [editPlate, setEditPlate] = useState("");
   const [editMake, setEditMake] = useState("");
-  const vehicleClasses = ["sedan", "suv", "pickup", "cargoVan", "highRoof", "box16", "box20"];
+  const vehicleClasses = [...VEHICLE_CLASSES] as string[];
   const classOptions = (current: string) =>
     vehicleClasses.includes(current) ? vehicleClasses : [current, ...vehicleClasses];
   const { data } = useApiData((t) => drivers.vehicles(t, id), [id, version], {

@@ -16,6 +16,7 @@ from porterchain_api.config import Settings
 from porterchain_api.fleetbase_engine.pod_normalize import normalize_pod
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.booking_models import Booking, Customer, DomainEvent, Invoice, Order, OrderException, Payment, Quote
+from porterchain_api.domain.customer_goods import booked_capacity_class
 from porterchain_api.order_engine.platform_helpers import ops_timeline_label
 
 
@@ -385,7 +386,10 @@ class OrderPlatformDetailMixin:
                 f"PBD-{booking_draft.id[:8].upper()}" if booking_draft else None
             ),
             "quote_id": quote.id if quote else None,
-            "vehicle_class": (quote.vehicle_class if quote else None) or meta.get("vehicle_class"),
+            "vehicle_class": booked_capacity_class(
+                quote_vehicle_class=quote.vehicle_class if quote else None,
+                compliance_metadata=meta,
+            ),
             "package_type": quote.package_type if quote else None,
             "weight_kg": (quote.weight_kg if quote else None) or meta.get("weight_kg"),
             "dimensions": (quote.dimensions if quote else None) or meta.get("dimensions"),

@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_draft_models import BookingDraft
 from porterchain_api.booking_models import Booking, Customer, Order, Payment, Quote
 from porterchain_api.config import Settings
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import BOOKING_DRAFT_TERMINAL, BookingDraftState
 from porterchain_api.schemas import CreateBookingDraftRequest, UpdateBookingDraftRequest
 
@@ -32,7 +33,7 @@ def create_or_update_draft(
         pickup=body.pickup.model_dump() if body.pickup else None,
         dropoff=body.dropoff.model_dump() if body.dropoff else None,
         additional_stops=[s.model_dump() for s in body.additional_stops] if body.additional_stops else None,
-        vehicle_class=body.vehicle_class,
+        vehicle_class=persist_vehicle_class(body.vehicle_class),
         package_type=body.package_type,
         weight_kg=body.weight_kg,
         dimensions=body.dimensions,
@@ -75,7 +76,7 @@ def apply_update(
     if body.additional_stops is not None:
         draft.additional_stops = [s.model_dump() for s in body.additional_stops]
     if body.vehicle_class is not None:
-        draft.vehicle_class = body.vehicle_class
+        draft.vehicle_class = persist_vehicle_class(body.vehicle_class)
     if body.package_type is not None:
         draft.package_type = body.package_type
     if body.weight_kg is not None:
@@ -143,7 +144,7 @@ def attach_quote(svc: Any, db: Session, quote: Quote, session_id: str | None) ->
     draft.pickup = quote.pickup
     draft.dropoff = quote.dropoff
     draft.additional_stops = quote.additional_stops
-    draft.vehicle_class = quote.vehicle_class
+    draft.vehicle_class = persist_vehicle_class(quote.vehicle_class)
     draft.package_type = quote.package_type
     draft.weight_kg = quote.weight_kg
     draft.dimensions = quote.dimensions

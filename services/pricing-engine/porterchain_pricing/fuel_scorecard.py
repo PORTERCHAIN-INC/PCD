@@ -22,6 +22,8 @@ _L_PER_100KM: dict[str, float] = {
     "cargovan": 12.5,
     "sprinter_van": 14.0,
     "sprintvan": 14.0,
+    "high_roof": 14.0,
+    "highroof": 14.0,
     "box_truck": 22.0,
     "boxtruck": 22.0,
     "box_16": 22.0,

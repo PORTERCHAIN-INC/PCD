@@ -29,10 +29,14 @@ from porterchain_api.booking_engine.row_locks import (
 
 def _retail_compliance_from_quote(quote: Quote) -> dict | None:
     """Persist quote stops and parcels onto the order. Extra stops are drops, not parcel splits."""
+    from porterchain_api.domain.customer_goods import persist_vehicle_class
+
     extras = quote.additional_stops if isinstance(quote.additional_stops, list) else []
     payload = quote.parcels if isinstance(quote.parcels, dict) else {}
     if not extras and not payload:
-        return None
+        if not quote.vehicle_class:
+            return None
+        return {"vehicle_class": persist_vehicle_class(quote.vehicle_class)}
     pickup = quote.pickup if isinstance(quote.pickup, dict) else {}
     dropoff = quote.dropoff if isinstance(quote.dropoff, dict) else {}
     stops: list[dict] = []
@@ -90,7 +94,7 @@ def _retail_compliance_from_quote(quote: Quote) -> dict | None:
         "stops": stops,
         "order_kind": "hub_spoke" if len(extras) >= 1 else "single",
         "additional_stops": extras,
-        "vehicle_class": quote.vehicle_class,
+        "vehicle_class": persist_vehicle_class(quote.vehicle_class),
         "schedule_mode": quote.schedule_mode,
         "booking_mode": payload.get("booking_mode") or "parcels",
         "parcels": payload,

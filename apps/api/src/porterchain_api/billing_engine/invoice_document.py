@@ -34,8 +34,12 @@ def persist_invoice_status(
 def _delivery_description(order: Order | None) -> str:
     if order is None:
         return "Delivery"
+    from porterchain_api.domain.catalog_labels import vehicle_label
+    from porterchain_api.domain.customer_goods import booked_capacity_class
+
     meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
-    vehicle = str(meta.get("vehicle_class") or "Delivery")
+    booked = booked_capacity_class(compliance_metadata=meta)
+    vehicle = vehicle_label(booked) if booked else "Delivery"
     if meta.get("booking_mode") == "vehicle":
         return f"{vehicle} · Whole vehicle"
     items = []

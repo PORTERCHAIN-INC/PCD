@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-class VehicleService:
+class DriverVehicleProfileService:
     def get_active_vehicle(self, db: Session, driver_id: str) -> dict | None:
         from porterchain_api.admin_models import Driver
 
@@ -107,3 +107,7 @@ class VehicleService:
             "odometer_km": None,
             "notes": None,
         }
+
+
+# Prefer DriverVehicleProfileService; alias keeps older imports working.
+VehicleService = DriverVehicleProfileService

@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { Button, Field, Input } from "@/components/crm/primitives";
 import { SettingsCard } from "../ui/SettingsPrimitives";
 
+import { CAPACITY_CLASS_IDS, vehicleLabel } from "@porterchain/types";
+
 type Rates = {
   base_price: number;
   extra_km_rate: number;
@@ -35,16 +37,7 @@ type CustomerCard = {
   parcel_presets: Preset[];
 };
 
-const VEHICLES = ["sedan_suv", "cargo_van", "pickup", "sprinter_van", "box_16", "box_20"] as const;
-
-const LABELS: Record<string, string> = {
-  sedan_suv: "Sedan / SUV",
-  cargo_van: "Cargo van",
-  pickup: "Pickup",
-  sprinter_van: "Sprinter (retail off)",
-  box_16: "16 ft",
-  box_20: "20 ft",
-};
+const VEHICLES = CAPACITY_CLASS_IDS;
 
 function num(value: unknown, fallback: number): number {
   const n = Number(value);
@@ -265,7 +258,7 @@ export default function CustomerPricingPanel({
             >
               {missing.map((id) => (
                 <option key={id} value={id}>
-                  {LABELS[id]}
+                  {vehicleLabel(id, id)}
                 </option>
               ))}
             </select>
@@ -301,11 +294,12 @@ export default function CustomerPricingPanel({
           {Object.entries(card.vehicles).map(([id, rates]) => (
             <div key={id} className="rounded-xl border border-gray-line p-3">
               <div className="mb-2 flex items-center justify-between">
-                <p className="font-medium">{LABELS[id] ?? id}</p>
+                <p className="font-medium">{vehicleLabel(id, id)}</p>
                 <Button
                   variant="outline"
                   onClick={() => {
-                    if (!window.confirm(`Remove the ${LABELS[id] ?? id} customer rate?`)) return;
+                    if (!window.confirm(`Remove the ${vehicleLabel(id, id)} customer rate?`))
+                      return;
                     const vehicles = { ...card.vehicles };
                     delete vehicles[id];
                     setCard({ ...card, vehicles });

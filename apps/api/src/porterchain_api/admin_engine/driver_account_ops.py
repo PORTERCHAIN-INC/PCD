@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import Driver, Vehicle
 from porterchain_api.config import Settings
+from porterchain_api.domain.customer_goods import persist_vehicle_class
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ class DriverAccountOps:
         self._reject_duplicate_plate(db, plate)
         vehicle = Vehicle(
             driver_id=driver.id,
-            vehicle_class=vehicle_class.strip() or "cargoVan",
+            vehicle_class=persist_vehicle_class(vehicle_class),
             plate_number=plate,
             make_model=make_model,
             capacity_kg=capacity_kg,
@@ -198,7 +199,7 @@ class DriverAccountOps:
             self._reject_duplicate_plate(db, plate, exclude_id=vehicle.id)
             vehicle.plate_number = plate
         if vehicle_class is not None and vehicle_class.strip():
-            vehicle.vehicle_class = vehicle_class.strip()
+            vehicle.vehicle_class = persist_vehicle_class(vehicle_class)
         if make_model is not None:
             vehicle.make_model = make_model.strip() or None
         if capacity_kg is not None:

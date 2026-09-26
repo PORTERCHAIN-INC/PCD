@@ -32,7 +32,7 @@ def _parcel(dropoff: dict) -> MerchantBookDeliveryRequest:
     return MerchantBookDeliveryRequest(
         pickup=AddressInput(**PICKUP),
         dropoff=AddressInput(**dropoff),
-        vehicle_class="cargoVan",
+        vehicle_class="cargo_van",
         package_type="looseParcel",
         weight_kg=5.0,
         scheduled_at=datetime.now(UTC),

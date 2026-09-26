@@ -19,17 +19,17 @@ def test_recommend_vehicle_prefs_cannot_downgrade_weight() -> None:
     svc = MerchantBookingFlowService()
     ctx = SimpleNamespace(merchant=SimpleNamespace(preferred_vehicles=["sedan", "suv"]))
     out = svc.recommend_vehicle(ctx, weight_kg=800)
-    assert out["recommended_vehicle"] in ("highRoof", "box16", "box20", "cargoVan")
-    assert out["recommended_vehicle"] != "sedan"
-    assert "sedan" not in out["eligible_vehicles"] or out["eligible_vehicles"][0] != "sedan"
+    assert out["recommended_vehicle"] in ("sprinter_van", "box_16", "box_20", "cargo_van")
+    assert out["recommended_vehicle"] != "sedan_suv"
+    assert out["eligible_vehicles"][0] != "sedan_suv"
 
 
 def test_recommend_vehicle_soft_ranks_among_eligible() -> None:
     svc = MerchantBookingFlowService()
-    ctx = SimpleNamespace(merchant=SimpleNamespace(preferred_vehicles=["box20", "highRoof"]))
+    ctx = SimpleNamespace(merchant=SimpleNamespace(preferred_vehicles=["box_20", "sprinter_van"]))
     out = svc.recommend_vehicle(ctx, weight_kg=80)
-    # cargoVan floor; box20 preferred and eligible → pick box20
-    assert out["recommended_vehicle"] == "box20"
+    # cargo_van floor; box_20 preferred and eligible → pick box_20
+    assert out["recommended_vehicle"] == "box_20"
 
 
 def test_driver_verification_gap() -> None:
