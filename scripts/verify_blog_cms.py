@@ -164,12 +164,17 @@ def main() -> int:
         failures.append("serialize_public must drop created_by")
 
     mirror = (
+        ROOT / "apps/api/src/porterchain_api/collaboration_engine/booking_lead_mirror.py"
+    ).read_text(encoding="utf-8")
+    facade = (
         ROOT / "apps/api/src/porterchain_api/booking_engine/crm_lead_mirror.py"
     ).read_text(encoding="utf-8")
     if "CrmSalesService" in mirror or "create_lead" in mirror:
-        failures.append("crm_lead_mirror still bypasses LeadIngestService")
+        failures.append("booking_lead_mirror still bypasses LeadIngestService")
     if "LeadIngestService" not in mirror:
-        failures.append("crm_lead_mirror missing LeadIngestService")
+        failures.append("booking_lead_mirror missing LeadIngestService")
+    if "mirror_booking_lead_to_crm" not in facade:
+        failures.append("booking_engine/crm_lead_mirror must re-export mirror_booking_lead_to_crm")
 
     failures.extend(_closed_set_drift(ROOT))
     failures.extend(_list_limit_drift(ROOT))
