@@ -21,10 +21,13 @@ type Props = {
 const VEHICLE_ICONS: Record<string, typeof Car> = {
   sedan: Car,
   suv: Car,
+  sedan_suv: Car,
   pickup: Truck,
   cargo_van: Truck,
   sprinter_van: Truck,
   box_truck: Box,
+  box_16: Box,
+  box_20: Box,
 };
 
 function slugify(label: string): string {
@@ -218,7 +221,7 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
         />
         <StatTile
           label="Default booking class"
-          value={defaultClass ?? overview?.default_vehicle_class ?? "sedan"}
+          value={defaultClass ?? overview?.default_vehicle_class ?? "sedan_suv"}
         />
       </div>
 
@@ -226,7 +229,7 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
         <span className="text-muted">
           Default booking class:{" "}
           <strong className="text-primary">
-            {defaultClass ?? overview?.default_vehicle_class ?? "sedan"}
+            {defaultClass ?? overview?.default_vehicle_class ?? "sedan_suv"}
           </strong>
         </span>
         <Link
@@ -279,7 +282,7 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
                 const Icon = VEHICLE_ICONS[item.id] ?? Truck;
                 const fleet = fleetByClass.get(item.id);
                 const isDefault =
-                  item.id === (defaultClass ?? overview?.default_vehicle_class ?? "sedan");
+                  item.id === (defaultClass ?? overview?.default_vehicle_class ?? "sedan_suv");
                 return (
                   <tr
                     key={item.id}

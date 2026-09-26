@@ -78,7 +78,8 @@ class TestZoneAabbParity:
         result = calculate_gta_delivery_rate(
             vehicle_type="suv", total_km=10, is_downtown=True, is_upper_zone=True
         )
-        assert result.total_cad == 95.0
+        assert result.total_cad == 85.0
+        assert result.vehicle_type == "sedan_suv"
         assert "isochrone" not in inspect.getsource(is_downtown_point)
         assert "isochrone" not in inspect.getsource(is_upper_zone_point)
 

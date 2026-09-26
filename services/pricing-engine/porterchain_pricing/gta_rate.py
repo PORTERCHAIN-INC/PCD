@@ -31,16 +31,19 @@ DEFAULT_UPPER_ZONE_FEE_CAD = 15.0
 
 # Canonical matrix keys = Settings vehicle_types catalog ids
 DEFAULT_VEHICLE_MATRIX: dict[str, dict[str, float]] = {
-    "sedan": {"base_price": 45.0, "extra_km_rate": 1.25, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
-    "suv": {"base_price": 55.0, "extra_km_rate": 1.75, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+    "sedan_suv": {"base_price": 45.0, "extra_km_rate": 1.25, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
     "pickup": {"base_price": 60.0, "extra_km_rate": 1.90, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
     "cargo_van": {"base_price": 65.0, "extra_km_rate": 2.00, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
     "sprinter_van": {"base_price": 75.0, "extra_km_rate": 2.50, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
-    "box_truck": {"base_price": 125.0, "extra_km_rate": 3.50, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+    "box_16": {"base_price": 125.0, "extra_km_rate": 3.50, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+    "box_20": {"base_price": 125.0, "extra_km_rate": 3.50, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
 }
 
-# Legacy matrix keys → catalog ids (SystemConfig migration)
+# Legacy matrix keys → catalog ids (SystemConfig + older merchant overlays)
 _LEGACY_MATRIX_KEYS: dict[str, str] = {
+    "sedan": "sedan_suv",
+    "suv": "sedan_suv",
+    "box_truck": "box_16",
     "small_van": "cargo_van",
     "large_van": "sprinter_van",
 }
@@ -52,21 +55,26 @@ UPPER_ZONE_FEE_CAD = DEFAULT_UPPER_ZONE_FEE_CAD
 VEHICLE_MATRIX = DEFAULT_VEHICLE_MATRIX
 
 VEHICLE_LABELS: dict[str, str] = {
-    "sedan": "Sedan",
-    "suv": "SUV",
+    "sedan_suv": "Sedan / SUV",
     "pickup": "Pickup",
     "cargo_van": "Cargo van",
     "sprinter_van": "Sprinter van",
-    "box_truck": "Box truck",
+    "box_16": "16 ft box",
+    "box_20": "20 ft box",
     # legacy labels
+    "sedan": "Sedan / SUV",
+    "suv": "Sedan / SUV",
+    "box_truck": "16 ft box",
     "small_van": "Cargo van",
     "large_van": "Sprinter van",
 }
 
 # Booking / website / legacy API vehicle keys → catalog matrix keys
 VEHICLE_ALIAS: dict[str, str] = {
-    "sedan": "sedan",
-    "suv": "suv",
+    "sedan": "sedan_suv",
+    "suv": "sedan_suv",
+    "sedan_suv": "sedan_suv",
+    "sedansuv": "sedan_suv",
     "pickup": "pickup",
     "minivan": "cargo_van",
     "small_van": "cargo_van",
@@ -81,12 +89,14 @@ VEHICLE_ALIAS: dict[str, str] = {
     "sprinter_van": "sprinter_van",
     "sprintervan": "sprinter_van",
     "sprinter": "sprinter_van",
-    "box_truck": "box_truck",
-    "boxtruck": "box_truck",
-    "box_16ft": "box_truck",
-    "box_20ft": "box_truck",
-    "box16": "box_truck",
-    "box20": "box_truck",
+    "box_truck": "box_16",
+    "boxtruck": "box_16",
+    "box_16ft": "box_16",
+    "box_20ft": "box_20",
+    "box16": "box_16",
+    "box20": "box_20",
+    "box_16": "box_16",
+    "box_20": "box_20",
 }
 
 _VEHICLE_RATE_KEYS = ("base_price", "extra_km_rate", "extra_pick_fee", "extra_drop_fee")
@@ -146,6 +156,11 @@ def default_gta_rate_config() -> GtaRateConfig:
     return GtaRateConfig()
 
 
+def _canonical_matrix_key(raw_key: str) -> str:
+    """Map legacy GTA matrix keys onto the retail vehicle catalog ids."""
+    return _LEGACY_MATRIX_KEYS.get(str(raw_key), str(raw_key))
+
+
 def gta_rate_config_from_dict(
     data: dict[str, Any] | None,
     *,
@@ -158,18 +173,30 @@ def gta_rate_config_from_dict(
     if not data:
         return card
 
-    vehicles = deepcopy(card.vehicles)
+    # Start from base with legacy keys already collapsed (first write wins).
+    vehicles: dict[str, dict[str, float]] = {}
+    for key, rates in card.vehicles.items():
+        matrix_key = _canonical_matrix_key(str(key))
+        if matrix_key in vehicles and str(key) != matrix_key:
+            continue
+        vehicles[matrix_key] = dict(rates)
+
     raw_vehicles = data.get("vehicles")
+    legacy_claimed: set[str] = set()
     if isinstance(raw_vehicles, dict):
         for key, rates in raw_vehicles.items():
             if not isinstance(rates, dict):
                 continue
-            matrix_key = _LEGACY_MATRIX_KEYS.get(str(key), str(key))
+            raw_key = str(key)
+            matrix_key = _canonical_matrix_key(raw_key)
             if (
                 matrix_key not in DEFAULT_VEHICLE_MATRIX
                 and matrix_key not in vehicles
                 and matrix_key not in CUSTOMER_VEHICLE_IDS
             ):
+                continue
+            # sedan + suv both collapse to sedan_suv — keep the first write (prefer sedan).
+            if raw_key != matrix_key and matrix_key in legacy_claimed:
                 continue
             seed = vehicles.get(matrix_key) or DEFAULT_VEHICLE_MATRIX.get(matrix_key) or {
                 "base_price": 0.0,
@@ -182,6 +209,8 @@ def gta_rate_config_from_dict(
                 if rk in rates and rates[rk] is not None:
                     merged[rk] = float(rates[rk])
             vehicles[matrix_key] = merged
+            if raw_key != matrix_key:
+                legacy_claimed.add(matrix_key)
 
     return GtaRateConfig(
         base_km_limit=float(data["base_km_limit"]) if data.get("base_km_limit") is not None else card.base_km_limit,
@@ -220,8 +249,8 @@ def _optional_int(data: Mapping[str, Any], key: str, fallback: int | None) -> in
 
 def default_customer_distance_dict() -> dict[str, Any]:
     """Day-one customer card, collapsed from the current merchant distance rates."""
-    sedan = DEFAULT_VEHICLE_MATRIX["sedan"]
-    box = DEFAULT_VEHICLE_MATRIX["box_truck"]
+    sedan = DEFAULT_VEHICLE_MATRIX["sedan_suv"]
+    box = DEFAULT_VEHICLE_MATRIX["box_16"]
     return {
         "strict_vehicles": True,
         "base_km_limit": DEFAULT_BASE_KM_LIMIT,
@@ -239,7 +268,7 @@ def default_customer_distance_dict() -> dict[str, Any]:
             "pickup": dict(DEFAULT_VEHICLE_MATRIX["pickup"]),
             "sprinter_van": dict(DEFAULT_VEHICLE_MATRIX["sprinter_van"]),
             "box_16": dict(box),
-            "box_20": dict(box),
+            "box_20": dict(DEFAULT_VEHICLE_MATRIX["box_20"]),
         },
     }
 

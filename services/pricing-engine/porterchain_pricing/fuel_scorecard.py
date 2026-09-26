@@ -16,6 +16,7 @@ from porterchain_pricing.types import FuelConfig
 _L_PER_100KM: dict[str, float] = {
     "sedan": 9.0,
     "suv": 11.0,
+    "sedan_suv": 10.0,
     "pickup": 13.0,
     "cargo_van": 12.5,
     "cargovan": 12.5,
@@ -23,6 +24,8 @@ _L_PER_100KM: dict[str, float] = {
     "sprintvan": 14.0,
     "box_truck": 22.0,
     "boxtruck": 22.0,
+    "box_16": 22.0,
+    "box_20": 24.0,
     "straight_truck": 24.0,
     "truck": 22.0,
 }

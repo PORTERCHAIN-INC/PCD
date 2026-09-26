@@ -55,14 +55,22 @@ function normalizeGta(raw: unknown, catalogIds: string[]): GtaPricingConfig {
       ? (src.vehicles as Record<string, Record<string, unknown>>)
       : {};
   const vehicles: Record<string, GtaVehicleRates> = {};
-  const storedIds = Object.keys(vehiclesRaw);
-  const ids = storedIds.length
-    ? storedIds
-    : catalogIds.length
-      ? catalogIds
-      : ["sedan", "suv", "pickup", "cargo_van", "sprinter_van", "box_truck"];
+  const legacyMap: Record<string, string> = {
+    sedan: "sedan_suv",
+    suv: "sedan_suv",
+    box_truck: "box_16",
+  };
+  const collapsed: Record<string, Record<string, unknown>> = {};
+  for (const [rawId, row] of Object.entries(vehiclesRaw)) {
+    const id = legacyMap[rawId] ?? rawId;
+    if (collapsed[id]) continue;
+    collapsed[id] = row;
+  }
+  const storedIds = Object.keys(collapsed);
+  const fallback = ["sedan_suv", "pickup", "cargo_van", "sprinter_van", "box_16", "box_20"];
+  const ids = storedIds.length ? storedIds : catalogIds.length ? catalogIds : fallback;
   for (const id of ids) {
-    const row = vehiclesRaw[id] ?? {};
+    const row = collapsed[id] ?? {};
     vehicles[id] = {
       base_price: num(row.base_price, DEFAULT_RATES.base_price),
       extra_km_rate: num(row.extra_km_rate, DEFAULT_RATES.extra_km_rate),
@@ -155,7 +163,7 @@ export default function PricingPanel({
   }, [initial]);
 
   const preview = useMemo(() => {
-    const v = config.vehicles.cargo_van ?? config.vehicles.sedan ?? DEFAULT_RATES;
+    const v = config.vehicles.cargo_van ?? config.vehicles.sedan_suv ?? DEFAULT_RATES;
     const km = 28;
     const extra = Math.max(0, km - config.base_km_limit) * v.extra_km_rate;
     return (v.base_price + extra + config.downtown_fee_cad).toFixed(2);

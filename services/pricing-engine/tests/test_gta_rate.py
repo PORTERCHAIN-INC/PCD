@@ -24,14 +24,16 @@ def test_sprinter_15_drops_18km_is_285():
 def test_vehicle_aliases_map_to_matrix():
     assert normalize_vehicle_type("highRoof") == "sprinter_van"
     assert normalize_vehicle_type("cargoVan") == "cargo_van"
-    assert normalize_vehicle_type("box16") == "box_truck"
+    assert normalize_vehicle_type("box16") == "box_16"
+    assert normalize_vehicle_type("sedan") == "sedan_suv"
     assert normalize_vehicle_type("sprinter_van") == "sprinter_van"
 
 
 def test_extra_km_beyond_20():
-    # sedan base 45 + 5 * 1.25 = 51.25
+    # sedan_suv base 45 + 5 * 1.25 = 51.25
     result = calculate_gta_delivery_rate(vehicle_type="sedan", total_km=25, total_pickups=1, total_drops=1)
     assert result.total_cad == 51.25
+    assert result.vehicle_type == "sedan_suv"
 
 
 def test_location_surcharges_once_each():
@@ -43,8 +45,9 @@ def test_location_surcharges_once_each():
         is_downtown=True,
         is_upper_zone=True,
     )
-    # 55 + 25 + 15 = 95
-    assert result.total_cad == 95.0
+    # sedan_suv 45 + 25 + 15 = 85 (suv collapses into sedan_suv)
+    assert result.total_cad == 85.0
+    assert result.vehicle_type == "sedan_suv"
 
 
 def test_retail_engine_matches_matrix_via_additional_stops():
@@ -183,3 +186,28 @@ def test_stored_suv_matches_sedan_suv():
     )
     assert chosen is not None
     assert chosen.flat_cents == 1800
+
+
+def test_legacy_gta_keys_collapse_to_catalog():
+    from porterchain_pricing.gta_rate import gta_rate_config_from_dict
+
+    cfg = gta_rate_config_from_dict(
+        {
+            "vehicles": {
+                "sedan": {"base_price": 45.0, "extra_km_rate": 1.25, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+                "suv": {"base_price": 55.0, "extra_km_rate": 1.75, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+                "box_truck": {
+                    "base_price": 125.0,
+                    "extra_km_rate": 3.5,
+                    "extra_pick_fee": 20.0,
+                    "extra_drop_fee": 15.0,
+                },
+            }
+        }
+    )
+    assert "sedan" not in cfg.vehicles
+    assert "suv" not in cfg.vehicles
+    assert "box_truck" not in cfg.vehicles
+    assert cfg.vehicles["sedan_suv"]["base_price"] == 45.0
+    assert cfg.vehicles["box_16"]["base_price"] == 125.0
+    assert "box_20" in cfg.vehicles

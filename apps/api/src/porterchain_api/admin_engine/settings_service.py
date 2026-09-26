@@ -153,12 +153,12 @@ DEFAULTS: dict[str, Any] = {
         "downtown_fee_cad": 25.0,
         "upper_zone_fee_cad": 15.0,
         "vehicles": {
-            "sedan": {"base_price": 45.0, "extra_km_rate": 1.25, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
-            "suv": {"base_price": 55.0, "extra_km_rate": 1.75, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+            "sedan_suv": {"base_price": 45.0, "extra_km_rate": 1.25, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
             "pickup": {"base_price": 60.0, "extra_km_rate": 1.90, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
             "cargo_van": {"base_price": 65.0, "extra_km_rate": 2.0, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
             "sprinter_van": {"base_price": 75.0, "extra_km_rate": 2.5, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
-            "box_truck": {"base_price": 125.0, "extra_km_rate": 3.5, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+            "box_16": {"base_price": 125.0, "extra_km_rate": 3.5, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
+            "box_20": {"base_price": 125.0, "extra_km_rate": 3.5, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
         },
     },
     "pricing_customer_distance": None,
@@ -857,9 +857,9 @@ class AdminSettingsService:
             )
         booking = self.get_config_value(db, "settings_booking")
         default_class = (
-            booking.get("default_vehicle_class", "sedan")
+            booking.get("default_vehicle_class", "sedan_suv")
             if isinstance(booking, dict)
-            else "sedan"
+            else "sedan_suv"
         )
         return {
             "fleet_total": int(fleet_total),
@@ -1119,6 +1119,8 @@ class AdminSettingsService:
             issues.append(f"Readiness probe status: {ready.get('status')}")
 
         # Commercial integrity
+        from porterchain_api.domain.customer_goods import canonical_vehicle_id
+
         catalog = self.get_config_value(db, "vehicle_types")
         pricing = self.get_config_value(db, "pricing_gta_rate")
         customer_pricing = self.get_config_value(db, "pricing_customer_distance")
@@ -1130,16 +1132,21 @@ class AdminSettingsService:
         if isinstance(catalog, list):
             for row in catalog:
                 if isinstance(row, dict) and row.get("id"):
-                    catalog_ids.add(str(row["id"]))
+                    catalog_ids.add(canonical_vehicle_id(str(row["id"])))
                     if row.get("booking_enabled") is not False and row.get("retail_enabled") is not False:
-                        vid = str(row["id"])
-                        if isinstance(customer_vehicles, dict) and vid not in customer_vehicles:
-                            issues.append(f"Enabled vehicle '{vid}' has no customer distance rate")
+                        vid = canonical_vehicle_id(str(row["id"]))
+                        if isinstance(customer_vehicles, dict):
+                            customer_ids = {
+                                canonical_vehicle_id(str(k)) for k in customer_vehicles
+                            }
+                            if vid not in customer_ids:
+                                issues.append(f"Enabled vehicle '{vid}' has no customer distance rate")
         if isinstance(pricing, dict):
             vehicles = pricing.get("vehicles")
             if isinstance(vehicles, dict):
                 for vid, rates in vehicles.items():
-                    if catalog_ids and vid not in catalog_ids:
+                    canon = canonical_vehicle_id(str(vid))
+                    if catalog_ids and canon not in catalog_ids:
                         warnings.append(f"Pricing row '{vid}' is not in vehicle catalog")
                     if isinstance(rates, dict):
                         for rk, rv in rates.items():
@@ -1150,7 +1157,7 @@ class AdminSettingsService:
                                 issues.append(f"Invalid rate {rk} for vehicle '{vid}'")
         if isinstance(booking, dict):
             default_class = booking.get("default_vehicle_class")
-            if default_class and catalog_ids and str(default_class) not in catalog_ids:
+            if default_class and catalog_ids and canonical_vehicle_id(str(default_class)) not in catalog_ids:
                 issues.append(f"Default vehicle '{default_class}' is not in vehicle catalog")
             sla = booking.get("instant_delivery_sla_hours")
             if sla is not None:
