@@ -523,6 +523,26 @@ export const ops = {
   optimizePool: (t: string) => adminFetch<OptimizePool>(`${B}/optimize/pool`, t),
   optimizeEngines: (t: string) =>
     adminFetch<{ engines: Array<{ id?: string; name?: string }> }>(`${B}/optimize/engines`, t),
+  syncHealth: (t: string) =>
+    adminFetch<{
+      queue: Record<string, number | string | null>;
+      dead_letters: Array<{
+        id: string;
+        kind: string;
+        direction: string;
+        order_id: string | null;
+        attempts: number;
+        last_error: string | null;
+      }>;
+      recent_audit: Array<{
+        direction: string;
+        kind: string;
+        status: string;
+        order_id: string | null;
+        message: string | null;
+        at: string | null;
+      }>;
+    }>(`${B}/sync/health`, t),
   optimizeRun: (
     t: string,
     body: {

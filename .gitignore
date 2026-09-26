@@ -108,3 +108,9 @@ website/test-results/
 
 # Website local graphify artifacts
 website/graphify-out/
+
+# Ripwire cache file (legacy path; dir already ignored)
+.ripwire
+
+vendors.csv
+docs/archive/vendor-leads/*.csv

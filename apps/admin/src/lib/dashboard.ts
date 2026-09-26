@@ -1,40 +1,62 @@
+import { z } from "zod";
 import { adminFetch } from "@/lib/api";
 import { healthStatus, integrationHealthSchema, type IntegrationHealth } from "@/lib/health";
 
-export type DashboardCenter = {
-  meta: {
-    generated_at: string;
-    environment: string;
-    version: string;
-    company: string;
-    role: string;
-  };
-  kpis: Record<string, number | unknown>;
-  operations: Record<string, unknown>;
-  orders: Record<string, number>;
-  finance: Record<string, unknown>;
-  claims: Record<string, number>;
-  support: Record<string, unknown>;
-  crm: Record<string, unknown>;
-  booking: Record<string, unknown>;
-  merchants: Record<string, unknown>;
-  customers: Record<string, unknown>;
-  drivers: Record<string, unknown>;
-  fleet: Record<string, unknown>;
-  trends: { labels: string[]; orders: number[]; revenue_cents: number[] };
-  executive: Record<string, unknown>;
-  activity: Array<{
-    id: string;
-    event_type: string;
-    aggregate_type: string;
-    aggregate_id: string;
-    actor_type: string;
-    occurred_at: string | null;
-  }>;
+const trendsSchema = z.object({
+  labels: z.array(z.string()),
+  orders: z.array(z.number()),
+  revenue_cents: z.array(z.number()),
+});
+
+const dashboardCenterSchema = z
+  .object({
+    meta: z.object({
+      generated_at: z.string(),
+      environment: z.string(),
+      version: z.string(),
+      company: z.string(),
+      role: z.string(),
+    }),
+    kpis: z.record(z.string(), z.unknown()),
+    operations: z.record(z.string(), z.unknown()),
+    orders: z.record(z.string(), z.unknown()),
+    finance: z.record(z.string(), z.unknown()),
+    claims: z.record(z.string(), z.unknown()),
+    support: z.record(z.string(), z.unknown()),
+    crm: z.record(z.string(), z.unknown()),
+    booking: z.record(z.string(), z.unknown()),
+    merchants: z.record(z.string(), z.unknown()),
+    customers: z.record(z.string(), z.unknown()),
+    drivers: z.record(z.string(), z.unknown()),
+    fleet: z.record(z.string(), z.unknown()),
+    trends: trendsSchema,
+    executive: z.record(z.string(), z.unknown()),
+    activity: z.array(
+      z.object({
+        id: z.string(),
+        event_type: z.string(),
+        aggregate_type: z.string(),
+        aggregate_id: z.string().nullable().optional().default(""),
+        actor_type: z.string().optional().default("system"),
+        occurred_at: z.string().nullable(),
+      })
+    ),
+    system_health: z.record(z.string(), z.unknown()),
+    smart: z.record(z.string(), z.unknown()),
+    pending: z.record(z.string(), z.unknown()),
+    quick_actions: z.array(
+      z.object({
+        id: z.string(),
+        label: z.string(),
+        href: z.string(),
+      })
+    ),
+  })
+  .passthrough();
+
+export type DashboardCenter = z.infer<typeof dashboardCenterSchema> & {
   system_health: IntegrationHealth | Record<string, unknown>;
-  smart: Record<string, unknown>;
   pending: Record<string, number>;
-  quick_actions: Array<{ id: string; label: string; href: string }>;
 };
 
 export type SearchHit = {
@@ -51,11 +73,16 @@ export const dashboardApi = {
   legacy: (token: string) => adminFetch<Record<string, unknown>>("/v1/admin/dashboard", token),
   center: async (token: string) => {
     const raw = await adminFetch<DashboardCenter>(`${B}/center`, token);
-    const parsed = integrationHealthSchema.safeParse(raw.system_health);
-    if (parsed.success) {
-      return { ...raw, system_health: parsed.data };
-    }
-    return raw;
+    const parsed = dashboardCenterSchema.safeParse(raw);
+    const base = parsed.success ? parsed.data : raw;
+    const health = integrationHealthSchema.safeParse(base.system_health);
+    return {
+      ...base,
+      system_health: health.success ? health.data : base.system_health,
+      pending: Object.fromEntries(
+        Object.entries(base.pending ?? {}).map(([k, v]) => [k, Number(v) || 0])
+      ),
+    } as DashboardCenter;
   },
   search: (token: string, q: string) =>
     adminFetch<SearchHit[]>(`${B}/search?q=${encodeURIComponent(q)}`, token),
@@ -63,26 +90,26 @@ export const dashboardApi = {
 
 export const DASHBOARD_WIDGETS = [
   { id: "kpis", label: "Executive KPIs", defaultVisible: true },
-  { id: "operations", label: "Operations Center", defaultVisible: true },
-  { id: "orders", label: "Orders", defaultVisible: true },
+  { id: "smart", label: "Intelligence canvas", defaultVisible: true },
+  { id: "operations", label: "Operations Center", defaultVisible: false },
+  { id: "orders", label: "Orders", defaultVisible: false },
   { id: "booking", label: "Booking", defaultVisible: true },
   { id: "finance", label: "Finance", defaultVisible: true },
   { id: "support", label: "Support", defaultVisible: true },
   { id: "claims", label: "Claims", defaultVisible: true },
-  { id: "crm", label: "CRM", defaultVisible: true },
+  { id: "crm", label: "CRM", defaultVisible: false },
   { id: "merchants", label: "Merchants", defaultVisible: true },
   { id: "drivers", label: "Drivers", defaultVisible: true },
   { id: "fleet", label: "Fleet", defaultVisible: true },
   { id: "reports", label: "Reports", defaultVisible: true },
   { id: "activity", label: "Activity Timeline", defaultVisible: true },
   { id: "health", label: "Health", defaultVisible: true },
-  { id: "smart", label: "Smart Insights", defaultVisible: true },
   { id: "sidebar", label: "Right Sidebar", defaultVisible: true },
 ] as const;
 
 export type WidgetId = (typeof DASHBOARD_WIDGETS)[number]["id"];
 
-const LAYOUT_KEY = "porterchain-dashboard-layout";
+const LAYOUT_KEY = "porterchain-dashboard-layout-v2";
 
 export function loadWidgetLayout(): Record<WidgetId, boolean> {
   if (typeof window === "undefined") {
@@ -94,7 +121,10 @@ export function loadWidgetLayout(): Record<WidgetId, boolean> {
   try {
     const raw = localStorage.getItem(LAYOUT_KEY);
     if (!raw) throw new Error("empty");
-    return JSON.parse(raw) as Record<WidgetId, boolean>;
+    const parsed = JSON.parse(raw) as Partial<Record<WidgetId, boolean>>;
+    return Object.fromEntries(
+      DASHBOARD_WIDGETS.map((w) => [w.id, parsed[w.id] ?? w.defaultVisible])
+    ) as Record<WidgetId, boolean>;
   } catch {
     return Object.fromEntries(DASHBOARD_WIDGETS.map((w) => [w.id, w.defaultVisible])) as Record<
       WidgetId,

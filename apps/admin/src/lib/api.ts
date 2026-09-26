@@ -91,6 +91,7 @@ export type AdminDashboard = {
   open_claims: number;
   outstanding_invoices_cents: number;
   open_support_tickets: number;
+  fleet_health_percent: number;
 };
 
 export type PaymentItem = {

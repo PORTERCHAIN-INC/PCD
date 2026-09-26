@@ -34,6 +34,8 @@ def test_admin_dashboard_empty_db(db: Session) -> None:
     result = AdminDashboardService().get_dashboard(db)
     assert "todays_bookings" in result
     assert isinstance(result["todays_bookings"], int)
+    assert "fleet_health_percent" in result
+    assert result["fleet_health_percent"] <= 100.0
 
 
 def test_admin_settings_read_paths(db: Session, settings) -> None:

@@ -108,6 +108,12 @@ class AdminDashboardService:
             SupportTicket.status.in_(["open", "in_progress", "escalated"])
         ).count()
 
+        # Derived health — not a constant 100. Penalties for failure / claims pressure.
+        fleet_health = round(
+            max(0.0, 100.0 - (failed_deliveries * 5) - (open_claims * 2)),
+            1,
+        )
+
         return {
             "todays_revenue_cents": int(todays_revenue),
             "todays_bookings": todays_bookings,
@@ -120,11 +126,13 @@ class AdminDashboardService:
             "open_claims": open_claims,
             "outstanding_invoices_cents": int(outstanding_invoices),
             "open_support_tickets": open_tickets,
-            "fleet_health_percent": 100.0,
+            "fleet_health_percent": fleet_health,
         }
 
     def get_center(self, db: Session, settings: Settings, *, role: str = "admin") -> dict[str, Any]:
         """Single payload for the Executive Command Center UI."""
+        from datetime import date, timedelta
+
         from porterchain_api.admin_engine.booking_draft_admin_service import AdminBookingDraftService
         from porterchain_api.admin_engine.claims_service import AdminClaimsService
         from porterchain_api.admin_engine.control_tower_service import ControlTowerService
@@ -134,6 +142,9 @@ class AdminDashboardService:
         from porterchain_api.admin_engine.support_service import AdminSupportService
         from porterchain_api.admin_models import Vehicle
         from porterchain_api.booking_models import Customer
+        from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
+        from porterchain_api.crm_models import CrmContract
+        from porterchain_api.domain.crm_states import ContractStatus
 
         finance_svc = AdminFinanceService()
         ops = ControlTowerService()
@@ -144,13 +155,8 @@ class AdminDashboardService:
         claims = AdminClaimsService().dashboard(db)
         support = AdminSupportService().dashboard(db)
         booking = AdminBookingDraftService().analytics(db)
+        crm_raw = CrmSalesService().dashboard(db)
         trends = _chart_trends(db, finance.get("revenue_trend"))
-        executive = {"orders": orders, "finance": finance}
-        smart = {"alerts": ops_stats.get("open_exceptions", 0)}
-        merchants_summary = {
-            "top_merchants_by_orders": [],
-            "top_merchants_by_revenue": [],
-        }
         customers = {"new_customers_month": db.query(func.count(Customer.id)).scalar() or 0}
         drivers = {"active_assignments": orders.get("assigned", 0)}
         sla = ops.sla_monitor(db, limit=10)
@@ -161,6 +167,94 @@ class AdminDashboardService:
         vehicles_total = db.query(func.count(Vehicle.id)).scalar() or 0
         vehicles_active = int(ops_stats.get("vehicles_active", 0))
         active_merchants = db.query(Merchant).filter(Merchant.status == MerchantStatus.ACTIVE.value).count()
+
+        top_by_revenue = [
+            {"name": m.get("name"), "revenue_cents": int(m.get("revenue_cents", 0))}
+            for m in (finance.get("top_merchants") or [])[:5]
+            if m.get("name")
+        ]
+        month_start = datetime.now(UTC).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        order_rows = (
+            db.query(Order.merchant_id, func.count(Order.id))
+            .filter(
+                Order.is_sandbox.is_(False),
+                Order.merchant_id.isnot(None),
+                Order.created_at >= month_start,
+            )
+            .group_by(Order.merchant_id)
+            .order_by(func.count(Order.id).desc())
+            .limit(5)
+            .all()
+        )
+        merchant_ids = [mid for mid, _ in order_rows if mid]
+        merchant_names = {
+            m.id: m.company_name
+            for m in db.query(Merchant).filter(Merchant.id.in_(merchant_ids)).all()
+        } if merchant_ids else {}
+        top_by_orders = [
+            {
+                "id": mid,
+                "name": merchant_names.get(mid, mid[:8] if mid else "unknown"),
+                "orders": int(cnt),
+            }
+            for mid, cnt in order_rows
+        ]
+
+        today = date.today()
+        contracts_expiring = (
+            db.query(func.count(CrmContract.id))
+            .filter(
+                CrmContract.expiry_date.isnot(None),
+                CrmContract.expiry_date >= today,
+                CrmContract.expiry_date <= today + timedelta(days=30),
+                CrmContract.status.notin_(
+                    [ContractStatus.EXPIRED.value, ContractStatus.TERMINATED.value]
+                ),
+            )
+            .scalar()
+            or 0
+        )
+
+        rev_series = list(trends.get("revenue_cents") or [])
+        if len(rev_series) >= 2 and rev_series[0]:
+            growth_percent = round((rev_series[-1] - rev_series[0]) / rev_series[0] * 100, 1)
+        else:
+            growth_percent = 0.0
+
+        breached = int(sla.get("breached_count", 0))
+        completed = int(ops_stats.get("completed_today", kpis.get("completed_today", 0)))
+        sla_denom = max(completed + breached, 1)
+        delivery_sla_percent = round(100.0 * (1 - breached / sla_denom), 1)
+
+        forecast_revenue_cents = int(
+            finance.get("revenue_forecast_cents")
+            or crm_raw.get("monthly_revenue_forecast_cents")
+            or 0
+        )
+
+        anomalies: list[str] = []
+        if breached:
+            anomalies.append(f"{breached} SLA breach(es) need attention")
+        if int(ops_stats.get("open_exceptions", 0)):
+            anomalies.append(f"{ops_stats['open_exceptions']} open exception(s)")
+        if int(ops_stats.get("delayed_orders", 0)):
+            anomalies.append(f"{ops_stats['delayed_orders']} delayed order(s)")
+        for card in (ai_ops.get("risk_orders") or [])[:3]:
+            reasons = card.get("reasons") or []
+            label = card.get("tracking_number") or card.get("order_number") or card.get("id", "")[:8]
+            if reasons:
+                anomalies.append(f"{label}: {reasons[0]}")
+
+        crm = {
+            "new_leads": int(crm_raw.get("new_leads", 0)),
+            "todays_follow_ups": int(crm_raw.get("todays_follow_ups", 0)),
+            "meetings_today": int(crm_raw.get("meetings_today", 0)),
+            "open_deals": int(crm_raw.get("open_deals", 0)),
+            "won_deals_this_month": int(crm_raw.get("won_deals_this_month", 0)),
+            "overdue_tasks": int(crm_raw.get("overdue_tasks", 0)),
+            "contracts_pending": int(crm_raw.get("contracts_pending", 0)),
+            "pipeline_value_cents": int(crm_raw.get("pipeline_value_cents", 0)),
+        }
 
         merged_kpis = {
             **kpis,
@@ -179,7 +273,24 @@ class AdminDashboardService:
             "avg_delivery_hours": orders.get("avg_delivery_hours", 0),
             "revenue_trend": finance.get("revenue_trend", []),
             "profit_estimate_cents": finance.get("profit_estimate_cents", 0),
-            "revenue_forecast_cents": finance.get("revenue_forecast_cents", 0),
+            "revenue_forecast_cents": forecast_revenue_cents,
+        }
+
+        executive = {
+            "orders": orders,
+            "finance": finance,
+            "growth_percent": growth_percent,
+            "delivery_sla_percent": delivery_sla_percent,
+            "forecast_revenue_cents": forecast_revenue_cents,
+        }
+        smart = {
+            "alerts": ops_stats.get("open_exceptions", 0),
+            "ai_summary": ai_ops.get("recommendation")
+            or (
+                f"Revenue growth {growth_percent}% · SLA {delivery_sla_percent}% · "
+                f"Forecast {forecast_revenue_cents}¢"
+            ),
+            "anomalies": anomalies,
         }
 
         return {
@@ -202,20 +313,14 @@ class AdminDashboardService:
             "finance": finance,
             "claims": claims,
             "support": support,
-            "crm": {
-                "new_leads": 0,
-                "todays_follow_ups": 0,
-                "meetings_today": 0,
-                "open_deals": 0,
-                "won_deals_this_month": 0,
-            },
+            "crm": crm,
             "booking": booking,
             "merchants": {
                 "pending_approval": kpis["pending_merchant_approvals"],
                 "active": active_merchants,
-                "top_by_orders": merchants_summary.get("top_merchants_by_orders", [])[:5],
-                "top_by_revenue": merchants_summary.get("top_merchants_by_revenue", [])[:5],
-                "contracts_expiring": 0,
+                "top_by_orders": top_by_orders,
+                "top_by_revenue": top_by_revenue,
+                "contracts_expiring": int(contracts_expiring),
             },
             "customers": customers,
             "drivers": {
@@ -238,11 +343,11 @@ class AdminDashboardService:
             "smart": smart,
             "pending": {
                 "merchant_approvals": kpis["pending_merchant_approvals"],
-                "contracts": 0,
+                "contracts": int(crm_raw.get("contracts_pending", 0)),
                 "claims_open": claims.get("open_claims", 0),
                 "support_open": support.get("open_tickets", 0),
                 "quotes": kpis["pending_quotes"],
-                "overdue_tasks": 0,
+                "overdue_tasks": int(crm_raw.get("overdue_tasks", 0)),
             },
             "quick_actions": [
                 {"id": "booking", "label": "Booking Drafts", "href": "/booking-drafts"},
@@ -292,11 +397,11 @@ class AdminDashboardService:
 
         for m in (
             db.query(Merchant)
-            .filter(or_(Merchant.name.ilike(like), Merchant.id.ilike(like)))
+            .filter(or_(Merchant.company_name.ilike(like), Merchant.id.ilike(like)))
             .limit(5)
             .all()
         ):
-            hits.append({"type": "merchant", "id": m.id, "label": m.name, "subtitle": m.status})
+            hits.append({"type": "merchant", "id": m.id, "label": m.company_name, "subtitle": m.status})
 
         for t in (
             db.query(SupportTicket)

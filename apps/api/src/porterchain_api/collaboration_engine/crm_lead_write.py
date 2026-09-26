@@ -50,8 +50,21 @@ class CrmLeadWriteMixin:
             score += 10  # actively shipping today
         if lead.phone and lead.email:
             score += 10
+        elif lead.phone:
+            score += 8  # outbound call lists often lack email
         if lead.priority in ("high", "urgent"):
             score += 10
+        addr = lead.address if isinstance(lead.address, dict) else {}
+        if addr.get("street") and addr.get("city") and (addr.get("postal_code") or addr.get("postal")):
+            score += 5
+        tags = lead.tags if isinstance(lead.tags, list) else []
+        if "cohort:gta" in tags or (lead.source or "") in ("vendor_import", "crm_import"):
+            city = str(addr.get("city") or lead.service_area or "").lower()
+            if "cohort:gta" in tags or any(
+                g in city
+                for g in ("toronto", "mississauga", "markham", "brampton", "vaughan", "scarborough")
+            ):
+                score += 7
         score += behavioral_score_boost(lead, visitor)
         heuristic = min(score, 100)
         breakdown = score_breakdown(lead, heuristic, db=db)

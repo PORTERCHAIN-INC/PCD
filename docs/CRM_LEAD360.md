@@ -41,7 +41,8 @@ Separate products. Do not merge support tickets or claims into Lead 360.
 - Retention: converted ~7 years; inactive unconverted soft-archive (`status=archived`) after ~24 months via worker drain. No automated purge in this release.
 - Inbox default sort=`smart` (SLA breached → priority → score → created_at).
 - Domain events: `lead.created` / `lead.merged` on ingest; `lead.engagement` on ESP open/click (`POST /v1/public/leads/engagement`).
-- WhatsApp outbound gate: consent or 24h care window (`lead360.nurture.whatsapp`); no Cloud send blast engine yet.
+- WhatsApp outbound gate: consent or 24h care window (`lead360.nurture.whatsapp`); Cloud send via `META_WA_*` + `lead_whatsapp_cloud` when configured.
+- Zero-human **lead_agent**: on non-quiet ingest + worker tick, NBA → auto `lead_nurture_intro` email when marketing consent; kill switch `LEAD_AGENT_AUTO_SEND`. Vendor phone-only → `needs_enrich` (no cold WA blast).
 - Suppression admin: `GET/DELETE /v1/admin/leads/suppressions` + Lead Ingest settings card (hashes only).
 - Nurture drip: D0 intro + D+1 email + D+3 call/WA task + D+7 re-engage email (consent + DNC gated).
 - RoPA: `GET /v1/admin/leads/privacy/ropa` + included on DSAR export; Lead Ingest settings card. Primary residency `CA-ON`; `multi_region=false`.

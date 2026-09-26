@@ -244,11 +244,16 @@ def _enqueue_d1_email(lead: CrmLead, *, website_url: str) -> bool:
 def apply_nurture_after_ingest(
     db: Session, lead: CrmLead, *, created: bool, website_url: str = ""
 ) -> dict[str, Any]:
-    """Hook for LeadIngestService — schedule tasks; day-0 email if consented."""
+    """Hook for LeadIngestService — schedule tasks; day-0 email if agent not owning send."""
     if not created:
         return {"scheduled": 0, "intro_email": False}
     tasks = schedule_lead_nurture(db, lead)
-    intro = enqueue_nurture_intro_email(lead, website_url=website_url, db=db)
+    intro = False
+    from porterchain_api.config import get_settings
+
+    # Zero-human lead_agent owns day-0 intro when auto-send is on.
+    if not bool(getattr(get_settings(), "lead_agent_auto_send", True)):
+        intro = enqueue_nurture_intro_email(lead, website_url=website_url, db=db)
     return {"scheduled": len(tasks), "intro_email": intro}
 
 

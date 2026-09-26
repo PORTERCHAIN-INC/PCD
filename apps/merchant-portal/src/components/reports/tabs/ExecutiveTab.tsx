@@ -37,7 +37,8 @@ export function ExecutiveTab({ data }: { data: ExecutiveReport }) {
           title="Monthly spend"
           subtitle="Last 6 months — operational spend"
           series={monthlySpend}
-          formatValue={(v) => formatCents(v)}
+          mode="bar"
+          dollars
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

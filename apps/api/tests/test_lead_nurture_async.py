@@ -56,9 +56,17 @@ def test_apply_nurture_enqueues_intro_when_consent(db) -> None:
     db.flush()
     with patch(
         "porterchain_shared.queue.publisher.get_queue_publisher"
-    ) as gp:
+    ) as gp, patch(
+        "porterchain_api.config.get_settings"
+    ) as gs:
         pub = MagicMock()
         gp.return_value = pub
+        settings = MagicMock()
+        settings.lead_agent_auto_send = False
+        settings.website_url = "https://example.test"
+        settings.jwt_secret = "test"
+        settings.public_ingest_api_key = ""
+        gs.return_value = settings
         out = apply_nurture_after_ingest(db, lead, created=True, website_url="https://example.test")
         db.commit()
         assert out["scheduled"] == 3

@@ -33,7 +33,20 @@ export function OptimizePanel({
   const { data: pool, loading: poolLoading } = useApiData((t) => ops.optimizePool(t), [tick], {
     key: "ops-optimize-pool",
   });
+  const { data: enginesPayload } = useApiData((t) => ops.optimizeEngines(t), [tick], {
+    key: "ops-optimize-engines",
+  });
+  const engineOptions = (() => {
+    const raw = enginesPayload?.engines ?? [];
+    const ids = raw.map((e) => String(e.id || e.name || "").trim()).filter(Boolean);
+    return ids.length ? ids : ["vroom", "greedy", "capacity"];
+  })();
   const [engine, setEngine] = useState("vroom");
+  useEffect(() => {
+    if (engineOptions.length && !engineOptions.includes(engine)) {
+      setEngine(engineOptions[0]);
+    }
+  }, [engineOptions, engine]);
   const [mode, setMode] = useState("allocate");
   const [shape, setShape] = useState<"fleet" | "merchant" | "vehicle">("fleet");
   const [merchantId, setMerchantId] = useState<string>("");
@@ -232,9 +245,17 @@ export function OptimizePanel({
               onChange={(e) => setEngine(e.target.value)}
               className="rounded-lg border border-primary/15 px-2 py-1 text-xs"
             >
-              <option value="vroom">VROOM</option>
-              <option value="greedy">Greedy</option>
-              <option value="capacity">Capacity</option>
+              {engineOptions.map((id) => (
+                <option key={id} value={id}>
+                  {id === "vroom"
+                    ? "VROOM"
+                    : id === "greedy"
+                      ? "Greedy"
+                      : id === "capacity"
+                        ? "Capacity"
+                        : id}
+                </option>
+              ))}
             </select>
             <Button
               onClick={() => void run()}

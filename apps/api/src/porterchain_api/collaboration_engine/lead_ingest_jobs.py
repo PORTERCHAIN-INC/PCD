@@ -111,6 +111,19 @@ def process_queued_lead_ingest(payload: dict[str, Any]) -> dict[str, Any]:
                     created += 1
                 elif result.merged:
                     merged += 1
+                ch = (event.channel or "").lower()
+                if ch == "whatsapp" or (event.source or "").lower() == "whatsapp":
+                    from porterchain_api.collaboration_engine.lead_agent import (
+                        maybe_auto_reply_after_ingest,
+                    )
+
+                    maybe_auto_reply_after_ingest(
+                        db,
+                        result.lead,
+                        channel=event.channel,
+                        message=event.message,
+                    )
+                    db.commit()
             except Exception:
                 logger.exception("queued_lead_ingest_event_failed")
                 errors += 1

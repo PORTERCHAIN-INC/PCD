@@ -39,6 +39,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
         has_abandoned: bool | None = None,
         search: str | None = None,
         include_archived: bool = False,
+        tag: str | None = None,
+        has_phone: bool | None = None,
     ):
         q = db.query(CrmLead)
         if not include_archived and status != LeadStatus.ARCHIVED.value:
@@ -65,6 +67,12 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
             q = q.filter(json_text(CrmLead.address, "province") == province)
         if min_score is not None:
             q = q.filter(CrmLead.lead_score >= min_score)
+        if tag:
+            q = q.filter(cast(CrmLead.tags, String).ilike(f"%{tag}%"))
+        if has_phone is True:
+            q = q.filter(CrmLead.phone.isnot(None), CrmLead.phone != "")
+        elif has_phone is False:
+            q = q.filter(or_(CrmLead.phone.is_(None), CrmLead.phone == ""))
         if unassigned:
             q = q.filter(CrmLead.assigned_to.is_(None))
         if merge_candidates:
@@ -160,6 +168,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
         offset: int = 0,
         include_archived: bool = False,
         sort: str = "smart",
+        tag: str | None = None,
+        has_phone: bool | None = None,
     ) -> list[CrmLead]:
         q = self._leads_base_query(
             db,
@@ -183,6 +193,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
             has_abandoned=has_abandoned,
             search=search,
             include_archived=include_archived,
+            tag=tag,
+            has_phone=has_phone,
         )
         if (sort or "smart").lower() == "smart":
             now = datetime.now(UTC)
@@ -240,6 +252,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
         has_abandoned: bool | None = None,
         search: str | None = None,
         include_archived: bool = False,
+        tag: str | None = None,
+        has_phone: bool | None = None,
     ) -> int:
         return self._leads_base_query(
             db,
@@ -263,6 +277,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
             has_abandoned=has_abandoned,
             search=search,
             include_archived=include_archived,
+            tag=tag,
+            has_phone=has_phone,
         ).count()
 
     def lead_filter_facets(self, db: Session) -> dict[str, list]:

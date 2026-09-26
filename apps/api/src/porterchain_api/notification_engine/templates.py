@@ -14,6 +14,8 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
     "lead_nurture_intro": {"category": "crm"},
     "lead_nurture_d1": {"category": "crm"},
     "lead_nurture_d7": {"category": "crm"},
+    "lead_outbound_followup": {"category": "crm"},
+    "lead_outbound_quote_invite": {"category": "crm"},
     "lead_sla_escalation": {"category": "crm"},
     "quote_created": {"category": "booking"},
     "order_created": {"category": "orders"},
@@ -110,6 +112,26 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Hi {contact_name},\n\n"
             "Checking back on {company_name}'s capacity request.\n"
             "If timing is better now, get a quote: {quote_url}\n\n"
+            "Unsubscribe: {unsubscribe_url}\n"
+            "— PorterChain"
+        ),
+    },
+    "lead_outbound_followup": {
+        "subject": "Following up — PorterChain capacity",
+        "body": (
+            "Hi {contact_name},\n\n"
+            "Thanks for taking my call about vehicle-and-driver capacity for {company_name}.\n"
+            "When you're ready, get a quote here: {quote_url}\n\n"
+            "Unsubscribe: {unsubscribe_url}\n"
+            "— PorterChain"
+        ),
+    },
+    "lead_outbound_quote_invite": {
+        "subject": "Your PorterChain capacity quote",
+        "body": (
+            "Hi {contact_name},\n\n"
+            "As discussed, here's the next step for {company_name}:\n"
+            "{quote_url}\n\n"
             "Unsubscribe: {unsubscribe_url}\n"
             "— PorterChain"
         ),
@@ -430,7 +452,13 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             preheader="Complete your PorterChain booking",
         )
 
-    if template in ("lead_nurture_intro", "lead_nurture_d1", "lead_nurture_d7"):
+    if template in (
+        "lead_nurture_intro",
+        "lead_nurture_d1",
+        "lead_nurture_d7",
+        "lead_outbound_followup",
+        "lead_outbound_quote_invite",
+    ):
         url = _g(ctx, "quote_url")
         company = _g(ctx, "company_name") or "your business"
         unsub = _g(ctx, "unsubscribe_url")
@@ -438,6 +466,8 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             "lead_nurture_intro": "Vehicle + driver capacity",
             "lead_nurture_d1": "Ready for a quote?",
             "lead_nurture_d7": "Still planning capacity?",
+            "lead_outbound_followup": "Thanks for the call",
+            "lead_outbound_quote_invite": "Your next step",
         }.get(template, "Ready for a quote?")
         return build_transactional_html(
             eyebrow="Capacity network",

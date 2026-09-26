@@ -2,6 +2,53 @@ import { z } from "zod";
 import { adminFetch } from "@/lib/api";
 import type { Lead } from "@/lib/crm";
 
+export type AgentActivityRow = {
+  id: string;
+  company_name?: string;
+  email?: string | null;
+  phone?: string | null;
+  source?: string | null;
+  channel?: string | null;
+  status?: string | null;
+  priority?: string | null;
+  city?: string | null;
+  tags?: string[];
+  marketing_consent?: boolean;
+  agent_status?: string | null;
+  last_channel?: string | null;
+  last_send_at?: string | null;
+  last_trigger?: string | null;
+  blocks?: string[];
+  reason?: string | null;
+  welcomed?: boolean;
+  needs_enrich?: boolean;
+  updated_at?: string | null;
+  nba?: Record<string, unknown>;
+};
+
+export type LeadAgentActivity = {
+  config: {
+    auto_send_enabled: boolean;
+    whatsapp_cloud_configured: boolean;
+    kill_switch_env: string;
+  };
+  counts: {
+    welcomed: number;
+    needs_enrich: number;
+    awaiting_welcome: number;
+    blocked: number;
+    new_total: number;
+  };
+  lanes: {
+    welcomed: AgentActivityRow[];
+    needs_enrich: AgentActivityRow[];
+    awaiting_welcome: AgentActivityRow[];
+    blocked: AgentActivityRow[];
+    recent: AgentActivityRow[];
+  };
+  generated_at: string;
+};
+
 export const LEAD_STATUSES = [
   "new",
   "contacted",
@@ -72,6 +119,7 @@ export const LEAD_SOURCES = [
   "phone_call",
   "sms",
   "manual",
+  "vendor_import",
 ] as const;
 
 export type LeadFilters = {
@@ -91,6 +139,9 @@ export type LeadFilters = {
   include_archived?: boolean;
   sort?: "smart" | "created_at";
   search?: string;
+  city?: string;
+  tag?: string;
+  has_phone?: boolean;
   limit?: number;
   offset?: number;
 };
@@ -229,6 +280,10 @@ export function buildLeadFiltersQuery(filters: LeadFilters): string {
   if (filters.include_archived) params.set("include_archived", "true");
   if (filters.sort) params.set("sort", filters.sort);
   else params.set("sort", "smart");
+  if (filters.city) params.set("city", filters.city);
+  if (filters.tag) params.set("tag", filters.tag);
+  if (filters.has_phone === true) params.set("has_phone", "true");
+  if (filters.has_phone === false) params.set("has_phone", "false");
   if (filters.search) params.set("search", filters.search);
   if (filters.limit != null) params.set("limit", String(filters.limit));
   if (filters.offset != null) params.set("offset", String(filters.offset));
@@ -383,6 +438,13 @@ export const leadsApi = {
       decision_status?: string;
       intent_type?: string;
       internal_notes?: string;
+      primary_contact_name?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      consent?: Record<string, unknown>;
+      estimated_deliveries_per_month?: number | null;
+      current_logistics_provider?: string | null;
+      preferred_vehicle?: string | null;
     }
   ): Promise<Lead> {
     const row = await adminFetch<unknown>(`/v1/admin/leads/${id}`, token, {
@@ -543,6 +605,84 @@ export const leadsApi = {
       method: "POST",
       body: JSON.stringify(body),
     });
+  },
+
+  async today(token: string): Promise<{
+    ready: Array<Record<string, unknown>>;
+    followups: Array<Record<string, unknown>>;
+    interested: Array<Record<string, unknown>>;
+    counts: {
+      ready: number;
+      followups: number;
+      interested: number;
+      ready_contact?: { total: number; with_phone: number; without_phone: number };
+      followups_contact?: { total: number; with_phone: number; without_phone: number };
+      interested_contact?: { total: number; with_phone: number; without_phone: number };
+    };
+  }> {
+    return adminFetch(`/v1/admin/leads/today`, token);
+  },
+
+  async agentActivity(token: string): Promise<LeadAgentActivity> {
+    return adminFetch(`/v1/admin/leads/agent`, token);
+  },
+
+  async dialScripts(token: string, id: string): Promise<Record<string, unknown>> {
+    return adminFetch(`/v1/admin/leads/${id}/dial-scripts`, token);
+  },
+
+  async callDisposition(
+    token: string,
+    id: string,
+    body: {
+      outcome: string;
+      notes?: string;
+      loss_reason?: string;
+      next_action?: string;
+      follow_up_at?: string;
+      queue?: string;
+      contact_name?: string;
+      email?: string;
+      phone?: string;
+      consent_marketing?: boolean;
+    }
+  ): Promise<{
+    lead: Record<string, unknown>;
+    outcome: string;
+    status: string;
+    task_id?: string | null;
+    next_lead_id?: string | null;
+  }> {
+    return adminFetch(`/v1/admin/leads/${id}/call-disposition`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  async sendEmail(
+    token: string,
+    id: string,
+    template_key = "lead_outbound_followup"
+  ): Promise<{ ok: boolean; template_key: string }> {
+    return adminFetch(`/v1/admin/leads/${id}/send-email`, token, {
+      method: "POST",
+      body: JSON.stringify({ template_key }),
+    });
+  },
+
+  async welcome(
+    token: string,
+    id: string,
+    body: { force?: boolean; dry_run?: boolean } = {}
+  ): Promise<Record<string, unknown>> {
+    return adminFetch(`/v1/admin/leads/${id}/welcome`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  async nba(token: string, id: string): Promise<Record<string, unknown>> {
+    return adminFetch(`/v1/admin/leads/${id}/nba`, token);
   },
 
   async calendar(

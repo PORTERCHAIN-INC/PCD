@@ -22,6 +22,7 @@ _last_compliance_expiry_at = 0.0
 _last_lead_nurture_at = 0.0
 _last_lead_sla_at = 0.0
 _last_lead_archive_at = 0.0
+_last_lead_agent_at = 0.0
 _last_blog_schedule_at = 0.0
 DRAFT_RECONCILE_INTERVAL_SECONDS = 300
 STANDING_ORDERS_INTERVAL_SECONDS = 300
@@ -32,6 +33,7 @@ COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
 LEAD_NURTURE_INTERVAL_SECONDS = 300
 LEAD_SLA_ESCALATION_INTERVAL_SECONDS = 3600
 LEAD_SOFT_ARCHIVE_INTERVAL_SECONDS = 86400
+LEAD_AGENT_INTERVAL_SECONDS = 180
 BLOG_SCHEDULE_INTERVAL_SECONDS = 60
 TRACKING_DRAIN_LIMIT = 10
 # Vehicles/drivers must land in Fleetbase before Optimize can assign. Do not
@@ -309,6 +311,40 @@ def _drain_lead_nurture() -> int:
     return int(result.get("sent", 0))
 
 
+def _drain_lead_agent() -> int:
+    """Zero-human welcome: enqueue intro email for consented NEW leads."""
+    global _last_lead_agent_at
+    now = time.monotonic()
+    if now - _last_lead_agent_at < LEAD_AGENT_INTERVAL_SECONDS:
+        return 0
+    _last_lead_agent_at = now
+
+    from porterchain_api.collaboration_engine.lead_agent import process_lead_agent_batch
+    from porterchain_api.collaboration_engine.lead_enrich import process_lead_enrich_batch
+    from porterchain_api.db import SessionLocal
+
+    sent = 0
+    with SessionLocal() as db:
+        result = process_lead_agent_batch(db, limit=25)
+        enrich = process_lead_enrich_batch(db, limit=15)
+    if result.get("sent") or result.get("scanned"):
+        logger.info(
+            "lead agent sweep: scanned=%s sent=%s skipped=%s",
+            result.get("scanned", 0),
+            result.get("sent", 0),
+            result.get("skipped", 0),
+        )
+    if enrich.get("found") or enrich.get("scanned"):
+        logger.info(
+            "lead enrich sweep: scanned=%s found=%s failed=%s skipped=%s",
+            enrich.get("scanned", 0),
+            enrich.get("found", 0),
+            enrich.get("failed", 0),
+            enrich.get("skipped", 0),
+        )
+    return int(result.get("sent", 0)) + int(enrich.get("found", 0))
+
+
 def _drain_lead_sla_escalation() -> int:
     """Page growth staff for NEW leads past first-response SLA."""
     global _last_lead_sla_at
@@ -478,6 +514,7 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_merchant_webhook_retries()
                 processed += _drain_driver_compliance_expiry()
                 processed += _drain_lead_nurture()
+                processed += _drain_lead_agent()
                 processed += _drain_lead_sla_escalation()
                 processed += _drain_lead_soft_archive()
                 processed += _drain_blog_scheduled_publish()

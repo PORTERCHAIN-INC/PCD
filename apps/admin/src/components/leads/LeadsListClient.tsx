@@ -50,6 +50,9 @@ export default function LeadsListClient() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const searchParams = useSearchParams();
   const sourceFromUrl = searchParams.get("source") ?? undefined;
+  const priorityFromUrl = searchParams.get("priority") ?? undefined;
+  const statusFromUrl = searchParams.get("status") ?? undefined;
+  const hasPhoneFromUrl = searchParams.get("has_phone");
   const isDriverInbox = sourceFromUrl === DRIVER_LEAD_SOURCE;
   const inboxTitle = "Lead Workspace";
   const inboxSubtitle = isDriverInbox
@@ -58,10 +61,17 @@ export default function LeadsListClient() {
       ? "Website /contact inquiries"
       : sourceFromUrl === WEBSITE_NEWSLETTER_LEAD_SOURCE
         ? "Blog + footer newsletter subscriptions"
-        : "Merchant, retail, driver, and newsletter inbox";
-  const [filters, setFilters] = useState<LeadFilters>(() =>
-    sourceFromUrl ? { source: sourceFromUrl, sort: "smart" } : { sort: "smart" }
-  );
+        : sourceFromUrl === "vendor_import"
+          ? "Outbound vendor call queue"
+          : "Merchant, retail, driver, and newsletter inbox";
+  const [filters, setFilters] = useState<LeadFilters>(() => {
+    const base: LeadFilters = { sort: "smart" };
+    if (sourceFromUrl) base.source = sourceFromUrl;
+    if (priorityFromUrl) base.priority = priorityFromUrl;
+    if (statusFromUrl) base.status = statusFromUrl;
+    if (hasPhoneFromUrl === "true") base.has_phone = true;
+    return base;
+  });
   const [showCapture, setShowCapture] = useState(false);
   const [captureBusy, setCaptureBusy] = useState(false);
   const [captureError, setCaptureError] = useState("");
@@ -81,10 +91,17 @@ export default function LeadsListClient() {
 
   useEffect(() => {
     setFilters((f) => {
-      if (f.source === sourceFromUrl) return f;
-      return { ...f, source: sourceFromUrl };
+      const next: LeadFilters = {
+        ...f,
+        source: sourceFromUrl,
+        priority: priorityFromUrl,
+        status: statusFromUrl ?? f.status,
+        has_phone:
+          hasPhoneFromUrl === "true" ? true : hasPhoneFromUrl === "false" ? false : undefined,
+      };
+      return next;
     });
-  }, [sourceFromUrl]);
+  }, [sourceFromUrl, priorityFromUrl, statusFromUrl, hasPhoneFromUrl]);
 
   const {
     data: page,
@@ -152,9 +169,27 @@ export default function LeadsListClient() {
                   label: "Newsletter",
                   source: WEBSITE_NEWSLETTER_LEAD_SOURCE,
                 },
+                {
+                  href: "/leads?source=vendor_import&priority=high&has_phone=true&status=new",
+                  label: "Call queue",
+                  source: "vendor_import",
+                },
+                {
+                  href: "/leads/today",
+                  label: "Today",
+                  source: "__today__",
+                },
+                {
+                  href: "/leads/agent",
+                  label: "Lead Agent",
+                  source: "__agent__",
+                },
               ] as const
             ).map((chip) => {
-              const active = (sourceFromUrl ?? undefined) === chip.source;
+              const active =
+                chip.source === "__today__" || chip.source === "__agent__"
+                  ? false
+                  : (sourceFromUrl ?? undefined) === chip.source;
               return (
                 <Link
                   key={chip.label}
@@ -163,7 +198,9 @@ export default function LeadsListClient() {
                     "rounded-full border px-2.5 py-1 text-xs font-medium",
                     active
                       ? "border-secondary bg-secondary/10 text-secondary"
-                      : "border-primary/10 text-muted hover:bg-slate-50"
+                      : chip.source === "__agent__"
+                        ? "border-secondary/40 bg-secondary/5 text-secondary hover:bg-secondary/10"
+                        : "border-primary/10 text-muted hover:bg-slate-50"
                   )}
                 >
                   {chip.label}
@@ -221,6 +258,13 @@ export default function LeadsListClient() {
         <div className="flex flex-wrap items-center gap-2">
           {!isDriverInbox ? (
             <>
+              <Link
+                href="/leads/agent"
+                className="inline-flex items-center rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+                aria-label="Open Lead Agent activity"
+              >
+                Lead Agent
+              </Link>
               <button
                 type="button"
                 onClick={() => setShowCapture(true)}

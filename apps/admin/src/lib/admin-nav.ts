@@ -11,12 +11,14 @@ import {
   LayoutDashboard,
   Newspaper,
   Package,
+  Phone,
   Settings,
   Shield,
   Truck,
   UserPlus,
   Users,
   Zap,
+  Bot,
 } from "lucide-react";
 
 export type AdminNavItem = {
@@ -114,6 +116,18 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         label: "Lead Workspace",
         description: "Merchant, retail, driver, and newsletter inbox",
         icon: UserPlus,
+      },
+      {
+        href: "/leads/today",
+        label: "Today Dial",
+        description: "Ready / follow-ups / interested call packs",
+        icon: Phone,
+      },
+      {
+        href: "/leads/agent",
+        label: "Lead Agent",
+        description: "Zero-human welcome, enrich, WhatsApp activity",
+        icon: Bot,
       },
       {
         href: "/leads/pipeline",
@@ -216,6 +230,8 @@ export const ADMIN_TOP_LEVEL_ROUTES = [
   "/drivers",
   "/customers",
   "/leads",
+  "/leads/today",
+  "/leads/agent",
   "/leads/pipeline",
   "/leads/calendar",
   "/blog",
@@ -262,7 +278,10 @@ export function isNavActive(pathname: string, href: string, search = ""): boolea
   // Dedicated calendar/pipeline items — don't also highlight Lead Workspace.
   if (
     path === "/leads" &&
-    (pathname.startsWith("/leads/calendar") || pathname.startsWith("/leads/pipeline"))
+    (pathname.startsWith("/leads/calendar") ||
+      pathname.startsWith("/leads/pipeline") ||
+      pathname.startsWith("/leads/today") ||
+      pathname.startsWith("/leads/agent"))
   ) {
     return false;
   }

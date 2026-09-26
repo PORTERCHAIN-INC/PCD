@@ -101,6 +101,8 @@ SOURCE_TO_CHANNEL: dict[str, str] = {
     "phone_call": LeadSourceChannel.PHONE_CALL.value,
     "sms": LeadSourceChannel.SMS.value,
     "manual": LeadSourceChannel.MANUAL.value,
+    "vendor_import": LeadSourceChannel.MANUAL.value,
+    "crm_import": LeadSourceChannel.MANUAL.value,
     "capacity_guide": LeadSourceChannel.CAPACITY_GUIDE.value,
 }
 

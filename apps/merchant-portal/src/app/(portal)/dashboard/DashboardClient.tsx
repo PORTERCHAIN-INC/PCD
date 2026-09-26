@@ -1,21 +1,15 @@
 "use client";
 
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
-import {
-  OrdersPerformanceChart,
-  SpendPerformanceChart,
-} from "@/components/dashboard/PerformanceChart";
+import { MerchantDashboardGraphics } from "@/components/dashboard/MerchantDashboardGraphics";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { RecentDeliveries } from "@/components/dashboard/RecentDeliveries";
 import CompanyCompletenessBanner from "@/components/onboarding/CompanyCompletenessBanner";
-import { StatCard } from "@/components/portal/StatCard";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
 import { getDashboard } from "@/lib/api";
 import { merchantPortalJob } from "@/lib/merchant-nav";
-import { formatPercent } from "@/lib/reports";
-import { formatCents } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
@@ -50,7 +44,6 @@ export default function DashboardPage() {
 
   const invoiceUrl =
     data.latest_invoice?.pdf_url ?? data.latest_invoice?.stripe_receipt_url ?? null;
-  const showOps = job === "dispatcher" || job === "owner";
   const showFinance = job === "accounting" || job === "owner";
   const homeCopy =
     job === "dispatcher"
@@ -77,60 +70,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {showOps || job === "viewer" ? (
-          <StatCard label="Today's Orders" value={String(data.todays_orders)} />
-        ) : null}
-        {showOps ? (
-          <StatCard label="Orders Awaiting Pickup" value={String(data.awaiting_pickup)} />
-        ) : null}
-        {(showOps || job === "viewer") && (
-          <StatCard label="In Transit" value={String(data.in_transit)} />
-        )}
-        {showOps || job === "viewer" ? (
-          <StatCard label="Delivered Today" value={String(data.delivered_today)} />
-        ) : null}
-        {showOps ? <StatCard label="Monthly Orders" value={String(data.monthly_orders)} /> : null}
-        {showFinance ? (
-          <StatCard label="Monthly Spend" value={formatCents(data.monthly_spend_cents)} />
-        ) : null}
-        {showFinance ? (
-          <StatCard
-            label="Outstanding Balance"
-            value={formatCents(data.outstanding_balance_cents)}
-          />
-        ) : null}
-        {showFinance ? <StatCard label="Invoices Due" value={String(data.invoices_due)} /> : null}
-        {showOps ? <StatCard label="Open Claims" value={String(data.open_claims)} /> : null}
-        {job !== "viewer" ? (
-          <StatCard label="Open Support Tickets" value={String(data.open_support_tickets)} />
-        ) : null}
-        {showOps ? (
-          <StatCard
-            label="On-time"
-            value={formatPercent(data.on_time_percent)}
-            hint="Promised vs delivered this month"
-          />
-        ) : null}
-        {showOps ? (
-          <StatCard
-            label="Delivered of bookings"
-            value={formatPercent(data.delivery_success_percent)}
-            hint="This calendar month"
-          />
-        ) : null}
-      </div>
+      <MerchantDashboardGraphics data={data} job={job} />
 
       <QuickActions invoiceUrl={invoiceUrl} />
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        {showOps || job === "viewer" ? (
-          <OrdersPerformanceChart series={data.performance_charts.daily_orders} />
-        ) : null}
-        {showFinance ? (
-          <SpendPerformanceChart series={data.performance_charts.daily_spend_cents} />
-        ) : null}
-      </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="xl:col-span-2">

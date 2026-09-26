@@ -29,6 +29,7 @@ import { useApiData } from "@/hooks/useApiData";
 import { ops } from "@/lib/operations";
 import { OpsPressureBar } from "@/components/operations/OpsPressureBar";
 import { PushHealthStrip } from "@/components/operations/PushHealthStrip";
+import { SyncHealthStrip } from "@/components/operations/SyncHealthStrip";
 import { adaptivePollMs, OpsAlertToast } from "@/components/operations/OpsAlertToast";
 import { OpsCommandPalette } from "@/components/operations/OpsCommandPalette";
 import { OpsDeskLayout } from "@/components/operations/OpsDeskLayout";
@@ -186,6 +187,7 @@ export function OpsTowerShell() {
             )}
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
+            <SyncHealthStrip tick={tick} compactWhenOk />
             <PushHealthStrip tick={tick} compactWhenOk />
             <span className="flex items-center gap-1.5 text-xs text-muted">
               <Clock className="h-3.5 w-3.5" /> Updated {updatedAt.toLocaleTimeString("en-CA")}

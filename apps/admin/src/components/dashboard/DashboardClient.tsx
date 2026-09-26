@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import {
   Activity,
   AlertTriangle,
@@ -25,7 +26,7 @@ import {
 import { cn, formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Button, Spinner } from "@/components/crm/primitives";
-import ReportChart, { lineChartOption } from "@/components/reports/ReportChart";
+import ReportChart, { lineChartOption, sparklineOption } from "@/components/reports/ReportChart";
 import { ops } from "@/lib/operations";
 import {
   dashboardApi,
@@ -39,6 +40,13 @@ import {
 import { INTEGRATION_HEALTH_CORE_KEYS, INTEGRATION_HEALTH_LABELS } from "@/lib/health";
 import { relativeTime } from "@/lib/crmFormat";
 import AdminPage from "@/components/layout/AdminPage";
+import DashboardGraphics from "@/components/dashboard/DashboardGraphics";
+import { NumberTicker } from "@/components/dashboard/magic";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0 },
+};
 
 export default function DashboardClient() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
@@ -85,10 +93,14 @@ export default function DashboardClient() {
 
   const chartOption = useMemo(() => {
     if (!center?.trends) return null;
-    return lineChartOption(center.trends.labels, [
-      { name: "Revenue", data: center.trends.revenue_cents.map((c) => Math.round(c / 100)) },
-      { name: "Orders", data: center.trends.orders },
-    ]);
+    return lineChartOption(
+      center.trends.labels,
+      [
+        { name: "Revenue", data: center.trends.revenue_cents.map((c) => Math.round(c / 100)) },
+        { name: "Orders", data: center.trends.orders },
+      ],
+      { markAnomalies: true }
+    );
   }, [center?.trends]);
 
   function toggleWidget(id: WidgetId) {
@@ -128,18 +140,19 @@ export default function DashboardClient() {
 
   return (
     <AdminPage>
-      <CommandHeader
-        center={center}
-        now={now}
-
-        search={search}
-        searchHits={searchHits}
-        onSearch={setSearch}
-        onRefresh={() => void refetch()}
-        onFullscreen={toggleFullscreen}
-        onLayout={() => setLayoutOpen((o) => !o)}
-        updatedAt={dataUpdatedAt}
-      />
+      <motion.div initial="hidden" animate="show" variants={fadeUp} transition={{ duration: 0.25 }}>
+        <CommandHeader
+          center={center}
+          now={now}
+          search={search}
+          searchHits={searchHits}
+          onSearch={setSearch}
+          onRefresh={() => void refetch()}
+          onFullscreen={toggleFullscreen}
+          onLayout={() => setLayoutOpen((o) => !o)}
+          updatedAt={dataUpdatedAt}
+        />
+      </motion.div>
 
       {layoutOpen && (
         <WidgetLayoutPanel
@@ -151,25 +164,16 @@ export default function DashboardClient() {
 
       {widgets.kpis && <KpiGrid center={center} />}
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
-        <div className="space-y-5">
-          {widgets.smart && center.smart && (
-            <Panel title="Executive summary" icon={<TrendingUp className="h-4 w-4" />}>
-              <p className="text-sm leading-relaxed text-muted">
-                {(center.smart.ai_summary as string) ||
-                  `Revenue growth ${center.executive.growth_percent ?? 0}% · SLA ${center.executive.delivery_sla_percent ?? 0}% · Forecast ${formatCents(Number(center.executive.forecast_revenue_cents ?? 0))}`}
-              </p>
-              {(center.smart.anomalies as string[] | undefined)?.length ? (
-                <ul className="mt-2 space-y-1 text-xs text-muted">
-                  {(center.smart.anomalies as string[]).map((a) => (
-                    <li key={a}>• {a}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </Panel>
-          )}
+      {/* Graphics canvas covers ops / orders / CRM summaries — skip duplicate panels. */}
+      {widgets.smart && (
+        <div className="mt-5">
+          <DashboardGraphics center={center} operations={operations} />
+        </div>
+      )}
 
-          {widgets.operations && (
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_320px]">
+        <div className="space-y-5">
+          {widgets.operations && !widgets.smart && (
             <Panel title="Operations center" icon={<Zap className="h-4 w-4" />}>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <MiniKpi label="Dispatch queue" value={Number(operations.waiting_dispatch ?? 0)} />
@@ -198,17 +202,18 @@ export default function DashboardClient() {
           )}
 
           <div className="grid gap-5 lg:grid-cols-2">
-            {widgets.orders && <OrdersPanel center={center} />}
+            {widgets.orders && !widgets.smart && <OrdersPanel center={center} />}
             {widgets.booking && <BookingPanel center={center} />}
             {widgets.finance && <FinancePanel center={center} />}
             {widgets.support && <SupportPanel center={center} />}
             {widgets.claims && <ClaimsPanel center={center} />}
+            {widgets.crm && !widgets.smart && <CrmPanel center={center} />}
             {widgets.merchants && <MerchantsPanel center={center} />}
             {widgets.drivers && <DriversPanel center={center} />}
             {widgets.fleet && <FleetPanel center={center} />}
           </div>
 
-          {widgets.reports && chartOption && (
+          {widgets.reports && !widgets.smart && chartOption && (
             <Panel title="Revenue & order trends" icon={<TrendingUp className="h-4 w-4" />}>
               <ReportChart option={chartOption} height={280} />
             </Panel>
@@ -217,11 +222,14 @@ export default function DashboardClient() {
           {widgets.activity && (
             <Panel title="Activity timeline" icon={<Activity className="h-4 w-4" />}>
               <ul className="max-h-64 space-y-2 overflow-y-auto text-sm">
-                {center.activity.map((e) => (
-                  <li key={e.id} className="flex justify-between border-b border-primary/5 py-1.5">
+                {center.activity.map((e, i) => (
+                  <li
+                    key={`${e.id}-${e.occurred_at ?? i}`}
+                    className="flex justify-between border-b border-primary/5 py-1.5"
+                  >
                     <span>
                       <span className="font-mono text-xs text-secondary">{e.event_type}</span>{" "}
-                      {e.aggregate_type} · {e.aggregate_id.slice(0, 8)}
+                      {e.aggregate_type} · {(e.aggregate_id ?? "").toString().slice(0, 8)}
                     </span>
                     <span className="text-xs text-muted">
                       {e.occurred_at ? relativeTime(e.occurred_at) : ""}
@@ -355,28 +363,97 @@ function CommandHeader({
 
 function KpiGrid({ center }: { center: DashboardCenter }) {
   const k = center.kpis;
-  const cards = [
+  const revSpark = center.trends.revenue_cents.map((c) => Math.round(c / 100));
+  const orderSpark = center.trends.orders;
+  const cards: Array<{
+    label: string;
+    value: string;
+    alert?: boolean;
+    spark?: number[];
+    sparkColor?: string;
+    numeric?: number;
+    prefix?: string;
+    suffix?: string;
+    decimals?: number;
+  }> = [
     {
       label: "Today's revenue",
       value: formatCents(Number(k.revenue_today_cents ?? k.todays_revenue_cents ?? 0)),
+      numeric: Math.round(Number(k.revenue_today_cents ?? k.todays_revenue_cents ?? 0) / 100),
+      prefix: "$",
+      spark: revSpark.length > 1 ? revSpark : undefined,
+      sparkColor: "#2563eb",
     },
-    { label: "Orders today", value: String(k.orders_today ?? k.todays_bookings ?? 0) },
-    { label: "In progress", value: String(k.orders_in_progress ?? 0) },
-    { label: "Vehicles active", value: String(k.vehicles_active ?? 0) },
-    { label: "Awaiting dispatch", value: String(k.orders_waiting_dispatch ?? 0) },
-    { label: "Late deliveries", value: String(k.late_deliveries ?? 0), alert: true },
-    { label: "Open claims", value: String(k.open_claims ?? 0) },
-    { label: "Support tickets", value: String(k.open_support_tickets ?? 0) },
-    { label: "Merchants", value: String(k.merchant_growth ?? 0) },
-    { label: "New customers", value: String(k.customer_growth ?? 0) },
+    {
+      label: "Orders today",
+      value: String(k.orders_today ?? k.todays_bookings ?? 0),
+      numeric: Number(k.orders_today ?? k.todays_bookings ?? 0),
+      spark: orderSpark.length > 1 ? orderSpark : undefined,
+      sparkColor: "#0ea5e9",
+    },
+    {
+      label: "In progress",
+      value: String(k.orders_in_progress ?? 0),
+      numeric: Number(k.orders_in_progress ?? 0),
+    },
+    {
+      label: "Vehicles active",
+      value: String(k.vehicles_active ?? 0),
+      numeric: Number(k.vehicles_active ?? 0),
+    },
+    {
+      label: "Awaiting dispatch",
+      value: String(k.orders_waiting_dispatch ?? 0),
+      numeric: Number(k.orders_waiting_dispatch ?? 0),
+    },
+    {
+      label: "Late deliveries",
+      value: String(k.late_deliveries ?? 0),
+      numeric: Number(k.late_deliveries ?? 0),
+      alert: true,
+    },
+    {
+      label: "Open claims",
+      value: String(k.open_claims ?? 0),
+      numeric: Number(k.open_claims ?? 0),
+    },
+    {
+      label: "Support tickets",
+      value: String(k.open_support_tickets ?? 0),
+      numeric: Number(k.open_support_tickets ?? 0),
+    },
+    {
+      label: "Merchants",
+      value: String(k.merchant_growth ?? 0),
+      numeric: Number(k.merchant_growth ?? 0),
+    },
+    {
+      label: "New customers",
+      value: String(k.customer_growth ?? 0),
+      numeric: Number(k.customer_growth ?? 0),
+    },
     { label: "Avg delivery (h)", value: String(k.avg_delivery_hours ?? "—") },
-    { label: "Profit estimate", value: formatCents(Number(k.profit_estimate_cents ?? 0)) },
+    {
+      label: "Profit estimate",
+      value: formatCents(Number(k.profit_estimate_cents ?? 0)),
+      numeric: Math.round(Number(k.profit_estimate_cents ?? 0) / 100),
+      prefix: "$",
+    },
   ];
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
+    <motion.div
+      className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6"
+      initial="hidden"
+      animate="show"
+      variants={{
+        hidden: {},
+        show: { transition: { staggerChildren: 0.03 } },
+      }}
+    >
       {cards.map((c) => (
-        <div
+        <motion.div
           key={c.label}
+          variants={fadeUp}
           className={cn(
             "rounded-xl border px-3 py-2.5",
             "border-primary/10 bg-white",
@@ -384,10 +461,26 @@ function KpiGrid({ center }: { center: DashboardCenter }) {
           )}
         >
           <p className="text-xs text-muted">{c.label}</p>
-          <p className="text-lg font-bold text-primary">{c.value}</p>
-        </div>
+          <p className="text-lg font-bold text-primary">
+            {c.numeric != null ? (
+              <NumberTicker
+                value={c.numeric}
+                prefix={c.prefix}
+                suffix={c.suffix}
+                decimalPlaces={c.decimals ?? 0}
+              />
+            ) : (
+              c.value
+            )}
+          </p>
+          {c.spark && (
+            <div className="-mx-1 mt-1 h-8 overflow-hidden">
+              <ReportChart option={sparklineOption(c.spark, c.sparkColor)} height={32} compact />
+            </div>
+          )}
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
@@ -430,14 +523,14 @@ function OrdersPanel({ center }: { center: DashboardCenter }) {
   return (
     <Panel title="Orders" icon={<Package className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <Row label="Waiting dispatch" value={o.waiting_dispatch} />
-        <Row label="Assigned" value={o.assigned} />
-        <Row label="Picked up" value={o.picked_up} />
-        <Row label="In transit" value={o.orders_in_progress} />
-        <Row label="Delivered" value={o.delivered} />
-        <Row label="Failed" value={o.failed} />
-        <Row label="Returned" value={o.returned} />
-        <Row label="Claims" value={o.claims} />
+        <Row label="Waiting dispatch" value={Number(o.waiting_dispatch ?? 0)} />
+        <Row label="Assigned" value={Number(o.assigned ?? 0)} />
+        <Row label="Picked up" value={Number(o.picked_up ?? 0)} />
+        <Row label="In transit" value={Number(o.orders_in_progress ?? 0)} />
+        <Row label="Delivered" value={Number(o.delivered ?? 0)} />
+        <Row label="Failed" value={Number(o.failed ?? 0)} />
+        <Row label="Returned" value={Number(o.returned ?? 0)} />
+        <Row label="Claims" value={Number(o.claims ?? 0)} />
       </div>
       <Link href="/orders" className="mt-2 inline-block text-sm text-secondary hover:underline">
         Order center →
@@ -512,10 +605,10 @@ function ClaimsPanel({ center }: { center: DashboardCenter }) {
   return (
     <Panel title="Claims" icon={<AlertTriangle className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <Row label="Open" value={c.open_claims} />
-        <Row label="Investigating" value={c.under_investigation} />
-        <Row label="Insurance" value={c.insurance_claims} />
-        <Row label="Compensation" value={formatCents(c.total_compensation_cents)} />
+        <Row label="Open" value={Number(c.open_claims ?? 0)} />
+        <Row label="Investigating" value={Number(c.under_investigation ?? 0)} />
+        <Row label="Insurance" value={Number(c.insurance_claims ?? 0)} />
+        <Row label="Compensation" value={formatCents(Number(c.total_compensation_cents ?? 0))} />
       </div>
       <Link href="/claims" className="mt-2 inline-block text-sm text-secondary hover:underline">
         Claims center →
@@ -524,8 +617,33 @@ function ClaimsPanel({ center }: { center: DashboardCenter }) {
   );
 }
 
+function CrmPanel({ center }: { center: DashboardCenter }) {
+  const c = center.crm;
+  return (
+    <Panel title="CRM" icon={<Building2 className="h-4 w-4" />}>
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <Row label="New leads" value={Number(c.new_leads ?? 0)} />
+        <Row label="Follow-ups today" value={Number(c.todays_follow_ups ?? 0)} />
+        <Row label="Meetings today" value={Number(c.meetings_today ?? 0)} />
+        <Row label="Open deals" value={Number(c.open_deals ?? 0)} />
+        <Row label="Won this month" value={Number(c.won_deals_this_month ?? 0)} />
+        <Row label="Overdue tasks" value={Number(c.overdue_tasks ?? 0)} />
+        <Row label="Pipeline" value={formatCents(Number(c.pipeline_value_cents ?? 0))} />
+        <Row label="Contracts pending" value={Number(c.contracts_pending ?? 0)} />
+      </div>
+      <Link href="/leads" className="mt-2 inline-block text-sm text-secondary hover:underline">
+        Leads →
+      </Link>
+    </Panel>
+  );
+}
+
 function MerchantsPanel({ center }: { center: DashboardCenter }) {
   const m = center.merchants as Record<string, unknown>;
+  const topRev =
+    (m.top_by_revenue as Array<{ id?: string; name?: string; revenue_cents?: number }>) ?? [];
+  const topOrders =
+    (m.top_by_orders as Array<{ id?: string; name?: string; orders?: number }>) ?? [];
   return (
     <Panel title="Merchants" icon={<Building2 className="h-4 w-4" />}>
       <div className="grid grid-cols-2 gap-2 text-sm">
@@ -533,6 +651,32 @@ function MerchantsPanel({ center }: { center: DashboardCenter }) {
         <Row label="Active" value={Number(m.active ?? 0)} />
         <Row label="Contracts expiring" value={Number(m.contracts_expiring ?? 0)} />
       </div>
+      {topRev.length > 0 && (
+        <div className="mt-3">
+          <p className="mb-1 text-xs font-medium text-muted">Top by revenue</p>
+          <ul className="space-y-1 text-xs">
+            {topRev.slice(0, 3).map((r, i) => (
+              <li key={`rev-${r.id ?? r.name ?? "m"}-${i}`} className="flex justify-between">
+                <span className="truncate">{r.name}</span>
+                <span className="font-medium">{formatCents(Number(r.revenue_cents ?? 0))}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {topOrders.length > 0 && (
+        <div className="mt-2">
+          <p className="mb-1 text-xs font-medium text-muted">Top by orders</p>
+          <ul className="space-y-1 text-xs">
+            {topOrders.slice(0, 3).map((r, i) => (
+              <li key={`ord-${r.id ?? r.name ?? "m"}-${i}`} className="flex justify-between">
+                <span className="truncate">{r.name}</span>
+                <span className="font-medium">{r.orders ?? 0}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <Link href="/merchants" className="mt-2 inline-block text-sm text-secondary hover:underline">
         Merchants →
       </Link>
@@ -626,6 +770,8 @@ function RightSidebar({ center }: { center: DashboardCenter }) {
           <PendingRow label="Open claims" count={p.claims_open} href="/claims" />
           <PendingRow label="Support tickets" count={p.support_open} href="/support" />
           <PendingRow label="Quotes" count={p.quotes} href="/booking-drafts" />
+          <PendingRow label="Contracts" count={p.contracts ?? 0} href="/leads" />
+          <PendingRow label="Overdue CRM tasks" count={p.overdue_tasks ?? 0} href="/leads" />
         </ul>
       </Panel>
       <Panel title="Notifications" icon={<Bell className="h-4 w-4" />}>

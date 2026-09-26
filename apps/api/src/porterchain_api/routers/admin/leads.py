@@ -12,7 +12,6 @@ from porterchain_api.collaboration_engine.lead_ingest_service import (
     CanonicalLeadEvent,
     LeadIngestService,
 )
-from porterchain_api.config import Settings, get_settings
 from porterchain_api.crm_models import CrmConversation, CrmConversationMessage, CrmLeadIdentity
 from porterchain_api.domain.crm_states import channel_for_source
 from porterchain_api.merchant_engine.lookups import get_merchant
@@ -63,6 +62,9 @@ def list_leads(
     nurture_scheduled: bool | None = None,
     has_abandoned: bool | None = None,
     search: str | None = None,
+    city: str | None = None,
+    tag: str | None = None,
+    has_phone: bool | None = None,
     include_archived: bool = False,
     sort: str = "smart",
     limit: int | None = None,
@@ -85,6 +87,9 @@ def list_leads(
         nurture_scheduled=nurture_scheduled,
         has_abandoned=has_abandoned,
         search=search,
+        city=city,
+        tag=tag,
+        has_phone=has_phone,
         include_archived=include_archived,
         sort=sort,
     )

@@ -68,6 +68,10 @@ def _heuristic(lead: CrmLead, messages: list[str], *, db: Session) -> dict[str, 
     thread = "\n".join(messages[-8:]) if messages else (lead.internal_notes or "")
     decision = lead.decision_status or LeadDecisionStatus.NEW.value
     score = int(lead.lead_score or 0)
+    outbound = (lead.source or "") == "vendor_import" or "vendor_import" in (
+        lead.tags if isinstance(lead.tags, list) else []
+    )
+
     if score >= 60 and decision in (LeadDecisionStatus.NEW.value, LeadDecisionStatus.RESEARCHING.value):
         suggested = LeadDecisionStatus.READY_TO_CONVERT.value
     elif "price" in thread.lower() or "competitor" in thread.lower():
@@ -78,35 +82,83 @@ def _heuristic(lead: CrmLead, messages: list[str], *, db: Session) -> dict[str, 
         suggested = LeadDecisionStatus.RESEARCHING.value
 
     name = lead.primary_contact_name or "there"
-    draft = (
-        f"Hi {name}, thanks for reaching out to PorterChain. "
-        f"We help merchants secure reliable delivery capacity in the GTA. "
-        f"Could you share approx. monthly deliveries and your current provider?"
-    )
-    questions = [
-        "How many deliveries per month do you need capacity for?",
-        "Which cities / FSAs should we cover first?",
-        "What vehicle class do you typically need?",
-        "Who else evaluates logistics vendors at your company?",
-    ]
+    city = ""
+    if isinstance(lead.address, dict):
+        city = str(lead.address.get("city") or "")
+    where = f" in {city}" if city else " in the GTA"
+
+    if outbound:
+        draft = (
+            f"Hi {name}, following up from my call with {lead.company_name}. "
+            f"PorterChain is a transportation capacity network{where} — "
+            f"vehicle + driver capacity for merchants. "
+            f"Happy to send a short quote link when useful."
+        )
+        questions = [
+            "Approx deliveries per month?",
+            "Which cities should we cover first?",
+            "Current courier / own fleet / 3PL?",
+            "Who else evaluates logistics vendors?",
+        ]
+        summary = (
+            f"Outbound · {lead.company_name} · score {score} · {lead.status} — "
+            f"diagnose volume/provider, capture email+consent, offer quote/trial."
+        )
+    else:
+        draft = (
+            f"Hi {name}, thanks for reaching out to PorterChain. "
+            f"We help merchants secure reliable delivery capacity in the GTA. "
+            f"Could you share approx. monthly deliveries and your current provider?"
+        )
+        questions = [
+            "How many deliveries per month do you need capacity for?",
+            "Which cities / FSAs should we cover first?",
+            "What vehicle class do you typically need?",
+            "Who else evaluates logistics vendors at your company?",
+        ]
+        summary = (
+            f"{lead.company_name} via {lead.channel or lead.source} — "
+            f"score {score}, status {lead.status}"
+        )
+
     risks: list[str] = []
     if not lead.email:
-        risks.append("Missing email — hard to nurture")
+        risks.append("Missing email — capture before follow-up email")
     if not lead.phone:
         risks.append("Missing phone — slow first response")
     if lead.merge_candidate_of:
         risks.append("Possible duplicate — review merge queue")
+    if outbound and not (lead.consent or {}).get("marketing"):
+        risks.append("No marketing consent — do not email until they opt in")
+
+    # Keep intelligence_engine free of collaboration_engine imports (D2 §3.2.9).
+    # NBA lives on /leads/{id}/nba and Lead Agent; assist only hints a template.
+    template_key = (
+        "lead_nurture_intro"
+        if (lead.consent or {}).get("marketing") and lead.email
+        else ("lead_outbound_followup" if outbound and lead.email else None)
+    )
+    channels: list[str] = []
+    if lead.phone:
+        channels.append("call")
+    if lead.email and (lead.consent or {}).get("marketing"):
+        channels.append("email")
+    if lead.phone:
+        channels.append("whatsapp")
 
     return {
-        "summary": f"{lead.company_name} via {lead.channel or lead.source} — score {score}, status {lead.status}",
+        "summary": summary,
         "draft_reply": draft,
         "suggested_decision_status": suggested,
         "next_questions": questions,
         "risks": risks,
         "source": "heuristic",
+        "suggested_template_key": template_key,
+        "suggested_channels": channels[:4],
         "contract": {
-            "mode": "propose_confirm",
+            "mode": "agent_auto_when_gated",
             "writes_require_confirm": True,
+            "note": "Stage/loss changes need confirm; welcome email auto-sends via lead_agent when gated",
         },
         "proposals": _proposals_for(lead, draft=draft, suggested=suggested, db=db),
     }

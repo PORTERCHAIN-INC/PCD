@@ -1,37 +1,43 @@
+"use client";
+
 import type { DashboardChartPoint } from "@/lib/api";
-import { formatCents } from "@/lib/utils";
+import ReportChart, { areaTrendOption, barChartOption } from "@/components/charts/ReportChart";
+import { SpotlightCard } from "@/components/dashboard/magic";
 
 interface PerformanceChartProps {
   title: string;
   subtitle: string;
   series: DashboardChartPoint[];
-  formatValue?: (value: number) => string;
+  mode?: "area" | "bar";
+  dollars?: boolean;
 }
 
-export function PerformanceChart({ title, subtitle, series, formatValue }: PerformanceChartProps) {
-  const max = Math.max(...series.map((p) => p.value), 1);
-  const fmt = formatValue ?? ((v: number) => String(v));
+export function PerformanceChart({
+  title,
+  subtitle,
+  series,
+  mode = "area",
+  dollars = false,
+}: PerformanceChartProps) {
+  const labels = series.map((p) => p.label);
+  const values = series.map((p) => p.value);
+  const option =
+    mode === "bar"
+      ? barChartOption(labels, values, { dollars })
+      : areaTrendOption(labels, values, {
+          name: title,
+          dollars,
+          color: dollars ? "#0ea5e9" : "#2563eb",
+        });
 
   return (
-    <section className="rounded-2xl border border-primary/10 bg-white p-6">
-      <div className="mb-4">
+    <SpotlightCard className="p-6">
+      <div className="mb-2">
         <h2 className="text-lg font-semibold text-primary">{title}</h2>
         <p className="text-sm text-muted">{subtitle}</p>
       </div>
-      <div className="flex h-40 items-end gap-2">
-        {series.map((point, i) => (
-          <div key={`${point.label}-${i}`} className="flex flex-1 flex-col items-center gap-2">
-            <span className="text-[10px] font-medium text-muted">{fmt(point.value)}</span>
-            <div
-              className="w-full rounded-t-md bg-secondary/80 transition-all"
-              style={{ height: `${Math.max(8, (point.value / max) * 100)}%` }}
-              title={`${point.label}: ${fmt(point.value)}`}
-            />
-            <span className="text-xs text-muted">{point.label}</span>
-          </div>
-        ))}
-      </div>
-    </section>
+      <ReportChart option={option} height={200} />
+    </SpotlightCard>
   );
 }
 
@@ -41,7 +47,8 @@ export function SpendPerformanceChart({ series }: { series: DashboardChartPoint[
       title="Daily Spend"
       subtitle="Last 7 days — operational spend"
       series={series}
-      formatValue={(v) => formatCents(v)}
+      mode="bar"
+      dollars
     />
   );
 }
@@ -52,6 +59,7 @@ export function OrdersPerformanceChart({ series }: { series: DashboardChartPoint
       title="Daily Orders"
       subtitle="Last 7 days — shipment volume"
       series={series}
+      mode="area"
     />
   );
 }

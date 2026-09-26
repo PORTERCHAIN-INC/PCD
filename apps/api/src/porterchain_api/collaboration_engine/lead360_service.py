@@ -164,6 +164,11 @@ class Lead360Service:
                 "do_not_contact": do_not_contact,
                 "whatsapp": whatsapp_status,
             },
+            "agent": (
+                (lead.custom_fields or {}).get("lead_agent")
+                if isinstance(lead.custom_fields, dict)
+                else None
+            ),
             "activities": [self._crm.activity_dict(a) for a in activities],
             "visitor": visitor,
             "quotes": [

@@ -79,6 +79,8 @@ class CanonicalLeadEvent:
     actor: CrmActor | None = None
     seed_conversation: bool = True
     sla_first_response_minutes: int = 60
+    # Bulk CSV / vendor import: skip nurture, unassigned alerts, soft-match, event bus.
+    quiet: bool = False
 
 
 @dataclass
@@ -171,7 +173,9 @@ class LeadIngestService(LeadIngestResolveMixin):
             if not lead.sla_first_response_due_at and lead.status == LeadStatus.NEW.value:
                 lead.sla_first_response_due_at = sla_due
         else:
-            soft = self._soft_company_match(db, event.company_name, email)
+            soft = None
+            if not event.quiet:
+                soft = self._soft_company_match(db, event.company_name, email)
             from porterchain_api.collaboration_engine.lead_suppression import apply_consent_for_ingest
 
             consent_bag = apply_consent_for_ingest(
@@ -198,10 +202,12 @@ class LeadIngestService(LeadIngestResolveMixin):
                 referred_by_merchant_id=event.referred_by_merchant_id,
                 assigned_to=_actor(event.actor),
                 last_touch_at=now,
-                sla_first_response_due_at=sla_due,
+                sla_first_response_due_at=None if event.quiet else sla_due,
                 merge_candidate_of=soft.id if soft else None,
             )
-            lead.lead_score = CrmLeadsMixin.score_lead(lead, db=db)
+            lead.lead_score = CrmLeadsMixin.score_lead(
+                lead, db=None if event.quiet else db
+            )
             db.add(lead)
             db.flush()
             created = True
@@ -234,57 +240,69 @@ class LeadIngestService(LeadIngestResolveMixin):
         )
         db.add(ingest)
 
-        if not lead.assigned_to:
+        if not event.quiet and not lead.assigned_to:
             from porterchain_api.collaboration_engine.lead_ops import apply_territory_assignment
 
             apply_territory_assignment(db, lead)
 
-        from porterchain_api.collaboration_engine.lead_ops import (
-            notify_unassigned_high_priority,
-        )
+        if not event.quiet:
+            from porterchain_api.collaboration_engine.lead_ops import (
+                notify_unassigned_high_priority,
+            )
 
-        notify_unassigned_high_priority(db, lead)
+            notify_unassigned_high_priority(db, lead)
 
-        if created:
+        if created and not event.quiet:
             from porterchain_api.collaboration_engine.lead_nurture import (
                 apply_nurture_after_ingest,
             )
             from porterchain_api.config import get_settings
 
+            settings = get_settings()
+            website = getattr(settings, "website_url", "") or ""
             apply_nurture_after_ingest(
                 db,
                 lead,
                 created=True,
-                website_url=getattr(get_settings(), "website_url", "") or "",
+                website_url=website,
             )
+            # Zero-human agent — email welcome when consent holds (idempotent tag).
+            try:
+                from porterchain_api.collaboration_engine.lead_agent import run_lead_agent
+
+                run_lead_agent(db, lead, trigger="ingest", website_url=website)
+            except Exception:
+                logger = __import__("logging").getLogger(__name__)
+                logger.exception("lead_agent_ingest_failed lead=%s", lead.id)
 
         # Domain event for observability bus (publish after surrounding commit).
-        try:
-            from porterchain_api.platform.lead_events import (
-                LEAD_CREATED,
-                LEAD_MERGED,
-                emit_lead_event,
-            )
+        if not event.quiet:
+            try:
+                from porterchain_api.platform.lead_events import (
+                    LEAD_CREATED,
+                    LEAD_MERGED,
+                    emit_lead_event,
+                )
 
-            emit_lead_event(
-                db,
-                event_type=LEAD_CREATED if created else LEAD_MERGED,
-                lead_id=lead.id,
-                correlation_id=evt_id,
-                actor_type="system" if not _actor(event.actor) else "staff",
-                actor_id=_actor(event.actor),
-                payload={
-                    "source": event.source,
-                    "channel": channel,
-                    "provider": event.provider,
-                    "created": created,
-                    "merged": merged,
-                    "ingest_event_id": evt_id,
-                },
-            )
-        except Exception:
-            # Never fail ingest on bus/audit issues.
-            pass
+                emit_lead_event(
+                    db,
+                    event_type=LEAD_CREATED if created else LEAD_MERGED,
+                    lead_id=lead.id,
+                    correlation_id=evt_id,
+                    actor_type="system" if not _actor(event.actor) else "staff",
+                    actor_id=_actor(event.actor),
+                    payload={
+                        "source": event.source,
+                        "channel": channel,
+                        "provider": event.provider,
+                        "created": created,
+                        "merged": merged,
+                        "ingest_event_id": evt_id,
+                    },
+                )
+            except Exception:
+                # Never fail ingest on bus/audit issues.
+                pass
 
         try:
             db.commit()

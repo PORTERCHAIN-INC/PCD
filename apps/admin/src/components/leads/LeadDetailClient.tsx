@@ -23,6 +23,7 @@ import {
 } from "@/lib/leads";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
+import { LeadDialPanel } from "@/components/leads/LeadDialPanel";
 import AdminPage from "@/components/layout/AdminPage";
 
 function formatWhen(iso: string): string {
@@ -372,6 +373,8 @@ export function LeadDetailView({ id }: { id: string }) {
           {String(lead360.urgent_unassigned_tasks[0]?.title ?? "open task")}
         </div>
       ) : null}
+
+      <LeadDialPanel lead={lead} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Contact">

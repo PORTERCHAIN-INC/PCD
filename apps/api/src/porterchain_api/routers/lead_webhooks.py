@@ -17,7 +17,6 @@ from porterchain_api.collaboration_engine.lead_channel_adapters import (
     events_from_meta_payload,
     verify_meta_signature,
 )
-from porterchain_api.collaboration_engine.lead_ingest_service import LeadIngestService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.platform.rate_limit import (
@@ -30,7 +29,6 @@ from porterchain_api.platform.rate_limit import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v1/public/leads", tags=["lead-webhooks"])
-_ingest = LeadIngestService()
 
 # Public fan-in: generous but bounded (per client IP / minute).
 _LEAD_WEBHOOK_LIMIT = 120
@@ -60,48 +58,12 @@ def _process_events(
     *,
     provider: str,
 ) -> dict:
-    """Sync ingest, or enqueue when LEAD_INGEST_ASYNC / batch size hot."""
-    from porterchain_api.collaboration_engine.lead_ingest_jobs import (
-        canonical_event_to_dict,
-        enqueue_lead_ingest_events,
+    """Delegate sync/async ingest (+ WA auto-reply) to collaboration_engine."""
+    from porterchain_api.collaboration_engine.lead_webhook_ingest import (
+        process_inbound_lead_events,
     )
 
-    async_mode = bool(getattr(settings, "lead_ingest_async", False)) or len(events) >= 5
-    if async_mode and events:
-        queued = enqueue_lead_ingest_events(
-            [canonical_event_to_dict(e) for e in events],
-            provider=provider,
-        )
-        if queued:
-            return {
-                "ok": True,
-                "queued": True,
-                "queue_id": queued,
-                "count": len(events),
-            }
-        # Fall through to sync if enqueue failed.
-
-    created = 0
-    merged = 0
-    lead_ids: list[str] = []
-    for event in events:
-        try:
-            result = _ingest.ingest(db, event)
-            lead_ids.append(result.lead.id)
-            if result.created:
-                created += 1
-            elif result.merged:
-                merged += 1
-        except Exception:
-            logger.exception("lead_webhook_ingest_failed provider=%s", provider)
-    return {
-        "ok": True,
-        "queued": False,
-        "created": created,
-        "merged": merged,
-        "lead_ids": lead_ids,
-        "count": len(events),
-    }
+    return process_inbound_lead_events(db, events, provider=provider, settings=settings)
 
 
 @router.get("/webhooks/meta")

@@ -11,8 +11,6 @@ class AdminDashboardResponse(BaseModel):
     todays_bookings: int
     pending_quotes: int
     pending_merchant_approvals: int
-    drivers_online: int | None = None
-    drivers_offline: int | None = None
     orders_waiting_dispatch: int
     orders_in_transit: int
     completed_today: int

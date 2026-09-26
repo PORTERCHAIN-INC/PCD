@@ -226,6 +226,33 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("lead_sla_minutes_json", "LEAD_SLA_MINUTES_JSON"),
     )
+    #: Zero-human lead agent: auto-enqueue welcome email/WhatsApp when gates pass.
+    lead_agent_auto_send: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("lead_agent_auto_send", "LEAD_AGENT_AUTO_SEND"),
+    )
+    #: Meta WhatsApp Cloud — System User token (whatsapp_business_messaging).
+    meta_wa_access_token: str = Field(
+        default="",
+        validation_alias=AliasChoices("meta_wa_access_token", "META_WA_ACCESS_TOKEN"),
+    )
+    meta_wa_phone_number_id: str = Field(
+        default="",
+        validation_alias=AliasChoices("meta_wa_phone_number_id", "META_WA_PHONE_NUMBER_ID"),
+    )
+    meta_wa_business_account_id: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "meta_wa_business_account_id", "META_WA_BUSINESS_ACCOUNT_ID"
+        ),
+    )
+    #: Optional JSON map PCD template key → Meta template name.
+    meta_wa_template_map_json: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "meta_wa_template_map_json", "META_WA_TEMPLATE_MAP_JSON"
+        ),
+    )
     #: Referral credit (cents) granted when a referred lead converts to merchant.
     referral_credit_cents: int = Field(
         default=25000,

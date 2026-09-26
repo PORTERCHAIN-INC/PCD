@@ -29,6 +29,16 @@ def test_admin_dashboard_center(db, settings, admin_ctx) -> None:
     center = AdminDashboardService().get_center(db, settings, role=admin_ctx.role.value)
     assert "kpis" in center
     assert "operations" in center
+    assert "crm" in center
+    assert "new_leads" in center["crm"]
+    assert "growth_percent" in center["executive"]
+    assert "delivery_sla_percent" in center["executive"]
+    assert "forecast_revenue_cents" in center["executive"]
+    assert "ai_summary" in center["smart"]
+    assert isinstance(center["smart"].get("anomalies"), list)
+    assert "top_by_revenue" in center["merchants"]
+    assert "top_by_orders" in center["merchants"]
+    assert center["kpis"]["fleet_health_percent"] <= 100.0
 
 
 def test_admin_drivers_and_merchants(db, driver) -> None:
