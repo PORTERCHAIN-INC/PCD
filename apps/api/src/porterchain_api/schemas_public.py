@@ -23,6 +23,10 @@ class PublicInquiryCreate(BaseModel):
     utm_campaign: str | None = Field(default=None, max_length=128)
     utm_medium: str | None = Field(default=None, max_length=128)
     referred_by_merchant_id: str | None = Field(default=None, max_length=64)
+    # pc_vid from website visitor-tracking — stamps CrmLead.visitor_session_id.
+    visitor_id: str | None = Field(default=None, max_length=128)
+    # Marketing / SMS / WhatsApp consent snapshot from CMP + form opt-ins.
+    consent: dict[str, Any] | None = None
 
 
 class PublicInquiryResponse(BaseModel):
@@ -48,6 +52,7 @@ class PublicGuideLeadCreate(BaseModel):
     utm_medium: str | None = Field(default=None, max_length=128)
     guide_stage: str | None = Field(default=None, max_length=32)
     referred_by_merchant_id: str | None = Field(default=None, max_length=64)
+    consent: dict[str, Any] | None = None
 
 
 class PublicGuideLeadResponse(BaseModel):

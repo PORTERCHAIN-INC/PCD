@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, RefreshCw } from "lucide-react";
+import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Badge, Button, Spinner } from "@/components/crm/primitives";
 import { leadsApi } from "@/lib/leads";
@@ -84,7 +85,10 @@ export default function LeadsPipelineClient() {
                   >
                     <Link
                       href={card.type === "lead" ? `/leads/${card.id}` : `/leads`}
-                      className="text-sm font-medium text-secondary hover:underline"
+                      className={cn(
+                        "block text-sm font-medium hover:underline",
+                        card.sla_breached ? "text-red-800" : "text-secondary"
+                      )}
                     >
                       {card.title}
                     </Link>
@@ -93,6 +97,9 @@ export default function LeadsPipelineClient() {
                       {card.channel ? (
                         <Badge tone="slate">{card.channel.replace(/_/g, " ")}</Badge>
                       ) : null}
+                      {card.has_draft ? <Badge tone="violet">draft</Badge> : null}
+                      {card.nurture ? <Badge tone="teal">nurture</Badge> : null}
+                      {card.sla_breached ? <Badge tone="red">SLA</Badge> : null}
                     </div>
                     {card.secondary ? (
                       <p className="mt-1 text-xs text-muted">{card.secondary}</p>

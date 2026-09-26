@@ -36,6 +36,7 @@ import {
   type DashboardCenter,
   type WidgetId,
 } from "@/lib/dashboard";
+import { INTEGRATION_HEALTH_CORE_KEYS, INTEGRATION_HEALTH_LABELS } from "@/lib/health";
 import { relativeTime } from "@/lib/crmFormat";
 import AdminPage from "@/components/layout/AdminPage";
 
@@ -571,25 +572,27 @@ function FleetPanel({ center }: { center: DashboardCenter }) {
 }
 
 function SystemHealthPanel({ health }: { health: Record<string, unknown> }) {
-  const items: [string, unknown][] = [
-    ["API", health.api],
-    ["Database", health.database],
-    ["Redis", health.redis],
-    ["Stripe", health.stripe],
-    ["Fleetbase", health.fleetbase],
-    ["Google Maps", health.google_maps],
-    ["Firebase", health.firebase],
-    ["Email", health.email],
-    ["Storage", health.storage],
-  ];
+  const items: Array<{ key: string; label: string; val: unknown }> =
+    INTEGRATION_HEALTH_CORE_KEYS.filter((k) => k in health).map((key) => ({
+      key,
+      label: INTEGRATION_HEALTH_LABELS[key] ?? key,
+      val: health[key],
+    }));
+  for (const [key, val] of Object.entries(health)) {
+    if (key === "routing") continue;
+    if ((INTEGRATION_HEALTH_CORE_KEYS as readonly string[]).includes(key)) continue;
+    if (val && typeof val === "object" && "status" in (val as object)) {
+      items.push({ key, label: INTEGRATION_HEALTH_LABELS[key] ?? key, val });
+    }
+  }
   return (
-    <Panel title="System health" icon={<CheckCircle2 className="h-4 w-4" />}>
+    <Panel title="Health" icon={<CheckCircle2 className="h-4 w-4" />}>
       <div className="flex flex-wrap gap-2">
-        {items.map(([label, val]) => {
+        {items.map(({ key, label, val }) => {
           const status = healthStatus(val);
           return (
             <span
-              key={label}
+              key={key}
               className={cn(
                 "rounded-full px-2.5 py-1 text-xs font-medium",
                 status === "healthy" && "bg-green-50 text-green-700",

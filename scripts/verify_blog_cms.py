@@ -49,16 +49,15 @@ def main() -> int:
         failures.append("admin-nav.ts missing /blog link")
     if 'label: "Blog"' not in nav and 'label: "Website Blog"' not in nav:
         failures.append("admin-nav.ts missing Blog label")
-    if "Merchant Leads" not in nav:
-        failures.append("admin-nav.ts missing Merchant Leads")
-    if "Driver Leads" not in nav and "Driver Applications" not in nav:
-        failures.append("admin-nav.ts missing Driver Leads / Driver Applications")
+    if "Lead Workspace" not in nav:
+        failures.append("admin-nav.ts missing Lead Workspace")
+    # Source constants remain for deep-link chips / isNavActive even after Growth collapse.
     if "website_driver_partner" not in nav:
-        failures.append("admin-nav.ts missing driver partner lead source href")
+        failures.append("admin-nav.ts missing driver partner lead source constant")
     if "website_contact" not in nav:
-        failures.append("admin-nav.ts missing website_contact lead source href")
+        failures.append("admin-nav.ts missing website_contact lead source constant")
     if "website_newsletter" not in nav:
-        failures.append("admin-nav.ts missing website_newsletter lead source href")
+        failures.append("admin-nav.ts missing website_newsletter lead source constant")
 
     revalidate_route = ROOT / "website/src/app/api/revalidate/blog/route.ts"
     if not revalidate_route.is_file():

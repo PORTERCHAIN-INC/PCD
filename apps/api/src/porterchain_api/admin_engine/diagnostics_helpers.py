@@ -10,8 +10,9 @@ from typing import Any, Callable
 import httpx
 
 from porterchain_api.admin_engine.diagnostics_catalog import COMPONENT_CATEGORY
+from porterchain_api.platform.health_status import HealthStatus, normalize_check_status
 
-HealthClass = str  # healthy | warning | critical
+HealthClass = HealthStatus  # healthy | warning | critical — Jeff Dean triad
 
 EVENT_PUBLISHERS: dict[str, str] = {
     "quote.created": "booking_engine",
@@ -37,12 +38,8 @@ def _now_iso() -> str:
 
 
 def _classify(raw: str) -> HealthClass:
-    s = raw.lower()
-    if s in ("healthy", "ok", "pass", "configured", "bridge_enabled", "enabled", "ready"):
-        return "healthy"
-    if any(x in s for x in ("warning", "degraded", "mock", "bypass", "disabled", "unconfigured", "unavailable")):
-        return "warning"
-    return "critical"
+    """Delegate to platform SSOT so probes + Jeff Dean share one mapper."""
+    return normalize_check_status(raw)
 
 
 def _component(

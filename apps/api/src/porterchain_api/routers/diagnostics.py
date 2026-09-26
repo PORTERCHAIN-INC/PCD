@@ -17,6 +17,7 @@ from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.schemas_admin import ReportsRequest
+from porterchain_api.schemas_health import HealthDashboardResponse
 
 router = APIRouter(prefix="/v1/admin/diagnostics", tags=["diagnostics"])
 
@@ -41,14 +42,14 @@ def diagnostics_center(
     return _svc.center(db, settings)
 
 
-@router.get("/health")
+@router.get("/health", response_model=HealthDashboardResponse)
 def diagnostics_health(
     ctx: Ctx,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-) -> dict:
+) -> HealthDashboardResponse:
     _guard(ctx)
-    return _svc.health_dashboard(db, settings)
+    return HealthDashboardResponse.model_validate(_svc.health_dashboard(db, settings))
 
 
 @router.get("/tests")

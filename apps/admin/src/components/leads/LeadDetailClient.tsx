@@ -78,6 +78,33 @@ export function LeadDetailView({ id }: { id: string }) {
     queryFn: async () => leadsApi.identities(await getApiToken(), id),
   });
 
+  const { data: lead360, refetch: refetch360 } = useQuery({
+    queryKey: ["lead-360", id],
+    enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
+    queryFn: async () => leadsApi.get360(await getApiToken(), id),
+  });
+
+  const [mergeBusy, setMergeBusy] = useState(false);
+  const [mergeError, setMergeError] = useState("");
+
+  async function handleMerge(action: "accept" | "reject") {
+    setMergeBusy(true);
+    setMergeError("");
+    try {
+      const token = await getApiToken();
+      await leadsApi.resolveMerge(token, id, action);
+      await qc.invalidateQueries({ queryKey: ["lead", id] });
+      await qc.invalidateQueries({ queryKey: ["lead-360", id] });
+      await qc.invalidateQueries({ queryKey: ["leads"] });
+      void refetch();
+      void refetch360();
+    } catch (err) {
+      setMergeError(err instanceof Error ? err.message : "Merge failed");
+    } finally {
+      setMergeBusy(false);
+    }
+  }
+
   const {
     data: assist,
     isLoading: assistLoading,
@@ -232,16 +259,32 @@ export function LeadDetailView({ id }: { id: string }) {
           <Badge tone={PRIORITY_TONES[lead.priority] ?? "slate"}>{lead.priority}</Badge>
           <Badge tone="slate">Score {lead.lead_score}</Badge>
           {(() => {
-            const raw = lead.custom_fields?._score;
-            if (!raw || typeof raw !== "object") return null;
-            const s = raw as { method?: string; heuristic?: number; predictive?: number | null };
-            if (s.method !== "blend") return null;
-            return (
-              <span className="text-xs text-muted">
-                blend h{s.heuristic ?? "—"}/p{s.predictive ?? "—"}
+            const s = (lead360?.score ?? lead.custom_fields?._score) as
+              { method?: string; heuristic?: number; predictive?: number | null } | undefined;
+            if (!s || typeof s !== "object") return null;
+            const tip = [
+              s.method ? `method ${s.method}` : null,
+              s.heuristic != null ? `h${s.heuristic}` : null,
+              s.predictive != null ? `p${s.predictive}` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+            return tip ? (
+              <span className="text-xs text-muted" title={tip}>
+                {tip}
               </span>
-            );
+            ) : null;
           })()}
+          {lead360?.assignee ? (
+            <Badge tone="slate">
+              {lead360.assignee.name || lead360.assignee.email || lead360.assignee.id}
+            </Badge>
+          ) : lead.assigned_to ? (
+            <Badge tone="slate">Assignee {lead.assigned_to.slice(0, 8)}</Badge>
+          ) : (
+            <Badge tone="amber">Unassigned</Badge>
+          )}
+          {lead360?.sla?.breached ? <Badge tone="red">SLA breached</Badge> : null}
           <Badge tone="slate">{(lead.channel ?? lead.source).replace(/_/g, " ")}</Badge>
           {lead.status !== "converted" ? (
             <>
@@ -288,6 +331,46 @@ export function LeadDetailView({ id }: { id: string }) {
       ) : null}
       {deleteError ? (
         <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{deleteError}</p>
+      ) : null}
+      {mergeError ? (
+        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{mergeError}</p>
+      ) : null}
+
+      {(lead.merge_candidate_of || lead360?.merge_candidate_of) && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <p>
+            Merge candidate of{" "}
+            <Link
+              href={`/leads/${lead.merge_candidate_of || lead360?.merge_candidate_of}`}
+              className="font-medium underline"
+            >
+              {(lead.merge_candidate_of || lead360?.merge_candidate_of || "").slice(0, 8)}…
+            </Link>
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="primary"
+              disabled={mergeBusy}
+              onClick={() => void handleMerge("accept")}
+            >
+              Accept merge
+            </Button>
+            <Button
+              variant="outline"
+              disabled={mergeBusy}
+              onClick={() => void handleMerge("reject")}
+            >
+              Reject
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {lead360?.urgent_unassigned_tasks && lead360.urgent_unassigned_tasks.length > 0 ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+          Urgent follow-up task (unassigned high) —{" "}
+          {String(lead360.urgent_unassigned_tasks[0]?.title ?? "open task")}
+        </div>
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -393,6 +476,76 @@ export function LeadDetailView({ id }: { id: string }) {
               ))}
             </ul>
           )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              aria-label="Export lead data for data subject request"
+              onClick={() => {
+                void (async () => {
+                  const token = await getApiToken();
+                  const data = await leadsApi.privacyExport(token, lead.id);
+                  const blob = new Blob([JSON.stringify(data, null, 2)], {
+                    type: "application/json",
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `lead-${lead.id}-export.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                })();
+              }}
+            >
+              Export for DSR
+            </Button>
+            {canDelete ? (
+              <>
+                <Button
+                  variant="outline"
+                  aria-label="Request lead privacy erasure"
+                  onClick={() => {
+                    void (async () => {
+                      const token = await getApiToken();
+                      await leadsApi.privacyDeleteRequest(token, lead.id, "admin_dsr");
+                      void refetch();
+                      void refetch360();
+                    })();
+                  }}
+                >
+                  Request erasure
+                </Button>
+                <Button
+                  variant="outline"
+                  aria-label="Soft-erase personally identifiable information on this lead"
+                  onClick={() => {
+                    if (
+                      !window.confirm(
+                        "Soft-erase PII on this lead? Converted+linked leads are blocked."
+                      )
+                    ) {
+                      return;
+                    }
+                    void (async () => {
+                      try {
+                        const token = await getApiToken();
+                        await leadsApi.privacyErase(token, lead.id);
+                        void refetch();
+                        void refetch360();
+                      } catch (err) {
+                        window.alert(err instanceof Error ? err.message : "Erase failed");
+                      }
+                    })();
+                  }}
+                >
+                  Erase PII
+                </Button>
+              </>
+            ) : null}
+          </div>
+          <p className="mt-3 text-xs text-muted">
+            Processing residency: Canada (Ontario primary). Export includes the lead RoPA inventory
+            (purposes, bases, retention). Multi-region residency is not enabled.
+          </p>
         </Panel>
         <Panel title="Attribution / visitor">
           {attribution.length === 0 && !lead.referred_by_merchant_id ? (
@@ -414,9 +567,38 @@ export function LeadDetailView({ id }: { id: string }) {
             <Row label="SMS" value={consent.sms ? "yes" : "no"} />
             <Row label="WhatsApp" value={consent.whatsapp ? "yes" : "no"} />
             <Row
+              label="Legal basis"
+              value={typeof consent.legal_basis === "string" ? consent.legal_basis : "—"}
+            />
+            <Row
+              label="Do not contact"
+              value={
+                lead360?.nurture && (lead360.nurture as { do_not_contact?: boolean }).do_not_contact
+                  ? "yes (suppressed)"
+                  : "no"
+              }
+            />
+            <Row
+              label="WhatsApp outbound"
+              value={(() => {
+                const wa = (
+                  lead360?.nurture as
+                    { whatsapp?: { allowed?: boolean; reason?: string } } | undefined
+                )?.whatsapp;
+                if (!wa || typeof wa.reason !== "string") return "—";
+                return wa.allowed ? `allowed (${wa.reason})` : `blocked (${wa.reason})`;
+              })()}
+            />
+            <Row
               label="Captured"
               value={typeof consent.captured_at === "string" ? consent.captured_at : "—"}
             />
+            <Row label="Source" value={typeof consent.source === "string" ? consent.source : "—"} />
+            <Row
+              label="Text version"
+              value={typeof consent.text_version === "string" ? consent.text_version : "—"}
+            />
+            <Row label="Actor" value={typeof consent.actor === "string" ? consent.actor : "—"} />
             <Row
               label="SLA due"
               value={
@@ -446,6 +628,118 @@ export function LeadDetailView({ id }: { id: string }) {
         </Panel>
       )}
 
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel title="Journey">
+          {lead360?.visitor && Object.keys(lead360.visitor).length > 0 ? (
+            <dl className="space-y-2 text-sm">
+              <Row
+                label="Visitor session"
+                value={
+                  typeof lead360.visitor.session_id === "string"
+                    ? lead360.visitor.session_id
+                    : lead.visitor_session_id || "—"
+                }
+              />
+              <Row
+                label="Intent score"
+                value={
+                  lead360.visitor.intent_score != null ? String(lead360.visitor.intent_score) : "—"
+                }
+              />
+              <Row
+                label="Guide stage"
+                value={(() => {
+                  const guide = lead360.visitor.guide;
+                  if (guide && typeof guide === "object" && "stage_hint" in guide) {
+                    const hint = (guide as { stage_hint?: unknown }).stage_hint;
+                    return typeof hint === "string" ? hint : "—";
+                  }
+                  return "—";
+                })()}
+              />
+              <Row
+                label="Retail lead"
+                value={
+                  lead360.retail_lead
+                    ? `${lead360.retail_lead.id.slice(0, 8)} · ${lead360.retail_lead.stage}`
+                    : "—"
+                }
+              />
+              <Row
+                label="Nurture"
+                value={
+                  Array.isArray(lead360.nurture?.tags) && lead360.nurture.tags.length
+                    ? (lead360.nurture.tags as string[]).join(", ")
+                    : lead360.nurture?.marketing_consent
+                      ? "marketing consent"
+                      : "—"
+                }
+              />
+            </dl>
+          ) : (
+            <p className="text-sm text-muted">No visitor journey linked yet.</p>
+          )}
+        </Panel>
+        <Panel title="Commerce">
+          <div className="space-y-3 text-sm">
+            {(lead360?.quotes?.length ?? 0) > 0 ? (
+              <div>
+                <p className="mb-1 font-medium text-primary">Quotes</p>
+                <ul className="space-y-1">
+                  {lead360!.quotes.map((q) => (
+                    <li key={String(q.id)} className="text-muted">
+                      {String(q.id).slice(0, 8)} · {String(q.state)} ·{" "}
+                      {q.amount_cents != null
+                        ? `$${(Number(q.amount_cents) / 100).toFixed(2)}`
+                        : "—"}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(lead360?.drafts?.length ?? 0) > 0 ? (
+              <div>
+                <p className="mb-1 font-medium text-primary">Booking drafts</p>
+                <ul className="space-y-1">
+                  {lead360!.drafts.map((d) => (
+                    <li key={d.id} className="flex flex-wrap items-center gap-2">
+                      <Link href={`/booking-drafts/${d.id}`} className="underline">
+                        {d.id.slice(0, 8)}
+                      </Link>
+                      <span className="text-muted">{d.state}</span>
+                      {d.draft_abandoned ? (
+                        <Badge tone="amber">draft abandoned ({d.draft_abandoned_reason})</Badge>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="text-muted">No booking drafts.</p>
+            )}
+            {(lead360?.abandoned_checkouts?.length ?? 0) > 0 ? (
+              <div>
+                <p className="mb-1 font-medium text-primary">Stripe abandoned checkouts</p>
+                <ul className="space-y-1">
+                  {lead360!.abandoned_checkouts.map((a) => (
+                    <li key={a.id} className="text-muted">
+                      <Badge tone="red">stripe abandoned</Badge> {a.reason} · quote{" "}
+                      {a.quote_id.slice(0, 8)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {lead360?.referral ? (
+              <Row
+                label="Referral credit"
+                value={`${String(lead360.referral.status)} · ${String(lead360.referral.amount_cents ?? 0)}¢`}
+              />
+            ) : null}
+          </div>
+        </Panel>
+      </div>
+
       {conversations.length > 0 ? (
         <Panel title="Conversations">
           <div className="space-y-4">
@@ -472,7 +766,9 @@ export function LeadDetailView({ id }: { id: string }) {
         <div className="space-y-3 text-sm">
           <div className="flex items-center justify-between gap-2">
             <p className="text-muted">
-              {assistLoading ? "Loading…" : `Source: ${assist?.source ?? "—"} · never auto-sends`}
+              {assistLoading
+                ? "Loading…"
+                : `Source: ${assist?.source ?? "—"} · writes require confirm`}
             </p>
             <Button variant="outline" onClick={() => void refetchAssist()}>
               Refresh
@@ -483,57 +779,87 @@ export function LeadDetailView({ id }: { id: string }) {
               <p className="text-primary">{assist.summary}</p>
               {assist.risks?.length ? (
                 <ul className="list-disc pl-5 text-amber-800">
-                  {assist.risks.map((r) => (
+                  {assist.risks.map((r: string) => (
                     <li key={r}>{r}</li>
                   ))}
                 </ul>
               ) : null}
-              <div>
-                <p className="mb-1 font-medium text-primary">Suggested reply</p>
-                <p className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3">
-                  {assist.draft_reply}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      void (async () => {
-                        const token = await getApiToken();
-                        await leadsApi.assistDecide(token, id, {
-                          proposal_id: "draft_reply",
-                          decision: "accept",
-                          draft_reply: assist.draft_reply,
-                          decision_status: assist.suggested_decision_status,
-                        });
-                        await qc.invalidateQueries({ queryKey: ["lead", id] });
-                        void refetch();
-                        void refetchAssist();
-                      })();
-                    }}
-                  >
-                    Accept draft + decision
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      void (async () => {
-                        const token = await getApiToken();
-                        await leadsApi.assistDecide(token, id, {
-                          proposal_id: "draft_reply",
-                          decision: "reject",
-                        });
-                      })();
-                    }}
-                  >
-                    Dismiss
-                  </Button>
-                </div>
+              <div className="space-y-3">
+                {(
+                  (assist.proposals as Array<{
+                    id: string;
+                    type?: string;
+                    title?: string;
+                    body?: string;
+                  }>) || [
+                    {
+                      id: "draft_reply",
+                      title: "Suggested reply",
+                      body: assist.draft_reply,
+                    },
+                    {
+                      id: "decision_status",
+                      title: "Suggested decision",
+                      body: assist.suggested_decision_status,
+                    },
+                  ]
+                ).map((proposal) => (
+                  <div key={proposal.id} className="rounded-xl border border-primary/10 p-3">
+                    <p className="mb-1 font-medium text-primary">{proposal.title || proposal.id}</p>
+                    <p className="whitespace-pre-wrap text-sm text-primary/90">
+                      {proposal.body || "—"}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          void (async () => {
+                            const token = await getApiToken();
+                            await leadsApi.assistDecide(token, id, {
+                              proposal_id: proposal.id,
+                              decision: "accept",
+                              draft_reply:
+                                proposal.id === "draft_reply"
+                                  ? String(proposal.body || assist.draft_reply || "")
+                                  : undefined,
+                              decision_status:
+                                proposal.id === "decision_status"
+                                  ? String(proposal.body || assist.suggested_decision_status || "")
+                                  : undefined,
+                            });
+                            await qc.invalidateQueries({ queryKey: ["lead", id] });
+                            void refetch();
+                            void refetchAssist();
+                            void refetch360();
+                          })();
+                        }}
+                      >
+                        Accept
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          void (async () => {
+                            const token = await getApiToken();
+                            await leadsApi.assistDecide(token, id, {
+                              proposal_id: proposal.id,
+                              decision: "reject",
+                            });
+                            void refetchAssist();
+                          })();
+                        }}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
               {assist.next_questions?.length ? (
                 <div>
                   <p className="mb-1 font-medium text-primary">Next questions</p>
                   <ul className="list-disc pl-5">
-                    {assist.next_questions.map((q) => (
+                    {assist.next_questions.map((q: string) => (
                       <li key={q}>{q}</li>
                     ))}
                   </ul>

@@ -56,7 +56,7 @@ export function DiagnosticsHealthView({
     <div className="space-y-6">
       {!embedded ? (
         <SettingsPageHeader
-          title="System Health"
+          title="Health"
           description="Real-time validation of the locked Porterchain topology — portals, engines, integrations, and infrastructure per masterrule §1, §16, and Appendix B."
           actions={
             <>

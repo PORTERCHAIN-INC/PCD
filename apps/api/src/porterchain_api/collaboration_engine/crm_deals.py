@@ -178,7 +178,10 @@ class CrmDealsMixin:
         # Leads grouped by mapped stage, capped per column (sorted by score).
         leads = []
         if include_leads:
-            leads_q = db.query(CrmLead).filter(CrmLead.status != LeadStatus.CONVERTED.value)
+            leads_q = db.query(CrmLead).filter(
+                CrmLead.status != LeadStatus.CONVERTED.value,
+                CrmLead.status != LeadStatus.ARCHIVED.value,
+            )
             if min_value_cents:
                 leads_q = leads_q.filter(
                     func.coalesce(CrmLead.estimated_revenue_cents, 0) >= min_value_cents
@@ -215,6 +218,14 @@ class CrmDealsMixin:
                         "score": lead.lead_score,
                         "location": location,
                         "channel": lead.channel,
+                        "has_draft": bool(lead.booking_draft_id),
+                        "sla_breached": bool(
+                            lead.sla_first_response_due_at
+                            and lead.sla_first_response_due_at < _now()
+                            and lead.status == LeadStatus.NEW.value
+                        ),
+                        "nurture": lead.status == LeadStatus.NURTURING.value
+                        or any("nurture" in str(t).lower() for t in (lead.tags or [])),
                     }
                 )
             else:

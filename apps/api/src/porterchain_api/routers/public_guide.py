@@ -37,6 +37,12 @@ _crm = CrmSalesService()
 _visitors = VisitorTrackingService()
 
 
+def _guide_consent(body: PublicGuideLeadCreate) -> dict:
+    from porterchain_api.collaboration_engine.lead_consent import casl_evidence
+
+    return casl_evidence(body.consent, source="capacity_guide", actor="lead")
+
+
 @router.post("/leads", response_model=PublicGuideLeadResponse, status_code=201)
 def upsert_guide_lead(
     body: PublicGuideLeadCreate,
@@ -116,6 +122,7 @@ def upsert_guide_lead(
             message=(body.notes or "").strip() or None,
             tags=[t for t in ["capacity_guide", body.intent] if t],
             custom_fields={k: v for k, v in custom_patch.items() if v},
+            consent=_guide_consent(body),
             attribution={
                 k: v
                 for k, v in {

@@ -6,12 +6,9 @@ import {
   Calculator,
   CalendarDays,
   ClipboardList,
-  HardHat,
   Headphones,
   HeartPulse,
   LayoutDashboard,
-  Mail,
-  MessageSquare,
   Newspaper,
   Package,
   Settings,
@@ -79,7 +76,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       {
         href: "/booking-drafts",
         label: "Booking Drafts",
-        description: "Abandoned checkouts to recover",
+        description: "Retail checkout drafts (ops recovery)",
         icon: ClipboardList,
       },
     ],
@@ -114,8 +111,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       {
         href: "/leads",
-        label: "Merchant Leads",
-        description: "Inbound business inquiries",
+        label: "Lead Workspace",
+        description: "Merchant, retail, driver, and newsletter inbox",
         icon: UserPlus,
       },
       {
@@ -129,24 +126,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         label: "Sales Calendar",
         description: "Calls and meetings from guides",
         icon: CalendarDays,
-      },
-      {
-        href: `/leads?source=${DRIVER_LEAD_SOURCE}`,
-        label: "Driver Applications",
-        description: "Vehicle partner applications",
-        icon: HardHat,
-      },
-      {
-        href: `/leads?source=${WEBSITE_CONTACT_LEAD_SOURCE}`,
-        label: "Contact Form",
-        description: "Website /contact inquiries",
-        icon: MessageSquare,
-      },
-      {
-        href: `/leads?source=${WEBSITE_NEWSLETTER_LEAD_SOURCE}`,
-        label: "Newsletter",
-        description: "Blog + footer subscriptions",
-        icon: Mail,
       },
       {
         href: "/blog",
@@ -210,8 +189,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       },
       {
         href: "/system",
-        label: "System Health",
-        description: "Probes, diagnostics, integrations",
+        label: "System",
+        description: "Health, diagnostics, AI usage",
         icon: HeartPulse,
       },
       {
@@ -270,13 +249,21 @@ export function isNavActive(pathname: string, href: string, search = ""): boolea
     return true;
   }
 
-  // Bare /leads = merchant inbox (not the driver-partner filter).
-  if (path === "/leads" && current.get("source") === DRIVER_LEAD_SOURCE) {
+  // Bare /leads = all-inbox workspace (not a source= filter deep-link).
+  if (
+    path === "/leads" &&
+    [DRIVER_LEAD_SOURCE, WEBSITE_CONTACT_LEAD_SOURCE, WEBSITE_NEWSLETTER_LEAD_SOURCE].includes(
+      current.get("source") ?? ""
+    )
+  ) {
     return false;
   }
 
-  // Dedicated calendar item — don't also highlight Merchant Leads.
-  if (path === "/leads" && pathname.startsWith("/leads/calendar")) {
+  // Dedicated calendar/pipeline items — don't also highlight Lead Workspace.
+  if (
+    path === "/leads" &&
+    (pathname.startsWith("/leads/calendar") || pathname.startsWith("/leads/pipeline"))
+  ) {
     return false;
   }
 

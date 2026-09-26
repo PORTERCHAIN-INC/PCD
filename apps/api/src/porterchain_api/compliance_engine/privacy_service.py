@@ -168,3 +168,4 @@ class PrivacyService:
         actor_user_id: str,
     ) -> dict[str, Any]:
         return self._merchants.execute_merchant_erasure(db, merchant, actor_user_id=actor_user_id)
+

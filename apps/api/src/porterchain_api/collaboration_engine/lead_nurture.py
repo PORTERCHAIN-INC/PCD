@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 _NURTURE_TAG = "nurture_scheduled"
 _D1_TITLE_PREFIX = "[Nurture D+1]"
 _D3_TITLE_PREFIX = "[Nurture D+3]"
+_D7_TITLE_PREFIX = "[Nurture D+7]"
+_EMAIL_TITLE_PREFIXES = (_D1_TITLE_PREFIX, _D7_TITLE_PREFIX)
 
 
 def _now() -> datetime:
@@ -23,7 +25,7 @@ def _now() -> datetime:
 
 
 def schedule_lead_nurture(db: Session, lead: CrmLead) -> list[CrmSalesTask]:
-    """Create day+1 email + day+3 call tasks for new leads (idempotent via tag)."""
+    """Create D+1 email, D+3 call, D+7 email tasks (idempotent via tag)."""
     if lead.status == LeadStatus.CONVERTED.value:
         return []
     tags = list(lead.tags or [])
@@ -64,16 +66,32 @@ def schedule_lead_nurture(db: Session, lead: CrmLead) -> list[CrmSalesTask]:
         due_at=now + timedelta(days=3),
         created_by="system",
     )
+    d7 = CrmSalesTask(
+        title=f"{_D7_TITLE_PREFIX} Email re-engage: {company}",
+        description=(
+            "Nurture drip day 7 — final capacity nudge if still open and marketing consent holds."
+        ),
+        task_type=TaskType.EMAIL.value if hasattr(TaskType, "EMAIL") else "email",
+        status="open",
+        priority="low",
+        entity_type="lead",
+        entity_id=lead.id,
+        due_at=now + timedelta(days=7),
+        created_by="system",
+    )
     db.add(d1)
     db.add(d3)
+    db.add(d7)
     tags.append(_NURTURE_TAG)
     lead.tags = tags
     db.flush()
-    created.extend([d1, d3])
+    created.extend([d1, d3, d7])
     return created
 
 
-def enqueue_nurture_intro_email(lead: CrmLead, *, website_url: str = "") -> bool:
+def enqueue_nurture_intro_email(
+    lead: CrmLead, *, website_url: str = "", db: Session | None = None
+) -> bool:
     """Day-0 intro email when marketing consent is true. Enqueues EMAILS queue."""
     consent = lead.consent or {}
     if not consent.get("marketing"):
@@ -81,11 +99,24 @@ def enqueue_nurture_intro_email(lead: CrmLead, *, website_url: str = "") -> bool
     email = (lead.email or "").strip()
     if not email or "@" not in email:
         return False
+    if db is not None:
+        from porterchain_api.collaboration_engine.lead_suppression import is_suppressed
+
+        if is_suppressed(db, email=email, phone=lead.phone):
+            return False
     base = (website_url or "https://porterchain.com").rstrip("/")
     try:
+        from porterchain_api.config import get_settings
+        from porterchain_api.collaboration_engine.lead_consent import make_unsubscribe_token
         from porterchain_shared.queue.names import QueueName
         from porterchain_shared.queue.publisher import get_queue_publisher
 
+        settings = get_settings()
+        secret = (settings.jwt_secret or settings.public_ingest_api_key or "").strip()
+        unsub = ""
+        if secret:
+            token = make_unsubscribe_token(lead_id=lead.id, secret=secret)
+            unsub = f"{base}/unsubscribe?token={token}"
         get_queue_publisher().enqueue(
             QueueName.EMAILS,
             {
@@ -98,6 +129,7 @@ def enqueue_nurture_intro_email(lead: CrmLead, *, website_url: str = "") -> bool
                     "company_name": lead.company_name,
                     "contact_name": lead.primary_contact_name or "",
                     "quote_url": f"{base}/sign-up?intent=quote&utm_source=nurture&utm_medium=email",
+                    "unsubscribe_url": unsub,
                     "lead_id": lead.id,
                 },
             },
@@ -109,8 +141,11 @@ def enqueue_nurture_intro_email(lead: CrmLead, *, website_url: str = "") -> bool
 
 
 def process_due_nurture_emails(db: Session, *, limit: int = 20) -> dict[str, int]:
-    """Send D+1 nurture emails for due open email tasks when marketing consent holds."""
+    """Send D+1 / D+7 nurture emails for due open email tasks when marketing consent holds."""
     now = _now()
+    # Prefer OR of known prefixes over a broad like — keeps staff email tasks untouched.
+    from sqlalchemy import or_
+
     tasks = (
         db.query(CrmSalesTask)
         .filter(
@@ -119,7 +154,7 @@ def process_due_nurture_emails(db: Session, *, limit: int = 20) -> dict[str, int
             CrmSalesTask.entity_type == "lead",
             CrmSalesTask.due_at.isnot(None),
             CrmSalesTask.due_at <= now,
-            CrmSalesTask.title.like(f"{_D1_TITLE_PREFIX}%"),
+            or_(*[CrmSalesTask.title.like(f"{p}%") for p in _EMAIL_TITLE_PREFIXES]),
         )
         .order_by(CrmSalesTask.due_at.asc())
         .limit(limit)
@@ -138,11 +173,17 @@ def process_due_nurture_emails(db: Session, *, limit: int = 20) -> dict[str, int
             # Leave open for staff; don't auto-email without consent.
             skipped += 1
             continue
+        from porterchain_api.collaboration_engine.lead_suppression import is_suppressed
+
+        if is_suppressed(db, email=lead.email, phone=lead.phone):
+            skipped += 1
+            continue
         from porterchain_api.config import get_settings
 
         settings = get_settings()
         website = getattr(settings, "website_url", "") or ""
-        ok = _enqueue_d1_email(lead, website_url=website)
+        campaign = "d7" if (task.title or "").startswith(_D7_TITLE_PREFIX) else "d1"
+        ok = _enqueue_nurture_email(lead, website_url=website, campaign=campaign)
         if ok:
             task.status = "done"
             task.completed_at = now
@@ -154,32 +195,50 @@ def process_due_nurture_emails(db: Session, *, limit: int = 20) -> dict[str, int
     return {"due": len(tasks), "sent": sent, "skipped": skipped}
 
 
-def _enqueue_d1_email(lead: CrmLead, *, website_url: str) -> bool:
+def _enqueue_nurture_email(lead: CrmLead, *, website_url: str, campaign: str = "d1") -> bool:
     base = (website_url or "https://porterchain.com").rstrip("/")
+    template = "lead_nurture_d7" if campaign == "d7" else "lead_nurture_d1"
     try:
+        from porterchain_api.config import get_settings
+        from porterchain_api.collaboration_engine.lead_consent import make_unsubscribe_token
         from porterchain_shared.queue.names import QueueName
         from porterchain_shared.queue.publisher import get_queue_publisher
 
+        settings = get_settings()
+        secret = (settings.jwt_secret or settings.public_ingest_api_key or "").strip()
+        unsub = ""
+        if secret:
+            token = make_unsubscribe_token(lead_id=lead.id, secret=secret)
+            unsub = f"{base}/unsubscribe?token={token}"
         get_queue_publisher().enqueue(
             QueueName.EMAILS,
             {
                 "channel": "email",
-                "template": "lead_nurture_d1",
+                "template": template,
                 "recipient": lead.email,
                 "recipient_type": "lead",
                 "recipient_id": lead.id,
                 "context": {
                     "company_name": lead.company_name,
                     "contact_name": lead.primary_contact_name or "",
-                    "quote_url": f"{base}/sign-up?intent=quote&utm_source=nurture&utm_medium=email&utm_campaign=d1",
+                    "quote_url": (
+                        f"{base}/sign-up?intent=quote&utm_source=nurture"
+                        f"&utm_medium=email&utm_campaign={campaign}"
+                    ),
+                    "unsubscribe_url": unsub,
                     "lead_id": lead.id,
                 },
             },
         )
         return True
     except Exception:
-        logger.exception("lead_nurture_d1_enqueue_failed lead=%s", lead.id)
+        logger.exception("lead_nurture_%s_enqueue_failed lead=%s", campaign, lead.id)
         return False
+
+
+def _enqueue_d1_email(lead: CrmLead, *, website_url: str) -> bool:
+    """Backward-compatible alias for tests / callers."""
+    return _enqueue_nurture_email(lead, website_url=website_url, campaign="d1")
 
 
 def apply_nurture_after_ingest(
@@ -189,7 +248,7 @@ def apply_nurture_after_ingest(
     if not created:
         return {"scheduled": 0, "intro_email": False}
     tasks = schedule_lead_nurture(db, lead)
-    intro = enqueue_nurture_intro_email(lead, website_url=website_url)
+    intro = enqueue_nurture_intro_email(lead, website_url=website_url, db=db)
     return {"scheduled": len(tasks), "intro_email": intro}
 
 

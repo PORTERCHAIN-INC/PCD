@@ -89,15 +89,21 @@ describe("leadsApi", () => {
     adminFetch.mockReset();
   });
 
-  it("list hits filtered admin endpoint and zod-parses rows", async () => {
-    adminFetch.mockResolvedValueOnce([sampleLead()]);
-    const rows = await leadsApi.list("tok", { channel: "website", status: "new" });
+  it("list hits filtered admin endpoint and zod-parses page envelope", async () => {
+    adminFetch.mockResolvedValueOnce({
+      items: [sampleLead()],
+      total: 1,
+      limit: 50,
+      offset: 0,
+    });
+    const page = await leadsApi.list("tok", { channel: "website", status: "new" });
     expect(adminFetch).toHaveBeenCalledWith("/v1/admin/leads?status=new&channel=website", "tok");
-    expect(rows[0]?.company_name).toBe("Acme Logistics");
+    expect(page.items[0]?.company_name).toBe("Acme Logistics");
+    expect(page.total).toBe(1);
   });
 
   it("rejects malformed list payloads", async () => {
-    adminFetch.mockResolvedValueOnce([{ id: "x" }]);
+    adminFetch.mockResolvedValueOnce({ items: [{ id: "x" }], total: 1, limit: 50, offset: 0 });
     await expect(leadsApi.list("tok")).rejects.toThrow();
   });
 

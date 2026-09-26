@@ -2,16 +2,9 @@
 
 import { Activity, Clock, Database, Globe, Mail, Server, Shield } from "lucide-react";
 import { relativeTime } from "@/lib/crmFormat";
+import { healthStatus } from "@/lib/health";
 import type { SettingsDashboard } from "@/lib/settings";
 import { SettingsCard, SettingsPageHeader, StatTile, StatusPill } from "../ui/SettingsPrimitives";
-
-function healthStatus(val: unknown): string {
-  if (val == null) return "unknown";
-  if (typeof val === "string") return val;
-  if (typeof val === "object" && val !== null && "status" in val)
-    return String((val as { status: unknown }).status);
-  return String(val);
-}
 
 const INTEGRATION_META: Record<string, { label: string; note: string }> = {
   database: { label: "PostgreSQL", note: "Primary transactional store" },
@@ -135,7 +128,7 @@ export default function DashboardPanel({
             const extra =
               typeof raw === "object" && raw !== null
                 ? Object.entries(raw as Record<string, unknown>)
-                    .filter(([k]) => k !== "status")
+                    .filter(([k]) => k !== "status" && k !== "raw")
                     .slice(0, key === "nvidia_nim" ? 4 : 2)
                     .map(([k, v]) => `${k}: ${v}`)
                     .join(" · ")

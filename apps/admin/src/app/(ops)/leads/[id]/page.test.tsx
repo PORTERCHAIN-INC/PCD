@@ -5,6 +5,8 @@ import { adminProfileState } from "@/test/admin-profile-state";
 import { mockAdminAuth, renderWithProviders, sampleLead } from "@/test/render";
 
 const detail = vi.fn();
+const get360 = vi.fn();
+const resolveMerge = vi.fn();
 const conversations = vi.fn();
 const identities = vi.fn();
 const assist = vi.fn();
@@ -68,6 +70,8 @@ vi.mock("@/lib/leads", async () => {
     leadsApi: {
       ...actual.leadsApi,
       detail: (...args: unknown[]) => detail(...args),
+      get360: (...args: unknown[]) => get360(...args),
+      resolveMerge: (...args: unknown[]) => resolveMerge(...args),
       conversations: (...args: unknown[]) => conversations(...args),
       identities: (...args: unknown[]) => identities(...args),
       assist: (...args: unknown[]) => assist(...args),
@@ -86,6 +90,8 @@ describe("LeadDetailView", () => {
     adminProfileState.email = "sa@porterchain.com";
     adminProfileState.permissions = ["system:all"];
     detail.mockReset();
+    get360.mockReset();
+    resolveMerge.mockReset();
     conversations.mockReset();
     identities.mockReset();
     assist.mockReset();
@@ -96,6 +102,26 @@ describe("LeadDetailView", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
 
     detail.mockResolvedValue(sampleLead());
+    get360.mockResolvedValue({
+      lead: sampleLead(),
+      retail_lead: null,
+      identities: [],
+      conversations: [],
+      tasks: [],
+      nurture: {},
+      activities: [],
+      visitor: { session_id: "vid-1", intent_score: 12 },
+      quotes: [],
+      drafts: [],
+      abandoned_checkouts: [],
+      referral: null,
+      sla: { breached: false },
+      assignee: { id: "admin-1", name: "Ops", email: "ops@porterchain.com" },
+      consent: {},
+      score: { lead_score: 40 },
+      merge_candidate_of: null,
+      urgent_unassigned_tasks: [],
+    });
     conversations.mockResolvedValue([]);
     identities.mockResolvedValue([
       { id: "i1", kind: "email", value_normalized: "ada@acme.test", raw_value: "ada@acme.test" },

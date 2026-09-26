@@ -11,12 +11,13 @@ from porterchain_api.admin_models import AdminUser
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.notification_engine.models import NotificationDevice
 
-StaffTopic = Literal["ops", "finance", "support"]
+StaffTopic = Literal["ops", "finance", "support", "growth"]
 
 TOPIC_MODULE: dict[StaffTopic, str] = {
     "ops": "dispatch",
     "finance": "finance",
     "support": "support",
+    "growth": "crm",
 }
 
 STAFF_SENTINEL_PREFIX = "__staff:"

@@ -244,6 +244,8 @@ def event_from_referral(
     referred_by_merchant_id: str,
     notes: str | None,
 ) -> CanonicalLeadEvent:
+    from porterchain_api.collaboration_engine.lead_consent import casl_evidence
+
     return CanonicalLeadEvent(
         channel=LeadSourceChannel.MERCHANT_REFERRAL.value,
         source="merchant_referral",
@@ -259,6 +261,13 @@ def event_from_referral(
         tags=["referral", "network"],
         referred_by_merchant_id=referred_by_merchant_id,
         custom_fields={"referred_by_merchant_id": referred_by_merchant_id},
+        consent=casl_evidence(
+            {"marketing": False},
+            source="merchant_referral",
+            actor="staff",
+            legal_basis="legitimate_interest",
+            force_marketing=False,
+        ),
         seed_conversation=bool(notes),
     )
 

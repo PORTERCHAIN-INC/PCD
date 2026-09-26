@@ -26,7 +26,7 @@
 | Notifications / FCM     | `test_notification_*.py`, `test_zeptomail_https_delivery.py`                                                                                              |
 | ERP                     | `test_netsuite_zapier.py`, `test_merchant_integrations.py`                                                                                                |
 | Spatial                 | `services/python/tests/test_valhalla_costing.py`, `test_routing.py`, `test_offline_optimize_route.py`, `test_orchestrator_ops.py`                         |
-| Live probes             | Admin `/system-tests` + `diagnostics_*` (`TEST_CATALOG` ids)                                                                                              |
+| Live probes             | Admin `/system?tab=tests` (+ aliases `/system-tests`, `/system-health` → `/system`) + `diagnostics_*` (`TEST_CATALOG` ids)                                |
 | Architecture gates      | `pnpm validate:architecture`, `validate:golden-rules`, `validate:d2`, `validate:p0`, `validate:e2e`                                                       |
 
 **Charter gate:** Prefer cases that protect **network execution integrity** (Fleetbase handshakes), **money**, **identity**, **capacity utilization**, and **fail-closed degrade**. Skip Phase 2 / Future Fleetbase modules unless flagged on.
@@ -290,28 +290,28 @@ For each module under `services/fleetbase-adapter/porterchain_fleetbase_adapter/
 
 **Rule:** every list/detail route loads with staff session; no Fleetbase `:8000` fetch from browser; degrade banners when probes red.
 
-| Route                                             | Case IDs      | Must cover                                                                                                    |
-| ------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------- |
-| `/sign-in`                                        | A-UI-001      | Staff IdP; bypass only local+flag                                                                             |
-| `/activate-staff`                                 | A-UI-002      | Invitation redeem                                                                                             |
-| `/dashboard`                                      | A-UI-010      | KPIs; trends shape `{labels,orders,revenue_cents}`                                                            |
-| `/operations`                                     | A-UI-020..029 | Control Tower, OptimizePanel, PushHealthStrip, DispatcherCopilot — wrap Fleetbase, no rebuild board           |
-| `/orders`, `/orders/[id]`                         | A-UI-030..039 | Lifecycle, OrderAssist, Fleetbase link only                                                                   |
-| `/merchants`, `/merchants/[id]`                   | A-UI-040..059 | Overview/Billing/Pricing/Locations/StandingOrders — revoke keys, never mint Shopify                           |
-| `/drivers`, `/drivers/[id]`                       | A-UI-060..079 | Compliance badges; sync_driver; documents                                                                     |
-| `/customers`, `/customers/[id]`                   | A-UI-080      | See customer persona catalog                                                                                  |
-| `/leads`, `/leads/[id]`, `/pipeline`, `/calendar` | A-UI-090..099 | CRM ingest bus; no Phase3 AI SKU                                                                              |
-| `/booking-drafts`, `/[id]`                        | A-UI-100      | Draft→order handoff                                                                                           |
-| `/finance`, `/finance/invoices/[id]`              | A-UI-110..119 | AR SSOT; pay recording                                                                                        |
-| `/pricing`                                        | A-UI-120      | FSA / simulate; Valhalla distance                                                                             |
-| `/notifications`                                  | A-UI-130      | Inbox + FCM register                                                                                          |
-| `/claims`, `/claims/[id]`                         | A-UI-140      | Claims workflow                                                                                               |
-| `/support`, `/support/[id]`                       | A-UI-150      | Tickets                                                                                                       |
-| `/inbox`                                          | A-UI-160      | Staff inbox                                                                                                   |
-| `/blog`, `/blog/new`, `/blog/[id]`                | A-UI-170      | CMS                                                                                                           |
-| `/settings`                                       | A-UI-180..199 | Panels: Coverage, Integrations, LeadIngest, EnvOwned, Users, FSA, Import/Restore — **project mode read-only** |
-| `/system`, `/system-health`, `/system-tests`      | A-UI-200..220 | Run **every** `TEST_CATALOG` id live+config; chaos optional                                                   |
-| `/account/security`                               | A-UI-230      | Step-up / passkey                                                                                             |
+| Route                                                                                                         | Case IDs      | Must cover                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------- |
+| `/sign-in`                                                                                                    | A-UI-001      | Staff IdP; bypass only local+flag                                                                             |
+| `/activate-staff`                                                                                             | A-UI-002      | Invitation redeem                                                                                             |
+| `/dashboard`                                                                                                  | A-UI-010      | KPIs; trends shape `{labels,orders,revenue_cents}`                                                            |
+| `/operations`                                                                                                 | A-UI-020..029 | Control Tower, OptimizePanel, PushHealthStrip, DispatcherCopilot — wrap Fleetbase, no rebuild board           |
+| `/orders`, `/orders/[id]`                                                                                     | A-UI-030..039 | Lifecycle, OrderAssist, Fleetbase link only                                                                   |
+| `/merchants`, `/merchants/[id]`                                                                               | A-UI-040..059 | Overview/Billing/Pricing/Locations/StandingOrders — revoke keys, never mint Shopify                           |
+| `/drivers`, `/drivers/[id]`                                                                                   | A-UI-060..079 | Compliance badges; sync_driver; documents                                                                     |
+| `/customers`, `/customers/[id]`                                                                               | A-UI-080      | See customer persona catalog                                                                                  |
+| `/leads`, `/leads/[id]`, `/pipeline`, `/calendar`                                                             | A-UI-090..099 | CRM ingest bus; no Phase3 AI SKU                                                                              |
+| `/booking-drafts`, `/[id]`                                                                                    | A-UI-100      | Draft→order handoff                                                                                           |
+| `/finance`, `/finance/invoices/[id]`                                                                          | A-UI-110..119 | AR SSOT; pay recording                                                                                        |
+| `/pricing`                                                                                                    | A-UI-120      | FSA / simulate; Valhalla distance                                                                             |
+| `/notifications`                                                                                              | A-UI-130      | Inbox + FCM register                                                                                          |
+| `/claims`, `/claims/[id]`                                                                                     | A-UI-140      | Claims workflow                                                                                               |
+| `/support`, `/support/[id]`                                                                                   | A-UI-150      | Tickets                                                                                                       |
+| `/inbox`                                                                                                      | A-UI-160      | Staff inbox                                                                                                   |
+| `/blog`, `/blog/new`, `/blog/[id]`                                                                            | A-UI-170      | CMS                                                                                                           |
+| `/settings`                                                                                                   | A-UI-180..199 | Panels: Coverage, Integrations, LeadIngest, EnvOwned, Users, FSA, Import/Restore — **project mode read-only** |
+| `/system` (Health / Tests / AI tabs); aliases `/system-health`→`/system`, `/system-tests`→`/system?tab=tests` | A-UI-200..220 | Run **every** `TEST_CATALOG` id live+config; chaos optional                                                   |
+| `/account/security`                                                                                           | A-UI-230      | Step-up / passkey                                                                                             |
 
 **DIAG matrix (map 1:1 to Admin System Tests):**  
 `clerk`, `stripe`, `firebase`, `google_maps`, `osrm`, `valhalla`, `vroom`, `fleetbase`, `fleetbase_adapter`, `fleetbase_console`, `email_smtp`, `mailpit`, `event_bus`, `websockets`, `redis`, `postgresql`, `readiness_probe`, `metrics_endpoint`, `worker_queue`, `notification_engine`, `pricing_engine`, `billing_engine`, `orders_engine`, `crm_engine`, `finance_engine`, `claims_engine`, `support_engine`, `layered_architecture`, `stripe_webhook`, `scheduled_jobs`.

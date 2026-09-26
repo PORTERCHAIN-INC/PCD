@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Merged into /system?tab=tests. */
+/** Permanent alias — merged into /system?tab=tests. Do not add a separate page. */
 export default function SystemTestsRedirectPage() {
   redirect("/system?tab=tests");
 }

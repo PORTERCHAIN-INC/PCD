@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { adminFetch } from "@/lib/api";
+import { healthStatus, integrationHealthSchema, type IntegrationHealth } from "@/lib/health";
 
 const staffSchema = z.object({
   id: z.string(),
@@ -120,7 +121,7 @@ export type SettingsDashboard = {
   version: string;
   environment: string;
   project_mode?: RuntimePosture;
-  health: Record<string, unknown>;
+  health: IntegrationHealth | Record<string, unknown>;
   recent_changes: Array<Record<string, unknown>>;
 };
 
@@ -238,7 +239,11 @@ export const MODULE_SECTION_LINKS: Record<string, { href: string; label: string 
 export const settingsApi = {
   center: (token: string) => adminFetch<SettingsCenter>(`${B}/center`, token),
   dashboard: (token: string) => adminFetch<SettingsDashboard>(`${B}/dashboard`, token),
-  health: (token: string) => adminFetch<Record<string, unknown>>(`${B}/health`, token),
+  health: async (token: string) => {
+    const raw = await adminFetch<unknown>(`${B}/health`, token);
+    const parsed = integrationHealthSchema.safeParse(raw);
+    return parsed.success ? parsed.data : (raw as Record<string, unknown>);
+  },
   sections: (token: string) => adminFetch<SettingsSection[]>(`${B}/sections`, token),
   staff: async (token: string) => {
     const raw = await adminFetch<unknown[]>(`${B}/staff`, token);
@@ -531,22 +536,10 @@ export const MERCHANT_SEAT_ROLES = [
 ] as const;
 
 export function healthTone(status: string): "green" | "amber" | "red" | "gray" {
-  const s = status.toLowerCase();
-  if (
-    s.includes("ok") ||
-    s.includes("configured") ||
-    s.includes("healthy") ||
-    s.includes("enabled")
-  )
-    return "green";
-  if (
-    s.includes("mock") ||
-    s.includes("degraded") ||
-    s.includes("bypass") ||
-    s.includes("disabled")
-  )
-    return "amber";
-  if (s.includes("error") || s.includes("unconfigured") || s.includes("unavailable")) return "red";
+  const tone = healthStatus(status);
+  if (tone === "healthy") return "green";
+  if (tone === "warning") return "amber";
+  if (tone === "critical") return "red";
   return "gray";
 }
 

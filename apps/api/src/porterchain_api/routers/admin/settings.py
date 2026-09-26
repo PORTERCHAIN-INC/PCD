@@ -8,6 +8,7 @@ from fastapi import Header, Request
 from porterchain_api.admin_engine.settings_bindings import bindings_payload, resolve_writable_config_key
 from porterchain_api.admin_engine.settings_service import SETTINGS_SECTIONS
 from porterchain_api.admin_engine.staff_idp_service import StaffIdpService
+from porterchain_api.schemas_health import IntegrationHealthResponse
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Annotated,
@@ -121,13 +122,14 @@ def settings_center(
     return _invoke(ctx, _settings.center, db, settings)
 
 
-@router.get("/settings/health")
+@router.get("/settings/health", response_model=IntegrationHealthResponse)
 def settings_health(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-):
-    return _invoke(ctx, _settings.integration_health, db, settings)
+) -> IntegrationHealthResponse:
+    payload = _invoke(ctx, _settings.integration_health, db, settings)
+    return IntegrationHealthResponse.model_validate(payload)
 
 
 @router.get("/settings/sections")

@@ -263,6 +263,9 @@ class LeadOut(_ORM):
     last_touch_at: datetime | None = None
     consent: dict[str, Any] | None = None
     custom_fields: dict[str, Any] | None = None
+    quote_id: str | None = None
+    visitor_session_id: str | None = None
+    booking_draft_id: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -531,6 +534,73 @@ class TaskOut(_ORM):
     completed_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class Lead360RetailLead(BaseModel):
+    id: str
+    email: str
+    phone: str | None = None
+    quote_id: str | None = None
+    customer_id: str | None = None
+    crm_lead_id: str | None = None
+    stage: str
+    source: str
+    created_at: datetime | None = None
+
+
+class Lead360Assignee(BaseModel):
+    id: str
+    name: str | None = None
+    email: str | None = None
+
+
+class Lead360DraftItem(BaseModel):
+    id: str
+    session_id: str
+    quote_id: str | None = None
+    state: str
+    current_step: str | None = None
+    amount_cents: int | None = None
+    updated_at: datetime | None = None
+    draft_abandoned: bool = False
+    draft_abandoned_reason: str | None = None
+    kind: str = "booking_draft"
+
+
+class Lead360AbandonedCheckoutItem(BaseModel):
+    id: str
+    quote_id: str
+    email: str
+    reason: str
+    created_at: datetime | None = None
+    kind: str = "stripe_abandoned_checkout"
+
+
+class Lead360Response(BaseModel):
+    """Single round-trip Lead 360 composition. Cap list sizes in the service."""
+
+    lead: LeadOut
+    retail_lead: Lead360RetailLead | None = None
+    identities: list[dict[str, Any]] = Field(default_factory=list)
+    conversations: list[dict[str, Any]] = Field(default_factory=list)
+    tasks: list[TaskOut] = Field(default_factory=list)
+    nurture: dict[str, Any] = Field(default_factory=dict)
+    activities: list[dict[str, Any]] = Field(default_factory=list)
+    visitor: dict[str, Any] = Field(default_factory=dict)
+    quotes: list[dict[str, Any]] = Field(default_factory=list)
+    drafts: list[Lead360DraftItem] = Field(default_factory=list)
+    abandoned_checkouts: list[Lead360AbandonedCheckoutItem] = Field(default_factory=list)
+    referral: dict[str, Any] | None = None
+    sla: dict[str, Any] = Field(default_factory=dict)
+    assignee: Lead360Assignee | None = None
+    consent: dict[str, Any] = Field(default_factory=dict)
+    score: dict[str, Any] = Field(default_factory=dict)
+    merge_candidate_of: str | None = None
+    urgent_unassigned_tasks: list[dict[str, Any]] = Field(default_factory=list)
+    linked_merchant_id: str | None = None
+    linked_customer_id: str | None = None
+    linked_driver_id: str | None = None
+    last_capi: Any = None
 
 
 class CrmCalendarStatusResponse(BaseModel):

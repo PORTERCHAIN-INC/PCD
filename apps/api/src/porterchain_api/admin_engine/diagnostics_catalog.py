@@ -24,7 +24,7 @@ COMPONENT_CATEGORY: dict[str, str] = {
     "merchant_portal": "portals",
     "admin_portal": "portals",
     "driver_mobile": "portals",
-    "fastapi": "infrastructure",
+    "porterchain_api": "infrastructure",
     "pricing_engine": "engines",
     "billing_engine": "engines",
     "notification_engine": "engines",

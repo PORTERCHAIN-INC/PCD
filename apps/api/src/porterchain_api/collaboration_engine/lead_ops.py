@@ -137,7 +137,7 @@ def sla_minutes_for_channel(channel: str | None, settings: Settings | None = Non
 
 
 def notify_unassigned_high_priority(db: Session, lead: CrmLead) -> CrmSalesTask | None:
-    """Unassigned high/urgent → open follow-up task (staff inbox signal). Flush only."""
+    """Unassigned high/urgent → follow-up task + staff growth fanout. Flush only."""
     pri = (lead.priority or "").strip().lower()
     if lead.assigned_to or pri not in ("high", "urgent"):
         return None
@@ -152,6 +152,7 @@ def notify_unassigned_high_priority(db: Session, lead: CrmLead) -> CrmSalesTask 
         .first()
     )
     if existing:
+        _enqueue_growth_staff_alert(db, lead, priority=pri)
         return existing
     task = CrmSalesTask(
         title=f"Respond to {pri} lead: {lead.company_name}",
@@ -166,7 +167,107 @@ def notify_unassigned_high_priority(db: Session, lead: CrmLead) -> CrmSalesTask 
     )
     db.add(task)
     db.flush()
+    _enqueue_growth_staff_alert(db, lead, priority=pri)
     return task
+
+
+def _enqueue_growth_staff_alert(
+    db: Session,
+    lead: CrmLead,
+    *,
+    priority: str,
+    kind: str = "unassigned",
+) -> None:
+    """Page CRM-capable staff for growth SLA signals (idempotent per day+kind)."""
+    try:
+        import uuid
+        from datetime import date
+
+        from porterchain_api.platform.staff_notify import (
+            dispatch_staff_specs,
+            growth_staff_sentinel,
+        )
+
+        day = date.today().isoformat()
+        # domain_events.correlation_id is varchar(36) — use uuid5 digest, not a long string.
+        correlation = str(uuid.uuid5(uuid.NAMESPACE_URL, f"lead:{lead.id}:{kind}:{day}"))
+        title = (
+            f"SLA breached {priority} lead"
+            if kind == "sla"
+            else f"Unassigned {priority} lead"
+        )
+        ctx = {
+            "company_name": lead.company_name or "",
+            "contact_name": lead.primary_contact_name or "",
+            "lead_id": lead.id,
+            "priority": priority,
+            "source": lead.source or "",
+            "channel": lead.channel or "",
+            "deep_link": f"/leads/{lead.id}",
+            "title": title,
+            "body": f"{lead.company_name or lead.id} needs attention",
+            "message": f"{lead.company_name or lead.id} needs attention",
+        }
+        fanout_tag = "sla_breached" if kind == "sla" else "unassigned_high"
+        sentinel = growth_staff_sentinel()
+        specs = [
+            {
+                "template_key": "lead_sla_escalation",
+                "channel": "in_app",
+                "recipient_type": "admin",
+                "recipient_id": sentinel,
+                "context": ctx,
+                "search_tags": {"lead_id": lead.id, "fanout": fanout_tag},
+                "category": "crm",
+                "priority": "high" if priority == "high" else "critical",
+                "deep_link": f"/leads/{lead.id}",
+            },
+            {
+                "template_key": "lead_sla_escalation",
+                "channel": "email",
+                "recipient_type": "admin",
+                "recipient_id": sentinel,
+                "context": ctx,
+                "search_tags": {"lead_id": lead.id, "fanout": fanout_tag},
+                "category": "crm",
+                "priority": "high" if priority == "high" else "critical",
+                "deep_link": f"/leads/{lead.id}",
+            },
+        ]
+        dispatch_staff_specs(
+            db,
+            specs,
+            event_type=f"lead.{kind}",
+            correlation_id=correlation,
+        )
+    except Exception:  # noqa: BLE001
+        logger.exception("lead_growth_staff_alert_failed lead=%s kind=%s", lead.id, kind)
+
+
+def escalate_sla_breached_leads(db: Session, *, limit: int = 25) -> dict[str, int]:
+    """Notify growth staff for NEW leads past first-response SLA (idempotent per day)."""
+    from porterchain_api.domain.crm_states import LeadStatus
+
+    now = datetime.now(UTC)
+    rows = (
+        db.query(CrmLead)
+        .filter(
+            CrmLead.status == LeadStatus.NEW.value,
+            CrmLead.sla_first_response_due_at.isnot(None),
+            CrmLead.sla_first_response_due_at < now,
+        )
+        .order_by(CrmLead.sla_first_response_due_at.asc())
+        .limit(max(1, min(limit, 100)))
+        .all()
+    )
+    notified = 0
+    for lead in rows:
+        pri = (lead.priority or "medium").strip().lower() or "medium"
+        _enqueue_growth_staff_alert(db, lead, priority=pri, kind="sla")
+        notified += 1
+    if notified:
+        db.commit()
+    return {"due": len(rows), "notified": notified}
 
 
 def grant_referral_credit(
@@ -443,6 +544,7 @@ __all__ = [
     "list_referred_leads",
     "merchant_referral_overview",
     "notify_unassigned_high_priority",
+    "escalate_sla_breached_leads",
     "resolve_merge_candidate",
     "resolve_round_robin_assignee",
     "resolve_territory_assignee",

@@ -20,6 +20,8 @@ _last_webhook_retry_at = 0.0
 _last_ops_mirror_at = 0.0
 _last_compliance_expiry_at = 0.0
 _last_lead_nurture_at = 0.0
+_last_lead_sla_at = 0.0
+_last_lead_archive_at = 0.0
 _last_blog_schedule_at = 0.0
 DRAFT_RECONCILE_INTERVAL_SECONDS = 300
 STANDING_ORDERS_INTERVAL_SECONDS = 300
@@ -28,6 +30,8 @@ WEBHOOK_RETRY_INTERVAL_SECONDS = 60
 OPS_MIRROR_INTERVAL_SECONDS = 30
 COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
 LEAD_NURTURE_INTERVAL_SECONDS = 300
+LEAD_SLA_ESCALATION_INTERVAL_SECONDS = 3600
+LEAD_SOFT_ARCHIVE_INTERVAL_SECONDS = 86400
 BLOG_SCHEDULE_INTERVAL_SECONDS = 60
 TRACKING_DRAIN_LIMIT = 10
 # Vehicles/drivers must land in Fleetbase before Optimize can assign. Do not
@@ -305,6 +309,51 @@ def _drain_lead_nurture() -> int:
     return int(result.get("sent", 0))
 
 
+def _drain_lead_sla_escalation() -> int:
+    """Page growth staff for NEW leads past first-response SLA."""
+    global _last_lead_sla_at
+    now = time.monotonic()
+    if now - _last_lead_sla_at < LEAD_SLA_ESCALATION_INTERVAL_SECONDS:
+        return 0
+    _last_lead_sla_at = now
+
+    from porterchain_api.collaboration_engine.lead_ops import escalate_sla_breached_leads
+    from porterchain_api.db import SessionLocal
+
+    with SessionLocal() as db:
+        result = escalate_sla_breached_leads(db, limit=25)
+    if result.get("notified") or result.get("due"):
+        logger.info(
+            "lead sla escalation: due=%s notified=%s",
+            result.get("due", 0),
+            result.get("notified", 0),
+        )
+    return int(result.get("notified", 0))
+
+
+def _drain_lead_soft_archive() -> int:
+    """Soft-archive inactive unconverted leads (~24 months)."""
+    global _last_lead_archive_at
+    now = time.monotonic()
+    if now - _last_lead_archive_at < LEAD_SOFT_ARCHIVE_INTERVAL_SECONDS:
+        return 0
+    _last_lead_archive_at = now
+
+    from porterchain_api.collaboration_engine.lead_retention import soft_archive_stale_leads
+    from porterchain_api.db import SessionLocal
+
+    with SessionLocal() as db:
+        result = soft_archive_stale_leads(db, limit=100)
+    if result.get("archived"):
+        logger.info(
+            "lead soft-archive: archived=%s skipped=%s scanned=%s",
+            result.get("archived", 0),
+            result.get("skipped", 0),
+            result.get("scanned", 0),
+        )
+    return int(result.get("archived", 0))
+
+
 def _drain_blog_scheduled_publish() -> int:
     """Publish drafts whose scheduled_publish_at has elapsed."""
     global _last_blog_schedule_at
@@ -429,6 +478,8 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_merchant_webhook_retries()
                 processed += _drain_driver_compliance_expiry()
                 processed += _drain_lead_nurture()
+                processed += _drain_lead_sla_escalation()
+                processed += _drain_lead_soft_archive()
                 processed += _drain_blog_scheduled_publish()
             if mode_includes(mode, "fleetbase"):
                 processed += _drain_fleetbase_retry_queue()

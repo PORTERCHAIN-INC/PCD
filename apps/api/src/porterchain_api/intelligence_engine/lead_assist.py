@@ -20,7 +20,51 @@ Rules:
 5. No markdown."""
 
 
-def _heuristic(lead: CrmLead, messages: list[str]) -> dict[str, Any]:
+def _proposals_for(
+    lead: CrmLead,
+    *,
+    draft: str,
+    suggested: str,
+    db: Session,
+) -> list[dict[str, Any]]:
+    proposals: list[dict[str, Any]] = [
+        {
+            "id": "draft_reply",
+            "type": "draft_reply",
+            "title": "Suggested reply",
+            "body": draft,
+        },
+        {
+            "id": "decision_status",
+            "type": "decision_status",
+            "title": "Suggested decision",
+            "body": suggested,
+        },
+        {
+            "id": "schedule_call",
+            "type": "schedule_call",
+            "title": "Schedule follow-up call",
+            "body": "Create an open call task due in 1 business day",
+        },
+    ]
+    consent = lead.consent or {}
+    can_nurture = bool(consent.get("marketing") and lead.email)
+    if can_nurture:
+        from porterchain_api.crm_suppression import is_suppressed
+
+        if not is_suppressed(db, email=lead.email, phone=lead.phone):
+            proposals.append(
+                {
+                    "id": "send_nurture_intro",
+                    "type": "send_nurture_intro",
+                    "title": "Send nurture intro email",
+                    "body": "Enqueue day-0 marketing intro (requires accept)",
+                }
+            )
+    return proposals
+
+
+def _heuristic(lead: CrmLead, messages: list[str], *, db: Session) -> dict[str, Any]:
     thread = "\n".join(messages[-8:]) if messages else (lead.internal_notes or "")
     decision = lead.decision_status or LeadDecisionStatus.NEW.value
     score = int(lead.lead_score or 0)
@@ -60,20 +104,11 @@ def _heuristic(lead: CrmLead, messages: list[str]) -> dict[str, Any]:
         "next_questions": questions,
         "risks": risks,
         "source": "heuristic",
-        "proposals": [
-            {
-                "id": "draft_reply",
-                "type": "draft_reply",
-                "title": "Suggested reply",
-                "body": draft,
-            },
-            {
-                "id": "decision_status",
-                "type": "decision_status",
-                "title": "Suggested decision",
-                "body": suggested,
-            },
-        ],
+        "contract": {
+            "mode": "propose_confirm",
+            "writes_require_confirm": True,
+        },
+        "proposals": _proposals_for(lead, draft=draft, suggested=suggested, db=db),
     }
 
 
@@ -103,9 +138,14 @@ def build_lead_assist(
         for m in rows:
             messages.append(f"{m.direction}: {m.body}")
 
-    base = _heuristic(lead, messages)
+    base = _heuristic(lead, messages, db=db)
 
-    from porterchain_api.intelligence_engine.enrichers import _can_call_nim, _call_nim, _parse_json_object, _phase2_ready
+    from porterchain_api.intelligence_engine.enrichers import (
+        _call_nim,
+        _can_call_nim,
+        _parse_json_object,
+        _phase2_ready,
+    )
 
     if not _phase2_ready(flags or {}) or not _can_call_nim(db):
         return base
@@ -152,9 +192,10 @@ def build_lead_assist(
         base["summary"] = summary[:500]
     if draft:
         base["draft_reply"] = draft[:2000]
-        base["proposals"][0]["body"] = base["draft_reply"]
     base["suggested_decision_status"] = suggested
-    base["proposals"][1]["body"] = suggested
+    base["proposals"] = _proposals_for(
+        lead, draft=base["draft_reply"], suggested=suggested, db=db
+    )
     if questions:
         base["next_questions"] = questions
     if risks:

@@ -8,7 +8,11 @@ import { RefreshCw } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Badge, Button, Spinner } from "@/components/crm/primitives";
-import { DRIVER_LEAD_SOURCE } from "@/lib/admin-nav";
+import {
+  DRIVER_LEAD_SOURCE,
+  WEBSITE_CONTACT_LEAD_SOURCE,
+  WEBSITE_NEWSLETTER_LEAD_SOURCE,
+} from "@/lib/admin-nav";
 import AdminPage from "@/components/layout/AdminPage";
 import {
   LEAD_CHANNELS,
@@ -47,8 +51,16 @@ export default function LeadsListClient() {
   const searchParams = useSearchParams();
   const sourceFromUrl = searchParams.get("source") ?? undefined;
   const isDriverInbox = sourceFromUrl === DRIVER_LEAD_SOURCE;
+  const inboxTitle = "Lead Workspace";
+  const inboxSubtitle = isDriverInbox
+    ? "Vehicle partner applications from /vehicle-partner"
+    : sourceFromUrl === WEBSITE_CONTACT_LEAD_SOURCE
+      ? "Website /contact inquiries"
+      : sourceFromUrl === WEBSITE_NEWSLETTER_LEAD_SOURCE
+        ? "Blog + footer newsletter subscriptions"
+        : "Merchant, retail, driver, and newsletter inbox";
   const [filters, setFilters] = useState<LeadFilters>(() =>
-    sourceFromUrl ? { source: sourceFromUrl } : {}
+    sourceFromUrl ? { source: sourceFromUrl, sort: "smart" } : { sort: "smart" }
   );
   const [showCapture, setShowCapture] = useState(false);
   const [captureBusy, setCaptureBusy] = useState(false);
@@ -64,6 +76,7 @@ export default function LeadsListClient() {
     consent_marketing: false,
     consent_sms: false,
     consent_whatsapp: false,
+    legal_basis: "consent" as "consent" | "legitimate_interest" | "contract",
   });
 
   useEffect(() => {
@@ -74,14 +87,28 @@ export default function LeadsListClient() {
   }, [sourceFromUrl]);
 
   const {
-    data: rows = [],
+    data: page,
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["leads", JSON.stringify(filters)],
+    queryKey: ["leads", JSON.stringify({ ...filters, offset: undefined })],
     enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
-    queryFn: async () => leadsApi.list(await getApiToken(), filters),
+    queryFn: async () =>
+      leadsApi.list(await getApiToken(), { ...filters, limit: filters.limit ?? 50, offset: 0 }),
   });
+  const rows = page?.items ?? [];
+  const total = page?.total ?? 0;
+  const [extra, setExtra] = useState<typeof rows>([]);
+  const [loadOffset, setLoadOffset] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  useEffect(() => {
+    setExtra([]);
+    setLoadOffset(0);
+  }, [JSON.stringify({ ...filters, offset: undefined, limit: undefined })]);
+
+  const allRows = [...rows, ...extra];
+  const canLoadMore = allRows.length < total;
 
   const { data: metrics } = useQuery({
     queryKey: ["lead-metrics"],
@@ -99,14 +126,97 @@ export default function LeadsListClient() {
     <AdminPage>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-primary">
-            {isDriverInbox ? "Driver Applications" : "Merchant Leads"}
-          </h1>
-          <p className="text-sm text-muted">
-            {isDriverInbox
-              ? "Vehicle partner applications from /vehicle-partner"
-              : "Multi-channel merchant acquisition inbox (website, social, WhatsApp, call, referral)"}
-          </p>
+          <h1 className="text-2xl font-bold text-primary">{inboxTitle}</h1>
+          <p className="text-sm text-muted">{inboxSubtitle}</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {(
+              [
+                { href: "/leads", label: "All", source: undefined },
+                {
+                  href: "/leads?source=website_business",
+                  label: "Merchant",
+                  source: "website_business",
+                },
+                {
+                  href: `/leads?source=${DRIVER_LEAD_SOURCE}`,
+                  label: "Driver",
+                  source: DRIVER_LEAD_SOURCE,
+                },
+                {
+                  href: `/leads?source=${WEBSITE_CONTACT_LEAD_SOURCE}`,
+                  label: "Contact",
+                  source: WEBSITE_CONTACT_LEAD_SOURCE,
+                },
+                {
+                  href: `/leads?source=${WEBSITE_NEWSLETTER_LEAD_SOURCE}`,
+                  label: "Newsletter",
+                  source: WEBSITE_NEWSLETTER_LEAD_SOURCE,
+                },
+              ] as const
+            ).map((chip) => {
+              const active = (sourceFromUrl ?? undefined) === chip.source;
+              return (
+                <Link
+                  key={chip.label}
+                  href={chip.href}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs font-medium",
+                    active
+                      ? "border-secondary bg-secondary/10 text-secondary"
+                      : "border-primary/10 text-muted hover:bg-slate-50"
+                  )}
+                >
+                  {chip.label}
+                </Link>
+              );
+            })}
+            <Link
+              href="/settings?section=lead_ingest"
+              className="rounded-full border border-primary/10 px-2.5 py-1 text-xs font-medium text-muted hover:bg-slate-50"
+            >
+              Ingest settings
+            </Link>
+            <button
+              type="button"
+              onClick={() =>
+                setFilters((f) => ({
+                  ...f,
+                  sort: (f.sort ?? "smart") === "smart" ? "created_at" : "smart",
+                }))
+              }
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-xs font-medium",
+                (filters.sort ?? "smart") === "smart"
+                  ? "border-secondary bg-secondary/10 text-secondary"
+                  : "border-primary/10 text-muted hover:bg-slate-50"
+              )}
+              title="SLA breached → priority → score → newest"
+              aria-label="Toggle smart triage sort"
+              aria-pressed={(filters.sort ?? "smart") === "smart"}
+            >
+              {(filters.sort ?? "smart") === "smart" ? "Smart triage" : "Newest first"}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setFilters((f) => ({
+                  ...f,
+                  status: f.status === "archived" ? undefined : "archived",
+                  include_archived: f.status === "archived" ? undefined : true,
+                }))
+              }
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                filters.status === "archived"
+                  ? "border-slate-400 bg-slate-100 text-slate-800"
+                  : "border-primary/10 text-muted hover:bg-slate-50"
+              )}
+              aria-label="Toggle archived leads"
+              aria-pressed={filters.status === "archived"}
+            >
+              Archived
+            </button>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {!isDriverInbox ? (
@@ -115,6 +225,7 @@ export default function LeadsListClient() {
                 type="button"
                 onClick={() => setShowCapture(true)}
                 className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
+                aria-label="Add lead"
               >
                 Add lead
               </button>
@@ -127,11 +238,13 @@ export default function LeadsListClient() {
                   }))
                 }
                 className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
                   filters.merge_candidates
                     ? "border-amber-300 bg-amber-50 text-amber-900"
                     : "border-primary/10 text-secondary hover:bg-slate-50"
                 )}
+                aria-label="Toggle merge candidate queue"
+                aria-pressed={Boolean(filters.merge_candidates)}
               >
                 Merge queue
               </button>
@@ -144,11 +257,13 @@ export default function LeadsListClient() {
                   }))
                 }
                 className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
                   filters.sla_breached
                     ? "border-red-300 bg-red-50 text-red-900"
                     : "border-primary/10 text-secondary hover:bg-slate-50"
                 )}
+                aria-label="Toggle SLA-breached leads"
+                aria-pressed={Boolean(filters.sla_breached)}
               >
                 SLA breach
               </button>
@@ -161,13 +276,66 @@ export default function LeadsListClient() {
                   }))
                 }
                 className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
                   filters.unassigned
                     ? "border-sky-300 bg-sky-50 text-sky-900"
                     : "border-primary/10 text-secondary hover:bg-slate-50"
                 )}
+                aria-label="Toggle unassigned leads"
+                aria-pressed={Boolean(filters.unassigned)}
               >
                 Unassigned
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFilters((f) => ({
+                    ...f,
+                    has_open_draft: f.has_open_draft ? undefined : true,
+                  }))
+                }
+                className={cn(
+                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                  filters.has_open_draft
+                    ? "border-violet-300 bg-violet-50 text-violet-900"
+                    : "border-primary/10 text-secondary hover:bg-slate-50"
+                )}
+              >
+                Open draft
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFilters((f) => ({
+                    ...f,
+                    nurture_scheduled: f.nurture_scheduled ? undefined : true,
+                  }))
+                }
+                className={cn(
+                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                  filters.nurture_scheduled
+                    ? "border-teal-300 bg-teal-50 text-teal-900"
+                    : "border-primary/10 text-secondary hover:bg-slate-50"
+                )}
+              >
+                Nurture
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFilters((f) => ({
+                    ...f,
+                    has_abandoned: f.has_abandoned ? undefined : true,
+                  }))
+                }
+                className={cn(
+                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                  filters.has_abandoned
+                    ? "border-orange-300 bg-orange-50 text-orange-900"
+                    : "border-primary/10 text-secondary hover:bg-slate-50"
+                )}
+              >
+                Abandoned checkout
               </button>
               <Link
                 href="/leads/pipeline"
@@ -243,7 +411,9 @@ export default function LeadsListClient() {
               />
             </label>
             <div className="space-y-2 rounded-xl border border-primary/10 p-3">
-              <p className="text-xs font-medium text-muted">Consent (phone or email required)</p>
+              <p className="text-xs font-medium text-muted">
+                Consent (phone or email required). Marketing needs a legal basis.
+              </p>
               {(
                 [
                   ["consent_marketing", "Marketing email"],
@@ -260,6 +430,25 @@ export default function LeadsListClient() {
                   {label}
                 </label>
               ))}
+              {capture.consent_marketing ? (
+                <label className="block text-sm">
+                  <span className="mb-1 block font-medium">Legal basis</span>
+                  <select
+                    className="w-full rounded-xl border border-primary/10 px-3 py-2"
+                    value={capture.legal_basis}
+                    onChange={(e) =>
+                      setCapture((c) => ({
+                        ...c,
+                        legal_basis: e.target.value as typeof c.legal_basis,
+                      }))
+                    }
+                  >
+                    <option value="consent">Consent (CASL / GDPR Art.6)</option>
+                    <option value="legitimate_interest">Legitimate interest</option>
+                    <option value="contract">Contract</option>
+                  </select>
+                </label>
+              ) : null}
             </div>
             {captureError ? <p className="text-sm text-red-600">{captureError}</p> : null}
             <div className="flex justify-end gap-2 pt-2">
@@ -295,6 +484,9 @@ export default function LeadsListClient() {
                           marketing: capture.consent_marketing,
                           sms: capture.consent_sms,
                           whatsapp: capture.consent_whatsapp,
+                          ...(capture.consent_marketing
+                            ? { legal_basis: capture.legal_basis }
+                            : {}),
                         },
                       });
                       setShowCapture(false);
@@ -466,16 +658,20 @@ export default function LeadsListClient() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-12">
+          <div className="flex justify-center py-12" role="status" aria-live="polite">
             <Spinner />
+            <span className="sr-only">Loading leads</span>
           </div>
-        ) : rows.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted">
-            {isDriverInbox ? "No driver partner leads yet." : "No merchant leads yet."}
+        ) : allRows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-muted" role="status" aria-live="polite">
+            {isDriverInbox ? "No driver partner leads yet." : "No leads yet."}
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
+            <p className="sr-only" aria-live="polite">
+              {total} leads in inbox, showing {allRows.length}
+            </p>
+            <table className="w-full min-w-[720px] text-left text-sm" aria-label="Lead inbox">
               <thead>
                 <tr className="border-b border-primary/10 text-xs uppercase tracking-wide text-muted">
                   <th className="px-3 py-2 font-medium">When</th>
@@ -487,7 +683,7 @@ export default function LeadsListClient() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((lead) => {
+                {allRows.map((lead) => {
                   const intent = leadIntent(lead);
                   const form = leadForm(lead);
                   return (
@@ -511,6 +707,21 @@ export default function LeadsListClient() {
                             Intent: {lead.intent_type ?? intent}
                           </p>
                         )}
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {lead.status === "archived" ? <Badge tone="slate">archived</Badge> : null}
+                          {lead.booking_draft_id ? <Badge tone="violet">draft</Badge> : null}
+                          {lead.status === "nurturing" ||
+                          (lead.tags || []).some((t) =>
+                            String(t).toLowerCase().includes("nurture")
+                          ) ? (
+                            <Badge tone="teal">nurture</Badge>
+                          ) : null}
+                          {lead.sla_first_response_due_at &&
+                          lead.status === "new" &&
+                          new Date(lead.sla_first_response_due_at).getTime() < Date.now() ? (
+                            <Badge tone="red">SLA</Badge>
+                          ) : null}
+                        </div>
                         {lead.merge_candidate_of ? (
                           <div className="mt-1 flex flex-wrap items-center gap-2">
                             <p className="text-xs text-amber-700">
@@ -586,6 +797,33 @@ export default function LeadsListClient() {
                 })}
               </tbody>
             </table>
+            {canLoadMore ? (
+              <div className="mt-4 flex justify-center">
+                <Button
+                  variant="outline"
+                  disabled={loadingMore}
+                  onClick={() => {
+                    void (async () => {
+                      setLoadingMore(true);
+                      try {
+                        const nextOffset = (page?.limit ?? 50) + loadOffset;
+                        const more = await leadsApi.list(await getApiToken(), {
+                          ...filters,
+                          limit: page?.limit ?? 50,
+                          offset: nextOffset,
+                        });
+                        setExtra((prev) => [...prev, ...more.items]);
+                        setLoadOffset(nextOffset);
+                      } finally {
+                        setLoadingMore(false);
+                      }
+                    })();
+                  }}
+                >
+                  {loadingMore ? "Loading…" : `Load more (${allRows.length} of ${total})`}
+                </Button>
+              </div>
+            ) : null}
           </div>
         )}
       </div>

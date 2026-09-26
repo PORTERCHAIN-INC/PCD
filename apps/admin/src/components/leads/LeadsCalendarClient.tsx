@@ -96,7 +96,7 @@ export default function LeadsCalendarClient() {
           </Link>
           <h1 className="text-2xl font-bold text-primary">Lead calendar</h1>
           <p className="text-sm text-muted">
-            Calls and meetings booked from the capacity guide (and other lead tasks).
+            Calls and meetings — each item opens Lead 360 for that lead.
           </p>
         </div>
         <div className="flex items-center gap-2">

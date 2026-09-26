@@ -869,92 +869,35 @@ class AdminSettingsService:
             "default_vehicle_class": default_class,
         }
 
-    def integration_health(self, db: Session, settings: Settings) -> dict[str, Any]:
+    def integration_health(
+        self,
+        db: Session,
+        settings: Settings,
+        *,
+        ready: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from porterchain_api.admin_engine.integration_health import build_integration_health
         from porterchain_api.intelligence_engine import nim_client
+        from porterchain_shared.config.settings import PlatformSettings
 
-        ready = readiness(db, settings)
         platform = PlatformSettings()
-        checks = ready.get("checks", {})
-        return {
-            "api": ready.get("status", "unknown"),
-            "database": checks.get("database", "unknown"),
-            "redis": checks.get("redis", "unknown"),
-            "queue": checks.get("redis", "unknown"),
-            "stripe": {
-                "status": checks.get("stripe", "unknown"),
-                "mock_mode": settings.stripe_mock,
-                "configured": bool(settings.stripe_secret),
-            },
-            "fleetbase": {
-                "status": checks.get("fleetbase", "unknown"),
-                "bridge_enabled": settings.fleetbase_dispatch_bridge,
-                "configured": bool(settings.fleetbase_api_key),
-                "api_url": settings.fleetbase_api_url,
-            },
-            "google_maps": {
-                "status": "configured" if platform.google_maps_api_key else "unconfigured",
-                "role": "places_and_tiles_only",
-                "note": "Routing uses Valhalla/OSRM — not Google",
-            },
-            "firebase": {
-                "status": "configured" if platform.firebase_project_id else "unconfigured",
-                "project_id": platform.firebase_project_id or None,
-            },
-            "clerk": {
-                "status": "configured" if is_clerk_configured(settings) else "dev_bypass"
-                if settings.clerk_dev_bypass
-                else "unconfigured",
-            },
-            "storage": {"status": "local", "note": "File storage via API deployment volume"},
-            "email": {
-                "status": "configured" if platform.smtp_host else "unconfigured",
-                "from": platform.smtp_from or None,
-            },
-            "sms": {
-                "status": "log_only",
-                "note": "SMS provider not configured — Clerk handles phone verification",
-            },
-            "push": {
-                "status": "configured" if platform.firebase_project_id else "unconfigured",
-                "project_id": platform.firebase_project_id or None,
-            },
-            "nvidia_nim": {
-                "status": "configured" if nim_client.nim_configured() else "unconfigured",
-                "provider": "nvidia_nim",
-                "model": (
-                    getattr(platform, "nvidia_model", None) or "meta/llama-3.2-11b-vision-instruct"
-                ),
-                "phase2_intelligence": bool(settings.phase2_flags.get("intelligence")),
-                "phase2_ai_dispatch": bool(settings.phase2_flags.get("ai_dispatch")),
-                "note": "Read-only language assist — never on pay / Valhalla / Fleetbase write path",
-            },
-            "nvidia_cuopt": {
-                "status": (
-                    "shadow"
-                    if bool(settings.phase2_flags.get("cuopt_shadow"))
-                    else "disabled"
-                ),
-                "phase2_cuopt_shadow": bool(settings.phase2_flags.get("cuopt_shadow")),
-                "commit_sot": "fleetbase_vroom",  # fleetbase-first:ok — label: Fleetbase SoT
-                "note": "Shadow A/B only — never commits routes; Fleetbase orchestrator remains SoT",
-            },
-            "routing": {
-                "primary": "valhalla",
-                "fallback": "osrm",
-                "optimize_sot": "fleetbase_vroom",  # fleetbase-first:ok — label: Fleetbase SoT
-                "merchant_route_import": "nearest_neighbor_labeled",
-                "degrade_labels": {
-                    "valhalla_down": "osrm_fallback",
-                    "fleetbase_bridge_off": "optimize_unavailable",
-                    "cuopt_shadow_error": "vroom_only",
-                },
-            },
-        }
+        return build_integration_health(
+            db,
+            settings,
+            ready=ready,
+            nvidia_nim_configured=nim_client.nim_configured(),
+            nvidia_model=getattr(platform, "nvidia_model", None),
+        )
 
     def dashboard(self, db: Session, settings: Settings) -> dict[str, Any]:
+        from porterchain_api.platform.health_status import component_status_value
+
         health = self.integration_health(db, settings)
+        db_status = component_status_value(health.get("database"))
+        redis_status = component_status_value(health.get("redis"))
         overall = "healthy"
-        if health["database"] != "ok" or health["redis"] not in ("ok", "unavailable"):
+        # Redis unavailable is warning (local-ok); only critical redis/db degrade overall.
+        if db_status != "healthy" or redis_status == "critical":
             overall = "degraded"
         return {
             "system_status": overall,

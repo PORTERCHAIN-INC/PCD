@@ -57,7 +57,7 @@ type Action = { label: string; href?: string; external?: boolean };
 const ACTIONS: Record<string, Action[]> = {
   fleetbase: [
     { label: "Operations control tower", href: "/operations" },
-    { label: "System health", href: "/system" },
+    { label: "System", href: "/system" },
   ],
   stripe: [
     { label: "Stripe Dashboard", href: "https://dashboard.stripe.com", external: true },
@@ -78,7 +78,7 @@ const ACTIONS: Record<string, Action[]> = {
     { label: "Register this browser for push", href: "/notifications" },
     { label: "Mailpit (local email)", href: "http://localhost:8025", external: true },
   ],
-  storage: [{ label: "System health", href: "/system" }],
+  storage: [{ label: "System", href: "/system" }],
 };
 
 export default function IntegrationPanel({

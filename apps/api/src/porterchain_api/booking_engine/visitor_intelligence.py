@@ -24,7 +24,7 @@ class VisitorIntelligenceService:
 
     def insight_for_lead(self, db: Session, lead: CrmLead) -> dict[str, Any] | None:
         fields = lead.custom_fields if isinstance(lead.custom_fields, dict) else {}
-        session_id = fields.get("visitor_id") or fields.get("session_id")
+        session_id = lead.visitor_session_id or fields.get("visitor_id") or fields.get("session_id")
         if isinstance(session_id, str) and session_id.strip():
             insight = self.insight_for_session(db, session_id.strip())
             if insight:

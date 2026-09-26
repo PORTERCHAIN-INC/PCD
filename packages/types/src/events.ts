@@ -44,7 +44,10 @@ export type DomainEventType =
   | "fleetbase.status_updated"
   | "fleetbase.pod_received"
   | "fleetbase.sync_failed"
-  | "lead.created";
+  | "lead.created"
+  | "lead.merged"
+  | "lead.engagement"
+  | "lead.whatsapp_blocked";
 
 export interface EventActor {
   type: string;

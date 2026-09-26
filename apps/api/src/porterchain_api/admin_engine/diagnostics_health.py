@@ -84,7 +84,7 @@ class DiagnosticsHealthMixin:
     def _build_health_dashboard(self, db: Session, settings: Settings) -> dict[str, Any]:
         ready = readiness(db, settings)
         platform = get_platform_settings()
-        integration = self._settings_svc.integration_health(db, settings)
+        integration = self._settings_svc.integration_health(db, settings, ready=ready)
         components: list[dict[str, Any]] = []
 
         portal_targets = [
@@ -105,12 +105,16 @@ class DiagnosticsHealthMixin:
             _, probe = portal_results[cid]
             components.append(probe)
 
-        api_status = _classify(str(integration.get("api", "unknown")))
+        api_entry = integration.get("api", {})
+        if isinstance(api_entry, dict):
+            api_status = api_entry.get("status") or _classify(str(api_entry.get("raw", "unknown")))
+        else:
+            api_status = _classify(str(api_entry))
         components.append(
             _component(
-                "fastapi",
-                "FastAPI",
-                status=api_status,
+                "porterchain_api",
+                "Porterchain API",
+                status=api_status,  # type: ignore[arg-type]
                 version=PORTERCHAIN_VERSION,
                 details={"environment": settings.app_env, "checks": ready.get("checks", {})},
             )
@@ -132,19 +136,23 @@ class DiagnosticsHealthMixin:
         bus_probe = self._probe_event_bus(platform)
         components.append(_component("event_bus", "Internal Event Bus", **bus_probe))
 
-        db_status = _classify(str(integration.get("database", "unknown")))
+        db_entry = integration.get("database", {})
+        if isinstance(db_entry, dict):
+            db_status = db_entry.get("status") or _classify(str(db_entry.get("raw", "unknown")))
+        else:
+            db_status = _classify(str(db_entry))
         start = time.monotonic()
         try:
             db.execute(text("SELECT 1"))
             db_latency = (time.monotonic() - start) * 1000
-        except Exception as exc:  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             db_latency = None
             db_status = "critical"
         components.append(
             _component(
                 "postgresql",
                 "PostgreSQL",
-                status=db_status,
+                status=db_status,  # type: ignore[arg-type]
                 latency_ms=db_latency,
                 version="PostgreSQL",
             )

@@ -133,6 +133,9 @@ class CrmLead(Base):
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True, index=True)
     quote_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # First-class visitor spine (was custom_fields.visitor_id / session_id).
+    visitor_session_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    booking_draft_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
 
     estimated_deliveries_per_month: Mapped[int | None] = mapped_column(Integer, nullable=True)
     estimated_revenue_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -469,3 +472,19 @@ class CrmReferralCredit(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     granted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class CrmSuppression(Base):
+    """Global do-not-contact store — hashed email/phone only (CASL / GDPR object)."""
+
+    __tablename__ = "crm_suppressions"
+    __table_args__ = (
+        UniqueConstraint("hash_kind", "value_hash", name="uq_crm_suppressions_kind_hash"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    hash_kind: Mapped[str] = mapped_column(String(16), index=True)  # email | phone
+    value_hash: Mapped[str] = mapped_column(String(64), index=True)
+    source: Mapped[str] = mapped_column(String(64), default="unsubscribe")
+    lead_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

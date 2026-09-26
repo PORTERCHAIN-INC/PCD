@@ -29,6 +29,12 @@ def test_roles_for_topic_finance() -> None:
     assert "super_admin" in roles
 
 
+def test_roles_for_topic_growth() -> None:
+    roles = roles_for_topic("growth")
+    assert "super_admin" in roles
+    assert staff_sentinel("growth") == "__staff:growth__"
+
+
 def test_driver_assigned_specs_include_customer_when_hydrated() -> None:
     payload = {
         "customer_id": "cust-1",

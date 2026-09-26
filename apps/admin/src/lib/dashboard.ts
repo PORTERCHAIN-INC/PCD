@@ -1,4 +1,5 @@
 import { adminFetch } from "@/lib/api";
+import { healthStatus, integrationHealthSchema, type IntegrationHealth } from "@/lib/health";
 
 export type DashboardCenter = {
   meta: {
@@ -30,7 +31,7 @@ export type DashboardCenter = {
     actor_type: string;
     occurred_at: string | null;
   }>;
-  system_health: Record<string, unknown>;
+  system_health: IntegrationHealth | Record<string, unknown>;
   smart: Record<string, unknown>;
   pending: Record<string, number>;
   quick_actions: Array<{ id: string; label: string; href: string }>;
@@ -48,7 +49,14 @@ const B = "/v1/admin/dashboard";
 
 export const dashboardApi = {
   legacy: (token: string) => adminFetch<Record<string, unknown>>("/v1/admin/dashboard", token),
-  center: (token: string) => adminFetch<DashboardCenter>(`${B}/center`, token),
+  center: async (token: string) => {
+    const raw = await adminFetch<DashboardCenter>(`${B}/center`, token);
+    const parsed = integrationHealthSchema.safeParse(raw.system_health);
+    if (parsed.success) {
+      return { ...raw, system_health: parsed.data };
+    }
+    return raw;
+  },
   search: (token: string, q: string) =>
     adminFetch<SearchHit[]>(`${B}/search?q=${encodeURIComponent(q)}`, token),
 };
@@ -67,7 +75,7 @@ export const DASHBOARD_WIDGETS = [
   { id: "fleet", label: "Fleet", defaultVisible: true },
   { id: "reports", label: "Reports", defaultVisible: true },
   { id: "activity", label: "Activity Timeline", defaultVisible: true },
-  { id: "health", label: "System Health", defaultVisible: true },
+  { id: "health", label: "Health", defaultVisible: true },
   { id: "smart", label: "Smart Insights", defaultVisible: true },
   { id: "sidebar", label: "Right Sidebar", defaultVisible: true },
 ] as const;
@@ -99,22 +107,4 @@ export function saveWidgetLayout(layout: Record<WidgetId, boolean>) {
   localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout));
 }
 
-export function healthStatus(value: unknown): "healthy" | "warning" | "critical" | "unknown" {
-  const s = String(
-    typeof value === "object" && value && "status" in value
-      ? (value as { status: string }).status
-      : (value ?? "")
-  ).toLowerCase();
-  if (s.includes("ok") || s.includes("configured") || s.includes("healthy") || s === "local")
-    return "healthy";
-  if (
-    s.includes("mock") ||
-    s.includes("degraded") ||
-    s.includes("bypass") ||
-    s.includes("log_only")
-  )
-    return "warning";
-  if (s.includes("error") || s.includes("unconfigured") || s.includes("unavailable"))
-    return "critical";
-  return "unknown";
-}
+export { healthStatus };

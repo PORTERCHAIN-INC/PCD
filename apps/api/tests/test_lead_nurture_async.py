@@ -32,10 +32,14 @@ def test_schedule_nurture_tasks_idempotent(db) -> None:
     db.flush()
     a = schedule_lead_nurture(db, lead)
     db.commit()
-    assert len(a) == 2
+    assert len(a) == 3
     assert "nurture_scheduled" in (lead.tags or [])
     b = schedule_lead_nurture(db, lead)
     assert b == []
+    titles = {t.title for t in a}
+    assert any(t.startswith("[Nurture D+1]") for t in titles)
+    assert any(t.startswith("[Nurture D+3]") for t in titles)
+    assert any(t.startswith("[Nurture D+7]") for t in titles)
 
 
 def test_apply_nurture_enqueues_intro_when_consent(db) -> None:
@@ -57,7 +61,7 @@ def test_apply_nurture_enqueues_intro_when_consent(db) -> None:
         gp.return_value = pub
         out = apply_nurture_after_ingest(db, lead, created=True, website_url="https://example.test")
         db.commit()
-        assert out["scheduled"] == 2
+        assert out["scheduled"] == 3
         assert out["intro_email"] is True
         pub.enqueue.assert_called()
 
@@ -80,7 +84,7 @@ def test_process_due_nurture_emails(db) -> None:
         status="open",
         entity_type="lead",
         entity_id=lead.id,
-        due_at=datetime.now(UTC) - timedelta(minutes=5),
+        due_at=datetime(2000, 1, 1, tzinfo=UTC),
         created_by="system",
     )
     db.add(task)
@@ -94,6 +98,40 @@ def test_process_due_nurture_emails(db) -> None:
         assert result["sent"] >= 1
         db.refresh(task)
         assert task.status == "done"
+
+
+def test_process_due_nurture_d7_email(db) -> None:
+    lead = CrmLead(
+        company_name=f"Due7 {uuid.uuid4().hex[:6]}",
+        email=f"d7-{uuid.uuid4().hex[:6]}@t.test",
+        source="website",
+        channel="website",
+        status="new",
+        consent={"marketing": True},
+        tags=["nurture_scheduled"],
+    )
+    db.add(lead)
+    db.flush()
+    task = CrmSalesTask(
+        title=f"[Nurture D+7] Email re-engage: {lead.company_name}",
+        task_type="email",
+        status="open",
+        entity_type="lead",
+        entity_id=lead.id,
+        due_at=datetime(2000, 1, 1, tzinfo=UTC),
+        created_by="system",
+    )
+    db.add(task)
+    db.commit()
+    with patch("porterchain_shared.queue.publisher.get_queue_publisher") as gp:
+        pub = MagicMock()
+        gp.return_value = pub
+        result = process_due_nurture_emails(db, limit=10)
+        assert result["sent"] >= 1
+        db.refresh(task)
+        assert task.status == "done"
+        args = pub.enqueue.call_args
+        assert args[0][1]["template"] == "lead_nurture_d7"
 
 
 def test_queued_lead_ingest_roundtrip(db) -> None:

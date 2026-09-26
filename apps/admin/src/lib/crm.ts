@@ -90,6 +90,9 @@ export type Lead = {
   last_touch_at?: string | null;
   consent?: Record<string, unknown> | null;
   custom_fields: Record<string, unknown> | null;
+  quote_id?: string | null;
+  visitor_session_id?: string | null;
+  booking_draft_id?: string | null;
   created_at: string;
   updated_at: string;
 };

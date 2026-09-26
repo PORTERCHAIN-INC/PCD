@@ -189,26 +189,29 @@ class CustomerService:
         phone: str | None,
         quote_id: str,
         customer_id: str,
+        visitor_session_id: str | None = None,
+        consent: dict | None = None,
     ) -> Lead:
         # C-24: upsert by quote — booking retries must not spawn duplicate leads.
+        from porterchain_api.booking_engine.crm_lead_mirror import mirror_booking_lead_to_crm
+
         existing = db.query(Lead).filter(Lead.quote_id == quote_id).first()
         if existing:
             existing.email = email or existing.email
             existing.phone = phone or existing.phone
             existing.customer_id = customer_id or existing.customer_id
-            if not existing.crm_lead_id:
-                from porterchain_api.booking_engine.crm_lead_mirror import mirror_booking_lead_to_crm
-
-                crm_lead = mirror_booking_lead_to_crm(
-                    db,
-                    email=email,
-                    phone=phone,
-                    quote_id=quote_id,
-                    customer_id=customer_id,
-                    stage=existing.stage,
-                )
-                if crm_lead:
-                    existing.crm_lead_id = crm_lead.id
+            crm_lead = mirror_booking_lead_to_crm(
+                db,
+                email=email,
+                phone=phone,
+                quote_id=quote_id,
+                customer_id=customer_id,
+                stage=existing.stage,
+                visitor_session_id=visitor_session_id,
+                consent=consent,
+            )
+            if crm_lead:
+                existing.crm_lead_id = crm_lead.id
             db.commit()
             db.refresh(existing)
             return existing
@@ -231,8 +234,6 @@ class CustomerService:
             correlation_id=quote_id,
             payload={"email": email},
         )
-        from porterchain_api.booking_engine.crm_lead_mirror import mirror_booking_lead_to_crm
-
         crm_lead = mirror_booking_lead_to_crm(
             db,
             email=email,
@@ -240,6 +241,8 @@ class CustomerService:
             quote_id=quote_id,
             customer_id=customer_id,
             stage=lead.stage,
+            visitor_session_id=visitor_session_id,
+            consent=consent,
         )
         if crm_lead:
             lead.crm_lead_id = crm_lead.id

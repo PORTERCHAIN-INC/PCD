@@ -13,6 +13,8 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
     "checkout_recovery": {"category": "booking"},
     "lead_nurture_intro": {"category": "crm"},
     "lead_nurture_d1": {"category": "crm"},
+    "lead_nurture_d7": {"category": "crm"},
+    "lead_sla_escalation": {"category": "crm"},
     "quote_created": {"category": "booking"},
     "order_created": {"category": "orders"},
     "order_booked": {"category": "orders"},
@@ -88,6 +90,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Hi {contact_name},\n\n"
             "Thanks for your interest in vehicle-and-driver capacity for {company_name}.\n"
             "Reply to this email or continue here: {quote_url}\n\n"
+            "Unsubscribe: {unsubscribe_url}\n"
             "— PorterChain"
         ),
     },
@@ -97,7 +100,26 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Hi {contact_name},\n\n"
             "Following up on {company_name}'s capacity request.\n"
             "Get a quote: {quote_url}\n\n"
+            "Unsubscribe: {unsubscribe_url}\n"
             "— PorterChain"
+        ),
+    },
+    "lead_nurture_d7": {
+        "subject": "Still need capacity? PorterChain is ready",
+        "body": (
+            "Hi {contact_name},\n\n"
+            "Checking back on {company_name}'s capacity request.\n"
+            "If timing is better now, get a quote: {quote_url}\n\n"
+            "Unsubscribe: {unsubscribe_url}\n"
+            "— PorterChain"
+        ),
+    },
+    "lead_sla_escalation": {
+        "subject": "Unassigned {priority} lead: {company_name}",
+        "body": (
+            "Lead {lead_id} ({company_name}) is unassigned at {priority} priority.\n"
+            "Source: {source} / {channel}\n"
+            "Open: {deep_link}"
         ),
     },
     "quote_created": {"subject": "Quote created", "body": "Quote {quote_id} is ready for review."},
@@ -408,12 +430,18 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             preheader="Complete your PorterChain booking",
         )
 
-    if template in ("lead_nurture_intro", "lead_nurture_d1"):
+    if template in ("lead_nurture_intro", "lead_nurture_d1", "lead_nurture_d7"):
         url = _g(ctx, "quote_url")
         company = _g(ctx, "company_name") or "your business"
+        unsub = _g(ctx, "unsubscribe_url")
+        headline = {
+            "lead_nurture_intro": "Vehicle + driver capacity",
+            "lead_nurture_d1": "Ready for a quote?",
+            "lead_nurture_d7": "Still planning capacity?",
+        }.get(template, "Ready for a quote?")
         return build_transactional_html(
             eyebrow="Capacity network",
-            headline="Vehicle + driver capacity" if template == "lead_nurture_intro" else "Ready for a quote?",
+            headline=headline,
             lead=f"PorterChain for {company}. {TAGLINE}.",
             rows=[
                 ("Contact", _g(ctx, "contact_name")),
@@ -421,7 +449,23 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             ],
             cta_label="Get a quote",
             cta_url=url,
+            note=f"Unsubscribe: {unsub}" if unsub else "",
             preheader="PorterChain capacity follow-up",
+        )
+
+    if template == "lead_sla_escalation":
+        return build_transactional_html(
+            eyebrow="Growth SLA",
+            headline=f"Unassigned {_g(ctx, 'priority')} lead",
+            lead=f"{_g(ctx, 'company_name') or 'Lead'} needs assignment.",
+            rows=[
+                ("Lead", _g(ctx, "lead_id")),
+                ("Source", _g(ctx, "source")),
+                ("Channel", _g(ctx, "channel")),
+            ],
+            cta_label="Open lead",
+            cta_url=_g(ctx, "deep_link") or "#",
+            preheader="Unassigned high-priority lead",
         )
 
     # Generic branded shell for remaining templates
@@ -485,6 +529,14 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
         "merchant_id",
         "reason",
         "reason_line",
+        "unsubscribe_url",
+        "contact_name",
+        "quote_url",
+        "lead_id",
+        "priority",
+        "source",
+        "channel",
+        "deep_link",
     ):
         safe.setdefault(key, "")
     try:

@@ -1,4 +1,5 @@
-import { QUOTE_INTENT_KEY } from "@/lib/visitor-tracking";
+import { readStoredConsent } from "@/lib/marketing/consent";
+import { getOrCreateVisitorId, QUOTE_INTENT_KEY } from "@/lib/visitor-tracking";
 
 export type InquiryPayload = {
   email: string;
@@ -15,6 +16,18 @@ export type InquiryPayload = {
   utm_campaign?: string;
   utm_medium?: string;
   referred_by_merchant_id?: string;
+  visitor_id?: string;
+  consent?: {
+    marketing?: boolean;
+    sms?: boolean;
+    whatsapp?: boolean;
+    analytics?: boolean;
+    experience?: boolean;
+    source?: string;
+    text_version?: string;
+    captured_at?: string;
+    actor?: string;
+  };
 };
 
 function referralFromUrl(): string | undefined {
@@ -39,15 +52,44 @@ function referralFromSession(): string | undefined {
   }
 }
 
+function consentSnapshot(payload: InquiryPayload): InquiryPayload["consent"] | undefined {
+  if (payload.consent) return payload.consent;
+  const stored = readStoredConsent();
+  if (!stored) {
+    // Newsletter / explicit marketing forms default to marketing opt-in.
+    if (payload.form === "newsletter" || payload.inquiry_type === "newsletter") {
+      return { marketing: true };
+    }
+    return undefined;
+  }
+  return {
+    marketing: stored.marketing,
+    analytics: stored.analytics,
+    experience: stored.experience,
+    source: "website_cmp",
+    text_version: "casl_v1_marketing",
+    captured_at: new Date().toISOString(),
+    actor: "lead",
+  };
+}
+
 export async function submitInquiry(payload: InquiryPayload): Promise<{ id: string }> {
   const referred_by_merchant_id =
     payload.referred_by_merchant_id?.trim() || referralFromUrl() || referralFromSession();
+  const visitor_id =
+    payload.visitor_id?.trim() ||
+    (typeof window !== "undefined" ? getOrCreateVisitorId() : "") ||
+    undefined;
+  const consent = consentSnapshot(payload);
+
   const res = await fetch("/api/inquiries", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       ...payload,
       ...(referred_by_merchant_id ? { referred_by_merchant_id } : {}),
+      ...(visitor_id ? { visitor_id } : {}),
+      ...(consent ? { consent } : {}),
     }),
   });
 

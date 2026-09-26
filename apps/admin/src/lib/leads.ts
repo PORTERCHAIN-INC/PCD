@@ -9,6 +9,7 @@ export const LEAD_STATUSES = [
   "unqualified",
   "nurturing",
   "converted",
+  "archived",
 ] as const;
 
 export const LEAD_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
@@ -84,7 +85,14 @@ export type LeadFilters = {
   unassigned?: boolean;
   merge_candidates?: boolean;
   sla_breached?: boolean;
+  has_open_draft?: boolean;
+  nurture_scheduled?: boolean;
+  has_abandoned?: boolean;
+  include_archived?: boolean;
+  sort?: "smart" | "created_at";
   search?: string;
+  limit?: number;
+  offset?: number;
 };
 
 const leadSchema = z.object({
@@ -122,9 +130,85 @@ const leadSchema = z.object({
   last_touch_at: z.string().nullable().optional(),
   consent: z.record(z.string(), z.unknown()).nullable().optional(),
   custom_fields: z.record(z.string(), z.unknown()).nullable(),
+  quote_id: z.string().nullable().optional(),
+  visitor_session_id: z.string().nullable().optional(),
+  booking_draft_id: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });
+
+const lead360Schema = z.object({
+  lead: leadSchema,
+  retail_lead: z
+    .object({
+      id: z.string(),
+      email: z.string(),
+      phone: z.string().nullable().optional(),
+      quote_id: z.string().nullable().optional(),
+      customer_id: z.string().nullable().optional(),
+      crm_lead_id: z.string().nullable().optional(),
+      stage: z.string(),
+      source: z.string(),
+      created_at: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  identities: z.array(z.record(z.string(), z.unknown())).default([]),
+  conversations: z.array(z.record(z.string(), z.unknown())).default([]),
+  tasks: z.array(z.record(z.string(), z.unknown())).default([]),
+  nurture: z.record(z.string(), z.unknown()).default({}),
+  activities: z.array(z.record(z.string(), z.unknown())).default([]),
+  visitor: z.record(z.string(), z.unknown()).default({}),
+  quotes: z.array(z.record(z.string(), z.unknown())).default([]),
+  drafts: z
+    .array(
+      z.object({
+        id: z.string(),
+        session_id: z.string(),
+        quote_id: z.string().nullable().optional(),
+        state: z.string(),
+        current_step: z.string().nullable().optional(),
+        amount_cents: z.number().nullable().optional(),
+        updated_at: z.string().nullable().optional(),
+        draft_abandoned: z.boolean().optional(),
+        draft_abandoned_reason: z.string().nullable().optional(),
+        kind: z.string().optional(),
+      })
+    )
+    .default([]),
+  abandoned_checkouts: z
+    .array(
+      z.object({
+        id: z.string(),
+        quote_id: z.string(),
+        email: z.string(),
+        reason: z.string(),
+        created_at: z.string().nullable().optional(),
+        kind: z.string().optional(),
+      })
+    )
+    .default([]),
+  referral: z.record(z.string(), z.unknown()).nullable().optional(),
+  sla: z.record(z.string(), z.unknown()).default({}),
+  assignee: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable().optional(),
+      email: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  consent: z.record(z.string(), z.unknown()).default({}),
+  score: z.record(z.string(), z.unknown()).default({}),
+  merge_candidate_of: z.string().nullable().optional(),
+  urgent_unassigned_tasks: z.array(z.record(z.string(), z.unknown())).default([]),
+  linked_merchant_id: z.string().nullable().optional(),
+  linked_customer_id: z.string().nullable().optional(),
+  linked_driver_id: z.string().nullable().optional(),
+  last_capi: z.unknown().optional(),
+});
+
+export type Lead360 = z.infer<typeof lead360Schema>;
 
 /** Build list query string for `/v1/admin/leads` (exported for unit tests). */
 export function buildLeadFiltersQuery(filters: LeadFilters): string {
@@ -139,7 +223,15 @@ export function buildLeadFiltersQuery(filters: LeadFilters): string {
   if (filters.unassigned) params.set("unassigned", "true");
   if (filters.merge_candidates) params.set("merge_candidates", "true");
   if (filters.sla_breached) params.set("sla_breached", "true");
+  if (filters.has_open_draft) params.set("has_open_draft", "true");
+  if (filters.nurture_scheduled) params.set("nurture_scheduled", "true");
+  if (filters.has_abandoned) params.set("has_abandoned", "true");
+  if (filters.include_archived) params.set("include_archived", "true");
+  if (filters.sort) params.set("sort", filters.sort);
+  else params.set("sort", "smart");
   if (filters.search) params.set("search", filters.search);
+  if (filters.limit != null) params.set("limit", String(filters.limit));
+  if (filters.offset != null) params.set("offset", String(filters.offset));
   const q = params.toString();
   return q ? `?${q}` : "";
 }
@@ -179,9 +271,22 @@ export type LeadMetrics = {
 };
 
 export const leadsApi = {
-  async list(token: string, filters: LeadFilters = {}): Promise<Lead[]> {
-    const rows = await adminFetch<unknown[]>(`/v1/admin/leads${qs(filters)}`, token);
-    return z.array(leadSchema).parse(rows) as Lead[];
+  async list(
+    token: string,
+    filters: LeadFilters = {}
+  ): Promise<{ items: Lead[]; total: number; limit: number; offset: number }> {
+    const page = await adminFetch<{
+      items: unknown[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>(`/v1/admin/leads${qs(filters)}`, token);
+    return {
+      items: z.array(leadSchema).parse(page.items) as Lead[],
+      total: page.total,
+      limit: page.limit,
+      offset: page.offset,
+    };
   },
 
   async metrics(token: string, days = 30): Promise<LeadMetrics> {
@@ -203,6 +308,9 @@ export const leadsApi = {
         secondary: string | null;
         channel?: string | null;
         score?: number | null;
+        has_draft?: boolean;
+        sla_breached?: boolean;
+        nurture?: boolean;
       }>;
       count: number;
       value_cents: number;
@@ -231,6 +339,11 @@ export const leadsApi = {
     return leadSchema.parse(row) as Lead;
   },
 
+  async get360(token: string, id: string): Promise<Lead360> {
+    const row = await adminFetch<unknown>(`/v1/admin/leads/${id}/360`, token);
+    return lead360Schema.parse(row);
+  },
+
   async create(
     token: string,
     body: {
@@ -249,6 +362,7 @@ export const leadsApi = {
         marketing?: boolean;
         sms?: boolean;
         whatsapp?: boolean;
+        legal_basis?: "consent" | "legitimate_interest" | "contract";
         captured_at?: string;
       };
     }
@@ -280,6 +394,72 @@ export const leadsApi = {
 
   async remove(token: string, id: string): Promise<void> {
     await adminFetch<void>(`/v1/admin/leads/${id}`, token, { method: "DELETE" });
+  },
+
+  async privacyExport(token: string, id: string): Promise<Record<string, unknown>> {
+    return adminFetch(`/v1/admin/leads/${id}/privacy/export`, token);
+  },
+
+  async privacyDeleteRequest(
+    token: string,
+    id: string,
+    reason?: string
+  ): Promise<{ lead_id: string; status: string; reference: string }> {
+    const q = reason ? `?reason=${encodeURIComponent(reason)}` : "";
+    return adminFetch(`/v1/admin/leads/${id}/privacy/delete-request${q}`, token, {
+      method: "POST",
+    });
+  },
+
+  async privacyErase(token: string, id: string): Promise<{ lead_id: string; status: string }> {
+    return adminFetch(`/v1/admin/leads/${id}/privacy/erase`, token, { method: "POST" });
+  },
+
+  async listSuppressions(
+    token: string,
+    opts: { limit?: number; offset?: number } = {}
+  ): Promise<{
+    items: Array<{
+      id: string;
+      hash_kind: string;
+      value_hash: string;
+      source: string;
+      lead_id: string | null;
+      created_at: string | null;
+    }>;
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    const params = new URLSearchParams();
+    if (opts.limit != null) params.set("limit", String(opts.limit));
+    if (opts.offset != null) params.set("offset", String(opts.offset));
+    const q = params.toString();
+    return adminFetch(`/v1/admin/leads/suppressions${q ? `?${q}` : ""}`, token);
+  },
+
+  async deleteSuppression(token: string, id: string): Promise<void> {
+    await adminFetch<void>(`/v1/admin/leads/suppressions/${id}`, token, { method: "DELETE" });
+  },
+
+  async privacyRopa(token: string): Promise<{
+    controller: string;
+    contact: string;
+    primary_residency: string;
+    multi_region: boolean;
+    activities: Array<{
+      activity: string;
+      purpose: string;
+      legal_bases: string[];
+      categories: string[];
+      systems: string[];
+      recipients: string[];
+      retention: string;
+      residency: string;
+    }>;
+    notes: string;
+  }> {
+    return adminFetch(`/v1/admin/leads/privacy/ropa`, token);
   },
 
   async conversations(
@@ -343,6 +523,7 @@ export const leadsApi = {
     next_questions: string[];
     risks: string[];
     source: string;
+    contract?: { mode: string; writes_require_confirm: boolean };
     proposals: Array<{ id: string; type: string; title: string; body: string }>;
   }> {
     return adminFetch(`/v1/admin/leads/${id}/assist`, token);
@@ -424,6 +605,7 @@ export const STATUS_TONES: Record<string, string> = {
   unqualified: "slate",
   nurturing: "violet",
   converted: "teal",
+  archived: "slate",
 };
 
 export const PRIORITY_TONES: Record<string, string> = {

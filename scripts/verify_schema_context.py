@@ -16,6 +16,7 @@ _CONTEXT_SCHEMA_MODULES: tuple[str, ...] = (
     "schemas_auth.py",
     "schemas_crm.py",
     "schemas_driver.py",
+    "schemas_health.py",
     "schemas_merchant.py",
     "schemas_notifications.py",
     "schemas_oauth.py",

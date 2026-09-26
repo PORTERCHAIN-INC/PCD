@@ -1,6 +1,5 @@
 """Admin CRM leads — list, detail, status updates, appointment calendar."""
 
-from datetime import datetime
 from typing import Annotated
 import uuid
 
@@ -26,14 +25,27 @@ from porterchain_api.routers.admin._deps import (
     require_module,
     router,
 )
-from porterchain_api.schemas_crm import LeadConvertRequest, LeadCreate, LeadOut, LeadUpdate, TaskOut
+from porterchain_api.platform.pagination import as_page, clamp_page
+from porterchain_api.schemas_crm import (
+    LeadConvertRequest,
+    LeadCreate,
+    LeadOut,
+    LeadUpdate,
+)
 from pydantic import BaseModel, Field
 
 _crm = CrmSalesService()
 _ingest = LeadIngestService()
 
 
-@router.get("/leads", response_model=list[LeadOut])
+class LeadListPage(BaseModel):
+    items: list[LeadOut]
+    total: int
+    limit: int
+    offset: int
+
+
+@router.get("/leads", response_model=LeadListPage)
 def list_leads(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
     db: Session = Depends(get_db),
@@ -47,12 +59,18 @@ def list_leads(
     unassigned: bool | None = None,
     merge_candidates: bool | None = None,
     sla_breached: bool | None = None,
+    has_open_draft: bool | None = None,
+    nurture_scheduled: bool | None = None,
+    has_abandoned: bool | None = None,
     search: str | None = None,
-    limit: int = 200,
-) -> list[LeadOut]:
+    include_archived: bool = False,
+    sort: str = "smart",
+    limit: int | None = None,
+    offset: int | None = None,
+) -> dict:
     require_module(ctx, "crm_read")
-    rows = _crm.list_leads(
-        db,
+    page_limit, page_offset = clamp_page(limit, offset, default=50, max_limit=500)
+    filter_kwargs = dict(
         status=status,
         priority=priority,
         source=source,
@@ -63,10 +81,24 @@ def list_leads(
         unassigned=unassigned,
         merge_candidates=merge_candidates,
         sla_breached=sla_breached,
+        has_open_draft=has_open_draft,
+        nurture_scheduled=nurture_scheduled,
+        has_abandoned=has_abandoned,
         search=search,
-        limit=min(limit, 500),
+        include_archived=include_archived,
+        sort=sort,
     )
-    return [LeadOut.model_validate(row) for row in rows]
+    total = _crm.count_leads(
+        db,
+        **{k: v for k, v in filter_kwargs.items() if k != "sort"},
+    )
+    rows = _crm.list_leads(db, **filter_kwargs, limit=page_limit, offset=page_offset)
+    return as_page(
+        [LeadOut.model_validate(row) for row in rows],
+        total,
+        page_limit,
+        page_offset,
+    )
 
 
 @router.get("/leads/metrics")
@@ -109,11 +141,19 @@ def create_lead_manual(
         raise HTTPException(status_code=400, detail="email_or_phone_required")
     source = data.get("source") or "manual"
     channel = data.get("channel") or channel_for_source(source)
-    consent = dict(data.get("consent") or {})
-    if consent and not consent.get("captured_at"):
-        from datetime import UTC, datetime
+    from porterchain_api.collaboration_engine.lead_consent import LEGAL_BASIS_VALUES, casl_evidence
 
-        consent["captured_at"] = datetime.now(UTC).isoformat()
+    raw_consent = dict(data.get("consent") or {})
+    if raw_consent.get("marketing") is True:
+        basis = str(raw_consent.get("legal_basis") or "").strip().lower()
+        if basis not in LEGAL_BASIS_VALUES:
+            raise HTTPException(status_code=422, detail="legal_basis_required_for_marketing")
+    consent = casl_evidence(
+        raw_consent,
+        source=f"admin_{source}",
+        actor="staff",
+        legal_basis=raw_consent.get("legal_basis"),
+    )
     result = _ingest.ingest(
         db,
         CanonicalLeadEvent(
@@ -192,26 +232,72 @@ def list_lead_referral_credits(
     )
 
 
-@router.get("/leads/{lead_id}/assist")
-def lead_assist(
-    lead_id: str,
+@router.get("/leads/suppressions")
+def list_lead_suppressions(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
 ) -> dict:
-    """NVIDIA NIM / heuristic sales assist — never auto-sends."""
+    """List hashed DNC rows (no raw email/phone)."""
     require_module(ctx, "crm_read")
-    lead = _crm.get_lead(db, lead_id)
-    if not lead:
-        raise HTTPException(status_code=404, detail="lead_not_found")
-    from porterchain_api.intelligence_engine.lead_assist import build_lead_assist
+    from porterchain_api.crm_models import CrmSuppression
 
-    return build_lead_assist(
-        db,
-        lead,
-        flags={"phase2_intelligence": bool(settings.phase2_intelligence)},
-        actor_id=ctx.user.id,
+    total = db.query(CrmSuppression).count()
+    rows = (
+        db.query(CrmSuppression)
+        .order_by(CrmSuppression.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
     )
+    return {
+        "items": [
+            {
+                "id": r.id,
+                "hash_kind": r.hash_kind,
+                "value_hash": r.value_hash,
+                "source": r.source,
+                "lead_id": r.lead_id,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in rows
+        ],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+@router.get("/leads/privacy/ropa")
+def get_lead_ropa(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+) -> dict:
+    """Static CrmLead processing inventory (Art.30 / PIPEDA-style). No multi-region product."""
+    require_module(ctx, "crm_read")
+    from porterchain_api.collaboration_engine.lead_privacy import lead_ropa_inventory
+
+    return lead_ropa_inventory()
+
+
+@router.delete("/leads/suppressions/{suppression_id}", status_code=204)
+def delete_lead_suppression(
+    suppression_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> None:
+    """Clear one suppression row (re-opt-in after staff review). Super-admin only."""
+    try:
+        require_module(ctx, "system:all")
+    except PermissionError as exc:
+        _perm(exc)
+    from porterchain_api.crm_models import CrmSuppression
+
+    row = db.get(CrmSuppression, suppression_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="suppression_not_found")
+    db.delete(row)
+    db.commit()
 
 
 class LeadAssistDecideRequest(BaseModel):
@@ -234,115 +320,25 @@ def lead_assist_decide(
         raise HTTPException(status_code=404, detail="lead_not_found")
     if body.decision not in ("accept", "reject"):
         raise HTTPException(status_code=422, detail="invalid_decision")
-    applied: dict = {"proposal_id": body.proposal_id, "decision": body.decision}
-    if body.decision == "accept":
-        patch: dict = {}
-        if body.decision_status:
-            patch["decision_status"] = body.decision_status
-        if body.draft_reply:
-            notes = (lead.internal_notes or "").strip()
-            reply = body.draft_reply.strip()
-            patch["internal_notes"] = f"{notes}\n[Assist draft] {reply}".strip() if notes else f"[Assist draft] {reply}"
-            # Seed outbound message on open conversation if present.
-            convo = (
-                db.query(CrmConversation)
-                .filter(CrmConversation.lead_id == lead_id, CrmConversation.status == "open")
-                .order_by(CrmConversation.updated_at.desc())
-                .first()
-            )
-            if convo and reply:
-                db.add(
-                    CrmConversationMessage(
-                        conversation_id=convo.id,
-                        direction="outbound",
-                        body=reply,
-                        actor_type="staff",
-                        actor_id=ctx.user.id,
-                        metadata_json={"from_assist": True, "proposal_id": body.proposal_id},
-                    )
-                )
-        if patch:
-            lead = _crm.update_lead(db, lead_id, patch)
-        applied["lead_id"] = lead.id
-        applied["decision_status"] = lead.decision_status
-    _crm.log_activity(
-        db,
-        entity_type="lead",
-        entity_id=lead_id,
-        activity_type="note",
-        subject=f"Assist {body.decision}: {body.proposal_id}",
-        body=body.draft_reply if body.decision == "accept" else None,
-        actor_id=ctx.user.id,
-        metadata={
-            "from_assist": True,
-            "assist_decision": body.decision,
-            "proposal_id": body.proposal_id,
-        },
+    from porterchain_api.collaboration_engine.lead_assist_apply import (
+        LeadAssistBlocked,
+        apply_lead_assist_decision,
     )
-    return {"ok": True, **applied}
-
-
-@router.get("/leads/calendar", response_model=list[TaskOut])
-def list_lead_calendar_tasks(
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-    due_after: datetime | None = None,
-    due_before: datetime | None = None,
-    limit: int = Query(200, le=500),
-) -> list[TaskOut]:
-    """Week/range view of call + meeting tasks linked to CRM leads."""
-    require_module(ctx, "crm_read")
-    rows = _crm.list_tasks(
-        db,
-        entity_type="lead",
-        task_types=["call", "meeting"],
-        due_after=due_after,
-        due_before=due_before,
-        limit=limit,
-    )
-    return [TaskOut.model_validate(t) for t in rows]
-
-
-@router.get("/leads/{lead_id}", response_model=LeadOut)
-def get_lead(
-    lead_id: str,
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-) -> LeadOut:
-    require_module(ctx, "crm_read")
-    lead = _crm.get_lead(db, lead_id)
-    if not lead:
-        raise HTTPException(status_code=404, detail="lead_not_found")
-    return LeadOut.model_validate(lead)
-
-
-class MergeResolveRequest(BaseModel):
-    action: str = Field(description="accept | reject")
-
-
-@router.post("/leads/{lead_id}/merge", response_model=LeadOut)
-def resolve_lead_merge(
-    lead_id: str,
-    body: MergeResolveRequest,
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-) -> LeadOut:
-    """Accept (fold into merge_candidate_of) or reject soft-duplicate queue item."""
-    require_module(ctx, "crm")
-    from porterchain_api.collaboration_engine.lead_ops import resolve_merge_candidate
 
     try:
-        lead = resolve_merge_candidate(
+        return apply_lead_assist_decision(
             db,
+            _crm,
+            lead,
             lead_id=lead_id,
-            action=body.action,
-            actor_id=ctx.user.id if ctx.user else None,
+            proposal_id=body.proposal_id,
+            decision=body.decision,
+            draft_reply=body.draft_reply,
+            decision_status=body.decision_status,
+            actor_id=ctx.user.id,
         )
-    except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    return LeadOut.model_validate(lead)
+    except LeadAssistBlocked as exc:
+        raise HTTPException(status_code=409, detail=exc.code) from exc
 
 
 @router.get("/leads/{lead_id}/identities")
@@ -486,132 +482,76 @@ def convert_lead(
     lead = _crm.get_lead(db, lead_id)
     if not lead:
         raise HTTPException(status_code=404, detail="lead_not_found")
+    from porterchain_api.lead_convert_flow import convert_lead_with_outcome
 
-    outcome = (body.outcome or lead.intent_type or "merchant").strip().lower()
-    if outcome not in ("merchant", "retail_customer", "driver_partner"):
-        outcome = "merchant"
-
-    # Merchant spine (default): company + deal (+ optional seat).
     try:
-        result = _crm.convert_lead(
-            db,
-            ctx,
-            lead_id,
-            create_deal=body.create_deal if outcome == "merchant" else False,
-            deal_name=body.deal_name,
-            expected_revenue_cents=body.expected_revenue_cents,
-            target_stage=body.target_stage,
+        return convert_lead_with_outcome(
+            db, _crm, ctx, lead, lead_id, body=body, settings=settings
         )
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail="lead_not_found") from exc
+        raise HTTPException(status_code=404, detail=str(exc) if str(exc) else "lead_not_found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    out: dict = {**result, "to_merchant": body.to_merchant, "outcome": outcome}
 
-    if outcome == "merchant" and body.to_merchant and result.get("company_id"):
-        try:
-            merchant = _crm.convert_company_to_merchant(
-                db, ctx, str(result["company_id"]), settings=settings
-            )
-            out["merchant"] = merchant
-        except LookupError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+@router.get("/leads/{lead_id}/privacy/export")
+def export_lead_privacy(
+    lead_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> dict:
+    require_module(ctx, "crm_read")
+    from porterchain_api.collaboration_engine.lead_privacy import LeadPrivacyService
+    from porterchain_api.crm_models import CrmLead
 
-    # Refresh lead after convert mutations
-    lead = _crm.get_lead(db, lead_id) or lead
+    lead = db.get(CrmLead, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="lead_not_found")
+    return LeadPrivacyService().export_lead(db, lead, actor_user_id=ctx.user.id)
 
-    from porterchain_api.collaboration_engine.lead_scoring import clear_score_priors_cache
 
-    clear_score_priors_cache()
+@router.post("/leads/{lead_id}/privacy/delete-request")
+def request_lead_privacy_deletion(
+    lead_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    reason: str | None = None,
+) -> dict:
+    require_module(ctx, "crm")
+    from porterchain_api.collaboration_engine.lead_privacy import LeadPrivacyService
+    from porterchain_api.crm_models import CrmLead
 
-    if outcome == "merchant" and lead.referred_by_merchant_id:
-        from porterchain_api.collaboration_engine.lead_ops import grant_referral_credit
-
-        credit = grant_referral_credit(
-            db,
-            lead=lead,
-            company_id=result.get("company_id"),
-            settings=settings,
-        )
-        if credit:
-            db.commit()
-            out["referral_credit"] = {
-                "id": credit.id,
-                "amount_cents": credit.amount_cents,
-                "status": credit.status,
-            }
-
-    from porterchain_api.collaboration_engine.lead_capi import emit_lead_conversion_events
-
-    out["capi"] = emit_lead_conversion_events(
-        db, lead, event_name="LeadConverted", settings=settings
+    lead = db.get(CrmLead, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="lead_not_found")
+    out = LeadPrivacyService().request_deletion(
+        db, lead, actor_user_id=ctx.user.id, reason=reason
     )
+    db.commit()
+    return out
 
-    if outcome == "retail_customer" and lead.email:
-        from porterchain_api.booking_engine.customer_service import CustomerService
 
-        customer = CustomerService().ensure_from_email(
-            db, email=lead.email, phone=lead.phone
-        )
-        db.commit()
-        out["customer_id"] = customer.id
-        _crm.update_lead(
-            db,
-            lead_id,
-            {"intent_type": "retail_customer", "decision_status": "converted", "status": "converted"},
-        )
-        _crm.log_activity(
-            db,
-            entity_type="lead",
-            entity_id=lead_id,
-            activity_type="status_change",
-            subject="Converted to retail customer",
-            actor_id=ctx.user.id,
-        )
+@router.post("/leads/{lead_id}/privacy/erase")
+def erase_lead_privacy(
+    lead_id: str,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> dict:
+    try:
+        require_module(ctx, "system:all")
+    except PermissionError as exc:
+        _perm(exc)
+    from porterchain_api.collaboration_engine.lead_privacy import LeadPrivacyError, LeadPrivacyService
+    from porterchain_api.crm_models import CrmLead
 
-    if outcome == "driver_partner":
-        _crm.update_lead(
-            db,
-            lead_id,
-            {
-                "intent_type": "driver_partner",
-                "decision_status": "converted",
-                "status": "converted",
-                "tags": list({*(lead.tags or []), "driver_partner_converted"}),
-            },
-        )
-        _crm.create_task(
-            db,
-            ctx,
-            {
-                "title": f"Onboard driver partner: {lead.company_name}",
-                "task_type": "follow_up",
-                "entity_type": "lead",
-                "entity_id": lead_id,
-                "priority": "high",
-            },
-        )
-        from porterchain_api.admin_engine.driver_service import AdminDriverService
-
-        try:
-            provisioned = AdminDriverService().provision_pending_from_lead(db, ctx, lead)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        out["driver_partner"] = {
-            "queued": True,
-            "hint": f"/drivers/{provisioned.id}",
-            "driver_id": provisioned.id,
-        }
-        _crm.log_activity(
-            db,
-            entity_type="lead",
-            entity_id=lead_id,
-            activity_type="status_change",
-            subject="Converted to driver partner queue",
-            actor_id=ctx.user.id,
-        )
-
+    lead = db.get(CrmLead, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="lead_not_found")
+    try:
+        out = LeadPrivacyService().erase_lead(db, lead, actor_user_id=ctx.user.id)
+    except LeadPrivacyError as exc:
+        raise HTTPException(status_code=409, detail=exc.code) from exc
+    db.commit()
     return out
 
 

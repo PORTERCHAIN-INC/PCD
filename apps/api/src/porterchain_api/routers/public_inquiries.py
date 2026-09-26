@@ -1,11 +1,12 @@
 """Public website inquiry ingest — creates CRM leads via Lead Ingest Bus."""
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
 from porterchain_api.collaboration_engine.lead_ingest_service import (
     CanonicalLeadEvent,
     LeadIngestService,
@@ -19,10 +20,22 @@ from porterchain_api.domain.crm_states import (
     LeadStatus,
 )
 from porterchain_api.routers.public_ingest_auth import verify_public_ingest_key
+from pydantic import BaseModel, Field
+
 from porterchain_api.schemas_public import PublicInquiryCreate, PublicInquiryResponse
+
+
+class LeadUnsubscribeRequest(BaseModel):
+    token: str = Field(min_length=8, max_length=512)
+
+
+class LeadUnsubscribeResponse(BaseModel):
+    status: str = "unsubscribed"
+    lead_id: str | None = None
 
 router = APIRouter(prefix="/v1/public", tags=["public"])
 _ingest = LeadIngestService()
+_visitors = VisitorTrackingService()
 
 
 def _priority_for_intent(
@@ -72,6 +85,20 @@ def _intent_type(body: PublicInquiryCreate, source: str) -> str:
     return LeadIntentType.MERCHANT.value
 
 
+def _consent_snapshot(body: PublicInquiryCreate) -> dict[str, Any]:
+    """Normalize CMP / form consent into CrmLead.consent keys with CASL evidence."""
+    from porterchain_api.collaboration_engine.lead_consent import casl_evidence
+
+    force_marketing = None
+    if body.form == "newsletter" or body.inquiry_type == "newsletter":
+        force_marketing = True
+    return casl_evidence(
+        dict(body.consent or {}),
+        source="website_inquiry",
+        actor="lead",
+        force_marketing=force_marketing,
+    )
+
 @router.post("/inquiries", response_model=PublicInquiryResponse, status_code=201)
 def create_public_inquiry(
     body: PublicInquiryCreate,
@@ -90,6 +117,23 @@ def create_public_inquiry(
     phone_raw = (body.phone or "").strip() or None
     source = _source_label(body)
 
+    visitor_key = (body.visitor_id or "").strip() or None
+    if visitor_key:
+        visitor_key = visitor_key[:64]
+        _visitors.ensure_session(
+            db,
+            session_id=visitor_key,
+            utm_source=body.utm_source,
+            utm_medium=body.utm_medium,
+            utm_campaign=body.utm_campaign,
+            signals={
+                "intent": body.intent,
+                "form": body.form,
+                "source_page": body.source_page or "/",
+                "from_page": "public_inquiry",
+            },
+        )
+
     custom_fields = {
         k: v
         for k, v in {
@@ -98,6 +142,7 @@ def create_public_inquiry(
             "message": body.message,
             "source_page": body.source_page,
             "form": body.form,
+            "visitor_id": visitor_key,
             **({"phone_full": phone_raw} if phone_raw else {}),
         }.items()
         if v
@@ -112,6 +157,12 @@ def create_public_inquiry(
     if referred_by:
         source = "merchant_referral"
         custom_fields["referred_by_merchant_id"] = referred_by
+
+    external_ids: dict[str, str] = {}
+    if visitor_key:
+        external_ids["visitor_session"] = visitor_key
+
+    consent = _consent_snapshot(body)
 
     result = _ingest.ingest(
         db,
@@ -134,6 +185,7 @@ def create_public_inquiry(
             message=(body.message or "").strip() or None,
             tags=[t for t in [body.intent, body.inquiry_type, "referral" if referred_by else None] if t],
             custom_fields=custom_fields,
+            consent=consent,
             attribution={
                 k: v
                 for k, v in {
@@ -145,7 +197,87 @@ def create_public_inquiry(
                 if v
             },
             referred_by_merchant_id=referred_by,
+            external_ids=external_ids,
             seed_conversation=bool((body.message or "").strip()),
         ),
     )
     return PublicInquiryResponse(id=result.lead.id)
+
+
+@router.post("/leads/unsubscribe", response_model=LeadUnsubscribeResponse)
+def unsubscribe_lead(
+    body: LeadUnsubscribeRequest,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> LeadUnsubscribeResponse:
+    """CASL commercial-email unsubscribe via signed nurture token (no ingest key)."""
+    from porterchain_api.collaboration_engine.lead_consent import (
+        commit_unsubscribe,
+        verify_unsubscribe_token,
+    )
+    from porterchain_api.crm_models import CrmLead
+
+    secret = (settings.jwt_secret or settings.public_ingest_api_key or "").strip()
+    lead_id = verify_unsubscribe_token(token=body.token, secret=secret)
+    if not lead_id:
+        raise HTTPException(status_code=400, detail="invalid_or_expired_token")
+    lead = db.get(CrmLead, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="lead_not_found")
+    commit_unsubscribe(db, lead)
+    return LeadUnsubscribeResponse(status="unsubscribed", lead_id=lead.id)
+
+
+class LeadEngagementRequest(BaseModel):
+    """ESP open/click callback — signed nurture token or X-Ingest-Key."""
+
+    token: str | None = Field(default=None, max_length=512)
+    lead_id: str | None = Field(default=None, max_length=36)
+    kind: str = Field(description="open | click")
+    campaign: str | None = Field(default=None, max_length=120)
+
+
+class LeadEngagementResponse(BaseModel):
+    status: str = "ok"
+    lead_id: str
+    kind: str
+    lead_score: int
+
+
+@router.post("/leads/engagement", response_model=LeadEngagementResponse)
+def lead_engagement(
+    body: LeadEngagementRequest,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    x_ingest_key: Annotated[str | None, Header(alias="X-Ingest-Key")] = None,
+) -> LeadEngagementResponse:
+    """Record ESP open/click and bump lead score (capped)."""
+    from porterchain_api.collaboration_engine.lead_consent import verify_unsubscribe_token
+    from porterchain_api.collaboration_engine.lead_engagement import record_email_engagement
+    from porterchain_api.crm_models import CrmLead
+
+    kind = (body.kind or "").strip().lower()
+    if kind not in ("open", "click"):
+        raise HTTPException(status_code=422, detail="kind_must_be_open_or_click")
+
+    lead_id: str | None = None
+    if body.token:
+        secret = (settings.jwt_secret or settings.public_ingest_api_key or "").strip()
+        lead_id = verify_unsubscribe_token(token=body.token, secret=secret)
+        if not lead_id:
+            raise HTTPException(status_code=400, detail="invalid_or_expired_token")
+    else:
+        verify_public_ingest_key(settings, x_ingest_key)
+        lead_id = (body.lead_id or "").strip() or None
+        if not lead_id:
+            raise HTTPException(status_code=422, detail="lead_id_required")
+
+    lead = db.get(CrmLead, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="lead_not_found")
+    out = record_email_engagement(
+        db, lead, kind=kind, campaign=body.campaign, actor="esp"  # type: ignore[arg-type]
+    )
+    return LeadEngagementResponse(
+        lead_id=out["lead_id"], kind=kind, lead_score=int(out["lead_score"])
+    )

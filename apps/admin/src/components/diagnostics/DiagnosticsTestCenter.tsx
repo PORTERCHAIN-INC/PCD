@@ -209,7 +209,7 @@ export function DiagnosticsTestCenter({
           description="29 automated checks across integrations, engines, infrastructure, and masterrule ADRs — run individually or as full platform validation."
           actions={
             <Link href="/system">
-              <Button variant="outline">System health →</Button>
+              <Button variant="outline">System →</Button>
             </Link>
           }
         />

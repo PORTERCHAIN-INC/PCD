@@ -14,6 +14,7 @@ class LeadStatus(StrEnum):
     UNQUALIFIED = "unqualified"
     NURTURING = "nurturing"
     CONVERTED = "converted"
+    ARCHIVED = "archived"
 
 
 class LeadPriority(StrEnum):

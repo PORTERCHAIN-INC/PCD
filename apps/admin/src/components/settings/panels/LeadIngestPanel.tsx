@@ -7,6 +7,8 @@ import { SECTION_DESCRIPTIONS } from "@/lib/settings-metadata";
 import { settingsApi, type LeadIngestSettings } from "@/lib/settings";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import { BindingBadge, SettingsCard, SettingsPageHeader } from "../ui/SettingsPrimitives";
+import { LeadSuppressionCard } from "./LeadSuppressionCard";
+import { LeadRopaCard } from "./LeadRopaCard";
 
 const SECRET_META: Array<{ key: string; label: string; hint: string; canGenerate?: boolean }> = [
   {
@@ -282,12 +284,16 @@ export default function LeadIngestPanel() {
         </div>
       </SettingsCard>
 
+      <LeadSuppressionCard />
+      <LeadRopaCard />
+
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           disabled={busy}
           className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           onClick={() => void save()}
+          aria-label="Save lead ingest settings to Doppler"
         >
           {busy ? "Saving…" : "Save to Doppler"}
         </button>

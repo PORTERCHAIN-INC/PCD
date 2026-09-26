@@ -1,4 +1,5 @@
 import { adminFetch } from "@/lib/api";
+import { healthDashboardSchema } from "@/lib/health";
 
 export type HealthComponent = {
   id: string;
@@ -168,8 +169,10 @@ export const diagnosticsApi = {
   center: (token: string) =>
     adminFetch<Record<string, unknown>>(`${B}/center`, token, { timeoutMs: 45_000 }),
 
-  health: (token: string) =>
-    adminFetch<HealthDashboard>(`${B}/health`, token, { timeoutMs: 45_000 }),
+  health: async (token: string) => {
+    const raw = await adminFetch<HealthDashboard>(`${B}/health`, token, { timeoutMs: 45_000 });
+    return healthDashboardSchema.parse(raw) as HealthDashboard;
+  },
 
   listTests: (token: string) =>
     adminFetch<{ tests: TestCatalogItem[]; count: number }>(`${B}/tests`, token),
