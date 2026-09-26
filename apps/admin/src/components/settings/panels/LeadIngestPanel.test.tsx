@@ -38,6 +38,14 @@ vi.mock("../ui/SettingsPrimitives", () => ({
   BindingBadge: () => <span>env</span>,
 }));
 
+vi.mock("./LeadSuppressionCard", () => ({
+  LeadSuppressionCard: () => <div data-testid="lead-suppression-card" />,
+}));
+
+vi.mock("./LeadRopaCard", () => ({
+  LeadRopaCard: () => <div data-testid="lead-ropa-card" />,
+}));
+
 import LeadIngestPanel from "./LeadIngestPanel";
 
 const STATUS = {
@@ -87,7 +95,7 @@ describe("LeadIngestPanel", () => {
     const user = userEvent.setup();
     renderWithProviders(<LeadIngestPanel />);
     await screen.findByRole("heading", { name: /lead ingest/i });
-    await user.click(screen.getByRole("button", { name: /save to doppler/i }));
+    await user.click(screen.getByRole("button", { name: /save lead ingest settings to doppler/i }));
     await waitFor(() => expect(updateLeadIngest).toHaveBeenCalled());
     expect(updateLeadIngest.mock.calls[0]?.[1]).toEqual(
       expect.objectContaining({

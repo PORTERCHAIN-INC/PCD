@@ -25,8 +25,8 @@ import {
 import { sampleLead } from "@/test/render";
 
 describe("buildLeadFiltersQuery", () => {
-  it("returns empty string with no filters", () => {
-    expect(buildLeadFiltersQuery({})).toBe("");
+  it("defaults to smart triage sort with no filters", () => {
+    expect(buildLeadFiltersQuery({})).toBe("?sort=smart");
   });
 
   it("encodes enum + boolean filters for the inbox", () => {
@@ -45,6 +45,7 @@ describe("buildLeadFiltersQuery", () => {
     expect(params.get("merge_candidates")).toBe("true");
     expect(params.get("sla_breached")).toBe("true");
     expect(params.get("search")).toBe("Acme GTA");
+    expect(params.get("sort")).toBe("smart");
   });
 });
 
@@ -97,7 +98,10 @@ describe("leadsApi", () => {
       offset: 0,
     });
     const page = await leadsApi.list("tok", { channel: "website", status: "new" });
-    expect(adminFetch).toHaveBeenCalledWith("/v1/admin/leads?status=new&channel=website", "tok");
+    expect(adminFetch).toHaveBeenCalledWith(
+      "/v1/admin/leads?status=new&channel=website&sort=smart",
+      "tok"
+    );
     expect(page.items[0]?.company_name).toBe("Acme Logistics");
     expect(page.total).toBe(1);
   });

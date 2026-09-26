@@ -34,7 +34,12 @@ describe("LeadsPage (merchant inbox)", () => {
     list.mockReset();
     metrics.mockReset();
     referralCredits.mockReset();
-    list.mockResolvedValue([sampleLead()]);
+    list.mockResolvedValue({
+      items: [sampleLead()],
+      total: 1,
+      limit: 50,
+      offset: 0,
+    });
     metrics.mockResolvedValue({
       window_days: 30,
       ingest: { total: 12, by_channel: { website: 8 } },
@@ -56,21 +61,21 @@ describe("LeadsPage (merchant inbox)", () => {
     referralCredits.mockResolvedValue([]);
   });
 
-  it("renders merchant inbox heading, metrics strip, and lead row", async () => {
+  it("renders lead workspace heading, metrics strip, and lead row", async () => {
     renderWithProviders(<LeadsPage />);
 
-    expect(await screen.findByRole("heading", { name: /merchant leads/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /lead workspace/i })).toBeInTheDocument();
     await waitFor(() => expect(list).toHaveBeenCalled());
     expect(await screen.findByText("Acme Logistics")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /add lead/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /merge queue/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /sla breach/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /merge candidate queue/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sla-breached leads/i })).toBeInTheDocument();
   });
 
   it("opens manual capture controls", async () => {
     const user = userEvent.setup();
     renderWithProviders(<LeadsPage />);
-    await screen.findByRole("heading", { name: /merchant leads/i });
+    await screen.findByRole("heading", { name: /lead workspace/i });
     await user.click(screen.getByRole("button", { name: /add lead/i }));
     expect(
       await screen.findByRole("heading", { name: /manual lead capture/i })
@@ -83,7 +88,7 @@ describe("LeadsPage (merchant inbox)", () => {
     renderWithProviders(<LeadsPage />);
     await screen.findByText("Acme Logistics");
     const before = list.mock.calls.length;
-    await user.click(screen.getByRole("button", { name: /merge queue/i }));
+    await user.click(screen.getByRole("button", { name: /merge candidate queue/i }));
     await waitFor(() => expect(list.mock.calls.length).toBeGreaterThan(before));
     const lastFilters = list.mock.calls.at(-1)?.[1] as { merge_candidates?: boolean };
     expect(lastFilters?.merge_candidates).toBe(true);
@@ -97,21 +102,25 @@ describe("LeadsPage (driver applications)", () => {
     list.mockReset();
     metrics.mockReset();
     referralCredits.mockReset();
-    list.mockResolvedValue([
-      sampleLead({
-        source: "website_driver_partner",
-        intent_type: "driver_partner",
-        company_name: "Driver Partner Co",
-      }),
-    ]);
+    list.mockResolvedValue({
+      items: [
+        sampleLead({
+          source: "website_driver_partner",
+          intent_type: "driver_partner",
+          company_name: "Driver Partner Co",
+        }),
+      ],
+      total: 1,
+      limit: 50,
+      offset: 0,
+    });
     referralCredits.mockResolvedValue([]);
   });
 
   it("switches copy and hides merchant-only capture when driver filter is on", async () => {
     renderWithProviders(<LeadsPage />);
-    expect(
-      await screen.findByRole("heading", { name: /driver applications/i })
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /lead workspace/i })).toBeInTheDocument();
+    expect(await screen.findByText(/vehicle partner applications/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /add lead/i })).not.toBeInTheDocument();
     expect(await screen.findByText("Driver Partner Co")).toBeInTheDocument();
   });
