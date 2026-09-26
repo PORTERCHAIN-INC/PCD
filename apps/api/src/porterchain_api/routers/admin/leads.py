@@ -12,6 +12,7 @@ from porterchain_api.collaboration_engine.lead_ingest_service import (
     CanonicalLeadEvent,
     LeadIngestService,
 )
+from porterchain_api.config import Settings, get_settings
 from porterchain_api.crm_models import CrmConversation, CrmConversationMessage, CrmLeadIdentity
 from porterchain_api.domain.crm_states import channel_for_source
 from porterchain_api.merchant_engine.lookups import get_merchant
