@@ -17,8 +17,8 @@ from porterchain_api.routers.admin import monopoly_metrics  # noqa: F401
 from porterchain_api.routers.admin import investor_metrics  # noqa: F401
 from porterchain_api.routers.admin import audit  # noqa: F401
 from porterchain_api.routers.admin import leads  # noqa: F401
+from porterchain_api.routers.admin import leads_outbound  # noqa: F401 — before {lead_id}
 from porterchain_api.routers.admin import leads_360  # noqa: F401
-from porterchain_api.routers.admin import leads_outbound  # noqa: F401
 from porterchain_api.routers.admin import blog  # noqa: F401
 from porterchain_api.routers.admin import blog_authors  # noqa: F401
 from porterchain_api.routers.admin import visitor_intelligence  # noqa: F401
