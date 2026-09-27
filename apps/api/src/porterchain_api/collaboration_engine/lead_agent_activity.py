@@ -47,11 +47,107 @@ def _row(db: Session, lead: CrmLead, *, include_nba: bool = False) -> dict[str, 
         "welcomed": _WELCOME_TAG in (lead.tags or []),
         "needs_enrich": "needs_enrich" in (lead.tags or [])
         or bag.get("status") in ("needs_enrich", "enrich_failed"),
+        "created_at": lead.created_at.isoformat() if lead.created_at else None,
         "updated_at": lead.updated_at.isoformat() if lead.updated_at else None,
+        "assigned": bool(lead.assigned_to),
     }
     if include_nba:
         row["nba"] = lead_next_best_action(db, lead)
     return row
+
+
+_OPEN_STATUSES = (
+    LeadStatus.NEW.value,
+    LeadStatus.CONTACTED.value,
+    LeadStatus.QUALIFIED.value,
+    LeadStatus.NURTURING.value,
+)
+_INBOX_LIMIT = 200
+
+
+def _notice(db: Session, lead: CrmLead, *, kind: str) -> dict[str, Any]:
+    """Staff notice copy shown on Lead Agent Inbox."""
+    priority = (lead.priority or "medium").strip().lower() or "medium"
+    company = lead.company_name or lead.id
+    if kind == "sla":
+        subject = f"SLA breached {priority} lead: {company}"
+        body = (
+            f"Lead {lead.id} ({company}) is past first response at {priority} priority. "
+            f"Source: {lead.source or '—'} / {lead.channel or '—'}."
+        )
+    else:
+        subject = f"Unassigned {priority} lead: {company}"
+        body = (
+            f"Lead {lead.id} ({company}) is unassigned at {priority} priority. "
+            f"Source: {lead.source or '—'} / {lead.channel or '—'}."
+        )
+    row = _row(db, lead)
+    row["notice_kind"] = kind
+    row["notice_subject"] = subject
+    row["notice_body"] = body
+    return row
+
+
+def _internal_inbox(db: Session) -> dict[str, Any]:
+    """Unassigned open leads plus the staff notices that no longer send email."""
+    now = datetime.now(UTC)
+    unassigned_q = db.query(CrmLead).filter(
+        CrmLead.assigned_to.is_(None),
+        CrmLead.status.in_(_OPEN_STATUSES),
+    )
+    unassigned = (
+        unassigned_q.order_by(CrmLead.created_at.desc()).limit(_INBOX_LIMIT).all()
+    )
+    sla_rows = (
+        db.query(CrmLead)
+        .filter(
+            CrmLead.status == LeadStatus.NEW.value,
+            CrmLead.sla_first_response_due_at.isnot(None),
+            CrmLead.sla_first_response_due_at < now,
+        )
+        .order_by(CrmLead.sla_first_response_due_at.asc())
+        .limit(_INBOX_LIMIT)
+        .all()
+    )
+    hot_unassigned = (
+        db.query(CrmLead)
+        .filter(
+            CrmLead.assigned_to.is_(None),
+            CrmLead.status.in_(_OPEN_STATUSES),
+            CrmLead.priority.in_(("high", "urgent")),
+        )
+        .order_by(CrmLead.created_at.desc())
+        .limit(_INBOX_LIMIT)
+        .all()
+    )
+    sla_count = (
+        db.query(func.count(CrmLead.id))
+        .filter(
+            CrmLead.status == LeadStatus.NEW.value,
+            CrmLead.sla_first_response_due_at.isnot(None),
+            CrmLead.sla_first_response_due_at < now,
+        )
+        .scalar()
+        or 0
+    )
+    hot_count = (
+        db.query(func.count(CrmLead.id))
+        .filter(
+            CrmLead.assigned_to.is_(None),
+            CrmLead.status.in_(_OPEN_STATUSES),
+            CrmLead.priority.in_(("high", "urgent")),
+        )
+        .scalar()
+        or 0
+    )
+    notices = [_notice(db, lead, kind="sla") for lead in sla_rows]
+    notices.extend(_notice(db, lead, kind="unassigned") for lead in hot_unassigned)
+    return {
+        "unassigned_count": unassigned_q.count(),
+        "notices_count": int(sla_count) + int(hot_count),
+        "unassigned": [_row(db, lead) for lead in unassigned],
+        "notices": notices,
+    }
 
 
 def lead_agent_activity(db: Session, *, lane_limit: int = 40) -> dict[str, Any]:
@@ -103,12 +199,14 @@ def lead_agent_activity(db: Session, *, lane_limit: int = 40) -> dict[str, Any]:
         .limit(lane_limit)
         .all()
     )
+    inbox = _internal_inbox(db)
 
     return {
         "config": {
             "auto_send_enabled": auto,
             "whatsapp_cloud_configured": whatsapp_cloud_configured(),
             "kill_switch_env": "LEAD_AGENT_AUTO_SEND",
+            "internal_email": False,
         },
         "counts": {
             "welcomed": welcomed_q.count(),
@@ -119,6 +217,12 @@ def lead_agent_activity(db: Session, *, lane_limit: int = 40) -> dict[str, Any]:
             .filter(CrmLead.status == LeadStatus.NEW.value)
             .scalar()
             or 0,
+            "unassigned": inbox["unassigned_count"],
+            "notices": inbox["notices_count"],
+        },
+        "inbox": {
+            "unassigned": inbox["unassigned"],
+            "notices": inbox["notices"],
         },
         "lanes": {
             "welcomed": [_row(db, r) for r in welcomed],

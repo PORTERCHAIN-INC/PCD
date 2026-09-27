@@ -3,7 +3,8 @@
 # Keep client_id empty until Partners publish is an explicit ops decision.
 # Merchant portal already offers one-click OAuth install (invite / known shop domain).
 # FO request topics stay out of this file — they register only when
-# SHOPIFY_FULFILLMENT_SERVICE_ENABLED=true (default off).
+# SHOPIFY_FULFILLMENT_SERVICE_ENABLED=true (default off). Accept is implemented
+# behind that flag. client_id stays empty until a public listing is an ops decision.
 
 name = "PorterChain"
 client_id = ""
@@ -20,7 +21,18 @@ redirect_urls = [ "https://api.porterchain.com/v1/integrations/shopify/callback"
 api_version = "2026-07"
 
   [[webhooks.subscriptions]]
-  topics = [ "orders/create", "orders/cancelled", "app/uninstalled" ]
+  topics = [
+    "orders/create",
+    "orders/updated",
+    "orders/edited",
+    "orders/paid",
+    "orders/cancelled",
+    "orders/delete",
+    "refunds/create",
+    "app/uninstalled",
+    "returns/approve",
+    "returns/cancel"
+  ]
   uri = "https://api.porterchain.com/v1/integrations/shopify/webhooks"
 
   [[webhooks.subscriptions]]

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -57,6 +57,15 @@ def reason_from_exc(exc: BaseException) -> tuple[str, str]:
     return REASON_WORKER, msg
 
 
+def purge_stale_dlq_bodies(db: Session, *, days: int = 14) -> None:
+    """Drop raw webhook bodies after the retention window. The reason row stays."""
+    cutoff = datetime.now(UTC) - timedelta(days=days)
+    db.query(ShopifyIngressDlq).filter(
+        ShopifyIngressDlq.created_at < cutoff,
+        ShopifyIngressDlq.raw_body != "",
+    ).update({ShopifyIngressDlq.raw_body: ""}, synchronize_session=False)
+
+
 def record_ingress_dlq(
     db: Session,
     *,
@@ -105,6 +114,10 @@ def record_ingress_dlq(
         porterchain_order_id=porterchain_order_id,
     )
     db.add(row)
+    try:
+        purge_stale_dlq_bodies(db)
+    except Exception:  # noqa: BLE001
+        logger.exception("shopify_dlq_purge_failed")
     db.commit()
     db.refresh(row)
     logger.info(
@@ -139,6 +152,7 @@ def mark_dlq_resolved(
     porterchain_order_id: str | None = None,
 ) -> ShopifyIngressDlq:
     row.status = "resolved"
+    row.raw_body = ""
     row.resolved_at = datetime.now(UTC)
     row.resolved_by_admin_id = admin_id
     if porterchain_order_id:

@@ -62,6 +62,7 @@ export interface DriverJobSummary {
   route_id?: string | null;
   scan_pickup?: DriverScanProgress;
   scan_delivery?: DriverScanProgress;
+  shopify_order_label?: string | null;
 }
 
 export interface DriverRouteMetrics {

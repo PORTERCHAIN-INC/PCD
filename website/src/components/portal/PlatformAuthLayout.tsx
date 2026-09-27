@@ -49,7 +49,7 @@ export default function PlatformAuthLayout({
             {t("eyebrow")}
           </p>
           <div className="platform-auth-brand mt-4">
-            <PorterchainWordmark tone="dark" size="lg" className="text-[2rem] sm:text-[2.35rem]" />
+            <PorterchainWordmark tone="dark" size="lg" />
           </div>
         </div>
 

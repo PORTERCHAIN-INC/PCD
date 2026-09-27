@@ -282,6 +282,11 @@ class ShopifyShop(Base):
     auto_dispatch: Mapped[bool] = mapped_column(Boolean, default=False)
     default_vehicle_class: Mapped[str | None] = mapped_column(String(64), nullable=True)
     default_package_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    carrier_service_gid: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    fulfillment_service_gid: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    location_gid: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # Capped list of X-Shopify-Webhook-Id values. Duplicate deliveries ack without a second book.
+    seen_webhook_ids: Mapped[list | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

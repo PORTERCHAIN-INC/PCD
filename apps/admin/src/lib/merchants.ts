@@ -376,12 +376,15 @@ export type MerchantApi = {
       rate_quote_cents?: number | null;
       last_tracking_push_at?: string | null;
       last_tracking_state?: string | null;
+      last_event_status?: string | null;
+      last_event_at?: string | null;
     } | null;
     quote_book_locked?: boolean;
     oauth_configured?: boolean;
     mid_flight_tracking?: boolean;
     fo_partner_path?: string;
     fulfillment_service_url?: string | null;
+    fulfillment_callback_url?: string | null;
     fulfillment_service_enabled?: boolean;
     ingress_dlq_open?: number;
   };

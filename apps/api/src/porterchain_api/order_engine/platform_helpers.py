@@ -29,6 +29,9 @@ def shopify_snapshot(order: Order) -> dict[str, Any] | None:
             "held_for_ops": bool(raw.get("held_for_ops")),
             "auto_dispatch": raw.get("auto_dispatch"),
             "last_repush_at": raw.get("last_repush_at"),
+            "last_event_status": raw.get("last_event_status"),
+            "last_event_at": raw.get("last_event_at"),
+            "order_admin_url": _shopify_admin_order_url(raw.get("shop_domain"), raw.get("order_id")),
         }
     if source == "SHOPIFY":
         return {
@@ -42,8 +45,19 @@ def shopify_snapshot(order: Order) -> dict[str, Any] | None:
             "held_for_ops": order.state == "BOOKED",
             "auto_dispatch": None,
             "last_repush_at": None,
+            "last_event_status": None,
+            "last_event_at": None,
+            "order_admin_url": _shopify_admin_order_url(None, order.purchase_order_number),
         }
     return None
+
+
+def _shopify_admin_order_url(shop_domain: Any, order_id: Any) -> str | None:
+    shop = str(shop_domain or "").strip()
+    oid = str(order_id or "").strip()
+    if not shop or not oid or not shop.endswith(".myshopify.com"):
+        return None
+    return f"https://{shop}/admin/orders/{oid}"
 
 
 def ops_timeline_label(*, event_type: str, to_state: str | None = None, payload: Any = None) -> str:

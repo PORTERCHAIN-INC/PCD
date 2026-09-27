@@ -91,6 +91,7 @@ async def shopify_webhooks(
     hmac_header: Annotated[str | None, Header(alias="X-Shopify-Hmac-Sha256")] = None,
     shop_domain: Annotated[str | None, Header(alias="X-Shopify-Shop-Domain")] = None,
     topic: Annotated[str | None, Header(alias="X-Shopify-Topic")] = None,
+    webhook_id: Annotated[str | None, Header(alias="X-Shopify-Webhook-Id")] = None,
 ) -> JSONResponse:
     headers = _enforce_shopify_limit(
         traffic=TRAFFIC_SHOPIFY_WEBHOOK,
@@ -106,6 +107,7 @@ async def shopify_webhooks(
             hmac_header=hmac_header,
             shop_domain_header=shop_domain,
             topic=topic,
+            webhook_id=webhook_id,
         )
         return JSONResponse(result, headers=headers)
     except PermissionError as exc:
@@ -122,6 +124,7 @@ async def shopify_webhooks(
 
 
 @router.post("/fulfillment-order-notification")
+@router.post("/fs/fulfillment_order_notification")
 async def shopify_fulfillment_order_notification(
     request: Request,
     db: Session = Depends(get_db),
@@ -129,7 +132,7 @@ async def shopify_fulfillment_order_notification(
     hmac_header: Annotated[str | None, Header(alias="X-Shopify-Hmac-Sha256")] = None,
     shop_domain: Annotated[str | None, Header(alias="X-Shopify-Shop-Domain")] = None,
 ) -> JSONResponse:
-    """FulfillmentService callback (flag-gated). Accept→book remains intentional hold."""
+    """FulfillmentService callback. Shopify appends this path to the registered prefix."""
     headers = _enforce_shopify_limit(
         traffic=TRAFFIC_SHOPIFY_WEBHOOK,
         identity=(shop_domain or "unknown").lower(),

@@ -1,21 +1,32 @@
-"""Shopify fulfillment push + flag-gated FulfillmentService install hooks."""
+"""Shopify fulfillment adapter.
+
+Shopify definitions, kept as Shopify wrote them:
+
+- Fulfillment: a shipment of one or more items, including the line items, tracking, and location.
+- FulfillmentOrder: items fulfilled from the same location. deliveryMethod says shipping, pickup, or other.
+- FulfillmentService: a third-party service that prepares and ships for the store. Creating one creates a Location.
+
+PorterChain already has one order. Accept books that order. PICKED_UP creates the Shopify fulfillment.
+Later states only add fulfillmentEventCreate. There is no second fulfillment root.
+"""
 
 from __future__ import annotations
 
+import json
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
-from porterchain_api.domain.states import OrderSource
+from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.integrations.shopify_hmac import verify_webhook_hmac
 from porterchain_api.booking_models import Order
 from porterchain_api.merchant_models import ShopifyShop
 from porterchain_api.merchant_engine.shopify_urls import (
     carrier_rates_url,
-    fulfillment_service_url,
+    fulfillment_callback_prefix,
     normalize_shop_domain,
     webhook_url,
 )
@@ -37,7 +48,7 @@ def ingest_fulfillment_order_notification(
     hmac_header: str | None,
     shop_domain_header: str | None,
 ) -> dict[str, Any]:
-    """FulfillmentService callback URL — HMAC + enqueue; accept→book stays intentional hold."""
+    """FulfillmentService callback. Shopify posts only kind; we enqueue accept or cancel."""
     if not settings.shopify_fulfillment_service_enabled:
         return {"ok": True, "ignored": True, "reason": "fo_flag_off"}
 
@@ -62,10 +73,20 @@ def ingest_fulfillment_order_notification(
         from porterchain_shared.queue.names import QueueName
         from porterchain_shared.queue.publisher import get_queue_publisher
 
+        kind = ""
+        try:
+            parsed = json.loads(raw_body.decode("utf-8") or "{}")
+            if isinstance(parsed, dict):
+                kind = str(parsed.get("kind") or "")
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            kind = ""
+        action = (
+            "shopify_fo_cancel_request" if "CANCEL" in kind.upper() else "shopify_fo_request"
+        )
         get_queue_publisher().enqueue(
             QueueName.WEBHOOKS,
             {
-                "action": "shopify_fo_request",
+                "action": action,
                 "shop_domain": shop.shop_domain,
                 "topic": "fulfillment_order_notification",
                 "raw_body": raw_body.decode("utf-8"),
@@ -74,169 +95,35 @@ def ingest_fulfillment_order_notification(
     except Exception as exc:  # noqa: BLE001
         logger.exception("shopify_fo_notification_enqueue_failed shop=%s", shop_domain)
         raise RuntimeError("shopify_enqueue_failed") from exc
-    return {"ok": True, "queued": True, "action": "shopify_fo_request", "stub": True}
+    return {"ok": True, "queued": True, "action": action}
 
 
 
-def push_fulfillment(db: Session, settings: Settings, order: Order) -> None:
-    """Create or update Shopify fulfillment tracking for a PorterChain order.
 
-    First call (no ``fulfillment_id`` yet) creates the fulfillment via FO line
-    items. Later lifecycle events (picked up / in transit / delivered) update
-    tracking only so the buyer sees mid-flight status — Stripe-like trust.
-    Silent no-ops persist ``last_fulfillment_error`` so admin can see why.
-    """
-    if order.order_source != OrderSource.SHOPIFY.value:
-        return
-
-    def _record_error(code: str) -> None:
-        extra = dict(order.compliance_metadata or {})
-        shopify_meta = dict(extra.get("shopify") or {})
-        shopify_meta["last_fulfillment_error"] = code
-        shopify_meta["last_fulfillment_error_at"] = datetime.now(UTC).isoformat()
-        extra["shopify"] = shopify_meta
-        order.compliance_metadata = extra
-        db.commit()
-
-    meta = (order.compliance_metadata or {}).get("shopify") or {}
-    shop_domain = str(meta.get("shop_domain") or "")
-    shopify_order_id = str(meta.get("order_id") or order.purchase_order_number or "")
-    if not shop_domain or not shopify_order_id:
-        _record_error("missing_shopify_ids")
-        return
-    shop = _helpers()._active_shop(db, shop_domain)
-    if not shop:
-        _record_error("shop_not_connected")
-        return
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
-    if not token:
-        _record_error("missing_access_token")
-        return
-    tracking = order.tracking_number or ""
-    tracking_url = (
-        f"{settings.website_url.rstrip('/')}/track/{tracking}"
-        if tracking
-        else f"{settings.website_url.rstrip('/')}/track"
-    )
-    tracking_info = {
-        "number": tracking,
-        "url": tracking_url,
-        "company": "PorterChain",
-    }
-    existing_fid = str(meta.get("fulfillment_id") or "").strip()
-    if existing_fid:
-        resp = _helpers()._admin_post(
-            shop.shop_domain,
-            token,
-            f"/fulfillments/{existing_fid}/update_tracking.json",
-            settings,
-            {
-                "fulfillment": {
-                    "notify_customer": True,
-                    "tracking_info": tracking_info,
-                }
-            },
-        )
-        if isinstance(resp, dict):
-            extra = dict(order.compliance_metadata or {})
-            shopify_meta = dict(extra.get("shopify") or {})
-            shopify_meta["last_tracking_push_at"] = datetime.now(UTC).isoformat()
-            shopify_meta["last_tracking_state"] = order.state
-            shopify_meta.pop("last_fulfillment_error", None)
-            shopify_meta.pop("last_fulfillment_error_at", None)
-            extra["shopify"] = shopify_meta
-            order.compliance_metadata = extra
-            db.commit()
-        else:
-            _record_error("update_tracking_failed")
-        return
-
-    fo = _helpers()._admin_get(
-        shop.shop_domain, token, f"/orders/{shopify_order_id}/fulfillment_orders.json", settings
-    )
-    fulfillment_orders = (fo or {}).get("fulfillment_orders") if isinstance(fo, dict) else None
-    if not fulfillment_orders:
-        logger.info("shopify_no_fulfillment_orders order=%s shopify=%s", order.id, shopify_order_id)
-        _record_error("no_fulfillment_orders")
-        return
-    line_items = [{"fulfillment_order_id": item.get("id")} for item in fulfillment_orders if item.get("id")]
-    resp = _helpers()._admin_post(
-        shop.shop_domain,
-        token,
-        "/fulfillments.json",
-        settings,
-        {
-            "fulfillment": {
-                "line_items_by_fulfillment_order": line_items,
-                "tracking_info": tracking_info,
-                "notify_customer": True,
-            }
-        },
-    )
-    if isinstance(resp, dict):
-        fulfillment = resp.get("fulfillment") if isinstance(resp.get("fulfillment"), dict) else {}
-        fid = fulfillment.get("id") if fulfillment else None
-        if fid:
-            extra = dict(order.compliance_metadata or {})
-            shopify_meta = dict(extra.get("shopify") or {})
-            shopify_meta["fulfillment_id"] = str(fid)
-            shopify_meta["last_tracking_push_at"] = datetime.now(UTC).isoformat()
-            shopify_meta["last_tracking_state"] = order.state
-            shopify_meta.pop("last_fulfillment_error", None)
-            shopify_meta.pop("last_fulfillment_error_at", None)
-            extra["shopify"] = shopify_meta
-            order.compliance_metadata = extra
-            db.commit()
-            return
-        _record_error("fulfillment_create_no_id")
-        return
-    _record_error("fulfillment_create_failed")
-
-
-def re_register_shop_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, Any]:
-    """Admin heal: re-run webhook + carrier (+ FO if flag) registration."""
-    errors: list[str] = []
-    try:
-        _register_webhooks(shop, settings)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("shopify_webhook_reregister_failed shop=%s", shop.shop_domain, exc_info=True)
-        errors.append(f"webhooks:{exc}")
-    try:
-        _register_carrier_service(shop, settings)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("shopify_carrier_reregister_failed shop=%s", shop.shop_domain, exc_info=True)
-        errors.append(f"carrier:{exc}")
-    if settings.shopify_fulfillment_service_enabled:
-        try:
-            _register_fulfillment_service(shop, settings)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning(
-                "shopify_fulfillment_service_reregister_failed shop=%s",
-                shop.shop_domain,
-                exc_info=True,
-            )
-            errors.append(f"fulfillment_service:{exc}")
-    return {
-        "shop_id": shop.id,
-        "shop_domain": shop.shop_domain,
-        "ok": not errors,
-        "errors": errors,
-    }
+from porterchain_api.merchant_engine.shopify_fulfillment_ops import (  # noqa: E402
+    _order_payload_from_fo,
+    _register_carrier_service,
+    _register_fulfillment_service,
+    _register_webhooks,
+    _reject_reason,
+    act_on_queued_fo,
+    cancel_shopify_fulfillment,
+    delete_partner_services,
+    fulfillment_event_status,
+    push_fulfillment,
+    re_register_shop_hooks,
+)
 
 
 def _post_install_hooks(shop: ShopifyShop, settings: Settings) -> None:
     try:
         _register_webhooks(shop, settings)
     except Exception:  # noqa: BLE001
-        logger.warning(
-            "shopify_webhook_register_failed shop=%s", shop.shop_domain, exc_info=True
-        )
+        logger.warning("shopify_webhook_register_failed shop=%s", shop.shop_domain, exc_info=True)
     try:
         _register_carrier_service(shop, settings)
     except Exception:  # noqa: BLE001
-        logger.warning(
-            "shopify_carrier_register_failed shop=%s", shop.shop_domain, exc_info=True
-        )
+        logger.warning("shopify_carrier_register_failed shop=%s", shop.shop_domain, exc_info=True)
     if settings.shopify_fulfillment_service_enabled:
         try:
             _register_fulfillment_service(shop, settings)
@@ -246,82 +133,3 @@ def _post_install_hooks(shop: ShopifyShop, settings: Settings) -> None:
                 shop.shop_domain,
                 exc_info=True,
             )
-
-
-
-def _register_webhooks(shop: ShopifyShop, settings: Settings) -> None:
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
-    if not token:
-        return
-    address = webhook_url(settings)
-    topics: list[str] = [
-        "orders/create",
-        "orders/cancelled",
-        "app/uninstalled",
-        "customers/data_request",
-        "customers/redact",
-        "shop/redact",
-    ]
-    if settings.shopify_fulfillment_service_enabled:
-        topics.extend(
-            [
-                "fulfillment_orders/fulfillment_request_submitted",
-                "fulfillment_orders/cancellation_request_submitted",
-            ]
-        )
-    for topic in topics:
-        _helpers()._admin_post(
-            shop.shop_domain,
-            token,
-            "/webhooks.json",
-            settings,
-            {"webhook": {"topic": topic, "address": address, "format": "json"}},
-        )
-
-
-
-def _register_carrier_service(shop: ShopifyShop, settings: Settings) -> None:
-    """Register Shopify CarrierService so checkout can call our rate callback."""
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
-    if not token:
-        return
-    _helpers()._admin_post(
-        shop.shop_domain,
-        token,
-        "/carrier_services.json",
-        settings,
-        {
-            "carrier_service": {
-                "name": "PorterChain",
-                "callback_url": carrier_rates_url(settings),
-                "service_discovery": True,
-                "carrier_service_type": "api",
-                "format": "json",
-            }
-        },
-    )
-
-
-
-def _register_fulfillment_service(shop: ShopifyShop, settings: Settings) -> None:
-    """Register Shopify FulfillmentService (flag-gated). Accept→book still held."""
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
-    if not token:
-        return
-    _helpers()._admin_post(
-        shop.shop_domain,
-        token,
-        "/fulfillment_services.json",
-        settings,
-        {
-            "fulfillment_service": {
-                "name": "PorterChain",
-                "callback_url": fulfillment_service_url(settings),
-                "inventory_management": False,
-                "tracking_support": True,
-                "requires_shipping_method": False,
-                "format": "json",
-                "fulfillment_orders_opt_in": True,
-            }
-        },
-    )

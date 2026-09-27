@@ -36,6 +36,16 @@ _COMPLETED_STATES = frozenset(
 )
 
 
+def _shopify_order_label(order: Any) -> str | None:
+    if str(getattr(order, "order_source", "") or "").upper() != "SHOPIFY":
+        return None
+    meta = order.compliance_metadata if isinstance(getattr(order, "compliance_metadata", None), dict) else {}
+    raw = meta.get("shopify") if isinstance(meta.get("shopify"), dict) else {}
+    name = raw.get("order_name") or raw.get("name") or getattr(order, "internal_reference", None)
+    text = str(name).strip() if name else ""
+    return f"Shopify {text}" if text else "Shopify"
+
+
 class JobsService:
     def __init__(self) -> None:
         self._stops = StopsService()
@@ -664,6 +674,7 @@ class JobsService:
             "route_id": self.route_id_for_order(order),
             "scan_pickup": self._scan_view(scan_block.get("scan_pickup")),
             "scan_delivery": self._scan_view(scan_block.get("scan_delivery")),
+            "shopify_order_label": _shopify_order_label(order),
         }
 
     @staticmethod

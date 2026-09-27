@@ -93,6 +93,9 @@ export function JobCard({
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
             <span>{job.delivery_address}</span>
           </p>
+          {job.shopify_order_label ? (
+            <p className="text-xs font-semibold text-[var(--primary)]">{job.shopify_order_label}</p>
+          ) : null}
           {parcels ? (
             <p className="text-xs font-semibold text-[var(--primary)]">{parcels}</p>
           ) : null}

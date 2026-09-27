@@ -178,7 +178,7 @@ def _enqueue_growth_staff_alert(
     priority: str,
     kind: str = "unassigned",
 ) -> None:
-    """Page CRM-capable staff for growth SLA signals (idempotent per day+kind)."""
+    """Record an in-app growth notice. Email is not sent; Lead Agent Inbox is the surface."""
     try:
         import uuid
         from datetime import date
@@ -210,21 +210,11 @@ def _enqueue_growth_staff_alert(
         }
         fanout_tag = "sla_breached" if kind == "sla" else "unassigned_high"
         sentinel = growth_staff_sentinel()
+        # In-app only. Staff read these on Lead Agent → Inbox; do not email noreply → staff.
         specs = [
             {
                 "template_key": "lead_sla_escalation",
                 "channel": "in_app",
-                "recipient_type": "admin",
-                "recipient_id": sentinel,
-                "context": ctx,
-                "search_tags": {"lead_id": lead.id, "fanout": fanout_tag},
-                "category": "crm",
-                "priority": "high" if priority == "high" else "critical",
-                "deep_link": f"/leads/{lead.id}",
-            },
-            {
-                "template_key": "lead_sla_escalation",
-                "channel": "email",
                 "recipient_type": "admin",
                 "recipient_id": sentinel,
                 "context": ctx,

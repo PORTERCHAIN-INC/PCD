@@ -26,7 +26,7 @@ def _settings(*, fo: bool = False) -> Settings:
 
 def test_fulfillment_service_url() -> None:
     assert fulfillment_service_url(_settings()).endswith(
-        "/v1/integrations/shopify/fulfillment-order-notification"
+        "/v1/integrations/shopify/fs/fulfillment_order_notification"
     )
 
 
@@ -70,8 +70,8 @@ def test_process_queued_fo_stub_when_flag_on() -> None:
             "raw_body": '{"kind":"FULFILLMENT_REQUEST"}',
         },
     )
-    assert result["stub"] is True
-    assert result["detail"] == "fo_accept_book_held"
+    assert result["skipped"] == "shop_not_connected"
+    assert result["action"] == "shopify_fo_request"
 
 
 def test_process_queued_fo_skipped_when_flag_off() -> None:

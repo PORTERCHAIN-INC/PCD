@@ -33,6 +33,9 @@ def test_shopify_snapshot_from_metadata() -> None:
         "held_for_ops": False,
         "auto_dispatch": None,
         "last_repush_at": None,
+        "last_event_status": None,
+        "last_event_at": None,
+        "order_admin_url": "https://acme.myshopify.com/admin/orders/123",
     }
     assert order_source_label("SHOPIFY") == "Shopify"
 

@@ -13,6 +13,15 @@ import { formatCents, formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { Card, pickupWindowFromStops } from "./shared";
 
+function shopifyEventLabel(status: string | null | undefined): string {
+  if (!status) return "Not sent yet";
+  return status
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export function OverviewTab({ detail }: { detail: OrderDetail }) {
   const pickupWindow = pickupWindowFromStops(detail.stops);
   return (
@@ -32,6 +41,23 @@ export function OverviewTab({ detail }: { detail: OrderDetail }) {
             </p>
             {detail.shopify.shop_domain ? (
               <p className="mt-1">Shop: {detail.shopify.shop_domain}</p>
+            ) : null}
+            <p className="mt-1">
+              Fulfillment: {detail.shopify.fulfillment_id || "Not created yet"}
+            </p>
+            <p className="mt-1">
+              Last tracking event: {shopifyEventLabel(detail.shopify.last_event_status)}
+              {detail.shopify.last_event_at ? ` · ${formatDate(detail.shopify.last_event_at)}` : ""}
+            </p>
+            {detail.shopify.order_admin_url ? (
+              <a
+                className="mt-1 inline-block text-secondary hover:underline"
+                href={detail.shopify.order_admin_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open in Shopify
+              </a>
             ) : null}
           </>
         ) : (

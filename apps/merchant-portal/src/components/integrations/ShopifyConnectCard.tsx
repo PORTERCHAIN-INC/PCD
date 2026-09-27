@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import Link from "next/link";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { listSavedAddresses, type SavedAddress } from "@/lib/booking";
 import { integrationsApi, type ShopifyConnection } from "@/lib/integrations";
@@ -140,8 +141,21 @@ export default function ShopifyConnectCard({ initialShop = "" }: { initialShop?:
       <h2 className="text-lg font-semibold text-primary">Shopify</h2>
       <p className="mt-1 text-sm text-muted">
         One click installs PorterChain rates and order sync on your Shopify store. Pickup must be
-        set so checkout can price capacity.
+        set so checkout can price capacity.{" "}
+        {data?.buyer_data_purpose ??
+          "We store the buyer name, phone, and email to deliver the shipment and to answer privacy requests. We do not use them for marketing."}{" "}
+        <Link href="/settings?tab=privacy" className="underline">
+          Privacy notice
+        </Link>
+        .
       </p>
+      {data?.service_area ? <p className="mt-2 text-sm text-muted">{data.service_area}</p> : null}
+      {data?.fulfillment_callback_url ? (
+        <p className="mt-2 text-xs text-muted">
+          Fulfillment callback{" "}
+          <code className="rounded bg-gray-bg px-1 py-0.5">{data.fulfillment_callback_url}</code>
+        </p>
+      ) : null}
       {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
 
       {goLive ? (
@@ -171,6 +185,17 @@ export default function ShopifyConnectCard({ initialShop = "" }: { initialShop?:
                       ? ` · pickup ${row.default_pickup}`
                       : " · no default pickup"}
                   </p>
+                  {row.connected ? (
+                    <p className="text-muted">
+                      {row.carrier_registered
+                        ? "Checkout rates registered"
+                        : "Checkout rates not registered"}
+                      {" · "}
+                      {data?.fulfillment_service_enabled && row.fulfillment_service_registered
+                        ? "Fulfillment accept on"
+                        : "Fulfillment accept off"}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {row.connected && needsFinish ? (

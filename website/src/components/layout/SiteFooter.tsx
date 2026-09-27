@@ -104,7 +104,11 @@ export default function SiteFooter() {
       <Container as="footer" className="py-12 md:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 mb-12">
           <div className="lg:col-span-3 text-center sm:text-left">
-            <Link href="/" className="inline-flex mb-4 transition-opacity hover:opacity-90">
+            <Link
+              href="/"
+              aria-label="Porterchain"
+              className="inline-flex mb-4 max-w-full transition-opacity hover:opacity-90"
+            >
               <PorterchainWordmark tone="dark" size="lg" />
             </Link>
             <p className="text-white/50 type-small leading-relaxed mb-1">{tBrand("networkLine")}</p>

@@ -12,6 +12,10 @@ from typing import Any
 from porterchain_api.db import SessionLocal
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.notification_engine.device_service import DeviceService
+from porterchain_api.notification_engine.internal_inbox_mail import (
+    normalize_recipient,
+    record_internal_inbox_skip,
+)
 from porterchain_api.notification_engine.fcm_service import FCMService
 from porterchain_api.notification_engine.models import NotificationDeliveryLog, NotificationRecord
 from porterchain_api.notification_engine.templates import render_email, render_template
@@ -27,15 +31,6 @@ class DeliveryDeferred(Exception):
         super().__init__(reason)
 
 
-def _normalize_recipient(payload: dict[str, Any]) -> str:
-    raw = payload.get("recipient")
-    if isinstance(raw, str):
-        return raw
-    if isinstance(raw, dict):
-        return raw.get("email") or raw.get("phone") or raw.get("token") or ""
-    return payload.get("email") or payload.get("phone") or ""
-
-
 class DeliveryService:
     def deliver(self, payload: dict[str, Any]) -> NotificationDeliveryLog:
         channel = payload.get("channel", "email")
@@ -43,7 +38,7 @@ class DeliveryService:
         notification_id = payload.get("notification_id")
         recipient_type = payload.get("recipient_type", "")
         recipient_id = payload.get("recipient_id", "")
-        recipient = _normalize_recipient(payload)
+        recipient = normalize_recipient(payload)
         context = payload.get("context") or {}
         status = "sent"
         error: str | None = None
@@ -89,6 +84,9 @@ class DeliveryService:
                 return log
             finally:
                 db.close()
+
+        if channel == "email" and template == "lead_sla_escalation":
+            return record_internal_inbox_skip(notification_id, channel, template, recipient, recipient_type, context, self._mark_deferred)
 
         try:
             if channel == "email":

@@ -200,6 +200,9 @@ export default function Delivery360({
             </p>
             <h1 className="text-2xl font-bold">{job.order_number}</h1>
             <p className="text-sm text-white/80">{job.tracking_number}</p>
+            {job.shopify_order_label ? (
+              <p className="mt-1 text-sm text-white/90">{job.shopify_order_label}</p>
+            ) : null}
           </div>
           <span className="rounded-full bg-white/15 px-3 py-1 text-sm font-semibold">
             {jobStatusLabel(job.state)}

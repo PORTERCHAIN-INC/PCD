@@ -41,7 +41,7 @@ def leads_agent_activity(
     db: Session = Depends(get_db),
     lane_limit: int = Query(40, ge=5, le=100),
 ) -> dict:
-    """Zero-human lead agent board — welcomed / enrich / awaiting / blocked."""
+    """Zero-human lead agent board — inbox, welcomed, enrich, awaiting, blocked."""
     require_module(ctx, "crm_read")
     from porterchain_api.collaboration_engine.lead_agent_activity import lead_agent_activity
 

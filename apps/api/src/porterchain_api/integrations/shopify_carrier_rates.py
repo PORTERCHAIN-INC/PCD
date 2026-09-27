@@ -390,6 +390,35 @@ def find_quote_for_book(
     return rows[0]
 
 
+def find_quote_by_hash(
+    db: Session,
+    *,
+    shop_id: str,
+    request_hash: str,
+) -> ShopifyRateQuote | None:
+    now = datetime.now(UTC)
+    return (
+        db.query(ShopifyRateQuote)
+        .filter(
+            ShopifyRateQuote.shop_id == shop_id,
+            ShopifyRateQuote.request_hash == request_hash,
+            ShopifyRateQuote.expires_at >= now,
+        )
+        .order_by(ShopifyRateQuote.created_at.desc())
+        .first()
+    )
+
+
+def _delivery_window() -> tuple[str, str]:
+    from zoneinfo import ZoneInfo
+
+    now = datetime.now(ZoneInfo("America/Toronto"))
+    earliest = now + timedelta(hours=2)
+    latest = now + timedelta(hours=10)
+    fmt = "%Y-%m-%d %H:%M:%S %z"
+    return earliest.strftime(fmt), latest.strftime(fmt)
+
+
 def carrier_service_rates(
     db: Session,
     settings: Settings,
@@ -425,15 +454,26 @@ def carrier_service_rates(
         rate_in = {}
     currency = str(rate_in.get("currency") or "CAD").upper()
 
+    from porterchain_api.integrations.shopify_orders import is_canada_country
+
+    destination = rate_in.get("destination") if isinstance(rate_in.get("destination"), dict) else None
+    origin = rate_in.get("origin") if isinstance(rate_in.get("origin"), dict) else None
+    dest_country = None
+    if isinstance(destination, dict):
+        dest_country = destination.get("country") or destination.get("country_code")
+    origin_country = None
+    if isinstance(origin, dict):
+        origin_country = origin.get("country") or origin.get("country_code")
+    if not is_canada_country(dest_country) or not is_canada_country(origin_country):
+        return _EMPTY
+
     pickup_row = default_pickup_address(db, merchant.id, shop=shop)
     if not pickup_row:
         logger.info("shopify_carrier_no_pickup shop=%s", getattr(shop, "shop_domain", shop.id))
         return _EMPTY
-    pickup = _ensure_geo(address_from_saved(pickup_row))
+    default_pickup = _ensure_geo(address_from_saved(pickup_row))
 
-    dropoff_raw = _shopify_address_to_input(
-        rate_in.get("destination") if isinstance(rate_in.get("destination"), dict) else None
-    )
+    dropoff_raw = _shopify_address_to_input(destination)
     if not dropoff_raw:
         return _EMPTY
     area_err = service_area_error("destination", dropoff_raw)
@@ -445,6 +485,19 @@ def carrier_service_rates(
         )
         return _EMPTY
     dropoff = _ensure_geo(dropoff_raw)
+
+    pickup = default_pickup
+    origin_input = _shopify_address_to_input(origin)
+    if origin_input is not None and (origin_input.postal or origin_input.formatted):
+        origin_err = service_area_error("origin", origin_input)
+        if origin_err:
+            logger.info(
+                "shopify_carrier_origin_out_of_area shop=%s err=%s",
+                getattr(shop, "shop_domain", shop.id),
+                origin_err,
+            )
+            return _EMPTY
+        pickup = _ensure_geo(origin_input)
 
     items = rate_in.get("items") if isinstance(rate_in.get("items"), list) else []
     weight_kg = _weight_kg_from_items(items)
@@ -509,9 +562,27 @@ def carrier_service_rates(
         )
         quote_id = None
 
-    desc = "Same-day local capacity — PorterChain"
+    desc = "Same-day local capacity"
+    min_delivery, max_delivery = _delivery_window()
+    rate: dict[str, Any] = {
+        "service_name": "PorterChain Same Day",
+        "service_code": "porterchain_same_day",
+        "total_price": str(cents),
+        "currency": currency,
+        "description": desc,
+        "phone_required": True,
+        "min_delivery_date": min_delivery,
+        "max_delivery_date": max_delivery,
+    }
     if quote_id:
-        desc = f"{desc} (quote {quote_id[:8]})"
+        rate["metafields"] = [
+            {
+                "namespace": "porterchain",
+                "key": "quote_id",
+                "value": quote_id,
+                "type": "single_line_text_field",
+            }
+        ]
 
     try:
         from porterchain_api.merchant_engine.commerce_metrics import note_commerce_event
@@ -520,14 +591,4 @@ def carrier_service_rates(
     except Exception:
         pass
 
-    return {
-        "rates": [
-            {
-                "service_name": "PorterChain Same Day",
-                "service_code": "porterchain_same_day",
-                "total_price": str(cents),
-                "currency": currency,
-                "description": desc,
-            }
-        ]
-    }
+    return {"rates": [rate]}

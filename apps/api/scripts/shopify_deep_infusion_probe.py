@@ -644,7 +644,7 @@ def main() -> int:
             "oauth_keys_in_api_env": bool(settings.shopify_api_key and settings.shopify_api_secret),
             "scopes_missing": sorted(required - scopes),
             "app_toml_client_id_empty_intentional": 'client_id = ""' in toml_text,
-            "fo_accept_book_held": not settings.shopify_fulfillment_service_enabled,
+            "fo_accept_enabled": bool(settings.shopify_fulfillment_service_enabled),
             "sandbox_order_id": sandbox_order_id,
             "live_held_order_id": live_order_id,
         }

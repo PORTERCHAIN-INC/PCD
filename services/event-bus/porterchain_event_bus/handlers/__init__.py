@@ -36,6 +36,11 @@ def register_default_handlers() -> None:
     registry.subscribe(DomainEventType.PARCEL_PICKED_UP, _handle_shopify_fulfillment)
     registry.subscribe(DomainEventType.DELIVERY_STARTED, _handle_shopify_fulfillment)
     registry.subscribe(DomainEventType.PARCEL_DELIVERED, _handle_shopify_fulfillment)
+    registry.subscribe(DomainEventType.ORDER_NEAR_DELIVERY, _handle_shopify_fulfillment)
+    registry.subscribe(DomainEventType.ORDER_DELAYED, _handle_shopify_fulfillment)
+    registry.subscribe(DomainEventType.EXCEPTION_OPENED, _handle_shopify_fulfillment)
+    registry.subscribe(DomainEventType.PROOF_COMPLETED, _handle_shopify_fulfillment)
+    registry.subscribe(DomainEventType.ORDER_CANCELLED, _handle_shopify_fulfillment_cancel)
 
     from porterchain_api.notification_engine.event_router import register_notification_handlers
 
@@ -153,5 +158,22 @@ def _handle_shopify_fulfillment(envelope: dict[str, Any]) -> None:
 
     get_queue_publisher().enqueue(
         QueueName.WEBHOOKS,
-        {"action": "shopify_fulfillment", "order_id": order_id},
+        {
+            "action": "shopify_fulfillment",
+            "order_id": order_id,
+            "event_type": envelope.get("event_type"),
+        },
+    )
+
+
+def _handle_shopify_fulfillment_cancel(envelope: dict[str, Any]) -> None:
+    order_id = envelope.get("aggregate_id")
+    if not order_id:
+        return
+    from porterchain_shared.queue.names import QueueName
+    from porterchain_shared.queue.publisher import get_queue_publisher
+
+    get_queue_publisher().enqueue(
+        QueueName.WEBHOOKS,
+        {"action": "shopify_fulfillment_cancel", "order_id": order_id},
     )

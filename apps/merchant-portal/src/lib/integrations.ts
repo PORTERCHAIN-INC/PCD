@@ -119,6 +119,8 @@ export type ShopifyShopConnection = {
   default_pickup_address_id: string | null;
   default_pickup: string | null;
   has_webhook_secret: boolean;
+  carrier_registered?: boolean;
+  fulfillment_service_registered?: boolean;
 };
 
 export type ShopifyGoLive = {
@@ -139,7 +141,10 @@ export type ShopifyConnection = {
   webhook_url: string;
   carrier_rates_url?: string;
   fulfillment_service_url?: string;
+  fulfillment_callback_url?: string;
   fulfillment_service_enabled?: boolean;
+  service_area?: string;
+  buyer_data_purpose?: string;
   app_url?: string;
   shops: ShopifyShopConnection[];
   go_live?: ShopifyGoLive;

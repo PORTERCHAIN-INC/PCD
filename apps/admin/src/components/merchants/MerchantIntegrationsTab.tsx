@@ -702,7 +702,30 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
               label="Last fulfillment"
               value={partner.last_fulfillment_at ? relativeTime(partner.last_fulfillment_at) : "—"}
             />
+            <Metric
+              label="Last tracking event"
+              value={
+                partner.last_fulfillment?.last_event_status
+                  ? titleCase(partner.last_fulfillment.last_event_status)
+                  : "—"
+              }
+            />
             <Metric label="Ingress DLQ open" value={String(partner.ingress_dlq_open ?? 0)} />
+            {partner.fulfillment_callback_url ? (
+              <div className="sm:col-span-2 lg:col-span-4 flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-muted">Fulfillment callback</span>
+                <code className="max-w-full truncate rounded bg-gray-bg px-1.5 py-0.5 text-[11px]">
+                  {partner.fulfillment_callback_url}
+                </code>
+                <Button
+                  variant="outline"
+                  className="text-xs"
+                  onClick={() => void copyText("fs-url", partner.fulfillment_callback_url || "")}
+                >
+                  {copied === "fs-url" ? "Copied" : "Copy"}
+                </Button>
+              </div>
+            ) : null}
             {partner.carrier_rates_url ? (
               <div className="sm:col-span-2 lg:col-span-4 flex flex-wrap items-center gap-2 text-xs">
                 <span className="text-muted">CarrierService callback</span>
@@ -726,8 +749,8 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
                 ) : null}
                 {partner.fo_partner_path === "flag_off" || partner.fo_partner_path === "pending" ? (
                   <Badge tone="slate">FO partner path off</Badge>
-                ) : partner.fo_partner_path === "flag_stub" ? (
-                  <Badge tone="amber">FO foundation stub</Badge>
+                ) : partner.fo_partner_path === "flag_on" ? (
+                  <Badge tone="green">FO accept live</Badge>
                 ) : null}
               </div>
             ) : null}

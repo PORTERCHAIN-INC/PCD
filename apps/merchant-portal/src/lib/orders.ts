@@ -60,6 +60,12 @@ export type OrderRow = {
     shop_domain?: string | null;
     order_id?: string | null;
     order_name?: string | null;
+    last_event_status?: string | null;
+    last_event_at?: string | null;
+    fulfillment_id?: string | null;
+    order_admin_url?: string | null;
+    last_tracking_state?: string | null;
+    last_tracking_push_at?: string | null;
   } | null;
   is_sandbox?: boolean;
 };

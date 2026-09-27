@@ -22,7 +22,12 @@ export type AgentActivityRow = {
   reason?: string | null;
   welcomed?: boolean;
   needs_enrich?: boolean;
+  created_at?: string | null;
   updated_at?: string | null;
+  assigned?: boolean;
+  notice_kind?: "unassigned" | "sla";
+  notice_subject?: string;
+  notice_body?: string;
   nba?: Record<string, unknown>;
 };
 
@@ -31,6 +36,7 @@ export type LeadAgentActivity = {
     auto_send_enabled: boolean;
     whatsapp_cloud_configured: boolean;
     kill_switch_env: string;
+    internal_email?: boolean;
   };
   counts: {
     welcomed: number;
@@ -38,6 +44,12 @@ export type LeadAgentActivity = {
     awaiting_welcome: number;
     blocked: number;
     new_total: number;
+    unassigned: number;
+    notices: number;
+  };
+  inbox: {
+    unassigned: AgentActivityRow[];
+    notices: AgentActivityRow[];
   };
   lanes: {
     welcomed: AgentActivityRow[];

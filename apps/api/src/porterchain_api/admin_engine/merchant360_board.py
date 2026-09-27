@@ -531,6 +531,7 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
     from porterchain_api.merchant_engine.shopify_service import default_pickup_address
     from porterchain_api.merchant_engine.shopify_urls import (
         carrier_rates_url,
+        fulfillment_callback_prefix,
         fulfillment_service_url,
         webhook_url,
     )
@@ -658,6 +659,8 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
                 "rate_quote_cents": shopify_meta.get("rate_quote_cents"),
                 "last_tracking_push_at": shopify_meta.get("last_tracking_push_at"),
                 "last_tracking_state": shopify_meta.get("last_tracking_state"),
+                "last_event_status": shopify_meta.get("last_event_status"),
+                "last_event_at": shopify_meta.get("last_event_at"),
             }
             last_fulfill_at = last_book.updated_at.isoformat() if getattr(last_book, "updated_at", None) else None
     if not last_fulfill_meta:
@@ -681,6 +684,8 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
                     "rate_quote_cents": meta.get("rate_quote_cents"),
                     "last_tracking_push_at": meta.get("last_tracking_push_at"),
                     "last_tracking_state": meta.get("last_tracking_state"),
+                    "last_event_status": meta.get("last_event_status"),
+                    "last_event_at": meta.get("last_event_at"),
                 }
                 last_fulfill_at = order.updated_at.isoformat() if getattr(order, "updated_at", None) else (
                     order.created_at.isoformat() if order.created_at else None
@@ -716,9 +721,10 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
         "oauth_configured": bool(settings.shopify_api_key and settings.shopify_api_secret),
         "mid_flight_tracking": True,
         "fo_partner_path": (
-            "flag_stub" if settings.shopify_fulfillment_service_enabled else "flag_off"
+            "flag_on" if settings.shopify_fulfillment_service_enabled else "flag_off"
         ),
         "fulfillment_service_url": fulfillment_service_url(settings),
+        "fulfillment_callback_url": fulfillment_callback_prefix(settings),
         "fulfillment_service_enabled": bool(settings.shopify_fulfillment_service_enabled),
         "ingress_dlq_open": dlq_open,
     }

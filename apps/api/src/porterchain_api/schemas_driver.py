@@ -247,6 +247,7 @@ class DriverJobSummary(BaseModel):
     route_id: str | None = None
     scan_pickup: DriverScanProgress = Field(default_factory=DriverScanProgress)
     scan_delivery: DriverScanProgress = Field(default_factory=DriverScanProgress)
+    shopify_order_label: str | None = None
 
 
 class DriverRouteMetrics(BaseModel):

@@ -36,16 +36,125 @@ def _record(value: Any) -> dict[str, Any] | None:
     return value if isinstance(value, dict) else None
 
 
+PORTERCHAIN_SERVICE_CODE = "porterchain_same_day"
+
+# Buyer email and phone are for the delivery and for privacy requests. Never a marketing list.
+_CANADA = {"CA", "CAN", "CANADA"}
+
+
+def is_canada_country(value: Any) -> bool:
+    raw = _as_str(value).upper()
+    if not raw:
+        return True
+    return raw in _CANADA
+
+
 def format_shopify_address(raw: dict[str, Any]) -> str:
+    country = _as_str(raw.get("country") or raw.get("country_code") or raw.get("countryCode"))
+    if country.upper() in {"CA", "CAN"}:
+        country = "Canada"
     parts = [
         _as_str(raw.get("address1")),
         _as_str(raw.get("address2")),
         _as_str(raw.get("city")),
         _as_str(raw.get("province_code") or raw.get("province")),
-        _as_str(raw.get("zip")),
-        "Canada",
+        _as_str(raw.get("zip") or raw.get("postal_code")),
+        country or "Canada",
     ]
     return ", ".join(p for p in parts if p)
+
+
+def porterchain_shipping_selected(payload: dict[str, Any]) -> bool:
+    """Book when the buyer chose PorterChain.
+
+    Orders with no shipping_lines still book (non-checkout ingress and existing fixtures).
+    If lines are present, one of them must be our stable service code or name.
+    """
+    lines = payload.get("shipping_lines")
+    if not isinstance(lines, list) or not lines:
+        return True
+    for line in lines:
+        if not isinstance(line, dict):
+            continue
+        code = _as_str(line.get("code")).lower()
+        title = _as_str(line.get("title")).lower()
+        source = _as_str(line.get("source")).lower()
+        if code == PORTERCHAIN_SERVICE_CODE or "porterchain" in title or "porterchain" in source:
+            return True
+    return False
+
+
+def unpaid_non_cod(payload: dict[str, Any]) -> bool:
+    status = _as_str(payload.get("financial_status")).lower()
+    if status in {"", "paid", "partially_paid", "partially_refunded", "authorized"}:
+        return False
+    gateways = payload.get("payment_gateway_names")
+    if isinstance(gateways, list):
+        for gateway in gateways:
+            label = _as_str(gateway).lower()
+            if "cod" in label or "cash" in label:
+                return False
+    return status in {"pending", "unpaid", "voided"}
+
+
+def quote_id_from_order(payload: dict[str, Any]) -> str | None:
+    notes = payload.get("note_attributes")
+    if isinstance(notes, list):
+        for attr in notes:
+            if not isinstance(attr, dict):
+                continue
+            name = _as_str(attr.get("name")).lower()
+            if name in {"quote_id", "porterchain_quote_id"}:
+                value = _as_str(attr.get("value"))
+                if value:
+                    return value
+    lines = payload.get("shipping_lines")
+    if isinstance(lines, list):
+        for line in lines:
+            if not isinstance(line, dict):
+                continue
+            metafields = line.get("metafields")
+            if not isinstance(metafields, list):
+                continue
+            for field in metafields:
+                if isinstance(field, dict) and _as_str(field.get("key")) == "quote_id":
+                    value = _as_str(field.get("value"))
+                    if value:
+                        return value
+    return None
+
+
+def customer_slice(payload: dict[str, Any]) -> dict[str, Any]:
+    """Stored for delivery and PIPEDA / Law 25 requests. Not a CASL marketing list."""
+    customer = _record(payload.get("customer")) or {}
+    address = shipping_address(payload) or {}
+    first = _as_str(customer.get("first_name"))
+    last = _as_str(customer.get("last_name"))
+    name = _as_str(address.get("name")) or " ".join(p for p in (first, last) if p)
+    return {
+        "id": customer.get("id"),
+        "email": _as_str(payload.get("email") or customer.get("email")) or None,
+        "phone": _as_str(address.get("phone") or customer.get("phone") or payload.get("phone")) or None,
+        "name": name or None,
+    }
+
+
+def line_item_slice(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    items = payload.get("line_items")
+    if not isinstance(items, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in items[:40]:
+        if not isinstance(item, dict):
+            continue
+        out.append(
+            {
+                "title": _as_str(item.get("title") or item.get("name")) or None,
+                "sku": _as_str(item.get("sku")) or None,
+                "quantity": item.get("quantity"),
+            }
+        )
+    return out
 
 
 def shipping_address(payload: dict[str, Any]) -> dict[str, Any] | None:

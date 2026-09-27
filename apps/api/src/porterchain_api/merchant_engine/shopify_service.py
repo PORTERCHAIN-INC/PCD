@@ -16,10 +16,20 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
-from porterchain_api.domain.states import OrderSource
+from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
 from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac, verify_webhook_hmac
-from porterchain_api.integrations.shopify_orders import map_shopify_order, order_ids
+from porterchain_api.integrations.shopify_orders import (
+    customer_slice,
+    is_canada_country,
+    line_item_slice,
+    map_shopify_order,
+    order_ids,
+    porterchain_shipping_selected,
+    quote_id_from_order,
+    shipping_address,
+    unpaid_non_cod,
+)
 from porterchain_api.merchant_engine.activation_service import (
     SIGNUP_SOURCE_SHOPIFY,
     apply_signup_policy,
@@ -248,9 +258,24 @@ def disconnect_shop(db: Session, ctx: MerchantContext, shop_id: str) -> None:
     )
     if not shop:
         raise LookupError("shop_not_found")
+    _delete_partner_services(shop)
     shop.uninstalled_at = datetime.now(UTC)
     shop.encrypted_access_token = None
+    shop.carrier_service_gid = None
+    shop.fulfillment_service_gid = None
+    shop.location_gid = None
     db.commit()
+
+
+def _delete_partner_services(shop: ShopifyShop) -> None:
+    """Drop CarrierService and FulfillmentService while the token is still valid."""
+    try:
+        from porterchain_api.config import get_settings
+        from porterchain_api.merchant_engine.shopify_fulfillment_service import delete_partner_services
+
+        delete_partner_services(shop, get_settings())
+    except Exception:  # noqa: BLE001
+        logger.warning("shopify_partner_delete_failed shop=%s", shop.shop_domain, exc_info=True)
 
 
 def complete_oauth(
@@ -315,6 +340,77 @@ def complete_oauth(
     return row
 
 
+_FO_REQUEST_TOPICS = {
+    "fulfillment/orders/fulfillment/request/submitted",
+    "fulfillment/orders/cancellation/request/submitted",
+}
+_FO_SYNC_TOPICS = {
+    "fulfillment/orders/order/routing/complete",
+    "fulfillment/orders/scheduled/fulfillment/order/ready",
+    "fulfillment/orders/cancelled",
+    "fulfillment/orders/placed/on/hold",
+    "fulfillment/orders/hold/released",
+    "fulfillment/orders/rescheduled",
+    "fulfillment/orders/moved",
+    "fulfillment/orders/split",
+    "fulfillment/orders/merged",
+}
+_CREATE_TOPICS = {"orders/create", "orders/paid"}
+_UPDATE_TOPICS = {"orders/updated", "orders/update", "orders/edited"}
+_CANCEL_TOPICS = {"orders/cancelled", "orders/canceled", "orders/delete", "refunds/create"}
+_PRE_PICKUP = {
+    OrderState.BOOKED.value,
+    OrderState.DISPATCH_READY.value,
+    OrderState.DRIVER_ASSIGNED.value,
+    OrderState.DRIVER_ACCEPTED.value,
+    OrderState.DRIVER_REJECTED.value,
+    OrderState.DRIVER_EN_ROUTE.value,
+    OrderState.AT_PICKUP.value,
+}
+
+
+def _webhook_seen(shop: ShopifyShop, webhook_id: str | None) -> bool:
+    if not webhook_id:
+        return False
+    seen = shop.seen_webhook_ids
+    return isinstance(seen, list) and webhook_id in seen
+
+
+def _remember_webhook(shop: ShopifyShop, webhook_id: str | None) -> None:
+    if not webhook_id:
+        return
+    seen = list(shop.seen_webhook_ids) if isinstance(shop.seen_webhook_ids, list) else []
+    if webhook_id in seen:
+        return
+    shop.seen_webhook_ids = [*seen, webhook_id][-200:]
+
+
+def _action_for_topic(topic_name: str, *, fo_enabled: bool) -> tuple[str | None, dict[str, Any] | None]:
+    """Return (action, early_result). early_result is set when we ack without a job."""
+    if topic_name in _FO_REQUEST_TOPICS:
+        if not fo_enabled:
+            return None, {"ok": True, "ignored": topic_name, "reason": "fo_flag_off"}
+        action = (
+            "shopify_fo_request"
+            if "fulfillment/request" in topic_name
+            else "shopify_fo_cancel_request"
+        )
+        return action, None
+    if topic_name in _FO_SYNC_TOPICS:
+        return "shopify_fo_sync", None
+    if topic_name in _CREATE_TOPICS:
+        return "shopify_orders_create", None
+    if topic_name in _UPDATE_TOPICS:
+        return "shopify_orders_updated", None
+    if topic_name in _CANCEL_TOPICS:
+        return "shopify_orders_cancelled", None
+    if topic_name == "returns/approve":
+        return "shopify_return_approve", None
+    if topic_name == "returns/cancel":
+        return "shopify_return_cancel", None
+    return None, {"ok": True, "ignored": topic_name}
+
+
 def ingest_webhook(
     db: Session,
     settings: Settings,
@@ -323,11 +419,14 @@ def ingest_webhook(
     hmac_header: str | None,
     shop_domain_header: str | None,
     topic: str | None,
+    webhook_id: str | None = None,
 ) -> dict[str, Any]:
     """HMAC on the request path; book/cancel run on WEBHOOKS worker (Phase 4).
 
     Returns 200-worthy payload only after enqueue succeeds for order topics.
     Raises PermissionError on bad HMAC; RuntimeError('shopify_enqueue_failed') → 503.
+    ``X-Shopify-Webhook-Id`` is remembered only after a successful enqueue so a
+    failed enqueue can still be retried.
     """
     shop_domain = normalize_shop_domain(shop_domain_header or "")
     shop = db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop_domain).first() if shop_domain else None
@@ -340,41 +439,39 @@ def ingest_webhook(
         secrets.append(settings.shopify_api_secret)
     if not verify_webhook_hmac(raw_body, hmac_header, secrets):
         raise PermissionError("shopify_hmac_invalid")
+    if shop and _webhook_seen(shop, webhook_id):
+        return {"ok": True, "duplicate": True}
 
     topic_name = (topic or "").strip().lower().replace("_", "/")
     if topic_name in _GDPR_TOPICS:
-        return _handle_gdpr_topic(
+        result = _handle_gdpr_topic(
             db, settings, topic=topic_name, shop=shop, raw_body=raw_body
         )
+        if shop and webhook_id:
+            _remember_webhook(shop, webhook_id)
+            db.commit()
+        return result
     if topic_name in {"app/uninstalled"}:
         if shop:
+            _delete_partner_services(shop)
             shop.uninstalled_at = datetime.now(UTC)
             shop.encrypted_access_token = None
+            shop.carrier_service_gid = None
+            shop.fulfillment_service_gid = None
+            shop.location_gid = None
+            _remember_webhook(shop, webhook_id)
             db.commit()
         return {"ok": True, "uninstalled": True}
 
-    create_topics = {"orders/create"}
-    cancel_topics = {"orders/cancelled", "orders/canceled"}
-    # Topics after ingest normalize: lower + "_" → "/".
-    # Shopify header example: fulfillment_orders/fulfillment_request_submitted
-    # → fulfillment/orders/fulfillment/request/submitted
-    fo_topics = {
-        "fulfillment/orders/fulfillment/request/submitted",
-        "fulfillment/orders/cancellation/request/submitted",
-    }
-    if topic_name in fo_topics:
-        if not settings.shopify_fulfillment_service_enabled:
-            return {"ok": True, "ignored": topic_name, "reason": "fo_flag_off"}
-        action = (
-            "shopify_fo_request"
-            if "fulfillment_request" in topic_name
-            else "shopify_fo_cancel_request"
-        )
-    elif topic_name in create_topics:
-        action = "shopify_orders_create"
-    elif topic_name in cancel_topics:
-        action = "shopify_orders_cancelled"
-    else:
+    action, early = _action_for_topic(
+        topic_name, fo_enabled=bool(settings.shopify_fulfillment_service_enabled)
+    )
+    if early is not None:
+        if shop and webhook_id:
+            _remember_webhook(shop, webhook_id)
+            db.commit()
+        return early
+    if action is None:
         return {"ok": True, "ignored": topic_name}
 
     if not shop or shop.uninstalled_at is not None:
@@ -393,12 +490,15 @@ def ingest_webhook(
                 "action": action,
                 "shop_domain": shop.shop_domain,
                 "topic": topic_name,
+                "webhook_id": webhook_id,
                 "raw_body": raw_body.decode("utf-8"),
             },
         )
     except Exception as exc:  # noqa: BLE001 — Shopify must not get 200 if job was dropped
         logger.exception("shopify_webhook_enqueue_failed shop=%s topic=%s", shop_domain, topic_name)
         raise RuntimeError("shopify_enqueue_failed") from exc
+    _remember_webhook(shop, webhook_id)
+    db.commit()
     return {"ok": True, "queued": True, "action": action}
 
 
@@ -463,22 +563,38 @@ def process_queued_webhook(db: Session, settings: Settings, payload: dict[str, A
     try:
         if action == "shopify_orders_create":
             return _book_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
+        if action == "shopify_orders_updated":
+            return _update_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
         if action == "shopify_orders_cancelled":
             return _cancel_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
+        if action in {"shopify_return_approve", "shopify_return_cancel"}:
+            return _return_from_shopify_payload(
+                db, settings, shop_domain=shop_domain, payload=body, action=str(action)
+            )
+        if action == "shopify_fo_sync":
+            return _sync_fulfillment_order(
+                db, settings, shop_domain=shop_domain, topic=topic, payload=body
+            )
         if action in {"shopify_fo_request", "shopify_fo_cancel_request"}:
-            # Foundation: enqueue + ack only. Accept→book is intentional hold (PCD_INTENTIONAL_SKIPS).
             if not settings.shopify_fulfillment_service_enabled:
                 return {"ok": True, "skipped": "fo_flag_off", "action": action}
-            logger.info(
-                "shopify_fo_stub action=%s shop=%s keys=%s",
-                action,
-                shop_domain,
-                list(body.keys())[:12],
+            from porterchain_api.merchant_engine.shopify_fulfillment_service import act_on_queued_fo
+
+            return act_on_queued_fo(
+                db,
+                settings,
+                shop_domain=shop_domain,
+                action=str(action),
+                body=body,
             )
-            return {"ok": True, "stub": True, "action": action, "detail": "fo_accept_book_held"}
         raise ValueError(f"unknown_shopify_action:{action}")
     except Exception as exc:  # noqa: BLE001 — persist DLQ then re-raise for worker visibility
-        if action in {"shopify_orders_create", "shopify_orders_cancelled"} and not from_dlq:
+        if action in {
+            "shopify_orders_create",
+            "shopify_orders_updated",
+            "shopify_orders_cancelled",
+            "shopify_return_approve",
+        } and not from_dlq:
             shop_row = shop or db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop_domain).first()
             if shop_row:
                 reason, detail = reason_from_exc(exc)
@@ -500,143 +616,14 @@ def process_queued_webhook(db: Session, settings: Settings, payload: dict[str, A
         raise
 
 
-def _book_from_shopify_payload(
-    db: Session,
-    settings: Settings,
-    *,
-    shop_domain: str,
-    payload: dict[str, Any],
-) -> dict[str, Any]:
-    shop = _active_shop(db, shop_domain)
-    if not shop:
-        raise LookupError("shop_not_connected")
-
-    pickup_row = default_pickup_address(db, shop.merchant_id, shop=shop)
-    if not pickup_row:
-        raise RuntimeError("default_pickup_required")
-    pickup = _ensure_coords(address_from_saved(pickup_row))
-    body = map_shopify_order(payload, pickup=pickup)
-    from porterchain_api.domain.customer_goods import persist_vehicle_class
-
-    vehicle = persist_vehicle_class(getattr(shop, "default_vehicle_class", None))
-    package = (getattr(shop, "default_package_type", None) or "").strip() or "looseParcel"
-    body = body.model_copy(
-        update={
-            "pickup": _ensure_coords(body.pickup),
-            "dropoff": _ensure_coords(body.dropoff),
-            "vehicle_class": vehicle,
-            "package_type": package,
-        }
-    )
-    assert_ontario_booking(body)
-
-    order_id, _name = order_ids(payload)
-    key = f"shopify:{shop.shop_domain}:{order_id}"
-    merchant = db.query(Merchant).filter(Merchant.id == shop.merchant_id).first()
-    if not merchant or merchant.status != MerchantStatus.ACTIVE.value:
-        raise RuntimeError("merchant_not_active")
-    ctx = MerchantContext(merchant=merchant, user=_actor(db, merchant), role=MerchantRole.OPS)
-
-    existing = _booking.find_by_idempotency_key(db, ctx, key)
-    if existing:
-        return {"ok": True, "order_id": existing.id, "replayed": True}
-
-    # Shopify marks test checkouts with test=true; never book live capacity for those.
-    is_sandbox = bool(payload.get("test")) or bool(payload.get("test_order"))
-    auto_dispatch = bool(getattr(shop, "auto_dispatch", True))
-    try:
-        order = _booking.create_shipment(
-            db,
-            settings,
-            ctx,
-            body,
-            order_source=OrderSource.SHOPIFY.value,
-            idempotency_key=key,
-            sandbox=is_sandbox,
-            auto_dispatch=auto_dispatch,
-        )
-    except IntegrityError:
-        db.rollback()
-        existing = _booking.find_by_idempotency_key(db, ctx, key, is_sandbox=is_sandbox)
-        if not existing:
-            raise
-        return {"ok": True, "order_id": existing.id, "replayed": True}
-    extra = dict(order.compliance_metadata or {})
-    shopify_meta: dict[str, Any] = {
-        "shop_domain": shop.shop_domain,
-        "order_id": order_id,
-        "order_name": _name,
-        "held_for_ops": (not is_sandbox) and (not auto_dispatch),
-        "auto_dispatch": auto_dispatch,
-    }
-    try:
-        from porterchain_api.integrations.shopify_carrier_rates import find_quote_for_book
-
-        drop_postal = getattr(body.dropoff, "postal", None) or ""
-        quote = find_quote_for_book(db, shop_id=shop.id, dropoff_postal=drop_postal)
-        if quote:
-            shopify_meta["rate_quote_id"] = quote.id
-            shopify_meta["rate_quote_cents"] = quote.total_cents
-            shopify_meta["rate_quote_hash"] = quote.request_hash
-    except Exception:  # noqa: BLE001 — booking must not fail on quote lookup
-        logger.exception("shopify_book_quote_attach_failed shop=%s", shop.shop_domain)
-    extra["shopify"] = shopify_meta
-    order.compliance_metadata = extra
-    db.commit()
-    return {
-        "ok": True,
-        "order_id": order.id,
-        "tracking_number": order.tracking_number,
-        "held_for_ops": shopify_meta.get("held_for_ops"),
-        "state": order.state,
-    }
-
-
-def _cancel_from_shopify_payload(
-    db: Session,
-    settings: Settings,
-    *,
-    shop_domain: str,
-    payload: dict[str, Any],
-) -> dict[str, Any]:
-    shop = db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop_domain).first()
-    if not shop:
-        raise LookupError("shop_not_connected")
-    order_id, _name = order_ids(payload)
-    key = f"shopify:{shop.shop_domain}:{order_id}"
-    merchant = db.query(Merchant).filter(Merchant.id == shop.merchant_id).first()
-    if not merchant:
-        raise LookupError("merchant_not_found")
-    ctx = MerchantContext(merchant=merchant, user=_actor(db, merchant), role=MerchantRole.OPS)
-    order = _booking.find_by_idempotency_key(db, ctx, key)
-    if not order:
-        # Fallback: compliance_metadata.shopify.order_id
-        order = (
-            db.query(Order)
-            .filter(
-                Order.merchant_id == merchant.id,
-                Order.order_source == OrderSource.SHOPIFY.value,
-                Order.purchase_order_number == str(order_id),
-            )
-            .first()
-        )
-    if not order:
-        logger.info("shopify_cancel_no_order shop=%s shopify_order=%s", shop_domain, order_id)
-        return {"ok": True, "skipped": "order_not_found"}
-    if order.state == "CANCELLED":
-        return {"ok": True, "order_id": order.id, "already_cancelled": True}
-    try:
-        _booking.cancel_order(db, ctx, order, settings)
-        db.commit()
-    except (ValueError, PermissionError) as exc:
-        logger.info(
-            "shopify_cancel_refused order=%s state=%s err=%s",
-            order.id,
-            order.state,
-            exc,
-        )
-        return {"ok": True, "order_id": order.id, "skipped": str(exc)}
-    return {"ok": True, "order_id": order.id, "cancelled": True}
+from porterchain_api.merchant_engine.shopify_payload_ops import (  # noqa: E402
+    _book_from_shopify_payload,
+    _cancel_from_shopify_payload,
+    _cancel_shopify_fulfillment,
+    _return_from_shopify_payload,
+    _sync_fulfillment_order,
+    _update_from_shopify_payload,
+)
 
 
 def capture_cod_transaction(db: Session, settings: Settings, order: Order) -> None:

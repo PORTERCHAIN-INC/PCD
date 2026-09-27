@@ -35,7 +35,7 @@ def test_partner_app_urls() -> None:
         "/v1/integrations/shopify/carrier-service/rates"
     )
     assert shopify.fulfillment_service_url(settings).endswith(
-        "/v1/integrations/shopify/fulfillment-order-notification"
+        "/v1/integrations/shopify/fs/fulfillment_order_notification"
     )
     assert shopify.app_home_url(settings) == "https://merchant.porterchain.com/shopify"
     assert (

@@ -45,12 +45,21 @@ export function DetailsTab({ detail }: { detail: OrderDetail }) {
       ? ([
           ["Shopify order", detail.shopify.order_name || detail.shopify.order_id || "—"],
           ["Shop", detail.shopify.shop_domain || "—"],
+          ["Fulfillment", detail.shopify.fulfillment_id || "Not created yet"],
+          [
+            "Last tracking event",
+            detail.shopify.last_event_status
+              ? titleCase(detail.shopify.last_event_status)
+              : "Not sent yet",
+          ],
           [
             "Shopify admin",
-            shopifyAdminUrl(detail.shopify) ? (
+            detail.shopify.order_admin_url || shopifyAdminUrl(detail.shopify) ? (
               <a
                 className="text-secondary hover:underline"
-                href={shopifyAdminUrl(detail.shopify) ?? undefined}
+                href={
+                  detail.shopify.order_admin_url || shopifyAdminUrl(detail.shopify) || undefined
+                }
                 target="_blank"
                 rel="noopener noreferrer"
               >

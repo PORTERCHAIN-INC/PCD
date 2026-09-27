@@ -15,6 +15,7 @@ from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.shopify_urls import (
     app_home_url,
     carrier_rates_url,
+    fulfillment_callback_prefix,
     fulfillment_service_url,
     normalize_shop_domain,
     oauth_configured,
@@ -109,6 +110,8 @@ def connection_payload(db: Session, merchant_id: str, settings: Settings) -> dic
                 "default_pickup_address_id": shop.default_pickup_address_id,
                 "default_pickup": pickup.formatted if pickup else None,
                 "has_webhook_secret": bool(shop.encrypted_webhook_secret),
+                "carrier_registered": bool(shop.carrier_service_gid),
+                "fulfillment_service_registered": bool(shop.fulfillment_service_gid),
             }
         )
     go_live = (
@@ -126,7 +129,16 @@ def connection_payload(db: Session, merchant_id: str, settings: Settings) -> dic
         "webhook_url": webhook_url(settings),
         "carrier_rates_url": carrier_rates_url(settings),
         "fulfillment_service_url": fulfillment_service_url(settings),
+        "fulfillment_callback_url": fulfillment_callback_prefix(settings),
         "fulfillment_service_enabled": bool(settings.shopify_fulfillment_service_enabled),
+        "service_area": (
+            "Canadian addresses are accepted. Checkout rates are returned only when both "
+            "ends are inside the priced tile (GTA ±150 km)."
+        ),
+        "buyer_data_purpose": (
+            "Buyer name, phone, and email are stored for delivery and privacy requests only. "
+            "They are not used for marketing."
+        ),
         "app_url": app_home_url(settings),
         "shops": rows,
         "go_live": go_live,
@@ -254,6 +266,37 @@ def handle_gdpr_topic(
             return {"ok": True, "redacted": "customers", "orders": touched}
         return {"ok": True, "redacted": "customers", "orders": 0}
 
-    # customers/data_request — ack immediately; ops can fulfill export offline.
-    return {"ok": True, "received": "customers/data_request"}
+    # customers/data_request — return the stored delivery slice. Buyer contact is not a marketing list.
+    customer = payload.get("customer") if isinstance(payload.get("customer"), dict) else {}
+    email = str(customer.get("email") or "").strip().lower()
+    phone = str(customer.get("phone") or "").strip()
+    export: list[dict[str, Any]] = []
+    if shop and (email or phone):
+        orders = (
+            db.query(Order)
+            .filter(Order.merchant_id == shop.merchant_id)
+            .order_by(Order.created_at.desc())
+            .limit(200)
+            .all()
+        )
+        for order in orders:
+            meta = (order.compliance_metadata or {}).get("shopify") or {}
+            cust = meta.get("customer") if isinstance(meta.get("customer"), dict) else {}
+            match = False
+            if email and str(cust.get("email") or "").strip().lower() == email:
+                match = True
+            if phone and str(cust.get("phone") or "").strip() == phone:
+                match = True
+            if not match:
+                continue
+            export.append(
+                {
+                    "order_id": order.id,
+                    "shopify_order_id": meta.get("order_id"),
+                    "email": cust.get("email"),
+                    "phone": cust.get("phone"),
+                    "name": cust.get("name"),
+                }
+            )
+    return {"ok": True, "received": "customers/data_request", "orders": export}
 

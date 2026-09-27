@@ -70,6 +70,9 @@ const orderRowSchema = z.object({
       held_for_ops: z.boolean().nullable().optional(),
       auto_dispatch: z.boolean().nullable().optional(),
       last_repush_at: z.string().nullable().optional(),
+      last_event_status: z.string().nullable().optional(),
+      last_event_at: z.string().nullable().optional(),
+      order_admin_url: z.string().nullable().optional(),
     })
     .nullable()
     .optional(),

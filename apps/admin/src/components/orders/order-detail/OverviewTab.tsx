@@ -14,7 +14,7 @@ import {
   STATE_STYLES,
   type OrderDetail,
 } from "@/lib/orders";
-import { relativeTime } from "@/lib/crmFormat";
+import { relativeTime, titleCase } from "@/lib/crmFormat";
 import { Badge, Button } from "@/components/crm/primitives";
 import { OrderMoneyDownloads } from "@/components/orders/sections/OrderMoneyDownloads";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -115,6 +115,20 @@ export function OverviewTab({
               }
             />
             <Row label="Tracking state" value={detail.shopify.last_tracking_state || "—"} />
+            <Row
+              label="Last tracking event"
+              value={
+                detail.shopify.last_event_status
+                  ? titleCase(detail.shopify.last_event_status)
+                  : "Not sent yet"
+              }
+            />
+            <Row
+              label="Event sent"
+              value={
+                detail.shopify.last_event_at ? relativeTime(detail.shopify.last_event_at) : "—"
+              }
+            />
             {detail.shopify.last_fulfillment_error ? (
               <p className="mt-1 text-xs text-red-700">{detail.shopify.last_fulfillment_error}</p>
             ) : null}
@@ -145,11 +159,13 @@ export function OverviewTab({
               </Button>
             </div>
             {shopifyErr ? <p className="mt-1 text-xs text-red-700">{shopifyErr}</p> : null}
-            {shopifyAdminUrl(detail.shopify) ? (
+            {detail.shopify.order_admin_url || shopifyAdminUrl(detail.shopify) ? (
               <p className="mt-2 text-sm">
                 <a
                   className="text-secondary hover:underline"
-                  href={shopifyAdminUrl(detail.shopify) ?? undefined}
+                  href={
+                    detail.shopify.order_admin_url || shopifyAdminUrl(detail.shopify) || undefined
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                 >

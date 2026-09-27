@@ -25,12 +25,12 @@ def process_webhook(payload: dict[str, Any]) -> None:
         deliver_merchant_fanout(payload)
         return
     if action == "shopify_fulfillment":
-        _shopify_fulfillment(payload.get("order_id"))
+        _shopify_fulfillment(payload.get("order_id"), payload.get("event_type"))
         return
-    if action in ("shopify_orders_create", "shopify_orders_cancelled"):
-        _shopify_ingress(payload)
+    if action == "shopify_fulfillment_cancel":
+        _shopify_fulfillment_cancel(payload.get("order_id"))
         return
-    if action in ("shopify_fo_request", "shopify_fo_cancel_request"):
+    if isinstance(action, str) and action.startswith("shopify_"):
         _shopify_ingress(payload)
         return
     if source == "fleetbase":
@@ -57,7 +57,7 @@ def _shopify_ingress(payload: dict[str, Any]) -> None:
         db.close()
 
 
-def _shopify_fulfillment(order_id: str | None) -> None:
+def _shopify_fulfillment(order_id: str | None, event_type: str | None = None) -> None:
     if not order_id:
         logger.warning("shopify_fulfillment missing order_id")
         return
@@ -72,8 +72,28 @@ def _shopify_fulfillment(order_id: str | None) -> None:
         if not order:
             logger.warning("shopify_fulfillment: order %s not found", order_id)
             return
-        push_fulfillment(db, get_settings(), order)
+        push_fulfillment(db, get_settings(), order, event_type=event_type)
     except Exception:  # noqa: BLE001
         logger.exception("shopify_fulfillment_push_failed order=%s", order_id)
+    finally:
+        db.close()
+
+
+def _shopify_fulfillment_cancel(order_id: str | None) -> None:
+    if not order_id:
+        return
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.merchant_engine.shopify_fulfillment_service import cancel_shopify_fulfillment
+    from porterchain_api.booking_models import Order
+
+    db = SessionLocal()
+    try:
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            return
+        cancel_shopify_fulfillment(db, get_settings(), order)
+    except Exception:  # noqa: BLE001
+        logger.exception("shopify_fulfillment_cancel_failed order=%s", order_id)
     finally:
         db.close()

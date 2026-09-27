@@ -8,9 +8,14 @@ import AdminPage from "@/components/layout/AdminPage";
 import { Button, Spinner } from "@/components/crm/primitives";
 import { leadsApi, type AgentActivityRow } from "@/lib/leads";
 
-type LaneKey = "welcomed" | "needs_enrich" | "awaiting_welcome" | "blocked" | "recent";
+type LaneKey = "inbox" | "welcomed" | "needs_enrich" | "awaiting_welcome" | "blocked" | "recent";
 
 const LANES: Array<{ key: LaneKey; title: string; blurb: string }> = [
+  {
+    key: "inbox",
+    title: "Inbox",
+    blurb: "Every open lead with no owner, plus high-priority and SLA notices for the growth team",
+  },
   {
     key: "welcomed",
     title: "Welcomed",
@@ -74,6 +79,7 @@ function LeadRow({
           <p className="truncate font-medium text-primary">{row.company_name}</p>
           <p className="truncate text-xs text-muted">
             {[
+              row.priority,
               row.city,
               row.source,
               row.email || row.phone || "no contact",
@@ -99,7 +105,7 @@ function LeadRow({
 
 export default function LeadsAgentClient() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
-  const [lane, setLane] = useState<LaneKey>("recent");
+  const [lane, setLane] = useState<LaneKey>("inbox");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [actionMsg, setActionMsg] = useState("");
@@ -118,15 +124,15 @@ export default function LeadsAgentClient() {
   });
 
   const rows = useMemo(() => {
-    if (!data) return [];
+    if (!data || lane === "inbox") return [];
     return data.lanes[lane] ?? [];
   }, [data, lane]);
 
-  const selected = useMemo(
-    () =>
-      rows.find((r) => r.id === selectedId) ?? data?.lanes.recent.find((r) => r.id === selectedId),
-    [rows, data, selectedId]
-  );
+  const selected = useMemo(() => {
+    if (!data || !selectedId) return undefined;
+    const pools = [...rows, ...data.inbox.unassigned, ...data.inbox.notices, ...data.lanes.recent];
+    return pools.find((r) => r.id === selectedId);
+  }, [rows, data, selectedId]);
 
   const runWelcome = async (force = false) => {
     if (!selectedId) return;
@@ -175,8 +181,8 @@ export default function LeadsAgentClient() {
         <div>
           <h1 className="text-2xl font-bold text-primary">Lead Agent</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted">
-            Zero-human welcome intelligence — what the agent sent, skipped, or needs next. Dial
-            stays for cold calls; this page shows the autonomous path.
+            Inbox holds every unassigned lead and the growth notices that stay inside PorterChain.
+            The other tabs show what the welcome agent sent, skipped, or still needs.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -232,9 +238,10 @@ export default function LeadsAgentClient() {
             ) : null}
           </div>
 
-          <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {(
               [
+                ["Inbox", data.counts.unassigned, "inbox"],
                 ["Welcomed", data.counts.welcomed, "welcomed"],
                 ["Awaiting", data.counts.awaiting_welcome, "awaiting_welcome"],
                 ["Needs email", data.counts.needs_enrich, "needs_enrich"],
@@ -254,6 +261,9 @@ export default function LeadsAgentClient() {
               >
                 <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
                 <p className="mt-1 text-2xl font-semibold text-primary">{n}</p>
+                {key === "inbox" ? (
+                  <p className="mt-1 text-xs text-muted">{data.counts.notices} notices</p>
+                ) : null}
               </button>
             ))}
           </div>
@@ -279,7 +289,76 @@ export default function LeadsAgentClient() {
               <div className="border-b border-primary/5 px-4 py-2">
                 <p className="text-xs text-muted">{LANES.find((l) => l.key === lane)?.blurb}</p>
               </div>
-              {rows.length === 0 ? (
+              {lane === "inbox" ? (
+                <div className="grid divide-y divide-primary/10 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+                  <div>
+                    <div className="border-b border-primary/5 px-4 py-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted">
+                        Unassigned · {data.counts.unassigned}
+                      </p>
+                    </div>
+                    {data.inbox.unassigned.length === 0 ? (
+                      <p className="p-6 text-sm text-muted">No open unassigned leads.</p>
+                    ) : (
+                      <ul className="max-h-[60vh] divide-y divide-primary/5 overflow-y-auto">
+                        {data.inbox.unassigned.map((row) => (
+                          <LeadRow
+                            key={row.id}
+                            row={row}
+                            selected={selectedId === row.id}
+                            onInspect={setSelectedId}
+                          />
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <div>
+                    <div className="border-b border-primary/5 px-4 py-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted">
+                        Notices · {data.counts.notices}
+                      </p>
+                    </div>
+                    {data.inbox.notices.length === 0 ? (
+                      <p className="p-6 text-sm text-muted">No SLA or high-priority notices.</p>
+                    ) : (
+                      <ul className="max-h-[60vh] divide-y divide-primary/5 overflow-y-auto">
+                        {data.inbox.notices.map((row) => (
+                          <li
+                            key={`${row.notice_kind}-${row.id}`}
+                            className={
+                              selectedId === row.id
+                                ? "border-l-2 border-secondary bg-secondary/5 py-2.5 pl-3 pr-2"
+                                : "border-l-2 border-transparent py-2.5 pl-3 pr-2 hover:bg-slate-50"
+                            }
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <button
+                                type="button"
+                                className="min-w-0 text-left"
+                                onClick={() => setSelectedId(row.id)}
+                              >
+                                <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
+                                  {row.notice_kind === "sla" ? "SLA" : "Unassigned"}
+                                </p>
+                                <p className="truncate font-medium text-primary">
+                                  {row.notice_subject}
+                                </p>
+                                <p className="mt-0.5 text-xs text-muted">{row.notice_body}</p>
+                              </button>
+                              <Link
+                                href={`/leads/${row.id}`}
+                                className="shrink-0 text-xs text-secondary hover:underline"
+                              >
+                                Open
+                              </Link>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              ) : rows.length === 0 ? (
                 <p className="p-6 text-sm text-muted">Nothing in this lane.</p>
               ) : (
                 <ul className="max-h-[60vh] divide-y divide-primary/5 overflow-y-auto">
