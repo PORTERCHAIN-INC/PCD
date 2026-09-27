@@ -1,6 +1,6 @@
 """Customer portal API — dashboard, invoices, support, rebook."""
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
@@ -62,9 +62,10 @@ def list_my_invoices(
     db: Session = Depends(get_db),
     claims: ClerkClaims = Depends(get_clerk_claims),
     settings: Settings = Depends(get_settings),
+    limit: int = Query(50, ge=1, le=100),
 ) -> list[CustomerInvoiceListItem]:
     customer = _ready_customer(db, claims, settings)
-    rows = _invoices.list_for_customer(db, customer.id)
+    rows = _invoices.list_for_customer(db, customer.id, limit=limit)
     return [CustomerInvoiceListItem(**row) for row in rows]
 
 
