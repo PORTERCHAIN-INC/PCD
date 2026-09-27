@@ -1,6 +1,7 @@
-"""Customer portal API — dashboard, support, rebook."""
+"""Customer portal API — dashboard, invoices, support, rebook."""
 
 from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.clerk import get_clerk_claims
@@ -8,6 +9,7 @@ from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.customer import require_customer
 from porterchain_api.auth.customer_onboarding import require_customer_portal_ready
 from porterchain_api.booking_engine import CustomerService
+from porterchain_api.booking_engine.invoice_service import InvoiceService
 from porterchain_api.compliance_engine.privacy_service import PrivacyService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -17,10 +19,26 @@ from porterchain_api.schemas import (
     CustomerSupportTicketRequest,
     CustomerSupportTicketResponse,
 )
+from porterchain_api.schemas_booking import (
+    CustomerInvoiceDetailResponse,
+    CustomerInvoiceListItem,
+)
 
 router = APIRouter(prefix="/v1/customers", tags=["customers"])
 _customers = CustomerService()
+_invoices = InvoiceService()
 _privacy = PrivacyService()
+
+
+def _ready_customer(db: Session, claims: ClerkClaims, settings: Settings):
+    customer = require_customer(db, claims, settings)
+    try:
+        require_customer_portal_ready(
+            db, claims, customer, settings=settings, email=customer.email or claims.email
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    return customer
 
 
 @router.get("/me/dashboard", response_model=CustomerDashboardResponse)
@@ -37,6 +55,51 @@ def get_my_dashboard(
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     return CustomerDashboardResponse(**_customers.get_dashboard(db, customer.id))
+
+
+@router.get("/me/invoices", response_model=list[CustomerInvoiceListItem])
+def list_my_invoices(
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+) -> list[CustomerInvoiceListItem]:
+    customer = _ready_customer(db, claims, settings)
+    rows = _invoices.list_for_customer(db, customer.id)
+    return [CustomerInvoiceListItem(**row) for row in rows]
+
+
+@router.get("/me/invoices/{invoice_id}", response_model=CustomerInvoiceDetailResponse)
+def get_my_invoice(
+    invoice_id: str,
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+) -> CustomerInvoiceDetailResponse:
+    customer = _ready_customer(db, claims, settings)
+    try:
+        detail = _invoices.detail_for_customer(db, customer.id, invoice_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="invoice_not_found") from None
+    return CustomerInvoiceDetailResponse(**detail)
+
+
+@router.get("/me/invoices/{invoice_id}/pdf")
+def download_my_invoice_pdf(
+    invoice_id: str,
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+) -> Response:
+    customer = _ready_customer(db, claims, settings)
+    try:
+        pdf, filename = _invoices.pdf_for_customer(db, customer.id, invoice_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="invoice_not_found") from None
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/me/support", response_model=list[CustomerSupportTicketResponse])

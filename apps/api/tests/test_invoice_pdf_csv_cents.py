@@ -29,6 +29,9 @@ def test_build_invoice_pdf_embeds_detail_cents():
         fees_cents=100,
         outstanding_cents=6200,
         currency="cad",
+        receipt_number="RCP-9",
+        customer_email="buyer@example.com",
+        customer_name="Buyer",
         lines=[
             {
                 "description": "Delivery PC-1",
@@ -45,6 +48,113 @@ def test_build_invoice_pdf_embeds_detail_cents():
     assert "Fees: $1.00 CAD" in text
     assert "Outstanding: $62.00 CAD" in text
     assert "shopify/fsa" in text
+    assert "Receipt: RCP-9" in text
+    assert "Customer: buyer@example.com" in text
+    assert "Porterchain" in text
+    assert "INV-1" in text
+
+
+def test_pdf_for_invoice_record_uses_customer_not_merchant_email():
+    from porterchain_api.reporting.order_documents import pdf_for_invoice_record
+
+    invoice = SimpleNamespace(
+        id="inv1",
+        invoice_number="INV-77",
+        receipt_number="RCP-77",
+        order_id="o1",
+        customer_id="c1",
+        merchant_id="m1",
+        amount_cents=1000,
+        tax_cents=130,
+        fees_cents=0,
+        currency="cad",
+        status="sent",
+        due_at=None,
+        issued_at=None,
+        created_at=datetime(2026, 1, 1, tzinfo=UTC),
+    )
+    order = SimpleNamespace(
+        id="o1",
+        order_number="PC-77",
+        tracking_number="TRK77",
+        state="INVOICED",
+        pickup={"formatted": "A"},
+        dropoff={"formatted": "B"},
+        order_source=None,
+        payment_terms="NET_30",
+        customer_id="c1",
+        merchant_id="m1",
+    )
+    customer = SimpleNamespace(full_name="Buyer", email="buyer@example.com")
+    merchant = SimpleNamespace(
+        company_name="Acme",
+        email="ap@acme.test",
+        payment_terms="NET_30",
+        pricing_model="distance",
+    )
+
+    def get(model, key):
+        name = getattr(model, "__name__", "")
+        if name == "Order" and key == "o1":
+            return order
+        if name == "Customer" and key == "c1":
+            return customer
+        if name == "Merchant" and key == "m1":
+            return merchant
+        return None
+
+    db = MagicMock()
+    db.get.side_effect = get
+    empty = MagicMock()
+    empty.filter.return_value.order_by.return_value.first.return_value = None
+    empty.filter.return_value.all.return_value = []
+    db.query.return_value = empty
+
+    pdf, filename = pdf_for_invoice_record(db, invoice)
+    text = pdf.decode("latin-1", errors="ignore")
+    assert filename == "invoice-INV-77.pdf"
+    assert "INV-77" in text
+    assert "Customer: buyer@example.com" in text
+    assert "Receipt: RCP-77" in text
+    assert "Tax: $1.30 CAD" in text
+
+
+def test_invoice_email_opens_portal_without_pdf_url():
+    from porterchain_api.notification_engine.templates import render_email
+
+    _subject, _text, html = render_email(
+        "invoice_ready",
+        {
+            "invoice_number": "INV-1",
+            "customer_deep_link": "http://localhost:3004/invoices/abc",
+        },
+    )
+    assert "Open invoice" in html
+    assert "http://localhost:3004/invoices/abc" in html
+
+    _subject, _text, merchant_html = render_email(
+        "merchant_invoice_ready",
+        {
+            "invoice_number": "INV-1",
+            "merchant_name": "Acme",
+            "merchant_deep_link": "http://localhost:3001/billing/invoices/abc",
+        },
+    )
+    assert "Open invoice" in merchant_html
+    assert "http://localhost:3001/billing/invoices/abc" in merchant_html
+
+
+def test_customer_invoice_foreign_id_missing():
+    from porterchain_api.booking_engine.invoice_service import InvoiceService
+
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = None
+    try:
+        InvoiceService().detail_for_customer(db, "cust-a", "inv-other")
+    except LookupError as exc:
+        assert str(exc) == "invoice_not_found"
+    else:
+        raise AssertionError("expected invoice_not_found")
 
 
 def test_csv_and_detail_same_amount_cents():

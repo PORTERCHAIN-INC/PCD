@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from types import SimpleNamespace
 from typing import Any
 
 from sqlalchemy import func
@@ -372,55 +371,16 @@ class MerchantBillingService:
         }
 
     def invoice_pdf(self, db: Session, ctx: MerchantContext, invoice_id: str) -> tuple[bytes, str]:
-        from porterchain_api.reporting.order_documents import build_invoice_pdf
+        from porterchain_api.reporting.order_documents import pdf_for_merchant_invoice
 
         detail = self.invoice_detail(db, ctx, invoice_id)
-        # Prefer linked order for addresses; fall back to empty shell when cycle invoice.
-        order = None
-        if detail.get("lines"):
-            oid = detail["lines"][0].get("order_id")
-            if oid:
-                order = db.get(Order, oid)
-        if order is None and detail.get("invoice_id"):
-            inv = db.get(Invoice, invoice_id)
-            if inv and inv.order_id:
-                order = db.get(Order, inv.order_id)
-        if order is None:
-            # Synthetic shell so PDF builder still renders commercial fields.
-            order = SimpleNamespace(
-                order_number=detail.get("invoice_number") or "—",
-                tracking_number="—",
-                state="INVOICED",
-                amount_cents=int(detail["amount_cents"]),
-                currency=detail.get("currency") or "cad",
-                pickup={},
-                dropoff={},
-                special_instructions=None,
-            )
-
-        line_rows = [
-            {
-                "description": ln.get("description") or "Delivery",
-                "amount_cents": int(ln.get("amount_cents") or 0),
-                "channel": ln.get("channel"),
-                "pricing_model": ln.get("pricing_model"),
-            }
-            for ln in detail.get("lines") or []
-        ]
-        pdf = build_invoice_pdf(
-            order,
-            invoice_number=detail["invoice_number"],
-            amount_cents=int(detail["amount_cents"]),
-            currency=detail.get("currency") or "cad",
-            tax_cents=int(detail.get("tax_cents") or 0),
-            fees_cents=int(detail.get("fees_cents") or 0),
-            outstanding_cents=int(detail.get("outstanding_cents") or 0),
-            receipt_number=None,
+        return pdf_for_merchant_invoice(
+            db,
+            invoice_id,
+            detail,
             merchant_name=ctx.merchant.company_name,
-            customer_email=ctx.merchant.email,
-            lines=line_rows,
+            merchant_email=ctx.merchant.email,
         )
-        return pdf, f"invoice-{detail['invoice_number']}.pdf"
 
     def get_invoice_pdf_url(self, db: Session, ctx: MerchantContext, invoice_id: str) -> str | None:
         row = (

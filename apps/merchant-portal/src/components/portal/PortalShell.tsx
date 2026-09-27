@@ -24,7 +24,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-dvh min-w-0 flex-col overflow-x-clip bg-gray-bg">
-      <header className="relative z-50 shrink-0 border-b border-primary/10 bg-white shadow-sm">
+      <header className="relative z-50 shrink-0 border-b border-primary/10 bg-white shadow-sm print:hidden">
         <div className="flex min-h-12 w-full min-w-0 items-center gap-x-2 px-2 py-1.5 sm:px-3">
           <Link
             href="/dashboard"

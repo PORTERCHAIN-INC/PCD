@@ -426,6 +426,7 @@ class OrderPlatformDetailMixin:
                 }
                 for p in payments
             ],
+            "invoice_id": invoice.id if invoice else None,
             "invoice_number": invoice.invoice_number if invoice else None,
             "invoice_amount_cents": invoice.amount_cents if invoice else None,
             "invoice_receipt_url": receipt_url,

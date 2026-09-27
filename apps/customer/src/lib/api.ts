@@ -34,9 +34,32 @@ export interface CustomerInvoiceSummary {
   order_id?: string | null;
   amount_cents: number;
   currency: string;
+  status?: string;
   stripe_receipt_url?: string | null;
   pdf_url?: string | null;
   created_at?: string;
+}
+
+export interface CustomerInvoiceLine {
+  description: string;
+  order_number?: string | null;
+  amount_cents: number;
+  tax_cents: number;
+}
+
+export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
+  receipt_number?: string | null;
+  tax_cents: number;
+  fees_cents: number;
+  outstanding_cents: number;
+  payment_terms?: string | null;
+  due_date?: string | null;
+  order_number?: string | null;
+  tracking_number?: string | null;
+  merchant_name?: string | null;
+  pickup?: Record<string, unknown> | null;
+  dropoff?: Record<string, unknown> | null;
+  lines: CustomerInvoiceLine[];
 }
 
 export interface CustomerPaymentSummary {
@@ -130,4 +153,25 @@ export const customerApi = {
       method: "POST",
       headers: authHeaders(token),
     }),
+  invoices: (token: string) =>
+    apiFetch<CustomerInvoiceSummary[]>("/v1/customers/me/invoices", {
+      headers: authHeaders(token),
+    }),
+  invoice: (token: string, invoiceId: string) =>
+    apiFetch<CustomerInvoiceDetail>(`/v1/customers/me/invoices/${invoiceId}`, {
+      headers: authHeaders(token),
+    }),
+  downloadInvoicePdf: async (token: string, invoiceId: string, filename: string) => {
+    const res = await fetch(`${API_BASE}/v1/customers/me/invoices/${invoiceId}/pdf`, {
+      headers: authHeaders(token),
+    });
+    if (!res.ok) throw new Error("Could not download that invoice PDF.");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };

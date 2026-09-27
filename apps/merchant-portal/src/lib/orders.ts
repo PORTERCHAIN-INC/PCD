@@ -129,6 +129,7 @@ export type OrderDetail = OrderRow & {
   pricing_breakdown?: Record<string, unknown> | null;
   pickup_detail: Record<string, unknown>;
   dropoff_detail: Record<string, unknown>;
+  invoice_id?: string | null;
   invoice_number?: string | null;
   invoice_amount_cents?: number | null;
   invoice_receipt_url?: string | null;

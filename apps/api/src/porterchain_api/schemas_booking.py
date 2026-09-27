@@ -210,6 +210,39 @@ class CustomerDashboardResponse(BaseModel):
     stats: dict[str, Any] = Field(default_factory=dict)
 
 
+class CustomerInvoiceLine(BaseModel):
+    description: str
+    order_number: str | None = None
+    amount_cents: int
+    tax_cents: int = 0
+
+
+class CustomerInvoiceListItem(BaseModel):
+    invoice_id: str
+    invoice_number: str
+    order_id: str | None = None
+    amount_cents: int
+    currency: str
+    status: str
+    created_at: datetime
+    stripe_receipt_url: str | None = None
+
+
+class CustomerInvoiceDetailResponse(CustomerInvoiceListItem):
+    receipt_number: str | None = None
+    tax_cents: int = 0
+    fees_cents: int = 0
+    outstanding_cents: int = 0
+    payment_terms: str | None = None
+    due_date: datetime | None = None
+    order_number: str | None = None
+    tracking_number: str | None = None
+    merchant_name: str | None = None
+    pickup: dict[str, Any] | None = None
+    dropoff: dict[str, Any] | None = None
+    lines: list[CustomerInvoiceLine] = Field(default_factory=list)
+
+
 class CustomerSupportTicketRequest(BaseModel):
     subject: str
     description: str | None = None

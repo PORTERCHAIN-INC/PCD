@@ -320,8 +320,13 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
 
     if template in ("invoice_ready", "merchant_invoice_ready"):
         who = "your delivery" if template == "invoice_ready" else merchant
-        cta_url = pay_url or receipt_url
-        cta_label = "Pay now" if pay_url else ("Open invoice" if receipt_url else "")
+        portal = _g(
+            ctx,
+            "customer_deep_link" if template == "invoice_ready" else "merchant_deep_link",
+            "deep_link",
+        )
+        cta_url = pay_url or portal or receipt_url
+        cta_label = "Pay now" if pay_url else ("Open invoice" if cta_url else "")
         return build_transactional_html(
             eyebrow="Invoice ready",
             headline=f"Invoice {invoice or 'is ready'}",

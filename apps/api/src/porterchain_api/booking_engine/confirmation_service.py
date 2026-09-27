@@ -276,6 +276,13 @@ class BookingConfirmationService:
             "amount_cents": order.amount_cents,
             "amount_display": amount_display,
             "currency": order.currency,
+            "customer_deep_link": (
+                f"{settings.customer_portal_url.rstrip('/')}/invoices/{invoice.id}"
+            ),
+            "merchant_deep_link": (
+                f"{settings.merchant_portal_url.rstrip('/')}/billing/invoices/{invoice.id}"
+            ),
+            "merchant_id": order.merchant_id,
         }
         emit_event(
             db,

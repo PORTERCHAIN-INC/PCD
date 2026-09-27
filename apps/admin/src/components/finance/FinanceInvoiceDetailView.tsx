@@ -13,6 +13,7 @@ import {
   type InvoiceDetail,
 } from "@/lib/finance";
 import { relativeTime } from "@/lib/crmFormat";
+import { downloadOrderFile } from "@/lib/orders";
 import { Button, Spinner } from "@/components/crm/primitives";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { withStaffStepUp } from "@/lib/staff-step-up";
@@ -26,6 +27,27 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
   const [method, setMethod] = useState("wire");
   const [reference, setReference] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+
+  const hostedPdf = detail?.pdf_url && /^https?:\/\//i.test(detail.pdf_url) ? detail.pdf_url : null;
+
+  async function downloadGenerated() {
+    if (!detail) return;
+    setPdfBusy(true);
+    setMsg(null);
+    try {
+      const token = await getApiToken();
+      await downloadOrderFile(
+        token,
+        `/v1/admin/finance/invoices/${detail.invoice_id}/pdf`,
+        `invoice-${detail.invoice_number}.pdf`
+      );
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : "Invoice PDF failed");
+    } finally {
+      setPdfBusy(false);
+    }
+  }
 
   const payMut = useMutation({
     mutationFn: async () => {
@@ -104,15 +126,24 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
           <Row label="Order" value={detail.order_number || "—"} mono />
           <Row label="Tracking" value={detail.tracking_number || "—"} mono />
           <Row label="Terms" value={detail.payment_terms} />
-          {detail.pdf_url && (
+          {hostedPdf ? (
             <a
-              href={detail.pdf_url}
+              href={hostedPdf}
               target="_blank"
               rel="noreferrer"
               className="mt-3 inline-block text-sm text-secondary hover:underline"
             >
               Download PDF
             </a>
+          ) : (
+            <button
+              type="button"
+              disabled={pdfBusy}
+              onClick={() => void downloadGenerated()}
+              className="mt-3 inline-block text-sm text-secondary hover:underline disabled:opacity-40"
+            >
+              {pdfBusy ? "Preparing…" : "Download PDF"}
+            </button>
           )}
         </div>
 

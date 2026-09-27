@@ -11,6 +11,7 @@ import NotificationBell from "@/components/nav/NotificationBell";
 const NAV = [
   { href: "/dashboard", label: "Home" },
   { href: "/book", label: "Book delivery" },
+  { href: "/invoices", label: "Invoices" },
   { href: "/notifications", label: "Notifications" },
   { href: "/account", label: "Account" },
 ] as const;
@@ -30,7 +31,7 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
 
   return (
     <div className="min-h-dvh overflow-x-clip bg-gray-bg">
-      <header className="sticky top-0 z-40 border-b border-primary/8 bg-white/95 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-primary/8 bg-white/95 backdrop-blur-xl print:hidden">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6 sm:py-4">
           <div className="flex min-w-0 items-center gap-6">
             <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
@@ -93,7 +94,7 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
 
       {/* Bottom tabs — phones only */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-primary/8 bg-white/95 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-primary/8 bg-white/95 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl print:hidden md:hidden"
         aria-label="Mobile"
       >
         <ul className="mx-auto grid max-w-md grid-cols-4 items-end gap-1">

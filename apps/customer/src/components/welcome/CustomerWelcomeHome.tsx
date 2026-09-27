@@ -193,7 +193,12 @@ export default function CustomerWelcomeHome({ dashboard, error, getToken }: Prop
         id="invoices"
         className="rounded-2xl border border-primary/8 bg-white p-4 shadow-sm sm:p-6"
       >
-        <h2 className="text-sm font-semibold text-primary sm:text-base">Recent activity</h2>
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="text-sm font-semibold text-primary sm:text-base">Recent activity</h2>
+          <Link href="/invoices" className="text-xs font-semibold text-secondary sm:text-sm">
+            Invoices
+          </Link>
+        </div>
         {!hasHistory && !active ? (
           <div className="mt-2 flex flex-col items-center px-2 py-2 text-center">
             <CustomerMotion name="shipment" size={148} />
@@ -231,12 +236,14 @@ export default function CustomerWelcomeHome({ dashboard, error, getToken }: Prop
               </li>
             ))}
             {(dashboard?.invoices ?? []).slice(0, 2).map((inv) => (
-              <li
-                key={inv.invoice_id}
-                className="flex items-center justify-between rounded-xl bg-gray-bg px-3 py-3"
-              >
-                <span className="font-mono text-xs text-primary">{inv.invoice_number}</span>
-                <span className="text-xs text-muted">${(inv.amount_cents / 100).toFixed(2)}</span>
+              <li key={inv.invoice_id}>
+                <Link
+                  href={`/invoices/${inv.invoice_id}`}
+                  className="flex items-center justify-between rounded-xl bg-gray-bg px-3 py-3 hover:text-secondary"
+                >
+                  <span className="font-mono text-xs text-primary">{inv.invoice_number}</span>
+                  <span className="text-xs text-muted">${(inv.amount_cents / 100).toFixed(2)}</span>
+                </Link>
               </li>
             ))}
           </ul>

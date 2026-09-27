@@ -172,6 +172,11 @@ class InvoiceService:
         links = _receipt_links(invoice, payment)
         # Prefer customer email for retail; merchant billing email for B2B.
         email = (customer.email if customer else None) or (merchant.email if merchant else None)
+        from porterchain_api.config import get_settings
+
+        settings = get_settings()
+        customer_portal = settings.customer_portal_url.rstrip("/")
+        merchant_portal = settings.merchant_portal_url.rstrip("/")
         return {
             "invoice_id": invoice.id,
             "invoice_number": invoice.invoice_number,
@@ -188,8 +193,116 @@ class InvoiceService:
             "amount_cents": invoice.amount_cents,
             "amount_display": _amount_display(invoice.amount_cents, invoice.currency),
             "currency": invoice.currency,
+            "customer_deep_link": f"{customer_portal}/invoices/{invoice.id}",
+            "merchant_deep_link": f"{merchant_portal}/billing/invoices/{invoice.id}",
             **links,
         }
+
+    def _customer_invoice(self, db: Session, customer_id: str, invoice_id: str) -> Invoice:
+        invoice = (
+            db.query(Invoice)
+            .filter(Invoice.id == invoice_id, Invoice.customer_id == customer_id)
+            .first()
+        )
+        if not invoice:
+            raise LookupError("invoice_not_found")
+        return invoice
+
+    def list_for_customer(self, db: Session, customer_id: str, *, limit: int = 50) -> list[dict[str, Any]]:
+        rows = (
+            db.query(Invoice)
+            .filter(Invoice.customer_id == customer_id)
+            .order_by(Invoice.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "invoice_id": inv.id,
+                "invoice_number": inv.invoice_number,
+                "order_id": inv.order_id,
+                "amount_cents": int(inv.amount_cents or 0),
+                "currency": inv.currency or "cad",
+                "status": inv.status or "open",
+                "created_at": inv.created_at,
+                "stripe_receipt_url": public_document_url(inv.stripe_receipt_url),
+            }
+            for inv in rows
+        ]
+
+    def detail_for_customer(self, db: Session, customer_id: str, invoice_id: str) -> dict[str, Any]:
+        from porterchain_api.billing_engine.merchant_service import invoice_status, outstanding_cents
+        from porterchain_api.billing_engine.models import InvoiceLine
+        from porterchain_api.merchant_engine.lookups import get_merchant
+
+        invoice = self._customer_invoice(db, customer_id, invoice_id)
+        order = db.get(Order, invoice.order_id) if invoice.order_id else None
+        payment = (
+            db.query(Payment)
+            .filter(Payment.order_id == invoice.order_id)
+            .order_by(Payment.created_at.desc())
+            .first()
+            if invoice.order_id
+            else None
+        )
+        merchant = get_merchant(db, invoice.merchant_id or (order.merchant_id if order else None))
+        terms = (order.payment_terms if order else None) or (
+            merchant.payment_terms if merchant else None
+        )
+        status = invoice_status(invoice, order, payment, terms=terms)
+        stored = db.query(InvoiceLine).filter(InvoiceLine.invoice_id == invoice.id).all()
+        lines = [
+            {
+                "description": ln.description or "Delivery",
+                "order_number": (
+                    order.order_number
+                    if order and (not ln.order_id or ln.order_id == order.id)
+                    else None
+                ),
+                "amount_cents": int(ln.amount_cents or 0),
+                "tax_cents": int(ln.tax_cents or 0),
+            }
+            for ln in stored
+        ]
+        if not lines:
+            lines = [
+                {
+                    "description": "Delivery",
+                    "order_number": order.order_number if order else None,
+                    "amount_cents": int(invoice.amount_cents or 0),
+                    "tax_cents": int(invoice.tax_cents or 0),
+                }
+            ]
+        return {
+            "invoice_id": invoice.id,
+            "invoice_number": invoice.invoice_number,
+            "receipt_number": invoice.receipt_number,
+            "order_id": invoice.order_id,
+            "amount_cents": int(invoice.amount_cents or 0),
+            "tax_cents": int(invoice.tax_cents or 0),
+            "fees_cents": int(invoice.fees_cents or 0),
+            "outstanding_cents": outstanding_cents(invoice, status),
+            "currency": invoice.currency or "cad",
+            "status": status,
+            "payment_terms": terms,
+            "due_date": invoice.due_at,
+            "created_at": invoice.created_at,
+            "stripe_receipt_url": public_document_url(
+                invoice.stripe_receipt_url or (payment.receipt_url if payment else None)
+            ),
+            "order_number": order.order_number if order else None,
+            "tracking_number": order.tracking_number if order else None,
+            "merchant_name": merchant.company_name if merchant else None,
+            "pickup": order.pickup if order and isinstance(order.pickup, dict) else None,
+            "dropoff": order.dropoff if order and isinstance(order.dropoff, dict) else None,
+            "lines": lines,
+        }
+
+    def pdf_for_customer(self, db: Session, customer_id: str, invoice_id: str) -> tuple[bytes, str]:
+        from porterchain_api.reporting.order_documents import pdf_for_invoice_record
+
+        invoice = self._customer_invoice(db, customer_id, invoice_id)
+        return pdf_for_invoice_record(db, invoice)
 
     def manual_invoice(self, db: Session, order_id: str, *, commit: bool = False) -> Invoice:
         """Admin Generate invoice — POD_COMPLETED → INVOICED (idempotent if already invoiced)."""

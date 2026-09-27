@@ -506,6 +506,7 @@ class OrderDetail360Response(OrderListItem):
     dropoff_detail: dict[str, Any] = Field(default_factory=dict)
     additional_stops: list[Any] = Field(default_factory=list)
     payments: list[PaymentAdminItem] = Field(default_factory=list)
+    invoice_id: str | None = None
     invoice_number: str | None = None
     invoice_amount_cents: int | None = None
     invoice_receipt_url: str | None = None

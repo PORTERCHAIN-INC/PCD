@@ -196,7 +196,7 @@ class AdminOrdersService(OrderPlatformService):
 
     def invoice_pdf(self, db: Session, order_id: str) -> tuple[bytes, str] | None:
         from porterchain_api.booking_models import Invoice
-        from porterchain_api.reporting.order_documents import build_invoice_pdf
+        from porterchain_api.reporting.order_documents import pdf_for_invoice_record
 
         order = self.get_order(db, order_id)
         if not order:
@@ -204,27 +204,7 @@ class AdminOrdersService(OrderPlatformService):
         invoice = db.query(Invoice).filter(Invoice.order_id == order_id).first()
         if not invoice:
             return None
-        merchant_name = None
-        customer_email = None
-        if order.merchant_id:
-            from porterchain_api.merchant_engine.lookups import company_name
-
-            merchant_name = company_name(db, order.merchant_id)
-        if order.customer_id:
-            from porterchain_api.booking_models import Customer
-
-            c = db.query(Customer).filter(Customer.id == order.customer_id).first()
-            customer_email = c.email if c else None
-        pdf = build_invoice_pdf(
-            order,
-            invoice_number=invoice.invoice_number,
-            amount_cents=int(invoice.amount_cents or 0),
-            currency=invoice.currency or "cad",
-            receipt_number=invoice.receipt_number,
-            merchant_name=merchant_name,
-            customer_email=customer_email,
-        )
-        return pdf, f"invoice-{invoice.invoice_number}.pdf"
+        return pdf_for_invoice_record(db, invoice)
 
     def amend_parcels(
         self,
