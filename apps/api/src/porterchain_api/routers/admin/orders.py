@@ -1,15 +1,13 @@
 """admin routes — orders."""
 
-from datetime import datetime
-
 from fastapi.responses import RedirectResponse, Response
 
+from porterchain_api.admin_engine.orders_service import build_admin_order_filters
 from porterchain_api.merchant_engine.parcel_amend_service import ParcelAmendError, parcel_amend_http
 from porterchain_api.reporting.pod_export import PodFetchFailed, PodUnavailable, pod_error_message
 from porterchain_api.schemas_merchant import OrderParcelsPatchRequest, OrderParcelsPatchResponse
 from porterchain_api.routers.admin._deps import (
     AdminContext,
-    AdminOrderFilters,
     Annotated,
     Depends,
     HTTPException,
@@ -88,6 +86,9 @@ def list_orders(
     search: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    date_field: str | None = None,
+    queue: str | None = None,
+    include_carryover: bool = Query(False),
     amount_min_cents: int | None = None,
     amount_max_cents: int | None = None,
     include_sandbox: bool = Query(False),
@@ -95,25 +96,15 @@ def list_orders(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ) -> OrderListPage:
-    filters = AdminOrderFilters(
-        state=state,
-        payment_status=payment_status,
-        invoice_status=invoice_status,
-        merchant_id=merchant_id,
-        driver_id=driver_id,
-        customer_id=customer_id,
-        priority=priority,
-        service_type=service_type,
-        city=city,
-        search=search,
-        date_from=datetime.fromisoformat(date_from) if date_from else None,
-        date_to=datetime.fromisoformat(date_to) if date_to else None,
-        amount_min_cents=amount_min_cents,
-        amount_max_cents=amount_max_cents,
-        include_sandbox=include_sandbox or sandbox_only,
-        sandbox_only=sandbox_only,
-        limit=limit,
-        offset=offset,
+    filters = _invoke(
+        ctx, "orders_read", build_admin_order_filters,
+        state=state, payment_status=payment_status, invoice_status=invoice_status,
+        merchant_id=merchant_id, driver_id=driver_id, customer_id=customer_id,
+        priority=priority, service_type=service_type, city=city, search=search,
+        date_from=date_from, date_to=date_to, date_field=date_field, queue=queue,
+        include_carryover=include_carryover, amount_min_cents=amount_min_cents,
+        amount_max_cents=amount_max_cents, include_sandbox=include_sandbox,
+        sandbox_only=sandbox_only, limit=limit, offset=offset,
     )
     page = _invoke(ctx, "orders_read", _orders.list_page, db, filters)
     return OrderListPage(

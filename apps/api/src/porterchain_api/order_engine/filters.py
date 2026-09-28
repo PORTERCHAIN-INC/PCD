@@ -19,6 +19,12 @@ class OrderFilters:
     city: str | None = None
     date_from: datetime | None = None
     date_to: datetime | None = None
+    # "scheduled" = service day (America/Toronto bounds). Default keeps created_at.
+    date_field: str | None = None
+    # needs_decision | on_the_road | open | done. A specific state wins over this.
+    queue: str | None = None
+    # With a scheduled window and an open queue, also include older unfinished orders.
+    include_carryover: bool = False
     amount_min_cents: int | None = None
     amount_max_cents: int | None = None
     search: str | None = None

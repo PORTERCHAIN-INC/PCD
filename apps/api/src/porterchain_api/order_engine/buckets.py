@@ -13,6 +13,32 @@ IN_FLIGHT = PICKUP_LEG + DELIVERY_LEG
 FAILED_STATES = ("FAILED", "RETURN_TO_SENDER", "LOST", "DAMAGED")
 DONE_STATES = ("DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED")
 
+# Staff work board. Needs a decision = not picked up yet, or the attempt failed
+# and someone still has to act. On the road = pickup happened, delivery has not.
+NEEDS_DECISION = (
+    "BOOKED",
+    "DISPATCH_READY",
+    "DRIVER_ASSIGNED",
+    "DRIVER_ACCEPTED",
+    "DRIVER_REJECTED",
+    "DRIVER_EN_ROUTE",
+    "AT_PICKUP",
+    "FAILED",
+    "DAMAGED",
+    "LOST",
+    "CLAIM_OPEN",
+    "RETURN_TO_SENDER",
+)
+ON_THE_ROAD = DELIVERY_LEG
+OPEN_WORK = NEEDS_DECISION + ON_THE_ROAD
+DONE_WORK = DONE_STATES + ("CANCELLED", "REFUNDED")
+WORK_QUEUES: dict[str, tuple[str, ...]] = {
+    "needs_decision": NEEDS_DECISION,
+    "on_the_road": ON_THE_ROAD,
+    "open": OPEN_WORK,
+    "done": DONE_WORK,
+}
+
 # Unassigned orders eligible for dispatch queue optimization / batch assign.
 DISPATCH_POOL = ("BOOKED", "DISPATCH_READY", "DRIVER_REJECTED", "FAILED")
 # States where only the delivery stop should be routed (rare unassigned edge case).

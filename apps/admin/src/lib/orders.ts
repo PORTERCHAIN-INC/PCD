@@ -188,6 +188,11 @@ export type OrderFilters = {
   search?: string;
   date_from?: string;
   date_to?: string;
+  /** scheduled = service day in America/Toronto. Omit to keep created-at filtering. */
+  date_field?: "scheduled" | "created";
+  /** needs_decision | on_the_road | open | done. A specific state replaces this. */
+  queue?: string;
+  include_carryover?: boolean;
   amount_min_cents?: number;
   amount_max_cents?: number;
   limit?: number;

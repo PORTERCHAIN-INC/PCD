@@ -130,6 +130,63 @@ def test_finance_invoice_page_is_capped(db) -> None:
     assert page["total"] >= 0
 
 
+def test_work_board_keeps_older_unfinished_and_hides_future(db, merchant_ctx) -> None:
+    from porterchain_api.merchant_engine.toronto import parse_toronto_day_bound
+
+    start = parse_toronto_day_bound("2026-09-28", end=False)
+    end = parse_toronto_day_bound("2026-09-28", end=True)
+    assert start is not None and end is not None
+    start = start.replace(tzinfo=UTC)
+    end = end.replace(tzinfo=UTC)
+
+    def add(state: str, when: datetime) -> Order:
+        order = _order(merchant_ctx.merchant.id)
+        order.state = state
+        order.scheduled_at = when
+        db.add(order)
+        return order
+
+    today_open = add(OrderState.BOOKED.value, start + timedelta(hours=15))
+    older_failed = add(OrderState.FAILED.value, start - timedelta(days=2))
+    future = add(OrderState.DISPATCH_READY.value, end + timedelta(days=3))
+    today_done = add(OrderState.DELIVERED.value, start + timedelta(hours=12))
+    db.commit()
+
+    svc = OrderPlatformService()
+    board = svc.list_page(
+        db,
+        OrderFilters(
+            merchant_id=merchant_ctx.merchant.id,
+            queue="needs_decision",
+            date_field="scheduled",
+            date_from=start,
+            date_to=end,
+            include_carryover=True,
+            limit=50,
+        ),
+    )
+    ids = {row["order_id"] for row in board["items"]}
+    assert str(today_open.id) in ids
+    assert str(older_failed.id) in ids
+    assert str(future.id) not in ids
+    assert str(today_done.id) not in ids
+
+    done = svc.list_page(
+        db,
+        OrderFilters(
+            merchant_id=merchant_ctx.merchant.id,
+            queue="done",
+            date_field="scheduled",
+            date_from=start,
+            date_to=end,
+            limit=50,
+        ),
+    )
+    done_ids = {row["order_id"] for row in done["items"]}
+    assert str(today_done.id) in done_ids
+    assert str(older_failed.id) not in done_ids
+
+
 def test_list_enriched_still_returns_rows(db, merchant_ctx) -> None:
     rows = OrderPlatformService().list_enriched(
         db, OrderFilters(merchant_id=merchant_ctx.merchant.id, limit=10)

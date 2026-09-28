@@ -2,19 +2,27 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import and_, exists, func, or_
 from sqlalchemy.orm import Session, aliased
 
 from porterchain_api.booking_models import Customer, Invoice, Order, Payment, Quote
-from porterchain_api.order_engine.buckets import HIGH_PRIORITY_CENTS
+from porterchain_api.order_engine.buckets import HIGH_PRIORITY_CENTS, WORK_QUEUES
 from porterchain_api.order_engine.filters import OrderFilters
 from porterchain_api.platform.pagination import as_page, clamp_page
 
 
 _INVOICED_STATES = ("INVOICED", "CLOSED")
+
+
+def _as_utc(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
 
 
 class OrderPlatformEnrichedMixin:
@@ -26,16 +34,18 @@ class OrderPlatformEnrichedMixin:
             q = q.filter(Order.is_sandbox.is_(False))
         if filters.state:
             q = q.filter(Order.state == filters.state)
+        elif filters.queue:
+            states = WORK_QUEUES.get(filters.queue)
+            if states is None:
+                raise ValueError("invalid_queue")
+            q = q.filter(Order.state.in_(states))
         if filters.merchant_id:
             q = q.filter(Order.merchant_id == filters.merchant_id)
         if filters.driver_id:
             q = q.filter(Order.assigned_driver_id == filters.driver_id)
         if filters.customer_id:
             q = q.filter(Order.customer_id == filters.customer_id)
-        if filters.date_from:
-            q = q.filter(Order.created_at >= filters.date_from)
-        if filters.date_to:
-            q = q.filter(Order.created_at <= filters.date_to)
+        q = self._apply_date_window(q, filters)
         if filters.amount_min_cents is not None:
             q = q.filter(Order.amount_cents >= filters.amount_min_cents)
         if filters.amount_max_cents is not None:
@@ -76,6 +86,24 @@ class OrderPlatformEnrichedMixin:
         if filters.payment_status:
             q = q.filter(self._payment_status_clause(filters.payment_status))
         return q.order_by(Order.updated_at.desc(), Order.id.desc())
+
+    def _apply_date_window(self, q, filters: OrderFilters):
+        if filters.date_field not in (None, "", "created", "scheduled"):
+            raise ValueError("invalid_date_field")
+        if not filters.date_from and not filters.date_to:
+            return q
+        column = Order.scheduled_at if filters.date_field == "scheduled" else Order.created_at
+        start = _as_utc(filters.date_from)
+        end = _as_utc(filters.date_to)
+        parts = []
+        if start is not None:
+            parts.append(column >= start)
+        if end is not None:
+            parts.append(column <= end)
+        window = and_(*parts)
+        if filters.include_carryover and start is not None and filters.date_field == "scheduled":
+            return q.filter(or_(window, column < start))
+        return q.filter(window)
 
     def _payment_status_clause(self, status: str):
         """Latest payment on the order, else latest payment on the quote."""

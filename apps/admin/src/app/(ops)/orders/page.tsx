@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Plus, RefreshCw } from "lucide-react";
@@ -11,6 +11,7 @@ import dynamic from "next/dynamic";
 import { ListPager } from "@/components/crm/ListPager";
 import { Button } from "@/components/crm/primitives";
 import { ORDER_PAGE_SIZE, ORDER_STATES, ordersApi, type OrderFilters } from "@/lib/orders";
+import { boardQuery, boardSummary, type OrderPeriod, type OrderQueue } from "@/lib/orderBoard";
 import AdminPage from "@/components/layout/AdminPage";
 
 const OrderBuilderModal = dynamic(
@@ -23,11 +24,19 @@ export default function OrdersPage() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const qc = useQueryClient();
   const [filters, setFilters] = useState<OrderFilters>({});
+  const [period, setPeriod] = useState<OrderPeriod>("today");
+  const [queue, setQueue] = useState<OrderQueue | "">("needs_decision");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
   const [builderOpen, setBuilderOpen] = useState(false);
   const [showMoreMetrics, setShowMoreMetrics] = useState(false);
-  const filterKey = JSON.stringify(filters);
+  const board = useMemo(
+    () => boardQuery(period, queue, customFrom, customTo, filters.state),
+    [period, queue, customFrom, customTo, filters.state]
+  );
+  const filterKey = JSON.stringify({ ...filters, ...board, period });
 
   const {
     data: page,
@@ -38,7 +47,7 @@ export default function OrdersPage() {
     enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
     queryFn: async () => {
       const token = await getApiToken();
-      return ordersApi.list(token, { ...filters, limit: ORDER_PAGE_SIZE, offset });
+      return ordersApi.list(token, { ...filters, ...board, limit: ORDER_PAGE_SIZE, offset });
     },
   });
   const rows = page?.items ?? [];
@@ -64,7 +73,9 @@ export default function OrdersPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-primary">Orders</h1>
-          <p className="text-sm text-muted">Scan active deliveries, open 360 to operate</p>
+          <p className="text-sm text-muted">
+            {boardSummary(period, queue, filters.state, customFrom, customTo)}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => void refetch()}>
@@ -79,10 +90,43 @@ export default function OrdersPage() {
       {dashboard && (
         <div className="space-y-2">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <Kpi label="Today" value={dashboard.orders_today} />
-            <Kpi label="In progress" value={dashboard.orders_in_progress} />
-            <Kpi label="Waiting dispatch" value={dashboard.waiting_dispatch} />
-            <Kpi label="Failed" value={dashboard.failed} alert={dashboard.failed > 0} />
+            <Kpi
+              label="Today"
+              value={dashboard.orders_today}
+              onClick={() => {
+                setPeriod("today");
+                setQueue("");
+                changeFilters((f) => ({ ...f, state: undefined }));
+              }}
+            />
+            <Kpi
+              label="In progress"
+              value={dashboard.orders_in_progress}
+              onClick={() => {
+                setPeriod("all");
+                setQueue("on_the_road");
+                changeFilters((f) => ({ ...f, state: undefined }));
+              }}
+            />
+            <Kpi
+              label="Waiting dispatch"
+              value={dashboard.waiting_dispatch}
+              onClick={() => {
+                setPeriod("all");
+                setQueue("needs_decision");
+                changeFilters((f) => ({ ...f, state: undefined }));
+              }}
+            />
+            <Kpi
+              label="Failed"
+              value={dashboard.failed}
+              alert={dashboard.failed > 0}
+              onClick={() => {
+                setPeriod("all");
+                setQueue("");
+                changeFilters((f) => ({ ...f, state: "FAILED" }));
+              }}
+            />
             <Kpi label="Revenue today" value={formatCents(dashboard.revenue_today_cents)} />
             <Kpi label="Avg SLA" value={`${dashboard.avg_sla_percent}%`} />
           </div>
@@ -116,16 +160,75 @@ export default function OrdersPage() {
             className="min-w-[200px] flex-1 rounded-xl border border-primary/10 px-3 py-2 text-sm"
           />
           <select
-            value={filters.state ?? ""}
-            onChange={(e) => changeFilters((f) => ({ ...f, state: e.target.value || undefined }))}
+            value={period}
+            onChange={(e) => {
+              setOffset(0);
+              setSelected([]);
+              setPeriod(e.target.value as OrderPeriod);
+            }}
             className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
           >
-            <option value="">All statuses</option>
-            {ORDER_STATES.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
-              </option>
-            ))}
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="last7">Last 7 days</option>
+            <option value="last_month">Last month</option>
+            <option value="custom">Custom</option>
+            <option value="all">Any time</option>
+          </select>
+          {period === "custom" ? (
+            <>
+              <input
+                type="date"
+                aria-label="From"
+                value={customFrom}
+                onChange={(e) => {
+                  setOffset(0);
+                  setSelected([]);
+                  setCustomFrom(e.target.value);
+                }}
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              />
+              <input
+                type="date"
+                aria-label="To"
+                value={customTo}
+                onChange={(e) => {
+                  setOffset(0);
+                  setSelected([]);
+                  setCustomTo(e.target.value);
+                }}
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              />
+            </>
+          ) : null}
+          <select
+            value={filters.state ? `state:${filters.state}` : `queue:${queue}`}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.startsWith("state:")) {
+                setQueue("");
+                changeFilters((f) => ({ ...f, state: value.slice("state:".length) }));
+                return;
+              }
+              setQueue((value.slice("queue:".length) || "") as OrderQueue | "");
+              changeFilters((f) => ({ ...f, state: undefined }));
+            }}
+            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+          >
+            <optgroup label="Work">
+              <option value="queue:needs_decision">Needs a decision</option>
+              <option value="queue:on_the_road">On the road</option>
+              <option value="queue:open">All open</option>
+              <option value="queue:done">Done</option>
+              <option value="queue:">Any status</option>
+            </optgroup>
+            <optgroup label="One status">
+              {ORDER_STATES.map((s) => (
+                <option key={s} value={`state:${s}`}>
+                  {s.replace(/_/g, " ")}
+                </option>
+              ))}
+            </optgroup>
           </select>
           <select
             value={filters.payment_status ?? ""}
@@ -205,16 +308,34 @@ export default function OrdersPage() {
   );
 }
 
-function Kpi({ label, value, alert }: { label: string; value: string | number; alert?: boolean }) {
+function Kpi({
+  label,
+  value,
+  alert,
+  onClick,
+}: {
+  label: string;
+  value: string | number;
+  alert?: boolean;
+  onClick?: () => void;
+}) {
+  const className = cn(
+    "rounded-xl border border-primary/10 bg-white px-3 py-2 text-left shadow-sm",
+    alert && "border-amber-200 bg-amber-50",
+    onClick && "hover:border-primary/30"
+  );
+  if (!onClick) {
+    return (
+      <div className={className}>
+        <p className="text-xs text-muted">{label}</p>
+        <p className="text-lg font-bold text-primary">{value}</p>
+      </div>
+    );
+  }
   return (
-    <div
-      className={cn(
-        "rounded-xl border border-primary/10 bg-white px-3 py-2 shadow-sm",
-        alert && "border-amber-200 bg-amber-50"
-      )}
-    >
+    <button type="button" className={className} onClick={onClick}>
       <p className="text-xs text-muted">{label}</p>
       <p className="text-lg font-bold text-primary">{value}</p>
-    </div>
+    </button>
   );
 }
