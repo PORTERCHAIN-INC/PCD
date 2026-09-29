@@ -21,7 +21,7 @@ from porterchain_api.merchant_engine.shopify_urls import (
     oauth_configured,
     webhook_url,
 )
-from porterchain_api.merchant_models import Merchant, ShopifyShop
+from porterchain_api.merchant_models import Merchant, SavedAddress, ShopifyShop
 from porterchain_api.booking_models import Order
 
 logger = logging.getLogger("porterchain.shopify_one_click")
@@ -85,6 +85,44 @@ def _go_live_status(
         "checks": checks,
         "blocking": blocking,
     }
+
+
+def ensure_shop_pickup_bound(
+    db: Session,
+    shop: ShopifyShop,
+    *,
+    address: SavedAddress | None = None,
+) -> ShopifyShop:
+    """Fill a null shop pickup from the merchant warehouse. No-op when already set."""
+    from porterchain_api.merchant_engine.shopify_service import default_pickup_address
+
+    if shop.uninstalled_at is not None or shop.default_pickup_address_id:
+        return shop
+    addr = address if isinstance(address, SavedAddress) else None
+    if addr is None or addr.merchant_id != shop.merchant_id:
+        resolved = default_pickup_address(db, shop.merchant_id, shop=shop)
+        addr = resolved if isinstance(resolved, SavedAddress) else None
+    if addr is None or not isinstance(addr.id, str):
+        return shop
+    shop.default_pickup_address_id = addr.id
+    db.commit()
+    db.refresh(shop)
+    return shop
+
+
+def bind_merchant_shop_pickups(db: Session, merchant_id: str) -> None:
+    """Link every installed shop that has no pickup yet."""
+    shops = (
+        db.query(ShopifyShop)
+        .filter(
+            ShopifyShop.merchant_id == merchant_id,
+            ShopifyShop.uninstalled_at.is_(None),
+            ShopifyShop.default_pickup_address_id.is_(None),
+        )
+        .all()
+    )
+    for shop in shops:
+        ensure_shop_pickup_bound(db, shop)
 
 
 def connection_payload(db: Session, merchant_id: str, settings: Settings) -> dict[str, Any]:

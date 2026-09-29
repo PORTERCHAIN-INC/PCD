@@ -224,7 +224,7 @@ def re_register_shop_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, A
 def _register_webhooks(shop: ShopifyShop, settings: Settings) -> None:
     token = _helpers()._decrypt(shop.encrypted_access_token, settings)
     if not token:
-        return
+        raise RuntimeError("webhook_register_failed:no_token")
     address = webhook_url(settings)
     topics: list[str] = [
         "orders/create",
@@ -257,14 +257,26 @@ def _register_webhooks(shop: ShopifyShop, settings: Settings) -> None:
                 "fulfillment_orders/cancellation_request_submitted",
             ]
         )
+    listed = _helpers()._admin_get(shop.shop_domain, token, "/webhooks.json", settings) or {}
+    already: set[str] = set()
+    for hook in listed.get("webhooks") or []:
+        if isinstance(hook, dict) and hook.get("address") == address:
+            already.add(str(hook.get("topic") or ""))
+    failed: list[str] = []
     for topic in topics:
-        _helpers()._admin_post(
+        if topic in already:
+            continue
+        result = _helpers()._admin_post(
             shop.shop_domain,
             token,
             "/webhooks.json",
             settings,
             {"webhook": {"topic": topic, "address": address, "format": "json"}},
         )
+        if result is None:
+            failed.append(topic)
+    if failed:
+        raise RuntimeError("webhook_register_failed:" + ",".join(failed[:5]))
 
 
 
@@ -329,6 +341,8 @@ def _register_carrier_service(shop: ShopifyShop, settings: Settings) -> None:
     if isinstance(service, dict) and service.get("id"):
         shop.carrier_service_gid = str(service["id"])
         _persist_shop(shop)
+        return
+    raise RuntimeError("carrier_register_failed")
 
 
 def _register_fulfillment_service(shop: ShopifyShop, settings: Settings) -> None:
@@ -391,6 +405,18 @@ def _register_fulfillment_service(shop: ShopifyShop, settings: Settings) -> None
         if service.get("location_id"):
             shop.location_gid = str(service["location_id"])
         _persist_shop(shop)
+        return
+    listed = _helpers()._admin_get(shop.shop_domain, token, "/fulfillment_services.json", settings) or {}
+    for row in listed.get("fulfillment_services") or []:
+        if not isinstance(row, dict) or str(row.get("name") or "") != "PorterChain" or not row.get("id"):
+            continue
+        shop.fulfillment_service_gid = str(row["id"])
+        if row.get("location_id"):
+            shop.location_gid = str(row["location_id"])
+        _persist_shop(shop)
+        _edit_location(shop, settings, token)
+        return
+    raise RuntimeError("fulfillment_service_register_failed")
 
 
 def _edit_location(shop: ShopifyShop, settings: Settings, token: str) -> None:
@@ -399,12 +425,12 @@ def _edit_location(shop: ShopifyShop, settings: Settings, token: str) -> None:
         return
     from sqlalchemy.orm import object_session
 
-    from porterchain_api.merchant_models import SavedAddress
-
     sess = object_session(shop)
-    if sess is None or not shop.default_pickup_address_id:
+    if sess is None:
         return
-    addr = sess.get(SavedAddress, shop.default_pickup_address_id)
+    from porterchain_api.merchant_engine.shopify_service import default_pickup_address
+
+    addr = default_pickup_address(sess, shop.merchant_id, shop=shop)
     if addr is None:
         return
     try:

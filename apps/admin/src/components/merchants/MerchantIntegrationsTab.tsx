@@ -817,6 +817,20 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
                     </p>
                   ) : null}
                   <div className="mt-2 flex flex-wrap gap-2">
+                    {s.installed ? (
+                      <Badge tone={s.carrier_registered ? "slate" : "amber"}>
+                        {s.carrier_registered
+                          ? "Checkout rates registered"
+                          : "Checkout rates not registered"}
+                      </Badge>
+                    ) : null}
+                    {s.installed ? (
+                      <Badge tone={s.fulfillment_service_registered ? "slate" : "amber"}>
+                        {s.fulfillment_service_registered
+                          ? "Fulfillment service registered"
+                          : "Fulfillment service not registered"}
+                      </Badge>
+                    ) : null}
                     {s.ingress_paused ? <Badge tone="amber">Ingress paused</Badge> : null}
                     {s.auto_dispatch === false ? <Badge tone="amber">Hold at BOOKED</Badge> : null}
                     {s.default_vehicle_class || s.default_package_type ? (

@@ -331,6 +331,8 @@ export type MerchantApi = {
     default_pickup?: string | null;
     default_pickup_address_id?: string | null;
     missing_pickup?: boolean;
+    carrier_registered?: boolean;
+    fulfillment_service_registered?: boolean;
     ingress_paused?: boolean;
     auto_dispatch?: boolean;
     default_vehicle_class?: string | null;

@@ -66,29 +66,10 @@ export default function ShopifyAppClient() {
       <div>
         <h1 className="text-2xl font-semibold text-primary">PorterChain for Shopify</h1>
         <p className="mt-1 text-sm text-muted">
-          One-click OAuth installs the app, binds your default pickup, and registers carrier rates.
+          Connect the store. PorterChain uses your pickup address.
         </p>
-        {justConnected && shop ? (
-          <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-            Connected {shop}. Choose a default pickup below to go live.
-          </p>
-        ) : null}
       </div>
-      <ShopifyConnectCard initialShop={shop} />
-      <div className="flex flex-wrap gap-2 text-sm">
-        <Link
-          href="/api"
-          className="inline-flex items-center rounded-xl border-2 border-primary/20 px-3 py-1.5 text-primary hover:bg-gray-bg"
-        >
-          Full integrations
-        </Link>
-        <Link
-          href="/settings"
-          className="inline-flex items-center rounded-xl border-2 border-primary/20 px-3 py-1.5 text-primary hover:bg-gray-bg"
-        >
-          Locations &amp; pickup
-        </Link>
-      </div>
+      <ShopifyConnectCard initialShop={shop} justConnected={justConnected} />
     </div>
   );
 }

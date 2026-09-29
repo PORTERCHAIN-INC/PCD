@@ -148,6 +148,7 @@ class MerchantProfileService:
         db.add(record)
         db.commit()
         db.refresh(record)
+        self._bind_shopify_pickups(db, record)
         return record
 
     def update_saved_address(
@@ -169,6 +170,7 @@ class MerchantProfileService:
             record.is_default = False
         db.commit()
         db.refresh(record)
+        self._bind_shopify_pickups(db, record)
         return record
 
     def set_default_saved_address(
@@ -179,7 +181,15 @@ class MerchantProfileService:
         record.is_default = True
         db.commit()
         db.refresh(record)
+        self._bind_shopify_pickups(db, record)
         return record
+
+    def _bind_shopify_pickups(self, db: Session, record: SavedAddress) -> None:
+        if record.address_type not in ("pickup", "warehouse"):
+            return
+        from porterchain_api.merchant_engine.shopify_one_click import bind_merchant_shop_pickups
+
+        bind_merchant_shop_pickups(db, record.merchant_id)
 
     def delete_saved_address(self, db: Session, ctx: MerchantContext, address_id: str) -> None:
         record = self._get_address(db, ctx, address_id)

@@ -55,6 +55,9 @@ def _book_from_shopify_payload(
     pickup_row = shopify.default_pickup_address(db, shop.merchant_id, shop=shop)
     if not pickup_row:
         raise RuntimeError("default_pickup_required")
+    from porterchain_api.merchant_engine.shopify_one_click import ensure_shop_pickup_bound
+
+    shop = ensure_shop_pickup_bound(db, shop, address=pickup_row)
     pickup = shopify._ensure_coords(shopify.address_from_saved(pickup_row))
     body = map_shopify_order(payload, pickup=pickup)
     from porterchain_api.domain.customer_goods import persist_vehicle_class
@@ -293,6 +296,9 @@ def _update_from_shopify_payload(
     pickup_row = shopify.default_pickup_address(db, shop.merchant_id, shop=shop)
     if not pickup_row:
         raise RuntimeError("default_pickup_required")
+    from porterchain_api.merchant_engine.shopify_one_click import ensure_shop_pickup_bound
+
+    ensure_shop_pickup_bound(db, shop, address=pickup_row)
     pickup = shopify._ensure_coords(shopify.address_from_saved(pickup_row))
     body = map_shopify_order(payload, pickup=pickup)
     try:

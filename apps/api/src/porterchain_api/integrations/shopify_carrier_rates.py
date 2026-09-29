@@ -21,6 +21,7 @@ from porterchain_api.merchant_engine.shopify_service import (
     address_from_saved,
     default_pickup_address,
 )
+from porterchain_api.merchant_engine.shopify_one_click import ensure_shop_pickup_bound
 from porterchain_api.merchant_models import Merchant, ShopifyRateQuote, ShopifyShop
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas_merchant import AddressInput
@@ -471,6 +472,7 @@ def carrier_service_rates(
     if not pickup_row:
         logger.info("shopify_carrier_no_pickup shop=%s", getattr(shop, "shop_domain", shop.id))
         return _EMPTY
+    shop = ensure_shop_pickup_bound(db, shop, address=pickup_row)
     default_pickup = _ensure_geo(address_from_saved(pickup_row))
 
     dropoff_raw = _shopify_address_to_input(destination)

@@ -83,6 +83,9 @@ def _decrypt(value: str | None, settings: Settings) -> str | None:
     return decrypt_signing_secret(value, encryption_key=settings.jwt_secret)
 
 
+_PICKUP_ADDRESS_TYPES = ("pickup", "warehouse")
+
+
 def default_pickup_address(
     db: Session,
     merchant_id: str,
@@ -102,7 +105,10 @@ def default_pickup_address(
             return row
     return (
         db.query(SavedAddress)
-        .filter(SavedAddress.merchant_id == merchant_id)
+        .filter(
+            SavedAddress.merchant_id == merchant_id,
+            SavedAddress.address_type.in_(_PICKUP_ADDRESS_TYPES),
+        )
         .order_by(SavedAddress.is_default.desc(), SavedAddress.created_at.asc())
         .first()
     )
