@@ -62,9 +62,8 @@ def shopify_install(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> RedirectResponse:
-    # Two different Shopify checks:
-    # - no token yet → /app/grant (authenticates after install)
-    # - token or id_token already present → app page (UI after authentication)
+    # No stored token: open /app/grant with only the scopes on the released
+    # app version. A stored token means install finished: open the admin app.
     shopify_initiated = "hmac" in request.query_params
     if shopify_initiated and not verify_oauth_hmac(request.url.query, settings.shopify_api_secret):
         raise HTTPException(status_code=401, detail="oauth_hmac_invalid")

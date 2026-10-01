@@ -126,6 +126,25 @@ def oauth_configured(settings: Settings) -> bool:
     return bool(settings.shopify_api_key and settings.shopify_api_secret)
 
 
+# Scopes released on PorterChain Delivery. Extra env scopes (read_products,
+# write_orders, …) make Shopify's grant screen refuse the automated install.
+_RELEASED_APP_SCOPES = (
+    "read_assigned_fulfillment_orders",
+    "read_merchant_managed_fulfillment_orders",
+    "read_orders",
+    "write_assigned_fulfillment_orders",
+    "write_fulfillments",
+    "write_merchant_managed_fulfillment_orders",
+    "write_shipping",
+)
+
+
+def oauth_scopes(settings: Settings) -> str:
+    requested = [part.strip() for part in settings.shopify_api_scopes.split(",") if part.strip()]
+    allowed = [part for part in requested if part in _RELEASED_APP_SCOPES]
+    return ",".join(allowed or _RELEASED_APP_SCOPES)
+
+
 def install_url(
     shop_domain: str,
     settings: Settings,
@@ -141,7 +160,7 @@ def install_url(
         raise ValueError("shop_domain_invalid")
     params = {
         "client_id": settings.shopify_api_key,
-        "scope": settings.shopify_api_scopes,
+        "scope": oauth_scopes(settings),
         "redirect_uri": callback_url(settings),
         "state": sign_oauth_state(
             merchant_id, settings, pickup_address_id=pickup_address_id

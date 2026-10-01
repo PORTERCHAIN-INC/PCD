@@ -127,7 +127,7 @@ def test_install_handshake_rejects_bad_hmac_and_redirects_valid() -> None:
     assert ok.status_code == 302
     location = ok.headers["location"]
     assert location.startswith("https://admin.shopify.com/store/demo/app/grant?")
-    assert "oauth/authorize" not in location
+    assert "read_products" not in location
 
     plain = client.get(
         "/v1/integrations/shopify/install",
@@ -210,6 +210,7 @@ def test_install_with_id_token_opens_app_home_not_grant() -> None:
         )
     assert ok.status_code == 302
     assert ok.headers["location"].startswith("https://admin.shopify.com/store/demo/app/grant?")
+    assert "read_products" not in ok.headers["location"]
 
 
 def test_install_url_embeds_pickup_in_state() -> None:
