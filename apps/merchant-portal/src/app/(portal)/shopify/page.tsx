@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { request as httpsRequest } from "node:https";
 import ShopifyAppClient from "@/components/integrations/ShopifyAppClient";
 import { publicEnv } from "@/lib/env";
 
@@ -7,6 +8,23 @@ type Search = Record<string, string | string[] | undefined>;
 
 function first(value: string | string[] | undefined): string {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
+}
+
+/** Read Location without following — Next fetch(redirect:manual) often hides cross-origin headers. */
+function readRedirectLocation(url: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const req = httpsRequest(url, { method: "GET" }, (res) => {
+      const location = res.headers.location ?? null;
+      res.resume();
+      resolve(location);
+    });
+    req.on("error", () => resolve(null));
+    req.setTimeout(8_000, () => {
+      req.destroy();
+      resolve(null);
+    });
+    req.end();
+  });
 }
 
 export default async function ShopifyAppPage({ searchParams }: { searchParams: Promise<Search> }) {
@@ -21,12 +39,11 @@ export default async function ShopifyAppPage({ searchParams }: { searchParams: P
         for (const item of value) qs.append(key, item);
       }
     }
-    const upstream = await fetch(
-      `${publicEnv.porterchainApiUrl}/v1/integrations/shopify/install?${qs.toString()}`,
-      { redirect: "manual", cache: "no-store" }
-    );
-    const location = upstream.headers.get("location");
+    const installUrl = `${publicEnv.porterchainApiUrl}/v1/integrations/shopify/install?${qs.toString()}`;
+    const location = await readRedirectLocation(installUrl);
     if (location) redirect(location);
+    // Fallback: send the browser to the API install hop.
+    redirect(installUrl);
   }
 
   return (
