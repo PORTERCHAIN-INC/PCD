@@ -96,7 +96,9 @@ def ensure_shop_pickup_bound(
     """Fill a null shop pickup from the merchant warehouse. No-op when already set."""
     from porterchain_api.merchant_engine.shopify_service import default_pickup_address
 
-    if shop.uninstalled_at is not None or shop.default_pickup_address_id:
+    if getattr(shop, "uninstalled_at", None) is not None or getattr(
+        shop, "default_pickup_address_id", None
+    ):
         return shop
     addr = address if isinstance(address, SavedAddress) else None
     if addr is None or addr.merchant_id != shop.merchant_id:

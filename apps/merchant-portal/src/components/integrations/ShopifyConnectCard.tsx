@@ -98,7 +98,7 @@ export default function ShopifyConnectCard({
         return;
       }
       const result = await integrationsApi.shopifyInstallUrl(apiToken, shopDomain, orgId, pickupId);
-      window.location.href = result.url;
+      window.location.assign(result.url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not start Shopify install");
       setBusy(false);

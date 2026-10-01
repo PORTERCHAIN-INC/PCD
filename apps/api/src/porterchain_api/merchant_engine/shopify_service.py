@@ -92,7 +92,7 @@ def default_pickup_address(
     *,
     shop: ShopifyShop | None = None,
 ) -> SavedAddress | None:
-    if shop and shop.default_pickup_address_id:
+    if shop and getattr(shop, "default_pickup_address_id", None):
         row = (
             db.query(SavedAddress)
             .filter(
