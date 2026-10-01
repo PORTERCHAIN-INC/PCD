@@ -2,13 +2,14 @@
 # Porterchain Postgres backup — local dev or prod droplet (§5.1.7, DD-28).
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-COMPOSE_FILE="${COMPOSE_FILE:-$ROOT/infrastructure/deploy/docker-compose.prod.yml}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=deploy-paths.sh
+source "$SCRIPT_DIR/deploy-paths.sh"
 SERVICE="${POSTGRES_SERVICE:-postgres}"
 DB_USER="${POSTGRES_USER:-porterchain}"
 DB_NAME="${POSTGRES_DB:-porterchain}"
 STAMP="$(date +%F-%H%M%S)"
-OUTPUT="${1:-$ROOT/backups/porterchain-$STAMP.sql.gz}"
+OUTPUT="${1:-$BACKUP_DIR/porterchain-$STAMP.sql.gz}"
 
 mkdir -p "$(dirname "$OUTPUT")"
 
