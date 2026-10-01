@@ -71,10 +71,19 @@ Bootstrap / harden: `bootstrap-droplet.sh`, `harden-droplet.sh`.
 
 ## Deploy scopes
 
-| Scope                          | Builds         | Droplet action                                      | Smoke                       |
-| ------------------------------ | -------------- | --------------------------------------------------- | --------------------------- |
-| `full` (default; CI-triggered) | All six images | Pull all, migrate, recover stack                    | API + portals + quotes      |
-| `website` (manual only)        | Website only   | Pull/recreate `web` (other services keep `:latest`) | `porterchain.com` + sitemap |
+| Scope                           | Builds                                              | Droplet action                     | Smoke                               |
+| ------------------------------- | --------------------------------------------------- | ---------------------------------- | ----------------------------------- |
+| `auto` (CI default)             | Path detection via `scripts/detect-deploy-scope.sh` | Same as resolved scope             | Same as resolved scope              |
+| `full`                          | All six images                                      | Pull all, migrate, recover stack   | API + portals + quotes              |
+| `website`                       | Website only                                        | Recreate `web`                     | Site + sitemap                      |
+| `api`                           | API image                                           | Recreate `api` + `worker`, migrate | `/health`                           |
+| `merchant`                      | Merchant portal                                     | Recreate `merchant`                | `/sign-in` + `/shopify?connected=1` |
+| `admin` / `driver` / `customer` | That portal only                                    | Recreate that service              | —                                   |
+| `none`                          | Nothing                                             | Skip                               | —                                   |
+
+**Auto rules:** one app path → that scope; multiple apps / `packages/*` / deploy infra / lockfile → `full`; docs-only → `none`.
+
+Manual: **Actions → Deploy → Run workflow → scope**. Use `merchant` for Shopify portal-only fixes.
 
 ## Rolling deploy / rollback
 
