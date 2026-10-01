@@ -54,6 +54,55 @@ def test_oauth_state_roundtrip_with_pickup() -> None:
     assert state.pickup_address_id == "addr-9"
 
 
+def test_install_url_grant_screen_is_admin_grant() -> None:
+    settings = _settings()
+    url = shopify.install_url(
+        "xbbf0y-vp.myshopify.com",
+        settings,
+        merchant_id=None,
+        grant_screen=True,
+    )
+    assert url.startswith("https://admin.shopify.com/store/xbbf0y-vp/app/grant?")
+    assert "client_id=cid" in url
+    assert "redirect_uri=" in url
+
+
+def test_install_handshake_rejects_bad_hmac_and_redirects_valid() -> None:
+    import hashlib
+    import hmac
+    from urllib.parse import urlencode
+
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.routers.shopify import router
+
+    settings = _settings()
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_settings] = lambda: settings
+    client = TestClient(app)
+
+    bad = client.get(
+        "/v1/integrations/shopify/install",
+        params={"shop": "demo.myshopify.com", "timestamp": "1337178173", "hmac": "00"},
+        follow_redirects=False,
+    )
+    assert bad.status_code == 401
+
+    pairs = {"shop": "demo.myshopify.com", "timestamp": "1337178173"}
+    message = "&".join(f"{key}={value}" for key, value in sorted(pairs.items()))
+    digest = hmac.new(b"shpss_test", message.encode(), hashlib.sha256).hexdigest()
+    ok = client.get(
+        f"/v1/integrations/shopify/install?{urlencode({**pairs, 'hmac': digest})}",
+        follow_redirects=False,
+    )
+    assert ok.status_code in {302, 307}
+    location = ok.headers["location"]
+    assert location.startswith("https://admin.shopify.com/store/demo/app/grant?")
+
+
 def test_install_url_embeds_pickup_in_state() -> None:
     settings = _settings()
     url = shopify.install_url(

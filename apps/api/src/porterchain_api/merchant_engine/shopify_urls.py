@@ -111,6 +111,7 @@ def install_url(
     *,
     merchant_id: str | None,
     pickup_address_id: str | None = None,
+    grant_screen: bool = False,
 ) -> str:
     if not oauth_configured(settings):
         raise ValueError("shopify_oauth_not_configured")
@@ -125,4 +126,10 @@ def install_url(
             merchant_id, settings, pickup_address_id=pickup_address_id
         ),
     }
+    # Shopify's install check compares the first redirect with
+    # https://admin.shopify.com/store/{handle}/app/grant. The classic
+    # myshopify authorize URL is for a merchant who still needs to log in.
+    if grant_screen:
+        handle = shop.removesuffix(".myshopify.com")
+        return f"https://admin.shopify.com/store/{handle}/app/grant?{urlencode(params)}"
     return f"https://{shop}/admin/oauth/authorize?{urlencode(params)}"

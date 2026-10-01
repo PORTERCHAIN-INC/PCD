@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
+from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.platform.rate_limit import (
     TRAFFIC_SHOPIFY_CARRIER,
@@ -48,12 +49,23 @@ def _enforce_shopify_limit(
 
 @router.get("/install")
 def shopify_install(
+    request: Request,
     shop: str = Query(..., min_length=3),
     merchant_id: str | None = Query(default=None),
     settings: Settings = Depends(get_settings),
 ) -> RedirectResponse:
+    # Shopify's install check opens the app URL with shop, hmac, host, and timestamp.
+    # A valid hmac must go straight to the grant screen, not a login page.
+    shopify_initiated = "hmac" in request.query_params
+    if shopify_initiated and not verify_oauth_hmac(request.url.query, settings.shopify_api_secret):
+        raise HTTPException(status_code=401, detail="oauth_hmac_invalid")
     try:
-        url = shopify.install_url(shop, settings, merchant_id=merchant_id)
+        url = shopify.install_url(
+            shop,
+            settings,
+            merchant_id=merchant_id,
+            grant_screen=shopify_initiated,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return RedirectResponse(url)
