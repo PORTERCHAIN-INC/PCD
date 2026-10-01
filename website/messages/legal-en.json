@@ -69,6 +69,14 @@
         ]
       },
       {
+        "title": "Shopify delivery orders",
+        "paragraphs": [
+          "When a merchant connects Shopify, Porterchain is the processor and the merchant is the controller of the buyer. We keep the buyer name, email, phone, and delivery street only to deliver the order and to answer a privacy request. We do not use that contact for marketing.",
+          "We keep that contact for 24 months after delivery, then remove the street, name, email, and phone. Postal area and the charge can remain when a tax record or a claim is still open. Shopify, Clerk, and Stripe may process data outside Canada. The database and Fleetbase dispatch stay in Canada when a stop is released.",
+          "A buyer asks the merchant. The merchant's Shopify admin sends Porterchain a privacy webhook. The merchant downloads the access file from the Porterchain privacy settings. We do not email the file to the buyer."
+        ]
+      },
+      {
         "title": "Contact us",
         "paragraphs": [
           "Privacy inquiries: driver@porterchain.com",

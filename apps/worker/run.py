@@ -22,6 +22,7 @@ _last_compliance_expiry_at = 0.0
 _last_lead_nurture_at = 0.0
 _last_lead_sla_at = 0.0
 _last_lead_archive_at = 0.0
+_last_shopify_retention_at = 0.0
 _last_lead_agent_at = 0.0
 _last_blog_schedule_at = 0.0
 DRAFT_RECONCILE_INTERVAL_SECONDS = 300
@@ -33,6 +34,7 @@ COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
 LEAD_NURTURE_INTERVAL_SECONDS = 300
 LEAD_SLA_ESCALATION_INTERVAL_SECONDS = 3600
 LEAD_SOFT_ARCHIVE_INTERVAL_SECONDS = 86400
+SHOPIFY_RETENTION_INTERVAL_SECONDS = 86400
 LEAD_AGENT_INTERVAL_SECONDS = 180
 BLOG_SCHEDULE_INTERVAL_SECONDS = 60
 TRACKING_DRAIN_LIMIT = 10
@@ -390,6 +392,25 @@ def _drain_lead_soft_archive() -> int:
     return int(result.get("archived", 0))
 
 
+def _drain_shopify_buyer_retention() -> int:
+    """Wipe Shopify buyer contact 24 months after delivery."""
+    global _last_shopify_retention_at
+    now = time.monotonic()
+    if now - _last_shopify_retention_at < SHOPIFY_RETENTION_INTERVAL_SECONDS:
+        return 0
+    _last_shopify_retention_at = now
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.merchant_engine.shopify_privacy import run_retention
+
+    with SessionLocal() as db:
+        result = run_retention(db, get_settings())
+    if result.get("wiped"):
+        logger.info("shopify buyer retention: wiped=%s", result.get("wiped", 0))
+    return int(result.get("wiped", 0))
+
+
 def _drain_blog_scheduled_publish() -> int:
     """Publish drafts whose scheduled_publish_at has elapsed."""
     global _last_blog_schedule_at
@@ -517,6 +538,7 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_lead_agent()
                 processed += _drain_lead_sla_escalation()
                 processed += _drain_lead_soft_archive()
+                processed += _drain_shopify_buyer_retention()
                 processed += _drain_blog_scheduled_publish()
             if mode_includes(mode, "fleetbase"):
                 processed += _drain_fleetbase_retry_queue()

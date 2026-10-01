@@ -171,7 +171,7 @@ def test_install_with_token_opens_app_home() -> None:
     )
     assert ok.status_code == 302
     assert ok.headers["location"] == (
-        "https://admin.shopify.com/store/demo/apps/cid"
+        "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&connected=1"
     )
 
 
@@ -244,7 +244,7 @@ def test_app_toml_matches_runtime_defaults() -> None:
     assert raw["embedded"] is False
     assert raw["application_url"] == shopify.app_home_url(settings)
     assert raw["access_scopes"]["scopes"] == settings.shopify_api_scopes
-    assert "use_legacy_install_flow" not in raw["access_scopes"]
+    assert raw["access_scopes"]["use_legacy_install_flow"] is True
     assert raw["webhooks"]["api_version"] == settings.shopify_api_version
     assert settings.shopify_api_version == "2026-07"
 

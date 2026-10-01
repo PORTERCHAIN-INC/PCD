@@ -178,7 +178,9 @@ export default function ShopifyConnectCard({
     <section className="rounded-2xl border border-primary/10 bg-white p-5">
       <h2 className="text-lg font-semibold text-primary">Shopify</h2>
       <p className="mt-1 text-sm text-muted">
-        Connect the store. PorterChain uses your pickup address for Shopify orders.{" "}
+        Connect the store. Buyer name, email, phone, and street are kept only to deliver the order
+        and to answer a privacy request. They are not used for marketing. PorterChain uses your
+        pickup address for Shopify orders.{" "}
         <Link href="/settings?tab=privacy" className="underline">
           Privacy notice
         </Link>

@@ -5,7 +5,7 @@ Adapter-Version: 1.0.0
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
@@ -124,18 +124,24 @@ def quote_id_from_order(payload: dict[str, Any]) -> str | None:
     return None
 
 
-def customer_slice(payload: dict[str, Any]) -> dict[str, Any]:
-    """Stored for delivery and PIPEDA / Law 25 requests. Not a CASL marketing list."""
+def customer_slice(payload: dict[str, Any], *, shop_domain: str | None = None) -> dict[str, Any]:
+    """Stored for delivery and privacy requests. Not a marketing list."""
     customer = _record(payload.get("customer")) or {}
     address = shipping_address(payload) or {}
     first = _as_str(customer.get("first_name"))
     last = _as_str(customer.get("last_name"))
     name = _as_str(address.get("name")) or " ".join(p for p in (first, last) if p)
+    collected = datetime.now(UTC)
     return {
         "id": customer.get("id"),
         "email": _as_str(payload.get("email") or customer.get("email")) or None,
         "phone": _as_str(address.get("phone") or customer.get("phone") or payload.get("phone")) or None,
         "name": name or None,
+        "purpose": "deliver",
+        "lawful_basis": "contract",
+        "collected_at": collected.isoformat(),
+        "retain_until": (collected + timedelta(days=730)).isoformat(),
+        "shop_domain": shop_domain,
     }
 
 

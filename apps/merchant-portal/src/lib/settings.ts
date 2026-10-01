@@ -132,6 +132,17 @@ export type PrivacyStatus = {
   recent_logs?: PrivacyAuditLog[];
 };
 
+export type ShopifyPrivacyRequest = {
+  id: string;
+  topic: string;
+  status: string;
+  received_at: string | null;
+  due_at: string | null;
+  orders_touched: number;
+  hold_reason: string | null;
+  download: boolean;
+};
+
 export type PrivacyDeleteResponse = {
   reference: string;
   status: string;
@@ -473,4 +484,18 @@ export const settingsApi = {
       body: JSON.stringify({ reason: reason || null }),
       orgId,
     }),
+
+  shopifyPrivacyRequests: (token: string, orgId?: string) =>
+    settingsFetch<{ requests: ShopifyPrivacyRequest[] }>(
+      "/v1/merchant/shopify/privacy/requests",
+      token,
+      { orgId }
+    ),
+
+  shopifyPrivacyExport: (token: string, requestId: string, orgId?: string) =>
+    settingsFetch<Record<string, unknown>>(
+      `/v1/merchant/shopify/privacy/requests/${requestId}/export`,
+      token,
+      { orgId }
+    ),
 };

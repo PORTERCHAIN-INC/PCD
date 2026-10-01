@@ -451,3 +451,10 @@ class MerchantBookingService:
         # Never silent-promote: duplicate inherits source env.
         src_sandbox = bool(getattr(order, "is_sandbox", False) or meta.get("sandbox") is True)
         return self.create_shipment(db, settings, ctx, body, sandbox=src_sandbox)
+
+
+def push_redacted_order(db: Session, settings: Settings, order: Order) -> None:
+    """Push a wiped delivery contact back through the existing Fleetbase booking path."""
+    from porterchain_api.fleetbase_engine.integration_bridge import FleetbaseIntegrationBridge
+
+    FleetbaseIntegrationBridge().sync_order(db, settings, order)

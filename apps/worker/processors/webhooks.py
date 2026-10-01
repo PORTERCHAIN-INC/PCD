@@ -30,6 +30,9 @@ def process_webhook(payload: dict[str, Any]) -> None:
     if action == "shopify_fulfillment_cancel":
         _shopify_fulfillment_cancel(payload.get("order_id"))
         return
+    if action == "shopify_privacy":
+        _shopify_privacy(payload.get("request_id"))
+        return
     if isinstance(action, str) and action.startswith("shopify_"):
         _shopify_ingress(payload)
         return
@@ -37,6 +40,26 @@ def process_webhook(payload: dict[str, Any]) -> None:
         logger.info("webhook ingress ack: fleetbase order=%s", payload.get("update", {}).get("porterchain_order_id"))
         return
     logger.info("webhook processed: keys=%s", list(payload.keys()))
+
+
+def _shopify_privacy(request_id: str | None) -> None:
+    if not request_id:
+        logger.warning("shopify_privacy missing request_id")
+        return
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.merchant_engine.shopify_privacy import process_privacy_request
+
+    db = SessionLocal()
+    try:
+        result = process_privacy_request(db, get_settings(), str(request_id))
+        logger.info("shopify_privacy_done request=%s result=%s", request_id, result.get("status"))
+    except Exception:
+        logger.exception("shopify_privacy_failed request=%s", request_id)
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 def _shopify_ingress(payload: dict[str, Any]) -> None:

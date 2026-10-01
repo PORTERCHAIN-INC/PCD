@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
-import { settingsApi, type PrivacyStatus } from "@/lib/settings";
+import { settingsApi, type PrivacyStatus, type ShopifyPrivacyRequest } from "@/lib/settings";
 import { formatDate } from "@/lib/utils";
 
 export function PrivacyTab({
@@ -17,11 +17,20 @@ export function PrivacyTab({
   const [error, setError] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [privacy, setPrivacy] = useState<PrivacyStatus | null>(null);
+  const [shopifyRequests, setShopifyRequests] = useState<ShopifyPrivacyRequest[]>([]);
+  const [shopifyError, setShopifyError] = useState<string | null>(null);
 
   const loadPrivacy = useCallback(async () => {
     const token = await getToken();
     const status = await settingsApi.privacyStatus(token, orgId);
     setPrivacy(status);
+    try {
+      const shopify = await settingsApi.shopifyPrivacyRequests(token, orgId);
+      setShopifyRequests(shopify.requests);
+      setShopifyError(null);
+    } catch (e) {
+      setShopifyError(e instanceof Error ? e.message : "Could not load requests");
+    }
   }, [getToken, orgId]);
 
   useEffect(() => {
@@ -76,6 +85,26 @@ export function PrivacyTab({
     }
   };
 
+  const downloadShopifyExport = async (requestId: string) => {
+    setBusy(true);
+    setShopifyError(null);
+    try {
+      const token = await getToken();
+      const payload = await settingsApi.shopifyPrivacyExport(token, requestId, orgId);
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `shopify-privacy-${requestId}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setShopifyError(e instanceof Error ? e.message : "Could not download the file");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const pending = privacy?.status === "pending";
   const erased = privacy?.status === "erased";
   const locked = pending || erased;
@@ -118,6 +147,59 @@ export function PrivacyTab({
       </div>
       {message && <p className="text-sm text-primary">{message}</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}
+      <div className="border-t border-primary/10 pt-4">
+        <h3 className="text-sm font-semibold text-primary">Shopify buyers</h3>
+        <p className="mt-1 text-sm text-muted">
+          Contact is kept to deliver the order and to answer a privacy request. It is not used for
+          marketing.
+        </p>
+        {shopifyError ? (
+          <p className="mt-2 text-sm text-red-600">
+            Could not load requests.{" "}
+            <button type="button" className="underline" onClick={() => void loadPrivacy()}>
+              Retry
+            </button>
+          </p>
+        ) : null}
+        {shopifyRequests.length === 0 && !shopifyError ? (
+          <p className="mt-2 text-sm text-muted">No Shopify privacy requests yet.</p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-sm">
+            {shopifyRequests.map((row) => (
+              <li
+                key={row.id}
+                className="flex flex-wrap items-center justify-between gap-2 border-b border-primary/5 py-2"
+              >
+                <span>
+                  <span className="font-medium text-primary">{row.topic}</span>
+                  <span className="text-muted">
+                    {" "}
+                    · {row.received_at ? formatDate(row.received_at) : "—"}
+                    {" · due "}
+                    {row.due_at ? formatDate(row.due_at) : "—"}
+                    {" · "}
+                    {row.status}
+                    {row.hold_reason ? ` · ${row.hold_reason}` : ""} · {row.orders_touched} orders
+                  </span>
+                </span>
+                {row.download ? (
+                  <Button
+                    size="sm"
+                    disabled={busy}
+                    onClick={() => void downloadShopifyExport(row.id)}
+                  >
+                    Download
+                  </Button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-3 text-xs text-muted">
+          Subprocessors: Shopify, Clerk, and Stripe may process data outside Canada. The database
+          host, Fleetbase when a stop is dispatched, and the mailer stay in Canada.
+        </p>
+      </div>
       {(privacy?.recent_logs?.length ?? 0) > 0 ? (
         <div className="border-t border-primary/10 pt-4">
           <h3 className="text-sm font-semibold text-primary">Company activity</h3>

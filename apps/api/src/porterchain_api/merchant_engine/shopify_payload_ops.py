@@ -124,7 +124,7 @@ def _book_from_shopify_payload(
         "order_name": _name,
         "held_for_ops": (not is_sandbox) and (not auto_dispatch),
         "auto_dispatch": auto_dispatch,
-        "customer": customer_slice(payload),
+        "customer": customer_slice(payload, shop_domain=shop.shop_domain),
         "line_items": line_item_slice(payload),
         "shipping_code": shipping_code,
     }
@@ -312,7 +312,7 @@ def _update_from_shopify_payload(
         existing.weight_kg = body.weight_kg
     _note_shopify(
         existing,
-        customer=customer_slice(payload),
+        customer=customer_slice(payload, shop_domain=shop.shop_domain),
         line_items=line_item_slice(payload),
         order_name=_name,
     )

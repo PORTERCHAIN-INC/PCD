@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-import logging
 from datetime import UTC, datetime
 from typing import Any
 
@@ -22,9 +20,6 @@ from porterchain_api.merchant_engine.shopify_urls import (
     webhook_url,
 )
 from porterchain_api.merchant_models import Merchant, SavedAddress, ShopifyShop
-from porterchain_api.booking_models import Order
-
-logger = logging.getLogger("porterchain.shopify_one_click")
 
 
 def _has_rate_card(db: Session, merchant: Merchant) -> bool:
@@ -234,109 +229,16 @@ def handle_gdpr_topic(
     topic: str,
     shop: ShopifyShop | None,
     raw_body: bytes,
+    webhook_id: str | None = None,
 ) -> dict[str, Any]:
-    """Mandatory Partners compliance webhooks — redact / acknowledge without dumping PII."""
-    try:
-        payload = json.loads(raw_body.decode("utf-8") or "{}")
-    except (UnicodeDecodeError, json.JSONDecodeError):
-        payload = {}
-    if not isinstance(payload, dict):
-        payload = {}
+    """Open a privacy case. The reply has no buyer fields; the worker does the wipe."""
+    del settings
+    from porterchain_api.merchant_engine.shopify_privacy import open_privacy_request
 
-    shop_domain = normalize_shop_domain(
-        str(payload.get("shop_domain") or (shop.shop_domain if shop else "") or "")
+    opened = open_privacy_request(
+        db, topic=topic, shop=shop, raw_body=raw_body, webhook_id=webhook_id
     )
-    logger.info(
-        "shopify_gdpr topic=%s shop=%s keys=%s",
-        topic,
-        shop_domain or "unknown",
-        sorted(str(k) for k in payload.keys())[:12],
-    )
-
-    if topic == "shop/redact":
-        target = shop
-        if target is None and shop_domain:
-            target = (
-                db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop_domain).first()
-            )
-        if target:
-            target.uninstalled_at = datetime.now(UTC)
-            target.encrypted_access_token = None
-            target.encrypted_webhook_secret = None
-            target.default_pickup_address_id = None
-            db.commit()
-        return {"ok": True, "redacted": "shop"}
-
-    if topic == "customers/redact":
-        customer = payload.get("customer") if isinstance(payload.get("customer"), dict) else {}
-        email = str(customer.get("email") or "").strip().lower()
-        phone = str(customer.get("phone") or "").strip()
-        if shop and (email or phone):
-            orders = (
-                db.query(Order)
-                .filter(Order.merchant_id == shop.merchant_id)
-                .order_by(Order.created_at.desc())
-                .limit(200)
-                .all()
-            )
-            touched = 0
-            for order in orders:
-                meta = dict(order.compliance_metadata or {})
-                shopify_meta = dict(meta.get("shopify") or {})
-                cust = shopify_meta.get("customer") if isinstance(shopify_meta.get("customer"), dict) else {}
-                match = False
-                if email and str(cust.get("email") or "").strip().lower() == email:
-                    match = True
-                if phone and str(cust.get("phone") or "").strip() == phone:
-                    match = True
-                if not match:
-                    continue
-                shopify_meta["customer"] = {
-                    "id": cust.get("id"),
-                    "email": None,
-                    "phone": None,
-                    "redacted_at": datetime.now(UTC).isoformat(),
-                }
-                meta["shopify"] = shopify_meta
-                order.compliance_metadata = meta
-                db.add(order)
-                touched += 1
-            if touched:
-                db.commit()
-            return {"ok": True, "redacted": "customers", "orders": touched}
-        return {"ok": True, "redacted": "customers", "orders": 0}
-
-    # customers/data_request — return the stored delivery slice. Buyer contact is not a marketing list.
-    customer = payload.get("customer") if isinstance(payload.get("customer"), dict) else {}
-    email = str(customer.get("email") or "").strip().lower()
-    phone = str(customer.get("phone") or "").strip()
-    export: list[dict[str, Any]] = []
-    if shop and (email or phone):
-        orders = (
-            db.query(Order)
-            .filter(Order.merchant_id == shop.merchant_id)
-            .order_by(Order.created_at.desc())
-            .limit(200)
-            .all()
-        )
-        for order in orders:
-            meta = (order.compliance_metadata or {}).get("shopify") or {}
-            cust = meta.get("customer") if isinstance(meta.get("customer"), dict) else {}
-            match = False
-            if email and str(cust.get("email") or "").strip().lower() == email:
-                match = True
-            if phone and str(cust.get("phone") or "").strip() == phone:
-                match = True
-            if not match:
-                continue
-            export.append(
-                {
-                    "order_id": order.id,
-                    "shopify_order_id": meta.get("order_id"),
-                    "email": cust.get("email"),
-                    "phone": cust.get("phone"),
-                    "name": cust.get("name"),
-                }
-            )
-    return {"ok": True, "received": "customers/data_request", "orders": export}
+    if opened.get("duplicate"):
+        return {"ok": True, "duplicate": True}
+    return {"ok": True, "request_id": opened.get("request_id")}
 

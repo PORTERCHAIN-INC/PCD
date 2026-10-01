@@ -69,6 +69,14 @@
         ]
       },
       {
+        "title": "Commandes Shopify",
+        "paragraphs": [
+          "Lorsqu'un marchand connecte Shopify, Porterchain est le sous-traitant et le marchand est le responsable du traitement de l'acheteur. Nous conservons le nom, le courriel, le téléphone et la rue de livraison seulement pour livrer la commande et répondre à une demande de confidentialité. Ce contact ne sert pas au marketing.",
+          "Nous conservons ce contact 24 mois après la livraison, puis nous retirons la rue, le nom, le courriel et le téléphone. Le code postal et le montant peuvent rester si un dossier fiscal ou une réclamation est encore ouvert. Shopify, Clerk et Stripe peuvent traiter des données hors du Canada.",
+          "L'acheteur s'adresse au marchand. L'admin Shopify envoie un webhook de confidentialité. Le marchand télécharge le fichier dans les paramètres de confidentialité Porterchain. Nous n'envoyons pas ce fichier à l'acheteur."
+        ]
+      },
+      {
         "title": "Nous joindre",
         "paragraphs": [
           "Confidentialité : driver@porterchain.com",

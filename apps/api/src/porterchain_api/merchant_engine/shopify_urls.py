@@ -111,11 +111,17 @@ def shopify_admin_app_url(
     return f"https://admin.shopify.com/store/{handle}/apps/{api_key}"
 
 
-def app_home_url(settings: Settings, *, shop_domain: str | None = None) -> str:
+def app_home_url(
+    settings: Settings, *, shop_domain: str | None = None, host: str | None = None
+) -> str:
+    """Configured app homepage. This is where a finished install must land."""
     base = f"{settings.merchant_portal_url.rstrip('/')}/shopify"
-    if shop_domain:
-        return f"{base}?shop={normalize_shop_domain(shop_domain)}&connected=1"
-    return base
+    if not shop_domain:
+        return base
+    params = {"shop": normalize_shop_domain(shop_domain), "connected": "1"}
+    if host:
+        params["host"] = host
+    return f"{base}?{urlencode(params)}"
 
 
 def callback_url(settings: Settings) -> str:

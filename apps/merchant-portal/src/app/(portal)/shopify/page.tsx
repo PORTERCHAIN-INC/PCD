@@ -41,8 +41,8 @@ export default async function ShopifyAppPage({ searchParams }: { searchParams: P
     }
     const installUrl = `${publicEnv.porterchainApiUrl}/v1/integrations/shopify/install?${qs.toString()}`;
     const location = await readRedirectLocation(installUrl);
-    // Fresh install goes to Shopify's grant screen. After a token exists the
-    // API returns our app page. Follow whichever the API chose.
+    // No stored token: the API returns Shopify's authorize URL.
+    // A stored token returns this page. Follow whichever the API chose.
     if (location) redirect(location);
   }
 

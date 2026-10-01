@@ -60,9 +60,6 @@ from porterchain_api.merchant_engine.shopify_one_click import (  # noqa: F401
     connection_payload,
     go_live,
 )
-from porterchain_api.merchant_engine.shopify_one_click import (
-    handle_gdpr_topic as _handle_gdpr_topic,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -450,13 +447,21 @@ def ingest_webhook(
 
     topic_name = (topic or "").strip().lower().replace("_", "/")
     if topic_name in _GDPR_TOPICS:
-        result = _handle_gdpr_topic(
-            db, settings, topic=topic_name, shop=shop, raw_body=raw_body
+        from porterchain_api.merchant_engine.shopify_privacy import accept_and_enqueue
+
+        def _remember_gdpr() -> None:
+            if shop and webhook_id:
+                _remember_webhook(shop, webhook_id)
+                db.commit()
+
+        return accept_and_enqueue(
+            db,
+            topic=topic_name,
+            shop=shop,
+            raw_body=raw_body,
+            webhook_id=webhook_id,
+            remember=_remember_gdpr,
         )
-        if shop and webhook_id:
-            _remember_webhook(shop, webhook_id)
-            db.commit()
-        return result
     if topic_name in {"app/uninstalled"}:
         if shop:
             _delete_partner_services(shop)

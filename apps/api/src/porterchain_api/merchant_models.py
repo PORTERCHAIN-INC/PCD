@@ -321,6 +321,36 @@ class ShopifyIngressDlq(Base):
     )
 
 
+class ShopifyDataSubjectRequest(Base):
+    """Shopify GDPR / PIPEDA access or erasure case. Webhook id is the idempotency key."""
+
+    __tablename__ = "shopify_data_subject_requests"
+    __table_args__ = (
+        UniqueConstraint("shopify_webhook_id", name="uq_shopify_dsr_webhook_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    shop_id: Mapped[str | None] = mapped_column(
+        ForeignKey("shopify_shops.id"), nullable=True, index=True
+    )
+    merchant_id: Mapped[str | None] = mapped_column(
+        ForeignKey("merchants.id"), nullable=True, index=True
+    )
+    topic: Mapped[str] = mapped_column(String(64), index=True)
+    shopify_webhook_id: Mapped[str] = mapped_column(String(128))
+    shopify_customer_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    email_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    phone_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    orders_requested: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="received", index=True)
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    export_ciphertext: Mapped[str | None] = mapped_column(Text, nullable=True)
+    orders_touched: Mapped[int] = mapped_column(Integer, default=0)
+    hold_reason: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    fulfilled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class ShopifyRateQuote(Base):
     """Checkout CarrierService quote — must match create_shipment for same request_hash."""
 
