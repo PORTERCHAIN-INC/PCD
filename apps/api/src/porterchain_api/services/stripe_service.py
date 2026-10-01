@@ -68,9 +68,8 @@ def create_checkout_session(
         description = f"{quote.vehicle_class} · {count or 1} parcel{'s' if count != 1 else ''}"
     session_kwargs: dict = {
         "mode": "payment",
-        # Apple Pay & Google Pay are presented automatically by Stripe Checkout
-        # when "card" is enabled and the domain is registered — no extra config.
-        "payment_method_types": ["card"],
+        # Payment methods come from the Stripe Dashboard. Sending
+        # payment_method_types is rejected on current Checkout API versions.
         "phone_number_collection": {"enabled": True},
         "billing_address_collection": "auto",
         "line_items": [
@@ -129,7 +128,6 @@ def create_invoice_checkout_session(
     }
     session_kwargs: dict = {
         "mode": "payment",
-        "payment_method_types": ["card"],
         "line_items": [
             {
                 "price_data": {
@@ -299,7 +297,6 @@ def create_cod_checkout_session(
     stripe_sdk.configure(settings.stripe_secret)
     session = stripe_sdk.create_checkout_session(
         mode="payment",
-        payment_method_types=["card"],
         line_items=[
             {
                 "price_data": {

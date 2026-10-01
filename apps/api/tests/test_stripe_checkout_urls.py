@@ -30,3 +30,4 @@ def test_create_checkout_session_customer_channel() -> None:
     assert kwargs["success_url"] == "http://localhost:3004/book/success?quote_id=q-1"
     assert kwargs["cancel_url"] == "http://localhost:3004/book?quote_id=q-1"
     assert kwargs["metadata"]["checkout_channel"] == "customer"
+    assert "payment_method_types" not in kwargs
