@@ -1,26 +1,23 @@
 name: Deploy
 
-# Continuous deployment for the PorterChain platform.
-# - After CI succeeds → path-scoped deploy when one app changed; else full.
-# - Manual dispatch → scope=auto|full|website|api|merchant|admin|driver|customer.
-# Builds Docker images, pushes to GHCR, deploys to the DigitalOcean droplet over SSH.
-# SSOT: infrastructure/deploy/README.md
+# Path-scoped CD. SSOT: infrastructure/deploy/deploy-rules.json
+# Resolver: scripts/resolve_deploy_plan.py — do not invent scopes in this file.
 on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-    # Default branch is base-code; keep main for future cutover.
     branches: [main, base-code]
   workflow_dispatch:
     inputs:
       scope:
-        description: "Deploy scope (auto = only apps touched by this commit)"
+        description: "Deploy scope (auto = only images whose inputs changed)"
         required: true
         default: auto
         type: choice
         options:
           - auto
           - full
+          - portals
           - website
           - api
           - merchant
@@ -33,7 +30,6 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # GHCR requires lowercase; org login is PORTERCHAIN-INC.
   IMAGE_NAME: ghcr.io/porterchain-inc/pcd-website
   API_IMAGE_NAME: ghcr.io/porterchain-inc/pcd-api
   ADMIN_IMAGE_NAME: ghcr.io/porterchain-inc/pcd-admin
@@ -44,15 +40,28 @@ env:
   PROD_SITE_URL: https://porterchain.com
 
 jobs:
-  deploy:
-    name: Build & deploy (${{ github.event.inputs.scope || 'auto' }})
+  plan:
+    name: Plan deploy
     runs-on: ubuntu-24.04
-    # Skip when triggered by a failed CI run (manual dispatch always runs).
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: read
-      packages: write
-
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+      sha: ${{ steps.sha.outputs.value }}
+      scope: ${{ steps.plan.outputs.scope }}
+      rollout: ${{ steps.plan.outputs.rollout }}
+      migrate: ${{ steps.plan.outputs.migrate }}
+      skip: ${{ steps.plan.outputs.skip }}
+      build_count: ${{ steps.plan.outputs.build_count }}
+      services: ${{ steps.plan.outputs.services }}
+      pin_api: ${{ steps.plan.outputs.pin_api }}
+      pin_website: ${{ steps.plan.outputs.pin_website }}
+      pin_admin: ${{ steps.plan.outputs.pin_admin }}
+      pin_merchant: ${{ steps.plan.outputs.pin_merchant }}
+      pin_driver: ${{ steps.plan.outputs.pin_driver }}
+      pin_customer: ${{ steps.plan.outputs.pin_customer }}
+      matrix: ${{ steps.plan.outputs.matrix }}
     steps:
       - name: Check deploy secrets are configured
         id: check
@@ -82,9 +91,9 @@ jobs:
           ref: ${{ steps.sha.outputs.value }}
           fetch-depth: 0
 
-      - name: Resolve deploy scope
+      - name: Resolve deploy plan
         if: steps.check.outputs.ready == 'true'
-        id: scope
+        id: plan
         run: |
           set -euo pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -92,62 +101,28 @@ jobs:
           else
             requested="auto"
           fi
-          if [ "$requested" != "auto" ]; then
-            scope="$requested"
+          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            git diff --name-only HEAD^ HEAD > /tmp/deploy-changed.txt
           else
-            if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-              git diff --name-only HEAD^ HEAD > /tmp/deploy-changed.txt
-            else
-              git ls-files > /tmp/deploy-changed.txt
-            fi
-            echo "Changed files:"
-            head -80 /tmp/deploy-changed.txt
-            scope="$(bash scripts/detect-deploy-scope.sh /tmp/deploy-changed.txt)"
+            git ls-files > /tmp/deploy-changed.txt
           fi
-          echo "value=$scope" >> "$GITHUB_OUTPUT"
-          echo "Deploy scope → $scope (requested=$requested)"
-
-          build_api=false
-          build_website=false
-          build_admin=false
-          build_merchant=false
-          build_driver=false
-          build_customer=false
-          deploy_partial=false
-          case "$scope" in
-            full)
-              build_api=true; build_website=true; build_admin=true
-              build_merchant=true; build_driver=true; build_customer=true
-              ;;
-            website) build_website=true; deploy_partial=true ;;
-            api) build_api=true; deploy_partial=true ;;
-            merchant) build_merchant=true; deploy_partial=true ;;
-            admin) build_admin=true; deploy_partial=true ;;
-            driver) build_driver=true; deploy_partial=true ;;
-            customer) build_customer=true; deploy_partial=true ;;
-            none)
-              echo "::notice::No deployable app paths changed — skipping image builds."
-              ;;
-            *)
-              echo "::error::Unknown deploy scope: $scope"
-              exit 1
-              ;;
-          esac
-          {
-            echo "build_api=$build_api"
-            echo "build_website=$build_website"
-            echo "build_admin=$build_admin"
-            echo "build_merchant=$build_merchant"
-            echo "build_driver=$build_driver"
-            echo "build_customer=$build_customer"
-            echo "deploy_partial=$deploy_partial"
-            if [ "$scope" = "none" ]; then echo "skip=true"; else echo "skip=false"; fi
-          } >> "$GITHUB_OUTPUT"
+          echo "Changed files:"
+          head -80 /tmp/deploy-changed.txt
+          python3 scripts/resolve_deploy_plan.py \
+            --scope "$requested" \
+            --changed-files /tmp/deploy-changed.txt \
+            --content-ids \
+            --github-output >> "$GITHUB_OUTPUT"
+          echo "Deploy plan requested=$requested"
+          python3 scripts/resolve_deploy_plan.py \
+            --scope "$requested" \
+            --changed-files /tmp/deploy-changed.txt \
+            --content-ids
 
       # The composite action also checks this. The string has to live in this
       # file: scripts/verify_enterprise_security.py reads deploy.yml only.
       - name: Require Doppler token before image builds
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.skip != 'true'
+        if: steps.check.outputs.ready == 'true' && steps.plan.outputs.skip != 'true'
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         run: |
@@ -156,34 +131,41 @@ jobs:
             exit 1
           fi
 
-      # One Doppler download for the whole job (fail before image builds).
-      - name: Download Doppler env (once)
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.skip != 'true'
-        uses: ./.github/actions/stage-doppler-env
+  build:
+    name: Build ${{ matrix.id }}
+    needs: plan
+    if: ${{ needs.plan.outputs.ready == 'true' && needs.plan.outputs.skip != 'true' && needs.plan.outputs.build_count != '0' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+        if: matrix.id != '_noop'
         with:
-          doppler_token: ${{ secrets.DOPPLER_TOKEN }}
-          doppler_project: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
-          doppler_config: ${{ vars.DOPPLER_CONFIG || 'prd' }}
-          require_keys: POSTGRES_PASSWORD
-          upload: "false"
+          ref: ${{ needs.plan.outputs.sha }}
 
       - uses: pnpm/action-setup@v6
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+        if: matrix.flavor == 'website'
         with:
           version: 11.10.0
 
       - uses: actions/setup-node@v6
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+        if: matrix.flavor == 'website'
         with:
           node-version-file: .nvmrc
           cache: pnpm
+
       - uses: actions/setup-python@v6
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+        if: matrix.flavor == 'website'
         with:
           python-version: "3.14.6"
 
-      - name: Website preflight (scope=website)
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website'
+      - name: Website preflight
+        if: matrix.flavor == 'website'
         run: |
           set -euo pipefail
           pnpm install --frozen-lockfile
@@ -191,41 +173,63 @@ jobs:
           pnpm validate:developer-portal
 
       - name: Set up Docker Buildx
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.skip != 'true'
+        if: matrix.id != '_noop'
         uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.skip != 'true'
+        if: matrix.id != '_noop'
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Reuse existing content digest
+        if: matrix.id != '_noop'
+        id: reuse
+        env:
+          IMAGE: ${{ matrix.image }}
+          CID: ${{ matrix.cid }}
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          set -euo pipefail
+          if docker buildx imagetools inspect "${IMAGE}:cid-${CID}" >/dev/null 2>&1; then
+            docker buildx imagetools create \
+              --tag "${IMAGE}:${SHA}" \
+              --tag "${IMAGE}:latest" \
+              --tag "${IMAGE}:cid-${CID}" \
+              "${IMAGE}:cid-${CID}"
+            echo "hit=true" >> "$GITHUB_OUTPUT"
+            echo "Reused ${IMAGE}:cid-${CID}"
+          else
+            echo "hit=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build and push API image
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.build_api == 'true'
+        if: matrix.flavor == 'api' && steps.reuse.outputs.hit != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: apps/api/Dockerfile
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: |
-            ${{ env.API_IMAGE_NAME }}:latest
-            ${{ env.API_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
-          cache-from: type=gha,scope=api
-          cache-to: type=gha,mode=max,scope=api
+            ${{ matrix.image }}:latest
+            ${{ matrix.image }}:${{ needs.plan.outputs.sha }}
+            ${{ matrix.image }}:cid-${{ matrix.cid }}
+          cache-from: type=gha,scope=${{ matrix.id }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.id }}
 
       - name: Build and push website image
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.build_website == 'true'
+        if: matrix.flavor == 'website' && steps.reuse.outputs.hit != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: website/Dockerfile
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:${{ steps.sha.outputs.value }}
-          # One Clerk app only: Platform (clerk.admin.porterchain.com / Admin).
+            ${{ matrix.image }}:latest
+            ${{ matrix.image }}:${{ needs.plan.outputs.sha }}
+            ${{ matrix.image }}:cid-${{ matrix.cid }}
           build-args: |
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
@@ -243,92 +247,54 @@ jobs:
             NEXT_PUBLIC_ADMIN_PORTAL_URL=https://admin.porterchain.com
             NEXT_PUBLIC_CUSTOMER_PORTAL_URL=https://customer.porterchain.com
             NEXT_PUBLIC_DRIVER_PORTAL_URL=https://driver.porterchain.com
-          cache-from: type=gha,scope=website
-          cache-to: type=gha,mode=max,scope=website
+          cache-from: type=gha,scope=${{ matrix.id }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.id }}
 
-      - name: Build and push admin image
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.build_admin == 'true'
+      - name: Build and push portal image
+        if: matrix.flavor == 'portal' && steps.reuse.outputs.hit != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: apps/admin/Dockerfile
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: |
-            ${{ env.ADMIN_IMAGE_NAME }}:latest
-            ${{ env.ADMIN_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
+            ${{ matrix.image }}:latest
+            ${{ matrix.image }}:${{ needs.plan.outputs.sha }}
+            ${{ matrix.image }}:cid-${{ matrix.cid }}
           build-args: |
-            NEXT_PUBLIC_SITE_URL=https://admin.porterchain.com
-            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
-            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
-            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
-            NEXT_PUBLIC_APP_ENV=production
-          cache-from: type=gha,scope=admin
-          cache-to: type=gha,mode=max,scope=admin
-
-      - name: Build and push merchant image
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.build_merchant == 'true'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/merchant-portal/Dockerfile
-          push: true
-          tags: |
-            ${{ env.MERCHANT_IMAGE_NAME }}:latest
-            ${{ env.MERCHANT_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
-          build-args: |
-            NEXT_PUBLIC_SITE_URL=https://merchant.porterchain.com
-            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
-            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
-            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
-            NEXT_PUBLIC_APP_ENV=production
-          cache-from: type=gha,scope=merchant
-          cache-to: type=gha,mode=max,scope=merchant
-
-      - name: Build and push driver portal image
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.build_driver == 'true'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/driver-portal/Dockerfile
-          push: true
-          tags: |
-            ${{ env.DRIVER_IMAGE_NAME }}:latest
-            ${{ env.DRIVER_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
-          build-args: |
-            NEXT_PUBLIC_SITE_URL=https://driver.porterchain.com
-            NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
-            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
-            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
-            NEXT_PUBLIC_APP_ENV=production
-          cache-from: type=gha,scope=driver
-          cache-to: type=gha,mode=max,scope=driver
-
-      - name: Build and push customer portal image
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.build_customer == 'true'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/customer/Dockerfile
-          push: true
-          tags: |
-            ${{ env.CUSTOMER_IMAGE_NAME }}:latest
-            ${{ env.CUSTOMER_IMAGE_NAME }}:${{ steps.sha.outputs.value }}
-          build-args: |
-            NEXT_PUBLIC_SITE_URL=https://customer.porterchain.com
+            NEXT_PUBLIC_SITE_URL=${{ matrix.id == 'admin' && 'https://admin.porterchain.com' || matrix.id == 'merchant' && 'https://merchant.porterchain.com' || matrix.id == 'driver' && 'https://driver.porterchain.com' || 'https://customer.porterchain.com' }}
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_WEBSITE_URL=${{ env.PROD_SITE_URL }}
             NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
             NEXT_PUBLIC_APP_ENV=production
-          cache-from: type=gha,scope=customer
-          cache-to: type=gha,mode=max,scope=customer
+          cache-from: type=gha,scope=${{ matrix.id }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.id }}
+
+  rollout:
+    name: Rollout ${{ needs.plan.outputs.scope }}
+    needs: [plan, build]
+    if: ${{ always() && needs.plan.outputs.ready == 'true' && needs.plan.outputs.skip != 'true' && needs.plan.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Download Doppler env (once)
+        uses: ./.github/actions/stage-doppler-env
+        with:
+          doppler_token: ${{ secrets.DOPPLER_TOKEN }}
+          doppler_project: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
+          doppler_config: ${{ vars.DOPPLER_CONFIG || 'prd' }}
+          require_keys: POSTGRES_PASSWORD
+          upload: "false"
 
       - name: Copy full-stack deploy manifests to droplet
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full'
+        if: needs.plan.outputs.rollout == 'full'
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -340,7 +306,7 @@ jobs:
           strip_components: 2
 
       - name: Copy partial-stack deploy manifests to droplet
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.deploy_partial == 'true'
+        if: needs.plan.outputs.rollout == 'partial'
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -352,7 +318,6 @@ jobs:
           strip_components: 2
 
       - name: Copy Doppler config to droplet
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.skip != 'true'
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -363,7 +328,6 @@ jobs:
           target: "/opt/porterchain"
 
       - name: Upload Doppler env to droplet
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.skip != 'true'
         uses: ./.github/actions/stage-doppler-env
         with:
           doppler_token: ${{ secrets.DOPPLER_TOKEN }}
@@ -376,7 +340,7 @@ jobs:
 
       - name: Deploy full stack to droplet over SSH
         id: deploy-full
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full'
+        if: needs.plan.outputs.rollout == 'full'
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -394,7 +358,6 @@ jobs:
               fi
               exit 1
             }
-            # Image refs must be captured before pull replaces the running containers.
             bash scripts/snapshot-before-migrate.sh capture-images
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
@@ -403,8 +366,6 @@ jobs:
             export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:$IMAGE_TAG"
             export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:$IMAGE_TAG"
             export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:$IMAGE_TAG"
-            # Secrets arrive as SCP'd doppler.env (downloaded on the runner). Never rely on
-            # appleboy env-forwarding DOPPLER_TOKEN (truncates / breaks sync).
             if [ ! -f doppler.env ]; then
               echo "::error::missing /opt/porterchain/doppler.env (SCP step failed)"
               exit 1
@@ -414,16 +375,11 @@ jobs:
               echo "::error::sync-secrets.sh failed — see output above"
               exit 1
             fi
-            # docker compose loads ./.env automatically; do not bash-source (JSON/special chars).
             echo "Compose env file ready ($(wc -c < .env) bytes)"
-            # Profile osrm-fallback is off, so do not pull osrm-backend.
             docker compose -f docker-compose.prod.yml pull \
               postgres redis spicedb-db-init spicedb-migrate spicedb valhalla \
               api worker web admin merchant driver customer caddy
-            # Rolling API scale is applied inside recover-prod-stack.sh:
-            #   docker compose ... --scale api=${API_REPLICAS:-1}
             bash scripts/recover-prod-stack.sh
-            # Dump the pre-migrate database after Postgres is up, before schema changes.
             if ! bash scripts/snapshot-before-migrate.sh capture-database; then
               CONFIRM_RESTORE=yes bash scripts/rollback-prod.sh backups/pre-migrate-pending.manifest \
                 || echo "::error::image pin after a failed pre-migrate dump failed"
@@ -457,9 +413,7 @@ jobs:
               docker compose -f docker-compose.prod.yml logs --tail 80 api || true
               rollback_and_exit "API did not become healthy after migrate"
             fi
-            # Dangling layers only. Tagged rollback images are handled below.
             docker image prune -f
-            # Keep the running pcd tag and one older tag. Never prune -af.
             docker ps --format '{{.Image}}' | sort -u > /tmp/pcd-running-images
             repos="$(docker images --format '{{.Repository}}' | grep -E 'ghcr.io/.*/pcd-' | sort -u || true)"
             for repo in $repos; do
@@ -499,7 +453,7 @@ jobs:
             echo " <- quotes OK"
             docker exec pcd-postgres pg_isready -U porterchain -d porterchain && echo " <- Postgres ready" || (docker logs --tail 50 pcd-postgres; exit 1)
         env:
-          IMAGE_TAG: ${{ steps.sha.outputs.value }}
+          IMAGE_TAG: ${{ needs.plan.outputs.sha }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PORTERCHAIN_PUSH_ENABLED: ${{ vars.PORTERCHAIN_PUSH_ENABLED || 'false' }}
@@ -510,36 +464,36 @@ jobs:
 
       - name: Deploy scoped services to droplet over SSH
         id: deploy-partial
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.deploy_partial == 'true'
+        if: needs.plan.outputs.rollout == 'partial'
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DEPLOY_SCOPE,API_REPLICAS
+          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DEPLOY_SCOPE,SERVICES,MIGRATE,PIN_API,PIN_WEBSITE,PIN_ADMIN,PIN_MERCHANT,PIN_DRIVER,PIN_CUSTOMER,API_REPLICAS
           script: |
             set -euo pipefail
             mkdir -p /opt/porterchain
             cd /opt/porterchain
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-            # Pin only the scoped image(s) to this SHA; leave others on whatever is already running (:latest).
             export WEB_IMAGE="$IMAGE_NAME:latest"
             export API_IMAGE="$API_IMAGE_NAME:latest"
             export ADMIN_IMAGE="$ADMIN_IMAGE_NAME:latest"
             export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:latest"
             export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:latest"
             export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:latest"
-            SERVICES=""
-            case "$DEPLOY_SCOPE" in
-              website) export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"; SERVICES="web" ;;
-              api) export API_IMAGE="$API_IMAGE_NAME:$IMAGE_TAG"; SERVICES="api worker" ;;
-              merchant) export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:$IMAGE_TAG"; SERVICES="merchant" ;;
-              admin) export ADMIN_IMAGE="$ADMIN_IMAGE_NAME:$IMAGE_TAG"; SERVICES="admin" ;;
-              driver) export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:$IMAGE_TAG"; SERVICES="driver" ;;
-              customer) export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:$IMAGE_TAG"; SERVICES="customer" ;;
-              *) echo "::error::unsupported partial scope $DEPLOY_SCOPE"; exit 1 ;;
-            esac
+            [ "$PIN_WEBSITE" = "true" ] && export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
+            [ "$PIN_API" = "true" ] && export API_IMAGE="$API_IMAGE_NAME:$IMAGE_TAG"
+            [ "$PIN_ADMIN" = "true" ] && export ADMIN_IMAGE="$ADMIN_IMAGE_NAME:$IMAGE_TAG"
+            [ "$PIN_MERCHANT" = "true" ] && export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:$IMAGE_TAG"
+            [ "$PIN_DRIVER" = "true" ] && export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:$IMAGE_TAG"
+            [ "$PIN_CUSTOMER" = "true" ] && export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:$IMAGE_TAG"
+            SERVICES="${SERVICES//,/ }"
+            if [ -z "$SERVICES" ]; then
+              echo "::error::empty SERVICES for partial scope $DEPLOY_SCOPE"
+              exit 1
+            fi
             if [ ! -f doppler.env ]; then
               echo "::error::missing /opt/porterchain/doppler.env (SCP step failed)"
               exit 1
@@ -554,8 +508,8 @@ jobs:
             docker compose -f docker-compose.prod.yml pull $SERVICES
             # shellcheck disable=SC2086
             docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate $SERVICES
-            if [ "$DEPLOY_SCOPE" = "api" ]; then
-              echo "Running Alembic migrations (api scope)..."
+            if [ "$MIGRATE" = "true" ]; then
+              echo "Running Alembic migrations (partial, migrate=true)..."
               docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \
                 -e PYTHONPATH=/app/apps/api/src:/app/apps/api \
                 api python scripts/repair_and_migrate.py
@@ -577,15 +531,23 @@ jobs:
             done
             echo "Scoped deploy ($DEPLOY_SCOPE) updated: $SERVICES"
         env:
-          IMAGE_TAG: ${{ steps.sha.outputs.value }}
+          IMAGE_TAG: ${{ needs.plan.outputs.sha }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEPLOY_SCOPE: ${{ steps.scope.outputs.value }}
+          DEPLOY_SCOPE: ${{ needs.plan.outputs.scope }}
+          SERVICES: ${{ needs.plan.outputs.services }}
+          MIGRATE: ${{ needs.plan.outputs.migrate }}
+          PIN_API: ${{ needs.plan.outputs.pin_api }}
+          PIN_WEBSITE: ${{ needs.plan.outputs.pin_website }}
+          PIN_ADMIN: ${{ needs.plan.outputs.pin_admin }}
+          PIN_MERCHANT: ${{ needs.plan.outputs.pin_merchant }}
+          PIN_DRIVER: ${{ needs.plan.outputs.pin_driver }}
+          PIN_CUSTOMER: ${{ needs.plan.outputs.pin_customer }}
           API_REPLICAS: ${{ vars.API_REPLICAS || '1' }}
 
       - name: Prod surface smoke (D3 / G1)
         id: public-smoke
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full' && steps.deploy-full.outcome == 'success'
+        if: needs.plan.outputs.rollout == 'full' && steps.deploy-full.outcome == 'success'
         run: |
           set -e
           curl -fsS https://api.porterchain.com/health | grep -q '"status":"ok"'
@@ -604,7 +566,7 @@ jobs:
           echo "Prod D3 smoke passed"
 
       - name: Roll back pre-migrate snapshot when prod smoke fails
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'full' && steps.public-smoke.outcome == 'failure'
+        if: needs.plan.outputs.rollout == 'full' && steps.public-smoke.outcome == 'failure'
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -617,7 +579,7 @@ jobs:
             CONFIRM_RESTORE=yes bash scripts/rollback-prod.sh
 
       - name: Prod website smoke
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'website' && steps.deploy-partial.outcome == 'success'
+        if: needs.plan.outputs.pin_website == 'true' && needs.plan.outputs.rollout == 'partial' && steps.deploy-partial.outcome == 'success'
         run: |
           set -e
           curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en | grep -q 200
@@ -626,7 +588,7 @@ jobs:
           echo "Website prod smoke passed"
 
       - name: Prod merchant smoke
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'merchant' && steps.deploy-partial.outcome == 'success'
+        if: needs.plan.outputs.pin_merchant == 'true' && needs.plan.outputs.rollout == 'partial' && steps.deploy-partial.outcome == 'success'
         run: |
           set -e
           curl -fsS -o /dev/null -w "%{http_code}" https://merchant.porterchain.com/sign-in | grep -qE '200|307|308'
@@ -634,9 +596,17 @@ jobs:
           echo "Merchant prod smoke passed"
 
       - name: Prod API smoke
-        if: steps.check.outputs.ready == 'true' && steps.scope.outputs.value == 'api' && steps.deploy-partial.outcome == 'success'
+        if: needs.plan.outputs.pin_api == 'true' && needs.plan.outputs.rollout == 'partial' && steps.deploy-partial.outcome == 'success'
         run: |
           set -e
           curl -fsS https://api.porterchain.com/health | grep -q '"status":"ok"'
           curl -fsS https://api.porterchain.com/health/ready
           echo "API prod smoke passed"
+
+      - name: Prod portals smoke
+        if: needs.plan.outputs.scope == 'portals' && steps.deploy-partial.outcome == 'success'
+        run: |
+          set -e
+          curl -fsS -o /dev/null -w "%{http_code}" https://admin.porterchain.com/sign-in | grep -q 200
+          curl -fsS -o /dev/null -w "%{http_code}" https://merchant.porterchain.com/sign-in | grep -qE '200|307|308'
+          echo "Portals prod smoke passed"

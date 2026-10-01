@@ -22,6 +22,7 @@ run "Golden rules" pnpm validate:golden-rules
 run "Observability" pnpm validate:observability
 run "Notifications + billing" pnpm validate:notifications-billing
 run "Enterprise security" pnpm validate:enterprise-security
+run "Deploy plan" pnpm validate:deploy-plan
 run "Enterprise identity" pnpm validate:enterprise-identity
 run "Doc governance" pnpm validate:doc-governance
 run "Phase 2 scaffold" pnpm validate:phase2-scaffold

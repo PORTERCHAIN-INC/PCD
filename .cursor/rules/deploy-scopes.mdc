@@ -1,0 +1,30 @@
+---
+description: Production deploy scopes — do not invent images or path rules
+alwaysApply: false
+---
+
+# Deploy scopes (do not hallucinate)
+
+**SSOT:** [`infrastructure/deploy/deploy-rules.json`](../../infrastructure/deploy/deploy-rules.json)
+
+Resolver (only implementation): `python3 scripts/resolve_deploy_plan.py`
+
+Do **not**:
+
+- Add a new image, scope, or path glob only in `.github/workflows/deploy.yml`
+- Guess that a Shopify/portal change needs a full-stack rebuild
+- Copy glob lists into bash `case` statements
+- Dispatch Deploy before local test + the image `next build` / API tests for the apps in the plan
+
+Do:
+
+1. Edit `deploy-rules.json` first
+2. Add a golden case in `scripts/verify_deploy_plan.py`
+3. Run `python3 scripts/verify_deploy_plan.py`
+4. Only then touch `deploy.yml` if the workflow wiring must change
+
+Check a file list:
+
+```bash
+printf '%s\n' apps/merchant-portal/src/middleware.ts | python3 scripts/resolve_deploy_plan.py
+```

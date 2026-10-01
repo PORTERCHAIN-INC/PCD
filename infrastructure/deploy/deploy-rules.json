@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "registry": "ghcr.io/porterchain-inc",
+  "images": {
+    "api": {
+      "repository": "pcd-api",
+      "dockerfile": "apps/api/Dockerfile",
+      "flavor": "api",
+      "compose_services": ["api", "worker"],
+      "migrate": true,
+      "input_globs": [
+        "apps/api/**",
+        "services/pricing-engine/**",
+        "services/driver-platform/**",
+        "services/fleetbase-adapter/**",
+        "services/event-bus/**",
+        "services/python/**",
+        "shared/python/**"
+      ]
+    },
+    "website": {
+      "repository": "pcd-website",
+      "dockerfile": "website/Dockerfile",
+      "flavor": "website",
+      "compose_services": ["web"],
+      "migrate": false,
+      "input_globs": ["website/**"]
+    },
+    "admin": {
+      "repository": "pcd-admin",
+      "dockerfile": "apps/admin/Dockerfile",
+      "flavor": "portal",
+      "compose_services": ["admin"],
+      "migrate": false,
+      "input_globs": ["apps/admin/**"]
+    },
+    "merchant": {
+      "repository": "pcd-merchant",
+      "dockerfile": "apps/merchant-portal/Dockerfile",
+      "flavor": "portal",
+      "compose_services": ["merchant"],
+      "migrate": false,
+      "input_globs": ["apps/merchant-portal/**"]
+    },
+    "driver": {
+      "repository": "pcd-driver",
+      "dockerfile": "apps/driver-portal/Dockerfile",
+      "flavor": "portal",
+      "compose_services": ["driver"],
+      "migrate": false,
+      "input_globs": ["apps/driver-portal/**"]
+    },
+    "customer": {
+      "repository": "pcd-customer",
+      "dockerfile": "apps/customer/Dockerfile",
+      "flavor": "portal",
+      "compose_services": ["customer"],
+      "migrate": false,
+      "input_globs": ["apps/customer/**"]
+    }
+  },
+  "scopes": {
+    "auto": { "kind": "auto" },
+    "full": {
+      "kind": "named",
+      "images": ["api", "website", "admin", "merchant", "driver", "customer"],
+      "rollout": "full"
+    },
+    "portals": {
+      "kind": "named",
+      "images": ["admin", "merchant", "driver", "customer"],
+      "rollout": "partial"
+    },
+    "api": { "kind": "named", "images": ["api"], "rollout": "partial" },
+    "website": { "kind": "named", "images": ["website"], "rollout": "partial" },
+    "merchant": { "kind": "named", "images": ["merchant"], "rollout": "partial" },
+    "admin": { "kind": "named", "images": ["admin"], "rollout": "partial" },
+    "driver": { "kind": "named", "images": ["driver"], "rollout": "partial" },
+    "customer": { "kind": "named", "images": ["customer"], "rollout": "partial" },
+    "none": { "kind": "named", "images": [], "rollout": "none" }
+  },
+  "force_full_globs": [
+    ".github/workflows/deploy.yml",
+    "infrastructure/deploy/**",
+    "packages/**",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "package.json",
+    "apps/api/Dockerfile",
+    "apps/admin/Dockerfile",
+    "apps/merchant-portal/Dockerfile",
+    "apps/driver-portal/Dockerfile",
+    "apps/customer/Dockerfile",
+    "website/Dockerfile"
+  ],
+  "ignore_globs": [
+    "docs/**",
+    "graphify-out/**",
+    ".cursor/**",
+    ".ripwire*",
+    "apps/mobile-*/**",
+    "*.md",
+    "AGENTS.md",
+    "CLAUDE.md"
+  ]
+}

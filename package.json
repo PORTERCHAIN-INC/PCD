@@ -83,6 +83,7 @@
     "validate:pod-media": "python3 scripts/verify_pod_media.py",
     "validate:mobile-appendix": "python3 scripts/verify_mobile_appendix.py",
     "validate:enterprise-security": "python3 scripts/verify_enterprise_security.py",
+    "validate:deploy-plan": "python3 scripts/verify_deploy_plan.py",
     "validate:enterprise-identity": "python3 scripts/verify_enterprise_identity.py",
     "validate:doc-pointers": "python3 scripts/verify_doc_pointer_stubs.py",
     "validate:doc-governance": "python3 scripts/verify_doc_governance.py && python3 scripts/verify_alembic_head.py",

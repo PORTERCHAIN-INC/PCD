@@ -13,17 +13,17 @@ PR / push → main
   CI (+ Security + CodeQL)
        │ success on main
        ▼
-  Deploy (scope=full) → GHCR images → SCP manifests + doppler.env → SSH compose
+  Deploy (plan → parallel builds → scoped rollout) → GHCR → droplet
 ```
 
-| Workflow                | When                                | What                                                          |
-| ----------------------- | ----------------------------------- | ------------------------------------------------------------- |
-| `CI`                    | PR + push to `main`                 | Static gates, Admin Vitest, API Postgres tests                |
-| `Deploy`                | After green CI on `main`, or manual | Build/push GHCR → DigitalOcean droplet                        |
-| `Nightly E2E`           | Cron 11:00 UTC + manual             | D3 behavioral matrix (Postgres + Redis + Valhalla stub)       |
-| `Security`              | PR + push to `main`                 | Bandit + Trivy                                                |
-| `CodeQL`                | PR + push + weekly                  | CodeQL analyze                                                |
-| `Set Public Ingest Key` | Manual                              | Ensure `PUBLIC_INGEST_API_KEY` in Doppler; roll `api` + `web` |
+| Workflow                | When                                | What                                                           |
+| ----------------------- | ----------------------------------- | -------------------------------------------------------------- |
+| `CI`                    | PR + push to `main`                 | Static gates, Admin Vitest, API Postgres tests                 |
+| `Deploy`                | After green CI on `main`, or manual | Plan from `deploy-rules.json` → parallel GHCR builds → droplet |
+| `Nightly E2E`           | Cron 11:00 UTC + manual             | D3 behavioral matrix (Postgres + Redis + Valhalla stub)        |
+| `Security`              | PR + push to `main`                 | Bandit + Trivy                                                 |
+| `CodeQL`                | PR + push + weekly                  | CodeQL analyze                                                 |
+| `Set Public Ingest Key` | Manual                              | Ensure `PUBLIC_INGEST_API_KEY` in Doppler; roll `api` + `web`  |
 
 Website-only: **Actions → Deploy → Run workflow → scope=`website`**. Do not use a separate workflow.
 
@@ -55,7 +55,7 @@ Runtime secrets live in **Doppler**, not GitHub. `stage-doppler-env` downloads o
 | `pcd-driver`   | `apps/driver-portal/Dockerfile`   |
 | `pcd-customer` | `apps/customer/Dockerfile`        |
 
-Tags: `:latest` and `:<git-sha>`. Registry owner follows the GitHub org (lowercase): `ghcr.io/porterchain-inc/pcd-*`. Compose defaults match that path; Deploy also exports `*_IMAGE` env vars explicitly.
+Tags: `:latest`, `:<git-sha>`, and `:cid-<16>` (content digest of that image's inputs). If `cid-*` already exists in GHCR, Deploy retags it instead of rebuilding.
 
 Org stays on **GitHub Free** (no Team). CI/Deploy/Packages work without Team; private branch protection does not.
 
@@ -71,19 +71,23 @@ Bootstrap / harden: `bootstrap-droplet.sh`, `harden-droplet.sh`.
 
 ## Deploy scopes
 
-| Scope                           | Builds                                              | Droplet action                     | Smoke                               |
-| ------------------------------- | --------------------------------------------------- | ---------------------------------- | ----------------------------------- |
-| `auto` (CI default)             | Path detection via `scripts/detect-deploy-scope.sh` | Same as resolved scope             | Same as resolved scope              |
-| `full`                          | All six images                                      | Pull all, migrate, recover stack   | API + portals + quotes              |
-| `website`                       | Website only                                        | Recreate `web`                     | Site + sitemap                      |
-| `api`                           | API image                                           | Recreate `api` + `worker`, migrate | `/health`                           |
-| `merchant`                      | Merchant portal                                     | Recreate `merchant`                | `/sign-in` + `/shopify?connected=1` |
-| `admin` / `driver` / `customer` | That portal only                                    | Recreate that service              | —                                   |
-| `none`                          | Nothing                                             | Skip                               | —                                   |
+**SSOT:** [`deploy-rules.json`](./deploy-rules.json). Resolver: `python3 scripts/resolve_deploy_plan.py`. Guard: `pnpm validate:deploy-plan`. Cursor rule: [`.cursor/rules/deploy-scopes.mdc`](../../.cursor/rules/deploy-scopes.mdc). Do not add images or globs only in `deploy.yml`.
 
-**Auto rules:** one app path → that scope; multiple apps / `packages/*` / deploy infra / lockfile → `full`; docs-only → `none`.
+| Scope                           | Builds                                               | Droplet action                     | Smoke                               |
+| ------------------------------- | ---------------------------------------------------- | ---------------------------------- | ----------------------------------- |
+| `auto` (CI default)             | Union of images whose `input_globs` match the commit | Same as resolved scope             | Same as resolved scope              |
+| `full`                          | All six images                                       | Pull all, migrate, recover stack   | API + portals + quotes              |
+| `portals`                       | admin + merchant + driver + customer                 | Recreate those four                | Admin + merchant sign-in            |
+| `website`                       | Website only                                         | Recreate `web`                     | Site + sitemap                      |
+| `api`                           | API image                                            | Recreate `api` + `worker`, migrate | `/health`                           |
+| `merchant`                      | Merchant portal                                      | Recreate `merchant`                | `/sign-in` + `/shopify?connected=1` |
+| `admin` / `driver` / `customer` | That portal only                                     | Recreate that service              | —                                   |
+| `selected` (auto only)          | Mixed set, e.g. api + merchant                       | Recreate those services            | Per pinned image                    |
+| `none`                          | Nothing                                              | Skip                               | —                                   |
 
-Manual: **Actions → Deploy → Run workflow → scope**. Use `merchant` for Shopify portal-only fixes.
+**Auto rules:** one app path → that image; two+ portals → `portals`; mixed flavors (api + merchant) → `selected` (not full); `packages/*` / deploy infra / lockfile / unknown paths → `full`; docs-only → `none`.
+
+Manual: **Actions → Deploy → Run workflow → scope**. Use `merchant` for Shopify UI-only fixes (~one image).
 
 ## Rolling deploy / rollback
 
