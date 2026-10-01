@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { request as httpsRequest } from "node:https";
 import ShopifyAppClient from "@/components/integrations/ShopifyAppClient";
 import { publicEnv } from "@/lib/env";
+import { isShopifyAppHomeRedirect } from "@/lib/shopifyPublicEntry";
 
 type Search = Record<string, string | string[] | undefined>;
 
@@ -41,9 +42,10 @@ export default async function ShopifyAppPage({ searchParams }: { searchParams: P
     }
     const installUrl = `${publicEnv.porterchainApiUrl}/v1/integrations/shopify/install?${qs.toString()}`;
     const location = await readRedirectLocation(installUrl);
-    if (location) redirect(location);
-    // Fallback: send the browser to the API install hop.
-    redirect(installUrl);
+    // Never follow Shopify's grant screen. Only continue onto our own app page.
+    if (location && isShopifyAppHomeRedirect(location, publicEnv.siteUrl)) {
+      redirect(location);
+    }
   }
 
   return (

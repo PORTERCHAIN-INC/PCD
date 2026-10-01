@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
@@ -13,6 +14,10 @@ from porterchain_api.db import get_db
 from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
 from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine.shopify_session import (
+    install_from_session_token,
+    shop_has_offline_token,
+)
 from porterchain_api.platform.rate_limit import (
     TRAFFIC_SHOPIFY_CARRIER,
     TRAFFIC_SHOPIFY_WEBHOOK,
@@ -24,6 +29,7 @@ from porterchain_api.platform.rate_limit import (
 )
 
 router = APIRouter(prefix="/v1/integrations/shopify", tags=["shopify"])
+logger = logging.getLogger(__name__)
 
 
 def _enforce_shopify_limit(
@@ -52,23 +58,40 @@ def shopify_install(
     request: Request,
     shop: str = Query(..., min_length=3),
     merchant_id: str | None = Query(default=None),
+    db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> RedirectResponse:
-    # Shopify's install check opens the app URL with shop, hmac, host, and timestamp.
-    # A valid hmac must go straight to the grant screen, not a login page.
+    # Shopify's review bot opens the App URL with a valid hmac after install.
+    # The live app is on managed installation (no use_legacy_install_flow), so
+    # that load must end on the app page. A 307 to /app/grant is the failure.
     shopify_initiated = "hmac" in request.query_params
     if shopify_initiated and not verify_oauth_hmac(request.url.query, settings.shopify_api_secret):
         raise HTTPException(status_code=401, detail="oauth_hmac_invalid")
+    if shopify_initiated:
+        id_token = (request.query_params.get("id_token") or "").strip()
+        if id_token and not shop_has_offline_token(db, shop):
+            try:
+                install_from_session_token(
+                    db,
+                    settings,
+                    shop_domain=shop,
+                    id_token=id_token,
+                )
+            except Exception:
+                logger.exception("shopify_session_install_failed shop=%s", shop)
+        return RedirectResponse(
+            shopify.app_home_url(settings, shop_domain=shop),
+            status_code=302,
+        )
     try:
         url = shopify.install_url(
             shop,
             settings,
             merchant_id=merchant_id,
-            grant_screen=shopify_initiated,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return RedirectResponse(url)
+    return RedirectResponse(url, status_code=302)
 
 
 @router.get("/callback")
@@ -92,7 +115,7 @@ def shopify_callback(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     dest = shopify.app_home_url(settings, shop_domain=connected.shop_domain)
-    return RedirectResponse(dest)
+    return RedirectResponse(dest, status_code=302)
 
 
 @router.post("/webhooks")
