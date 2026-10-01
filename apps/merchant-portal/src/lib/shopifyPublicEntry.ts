@@ -1,16 +1,5 @@
 /** Public Shopify App Store / OAuth entry points that must not bounce to Clerk sign-in. */
 
-/** True when an install hop landed on our Shopify page, not Shopify's grant screen. */
-export function isShopifyAppHomeRedirect(location: string, portalOrigin: string): boolean {
-  try {
-    const target = new URL(location);
-    const home = new URL(portalOrigin);
-    return target.origin === home.origin && target.pathname === "/shopify";
-  } catch {
-    return false;
-  }
-}
-
 export function isShopifyPublicEntry(
   pathname: string,
   searchParams: { get(name: string): string | null }

@@ -111,6 +111,7 @@ def install_url(
     *,
     merchant_id: str | None,
     pickup_address_id: str | None = None,
+    grant_screen: bool = False,
 ) -> str:
     if not oauth_configured(settings):
         raise ValueError("shopify_oauth_not_configured")
@@ -125,6 +126,10 @@ def install_url(
             merchant_id, settings, pickup_address_id=pickup_address_id
         ),
     }
-    # Used when a merchant starts install from the portal (no Shopify hmac).
-    # A signed app open from Shopify does not use this URL.
+    # Fresh install: Shopify's "authenticates after install" check expects
+    # https://admin.shopify.com/store/{handle}/app/grant. After a token is
+    # stored, the caller must send the merchant to the app page instead.
+    if grant_screen:
+        handle = shop.removesuffix(".myshopify.com")
+        return f"https://admin.shopify.com/store/{handle}/app/grant?{urlencode(params)}"
     return f"https://{shop}/admin/oauth/authorize?{urlencode(params)}"

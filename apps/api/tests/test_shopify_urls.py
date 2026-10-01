@@ -113,10 +113,7 @@ def test_install_handshake_rejects_bad_hmac_and_redirects_valid() -> None:
     )
     assert ok.status_code == 302
     location = ok.headers["location"]
-    assert location == (
-        "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&connected=1"
-    )
-    assert "/app/grant" not in location
+    assert location.startswith("https://admin.shopify.com/store/demo/app/grant?")
     assert "oauth/authorize" not in location
 
     plain = client.get(

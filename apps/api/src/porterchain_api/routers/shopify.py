@@ -61,9 +61,9 @@ def shopify_install(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> RedirectResponse:
-    # Shopify's review bot opens the App URL with a valid hmac after install.
-    # The live app is on managed installation (no use_legacy_install_flow), so
-    # that load must end on the app page. A 307 to /app/grant is the failure.
+    # Two different Shopify checks:
+    # - no token yet → /app/grant (authenticates after install)
+    # - token or id_token already present → app page (UI after authentication)
     shopify_initiated = "hmac" in request.query_params
     if shopify_initiated and not verify_oauth_hmac(request.url.query, settings.shopify_api_secret):
         raise HTTPException(status_code=401, detail="oauth_hmac_invalid")
@@ -79,15 +79,17 @@ def shopify_install(
                 )
             except Exception:
                 logger.exception("shopify_session_install_failed shop=%s", shop)
-        return RedirectResponse(
-            shopify.app_home_url(settings, shop_domain=shop),
-            status_code=302,
-        )
+        if shop_has_offline_token(db, shop) or id_token:
+            return RedirectResponse(
+                shopify.app_home_url(settings, shop_domain=shop),
+                status_code=302,
+            )
     try:
         url = shopify.install_url(
             shop,
             settings,
             merchant_id=merchant_id,
+            grant_screen=shopify_initiated,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
