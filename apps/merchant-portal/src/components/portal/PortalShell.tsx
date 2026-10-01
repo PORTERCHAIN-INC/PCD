@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Container from "@/components/ui/Container";
 import MerchantAccessGate from "@/components/MerchantAccessGate";
@@ -15,12 +15,25 @@ import SandboxModeBanner from "@/components/portal/SandboxModeBanner";
 import { useMerchantProfile } from "@/components/nav/MerchantProfileContext";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { activeNavLabel } from "@/lib/merchant-nav";
+import { isShopifyPublicEntry } from "@/lib/shopifyPublicEntry";
 
 export default function PortalShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const pageLabel = activeNavLabel(pathname);
   const { setProfile } = useMerchantProfile();
   const { session } = useMerchantAuth();
+
+  // OAuth callback / install handshake must render app UI without Clerk gate (App Store 2.3.3).
+  if (isShopifyPublicEntry(pathname, searchParams)) {
+    return (
+      <div className="min-h-dvh bg-gray-bg">
+        <main className="py-8 sm:py-12">
+          <Container className="min-w-0">{children}</Container>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-dvh min-w-0 flex-col overflow-x-clip bg-gray-bg">

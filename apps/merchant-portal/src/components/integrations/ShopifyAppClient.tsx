@@ -29,6 +29,35 @@ export default function ShopifyAppClient() {
     return <p className="text-muted">Loading…</p>;
   }
 
+  // After OAuth grant — show app UI immediately (App Store requirement 2.3.3).
+  if (justConnected && !isSignedIn) {
+    return (
+      <div className="mx-auto max-w-xl space-y-4 py-8">
+        <h1 className="text-2xl font-semibold text-primary">PorterChain for Shopify</h1>
+        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          {shop
+            ? `${shop} is connected. Checkout can request PorterChain delivery rates.`
+            : "Your Shopify store is connected. Checkout can request PorterChain delivery rates."}
+        </p>
+        <p className="text-sm text-muted">
+          Sign in to the merchant portal to manage pickup, rate readiness, and order sync.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={
+              shop
+                ? `/sign-in?redirect_url=${encodeURIComponent(`/shopify?shop=${encodeURIComponent(shop)}`)}`
+                : "/sign-in?redirect_url=/shopify"
+            }
+            className="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+          >
+            Open merchant portal
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!isSignedIn) {
     const signInHref = shop
       ? `/sign-in?redirect_url=${encodeURIComponent(`/shopify?shop=${encodeURIComponent(shop)}`)}`

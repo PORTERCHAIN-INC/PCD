@@ -2,19 +2,9 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { clerkDevBypassEnabled, isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { hasClerkSessionHint } from "@porterchain/auth/clerkEdgeSession";
 import { NextResponse } from "next/server";
+import { isShopifyPublicEntry } from "@/lib/shopifyPublicEntry";
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/impersonate(.*)"]);
-
-/** Shopify opens the app URL with shop + hmac. That request must reach the page, not /sign-in. */
-function isShopifyInstallHandshake(req: {
-  nextUrl: { pathname: string; searchParams: URLSearchParams };
-}): boolean {
-  return (
-    req.nextUrl.pathname === "/shopify" &&
-    Boolean(req.nextUrl.searchParams.get("shop")) &&
-    Boolean(req.nextUrl.searchParams.get("hmac"))
-  );
-}
 
 const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim());
 
@@ -26,7 +16,9 @@ export default clerkMiddleware(
   async (auth, req) => {
     // Local: API Bearer `dev` — do not send the browser through Clerk.
     if (clerkDevBypassEnabled()) return;
-    if (isShopifyInstallHandshake(req)) return NextResponse.next();
+    if (isShopifyPublicEntry(req.nextUrl.pathname, req.nextUrl.searchParams)) {
+      return NextResponse.next();
+    }
     if (isPublicRoute(req)) return;
     if (req.cookies.get("pc_imp_bearer")?.value?.startsWith("pc_imp_")) return;
 
