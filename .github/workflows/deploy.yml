@@ -148,29 +148,34 @@ jobs:
         with:
           ref: ${{ needs.plan.outputs.sha }}
 
+      # Preflight only on website-only deploys. Full/parallel builds skip it so
+      # pnpm install + Docker do not OOM the same runner (seen as a dead job
+      # with missing logs on Build website).
       - uses: pnpm/action-setup@v6
-        if: matrix.flavor == 'website'
+        if: matrix.flavor == 'website' && needs.plan.outputs.scope == 'website'
         with:
           version: 11.10.0
 
       - uses: actions/setup-node@v6
-        if: matrix.flavor == 'website'
+        if: matrix.flavor == 'website' && needs.plan.outputs.scope == 'website'
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
       - uses: actions/setup-python@v6
-        if: matrix.flavor == 'website'
+        if: matrix.flavor == 'website' && needs.plan.outputs.scope == 'website'
         with:
           python-version: "3.14.6"
 
       - name: Website preflight
-        if: matrix.flavor == 'website'
+        if: matrix.flavor == 'website' && needs.plan.outputs.scope == 'website'
         run: |
           set -euo pipefail
           pnpm install --frozen-lockfile
           pnpm validate:website-seo
           pnpm validate:developer-portal
+          # Free disk before Docker on the same runner.
+          rm -rf node_modules website/node_modules apps/*/node_modules packages/*/node_modules || true
 
       - name: Set up Docker Buildx
         if: matrix.id != '_noop'
@@ -193,6 +198,10 @@ jobs:
           SHA: ${{ needs.plan.outputs.sha }}
         run: |
           set -euo pipefail
+          if [ -z "${CID}" ]; then
+            echo "hit=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           if docker buildx imagetools inspect "${IMAGE}:cid-${CID}" >/dev/null 2>&1; then
             docker buildx imagetools create \
               --tag "${IMAGE}:${SHA}" \
