@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import secrets
 import time
@@ -88,6 +89,26 @@ def fulfillment_callback_prefix(settings: Settings) -> str:
 
 def fulfillment_service_url(settings: Settings) -> str:
     return f"{fulfillment_callback_prefix(settings)}/fulfillment_order_notification"
+
+
+def shopify_admin_app_url(
+    settings: Settings,
+    shop_domain: str,
+    host: str | None = None,
+) -> str:
+    """App homepage inside Shopify admin, after the merchant grants access."""
+    api_key = settings.shopify_api_key
+    raw_host = (host or "").strip()
+    if raw_host:
+        padded = raw_host + ("=" * ((4 - len(raw_host) % 4) % 4))
+        try:
+            decoded = base64.urlsafe_b64decode(padded).decode()
+        except (ValueError, UnicodeDecodeError):
+            decoded = ""
+        if decoded.startswith("admin.shopify.com/store/") or decoded.endswith(".myshopify.com/admin"):
+            return f"https://{decoded.rstrip('/')}/apps/{api_key}"
+    handle = normalize_shop_domain(shop_domain).removesuffix(".myshopify.com")
+    return f"https://admin.shopify.com/store/{handle}/apps/{api_key}"
 
 
 def app_home_url(settings: Settings, *, shop_domain: str | None = None) -> str:

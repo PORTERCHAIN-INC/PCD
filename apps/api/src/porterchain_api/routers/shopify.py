@@ -18,6 +18,7 @@ from porterchain_api.merchant_engine.shopify_session import (
     install_from_session_token,
     shop_has_offline_token,
 )
+from porterchain_api.merchant_engine.shopify_urls import shopify_admin_app_url
 from porterchain_api.platform.rate_limit import (
     TRAFFIC_SHOPIFY_CARRIER,
     TRAFFIC_SHOPIFY_WEBHOOK,
@@ -79,9 +80,15 @@ def shopify_install(
                 )
             except Exception:
                 logger.exception("shopify_session_install_failed shop=%s", shop)
-        if shop_has_offline_token(db, shop) or id_token:
+        # Only a stored token means install already finished. id_token alone
+        # still has to reach the grant screen or the authenticate check fails.
+        if shop_has_offline_token(db, shop):
             return RedirectResponse(
-                shopify.app_home_url(settings, shop_domain=shop),
+                shopify_admin_app_url(
+                    settings,
+                    shop,
+                    host=request.query_params.get("host"),
+                ),
                 status_code=302,
             )
     try:
@@ -104,6 +111,7 @@ def shopify_callback(
     shop: str = Query(...),
     code: str = Query(...),
     state: str | None = Query(default=None),
+    host: str | None = Query(default=None),
 ) -> RedirectResponse:
     try:
         connected = shopify.complete_oauth(
@@ -116,7 +124,7 @@ def shopify_callback(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    dest = shopify.app_home_url(settings, shop_domain=connected.shop_domain)
+    dest = shopify_admin_app_url(settings, connected.shop_domain, host=host)
     return RedirectResponse(dest, status_code=302)
 
 

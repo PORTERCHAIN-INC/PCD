@@ -54,6 +54,19 @@ def test_oauth_state_roundtrip_with_pickup() -> None:
     assert state.pickup_address_id == "addr-9"
 
 
+def test_admin_app_url_uses_host_when_present() -> None:
+    import base64
+
+    from porterchain_api.merchant_engine.shopify_urls import shopify_admin_app_url
+
+    settings = _settings()
+    host = base64.urlsafe_b64encode(b"admin.shopify.com/store/demo").decode().rstrip("=")
+    assert (
+        shopify_admin_app_url(settings, "demo.myshopify.com", host=host)
+        == "https://admin.shopify.com/store/demo/apps/cid"
+    )
+
+
 def test_install_url_is_oauth_authorize_not_grant() -> None:
     settings = _settings()
     url = shopify.install_url(
@@ -157,7 +170,7 @@ def test_install_with_token_opens_app_home() -> None:
     )
     assert ok.status_code == 302
     assert ok.headers["location"] == (
-        "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&connected=1"
+        "https://admin.shopify.com/store/demo/apps/cid"
     )
 
 
@@ -196,8 +209,7 @@ def test_install_with_id_token_opens_app_home_not_grant() -> None:
             follow_redirects=False,
         )
     assert ok.status_code == 302
-    assert "/app/grant" not in ok.headers["location"]
-    assert ok.headers["location"].startswith("https://merchant.porterchain.com/shopify?")
+    assert ok.headers["location"].startswith("https://admin.shopify.com/store/demo/app/grant?")
 
 
 def test_install_url_embeds_pickup_in_state() -> None:
