@@ -30,7 +30,7 @@ def run_order_driver_ops(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    return _invoke(ctx, "orders_write", _driver_ops.run, db, settings, ctx, order_id, body.action)
+    return _invoke(ctx, "orders", _driver_ops.run, db, settings, ctx, order_id, body.action)
 
 
 @router.post("/orders/{order_id}/parcels/{parcel_id}/status")
@@ -43,7 +43,7 @@ def set_order_parcel_status(
 ) -> dict:
     return _invoke(
         ctx,
-        "orders_write",
+        "orders",
         _driver_ops.set_parcel_status,
         db,
         ctx,
