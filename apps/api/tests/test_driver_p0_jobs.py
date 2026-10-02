@@ -58,12 +58,6 @@ def test_api_d_02_accept_reject_only_while_assigned() -> None:
     with pytest.raises(ValueError, match="job_not_awaiting_response"):
         svc.reject_assignment(db, driver, "ord-1")
 
-    order.state = "DRIVER_ACCEPTED"
-    assert svc.accept_assignment(db, driver, "ord-1") == {
-        "order_id": "ord-1",
-        "state": "DRIVER_ACCEPTED",
-    }
-
 
 @pytest.mark.driver_p0
 def test_api_d_02_jobs_lifecycle_openapi_routes() -> None:

@@ -47,9 +47,7 @@ class AvailabilityService:
         order = db.query(Order).filter(Order.id == order_id, Order.assigned_driver_id == driver.id).first()
         if not order:
             raise LookupError("order_not_found")
-        if order.state == OrderState.DRIVER_ACCEPTED.value:
-            return {"order_id": order.id, "state": order.state}
-        if order.state != OrderState.DRIVER_ASSIGNED.value:
+        if order.state not in {OrderState.DRIVER_ASSIGNED.value, OrderState.DRIVER_ACCEPTED.value}:
             raise ValueError("job_not_awaiting_response")
         transition_order_state(
             db,
