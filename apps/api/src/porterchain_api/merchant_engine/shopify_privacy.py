@@ -465,18 +465,9 @@ def _clear_dlq(db: Session, shopify_order_id: Any) -> None:
 
 
 def _hold_reason(db: Session, order: Order) -> str | None:
-    from porterchain_api.admin_models import Claim
+    from porterchain_api.merchant_engine.shopify_claim_hold import open_payment_dispute
 
-    chargeback = (
-        db.query(Claim)
-        .filter(
-            Claim.order_id == order.id,
-            Claim.claim_type.in_(("chargeback", "payment_dispute")),
-            Claim.status.in_(("open", "investigating")),
-        )
-        .first()
-    )
-    if chargeback is not None:
+    if open_payment_dispute(db, order.id):
         return "chargeback"
     if order.state in _HOLD_CLAIM:
         return "claim"

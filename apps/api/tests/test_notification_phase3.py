@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from porterchain_api.notification_engine.event_router import _specs_for_event
@@ -47,17 +48,39 @@ def test_quiet_hours_mutes_push_not_email(db) -> None:
         quiet_end_hour=23,
         timezone="UTC",
     )
-    # Almost always quiet with 0–23 window (hour 23 excluded by end exclusive when start<end)
-    # Use full-day wrap: 0–0 is disabled; use 22–21 wrap-ish — better force with start=0 end=23
-    assert svc.should_mute_channel(
-        db, user_role="customer", user_id=uid, channel="push", priority="normal", category="tracking"
-    )
-    assert not svc.should_mute_channel(
-        db, user_role="customer", user_id=uid, channel="email", priority="normal", category="tracking"
-    )
-    assert not svc.should_mute_channel(
-        db, user_role="customer", user_id=uid, channel="push", priority="critical", category="tracking"
-    )
+    # Hour 23 is outside [0, 23). Pin noon so the mute does not depend on the clock.
+    noon = datetime(2026, 8, 8, 12, 0, tzinfo=ZoneInfo("UTC"))
+
+    class _Noon(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return noon if tz is None else noon.astimezone(tz)
+
+    with patch("porterchain_api.notification_engine.user_settings.datetime", _Noon):
+        assert svc.should_mute_channel(
+            db,
+            user_role="customer",
+            user_id=uid,
+            channel="push",
+            priority="normal",
+            category="tracking",
+        )
+        assert not svc.should_mute_channel(
+            db,
+            user_role="customer",
+            user_id=uid,
+            channel="email",
+            priority="normal",
+            category="tracking",
+        )
+        assert not svc.should_mute_channel(
+            db,
+            user_role="customer",
+            user_id=uid,
+            channel="push",
+            priority="critical",
+            category="tracking",
+        )
     db.rollback()
 
 
