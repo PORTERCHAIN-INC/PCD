@@ -1,6 +1,7 @@
 import { Text, View, StyleSheet, ScrollView } from "react-native";
 import { colors, radius, spacing, typography } from "@porterchain/mobile-theme";
-import { formatCents, formatEtaMinutes, vehicleLabel } from "../format";
+import { formatCents, formatEtaMinutes, jobIsClosed, vehicleLabel } from "../format";
+import { isDeliveryStop, jobNeedsAccept, stopWork } from "../jobActions";
 import { fieldWarning } from "../fieldCopy";
 import type { FlushResult } from "../offline";
 import { buildStopChecklist } from "../stopChecklist";
@@ -35,6 +36,7 @@ type Props = {
   onArrive: () => void;
   onComplete: () => void;
   onAccept: () => void;
+  onDecline: () => void;
   onNavigate: () => void;
   onException: (reason: string, notes?: string, photoUrl?: string) => void;
   onFlushOffline: () => void;
@@ -59,6 +61,7 @@ export function RouteScreen({
   onArrive,
   onComplete,
   onAccept,
+  onDecline,
   onNavigate,
   onException,
   onFlushOffline,
@@ -74,21 +77,26 @@ export function RouteScreen({
   const busy = refreshing || Boolean(action);
   const [pretrip, setPretrip] = useState<PretripChecks>(emptyPretrip());
   const canStartDuty = handshake.online || pretripComplete(pretrip);
-  const canArrive = Boolean(handshake.routeId && handshake.stopId);
+  const hasStop = Boolean(handshake.routeId && handshake.stopId);
   const arrived = (handshake.stopStatus ?? "").toLowerCase().includes("arriv");
-  const canAccept = Boolean(handshake.currentOrderId) && !canArrive;
-  const canNav = Boolean(handshake.navigationUrl || handshake.destLat != null);
-  const needsPod = canArrive && (handshake.nextStopType ?? "").toLowerCase() !== "pickup";
+  const offer = jobNeedsAccept({ state: handshake.currentOrderState ?? undefined });
+  const work = stopWork(handshake.currentOrderState, handshake.nextStopType);
+  const canAccept = Boolean(handshake.currentOrderId) && offer;
+  const canWork = hasStop && (work.arrive || work.complete);
+  const finished = jobIsClosed({ state: handshake.currentOrderState ?? undefined });
+  const canNav = !finished && Boolean(handshake.navigationUrl || handshake.destLat != null);
+  const needsPod = canWork && isDeliveryStop(handshake.nextStopType);
   const otpRequired = handshake.otpRequired;
   const canComplete =
-    canArrive &&
+    canWork &&
+    work.complete &&
     (!needsPod || Boolean(podDraft.photoUrl)) &&
     (!otpRequired || Boolean(podDraft.otp.trim()));
   const needsScan =
-    canArrive &&
+    canWork &&
     ((handshake.scanPickup?.required ?? 0) > 0 || (handshake.scanDelivery?.required ?? 0) > 0);
   const checklist = buildStopChecklist({
-    hasStop: canArrive,
+    hasStop: canWork,
     arrived,
     needsScan,
     scanComplete: scanComplete || !needsScan,
@@ -232,7 +240,7 @@ export function RouteScreen({
           />
         ) : null}
 
-        {canArrive ? (
+        {canWork ? (
           <FieldOpsPanel
             orderId={handshake.currentOrderId}
             stopType={handshake.nextStopType}
@@ -250,7 +258,7 @@ export function RouteScreen({
           />
         ) : null}
 
-        {canArrive && arrived ? <ExceptionRow busy={busy} onException={onException} /> : null}
+        {canWork && arrived ? <ExceptionRow busy={busy} onException={onException} /> : null}
         {!handshake.online ? <PretripRow checks={pretrip} onChange={setPretrip} /> : null}
       </ScrollView>
       <View style={styles.cta}>
@@ -268,6 +276,14 @@ export function RouteScreen({
             onPress={onAccept}
           />
         ) : null}
+        {canAccept ? (
+          <PrimaryButton
+            tone="ghost"
+            label={action === "decline" ? "Declining…" : "Decline"}
+            disabled={busy}
+            onPress={onDecline}
+          />
+        ) : null}
         {canNav ? (
           <PrimaryButton
             tone="ghost"
@@ -276,14 +292,14 @@ export function RouteScreen({
             onPress={onNavigate}
           />
         ) : null}
-        {canArrive && !arrived ? (
+        {canWork && work.arrive && !arrived ? (
           <PrimaryButton
             label={action === "arrive" ? "Marking arrived…" : "I've arrived"}
             disabled={busy}
             onPress={onArrive}
           />
         ) : null}
-        {canArrive ? (
+        {canWork && work.complete ? (
           <PrimaryButton
             testID="complete-stop"
             label={

@@ -65,6 +65,7 @@ export const idleHandshake = (): Handshake => ({
   stopStatus: null,
   currentOrderId: null,
   currentOrderNumber: null,
+  currentOrderState: null,
   accessNotes: null,
   parcelLines: [],
   bookingMode: null,
@@ -134,6 +135,8 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
       next_stop: null,
       current: null,
       route_id: null,
+      upcoming: [],
+      jobs: [],
     }));
     if (!dash) {
       return next;
@@ -154,6 +157,9 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
     next.etaMinutes = jobs.next_stop?.eta_minutes ?? null;
     next.currentOrderId = jobs.current?.order_id ?? jobs.next_stop?.order_id ?? null;
     next.currentOrderNumber = jobs.current?.order_number ?? null;
+    const listed = [jobs.current, ...(jobs.upcoming ?? []), ...(jobs.jobs ?? [])];
+    const currentRow = listed.find((job) => job?.order_id === next.currentOrderId) ?? null;
+    next.currentOrderState = currentRow?.state ?? currentRow?.status ?? null;
     next.accessNotes = jobs.next_stop
       ? formatAccessLine({
           special_instructions: jobs.next_stop.special_instructions,
@@ -177,6 +183,7 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
         next.codAmountCents = job.cod_amount_cents ?? null;
         next.codStatus = job.cod_status ?? null;
         if (!next.currentOrderNumber) next.currentOrderNumber = job.order_number;
+        if (job.state || job.status) next.currentOrderState = job.state ?? job.status ?? null;
         if (!next.accessNotes && job.special_instructions) {
           next.accessNotes = formatAccessLine({ special_instructions: job.special_instructions });
         }

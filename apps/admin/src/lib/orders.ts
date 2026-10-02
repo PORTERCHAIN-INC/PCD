@@ -300,6 +300,27 @@ export const ordersApi = {
       last_tracking_push_at?: string | null;
       last_tracking_state?: string | null;
     }>(`${B}/${id}/shopify/repush-fulfillment`, token, { method: "POST", body: "{}" }),
+  driverOps: (token: string, id: string) =>
+    adminFetch<{
+      order_id: string;
+      state: string;
+      driver_assigned: boolean;
+      actions: Array<{ id: string; label: string }>;
+      parcels: Array<Record<string, unknown>>;
+      parcel_statuses: string[];
+    }>(`${B}/${id}/driver-ops`, token),
+  runDriverOp: (token: string, id: string, action: string) =>
+    adminFetch<{ ok: boolean; order_id: string; state: string; action: string }>(
+      `${B}/${id}/driver-ops`,
+      token,
+      { method: "POST", body: JSON.stringify({ action }) }
+    ),
+  setParcelStatus: (token: string, id: string, parcelId: string, status: string) =>
+    adminFetch<{ ok: boolean; parcel_id: string; status: string }>(
+      `${B}/${id}/parcels/${parcelId}/status`,
+      token,
+      { method: "POST", body: JSON.stringify({ status }) }
+    ),
   amendParcels: (
     token: string,
     id: string,

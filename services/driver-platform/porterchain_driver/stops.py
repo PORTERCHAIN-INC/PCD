@@ -245,14 +245,16 @@ class StopsService:
         *,
         fleetbase_bridge: Any = None,
         enforce_sequence: bool = True,
+        skip_presence: bool = False,
     ) -> StopView:
         order = self._order_for_stop(db, driver.id, stop_id)
         _validate_stop_action(order, stop_id, "arrive")
         if enforce_sequence:
             _validate_current_stop(db, driver, stop_id)
-        from porterchain_driver.navigation import assert_driver_inside_stop
+        if not skip_presence:
+            from porterchain_driver.navigation import assert_driver_inside_stop
 
-        assert_driver_inside_stop(driver.id, order, stop_id)
+            assert_driver_inside_stop(driver.id, order, stop_id)
         steps = _PICKUP_ARRIVAL_STEPS if stop_id.endswith("-pickup") else _DELIVERY_ARRIVAL_STEPS
         _apply_state_chain(db, order, steps, actor_type="driver", actor_id=driver.id)
         if fleetbase_bridge and order.fleetbase_order_id:

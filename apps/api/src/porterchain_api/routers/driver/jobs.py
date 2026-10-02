@@ -2,7 +2,6 @@
 
 from porterchain_api.db import db_transaction
 from porterchain_api.routers.driver._deps import (
-    AcceptRejectRequest,
     Annotated,
     Depends,
     DriverContext,
@@ -328,49 +327,6 @@ def stop_exception(
     except (LookupError, ValueError) as exc:
         code = 404 if isinstance(exc, LookupError) else 422
         raise HTTPException(status_code=code, detail=str(exc)) from exc
-
-
-@router.post("/orders/{order_id}/accept")
-def accept_order(
-    order_id: str,
-    ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    require_approved_driver(ctx)
-    bridge = svc.fleetbase_bridge(settings)
-    try:
-        with db_transaction(db):
-            result = svc.platform.availability.accept_assignment(
-                db, ctx.driver, order_id, fleetbase_bridge=bridge
-            )
-        return result
-    except LookupError as exc:
-        raise HTTPException(status_code=404, detail="order_not_found") from exc
-
-
-@router.post("/orders/{order_id}/reject")
-def reject_order(
-    order_id: str,
-    body: AcceptRejectRequest,
-    ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    require_approved_driver(ctx)
-    bridge = svc.fleetbase_bridge(settings)
-    try:
-        with db_transaction(db):
-            result = svc.platform.availability.reject_assignment(
-                db,
-                ctx.driver,
-                order_id,
-                reason=body.reason or "",
-                fleetbase_bridge=bridge,
-            )
-        return result
-    except LookupError as exc:
-        raise HTTPException(status_code=404, detail="order_not_found") from exc
 
 
 @router.post("/orders/{order_id}/cod-checkout")

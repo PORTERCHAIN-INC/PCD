@@ -45,6 +45,27 @@ def test_api_d_02_accept_reject_missing_order() -> None:
 
 
 @pytest.mark.driver_p0
+def test_api_d_02_accept_reject_only_while_assigned() -> None:
+    """In-progress jobs must not be accepted or declined again."""
+    db = MagicMock()
+    order = SimpleNamespace(id="ord-1", state="PICKED_UP", assigned_driver_id="d1")
+    db.query.return_value.filter.return_value.first.return_value = order
+    driver = SimpleNamespace(id="d1")
+    svc = AvailabilityService()
+
+    with pytest.raises(ValueError, match="job_not_awaiting_response"):
+        svc.accept_assignment(db, driver, "ord-1")
+    with pytest.raises(ValueError, match="job_not_awaiting_response"):
+        svc.reject_assignment(db, driver, "ord-1")
+
+    order.state = "DRIVER_ACCEPTED"
+    assert svc.accept_assignment(db, driver, "ord-1") == {
+        "order_id": "ord-1",
+        "state": "DRIVER_ACCEPTED",
+    }
+
+
+@pytest.mark.driver_p0
 def test_api_d_02_jobs_lifecycle_openapi_routes() -> None:
     paths = set(app.openapi().get("paths", {}))
     required = {

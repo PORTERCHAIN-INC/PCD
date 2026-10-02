@@ -9,6 +9,7 @@ import { formatState, SLA_STYLES, STATE_STYLES, type OrderDetail } from "@/lib/o
 import { relativeTime } from "@/lib/crmFormat";
 import { Badge, Spinner } from "@/components/crm/primitives";
 import { OrderAssistPanel } from "@/components/orders/OrderAssistPanel";
+import { SuperAdminDriverOps } from "@/components/orders/SuperAdminDriverOps";
 import { ActionFlash } from "@/components/orders/sections";
 
 import dynamic from "next/dynamic";
@@ -220,6 +221,7 @@ export default function OrderDetailView({
             </div>
             <QuickActions detail={detail} actions={actions} />
           </div>
+          <SuperAdminDriverOps detail={detail} onRefresh={onRefresh} />
 
           <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12">
             <SummaryCard

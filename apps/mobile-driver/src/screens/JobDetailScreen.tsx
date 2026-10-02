@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { ScrollView, Text, StyleSheet, Linking } from "react-native";
 import { colors, spacing, typography } from "@porterchain/mobile-theme";
 import { acceptOrder, codCheckout, fetchJob, rejectOrder } from "../api";
-import { formatCents, formatWhen, jobIsClosed, vehicleLabel } from "../format";
+import { formatCents, formatWhen, vehicleLabel } from "../format";
+import { jobInProgress, jobNeedsAccept } from "../jobActions";
 import { Card, CardTitle } from "../ui/Card";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
@@ -50,8 +51,8 @@ export function JobDetailScreen({ orderId, onBack, onOpenWork }: Props) {
     };
   }, [orderId]);
 
-  const closed = job ? jobIsClosed(job) : false;
-  const canAssign = Boolean(job && !job.is_current_job && !closed);
+  const canAssign = Boolean(job && jobNeedsAccept(job));
+  const canContinue = Boolean(job && jobInProgress(job));
   const packages = job?.packages ?? [];
   const timeline = job?.timeline ?? [];
   const proofs = [
@@ -215,6 +216,9 @@ export function JobDetailScreen({ orderId, onBack, onOpenWork }: Props) {
               .finally(() => setBusy(null));
           }}
         />
+      ) : null}
+      {canContinue ? (
+        <PrimaryButton label="Continue this stop" disabled={Boolean(busy)} onPress={onOpenWork} />
       ) : null}
       {codPending ? (
         <PrimaryButton

@@ -50,6 +50,7 @@ export type Handshake = {
   stopStatus: string | null;
   currentOrderId: string | null;
   currentOrderNumber: string | null;
+  currentOrderState: string | null;
   accessNotes: string | null;
   parcelLines: string[];
   bookingMode: string | null;

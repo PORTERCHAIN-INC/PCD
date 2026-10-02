@@ -8,6 +8,7 @@ from porterchain_api.routers.driver import shift  # noqa: F401
 from porterchain_api.routers.driver import support  # noqa: F401
 from porterchain_api.routers.driver import communications  # noqa: F401
 from porterchain_api.routers.driver import jobs  # noqa: F401
+from porterchain_api.routers.driver import assignment  # noqa: F401
 from porterchain_api.routers.driver import navigation_pod  # noqa: F401
 from porterchain_api.routers.driver import auth_dev  # noqa: F401
 from porterchain_api.routers.driver import verification  # noqa: F401

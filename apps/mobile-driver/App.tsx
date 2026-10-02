@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { colors } from "@porterchain/mobile-theme";
 import {
   acceptOrder,
+  rejectOrder,
   arriveStop,
   fetchPublicHealth,
   reportException,
@@ -288,6 +289,12 @@ function DriverApp() {
                 void runAction("accept", () => {
                   if (!handshake.currentOrderId) throw new Error("no_job");
                   return acceptOrder(handshake.currentOrderId);
+                })
+              }
+              onDecline={() =>
+                void runAction("decline", () => {
+                  if (!handshake.currentOrderId) throw new Error("no_job");
+                  return rejectOrder(handshake.currentOrderId);
                 })
               }
               onNavigate={() => {

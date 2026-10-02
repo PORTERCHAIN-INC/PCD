@@ -11,7 +11,8 @@ import {
   optimizeUndo,
   rejectOrder,
 } from "../api";
-import { formatDayLabel, jobIsClosed, parcelScanLabel } from "../format";
+import { formatDayLabel, parcelScanLabel } from "../format";
+import { jobInProgress, jobNeedsAccept } from "../jobActions";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
 import { ScreenHeader } from "../ui/ScreenHeader";
@@ -327,7 +328,8 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
         {jobs.length === 0 ? <Text style={styles.empty}>No jobs on this shift yet.</Text> : null}
         {jobs.map((job) => {
           const active = job.order_id === (current?.order_id ?? currentOrderId);
-          const closed = jobIsClosed(job);
+          const needsAccept = jobNeedsAccept(job);
+          const continueWork = active && jobInProgress(job);
           return (
             <Card key={job.order_id} style={active ? styles.active : undefined}>
               <Text style={styles.jobNo}>{job.order_number}</Text>
@@ -348,20 +350,23 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
                   disabled={Boolean(busy)}
                   onPress={() => onOpenJob(job.order_id)}
                 />
-                {!active && !closed ? (
+                {needsAccept ? (
                   <PrimaryButton
                     label={busy === job.order_id ? "Accepting…" : "Accept"}
                     disabled={Boolean(busy)}
                     onPress={() => void run(job.order_id, () => acceptOrder(job.order_id))}
                   />
                 ) : null}
-                {!active && !closed ? (
+                {needsAccept ? (
                   <PrimaryButton
                     tone="ghost"
                     label="Decline"
                     disabled={Boolean(busy)}
                     onPress={() => void run(job.order_id, () => rejectOrder(job.order_id))}
                   />
+                ) : null}
+                {continueWork ? (
+                  <PrimaryButton label="Continue" disabled={Boolean(busy)} onPress={onOpenWork} />
                 ) : null}
               </View>
             </Card>
