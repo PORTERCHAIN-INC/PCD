@@ -9,6 +9,14 @@ Apple Team: 4XWFT5A8C3
 Workspace: apps/mobile-driver/ios/PorterchainDriver.xcworkspace
 Scheme: PorterchainDriver
 
+IPA uploaded 4 Oct 2026 (1.0.0 build 20, SDK iphoneos27.0):
+
+  apps/mobile-driver/build/export/PorterchainDriver.ipa
+
+Uploaded with altool key VMAB8YF54D.
+Delivery UUID: 88348d45-7b29-4509-96a9-065d183cb65a
+ASC app: Porterchain Driver (6781880626). Select build 20 on TestFlight after processing.
+
 Note: The app still uses the Expo SDK for RN modules (@clerk/expo, camera,
 notifications, location). “Without Expo” here means without Expo Application
 Services cloud build/submit — not deleting those packages.
