@@ -19,7 +19,9 @@ function shouldBypassIntl(pathname: string): boolean {
     pathname === "/sitemap.xml" ||
     pathname === "/robots.txt" ||
     pathname === "/ravi" ||
-    pathname.startsWith("/ravi/")
+    pathname.startsWith("/ravi/") ||
+    pathname === "/proof-of-resolution" ||
+    pathname.startsWith("/proof-of-resolution/")
   );
 }
 
