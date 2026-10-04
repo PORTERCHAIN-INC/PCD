@@ -37,12 +37,20 @@ def _coords_from_address(addr: dict[str, Any] | None) -> tuple[float, float] | N
 
 STOP_GEOFENCE_RADIUS_M = 150
 
+# Paused 2026-10-04. Drivers may arrive and then confirm pickup or delivery
+# without a GPS fix inside the stop circle. Web, iOS, and Android all call
+# arrive_stop, so this one switch covers those apps. Set True to restore.
+ENFORCE_STOP_PRESENCE = False
+
 
 def assert_driver_inside_stop(driver_id: str, order: Any, stop_id: str) -> None:
     """Fail closed when last-known GPS (Fleetbase overlay) is outside the stop circle.
 
     Missing GPS does not block arrive — last-known is a cache, not a hard lock.
+    While ENFORCE_STOP_PRESENCE is False, a fix outside the circle does not block either.
     """
+    if not ENFORCE_STOP_PRESENCE:
+        return
     from porterchain_api.driver_engine.last_known import distance_m, read_last_known
 
     known = read_last_known(driver_id)

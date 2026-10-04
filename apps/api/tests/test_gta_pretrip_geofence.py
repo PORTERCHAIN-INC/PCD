@@ -43,24 +43,42 @@ def _known(lat: float, lng: float) -> LastKnown:
     return LastKnown(driver_id="drv-1", lat=lat, lng=lng, recorded_at=datetime.now(UTC))
 
 
+def test_arrive_open_when_presence_paused() -> None:
+    """Default: GPS circle is paused, so a far last-known fix does not block arrive."""
+    with patch(
+        "porterchain_api.driver_engine.last_known.read_last_known",
+        return_value=_known(43.85, -79.38),
+    ):
+        assert_driver_inside_stop("drv-1", _order(), "ord-1-dropoff")
+
+
 def test_arrive_open_when_gps_missing() -> None:
-    with patch("porterchain_api.driver_engine.last_known.read_last_known", return_value=None):
+    with (
+        patch("porterchain_driver.navigation.ENFORCE_STOP_PRESENCE", True),
+        patch("porterchain_api.driver_engine.last_known.read_last_known", return_value=None),
+    ):
         assert_driver_inside_stop("drv-1", _order(), "ord-1-dropoff")
 
 
 def test_arrive_fail_closed_when_outside_stop() -> None:
-    with patch(
-        "porterchain_api.driver_engine.last_known.read_last_known",
-        return_value=_known(43.85, -79.38),
+    with (
+        patch("porterchain_driver.navigation.ENFORCE_STOP_PRESENCE", True),
+        patch(
+            "porterchain_api.driver_engine.last_known.read_last_known",
+            return_value=_known(43.85, -79.38),
+        ),
     ):
         with pytest.raises(ValueError, match="not_at_stop"):
             assert_driver_inside_stop("drv-1", _order(), "ord-1-dropoff")
 
 
 def test_arrive_ok_inside_stop_circle() -> None:
-    with patch(
-        "porterchain_api.driver_engine.last_known.read_last_known",
-        return_value=_known(43.66, -79.39),
+    with (
+        patch("porterchain_driver.navigation.ENFORCE_STOP_PRESENCE", True),
+        patch(
+            "porterchain_api.driver_engine.last_known.read_last_known",
+            return_value=_known(43.66, -79.39),
+        ),
     ):
         assert_driver_inside_stop("drv-1", _order(), "ord-1-dropoff")
 
