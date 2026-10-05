@@ -102,6 +102,10 @@ class Settings(BaseSettings):
     driver_portal_url: str = "http://localhost:3003"
     customer_portal_url: str = "http://localhost:3004"
     website_url: str = "http://localhost:3000"
+    zeptomail_webhook_secret: str = Field(
+        default="",
+        validation_alias=AliasChoices("zeptomail_webhook_secret", "ZEPTOMAIL_WEBHOOK_SECRET"),
+    )
     website_revalidate_secret: str = Field(
         default="",
         validation_alias=AliasChoices(
