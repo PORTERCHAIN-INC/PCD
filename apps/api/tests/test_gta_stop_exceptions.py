@@ -154,3 +154,26 @@ def test_next_stop_access_and_masked_phone() -> None:
     assert out["contact_phone_masked"] == "•••-••12"
     assert out["special_instructions"] == "Leave with concierge"
     assert "4165551212" not in str(out["contact_phone_masked"])
+
+
+def test_dropoff_open_when_pod_paused() -> None:
+    """Default: missing proof does not block complete delivery."""
+    from porterchain_driver.stops import _assert_dropoff_pod_ready
+
+    db = MagicMock()
+    order = SimpleNamespace(id="ord-1", state="AT_DESTINATION", compliance_metadata={})
+    _assert_dropoff_pod_ready(db, order)
+    db.query.assert_not_called()
+
+
+def test_dropoff_requires_proof_when_pod_enforced() -> None:
+    from porterchain_driver.stops import _assert_dropoff_pod_ready
+
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = None
+    order = SimpleNamespace(id="ord-1", state="AT_DESTINATION", compliance_metadata={})
+    with (
+        patch("porterchain_driver.stops.ENFORCE_DROP_POD", True),
+        pytest.raises(PermissionError, match="pod_required"),
+    ):
+        _assert_dropoff_pod_ready(db, order)

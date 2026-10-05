@@ -3,6 +3,9 @@ import { emptyPodDraft } from "../ui/PodCapture";
 import { deliverStop, podBarcode, podComplete, podPhoto, podSignature } from "../api";
 import { runOnlineOrQueue } from "../offline";
 
+/** Paused with API ENFORCE_DROP_POD. Complete delivery does not require proof. */
+export const ENFORCE_DROP_POD = false;
+
 type Args = {
   routeId: string | null;
   stopId: string | null;
@@ -24,40 +27,47 @@ export async function completeStopAction({
   if (!routeId || !stopId) throw new Error("no_stop");
   const needsPod = (nextStopType ?? "").toLowerCase() !== "pickup";
 
-  if (needsPod) {
+  if (needsPod && ENFORCE_DROP_POD) {
     if (!podDraft.photoUrl) throw new Error("photo_required");
     if (otpRequired && !podDraft.otp.trim()) throw new Error("otp_required");
-    const mode = await runOnlineOrQueue(
-      "camera_upload",
-      { stop_id: stopId, file_url: podDraft.photoUrl, route_id: routeId },
-      () => podPhoto(routeId, stopId, podDraft.photoUrl as string)
-    );
-    if (podDraft.signature.trim()) {
-      await runOnlineOrQueue(
-        "pod_signature",
-        {
-          stop_id: stopId,
-          signature_data: podDraft.signature.trim(),
-          route_id: routeId,
-        },
-        () => podSignature(routeId, stopId, podDraft.signature.trim())
+  }
+
+  if (needsPod && podDraft.photoUrl) {
+    try {
+      const mode = await runOnlineOrQueue(
+        "camera_upload",
+        { stop_id: stopId, file_url: podDraft.photoUrl, route_id: routeId },
+        () => podPhoto(routeId, stopId, podDraft.photoUrl as string)
       );
-    }
-    if (podDraft.barcode.trim()) {
+      if (podDraft.signature.trim()) {
+        await runOnlineOrQueue(
+          "pod_signature",
+          {
+            stop_id: stopId,
+            signature_data: podDraft.signature.trim(),
+            route_id: routeId,
+          },
+          () => podSignature(routeId, stopId, podDraft.signature.trim())
+        );
+      }
+      if (podDraft.barcode.trim()) {
+        await runOnlineOrQueue(
+          "pod_barcode",
+          { stop_id: stopId, barcode: podDraft.barcode.trim(), route_id: routeId },
+          () => podBarcode(routeId, stopId, podDraft.barcode.trim())
+        );
+      }
       await runOnlineOrQueue(
-        "pod_barcode",
-        { stop_id: stopId, barcode: podDraft.barcode.trim(), route_id: routeId },
-        () => podBarcode(routeId, stopId, podDraft.barcode.trim())
+        "pod_complete",
+        { stop_id: stopId, otp: podDraft.otp.trim() || null, route_id: routeId },
+        () => podComplete(routeId, stopId, podDraft.otp.trim() || undefined)
       );
-    }
-    await runOnlineOrQueue(
-      "pod_complete",
-      { stop_id: stopId, otp: podDraft.otp.trim() || null, route_id: routeId },
-      () => podComplete(routeId, stopId, podDraft.otp.trim() || undefined)
-    );
-    if (mode === "queued") {
-      setPodDraft(emptyPodDraft());
-      return;
+      if (mode === "queued" && ENFORCE_DROP_POD) {
+        setPodDraft(emptyPodDraft());
+        return;
+      }
+    } catch (err) {
+      if (ENFORCE_DROP_POD) throw err;
     }
   }
 

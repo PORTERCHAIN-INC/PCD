@@ -55,8 +55,19 @@ _PICKUP_DONE_STATES = frozenset(
 )
 
 
+# Paused 2026-10-05. Complete delivery is accepted without photo, signature,
+# barcode, or OTP proof. Web, iOS, and Android all call deliver_stop.
+# Set True to restore the proof requirement.
+ENFORCE_DROP_POD = False
+
+
 def _assert_dropoff_pod_ready(db: Session, order: Any) -> None:
-    """Dean correctness: dropoff deliver requires captured proof; OTP jobs need POD_COMPLETED."""
+    """Dean correctness: dropoff deliver requires captured proof; OTP jobs need POD_COMPLETED.
+
+    While ENFORCE_DROP_POD is False, a missing proof does not block complete delivery.
+    """
+    if not ENFORCE_DROP_POD:
+        return
     from porterchain_api.booking_engine.compliance_metadata import otp_required_at_delivery
     from porterchain_api.domain.states import OrderState
     from porterchain_api.driver_models import DriverStopMeta
