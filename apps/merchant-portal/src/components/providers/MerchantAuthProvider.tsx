@@ -41,13 +41,47 @@ function readStoredMerchantId(): string | undefined {
   }
 }
 
+function clearStoredMerchantId() {
+  try {
+    localStorage.removeItem(MERCHANT_ID_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Another sign-in left pc_merchant_id set. This user has no seat there. */
+function isForeignMembership(err: unknown): boolean {
+  return (
+    err instanceof Error &&
+    (err.message === "merchant_membership_not_found" || err.message === "merchant_not_found")
+  );
+}
+
+async function loadMerchantSession(
+  token: string,
+  merchantId: string | undefined,
+  fromStorage: boolean
+) {
+  try {
+    return await getMerchantSession(token, merchantId);
+  } catch (err) {
+    if (fromStorage && merchantId && isForeignMembership(err)) {
+      clearStoredMerchantId();
+      return getMerchantSession(token);
+    }
+    throw err;
+  }
+}
+
 function DevMerchantAuthProvider({ children }: { children: ReactNode }) {
   const [orgId, setOrgIdState] = useState<string | undefined>(undefined);
   const [session, setSession] = useState<MerchantSession | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
 
   const refreshSession = useCallback(async (merchantId?: string) => {
-    const s = await getMerchantSession("dev", merchantId ?? readStoredMerchantId());
+    const fromStorage = merchantId === undefined;
+    const requested = fromStorage ? readStoredMerchantId() : merchantId;
+    const s = await loadMerchantSession("dev", requested, fromStorage);
     setSession(s);
     setOrgIdState(s.merchant_id);
     try {
@@ -75,7 +109,7 @@ function DevMerchantAuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void (async () => {
       try {
-        await refreshSession(readStoredMerchantId());
+        await refreshSession();
       } catch {
         setSession(null);
       } finally {
@@ -129,7 +163,9 @@ function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = useCallback(
     async (merchantId?: string) => {
       const token = await getApiToken();
-      const s = await getMerchantSession(token, merchantId ?? readStoredMerchantId());
+      const fromStorage = merchantId === undefined;
+      const requested = fromStorage ? readStoredMerchantId() : merchantId;
+      const s = await loadMerchantSession(token, requested, fromStorage);
       setSession(s);
       setOrgIdState(s.merchant_id);
       try {

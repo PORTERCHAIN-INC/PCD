@@ -121,6 +121,27 @@ def test_switcher_survives_a_suspended_selection(db) -> None:
     assert [m["merchant_id"] for m in body["memberships"] if m["can_open"]] == [working.id]
 
 
+def test_stale_company_header_opens_this_users_seat(db) -> None:
+    """A leftover X-Merchant-Id from another sign-in must not blank the portal."""
+    clerk_id, email, working, _stopped = _two_companies(db)
+    other = Merchant(
+        company_name="Someone Else Co",
+        email=f"{uuid4().hex[:8]}@bf.test",
+        status=MerchantStatus.ACTIVE.value,
+    )
+    db.add(other)
+    db.commit()
+
+    ctx = get_merchant_context(
+        claims=_claims(clerk_id, email),
+        db=db,
+        settings=_settings(),
+        x_merchant_id=other.id,
+    )
+    assert ctx.merchant.id == working.id
+    assert ctx.role == MerchantRole.OWNER
+
+
 def test_a_company_you_have_no_seat_on_is_refused(db) -> None:
     clerk_id, email, _working, _stopped = _two_companies(db)
     other = Merchant(

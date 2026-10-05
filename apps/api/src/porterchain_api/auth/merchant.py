@@ -191,10 +191,10 @@ def _resolve_merchant_user(
 ) -> Any:
     if merchant_id:
         seats = [s for s in seats_for_clerk(db, clerk_user_id) if s.merchant_id == merchant_id]
-        if not seats:
-            raise HTTPException(status_code=403, detail="merchant_membership_not_found")
-        return seats[0]
-
+        if seats:
+            return seats[0]
+        # Browser kept pc_merchant_id from a previous sign-in. Do not treat that
+        # as "this owner withheld Overview" — open the company this user belongs to.
     user = first_open_seat(db, clerk_user_id)
     if user:
         return user
