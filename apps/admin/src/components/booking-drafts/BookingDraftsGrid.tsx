@@ -73,25 +73,45 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
       {
         id: "select",
         size: 40,
-        header: ({ table }) => (
-          <input
-            type="checkbox"
-            checked={table.getIsAllPageRowsSelected()}
-            onChange={table.getToggleAllPageRowsSelectedHandler()}
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <input
-            type="checkbox"
-            checked={selected.includes(row.original.draft_id)}
-            onChange={(e) => {
-              const id = row.original.draft_id;
-              onSelect(e.target.checked ? [...selected, id] : selected.filter((x) => x !== id));
-            }}
-            aria-label={`Select ${row.original.draft_number}`}
-          />
-        ),
+        header: ({ table }) => {
+          const ids = table
+            .getFilteredRowModel()
+            .rows.filter((r) => !r.getIsGrouped())
+            .map((r) => r.original.draft_id)
+            .filter(Boolean);
+          const allSelected = ids.length > 0 && ids.every((id) => selected.includes(id));
+          const someSelected = ids.some((id) => selected.includes(id));
+          return (
+            <input
+              type="checkbox"
+              checked={allSelected}
+              ref={(el) => {
+                if (el) el.indeterminate = someSelected && !allSelected;
+              }}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onSelect([...new Set([...selected, ...ids])]);
+                } else {
+                  const drop = new Set(ids);
+                  onSelect(selected.filter((id) => !drop.has(id)));
+                }
+              }}
+              aria-label="Select all"
+            />
+          );
+        },
+        cell: ({ row }) =>
+          row.getIsGrouped() ? null : (
+            <input
+              type="checkbox"
+              checked={selected.includes(row.original.draft_id)}
+              onChange={(e) => {
+                const id = row.original.draft_id;
+                onSelect(e.target.checked ? [...selected, id] : selected.filter((x) => x !== id));
+              }}
+              aria-label={`Select ${row.original.draft_number}`}
+            />
+          ),
       },
       {
         accessorKey: "draft_number",

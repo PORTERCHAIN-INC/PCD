@@ -14,7 +14,9 @@ type Props = {
 };
 
 export function OrdersTable({ rows, selected, onSelect }: Props) {
-  const allSelected = rows.length > 0 && rows.every((r) => selected.includes(r.order_id));
+  const ids = rows.map((r) => r.order_id);
+  const allSelected = ids.length > 0 && ids.every((id) => selected.includes(id));
+  const someSelected = ids.some((id) => selected.includes(id));
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-primary/10 bg-white">
@@ -25,7 +27,18 @@ export function OrdersTable({ rows, selected, onSelect }: Props) {
               <input
                 type="checkbox"
                 checked={allSelected}
-                onChange={(e) => onSelect(e.target.checked ? rows.map((r) => r.order_id) : [])}
+                disabled={ids.length === 0}
+                ref={(el) => {
+                  if (el) el.indeterminate = someSelected && !allSelected;
+                }}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    onSelect([...new Set([...selected, ...ids])]);
+                  } else {
+                    const drop = new Set(ids);
+                    onSelect(selected.filter((id) => !drop.has(id)));
+                  }
+                }}
                 aria-label="Select all"
               />
             </th>

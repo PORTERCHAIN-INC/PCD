@@ -122,14 +122,21 @@ function OrdersGridTable({ rows, selected, onSelect, loading }: Props) {
       {
         id: "select",
         size: 40,
-        header: ({ table }) => (
-          <input
-            type="checkbox"
-            checked={table.getIsAllPageRowsSelected()}
-            onChange={table.getToggleAllPageRowsSelectedHandler()}
-            aria-label="Select all"
-          />
-        ),
+        header: ({ table }) => {
+          const all = table.getIsAllPageRowsSelected();
+          const some = table.getIsSomePageRowsSelected();
+          return (
+            <input
+              type="checkbox"
+              checked={all}
+              ref={(el) => {
+                if (el) el.indeterminate = some && !all;
+              }}
+              onChange={table.getToggleAllPageRowsSelectedHandler()}
+              aria-label="Select all"
+            />
+          );
+        },
         cell: ({ row }) => (
           <input
             type="checkbox"

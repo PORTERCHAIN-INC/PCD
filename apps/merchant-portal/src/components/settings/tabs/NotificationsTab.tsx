@@ -34,28 +34,50 @@ export function NotificationsTab({
   const [quiet, setQuiet] = useState<QuietHours>(quietHours ?? DEFAULT_QUIET);
   const [quietBusy, setQuietBusy] = useState(false);
   const [quietMessage, setQuietMessage] = useState<string | null>(null);
+  const [localPrefs, setLocalPrefs] = useState<NotificationPrefs>(prefs);
 
   useEffect(() => {
     if (quietHours) setQuiet(quietHours);
   }, [quietHours]);
 
+  useEffect(() => {
+    setLocalPrefs(prefs);
+  }, [prefs]);
+
   const toggle = async (key: keyof NotificationPrefs, value: boolean) => {
-    const token = await getToken();
-    await settingsApi.updateNotifications(token, { [key]: value }, orgId);
-    await onRefresh();
+    const previous = localPrefs;
+    setLocalPrefs((p) => ({ ...p, [key]: value }));
+    try {
+      const token = await getToken();
+      await settingsApi.updateNotifications(token, { [key]: value }, orgId);
+      await onRefresh();
+    } catch {
+      setLocalPrefs(previous);
+    }
   };
 
   const toggleChannel = async (channel: "email" | "in_app", value: boolean) => {
-    const token = await getToken();
-    await settingsApi.updateNotifications(
-      token,
-      { channels: { ...prefs.channels, [channel]: value } },
-      orgId
-    );
-    await onRefresh();
+    const previous = localPrefs;
+    setLocalPrefs((p) => ({
+      ...p,
+      channels: { ...(p.channels ?? { email: true, in_app: true }), [channel]: value },
+    }));
+    try {
+      const token = await getToken();
+      await settingsApi.updateNotifications(
+        token,
+        { channels: { ...previous.channels, [channel]: value } },
+        orgId
+      );
+      await onRefresh();
+    } catch {
+      setLocalPrefs(previous);
+    }
   };
 
   const saveQuiet = async (next: QuietHours) => {
+    const previous = quiet;
+    setQuiet(next);
     setQuietBusy(true);
     setQuietMessage(null);
     try {
@@ -69,6 +91,7 @@ export function NotificationsTab({
       await onRefresh();
       setQuietMessage("Quiet hours saved.");
     } catch (e) {
+      setQuiet(previous);
       setQuietMessage(e instanceof Error ? e.message : "Could not save quiet hours");
     } finally {
       setQuietBusy(false);
@@ -86,7 +109,7 @@ export function NotificationsTab({
     { key: "weekly_summary", label: "Weekly summary" },
   ];
 
-  const channels = prefs.channels ?? { email: true, in_app: true };
+  const channels = localPrefs.channels ?? { email: true, in_app: true };
 
   return (
     <div className="space-y-5">
@@ -119,7 +142,7 @@ export function NotificationsTab({
               <span>{item.label}</span>
               <input
                 type="checkbox"
-                checked={Boolean(prefs[item.key])}
+                checked={Boolean(localPrefs[item.key])}
                 onChange={(e) => void toggle(item.key, e.target.checked)}
               />
             </li>

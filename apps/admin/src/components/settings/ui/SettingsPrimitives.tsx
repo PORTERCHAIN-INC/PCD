@@ -131,7 +131,10 @@ export function Toggle({
 }) {
   const id = `toggle-${label.replace(/\W+/g, "-").toLowerCase()}`;
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-primary/10 bg-white px-4 py-3 shadow-sm">
+    <div
+      className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-primary/10 bg-white px-4 py-3 shadow-sm"
+      onClick={() => onChange(!checked)}
+    >
       <div className="min-w-0 flex-1">
         <p id={id} className="text-sm font-medium text-primary">
           {label}
@@ -143,7 +146,10 @@ export function Toggle({
         role="switch"
         aria-checked={checked}
         aria-labelledby={id}
-        onClick={() => onChange(!checked)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onChange(!checked);
+        }}
         className={cn(
           "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition-colors",
           checked ? "border-secondary bg-secondary" : "border-primary/20 bg-slate-200"

@@ -62,7 +62,13 @@ export default function CookieConsentBanner({ onConsentChange }: Props) {
           </p>
           <div className="mt-3 flex flex-wrap gap-4 text-xs text-primary">
             <label className="inline-flex items-center gap-2">
-              <input type="checkbox" checked disabled className="rounded border-primary/20" />
+              <input
+                type="checkbox"
+                checked
+                disabled
+                readOnly
+                className="rounded border-primary/20"
+              />
               {t("necessary")}
             </label>
             <label className="inline-flex items-center gap-2">

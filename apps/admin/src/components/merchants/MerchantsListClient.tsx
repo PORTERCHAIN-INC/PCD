@@ -300,20 +300,31 @@ export default function MerchantsListClient() {
       {
         id: "select",
         enableSorting: false,
-        header: ({ table }) => (
-          <input
-            type="checkbox"
-            checked={table.getIsAllPageRowsSelected()}
-            onChange={table.getToggleAllPageRowsSelectedHandler()}
-          />
-        ),
+        header: ({ table }) => {
+          const all = table.getIsAllPageRowsSelected();
+          const some = table.getIsSomePageRowsSelected();
+          return (
+            <input
+              type="checkbox"
+              checked={all}
+              ref={(el) => {
+                if (el) el.indeterminate = some && !all;
+              }}
+              onChange={table.getToggleAllPageRowsSelectedHandler()}
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Select all"
+            />
+          );
+        },
         cell: ({ row }) => (
-          <input
-            type="checkbox"
-            checked={row.getIsSelected()}
-            onChange={row.getToggleSelectedHandler()}
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="-m-3 p-3" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="checkbox"
+              checked={row.getIsSelected()}
+              onChange={row.getToggleSelectedHandler()}
+              aria-label={`Select ${row.original.company_name}`}
+            />
+          </div>
         ),
       },
       {
@@ -547,6 +558,7 @@ export default function MerchantsListClient() {
     columns,
     state: { sorting, rowSelection, columnVisibility: visibility },
     onSortingChange: setSorting,
+    enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onColumnVisibilityChange: setVisibility,
     getRowId: (r) => r.id,
