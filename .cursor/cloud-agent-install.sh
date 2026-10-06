@@ -11,13 +11,16 @@ source "$ROOT/.cursor/cloud-agent-lib.sh"
 export DEBIAN_FRONTEND=noninteractive
 
 sudo apt-get update
-sudo apt-get install -y --no-install-recommends \
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  -o Dpkg::Options::=--force-confdef \
+  -o Dpkg::Options::=--force-confold \
   ca-certificates \
   curl \
   xz-utils \
   git \
   build-essential \
   pkg-config \
+  iproute2 \
   docker.io \
   docker-compose-v2 \
   fuse-overlayfs \
@@ -32,7 +35,7 @@ sudo mkdir -p /etc/docker /usr/local/cargo/bin
 sudo tee /etc/docker/daemon.json >/dev/null <<'EOF'
 {
   "storage-driver": "fuse-overlayfs",
-  "iptables": false,
+  "iptables": true,
   "ip6tables": false
 }
 EOF
@@ -55,6 +58,8 @@ done
 
 corepack enable
 corepack prepare pnpm@11.10.0 --activate
+# package.json dev scripts use bash `source`. Ubuntu /bin/sh is dash.
+pnpm config set script-shell /bin/bash
 if [[ -x "${NODE_PREFIX}/bin/pnpm" ]]; then
   sudo ln -sfn "${NODE_PREFIX}/bin/pnpm" /usr/local/bin/pnpm
   sudo ln -sfn "${NODE_PREFIX}/bin/pnpm" /usr/local/cargo/bin/pnpm
@@ -75,11 +80,12 @@ sudo ln -sfn "$PY314" /usr/local/cargo/bin/python
 pnpm install --frozen-lockfile
 
 if [[ ! -x apps/api/.venv/bin/python ]] || ! apps/api/.venv/bin/python -c 'import sys; raise SystemExit(0 if sys.version_info[:3] == (3, 14, 6) else 1)'; then
-  uv venv --python 3.14.6 apps/api/.venv --clear
+  uv venv --python 3.14.6 apps/api/.venv --clear --seed
 fi
-apps/api/.venv/bin/pip install --upgrade pip
-apps/api/.venv/bin/pip install -r apps/api/requirements.txt
-apps/api/.venv/bin/pip install 'pytest>=8.3.0' 'pytest-asyncio>=0.24.0'
+(
+  cd apps/api
+  uv pip install --python .venv/bin/python -r requirements.txt 'pytest>=8.3.0' 'pytest-asyncio>=0.24.0'
+)
 
 copy_env() {
   local src="$1"
