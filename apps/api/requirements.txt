@@ -21,7 +21,7 @@ msgpack>=1.2.1
 authzed>=1.21.0
 grpcio>=1.70.0
 webauthn>=2.7.0
-h3>=4.2.0
+h3>=4.5.0
 ortools==9.15.6755
 
 # Platform packages (editable — install from repo root or use PYTHONPATH)
