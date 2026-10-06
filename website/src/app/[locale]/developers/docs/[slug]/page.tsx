@@ -12,6 +12,7 @@ import {
   isValidDeveloperDocSlug,
 } from "@/lib/developer-docs";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
+import { ensureStaticParams } from "@/lib/seo/ensure-static-params";
 import { routing } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
@@ -25,7 +26,7 @@ export function generateStaticParams() {
       }
     }
   }
-  return params;
+  return ensureStaticParams(params, { locale: routing.locales[0]!, slug: "partner-guide" });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

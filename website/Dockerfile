@@ -31,6 +31,7 @@ COPY packages/types ./packages/types
 COPY packages/config ./packages/config
 COPY packages/maps ./packages/maps
 COPY packages/ui ./packages/ui
+COPY docs/api ./docs/api
 ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ARG NEXT_PUBLIC_SITE_URL=https://porterchain.com
 # Leave empty in production so the site uses same-origin /v1/* (Caddy → API).
