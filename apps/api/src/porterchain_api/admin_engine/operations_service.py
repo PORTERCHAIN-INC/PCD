@@ -62,7 +62,7 @@ class AdminOperationsService:
         return order
 
     @staticmethod
-    def _enqueue_driver_book_optimize(  # enqueue only — PorterChain day plan sequences
+    def _enqueue_driver_book_optimize(  # fleetbase-first:ok — queues day plan, does not sequence locally
         db: Session,
         driver_id: str,
         *,

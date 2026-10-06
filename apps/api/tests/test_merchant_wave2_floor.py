@@ -132,9 +132,15 @@ def test_book_stores_consignee_for_the_booked_notice(db, settings) -> None:
     from porterchain_api.booking_models import DomainEvent
     from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 
-    with patch(
-        "porterchain_api.merchant_engine.booking_service.transition_to_dispatch_ready",
-        side_effect=lambda db, order, **_k: order,
+    with (
+        patch(
+            "porterchain_api.merchant_engine.booking_service.transition_to_dispatch_ready",
+            side_effect=lambda db, order, **_k: order,
+        ),
+        patch(
+            "porterchain_api.notification_engine.engine.NotificationEngine.dispatch",
+            return_value=None,
+        ),
     ):
         order = MerchantBookingService().create_shipment(
             db, settings, _ctx(db), _body(consignee_email="recv@shop.example")

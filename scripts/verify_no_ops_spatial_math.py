@@ -24,6 +24,10 @@ SCAN_DIRS = (
 _BANNED: tuple[tuple[re.Pattern[str], str], ...] = tuple(
     (re.compile(pattern, re.IGNORECASE), why)
     for pattern, why in (
+        (
+            r"distancematrix|DistanceMatrix",
+            "HS-20 Google Places is autocomplete only — never Distance Matrix for ops",
+        ),
         (r"haversine|great_circle", "straight-line distance — use Valhalla/OSRM"),
         (r"nearest[_ ]driver", "nearest-driver ranking — Valhalla matrix / dispatch scoring"),
         (r"distance[_ ]matrix|travel[_ ]matrix", "matrix math — call Valhalla/OSRM matrix API"),

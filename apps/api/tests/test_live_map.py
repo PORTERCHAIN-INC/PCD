@@ -154,6 +154,20 @@ class TestSnapshot:
             lng=-79.38,
             recorded_at=datetime.now(UTC),
         )
+        pin = {
+            "id": driver.id,
+            "fleetbase_driver_id": "",
+            "name": driver.full_name,
+            "lat": 43.65,
+            "lng": -79.38,
+            "online": True,
+            "on_break": False,
+            "gps_source": "last_known",
+            "recorded_at": known.recorded_at.isoformat(),
+            "accuracy_m": None,
+            "heading": None,
+            "h3": None,
+        }
         try:
             with (
                 patch(
@@ -161,12 +175,8 @@ class TestSnapshot:
                     return_value=([], ops_mirror.SOURCE_MISS),
                 ),
                 patch(
-                    "porterchain_api.dispatch_engine.gps_board.read_last_known",
-                    return_value=known,
-                ),
-                patch(
-                    "porterchain_api.platform.last_known.read_last_known",
-                    return_value=known,
+                    "porterchain_api.admin_engine.live_map_service.gps_board.board_pins",
+                    return_value=([pin], "last_known"),
                 ),
             ):
                 snap = LiveMapService().snapshot(db)
@@ -226,6 +236,20 @@ class TestSnapshot:
             lng=-79.38,
             recorded_at=datetime.now(UTC),
         )
+        pin = {
+            "id": driver.id,
+            "fleetbase_driver_id": "",
+            "name": driver.full_name,
+            "lat": 43.65,
+            "lng": -79.38,
+            "online": True,
+            "on_break": False,
+            "gps_source": "last_known",
+            "recorded_at": known.recorded_at.isoformat(),
+            "accuracy_m": None,
+            "heading": None,
+            "h3": None,
+        }
         try:
             with (
                 patch(
@@ -233,12 +257,8 @@ class TestSnapshot:
                     return_value=([], ops_mirror.SOURCE_MISS),
                 ),
                 patch(
-                    "porterchain_api.dispatch_engine.gps_board.read_last_known",
-                    return_value=known,
-                ),
-                patch(
-                    "porterchain_api.platform.last_known.read_last_known",
-                    return_value=known,
+                    "porterchain_api.admin_engine.live_map_service.gps_board.board_pins",
+                    return_value=([pin], "last_known"),
                 ),
             ):
                 snap = LiveMapService().snapshot(db)

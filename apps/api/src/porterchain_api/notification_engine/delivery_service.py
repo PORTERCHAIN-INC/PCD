@@ -404,9 +404,6 @@ class DeliveryService:
             "htmlbody": html_body or text_body,
             "textbody": text_body or "",
         }
-        reply_to = context.get("support_email") or context.get("reply_to")
-        if isinstance(reply_to, str) and "@" in reply_to:
-            payload["reply_to"] = [{"address": reply_to.strip()}]
         try:
             resp = httpx.post(
                 api_url,
